@@ -1,5 +1,5 @@
 # Source API Reference
-Sources are the head components for all DSL Pipelines. Pipelines must have at least one source in use, among other components, to reach a state of Ready. DSL supports four types of Streaming Sources, two Camera and two Decode:
+Sources are the head components for all DSL Pipelines. Pipelines must have at least one source in use, among other components, to reach a state of Ready. DSL supports six types of Streaming Sources, two Camera, two Decode, and two Non-Live sources:
 
 **Camera Sources:**
 * Camera Serial Interface ( CSI )
@@ -9,17 +9,21 @@ Sources are the head components for all DSL Pipelines. Pipelines must have at le
 * Uniform Resource Identifier ( URI )
 * Real-time Streaming Protocol ( RTSP )
 
+**Non-Live Sources:**
+* Video File Source
+* Image File Source (can simulate live source)
+
 #### Source Construction and Destruction
-Sources are created using one of four type-specific constructors. As with all components, Streaming Sources must be uniquely named from all other Pipeline components created. 
+Sources are created using one of six type-specific [constructors](#constructors). As with all components, Streaming Sources must be uniquely named from all other Pipeline components created. 
 
 Sources are added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](api-pipeline.md]#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all]((api-pipeline.md)#dsl_pipeline_component_remove_all).
 
 When adding multiple sources to a Pipeline, all must have the same `is_live` setting; `true` or `false`. The add services will fail on first exception. 
 
-The relationship between Pipelines and Sources is one-to-many. Once added to a Pipeline, a Source must be removed before it can used with another. All sources are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all). Calling a delete service on a Source `in-use` by a Pipeline will fail.
+The relationship between Pipelines and Sources is one-to-many. Once added to a Pipeline, a Source must be removed before it can be used with another. All sources are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all). Calling a delete service on a Source `in-use` by a Pipeline will fail.
 
 #### Sources and Demuxers
-When using a [Demuxer](/docs/api-tiler.md), vs. a Tiler component, each demuxed source stream must have one or more downstream [Sink](/docs/api-sink) components to end the stream. To identify this relationship, each sink is added to its upstream Source component vs. the Pipeline directly. See [dsl_source_sink_add](#dsl_source_sink_add) and [dsl_source_sink_remove](#dsl_source_sink_remove). An optional [On-Screen Display (OSD)](/docs/api-osd.md) component can be add to each source when using a Demuxer as well. See [dsl_source_osd_add](#dsl_source_osd_add) and [dsl_source_osd_remove](#dsl_source_osd_remove).
+When using a [Demuxer](/docs/api-tiler.md), vs. a Tiler component, each demuxed source stream must have one or more downstream [Sink](/docs/api-sink) components to end the stream.
 
 #### Maximum Source Control
 There is no practical limit to the number of Sources that can be created, just to the number of Sources that can be `in use` - a child of a Pipeline - at one time. The `in-use` limit is imposed by the Jetson Model in use. 
@@ -39,6 +43,8 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_usb_new](#dsl_source_usb_new)
 * [dsl_source_uri_new](#dsl_source_uri_new)
 * [dsl_source_rtsp_new](#dsl_source_rtsp_new)
+* [dsl_source_file_new](#dsl_source_file_new)
+* [dsl_source_image_new](dsl_source_image_new)
 
 **methods:**
 * [dsl_source_dimensions_get](#dsl_source_dimensions_get)
@@ -62,6 +68,14 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_rtsp_state_change_listener_remove](#dsl_source_rtsp_state_change_listener_remove)
 * [dsl_source_rtsp_tap_add](#dsl_source_rtsp_tap_add)
 * [dsl_source_rtsp_tap_remove](#dsl_source_rtsp_tap_remove)
+* [dsl_source_file_path_get](#dsl_source_file_path_get)
+* [dsl_source_file_path_set](#dsl_source_file_path_set)
+* [dsl_source_file_repeat_enabled_get](#dsl_source_file_repeat_enabled_get)
+* [dsl_source_file_repeat_enabled_set](#dsl_source_file_repeat_enabled_set)
+* [dsl_source_image_path_get](#dsl_source_image_path_get)
+* [dsl_source_image_path_set](#dsl_source_image_path_set)
+* [dsl_source_image_timeout_get](#dsl_source_image_timeout_get)
+* [dsl_source_image_timeout_set](#dsl_source_image_timeout_set)
 * [dsl_source_num_in_use_get](#dsl_source_num_in_use_get)
 * [dsl_source_num_in_use_max_get](#dsl_source_num_in_use_max_get)
 * [dsl_source_num_in_use_max_set](#dsl_source_num_in_use_max_set)
@@ -282,6 +296,57 @@ retval = dsl_source_rtsp_new('dsl_source_uri_new', 'rtsp://username:password@192
 
 <br>
 
+### *dsl_source_file_new*
+```C
+DslReturnType dsl_source_file_new(const wchar_t* name, 
+    const wchar_t* file_path, boolean repeat_enabled);
+```
+This service creates a new, uniquely named File Source component. The Source implements a URI Source with 
+* `is_live = false` 
+* `cudadec_mem_type = DSL_CUDADEC_MEMTYPE_DEVICE`
+* `intra_decode = false`
+* `drop_frame_interval = 0`
+
+**Parameters**
+* `name` - [in] unique name for the new Source
+* `file_path` - [in] absolute or relative path to the file to play
+* `repeat_enabled` [in] set to `true` to repeat the file on end-of-stream (EOS), `false` otherwise
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_file_new('my-uri-source', './streams/sample_1080p_h264.mp4', false)
+```
+
+<br>
+
+### *dsl_source_image_new*
+```C
+DslReturnType dsl_source_image_new(const wchar_t* name, 
+    const wchar_t* file_path, boolean is_live, uint fps_n, uint fps_d, uint timeout);
+```
+This service creates a new, uniquely named Image Source component. The Image is overlaid on top of a mock video stream that plays at a specifed frame rate. The video source can mock both live and non-live sources allowing the Image to be batched (with a Pipeline's built-in stream-muxer) along with other Source components. 
+
+**Parameters**
+* `name` - [in] unique name for the new Source
+* `file_path` - [in] absolute or relative path to the image file to play
+* `is_live` [in] `true` if the Source is to act as a live source, `false` otherwise. 
+* `fps-n` - [in] frames per second fraction numerator
+* `fps-d` - [in] frames per second fraction denominator
+* `timeout` [in] time to stream the image before generating an end-of-stream (EOS) event, in units of seconds. Set to 0 for no timeout.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_image_new('my-uri-source', './streams/image4.jpg', 
+    false, 30, 1, 0)
+```
+
+<br>
 
 ## Destructors
 As with all Pipeline components, Sources are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
@@ -332,12 +397,12 @@ retval, fps_n, fps_d = dsl_source_dimensions_get('my-uri-source')
 
 ### *dsl_source_is_live*
 ```C
-DslReturnType dsl_source_is_live(const wchar_t* source, boolean* is_live);
+DslReturnType dsl_source_is_live(const wchar_t* name, boolean* is_live);
 ```
 Returns `true` if the Source component's stream is live. CSI and USB Camera sources will always be return `True`.
 
 **Parameters**
-* `source` - [in] unique name of the Source to query
+* `name` - [in] unique name of the Source to query
 * `is_live` - [out] `true` if the source is live, false otherwise
 
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
@@ -351,12 +416,12 @@ retval, is_live = dsl_source_is_live('my-uri-source')
 
 ### *dsl_source_pause*
 ```C
-DslReturnType dsl_source_pause(const wchar_t* source);
+DslReturnType dsl_source_pause(const wchar_t* name);
 ```
 Sets the state of the Source component to Paused. This method tries to change the state of an `in-use` Source component to `GST_STATE_PAUSED`. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is).
 
 **Parameters**
-* `source` - unique name of the Source to pause
+* `name` - unique name of the Source to pause
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful transition. One of the [Return Values](#return-values) defined above on failure
@@ -370,7 +435,7 @@ retval = dsl_source_play('my-source')
 
 ### *dsl_source_resume*
 ```C
-DslReturnType dsl_source_resume(const wchar_t* source);
+DslReturnType dsl_source_resume(const wchar_t* name);
 ```
 Sets the state of a `paused` Source component to `playing`. This method tries to change the state of an `in-use` Source component to `DSL_STATE_PLAYING`. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is). The Pipeline, when transitioning to a state of `DSL_STATE_PLAYING`, will set each of its Sources' 
 state to `DSL_STATE_PLAYING`. An individual Source, once playing, can be paused by calling [dsl_source_pause](#dsl_source_pause).
@@ -378,7 +443,7 @@ state to `DSL_STATE_PLAYING`. An individual Source, once playing, can be paused 
 <br>
 
 **Parameters**
-* `source` - unique name of the Source to play
+* `name` - unique name of the Source to play
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful transition. One of the [Return Values](#return-values) defined above on failure
@@ -398,7 +463,7 @@ DslReturnType dsl_source_decode_uri_get(const wchar_t* name, const wchar_t** uri
 This service gets the current URI in use for the named URI or RTSP source
 
 **Parameters**
-* `source` - [in] unique name of the Source to update
+* `name` - [in] unique name of the Source to update
 * `uri` - [out] unique resouce identifier in use
 
 **Returns**
@@ -417,7 +482,7 @@ DslReturnType dsl_source_decode_uri_set(const wchar_t* name, const wchar_t* uri)
 This service sets the URI to use by the named URI or RTSP source. 
 
 **Parameters**
-* `source` - [in] unique name of the Source to update
+* `name` - [in] unique name of the Source to update
 * `uri` - [out] unique resouce identifier in use
 
 **Returns**
@@ -437,7 +502,7 @@ DslReturnType dsl_source_decode_drop_farme_interval_get(const wchar_t* name, uin
 This service gets the current drop frame interval in use by the named URI or RTSP source
 
 **Parameters**
-* `source` - [in] unique name of the Source to update
+* `name` - [in] unique name of the Source to update
 * `interval` - [out] current drop frame interval currently in use
 
 **Returns**
@@ -456,7 +521,7 @@ DslReturnType dsl_source_decode_drop_farme_interval_set(const wchar_t* name, uin
 This service sets the drop frame interval to use by the named URI or RTSP source. 
 
 **Parameters**
-* `source` - [in] unique name of the Source to update
+* `name` - [in] unique name of the Source to update
 * `interval` - [in] new drop frame interval to use
 
 **Returns**
@@ -686,7 +751,7 @@ DslReturnType dsl_source_rtsp_tap_add(const wchar_t* name, const wchar_t* tap);
 ```
 This service adds a named Tap to a named RTSP source
 **Parameters**
- * `name` [in] name of the source object to update
+ * `name` [in] name of the Source object to update
  * `tap` [in] name of the Tap to add
 
 **Returns**
@@ -707,7 +772,7 @@ DslReturnType dsl_source_rtsp_tap_remove(const wchar_t* name);
 Removes a Tap component from an RTSP Source component. The call will fail if the RTSP source is without a Tap component.  
 
 **Parameters**
- * `name` [in] name of the source object to update
+ * `name` [in] name of the Source object to update
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
@@ -719,6 +784,161 @@ retval = dsl_source_rtsp_tap_remove('my-rtsp-source')
 
 <br>
 
+### *dsl_source_file_path_get*
+```C
+DslReturnType dsl_source_file_path_get(const wchar_t* name, const wchar_t** file_path);
+```
+This service gets the current file path in use for the named File source
+
+**Parameters**
+* `name` - [in] unique name of the Source to query
+* `file_path` - [out] absolute file path setting in use by the File source
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, file_path = dsl_source_file_path_get('my-file-source')
+```
+<br>
+
+### *dsl_source_file_path_set*
+```C
+DslReturnType dsl_source_file_path_set(const wchar_t* name, const wchar_t* file_path);
+```
+This service sets the file path to use by the named File source. 
+
+**Parameters**
+* `name` - [in] unique name of the Source to update
+* `file_path` - [in] absolute or relative File Path to use
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_file_path_set('my-file-source', './streams/sample_1080p_h264.mp4')
+```
+
+<br>
+
+### *dsl_source_file_repeat_enabled_get*
+```C
+DslReturnType dsl_source_file_repeat_enabled_get(const wchar_t* name, boolean* enabled);
+```
+This service gets the current repeat-enabled setting in use for the named File source
+
+**Parameters**
+* `name` - [in] unique name of the Source to query
+* `repeat_enabled` - [out] if true, the File source will repeat the file on end-of-stream (EOS).
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, repeat_enabled = dsl_source_file_repeat_enabled_get('my-file-source')
+```
+<br>
+
+### *dsl_source_file_repeat_enabled_set*
+```C
+DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name, boolean enabled);
+```
+This service sets the repeat-enabled setting to use by the named File source. 
+
+**Parameters**
+* `name` - [in] unique name of the Source to update
+* `repeat_enabled` - [in] if true, the File source will repeat the file on an end-of-stream (EOS).
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_file_repeat_enabled_set('my-file-source', True)
+```
+
+<br>
+
+### *dsl_source_image_path_get*
+```C
+DslReturnType dsl_source_image_path_get(const wchar_t* name, const wchar_t** file_path);
+```
+This service gets the current File Path in use for the named Image source
+
+**Parameters**
+* `name` - [in] unique name of the Image Source to query
+* `file_path` - [out] absolute file path setting in use by the Image source
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, file_path = dsl_source_image_path_get('my-image-source')
+```
+<br>
+
+### *dsl_source_image_path_set*
+```C
+DslReturnType dsl_source_image_path_set(const wchar_t* name, const wchar_t* file_path);
+```
+This service sets the File Path to use by the named Image source. 
+
+**Parameters**
+* `name` - [in] unique name of the Image Source to update
+* `file_path` - [in] absolute or relative file path to use
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_image_path_set('my-image-source', './streams/image4.jpg')
+```
+
+<br>
+
+### *dsl_source_image_timeout_get*
+```C
+DslReturnType dsl_source_image_timeout_get(const wchar_t* name, uint* timeout);
+```
+This service gets the current timeout setting in use for the named Image source
+
+**Parameters**
+* `name` - [in] unique name of the Image Source to query
+* `timeout` - [out] current timeout setting in units of seconds. 0 = no timeout.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, timeout = dsl_source_image_timeout_get('my-image-source')
+```
+<br>
+
+### *dsl_source_image_timeout_set*
+```C
+DslReturnType dsl_source_image_timeout_set(const wchar_t* name, uint timeout);
+```
+This service sets the File Path to use by the named Image source. 
+
+**Parameters**
+* `name` - [in] unique name of the Image Source to update
+* `timeout` - [out] current timeout setting in units of seconds. 0 = no timeout.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_image_timeout_set('my-image-source', 30)
+```
+
+<br>
 
 ### *dsl_source_num_in_use_get*
 ```C
@@ -770,6 +990,7 @@ retval = dsl_source_num_in_use_max_set(24)
 ## API Reference
 * [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
+* [Player](/docs/api-player.md)
 * **Source**
 * [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
