@@ -40,6 +40,7 @@ DSL is released under the [MIT License](LICENSE). Contributions are welcome and 
 * [Building and Importing DSL](/docs/building-dsl.md)
 * [API Reference](/docs/api-reference-list.md)
   * [Pipeline](/docs/api-pipeline.md)
+  * [Player](/docs/api-player.md)
   * [Source](/docs/api-source.md)
   * [Tap](/docs/api-tap.md)
   * [Video Dewarper](/docs/api-dewarper.md)
