@@ -17,6 +17,7 @@
 * [Smart Recording](#smart-recording)
 * [RTSP Stream Connection Management](#rtsp-stream-connection-management)
 * [X11 Window Services](#x11-window-services)
+* [Player Services](#player-services)
 * [SMTP Services](#smtp-services)
 * [DSL Initialization](#dsl-initialization)
 * [DSL Delete All](#dsl-delete-all)
@@ -108,15 +109,19 @@ There are seven categories of Components that can be added to a Pipeline, automa
 ## Streaming Sources
 Streaming sources are the head component(s) for all Pipelines and all Pipelines must have at least one Source (among other components) before they can transition to a state of Playing. All Pipelines have the ability to multiplex multiple streams -- using their own built-in Stream-Muxer -- as long as all Sources are of the same play-type; live vs. non-live with the ability to Pause. 
 
-There are currently four types of Source components, two live connected Camera Sources:
-* Camera Serial Interface (CSI) Source
-* Universal Serial Bus (USB) Source
+There are currently six types of Source components, two live connected Camera Sources:
+* Camera Serial Interface (CSI) Source - connected to one of the serial ports on the Jetson SOM
+* Universal Serial Bus (USB) Source - connected to one of the USB ports on the Jetson SOM.
 
-And two decode Sources that support both live and non-live streams.
-* Universal Resource Identifier (URI) Source
-* Real-time Streaming Protocol (RTSP) Source
+Two live decode Sources that.
+* Universal Resource Identifier (URI) Source - supports non-live files as well.
+* Real-time Streaming Protocol (RTSP) Source - over the SOM's eithernet port or streaming wirelessly.
 
-All Sources have dimensions, width and height in pixels, and frame-rates expressed as a fractional numerator and denominator.  The decode Source components support multiple codec formats, including H.264, H.265, PNG, and JPEG. A [Dewarper Component](/docs/api-dewarper.md) (not show in the image above) capable of dewarping 360 degree camera streams can be added to both. 
+Two non-live Sources 
+* File Source that is derived from the URI Decode Source with some of the parameters fixed.
+* Image Source that overlays an Image on a mock/fake streaming source at a settable frame rate. The Image Source can mimic a live source allowing it to be batched with other live streaming sources.
+
+All Sources have dimensions, width and height in pixels, and frame-rates expressed as a fractional numerator and denominator.  The URI Source component support multiple codec formats, including H.264, H.265, PNG, and JPEG. A [Dewarper Component](/docs/api-dewarper.md) (not show in the image above) capable of dewarping 360 degree camera streams can be added to both. 
 
 A Pipeline's Stream-Muxer has settable output dimensions with a decoded, batched output stream that is ready to infer on.
 
@@ -366,12 +371,13 @@ Current **ODE Triggers** supported:
 * **Always** - triggers on every frame. Once per-frame always.
 * **Absence** - triggers on the absence of objects within a frame. Once per-frame at most.
 * **Occurrence** - triggers on each object detected within a frame. Once per-object at most.
-* **Instance** - triggers on each new object instance accross frames based on unique tracker id. Once per new tracking id. 
+* **Instance** - triggers on each new object instance across frames based on a unique tracker id. Once per new tracking id. 
+* **Persitence** - triggers on each object instance that persists in view/frame for a specified period of time.
 * **Summation** - triggers on the summation of all objects detected within a frame. Once per-frame always.
 * **Intersection** - triggers on the intersection of two objects detected within a frame. Once per-intersecting-pair.
-* **Minimum** - triggers when the count of detected objects in a frame fails to meet a specified minimum number. Once per-frame at most.
-* **Maximum** - triggers when the count of detected objects in a frame exceeds a specified maximum number. Once per-frame at most.
-* **Range** - triggers when the count of detected objects falls within a specified lower and upper range. Once per-frame at most.
+* **Count** - triggers when the count of objects within a frame is within a specified range.. Once per-frame at most.
+* **New Low** - triggers when the count of objects within a frame reaches a new low count.
+* **New High** trigger when the count of objects within a frame reaches a new high count.
 * **Smallest** - triggers on the smallest object by area if one or more objects are detected. Once per-frame at most.
 * **Largest** - triggers on the largest object by area if one or more objects are detected. Once per-frame at most.
 * **Custom** - allows the client to provide a callback function that implements a custom "Check for Occurrence".
@@ -387,7 +393,7 @@ Triggers have optional, settable criteria and filters:
 **ODE Actions** handle the occurrence of Object Detection Events each with a specific action under the categories below. 
 * **Actions on Buffers** - Capture Frames and Objects to JPEG images and save to file.
 * **Actions on Metadata** - Fill-Frames and Objects with a color, add Text & Shapes to a Frame, Hide Object Text & Borders.
-* **Actions on ODE Data** - Print, Log, and Display ODE occurence data on screen.
+* **Actions on ODE Data** - Print, Log, and Display ODE occurrence data on screen.
 * **Actions on Recordings** - Start a new recording session for a Record Tap or Sink 
 * **Actions on Pipelines** - Pause Pipeline, Add/Remove Source, Add/Remove Sink, Disable ODE Handler
 * **Actions on Triggers** - Disable/Enable/Reset Triggers
@@ -979,6 +985,71 @@ dsl_delete_all()
 
 ---
 
+## Player Services
+Players are specialized Pipelines that simplify the processes of:
+* testing/confirming camera connections and URIs
+* rendering captured images and video recordings.
+
+The following python3 example shows how to use an **Image Render Player** to Play an Image captured by an Object Detection Event (ODE) Action. See the [Player API Documentation](/docs/api-player.md) for more information.
+
+```Python
+## 
+# Function to be called on Object Capture (and file-save) complete
+## 
+def capture_complete_listener(capture_info_ptr, client_data):
+    print(' ***  Object Capture Complete  *** ')
+    
+    capture_info = capture_info_ptr.contents
+    print('capture_id: ', capture_info.capture_id)
+    print('filename:   ', capture_info.filename)
+    print('dirpath:    ', capture_info.dirpath)
+    print('width:      ', capture_info.width)
+    print('height:     ', capture_info.height)
+    
+    # One time creation of the Image Render Player
+    if dsl_player_exists('image-player') == False:
+        dsl_player_render_image_new(
+            name = 'image-player',
+            file_path = capture_info.dirpath + '/' + capture_info.filename,
+            render_type = DSL_RENDER_TYPE_OVERLAY,
+            offset_x = 400, 
+            offset_y = 100, 
+            zoom = 150,
+            timeout = 1)
+
+    # Else, update the Render-Player's file-path with the new image path
+    else:
+        # Check the Player's state to see if it's currently displaying an image
+        retval, state = dsl_player_state_get('image-player')
+        if retval != DSL_RETURN_SUCCESS:
+            return
+
+        if state == DSL_STATE_PLAYING:
+            # If we are playing then we need to queue the file to be played next.
+            retval = dsl_player_render_file_path_queue('image-player',
+                file_path = capture_info.dirpath + '/' + capture_info.filename)
+
+            # return without changing the players state
+            return
+
+        # otherwise, we can set the path in preparation for playing 
+        retval = dsl_player_render_file_path_set('image-player',
+            file_path = capture_info.dirpath + '/' + capture_info.filename)
+        if retval != DSL_RETURN_SUCCESS:
+            return
+    
+    # Play the Player until end-of-stream (EOS)
+    retval = dsl_player_play('image-player')
+    if retval != DSL_RETURN_SUCCESS:
+        return
+```
+
+See the script [ode_occurrence_object_capture_overlay_image.py](/examples/python/ode_occurrence_object_capture_overlay_image.py) for the complete example.
+
+<br>
+
+---
+
 ## SMTP Services
 Secure outgoing SMTP email services allow clients to provide server info, credentials and header data (From, To, Cc, Subject, etc.) - settings required for an [ODE Email Action](/docs/api-ode-action.md#dsl_ode_action_email_new) to send email notifications on an [Object Detection Event (ODE) Occurence](#object-detection-event-pad-probe-handler).
 
@@ -1050,6 +1121,7 @@ if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
 ## API Reference
 * [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
+* [Player](/docs/api-player.md)
 * [Source](/docs/api-source.md)
 * [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)

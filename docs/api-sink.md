@@ -19,7 +19,7 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 
 ## Sink API
 **Callback Types:**
-* [dsl_record_client_listner_cb](#dsl_record_client_listner_cb)
+* [dsl_record_client_listener_cb](#dsl_record_client_listener_cb)
 
 **Constructors:**
 * [dsl_sink_overlay_new](#dsl_sink_overlay_new)
@@ -30,14 +30,10 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_fake_new](#dsl_sink_fake_new)
 
 **Methods**
-* [dsl_sink_overlay_offsets_get](#dsl_sink_overlay_offsets_get)
-* [dsl_sink_overlay_offsets_set](#dsl_sink_overlay_offsets_set)
-* [dsl_sink_overlay_dimensions_get](#dsl_sink_overlay_dimensions_get)
-* [dsl_sink_overlay_dimensions_set](#dsl_sink_overlay_dimensions_set)
-* [dsl_sink_window_offsets_get](#dsl_sink_window_offsets_get)
-* [dsl_sink_window_offsets_set](#dsl_sink_window_offsets_set)
-* [dsl_sink_window_dimensions_get](#dsl_sink_window_dimensions_get)
-* [dsl_sink_window_dimensions_set](#dsl_sink_window_dimensions_set)
+* [dsl_sink_render_offsets_get](#dsl_sink_render_offsets_get)
+* [dsl_sink_render_offsets_set](#dsl_sink_render_offsets_set)
+* [dsl_sink_render_dimensions_get](#dsl_sink_render_dimensions_get)
+* [dsl_sink_render_dimensions_set](#dsl_sink_render_dimensions_set)
 * [dsl_sink_window_force_aspect_ratio_get](#dsl_sink_window_force_aspect_ratio_get)
 * [dsl_sink_window_force_aspect_ratio_set](#dsl_sink_window_force_aspect_ratio_set)
 * [dsl_sink_record_session_start](#dsl_sink_record_session_start)
@@ -100,9 +96,9 @@ The following video container types are used by the File Sink API
 ---
 
 ## Callback Types:
-### *dsl_record_client_listner_cb*
+### *dsl_record_client_listener_cb*
 ```C++
-typedef void* (*dsl_record_client_listner_cb)(void* info, void* user_data);
+typedef void* (*dsl_record_client_listener_cb)(void* info, void* user_data);
 ```
 Callback typedef for a client to listen for the notification that a Recording Session has ended.
 
@@ -115,14 +111,13 @@ Callback typedef for a client to listen for the notification that a Recording Se
 ## Constructors
 ### *dsl_sink_overlay_new*
 ```C++
-DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint overlay_id, uint display_id,
-    uint depth, uint offsetX, uint offsetY, uint width, uint height);
+DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint display_id,
+    uint depth, uint offset_x, uint offset_y, uint width, uint height);
 ```
 The constructor creates a uniquely named Overlay Sink with given offsets and dimensions. Construction will fail if the name is currently in use. 
 
 **Parameters**
 * `name` - [in] unique name for the Overlay Sink to create.
-* `overlay_id` - [in] unique non-zero Overlay Sink ID, must be unique from all others
 * `display_id` - [in] display Id to overlay, 0 = main display
 * `depth` - [in] depth of the overlay for the given display Id.  
 * `x_offset` - [in] offset in the X direction from the upper left corner of the display in pixels
@@ -135,7 +130,7 @@ The constructor creates a uniquely named Overlay Sink with given offsets and dim
 
 **Python Example**
 ```Python
-retval = dsl_sink_overlay_new('my-overlay-sink', 1, 0, 0 0, 0, 1280, 720)
+retval = dsl_sink_overlay_new('my-overlay-sink', 0, 0, 200, 100, 1280, 720)
 ```
 
 <br>
@@ -274,15 +269,15 @@ As with all Pipeline components, Sinks are deleted by calling [dsl_component_del
 ---
 
 ## Methods
-### *dsl_sink_overlay_offsets_get*
+### *dsl_sink_render_offsets_get*
 ```C++
-DslReturnType dsl_sink_overlay_offsets_get(const wchar_t* name, 
+DslReturnType dsl_sink_render_offsets_get(const wchar_t* name, 
     uint* x_offset, uint* y_offsetY);
 ```
-This service returns the current X and Y offsets for the uniquely named Overlay Sink.
+This service returns the current X and Y offsets for the uniquely named Render Sink; Overlay or Window.
 
 **Parameters**
-* `name` - [in] unique name of the Overlay Sink to query.
+* `name` - [in] unique name of the Render Sink to query.
 * `x_offset` - [out] offset in the X direction in pixels from the upper left most corner of the display.
 * `y_offset` - [out] offset in the Y direction in pixels from the upper left most corner of the display.
 
@@ -291,20 +286,20 @@ This service returns the current X and Y offsets for the uniquely named Overlay 
 
 **Python Example**
 ```Python
-retval, x_offset, y_offset = dsl_sink_overlay_offsets_get('my-overlay-sink')
+retval, x_offset, y_offset = dsl_sink_render_offsets_get('my-overlay-sink')
 ```
 
 <br>
 
-### *dsl_sink_overlay_offsets_set*
+### *dsl_sink_render_offsets_set*
 ```C++
-DslReturnType dsl_sink_overlay_offsets_set(const wchar_t* name, 
+DslReturnType dsl_sink_render_offsets_set(const wchar_t* name, 
     uint x_offset, uint y_offset);
 ```
-This service updates the X and Y offsets of a named Overlay Sink. This service will fail if the Overlay Sink is currently `in-use`.
+This service updates the X and Y offsets of a named Render Sink; Overlay or Window. Offsets can be set while the Pipeline or Player is playing, 
 
 **Parameters**
-* `name` - [in] unique name of the Overlay Sink to update.
+* `name` - [in] unique name of the Render Sink to update.
 * `x_offset` - [in] new offset in the X direction in pixels from the upper left most corner of the parent display.
 * `y_offset` - [in] new offset in the Y direction in pixels from the upper left most corner of the parent display.
 
@@ -313,34 +308,34 @@ This service updates the X and Y offsets of a named Overlay Sink. This service w
 
 **Python Example**
 ```Python
-retval = dsl_sink_overlay_dimensions_set('my-overlay-sink', 100, 100)
+retval = dsl_sink_render_dimensions_set('my-overlay-sink', 100, 100)
 ```
 
 <br>
 
-### *dsl_sink_overlay_dimensions_get*
+### *dsl_sink_render_dimensions_get*
 ```C++
-DslReturnType dsl_sink_overlay_dimensions_get(const wchar_t* name, 
+DslReturnType dsl_sink_render_dimensions_get(const wchar_t* name, 
     uint* width, uint* height);
 ```
-This service returns the current dimensions for the uniquely named Overlay Sink.
+This service returns the current dimensions for the uniquely named Render Sink; Overlay or Window
 
 **Parameters**
-* `name` - [in] unique name of the Overlay Sink to query.
-* `width` - [out] width of the Overlay Sink in pixels.
-* `height` - [out] height of the Overlay Sink in pixels.
+* `name` - [in] unique name of the Render Sink to query.
+* `width` - [out] current width of the Render Sink in pixels.
+* `height` - [out] current height of the Render Sink in pixels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval, width, height = dsl_sink_overlay_dimensions_get('my-overlay-sink')
+retval, width, height = dsl_sink_render_dimensions_get('my-overlay-sink')
 ```
 
 <br>
 
-### *dsl_sink_overlay_dimensions_set*
+### *dsl_sink_render_dimensions_set*
 ```C++
 DslReturnType dsl_sink_overlay_dimensions_set(const wchar_t* name, 
     uint width, uint height);
@@ -357,95 +352,7 @@ This service updates the dimensions of a named Overlay Sink. This service will f
 
 **Python Example**
 ```Python
-retval = dsl_sink_overlay_dimensions_set('my-overlay-sink', 1280, 720)
-```
-
-<br>
-
-### *dsl_sink_window_offsets_get*
-```C++
-DslReturnType dsl_sink_window_offsets_get(const wchar_t* name, 
-    uint* x_offset, uint* y_offset);
-```
-This service returns the current X and Y offsets for the uniquely named Overlay Sink.
-
-**Parameters**
-* `name` - [in] unique name of the Overlay Sink to query.
-* `x_offset` - [out] offset in the X direction in pixels from the upper left most corner from the parent XWindow.
-* `y_offset` - [out] offset in the Y direction in pixels from the upper left most corner from the parent XWindow.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval, x_offset, y_offset = dsl_sink_window_offsets_get('my-overlay-sink')
-```
-
-<br>
-
-### *dsl_sink_window_offsets_set*
-```C++
-DslReturnType dsl_sink_window_offsets_set(const wchar_t* name, 
-    uint* x_offset, uint* y_offset);
-```
-This service updates the X and Y offsets of a named Overlay Sink. This service will fail if the Overlay Sink is currently `in-use`.
-
-**Parameters**
-* `name` - [in] unique name of the Overlay Sink to update.
-* `x_offset` - [in] new offset the X direction in pixels from the upper left most corner of the parent XWindow.
-* `y_offset` - [in] new offset the Y direction in pixels from the upper left most corner of the parent XWindow.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_sink_window_offsets_set('my-window-sink', 100, 100)
-```
-
-<br>
-
-### *dsl_sink_window_dimensions_get*
-```C++
-DslReturnType dsl_sink_window_dimensions_get(const wchar_t* name, 
-    uint* width, uint* height);
-```
-This service returns the current dimensions for the uniquely named Window Sink.
-
-**Parameters**
-* `name` - [in] unique name of the Window Sink to query.
-* `width` - [out] width of the Window Sink in pixels.
-* `height` - [out] height of the Window Sink in pixels.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval, width, height = dsl_sink_window_dimensions_get('my-window-sink')
-```
-
-<br>
-
-### *dsl_sink_window_dimensions_set*
-```C++
-DslReturnType dsl_sink_window_dimensions_set(const wchar_t* name, 
-    uint width, uint height);
-```
-This service updates the dimensions of a named Window Sink. This service will fail if the Window Sink is currently `in-use`.
-
-**Parameters**
-* `name` - [in] unique name of the Window Sink to update.
-* `width` - [in] new width setting to use for the Window Sink in pixels.
-* `height` - [in] new height setting to use for the Window Sink in pixels.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_sink_window_dimensions_set('my-window-sink', 1280, 720)
+retval = dsl_sink_render_dimensions_set('my-overlay-sink', 1280, 720)
 ```
 
 <br>
@@ -956,6 +863,7 @@ retval = dsl_sink_num_in_use_max_set(24)
 ## API Reference
 * [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
+* [Player](/docs/api-player.md)
 * [Source](/docs/api-source.md)
 * [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
