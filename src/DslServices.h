@@ -32,6 +32,7 @@ THE SOFTWARE.
 #include "DslOdeAction.h"
 #include "DslOdeArea.h"
 #include "DslPipelineBintr.h"
+#include "DslPlayerBintr.h"
 #include "DslComms.h"
 
 namespace DSL {
@@ -106,6 +107,12 @@ namespace DSL {
         DslReturnType OdeActionCaptureFrameNew(const char* name, const char* outdir, boolean annotate);
         
         DslReturnType OdeActionCaptureObjectNew(const char* name, const char* outdir);
+
+        DslReturnType OdeActionCaptureCompleteListenerAdd(const char* name, 
+            dsl_capture_complete_listener_cb listener, void* clientData);
+        
+        DslReturnType OdeActionCaptureCompleteListenerRemove(const char* name, 
+            dsl_capture_complete_listener_cb listener);
         
         DslReturnType OdeActionDisplayNew(const char* name, uint offsetX, uint offsetY, 
             boolean offsetYWithClassId, const char* font, boolean hasBgColor, const char* bgColor);
@@ -335,20 +342,42 @@ namespace DSL {
         uint PphListSize();
         
         DslReturnType SourceCsiNew(const char* name, 
-            uint width, uint height, uint fps_n, uint fps_d);
+            uint width, uint height, uint fpsN, uint fpsD);
         
         DslReturnType SourceUsbNew(const char* name, 
-            uint width, uint height, uint fps_n, uint fps_d);
+            uint width, uint height, uint fpsN, uint fpsD);
         
         DslReturnType SourceUriNew(const char* name, const char* uri, 
             boolean isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+            
+        DslReturnType SourceFileNew(const char* name, const char* filePath, 
+            boolean repeatEnabled);
+
+        DslReturnType SourceFilePathGet(const char* name, const char** filePath);
+
+        DslReturnType SourceFilePathSet(const char* name, const char* filePath);
+
+        DslReturnType SourceFileRepeatEnabledGet(const char* name, boolean* enabled);
+    
+        DslReturnType SourceFileRepeatEnabledSet(const char* name, boolean enabled);
+            
+        DslReturnType SourceImageNew(const char* name, const char* filePath, 
+            boolean isLive, uint fpsN, uint fpsD, uint timeout);
+
+        DslReturnType SourceImagePathGet(const char* name, const char** filePath);
+
+        DslReturnType SourceImagePathSet(const char* name, const char* filePath);
+
+        DslReturnType SourceImageTimeoutGet(const char* name, uint* timeout);
+    
+        DslReturnType SourceImageTimeoutSet(const char* name, uint timeout);
             
         DslReturnType SourceRtspNew(const char* name, const char* uri, uint protocol, 
             uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency, uint timeout);
             
         DslReturnType SourceDimensionsGet(const char* name, uint* width, uint* height);
         
-        DslReturnType SourceFrameRateGet(const char* name, uint* fps_n, uint* fps_d);
+        DslReturnType SourceFrameRateGet(const char* name, uint* fpsN, uint* fpsD);
 
         DslReturnType SourceDecodeUriGet(const char* name, const char** uri);
 
@@ -357,7 +386,7 @@ namespace DSL {
         DslReturnType SourceDecodeDewarperAdd(const char* name, const char* dewarper);
     
         DslReturnType SourceDecodeDewarperRemove(const char* name);
-    
+        
         DslReturnType SourceRtspTimeoutGet(const char* name, uint* timeout);
 
         DslReturnType SourceRtspTimeoutSet(const char* name, uint timeout);
@@ -541,7 +570,7 @@ namespace DSL {
 
         DslReturnType SinkFakeNew(const char* name);
 
-        DslReturnType SinkOverlayNew(const char* name, uint overlay_id, uint display_id,
+        DslReturnType SinkOverlayNew(const char* name, uint display_id,
             uint depth, uint offsetX, uint offsetY, uint width, uint height);
                 
         DslReturnType SinkWindowNew(const char* name, 
@@ -552,6 +581,14 @@ namespace DSL {
 
         DslReturnType SinkWindowForceAspectRationSet(const char* name, 
             boolean force);
+            
+        DslReturnType SinkRenderOffsetsGet(const char* name, uint* offsetX, uint* offsetY);
+
+        DslReturnType SinkRenderOffsetsSet(const char* name, uint offsetX, uint offsetY);
+        
+        DslReturnType SinkRenderDimensionsGet(const char* name, uint* width, uint* height);
+
+        DslReturnType SinkRenderDimensionsSet(const char* name, uint width, uint height);
 
         DslReturnType SinkFileNew(const char* name, const char* filepath, 
             uint codec, uint muxer, uint bit_rate, uint interval);
@@ -735,6 +772,72 @@ namespace DSL {
         DslReturnType PipelineXWindowDeleteEventHandlerRemove(const char* pipeline, 
             dsl_xwindow_delete_event_handler_cb handler);
 
+        DslReturnType PlayerNew(const char* name, const char* source, const char* sink);
+
+        DslReturnType PlayerRenderVideoNew(const char* name, const char* filePath,
+            uint renderType, uint offsetX, uint offsetY, uint zoom, boolean repeatEnabled);
+
+        DslReturnType PlayerRenderImageNew(const char* name, const char* filePath,
+            uint renderType, uint offsetX, uint offsetY, uint zoom, uint timeout);
+            
+        DslReturnType PlayerRenderFilePathGet(const char* name, const char** filePath);
+
+        DslReturnType PlayerRenderFilePathSet(const char* name, const char* filePath);
+            
+        DslReturnType PlayerRenderFilePathQueue(const char* name, const char* filePath);
+
+        DslReturnType PlayerRenderOffsetsGet(const char* name, uint* offsetX, uint* offsetY);
+
+        DslReturnType PlayerRenderOffsetsSet(const char* name, uint offsetX, uint offsetY);
+
+        DslReturnType PlayerRenderZoomGet(const char* name, uint* zoom);
+
+        DslReturnType PlayerRenderZoomSet(const char* name, uint zoom);
+
+        DslReturnType PlayerRenderImageTimeoutGet(const char* name, uint* timeout);
+
+        DslReturnType PlayerRenderImageTimeoutSet(const char* name, uint timeout);
+        
+        DslReturnType PlayerRenderVideoRepeatEnabledGet(const char* name, 
+            boolean* repeatEnabled);
+
+        DslReturnType PlayerRenderVideoRepeatEnabledSet(const char* name, 
+            boolean repeatEnabled);
+
+        DslReturnType PlayerTerminationEventListenerAdd(const char* name,
+            dsl_player_termination_event_listener_cb listener, void* clientData);
+        
+        DslReturnType PlayerTerminationEventListenerRemove(const char* name,
+            dsl_player_termination_event_listener_cb listener);
+
+        DslReturnType PlayerXWindowHandleGet(const char* name, uint64_t* xwindow);
+
+        DslReturnType PlayerXWindowHandleSet(const char* name, uint64_t xwindow);
+
+        DslReturnType PlayerXWindowKeyEventHandlerAdd(const char* name, 
+            dsl_xwindow_key_event_handler_cb handler, void* clientData);
+
+        DslReturnType PlayerXWindowKeyEventHandlerRemove(const char* name, 
+            dsl_xwindow_key_event_handler_cb handler);
+        
+        DslReturnType PlayerPause(const char* name);
+        
+        DslReturnType PlayerPlay(const char* name);
+        
+        DslReturnType PlayerStop(const char* name);
+
+        DslReturnType PlayerRenderNext(const char* name);
+
+        DslReturnType PlayerStateGet(const char* name, uint* state);
+        
+        boolean PlayerExists(const char* name);
+        
+        DslReturnType PlayerDelete(const char* name);
+        
+        DslReturnType PlayerDeleteAll();
+
+        uint PlayerListSize();
+
         DslReturnType SmtpMailEnabledGet(boolean* enabled);
         
         DslReturnType SmtpMailEnabledSet(boolean enabled);   
@@ -904,6 +1007,11 @@ namespace DSL {
          * @brief map of all pipelines creaated by the client, key=name
          */
         std::map <std::string, std::shared_ptr<PipelineBintr>> m_pipelines;
+        
+        /**
+         * @brief map of all players creaated by the client, key=name
+         */
+        std::map <std::string, std::shared_ptr<PlayerBintr>> m_players;
         
         /**
          * @brief map of all pipeline components creaated by the client, key=name

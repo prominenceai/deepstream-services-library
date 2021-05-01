@@ -153,6 +153,11 @@ namespace DSL
          * @param[in] num new value for the number of surfaces [1..4].
          */
         void SetStreamMuxNumSurfacesPerFrame(uint num);
+        
+        /**
+         * @brief Calls on all child Sources to disable their EOS consumers.
+         */
+        void DisableEosConsumers();
 
     private:
         /**

@@ -117,7 +117,7 @@ SCENARIO( "A Pipeline's XWindow Full-Sreen-Enabled setting can be queried", "[pi
     }
 }
 
-SCENARIO( "A Pipeline's XWindow Handle can be Set/Get", "[new]" )
+SCENARIO( "A Pipeline's XWindow Handle can be Set/Get", "[pipeline-xwindow-api]" )
 {
     GIVEN( "A new Pipeline" ) 
     {

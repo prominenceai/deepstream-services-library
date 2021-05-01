@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "Dsl.h"
 #include "DslServices.h"
 #include "DslOdeTrigger.h"
 #include "DslOdeAction.h"
@@ -111,19 +110,65 @@ namespace DSL
 
     // ********************************************************************
 
+    // Initialize static Event Counter
+    uint64_t CaptureOdeAction::s_captureId = 0;
+
     CaptureOdeAction::CaptureOdeAction(const char* name, 
         uint captureType, const char* outdir, bool annotate)
         : OdeAction(name)
         , m_captureType(captureType)
         , m_outdir(outdir)
         , m_annotate(annotate)
+        , m_listenerNotifierTimerId(0)
     {
         LOG_FUNC();
+
+        g_mutex_init(&m_captureCompleteMutex);
     }
 
     CaptureOdeAction::~CaptureOdeAction()
     {
         LOG_FUNC();
+
+        if (m_listenerNotifierTimerId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+            g_source_remove(m_listenerNotifierTimerId);
+        }
+
+        g_mutex_clear(&m_captureCompleteMutex);
+    }
+
+    bool CaptureOdeAction::AddCaptureCompleteListener(
+        dsl_capture_complete_listener_cb listener, void* userdata)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        
+        if (m_captureCompleteListeners.find(listener) != m_captureCompleteListeners.end())
+        {   
+            LOG_ERROR("ODE Action Capture Complete listener is not unique");
+            return false;
+        }
+        m_captureCompleteListeners[listener] = userdata;
+        
+        return true;
+    }
+
+    bool CaptureOdeAction::RemoveCaptureCompleteListener(
+        dsl_capture_complete_listener_cb listener)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        
+        if (m_captureCompleteListeners.find(listener) == m_captureCompleteListeners.end())
+        {   
+            LOG_ERROR("ODE Action Capture Complete listener not found");
+            return false;
+        }
+        m_captureCompleteListeners.erase(listener);
+        
+        return true;
     }
     
     cv::Mat& CaptureOdeAction::AnnotateObject(NvDsObjectMeta* pObjectMeta, 
@@ -268,7 +313,7 @@ namespace DSL
         }
 
         // New background Mat for our image
-        cv::Mat bgr_frame = cv::Mat(cv::Size(width, height), CV_8UC3);
+        cv::Mat* pbgrFrame = new cv::Mat(cv::Size(width, height), CV_8UC3);
 
         // new forground Mat using the first (and only) bufer in the batch
         cv::Mat in_mat = cv::Mat(height, width, CV_8UC4, 
@@ -276,7 +321,7 @@ namespace DSL
             (&dstSurface)->surfaceList[0].pitch);
 
         // Convert the RGBA buffer to BGR
-        cv::cvtColor(in_mat, bgr_frame, CV_RGBA2BGR);
+        cv::cvtColor(in_mat, *pbgrFrame, CV_RGBA2BGR);
         
         // if this is a frame capture and the client wants the image annotated.
         if (m_captureType == DSL_CAPTURE_TYPE_FRAME and m_annotate)
@@ -285,10 +330,10 @@ namespace DSL
             // on an object occurrence, so we only annotate the single object
             if (pObjectMeta)
             {
-                bgr_frame = AnnotateObject(pObjectMeta, bgr_frame);
+                *pbgrFrame = AnnotateObject(pObjectMeta, *pbgrFrame);
             }
             
-            // otherwise, we iterate throught the framemeta object-list highlighting each object.
+            // otherwise, we iterate throught the object-list highlighting each object.
             else
             {
                 for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; 
@@ -298,18 +343,107 @@ namespace DSL
                     NvDsObjectMeta* _pObjectMeta_ = (NvDsObjectMeta*) (pMeta->data);
                     if (_pObjectMeta_ != NULL)
                     {
-                        bgr_frame = AnnotateObject(_pObjectMeta_, bgr_frame);
+                        *pbgrFrame = AnnotateObject(_pObjectMeta_, *pbgrFrame);
                     }
                 }
             }
         }
-    
-        DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
-        
-        std::string filespec = m_outdir + "/" + pTrigger->GetName() + "-" +
-            std::to_string(pTrigger->s_eventCount) + ".jpeg";
+        // convert to shared pointer and queue for asyn file save and client notificaton
+        std::shared_ptr<cv::Mat> pImageMat = std::shared_ptr<cv::Mat>(pbgrFrame);
+        QueueCapturedImage(pImageMat);
+    }
 
-        cv::imwrite(filespec.c_str(), bgr_frame);
+    void CaptureOdeAction::QueueCapturedImage(std::shared_ptr<cv::Mat> pImageMat)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        
+        m_imageMats.push(pImageMat);
+        
+        // start the asynchronous notification timer if not currently running
+        if (!m_listenerNotifierTimerId)
+        {
+            m_listenerNotifierTimerId = g_timeout_add(1, CaptureListenerNotificationHandler, this);
+        }
+    }
+
+    int CaptureOdeAction::NotifyClientListeners()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        
+        
+        while (m_imageMats.size())
+        {
+            std::shared_ptr<cv::Mat> pImageMat = m_imageMats.front();
+            m_imageMats.pop();
+            
+            char dateTime[64] = {0};
+            time_t seconds = time(NULL);
+            struct tm currentTm;
+            localtime_r(&seconds, &currentTm);
+
+            std::strftime(dateTime, sizeof(dateTime), "%Y%m%d-%H%M%S", &currentTm);
+            std::string dateTimeStr(dateTime);
+
+            std::ostringstream fileNameStream;
+            fileNameStream << GetName() << "_" 
+                << std::setw(5) << std::setfill('0') << s_captureId
+                << "_" << dateTimeStr << ".jpeg";
+                
+            std::string filespec = m_outdir + "/" + 
+                fileNameStream.str();
+
+            cv::imwrite(filespec.c_str(), *pImageMat);
+
+            // Increment the global capture count
+            s_captureId++;
+            
+            // If there are complete listeners to notify
+            if (m_captureCompleteListeners.size())
+            {
+                // assemble the capture info
+                dsl_capture_info info{0};
+
+                info.captureId = s_captureId;
+                
+                std::string fileName = fileNameStream.str();
+                // convert the filename and dirpath to wchar string types (client format)
+                std::wstring wstrFilename(fileName.begin(), fileName.end());
+                std::wstring wstrDirpath(m_outdir.begin(), m_outdir.end());
+               
+                info.dirpath = wstrDirpath.c_str();
+                info.filename = wstrFilename.c_str();
+                
+                // get the dimensions from the image Mat
+                cv::Size imageSize = pImageMat->size();
+                info.width = imageSize.width;
+                info.height = imageSize.height;
+                    
+                // iterate through the map of listeners calling each
+                for(auto const& imap: m_captureCompleteListeners)
+                {
+                    try
+                    {
+                        imap.first(&info, imap.second);
+                    }
+                    catch(...)
+                    {
+                        LOG_ERROR("ODE Capture Action '" << GetName() 
+                            << "' threw exception calling Client Capture Complete Listener");
+                    }
+                }
+            }
+        }
+        // clear the timer id and return false to self remove
+        m_listenerNotifierTimerId = 0;
+        return false;
+    }
+
+    static int CaptureListenerNotificationHandler(gpointer pAction)
+    {
+        return static_cast<CaptureOdeAction*>(pAction)->
+            NotifyClientListeners();
     }
 
     // ********************************************************************

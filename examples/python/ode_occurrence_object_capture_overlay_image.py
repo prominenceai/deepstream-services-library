@@ -28,7 +28,7 @@ import sys
 sys.path.insert(0, "../../")
 from dsl import *
 
-uri_file = "../../test/streams/sample_1080p_h264.mp4"
+file_path = "../../test/streams/sample_1080p_h264.mp4"
 
 # Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
@@ -45,11 +45,8 @@ MAX_OBJECTS = 8
 
 TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
 TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
-WINDOW_WIDTH = 1280
-WINDOW_HEIGHT = 720
-
-INCLUSION_AREA = 0
-EXCLUSION_AREA = 1
+WINDOW_WIDTH = TILER_WIDTH
+WINDOW_HEIGHT = TILER_HEIGHT
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -85,6 +82,72 @@ def state_change_listener(old_state, new_state, client_data):
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
+## 
+# Function to be called on Player termination event
+## 
+def player_termination_event_listener(client_data):
+    print(' ***  Display Image Complete  *** ')
+
+## 
+# Function to be called on Object Capture (and file-save) complete
+## 
+def capture_complete_listener(capture_info_ptr, client_data):
+    print(' ***  Object Capture Complete  *** ')
+    
+    capture_info = capture_info_ptr.contents
+    print('capture_id: ', capture_info.capture_id)
+    print('filename:   ', capture_info.filename)
+    print('dirpath:    ', capture_info.dirpath)
+    print('width:      ', capture_info.width)
+    print('height:     ', capture_info.height)
+    
+    # One time creation of the Image Render Player
+    if dsl_player_exists('image-player') == False:
+        dsl_player_render_image_new(
+            name = 'image-player',
+            file_path = capture_info.dirpath + '/' + capture_info.filename,
+            render_type = DSL_RENDER_TYPE_OVERLAY,
+            offset_x = 400, 
+            offset_y = 100, 
+            zoom = 150,
+            timeout = 1)
+
+        # Add the Termination listener callback to the Player 
+        retval = dsl_player_termination_event_listener_add('image-player',
+            client_listener=player_termination_event_listener, client_data=None)
+        if retval != DSL_RETURN_SUCCESS:
+            return
+            
+    # Else, update the Render-Player's file-path with the new image path
+    else:
+
+        # Check the Player's state to see if it's currently displaying an image
+        retval, state = dsl_player_state_get('image-player')
+        if retval != DSL_RETURN_SUCCESS:
+            return
+
+        print('player is in a state of ', state)
+        if state == DSL_STATE_PLAYING:
+
+            # If we are playing then we need to queue the file
+            retval = dsl_player_render_file_path_queue('image-player',
+                file_path = capture_info.dirpath + '/' + capture_info.filename)
+
+            # return with out changing the players state
+            return
+
+        # otherwise, we can set the path in preperation for playing 
+        retval = dsl_player_render_file_path_set('image-player',
+            file_path = capture_info.dirpath + '/' + capture_info.filename)
+        if retval != DSL_RETURN_SUCCESS:
+            return
+    
+    # Play the Player until end-of-stream (EOS)
+    retval = dsl_player_play('image-player')
+    if retval != DSL_RETURN_SUCCESS:
+        return
+    
+
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
@@ -92,8 +155,6 @@ def main(args):
     
         # This example demonstrates the use of a Polygon Area for Inclusion 
         # or Exlucion critera for ODE occurrence. Change the variable below to try each.
-        
-        area_type = INCLUSION_AREA
         
         #```````````````````````````````````````````````````````````````````````````````````
 
@@ -132,30 +193,57 @@ def main(args):
             break
             
         # create the ODE inclusion area to use as criteria for ODE occurrence
-        if area_type == INCLUSION_AREA:
-            retval = dsl_ode_area_inclusion_new('polygon-area', polygon='polygon1', 
-                show=True, bbox_test_point=DSL_BBOX_POINT_SOUTH)    
-            if retval != DSL_RETURN_SUCCESS:
-                break
-        else:
-            retval = dsl_ode_area_exclusion_new('polygon-area', polygon='polygon1', 
-                show=True, bbox_test_point=DSL_BBOX_POINT_SOUTH)    
-            if retval != DSL_RETURN_SUCCESS:
-                break
+        retval = dsl_ode_area_inclusion_new('polygon-area', polygon='polygon1', 
+            show=True, bbox_test_point=DSL_BBOX_POINT_SOUTH)    
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
-        # New Occurrence Trigger, filtering on PERSON class_id, and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_occurrence_new('person-occurrence-trigger', source=DSL_ODE_ANY_SOURCE,
-            class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        # New Occurrence Trigger, filtering on PERSON class_id, 
+        # and with no limit on the number of occurrences
+        retval = dsl_ode_trigger_occurrence_new('person-in-area-trigger',
+            source = DSL_ODE_ANY_SOURCE,
+            class_id = PGIE_CLASS_ID_PERSON, 
+            limit = DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_ode_trigger_area_add('person-occurrence-trigger', area='polygon-area')
+        retval = dsl_ode_trigger_area_add('person-in-area-trigger', area='polygon-area')
         if retval != DSL_RETURN_SUCCESS:
             break
         
-        retval = dsl_ode_trigger_action_add('person-occurrence-trigger', action='fill-action')
+        retval = dsl_ode_trigger_action_add('person-in-area-trigger', action='fill-action')
         if retval != DSL_RETURN_SUCCESS:
             break
+
+
+        # New Occurrence Trigger, filtering on PERSON class_id, for our capture object action
+        # with a limit of one which will be reset in the capture-complete callback
+        retval = dsl_ode_trigger_instance_new('person-enter-area-trigger', 
+            source = DSL_ODE_ANY_SOURCE,
+            class_id = PGIE_CLASS_ID_PERSON, 
+            limit = DSL_ODE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Using the same Inclusion area as the New Occurrence Trigger
+        retval = dsl_ode_trigger_area_add('person-enter-area-trigger', area='polygon-area')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Create a new Capture Action to capture the object to jpeg image, and save to file. 
+        retval = dsl_ode_action_capture_object_new('person-capture-action', outdir="./")
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        # Add the capture complete listener function to the action
+        retval = dsl_ode_action_capture_complete_listener_add('person-capture-action', 
+            capture_complete_listener, None)
+
+        retval = dsl_ode_trigger_action_add('person-enter-area-trigger', 
+            action='person-capture-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
 
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         
@@ -163,8 +251,11 @@ def main(args):
         retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pph_ode_trigger_add_many('ode-handler', 
-            triggers=['any-occurrence-trigger', 'person-occurrence-trigger', None])
+        retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
+            'any-occurrence-trigger', 
+            'person-in-area-trigger', 
+            'person-enter-area-trigger',
+            None])
         if retval != DSL_RETURN_SUCCESS:
             break
         
@@ -173,8 +264,10 @@ def main(args):
         #
         # Create the remaining Pipeline components
         
-        # New URI File Source using the filespec defined above
-        retval = dsl_source_uri_new('uri-source', uri_file, False, 0, 0, 0)
+        # New File Source using the file path defined at the top of the file
+        retval = dsl_source_file_new('file-source', 
+            file_path = file_path, 
+            repeat_enabled = True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -210,7 +303,12 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
+            ['file-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Set the XWindow into full-screen mode for a kiosk look
+        retval = dsl_pipeline_xwindow_fullscreen_enabled_set('pipeline', True)
         if retval != DSL_RETURN_SUCCESS:
             break
 

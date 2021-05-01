@@ -86,13 +86,13 @@ def record_complete_listener(session_info_ptr, client_data):
     print(' ***  Recording Complete  *** ')
     
     session_info = session_info_ptr.contents
-    print('sessionId:     ', session_info.sessionId)
-    print('filename:      ', session_info.filename)
-    print('dirpath:       ', session_info.dirpath)
-    print('duration:      ', session_info.duration)
-    print('containerType: ', session_info.containerType)
-    print('width:         ', session_info.width)
-    print('height:        ', session_info.height)
+    print('session_id: ', session_info.session_id)
+    print('filename:   ', session_info.filename)
+    print('dirpath:    ', session_info.dirpath)
+    print('duration:   ', session_info.duration)
+    print('container:  ', session_info.container_type)
+    print('width:      ', session_info.width)
+    print('height:     ', session_info.height)
     
     retval, is_on = dsl_sink_record_is_on_get('record-sink')
     print('        is_on flag = ', is_on)
@@ -188,8 +188,12 @@ def main(args):
             ['rec-text', 'red-led', None])
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_custom_new('rec-on-trigger', source=DSL_ODE_ANY_SOURCE, class_id=DSL_ODE_ANY_CLASS, 
-            limit=DSL_ODE_TRIGGER_LIMIT_NONE, client_checker=check_for_occurrence, client_post_processor=post_process_frame, client_data=None)
+        retval = dsl_ode_trigger_custom_new('rec-on-trigger', 
+            source = DSL_ODE_ANY_SOURCE, 
+            class_id = DSL_ODE_ANY_CLASS, 
+            limit = DSL_ODE_TRIGGER_LIMIT_NONE, 
+            client_checker = check_for_occurrence, 
+            client_post_processor=post_process_frame, client_data=None)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add('rec-on-trigger', action='add-rec-on')
@@ -203,7 +207,7 @@ def main(args):
             
         # Create a new Capture Action to capture the full-frame to jpeg image, and save to file. 
         # The action will be triggered on firt occurrence of a bicycle and will be saved to the current dir.
-        retval = dsl_ode_action_capture_frame_new('bicycle-capture-action', outdir="./", annotate=True)
+        retval = dsl_ode_action_capture_object_new('bicycle-capture-action', outdir="./")
         if retval != DSL_RETURN_SUCCESS:
             break
         

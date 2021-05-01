@@ -164,6 +164,91 @@ SCENARIO( "A new CaptureOjbectOdeAction is created correctly", "[OdeAction]" )
     }
 }
 
+static void capture_complete_listener_cb1(dsl_capture_info* info, void* user_data)
+{
+    std::cout << "Capture complete lister 1 called \n";
+    *(int*)user_data = 111;
+}
+
+static void capture_complete_listener_cb2(dsl_capture_info* info, void* user_data)
+{
+    std::cout << "Capture complete lister 2 called \n";
+    *(int*)user_data = 222;
+}
+
+SCENARIO( "An CaptureOdeAction can add and remove Capture Complete Listeners",  "[OdeAction]" )
+{
+    GIVEN( "A new CaptureObjectOdeAction" ) 
+    {
+        std::string actionName("ode-action");
+        std::string outdir("./");
+
+        DSL_ODE_ACTION_CAPTURE_OBJECT_PTR pAction = 
+            DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(actionName.c_str(), outdir.c_str());
+        
+        WHEN( "Client Listeners are added" )
+        {
+            REQUIRE( pAction->AddCaptureCompleteListener(capture_complete_listener_cb1, NULL) == true );
+            REQUIRE( pAction->AddCaptureCompleteListener(capture_complete_listener_cb2, NULL) == true );
+
+            THEN( "Adding them a second time must fail" )
+            {
+                REQUIRE( pAction->AddCaptureCompleteListener(capture_complete_listener_cb1, NULL) == false );
+                REQUIRE( pAction->AddCaptureCompleteListener(capture_complete_listener_cb2, NULL) == false );
+            }
+        }
+        WHEN( "Client Listeners are added" )
+        {
+            REQUIRE( pAction->AddCaptureCompleteListener(capture_complete_listener_cb1, NULL) == true );
+            REQUIRE( pAction->AddCaptureCompleteListener(capture_complete_listener_cb2, NULL) == true );
+
+            THEN( "They can be successfully removed" )
+            {
+                REQUIRE( pAction->RemoveCaptureCompleteListener(capture_complete_listener_cb1) == true );
+                REQUIRE( pAction->RemoveCaptureCompleteListener(capture_complete_listener_cb2) == true );
+                
+                // Calling a second time must fail
+                REQUIRE( pAction->RemoveCaptureCompleteListener(capture_complete_listener_cb1) == false );
+                REQUIRE( pAction->RemoveCaptureCompleteListener(capture_complete_listener_cb2) == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "An CaptureOdeAction calls all Listeners on Capture Complete", "[OdeAction]" )
+{
+    GIVEN( "A new CaptureObjectOdeAction" ) 
+    {
+        std::string actionName("ode-action");
+        std::string outdir("./");
+        uint userData1(0), userData2(0);
+        uint width(1280), height(720);
+
+        DSL_ODE_ACTION_CAPTURE_OBJECT_PTR pAction = 
+            DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(actionName.c_str(), outdir.c_str());
+        
+        REQUIRE( pAction->AddCaptureCompleteListener(capture_complete_listener_cb1, &userData1) == true );
+        REQUIRE( pAction->AddCaptureCompleteListener(capture_complete_listener_cb2, &userData2) == true );
+        
+        WHEN( "When capture info is queued" )
+        {
+            std::shared_ptr<cv::Mat> pImageMate = 
+                std::shared_ptr<cv::Mat>(new cv::Mat(cv::Size(width, height), CV_8UC3));
+
+            pAction->QueueCapturedImage(pImageMate);
+            
+            THEN( "All client listeners are called on capture complete" )
+            {
+                // simulate timer callback
+                REQUIRE( pAction->NotifyClientListeners() == FALSE );
+                // Callbacks will change user data if called
+                REQUIRE( userData1 == 111 );
+                REQUIRE( userData2 == 222 );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new EmailOdeAction is created correctly", "[OdeAction]" )
 {
     GIVEN( "Attributes for a new EmailOdeAction" ) 

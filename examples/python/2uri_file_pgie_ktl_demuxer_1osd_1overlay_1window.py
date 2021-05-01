@@ -67,7 +67,7 @@ def main(args):
             break
 
         # New Overlay Sink with id, display, depth, x/y offsets and Dimensions
-        retval = dsl_sink_overlay_new('overlay-sink', 1, 0, 0, 100, 100, 360, 180)  
+        retval = dsl_sink_overlay_new('overlay-sink', 0, 0, 100, 100, 360, 180)  
         if retval != DSL_RETURN_SUCCESS:
             break
             

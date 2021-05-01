@@ -164,7 +164,6 @@ SCENARIO( "A new Pipeline with a URI File Source, OverlaySink, and Tiled Display
         uint height(720);
 
         std::wstring overlaySinkName(L"overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -180,7 +179,7 @@ SCENARIO( "A new Pipeline with a URI File Source, OverlaySink, and Tiled Display
             false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         // overlay sink for observation 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         // new tiler for this scenario
@@ -223,7 +222,6 @@ SCENARIO( "A new Pipeline with a URI File Source, OverlaySink, and Tiled Display
 //        uint height(720);
 //
 //        std::wstring overlaySinkName(L"overlay-sink");
-//        uint overlayId(1);
 //        uint displayId(0);
 //        uint depth(0);
 //        uint offsetX(100);
@@ -240,7 +238,7 @@ SCENARIO( "A new Pipeline with a URI File Source, OverlaySink, and Tiled Display
 //            true, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 //
 //        // overlay sink for observation 
-//        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+//        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
 //            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 //
 //        // new tiler for this scenario
@@ -351,7 +349,6 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Overlay Sink, and Tile
         uint height(720);
 
         std::wstring overlaySinkName(L"overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -369,7 +366,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Overlay Sink, and Tile
         REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
@@ -423,7 +420,6 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
         uint height(720);
 
         std::wstring overlaySinkName(L"overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -443,7 +439,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
         
         REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), trackerW, trackerH) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
@@ -500,7 +496,6 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
         boolean clockEnabled(false);
 
         std::wstring overlaySinkName(L"overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -520,7 +515,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
         
         REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), trackerW, trackerH) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
@@ -881,7 +876,6 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, Overlay
         boolean clockEnabled(false);
 
         std::wstring overlaySinkName(L"overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -906,7 +900,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, Overlay
 
         REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
@@ -975,7 +969,6 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, 
         boolean clockEnabled(false);
 
         std::wstring overlaySinkName(L"overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -1006,7 +999,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, 
 
         REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
@@ -1105,7 +1098,6 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink, OverlaySink and Demu
         std::wstring pipelineName(L"test-pipeline");
         std::wstring overlaySinkName(L"overlay-sink");
 
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -1119,7 +1111,7 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink, OverlaySink and Demu
             false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_fake_new(fakeSinkName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_branch_new(branchName.c_str()) == DSL_RESULT_SUCCESS );
@@ -1170,11 +1162,9 @@ SCENARIO( "A new Pipeline with two URI File Sources, two overlaySinks and Demuxe
         std::wstring overlaySinkName1(L"overlay-sink1");
         std::wstring overlaySinkName2(L"overlay-sink2");
 
-        uint overlayId1(1);
         uint displayId1(0);
-        uint depth1(0);
-        uint overlayId2(2);
         uint displayId2(0);
+        uint depth1(0);
         uint depth2(0);
 
         uint offsetX1(100);
@@ -1196,10 +1186,10 @@ SCENARIO( "A new Pipeline with two URI File Sources, two overlaySinks and Demuxe
         REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), cudadecMemType, 
             false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName1.c_str(), overlayId1, displayId1, depth1,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName1.c_str(), displayId1, depth1,
             offsetX1, offsetY1, sinkW1, sinkH1) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName2.c_str(), overlayId2, displayId2, depth2,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName2.c_str(), displayId2, depth2,
             offsetX2, offsetY2, sinkW2, sinkH2) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
@@ -1252,10 +1242,8 @@ SCENARIO( "A new Pipeline with two URI File Sources, PGIE, Demuxer two Overlay S
 
         std::wstring overlaySinkName1(L"overlay-sink1");
         std::wstring overlaySinkName2(L"overlay-sink2");
-        uint overlayId1(1);
         uint displayId1(0);
         uint depth1(0);
-        uint overlayId2(2);
         uint displayId2(0);
         uint depth2(0);
         uint offsetX1(160);
@@ -1282,10 +1270,10 @@ SCENARIO( "A new Pipeline with two URI File Sources, PGIE, Demuxer two Overlay S
 
         REQUIRE( dsl_osd_new(osdName.c_str(), false, false) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName1.c_str(), overlayId1, displayId1, depth1,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName1.c_str(), displayId1, depth1,
             offsetX1, offsetY1, sinkW1, sinkH1) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName2.c_str(), overlayId2, displayId2, depth2,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName2.c_str(), displayId2, depth2,
             offsetX2, offsetY2, sinkW2, sinkH2) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), pgieInferConfigFile.c_str(), 
@@ -1354,10 +1342,8 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
         std::wstring pipelineName(L"test-pipeline");
         std::wstring overlaySinkName1(L"overlay-sink1");
         std::wstring overlaySinkName2(L"overlay-sink2");
-        uint overlayId1(1);
         uint displayId1(0);
         uint depth1(0);
-        uint overlayId2(2);
         uint displayId2(0);
         uint depth2(0);
         uint offsetX1(160);
@@ -1383,10 +1369,10 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 
         REQUIRE( dsl_osd_new(osdName.c_str(), true, false) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName1.c_str(), overlayId1, displayId1, depth1,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName1.c_str(), displayId1, depth1,
             offsetX1, offsetY1, sinkW1, sinkH1) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName2.c_str(), overlayId2, displayId2, depth2,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName2.c_str(), displayId2, depth2,
             offsetX2, offsetY2, sinkW2, sinkH2) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), pgieInferConfigFile.c_str(), 
@@ -1611,3 +1597,62 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and Meter PPH c
     }
 }
 
+SCENARIO( "A new Pipeline with a Image Source, OverlaySink, and Tiled Display can play", "[pipeline-play]" )
+{
+    GIVEN( "A Pipeline, URI source, Overlay Sink, and Tiled Display" ) 
+    {
+        std::wstring source_name(L"image-source");
+        std::wstring image_path(L"./test/streams/first-person-occurrence-438.jpeg");
+        boolean is_live(true);
+        uint fps_n(30);
+        uint fps_d(1);
+        uint timeout(123);
+
+        std::wstring tilerName(L"tiler");
+        uint width(1280);
+        uint height(720);
+
+        std::wstring overlaySinkName(L"overlay-sink");
+        uint displayId(0);
+        uint depth(0);
+        uint offsetX(100);
+        uint offsetY(140);
+        uint sinkW(1280);
+        uint sinkH(720);
+
+        std::wstring pipelineName(L"test-pipeline");
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_image_new(source_name.c_str(), image_path.c_str(), is_live, 
+            fps_n, fps_d, timeout) == DSL_RESULT_SUCCESS );
+
+        // overlay sink for observation 
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        // new tiler for this scenario
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        
+        const wchar_t* components[] = {L"image-source", L"tiler", L"overlay-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}

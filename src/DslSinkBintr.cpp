@@ -29,7 +29,8 @@ THE SOFTWARE.
 namespace DSL
 {
 
-    SinkBintr::SinkBintr(const char* name, bool sync, bool async)
+    SinkBintr::SinkBintr(const char* name, 
+        bool sync, bool async)
         : Bintr(name)
         , m_sync(sync)
         , m_async(async)
@@ -162,24 +163,73 @@ namespace DSL
         
         return true;
     }
-    
+
     //-------------------------------------------------------------------------
 
-    OverlaySinkBintr::OverlaySinkBintr(const char* name, uint overlayId, uint displayId, 
-        uint depth, uint offsetX, uint offsetY, uint width, uint height)
-        : SinkBintr(name, true, false) // sync, async
-        , m_qos(FALSE)
-        , m_overlayId(overlayId)
-        , m_displayId(displayId)
-        , m_depth(depth)
+    RenderSinkBintr::RenderSinkBintr(const char* name, 
+        uint offsetX, uint offsetY, uint width, uint height, bool sync, bool async)
+        : SinkBintr(name, sync, async)
         , m_offsetX(offsetX)
         , m_offsetY(offsetY)
         , m_width(width)
         , m_height(height)
     {
         LOG_FUNC();
+    };
+
+    RenderSinkBintr::~RenderSinkBintr()
+    {
+        LOG_FUNC();
+    };
+
+    void  RenderSinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
+    {
+        LOG_FUNC();
+        
+        *offsetX = m_offsetX;
+        *offsetY = m_offsetY;
+    }
+
+    void RenderSinkBintr::GetDimensions(uint* width, uint* height)
+    {
+        LOG_FUNC();
+        
+        *width = m_width;
+        *height = m_height;
+    }
+    
+    std::list<uint> OverlaySinkBintr::s_uniqueIds;
+    //-------------------------------------------------------------------------
+
+    OverlaySinkBintr::OverlaySinkBintr(const char* name, uint displayId, 
+        uint depth, uint offsetX, uint offsetY, uint width, uint height)
+        : RenderSinkBintr(name, offsetX, offsetY, width, height, true, false) // sync, async
+        , m_qos(FALSE)
+        , m_displayId(displayId)
+        , m_depth(depth)
+        , m_uniqueId(1)
+    {
+        LOG_FUNC();
+        
+        // Find the first available unique Id
+        while(std::find(s_uniqueIds.begin(), s_uniqueIds.end(), m_uniqueId) != s_uniqueIds.end())
+        {
+            m_uniqueId++;
+        }
+        s_uniqueIds.push_back(m_uniqueId);
         
         m_pOverlay = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_OVERLAY, "sink-bin-overlay");
+        
+        m_pOverlay->SetAttribute("overlay", m_uniqueId);
+        m_pOverlay->SetAttribute("display-id", m_displayId);
+        m_pOverlay->SetAttribute("max-lateness", -1);
+        m_pOverlay->SetAttribute("sync", m_sync);
+        m_pOverlay->SetAttribute("async", m_async);
+        m_pOverlay->SetAttribute("qos", m_qos);
+        m_pOverlay->SetAttribute("overlay-x", m_offsetX);
+        m_pOverlay->SetAttribute("overlay-y", m_offsetY);
+        m_pOverlay->SetAttribute("overlay-w", m_width);
+        m_pOverlay->SetAttribute("overlay-h", m_height);
         
         AddChild(m_pOverlay);
     }
@@ -187,6 +237,9 @@ namespace DSL
     OverlaySinkBintr::~OverlaySinkBintr()
     {
         LOG_FUNC();
+        
+        s_uniqueIds.remove(m_uniqueId);
+        
     }
 
     bool OverlaySinkBintr::LinkAll()
@@ -198,23 +251,7 @@ namespace DSL
             LOG_ERROR("OverlaySinkBintr '" << GetName() << "' is already linked");
             return false;
         }
-        if (!m_pOverlay)
-        {
-            LOG_INFO("Creating new Sink Overlay Element on LinkAll for Sink'" << GetName());
-            m_pOverlay = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_OVERLAY, "sink-bin-overlay");
-            
-            AddChild(m_pOverlay);
-        }
-        m_pOverlay->SetAttribute("overlay", m_overlayId);
-        m_pOverlay->SetAttribute("display-id", m_displayId);
-        m_pOverlay->SetAttribute("max-lateness", -1);
-        m_pOverlay->SetAttribute("sync", m_sync);
-        m_pOverlay->SetAttribute("async", m_async);
-        m_pOverlay->SetAttribute("qos", m_qos);
-        m_pOverlay->SetAttribute("overlay-x", m_offsetX);
-        m_pOverlay->SetAttribute("overlay-y", m_offsetY);
-        m_pOverlay->SetAttribute("overlay-w", m_width);
-        m_pOverlay->SetAttribute("overlay-h", m_height);
+
         if (!m_pQueue->LinkToSink(m_pOverlay))
         {
             return false;
@@ -232,9 +269,9 @@ namespace DSL
             LOG_ERROR("OverlaySinkBintr '" << GetName() << "' is not linked");
             return;
         }
+        
         m_pQueue->UnlinkFromSink();
-        RemoveChild(m_pOverlay);
-        m_pOverlay = nullptr;
+
         m_isLinked = false;
     }
 
@@ -251,7 +288,7 @@ namespace DSL
         
         if (IsInUse())
         {
-            LOG_ERROR("Unable to set Dimensions for OverlaySinkBintr '" << GetName() 
+            LOG_ERROR("Unable to set DisplayId for OverlaySinkBintr '" << GetName() 
                 << "' as it's currently in use");
             return false;
         }
@@ -262,24 +299,9 @@ namespace DSL
         return true;
     }
     
-    void  OverlaySinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
-    {
-        LOG_FUNC();
-        
-        *offsetX = m_offsetX;
-        *offsetY = m_offsetY;
-    }
-    
     bool OverlaySinkBintr::SetOffsets(uint offsetX, uint offsetY)
     {
         LOG_FUNC();
-        
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to set Dimensions for OverlaySinkBintr '" << GetName() 
-                << "' as it's currently in use");
-            return false;
-        }
 
         m_offsetX = offsetX;
         m_offsetY = offsetY;
@@ -290,25 +312,10 @@ namespace DSL
         return true;
     }
 
-    void OverlaySinkBintr::GetDimensions(uint* width, uint* height)
-    {
-        LOG_FUNC();
-        
-        *width = m_width;
-        *height = m_height;
-    }
-
     bool OverlaySinkBintr::SetDimensions(uint width, uint height)
     {
         LOG_FUNC();
         
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to set Dimensions for OverlaySinkBintr '" << GetName() 
-                << "' as it's currently in use");
-            return false;
-        }
-
         m_width = width;
         m_height = height;
 
@@ -339,14 +346,10 @@ namespace DSL
     
     //-------------------------------------------------------------------------
 
-    WindowSinkBintr::WindowSinkBintr(const char* name, guint offsetX, guint offsetY, 
-        guint width, guint height)
-        : SinkBintr(name, true, false)
+    WindowSinkBintr::WindowSinkBintr(const char* name, 
+        guint offsetX, guint offsetY, guint width, guint height)
+        : RenderSinkBintr(name, offsetX, offsetY, width, height, true, false)
         , m_qos(false)
-        , m_offsetX(offsetX)
-        , m_offsetY(offsetY)
-        , m_width(width)
-        , m_height(height)
         , m_forceAspectRatio(false)
     {
         LOG_FUNC();
@@ -386,7 +389,7 @@ namespace DSL
         
         if (m_isLinked)
         {
-            LOG_ERROR("OverlaySinkBintr '" << GetName() << "' is already linked");
+            LOG_ERROR("WindowSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
         if (!m_pQueue->LinkToSink(m_pTransform) or
@@ -404,13 +407,13 @@ namespace DSL
         
         if (!m_isLinked)
         {
-            LOG_ERROR("OverlaySinkBintr '" << GetName() << "' is not linked");
+            LOG_ERROR("WindowSinkBintr '" << GetName() << "' is not linked");
             return;
         }
         m_pQueue->UnlinkFromSink();
         m_pTransform->UnlinkFromSink();
         m_isLinked = false;
-        Reset();
+        //Reset();
     }
 
     void WindowSinkBintr::Reset()
@@ -424,6 +427,7 @@ namespace DSL
             return;
         }
 
+        gst_element_set_state(m_pEglGles->GetGstElement(), GST_STATE_NULL);
         RemoveChild(m_pEglGles);
         
         // recreate the EGL-GLES sink element - the old will be destroyed on deref
@@ -444,24 +448,9 @@ namespace DSL
         AddChild(m_pEglGles);
     }
     
-    void  WindowSinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
-    {
-        LOG_FUNC();
-        
-        *offsetX = m_offsetX;
-        *offsetY = m_offsetY;
-    }
-    
     bool WindowSinkBintr::SetOffsets(uint offsetX, uint offsetY)
     {
         LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set Dimensions for WindowSinkBintr '" << GetName() 
-                << "' as it's currently linked");
-            return false;
-        }
 
         m_offsetX = offsetX;
         m_offsetY = offsetY;
@@ -472,25 +461,10 @@ namespace DSL
         return true;
     }
 
-    void WindowSinkBintr::GetDimensions(uint* width, uint* height)
-    {
-        LOG_FUNC();
-        
-        *width = m_width;
-        *height = m_height;
-    }
-
     bool WindowSinkBintr::SetDimensions(uint width, uint height)
     {
         LOG_FUNC();
         
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set Dimensions for WindowSinkBintr '" << GetName() 
-                << "' as it's currently linked");
-            return false;
-        }
-
         m_width = width;
         m_height = height;
 

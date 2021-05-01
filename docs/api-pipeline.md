@@ -540,7 +540,7 @@ This service returns the current XWindow handle in use by the named Pipeline. Th
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to query.
-* `handle` - [out] width of the XWindow in pixels.
+* `handle` - [out] XWindow handle in use by the named Pipeline
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
@@ -1013,6 +1013,11 @@ This service is used to pause a named Pipeline. The service will fail if the Pip
 **Returns** 
 * `DSL_RESULT_SUCCESS` if the named Pipeline is able to successfully transition to a state of `paused`, one of the [Return Values](#return-values) defined above on failure.
 
+**Python Example**
+```Python
+retval = dsl_pipeline_pause('my-pipeline')
+```
+
 <br>
 
 ### *dsl_pipeline_stop*
@@ -1026,6 +1031,11 @@ This service is used to stop a named Pipeline and return it to a state of `read`
 
 **Returns**
 * `DSL_RESULT_SUCCESS` if the named Pipeline is able to succesfully transition to a state of `stopped`, one of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_pipeline_stop('my-pipeline')
+```
 
 <br>
 
@@ -1061,7 +1071,7 @@ This service returns the size of the current list of Pipelines in memory
 
 **Python Example**
 ```Python
-retval = dsl_pipeline_delete_all()
+pipeline_count = dsl_pipeline_list_size()
 ```
 
 <br>
@@ -1115,6 +1125,7 @@ Except for the prefix, this method performs the identical service as
 ## API Reference
 * [List of all Services](/docs/api-reference-list.md)
 * **Pipeline**
+* [Player](/docs/api-player.md)
 * [Source](/docs/api-source.md)
 * [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)

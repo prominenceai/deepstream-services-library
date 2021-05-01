@@ -62,6 +62,17 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(actions, name) do \
+{ \
+    if (!actions[name]->IsType(typeid(CaptureFrameOdeAction)) and \
+        !actions[name]->IsType(typeid(CaptureObjectOdeAction)))\
+    { \
+        LOG_ERROR("ODE Action '" << name << "' is not the correct type"); \
+        return DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE; \
+    } \
+}while(0); 
+
+
 #define RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(events, name) do \
 { \
     if (events.find(name) == events.end()) \
@@ -99,6 +110,25 @@ THE SOFTWARE.
     } \
 }while(0); 
     
+#define RETURN_IF_PLAYER_NAME_NOT_FOUND(players, name) do \
+{ \
+    if (players.find(name) == players.end()) \
+    { \
+        LOG_ERROR("Player name '" << name << "' was not found"); \
+        return DSL_RESULT_PLAYER_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+
+#define RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(players, name) do \
+{ \
+    if (!players[name]->IsType(typeid(ImageRenderPlayerBintr)) and  \
+        !players[name]->IsType(typeid(VideoRenderPlayerBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
+        return DSL_RESULT_PLAYER_IS_NOT_RENDER_PLAYER; \
+    } \
+}while(0); 
+        
 #define RETURN_IF_COMPONENT_NAME_NOT_FOUND(components, name) do \
 { \
     if (components.find(name) == components.end()) \
@@ -122,6 +152,8 @@ THE SOFTWARE.
     if (!components[name]->IsType(typeid(CsiSourceBintr)) and  \
         !components[name]->IsType(typeid(UsbSourceBintr)) and  \
         !components[name]->IsType(typeid(UriSourceBintr)) and  \
+        !components[name]->IsType(typeid(FileSourceBintr)) and  \
+        !components[name]->IsType(typeid(ImageSourceBintr)) and  \
         !components[name]->IsType(typeid(RtspSourceBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Source"); \
@@ -138,6 +170,17 @@ THE SOFTWARE.
         return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE; \
     } \
 }while(0); 
+
+#define RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(OverlaySinkBintr)) and \
+        !components[name]->IsType(typeid(WindowSinkBintr)))\
+    { \
+        LOG_ERROR("ODE Action '" << name << "' is not the correct type"); \
+        return DSL_RESULT_SINK_COMPONENT_IS_NOT_RENDER_SINK; \
+    } \
+}while(0); 
+
 
 #define RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(components, name) do \
 { \
@@ -1099,6 +1142,65 @@ namespace DSL
             LOG_ERROR("New Capture Object ODE Action '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
+    }
+
+    DslReturnType Services::OdeActionCaptureCompleteListenerAdd(const char* name, 
+        dsl_capture_complete_listener_cb listener, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);   
+
+            DSL_ODE_ACTION_CATPURE_PTR pOdeAction = 
+                std::dynamic_pointer_cast<CaptureOdeAction>(m_odeActions[name]);
+
+            if (!pOdeAction->AddCaptureCompleteListener(listener, clientData))
+            {
+                LOG_ERROR("ODE Capture Action '" << name 
+                    << "' failed to add a Capture Complete Listener");
+                return DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Capture Action '" << name 
+                << "' threw an exception adding a Capture Complete Lister");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+        
+    DslReturnType Services::OdeActionCaptureCompleteListenerRemove(const char* name, 
+        dsl_capture_complete_listener_cb listener)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);   
+
+            DSL_ODE_ACTION_CATPURE_PTR pOdeAction = 
+                std::dynamic_pointer_cast<CaptureOdeAction>(m_odeActions[name]);
+
+            if (!pOdeAction->RemoveCaptureCompleteListener(listener))
+            {
+                LOG_ERROR("Capture Action '" << name 
+                    << "' failed to add a Capture Complete Listener");
+                return DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Capture Action '" << name 
+                << "' threw an exception adding a Capture Complete Lister");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
     }
     
     DslReturnType Services::OdeActionDisplayNew(const char* name, uint offsetX, uint offsetY, 
@@ -3691,7 +3793,7 @@ namespace DSL
     }
     
     DslReturnType Services::SourceCsiNew(const char* name,
-        uint width, uint height, uint fps_n, uint fps_d)
+        uint width, uint height, uint fpsN, uint fpsD)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3704,7 +3806,7 @@ namespace DSL
                 LOG_ERROR("Source name '" << name << "' is not unique");
                 return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
             }
-            m_components[name] = DSL_CSI_SOURCE_NEW(name, width, height, fps_n, fps_d);
+            m_components[name] = DSL_CSI_SOURCE_NEW(name, width, height, fpsN, fpsD);
 
             LOG_INFO("New CSI Source '" << name << "' created successfully");
 
@@ -3718,7 +3820,7 @@ namespace DSL
     }
 
     DslReturnType Services::SourceUsbNew(const char* name,
-        uint width, uint height, uint fps_n, uint fps_d)
+        uint width, uint height, uint fpsN, uint fpsD)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3731,7 +3833,7 @@ namespace DSL
                 LOG_ERROR("Source name '" << name << "' is not unique");
                 return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
             }
-            m_components[name] = DSL_USB_SOURCE_NEW(name, width, height, fps_n, fps_d);
+            m_components[name] = DSL_USB_SOURCE_NEW(name, width, height, fpsN, fpsD);
 
             LOG_INFO("New USB Source '" << name << "' created successfully");
 
@@ -3783,6 +3885,290 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New URI Source '" << name << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceFileNew(const char* name, const char* filePath, 
+            boolean repeatEnabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Source name '" << name << "' is not unique");
+                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+            }
+            std::ifstream streamUriFile(filePath);
+            if (!streamUriFile.good())
+            {
+                LOG_ERROR("File Source'" << filePath << "' Not found");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            m_components[name] = DSL_FILE_SOURCE_NEW(
+                name, filePath, repeatEnabled);
+
+            LOG_INFO("New File Source '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New File Source '" << name << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceFilePathGet(const char* name, const char** filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSourceBintr);
+
+            DSL_FILE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<FileSourceBintr>(m_components[name]);
+
+            *filePath = pSourceBintr->GetUri();
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("File Source '" << name << "' threw exception getting File Path");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::SourceFilePathSet(const char* name, const char* filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSourceBintr);
+
+            DSL_FILE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<FileSourceBintr>(m_components[name]);
+
+            std::ifstream streamUriFile(filePath);
+            if (!streamUriFile.good())
+            {
+                LOG_ERROR("File Source'" << filePath << "' Not found");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            if (!pSourceBintr->SetUri(filePath));
+            {
+                LOG_ERROR("Failed to Set FilePath '" << filePath << "' for File Source '" << name << "'");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("File Source '" << name << "' threw exception setting File path");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceFileRepeatEnabledGet(const char* name, boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSourceBintr);
+
+            DSL_FILE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<FileSourceBintr>(m_components[name]);
+         
+            *enabled = pSourceBintr->GetRepeatEnabled();
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("File Source '" << name << "' threw exception getting Repeat Enabled");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceFileRepeatEnabledSet(const char* name, boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSourceBintr);
+
+            DSL_FILE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<FileSourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetRepeatEnabled(enabled))
+            {
+                LOG_ERROR("Failed to set Repeat Enabled for File Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("File Source '" << name << "' threw exception setting Repeat Enabled");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceImageNew(const char* name, const char* filePath, 
+        boolean isLive, uint fpsN, uint fpsD, uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Source name '" << name << "' is not unique");
+                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+            }
+            std::ifstream streamUriFile(filePath);
+            if (!streamUriFile.good())
+            {
+                LOG_ERROR("Image Source'" << filePath << "' Not found");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            m_components[name] = DSL_IMAGE_SOURCE_NEW(
+                name, filePath, isLive, fpsN, fpsD, timeout);
+
+            LOG_INFO("New Image Source '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Image Source '" << name << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceImagePathGet(const char* name, const char** filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSourceBintr);
+
+            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
+
+            *filePath = pSourceBintr->GetUri();
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Source '" << name << "' threw exception getting File Path");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::SourceImagePathSet(const char* name, const char* filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSourceBintr);
+
+            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
+
+            std::ifstream streamUriFile(filePath);
+            if (!streamUriFile.good())
+            {
+                LOG_ERROR("Image Source'" << filePath << "' Not found");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            if (!pSourceBintr->SetUri(filePath));
+            {
+                LOG_ERROR("Failed to Set FilePath '" << filePath << "' for Image Source '" << name << "'");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Source '" << name << "' threw exception setting File path");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceImageTimeoutGet(const char* name, uint* timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSourceBintr);
+
+            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
+         
+            *timeout = pSourceBintr->GetTimeout();
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Source '" << name << "' threw exception getting Timeout");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceImageTimeoutSet(const char* name, uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSourceBintr);
+
+            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetTimeout(timeout))
+            {
+                LOG_ERROR("Failed to set Timeout for Image Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Source '" << name << "' threw exception setting Timeout");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
@@ -3839,7 +4225,7 @@ namespace DSL
         }
     }                
     
-    DslReturnType Services::SourceFrameRateGet(const char* name, uint* fps_n, uint* fps_d)
+    DslReturnType Services::SourceFrameRateGet(const char* name, uint* fpsN, uint* fpsD)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3852,7 +4238,7 @@ namespace DSL
             DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
          
-            pSourceBintr->GetFrameRate(fps_n, fps_d);
+            pSourceBintr->GetFrameRate(fpsN, fpsD);
             
             return DSL_RESULT_SUCCESS;
         }
@@ -3882,7 +4268,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name << "' threw exception adding Dewarper");
+            LOG_ERROR("Source '" << name << "' threw exception getting URI");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
@@ -3904,13 +4290,13 @@ namespace DSL
             if (!pSourceBintr->SetUri(uri));
             {
                 LOG_ERROR("Failed to Set URI '" << uri << "' for Decode Source '" << name << "'");
-                return DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED;
+                return DSL_RESULT_SOURCE_SET_FAILED;
             }
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name << "' threw exception adding Dewarper");
+            LOG_ERROR("Source '" << name << "' threw exception setting URI");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
@@ -6304,13 +6690,6 @@ namespace DSL
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
-//            if (m_components[name]->IsInUse())
-//            {
-//                LOG_ERROR("Unable to set The clock offsets for the OSD '" << name 
-//                    << "' as it's currently in use");
-//                return DSL_RESULT_OSD_IS_IN_USE;
-//            }
-
             DSL_OSD_PTR osdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
@@ -6539,7 +6918,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SinkOverlayNew(const char* name, uint overlay_id, uint display_id,
+    DslReturnType Services::SinkOverlayNew(const char* name, uint display_id,
         uint depth, uint offsetX, uint offsetY, uint width, uint height)
     {
         LOG_FUNC();
@@ -6554,7 +6933,7 @@ namespace DSL
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
             m_components[name] = DSL_OVERLAY_SINK_NEW(
-                name, overlay_id, display_id, depth, offsetX, offsetY, width, height);
+                name, display_id, depth, offsetX, offsetY, width, height);
 
             LOG_INFO("New Overlay Sink '" << name << "' created successfully");
 
@@ -6649,6 +7028,107 @@ namespace DSL
         }
     }
         
+    DslReturnType Services::SinkRenderOffsetsGet(const char* name, uint* offsetX, uint* offsetY)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+
+            DSL_RENDER_SINK_PTR pRenderSink = 
+                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
+
+            pRenderSink->GetOffsets(offsetX, offsetY);
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Sink '" << name << "' threw an exception getting offsets");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRenderOffsetsSet(const char* name, uint offsetX, uint offsetY)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+
+            DSL_RENDER_SINK_PTR pRenderSink = 
+                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
+
+            if (!pRenderSink->SetOffsets(offsetX, offsetY))
+            {
+                LOG_ERROR("Render Sink '" << name << "' failed to set offsets");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Sink '" << name << "' threw an exception setting offsets");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRenderDimensionsGet(const char* name, uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+
+            DSL_RENDER_SINK_PTR pRenderSink = 
+                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
+
+            pRenderSink->GetDimensions(width, height);
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Sink '" << name << "' threw an exception getting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRenderDimensionsSet(const char* name, uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+
+            DSL_RENDER_SINK_PTR pRenderSink = 
+                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
+
+            if (!pRenderSink->SetDimensions(width, height))
+            {
+                LOG_ERROR("Render Sink '" << name << "' failed to set dimensions");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Sink '" << name << "' threw an exception setting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
     
     DslReturnType Services::SinkFileNew(const char* name, const char* filepath, 
             uint codec, uint container, uint bitrate, uint interval)
@@ -7650,6 +8130,8 @@ namespace DSL
         }
         m_pipelines.clear();
 
+        LOG_INFO("All Pipelines deleted successfully");
+
         return DSL_RESULT_SUCCESS;
     }
 
@@ -8571,6 +9053,741 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::PlayerNew(const char* name, 
+        const char* source, const char* sink)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, source);
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, sink);
+            RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, sink);
+        
+            if (m_players.find(name) != m_players.end())
+            {   
+                LOG_ERROR("Player name '" << name << "' is not unique");
+                return DSL_RESULT_PLAYER_NAME_NOT_UNIQUE;
+            }
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[source]);
+
+            DSL_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<SinkBintr>(m_components[sink]);
+            
+            m_players[name] = std::shared_ptr<PlayerBintr>(new 
+                PlayerBintr(name, pSourceBintr, pSinkBintr));
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Player '" << name << "' threw exception on create");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+        LOG_INFO("New Player '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PlayerRenderVideoNew(const char* name, const char* filePath,
+            uint renderType, uint offsetX, uint offsetY, uint zoom, boolean repeatEnabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+        
+            if (m_players.find(name) != m_players.end())
+            {   
+                LOG_ERROR("Player name '" << name << "' is not unique");
+                return DSL_RESULT_PLAYER_NAME_NOT_UNIQUE;
+            }
+            std::ifstream streamUriFile(filePath);
+            if (!streamUriFile.good())
+            {
+                LOG_ERROR("File Source'" << filePath << "' Not found");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            m_players[name] = std::shared_ptr<VideoRenderPlayerBintr>(new 
+                VideoRenderPlayerBintr(name, filePath, renderType,
+                    offsetX, offsetY, zoom, repeatEnabled));
+                    
+            LOG_INFO("New Render File Player '" << name << "' created successfully");
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Render File Player '" << name << "' threw exception on create");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PlayerRenderImageNew(const char* name, const char* filePath,
+            uint renderType, uint offsetX, uint offsetY, uint zoom, uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+        
+            if (m_players.find(name) != m_players.end())
+            {   
+                LOG_ERROR("Player name '" << name << "' is not unique");
+                return DSL_RESULT_PLAYER_NAME_NOT_UNIQUE;
+            }
+            std::ifstream streamUriFile(filePath);
+            if (!streamUriFile.good())
+            {
+                LOG_ERROR("File Source'" << filePath << "' Not found");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            m_players[name] = std::shared_ptr<ImageRenderPlayerBintr>(new 
+                ImageRenderPlayerBintr(name, filePath, renderType,
+                    offsetX, offsetY, zoom, timeout));
+                    
+            LOG_INFO("New Render Image Player '" << name << "' created successfully");
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Render Image Player '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PlayerRenderFilePathGet(const char* name, 
+        const char** filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+
+            DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
+                std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
+
+            *filePath = pRenderPlayer->GetFilePath();
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Player '" << name 
+                << "' threw exception getting File Path");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::PlayerRenderFilePathSet(const char* name, const char* filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+
+            DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
+                std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
+
+            if (!pRenderPlayer->SetFilePath(filePath))
+            {
+                LOG_ERROR("Failed to Set File Path '" << filePath 
+                    << "' for Render Player '" << name << "'");
+                return DSL_RESULT_PLAYER_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Player '" << name 
+                << "' threw exception setting File Path");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerRenderFilePathQueue(const char* name, 
+        const char* filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+
+            DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
+                std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
+
+            if (!pRenderPlayer->QueueFilePath(filePath))
+            {
+                LOG_ERROR("Failed to Queue File Path '" << filePath 
+                    << "' for Render Player '" << name << "'");
+                return DSL_RESULT_PLAYER_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Player '" << name 
+                << "' threw exception queuing File Path");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerRenderOffsetsGet(const char* name, uint* offsetX, uint* offsetY)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+
+            DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
+                std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
+
+            pRenderPlayer->GetOffsets(offsetX, offsetY);
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Player '" << name << "' threw an exception getting offsets");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerRenderOffsetsSet(const char* name, uint offsetX, uint offsetY)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+
+            DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
+                std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
+
+            if (!pRenderPlayer->SetOffsets(offsetX, offsetY))
+            {
+                LOG_ERROR("Render Player '" << name << "' failed to set offsets");
+                return DSL_RESULT_PLAYER_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception setting Clock offsets");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerRenderZoomGet(const char* name, uint* zoom)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+
+            DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
+                std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
+
+            *zoom = pRenderPlayer->GetZoom();
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Player '" << name 
+                << "' threw exception getting Zoom");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::PlayerRenderZoomSet(const char* name, uint zoom)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+
+            DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
+                std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
+
+            if (!pRenderPlayer->SetZoom(zoom))
+            {
+                LOG_ERROR("Failed to Set Zooom '" << zoom 
+                    << "' for Render Player '" << name << "'");
+                return DSL_RESULT_PLAYER_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Player '" << name 
+                << "' threw exception setting Zoom");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerRenderImageTimeoutGet(const char* name, 
+        uint* timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_players, name, ImageRenderPlayerBintr);
+
+            DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pImageRenderPlayer = 
+                std::dynamic_pointer_cast<ImageRenderPlayerBintr>(m_players[name]);
+
+            *timeout = pImageRenderPlayer->GetTimeout();
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Render Player '" << name 
+                << "' threw exception getting Timeout");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::PlayerRenderImageTimeoutSet(const char* name, 
+        uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_players, name, ImageRenderPlayerBintr);
+
+            DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pImageRenderPlayer = 
+                std::dynamic_pointer_cast<ImageRenderPlayerBintr>(m_players[name]);
+
+            if (!pImageRenderPlayer->SetTimeout(timeout))
+            {
+                LOG_ERROR("Failed to Set Timeout to '" << timeout 
+                    << "s' for Image Render Player '" << name << "'");
+                return DSL_RESULT_PLAYER_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Render Player '" << name 
+                << "' threw exception setting Timeout");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerRenderVideoRepeatEnabledGet(const char* name, 
+        boolean* repeatEnabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_players, name, VideoRenderPlayerBintr);
+
+            DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pVideoRenderPlayer = 
+                std::dynamic_pointer_cast<VideoRenderPlayerBintr>(m_players[name]);
+
+            *repeatEnabled = pVideoRenderPlayer->GetRepeatEnabled();
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Render Player '" << name 
+                << "' threw exception getting Timeout");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerRenderVideoRepeatEnabledSet(const char* name, 
+        boolean repeatEnabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_players, name, VideoRenderPlayerBintr);
+
+            DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pVideoRenderPlayer = 
+                std::dynamic_pointer_cast<VideoRenderPlayerBintr>(m_players[name]);
+
+            if (!pVideoRenderPlayer->SetRepeatEnabled(repeatEnabled))
+            {
+                LOG_ERROR("Failed to Set Repeat Enabled to '" << repeatEnabled 
+                    << "' for Video Render Player '" << name << "'");
+                return DSL_RESULT_PLAYER_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Video Render Player '" << name 
+                << "' threw exception setting Repeat Enabled");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerTerminationEventListenerAdd(const char* name,
+        dsl_player_termination_event_listener_cb listener, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+
+        try
+        {
+            if (!m_players[name]->AddTerminationEventListener(listener, clientData))
+            {
+                LOG_ERROR("Player '" << name 
+                    << "' failed to add Termination Event Listener");
+                return DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception adding Termination Event Listner");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::PlayerTerminationEventListenerRemove(const char* name,
+        dsl_player_termination_event_listener_cb listener)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            
+            if (!m_players[name]->RemoveTerminationEventListener(listener))
+            {
+                LOG_ERROR("Player '" << name 
+                    << "' failed to remove Termination Event Listener");
+                return DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception adding Termination Event Listner");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerXWindowHandleGet(const char* name, uint64_t* xwindow) 
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            
+            *xwindow = m_players[name]->GetXWindow();
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name << "' threw an exception getting XWindow handle");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::PlayerXWindowHandleSet(const char* name, uint64_t xwindow)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            
+            if (!m_players[name]->SetXWindow(xwindow))
+            {
+                LOG_ERROR("Failure setting XWindow handle for Player '" << name << "'");
+                return DSL_RESULT_PLAYER_XWINDOW_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name << "' threw an exception setting XWindow handle");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerXWindowKeyEventHandlerAdd(const char* name, 
+        dsl_xwindow_key_event_handler_cb handler, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+
+            if (!m_players[name]->AddXWindowKeyEventHandler(handler, clientData))
+            {
+                LOG_ERROR("Player '" << name 
+                    << "' failed to add XWindow Key Event Handler");
+                return DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception adding XWindow Key Event Handler");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerXWindowKeyEventHandlerRemove(const char* name, 
+        dsl_xwindow_key_event_handler_cb handler)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+
+            if (!m_players[name]->RemoveXWindowKeyEventHandler(handler))
+            {
+                LOG_ERROR("Player '" << name 
+                    << "' failed to remove XWindow Key Event Handler");
+                return DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception removing XWindow Key Event Handler");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerPlay(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+
+            if (!m_players[name]->Play())
+            {
+                return DSL_RESULT_PLAYER_FAILED_TO_PLAY;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception on Play");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::PlayerPause(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+
+            if (!m_players[name]->Pause())
+            {
+                return DSL_RESULT_PLAYER_FAILED_TO_PAUSE;
+            }
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception on Pause");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerStop(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+
+        if (!m_players[name]->Stop())
+        {
+            return DSL_RESULT_PLAYER_FAILED_TO_STOP;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PlayerRenderNext(const char* name)
+    {
+        LOG_FUNC();
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+
+            DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
+                std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
+
+            if (!pRenderPlayer->Next())
+            {
+                LOG_ERROR("Player '" << name 
+                    << "' failed to Play Next");
+                return DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception on Play Next");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerStateGet(const char* name, uint* state)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+            GstState gstState;
+            m_players[name]->GetState(gstState, 0);
+            *state = (uint)gstState;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception getting state");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    boolean Services::PlayerExists(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            return (boolean)(m_players.find(name) != m_players.end());
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception adding Termination Event Listner");
+            return false;
+        }
+    }
+
+    DslReturnType Services::PlayerDelete(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+
+            m_players.erase(name);
+
+            LOG_INFO("Player '" << name << "' deleted successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception on Delete");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+
+    }
+
+    DslReturnType Services::PlayerDeleteAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        for (auto &imap: m_players)
+        {
+            imap.second->RemoveAllChildren();
+            imap.second = nullptr;
+        }
+
+        m_players.clear();
+
+        LOG_INFO("All Players deleted successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    uint Services::PlayerListSize()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        return m_players.size();
+    }
+
     DslReturnType Services::SmtpMailEnabledGet(boolean* enabled)
     {
         LOG_FUNC();
@@ -9021,6 +10238,8 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND] = L"DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_CAPTURE_TYPE_INVALID] = L"DSL_RESULT_ODE_ACTION_CAPTURE_TYPE_INVALID";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE] = L"DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED] = L"DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED] = L"DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_ODE_AREA_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_AREA_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_ODE_AREA_THREW_EXCEPTION] = L"DSL_RESULT_ODE_AREA_THREW_EXCEPTION";
@@ -9037,6 +10256,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SINK_CONTAINER_VALUE_INVALID] = L"DSL_RESULT_SINK_CONTAINER_VALUE_INVALID";
         m_returnValueToString[DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK] = L"DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK";
         m_returnValueToString[DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK] = L"DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK";
+        m_returnValueToString[DSL_RESULT_SINK_COMPONENT_IS_NOT_RENDER_SINK] = L"DSL_RESULT_SINK_COMPONENT_IS_NOT_RENDER_SINK";
         m_returnValueToString[DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED] = L"DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED] = L"DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_HANDLER_ADD_FAILED] = L"DSL_RESULT_SINK_HANDLER_ADD_FAILED";
@@ -9143,6 +10363,23 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_TAP_SET_FAILED] = L"DSL_RESULT_TAP_SET_FAILED";
         m_returnValueToString[DSL_RESULT_TAP_FILE_PATH_NOT_FOUND] = L"DSL_RESULT_TAP_FILE_PATH_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_TAP_CONTAINER_VALUE_INVALID] = L"DSL_RESULT_TAP_CONTAINER_VALUE_INVALID";
+        m_returnValueToString[DSL_RESULT_PLAYER_RESULT] = L"DSL_RESULT_PLAYER_RESULT";
+        m_returnValueToString[DSL_RESULT_PLAYER_NAME_NOT_UNIQUE] = L"DSL_RESULT_PLAYER_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_PLAYER_NAME_NOT_FOUND] = L"DSL_RESULT_PLAYER_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_PLAYER_NAME_BAD_FORMAT] = L"DSL_RESULT_PLAYER_NAME_BAD_FORMAT";
+        m_returnValueToString[DSL_RESULT_PLAYER_IS_NOT_RENDER_PLAYER] = L"DSL_RESULT_PLAYER_IS_NOT_RENDER_PLAYER";
+        m_returnValueToString[DSL_RESULT_PLAYER_STATE_PAUSED] = L"DSL_RESULT_PLAYER_STATE_PAUSED";
+        m_returnValueToString[DSL_RESULT_PLAYER_STATE_RUNNING] = L"DSL_RESULT_PLAYER_STATE_RUNNING";
+        m_returnValueToString[DSL_RESULT_PLAYER_THREW_EXCEPTION] = L"DSL_RESULT_PLAYER_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_PLAYER_XWINDOW_GET_FAILED] = L"DSL_RESULT_PLAYER_XWINDOW_GET_FAILED";
+        m_returnValueToString[DSL_RESULT_PLAYER_XWINDOW_SET_FAILED] = L"DSL_RESULT_PLAYER_XWINDOW_SET_FAILED";
+        m_returnValueToString[DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED] = L"DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED] = L"DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_PLAYER_FAILED_TO_PLAY] = L"DSL_RESULT_PLAYER_FAILED_TO_PLAY";
+        m_returnValueToString[DSL_RESULT_PLAYER_FAILED_TO_PAUSE] = L"DSL_RESULT_PLAYER_FAILED_TO_PAUSE";
+        m_returnValueToString[DSL_RESULT_PLAYER_FAILED_TO_STOP] = L"DSL_RESULT_PLAYER_FAILED_TO_STOP";
+        m_returnValueToString[DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT] = L"DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT";
+        m_returnValueToString[DSL_RESULT_PLAYER_SET_FAILED] = L"DSL_RESULT_PLAYER_SET_FAILED";
         
         m_returnValueToString[DSL_RESULT_INVALID_RESULT_CODE] = L"Invalid DSL Result CODE";
     }

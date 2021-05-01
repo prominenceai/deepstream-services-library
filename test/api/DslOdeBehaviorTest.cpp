@@ -53,7 +53,6 @@ SCENARIO( "A new Pipeline with an ODE Handler without any child ODE Triggers can
         std::wstring odePphName(L"ode-handler");
 
         std::wstring overlaySinkName(L"overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -79,7 +78,7 @@ SCENARIO( "A new Pipeline with an ODE Handler without any child ODE Triggers can
         
         REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), odePphName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"overlay-sink", NULL};
@@ -134,7 +133,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Print
         uint height(720);
         
         std::wstring overlaySinkName(L"overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -172,7 +170,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Print
         REQUIRE( dsl_ode_trigger_action_add(odeTriggerName.c_str(), odeActionName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"overlay-sink", NULL};
@@ -227,7 +225,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers, each
         uint height(720);
         
         std::wstring overlaySinkName(L"overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -282,7 +279,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers, each
         
         REQUIRE( dsl_osd_new(osdName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"overlay-sink", NULL};
@@ -337,7 +334,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers shari
         uint height(720);
         
         std::wstring overlaySinkName(L"overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -386,7 +382,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers shari
         REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), firstCarOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), firstPersonOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"overlay-sink", NULL};
@@ -441,7 +437,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, an Occurrence ODE Trigger, with a
         uint height(720);
         
         std::wstring overlaySinkName(L"overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -483,7 +478,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, an Occurrence ODE Trigger, with a
         
         REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), firstPersonOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"overlay-sink", NULL};
@@ -538,7 +533,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Triggers with
         uint height(720);
         
         std::wstring overlaySinkName(L"overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -616,7 +610,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Triggers with
 
         REQUIRE( dsl_osd_new(osdName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"overlay-sink", NULL};
@@ -673,7 +667,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
         uint height(720);
         
         std::wstring overlaySinkName(L"overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -750,7 +743,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
 
         REQUIRE( dsl_osd_new(osdName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"overlay-sink", NULL};
@@ -807,7 +800,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
         uint tilerHeight(720);
         
         std::wstring overlaySinkName(L"overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -919,7 +911,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
 
         REQUIRE( dsl_osd_new(osdName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"overlay-sink", NULL};
@@ -978,7 +970,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
         uint height(720);
         
         std::wstring overlaySinkName(L"overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -1039,7 +1030,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
 
         REQUIRE( dsl_osd_new(osdName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
@@ -1102,7 +1093,6 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Line Area 
         uint height(720);
         
         std::wstring overlaySinkName(L"overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -1175,7 +1165,7 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Line Area 
         
         REQUIRE( dsl_osd_new(osdName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"overlay-sink", NULL};
@@ -1232,7 +1222,6 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Inclussion
         uint height(720);
         
         std::wstring overlaySinkName(L"overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -1307,7 +1296,7 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Inclussion
         
         REQUIRE( dsl_osd_new(osdName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"overlay-sink", NULL};
@@ -1366,7 +1355,6 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Exclusion 
         uint height(720);
         
         std::wstring overlaySinkName(L"overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -1441,7 +1429,7 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Exclusion 
         
         REQUIRE( dsl_osd_new(osdName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"overlay-sink", NULL};

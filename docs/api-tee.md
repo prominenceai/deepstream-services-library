@@ -250,6 +250,7 @@ retval = dsl_tee_pph_remove('my-demuxer-tee', 'my-meter-pph')
 ## API Reference
 * [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
+* [Player](/docs/api-player.md)
 * [Source](/docs/api-source.md)
 * [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)

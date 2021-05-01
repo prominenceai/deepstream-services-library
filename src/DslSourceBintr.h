@@ -44,22 +44,36 @@ namespace DSL
         std::shared_ptr<SourceBintr>(new SourceBintr(name))
 
     #define DSL_CSI_SOURCE_PTR std::shared_ptr<CsiSourceBintr>
-    #define DSL_CSI_SOURCE_NEW(name, width, height, fps_n, fps_d) \
-        std::shared_ptr<CsiSourceBintr>(new CsiSourceBintr(name, width, height, fps_n, fps_d))
+    #define DSL_CSI_SOURCE_NEW(name, width, height, fpsN, fpsD) \
+        std::shared_ptr<CsiSourceBintr>(new CsiSourceBintr(name, width, height, fpsN, fpsD))
         
     #define DSL_USB_SOURCE_PTR std::shared_ptr<UsbSourceBintr>
-    #define DSL_USB_SOURCE_NEW(name, width, height, fps_n, fps_d) \
-        std::shared_ptr<UsbSourceBintr>(new UsbSourceBintr(name, width, height, fps_n, fps_d))
+    #define DSL_USB_SOURCE_NEW(name, width, height, fpsN, fpsD) \
+        std::shared_ptr<UsbSourceBintr>(new UsbSourceBintr(name, width, height, fpsN, fpsD))
+
+    #define DSL_RESOURCE_SOURCE_PTR std::shared_ptr<ResourceSourceBintr>
         
     #define DSL_DECODE_SOURCE_PTR std::shared_ptr<DecodeSourceBintr>
         
     #define DSL_URI_SOURCE_PTR std::shared_ptr<UriSourceBintr>
     #define DSL_URI_SOURCE_NEW(name, uri, isLive, cudadecMemType, intraDecode, dropFrameInterval) \
-        std::shared_ptr<UriSourceBintr>(new UriSourceBintr(name, uri, isLive, cudadecMemType, intraDecode, dropFrameInterval))
+        std::shared_ptr<UriSourceBintr>(new UriSourceBintr(name, \
+            uri, isLive, cudadecMemType, intraDecode, dropFrameInterval))
         
+    #define DSL_FILE_SOURCE_PTR std::shared_ptr<FileSourceBintr>
+    #define DSL_FILE_SOURCE_NEW(name, uri, repeatEnabled) \
+        std::shared_ptr<FileSourceBintr>(new FileSourceBintr(name, uri, repeatEnabled))
+
+    #define DSL_IMAGE_SOURCE_PTR std::shared_ptr<ImageSourceBintr>
+    #define DSL_IMAGE_SOURCE_NEW(name, filePath, isLive, fpsN, fpsD, timeout) \
+        std::shared_ptr<ImageSourceBintr>(new ImageSourceBintr(name, \
+            filePath, isLive, fpsN, fpsD, timeout))
+
     #define DSL_RTSP_SOURCE_PTR std::shared_ptr<RtspSourceBintr>
-    #define DSL_RTSP_SOURCE_NEW(name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval, latency, reconnectInterval) \
-        std::shared_ptr<RtspSourceBintr>(new RtspSourceBintr(name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval, latency, reconnectInterval))
+    #define DSL_RTSP_SOURCE_NEW(name, uri, protocol, cudadecMemType, \
+        intraDecode, dropFrameInterval, latency, timeout) \
+        std::shared_ptr<RtspSourceBintr>(new RtspSourceBintr(name, uri, protocol, \
+            cudadecMemType, intraDecode, dropFrameInterval, latency, timeout))
 
     /**
      * @class SourceBintr
@@ -92,6 +106,12 @@ namespace DSL
         }
         
         /**
+         * @brief For sources that manage EOS Consumers, this service must
+         * called before sending the source an EOS Event to stop playing.
+         */
+        virtual void DisableEosConsumer(){};
+        
+        /**
          * @brief Gets the current width and height settings for this SourceBintr
          * @param[out] width the current width setting in pixels
          * @param[out] height the current height setting in pixels
@@ -100,10 +120,11 @@ namespace DSL
         
         /**
          * @brief Gets the current FPS numerator and denominator settings for this SourceBintr
-         * @param[out] fps_n the FPS numerator
-         * @param[out] fps_d the FPS denominator
+         * @param[out] fpsN the FPS numerator
+         * @param[out] fpsD the FPS denominator
          */ 
-        void GetFrameRate(uint* fps_n, uint* fps_d);
+        void GetFrameRate(uint* fpsN, uint* fpsD);
+        
 
     public:
     
@@ -125,12 +146,12 @@ namespace DSL
         /**
          * @brief current frames-per-second numerator value for the Streaming Source
          */
-        uint m_fps_n;
+        uint m_fpsN;
 
         /**
          * @brief current frames-per-second denominator value for the Streaming Source
          */
-        uint m_fps_d;
+        uint m_fpsD;
 
         /**
          * @brief
@@ -168,7 +189,7 @@ namespace DSL
     public: 
     
         CsiSourceBintr(const char* name, uint width, uint height, 
-            uint fps_n, uint fps_d);
+            uint fpsN, uint fpsD);
 
         ~CsiSourceBintr();
 
@@ -203,7 +224,7 @@ namespace DSL
     public: 
     
         UsbSourceBintr(const char* name, uint width, uint height, 
-            uint fps_n, uint fps_d);
+            uint fpsN, uint fpsD);
 
         ~UsbSourceBintr();
 
@@ -242,23 +263,27 @@ namespace DSL
          * @brief
          */
         DSL_ELEMENT_PTR m_pVidConv2;
-    };    
+    }; 
 
     //*********************************************************************************
-
-    /**
-     * @class DecodeSourceBintr
-     * @brief 
-     */
-    class DecodeSourceBintr : public SourceBintr
+    class ResourceSourceBintr: public SourceBintr
     {
-    public: 
+    public:
     
-        DecodeSourceBintr(const char* name, const char* factoryName, const char* uri, 
-            bool isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
-
+        ResourceSourceBintr(const char* name, const char* uri)
+            : SourceBintr(name)
+            , m_uri(uri)
+        {
+            LOG_FUNC();
+        };
+            
+        ~ResourceSourceBintr()
+        {
+            LOG_FUNC();
+        }
+        
         /**
-         * @brief returns the current URI source for this DecodeSourceBintr
+         * @brief returns the current URI source for this ResourceSourceBintr
          * @return const string for either live or file source
          */
         const char* GetUri()
@@ -269,7 +294,36 @@ namespace DSL
         }
 
         virtual bool SetUri(const char* uri) = 0;
+    
+    protected:
+    
+        /**
+         * @brief Universal Resource Identifier (URI) for this ResourceSourceBintr
+         */
+        std::string m_uri;
+    };
 
+    //*********************************************************************************
+
+    /**
+     * @class DecodeSourceBintr
+     * @brief 
+     */
+    class DecodeSourceBintr : public ResourceSourceBintr
+    {
+    public: 
+    
+        DecodeSourceBintr(const char* name, const char* factoryName, const char* uri, 
+            bool isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+            
+        ~DecodeSourceBintr();
+
+        /**
+         * @brief Sets the URL for file decode sources only
+         * @param uri relative or absolute path to the file decode source
+         */
+        bool SetFileUri(const char* uri);
+        
         /**
          * @brief Sets the unique source id for this Source bintr
          * @param id value to assign [0...MAX]
@@ -325,14 +379,15 @@ namespace DSL
          */
         bool HasDewarperBintr();
 
+        /**
+         * @brief Disables Auto Repeat without updating the RepeatEnabled flag 
+         * which will take affect on next Play Pipeline command. This function
+         * should be called on non-live sources before sending the source an EOS
+         */
+        void DisableEosConsumer();
         
     protected:
 
-        /**
-         * @brief
-         */
-        std::string m_uri; 
-        
         /**
          * @brief
          */
@@ -359,14 +414,30 @@ namespace DSL
         guint m_prevAccumulatedBase;
         
         /**
-         * @brief
+         * nvv4l2decoder sink pad to add the Buffer Probe to
+         */  
+        GstPad* m_pDecoderStaticSinkpad;
+        
+        /**
+         * @brief probe id for nvv412decoder Buffer Probe used to handle EOS
+         * events and initiate the Restart process for a non-live source
          */
         guint m_bufferProbeId;
-
+        
         /**
          * @brief A dynamic collection of requested Source Pads for the Tee 
          */
         std::map<std::string, GstPad*> m_pGstRequestedSourcePads;
+
+        /**
+         * @brief mutual exclusion of the repeat enabled setting.
+         */
+        GMutex m_repeatEnabledMutex;
+        
+        /**
+         * @brief is set to true, non-live source will restart on EOS
+         */
+        bool m_repeatEnabled;
 
         /**
          @brief
@@ -422,8 +493,133 @@ namespace DSL
         
     private:
 
+    };
+
+    //*********************************************************************************
+
+    /**
+     * @class FileSourceBintr
+     * @brief 
+     */
+    class FileSourceBintr : public UriSourceBintr
+    {
+    public: 
+    
+        FileSourceBintr(const char* name, const char* uri, bool repeatEnabled);
+        
+        ~FileSourceBintr();
+
+        /**
+         * @brief Sets the URL for FileSourceBintr 
+         * @param uri relative or absolute path to the file decode source
+         */
+        bool SetUri(const char* uri);
+
+        /**
+         * @brief Gets the current repeat enabled setting, non-live URI sources only
+         * @return true if enabled, false otherwise.
+         */
+        bool GetRepeatEnabled();
+        
+        /**
+         * @brief Sets the repeat enabled setting, non-live URI source only.
+         * @param enabled set true to enable, false to disable
+         * @return true on succcess, false otherwise
+         */
+        bool SetRepeatEnabled(bool enabled);
+        
+    private:
 
     };
+
+    //*********************************************************************************
+
+    /**
+     * @class ImageSourceBintr
+     * @brief 
+     */
+    class ImageSourceBintr : public ResourceSourceBintr
+    {
+    public: 
+    
+        /**
+         * @brief Ctor for the ImageSourceBintr class
+         */
+        ImageSourceBintr(const char* name, 
+            const char* uri, bool isLive, uint fpsN, uint fpsD, uint timeout);
+        
+        /**
+         * @brief Dtor for the ImageSourceBintr class
+         */
+        ~ImageSourceBintr();
+
+        /**
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Source Bintr
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief Sets the URI (filepath) to use by this ImageSoureceBintr
+         * @param filePath absolute or relative path to the image file
+         * @return true if set successfully, false otherwise
+         */
+        bool SetUri(const char* uri);
+
+        /**
+         * @brief Gets the current display timeout setting
+         * @return current timeout setting.
+         */
+        uint GetTimeout();
+        
+        /**
+         * @brief Sets the display timeout setting to send EOS on timeout
+         * @param timeout timeout value in seconds, 0 to disable
+         * @return true on succcess, false otherwise
+         */
+        bool SetTimeout(uint timeout);
+        
+        /**
+         * @brief Handles the Image display timeout by sending and EOS event.
+         * @return 0 always to clear the timer resource
+         */
+        int HandleDisplayTimeout();
+        
+    private:
+        
+        /**
+         * @brief display timeout in units of seconds
+         */
+        uint m_timeout;
+
+        /**
+         * @brief gnome timer Id for the display timeout
+         */
+        uint m_timeoutTimerId;
+        
+        /**
+         * @brief mutux to guard the display timeout callback.
+         */
+        GMutex m_timeoutTimerMutex;
+
+        /**
+         * @brief Caps Filter for the File Source Element
+         */
+        DSL_ELEMENT_PTR m_pSourceCapsFilter;
+
+        /**
+         * @brief Image Overlay element for the FileSourceBintr
+         */
+        DSL_ELEMENT_PTR m_pImageOverlay;
+
+    };
+
+    //*********************************************************************************
 
     /**
      * @class RtspSourceBintr
@@ -433,8 +629,9 @@ namespace DSL
     {
     public: 
     
-        RtspSourceBintr(const char* name, const char* uri, uint protocol,
-            uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency, uint reconnectInterval);
+        RtspSourceBintr(const char* name, const char* uri, uint protocol, 
+            uint cudadecMemType, uint intraDecode, uint dropFrameInterval, 
+            uint latency, uint timeout);
 
         ~RtspSourceBintr();
 
@@ -450,7 +647,7 @@ namespace DSL
         void UnlinkAll();
 
         bool SetUri(const char* uri);
-        
+       
         /**
          * @brief Gets the current buffer timeout value controlling reconnection attemtps
          * @return buffer timeout in seconds, with 0 indicating that Stream Reconnection Management is disbled.
@@ -508,14 +705,14 @@ namespace DSL
          * @brief adds a callback to be notified on change of RTSP source state
          * @param[in] listener pointer to the client's function to call on state change
          * @param[in] userdata opaque pointer to client data passed into the listener function.
-         * @return DSL_RESULT_PIPELINE_RESULT
+         * @return true on successfull add, false otherwise
          */
         bool AddStateChangeListener(dsl_state_change_listener_cb listener, void* userdata);
 
         /**
          * @brief removes a previously added callback
          * @param[in] listener pointer to the client's function to remove
-         * @return DSL_RESULT_PIPELINE_RESULT
+         * @return true on successfull remove, false otherwise
          */
         bool RemoveStateChangeListener(dsl_state_change_listener_cb listener);
 
@@ -704,7 +901,13 @@ namespace DSL
         std::queue<std::shared_ptr<DslStateChange>> m_stateChanges;
     };
     
-
+    /**
+     * @brief Timer Callback to handle the image display timeout
+     * @param pSource (callback user data) pointer to the unique source opject
+     * @return 0 always - one shot timer.
+     */
+    static int ImageSourceDisplayTimeoutHandler(gpointer pSource);
+    
     /**
      * @brief 
      * @param[in] pBin

@@ -73,7 +73,7 @@ def main(args):
             break
 
         # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_overlay_new('overlay-sink', 1, 0, 0, 0, 0, 1280, 720)
+        retval = dsl_sink_overlay_new('overlay-sink', 0, 0, 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 

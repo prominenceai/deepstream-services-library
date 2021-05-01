@@ -50,7 +50,7 @@ namespace DSL
         /**
          * @brief named container ctor with new Bin 
          */
-        Bintr(const char* name)
+        Bintr(const char* name, bool pipeline = false)
             : GstNodetr(name)
             , m_uniqueId(-1)
             , m_isLinked(false)
@@ -62,7 +62,14 @@ namespace DSL
         { 
             LOG_FUNC(); 
 
-            m_pGstObj = GST_OBJECT(gst_bin_new((gchar*)name));
+            if (pipeline)
+            {
+                m_pGstObj = GST_OBJECT(gst_pipeline_new(name));
+            }
+            else
+            {
+                m_pGstObj = GST_OBJECT(gst_bin_new(name));
+            }
             if (!m_pGstObj)
             {
                 LOG_ERROR("Failed to create a new GST bin for Bintr '" << name << "'");

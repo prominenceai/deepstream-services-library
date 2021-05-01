@@ -34,10 +34,12 @@ THE SOFTWARE.
 #include <X11/Xutil.h>
 
 #include <queue>
+#include <iomanip>
 #include <iostream> 
 #include <sstream>
 #include <vector>
-#include <map> 
+#include <map>
+#include <list> 
 #include <memory> 
 #include <math.h>
 #include <fstream>

@@ -304,11 +304,12 @@ namespace DSL
             }
             else
             {
-                // Remove all child references 
-                RemoveAllChildren();
-
+                // Set the State to NULL to free up all resource before removing childern
                 LOG_DEBUG("Setting GstElement for GstNodetr '" << GetName() << "' to GST_STATE_NULL");
                 gst_element_set_state(GetGstElement(), GST_STATE_NULL);
+
+                // Remove all child references 
+                RemoveAllChildren();
                 
                 if (!m_pParentGstObj)
                 {

@@ -44,7 +44,7 @@ $ ./dsl-test-app
 After completion, ensure that all tests have passed before building the shared library.
 ```
 ===============================================================================
-All tests passed (4075 assertions in 527 test cases)
+All tests passed (4561 assertions in 592 test cases)
 ```
 
 Note: the total passed assertions and test cases are subject to change.
@@ -72,3 +72,30 @@ if retval != DSL_RETURN_SUCCESS:
     print(retval)
     # --- handle error
 ```
+
+## Getting Started
+* [Installing DSL Dependencies](/docs/building-dsl.md)
+* **Building and Importing DSL**
+
+## API Reference
+* [Overview](/docs/overview.md)
+* [List of all Services](/docs/api-reference-list.md)
+* [Pipeline](/docs/api-pipeline.md)
+* [Player](/docs/api-player.md)
+* [Source](/docs/api-source.md)
+* [Tap](/docs/api-tap.md)
+* [Dewarper](/docs/api-dewarper.md)
+* [Primary and Secondary GIEs](/docs/api-gie.md)
+* [Tracker](/docs/api-tracker.md)
+* [On-Screen Display](/docs/api-osd.md)
+* [Tiler](/docs/api-tiler.md)
+* [Demuxer and Splitter Tees](/docs/api-tee)
+* [Sink](/docs/api-sink.md)
+* [Pad Probe Handler](/docs/api-pph.md)
+* [ODE Trigger](/docs/api-ode-trigger.md)
+* [ODE Action ](/docs/api-ode-action.md)
+* [ODE Area](/docs/api-ode-area.md)
+* [Display Type](/docs/api-display-type.md)
+* [Branch](/docs/api-branch.md)
+* [Component](/docs/api-component.md)
+* [SMTP Services](/docs/api-smtp.md)

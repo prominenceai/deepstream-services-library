@@ -302,8 +302,8 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[UriSourceBintr]" )
                 uint retWidth, retHeight, retFpsN, retFpsD;
                 pSourceBintr->GetDimensions(&retWidth, &retHeight);
                 pSourceBintr->GetFrameRate(&retFpsN, &retFpsD);
-                REQUIRE( retWidth == 0 );
-                REQUIRE( retHeight == 0 );
+                REQUIRE( retWidth == 1920 );
+                REQUIRE( retHeight == 1080 );
                 REQUIRE( retFpsN == 0 );
                 REQUIRE( retFpsD == 0 );
             }
@@ -717,14 +717,14 @@ static void source_state_change_listener_cb1(uint prev_state, uint curr_state, v
 {
     std::cout << "Source state change lister 1 called with prev_state = " 
         << prev_state << " current_state = " << curr_state << "\n";
-        *(int*)user_data = 111;
+    *(int*)user_data = 111;
 }
 
 static void source_state_change_listener_cb2(uint prev_state, uint curr_state, void* user_data)
 {
     std::cout << "Source state change lister 2 called with prev_state = " 
         << prev_state << " current_state = " << curr_state << "\n";
-        *(int*)user_data = 222;
+    *(int*)user_data = 222;
 }
 
 SCENARIO( "An RtspSourceBintr can add and remove State Change Listeners",  "[RtspSourceBintr]" )
@@ -940,3 +940,165 @@ SCENARIO( "A RtspSourceBintr can Get and Set its GPU ID",  "[RtspSourceBintr]" )
     }
 }
 
+SCENARIO( "A new FileSourceBintr is created correctly",  "[FileSourceBintr]" )
+{
+    GIVEN( "A name for a new FileSourceBintr" ) 
+    {
+        std::string sourceName = "file-source";
+        std::string filePath = "./test/streams/sample_1080p_h264.mp4";
+        
+        char absolutePath[PATH_MAX+1];
+        std::string fullFillPath = realpath(filePath.c_str(), absolutePath);
+        fullFillPath.insert(0, "file:");
+
+        WHEN( "The FileSourceBintr is created " )
+        {
+            DSL_FILE_SOURCE_PTR pSourceBintr = DSL_FILE_SOURCE_NEW(
+                sourceName.c_str(), filePath.c_str(), false);
+
+            THEN( "All memeber variables are initialized correctly" )
+            {
+                REQUIRE( pSourceBintr->m_gpuId == 0 );
+                REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
+                REQUIRE( pSourceBintr->GetGstObject() != NULL );
+                REQUIRE( pSourceBintr->GetId() == -1 );
+                REQUIRE( pSourceBintr->IsInUse() == false );
+                
+                // Must reflect use of file stream
+                REQUIRE( pSourceBintr->IsLive() == false );
+                
+                std::string returnedUri = pSourceBintr->GetUri();
+                REQUIRE( returnedUri == fullFillPath );
+            }
+        }
+    }
+}
+
+SCENARIO( "A FileSourceBintr can LinkAll child Elementrs correctly",  "[FileSourceBintr]" )
+{
+    GIVEN( "A new FileSourceBintr in memory" ) 
+    {
+        std::string sourceName("test-file-source");
+        std::string filePath("./test/streams/sample_1080p_h264.mp4");
+
+        DSL_FILE_SOURCE_PTR pSourceBintr = DSL_FILE_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false);
+
+        WHEN( "The UriSourceBintr is called to LinkAll" )
+        {
+            REQUIRE( pSourceBintr->LinkAll() == true );
+
+            THEN( "The UriSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A FileSourceBintr can UnlinkAll all child Elementrs correctly",  "[FileSourceBintr]" )
+{
+    GIVEN( "A new, linked FileSourceBintr " ) 
+    {
+        std::string sourceName("file-source");
+        std::string filePath("./test/streams/sample_1080p_h264.mp4");
+
+        DSL_FILE_SOURCE_PTR pSourceBintr = DSL_FILE_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false);
+
+        REQUIRE( pSourceBintr->LinkAll() == true );
+        REQUIRE( pSourceBintr->IsLinked() == true );
+
+        WHEN( "The UriSourceBintr is called to UnlinkAll" )
+        {
+            pSourceBintr->UnlinkAll();
+
+            THEN( "The UriSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new ImageSourceBintr is created correctly",  "[ImageSourceBintr]" )
+{
+    GIVEN( "Attributes for a new ImageSourceBintr" ) 
+    {
+        std::string sourceName = "image-source";
+        std::string filePath = "./test/streams/sample_720p.jpg";
+        
+        char absolutePath[PATH_MAX+1];
+        std::string fullFillPath = realpath(filePath.c_str(), absolutePath);
+
+        WHEN( "The ImageSourceBintr is created " )
+        {
+            DSL_IMAGE_SOURCE_PTR pSourceBintr = DSL_IMAGE_SOURCE_NEW(
+                sourceName.c_str(), filePath.c_str(), false, 1, 1, 0);
+
+            THEN( "All memeber variables are initialized correctly" )
+            {
+                REQUIRE( pSourceBintr->m_gpuId == 0 );
+                REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
+                REQUIRE( pSourceBintr->GetGstObject() != NULL );
+                REQUIRE( pSourceBintr->GetId() == -1 );
+                REQUIRE( pSourceBintr->IsInUse() == false );
+                
+                // Must reflect use of file stream
+                REQUIRE( pSourceBintr->IsLive() == false );
+                
+                REQUIRE( pSourceBintr->GetTimeout() == 0 );
+                
+                std::string returnedFilePath = pSourceBintr->GetUri();
+                REQUIRE( returnedFilePath == fullFillPath );
+            }
+        }
+    }
+}
+
+SCENARIO( "An ImageSourceBintr can LinkAll child Elementrs correctly",  "[ImageSourceBintr]" )
+{
+    GIVEN( "A new ImageSourceBintr in memory" ) 
+    {
+        std::string sourceName = "image-source";
+        std::string filePath = "./test/streams/sample_720p.jpg";
+
+        DSL_IMAGE_SOURCE_PTR pSourceBintr = DSL_IMAGE_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, 1, 1, 0);
+
+        WHEN( "The ImageSourceBintr is called to LinkAll" )
+        {
+            REQUIRE( pSourceBintr->LinkAll() == true );
+
+            THEN( "The ImageSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "An ImageSourceBintr can UnlinkAll all child Elementrs correctly",  "[ImageSourceBintr]" )
+{
+    GIVEN( "A new, linked ImageSourceBintr " ) 
+    {
+        std::string sourceName = "image-source";
+        std::string filePath = "./test/streams/sample_720p.jpg";
+
+        DSL_IMAGE_SOURCE_PTR pSourceBintr = DSL_IMAGE_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), true, 1, 1, 0);
+
+        REQUIRE( pSourceBintr->LinkAll() == true );
+        REQUIRE( pSourceBintr->IsLinked() == true );
+
+        WHEN( "The ImageSourceBintr is called to UnlinkAll" )
+        {
+            pSourceBintr->UnlinkAll();
+
+            THEN( "The ImageSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == false );
+            }
+        }
+    }
+}

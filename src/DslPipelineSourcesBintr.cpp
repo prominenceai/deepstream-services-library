@@ -352,5 +352,12 @@ namespace DSL
         m_pStreamMux->SetAttribute("num-surfaces-per-frame", m_numSurfacesPerFrame);
     }
     
+    void PipelineSourcesBintr::DisableEosConsumers()
+    {
+        for (auto const& imap: m_pChildSources)
+        {
+            imap.second->DisableEosConsumer();
+        }
+    }
     
 }

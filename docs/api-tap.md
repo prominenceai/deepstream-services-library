@@ -354,6 +354,7 @@ retval, reset_done = dsl_tap_record_reset_done_get('my-record-tap')
 ## API Reference
 * [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
+* [Player](/docs/api-player.md)
 * [Source](/docs/api-source.md)
 * **TAP**
 * [Dewarper](/docs/api-dewarper.md)
