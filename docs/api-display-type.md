@@ -586,6 +586,7 @@ retval = dsl_display_type_meta_add('blue-circle', buffer, frame_meta)
 ## API Reference
 * [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
+* [Player](/docs/api-player.md)
 * [Source](/docs/api-source.md)
 * [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)

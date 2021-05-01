@@ -44,7 +44,7 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_uri_new](#dsl_source_uri_new)
 * [dsl_source_rtsp_new](#dsl_source_rtsp_new)
 * [dsl_source_file_new](#dsl_source_file_new)
-* [dsl_source_image_new](dsl_source_image_new)
+* [dsl_source_image_new](#dsl_source_image_new)
 
 **methods:**
 * [dsl_source_dimensions_get](#dsl_source_dimensions_get)

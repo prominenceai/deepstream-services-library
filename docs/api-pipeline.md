@@ -540,7 +540,7 @@ This service returns the current XWindow handle in use by the named Pipeline. Th
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to query.
-* `handle` - [out] width of the XWindow in pixels.
+* `handle` - [out] XWindow handle in use by the named Pipeline
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure

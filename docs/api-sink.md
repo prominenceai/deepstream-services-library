@@ -18,6 +18,9 @@ There is no (practical) limit to the number of Sinks that can be created, just t
 The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DSL initialization. The value can be read by calling [dsl_sink_num_in_use_max_get](#dsl_sink_num_in_use_max_get) and updated with [dsl_sink_num_in_use_max_set](#dsl_sink_num_in_use_max_set). The number of Sinks in use by all Pipelines can obtained by calling [dsl_sink_get_num_in_use](#dsl_sink_get_num_in_use). 
 
 ## Sink API
+**Types:**
+* [dsl_record_info](#dsl_record_info)
+
 **Callback Types:**
 * [dsl_record_client_listener_cb](#dsl_record_client_listener_cb)
 
@@ -95,15 +98,45 @@ The following video container types are used by the File Sink API
 
 ---
 
+## Types:
+
+```C
+typedef struct dsl_recording_info
+{
+    uint sessionId;
+    const wchar_t* filename;
+    const wchar_t* dirpath;
+    uint64_t duration;
+    uint containerType;
+    uint width;
+    uint height;
+} dsl_recording_info;
+```
+Structure typedef used to provide recording session information provided to the client on callback
+
+**Fields**
+* `sessionId` - the unique sesions id assigned on record start
+* `filename` - filename generated for the completed recording. 
+* `directory` - path for the completed recording
+* `duration` - duration of the recording in milliseconds
+* `containerType` - DSL_CONTAINER_MP4 or DSL_CONTAINER_MP4
+* `width` - width of the recording in pixels
+* `height` - height of the recording in pixels
+
+**Python Example**
+```Python
+
+```
+
 ## Callback Types:
 ### *dsl_record_client_listener_cb*
 ```C++
 typedef void* (*dsl_record_client_listener_cb)(void* info, void* user_data);
 ```
-Callback typedef for a client to listen for the notification that a Recording Session has ended.
+Callback typedef for clients to listen for a notification that a Recording Session has ended.
 
 **Parameters**
-* `info` [in] opaque pointer to the session info, see... NvDsSRRecordingInfo in gst-nvdssr.h 
+* `info` [in] opaque pointer to the session info, see... dsl_capture_info. 
 * `user_data` [in] user_data opaque pointer to client's user data, provided by the client  
 
 ---
@@ -185,7 +218,7 @@ retval = dsl_sink_file_new('my-file-sink', './my-video.mp4', DSL_CODEC_H264, DSL
 ### *dsl_sink_record_new*
 ```C++
 DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, uint codec, 
-    uint container, uint bitrate, uint interval, dsl_sink_record_client_listner_cb client_listener);
+    uint container, uint bitrate, uint interval, dsl_record_client_listener_cb  client_listener);
 ```
 The constructor creates a uniquely named Record Sink. Construction will fail if the name is currently in use. There are three Codec formats - `H.264`, `H.265`, and `MPEG` - and two video container types - `MPEG4` and `MK4` - supported.
 
@@ -198,7 +231,7 @@ Note: the Sink name is used as the filename prefix, followed by session id and N
 * `container` - [in] on of the [Video Container Types](#video-container-types) defined above
 * `bitrate` - [in] bitrate at which to code the video
 * `interval` - [in] frame interval at which to code the video. Set to 0 to code every frame
-* `client_listener` - [in] client callback funtion to be called when the recording is complete or stoped.
+* `client_listener` - [in] client callback funtion of type [dsl_record_client_listener_cb ](#dsl_record_client_listener_cb)to be called when the recording is complete or stoped.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
@@ -873,7 +906,7 @@ retval = dsl_sink_num_in_use_max_set(24)
 * [Tiler](/docs/api-tiler.md)
 * [Splitter and Demuxer](/docs/api-tee.md)
 * **Sink**
-* [Pad Probe Handler](/docs/api-pad-probe-handler.md)
+* [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Acton](/docs/api-ode-action.md)
 * [ODE Area](/docs/api-ode-area.md)
