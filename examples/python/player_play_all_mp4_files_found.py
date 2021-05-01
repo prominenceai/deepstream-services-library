@@ -28,10 +28,9 @@ import sys
 sys.path.insert(0, "../../")
 from dsl import *
 import time
+import os
 
-file_path = "../../test/streams/sample_1080p_h264.mp4"
-image_path = "../../test/streams/first-person-occurrence-438.jpeg"
-
+dir_path = "../../test/streams"
 
 ## 
 # Function to be called on Player termination event
@@ -39,60 +38,67 @@ image_path = "../../test/streams/first-person-occurrence-438.jpeg"
 def player_termination_event_listener(client_data):
     print('player termination event')
     dsl_main_loop_quit()
+    
+## 
+# Function to be called on XWindow KeyRelease event
+## 
+def xwindow_key_event_handler(key_string, client_data):
+    print('key released = ', key_string)
+    
+    # P = pause player
+    if key_string.upper() == 'P':
+        dsl_player_pause('player')
+        
+    # R = resume player, if paused
+    elif key_string.upper() == 'R':
+        dsl_player_play('player')
+        
+    # N = advance and play next
+    elif key_string.upper() == 'N':
+        dsl_player_render_next('player')
+        
+    # Q or Esc = quit application
+    elif key_string.upper() == 'Q' or key_string == '':
+        dsl_main_loop_quit()
+    
 
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # New File Source using the filespec defined above
-        retval = dsl_source_file_new('file-source', file_path=file_path, repeat_enabled=False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New Image Source using the filespec defined above, with a display timeout of 5 seconds
-        retval = dsl_source_image_new('image-source', 
-            file_path = image_path, 
-            is_live = False,
-            fps_n = 1,
-            fps_d = 1,
-            timeout = 5)
-        if retval != DSL_RETURN_SUCCESS:
-            break
+        for file in os.listdir(dir_path):
+            if file.endswith(".mp4"):
             
-        # Query the source for the image dimensions to use for our sink dimensions
-        retval, image_width, image_height = dsl_source_dimensions_get('image-source')
-
-        # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 0, 0, width=image_width, height=image_height)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New Overlay Sink,  x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_overlay_new('overlay-sink', 
-             display_id = 0, 
-            depth = 0,
-            offset_x = 50, 
-            offset_y = 50, 
-            width = image_width, 
-            height = image_height)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New Media Player using the File Source and Window Sink
-        retval = dsl_player_new('player1',
-            source='image-source', sink='overlay-sink')
-        if retval != DSL_RETURN_SUCCESS:
-            break
+                # create the Player on first file found
+                if not dsl_player_exists('player'):
+                
+                    # New Video Render Player to play all the MP4 files found
+                    retval = dsl_player_render_video_new('player', 
+                        file_path = os.path.join(dir_path, file),
+                        render_type = DSL_RENDER_TYPE_WINDOW,
+                        offset_x = 0, 
+                        offset_y = 0, 
+                        zoom = 50, 
+                        repeat_enabled = False)
+                    if retval != DSL_RETURN_SUCCESS:
+                        break
+                else:
+                    retval = dsl_player_render_file_path_queue('player', 
+                        file_path = os.path.join(dir_path, file))
 
         # Add the Termination listener callback to the Player
-        retval = dsl_player_termination_event_listener_add('player1',
+        retval = dsl_player_termination_event_listener_add('player',
             client_listener=player_termination_event_listener, client_data=None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        retval = dsl_player_xwindow_key_event_handler_add('player', xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # Play the Player until end-of-stream (EOS)
-        retval = dsl_player_play('player1')
+        retval = dsl_player_play('player')
         if retval != DSL_RETURN_SUCCESS:
             break
             

@@ -318,7 +318,49 @@ SCENARIO( "An Video Render Player's Attributes are updated correctly'", "[player
                 REQUIRE( retRepeatEnabled == newRepeatEnabled );
 
                 REQUIRE( dsl_player_delete(player_name.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Players's XWindow Handle can be Set/Get", "[player-api]" )
+{
+    GIVEN( "A new Player" ) 
+    {
+        std::wstring player_name  = L"player";
+
+        std::wstring file_path = L"./test/streams/sample_1080p_h264.mp4";
+
+        uint offsetX(123);
+        uint offsetY(123);
+        uint zoom(75);		
+        boolean repeatEnabled(false);
+        
+        uint64_t handle(0);
+        
+        REQUIRE( dsl_player_render_video_new(player_name.c_str(), file_path.c_str(), 
+            DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, repeatEnabled) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_player_xwindow_handle_get(player_name.c_str(), 
+            &handle) == DSL_RESULT_SUCCESS );
+            
+        // must be initialized false
+        REQUIRE( handle == 0 );
+
+        WHEN( "When the Player's XWindow Handle is updated" ) 
+        {
+			handle = 0x1234567812345678;
+            REQUIRE( dsl_player_xwindow_handle_set(player_name.c_str(), 
+                handle) == DSL_RESULT_SUCCESS );
+                
+            THEN( "The new handle value is returned on get" )
+            {
+				uint64_t newHandle(0);
+				REQUIRE( dsl_player_xwindow_handle_get(player_name.c_str(), 
+					&newHandle) == DSL_RESULT_SUCCESS );
+                REQUIRE( handle == newHandle );
+
+                REQUIRE( dsl_player_delete(player_name.c_str()) == DSL_RESULT_SUCCESS );
             }
         }
     }

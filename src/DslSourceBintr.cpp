@@ -319,6 +319,8 @@ namespace DSL
         
         // Initialize the mutex regardless of IsLive or not
         g_mutex_init(&m_repeatEnabledMutex);
+
+        m_pSourceElement = DSL_ELEMENT_NEW(factoryName, GetName().c_str());
         
         // if it's a file source, 
         if ((m_uri.find("http") == std::string::npos) and (m_uri.find("rtsp") == std::string::npos))
@@ -337,12 +339,12 @@ namespace DSL
         }
         
         LOG_INFO("URI Path for File Source '" << GetName() << "' = " << m_uri);
-        m_pSourceElement = DSL_ELEMENT_NEW(factoryName, GetName().c_str());
         
         if (m_uri.find("rtsp") != std::string::npos)
         {
             // Configure the source to generate NTP sync values
             configure_source_for_ntp_sync(m_pSourceElement->GetGstElement());
+            m_pSourceElement->SetAttribute("location", m_uri.c_str());
         }
         else
         {
@@ -356,7 +358,7 @@ namespace DSL
     {
         LOG_FUNC();
  
-        DisableEosConsumer();
+        //DisableEosConsumer();
         g_mutex_clear(&m_repeatEnabledMutex);
     }
     
@@ -577,7 +579,7 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_repeatEnabledMutex);
-
+        
         if (m_pDecoderStaticSinkpad)
         {
             if (m_bufferProbeId)
@@ -603,9 +605,6 @@ namespace DSL
         m_pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, "tee");
         m_pFakeSinkQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "fake-sink-queue");
         m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, "fake-sink");
-
-        // Set the URI for Source Elementr
-        m_pSourceElement->SetAttribute("uri", m_uri.c_str());
 
         // Connect UIR Source Setup Callbacks
         g_signal_connect(m_pSourceElement->GetGObject(), "pad-added", 
@@ -795,9 +794,11 @@ namespace DSL
             if (!SetFileUri(uri))
             {
                 LOG_ERROR("URI Source'" << uri << "' Not found");
-                throw;
+                return false;
             }
         }        
+        LOG_INFO("URI Path for File Source '" << GetName() << "' = " << m_uri);
+        
         m_pSourceElement->SetAttribute("uri", m_uri.c_str());
         
         return true;
@@ -832,7 +833,12 @@ namespace DSL
             return false;
         }
         
-        return SetFileUri(uri);
+        if (!SetFileUri(uri))
+        {
+            return false;
+        }
+        m_pSourceElement->SetAttribute("uri", m_uri.c_str()); 
+        return true;
     }
     
     bool FileSourceBintr::GetRepeatEnabled()
@@ -1065,7 +1071,6 @@ namespace DSL
         m_pDecodeBin = DSL_ELEMENT_NEW("decodebin", "decode-bin");
         m_pSourceQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "src-queue");
 
-        m_pSourceElement->SetAttribute("location", m_uri.c_str());
         m_pSourceElement->SetAttribute("latency", m_latency);
         m_pSourceElement->SetAttribute("drop-on-latency", true);
         m_pSourceElement->SetAttribute("protocols", m_rtpProtocols);
@@ -1222,21 +1227,8 @@ namespace DSL
         std::string newUri(uri);
         if (newUri.find("rtsp") == std::string::npos)
         {
-            if (m_isLive)
-            {
-                LOG_ERROR("Invalid URI '" << uri << "' for Live source '" << GetName() << "'");
-                return false;
-            }
-            std::ifstream streamUriFile(uri);
-            if (!streamUriFile.good())
-            {
-                LOG_ERROR("URI Source'" << uri << "' Not found");
-                return false;
-            }
-            // File source, not live - setup full path
-            char absolutePath[PATH_MAX+1];
-            m_uri.assign(realpath(uri, absolutePath));
-            m_uri.insert(0, "file:");
+            LOG_ERROR("Invalid URI '" << uri << "' for RTSP Source '" << GetName() << "'");
+            return false;
         }        
         m_pSourceElement->SetAttribute("location", m_uri.c_str());
         

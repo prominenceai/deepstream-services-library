@@ -36,6 +36,7 @@ namespace DSL
         , PipelineXWinMgr(m_pGstObj)
         , m_pSource(pSource)
         , m_pSink(pSink)
+        , m_inTermination(false)
     {
         LOG_FUNC();
 
@@ -73,6 +74,7 @@ namespace DSL
         : Bintr(name, true) // Pipeline = true
         , PipelineStateMgr(m_pGstObj)
         , PipelineXWinMgr(m_pGstObj)
+        , m_inTermination(false)
     {
         LOG_FUNC();
 
@@ -166,7 +168,6 @@ namespace DSL
     bool PlayerBintr::Play()
     {
         LOG_FUNC();
-        LOG_WARN("DO PLAY");
 
         GstState currentState;
         GetState(currentState, 0);
@@ -176,12 +177,7 @@ namespace DSL
                 << "' as it's already in a state of playing");
             return false;
         }
-        // conditionally add the EOS Listener as it may have been
-        // removed by the client with a previous call to Stop()
-        if (!IsEosListener(PlayerHandleEos))
-        {
-            AddEosListener(PlayerHandleEos, this);
-        }
+        
         return HandlePlay();
     }
     
@@ -197,10 +193,14 @@ namespace DSL
                 LOG_ERROR("Unable to prepare Pipeline '" << GetName() << "' for Play");
                 return false;
             }
-            if (!SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
+            // For non-live sources we Pause to preroll before we play
+            if (!m_pSource->IsLive())
             {
-                LOG_ERROR("Failed to Pause before playing Player '" << GetName() << "'");
-                return false;
+                if (!SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
+                {
+                    LOG_ERROR("Failed to Pause before playing Player '" << GetName() << "'");
+                    return false;
+                }
             }
         }
         if (!SetState(GST_STATE_PLAYING, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
@@ -208,13 +208,20 @@ namespace DSL
             LOG_ERROR("Failed to play Player '" << GetName() << "'");
             return false;
         }
+
+        // conditionally add the EOS Listener as it may have been
+        // removed by the client with a previous call to Stop()
+        if (!IsEosListener(PlayerHandleEos))
+        {
+            AddEosListener(PlayerHandleEos, this);
+        }
+
         return true;
     }
     
     bool PlayerBintr::Pause()
     {
         LOG_FUNC();
-        LOG_WARN("DO PAUSE");
         
         GstState state;
         GetState(state, 0);
@@ -243,7 +250,6 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
-        LOG_WARN("HANDLE PAUSE");
         
         // Call the base class to Pause
         if (!SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
@@ -256,23 +262,14 @@ namespace DSL
     bool PlayerBintr::Stop()
     {
         LOG_FUNC();
-        LOG_WARN("DO STOP");
         
         if (!IsLinked())
         {
             LOG_INFO("PlayerBintr is not linked when called to stop");
             return false;
         }
-
-        // Need to remove the Terminate on EOS handler or it will call (reenter) this 
-        // Stop function When we send the EOS message.
-        RemoveEosListener(PlayerHandleEos);
-
-        // Call the source to disable its EOS consumer, before sending EOS
-        m_pSource->DisableEosConsumer();
-
-        SendEos();
-        sleep(1);
+        
+        InitiateStop();
 
         // If the main loop is running -- normal case -- then we can't change the 
         // state of the Player in the Application's context. 
@@ -289,12 +286,25 @@ namespace DSL
         }
         return true;
     }
+
+    bool PlayerBintr::InitiateStop()
+    {
+        LOG_FUNC();
+
+        // Need to remove the Terminate on EOS handler or it will call (reenter) this 
+        // Stop function When we send the EOS message.
+        RemoveEosListener(PlayerHandleEos);
+
+        // Call the source to disable its EOS consumer, before sending EOS
+        m_pSource->DisableEosConsumer();
+
+        SendEos();
+    }
     
     void PlayerBintr::HandleStop()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
-        LOG_WARN("HANDLE STOP");
 
         if (!SetState(GST_STATE_READY, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
         {
@@ -308,24 +318,27 @@ namespace DSL
         // thread while the client is blocked in the Stop() function on the async GCond
         g_cond_signal(&m_asyncCondition);
         
-        // iterate through the map of Termination event listeners calling each
-        for(auto const& imap: m_terminationEventListeners)
+        if (m_inTermination)
         {
-            try
+            // iterate through the map of Termination event listeners calling each
+            for(auto const& imap: m_terminationEventListeners)
             {
-                imap.first(imap.second);
+                try
+                {
+                    imap.first(imap.second);
+                }
+                catch(...)
+                {
+                    LOG_ERROR("Exception calling Client Termination event Listener");
+                }
             }
-            catch(...)
-            {
-                LOG_ERROR("Exception calling Client Termination event Listener");
-            }
+            m_inTermination = false;
         }
     }
 
     void PlayerBintr::HandleEos()
     {
         LOG_FUNC();
-        LOG_WARN("HANDLE EOS");
 
         // Do not lock mutext!
         HandleStop();
@@ -335,11 +348,19 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
-        LOG_WARN("HANDLE TERMINATION");
+        
+        // Set the termination flag so that the async HandleStop()
+        // Can notifiy all Termination Listeners
+        m_inTermination = true;
 
-        // Start asyn Stop timer, do not wait or block as we are
-        // in the State Manager's bus watcher context.
+        // by removing the EOS Listener, disabling the source's EOS handler, 
+        // and then sending an EOS event
+        InitiateStop();
+        
+        // Start asyn Stop timer to complete the stop, do not wait or block as we are
+        // in the State Manager's bus watcher context - i.e. main loop.
         g_timeout_add(1, PlayerStop, this);
+        
     }
 
     
@@ -430,7 +451,6 @@ namespace DSL
             return false;
         }
         
-        // update the Bintr's dimensions from the SourceBintr's dimensions
         m_pSource->GetDimensions(&m_width, &m_height);
         
         // everything we need to create the SinkBintr
@@ -503,7 +523,6 @@ namespace DSL
         if (GetXWindow())
         {
             SetXWindowDimensions(width, height);
-            return true;
         }
         // Else, update the OverlaySinkBintr;
         return pRenderSink->SetDimensions(width, height);
@@ -552,11 +571,32 @@ namespace DSL
         return true;
     }
 
+    bool RenderPlayerBintr::Next()
+    {
+        LOG_FUNC();
+        
+        GstState state;
+        GetState(state, 0);
+        if (state == GST_STATE_NULL or state == GST_STATE_READY)
+        {
+            LOG_ERROR("Unable to Play next file path as the PlayerBintr '" 
+                << GetName() << "' is not in a Paused or Playing state");
+            return false;
+        }
+        // Need to initiate the stop process
+        InitiateStop();
+        
+        // The process of playing next is the same as handling and EOS.
+        HandleEos();
+        return true;
+    }
+    
     void RenderPlayerBintr::HandleStopAndPlay()
     {
         LOG_FUNC();
-        LOG_WARN("HANDLE STOP AND PLAY");
 
+        // Start by invoking the HandleStop routine to set the Player back to
+        // the Ready state and unlink all so that the file path can be updated
         HandleStop();
 
         if (m_filePathQueue.empty())
@@ -566,12 +606,21 @@ namespace DSL
             return;
         }
 
+        // get the next file path from the queue
         std::string nextFilePath = m_filePathQueue.front();
         m_filePathQueue.pop();
         
         LOG_INFO("Playing next file = '" << nextFilePath);
-        SetFilePath(nextFilePath.c_str());
         
+        if (!SetFilePath(nextFilePath.c_str()))
+        {
+            LOG_ERROR("Failed to set next file path for PlayerBintr '" 
+                << GetName() << "'");
+            return;
+        }
+        
+        // Finish by invoking Handle Play to re-link all and transition the 
+        // Player back to a state of Playing.
         HandlePlay();
     }
     
@@ -581,13 +630,16 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_filePathQueueMutex);
 
-        
+        // If there are file paths queued to play next
         if (m_filePathQueue.size())
         {
             g_timeout_add(1, PlayerStopAndPlay, this);
         }
         else
-        {            
+        {   
+            // need to set the async comm flag to tell the the Handle
+            // to inform all registered Termination Listeners of EOS
+            m_inTermination = true;
             g_timeout_add(1, PlayerStop, this);
         }
     }

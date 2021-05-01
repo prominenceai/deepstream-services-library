@@ -3663,6 +3663,31 @@ def dsl_player_termination_event_listener_remove(name, client_handler):
     return int(result)
 
 ##
+## dsl_player_xwindow_key_event_handler_add()
+##
+_dsl.dsl_player_xwindow_key_event_handler_add.argtypes = [c_wchar_p, DSL_XWINDOW_KEY_EVENT_HANDLER, c_void_p]
+_dsl.dsl_player_xwindow_key_event_handler_add.restype = c_uint
+def dsl_player_xwindow_key_event_handler_add(name, client_handler, client_data):
+    global _dsl
+    c_client_handler = DSL_XWINDOW_KEY_EVENT_HANDLER(client_handler)
+    callbacks.append(c_client_handler)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_player_xwindow_key_event_handler_add(name, c_client_handler, c_client_data)
+    return int(result)
+
+##
+## dsl_player_xwindow_key_event_handler_remove()
+##
+_dsl.dsl_player_xwindow_key_event_handler_remove.argtypes = [c_wchar_p, DSL_XWINDOW_KEY_EVENT_HANDLER]
+_dsl.dsl_player_xwindow_key_event_handler_remove.restype = c_uint
+def dsl_player_xwindow_key_event_handler_remove(name, client_handler):
+    global _dsl
+    c_client_handler = DSL_XWINDOW_KEY_EVENT_HANDLER(client_handler)
+    result = _dsl.dsl_player_xwindow_key_event_handler_remove(name, c_client_handler)
+    return int(result)
+
+##
 ## dsl_player_pause()
 ##
 _dsl.dsl_player_pause.argtypes = [c_wchar_p]
@@ -3690,6 +3715,16 @@ _dsl.dsl_player_stop.restype = c_uint
 def dsl_player_stop(name):
     global _dsl
     result =_dsl.dsl_player_stop(name)
+    return int(result)
+
+##
+## dsl_player_render_next()
+##
+_dsl.dsl_player_render_next.argtypes = [c_wchar_p]
+_dsl.dsl_player_render_next.restype = c_uint
+def dsl_player_render_next(name):
+    global _dsl
+    result =_dsl.dsl_player_render_next(name)
     return int(result)
 
 ##
