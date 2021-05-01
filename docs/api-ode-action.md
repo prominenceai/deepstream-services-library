@@ -31,6 +31,12 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 
 
 ## ODE Action API
+**Types:**
+* [dsl_capture_info](#dsl_capture_info)
+
+**Callback Types:**
+* [dsl_capture_complete_listener_cb](#dsl_capture_complete_listener_cb)
+
 **Constructors:**
 * [dsl_ode_action_action_disable_new](#dsl_ode_action_action_disable_new)
 * [dsl_ode_action_action_enable_new](#dsl_ode_action_action_enable_new)
@@ -69,11 +75,14 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 * [dsl_ode_action_delete_all](#dsl_ode_action_delete_all)
 
 **Methods:**
+* [dsl_ode_action_capture_complete_listener_add](#dsl_ode_action_capture_complete_listener_add)
+* [dsl_ode_action_capture_complete_listener_remove](#dsl_ode_action_capture_complete_listener_remove)
 * [dsl_ode_action_enabled_get](#dsl_ode_action_enabled_get)
 * [dsl_ode_action_enabled_set](#dsl_ode_action_enabled_set)
 * [dsl_ode_action_list_size](#dsl_ode_action_list_size)
 
 ---
+
 ## Return Values
 The following return codes are used by the OSD Action API
 ```C++
@@ -88,6 +97,57 @@ The following return codes are used by the OSD Action API
 #define DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE                  0x000F0009
 ```
 ---
+
+## Types:
+### *dsl_capture_info*
+```C
+typedef struct dsl_capture_info
+{
+    uint captureId;
+    const wchar_t* filename;
+    const wchar_t* dirpath;
+    uint width;
+    uint height;
+} dsl_capture_info;
+```
+Structure typedef used to provide Image Capture information to a Client [dsl_record_client_listener_cb](#dsl_record_client_listener_cb) function on capture and file save complete.
+
+**Fields**
+* `captureId` - the unique capture id assigned on file save
+* `filename` - filename generated for the captured image. 
+* `dirpath` - directory path for the captured image
+* `width` - width of the image in pixels
+* `height` - height of the image in pixels
+
+**Python Example**
+```Python
+## 
+# Function to be called on Object Capture (and file-save) complete
+## 
+def capture_complete_listener(capture_info_ptr, client_data):
+    print(' ***  Object Capture Complete  *** ')
+    
+    capture_info = capture_info_ptr.contents
+    print('capture_id: ', capture_info.capture_id)
+    print('filename:   ', capture_info.filename)
+    print('dirpath:    ', capture_info.dirpath)
+    print('width:      ', capture_info.width)
+    print('height:     ', capture_info.height)
+```
+
+## Callback Types:
+### *dsl_capture_complete_listener_cb*
+```C++
+typedef void (*dsl_capture_complete_listener_cb)(dsl_capture_info* info, void* client_data);
+```
+Callback typedef for a clients to listen for the notification that an Image or Object Capture has been completed and saved to file.
+
+**Parameters**
+* `info` [in] opaque pointer to the capture info of type [dsl_capture_info](#dsl_capture_info)
+* `user_data` [in] user_data opaque pointer to client's user data, provided by the client  
+
+---
+
 ## Constructors
 ### *dsl_ode_action_action_add_new*
 ```C++
@@ -816,9 +876,54 @@ retval = dsl_ode_action_delete_all()
 ```
 
 <br>
+
 ---
 
 ## Methods
+### *dsl_ode_action_capture_complete_listener_add*
+```C++
+DslReturnType dsl_ode_action_capture_complete_listener_add(const wchar_t* name, 
+    dsl_capture_complete_listener_cb listener, void* client_data);
+```
+This service adds a callback function of type [dsl_capture_complete_listener_cb](#dsl_capture_complete_listener_cb) to a Capture Action identified by it's unique name. The function will be called on Image Capture completion with a [dsl_capture_info](#dsl_capture_info) structure and the client provided `client_data`. Multiple callback functions can be registered with one Actions, and one callback function can be registered with multiple Actions. 
+
+**Parameters**
+* `name` - [in] unique name of the Action to update.
+* `listener` - [in] capture complete listener callback function to add.
+* `client_data` - [in] opaque pointer to user data returned to the listner is called back
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_capture_complete_listener_add('frame-capture-action', capture_complete_listener, None)
+```
+
+<br>
+
+### *dsl_ode_action_capture_complete_listener_remove*
+```C++
+DslReturnType dsl_ode_action_capture_complete_listener_remove(const wchar_t* name, 
+    dsl_capture_complete_listener_cb listener);
+```
+This service removes a callback function of type [dsl_capture_complete_listener_cb](#dsl_capture_complete_listener_cb) from a
+pipeline identified by it's unique name, previously added with [dsl_ode_action_capture_complete_listener_add](#dsl_ode_action_capture_complete_listener_add)
+
+**Parameters**
+* `name` - [in] unique name of the Capture Action to update.
+* `listener` - [in] capture complete listener callback function to remove.
+
+**Returns**  
+* `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_capture_complete_listener_remove('frame-capture-action', capture_complete_listener,)
+```
+
+<br>
+
 ### *dsl_ode_action_enabled_get*
 ```c++
 DslReturnType dsl_ode_action_enabled_get(const wchar_t* name, boolean* enabled);
