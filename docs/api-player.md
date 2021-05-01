@@ -44,9 +44,14 @@ Clients can be notified of **Player Termination** on **End-of-Stream** and **Win
 * [dsl_player_render_video_repeat_enabled_set](#dsl_player_render_video_repeat_enabled_set)
 * [dsl_player_termination_event_listener_add](#dsl_player_termination_event_listener_add)
 * [dsl_player_termination_event_listener_remove](#dsl_player_termination_event_listener_remove)
+* [dsl_player_xwindow_handle_get](#dsl_player_xwindow_handle_get)
+* [dsl_player_xwindow_handle_set](#dsl_player_xwindow_handle_set)
+* [dsl_player_xwindow_key_event_handler_add](#dsl_player_xwindow_key_event_handler_add)
+* [dsl_player_xwindow_key_event_handler_remove](#dsl_player_xwindow_key_event_handler_remove)
 * [dsl_player_play](#dsl_player_play)
 * [dsl_player_pause](#dsl_player_pause)
 * [dsl_player_stop](#dsl_player_stop)
+* [dsl_player_render_next](#dsl_player_render_next)
 * [dsl_player_state_get](#dsl_player_state_get)
 * [dsl_player_exists](#dsl_player_exists)
 * [dsl_player_list_size](#dsl_player_list_size)
@@ -55,22 +60,23 @@ Clients can be notified of **Player Termination** on **End-of-Stream** and **Win
 ## Return Values
 The following return codes are used by the Player API
 ```C++
-#define DSL_RESULT_PLAYER_RESULT                                    0x00400000
-#define DSL_RESULT_PLAYER_NAME_NOT_UNIQUE                           0x00400001
-#define DSL_RESULT_PLAYER_NAME_NOT_FOUND                            0x00400002
-#define DSL_RESULT_PLAYER_NAME_BAD_FORMAT                           0x00400003
-#define DSL_RESULT_PLAYER_IS_NOT_RENDER_PLAYER                      0x00400004
-#define DSL_RESULT_PLAYER_STATE_PAUSED                              0x00400005
-#define DSL_RESULT_PLAYER_STATE_RUNNING                             0x00400006
-#define DSL_RESULT_PLAYER_THREW_EXCEPTION                           0x00400007
-#define DSL_RESULT_PLAYER_XWINDOW_GET_FAILED                        0x00400008
-#define DSL_RESULT_PLAYER_XWINDOW_SET_FAILED                        0x00400009
-#define DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED                       0x0040000A
-#define DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED                    0x0040000B
-#define DSL_RESULT_PLAYER_FAILED_TO_PLAY                            0x0040000C
-#define DSL_RESULT_PLAYER_FAILED_TO_PAUSE                           0x0040000D
-#define DSL_RESULT_PLAYER_FAILED_TO_STOP                            0x0040000E
-#define DSL_RESULT_PLAYER_SET_FAILED                                0x00400011
+#define DSL_RESULT_PLAYER_RESULT                                    0x00400000
+#define DSL_RESULT_PLAYER_NAME_NOT_UNIQUE                           0x00400001
+#define DSL_RESULT_PLAYER_NAME_NOT_FOUND                            0x00400002
+#define DSL_RESULT_PLAYER_NAME_BAD_FORMAT                           0x00400003
+#define DSL_RESULT_PLAYER_IS_NOT_RENDER_PLAYER                      0x00400004
+#define DSL_RESULT_PLAYER_STATE_PAUSED                              0x00400005
+#define DSL_RESULT_PLAYER_STATE_RUNNING                             0x00400006
+#define DSL_RESULT_PLAYER_THREW_EXCEPTION                           0x00400007
+#define DSL_RESULT_PLAYER_XWINDOW_GET_FAILED                        0x00400008
+#define DSL_RESULT_PLAYER_XWINDOW_SET_FAILED                        0x00400009
+#define DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED                       0x0040000A
+#define DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED                    0x0040000B
+#define DSL_RESULT_PLAYER_FAILED_TO_PLAY                            0x0040000C
+#define DSL_RESULT_PLAYER_FAILED_TO_PAUSE                           0x0040000D
+#define DSL_RESULT_PLAYER_FAILED_TO_STOP                            0x0040000E
+#define DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT                0x00400010
+#define DSL_RESULT_PLAYER_SET_FAILED                                0x00400011
 ```
 
 ## DSL State Values
@@ -484,6 +490,94 @@ retval = dsl_player_termination_event_listener_remove('my-player', listener_cb)
 
 <br>
 
+### *dsl_player_xwindow_handle_get*
+```C++
+DslReturnType dsl_player_xwindow_handle_get(const wchar_t* name, uint64_t* xwindow);
+```
+This service returns the current XWindow handle in use by the named Player. The handle is set to `Null` on Pipeline creation and will remain `Null` until,
+1. The Player creates an internal XWindow synchronized with a Window-Sink on Transition to a state of playing, or
+2. The Client Application passes an XWindow handle into the Player by calling [dsl_player_xwindow_handle_set](#dsl_player_xwindow_handle_set).
+
+**Parameters**
+* `name` - [in] unique name for the Player to query.
+* `handle` - [out] XWindow handle in use by the named Player.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, x_window = dsl_player_xwindow_handle_get('my-player')
+```
+<br>
+
+### *dsl_player_xwindow_handle_set*
+```C++
+DslReturnType dsl_player_xwindow_handle_set(const wchar_t* name, uint64_t window);
+```
+This service sets the the XWindow for the named Player to use. Must be called prior to playing the Player
+
+**Parameters**
+* `name` - [in] unique name for the Player to update.
+* `handle` - [in] XWindow handle to use by the Window-Sink in use by this Pipeline.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_player_xwindow_handle_set('my-player', x_window)
+```
+<br>
+
+### *dsl_player_xwindow_key_event_handler_add*
+```C++
+DslReturnType dsl_player_xwindow_key_event_handler_add(const wchar_t* name, 
+    dsl_xwindow_key_event_handler_cb handler, void* client_data);
+```
+This service adds a callback function of type [dsl_xwindow_key_event_handler_cb](#dsl_xwindow_key_event_handler_cb) to a Player identified by it's unique name. The function will be called on every Player XWindow `KeyReleased` event with Key string and the client provided `client_data`. Multiple callback functions can be registered with one Player, and one callback function can be registered with multiple Players.
+
+**Note** Client XWindow Callback functions will only be called if the Player owns an XWindow, which requires a Window Sink component.
+
+**Parameters**
+* `name` - [in] unique name of the Player to update.
+* `handler` - [in] XWindow event handler callback function to add.
+* `client_data` - [in] opaque pointer to user data returned to the handler when called back
+
+**Returns** 
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+def key_event_handler(key_string, client_data):
+    print('key pressed = ', key_string)
+    
+retval = dsl_player_xwindow_key_event_handler_add('my-pipeline', key_event_handler, None)
+```
+
+<br>
+
+### *dsl_player_xwindow_key_event_handler_remove*
+```C++
+DslReturnType dsl_player_xwindow_key_event_handler_remove(const wchar_t* name, 
+    dsl_xwindow_key_event_handler_cb handler);
+```
+This service removes a Client XWindow key event handler callback that was added previously with [dsl_player_xwindow_key_event_handler_add](#dsl_player_xwindow_key_event_handler_add)
+
+**Parameters**
+* `name` - [in] unique name of the Player to update
+* `handler` - [in] XWindow event handler callback function to remove.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_pipeline_xwindow_key_event_handler_remove('my-pipeline', key_event_handler)
+```
+
+<br>
+
 ### *dsl_player_play*
 ```C++
 DslReturnType dsl_player_play(wchar_t* name);
@@ -536,6 +630,24 @@ This service is used to stop a named Player and return it to a state of `ready`.
 **Python Example**
 ```Python
 retval = dsl_player_stop('my-player')
+```
+
+<br>
+
+### *dsl_player_render_next*
+```C++
+DslReturnType dsl_player_render_next(const wchar_t* name);
+```
+This service is used to stop a named Player and Play the next queued `file_path` if one exists. The service is supported by Render Players only.
+**Parameters**
+* `name` - [in] unique name for the Player to stop and play next.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` if the named Render Player is able to plan the next queued file, one of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_player_render_next('my-player')
 ```
 
 <br>
