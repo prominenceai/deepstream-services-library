@@ -116,7 +116,7 @@ namespace DSL
          * @return true if HandleStop schedule correctly, false otherwise 
          */
         bool Stop();
-        
+    
         /**
          * @brief Stops the Player by setting its state to GST_STATE_NULL
          * Import: must be called in the mainloop's context, i.e. timer callback
@@ -141,7 +141,8 @@ namespace DSL
          * @param[in] clientData opaque pointer to client data passed into the listener function.
          * @return true on successful add, false otherwise
          */
-        bool AddTerminationEventListener(dsl_player_termination_event_listener_cb listener, void* clientData);
+        bool AddTerminationEventListener(dsl_player_termination_event_listener_cb listener, 
+            void* clientData);
 
         /**
          * @brief removes a previously added callback
@@ -151,6 +152,20 @@ namespace DSL
         bool RemoveTerminationEventListener(dsl_player_termination_event_listener_cb listener);
 
     protected:
+
+        /**
+         * @brief Function to initiate the stop process by removing the TerminationEventListener,
+         * disabling the source's EOS handler, and then sending an EOS event.
+         * @return 
+         */
+        bool InitiateStop();
+        
+        /**
+         * @brief Asynchronous comm flag for the Termination handler to communication
+         * with the async Stop handler. If set, to notify clients of a termination event.
+         * i.e the specific reason for stoppin.
+         */
+        bool m_inTermination;
 
         /**
          * @brief Queue to connect Source to Converter.
@@ -177,8 +192,6 @@ namespace DSL
          */
         DSL_SINK_PTR m_pSink;
     
-    protected:
-
         /**
          * @brief Mutex to protect the async GCond used to synchronize
          * the Application thread with the mainloop context on
@@ -261,6 +274,13 @@ namespace DSL
          * @return true on successful update, false otherwise
          */
         bool SetZoom(uint zoom);
+        
+        /**
+         * @brief Sends an EOS event to the Player causing the player to 
+         * play the next queued file path, or terminate if none.
+         * @return 
+         */
+        bool Next();
         
         /**
          * @brief Handles the Stop and Play next queued file in a timer callback

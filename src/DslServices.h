@@ -804,19 +804,31 @@ namespace DSL {
         DslReturnType PlayerRenderVideoRepeatEnabledSet(const char* name, 
             boolean repeatEnabled);
 
+        DslReturnType PlayerTerminationEventListenerAdd(const char* name,
+            dsl_player_termination_event_listener_cb listener, void* clientData);
+        
+        DslReturnType PlayerTerminationEventListenerRemove(const char* name,
+            dsl_player_termination_event_listener_cb listener);
+
+        DslReturnType PlayerXWindowHandleGet(const char* name, uint64_t* xwindow);
+
+        DslReturnType PlayerXWindowHandleSet(const char* name, uint64_t xwindow);
+
+        DslReturnType PlayerXWindowKeyEventHandlerAdd(const char* name, 
+            dsl_xwindow_key_event_handler_cb handler, void* clientData);
+
+        DslReturnType PlayerXWindowKeyEventHandlerRemove(const char* name, 
+            dsl_xwindow_key_event_handler_cb handler);
+        
         DslReturnType PlayerPause(const char* name);
         
         DslReturnType PlayerPlay(const char* name);
         
         DslReturnType PlayerStop(const char* name);
 
+        DslReturnType PlayerRenderNext(const char* name);
+
         DslReturnType PlayerStateGet(const char* name, uint* state);
-        
-        DslReturnType PlayerTerminationEventListenerAdd(const char* name,
-            dsl_player_termination_event_listener_cb listener, void* clientData);
-        
-        DslReturnType PlayerTerminationEventListenerRemove(const char* name,
-            dsl_player_termination_event_listener_cb listener);
         
         boolean PlayerExists(const char* name);
         

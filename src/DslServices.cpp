@@ -9466,70 +9466,6 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::PlayerPlay(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
-
-        if (!std::dynamic_pointer_cast<PlayerBintr>(m_players[name])->Play())
-        {
-            return DSL_RESULT_PLAYER_FAILED_TO_PLAY;
-        }
-
-        return DSL_RESULT_SUCCESS;
-    }
-    
-    DslReturnType Services::PlayerPause(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
-
-        if (!std::dynamic_pointer_cast<PlayerBintr>(m_players[name])->Pause())
-        {
-            return DSL_RESULT_PLAYER_FAILED_TO_PAUSE;
-        }
-
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::PlayerStop(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
-
-        if (!std::dynamic_pointer_cast<PlayerBintr>(m_players[name])->Stop())
-        {
-            return DSL_RESULT_PLAYER_FAILED_TO_STOP;
-        }
-
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::PlayerStateGet(const char* name, uint* state)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
-            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
-            GstState gstState;
-            m_players[name]->GetState(gstState, 0);
-            *state = (uint)gstState;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Player '" << name 
-                << "' threw an exception getting state");
-            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-
     DslReturnType Services::PlayerTerminationEventListenerAdd(const char* name,
         dsl_player_termination_event_listener_cb listener, void* clientData)
     {
@@ -9579,6 +9515,210 @@ namespace DSL
                 << "' threw an exception adding Termination Event Listner");
             return DSL_RESULT_PLAYER_THREW_EXCEPTION;
         }
+    }
+
+    DslReturnType Services::PlayerXWindowHandleGet(const char* name, uint64_t* xwindow) 
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            
+            *xwindow = m_players[name]->GetXWindow();
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name << "' threw an exception getting XWindow handle");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::PlayerXWindowHandleSet(const char* name, uint64_t xwindow)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            
+            if (!m_players[name]->SetXWindow(xwindow))
+            {
+                LOG_ERROR("Failure setting XWindow handle for Player '" << name << "'");
+                return DSL_RESULT_PLAYER_XWINDOW_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name << "' threw an exception setting XWindow handle");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerXWindowKeyEventHandlerAdd(const char* name, 
+        dsl_xwindow_key_event_handler_cb handler, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+
+            if (!m_players[name]->AddXWindowKeyEventHandler(handler, clientData))
+            {
+                LOG_ERROR("Player '" << name 
+                    << "' failed to add XWindow Key Event Handler");
+                return DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception adding XWindow Key Event Handler");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerXWindowKeyEventHandlerRemove(const char* name, 
+        dsl_xwindow_key_event_handler_cb handler)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+
+            if (!m_players[name]->RemoveXWindowKeyEventHandler(handler))
+            {
+                LOG_ERROR("Player '" << name 
+                    << "' failed to remove XWindow Key Event Handler");
+                return DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception removing XWindow Key Event Handler");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerPlay(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+
+            if (!m_players[name]->Play())
+            {
+                return DSL_RESULT_PLAYER_FAILED_TO_PLAY;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception on Play");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::PlayerPause(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+
+            if (!m_players[name]->Pause())
+            {
+                return DSL_RESULT_PLAYER_FAILED_TO_PAUSE;
+            }
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception on Pause");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerStop(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+
+        if (!m_players[name]->Stop())
+        {
+            return DSL_RESULT_PLAYER_FAILED_TO_STOP;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PlayerRenderNext(const char* name)
+    {
+        LOG_FUNC();
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+
+            DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
+                std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
+
+            if (!pRenderPlayer->Next())
+            {
+                LOG_ERROR("Player '" << name 
+                    << "' failed to Play Next");
+                return DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception on Play Next");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerStateGet(const char* name, uint* state)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+            GstState gstState;
+            m_players[name]->GetState(gstState, 0);
+            *state = (uint)gstState;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception getting state");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
     }
 
     boolean Services::PlayerExists(const char* name)
@@ -10238,6 +10378,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_PLAYER_FAILED_TO_PLAY] = L"DSL_RESULT_PLAYER_FAILED_TO_PLAY";
         m_returnValueToString[DSL_RESULT_PLAYER_FAILED_TO_PAUSE] = L"DSL_RESULT_PLAYER_FAILED_TO_PAUSE";
         m_returnValueToString[DSL_RESULT_PLAYER_FAILED_TO_STOP] = L"DSL_RESULT_PLAYER_FAILED_TO_STOP";
+        m_returnValueToString[DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT] = L"DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT";
         m_returnValueToString[DSL_RESULT_PLAYER_SET_FAILED] = L"DSL_RESULT_PLAYER_SET_FAILED";
         
         m_returnValueToString[DSL_RESULT_INVALID_RESULT_CODE] = L"Invalid DSL Result CODE";

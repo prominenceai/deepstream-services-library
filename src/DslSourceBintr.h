@@ -647,7 +647,7 @@ namespace DSL
         void UnlinkAll();
 
         bool SetUri(const char* uri);
-        
+       
         /**
          * @brief Gets the current buffer timeout value controlling reconnection attemtps
          * @return buffer timeout in seconds, with 0 indicating that Stream Reconnection Management is disbled.

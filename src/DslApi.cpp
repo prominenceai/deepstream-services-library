@@ -4661,6 +4661,52 @@ DslReturnType dsl_player_termination_event_listener_remove(const wchar_t* name,
         PlayerTerminationEventListenerRemove(cstrName.c_str(), listener);
 }
 
+DslReturnType dsl_player_xwindow_handle_get(const wchar_t* name, uint64_t* xwindow)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(xwindow);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PlayerXWindowHandleGet(cstrName.c_str(), xwindow);
+}
+
+DslReturnType dsl_player_xwindow_handle_set(const wchar_t* name, uint64_t xwindow)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PlayerXWindowHandleSet(cstrName.c_str(), xwindow);
+}
+
+DslReturnType dsl_player_xwindow_key_event_handler_add(const wchar_t* name, 
+    dsl_xwindow_key_event_handler_cb handler, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->
+        PlayerXWindowKeyEventHandlerAdd(cstrName.c_str(), handler, client_data);
+}    
+
+DslReturnType dsl_player_xwindow_key_event_handler_remove(const wchar_t* name, 
+    dsl_xwindow_key_event_handler_cb handler)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->
+        PlayerXWindowKeyEventHandlerRemove(cstrName.c_str(), handler);
+}
 DslReturnType dsl_player_play(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4689,6 +4735,16 @@ DslReturnType dsl_player_stop(const wchar_t* name)
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->PlayerStop(cstrName.c_str());
+}
+
+DslReturnType dsl_player_render_next(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PlayerRenderNext(cstrName.c_str());
 }
 
 DslReturnType dsl_player_state_get(const wchar_t* name, uint* state)
