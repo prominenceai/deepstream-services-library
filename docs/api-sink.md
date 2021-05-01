@@ -906,7 +906,7 @@ retval = dsl_sink_num_in_use_max_set(24)
 * [Tiler](/docs/api-tiler.md)
 * [Splitter and Demuxer](/docs/api-tee.md)
 * **Sink**
-* [Pad Probe Handler](/docs/api-pad-probe-handler.md)
+* [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Acton](/docs/api-ode-action.md)
 * [ODE Area](/docs/api-ode-area.md)
