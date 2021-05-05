@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include "DslBase.h"
 #include "DslSurfaceTransform.h"
 #include "DslDisplayTypes.h"
+#include "DslPlayerBintr.h"
 
 namespace DSL
 {
@@ -320,6 +321,20 @@ namespace DSL
         bool RemoveCaptureCompleteListener(dsl_capture_complete_listener_cb listener);
         
         /**
+         * @brief adds an Image Player, Render or RTSP type, to this CaptureAction
+         * @param pPlayer shared pointer to an Image Player to add
+         * @return true on successfull add, false otherwise
+         */
+        bool AddImagePlayer(DSL_PLAYER_BINTR_PTR pPlayer);
+        
+        /**
+         * @brief adds an Image Player, Render or RTSP type, to this CaptureAction
+         * @param pPlayer shared pointer to an Image Player to add
+         * @return true on successfull add, false otherwise
+         */
+        bool RemoveImagePlayer(DSL_PLAYER_BINTR_PTR pPlayer);
+        
+        /**
          * @brief Queues capture info and starts the Listener notification timer
          * @param info shared pointer to cv::MAT containing the captured image
          */
@@ -366,15 +381,19 @@ namespace DSL
         
         /**
          * @brief map of all currently registered capture-complete-listeners
-         * callback functions mapped with the user provided data
+         * callback functions mapped with thier user provided data
          */
         std::map<dsl_capture_complete_listener_cb, void*> m_captureCompleteListeners;
+        
+        /**
+         * @brief map of all Image Players to play captured images.
+         */
+        std::map<std::string, DSL_PLAYER_BINTR_PTR> m_imagePlayers;
         
         /**
          * @brief a queue of captured Images to save to file and notify clients
          */
         std::queue<std::shared_ptr<cv::Mat>> m_imageMats;
-
     };
 
     /**

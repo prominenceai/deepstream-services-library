@@ -24,6 +24,7 @@ THE SOFTWARE.
 
 #include "catch.hpp"
 #include "DslApi.h"
+#include "Dsl.h"
 
 SCENARIO( "The Components container is updated correctly on new source", "[source-api]" )
 {
@@ -717,19 +718,32 @@ SCENARIO( "A new File Source returns the correct attribute values", "[source-api
 {
     GIVEN( "Attributes for a new File Source" ) 
     {
-        std::wstring source_name(L"image-source");
-        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
+        std::wstring source_name(L"file-source");
+        std::wstring w_file_path(L"./test/streams/sample_1080p_h264.mp4");
+        std::string file_path(w_file_path.begin(), w_file_path.end());
+        
+        char absolutePath[PATH_MAX+1];
+        std::string full_file_path(realpath(file_path.c_str(), absolutePath));
+        std::wstring w_full_file_path(full_file_path.begin(), full_file_path.end());
+        w_full_file_path.insert(0, L"file:");
+        
         boolean repeat_enabled(1);
 
         REQUIRE( dsl_component_list_size() == 0 );
 
-        WHEN( "A new File Source is created" ) 
+        WHEN( "A new File Source is created with a File Path" ) 
         {
             REQUIRE( dsl_source_file_new(source_name.c_str(), 
-                uri.c_str(), repeat_enabled) == DSL_RESULT_SUCCESS );
+                w_file_path.c_str(), repeat_enabled) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct attribute values are returned" ) 
             {
+                const wchar_t* pRetFilePath;
+                REQUIRE( dsl_source_file_path_get(source_name.c_str(), 
+                    &pRetFilePath) == DSL_RESULT_SUCCESS );
+                std::wstring w_ret_file_path(pRetFilePath);
+                REQUIRE( w_ret_file_path == w_full_file_path);
+                
                 uint ret_width(0), ret_height(0), ret_fps_n(0), ret_fps_d(0);
                 REQUIRE( dsl_source_dimensions_get(source_name.c_str(), 
                     &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
@@ -745,6 +759,21 @@ SCENARIO( "A new File Source returns the correct attribute values", "[source-api
                     &ret_repeat_enabled) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_repeat_enabled == repeat_enabled );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "A new File Source is created with a File Path" ) 
+        {
+            REQUIRE( dsl_source_file_new(source_name.c_str(), 
+                NULL, repeat_enabled) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct attribute values are returned" ) 
+            {
+                const wchar_t* pRetFilePath; 
+                std::wstring empty_file_path;
+                REQUIRE( dsl_source_file_path_get(source_name.c_str(), 
+                    &pRetFilePath) == DSL_RESULT_SUCCESS );
+                std::wstring ret_file_path(pRetFilePath);
+                REQUIRE( ret_file_path == empty_file_path );
             }
         }
     }
@@ -881,9 +910,8 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_rtsp_new( NULL, NULL, 0, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_rtsp_new( sourceName.c_str(), NULL, 0, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_image_new( NULL, NULL, false, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_image_new( sourceName.c_str(), NULL, false, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_file_new( NULL, NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_file_new( sourceName.c_str(), NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+                // Note NULL file_path is valid for File and Image Sources
 
                 REQUIRE( dsl_source_dimensions_get( NULL, &width, &height ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_frame_rate_get( NULL, &fps_n, &fps_d ) == DSL_RESULT_INVALID_INPUT_PARAM );

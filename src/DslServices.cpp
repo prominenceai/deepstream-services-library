@@ -119,12 +119,31 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define RETURN_IF_PLAYER_IS_NOT_IMAGE_PLAYER(players, name) do \
+{ \
+    if (!players[name]->IsType(typeid(ImageRenderPlayerBintr))) \
+    { \
+        LOG_ERROR("Player '" << name << "' is not an Image Player"); \
+        return DSL_RESULT_PLAYER_IS_NOT_IMAGE_PLAYER; \
+    } \
+}while(0); 
+
+#define RETURN_IF_PLAYER_IS_NOT_VIDEO_PLAYER(players, name) do \
+{ \
+    if (!players[name]->IsType(typeid(VideoRenderPlayerBintr))) \
+    { \
+        LOG_ERROR("Player '" << name << "' is not an Video Player"); \
+        return DSL_RESULT_PLAYER_IS_NOT_VIDEO_PLAYER; \
+    } \
+}while(0); 
+
+
 #define RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(players, name) do \
 { \
     if (!players[name]->IsType(typeid(ImageRenderPlayerBintr)) and  \
         !players[name]->IsType(typeid(VideoRenderPlayerBintr))) \
     { \
-        LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
+        LOG_ERROR("Player '" << name << "' is not a Render Player"); \
         return DSL_RESULT_PLAYER_IS_NOT_RENDER_PLAYER; \
     } \
 }while(0); 
@@ -1198,6 +1217,68 @@ namespace DSL
         {
             LOG_ERROR("ODE Capture Action '" << name 
                 << "' threw an exception adding a Capture Complete Lister");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::OdeActionCaptureImagePlayerAdd(const char* name, 
+        const char* player)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
+            RETURN_IF_PLAYER_IS_NOT_IMAGE_PLAYER(m_players, player)
+
+            DSL_ODE_ACTION_CATPURE_PTR pOdeAction = 
+                std::dynamic_pointer_cast<CaptureOdeAction>(m_odeActions[name]);
+
+            if (!pOdeAction->AddImagePlayer(m_players[player]))
+            {
+                LOG_ERROR("Capture Action '" << name 
+                    << "' failed to add Player '" << player << "'");
+                return DSL_RESULT_ODE_ACTION_PLAYER_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Capture Action '" << name 
+                << "' threw an exception adding Player '" << player << "'");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::OdeActionCaptureImagePlayerRemove(const char* name, 
+        const char* player)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
+            RETURN_IF_PLAYER_IS_NOT_IMAGE_PLAYER(m_players, player)
+
+            DSL_ODE_ACTION_CATPURE_PTR pOdeAction = 
+                std::dynamic_pointer_cast<CaptureOdeAction>(m_odeActions[name]);
+
+            if (!pOdeAction->RemoveImagePlayer(m_players[player]))
+            {
+                LOG_ERROR("Capture Action '" << name 
+                    << "' failed to remove Player '" << player << "'");
+                return DSL_RESULT_ODE_ACTION_PLAYER_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Capture Action '" << name 
+                << "' threw an exception removeing Player '" << player << "'");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
@@ -3903,11 +3984,15 @@ namespace DSL
                 LOG_ERROR("Source name '" << name << "' is not unique");
                 return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
             }
-            std::ifstream streamUriFile(filePath);
-            if (!streamUriFile.good())
+            std::string pathString(filePath);
+            if (pathString.size())
             {
-                LOG_ERROR("File Source'" << filePath << "' Not found");
-                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+                std::ifstream streamUriFile(filePath);
+                if (!streamUriFile.good())
+                {
+                    LOG_ERROR("File Source'" << filePath << "' Not found");
+                    return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+                }
             }
             m_components[name] = DSL_FILE_SOURCE_NEW(
                 name, filePath, repeatEnabled);
@@ -9133,17 +9218,20 @@ namespace DSL
 
         try
         {
-        
             if (m_players.find(name) != m_players.end())
             {   
                 LOG_ERROR("Player name '" << name << "' is not unique");
                 return DSL_RESULT_PLAYER_NAME_NOT_UNIQUE;
             }
-            std::ifstream streamUriFile(filePath);
-            if (!streamUriFile.good())
+            std::string pathString(filePath);
+            if (pathString.size())
             {
-                LOG_ERROR("File Source'" << filePath << "' Not found");
-                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+                std::ifstream streamUriFile(filePath);
+                if (!streamUriFile.good())
+                {
+                    LOG_ERROR("File Source'" << filePath << "' Not found");
+                    return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+                }
             }
             m_players[name] = std::shared_ptr<ImageRenderPlayerBintr>(new 
                 ImageRenderPlayerBintr(name, filePath, renderType,
@@ -10368,8 +10456,8 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_PLAYER_NAME_NOT_FOUND] = L"DSL_RESULT_PLAYER_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_PLAYER_NAME_BAD_FORMAT] = L"DSL_RESULT_PLAYER_NAME_BAD_FORMAT";
         m_returnValueToString[DSL_RESULT_PLAYER_IS_NOT_RENDER_PLAYER] = L"DSL_RESULT_PLAYER_IS_NOT_RENDER_PLAYER";
-        m_returnValueToString[DSL_RESULT_PLAYER_STATE_PAUSED] = L"DSL_RESULT_PLAYER_STATE_PAUSED";
-        m_returnValueToString[DSL_RESULT_PLAYER_STATE_RUNNING] = L"DSL_RESULT_PLAYER_STATE_RUNNING";
+        m_returnValueToString[DSL_RESULT_PLAYER_IS_NOT_IMAGE_PLAYER] = L"DSL_RESULT_PLAYER_IS_NOT_IMAGE_PLAYER";
+        m_returnValueToString[DSL_RESULT_PLAYER_IS_NOT_VIDEO_PLAYER] = L"DSL_RESULT_PLAYER_IS_NOT_VIDEO_PLAYER";
         m_returnValueToString[DSL_RESULT_PLAYER_THREW_EXCEPTION] = L"DSL_RESULT_PLAYER_THREW_EXCEPTION";
         m_returnValueToString[DSL_RESULT_PLAYER_XWINDOW_GET_FAILED] = L"DSL_RESULT_PLAYER_XWINDOW_GET_FAILED";
         m_returnValueToString[DSL_RESULT_PLAYER_XWINDOW_SET_FAILED] = L"DSL_RESULT_PLAYER_XWINDOW_SET_FAILED";

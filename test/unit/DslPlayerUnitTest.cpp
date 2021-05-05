@@ -35,10 +35,10 @@ SCENARIO( "A New PlayerBintr is created correctly", "[PlayerBintr]" )
 {
     GIVEN( "A new URI Source and Overlay Sink" ) 
     {
-        std::string playerName = "player";
+        std::string playerName("player");
 
         std::string sourceName("file-source");
-        std::string filePath = "./test/streams/sample_1080p_h264.mp4";
+        std::string filePath("./test/streams/sample_1080p_h264.mp4");
         
         char absolutePath[PATH_MAX+1];
         std::string fullFilePath = realpath(filePath.c_str(), absolutePath);
@@ -80,10 +80,10 @@ SCENARIO( "A New PlayerBintr can Link its Child Bintrs correctly", "[PlayerBintr
 {
     GIVEN( "A new PlayerBintr with URI Source and Overlay Sink" ) 
     {
-        std::string playerName = "player";
+        std::string playerName("player");
 
         std::string sourceName("file-source");
-        std::string filePath = "./test/streams/sample_1080p_h264.mp4";
+        std::string filePath("./test/streams/sample_1080p_h264.mp4");
         
         char absolutePath[PATH_MAX+1];
         std::string fullFilePath = realpath(filePath.c_str(), absolutePath);
@@ -127,7 +127,7 @@ SCENARIO( "A New PlayerBintr can Unlink its Child Bintrs correctly", "[PlayerBin
         std::string playerName = "player";
 
         std::string sourceName("file-source");
-        std::string filePath = "./test/streams/sample_1080p_h264.mp4";
+        std::string filePath("./test/streams/sample_1080p_h264.mp4");
         
         char absolutePath[PATH_MAX+1];
         std::string fullFilePath = realpath(filePath.c_str(), absolutePath);
@@ -169,10 +169,10 @@ SCENARIO( "A New PlayerBintr with a File Source and Overlay Sink can Play and St
 {
     GIVEN( "A new name for a PipelineBintr" ) 
     {
-        std::string playerName = "player";
+        std::string playerName("player");
 
         std::string sourceName("file-source");
-        std::string filePath = "./test/streams/sample_1080p_h264.mp4";
+        std::string filePath("./test/streams/sample_1080p_h264.mp4");
         
         char absolutePath[PATH_MAX+1];
         std::string fullFilePath = realpath(filePath.c_str(), absolutePath);
@@ -218,10 +218,10 @@ SCENARIO( "A New PlayerBintr with a File Source and Window Sink can Play and Sto
 {
     GIVEN( "A new name for a PipelineBintr" ) 
     {
-        std::string playerName = "player";
+        std::string playerName("player");
 
         std::string sourceName("file-source");
-        std::string filePath = "./test/streams/sample_1080p_h264.mp4";
+        std::string filePath("./test/streams/sample_1080p_h264.mp4");
         
         char absolutePath[PATH_MAX+1];
         std::string fullFilePath = realpath(filePath.c_str(), absolutePath);
@@ -675,7 +675,7 @@ SCENARIO( "A VideoRenderPlayerBintr with a OverlaySinkBintr can Set/Get its Zoom
         std::string playerName("player");
 
         std::string sourceName("file-source");
-        std::string filePath = "./test/streams/sample_1080p_h264.mp4";
+        std::string filePath("./test/streams/sample_1080p_h264.mp4");
         uint offsetX(0);
         uint offsetY(0);
         uint zoom(50);
@@ -709,7 +709,7 @@ SCENARIO( "A ImageRenderPlayerBintr with a WindowSinkBintr can Set/Get its Offse
         std::string playerName("player");
 
         std::string sourceName("file-source");
-        std::string filePath = "./test/streams/first-person-occurrence-438.jpeg";
+        std::string filePath("./test/streams/first-person-occurrence-438.jpeg");
         uint offsetX(0);
         uint offsetY(0);
         uint zoom(100);
@@ -746,7 +746,7 @@ SCENARIO( "A ImageRenderPlayerBintr with a OverlaySinkBintr can Set/Get its Offs
         std::string playerName("player");
 
         std::string sourceName("file-source");
-        std::string filePath = "./test/streams/first-person-occurrence-438.jpeg";
+        std::string filePath("./test/streams/first-person-occurrence-438.jpeg");
         uint offsetX(0);
         uint offsetY(0);
         uint zoom(100);
@@ -783,8 +783,8 @@ SCENARIO( "A ImageRenderPlayerBintr can play Queued files", "[PlayerBintr]" )
         std::string playerName("player");
 
         std::string sourceName("file-source");
-        std::string filePath1 = "./test/streams/first-person-occurrence-438.jpeg";
-        std::string filePath2 = "./test/streams/sample_720p.jpg";
+        std::string filePath1("./test/streams/first-person-occurrence-438.jpeg");
+        std::string filePath2("./test/streams/sample_720p.jpg");
         uint offsetX(0);
         uint offsetY(0);
         uint zoom(100);
@@ -804,7 +804,7 @@ SCENARIO( "A ImageRenderPlayerBintr can play Queued files", "[PlayerBintr]" )
             // Simulate EOS event
             pPlayerBintr->HandleEos();
             
-            THEN( "The Player is Stoped and the Queued file is Played" )
+            THEN( "The Player is Stopped and the Queued file is Played" )
             {
                 pPlayerBintr->HandleStopAndPlay();
                 // Note: required visual confermation at this time..
@@ -814,3 +814,130 @@ SCENARIO( "A ImageRenderPlayerBintr can play Queued files", "[PlayerBintr]" )
         }
     }
 }
+
+SCENARIO( "A New VideoRenderPlayerBintr cannot Play without a File Path", "[PlayerBintr]" )
+{
+    GIVEN( "A new VideoRenderPlayerBintr" ) 
+    {
+        std::string playerName("player");
+
+        std::string sourceName("file-source");
+        std::string filePath;
+        uint offsetX(400);
+        uint offsetY(200);
+        uint zoom(50);
+        bool repeatEnabled(0);
+
+        WHEN( "The PlayerBintr is created with an empty file path " )
+        {
+            DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pPlayerBintr = 
+                DSL_PLAYER_RENDER_VIDEO_BINTR_NEW(playerName.c_str(),
+                    filePath.c_str(), DSL_RENDER_TYPE_OVERLAY, 
+                    offsetX, offsetY, zoom, repeatEnabled);
+            
+            THEN( "The PlayerBintr is unable to Play" )
+            {
+                REQUIRE( pPlayerBintr->Play() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A New ImageRenderPlayerBintr cannot Play without a File Path", "[PlayerBintr]" )
+{
+    GIVEN( "A new ImageRenderPlayerBintr" ) 
+    {
+        std::string playerName("player");
+
+        std::string sourceName("image-source");
+        std::string filePath;
+        uint offsetX(400);
+        uint offsetY(200);
+        uint zoom(50);
+        uint timeout(0);
+
+        WHEN( "The PlayerBintr is created with a empty file path " )
+        {
+            DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
+                DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
+                    filePath.c_str(), DSL_RENDER_TYPE_OVERLAY, 
+                    offsetX, offsetY, zoom, timeout);
+            
+            THEN( "The PlayerBintr is unable to Play" )
+            {
+                REQUIRE( pPlayerBintr->Play() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A New VideoRenderPlayerBintr can Play with an updated File Path", "[new]" )
+{
+    GIVEN( "A new VideoRenderPlayerBintr" ) 
+    {
+        std::string playerName("player");
+
+        std::string sourceName("file-source");
+        std::string filePath;
+        std::string newFilePath = "./test/streams/sample_1080p_h264.mp4";
+        uint offsetX(400);
+        uint offsetY(200);
+        uint zoom(50);
+        bool repeatEnabled(0);
+
+        DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_RENDER_VIDEO_BINTR_NEW(playerName.c_str(),
+                filePath.c_str(), DSL_RENDER_TYPE_OVERLAY, 
+                offsetX, offsetY, zoom, repeatEnabled);
+
+        REQUIRE( pPlayerBintr->Play() == false );
+
+        WHEN( "The PlayerBintrs file path is updated" )
+        {
+            REQUIRE( pPlayerBintr->SetFilePath(newFilePath.c_str()) == true );
+            
+            THEN( "The PlayerBintr is unable to Play" )
+            {
+                REQUIRE( pPlayerBintr->Play() == true );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Stop() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A New ImageRenderPlayerBintr can Play with an updated File Path", "[new]" )
+{
+    GIVEN( "A new ImageRenderPlayerBintr" ) 
+    {
+        std::string playerName("player");
+
+        std::string sourceName("image-source");
+        std::string filePath;
+        std::string newFilePath ("./test/streams/sample_720p.jpg");
+        uint offsetX(400);
+        uint offsetY(200);
+        uint zoom(50);
+        uint timeout(0);
+
+        DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
+                filePath.c_str(), DSL_RENDER_TYPE_OVERLAY, 
+                offsetX, offsetY, zoom, timeout);
+
+        REQUIRE( pPlayerBintr->Play() == false );
+
+        WHEN( "The PlayerBintrs file path is updated" )
+        {
+            REQUIRE( pPlayerBintr->SetFilePath(newFilePath.c_str()) == true );
+            
+            THEN( "The PlayerBintr is unable to Play" )
+            {
+                REQUIRE( pPlayerBintr->Play() == true );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Stop() == true );
+            }
+        }
+    }
+}
+
