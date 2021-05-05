@@ -147,7 +147,8 @@ namespace DSL
         
         if (m_captureCompleteListeners.find(listener) != m_captureCompleteListeners.end())
         {   
-            LOG_ERROR("ODE Action Capture Complete listener is not unique");
+            LOG_ERROR("ODE Capture Action '" << GetName() 
+                << "' - Complete listener is not unique");
             return false;
         }
         m_captureCompleteListeners[listener] = userdata;
@@ -163,10 +164,43 @@ namespace DSL
         
         if (m_captureCompleteListeners.find(listener) == m_captureCompleteListeners.end())
         {   
-            LOG_ERROR("ODE Action Capture Complete listener not found");
+            LOG_ERROR("ODE Capture Action '" << GetName() 
+                << "'  - Complete listener not found");
             return false;
         }
         m_captureCompleteListeners.erase(listener);
+        
+        return true;
+    }
+    
+    bool CaptureOdeAction::AddImagePlayer(DSL_PLAYER_BINTR_PTR pPlayer)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        
+        if (m_imagePlayers.find(pPlayer->GetName()) != m_imagePlayers.end())
+        {   
+            LOG_ERROR("ODE Capture Action '" << GetName() 
+                << "'  - Image Player is not unique");
+            return false;
+        }
+        m_imagePlayers[pPlayer->GetName()] = pPlayer;
+        
+        return true;
+    }
+    
+    bool CaptureOdeAction::RemoveImagePlayer(DSL_PLAYER_BINTR_PTR pPlayer)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        
+        if (m_imagePlayers.find(pPlayer->GetCStrName()) == m_imagePlayers.end())
+        {   
+            LOG_ERROR("ODE Capture Action '" << GetName() 
+                << "' - Image Player not found");
+            return false;
+        }
+        m_imagePlayers.erase(pPlayer->GetName());
         
         return true;
     }
@@ -399,6 +433,33 @@ namespace DSL
             // Increment the global capture count
             s_captureId++;
             
+            // If there are Image Players for playing the captured image
+            for (auto const& iter: m_imagePlayers)
+            {
+                if (iter.second->IsType(typeid(ImageRenderPlayerBintr)))
+                {
+                    DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pImagePlayer = 
+                        std::dynamic_pointer_cast<ImageRenderPlayerBintr>(iter.second);
+
+                    GstState state;
+                    pImagePlayer->GetState(state, 0);
+
+                    // Queue the filepath if the Player is currently Playing/Paused
+                    // otherwise, set the filepath and Play the Player
+                    if (state == GST_STATE_PLAYING or state == GST_STATE_PAUSED)
+                    {
+                        pImagePlayer->QueueFilePath(filespec.c_str());
+                    }
+                    else
+                    {
+                        pImagePlayer->SetFilePath(filespec.c_str());
+                        pImagePlayer->Play();
+                        
+                    }
+                }
+                // TODO handle ImageRtspPlayerBintr
+            }
+            
             // If there are complete listeners to notify
             if (m_captureCompleteListeners.size())
             {
@@ -408,6 +469,7 @@ namespace DSL
                 info.captureId = s_captureId;
                 
                 std::string fileName = fileNameStream.str();
+                
                 // convert the filename and dirpath to wchar string types (client format)
                 std::wstring wstrFilename(fileName.begin(), fileName.end());
                 std::wstring wstrDirpath(m_outdir.begin(), m_outdir.end());

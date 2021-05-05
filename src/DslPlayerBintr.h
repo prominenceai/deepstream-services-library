@@ -44,7 +44,7 @@ namespace DSL
         std::shared_ptr<PlayerBintr>(new PlayerBintr(name, pSource, pSink))    
 
     #define DSL_PLAYER_RENDER_BINTR_PTR std::shared_ptr<RenderPlayerBintr>
-
+    
     #define DSL_PLAYER_RENDER_VIDEO_BINTR_PTR std::shared_ptr<VideoRenderPlayerBintr>
     #define DSL_PLAYER_RENDER_VIDEO_BINTR_NEW(name, \
         filePath, renderType, offsetX, offsetY, zoom, repeatEnabled) \

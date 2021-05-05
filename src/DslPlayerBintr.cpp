@@ -184,13 +184,21 @@ namespace DSL
     bool PlayerBintr::HandlePlay()
     {
         LOG_FUNC();
+        
+        if (!m_pSource->IsLinkable())
+        {
+            LOG_ERROR("Unable to Play Player '" << GetName() 
+                << "' as its Source is in an un-playable state");
+            return false;
+        }
+        
         GstState currentState;
         GetState(currentState, 0);
         if (currentState == GST_STATE_NULL or currentState == GST_STATE_READY)
         {
             if (!LinkAll())
             {
-                LOG_ERROR("Unable to prepare Pipeline '" << GetName() << "' for Play");
+                LOG_ERROR("Unable to prepare Player '" << GetName() << "' for Play");
                 return false;
             }
             // For non-live sources we Pause to preroll before we play

@@ -113,6 +113,12 @@ namespace DSL {
         
         DslReturnType OdeActionCaptureCompleteListenerRemove(const char* name, 
             dsl_capture_complete_listener_cb listener);
+            
+        DslReturnType OdeActionCaptureImagePlayerAdd(const char* name,
+            const char* player);
+        
+        DslReturnType OdeActionCaptureImagePlayerRemove(const char* name,
+            const char* player);
         
         DslReturnType OdeActionDisplayNew(const char* name, uint offsetX, uint offsetY, 
             boolean offsetYWithClassId, const char* font, boolean hasBgColor, const char* bgColor);

@@ -296,6 +296,8 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE                  0x000F0009
 #define DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED                   0x000F000A
 #define DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED                0x000F000B
+#define DSL_RESULT_ODE_ACTION_PLAYER_ADD_FAILED                     0x000F000C
+#define DSL_RESULT_ODE_ACTION_PLAYER_REMOVE_FAILED                  0x000F000D
 
 /**
  * ODE Area API Return Values
@@ -352,8 +354,8 @@ THE SOFTWARE.
 #define DSL_RESULT_PLAYER_NAME_NOT_FOUND                            0x00400002
 #define DSL_RESULT_PLAYER_NAME_BAD_FORMAT                           0x00400003
 #define DSL_RESULT_PLAYER_IS_NOT_RENDER_PLAYER                      0x00400004
-#define DSL_RESULT_PLAYER_STATE_PAUSED                              0x00400005
-#define DSL_RESULT_PLAYER_STATE_RUNNING                             0x00400006
+#define DSL_RESULT_PLAYER_IS_NOT_IMAGE_PLAYER                       0x00400005
+#define DSL_RESULT_PLAYER_IS_NOT_VIDEO_PLAYER                       0x00400006
 #define DSL_RESULT_PLAYER_THREW_EXCEPTION                           0x00400007
 #define DSL_RESULT_PLAYER_XWINDOW_GET_FAILED                        0x00400008
 #define DSL_RESULT_PLAYER_XWINDOW_SET_FAILED                        0x00400009
@@ -362,8 +364,8 @@ THE SOFTWARE.
 #define DSL_RESULT_PLAYER_FAILED_TO_PLAY                            0x0040000C
 #define DSL_RESULT_PLAYER_FAILED_TO_PAUSE                           0x0040000D
 #define DSL_RESULT_PLAYER_FAILED_TO_STOP                            0x0040000E
-#define DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT                0x00400010
-#define DSL_RESULT_PLAYER_SET_FAILED                                0x00400011
+#define DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT                0x0040000F
+#define DSL_RESULT_PLAYER_SET_FAILED                                0x00400010
 
 /**
  *
@@ -1008,24 +1010,45 @@ DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name,
     const wchar_t* outdir);
 
 /**
- * @brief adds a callback to be notified on Image Capture complete.
+ * @brief Adds a callback to be notified on Image Capture complete.
  * @param[in] name unique name of the Capture Action to update
  * @param[in] listener pointer to the client's function to call on capture complete
  * @param[in] client_data opaque pointer to client data passed into the listener function
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_capture_complete_listener_add(const wchar_t* name, 
     dsl_capture_complete_listener_cb listener, void* client_data);
 
 /**
- * @brief removes a callback previously added with dsl_ode_action_capture_complete_listener_add
+ * @brief Removes a callback previously added with dsl_ode_action_capture_complete_listener_add
  * @param[in] name unique name of the Capture Action to update
  * @param[in] listener pointer to the client's function to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_capture_complete_listener_remove(const wchar_t* name, 
     dsl_capture_complete_listener_cb listener);
 
+/**
+ * @brief Adds an Image Player, Render or RTSP type, to a named Capture Action.
+ * Once added, each captured image's file_path will be added (or queued) with
+ * the Image Player to be played according to the Players settings. The Action can
+ * have at most one Image Player.
+ * @param[in] name unique name of the Capture Action to update
+ * @param[in] player unique name of the Image Player to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_capture_image_player_add(const wchar_t* name, 
+    const wchar_t* player);
+    
+/**
+ * @brief Removes an Image Player, Render or RTSP type, from a named Capture Action.
+ * @param[in] name unique name of the Capture Action to update
+ * @param[in] player unique name of the Image Player to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_capture_image_player_remove(const wchar_t* name, 
+    const wchar_t* player);
+    
 /**
  * @brief Creates a uniquely named Display ODE Action
  * @param[in] name unique name for the ODE Display Action 
