@@ -379,6 +379,26 @@ def dsl_ode_action_capture_complete_listener_remove(name, client_listener):
     return int(result)
 
 ##
+## dsl_ode_action_capture_image_player_add()
+##
+_dsl.dsl_ode_action_capture_image_player_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_capture_image_player_add.restype = c_uint
+def dsl_ode_action_capture_image_player_add(name, player):
+    global _dsl
+    result = _dsl.dsl_ode_action_capture_image_player_add(name, player)
+    return int(result)
+
+##
+## dsl_ode_action_capture_image_player_remove()
+##
+_dsl.dsl_ode_action_capture_image_player_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_capture_image_player_remove.restype = c_uint
+def dsl_ode_action_capture_image_player_remove(name, player):
+    global _dsl
+    result = _dsl.dsl_ode_action_capture_image_player_remove(name, player)
+    return int(result)
+    
+##
 ## dsl_ode_action_display_new()
 ##
 _dsl.dsl_ode_action_display_new.argtypes = [c_wchar_p, 

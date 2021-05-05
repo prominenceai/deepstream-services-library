@@ -101,52 +101,6 @@ def capture_complete_listener(capture_info_ptr, client_data):
     print('width:      ', capture_info.width)
     print('height:     ', capture_info.height)
     
-    # One time creation of the Image Render Player
-    if dsl_player_exists('image-player') == False:
-        dsl_player_render_image_new(
-            name = 'image-player',
-            file_path = capture_info.dirpath + '/' + capture_info.filename,
-            render_type = DSL_RENDER_TYPE_OVERLAY,
-            offset_x = 400, 
-            offset_y = 100, 
-            zoom = 150,
-            timeout = 1)
-
-        # Add the Termination listener callback to the Player 
-        retval = dsl_player_termination_event_listener_add('image-player',
-            client_listener=player_termination_event_listener, client_data=None)
-        if retval != DSL_RETURN_SUCCESS:
-            return
-            
-    # Else, update the Render-Player's file-path with the new image path
-    else:
-
-        # Check the Player's state to see if it's currently displaying an image
-        retval, state = dsl_player_state_get('image-player')
-        if retval != DSL_RETURN_SUCCESS:
-            return
-
-        print('player is in a state of ', state)
-        if state == DSL_STATE_PLAYING:
-
-            # If we are playing then we need to queue the file
-            retval = dsl_player_render_file_path_queue('image-player',
-                file_path = capture_info.dirpath + '/' + capture_info.filename)
-
-            # return with out changing the players state
-            return
-
-        # otherwise, we can set the path in preperation for playing 
-        retval = dsl_player_render_file_path_set('image-player',
-            file_path = capture_info.dirpath + '/' + capture_info.filename)
-        if retval != DSL_RETURN_SUCCESS:
-            return
-    
-    # Play the Player until end-of-stream (EOS)
-    retval = dsl_player_play('image-player')
-    if retval != DSL_RETURN_SUCCESS:
-        return
-    
 
 def main(args):
 
@@ -259,6 +213,30 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         
+        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
+
+        # Create the Image Render Player with a NULL file_path to by updated by the Capture Action
+        if dsl_player_exists('image-player') == False:
+            dsl_player_render_image_new(
+                name = 'image-player',
+                file_path = None,
+                render_type = DSL_RENDER_TYPE_OVERLAY,
+                offset_x = 400, 
+                offset_y = 100, 
+                zoom = 150,
+                timeout = 1)
+
+        # Add the Termination listener callback to the Player 
+        retval = dsl_player_termination_event_listener_add('image-player',
+            client_listener=player_termination_event_listener, client_data=None)
+        if retval != DSL_RETURN_SUCCESS:
+            return
+
+        # Add the Player to the Object Capture Action. The Action will add/queue
+        # the file_path to each image file created during capture. 
+        retval = dsl_ode_action_capture_image_player_add('person-capture-action', 
+            player='image-player')
+
         
         ############################################################################################
         #
