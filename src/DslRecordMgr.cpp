@@ -25,6 +25,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslRecordMgr.h"
+#include "DslPlayerBintr.h"
 
 namespace DSL
 {
@@ -294,18 +295,75 @@ namespace DSL
         return m_pContext->resetDone;
     }
     
-    void* RecordMgr::HandleRecordComplete(NvDsSRRecordingInfo* pNvDsInfo)
+    bool RecordMgr::AddVideoPlayer(DSL_BINTR_PTR pPlayer)
     {
         LOG_FUNC();
         
-        // new DSL info structure with unicode strings for python3 compatibility
-        dsl_recording_info dslInfo{0};
+        if (m_videoPlayers.find(pPlayer->GetName()) != m_videoPlayers.end())
+        {   
+            LOG_ERROR("Video Player is not unique");
+            return false;
+        }
+        m_videoPlayers[pPlayer->GetName()] = pPlayer;
+        
+        return true;
+    }
+    
+    bool RecordMgr::RemoveVideoPlayer(DSL_BINTR_PTR pPlayer)
+    {
+        LOG_FUNC();
+        
+        if (m_videoPlayers.find(pPlayer->GetCStrName()) == m_videoPlayers.end())
+        {   
+            LOG_ERROR("Video Player not found");
+            return false;
+        }
+        m_videoPlayers.erase(pPlayer->GetName());
+        
+        return true;
+    }
+    
+    void* RecordMgr::HandleRecordComplete(NvDsSRRecordingInfo* pNvDsInfo)
+    {
+        LOG_FUNC();
 
-        // convert the filename and dirpath to wchar string types
+        // String and WString viersion of the filename and dirpath
         std::string cstrFilename(pNvDsInfo->filename);
         std::wstring wstrFilename(cstrFilename.begin(), cstrFilename.end());
         std::string cstrDirpath(pNvDsInfo->dirpath);
         std::wstring wstrDirpath(cstrDirpath.begin(), cstrDirpath.end());
+
+        std::string filespec = cstrDirpath + "/" +  cstrFilename;
+
+        // If there are Video Players for playing the completed recording
+        for (auto const& iter: m_videoPlayers)
+        {
+            if (iter.second->IsType(typeid(VideoRenderPlayerBintr)))
+            {
+                DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pVideoPlayer = 
+                    std::dynamic_pointer_cast<VideoRenderPlayerBintr>(iter.second);
+
+                GstState state;
+                pVideoPlayer->GetState(state, 0);
+
+                // Queue the filepath if the Player is currently Playing/Paused
+                // otherwise, set the filepath and Play the Player
+                if (state == GST_STATE_PLAYING or state == GST_STATE_PAUSED)
+                {
+                    pVideoPlayer->QueueFilePath(filespec.c_str());
+                }
+                else
+                {
+                    pVideoPlayer->SetFilePath(filespec.c_str());
+                    pVideoPlayer->Play();
+                    
+                }
+            }
+            // TODO handle ImageRtspPlayerBintr
+        }
+        
+        // new DSL info structure with unicode strings for python3 compatibility
+        dsl_recording_info dslInfo{0};
 
         dslInfo.filename = wstrFilename.c_str();
         dslInfo.dirpath = wstrDirpath.c_str();

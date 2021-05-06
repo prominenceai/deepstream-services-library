@@ -30,8 +30,6 @@ THE SOFTWARE.
 #include "DslBintr.h"
 #include "DslPipelineStateMgr.h"
 #include "DslPipelineXWinMgr.h"
-#include "DslSourceBintr.h"
-#include "DslSinkBintr.h"
 
 namespace DSL
 {
@@ -67,7 +65,7 @@ namespace DSL
          * @return 
          */
         PlayerBintr(const char* name, 
-            DSL_SOURCE_PTR pSource, DSL_SINK_PTR pSink);
+            DSL_BINTR_PTR pSource, DSL_BINTR_PTR pSink);
 
         /**
          * @brief ctor2 allows for derived classes to mange their Source/Sink
@@ -185,12 +183,12 @@ namespace DSL
         /**
          * @brief shared pointer to the Player's child URI Source
          */
-        DSL_SOURCE_PTR m_pSource;
+        DSL_BINTR_PTR m_pSource;
         
         /**
          * @brief shared pointer to the Player's child Overlay Sink
          */
-        DSL_SINK_PTR m_pSink;
+        DSL_BINTR_PTR m_pSink;
     
         /**
          * @brief Mutex to protect the async GCond used to synchronize

@@ -464,6 +464,12 @@ namespace DSL {
         DslReturnType TapRecordIsOnGet(const char* name, boolean* isOn);
 
         DslReturnType TapRecordResetDoneGet(const char* name, boolean* resetDone);
+        
+        DslReturnType TapRecordVideoPlayerAdd(const char* name,
+            const char* player);
+        
+        DslReturnType TapRecordVideoPlayerRemove(const char* name,
+            const char* player);
 
         DslReturnType PrimaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, uint interval);
@@ -626,6 +632,12 @@ namespace DSL {
         DslReturnType SinkRecordIsOnGet(const char* name, boolean* isOn);
 
         DslReturnType SinkRecordResetDoneGet(const char* name, boolean* resetDone);
+
+        DslReturnType SinkRecordVideoPlayerAdd(const char* name,
+            const char* player);
+        
+        DslReturnType SinkRecordVideoPlayerRemove(const char* name,
+            const char* player);
 
         DslReturnType SinkEncodeVideoFormatsGet(const char* name, uint* codec, uint* container);
 

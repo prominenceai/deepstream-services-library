@@ -216,15 +216,14 @@ def main(args):
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
 
         # Create the Image Render Player with a NULL file_path to by updated by the Capture Action
-        if dsl_player_exists('image-player') == False:
-            dsl_player_render_image_new(
-                name = 'image-player',
-                file_path = None,
-                render_type = DSL_RENDER_TYPE_OVERLAY,
-                offset_x = 400, 
-                offset_y = 100, 
-                zoom = 150,
-                timeout = 1)
+        dsl_player_render_image_new(
+            name = 'image-player',
+            file_path = None,
+            render_type = DSL_RENDER_TYPE_OVERLAY,
+            offset_x = 400, 
+            offset_y = 100, 
+            zoom = 150,
+            timeout = 1)
 
         # Add the Termination listener callback to the Player 
         retval = dsl_player_termination_event_listener_add('image-player',

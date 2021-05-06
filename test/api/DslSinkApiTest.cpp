@@ -911,6 +911,54 @@ SCENARIO( "The Components container is updated correctly on Record Sink delete",
     }
 }
 
+SCENARIO( "A Player can be added to and removed from a Record Sink", "[sink-api]" )
+{
+    GIVEN( "A new Record Sink and Video Player" )
+    {
+        std::wstring recordSinkName(L"record-sink");
+        std::wstring outdir(L"./");
+        uint container(DSL_CONTAINER_MP4);
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(2000000);
+        uint interval(0);
+
+        dsl_record_client_listener_cb client_listener;
+
+        REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
+            codec, container, bitrate, interval, client_listener) == DSL_RESULT_SUCCESS );
+
+        std::wstring player_name(L"player");
+        std::wstring file_path = L"./test/streams/sample_1080p_h264.mp4";
+        
+        REQUIRE( dsl_player_render_video_new(player_name.c_str(),file_path.c_str(), 
+            DSL_RENDER_TYPE_OVERLAY, 10, 10, 75, 0) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A capture-complete-listner is added" )
+        {
+            REQUIRE( dsl_sink_record_video_player_add(recordSinkName.c_str(),
+                player_name.c_str()) == DSL_RESULT_SUCCESS );
+
+            // ensure the same listener twice fails
+            REQUIRE( dsl_sink_record_video_player_add(recordSinkName.c_str(),
+                player_name.c_str()) == DSL_RESULT_SINK_PLAYER_ADD_FAILED );
+
+            THEN( "The same listner can be remove" ) 
+            {
+                REQUIRE( dsl_sink_record_video_player_remove(recordSinkName.c_str(),
+                    player_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                // calling a second time must fail
+                REQUIRE( dsl_sink_record_video_player_remove(recordSinkName.c_str(),
+                    player_name.c_str()) == DSL_RESULT_SINK_PLAYER_REMOVE_FAILED );
+                    
+                REQUIRE( dsl_component_delete(recordSinkName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_player_delete(player_name.c_str()) == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+
 SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H264 RTSP Sink", "[sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -1103,8 +1151,6 @@ SCENARIO( "An invalid RTSP Sink is caught on Encoder settings Get and Set", "[si
         }
     }
 }
-
-
 
 SCENARIO( "A Client is able to update the Sink in-use max", "[sink-api]" )
 {

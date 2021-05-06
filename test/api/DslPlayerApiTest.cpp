@@ -156,12 +156,8 @@ SCENARIO( "An Image Render Player can Play, Pause, and Stop", "[player-api]" )
     GIVEN( "An empty list of Players" ) 
     {
         std::wstring player_name  = L"player";
-
         std::wstring file_path = L"./test/streams/first-person-occurrence-438.jpeg";
 
-        uint offsetX(0);
-        uint offsetY(0);
-        
         REQUIRE( dsl_player_list_size() == 0 );
 
         WHEN( "A new Player is created" ) 
@@ -412,8 +408,6 @@ SCENARIO( "The Player API checks for NULL input parameters", "[player-api]" )
                     DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, repeat_enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_player_render_image_new(NULL, NULL, 
-                    DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, timeout) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_player_render_image_new(player_name.c_str(), NULL, 
                     DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, timeout) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_player_play(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );

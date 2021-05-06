@@ -1982,6 +1982,26 @@ def dsl_tap_record_reset_done_get(name):
     return int(result), reset_done.value 
 
 ##
+## dsl_tap_record_video_player_add()
+##
+_dsl.dsl_tap_record_video_player_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_tap_record_video_player_add.restype = c_uint
+def dsl_tap_record_video_player_add(name, player):
+    global _dsl
+    result = _dsl.dsl_tap_record_video_player_add(name, player)
+    return int(result)
+
+##
+## dsl_tap_record_video_player_remove()
+##
+_dsl.dsl_tap_record_video_player_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_tap_record_video_player_remove.restype = c_uint
+def dsl_tap_record_video_player_remove(name, player):
+    global _dsl
+    result = _dsl.dsl_tap_record_video_player_remove(name, player)
+    return int(result)
+
+##
 ## dsl_gie_primary_new()
 ##
 _dsl.dsl_gie_primary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_uint]
@@ -2732,6 +2752,26 @@ def dsl_sink_record_reset_done_get(name):
     reset_done = c_uint(0)
     result = _dsl.dsl_sink_record_reset_done_get(name, DSL_BOOL_P(reset_done))
     return int(result), reset_done.value 
+
+##
+## dsl_sink_record_video_player_add()
+##
+_dsl.dsl_sink_record_video_player_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_record_video_player_add.restype = c_uint
+def dsl_sink_record_video_player_add(name, player):
+    global _dsl
+    result = _dsl.dsl_sink_record_video_player_add(name, player)
+    return int(result)
+
+##
+## dsl_sink_record_video_player_remove()
+##
+_dsl.dsl_sink_record_video_player_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_record_video_player_remove.restype = c_uint
+def dsl_sink_record_video_player_remove(name, player):
+    global _dsl
+    result = _dsl.dsl_sink_record_video_player_remove(name, player)
+    return int(result)
 
 ##
 ## dsl_sink_encode_video_formats_get()

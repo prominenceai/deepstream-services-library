@@ -2506,6 +2506,36 @@ DslReturnType dsl_tap_record_reset_done_get(const wchar_t* name, boolean* reset_
     return DSL::Services::GetServices()->TapRecordResetDoneGet(cstrName.c_str(), reset_done);
 }
 
+DslReturnType dsl_tap_record_video_player_add(const wchar_t* name, 
+    const wchar_t* player)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(player);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrPlayer(player);
+    std::string cstrPlayer(wstrPlayer.begin(), wstrPlayer.end());
+
+    return DSL::Services::GetServices()->
+        TapRecordVideoPlayerAdd(cstrName.c_str(), cstrPlayer.c_str());
+}
+    
+DslReturnType dsl_tap_record_video_player_remove(const wchar_t* name, 
+    const wchar_t* player)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(player);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrPlayer(player);
+    std::string cstrPlayer(wstrPlayer.begin(), wstrPlayer.end());
+
+    return DSL::Services::GetServices()->
+        TapRecordVideoPlayerRemove(cstrName.c_str(), cstrPlayer.c_str());
+}
+
 DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
     const wchar_t* model_engine_file, uint interval)
 {
@@ -3560,6 +3590,36 @@ DslReturnType dsl_sink_record_reset_done_get(const wchar_t* name, boolean* reset
 
     return DSL::Services::GetServices()->SinkRecordResetDoneGet(cstrName.c_str(), reset_done);
 }
+
+DslReturnType dsl_sink_record_video_player_add(const wchar_t* name, 
+    const wchar_t* player)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(player);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrPlayer(player);
+    std::string cstrPlayer(wstrPlayer.begin(), wstrPlayer.end());
+
+    return DSL::Services::GetServices()->
+        SinkRecordVideoPlayerAdd(cstrName.c_str(), cstrPlayer.c_str());
+}
+    
+DslReturnType dsl_sink_record_video_player_remove(const wchar_t* name, 
+    const wchar_t* player)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(player);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrPlayer(player);
+    std::string cstrPlayer(wstrPlayer.begin(), wstrPlayer.end());
+
+    return DSL::Services::GetServices()->
+        SinkRecordVideoPlayerRemove(cstrName.c_str(), cstrPlayer.c_str());
+}
    
 DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host, 
      uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)
@@ -4502,12 +4562,16 @@ DslReturnType dsl_player_render_video_new(const wchar_t* name,  const wchar_t* f
    uint render_type, uint offset_x, uint offset_y, uint zoom, boolean repeat_enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(file_path);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrFilePath(file_path);
-    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    std::string cstrFilePath;
+    if (file_path != NULL)
+    {
+        std::wstring wstrFilePath(file_path);
+        cstrFilePath.assign(wstrFilePath.begin(), wstrFilePath.end());
+    }
 
     return DSL::Services::GetServices()->PlayerRenderVideoNew(cstrName.c_str(),
         cstrFilePath.c_str(), render_type, offset_x, offset_y, zoom, repeat_enabled);
