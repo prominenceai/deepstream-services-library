@@ -147,6 +147,21 @@ namespace DSL
         bool ResetDone();
 
         /**
+         * @brief adds a Video Player, Render or RTSP type, to this RecordMgr
+         * @param pPlayer shared pointer to an Video Player to add
+         * @return true on successfull add, false otherwise
+         */
+        bool AddVideoPlayer(DSL_BINTR_PTR pPlayer);
+        
+        /**
+         * @brief adds a Video Player, Render or RTSP type, to this RecordMgr
+         * @param pPlayer shared pointer to an Video Player to add
+         * @return true on successfull add, false otherwise
+         */
+        bool RemoveVideoPlayer(DSL_BINTR_PTR pPlayer);
+        
+
+        /**
          * @brief Record complete handler function to conver the gchar* strings in
          * NvDsSRRecordingInfo to 
          * @return true if reset has been done.
@@ -184,6 +199,11 @@ protected:
          * @brief client listener function to be called on session complete
          */
         dsl_record_client_listener_cb m_clientListener;
+        
+        /**
+         * @brief map of all Video Players to play recordings.
+         */
+        std::map<std::string, DSL_BINTR_PTR> m_videoPlayers;
         
         void* m_clientData;
         

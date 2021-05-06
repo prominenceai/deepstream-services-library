@@ -129,6 +129,9 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x0004000F
 #define DSL_RESULT_SINK_HANDLER_ADD_FAILED                          0x00040010
 #define DSL_RESULT_SINK_HANDLER_REMOVE_FAILED                       0x00040011
+#define DSL_RESULT_SINK_PLAYER_ADD_FAILED                           0x00040012
+#define DSL_RESULT_SINK_PLAYER_REMOVE_FAILED                        0x00040013
+
 
 /**
  * OSD API Return Values
@@ -345,6 +348,8 @@ THE SOFTWARE.
 #define DSL_RESULT_TAP_COMPONENT_IS_NOT_TAP                         0x00300006
 #define DSL_RESULT_TAP_FILE_PATH_NOT_FOUND                          0x00300007
 #define DSL_RESULT_TAP_CONTAINER_VALUE_INVALID                      0x00300008
+#define DSL_RESULT_TAP_PLAYER_ADD_FAILED                            0x00300009
+#define DSL_RESULT_TAP_PLAYER_REMOVE_FAILED                         0x0030000A
 
 /**
  * Player API Return Values
@@ -2544,6 +2549,26 @@ DslReturnType dsl_tap_record_is_on_get(const wchar_t* name, boolean* is_on);
 DslReturnType dsl_tap_record_reset_done_get(const wchar_t* name, boolean* reset_done);
 
 /**
+ * @brief Adds a Video Player, Render or RTSP type, to a named Tap Recorder.
+ * Once added, each recorded video's file_path will be added (or queued) with
+ * the Video Player to be played according to the Players settings. 
+ * @param[in] name unique name of the Tap Recorder to update
+ * @param[in] player unique name of the Video Player to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_tap_record_video_player_add(const wchar_t* name, 
+    const wchar_t* player);
+    
+/**
+ * @brief Removes a Video Player, Render or RTSP type, from a named Tap Recorder.
+ * @param[in] name unique name of the Tap Recorder to update
+ * @param[in] player unique name of the Video Player to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_tap_record_video_player_remove(const wchar_t* name, 
+    const wchar_t* player);
+
+/**
  * @brief creates a new, uniquely named Primary GIE object
  * @param[in] name unique name for the new GIE object
  * @param[in] infer_config_file pathspec of the Infer Config file to use
@@ -3310,6 +3335,26 @@ DslReturnType dsl_sink_record_is_on_get(const wchar_t* name, boolean* is_on);
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_record_reset_done_get(const wchar_t* name, boolean* reset_done);
+
+/**
+ * @brief Adds a Video Player, Render or RTSP type, to a named Sink Recorder.
+ * Once added, each recorded video's file_path will be added (or queued) with
+ * the Video Player to be played according to the Players settings. 
+ * @param[in] name unique name of the Sink Recorder to update
+ * @param[in] player unique name of the Video Player to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_sink_record_video_player_add(const wchar_t* name, 
+    const wchar_t* player);
+    
+/**
+ * @brief Removes a Video Player, Render or RTSP type, from a named Sink Recorder.
+ * @param[in] name unique name of the Sink Recorder to update
+ * @param[in] player unique name of the Video Player to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_sink_record_video_player_remove(const wchar_t* name, 
+    const wchar_t* player);
 
 /**
  * @brief gets the current codec and video media container formats

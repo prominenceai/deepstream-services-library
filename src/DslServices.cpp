@@ -1272,7 +1272,7 @@ namespace DSL
             {
                 LOG_ERROR("Capture Action '" << name 
                     << "' failed to remove Player '" << player << "'");
-                return DSL_RESULT_ODE_ACTION_PLAYER_ADD_FAILED;
+                return DSL_RESULT_ODE_ACTION_PLAYER_REMOVE_FAILED;
             }
         }
         catch(...)
@@ -5331,6 +5331,68 @@ namespace DSL
             return DSL_RESULT_TAP_THREW_EXCEPTION;
         }
     }
+
+    DslReturnType Services::TapRecordVideoPlayerAdd(const char* name, 
+        const char* player)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
+            RETURN_IF_PLAYER_IS_NOT_VIDEO_PLAYER(m_players, player)
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            if (!pRecordTapBintr->AddVideoPlayer(m_players[player]))
+            {
+                LOG_ERROR("Record Tap '" << name 
+                    << "' failed to add Player '" << player << "'");
+                return DSL_RESULT_TAP_PLAYER_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name 
+                << "' threw an exception adding Player '" << player << "'");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::TapRecordVideoPlayerRemove(const char* name, 
+        const char* player)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
+            RETURN_IF_PLAYER_IS_NOT_VIDEO_PLAYER(m_players, player)
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            if (!pRecordTapBintr->RemoveVideoPlayer(m_players[player]))
+            {
+                LOG_ERROR("Record Tap '" << name 
+                    << "' failed to remove Player '" << player << "'");
+                return DSL_RESULT_TAP_PLAYER_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name 
+                << "' threw an exception adding Player '" << player << "'");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
     
     DslReturnType Services::PrimaryGieNew(const char* name, const char* inferConfigFile,
         const char* modelEngineFile, uint interval)
@@ -7626,6 +7688,68 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SinkRecordVideoPlayerAdd(const char* name, 
+        const char* player)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
+            RETURN_IF_PLAYER_IS_NOT_VIDEO_PLAYER(m_players, player)
+
+            DSL_RECORD_SINK_PTR pRecordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            if (!pRecordSinkBintr->AddVideoPlayer(m_players[player]))
+            {
+                LOG_ERROR("Record Sink '" << name 
+                    << "' failed to add Player '" << player << "'");
+                return DSL_RESULT_SINK_PLAYER_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" << name 
+                << "' threw an exception adding Player '" << player << "'");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkRecordVideoPlayerRemove(const char* name, 
+        const char* player)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
+            RETURN_IF_PLAYER_IS_NOT_VIDEO_PLAYER(m_players, player)
+
+            DSL_RECORD_SINK_PTR pRecordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            if (!pRecordSinkBintr->RemoveVideoPlayer(m_players[player]))
+            {
+                LOG_ERROR("Record Sink '" << name 
+                    << "' failed to remove Player '" << player << "'");
+                return DSL_RESULT_SINK_PLAYER_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" << name 
+                << "' threw an exception adding Player '" << player << "'");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
     DslReturnType Services::SinkEncodeVideoFormatsGet(const char* name, uint* codec, uint* container)
     {
         LOG_FUNC();
@@ -9189,11 +9313,15 @@ namespace DSL
                 LOG_ERROR("Player name '" << name << "' is not unique");
                 return DSL_RESULT_PLAYER_NAME_NOT_UNIQUE;
             }
-            std::ifstream streamUriFile(filePath);
-            if (!streamUriFile.good())
+            std::string pathString(filePath);
+            if (pathString.size())
             {
-                LOG_ERROR("File Source'" << filePath << "' Not found");
-                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+                std::ifstream streamUriFile(filePath);
+                if (!streamUriFile.good())
+                {
+                    LOG_ERROR("File Source'" << filePath << "' Not found");
+                    return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+                }
             }
             m_players[name] = std::shared_ptr<VideoRenderPlayerBintr>(new 
                 VideoRenderPlayerBintr(name, filePath, renderType,
@@ -10349,6 +10477,8 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED] = L"DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_HANDLER_ADD_FAILED] = L"DSL_RESULT_SINK_HANDLER_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_SINK_HANDLER_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_SINK_PLAYER_ADD_FAILED] = L"DSL_RESULT_SINK_PLAYER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_SINK_PLAYER_REMOVE_FAILED] = L"DSL_RESULT_SINK_PLAYER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_UNIQUE] = L"DSL_RESULT_OSD_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_FOUND] = L"DSL_RESULT_OSD_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_OSD_NAME_BAD_FORMAT] = L"DSL_RESULT_OSD_NAME_BAD_FORMAT";
@@ -10451,6 +10581,8 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_TAP_SET_FAILED] = L"DSL_RESULT_TAP_SET_FAILED";
         m_returnValueToString[DSL_RESULT_TAP_FILE_PATH_NOT_FOUND] = L"DSL_RESULT_TAP_FILE_PATH_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_TAP_CONTAINER_VALUE_INVALID] = L"DSL_RESULT_TAP_CONTAINER_VALUE_INVALID";
+        m_returnValueToString[DSL_RESULT_TAP_PLAYER_ADD_FAILED] = L"DSL_RESULT_TAP_PLAYER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_TAP_PLAYER_REMOVE_FAILED] = L"DSL_RESULT_TAP_PLAYER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_PLAYER_RESULT] = L"DSL_RESULT_PLAYER_RESULT";
         m_returnValueToString[DSL_RESULT_PLAYER_NAME_NOT_UNIQUE] = L"DSL_RESULT_PLAYER_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_PLAYER_NAME_NOT_FOUND] = L"DSL_RESULT_PLAYER_NAME_NOT_FOUND";

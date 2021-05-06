@@ -204,6 +204,50 @@ SCENARIO( "An invalid Component is checked on Record Tap Get/Set", "[tap-api]" )
     }
 }
 
+SCENARIO( "A Player can be added to and removed from a Record Tap", "[tap-api]" )
+{
+    GIVEN( "A new Record Tap and Image Player" )
+    {
+        std::wstring recordTapName(L"record-tap");
+        std::wstring outdir(L"./");
+        uint container(DSL_CONTAINER_MP4);
+
+        dsl_record_client_listener_cb client_listener;
+        
+        REQUIRE( dsl_tap_record_new(recordTapName.c_str(), outdir.c_str(),
+            container, client_listener) == DSL_RESULT_SUCCESS );
+
+        std::wstring player_name(L"player");
+        std::wstring file_path = L"./test/streams/sample_1080p_h264.mp4";
+        
+        REQUIRE( dsl_player_render_video_new(player_name.c_str(),file_path.c_str(), 
+            DSL_RENDER_TYPE_OVERLAY, 10, 10, 75, 0) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A capture-complete-listner is added" )
+        {
+            REQUIRE( dsl_tap_record_video_player_add(recordTapName.c_str(),
+                player_name.c_str()) == DSL_RESULT_SUCCESS );
+
+            // ensure the same listener twice fails
+            REQUIRE( dsl_tap_record_video_player_add(recordTapName.c_str(),
+                player_name.c_str()) == DSL_RESULT_TAP_PLAYER_ADD_FAILED );
+
+            THEN( "The same listner can be remove" ) 
+            {
+                REQUIRE( dsl_tap_record_video_player_remove(recordTapName.c_str(),
+                    player_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                // calling a second time must fail
+                REQUIRE( dsl_tap_record_video_player_remove(recordTapName.c_str(),
+                    player_name.c_str()) == DSL_RESULT_TAP_PLAYER_REMOVE_FAILED );
+                    
+                REQUIRE( dsl_component_delete(recordTapName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_player_delete(player_name.c_str()) == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
 SCENARIO( "The Tap API checks for NULL input parameters", "[tap-api]" )
 {
     GIVEN( "An empty list of Components" ) 
