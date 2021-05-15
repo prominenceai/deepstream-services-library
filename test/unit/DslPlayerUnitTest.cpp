@@ -871,7 +871,7 @@ SCENARIO( "A New ImageRenderPlayerBintr cannot Play without a File Path", "[Play
     }
 }
 
-SCENARIO( "A New VideoRenderPlayerBintr can Play with an updated File Path", "[new]" )
+SCENARIO( "A New VideoRenderPlayerBintr can Play with an updated File Path", "[PlayerBintr]" )
 {
     GIVEN( "A new VideoRenderPlayerBintr" ) 
     {
@@ -906,7 +906,7 @@ SCENARIO( "A New VideoRenderPlayerBintr can Play with an updated File Path", "[n
     }
 }
 
-SCENARIO( "A New ImageRenderPlayerBintr can Play with an updated File Path", "[new]" )
+SCENARIO( "A New ImageRenderPlayerBintr can Play with an updated File Path", "[PlayerBintr]" )
 {
     GIVEN( "A new ImageRenderPlayerBintr" ) 
     {
@@ -932,6 +932,78 @@ SCENARIO( "A New ImageRenderPlayerBintr can Play with an updated File Path", "[n
             REQUIRE( pPlayerBintr->SetFilePath(newFilePath.c_str()) == true );
             
             THEN( "The PlayerBintr is unable to Play" )
+            {
+                REQUIRE( pPlayerBintr->Play() == true );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Stop() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A New ImageRenderPlayerBintr - Overlay Type - can Play after Reset", "[PlayerBintr]" )
+{
+    GIVEN( "An ImageRenderPlayerBintr in a playing stae" ) 
+    {
+        std::string playerName("player");
+
+        std::string sourceName("file-source");
+        std::string filePath("./test/streams/first-person-occurrence-438.jpeg");
+        uint offsetX(0);
+        uint offsetY(0);
+        uint zoom(100);
+        int timeout(1);
+
+        DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
+                filePath.c_str(), DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, timeout);
+
+        REQUIRE( pPlayerBintr->Play() == true );
+        std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
+        WHEN( "The PlayerBintr is stopped and reset" )
+        {
+            REQUIRE( pPlayerBintr->Stop() == true );
+            REQUIRE( pPlayerBintr->Reset() == true );
+            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+            
+            THEN( "The PlayerBintr is Able to Play and Stop again" )
+            {
+                REQUIRE( pPlayerBintr->Play() == true );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Stop() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A New ImageRenderPlayerBintr - Window Type - can Play after Reset", "[new]" )
+{
+    GIVEN( "An ImageRenderPlayerBintr in a playing stae" ) 
+    {
+        std::string playerName("player");
+
+        std::string sourceName("file-source");
+        std::string filePath("./test/streams/first-person-occurrence-438.jpeg");
+        uint offsetX(0);
+        uint offsetY(0);
+        uint zoom(100);
+        int timeout(1);
+
+        DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
+                filePath.c_str(), DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, timeout);
+
+        REQUIRE( pPlayerBintr->Play() == true );
+        std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
+        WHEN( "The PlayerBintr is stopped and reset" )
+        {
+            REQUIRE( pPlayerBintr->Stop() == true );
+            REQUIRE( pPlayerBintr->Reset() == true );
+            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+            
+            THEN( "The PlayerBintr is Able to Play and Stop again" )
             {
                 REQUIRE( pPlayerBintr->Play() == true );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);

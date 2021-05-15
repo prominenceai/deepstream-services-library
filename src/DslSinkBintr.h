@@ -176,14 +176,14 @@ namespace DSL
         ~RenderSinkBintr();
         
         /**
-         * @brief Gets the current X and Y offset settings for this OverlaySinkBintr
+         * @brief Gets the current X and Y offset settings for this RenderSinkBintr
          * @param[out] offsetX the current offset in the X direction in pixels
          * @param[out] offsetY the current offset in the Y direction setting in pixels
          */ 
         void GetOffsets(uint* offsetX, uint* offsetY);
 
         /**
-         * @brief Sets the current X and Y offset settings for this OverlaySinkBintr
+         * @brief Sets the current X and Y offset settings for this RednerSinkBintr
          * The caller is required to provide valid width and height values
          * @param[in] offsetX the offset in the X direct to set in pixels
          * @param[in] offsetY the offset in the Y direct to set in pixels
@@ -192,14 +192,14 @@ namespace DSL
         virtual bool SetOffsets(uint offsetX, uint offsetY) = 0;
 
         /**
-         * @brief Gets the current width and height settings for this WindowSinkBintr
+         * @brief Gets the current width and height settings for this RenderSinkBintr
          * @param[out] width the current width setting in pixels
          * @param[out] height the current height setting in pixels
          */ 
         void GetDimensions(uint* width, uint* height);
         
         /**
-         * @brief Sets the current width and height settings for this SinkBintr
+         * @brief Sets the current width and height settings for this RenderSinkBintr
          * The caller is required to provide valid width and height values
          * @param[in] width the width value to set in pixels
          * @param[in] height the height value to set in pixels
@@ -207,6 +207,11 @@ namespace DSL
          */ 
         virtual bool SetDimensions(uint width, uint hieght) = 0;
         
+        /**
+         * @brief Resets the Sink element for this RenderSinkBintr
+         * @return false if the sink is currently Linked. True otherwise
+         */
+        virtual bool Reset() = 0;
 
     protected:
 
@@ -241,6 +246,12 @@ namespace DSL
             uint offsetX, uint offsetY, uint width, uint height);
 
         ~OverlaySinkBintr();
+
+        /**
+         * @brief Resets the Sink element for this OverlaySinkBintr
+         * @return false if the sink is currently Linked. True otherwise
+         */
+        bool Reset();
   
         /**
          * @brief Links all Child Elementrs owned by this Bintr
@@ -277,13 +288,12 @@ namespace DSL
         bool SetDimensions(uint width, uint hieght);
 
         /**
-         * @brief sets the current sync and async settings for the SinkBintr
+         * @brief sets the current sync and async settings for the OverlaySinkBintr
          * @param[in] sync current sync setting, true if set, false otherwise.
          * @param[in] async current async setting, true if set, false otherwise.
          * @return true is successful, false otherwise. 
          */
         bool SetSyncSettings(bool sync, bool async);
-        
 
         /**
          * @brief static list of unique Overlay IDs to be used/recycled by all
@@ -312,6 +322,12 @@ namespace DSL
 
         ~WindowSinkBintr();
   
+        /**
+         * @brief Resets the Sink element for this RenderSinkBintr
+         * @return false if the sink is currently Linked. True otherwise
+         */
+        bool Reset();
+
         /**
          * @brief Links all Child Elementrs owned by this Bintr
          * @return true if all links were succesful, false otherwise
@@ -364,13 +380,6 @@ namespace DSL
         bool SetForceAspectRatio(bool force);
 
     private:
-
-        /**
-         * @brief Resets (recreates) the EGL-GLES sink element to allow the
-         * Pipeline to invoke the "prepare_window_handle" on relink and play
-         * @return true if successful, false otherwise.
-         */
-        void Reset();
 
         boolean m_qos;
         bool m_forceAspectRatio;

@@ -402,13 +402,15 @@ SCENARIO( "The Player API checks for NULL input parameters", "[player-api]" )
                 REQUIRE( dsl_player_new(player_name.c_str(),
                     source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
+                REQUIRE( dsl_player_render_reset(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
                 REQUIRE( dsl_player_render_video_new(NULL, NULL, 
-                    DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, repeat_enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_player_render_video_new(player_name.c_str(), NULL, 
                     DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, repeat_enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_player_render_image_new(NULL, NULL, 
                     DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, timeout) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_sink_render_reset(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_player_play(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_player_pause(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );

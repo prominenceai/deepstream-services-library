@@ -155,6 +155,7 @@ SCENARIO( "The Components container is updated correctly on Overlay Sink delete"
     }
 }
 
+
 SCENARIO( "A Overlay Sink can update its Sync/Async attributes", "[sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -191,7 +192,7 @@ SCENARIO( "A Overlay Sink can update its Sync/Async attributes", "[sink-api]" )
 
 SCENARIO( "A Overlay Sink's Offsets can be updated", "[sink-api]" )
 {
-    GIVEN( "A new Render Sink in memory" ) 
+    GIVEN( "A new Overlay Sink in memory" ) 
     {
         std::wstring sinkName = L"overlay-sink";
         uint displayId(0);
@@ -259,6 +260,33 @@ SCENARIO( "A Overlay Sink's Dimensions can be updated", "[sink-api]" )
     }
 }
 
+SCENARIO( "An Overlay Sink can be Reset", "[sink-api]" )
+{
+    GIVEN( "Attributes for a new Overlay Sink" ) 
+    {
+        std::wstring overlaySinkName = L"overlay-sink";
+        uint displayId(0);
+        uint depth(0);
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(0);
+        uint sinkH(0);
+
+        WHEN( "The Overlay Sink is created" ) 
+        {
+            REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
+                offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Overlay Sink can be reset after creation" ) 
+            {
+                REQUIRE( dsl_sink_render_reset(overlaySinkName.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 SCENARIO( "An Overlay Sink in use can't be deleted", "[sink-api]" )
 {
     GIVEN( "A new Overlay Sink and new pPipeline" ) 
@@ -296,7 +324,7 @@ SCENARIO( "An Overlay Sink in use can't be deleted", "[sink-api]" )
     }
 }
 
-SCENARIO( "An Overlay Sink, once removed from a Pipeline, can be deleted", "[overlay-sink-api]" )
+SCENARIO( "An Overlay Sink, once removed from a Pipeline, can be deleted", "[sink-api]" )
 {
     GIVEN( "A new Sink owned by a new pPipeline" ) 
     {
@@ -494,6 +522,32 @@ SCENARIO( "A Window Sink can update its force-aspect-ratio setting", "[sink-api]
     }
 }    
 
+SCENARIO( "A Window Sink can be Reset", "[sink-api]" )
+{
+    GIVEN( "Given attributes for a new window sink" ) 
+    {
+        std::wstring windowSinkName = L"window-sink";
+
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(0);
+        uint sinkH(0);
+        boolean force(1);
+
+        WHEN( "The Window Sink is created" ) 
+        {
+            REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
+                offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Window Sink can be reset after creation" ) 
+            {
+                REQUIRE( dsl_sink_render_reset(windowSinkName.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
 
 SCENARIO( "A Window Sink in use can't be deleted", "[sink-api]" )
 {
@@ -1354,6 +1408,8 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
                 REQUIRE( dsl_sink_window_force_aspect_ratio_get(NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_window_force_aspect_ratio_get(sinkName.c_str(), 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_window_force_aspect_ratio_set(NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                
+                REQUIRE( dsl_sink_render_reset(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
                 REQUIRE( dsl_sink_file_new(NULL, NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_file_new(sinkName.c_str(), NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );

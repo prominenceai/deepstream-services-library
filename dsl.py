@@ -96,6 +96,7 @@ class dsl_coordinate(Structure):
         
 class dsl_recording_info(Structure):
     _fields_ = [
+        ('recording_event', c_uint),
         ('session_id', c_uint),
         ('filename', c_wchar_p),
         ('dirpath', c_wchar_p),
@@ -3747,6 +3748,27 @@ def dsl_player_xwindow_key_event_handler_remove(name, client_handler):
     result = _dsl.dsl_player_xwindow_key_event_handler_remove(name, c_client_handler)
     return int(result)
 
+##
+## dsl_player_xwindow_handle_get()
+##
+_dsl.dsl_player_xwindow_handle_get.argtypes = [c_wchar_p, POINTER(c_uint64)]
+_dsl.dsl_player_xwindow_handle_get.restype = c_uint
+def dsl_player_xwindow_handle_get(name):
+    global _dsl
+    handle = c_uint64(0)
+    result = _dsl.dsl_player_xwindow_handle_get(name, DSL_UINT64_P(handle))
+    return int(result), handle.value
+
+##
+## dsl_player_xwindow_handle_set()
+##
+_dsl.dsl_player_xwindow_handle_set.argtypes = [c_wchar_p, c_uint64]
+_dsl.dsl_player_xwindow_handle_set.restype = c_uint
+def dsl_player_xwindow_handle_set(name, handle):
+    global _dsl
+    result = _dsl.dsl_player_xwindow_handle_set(name, handle)
+    return int(result)
+    
 ##
 ## dsl_player_pause()
 ##

@@ -133,7 +133,7 @@ SCENARIO( "A new OverlaySinkBintr can LinkAll Child Elementrs", "[OverlaySinkBin
 
 SCENARIO( "A Linked OverlaySinkBintr can UnlinkAll Child Elementrs", "[OverlaySinkBintr]" )
 {
-    GIVEN( "A OsdBintr in a linked state" ) 
+    GIVEN( "A OverlaySinkBintr in a linked state" ) 
     {
         std::string sinkName("overlay-sink");
         uint displayId(0);
@@ -154,6 +154,35 @@ SCENARIO( "A Linked OverlaySinkBintr can UnlinkAll Child Elementrs", "[OverlaySi
 
             THEN( "The OverlaySinkBintr's IsLinked state is updated correctly" )
             {
+                REQUIRE( pSinkBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Linked OverlaySinkBintr can Reset, LinkAll and UnlinkAll Child Elementrs", "[OverlaySinkBintr]" )
+{
+    GIVEN( "A newOverlaySinkBintr" ) 
+    {
+        std::string sinkName("overlay-sink");
+        uint displayId(0);
+        uint depth(0);
+        uint offsetX(100);
+        uint offsetY(140);
+        uint sinkW(1280);
+        uint sinkH(720);
+
+        DSL_OVERLAY_SINK_PTR pSinkBintr = 
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+
+        WHEN( "A OverlaySinkBintr is Reset" )
+        {
+            REQUIRE( pSinkBintr->Reset() == true );
+
+            THEN( "The OverlaySinkBintr can LinkAll and UnlinkAll" )
+            {
+                REQUIRE( pSinkBintr->LinkAll() == true );
+                pSinkBintr->UnlinkAll();
                 REQUIRE( pSinkBintr->IsLinked() == false );
             }
         }
@@ -382,6 +411,34 @@ SCENARIO( "A Linked WindowSinkBintr can UnlinkAll Child Elementrs", "[WindowSink
         }
     }
 }
+
+SCENARIO( "A WindowSinkBintr can Reset, LinkAll and UnlinkAll Child Elementrs", "[WindowSinkBintr]" )
+{
+    GIVEN( "A new WindowSinkBintr" ) 
+    {
+        std::string sinkName("window-sink");
+        uint offsetX(100);
+        uint offsetY(140);
+        uint sinkW(1280);
+        uint sinkH(720);
+
+        DSL_WINDOW_SINK_PTR pSinkBintr = 
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+
+        WHEN( "A WindowSinkBintr is Reset" )
+        {
+            REQUIRE( pSinkBintr->Reset() == true );
+
+            THEN( "The OverlaySinkBintr can LinkAll and UnlinkAll correctly" )
+            {
+                REQUIRE( pSinkBintr->LinkAll() == true );
+                pSinkBintr->UnlinkAll();
+                REQUIRE( pSinkBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
 
 SCENARIO( "A WindowSinkBintr's Offsets can be updated", "[WindowSinkBintr]" )
 {
@@ -928,17 +985,17 @@ SCENARIO( "A RecordSinkBintr's Init Parameters can be Set/Get ",  "[RecordSinkBi
 
 static void* record_complete_cb(dsl_recording_info* info, void* client_data)
 {
-    std::cout << "sessionId:     " << info->sessionId << "\n";
+    std::cout << "session_id:     " << info->session_id << "\n";
     std::wcout << L"filename:      " << info->filename << L"\n";
     std::wcout << L"dirpath:       " << info->dirpath << L"\n";
-    std::cout << "containerType: " << info->containerType << "\n";
+    std::cout << "container_type: " << info->container_type << "\n";
     std::cout << "width:         " << info->width << "\n";
     std::cout << "height:        " << info->height << "\n";
     
     return (void*)0x12345678;
 }
 
-SCENARIO( "A RecordSinkBintr handles a Record Complete Notificatin correctly",  "[RecordSinkBintr]" )
+SCENARIO( "A RecordSinkBintr handles a Record Complete Notification correctly",  "[RecordSinkBintr]" )
 {
     GIVEN( "A new DSL_CODEC_MPEG4 RecordSinkBintr" ) 
     {

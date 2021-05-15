@@ -4052,7 +4052,7 @@ namespace DSL
                 LOG_ERROR("File Source'" << filePath << "' Not found");
                 return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
             }
-            if (!pSourceBintr->SetUri(filePath));
+            if (!pSourceBintr->SetUri(filePath))
             {
                 LOG_ERROR("Failed to Set FilePath '" << filePath << "' for File Source '" << name << "'");
                 return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
@@ -7277,6 +7277,33 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::SinkRenderReset(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+
+            DSL_RENDER_SINK_PTR pRenderSink = 
+                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
+
+            if (!pRenderSink->Reset())
+            {
+                LOG_ERROR("Render Sink '" << name << "' failed to reset its render suface");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Sink '" << name << "' threw an exception reseting its surface");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::SinkFileNew(const char* name, const char* filepath, 
             uint codec, uint container, uint bitrate, uint interval)
     {
@@ -9565,6 +9592,34 @@ namespace DSL
         {
             LOG_ERROR("Render Player '" << name 
                 << "' threw exception setting Zoom");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerRenderReset(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+
+            DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
+                std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
+
+            if (!pRenderPlayer->Reset())
+            {
+                LOG_ERROR("Failed to Reset Render Player '" << name << "'");
+                return DSL_RESULT_PLAYER_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Player '" << name 
+                << "' threw exception on Reset");
             return DSL_RESULT_PLAYER_THREW_EXCEPTION;
         }
     }

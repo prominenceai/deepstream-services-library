@@ -601,6 +601,8 @@ namespace DSL {
         DslReturnType SinkRenderDimensionsGet(const char* name, uint* width, uint* height);
 
         DslReturnType SinkRenderDimensionsSet(const char* name, uint width, uint height);
+        
+        DslReturnType SinkRenderReset(const char* name);
 
         DslReturnType SinkFileNew(const char* name, const char* filepath, 
             uint codec, uint muxer, uint bit_rate, uint interval);
@@ -811,6 +813,8 @@ namespace DSL {
         DslReturnType PlayerRenderZoomGet(const char* name, uint* zoom);
 
         DslReturnType PlayerRenderZoomSet(const char* name, uint zoom);
+
+        DslReturnType PlayerRenderReset(const char* name);
 
         DslReturnType PlayerRenderImageTimeoutGet(const char* name, uint* timeout);
 

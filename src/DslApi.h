@@ -560,16 +560,21 @@ typedef struct dsl_rtsp_connection_data
    
 }dsl_rtsp_connection_data;
 
+#define DSL_RECORDING_EVENT_START 0
+#define DSL_RECORDING_EVENT_END   1
+
 /**
  * @struct dsl_recording_info
  * @brief recording session information provided to the client on callback
  */
 typedef struct dsl_recording_info
 {
+    uint recording_event;
+    
     /**
      * @brief the unique sesions id assigned on record start
      */
-    uint sessionId;
+    uint session_id;
     
     /**
      * @brief filename generated for the completed recording. 
@@ -589,7 +594,7 @@ typedef struct dsl_recording_info
     /**
      * @brief either DSL_CONTAINER_MP4 or DSL_CONTAINER_MP4
      */
-    uint containerType;
+    uint container_type;
     
     /**
      * @brief width of the recording in pixels
@@ -3168,7 +3173,8 @@ DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name,
  * @param[out] offset_y current offset in the Y direction for the Render Sink in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
  */
-DslReturnType dsl_sink_render_offsets_get(const wchar_t* name, uint* offset_x, uint* offset_y);
+DslReturnType dsl_sink_render_offsets_get(const wchar_t* name, 
+    uint* offset_x, uint* offset_y);
 
 /**
  * @brief sets the X and Y offsets for the On-Screen-Display clock
@@ -3177,26 +3183,38 @@ DslReturnType dsl_sink_render_offsets_get(const wchar_t* name, uint* offset_x, u
  * @param[in] offset_y new offset for the Render Sink in the Y direction in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
  */
-DslReturnType dsl_sink_render_offsets_set(const wchar_t* name, uint offset_x, uint offset_y);
+DslReturnType dsl_sink_render_offsets_set(const wchar_t* name, 
+    uint offset_x, uint offset_y);
     
 /**
  * @brief Returns the dimensions, width and height, in use by the Render Sink
  * The Render Sink can be of type Window Sink or Overlay Sink
- * @param[in] name name of the Record Sink to query
+ * @param[in] name name of the Render Sink to query
  * @param[out] width current width of the video recording in pixels
  * @param[out] height current height of the video recording in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
  */
-DslReturnType dsl_sink_render_dimensions_get(const wchar_t* name, uint* width, uint* height);
+DslReturnType dsl_sink_render_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
 
 /**
  * @brief Sets the dimensions, width and height, for the Render Sink
- * @param[in] name name of the Record Sink to update
+ * @param[in] name name of the Render Sink to update
  * @param[in] width width to set the video recording in pixels
  * @param[in] height height to set the video in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
  */
-DslReturnType dsl_sink_render_dimensions_set(const wchar_t* name, uint width, uint height);
+DslReturnType dsl_sink_render_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
+
+/**
+ * @brief Resets the Render Sink causing it to close it's Rendering surface.
+ * The Sink can only be reset when in a state of NULL or READY. 
+ * A new surface will be created on Pipeline play, Overlay or Window.
+ * @param[in] name unique name of the Render Sink to reset
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_render_reset(const wchar_t* name);
 
 /**
  * @brief creates a new, uniquely named File Sink component
@@ -4104,6 +4122,16 @@ DslReturnType dsl_player_render_offsets_set(const wchar_t* name,
     uint offset_x, uint offset_y);
 
 /**
+ * @brief returns the current X and Y offsets for the Render Player
+ * @param[in] name name of the Render Player to query
+ * @param[out] offset_x current offset in the X direction for the Render Player in pixels
+ * @param[out] offset_y current offset in the Y direction for the Render Player in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise.
+ */
+DslReturnType dsl_player_render_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
+
+/**
  * @brief Gets the current zoom setting in use by the named Image or File Render Player
  * @param[in] name name of the Player to query
  * @param[out] zoom zoom setting in use by the Render Player, in unit of %
@@ -4118,6 +4146,15 @@ DslReturnType dsl_player_render_zoom_get(const wchar_t* name, uint* zoom);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise.
  */
 DslReturnType dsl_player_render_zoom_set(const wchar_t* name, uint zoom);
+
+/**
+ * @brief Resets the Render Player causing it to close it's Rendering surface.
+ * The Player can only be reset when in a state READY, i.e. after Stop or EOS. 
+ * A new surface (Overlay or Window) will be created on next call to dsl_player_play.
+ * @param[in] name unique name of the Render Player to udate
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_player_render_reset(const wchar_t* name);
 
 /**
  * @brief Gets the current timeout setting in use by the named Image Render Player

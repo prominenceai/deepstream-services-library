@@ -211,12 +211,43 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // Find the first available unique Id
-        while(std::find(s_uniqueIds.begin(), s_uniqueIds.end(), m_uniqueId) != s_uniqueIds.end())
+        // Reset to create
+        if (!Reset())
         {
-            m_uniqueId++;
+            LOG_ERROR("Failed to create Overlay element for SinkBintr '" 
+                << GetName() << "'");
+            throw;
         }
-        s_uniqueIds.push_back(m_uniqueId);
+    }
+    
+    bool OverlaySinkBintr::Reset()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("OverlaySinkBintr '" << GetName() 
+                << "' is currently linked and cannot be reset");
+            return false;
+        }
+
+        // If first time call - from the constructor
+        if (m_pOverlay == nullptr)
+        {
+            // Find the first available unique Id
+            while(std::find(s_uniqueIds.begin(), s_uniqueIds.end(), m_uniqueId) != s_uniqueIds.end())
+            {
+                m_uniqueId++;
+            }
+            s_uniqueIds.push_back(m_uniqueId);
+        }
+        // Else, this is an actual reset/recreate
+        else
+        {
+            // Remove the existing element from the objects bin
+            gst_element_set_state(m_pOverlay->GetGstElement(), GST_STATE_NULL);
+            RemoveChild(m_pOverlay);
+        }
         
         m_pOverlay = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_OVERLAY, "sink-bin-overlay");
         
@@ -232,6 +263,8 @@ namespace DSL
         m_pOverlay->SetAttribute("overlay-h", m_height);
         
         AddChild(m_pOverlay);
+        
+        return true;
     }
     
     OverlaySinkBintr::~OverlaySinkBintr()
@@ -355,6 +388,37 @@ namespace DSL
         LOG_FUNC();
         
         m_pTransform = DSL_ELEMENT_NEW(NVDS_ELEM_EGLTRANSFORM, "sink-bin-transform");
+        
+        // Reset to create m_pEglGles
+        if (!Reset())
+        {
+            LOG_ERROR("Failed to create Window element for SinkBintr '" 
+                << GetName() << "'");
+            throw;
+        }
+        
+        AddChild(m_pTransform);
+    }
+
+    bool WindowSinkBintr::Reset()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("WindowSinkBintr '" << GetName() 
+                << "' is currently linked and cannot be reset");
+            return false;
+        }
+
+        // If not  a first time call from the constructor
+        if (m_pEglGles != nullptr)
+        {
+            // Remove the existing element from the objects bin
+            gst_element_set_state(m_pEglGles->GetGstElement(), GST_STATE_NULL);
+            RemoveChild(m_pEglGles);
+        }
+        
         m_pEglGles = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_EGL, "sink-bin-eglgles");
         
         m_pEglGles->SetAttribute("window-x", m_offsetX);
@@ -369,8 +433,9 @@ namespace DSL
         m_pEglGles->SetAttribute("async", m_async);
         m_pEglGles->SetAttribute("qos", m_qos);
         
-        AddChild(m_pTransform);
         AddChild(m_pEglGles);
+        
+        return true;
     }
     
     WindowSinkBintr::~WindowSinkBintr()
@@ -414,38 +479,6 @@ namespace DSL
         m_pTransform->UnlinkFromSink();
         m_isLinked = false;
         //Reset();
-    }
-
-    void WindowSinkBintr::Reset()
-    {
-        LOG_FUNC();
-
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to reset WindowSinkBintr '" << GetName() 
-                << "' as it's currently linked");
-            return;
-        }
-
-        gst_element_set_state(m_pEglGles->GetGstElement(), GST_STATE_NULL);
-        RemoveChild(m_pEglGles);
-        
-        // recreate the EGL-GLES sink element - the old will be destroyed on deref
-        m_pEglGles = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_EGL, "sink-bin-eglgles");
-        
-        m_pEglGles->SetAttribute("window-x", m_offsetX);
-        m_pEglGles->SetAttribute("window-y", m_offsetY);
-        m_pEglGles->SetAttribute("window-width", m_width);
-        m_pEglGles->SetAttribute("window-height", m_height);
-        m_pEglGles->SetAttribute("enable-last-sample", false);
-        m_pEglGles->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
-        
-        m_pEglGles->SetAttribute("max-lateness", -1);
-        m_pEglGles->SetAttribute("sync", m_sync);
-        m_pEglGles->SetAttribute("async", m_async);
-        m_pEglGles->SetAttribute("qos", m_qos);
-
-        AddChild(m_pEglGles);
     }
     
     bool WindowSinkBintr::SetOffsets(uint offsetX, uint offsetY)

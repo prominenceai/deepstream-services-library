@@ -272,6 +272,12 @@ namespace DSL
          * @return true on successful update, false otherwise
          */
         bool SetZoom(uint zoom);
+
+        /**
+         * @brief Resets the Sink element for this RenderSinkBintr
+         * @return false if the sink is currently Linked. True otherwise
+         */
+        bool Reset();
         
         /**
          * @brief Sends an EOS event to the Player causing the player to 
@@ -420,6 +426,8 @@ namespace DSL
     
         uint m_timeout;
     };
+
+    static int PlayerPlay(gpointer pPlayer);
     
     /**
      * @brief Timer callback function to Pause a Player in the mainloop context.  
