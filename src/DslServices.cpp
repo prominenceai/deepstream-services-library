@@ -1743,8 +1743,15 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
+
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, recordSink);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, recordSink, RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR pRecordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[recordSink]);
+            
             m_odeActions[name] = DSL_ODE_ACTION_SINK_RECORD_START_NEW(name,
-                recordSink, start, duration, clientData);
+                pRecordSinkBintr, start, duration, clientData);
 
             LOG_INFO("New ODE Record Sink Start Action '" << name << "' created successfully");
 
@@ -1771,8 +1778,15 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
+
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, recordSink);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, recordSink, RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR pRecordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[recordSink]);
+            
             m_odeActions[name] = DSL_ODE_ACTION_SINK_RECORD_STOP_NEW(name,
-                recordSink);
+                pRecordSinkBintr);
 
             LOG_INFO("New ODE Record Sink Stop Action '" << name << "' created successfully");
 
@@ -1853,8 +1867,15 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
+            
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, recordTap);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, recordTap, RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[recordTap]);
+
             m_odeActions[name] = DSL_ODE_ACTION_TAP_RECORD_START_NEW(name,
-                recordTap, start, duration, clientData);
+                pRecordTapBintr, start, duration, clientData);
 
             LOG_INFO("New ODE Record Tap Start Action '" << name << "' created successfully");
 
@@ -1881,7 +1902,14 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_TAP_RECORD_STOP_NEW(name, recordTap);
+            
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, recordTap);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, recordTap, RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[recordTap]);
+            
+            m_odeActions[name] = DSL_ODE_ACTION_TAP_RECORD_STOP_NEW(name, pRecordTapBintr);
 
             LOG_INFO("New ODE Record Tap Stop Action '" << name << "' created successfully");
 
@@ -1893,6 +1921,7 @@ namespace DSL
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
+    
     DslReturnType Services::OdeActionActionDisableNew(const char* name, const char* action)
     {
         LOG_FUNC();

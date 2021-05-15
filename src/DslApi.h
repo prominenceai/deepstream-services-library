@@ -779,8 +779,8 @@ typedef void (*dsl_xwindow_delete_event_handler_cb)(void* client_data);
 
 
 /**
- * @brief callback typedef for a client to listen for notification that a Recording 
- * Session has ended.
+ * @brief callback typedef for a client to listen for notifications of Recording 
+ * events, either DSL_RECORDING_EVENT_START or DSL_RECORDING_EVENT_STOP 
  * @param[in] info pointer to session info, see dsl_recording_info struct.
  * @param[in] client_data opaque pointer to client's user data.
  */
@@ -2439,7 +2439,8 @@ DslReturnType dsl_dewarper_new(const wchar_t* name, const wchar_t* config_file);
  * @param[in] name unique component name for the new Record Tap
  * @param[in] outdir absolute or relative path to the recording output dir.
  * @param[in] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
- * @param[in] client_listener client callback for end-of-sesssion notifications.
+ * @param[in] client_listener client callback for notifications of recording
+ * events, DSL_RECORDING_EVENT_START and DSL_RECORDING_EVENT_STOP.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_tap_record_new(const wchar_t* name, const wchar_t* outdir, 
@@ -3237,11 +3238,13 @@ DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* file_path,
  * @param[in] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
  * @param[in] bitrate in bits per second - H264 and H265 only
  * @param[in] interval iframe interval to encode at
- * @param[in] client_listener client callback for end-of-sesssion notifications.
+ * @param[in] client_listener client callback for notifications of recording
+ * events, DSL_RECORDING_EVENT_START and DSL_RECORDING_EVENT_STOP.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, uint codec, 
-    uint container, uint bitrate, uint interval, dsl_record_client_listener_cb client_listener);
+    uint container, uint bitrate, uint interval, 
+    dsl_record_client_listener_cb client_listener);
      
 /**
  * @brief starts a new recording session for the named Record Sink

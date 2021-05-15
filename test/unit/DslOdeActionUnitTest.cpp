@@ -1406,12 +1406,22 @@ SCENARIO( "A new RecordSinkStartOdeAction is created correctly", "[OdeAction]" )
         std::string actionName("action");
         std::string recordSink("record-sink");
         
+        std::string recordSinkName("record-sink");
+        std::string outdir("./");
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(2000000);
+        uint interval(0);
+        uint container(DSL_CONTAINER_MP4);
+        
         dsl_record_client_listener_cb client_listener;
+        
+        DSL_RECORD_SINK_PTR pRecordingSinkBintr = DSL_RECORD_SINK_NEW(recordSinkName.c_str(), 
+            outdir.c_str(), codec, container, bitrate, interval, client_listener);
 
         WHEN( "A new RecordSinkStartOdeAction is created" )
         {
             DSL_ODE_ACTION_SINK_RECORD_START_PTR pAction = 
-                DSL_ODE_ACTION_SINK_RECORD_START_NEW(actionName.c_str(), recordSink.c_str(), 1, 1, NULL);
+                DSL_ODE_ACTION_SINK_RECORD_START_NEW(actionName.c_str(), pRecordingSinkBintr, 1, 1, NULL);
 
             THEN( "The Action's memebers are setup and returned correctly" )
             {
@@ -1432,15 +1442,25 @@ SCENARIO( "A RecordSinkStartOdeAction handles an ODE Occurence correctly", "[Ode
         uint limit(1);
         
         std::string actionName("action");
-        std::string recordSink("record-sink");
+        
+        std::string recordSinkName("record-sink");
+        std::string outdir("./");
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(2000000);
+        uint interval(0);
+        uint container(DSL_CONTAINER_MP4);
         
         dsl_record_client_listener_cb client_listener;
+
+        DSL_RECORD_SINK_PTR pRecordingSinkBintr = DSL_RECORD_SINK_NEW(recordSinkName.c_str(), 
+            outdir.c_str(), codec, container, bitrate, interval, client_listener);
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
+
         DSL_ODE_ACTION_SINK_RECORD_START_PTR pAction = 
-            DSL_ODE_ACTION_SINK_RECORD_START_NEW(actionName.c_str(), recordSink.c_str(), 1, 1, NULL);
+            DSL_ODE_ACTION_SINK_RECORD_START_NEW(actionName.c_str(), pRecordingSinkBintr, 1, 1, NULL);
 
         WHEN( "A new ODE is created" )
         {
@@ -1462,13 +1482,23 @@ SCENARIO( "A new RecordSinkStopOdeAction is created correctly", "[OdeAction]" )
     {
         std::string actionName("action");
         std::string recordSink("record-sink");
+
+        std::string recordSinkName("record-sink");
+        std::string outdir("./");
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(2000000);
+        uint interval(0);
+        uint container(DSL_CONTAINER_MP4);
         
         dsl_record_client_listener_cb client_listener;
+        
+        DSL_RECORD_SINK_PTR pRecordingSinkBintr = DSL_RECORD_SINK_NEW(recordSinkName.c_str(), 
+            outdir.c_str(), codec, container, bitrate, interval, client_listener);
 
         WHEN( "A new RecordSinkStopOdeAction is created" )
         {
             DSL_ODE_ACTION_SINK_RECORD_STOP_PTR pAction = 
-                DSL_ODE_ACTION_SINK_RECORD_STOP_NEW(actionName.c_str(), recordSink.c_str());
+                DSL_ODE_ACTION_SINK_RECORD_STOP_NEW(actionName.c_str(), pRecordingSinkBintr);
 
             THEN( "The Action's memebers are setup and returned correctly" )
             {
@@ -1489,15 +1519,24 @@ SCENARIO( "A RecordSinkStopOdeAction handles an ODE Occurence correctly", "[OdeA
         uint limit(1);
         
         std::string actionName("action");
-        std::string recordSink("record-sink");
+        
+        std::string recordSinkName("record-sink");
+        std::string outdir("./");
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(2000000);
+        uint interval(0);
+        uint container(DSL_CONTAINER_MP4);
         
         dsl_record_client_listener_cb client_listener;
+        
+        DSL_RECORD_SINK_PTR pRecordingSinkBintr = DSL_RECORD_SINK_NEW(recordSinkName.c_str(), 
+            outdir.c_str(), codec, container, bitrate, interval, client_listener);
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_SINK_RECORD_STOP_PTR pAction = 
-            DSL_ODE_ACTION_SINK_RECORD_STOP_NEW(actionName.c_str(), recordSink.c_str());
+            DSL_ODE_ACTION_SINK_RECORD_STOP_NEW(actionName.c_str(), pRecordingSinkBintr);
 
         WHEN( "A new ODE is created" )
         {
@@ -1518,14 +1557,19 @@ SCENARIO( "A new RecordTapStartOdeAction is created correctly", "[OdeAction]" )
     GIVEN( "Attributes for a new RecordSinkStartOdeAction" ) 
     {
         std::string actionName("action");
-        std::string recordTap("record-tap");
-        
-        dsl_record_client_listener_cb client_listener;
+        std::string recordTapName("record-tap");
+        std::string outDir("./");
+        uint container(DSL_CONTAINER_MKV);
+
+        dsl_record_client_listener_cb clientListener;
+
+        DSL_RECORD_TAP_PTR pRecordTapBintr = 
+            DSL_RECORD_TAP_NEW(recordTapName.c_str(), outDir.c_str(), container, clientListener);
 
         WHEN( "A new RecordTapStartOdeAction is created" )
         {
             DSL_ODE_ACTION_TAP_RECORD_START_PTR pAction = 
-                DSL_ODE_ACTION_TAP_RECORD_START_NEW(actionName.c_str(), recordTap.c_str(), 1, 1, NULL);
+                DSL_ODE_ACTION_TAP_RECORD_START_NEW(actionName.c_str(), pRecordTapBintr, 1, 1, NULL);
 
             THEN( "The Action's memebers are setup and returned correctly" )
             {
@@ -1546,15 +1590,20 @@ SCENARIO( "A RecordTapStartOdeAction handles an ODE Occurence correctly", "[OdeA
         uint limit(1);
         
         std::string actionName("action");
-        std::string recordTap("record-tap");
-        
-        dsl_record_client_listener_cb client_listener;
+        std::string recordTapName("record-tap");
+        std::string outDir("./");
+        uint container(DSL_CONTAINER_MKV);
+
+        dsl_record_client_listener_cb clientListener;
+
+        DSL_RECORD_TAP_PTR pRecordTapBintr = 
+            DSL_RECORD_TAP_NEW(recordTapName.c_str(), outDir.c_str(), container, clientListener);
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_TAP_RECORD_START_PTR pAction = 
-            DSL_ODE_ACTION_TAP_RECORD_START_NEW(actionName.c_str(), recordTap.c_str(), 1, 1, NULL);
+            DSL_ODE_ACTION_TAP_RECORD_START_NEW(actionName.c_str(), pRecordTapBintr, 1, 1, NULL);
 
         WHEN( "A new ODE is created" )
         {
@@ -1575,14 +1624,19 @@ SCENARIO( "A new RecordTapStopOdeAction is created correctly", "[OdeAction]" )
     GIVEN( "Attributes for a new RecordTapStopOdeAction" ) 
     {
         std::string actionName("action");
-        std::string recordTap("record-tap");
-        
-        dsl_record_client_listener_cb client_listener;
+        std::string recordTapName("record-tap");
+        std::string outDir("./");
+        uint container(DSL_CONTAINER_MKV);
+
+        dsl_record_client_listener_cb clientListener;
+
+        DSL_RECORD_TAP_PTR pRecordTapBintr = 
+            DSL_RECORD_TAP_NEW(recordTapName.c_str(), outDir.c_str(), container, clientListener);
 
         WHEN( "A new RecordTapStopOdeAction is created" )
         {
             DSL_ODE_ACTION_TAP_RECORD_STOP_PTR pAction = 
-                DSL_ODE_ACTION_TAP_RECORD_STOP_NEW(actionName.c_str(), recordTap.c_str());
+                DSL_ODE_ACTION_TAP_RECORD_STOP_NEW(actionName.c_str(), pRecordTapBintr);
 
             THEN( "The Action's memebers are setup and returned correctly" )
             {
@@ -1603,15 +1657,20 @@ SCENARIO( "A RecordTapStopOdeAction handles an ODE Occurence correctly", "[OdeAc
         uint limit(1);
         
         std::string actionName("action");
-        std::string recordTap("record-tap");
-        
-        dsl_record_client_listener_cb client_listener;
+        std::string recordTapName("record-tap");
+        std::string outDir("./");
+        uint container(DSL_CONTAINER_MKV);
+
+        dsl_record_client_listener_cb clientListener;
+
+        DSL_RECORD_TAP_PTR pRecordTapBintr = 
+            DSL_RECORD_TAP_NEW(recordTapName.c_str(), outDir.c_str(), container, clientListener);
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_TAP_RECORD_STOP_PTR pAction = 
-            DSL_ODE_ACTION_TAP_RECORD_STOP_NEW(actionName.c_str(), recordTap.c_str());
+            DSL_ODE_ACTION_TAP_RECORD_STOP_NEW(actionName.c_str(), pRecordTapBintr);
 
         WHEN( "A new ODE is created" )
         {

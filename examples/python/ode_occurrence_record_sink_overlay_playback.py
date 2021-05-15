@@ -80,12 +80,13 @@ def state_change_listener(old_state, new_state, client_data):
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
 ## 
-# Function to be called on recording complete
+# Function to be called on recording start and complete
 ## 
-def record_complete_listener(session_info_ptr, client_data):
-    print(' ***  Recording Complete  *** ')
+def recording_event_listener(session_info_ptr, client_data):
+    print(' ***  Recording Event  *** ')
     
     session_info = session_info_ptr.contents
+    print('event type: ', session_info.recording_event)
     print('session_id: ', session_info.session_id)
     print('filename:   ', session_info.filename)
     print('dirpath:    ', session_info.dirpath)
@@ -93,17 +94,28 @@ def record_complete_listener(session_info_ptr, client_data):
     print('container:  ', session_info.container_type)
     print('width:      ', session_info.width)
     print('height:     ', session_info.height)
-    
+
     retval, is_on = dsl_sink_record_is_on_get('record-sink')
-    print('        is_on flag = ', is_on)
+    print('is_on:      ', is_on)
     
     retval, reset_done = dsl_sink_record_reset_done_get('record-sink')
-    print('        reset_done flag = ', reset_done)
-    
-    # reset the Trigger so that a new session can be started.
-    print(dsl_return_value_to_string(dsl_ode_trigger_reset('bicycle-occurrence-trigger')))
+    print('reset_done: ', reset_done)
+
+    if session_info.recording_event == DSL_RECORDING_EVENT_END:
+        # reset the Trigger so that a new session can be started.
+        print('Trigger Reset result =', 
+            dsl_return_value_to_string(dsl_ode_trigger_reset('bicycle-occurrence-trigger')))
     
     return None
+    
+## 
+# Function to be called on Player termination event
+## 
+def player_termination_event_listener(client_data):
+    print(' ***  Video Playback Complete  *** ')
+
+    # reset the Player to close its rendering surface
+    dsl_player_render_reset('video-player')
 
 ## 
 # Custom check-for-occurrence (NOP) callback added to the Custome trigger.
@@ -139,7 +151,7 @@ def main(args):
         # to start a new session on first occurrence. The default 'cache-size' and 'duration' are defined in
         # Setting the bit rate to 12 Mbps for 1080p ??? 
         retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H265, container=DSL_CONTAINER_MKV, 
-            bitrate=12000000, interval=0, client_listener=record_complete_listener)
+            bitrate=12000000, interval=0, client_listener=recording_event_listener)
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -165,6 +177,12 @@ def main(args):
             repeat_enabled = False)
         if retval != DSL_RETURN_SUCCESS:
             break
+
+        # Add the Termination listener callback to the Player 
+        retval = dsl_player_termination_event_listener_add('video-player',
+            client_listener=player_termination_event_listener, client_data=None)
+        if retval != DSL_RETURN_SUCCESS:
+            return
 
         # Add the Player to the Recorder Sink. The Action will add/queue
         # the file_path to each video recording created. 

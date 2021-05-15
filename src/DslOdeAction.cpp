@@ -1379,9 +1379,9 @@ namespace DSL
     // ********************************************************************
 
     RecordSinkStartOdeAction::RecordSinkStartOdeAction(const char* name, 
-        const char* recordSink, uint start, uint duration, void* clientData)
+         DSL_BASE_PTR pRecordSink, uint start, uint duration, void* clientData)
         : OdeAction(name)
-        , m_recordSink(recordSink)
+        , m_pRecordSink(pRecordSink)
         , m_start(start)
         , m_duration(duration)
         , m_clientData(clientData)
@@ -1400,7 +1400,7 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->SinkRecordSessionStart(m_recordSink.c_str(), 
+            std::dynamic_pointer_cast<RecordSinkBintr>(m_pRecordSink)->StartSession(
                 m_start, m_duration, m_clientData);
         }
     }
@@ -1408,9 +1408,9 @@ namespace DSL
     // ********************************************************************
 
     RecordSinkStopOdeAction::RecordSinkStopOdeAction(const char* name, 
-        const char* recordSink)
+        DSL_BASE_PTR pRecordSink)
         : OdeAction(name)
-        , m_recordSink(recordSink)
+        , m_pRecordSink(pRecordSink)
     {
         LOG_FUNC();
     }
@@ -1426,16 +1426,16 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->SinkRecordSessionStop(m_recordSink.c_str());
+            std::dynamic_pointer_cast<RecordSinkBintr>(m_pRecordSink)->StopSession();
         }
     }
 
     // ********************************************************************
 
     RecordTapStartOdeAction::RecordTapStartOdeAction(const char* name, 
-        const char* recordTap, uint start, uint duration, void* clientData)
+        DSL_BASE_PTR pRecordTap, uint start, uint duration, void* clientData)
         : OdeAction(name)
-        , m_recordTap(recordTap)
+        , m_pRecordTap(pRecordTap)
         , m_start(start)
         , m_duration(duration)
         , m_clientData(clientData)
@@ -1454,7 +1454,7 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->TapRecordSessionStart(m_recordTap.c_str(), 
+            std::dynamic_pointer_cast<RecordTapBintr>(m_pRecordTap)->StartSession(
                 m_start, m_duration, m_clientData);
         }
     }
@@ -1462,9 +1462,9 @@ namespace DSL
     // ********************************************************************
 
     RecordTapStopOdeAction::RecordTapStopOdeAction(const char* name, 
-        const char* recordTap)
+        DSL_BASE_PTR pRecordTap)
         : OdeAction(name)
-        , m_recordTap(recordTap)
+        , m_pRecordTap(pRecordTap)
     {
         LOG_FUNC();
     }
@@ -1480,7 +1480,7 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->TapRecordSessionStop(m_recordTap.c_str());
+            std::dynamic_pointer_cast<RecordTapBintr>(m_pRecordTap)->StopSession();
         }
     }
     // ********************************************************************

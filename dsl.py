@@ -89,6 +89,9 @@ DSL_DISTANCE_METHOD_PERCENT_HEIGHT_B = 4
 DSL_RENDER_TYPE_OVERLAY = 0
 DSL_RENDER_TYPE_WINDOW  = 1
 
+DSL_RECORDING_EVENT_START = 0
+DSL_RECORDING_EVENT_END   = 1
+
 class dsl_coordinate(Structure):
     _fields_ = [
         ('x', c_uint),
@@ -2583,6 +2586,16 @@ def dsl_sink_window_new(name, offset_x, offset_y, width, height):
     return int(result)
 
 ##
+## dsl_sink_render_reset()
+##
+_dsl.dsl_sink_render_reset.argtypes = [c_wchar_p]
+_dsl.dsl_sink_render_reset.restype = c_uint
+def dsl_sink_render_reset(name):
+    global _dsl
+    result =_dsl.dsl_sink_render_reset(name)
+    return int(result)
+
+##
 ## dsl_sink_window_force_aspect_ratio_get()
 ##
 _dsl.dsl_sink_window_force_aspect_ratio_get.argtypes = [c_wchar_p, POINTER(c_bool)]
@@ -3651,6 +3664,16 @@ _dsl.dsl_player_render_zoom_set.restype = c_uint
 def dsl_player_render_zoom_set(name, zoom):
     global _dsl
     result = _dsl.dsl_player_render_zoom_set(name, zoom)
+    return int(result)
+
+##
+## dsl_player_render_reset()
+##
+_dsl.dsl_player_render_reset.argtypes = [c_wchar_p]
+_dsl.dsl_player_render_reset.restype = c_uint
+def dsl_player_render_reset(name):
+    global _dsl
+    result =_dsl.dsl_player_render_reset(name)
     return int(result)
 
 ##
