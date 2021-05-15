@@ -37,6 +37,7 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_render_offsets_set](#dsl_sink_render_offsets_set)
 * [dsl_sink_render_dimensions_get](#dsl_sink_render_dimensions_get)
 * [dsl_sink_render_dimensions_set](#dsl_sink_render_dimensions_set)
+* [dsl_sink_render_reset](#dsl_sink_render_reset)
 * [dsl_sink_window_force_aspect_ratio_get](#dsl_sink_window_force_aspect_ratio_get)
 * [dsl_sink_window_force_aspect_ratio_set](#dsl_sink_window_force_aspect_ratio_set)
 * [dsl_sink_record_session_start](#dsl_sink_record_session_start)
@@ -373,12 +374,12 @@ retval, width, height = dsl_sink_render_dimensions_get('my-overlay-sink')
 DslReturnType dsl_sink_overlay_dimensions_set(const wchar_t* name, 
     uint width, uint height);
 ```
-This service updates the dimensions of a named Overlay Sink. This service will fail if the Overlay Sink is currently `in-use`.
+This service updates the dimensions of a named Render Sink; Overlay or Window. This service will fail if the Render Sink is currently `in-use`.
 
 **Parameters**
-* `name` - [in] unique name of the Overlay Sink to update.
-* `width` - [in] new width setting for the Overlay Sink.
-* `height` - [in] new height setting to use on XWindow creation in pixels.
+* `name` - [in] unique name of the Render Sink to update.
+* `width` - [in] new width setting for the Render Sink.
+* `height` - [in] new height setting to use on in pixels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
@@ -386,6 +387,33 @@ This service updates the dimensions of a named Overlay Sink. This service will f
 **Python Example**
 ```Python
 retval = dsl_sink_render_dimensions_set('my-overlay-sink', 1280, 720)
+```
+
+<br>
+
+### *dsl_sink_render_reset*
+```C++
+DslReturnType dsl_sink_render_reset(const wchar_t* name);
+```
+This service resets the Render Sink causing it to close it's Rendering surface. This service will fail if the Render Sink is currently `linked`.
+
+**Parameters**
+* `name` - [in] unique name of the Render Sink to update; Overlay or Window.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+# If using a Window Sink, the client needs to destroy the XWindow
+# to completely remove the Sink's rendering surface after Stop.
+
+retval = dsl_pipeline_stop('my-pipeline')
+retval = dsl_sink_render_reset('my-overlay-sink')
+retval = dsl_pipeline_xwindow_destroy('my-pipeline')
+
+# The XWindow will be recreated on next Play
+retval = dsl_pipeline_play('my-pipeline')
 ```
 
 <br>
