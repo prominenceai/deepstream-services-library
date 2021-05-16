@@ -19,7 +19,7 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 
 ## Sink API
 **Types:**
-* [dsl_record_info](#dsl_record_info)
+* [dsl_recording_info](#dsl_recording_info)
 
 **Callback Types:**
 * [dsl_record_client_listener_cb](#dsl_record_client_listener_cb)
@@ -103,15 +103,18 @@ The following video container types are used by the File Sink API
 ```
 ## Recording Events
 The following Event Type identifiers are used by the Recoring Sink
+```C++
+#define DSL_RECORDING_EVENT_START                                   0
+#define DSL_RECORDING_EVENT_END                                     1
+```
 <br>
 
----
-
-## Types:
-
+## Types
+### *dsl_recording_info*
 ```C
 typedef struct dsl_recording_info
 {
+    uint recording_event;
     uint sessionId;
     const wchar_t* filename;
     const wchar_t* dirpath;
@@ -121,9 +124,10 @@ typedef struct dsl_recording_info
     uint height;
 } dsl_recording_info;
 ```
-Structure typedef used to provide recording session information provided to the client on callback
+Structure typedef used to provide recording session information to the client on callback
 
 **Fields**
+* `recording_event` - one of DSL_RECORDING_EVENT_START or DSL_RECORDING_EVENT_END
 * `sessionId` - the unique sesions id assigned on record start
 * `filename` - filename generated for the completed recording. 
 * `directory` - path for the completed recording
@@ -134,15 +138,31 @@ Structure typedef used to provide recording session information provided to the 
 
 **Python Example**
 ```Python
-
+## 
+# Function to be called on recording start and complete
+## 
+def recording_event_listener(session_info_ptr, client_data):
+    print(' ***  Recording Event  *** ')
+    
+    session_info = session_info_ptr.contents
+    print('event type: ', recording_info.recording_event)
+    print('session_id: ', recording_info.session_id)
+    print('filename:   ', recording_info.filename)
+    print('dirpath:    ', recording_info.dirpath)
+    print('duration:   ', recording_info.duration)
+    print('container:  ', recording_info.container_type)
+    print('width:      ', recording_info.width)
+    print('height:     ', recording_info.height)
+    
+    return None
 ```
 
-## Callback Types:
+## Callback Types
 ### *dsl_record_client_listener_cb*
 ```C++
 typedef void* (*dsl_record_client_listener_cb)(void* info, void* user_data);
 ```
-Callback typedef for clients to listen for a notification that a Recording Session has ended.
+Callback typedef for clients to listen for Recording Session Start and End events.
 
 **Parameters**
 * `info` [in] opaque pointer to the session info, see... dsl_capture_info. 
@@ -632,7 +652,7 @@ retval = dsl_sink_record_cache_size_set('my-record-sink', 15)
 
 <br>
 
-### *dsl_sink_record_dimensions_get
+### *dsl_sink_record_dimensions_get*
 ```C++
 DslReturnType dsl_sink_record_dimensions_get(const wchar_t* name, uint* width, uint* height);
 ```
@@ -719,7 +739,7 @@ retval, reset_done = dsl_sink_record_reset_done_get('my-record-sink')
 DslReturnType dsl_sink_record_video_player_add(const wchar_t* name, 
     const wchar_t* player)
 ```
-This services adds a Video Player, Render or RTSP type, to a named Sink Recorder. Once added, each recorded video's file_path will be added (or queued) with the Video Player to be played according to the Players settings. 
+This services adds a Video Player, Render or RTSP type, to a named Recording Sink. Once added, each recorded video's file_path will be added (or queued) with the Video Player to be played according to the Players settings. 
 
 **Parameters**
  * `name` [in] name of the Record Sink to update
@@ -730,7 +750,7 @@ This services adds a Video Player, Render or RTSP type, to a named Sink Recorder
 
 **Python Example**
 ```Python
-retval = dsl_sink_record_video_player_add('my-record-sink', 'my-video-render-player'
+retval = dsl_sink_record_video_player_add('my-record-sink', 'my-video-render-player')
 ```
 
 <br>
@@ -740,7 +760,7 @@ retval = dsl_sink_record_video_player_add('my-record-sink', 'my-video-render-pla
 DslReturnType dsl_sink_record_video_player_remve(const wchar_t* name, 
     const wchar_t* player)
 ```
-This services removes a Video Player, Render or RTSP type, from a named Sink Recorder. 
+This services removes a Video Player, Render or RTSP type, from a named Recording Sink. 
 
 **Parameters**
  * `name` [in] name of the Record Sink to update
@@ -751,7 +771,7 @@ This services removes a Video Player, Render or RTSP type, from a named Sink Rec
 
 **Python Example**
 ```Python
-retval = dsl_sink_record_video_player_remove('my-record-sink', 'my-video-render-player'
+retval = dsl_sink_record_video_player_remove('my-record-sink', 'my-video-render-player')
 ```
 
 <br>
