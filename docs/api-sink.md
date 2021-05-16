@@ -52,6 +52,8 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_record_dimensions_set](#dsl_sink_record_dimensions_set)
 * [dsl_sink_record_is_on_get](#dsl_sink_record_is_on_get)
 * [dsl_sink_record_reset_done_get](#dsl_sink_record_reset_done_get)
+* [dsl_sink_record_video_player_add](#dsl_sink_record_video_player_add)
+* [dsl_sink_record_video_player_remove](#dsl_sink_record_video_player_remove)
 * [dsl_sink_encode_video_formats_get](#dsl_sink_encode_video_formats_get)
 * [dsl_sink_encode_settings_get](#dsl_sink_encode_settings_get)
 * [dsl_sink_encode_settings_set](#dsl_sink_encode_settings_set)
@@ -79,8 +81,12 @@ The following return codes are used by the Sink API
 #define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000A
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000B
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK                0x0004000C
-#define DSL_RESULT_SINK_HANDLER_ADD_FAILED                          0x0004000D
-#define DSL_RESULT_SINK_HANDLER_REMOVE_FAILED                       0x0004000E
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_RENDER_SINK                0x0004000D
+#define DSL_RESULT_SINK_HANDLER_ADD_FAILED                          0x0004000E
+#define DSL_RESULT_SINK_HANDLER_REMOVE_FAILED                       0x0004000F
+#define DSL_RESULT_SINK_PLAYER_ADD_FAILED                           0x00040010
+#define DSL_RESULT_SINK_PLAYER_REMOVE_FAILED                        0x00040011
+
 ```
 ## Codec Types
 The following codec types are used by the Sink API
@@ -95,6 +101,8 @@ The following video container types are used by the File Sink API
 #define DSL_CONTAINER_MPEG4                                         0
 #define DSL_CONTAINER_MK4                                           1
 ```
+## Recording Events
+The following Event Type identifiers are used by the Recoring Sink
 <br>
 
 ---
@@ -706,6 +714,47 @@ retval, reset_done = dsl_sink_record_reset_done_get('my-record-sink')
 
 <br>
 
+### *dsl_sink_record_video_player_add*
+```C++
+DslReturnType dsl_sink_record_video_player_add(const wchar_t* name, 
+    const wchar_t* player)
+```
+This services adds a Video Player, Render or RTSP type, to a named Sink Recorder. Once added, each recorded video's file_path will be added (or queued) with the Video Player to be played according to the Players settings. 
+
+**Parameters**
+ * `name` [in] name of the Record Sink to update
+ * `player` [in] player name of the Video Player to add
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_record_video_player_add('my-record-sink', 'my-video-render-player'
+```
+
+<br>
+
+### *dsl_sink_record_video_player_remove*
+```C++
+DslReturnType dsl_sink_record_video_player_remve(const wchar_t* name, 
+    const wchar_t* player)
+```
+This services removes a Video Player, Render or RTSP type, from a named Sink Recorder. 
+
+**Parameters**
+ * `name` [in] name of the Record Sink to update
+ * `player` [in] player name of the Video Player to remove
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_record_video_player_remove('my-record-sink', 'my-video-render-player'
+```
+
+<br>
 
 ### *dsl_sink_encode_video_formats_get*
 This service returns the current video codec and container formats for the uniquely named Enocde Sink
