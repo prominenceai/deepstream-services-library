@@ -167,7 +167,9 @@
 * [dsl_tap_record_dimensions_set](/docs/api-tap.md#dsl_tap_record_dimensions_set)
 * [dsl_tap_record_is_on_get](/docs/api-tap.md#dsl_tap_record_is_on_get)
 * [dsl_tap_record_reset_done_get](/docs/api-tap.md#dsl_tap_record_reset_done_get)
-
+* [dsl_tap_record_video_player_add](/docs/api-tap.m#dsl_tap_record_video_player_add)
+* [dsl_tap_record_video_player_remove](/docs/api-tap.m#dsl_tap_record_video_player_remove)
+* 
 ### Dewarpper:
 * [Overview](/docs/api-dewarper.md)
 * [dsl_dewarper_new](/docs/api-dewarper.md#dsl_dewarper_new)
@@ -275,6 +277,8 @@
 * [dsl_sink_record_dimensions_set](/docs/api-sink.md#dsl_sink_record_dimensions_set)
 * [dsl_sink_record_is_on_get](/docs/api-sink.md#dsl_sink_record_is_on_get)
 * [dsl_sink_record_reset_done_get](/docs/api-sink.md#dsl_sink_record_reset_done_get)
+* [dsl_sink_record_video_player_add](/docs/api-sink.md#dsl_sink_record_video_player_add)
+* [dsl_sink_record_video_player_remove](/docs/api-sink.md#dsl_sink_record_video_player_remove)
 * [dsl_sink_encode_video_formats_get](/docs/api-sink.md#dsl_sink_encode_video_formats_get)
 * [dsl_sink_encode_settings_get](/docs/api-sink.md#dsl_sink_encode_settings_get)
 * [dsl_sink_encode_settings_set](/docs/api-sink.md#dsl_sink_encode_settings_set)
