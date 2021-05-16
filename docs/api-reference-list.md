@@ -82,6 +82,7 @@
 * [dsl_player_render_offsets_set](/docs/api-player.md#dsl_player_render_offsets_set)
 * [dsl_player_render_zoom_get](/docs/api-player.md#dsl_player_render_zoom_get)
 * [dsl_player_render_zoom_set](/docs/api-player.md#dsl_player_render_zoom_set)
+* [dsl_player_render_reset](/docs/api-player.md#dsl_player_render_reset)
 * [dsl_player_render_image_timeout_get](/docs/api-player.md#dsl_player_render_image_timeout_get)
 * [dsl_player_render_image_timeout_set](/docs/api-player.md#dsl_player_render_image_timeout_set)
 * [dsl_player_render_video_repeat_enabled_get](/docs/api-player.md#dsl_player_render_video_repeat_enabled_get)
@@ -166,7 +167,9 @@
 * [dsl_tap_record_dimensions_set](/docs/api-tap.md#dsl_tap_record_dimensions_set)
 * [dsl_tap_record_is_on_get](/docs/api-tap.md#dsl_tap_record_is_on_get)
 * [dsl_tap_record_reset_done_get](/docs/api-tap.md#dsl_tap_record_reset_done_get)
-
+* [dsl_tap_record_video_player_add](/docs/api-tap.m#dsl_tap_record_video_player_add)
+* [dsl_tap_record_video_player_remove](/docs/api-tap.m#dsl_tap_record_video_player_remove)
+* 
 ### Dewarpper:
 * [Overview](/docs/api-dewarper.md)
 * [dsl_dewarper_new](/docs/api-dewarper.md#dsl_dewarper_new)
@@ -259,6 +262,7 @@
 * [dsl_sink_render_offsets_set](/docs/api-sink.md#dsl_sink_render_offsets_set)
 * [dsl_sink_render_dimensions_get](/docs/api-sink.md#dsl_sink_render_dimensions_get)
 * [dsl_sink_render_dimensions_set](/docs/api-sink.md#dsl_sink_render_dimensions_set)
+* [dsl_sink_render_reset](/docs/api-sink.md#dsl_sink_render_reset)
 * [dsl_sink_window_force_aspect_ratio_get](/docs/api-sink.md#dsl_sink_window_force_aspect_ratio_get)
 * [dsl_sink_window_force_aspect_ratio_set](/docs/api-sink.md#dsl_sink_window_force_aspect_ratio_set)
 * [dsl_sink_record_session_start](/docs/api-sink.md#dsl_sink_record_session_start)
@@ -273,6 +277,8 @@
 * [dsl_sink_record_dimensions_set](/docs/api-sink.md#dsl_sink_record_dimensions_set)
 * [dsl_sink_record_is_on_get](/docs/api-sink.md#dsl_sink_record_is_on_get)
 * [dsl_sink_record_reset_done_get](/docs/api-sink.md#dsl_sink_record_reset_done_get)
+* [dsl_sink_record_video_player_add](/docs/api-sink.md#dsl_sink_record_video_player_add)
+* [dsl_sink_record_video_player_remove](/docs/api-sink.md#dsl_sink_record_video_player_remove)
 * [dsl_sink_encode_video_formats_get](/docs/api-sink.md#dsl_sink_encode_video_formats_get)
 * [dsl_sink_encode_settings_get](/docs/api-sink.md#dsl_sink_encode_settings_get)
 * [dsl_sink_encode_settings_set](/docs/api-sink.md#dsl_sink_encode_settings_set)

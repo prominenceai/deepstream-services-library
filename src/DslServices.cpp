@@ -1743,8 +1743,15 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
+
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, recordSink);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, recordSink, RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR pRecordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[recordSink]);
+            
             m_odeActions[name] = DSL_ODE_ACTION_SINK_RECORD_START_NEW(name,
-                recordSink, start, duration, clientData);
+                pRecordSinkBintr, start, duration, clientData);
 
             LOG_INFO("New ODE Record Sink Start Action '" << name << "' created successfully");
 
@@ -1771,8 +1778,15 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
+
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, recordSink);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, recordSink, RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR pRecordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[recordSink]);
+            
             m_odeActions[name] = DSL_ODE_ACTION_SINK_RECORD_STOP_NEW(name,
-                recordSink);
+                pRecordSinkBintr);
 
             LOG_INFO("New ODE Record Sink Stop Action '" << name << "' created successfully");
 
@@ -1853,8 +1867,15 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
+            
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, recordTap);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, recordTap, RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[recordTap]);
+
             m_odeActions[name] = DSL_ODE_ACTION_TAP_RECORD_START_NEW(name,
-                recordTap, start, duration, clientData);
+                pRecordTapBintr, start, duration, clientData);
 
             LOG_INFO("New ODE Record Tap Start Action '" << name << "' created successfully");
 
@@ -1881,7 +1902,14 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_TAP_RECORD_STOP_NEW(name, recordTap);
+            
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, recordTap);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, recordTap, RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[recordTap]);
+            
+            m_odeActions[name] = DSL_ODE_ACTION_TAP_RECORD_STOP_NEW(name, pRecordTapBintr);
 
             LOG_INFO("New ODE Record Tap Stop Action '" << name << "' created successfully");
 
@@ -1893,6 +1921,7 @@ namespace DSL
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
+    
     DslReturnType Services::OdeActionActionDisableNew(const char* name, const char* action)
     {
         LOG_FUNC();
@@ -4052,7 +4081,7 @@ namespace DSL
                 LOG_ERROR("File Source'" << filePath << "' Not found");
                 return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
             }
-            if (!pSourceBintr->SetUri(filePath));
+            if (!pSourceBintr->SetUri(filePath))
             {
                 LOG_ERROR("Failed to Set FilePath '" << filePath << "' for File Source '" << name << "'");
                 return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
@@ -7277,6 +7306,33 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::SinkRenderReset(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+
+            DSL_RENDER_SINK_PTR pRenderSink = 
+                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
+
+            if (!pRenderSink->Reset())
+            {
+                LOG_ERROR("Render Sink '" << name << "' failed to reset its render suface");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Sink '" << name << "' threw an exception reseting its surface");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::SinkFileNew(const char* name, const char* filepath, 
             uint codec, uint container, uint bitrate, uint interval)
     {
@@ -7577,11 +7633,13 @@ namespace DSL
                 LOG_ERROR("Record Sink '" << name << "' failed to set cache size");
                 return DSL_RESULT_SINK_SET_FAILED;
             }
+            LOG_INFO("Record Sink '" << name 
+                << "' successfully set cache size to " << cacheSize << " seconds");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Record Sink '" << name << "' threw an exception setting s");
+            LOG_ERROR("Record Sink '" << name << "' threw an exception setting cache size");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -9565,6 +9623,34 @@ namespace DSL
         {
             LOG_ERROR("Render Player '" << name 
                 << "' threw exception setting Zoom");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerRenderReset(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+
+            DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
+                std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
+
+            if (!pRenderPlayer->Reset())
+            {
+                LOG_ERROR("Failed to Reset Render Player '" << name << "'");
+                return DSL_RESULT_PLAYER_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Player '" << name 
+                << "' threw exception on Reset");
             return DSL_RESULT_PLAYER_THREW_EXCEPTION;
         }
     }

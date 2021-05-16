@@ -89,6 +89,9 @@ DSL_DISTANCE_METHOD_PERCENT_HEIGHT_B = 4
 DSL_RENDER_TYPE_OVERLAY = 0
 DSL_RENDER_TYPE_WINDOW  = 1
 
+DSL_RECORDING_EVENT_START = 0
+DSL_RECORDING_EVENT_END   = 1
+
 class dsl_coordinate(Structure):
     _fields_ = [
         ('x', c_uint),
@@ -96,6 +99,7 @@ class dsl_coordinate(Structure):
         
 class dsl_recording_info(Structure):
     _fields_ = [
+        ('recording_event', c_uint),
         ('session_id', c_uint),
         ('filename', c_wchar_p),
         ('dirpath', c_wchar_p),
@@ -2582,6 +2586,16 @@ def dsl_sink_window_new(name, offset_x, offset_y, width, height):
     return int(result)
 
 ##
+## dsl_sink_render_reset()
+##
+_dsl.dsl_sink_render_reset.argtypes = [c_wchar_p]
+_dsl.dsl_sink_render_reset.restype = c_uint
+def dsl_sink_render_reset(name):
+    global _dsl
+    result =_dsl.dsl_sink_render_reset(name)
+    return int(result)
+
+##
 ## dsl_sink_window_force_aspect_ratio_get()
 ##
 _dsl.dsl_sink_window_force_aspect_ratio_get.argtypes = [c_wchar_p, POINTER(c_bool)]
@@ -3653,6 +3667,16 @@ def dsl_player_render_zoom_set(name, zoom):
     return int(result)
 
 ##
+## dsl_player_render_reset()
+##
+_dsl.dsl_player_render_reset.argtypes = [c_wchar_p]
+_dsl.dsl_player_render_reset.restype = c_uint
+def dsl_player_render_reset(name):
+    global _dsl
+    result =_dsl.dsl_player_render_reset(name)
+    return int(result)
+
+##
 ## dsl_player_render_image_timeout_get()
 ##
 _dsl.dsl_player_render_image_timeout_get.argtypes = [c_wchar_p, POINTER(c_uint)]
@@ -3747,6 +3771,27 @@ def dsl_player_xwindow_key_event_handler_remove(name, client_handler):
     result = _dsl.dsl_player_xwindow_key_event_handler_remove(name, c_client_handler)
     return int(result)
 
+##
+## dsl_player_xwindow_handle_get()
+##
+_dsl.dsl_player_xwindow_handle_get.argtypes = [c_wchar_p, POINTER(c_uint64)]
+_dsl.dsl_player_xwindow_handle_get.restype = c_uint
+def dsl_player_xwindow_handle_get(name):
+    global _dsl
+    handle = c_uint64(0)
+    result = _dsl.dsl_player_xwindow_handle_get(name, DSL_UINT64_P(handle))
+    return int(result), handle.value
+
+##
+## dsl_player_xwindow_handle_set()
+##
+_dsl.dsl_player_xwindow_handle_set.argtypes = [c_wchar_p, c_uint64]
+_dsl.dsl_player_xwindow_handle_set.restype = c_uint
+def dsl_player_xwindow_handle_set(name, handle):
+    global _dsl
+    result = _dsl.dsl_player_xwindow_handle_set(name, handle)
+    return int(result)
+    
 ##
 ## dsl_player_pause()
 ##

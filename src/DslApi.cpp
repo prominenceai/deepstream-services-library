@@ -35,8 +35,6 @@ THE SOFTWARE.
 }while(0); 
 
 
-class SourceFileNew;
-class SourceFileNew;
 DslReturnType dsl_display_type_rgba_color_new(const wchar_t* name, 
     double red, double green, double blue, double alpha)
 {
@@ -3386,6 +3384,16 @@ DslReturnType dsl_sink_render_dimensions_set(const wchar_t* name, uint width, ui
     return DSL::Services::GetServices()->SinkRenderDimensionsSet(cstrName.c_str(), width, height);
 }
 
+DslReturnType dsl_sink_render_reset(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRenderReset(cstrName.c_str());
+}
+
 DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* file_path, 
      uint codec, uint container, uint bitrate, uint interval)
 {
@@ -4689,6 +4697,16 @@ DslReturnType dsl_player_render_zoom_set(const wchar_t* name, uint zoom)
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->PlayerRenderZoomSet(cstrName.c_str(), zoom);
+}
+
+DslReturnType dsl_player_render_reset(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PlayerRenderReset(cstrName.c_str());
 }
 
 DslReturnType dsl_player_render_image_timeout_get(const wchar_t* name, uint* timeout)

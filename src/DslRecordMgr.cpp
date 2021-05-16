@@ -228,10 +228,32 @@ namespace DSL
             return false;
         }
         
-        LOG_INFO("Starting record session for RecordMgr '" << m_name << "' with start = " << start << " and durarion = " << duration);
-        m_clientData = clientData;
-        return bool(NvDsSRStart(m_pContext, &m_currentSessionId, start, duration, this) == NVDSSR_STATUS_OK);
+        LOG_INFO("Starting record session for RecordMgr '" << m_name 
+            << "' with start = " << start << " and durarion = " << duration);
         
+        // Save the client data to return     
+        m_clientData = clientData;
+        
+        if (NvDsSRStart(m_pContext, &m_currentSessionId, start, duration, this) 
+            != NVDSSR_STATUS_OK)
+        {
+            LOG_ERROR("Failed to Start Session for RecordMgr '" << m_name << "'");
+            return false;
+        }
+        dsl_recording_info dslInfo{0};
+        
+        dslInfo.session_id = m_currentSessionId;
+        dslInfo.recording_event = DSL_RECORDING_EVENT_START;
+        try
+        {
+            m_clientListener(&dslInfo, m_clientData);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Client Listener for RecordMgr '" << m_name << "' threw an exception");
+            return false;
+        }
+        return true;
     }
     
     bool RecordMgr::StopSession()
@@ -252,6 +274,7 @@ namespace DSL
         }
         LOG_INFO("Stoping record session for RecordMgre '" << m_name << "'");
         bool retval = (NvDsSRStop(m_pContext, m_currentSessionId) == NVDSSR_STATUS_OK);
+        
         m_currentSessionId = UINT32_MAX;
         return retval;
     }
@@ -371,17 +394,18 @@ namespace DSL
         switch (pNvDsInfo->containerType)
         {
         case NVDSSR_CONTAINER_MP4 :
-            dslInfo.containerType = DSL_CONTAINER_MP4;
+            dslInfo.container_type = DSL_CONTAINER_MP4;
             break;
         case NVDSSR_CONTAINER_MKV :
-            dslInfo.containerType = DSL_CONTAINER_MKV;        
+            dslInfo.container_type = DSL_CONTAINER_MKV;        
             break;
         default:
             LOG_ERROR("Invalid container = '" << pNvDsInfo->containerType << "' received from NvDsSR for RecordMgr'" << m_name << "'");
         }
         
         // copy the remaining data received from the nvidia lib
-        dslInfo.sessionId = pNvDsInfo->sessionId;
+        dslInfo.session_id = pNvDsInfo->sessionId;
+        dslInfo.recording_event = DSL_RECORDING_EVENT_END;
         dslInfo.duration = pNvDsInfo->duration;
         dslInfo.width = pNvDsInfo->width;
         dslInfo.height = pNvDsInfo->height;

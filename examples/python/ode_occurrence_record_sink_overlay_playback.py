@@ -80,12 +80,13 @@ def state_change_listener(old_state, new_state, client_data):
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
 ## 
-# Function to be called on recording complete
+# Function to be called on recording start and complete
 ## 
-def record_complete_listener(session_info_ptr, client_data):
-    print(' ***  Recording Complete  *** ')
+def recording_event_listener(session_info_ptr, client_data):
+    print(' ***  Recording Event  *** ')
     
     session_info = session_info_ptr.contents
+    print('event type: ', session_info.recording_event)
     print('session_id: ', session_info.session_id)
     print('filename:   ', session_info.filename)
     print('dirpath:    ', session_info.dirpath)
@@ -93,35 +94,36 @@ def record_complete_listener(session_info_ptr, client_data):
     print('container:  ', session_info.container_type)
     print('width:      ', session_info.width)
     print('height:     ', session_info.height)
-    
+
     retval, is_on = dsl_sink_record_is_on_get('record-sink')
-    print('        is_on flag = ', is_on)
+    print('is_on:      ', is_on)
     
     retval, reset_done = dsl_sink_record_reset_done_get('record-sink')
-    print('        reset_done flag = ', reset_done)
+    print('reset_done: ', reset_done)
+
+    # If it's the start of a new recording, ove
+    if session_info.recording_event == DSL_RECORDING_EVENT_START:
+
+        print('Enable Add "REC" display meta result =', 
+            dsl_ode_trigger_enabled_set('rec-on-trigger', enabled=True)) 
+    else:
+        print('Disable Add "REC" display meta result =', 
+            dsl_ode_trigger_enabled_set('rec-on-trigger', enabled=False)) 
     
-    # reset the Trigger so that a new session can be started.
-    print(dsl_return_value_to_string(dsl_ode_trigger_reset('bicycle-occurrence-trigger')))
+        # reset the Trigger so that a new session can be started.
+        print('Trigger Reset result =', 
+            dsl_return_value_to_string(dsl_ode_trigger_reset('bicycle-occurrence-trigger')))
     
     return None
+    
+## 
+# Function to be called on Player termination event
+## 
+def player_termination_event_listener(client_data):
+    print(' ***  Video Playback Complete  *** ')
 
-## 
-# Custom check-for-occurrence (NOP) callback added to the Custome trigger.
-## 
-def check_for_occurrence(buffer, object_meta, frame_meta, client_data):
-    
-    return False
-
-## 
-# Custom post-process-frame callback added to the Custome trigger.
-## 
-def post_process_frame(buffer, frame_meta, client_data):
-    
-    # check the state of the Record Sink
-    retval, is_on = dsl_sink_record_is_on_get('record-sink')
-    
-    # if on... returning true will execute all of the Trigger's Actions
-    return is_on
+    # reset the Player to close its rendering surface
+    dsl_player_render_reset('video-player')
 
 def main(args):
 
@@ -139,7 +141,7 @@ def main(args):
         # to start a new session on first occurrence. The default 'cache-size' and 'duration' are defined in
         # Setting the bit rate to 12 Mbps for 1080p ??? 
         retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H265, container=DSL_CONTAINER_MKV, 
-            bitrate=12000000, interval=0, client_listener=record_complete_listener)
+            bitrate=12000000, interval=0, client_listener=recording_event_listener)
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -165,6 +167,12 @@ def main(args):
             repeat_enabled = False)
         if retval != DSL_RETURN_SUCCESS:
             break
+
+        # Add the Termination listener callback to the Player 
+        retval = dsl_player_termination_event_listener_add('video-player',
+            client_listener=player_termination_event_listener, client_data=None)
+        if retval != DSL_RETURN_SUCCESS:
+            return
 
         # Add the Player to the Recorder Sink. The Action will add/queue
         # the file_path to each video recording created. 
@@ -207,14 +215,21 @@ def main(args):
             ['rec-text', 'red-led', None])
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_custom_new('rec-on-trigger', 
+            
+        # Create an Always trigger to add the "REC" text meta-data to every frame when enabled.
+        retval = dsl_ode_trigger_always_new('rec-on-trigger', 
             source = DSL_ODE_ANY_SOURCE, 
-            class_id = DSL_ODE_ANY_CLASS, 
-            limit = DSL_ODE_TRIGGER_LIMIT_NONE, 
-            client_checker = check_for_occurrence, 
-            client_post_processor=post_process_frame, client_data=None)
+            when = DSL_ODE_PRE_OCCURRENCE_CHECK)
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+
+        # Disable the trigger. Will be re-enabled on DSL_RECORDING_EVENT_START
+        # and then disabled again on DSL_RECORDING_EVENT_END
+        retval = dsl_ode_trigger_enabled_set('rec-on-trigger', enabled=False) 
         if retval != DSL_RETURN_SUCCESS:
             break
+
+        # Add the display-meta add action to the Always trigger
         retval = dsl_ode_trigger_action_add('rec-on-trigger', action='add-rec-on')
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -232,7 +247,7 @@ def main(args):
         
         # Create a new Capture Action to start a new record session
         retval = dsl_ode_action_sink_record_start_new('start-record-action', 
-            record_sink='record-sink', start=2, duration=10, client_data=None)
+            record_sink='record-sink', start=3, duration=10, client_data=None)
         if retval != DSL_RETURN_SUCCESS:
             break
 

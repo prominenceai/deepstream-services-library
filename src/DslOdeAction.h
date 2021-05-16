@@ -151,20 +151,20 @@ namespace DSL
         std::shared_ptr<RemoveAreaOdeAction>(new RemoveAreaOdeAction(name, trigger, area))
         
     #define DSL_ODE_ACTION_SINK_RECORD_START_PTR std::shared_ptr<RecordSinkStartOdeAction>
-    #define DSL_ODE_ACTION_SINK_RECORD_START_NEW(name, recordSink, start, duration, clientData) \
-        std::shared_ptr<RecordSinkStartOdeAction>(new RecordSinkStartOdeAction(name, recordSink, start, duration, clientData))
+    #define DSL_ODE_ACTION_SINK_RECORD_START_NEW(name, pRecordSink, start, duration, clientData) \
+        std::shared_ptr<RecordSinkStartOdeAction>(new RecordSinkStartOdeAction(name, pRecordSink, start, duration, clientData))
         
     #define DSL_ODE_ACTION_SINK_RECORD_STOP_PTR std::shared_ptr<RecordSinkStopOdeAction>
-    #define DSL_ODE_ACTION_SINK_RECORD_STOP_NEW(name, recordSink) \
-        std::shared_ptr<RecordSinkStopOdeAction>(new RecordSinkStopOdeAction(name, recordSink))
+    #define DSL_ODE_ACTION_SINK_RECORD_STOP_NEW(name, pRecordSink) \
+        std::shared_ptr<RecordSinkStopOdeAction>(new RecordSinkStopOdeAction(name, pRecordSink))
         
     #define DSL_ODE_ACTION_TAP_RECORD_START_PTR std::shared_ptr<RecordTapStartOdeAction>
-    #define DSL_ODE_ACTION_TAP_RECORD_START_NEW(name, recordTap, start, duration, clientData) \
-        std::shared_ptr<RecordTapStartOdeAction>(new RecordTapStartOdeAction(name, recordTap, start, duration, clientData))
+    #define DSL_ODE_ACTION_TAP_RECORD_START_NEW(name, pRecordTap, start, duration, clientData) \
+        std::shared_ptr<RecordTapStartOdeAction>(new RecordTapStartOdeAction(name, pRecordTap, start, duration, clientData))
         
     #define DSL_ODE_ACTION_TAP_RECORD_STOP_PTR std::shared_ptr<RecordTapStopOdeAction>
-    #define DSL_ODE_ACTION_TAP_RECORD_STOP_NEW(name, recordTap) \
-        std::shared_ptr<RecordTapStopOdeAction>(new RecordTapStopOdeAction(name, recordTap))
+    #define DSL_ODE_ACTION_TAP_RECORD_STOP_NEW(name, pRecordTap) \
+        std::shared_ptr<RecordTapStopOdeAction>(new RecordTapStopOdeAction(name, pRecordTap))
         
     #define DSL_ODE_ACTION_TILER_SHOW_SOURCE_PTR std::shared_ptr<TilerShowSourceOdeAction>
     #define DSL_ODE_ACTION_TILER_SHOW_SOURCE_NEW(name, tiler, timeout, hasPrecedence) \
@@ -1483,12 +1483,12 @@ namespace DSL
         /**
          * @brief ctor for the Start Record Sink ODE Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] recordSink Record Sink component name to Start on ODE
+         * @param[in] pRecordSink shared pointer to Record Sink to Start on ODE
          * @param[in] start time before current time in secs
          * @param[in] duration for recording unless stopped before completion
          */
         RecordSinkStartOdeAction(const char* name, 
-            const char* recordSink, uint start, uint duration, void* clientData);
+            DSL_BASE_PTR pRecordSink, uint start, uint duration, void* clientData);
         
         /**
          * @brief dtor for the Start Record ODE Action class
@@ -1511,7 +1511,7 @@ namespace DSL
         /**
          * @brief Record Sink to start the recording session
          */ 
-        std::string m_recordSink;
+         DSL_BASE_PTR m_pRecordSink;
 
         /**
          * @brief Start time before current time in seconds
@@ -1543,11 +1543,10 @@ namespace DSL
         /**
          * @brief ctor for the Stop Record Sink ODE Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] recordSink Record Sink component name to Stop on ODE
-         * @param[in] start time before current time in secs
+         * @param[in] pRecordSink shared pointer to a Record Sink to Stop on ODE
          * @param[in] duration for recording unless stopped before completion
          */
-        RecordSinkStopOdeAction(const char* name, const char* recordSink);
+        RecordSinkStopOdeAction(const char* name, DSL_BASE_PTR pRecordSink);
         
         /**
          * @brief dtor for the Stop Record ODE Action class
@@ -1570,7 +1569,7 @@ namespace DSL
         /**
          * @brief Record Sink to start the recording session
          */ 
-        std::string m_recordSink;
+        DSL_BASE_PTR m_pRecordSink;
         
     };
 
@@ -1587,12 +1586,12 @@ namespace DSL
         /**
          * @brief ctor for the Start Record Tap ODE Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] recordSink Record Sink component name to Start on ODE
-         * @param[in] start time before current time in secs
+         * @param[in] pRecordTap shared pointer to a Record Tap to Start on ODE
+         * @param[in] start time before current time in seconds
          * @param[in] duration for recording unless stopped before completion
          */
         RecordTapStartOdeAction(const char* name, 
-            const char* recordTap, uint start, uint duration, void* clientData);
+            DSL_BASE_PTR pRecordTap, uint start, uint duration, void* clientData);
         
         /**
          * @brief dtor for the Start Record ODE Action class
@@ -1615,7 +1614,7 @@ namespace DSL
         /**
          * @brief Record Tap to start the recording session
          */ 
-        std::string m_recordTap;
+        DSL_BASE_PTR m_pRecordTap;
 
         /**
          * @brief Start time before current time in seconds
@@ -1646,12 +1645,11 @@ namespace DSL
         /**
          * @brief ctor for the Stop Record Tap ODE Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] recordSink Record Sink component name to Stop on ODE
+         * @param[in] pRecordSink shared pointer to Record Sink to Stop on ODE
          * @param[in] start time before current time in secs
          * @param[in] duration for recording unless stopped before completion
          */
-        RecordTapStopOdeAction(const char* name, 
-            const char* recordTap);
+        RecordTapStopOdeAction(const char* name, DSL_BASE_PTR pRecordTap);
         
         /**
          * @brief dtor for the Stop Record ODE Action class
@@ -1674,7 +1672,7 @@ namespace DSL
         /**
          * @brief Record Tap to start the recording session
          */ 
-        std::string m_recordTap;
+        DSL_BASE_PTR m_pRecordTap;
 
     };
 

@@ -179,8 +179,20 @@ namespace DSL
                 << "' as it's already in a state of playing");
             return false;
         }
-        
-        return HandlePlay();
+        // If the main loop is running -- normal case -- then we can't change the 
+        // state of the Player in the Application's context. 
+        if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+            g_timeout_add(1, PlayerPlay, this);
+//            g_cond_wait(&m_asyncCondition, &m_asyncCommMutex);
+        }
+        // Else, we are running under test without the mainloop
+        else
+        {
+            HandlePlay();
+        }
+        return true;
     }
     
     bool PlayerBintr::HandlePlay()
@@ -541,6 +553,7 @@ namespace DSL
         if (GetXWindow())
         {
             SetXWindowDimensions(width, height);
+            return true;
         }
         // Else, update the OverlaySinkBintr;
         return pRenderSink->SetDimensions(width, height);
@@ -559,6 +572,22 @@ namespace DSL
 
         m_zoom = zoom;
         return SetDimensions();
+    }
+    
+    bool RenderPlayerBintr::Reset()
+    {
+        LOG_FUNC();
+
+        DSL_RENDER_SINK_PTR pRenderSink = 
+            std::dynamic_pointer_cast<RenderSinkBintr>(m_pSink);
+
+        // If the RenderSink is a WindowSinkBintr
+        if (GetXWindow())
+        {
+            DestroyXWindow();
+        }
+        
+        return pRenderSink->Reset();
     }
     
     bool RenderPlayerBintr::CreateRenderSink()
@@ -799,6 +828,14 @@ namespace DSL
     }
     
     //--------------------------------------------------------------------------------
+    
+    static int PlayerPlay(gpointer pPlayer)
+    {
+        static_cast<PlayerBintr*>(pPlayer)->HandlePlay();
+        
+        // Return false to self destroy timer - one shot.
+        return false;
+    }
     
     static int PlayerPause(gpointer pPlayer)
     {
