@@ -496,6 +496,14 @@ THE SOFTWARE.
 #define DSL_RENDER_TYPE_OVERLAY                                     0
 #define DSL_RENDER_TYPE_WINDOW                                      1
 
+/**
+ * @brief Smart Recording Events - to identify which event
+ * has occurred when processing dsl_recording_info
+ */
+#define DSL_RECORDING_EVENT_START 0
+#define DSL_RECORDING_EVENT_END   1
+
+
 EXTERN_C_BEGIN
 
 typedef uint DslReturnType;
@@ -559,9 +567,6 @@ typedef struct dsl_rtsp_connection_data
    uint timeout;
    
 }dsl_rtsp_connection_data;
-
-#define DSL_RECORDING_EVENT_START 0
-#define DSL_RECORDING_EVENT_END   1
 
 /**
  * @struct dsl_recording_info

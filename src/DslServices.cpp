@@ -7633,11 +7633,13 @@ namespace DSL
                 LOG_ERROR("Record Sink '" << name << "' failed to set cache size");
                 return DSL_RESULT_SINK_SET_FAILED;
             }
+            LOG_INFO("Record Sink '" << name 
+                << "' successfully set cache size to " << cacheSize << " seconds");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Record Sink '" << name << "' threw an exception setting s");
+            LOG_ERROR("Record Sink '" << name << "' threw an exception setting cache size");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
