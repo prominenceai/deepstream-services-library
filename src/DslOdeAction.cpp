@@ -595,8 +595,10 @@ namespace DSL
     
     // ********************************************************************
 
-    EmailOdeAction::EmailOdeAction(const char* name, const char* subject)
+    EmailOdeAction::EmailOdeAction(const char* name, 
+        DSL_BASE_PTR pMailer, const char* subject)
         : OdeAction(name)
+        , m_pMailer(pMailer)
         , m_subject(subject)
     {
         LOG_FUNC();
@@ -694,8 +696,7 @@ namespace DSL
                 body.push_back(std::string("    Inference   : No<br>"));
             }
             
-            const std::shared_ptr<Comms> pComms = DSL::Services::GetServices()->GetComms();
-            pComms->QueueSmtpMessage(m_subject, body);
+            std::dynamic_pointer_cast<Mailer>(m_pMailer)->QueueMessage(m_subject, body);
         }
     }
 

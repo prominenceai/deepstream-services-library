@@ -373,6 +373,17 @@ THE SOFTWARE.
 #define DSL_RESULT_PLAYER_SET_FAILED                                0x00400010
 
 /**
+ * SMTP Mailer API Return Values
+ */
+#define DSL_RESULT_MAILER_RESULT                                    0x00500000
+#define DSL_RESULT_MAILER_NAME_NOT_UNIQUE                           0x00500001
+#define DSL_RESULT_MAILER_NAME_NOT_FOUND                            0x00500002
+#define DSL_RESULT_MAILER_THREW_EXCEPTION                           0x00500003
+#define DSL_RESULT_MAILER_IN_USE                                    0x00500004
+#define DSL_RESULT_MAILER_SET_FAILED                                0x00500005
+#define DSL_RESULT_MAILER_PARAMETER_INVALID                         0x00500006
+
+/**
  *
  */
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
@@ -574,6 +585,10 @@ typedef struct dsl_rtsp_connection_data
  */
 typedef struct dsl_recording_info
 {
+    /**
+     * @brief specifies which recording event has occurred. One of 
+     * DSL_RECORDING_EVENT_START or DSL_RECORDING_EVENT_END
+     */
     uint recording_event;
     
     /**
@@ -1105,12 +1120,14 @@ DslReturnType dsl_ode_action_display_meta_add_many_new(const wchar_t* name,
 
 /**
  * @brief Creates a uniquely named Email ODE Action, that sends an email message using the
- * SMTP parameters setup through the SMTP API
+ * SMTP Mailer Object specified by its unique name.
  * @param[in] name unique name for the Email ODE Action
+ * @param[in] mailer unique name of the SMTP Mailer Object to use.
  * @param[in] subject text to use as the subject line for all messages sent from this Action
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_email_new(const wchar_t* name, const wchar_t* subject);
+DslReturnType dsl_ode_action_email_new(const wchar_t* name, 
+    const wchar_t* mailer, const wchar_t* subject);
 
 /**
  * @brief Creates a uniquely named Fill Frame ODE Action, that fills the entire
@@ -4316,115 +4333,161 @@ DslReturnType dsl_player_delete(const wchar_t* name);
 DslReturnType dsl_player_delete_all();
 
 /**
- * @brief Returns the current number of Players in memeory
+ * @brief Returns the current number of Players in memory
  * @return size of the list of Players
  */
 uint dsl_player_list_size();
 
 /**
- * @brief Gets the current Enabled state of the SMTP Email Services
- * @return DSL_RESULT_SUCCESS on success, one DSL_RESULT_FAILED on failure
+ * @brief Creates a uniquely named SMTP Mailer 
+ * @param[in] name unique name for the new Mailer
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_MAILER_RESULT otherwise
  */
-DslReturnType dsl_smtp_mail_enabled_get(boolean* enabled);
+DslReturnType dsl_mailer_new(const wchar_t* name);
 
 /**
- * @brief Sets the state of the SMTP Email Services
- * Disabling SMTP services will block all subsequent emails from being queued for sending.
- * @param enabled set to true to enable, false to disabled
+ * @brief Gets the current Enabled state for the named SMTP Mailer
+ * @param[in] name unique name of the Mailer to query
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_MAILER_RESULT otherwise
  */
-DslReturnType dsl_smtp_mail_enabled_set(boolean enabled);
+DslReturnType dsl_mailer_enabled_get(const wchar_t* name, boolean* enabled);
 
 /**
- * @brief sets the user credentials for the SMTP host for all subsequent emails
+ * @brief Sets the Enabled state of the named SMTP Mailer
+ * Disabling the Mailer will block all subsequent emails from being queued for sending.
+ * @param[in] name unique name of the Mailer to update
+ * @param[in] enabled set to true to enable, false to disabled
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_MAILER_RESULT otherwise
+ */
+DslReturnType dsl_mailer_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief Sets the user credentials for the Mailer's SMTP host for all subsequent emails
+ * @param[in] name unique name of the Mailer to update
  * @param[in] username username to use
  * @param[in] password password to use
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INVALID_INPUT_PARAM if param(s) NULL.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_MAILER_RESULT otherwise
  */
-DslReturnType dsl_smtp_credentials_set(const wchar_t* username, 
-    const wchar_t* password);
+DslReturnType dsl_mailer_credentials_set(const wchar_t* name, 
+    const wchar_t* username, const wchar_t* password);
 
 /**
- * @brief gets the current SMTP server URL setting
+ * @brief Gets the current SMTP server URL setting for the named Mailer
+ * @param[in] name unique name of the Mailer to query
  * @param[out] server_url current server URL in use
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_MAILER_RESULT otherwise
  */
-DslReturnType dsl_smtp_server_url_get(const wchar_t** server_url);
+DslReturnType dsl_mailer_server_url_get(const wchar_t* name,
+    const wchar_t** server_url);
 
 /**
- * @brief sets the SMTP server URL to use for all subsequent emails
- * for all subsequence email sent out
+ * @brief Sets the SMTP server URL for the Mailer to use for all 
+ * subsequence email sent out
+ * @param[in] name unique name of the Mailer to update
  * @param[in] server_url to use 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_MAILER_RESULT otherwise
  */
-DslReturnType dsl_smtp_server_url_set(const wchar_t* server_url);
+DslReturnType dsl_mailer_server_url_set(const wchar_t* name,
+    const wchar_t* server_url);
 
 /**
- * @brief gets the current From address components
- * @param[out] name current From address display name
+ * @brief Gets the current From address for the named Mailer
+ * @param[in] name unique name of the Mailer to query
+ * @param[out] display_name current From address display name
  * @param[out] address current From address
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_MAILER_RESULT otherwise
  */
-DslReturnType dsl_smtp_address_from_get(const wchar_t** name,
-    const wchar_t** address);
+DslReturnType dsl_mailer_address_from_get(const wchar_t* name,
+    const wchar_t** display_name, const wchar_t** address);
 
 /**
- * @brief sets the current From address componts to use for all subsequent email
- * @param[in] name new From address display name to use
+ * @brief Sets the current From address for the Mailer to use 
+ * for all subsequent emails
+ * @param[in] name unique name of the Mailer to update
+ * @param[in] display_name new From address display name to use
  * @param[in] address new From address
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_MAILER_RESULT otherwise
  */
-DslReturnType dsl_smtp_address_from_set(const wchar_t* name,
-    const wchar_t* address);
+DslReturnType dsl_mailer_address_from_set(const wchar_t* name,
+    const wchar_t* display_name, const wchar_t* address);
 
 /**
- * @brief returns the current SMTP SSL enabled setting
+ * @brief Returns the current SMTP SSL enabled setting in use by the named Mailer
  * The setting is enabled by default
+ * @param[in] name unique name of the Mailer to query
  * @param[out] enabled true if SSL is enabled, false otherwise 
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_MAILER_RESULT otherwise
  */
-DslReturnType dsl_smtp_ssl_enabled_get(boolean* enabled);
+DslReturnType dsl_mailer_ssl_enabled_get(const wchar_t* name, boolean* enabled);
 
 /**
- * @brief sets the SMTP SSL enabled setting
+ * @brief Sets the SMTP SSL enabled setting for the named Mailer
+ * @param[in] name unique name of the Mailer to update
  * @param[in] enabled set to true to enable, false otherwise
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_MAILER_RESULT otherwise
 */
-DslReturnType dsl_smtp_ssl_enabled_set(boolean enabled);
+DslReturnType dsl_mailer_ssl_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
- * @brief adds a new email address to the To list
- * @param name display name for the To address
- * @param address qualifed email To address
+ * @brief Adds a new email address to the To list of the named Mailer
+ * @param[in] name unique name of the Mailer to update
+ * @param[in] display_name display name for the To address
+ * @param[in] address qualifed email To address
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
  */
-DslReturnType dsl_smtp_address_to_add(const wchar_t* name,
-    const wchar_t* address);
+DslReturnType dsl_mailer_address_to_add(const wchar_t* name,
+    const wchar_t* display_name, const wchar_t* address);
 
 /**
- * @brief removes all current TO addresses
+ * @brief Removes all current To addresses from the named Mailer
+ * @param[in] name unique name of the Mailer to update
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
  */
-DslReturnType dsl_smtp_address_to_remove_all();
+DslReturnType dsl_mailer_address_to_remove_all(const wchar_t* name);
 
 /**
- * @brief adds a new email address to the Cc list
- * @param name display name for the Cc address
- * @param address qualifed email Cc address
+ * @brief Adds a new email address to the Cc list of the name Mailer
+ * @param[in] name unique name of the Mailer to update
+ * @param[in] display_name display name for the Cc address
+ * @param[in] address qualifed email Cc address
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
  */
-DslReturnType dsl_smtp_address_cc_add(const wchar_t* name,
-    const wchar_t* address);
+DslReturnType dsl_mailer_address_cc_add(const wchar_t* name,
+    const wchar_t* display_name, const wchar_t* address);
 
 /**
- * @brief removes all current CC addresses
+ * @brief Removes all current CC addresses from the named Mailer
+ * @param[in] name unique name of the Mailer to update
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
  */
-DslReturnType dsl_smtp_address_cc_remove_all();
+DslReturnType dsl_mailer_address_cc_remove_all(const wchar_t* name);
 
 /**
- * @brief sends a test message using the current SMTP
+ * @brief Sends a test message using the current SMTP
  * settings and email addresses (From, To, Cc)
+ * @param[in] name unique name of the Mailer to test
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
  */
-DslReturnType dsl_smtp_test_message_send();
+DslReturnType dsl_mailer_test_message_send(const wchar_t* name);
+
+/**
+ * @brief Deletes a SMTP Mailer Object by name.
+ * @param[in] name unique name of the Mailer to delete.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise.
+ */
+DslReturnType dsl_mailer_delete(const wchar_t* name);
+
+/**
+ * @brief Deletes all SMTP Mailers in memory
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT
+ */
+DslReturnType dsl_mailer_delete_all();
+
+/**
+ * @brief Returns the current number of Mailers in memeory
+ * @return size of the list of Mailers
+ */
+uint dsl_mailer_list_size();
 
 /**
  * @brief entry point to the GST Main Loop

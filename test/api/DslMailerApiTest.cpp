@@ -25,10 +25,11 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslApi.h"
 
-SCENARIO( "All SMTP Properties can be set and returned back correctly", "[comms-api]" )
+SCENARIO( "All SMTP Properties can be set and returned back correctly", "[mailer-api]" )
 {
     GIVEN( "A set of SMTP credentials" ) 
     {
+        std::wstring mailer_name(L"mailer");
         std::wstring username(L"joe.blow");
         std::wstring password(L"3littlepigs");
         std::wstring mail_server(L"smtp://mail.example.com");
@@ -43,23 +44,26 @@ SCENARIO( "All SMTP Properties can be set and returned back correctly", "[comms-
         std::wstring cc_name2(L"Bill Williams");
         std::wstring cc_address2(L"bill.williams@example.org");
         
+        REQUIRE( dsl_mailer_new(mailer_name.c_str()) == DSL_RESULT_SUCCESS );
+        
         WHEN( "All Properties are set" ) 
         {
-            REQUIRE( dsl_smtp_credentials_set(username.c_str(), 
+            REQUIRE( dsl_mailer_credentials_set(mailer_name.c_str(), username.c_str(), 
                 password.c_str()) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_smtp_server_url_set(mail_server.c_str()) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_smtp_address_from_set(from_name.c_str(), 
-                from_address.c_str()) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_smtp_ssl_enabled_set(false) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_mailer_server_url_set(mailer_name.c_str(), 
+                mail_server.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_mailer_address_from_set(mailer_name.c_str(), 
+                from_name.c_str(), from_address.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_mailer_ssl_enabled_set(mailer_name.c_str(), false) == DSL_RESULT_SUCCESS );
             
-            REQUIRE( dsl_smtp_address_to_add(to_name1.c_str(), 
-                to_address1.c_str()) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_smtp_address_to_add(to_name2.c_str(), 
-                to_address2.c_str()) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_smtp_address_to_add(cc_name1.c_str(), 
-                cc_address1.c_str()) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_smtp_address_to_add(cc_name2.c_str(), 
-                cc_address2.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_mailer_address_to_add(mailer_name.c_str(),
+                to_name1.c_str(), to_address1.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_mailer_address_to_add(mailer_name.c_str(),
+                to_name2.c_str(), to_address2.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_mailer_address_to_add(mailer_name.c_str(),
+                cc_name1.c_str(), cc_address1.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_mailer_address_to_add(mailer_name.c_str(),
+                cc_name2.c_str(), cc_address2.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
             {
@@ -67,9 +71,10 @@ SCENARIO( "All SMTP Properties can be set and returned back correctly", "[comms-
                 const wchar_t* ret_from_name_str;
                 const wchar_t* ret_from_address_str;
 
-                REQUIRE( dsl_smtp_server_url_get(&ret_mail_server_str) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_smtp_address_from_get(&ret_from_name_str, 
-                    &ret_from_address_str) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_mailer_server_url_get(mailer_name.c_str(),
+                    &ret_mail_server_str) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_mailer_address_from_get(mailer_name.c_str(),
+                    &ret_from_name_str, &ret_from_address_str) == DSL_RESULT_SUCCESS );
 
                 std::wstring ret_mail_server(ret_mail_server_str);
                 std::wstring ret_from_name(ret_from_name_str);
@@ -79,20 +84,24 @@ SCENARIO( "All SMTP Properties can be set and returned back correctly", "[comms-
                 REQUIRE( ret_mail_server == mail_server );
                 REQUIRE( ret_from_name == from_name );
                 REQUIRE( ret_from_address == from_address );
-                REQUIRE( dsl_smtp_ssl_enabled_get(&ret_ssl_enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_mailer_ssl_enabled_get(mailer_name.c_str(),
+                    &ret_ssl_enabled) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_ssl_enabled == false );
                 
-                dsl_smtp_address_to_remove_all();
-                dsl_smtp_address_cc_remove_all();
+                dsl_mailer_address_to_remove_all(mailer_name.c_str());
+                dsl_mailer_address_cc_remove_all(mailer_name.c_str());
+                
+                REQUIRE( dsl_mailer_delete(mailer_name.c_str()) == DSL_RESULT_SUCCESS );
             }
         }
     }
 }    
 
-SCENARIO( "A SMTP Test Message can be Queued", "[comms-api]" )
+SCENARIO( "A SMTP Test Message can be Queued", "[mailer-api]" )
 {
     GIVEN( "A set of SMTP credentials and setup parameters " ) 
     {
+        std::wstring mailer_name(L"mailer");
         std::wstring username(L"joe.blow");
         std::wstring password(L"3littlepigs");
         std::wstring mail_server(L"smtp://mail.gmail.com");
@@ -100,31 +109,37 @@ SCENARIO( "A SMTP Test Message can be Queued", "[comms-api]" )
         std::wstring from_address(L"joe.blow@gmail.com");
         std::wstring to_name1(L"Joe Blow");
         std::wstring to_address1(L"joe.blow@gmail.com");
+
+        REQUIRE( dsl_mailer_new(mailer_name.c_str()) == DSL_RESULT_SUCCESS );
         
         WHEN( "All Properties are set" ) 
         {
-            REQUIRE( dsl_smtp_credentials_set(username.c_str(), 
-                password.c_str()) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_smtp_server_url_set(mail_server.c_str()) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_smtp_address_from_set(from_name.c_str(), 
-                from_address.c_str()) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_smtp_ssl_enabled_set(false) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_mailer_credentials_set(mailer_name.c_str(),
+                username.c_str(), password.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_mailer_server_url_set(mailer_name.c_str(),
+                mail_server.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_mailer_address_from_set(mailer_name.c_str(),
+                from_name.c_str(), from_address.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_mailer_ssl_enabled_set(mailer_name.c_str(),
+                false) == DSL_RESULT_SUCCESS );
             
-            REQUIRE( dsl_smtp_address_to_add(to_name1.c_str(), 
-                to_address1.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_mailer_address_to_add(mailer_name.c_str(),
+            to_name1.c_str(), to_address1.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "A Test Message can be queued" ) 
             {
-                REQUIRE( dsl_smtp_test_message_send() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_mailer_test_message_send(mailer_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_mailer_delete(mailer_name.c_str()) == DSL_RESULT_SUCCESS );
             }
         }
     }
 }    
 
-SCENARIO( "The SMTP API checks for NULL input parameters", "[comms-api]" )
+SCENARIO( "The SMTP API checks for NULL input parameters", "[mailer-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
+        std::wstring mailer_name(L"mailer");
         std::wstring username(L"joe.blow");
         std::wstring password(L"3littlepigs");
 
@@ -133,9 +148,11 @@ SCENARIO( "The SMTP API checks for NULL input parameters", "[comms-api]" )
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
                 
-                REQUIRE( dsl_smtp_credentials_set(NULL, 
+                REQUIRE( dsl_mailer_credentials_set(NULL, NULL,
                     password.c_str()) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_smtp_credentials_set(username.c_str(), 
+                REQUIRE( dsl_mailer_credentials_set(mailer_name.c_str(),NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_mailer_credentials_set(mailer_name.c_str(),username.c_str(), 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
             }
         }

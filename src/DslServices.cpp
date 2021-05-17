@@ -320,6 +320,16 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define RETURN_IF_MAILER_NAME_NOT_FOUND(mailers, name) do \
+{ \
+    if (mailers.find(name) == mailers.end()) \
+    { \
+        LOG_ERROR("Mailer name '" << name << "' was not found"); \
+        return DSL_RESULT_MAILER_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+
+
 
 // TODO move these defines to DSL utility file
 #define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
@@ -419,6 +429,24 @@ namespace DSL
                 // initialize the GStreamer library
                 gst_init(&argc, &argv);
                 doGstDeinit = true;
+                
+                // One-time init of Curl with no addition features
+                CURLcode result = curl_global_init(CURL_GLOBAL_NOTHING);
+                if (result != CURLE_OK)
+                {
+                    LOG_ERROR("curl_global_init failed: " << curl_easy_strerror(result));
+                    throw;
+                }
+                curl_version_info_data* info = curl_version_info(CURLVERSION_NOW);
+                
+                LOG_INFO("Libcurl Initialized Successfully");
+                LOG_INFO("Version: " << info->version);
+                LOG_INFO("Host: " << info->host);
+                LOG_INFO("Features: " << info->features);
+                LOG_INFO("SSL Version: " << info->ssl_version);
+                LOG_INFO("Libz Version: " << info->libz_version);
+                LOG_INFO("Protocols: " << info->protocols);
+                
             }
             // Initialize the single debug category used by the lib
             GST_DEBUG_CATEGORY_INIT(GST_CAT_DSL, "DSL", 0, "DeepStream Services");
@@ -445,7 +473,6 @@ namespace DSL
         , m_pMainLoop(g_main_loop_new(NULL, FALSE))
         , m_sourceNumInUseMax(DSL_DEFAULT_SOURCE_IN_USE_MAX)
         , m_sinkNumInUseMax(DSL_DEFAULT_SINK_IN_USE_MAX)
-        , m_pComms(std::unique_ptr<Comms>(new Comms()))
     {
         LOG_FUNC();
 
@@ -458,8 +485,12 @@ namespace DSL
         
         {
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-            
+
+            // Cleanup GEOS
             finishGEOS();
+            
+            // Cleanup Lib cURL
+            curl_global_cleanup();
             
             // If this Services object called gst_init(), and not the client.
             if (m_doGstDeinit)
@@ -1330,7 +1361,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeActionEmailNew(const char* name, const char* subject)
+    DslReturnType Services::OdeActionEmailNew(const char* name, 
+        const char* mailer, const char* subject)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1343,8 +1375,10 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer)
             
-            m_odeActions[name] = DSL_ODE_ACTION_EMAIL_NEW(name, subject);
+            m_odeActions[name] = DSL_ODE_ACTION_EMAIL_NEW(name, 
+                m_mailers[mailer], subject);
 
             LOG_INFO("New ODE Email Action '" << name << "' created successfully");
 
@@ -10035,7 +10069,7 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Player '" << name 
-                << "' threw an exception adding Termination Event Listner");
+                << "' threw an exception on check for Exists");
             return false;
         }
     }
@@ -10090,107 +10124,154 @@ namespace DSL
         return m_players.size();
     }
 
-    DslReturnType Services::SmtpMailEnabledGet(boolean* enabled)
+    DslReturnType Services::MailerNew(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            *enabled = m_pComms->GetSmtpMailEnabled();
-            LOG_INFO("Returning SMTP Mail Enabled = " << *enabled);
+            if (m_mailers.find(name) != m_mailers.end())
+            {   
+                LOG_ERROR("Mailer name '" << name << "' is not unique");
+                return DSL_RESULT_MAILER_NAME_NOT_UNIQUE;
+            }
+            m_mailers[name] = std::shared_ptr<Mailer>(new Mailer(name));
+            LOG_INFO("New Mailer '" << name << "' created successfully");
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Mailer '" << name << "' threw exception on create");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::MailerEnabledGet(const char* name, 
+        boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+            
+            *enabled = m_mailers[name]->GetEnabled();
+            LOG_INFO("Returning Mailer Enabled = " << *enabled);
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception on get enabled setting");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SmtpMailEnabledSet(boolean enabled)
+    DslReturnType Services::MailerEnabledSet(const char* name, 
+        boolean enabled)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            m_pComms->SetSmtpMailEnabled(enabled);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+
+            m_mailers[name]->SetEnabled(enabled);
             LOG_INFO("Setting SMTP Mail Enabled = " << enabled);
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception on set enabled setting");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
      
-    DslReturnType Services::SmtpCredentialsSet(const char* username, const char* password)
+    DslReturnType Services::MailerCredentialsSet(const char* name,
+        const char* username, const char* password)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            LOG_INFO("New SMTP Username and Password set");
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
             
-            m_pComms->SetSmtpCredentials(username, password);
+            m_mailers[name]->SetCredentials(username, password);
+
+            LOG_INFO("New SMTP Username and Password set");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception setting the enabled setting");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SmtpServerUrlGet(const char** serverUrl)
+    DslReturnType Services::MailerServerUrlGet(const char* name,
+        const char** serverUrl)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         try
         {
-            m_pComms->GetSmtpServerUrl(serverUrl);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+
+            m_mailers[name]->GetServerUrl(serverUrl);
 
             LOG_INFO("Returning SMTP Server URL = '" << *serverUrl << "'");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception getting the Server URL");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SmtpServerUrlSet(const char* serverUrl)
+    DslReturnType Services::MailerServerUrlSet(const char* name,
+        const char* serverUrl)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         try
         {
-            m_pComms->SetSmtpServerUrl(serverUrl);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+
+            m_mailers[name]->SetServerUrl(serverUrl);
 
             LOG_INFO("New SMTP Server URL = '" << serverUrl << "' set");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception setting the Server URL");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SmtpFromAddressGet(const char** name, const char** address)
+    DslReturnType Services::MailerFromAddressGet(const char* name,
+        const char** displayName, const char** address)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         try
         {
-            m_pComms->GetSmtpFromAddress(name, address);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+
+            m_mailers[name]->GetFromAddress(displayName, address);
 
             LOG_INFO("Returning SMTP From Address with Name = '" << *name 
                 << "', and Address = '" << *address << "'" );
@@ -10198,19 +10279,23 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception getting the From Address");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SmtpFromAddressSet(const char* name, const char* address)
+    DslReturnType Services::MailerFromAddressSet(const char* name,
+        const char* displayName, const char* address)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         try
         {
-            m_pComms->SetSmtpFromAddress(name, address);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+
+            m_mailers[name]->SetFromAddress(displayName, address);
 
             LOG_INFO("New SMTP From Address with Name = '" << name 
                 << "', and Address = '" << address << "' set");
@@ -10218,141 +10303,166 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception setting the From Address");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SmtpSslEnabledGet(boolean* enabled)
+    DslReturnType Services::MailerSslEnabledGet(const char* name,
+        boolean* enabled)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         try
         {
-            *enabled = m_pComms->GetSmtpSslEnabled();
-            
-            LOG_INFO("Returning SMTP SSL Enabled = '" << *enabled  << "'" );
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SmtpSslEnabledSet(boolean enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        try
-        {
-            m_pComms->SetSmtpSslEnabled(enabled);
-            LOG_INFO("Set SMTP SSL Enabled = '" << enabled  << "'" );
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SmtpToAddressAdd(const char* name, const char* address)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        try
-        {
-            m_pComms->AddSmtpToAddress(name, address);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
 
-            LOG_INFO("New SMTP To Address with Name = '" << name 
+            *enabled = m_mailers[name]->GetSslEnabled();
+            
+            LOG_INFO("Returning SSL Enabled = '" << *enabled  << "'" );
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception getting the SSL Enabled Setting");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::MailerSslEnabledSet(const char* name,
+        boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+
+            m_mailers[name]->SetSslEnabled(enabled);
+            LOG_INFO("Set SSL Enabled = '" << enabled  << "'" );
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception getting the SSL Enabled Setting");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::MailerToAddressAdd(const char* name,
+        const char* displayName, const char* address)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+
+            m_mailers[name]->AddToAddress(displayName, address);
+
+            LOG_INFO("New To Address with Name = '" << name 
                 << "', and Address = '" << address << "' added");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception adding a To Address");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SmtpToAddressesRemoveAll()
+    DslReturnType Services::MailerToAddressesRemoveAll(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            m_pComms->RemoveAllSmtpToAddresses();
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
 
-            LOG_INFO("All SMTP To Addresses removed");
+            m_mailers[name]->RemoveAllToAddresses();
+
+            LOG_INFO("All To Addresses removed");
         
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception removing SSL Enabled Setting");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SmtpCcAddressAdd(const char* name, const char* address)
+    DslReturnType Services::MailerCcAddressAdd(const char* name,
+        const char* displayName, const char* address)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         try
         {
-            m_pComms->AddSmtpCcAddress(name, address);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
 
-            LOG_INFO("New SMTP Cc Address with Name = '" << name 
+            m_mailers[name]->AddCcAddress(displayName, address);
+
+            LOG_INFO("New Cc Address with Name = '" << name 
                 << "', and Address = '" << address << "' set");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception adding a Cc Address");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::SmtpCcAddressesRemoveAll()
+    DslReturnType Services::MailerCcAddressesRemoveAll(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            m_pComms->RemoveAllSmtpCcAddresses();
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
 
-            LOG_INFO("All SMTP Cc Addresses removed");
+            m_mailers[name]->RemoveAllCcAddresses();
+
+            LOG_INFO("All Cc Addresses removed");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception removing all Cc Addresses");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SendSmtpTestMessage()
+    DslReturnType Services::MailerSendTestMessage(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+
             std::string subject("Test message");
             std::string bline1("Test message.\r\n");
             
             std::vector<std::string> body{bline1};
 
-            if (!m_pComms->QueueSmtpMessage(subject, body))
+            if (!m_mailers[name]->QueueMessage(subject, body))
             {
                 LOG_ERROR("Failed to queue SMTP Test Message");
                 return DSL_RESULT_FAILURE;
@@ -10362,11 +10472,80 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception queuing a Test Message");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
-    
+ 
+    boolean Services::MailerExists(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            return (boolean)(m_mailers.find(name) != m_mailers.end());
+        }
+        catch(...)
+        {
+            LOG_ERROR("Mailer '" << name 
+                << "' threw an exception on check for Exists");
+            return false;
+        }
+    }
+
+    DslReturnType Services::MailerDelete(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+
+            m_mailers.erase(name);
+
+            LOG_INFO("Mailer '" << name << "' deleted successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Mailer '" << name 
+                << "' threw an exception on Delete");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
+        }
+
+    }
+
+    DslReturnType Services::MailerDeleteAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        for (auto &imap: m_mailers)
+        {
+            imap.second->RemoveAllChildren();
+            imap.second = nullptr;
+        }
+
+        m_mailers.clear();
+
+        LOG_INFO("All Mailers deleted successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    uint Services::MailerListSize()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        return m_mailers.size();
+    }
+
+   
     // ------------------------------------------------------------------------------
     
     bool Services::IsSourceComponent(const char* component)
@@ -10686,13 +10865,13 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_PLAYER_FAILED_TO_STOP] = L"DSL_RESULT_PLAYER_FAILED_TO_STOP";
         m_returnValueToString[DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT] = L"DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT";
         m_returnValueToString[DSL_RESULT_PLAYER_SET_FAILED] = L"DSL_RESULT_PLAYER_SET_FAILED";
-        
+        m_returnValueToString[DSL_RESULT_MAILER_NAME_NOT_UNIQUE] = L"DSL_RESULT_MAILER_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_MAILER_NAME_NOT_FOUND] = L"DSL_RESULT_MAILER_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_MAILER_THREW_EXCEPTION] = L"DSL_RESULT_MAILER_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_MAILER_IN_USE] = L"DSL_RESULT_MAILER_IN_USE";
+        m_returnValueToString[DSL_RESULT_MAILER_SET_FAILED] = L"DSL_RESULT_MAILER_SET_FAILED";
+        m_returnValueToString[DSL_RESULT_MAILER_PARAMETER_INVALID] = L"DSL_RESULT_MAILER_PARAMETER_INVALID";
         m_returnValueToString[DSL_RESULT_INVALID_RESULT_CODE] = L"Invalid DSL Result CODE";
-    }
-    
-    std::shared_ptr<Comms> Services::GetComms()
-    {
-        return m_pComms;
     }
 
 } // namespace

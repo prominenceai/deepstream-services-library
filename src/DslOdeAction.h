@@ -63,8 +63,8 @@ namespace DSL
         std::shared_ptr<DisableHandlerOdeAction>(new DisableHandlerOdeAction(name, handler))
 
     #define DSL_ODE_ACTION_EMAIL_PTR std::shared_ptr<EmailOdeAction>
-    #define DSL_ODE_ACTION_EMAIL_NEW(name, subject) \
-        std::shared_ptr<EmailOdeAction>(new EmailOdeAction(name, subject))
+    #define DSL_ODE_ACTION_EMAIL_NEW(name, pMailer, subject) \
+        std::shared_ptr<EmailOdeAction>(new EmailOdeAction(name, pMailer, subject))
         
     #define DSL_ODE_ACTION_FILL_AREA_PTR std::shared_ptr<FillAreaOdeAction>
     #define DSL_ODE_ACTION_FILL_AREA_NEW(name, area, pColor) \
@@ -572,9 +572,11 @@ namespace DSL
         /**
          * @brief ctor for the ODE Fill Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] pColor shared pointer to an RGBA Color to fill the Frame
+         * @param[in] pMailer shared pointer
+         * @param[in] subject line to use in all emails
          */
-        EmailOdeAction(const char* name, const char* subject);
+        EmailOdeAction(const char* name, 
+            DSL_BASE_PTR pMailer, const char* subject);
         
         /**
          * @brief dtor for the ODE Display Action class
@@ -593,6 +595,11 @@ namespace DSL
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
+    
+        /**
+         * @bried shared pointer to Mailer object in use by this Action
+         */
+        DSL_BASE_PTR m_pMailer;
     
         /**
          * @brief Subject line used for all email messages sent by this action

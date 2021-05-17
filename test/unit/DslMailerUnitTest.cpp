@@ -24,11 +24,11 @@ THE SOFTWARE.
 
 #include "catch.hpp"
 #include "DslServices.h"
-#include "DslComms.h"
+#include "DslMailer.h"
 
 using namespace DSL;
 
-SCENARIO( "A new Email Address is created correctly", "[Comms]" )
+SCENARIO( "A new Email Address is created correctly", "[Mailer]" )
 {
     GIVEN( "Attributes for a new Email Address" )
     {
@@ -52,7 +52,7 @@ SCENARIO( "A new Email Address is created correctly", "[Comms]" )
     }
 }
 
-SCENARIO( "A new SMTP message is created correctly", "[Comms]" )
+SCENARIO( "A new SMTP message is created correctly", "[Mailer]" )
 {
     GIVEN( "Attributes for a new SMTP message" )
     {
@@ -110,7 +110,7 @@ SCENARIO( "A new SMTP message is created correctly", "[Comms]" )
 }
 
 
-SCENARIO( "A new SMTP Message Queue is created correctly", "[Comms]" )
+SCENARIO( "A new SMTP Message Queue is created correctly", "[Mailer]" )
 {
     GIVEN( "Attributes for a new SMTP Message Queue" ) 
     {
@@ -131,9 +131,9 @@ SCENARIO( "A new SMTP Message Queue is created correctly", "[Comms]" )
 }
 
 
-SCENARIO( "A Comms Object can set and get all SMTP properties", "[Comms]" )
+SCENARIO( "A Mailer Object can set and get all SMTP properties", "[Mailer]" )
 {
-    GIVEN( "A new Comms Object" ) 
+    GIVEN( "A new Mailer Object" ) 
     {
         std::string senderName("John Henry");
         std::string senderAddress("john.henry@example.org");
@@ -159,31 +159,33 @@ SCENARIO( "A Comms Object can set and get all SMTP properties", "[Comms]" )
         EmailAddress ccEmail2(ccName2.c_str(), ccAddress2.c_str());
         
         std::string subject("this is the subject of the message");
+        
+        std::string mailerName("mailer");
 
-        const std::shared_ptr<Comms> pComms = DSL::Services::GetServices()->GetComms();
+        DSL_MAILER_PTR pMailer = DSL_MAILER_NEW(mailerName.c_str());
         
         WHEN( "When the SMTP Parameters are set" )
         {
-            pComms->SetSmtpServerUrl(mailServer.c_str()); 
-            pComms->SetSmtpFromAddress(senderName.c_str(), senderAddress.c_str());
+            pMailer->SetServerUrl(mailServer.c_str()); 
+            pMailer->SetFromAddress(senderName.c_str(), senderAddress.c_str());
             
-            pComms->SetSmtpSslEnabled(false);
+            pMailer->SetSslEnabled(false);
             
-            pComms->AddSmtpToAddress(toName1.c_str(), toAddress1.c_str());
-            pComms->AddSmtpToAddress(toName2.c_str(), toAddress2.c_str());
-            pComms->AddSmtpCcAddress(ccName1.c_str(), ccAddress1.c_str());
-            pComms->AddSmtpCcAddress(ccName1.c_str(), ccAddress2.c_str());
+            pMailer->AddToAddress(toName1.c_str(), toAddress1.c_str());
+            pMailer->AddToAddress(toName2.c_str(), toAddress2.c_str());
+            pMailer->AddCcAddress(ccName1.c_str(), ccAddress1.c_str());
+            pMailer->AddCcAddress(ccName1.c_str(), ccAddress2.c_str());
 
             THEN( "The same Parameters are returned on get" )
             {
                 const char* pRetMailServer;
                 const char* pRetFromName;
                 const char* pRetFromAddress;
-                pComms->GetSmtpServerUrl(&pRetMailServer);
-                pComms->GetSmtpFromAddress(&pRetFromName, &pRetFromAddress);
+                pMailer->GetServerUrl(&pRetMailServer);
+                pMailer->GetFromAddress(&pRetFromName, &pRetFromAddress);
                 
-                pComms->RemoveAllSmtpToAddresses();
-                pComms->RemoveAllSmtpCcAddresses();
+                pMailer->RemoveAllToAddresses();
+                pMailer->RemoveAllCcAddresses();
                 
                 std::string retMailServer(pRetMailServer);
                 std::string retFromName(pRetFromName);
@@ -197,9 +199,9 @@ SCENARIO( "A Comms Object can set and get all SMTP properties", "[Comms]" )
     }
 }
 
-SCENARIO( "A Comms Object can Queue an SMTP Email with specific content", "[Comms]" )
+SCENARIO( "A Mailer Object can Queue an SMTP Email with specific content", "[Mailer]" )
 {
-    GIVEN( "A new Comms Object" ) 
+    GIVEN( "A new Mailer Object" ) 
     {
         std::string userName("john.henry");
         std::string password("3littlepigs");
@@ -234,30 +236,32 @@ SCENARIO( "A Comms Object can Queue an SMTP Email with specific content", "[Comm
         std::string bodyLine3("this is unique content for line 3 \r\n");
         std::vector<std::string> body{bodyLine1, bodyLine2, bodyLine3};
         
-        const std::shared_ptr<Comms> pComms = DSL::Services::GetServices()->GetComms();
+        std::string mailerName("mailer");
+
+        DSL_MAILER_PTR pMailer = DSL_MAILER_NEW(mailerName.c_str());
         
-        WHEN( "The Comms object is intialized correctly" )
+        WHEN( "The Mailer object is intialized correctly" )
         {
-            pComms->SetSmtpCredentials(userName.c_str(), password.c_str());
-            pComms->SetSmtpServerUrl(mailServer.c_str()); 
-            pComms->SetSmtpFromAddress(senderName.c_str(), senderAddress.c_str());
+            pMailer->SetCredentials(userName.c_str(), password.c_str());
+            pMailer->SetServerUrl(mailServer.c_str()); 
+            pMailer->SetFromAddress(senderName.c_str(), senderAddress.c_str());
             
-            pComms->AddSmtpToAddress(toName1.c_str(), toAddress1.c_str());
-            pComms->AddSmtpToAddress(toName2.c_str(), toAddress2.c_str());
-            pComms->AddSmtpCcAddress(ccName1.c_str(), ccAddress1.c_str());
-            pComms->AddSmtpCcAddress(ccName1.c_str(), ccAddress2.c_str());
+            pMailer->AddToAddress(toName1.c_str(), toAddress1.c_str());
+            pMailer->AddToAddress(toName2.c_str(), toAddress2.c_str());
+            pMailer->AddCcAddress(ccName1.c_str(), ccAddress1.c_str());
+            pMailer->AddCcAddress(ccName1.c_str(), ccAddress2.c_str());
             
-            THEN( "The Comms object can queue a new email" )
+            THEN( "The Mailer object can queue a new email" )
             {
-                REQUIRE( pComms->QueueSmtpMessage(subject, body) == true );
+                REQUIRE( pMailer->QueueMessage(subject, body) == true );
             }
         }
     }
 }
  
-SCENARIO( "A Comms Object handles a failed SMTP Send because of an invalid server url", "[Comms]" )
+SCENARIO( "A Mailer Object handles a failed SMTP Send because of an invalid server url", "[Mailer]" )
 {
-    GIVEN( "A new Comms Object" ) 
+    GIVEN( "A new Mailer Object" ) 
     {
         std::string userName("john.henry");
         std::string password("3littlepigs");
@@ -292,23 +296,25 @@ SCENARIO( "A Comms Object handles a failed SMTP Send because of an invalid serve
         std::string bodyLine3("this is unique content for line 3 \r\n");
         std::vector<std::string> body{bodyLine1, bodyLine2, bodyLine3};
         
-        const std::shared_ptr<Comms> pComms = DSL::Services::GetServices()->GetComms();
+        std::string mailerName("mailer");
 
-        pComms->SetSmtpCredentials(userName.c_str(), password.c_str());
-        pComms->SetSmtpServerUrl(mailServer.c_str()); 
-        pComms->SetSmtpFromAddress(senderName.c_str(), senderAddress.c_str());
-        pComms->AddSmtpToAddress(toName1.c_str(), toAddress1.c_str());
-        pComms->AddSmtpToAddress(toName2.c_str(), toAddress2.c_str());
-        pComms->AddSmtpCcAddress(ccName1.c_str(), ccAddress1.c_str());
-        pComms->AddSmtpCcAddress(ccName1.c_str(), ccAddress2.c_str());
+        DSL_MAILER_PTR pMailer = DSL_MAILER_NEW(mailerName.c_str());
+
+        pMailer->SetCredentials(userName.c_str(), password.c_str());
+        pMailer->SetServerUrl(mailServer.c_str()); 
+        pMailer->SetFromAddress(senderName.c_str(), senderAddress.c_str());
+        pMailer->AddToAddress(toName1.c_str(), toAddress1.c_str());
+        pMailer->AddToAddress(toName2.c_str(), toAddress2.c_str());
+        pMailer->AddCcAddress(ccName1.c_str(), ccAddress1.c_str());
+        pMailer->AddCcAddress(ccName1.c_str(), ccAddress2.c_str());
         
         WHEN( "A message is Queued with invalid options" )
         {
-            REQUIRE( pComms->QueueSmtpMessage(subject, body) == true );
+            REQUIRE( pMailer->QueueMessage(subject, body) == true );
             
-            THEN( "The Comms object handles the failure correctly" )
+            THEN( "The Mailer object handles the failure correctly" )
             {
-                REQUIRE( pComms->SendSmtpMessage() == false );
+                REQUIRE( pMailer->SendMessage() == false );
             }
         }
     }

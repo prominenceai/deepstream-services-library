@@ -26,9 +26,17 @@ THE SOFTWARE.
 #define _DSL_COMMS_H
 
 #include "Dsl.h"
+#include "DslBase.h"
 
 namespace DSL {
 
+    /**
+     * @brief convenience macros for shared pointer abstraction
+     */
+    #define DSL_MAILER_PTR std::shared_ptr<Mailer>
+    #define DSL_MAILER_NEW(name) \
+        std::shared_ptr<Mailer>(new Mailer(name))
+    
     /**
      * @class EmailAddress
      * @brief Implements an Email Address class with display name and 
@@ -350,60 +358,61 @@ namespace DSL {
     };
 
     /**
-     * @class Comms
-     * @brief Implements a Comms abstraction class for libcurl
+     * @class Mailer
+     * @brief Implements a Mailer abstraction class for libcurl
      */
-    class Comms
+    class Mailer : public Base
     {
     public:
     
         /**
-         * @brief ctor for the Comms class
+         * @brief ctor for the Mailer class
+         * @param name unique name for the new Mailer object
          */
-        Comms();
+        Mailer(const char* name);
         
         /**
-         * @brief dtor for the Comms class
+         * @brief dtor for the Mailer class
          */
-        ~Comms();
+        ~Mailer();
 
         /**
          * @brief Get the current enabled state for the SMTP Email Queue
          * @return true if enabled, false otherwise.
          */
-        bool GetSmtpMailEnabled();
+        bool GetEnabled();
         
         /**
          * @brief Sets the enabled state for the SMTP Email Queue
          * @param enabled set to true to enable. false to disable.
          */
-        void SetSmtpMailEnabled(bool enabled);
+        void SetEnabled(bool enabled);
         
         /**
          * @brief Sets the current SMTP Credentials for outgoing mail
          * @param[in] userId mail account user Id
          * @param[in] password mail account password
          */
-        void SetSmtpCredentials(const char* username, const char* password);
+        void SetCredentials(const char* username, const char* password);
         
         /**
          * @brief Gets the current SMTP Sender and Mail server string values
          * @param[out] serverUrl current Sender's SMTP mail server URL
          */
-        void GetSmtpServerUrl(const char** serverUrl);
+        void GetServerUrl(const char** serverUrl);
         
         /**
          * @brief Sets the current SMTP Sender and Mail server string values
          * @param[in] serverUrl new Sender's SMTP mail server URL to use
          */
-        void SetSmtpServerUrl(const char* serverUrl);
+        void SetServerUrl(const char* serverUrl);
         
         /**
          * @brief Gets the current "From:" email adress 
          * @param[out] name the display name used for the "From:" address
          * @param[out] address the action email address
          */
-        void GetSmtpFromAddress(const char** name, const char** address);
+        void GetFromAddress(const char** name, const char** address);
 
         /**
          * @brief Sets the current "From:" email adress to use for all 
@@ -411,71 +420,65 @@ namespace DSL {
          * @param[in] name the display name to use for the "From:" address
          * @param[in] address the action email address to use
          */
-        void SetSmtpFromAddress(const char* name, const char* address);
+        void SetFromAddress(const char* name, const char* address);
         
         /**
          * @brief Get the current SSL enabled setting, default = true.
          * @return true if SSL is enabled, false otherwise
          */
-        bool GetSmtpSslEnabled();
+        bool GetSslEnabled();
         
         /**
          * @brief Set the SSL enabled setting for subsequent emails
          * @param enabled set to true to enable SSL, false otherwise
          */
-        void SetSmtpSslEnabled(bool enabled);
+        void SetSslEnabled(bool enabled);
         
         /**
          * @brief Add a new TO address for subsequent emails
          * @param[in] toAddress new email address to add to the TO recepients
          */
-        void AddSmtpToAddress(const char* name, const char* address);
+        void AddToAddress(const char* name, const char* address);
         
         /**
          * @brief Deletes all TO address from the recepients list
          */
-        void RemoveAllSmtpToAddresses();
+        void RemoveAllToAddresses();
 
         /**
          * @brief Add a new CC address for supsequent emails
          * @param[in] toAddress new email address to add to the TO recepients
          */
-        void AddSmtpCcAddress(const char* name, const char* address);
+        void AddCcAddress(const char* name, const char* address);
         
         /**
          * @brief Deletes all CC address from the recepients list
          */
-        void RemoveAllSmtpCcAddresses();
+        void RemoveAllCcAddresses();
         
         /**
-         * @brief Returs the initialization state of SMTP services
+         * @brief Returs the initialization state of SMTP Mailer
          * @return true if setup false otherwise
          */
         bool IsSetup();
         
         /**
-         * @brief Queues a SMTP Message to be sent to all current recepients
+         * @brief Queues a Message to be sent to all current recepients
          * @param[in] subject subject line for the email /r/n terminated
          * @param[in] body message body to add, each line /r/n terminated
          * @return true if successfully queued, false otherwise
          */
-        bool QueueSmtpMessage(const std::string& subject, 
+        bool QueueMessage(const std::string& subject, 
             const std::vector<std::string>& body);
 
         /**
          * @brief background thread function to send a pending SMTP message
          * @return true if the message was sent successfully, false otherwise
          */
-        bool SendSmtpMessage();
+        bool SendMessage();
         
     private:
 
-        /**
-         * @breif result of the curl_global_init() call, used by
-         * the dtor to know whether to call curl_global_cleanup()
-         */
-        CURLcode m_initResult; 
-        
         /**
          * @brief mutex to protect mutual access to comms data
          */
@@ -519,7 +522,7 @@ namespace DSL {
         /**
          * @brief gnome thread id for the background send message thread
          */
-        uint m_smtpSendMessageThreadId;
+        uint m_sendMessageThreadId;
         
         /**
          * @brief queue of pending, in-progress, and complete (in a 
@@ -528,7 +531,7 @@ namespace DSL {
         SmtpMessageQueue m_pMessageQueue;
     };
 
-    static int CommsSendSmtpMessage(gpointer pComms);
+    static int MailerSendMessage(gpointer pMailer);
 }
 
 

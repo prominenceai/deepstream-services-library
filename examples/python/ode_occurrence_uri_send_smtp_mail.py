@@ -108,21 +108,26 @@ def setup_smpt_mail():
 
     global server_url, user_name, password, from_name, from_address, \
         to_name, to_address
-    retval = dsl_smtp_server_url_set(server_url)
+        
+    retval = dsl_mailer_new('mailer')
     if retval != DSL_RETURN_SUCCESS:
         return retval
-    retval = dsl_smtp_credentials_set(user_name, password)
+    
+    retval = dsl_mailer_server_url_set('mailer', server_url)
     if retval != DSL_RETURN_SUCCESS:
         return retval
-    retval = dsl_smtp_address_from_set(from_name, from_address)
+    retval = dsl_mailer_credentials_set('mailer' , password)
     if retval != DSL_RETURN_SUCCESS:
         return retval
-    retval = dsl_smtp_address_to_add(to_name, to_address)
+    retval = dsl_mailer_address_from_set('mailer', from_address)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    retval = dsl_mailer_address_to_add('mailer', to_address)
     if retval != DSL_RETURN_SUCCESS:
         return retval
         
     # (optional) queue a test message to be sent out when main_loop starts
-    return dsl_smtp_test_message_send()
+    return dsl_mailer_test_message_send('mailer')
 
 def main(args):
 
@@ -147,7 +152,9 @@ def main(args):
             break
 
         # Create a new Action to Queue an email
-        retval = dsl_ode_action_email_new('email-action', subject="Bicycle Occurrence!")
+        retval = dsl_ode_action_email_new('email-action', 
+            mailer = 'mailer',
+            subject = "Bicycle Occurrence!")
         if retval != DSL_RETURN_SUCCESS:
             break
 

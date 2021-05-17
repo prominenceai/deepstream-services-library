@@ -1012,6 +1012,14 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
+        REQUIRE( dsl_osd_new(osdName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
+            codec, container, bitrate, interval, NULL) == DSL_RESULT_SUCCESS );
+
         REQUIRE( dsl_ode_action_print_new(printActionName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_action_sink_record_start_new(recordActionName.c_str(), 
             recordSinkName.c_str(), 2, 5, NULL) == DSL_RESULT_SUCCESS );
@@ -1027,14 +1035,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
         REQUIRE( dsl_ode_trigger_action_add_many(bicycleOccurrenceName.c_str(), actions) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), bicycleOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_osd_new(osdName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
-        
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
-            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
-            codec, container, bitrate, interval, NULL) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler",
             L"osd", L"overlay-sink", L"record-sink", NULL};

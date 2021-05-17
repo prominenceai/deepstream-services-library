@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include "DslOdeTrigger.h"
 #include "DslOdeAction.h"
 #include "DslDisplayTypes.h"
+#include "DslMailer.h"
 
 using namespace DSL;
 
@@ -255,11 +256,15 @@ SCENARIO( "A new EmailOdeAction is created correctly", "[OdeAction]" )
     {
         std::string actionName("ode-action");
         std::string subject("email subject");
+        std::string mailerName("mailer");
+
+        DSL_MAILER_PTR pMailer = DSL_MAILER_NEW(mailerName.c_str());
 
         WHEN( "A new OdeAction is created" )
         {
             DSL_ODE_ACTION_EMAIL_PTR pAction = 
-                DSL_ODE_ACTION_EMAIL_NEW(actionName.c_str(), subject.c_str());
+                DSL_ODE_ACTION_EMAIL_NEW(actionName.c_str(), 
+                    pMailer, subject.c_str());
 
             THEN( "The Action's memebers are setup and returned correctly" )
             {
@@ -279,14 +284,18 @@ SCENARIO( "A EmailOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
         uint classId(1);
         uint limit(1);
         
-        std::string actionName = "ode-action";
+        std::string actionName("ode-action");
         std::string subject("email subject");
+        
+        std::string mailerName("mailer");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
+        DSL_MAILER_PTR pMailer = DSL_MAILER_NEW(mailerName.c_str());
+        
         DSL_ODE_ACTION_EMAIL_PTR pAction = 
-            DSL_ODE_ACTION_EMAIL_NEW(actionName.c_str(), subject.c_str());
+            DSL_ODE_ACTION_EMAIL_NEW(actionName.c_str(), pMailer, subject.c_str());
 
         WHEN( "A new ODE is created" )
         {

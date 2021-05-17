@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "DslComms.h"
+#include "DslMailer.h"
 #include "DslApi.h"
 
 #define DATE_BUFF_LENGTH 37
@@ -220,45 +220,24 @@ namespace DSL
     
     // ------------------------------------------------------------------------------
     
-    Comms::Comms()
-        : m_initResult(curl_global_init(CURL_GLOBAL_NOTHING))
-        , m_smtpSendMessageThreadId(0)
+    Mailer::Mailer(const char* name)
+        : Base(name)
+        , m_sendMessageThreadId(0)
         , m_sslEnabled(true)
     {
         LOG_FUNC();
-
-        // One-time init of Curl with no addition features
-        if (m_initResult != CURLE_OK)
-        {
-            LOG_ERROR("curl_global_init failed: " << curl_easy_strerror(m_initResult));
-            throw;
-        }
-        curl_version_info_data* info = curl_version_info(CURLVERSION_NOW);
-        
-        LOG_INFO("Libcurl Initialized Successfully");
-        LOG_INFO("Version: " << info->version);
-        LOG_INFO("Host: " << info->host);
-        LOG_INFO("Features: " << info->features);
-        LOG_INFO("SSL Version: " << info->ssl_version);
-        LOG_INFO("Libz Version: " << info->libz_version);
-        LOG_INFO("Protocols: " << info->protocols);
         
         g_mutex_init(&m_commsMutex);
     }
     
-    Comms::~Comms()
+    Mailer::~Mailer()
     {
         LOG_FUNC();
         
-        if (m_initResult == CURLE_OK)
-        {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
-            curl_global_cleanup();
-        }
         g_mutex_clear(&m_commsMutex);
     }
     
-    bool Comms::GetSmtpMailEnabled()
+    bool Mailer::GetEnabled()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
@@ -266,7 +245,7 @@ namespace DSL
         return m_pMessageQueue.GetEnabled();
     }
 
-    void Comms::SetSmtpMailEnabled(bool enabled)
+    void Mailer::SetEnabled(bool enabled)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
@@ -274,7 +253,7 @@ namespace DSL
         m_pMessageQueue.SetEnabled(enabled);
     }
 
-    void Comms::SetSmtpCredentials(const char* username, const char* password)
+    void Mailer::SetCredentials(const char* username, const char* password)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
@@ -283,7 +262,7 @@ namespace DSL
         m_password.assign(password);
     }
 
-    void Comms::GetSmtpServerUrl(const char** serverUrl)
+    void Mailer::GetServerUrl(const char** serverUrl)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
@@ -291,7 +270,7 @@ namespace DSL
         *serverUrl = m_mailServerUrl.c_str();
     }
     
-    void Comms::SetSmtpServerUrl(const char* serverUrl)
+    void Mailer::SetServerUrl(const char* serverUrl)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
@@ -299,7 +278,7 @@ namespace DSL
         m_mailServerUrl.assign(serverUrl);
     }
     
-    void Comms::GetSmtpFromAddress(const char** name, const char** address)
+    void Mailer::GetFromAddress(const char** name, const char** address)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
@@ -307,7 +286,7 @@ namespace DSL
         m_fromAddress.Get(name, address);
     }
     
-    void Comms::SetSmtpFromAddress(const char* name, const char* address)
+    void Mailer::SetFromAddress(const char* name, const char* address)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
@@ -315,7 +294,7 @@ namespace DSL
         m_fromAddress.Set(name, address);
     }
     
-    bool Comms::GetSmtpSslEnabled()
+    bool Mailer::GetSslEnabled()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
@@ -323,7 +302,7 @@ namespace DSL
         return m_sslEnabled;
     }
 
-    void Comms::SetSmtpSslEnabled(bool enabled)
+    void Mailer::SetSslEnabled(bool enabled)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
@@ -331,7 +310,7 @@ namespace DSL
         m_sslEnabled = enabled;
     }
 
-    void Comms::AddSmtpToAddress(const char* name, const char* address)
+    void Mailer::AddToAddress(const char* name, const char* address)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
@@ -340,7 +319,7 @@ namespace DSL
         m_toAddresses.push_back(newToAddress);
     }
 
-    void Comms::RemoveAllSmtpToAddresses()
+    void Mailer::RemoveAllToAddresses()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
@@ -348,7 +327,7 @@ namespace DSL
         m_toAddresses.clear();
     }
 
-    void Comms::AddSmtpCcAddress(const char* name, const char* address)
+    void Mailer::AddCcAddress(const char* name, const char* address)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
@@ -357,7 +336,7 @@ namespace DSL
         m_ccAddresses.push_back(newCcAddress);
     }
 
-    void Comms::RemoveAllSmtpCcAddresses()
+    void Mailer::RemoveAllCcAddresses()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
@@ -365,15 +344,10 @@ namespace DSL
         m_ccAddresses.clear();
     }
     
-    bool Comms::IsSetup()
+    bool Mailer::IsSetup()
     {
         bool result(true);
         
-        if (m_initResult != CURLE_OK)
-        {
-            LOG_INFO("CURL initialization failed");
-            result = false;
-        }
         if (m_mailServerUrl.empty())
         {
             LOG_INFO("SMTP Mail Server has not be set");
@@ -397,7 +371,7 @@ namespace DSL
         return result;
     }
 
-    bool Comms::QueueSmtpMessage(const std::string& subject, 
+    bool Mailer::QueueMessage(const std::string& subject, 
             const std::vector<std::string>& body)
     {
         LOG_FUNC();
@@ -421,15 +395,15 @@ namespace DSL
         }
         
         // if the SendMessage thread is not currently running
-        if (!m_smtpSendMessageThreadId)
+        if (!m_sendMessageThreadId)
         {
-            m_smtpSendMessageThreadId = g_idle_add(CommsSendSmtpMessage, this);
+            m_sendMessageThreadId = g_idle_add(MailerSendMessage, this);
         }
-        return (bool)m_smtpSendMessageThreadId;
+        return (bool)m_sendMessageThreadId;
         
     }
     
-    bool Comms::SendSmtpMessage()
+    bool Mailer::SendMessage()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
@@ -437,7 +411,7 @@ namespace DSL
         // Make sure the queue has a message to process
         if (m_pMessageQueue.IsEmpty())
         {
-            m_smtpSendMessageThreadId = 0;
+            m_sendMessageThreadId = 0;
             return false;
         }
         
@@ -539,13 +513,13 @@ namespace DSL
         }
         
         // otherwise, end the thread
-        m_smtpSendMessageThreadId = 0;
+        m_sendMessageThreadId = 0;
         return false;
     }
     
-    static gboolean CommsSendSmtpMessage(gpointer pComms)
+    static gboolean MailerSendMessage(gpointer pMailer)
     {
-        return static_cast<Comms*>(pComms)->SendSmtpMessage();
+        return static_cast<Mailer*>(pMailer)->SendMessage();
     }
 }
 

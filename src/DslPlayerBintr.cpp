@@ -179,6 +179,16 @@ namespace DSL
                 << "' as it's already in a state of playing");
             return false;
         }
+        // m_pSource is of type DSL_BINTR_PTR - need to cast to DSL_SOURCE_PTR
+        // for the source to be used as such
+        DSL_SOURCE_PTR pSourceBintr = 
+            std::dynamic_pointer_cast<SourceBintr>(m_pSource);
+        if (!pSourceBintr->IsLinkable())
+        {
+            LOG_ERROR("Unable to Play Player '" << GetName() 
+                << "' as its Source is in an un-playable state");
+            return false;
+        }
         // If the main loop is running -- normal case -- then we can't change the 
         // state of the Player in the Application's context. 
         if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
@@ -201,15 +211,8 @@ namespace DSL
 
         // m_pSource is of type DSL_BINTR_PTR - need to cast to DSL_SOURCE_PTR
         // for the source to be used as such
-        DSL_SOURCE_PTR pCompleteSource = 
+        DSL_SOURCE_PTR pSourceBintr = 
             std::dynamic_pointer_cast<SourceBintr>(m_pSource);
-        
-        if (!pCompleteSource->IsLinkable())
-        {
-            LOG_ERROR("Unable to Play Player '" << GetName() 
-                << "' as its Source is in an un-playable state");
-            return false;
-        }
         
         GstState currentState;
         GetState(currentState, 0);
@@ -221,7 +224,7 @@ namespace DSL
                 return false;
             }
             // For non-live sources we Pause to preroll before we play
-            if (!pCompleteSource->IsLive())
+            if (!pSourceBintr->IsLive())
             {
                 if (!SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
                 {
@@ -322,11 +325,11 @@ namespace DSL
         // Stop function When we send the EOS message.
         RemoveEosListener(PlayerHandleEos);
 
-        DSL_SOURCE_PTR pCompleteSource = 
+        DSL_SOURCE_PTR pSourceBintr = 
             std::dynamic_pointer_cast<SourceBintr>(m_pSource);
 
         // Call the source to disable its EOS consumer, before sending EOS
-        pCompleteSource->DisableEosConsumer();
+        pSourceBintr->DisableEosConsumer();
 
         SendEos();
     }
