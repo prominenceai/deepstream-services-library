@@ -420,9 +420,9 @@ def dsl_ode_action_display_new(name,
 ##
 _dsl.dsl_ode_action_email_new.argtypes = [c_wchar_p, c_wchar_p]
 _dsl.dsl_ode_action_email_new.restype = c_uint
-def dsl_ode_action_email_new(name, subject):
+def dsl_ode_action_email_new(name, mailer, subject):
     global _dsl
-    result =_dsl.dsl_ode_action_email_new(name, subject)
+    result =_dsl.dsl_ode_action_email_new(name, mailer, subject)
     return int(result)
 
 ##
@@ -3930,7 +3930,7 @@ _dsl.dsl_mailer_server_url_set.argtypes = [c_wchar_p, c_wchar_p]
 _dsl.dsl_mailer_server_url_set.restype = c_uint
 def dsl_mailer_server_url_set(name, url):
     global _dsl
-    result = _dsl.dsl_mailer_server_url_set(name url)
+    result = _dsl.dsl_mailer_server_url_set(name, url)
     return int(result)
 
 ##

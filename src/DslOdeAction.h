@@ -31,6 +31,7 @@ THE SOFTWARE.
 #include "DslSurfaceTransform.h"
 #include "DslDisplayTypes.h"
 #include "DslPlayerBintr.h"
+#include "DslMailer.h"
 
 namespace DSL
 {
@@ -328,11 +329,31 @@ namespace DSL
         bool AddImagePlayer(DSL_PLAYER_BINTR_PTR pPlayer);
         
         /**
-         * @brief adds an Image Player, Render or RTSP type, to this CaptureAction
-         * @param pPlayer shared pointer to an Image Player to add
-         * @return true on successfull add, false otherwise
+         * @brief removes an Image Player, Render or RTSP type, from this CaptureAction
+         * @param pPlayer shared pointer to an Image Player to remove
+         * @return true on successfull remove, false otherwise
          */
         bool RemoveImagePlayer(DSL_PLAYER_BINTR_PTR pPlayer);
+        
+        /**
+         * @brief adds a SMTP Mailer to this CaptureAction
+         * @param[in] pMailer shared pointer to a Mailer to add
+         * @param[in] subject subject line to use for all email
+         * @return true on successfull add, false otherwise
+         */
+        bool AddMailer(DSL_MAILER_PTR pMailer, const char* subject, bool attach);
+        
+        /**
+         * @brief removes an , Render or RTSP type, to this CaptureAction
+         * @param[in] pPlayer shared pointer to an Mailer to remove
+         * @return true on successfull remove, false otherwise
+         */
+        bool RemoveMailer(DSL_MAILER_PTR pMailer);
+        
+        /**
+         * @brief removes all child Mailers, Players, and Listeners from this parent Object
+         */
+        void RemoveAllChildren();
         
         /**
          * @brief Queues capture info and starts the Listener notification timer
@@ -341,11 +362,13 @@ namespace DSL
         void QueueCapturedImage(std::shared_ptr<cv::Mat> pImageMat);
         
         /**
-         * @brief implements a timer callback to notify all client listeners in the main loop context.
-         * @return false always to self remove timer once clients have been notified. Timer/tread will
-         * be restarted on next Image Capture
+         * @brief implements a timer callback to complete the capture process 
+         * by saving the image to file, notifying all client listeners, and 
+         * sending email all in the main loop context.
+         * @return false always to self remove timer once clients have been notified. 
+         * Timer/tread will be restarted on next Image Capture
          */
-        int NotifyClientListeners();
+        int CompleteCapture();
         
     protected:
     
@@ -377,7 +400,7 @@ namespace DSL
         /**
          * @brief gnome timer Id for the capture complete callback
          */
-        uint m_listenerNotifierTimerId;
+        uint m_captureCompleteTimerId;
         
         /**
          * @brief map of all currently registered capture-complete-listeners
@@ -391,17 +414,28 @@ namespace DSL
         std::map<std::string, DSL_PLAYER_BINTR_PTR> m_imagePlayers;
         
         /**
+         * @brief map of all Mailers to send email.
+         */
+        std::map<std::string, DSL_MAILER_PTR> m_mailers;
+        
+        /**
+         * @brief map of all subjects, one per Mailer.
+         */
+        std::map<std::string, std::string> m_subjects;
+        
+        /**
          * @brief a queue of captured Images to save to file and notify clients
          */
         std::queue<std::shared_ptr<cv::Mat>> m_imageMats;
     };
 
     /**
-     * @brief Timer callback handler to invoke the Capture Actions Listerner notification.
+     * @brief Timer callback handler to complete the capture process
+     * by notifying all listeners and sending email with all mailers.
      * @param[in] pSource shared pointer to Capture Action to invoke.
      * @return int true to continue, 0 to self remove
      */
-    static int CaptureListenerNotificationHandler(gpointer pAction);
+    static int CompleteCaptureHandler(gpointer pAction);
     
     // ********************************************************************
 

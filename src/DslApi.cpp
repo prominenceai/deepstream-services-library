@@ -421,6 +421,39 @@ DslReturnType dsl_ode_action_capture_image_player_remove(const wchar_t* name,
         OdeActionCaptureImagePlayerRemove(cstrName.c_str(), cstrPlayer.c_str());
 }
     
+DslReturnType dsl_ode_action_capture_mailer_add(const wchar_t* name, 
+    const wchar_t* mailer, const wchar_t* subject, boolean attach)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(mailer);
+    RETURN_IF_PARAM_IS_NULL(subject);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrMailer(mailer);
+    std::string cstrMailer(wstrMailer.begin(), wstrMailer.end());
+    std::wstring wstrSubject(subject);
+    std::string cstrSubject(wstrSubject.begin(), wstrSubject.end());
+
+    return DSL::Services::GetServices()->OdeActionCaptureMailerAdd(
+        cstrName.c_str(), cstrMailer.c_str(), cstrSubject.c_str(), attach);
+}
+    
+DslReturnType dsl_ode_action_capture_mailer_remove(const wchar_t* name, 
+    const wchar_t* mailer)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(mailer);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrMailer(mailer);
+    std::string cstrMailer(wstrMailer.begin(), wstrMailer.end());
+
+    return DSL::Services::GetServices()->
+        OdeActionCaptureMailerRemove(cstrName.c_str(), cstrMailer.c_str());
+}
+    
 DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offset_x, uint offset_y, 
     boolean offset_y_with_classId, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
 {
@@ -5162,6 +5195,11 @@ DslReturnType dsl_mailer_delete(const wchar_t* name)
 DslReturnType dsl_mailer_delete_all()
 {
     return DSL::Services::GetServices()->MailerDeleteAll();
+}
+
+uint dsl_mailer_list_size()
+{
+    return DSL::Services::GetServices()->MailerListSize();
 }
     
 void dsl_delete_all()

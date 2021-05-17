@@ -116,13 +116,13 @@ def setup_smpt_mail():
     retval = dsl_mailer_server_url_set('mailer', server_url)
     if retval != DSL_RETURN_SUCCESS:
         return retval
-    retval = dsl_mailer_credentials_set('mailer' , password)
+    retval = dsl_mailer_credentials_set('mailer' , user_name, password)
     if retval != DSL_RETURN_SUCCESS:
         return retval
-    retval = dsl_mailer_address_from_set('mailer', from_address)
+    retval = dsl_mailer_address_from_set('mailer', from_name, from_address)
     if retval != DSL_RETURN_SUCCESS:
         return retval
-    retval = dsl_mailer_address_to_add('mailer', to_address)
+    retval = dsl_mailer_address_to_add('mailer', to_name, to_address)
     if retval != DSL_RETURN_SUCCESS:
         return retval
         

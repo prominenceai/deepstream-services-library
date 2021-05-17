@@ -977,7 +977,7 @@ SCENARIO( "A New ImageRenderPlayerBintr - Overlay Type - can Play after Reset", 
     }
 }
 
-SCENARIO( "A New ImageRenderPlayerBintr - Window Type - can Play after Reset", "[new]" )
+SCENARIO( "A New ImageRenderPlayerBintr - Window Type - can Play after Reset", "[PlayerBintr]" )
 {
     GIVEN( "An ImageRenderPlayerBintr in a playing stae" ) 
     {

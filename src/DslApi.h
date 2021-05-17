@@ -301,6 +301,8 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED                0x000F000B
 #define DSL_RESULT_ODE_ACTION_PLAYER_ADD_FAILED                     0x000F000C
 #define DSL_RESULT_ODE_ACTION_PLAYER_REMOVE_FAILED                  0x000F000D
+#define DSL_RESULT_ODE_ACTION_MAILER_ADD_FAILED                     0x000F000E
+#define DSL_RESULT_ODE_ACTION_MAILER_REMOVE_FAILED                  0x000F000F
 
 /**
  * ODE Area API Return Values
@@ -1061,8 +1063,7 @@ DslReturnType dsl_ode_action_capture_complete_listener_remove(const wchar_t* nam
 /**
  * @brief Adds an Image Player, Render or RTSP type, to a named Capture Action.
  * Once added, each captured image's file_path will be added (or queued) with
- * the Image Player to be played according to the Players settings. The Action can
- * have at most one Image Player.
+ * the Image Player to be played according to the Players settings. 
  * @param[in] name unique name of the Capture Action to update
  * @param[in] player unique name of the Image Player to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
@@ -1078,6 +1079,28 @@ DslReturnType dsl_ode_action_capture_image_player_add(const wchar_t* name,
  */
 DslReturnType dsl_ode_action_capture_image_player_remove(const wchar_t* name, 
     const wchar_t* player);
+    
+/**
+ * @brief Adds a SMTP mailer to a named Capture Action. Once added, each
+ * captured image's file_path and details will be sent out according to the 
+ * Mailer's settings. The image file can be attached to the email as an option.
+ * @param[in] name unique name of the Capture Action to update
+ * @param[in] mailer unique name of the Mailer to add
+ * @param[in] subject subject line to use for all outgoing mail
+ * @param[in] attach set to true to attach the image file, false otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_capture_mailer_add(const wchar_t* name, 
+    const wchar_t* mailer, const wchar_t* subject, boolean attach);
+    
+/**
+ * @brief Removes a named Mailer from a named Capture Action.
+ * @param[in] name unique name of the Capture Action to update
+ * @param[in] mailer unique name of the Mailer to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_capture_mailer_remove(const wchar_t* name, 
+    const wchar_t* mailer);
     
 /**
  * @brief Creates a uniquely named Display ODE Action
@@ -4484,6 +4507,13 @@ DslReturnType dsl_mailer_delete(const wchar_t* name);
 DslReturnType dsl_mailer_delete_all();
 
 /**
+ * @brief Queries DSL to determine if a uniquely named Mailer Object exists 
+ * @param name of the Mailer to check for existence
+ * @return true if the named Mailer exists, false otherwise
+ */
+boolean dsl_mailer_exists(const wchar_t* name);
+
+/**
  * @brief Returns the current number of Mailers in memeory
  * @return size of the list of Mailers
  */
@@ -4526,6 +4556,11 @@ const wchar_t* dsl_version_get();
  */
 void dsl_delete_all();
 
+/**
+ * @brief Returns the current number of Mailers in memory
+ * @return size of the list of Mailers
+ */
+uint dsl_mailer_list_size();
 
 EXTERN_C_END
 

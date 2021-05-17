@@ -272,7 +272,7 @@ SCENARIO( "A Player can be added and removed from a Capture Action", "[ode-actio
         REQUIRE( dsl_player_render_image_new(player_name.c_str(),file_path.c_str(), 
             DSL_RENDER_TYPE_OVERLAY, 10, 10, 75, 0) == DSL_RESULT_SUCCESS );
 
-        WHEN( "A capture-complete-listner is added" )
+        WHEN( "A Player is added" )
         {
             REQUIRE( dsl_ode_action_capture_image_player_add(action_name.c_str(),
                 player_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -281,7 +281,7 @@ SCENARIO( "A Player can be added and removed from a Capture Action", "[ode-actio
             REQUIRE( dsl_ode_action_capture_image_player_add(action_name.c_str(),
                 player_name.c_str()) == DSL_RESULT_ODE_ACTION_PLAYER_ADD_FAILED );
 
-            THEN( "The same listner can be remove" ) 
+            THEN( "The same Player can be removed" ) 
             {
                 REQUIRE( dsl_ode_action_capture_image_player_remove(action_name.c_str(),
                     player_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -293,6 +293,49 @@ SCENARIO( "A Player can be added and removed from a Capture Action", "[ode-actio
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
                 REQUIRE( dsl_player_delete(player_name.c_str()) == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A Mailer can be added and removed from a Capture Action", "[ode-action-api]" )
+{
+    GIVEN( "A new Capture Action and Mailer" )
+    {
+        std::wstring action_name(L"capture-action");
+        std::wstring outdir(L"./");
+
+        std::wstring mailer_name(L"mailer");
+        
+        std::wstring subject(L"Subject line");
+        
+        REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), 
+            outdir.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_mailer_new(mailer_name.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A capture-complete-listner is added" )
+        {
+            REQUIRE( dsl_ode_action_capture_mailer_add(action_name.c_str(),
+                mailer_name.c_str(), subject.c_str(), false) == DSL_RESULT_SUCCESS );
+
+            // ensure the same listener twice fails
+            REQUIRE( dsl_ode_action_capture_mailer_add(action_name.c_str(),
+                mailer_name.c_str(), subject.c_str(), false) == DSL_RESULT_ODE_ACTION_MAILER_ADD_FAILED );
+
+            THEN( "The same listner can be removed" ) 
+            {
+                REQUIRE( dsl_ode_action_capture_mailer_remove(action_name.c_str(),
+                    mailer_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                // calling a second time must fail
+                REQUIRE( dsl_ode_action_capture_mailer_remove(action_name.c_str(),
+                    mailer_name.c_str()) == DSL_RESULT_ODE_ACTION_MAILER_REMOVE_FAILED );
+                    
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_mailer_delete(mailer_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_mailer_list_size() == 0 );
             }
         }
     }

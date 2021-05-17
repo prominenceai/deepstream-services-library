@@ -120,6 +120,12 @@ namespace DSL {
         DslReturnType OdeActionCaptureImagePlayerRemove(const char* name,
             const char* player);
         
+        DslReturnType OdeActionCaptureMailerAdd(const char* name,
+            const char* mailer, const char* subject, boolean attach);
+        
+        DslReturnType OdeActionCaptureMailerRemove(const char* name,
+            const char* mailer);
+        
         DslReturnType OdeActionDisplayNew(const char* name, uint offsetX, uint offsetY, 
             boolean offsetYWithClassId, const char* font, boolean hasBgColor, const char* bgColor);
         

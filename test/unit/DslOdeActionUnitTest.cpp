@@ -241,7 +241,7 @@ SCENARIO( "An CaptureOdeAction calls all Listeners on Capture Complete", "[OdeAc
             THEN( "All client listeners are called on capture complete" )
             {
                 // simulate timer callback
-                REQUIRE( pAction->NotifyClientListeners() == FALSE );
+                REQUIRE( pAction->CompleteCapture() == FALSE );
                 // Callbacks will change user data if called
                 REQUIRE( userData1 == 111 );
                 REQUIRE( userData2 == 222 );

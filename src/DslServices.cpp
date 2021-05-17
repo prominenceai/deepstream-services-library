@@ -419,6 +419,9 @@ namespace DSL
         if (!m_pInstatnce)
         {
             boolean doGstDeinit(false);
+
+            // Initialize the single debug category used by the lib
+            GST_DEBUG_CATEGORY_INIT(GST_CAT_DSL, "DSL", 0, "DeepStream Services");
         
             // If gst has not been initialized by the client software
             if (!gst_is_initialized())
@@ -446,10 +449,7 @@ namespace DSL
                 LOG_INFO("SSL Version: " << info->ssl_version);
                 LOG_INFO("Libz Version: " << info->libz_version);
                 LOG_INFO("Protocols: " << info->protocols);
-                
             }
-            // Initialize the single debug category used by the lib
-            GST_DEBUG_CATEGORY_INIT(GST_CAT_DSL, "DSL", 0, "DeepStream Services");
             
             // Safe to start logging
             LOG_INFO("Services Initialization");
@@ -1310,6 +1310,66 @@ namespace DSL
         {
             LOG_ERROR("ODE Capture Action '" << name 
                 << "' threw an exception removeing Player '" << player << "'");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::OdeActionCaptureMailerAdd(const char* name, 
+        const char* mailer, const char* subject, boolean attach)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
+
+            DSL_ODE_ACTION_CATPURE_PTR pOdeAction = 
+                std::dynamic_pointer_cast<CaptureOdeAction>(m_odeActions[name]);
+
+            if (!pOdeAction->AddMailer(m_mailers[mailer], subject, attach))
+            {
+                LOG_ERROR("Capture Action '" << name 
+                    << "' failed to add Mailer '" << mailer << "'");
+                return DSL_RESULT_ODE_ACTION_MAILER_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Capture Action '" << name 
+                << "' threw an exception adding Mailer '" << mailer << "'");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::OdeActionCaptureMailerRemove(const char* name, 
+        const char* mailer)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
+
+            DSL_ODE_ACTION_CATPURE_PTR pOdeAction = 
+                std::dynamic_pointer_cast<CaptureOdeAction>(m_odeActions[name]);
+
+            if (!pOdeAction->RemoveMailer(m_mailers[mailer]))
+            {
+                LOG_ERROR("Capture Action '" << name 
+                    << "' failed to remove Mailer '" << mailer << "'");
+                return DSL_RESULT_ODE_ACTION_MAILER_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Capture Action '" << name 
+                << "' threw an exception removeing Player '" << mailer << "'");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
@@ -10503,6 +10563,13 @@ namespace DSL
         try
         {
             RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+            
+            if (m_mailers[name]->IsInUse())
+            {
+                LOG_ERROR("Cannot delete Mailer '" << name 
+                    << "' as it is currently in use");
+                return DSL_RESULT_MAILER_IN_USE;
+            }
 
             m_mailers.erase(name);
 
@@ -10526,8 +10593,12 @@ namespace DSL
 
         for (auto &imap: m_mailers)
         {
-            imap.second->RemoveAllChildren();
-            imap.second = nullptr;
+            if (imap.second->IsInUse())
+            {
+                LOG_ERROR("Cannot delete Mailer '" << imap.first 
+                    << "' as it is currently in use");
+                return DSL_RESULT_MAILER_IN_USE;
+            }
         }
 
         m_mailers.clear();
@@ -10718,6 +10789,10 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_ODE_ACTION_IS_NOT_ACTION] = L"DSL_RESULT_ODE_ACTION_IS_NOT_ACTION";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND] = L"DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_CAPTURE_TYPE_INVALID] = L"DSL_RESULT_ODE_ACTION_CAPTURE_TYPE_INVALID";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_PLAYER_ADD_FAILED] = L"DSL_RESULT_ODE_ACTION_PLAYER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_PLAYER_REMOVE_FAILED] = L"DSL_RESULT_ODE_ACTION_PLAYER_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_MAILER_ADD_FAILED] = L"DSL_RESULT_ODE_ACTION_MAILER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_MAILER_REMOVE_FAILED] = L"DSL_RESULT_ODE_ACTION_MAILER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE] = L"DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED] = L"DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED] = L"DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED";
