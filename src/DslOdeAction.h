@@ -273,6 +273,43 @@ namespace DSL
     // ********************************************************************
 
     /**
+     * @struct MailerSpecs
+     * @file DslOdeAction.h
+     * @brief Specifies a Mailer with a specific Subject Line and
+     * file attachment flag
+     */
+    struct MailerSpecs
+    {
+        /**
+         * @brief ctor for the MailerSpecs struct
+         * @param pMailer shared pointer to a Mailer object
+         * @param subject Subject text to use when sending mail with with Mailer
+         * @param attach flag to specify if the file should be included as an attachment
+         */
+        MailerSpecs(DSL_MAILER_PTR pMailer,
+            const char* subject, bool attach)
+            : m_pMailer(pMailer)
+            , m_subject(subject)
+            , m_attach(attach)
+        {};
+        
+        /**
+         * @brief shared pointer to a Mailer object
+         */
+        DSL_MAILER_PTR m_pMailer; 
+        
+        /**
+         * @brief subject line to use with this Mailer
+         */
+        std::string m_subject; 
+
+        /**
+         * @brief flag to specify if the file should be included as an attachment
+         */
+        bool m_attach;        
+    };
+    
+    /**
      * @class CaptureOdeAction
      * @brief ODE Capture Action class
      */
@@ -416,12 +453,7 @@ namespace DSL
         /**
          * @brief map of all Mailers to send email.
          */
-        std::map<std::string, DSL_MAILER_PTR> m_mailers;
-        
-        /**
-         * @brief map of all subjects, one per Mailer.
-         */
-        std::map<std::string, std::string> m_subjects;
+        std::map<std::string, std::shared_ptr<MailerSpecs>> m_mailers;
         
         /**
          * @brief a queue of captured Images to save to file and notify clients

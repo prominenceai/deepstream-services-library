@@ -188,7 +188,8 @@ namespace DSL {
          */
         SmtpMessage(const EmailAddresses& toList,
             const EmailAddress& from, const EmailAddresses& ccList,
-            const std::string& subject, const std::vector<std::string>& body);
+            const std::string& subject, const std::vector<std::string>& body,
+            const std::string& attachment);
         
         /**
          * @brief dtor for the SmtpMessageData class
@@ -212,6 +213,11 @@ namespace DSL {
          * @brief complete HTML inlne message content including <> tags 
          */
         std::vector<std::string> m_content;
+        
+        /**
+         * @brief filepath to the (optional) attachment
+         */
+        std::string m_attachment;
     
     private:
     
@@ -466,10 +472,11 @@ namespace DSL {
          * @brief Queues a Message to be sent to all current recepients
          * @param[in] subject subject line for the email /r/n terminated
          * @param[in] body message body to add, each line /r/n terminated
+         * @param[in] attachment (optional) filepath to the attachment to add
          * @return true if successfully queued, false otherwise
          */
         bool QueueMessage(const std::string& subject, 
-            const std::vector<std::string>& body);
+            const std::vector<std::string>& body, const std::string& attachment="");
 
         /**
          * @brief background thread function to send a pending SMTP message

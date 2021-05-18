@@ -8469,14 +8469,24 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        try
+        {
+            
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
-        m_pipelines[pipeline]->RemoveAllChildren();
-        m_pipelines.erase(pipeline);
+            m_pipelines[pipeline]->RemoveAllChildren();
+            m_pipelines.erase(pipeline);
 
-        LOG_INFO("Pipeline '" << pipeline << "' deleted successfully");
+            LOG_INFO("Pipeline '" << pipeline << "' deleted successfully");
 
-        return DSL_RESULT_SUCCESS;
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline << "' threw an exception on Delete");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+            
     }
 
     DslReturnType Services::PipelineDeleteAll()
@@ -8484,16 +8494,24 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        for (auto &imap: m_pipelines)
+        try
         {
-            imap.second->RemoveAllChildren();
-            imap.second = nullptr;
+            for (auto &imap: m_pipelines)
+            {
+                imap.second->RemoveAllChildren();
+                imap.second = nullptr;
+            }
+            m_pipelines.clear();
+
+            LOG_INFO("All Pipelines deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
-        m_pipelines.clear();
-
-        LOG_INFO("All Pipelines deleted successfully");
-
-        return DSL_RESULT_SUCCESS;
+        catch(...)
+        {
+            LOG_ERROR("DSL threw an exception on PipelineDeleteAll");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
     }
 
     uint Services::PipelineListSize()
@@ -10163,17 +10181,33 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        for (auto &imap: m_players)
+        try
         {
-            imap.second->RemoveAllChildren();
-            imap.second = nullptr;
+            for (auto &imap: m_players)
+            {
+                // In the case of Delete all
+                if (imap.second.use_count() > 1)
+                {
+                    LOG_ERROR("Can't delete Player '" << imap.second->GetName() 
+                        << "' as it is currently in use");
+                    return DSL_RESULT_PLAYER_IN_USE;
+                }
+
+                imap.second->RemoveAllChildren();
+                imap.second = nullptr;
+            }
+
+            m_players.clear();
+
+            LOG_INFO("All Players deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
-
-        m_players.clear();
-
-        LOG_INFO("All Players deleted successfully");
-
-        return DSL_RESULT_SUCCESS;
+        catch(...)
+        {
+            LOG_ERROR("DSL threw an exception on PlayerDeleteAll");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
     }
 
     uint Services::PlayerListSize()
@@ -10591,21 +10625,29 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        for (auto &imap: m_mailers)
+        try
         {
-            if (imap.second->IsInUse())
+            for (auto &imap: m_mailers)
             {
-                LOG_ERROR("Cannot delete Mailer '" << imap.first 
-                    << "' as it is currently in use");
-                return DSL_RESULT_MAILER_IN_USE;
+                // In the case of Delete all
+                if (imap.second.use_count() > 1)
+                {
+                    LOG_ERROR("Can't delete Player '" << imap.second->GetName() 
+                        << "' as it is currently in use");
+                    return DSL_RESULT_MAILER_IN_USE;
+                }
             }
+            m_mailers.clear();
+
+            LOG_INFO("All Mailers deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
-
-        m_mailers.clear();
-
-        LOG_INFO("All Mailers deleted successfully");
-
-        return DSL_RESULT_SUCCESS;
+        catch(...)
+        {
+            LOG_ERROR("DSL threw an exception on MailerDeleteAll");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
+        }
     }
 
     uint Services::MailerListSize()

@@ -186,7 +186,6 @@ namespace DSL
                 << "'  - Image Player is not unique");
             return false;
         }
-        pPlayer->AssignParentName(GetName());
         m_imagePlayers[pPlayer->GetName()] = pPlayer;
         
         return true;
@@ -203,7 +202,6 @@ namespace DSL
                 << "' - Image Player not found");
             return false;
         }
-        pPlayer->ClearParentName();
         m_imagePlayers.erase(pPlayer->GetName());
         
         return true;
@@ -221,9 +219,11 @@ namespace DSL
                 << "'  - Mailer is not unique");
             return false;
         }
-        pMailer->AssignParentName(GetName());
-        m_mailers[pMailer->GetName()] = pMailer;
-        m_subjects[pMailer->GetName()] = subject;
+        // combine all input parameters as MailerSpecs and add
+        std::shared_ptr<MailerSpecs> pMailerSpecs = 
+            std::shared_ptr<MailerSpecs>(new MailerSpecs(pMailer, subject, attach));
+            
+        m_mailers[pMailer->GetName()] = pMailerSpecs;
         
         return true;
     }
@@ -239,9 +239,7 @@ namespace DSL
                 << "' - Mailer not found");
             return false;
         }
-        pMailer->ClearParentName();
         m_mailers.erase(pMailer->GetName());
-        m_subjects.erase(pMailer->GetName());
         
         return true;
     }
@@ -249,22 +247,6 @@ namespace DSL
     void CaptureOdeAction::RemoveAllChildren()
     {
         LOG_FUNC();
-
-        for (auto &imap: m_imagePlayers)
-        {
-            LOG_INFO("Removing Player '" << imap.second->GetName() 
-                <<"' from Parent '" << GetName() << "'");
-            imap.second->ClearParentName();
-        }
-        m_imagePlayers.clear();
-
-        for (auto &imap: m_mailers)
-        {
-            LOG_INFO("Removing Mailer '" << imap.second->GetName() 
-                <<"' from Parent '" << GetName() << "'");
-            imap.second->ClearParentName();
-        }
-        m_mailers.clear();
     }
     
     cv::Mat& CaptureOdeAction::AnnotateObject(NvDsObjectMeta* pObjectMeta, 
@@ -522,7 +504,7 @@ namespace DSL
                 // TODO handle ImageRtspPlayerBintr
             }
 
-            // If there are Mailers for playing the captured image
+            // If there are Mailers for mailing the capture detals and optional image
             if (m_mailers.size())
             {
                 std::vector<std::string> body;
@@ -532,7 +514,13 @@ namespace DSL
                     
                 for (auto const& iter: m_mailers)
                 {
-                    iter.second->QueueMessage(m_subjects[iter.first], body);
+                    std::string filepath;
+                    if (iter.second->m_attach)
+                    {
+                        filepath.assign(filespec.c_str());
+                    }
+                    iter.second->m_pMailer->QueueMessage(iter.second->m_subject, 
+                        body, filepath);
                 }
             }
             

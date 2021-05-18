@@ -56,7 +56,9 @@ namespace DSL
 
     SmtpMessage::SmtpMessage(const EmailAddresses& toList,
         const EmailAddress& from, const EmailAddresses& ccList,
-        const std::string& subject, const std::vector<std::string>& body)
+        const std::string& subject, const std::vector<std::string>& body,
+        const std::string& attachment)
+        : m_attachment(attachment.c_str())
     {
         LOG_FUNC();
 
@@ -372,7 +374,7 @@ namespace DSL
     }
 
     bool Mailer::QueueMessage(const std::string& subject, 
-            const std::vector<std::string>& body)
+        const std::vector<std::string>& body, const std::string& attachment)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
@@ -386,7 +388,7 @@ namespace DSL
         // Create a new message with the caller's unique content
         std::shared_ptr<SmtpMessage> pMessage = 
             std::shared_ptr<SmtpMessage>(new SmtpMessage(m_toAddresses, 
-                m_fromAddress, m_ccAddresses, subject, body));
+                m_fromAddress, m_ccAddresses, subject, body, attachment));
         
         // queue the new Message, return on falure
         if (!m_pMessageQueue.Push(pMessage))
@@ -477,10 +479,13 @@ namespace DSL
         curl_mime_type(part, "multipart/alternative");
         curl_slist* slist = curl_slist_append(NULL, "Content-Disposition: inline");
         curl_mime_headers(part, slist, 1);
-     
-        // Add attachment - TODO
-//        part = curl_mime_addpart(mime);
-//        curl_mime_filedata(part, "image-capture.jpg");
+
+        // Add optional file attachement
+        if (message->m_attachment.size())
+        {
+            part = curl_mime_addpart(mime);
+            curl_mime_filedata(part, message->m_attachment.c_str());
+        }
 
         curl_easy_setopt(pCurl, CURLOPT_MIMEPOST, mime);
         

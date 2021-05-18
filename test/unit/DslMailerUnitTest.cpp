@@ -80,6 +80,8 @@ SCENARIO( "A new SMTP message is created correctly", "[Mailer]" )
         EmailAddress ccEmail2(ccName2.c_str(), ccAddress2.c_str());
         
         std::string subject("this is the subject of the message");
+        
+        std::string attachment("");
 
         // body text gets \r\n from action
         std::string bodyLine1("this is unique content for line 1 \r\n");
@@ -94,11 +96,11 @@ SCENARIO( "A new SMTP message is created correctly", "[Mailer]" )
         {
             std::shared_ptr<SmtpMessage> pMessage1 = 
                 std::shared_ptr<SmtpMessage>(new SmtpMessage(toAddresses, 
-                    fromAddress, ccAddresses, subject, body));
+                    fromAddress, ccAddresses, subject, body, attachment));
                     
             std::shared_ptr<SmtpMessage> pMessage2 = 
                 std::shared_ptr<SmtpMessage>(new SmtpMessage(toAddresses, 
-                    fromAddress, ccAddresses, subject, body));
+                    fromAddress, ccAddresses, subject, body, attachment));
 
             THEN( "All members are setup correctly" )
             {
@@ -235,12 +237,16 @@ SCENARIO( "A Mailer Object can Queue an SMTP Email with specific content", "[Mai
         std::string bodyLine2("this is unique content for line 2 \r\n");
         std::string bodyLine3("this is unique content for line 3 \r\n");
         std::vector<std::string> body{bodyLine1, bodyLine2, bodyLine3};
+
+        std::string filePath("./test/streams/first-person-occurrence-438.jpeg");
+        char absolutePath[PATH_MAX+1];
+        std::string fullFilePath = realpath(filePath.c_str(), absolutePath);
         
         std::string mailerName("mailer");
 
         DSL_MAILER_PTR pMailer = DSL_MAILER_NEW(mailerName.c_str());
         
-        WHEN( "The Mailer object is intialized correctly" )
+        WHEN( "The Mailer object can queue a message without an attachment" )
         {
             pMailer->SetCredentials(userName.c_str(), password.c_str());
             pMailer->SetServerUrl(mailServer.c_str()); 
@@ -254,6 +260,23 @@ SCENARIO( "A Mailer Object can Queue an SMTP Email with specific content", "[Mai
             THEN( "The Mailer object can queue a new email" )
             {
                 REQUIRE( pMailer->QueueMessage(subject, body) == true );
+            }
+        }
+        WHEN( "The Mailer object can queue a message with an attachment" )
+        {
+            
+            pMailer->SetCredentials(userName.c_str(), password.c_str());
+            pMailer->SetServerUrl(mailServer.c_str()); 
+            pMailer->SetFromAddress(senderName.c_str(), senderAddress.c_str());
+            
+            pMailer->AddToAddress(toName1.c_str(), toAddress1.c_str());
+            pMailer->AddToAddress(toName2.c_str(), toAddress2.c_str());
+            pMailer->AddCcAddress(ccName1.c_str(), ccAddress1.c_str());
+            pMailer->AddCcAddress(ccName1.c_str(), ccAddress2.c_str());
+            
+            THEN( "The Mailer object can queue a new email" )
+            {
+                REQUIRE( pMailer->QueueMessage(subject, body, fullFilePath) == true );
             }
         }
     }

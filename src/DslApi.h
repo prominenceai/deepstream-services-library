@@ -364,15 +364,16 @@ THE SOFTWARE.
 #define DSL_RESULT_PLAYER_IS_NOT_IMAGE_PLAYER                       0x00400005
 #define DSL_RESULT_PLAYER_IS_NOT_VIDEO_PLAYER                       0x00400006
 #define DSL_RESULT_PLAYER_THREW_EXCEPTION                           0x00400007
-#define DSL_RESULT_PLAYER_XWINDOW_GET_FAILED                        0x00400008
-#define DSL_RESULT_PLAYER_XWINDOW_SET_FAILED                        0x00400009
-#define DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED                       0x0040000A
-#define DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED                    0x0040000B
-#define DSL_RESULT_PLAYER_FAILED_TO_PLAY                            0x0040000C
-#define DSL_RESULT_PLAYER_FAILED_TO_PAUSE                           0x0040000D
-#define DSL_RESULT_PLAYER_FAILED_TO_STOP                            0x0040000E
-#define DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT                0x0040000F
-#define DSL_RESULT_PLAYER_SET_FAILED                                0x00400010
+#define DSL_RESULT_PLAYER_IN_USE                                    0x00400008
+#define DSL_RESULT_PLAYER_XWINDOW_GET_FAILED                        0x00400009
+#define DSL_RESULT_PLAYER_XWINDOW_SET_FAILED                        0x0040000A
+#define DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED                       0x0040000B
+#define DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED                    0x0040000C
+#define DSL_RESULT_PLAYER_FAILED_TO_PLAY                            0x0040000D
+#define DSL_RESULT_PLAYER_FAILED_TO_PAUSE                           0x0040000E
+#define DSL_RESULT_PLAYER_FAILED_TO_STOP                            0x0040000F
+#define DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT                0x00400010
+#define DSL_RESULT_PLAYER_SET_FAILED                                0x00400011
 
 /**
  * SMTP Mailer API Return Values
