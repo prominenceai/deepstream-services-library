@@ -50,6 +50,10 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_record_dimensions_get](#dsl_sink_record_dimensions_get)
 * [dsl_sink_record_dimensions_set](#dsl_sink_record_dimensions_set)
 * [dsl_sink_record_is_on_get](#dsl_sink_record_is_on_get)
+* [dsl_sink_record_video_player_add](#dsl_sink_record_video_player_add)
+* [dsl_sink_record_video_player_remove](#dsl_sink_record_video_player_remove)
+* [dsl_sink_record_mailer_add](#dsl_sink_record_mailer_add)
+* [dsl_sink_record_mailer_remove](#dsl_sink_record_mailer_remove)
 * [dsl_sink_record_reset_done_get](#dsl_sink_record_reset_done_get)
 * [dsl_sink_encode_video_formats_get](#dsl_sink_encode_video_formats_get)
 * [dsl_sink_encode_settings_get](#dsl_sink_encode_settings_get)
@@ -78,9 +82,17 @@ The following return codes are used by the Sink API
 #define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000A
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000B
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK                0x0004000C
-#define DSL_RESULT_SINK_HANDLER_ADD_FAILED                          0x0004000D
-#define DSL_RESULT_SINK_HANDLER_REMOVE_FAILED                       0x0004000E
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_RENDER_SINK                0x0004000D
+#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED             0x0004000E
+#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x0004000F
+#define DSL_RESULT_SINK_HANDLER_ADD_FAILED                          0x00040010
+#define DSL_RESULT_SINK_HANDLER_REMOVE_FAILED                       0x00040011
+#define DSL_RESULT_SINK_PLAYER_ADD_FAILED                           0x00040012
+#define DSL_RESULT_SINK_PLAYER_REMOVE_FAILED                        0x00040013
+#define DSL_RESULT_SINK_MAILER_ADD_FAILED                           0x00040014
+#define DSL_RESULT_SINK_MAILER_REMOVE_FAILED                        0x00040015
 ```
+
 ## Codec Types
 The following codec types are used by the Sink API
 ```C++
@@ -125,7 +137,21 @@ Structure typedef used to provide recording session information provided to the 
 
 **Python Example**
 ```Python
-
+## 
+# Function to be called on recording start and complete
+## 
+def recording_event_listener(session_info_ptr, client_data):
+    print(' ***  Recording Event  *** ')
+    
+    session_info = session_info_ptr.contents
+    print('event type: ', session_info.recording_event)
+    print('session_id: ', session_info.session_id)
+    print('filename:   ', session_info.filename)
+    print('dirpath:    ', session_info.dirpath)
+    print('duration:   ', session_info.duration)
+    print('container:  ', session_info.container_type)
+    print('width:      ', session_info.width)
+    print('height:     ', session_info.height)
 ```
 
 ## Callback Types:
@@ -678,6 +704,88 @@ retval, reset_done = dsl_sink_record_reset_done_get('my-record-sink')
 
 <br>
 
+### *dsl_sink_record_video_player_add*
+```C++
+DslReturnType dsl_sink_record_video_player_add(const wchar_t* name, 
+    const wchar_t* player)
+```
+This services adds a [Video Player](/docs/api-player.md), Render or RTSP type, to a named Recording Sink. Once added, each recorded video's file_path will be added (or queued) with the Video Player to be played according to the Players settings. 
+
+**Parameters**
+ * `name` [in] name of the Record Sink to update
+ * `player` [in] name of the Video Player to add
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_record_video_player_add('my-record-sink, 'my-video-render-player')
+```
+
+<br>
+
+### *dsl_sink_record_video_player_remove*
+```C++
+DslReturnType dsl_sink_record_video_player_remve(const wchar_t* name, 
+    const wchar_t* player)
+```
+This services removes a [Video Player](/docs/api-player.md), Render or RTSP type, from a named Recording Sink. 
+
+**Parameters**
+ * `name` [in] name of the Record Sink to update
+ * `player` [in] player name of the Video Player to remove
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_record_video_player_remove('my-record-sink', 'my-video-render-player'
+```
+
+### *dsl_sink_record_mailer_add*
+```C++
+DslReturnType dsl_sink_record_mailer_add(const wchar_t* name, 
+    const wchar_t* mailer)
+```
+This services adds a [Mailer](/docs/api-mailer.md) to a named Recording Sink. Once added, the file_name, location, and specifics of each recorded video will be emailed by the Mailer according to its current settings. 
+
+**Parameters**
+ * `name` [in] name of the Record Sink to update
+ * `mailer` [in] name of the Mailer to add
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_record_mailer_add('my-record-sink, 'my-mailer')
+```
+
+<br>
+
+### *dsl_sink_record_mailer_remove*
+```C++
+DslReturnType dsl_sink_record_mailer_remove(const wchar_t* name, 
+    const wchar_t* mailer)
+```
+This services removes a [Mailer](/docs/api-mailer.md) from a named Recording Sink. 
+
+**Parameters**
+ * `name` [in] name of the Record Sink to update
+ * `mailer` [in] name of the Mailer to remove
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_record_mailer_remove('my-record-sink', 'my-mailer')
+```
+
+<br>
+
 
 ### *dsl_sink_encode_video_formats_get*
 This service returns the current video codec and container formats for the uniquely named Enocde Sink
@@ -912,4 +1020,4 @@ retval = dsl_sink_num_in_use_max_set(24)
 * [ODE Area](/docs/api-ode-area.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
-* [SMTP Services](/docs/api-smtp.md)
+* [Mailer](/docs/api-mailer.md)
