@@ -403,6 +403,28 @@ def dsl_ode_action_capture_image_player_remove(name, player):
     return int(result)
     
 ##
+## dsl_ode_action_capture_mailer_add()
+##
+_dsl.dsl_ode_action_capture_mailer_add.argtypes = [c_wchar_p, 
+    c_wchar_p, c_wchar_p, c_bool]
+_dsl.dsl_ode_action_capture_mailer_add.restype = c_uint
+def dsl_ode_action_capture_mailer_add(name, mailer, subject, attach):
+    global _dsl
+    result = _dsl.dsl_ode_action_capture_mailer_add(name, 
+        mailer, subject, attach)
+    return int(result)
+
+##
+## dsl_ode_action_capture_mailer_remove()
+##
+_dsl.dsl_ode_action_capture_mailer_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_capture_mailer_remove.restype = c_uint
+def dsl_ode_action_capture_mailer_remove(name, mailer):
+    global _dsl
+    result = _dsl.dsl_ode_action_capture_mailer_remove(name, mailer)
+    return int(result)
+    
+##
 ## dsl_ode_action_display_new()
 ##
 _dsl.dsl_ode_action_display_new.argtypes = [c_wchar_p, 

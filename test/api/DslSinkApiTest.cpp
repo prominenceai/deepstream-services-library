@@ -1012,6 +1012,53 @@ SCENARIO( "A Player can be added to and removed from a Record Sink", "[sink-api]
     }
 }    
 
+SCENARIO( "A Mailer can be added to and removed from a Record Sink", "[sink-api]" )
+{
+    GIVEN( "A new Record Sink and Mailer" )
+    {
+        std::wstring recordSinkName(L"record-sink");
+        std::wstring outdir(L"./");
+        uint container(DSL_CONTAINER_MP4);
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(2000000);
+        uint interval(0);
+
+        dsl_record_client_listener_cb client_listener;
+
+        REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
+            codec, container, bitrate, interval, client_listener) == DSL_RESULT_SUCCESS );
+
+        std::wstring mailer_name(L"mailer");
+        std::wstring subject(L"Subject line");
+        
+        REQUIRE( dsl_mailer_new(mailer_name.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Mailer is added" )
+        {
+            REQUIRE( dsl_sink_record_mailer_add(recordSinkName.c_str(),
+                mailer_name.c_str(), subject.c_str()) == DSL_RESULT_SUCCESS );
+
+            // ensure the same Mailer twice fails
+            REQUIRE( dsl_sink_record_mailer_add(recordSinkName.c_str(),
+                mailer_name.c_str(), subject.c_str()) == DSL_RESULT_SINK_MAILER_ADD_FAILED );
+
+            THEN( "The Mailer can be removed" ) 
+            {
+                REQUIRE( dsl_sink_record_mailer_remove(recordSinkName.c_str(),
+                    mailer_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                // calling a second time must fail
+                REQUIRE( dsl_sink_record_mailer_remove(recordSinkName.c_str(),
+                    mailer_name.c_str()) == DSL_RESULT_SINK_MAILER_REMOVE_FAILED );
+                    
+                REQUIRE( dsl_component_delete(recordSinkName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_mailer_delete(mailer_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_mailer_list_size() == 0 );
+            }
+        }
+    }
+}
 
 SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H264 RTSP Sink", "[sink-api]" )
 {

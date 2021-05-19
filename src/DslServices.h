@@ -478,6 +478,12 @@ namespace DSL {
         DslReturnType TapRecordVideoPlayerRemove(const char* name,
             const char* player);
 
+        DslReturnType TapRecordMailerAdd(const char* name,
+            const char* mailer, const char* subject);
+        
+        DslReturnType TapRecordMailerRemove(const char* name,
+            const char* mailer);
+
         DslReturnType PrimaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, uint interval);
 
@@ -647,6 +653,12 @@ namespace DSL {
         
         DslReturnType SinkRecordVideoPlayerRemove(const char* name,
             const char* player);
+
+        DslReturnType SinkRecordMailerAdd(const char* name,
+            const char* mailer, const char* subject);
+        
+        DslReturnType SinkRecordMailerRemove(const char* name,
+            const char* mailer);
 
         DslReturnType SinkEncodeVideoFormatsGet(const char* name, uint* codec, uint* container);
 

@@ -450,8 +450,8 @@ DslReturnType dsl_ode_action_capture_mailer_remove(const wchar_t* name,
     std::wstring wstrMailer(mailer);
     std::string cstrMailer(wstrMailer.begin(), wstrMailer.end());
 
-    return DSL::Services::GetServices()->
-        OdeActionCaptureMailerRemove(cstrName.c_str(), cstrMailer.c_str());
+    return DSL::Services::GetServices()->OdeActionCaptureMailerRemove(
+        cstrName.c_str(), cstrMailer.c_str());
 }
     
 DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offset_x, uint offset_y, 
@@ -2571,6 +2571,39 @@ DslReturnType dsl_tap_record_video_player_remove(const wchar_t* name,
         TapRecordVideoPlayerRemove(cstrName.c_str(), cstrPlayer.c_str());
 }
 
+DslReturnType dsl_tap_record_mailer_add(const wchar_t* name, 
+    const wchar_t* mailer, const wchar_t* subject)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(mailer);
+    RETURN_IF_PARAM_IS_NULL(subject);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrMailer(mailer);
+    std::string cstrMailer(wstrMailer.begin(), wstrMailer.end());
+    std::wstring wstrSubject(subject);
+    std::string cstrSubject(wstrSubject.begin(), wstrSubject.end());
+
+    return DSL::Services::GetServices()->TapRecordMailerAdd(
+        cstrName.c_str(), cstrMailer.c_str(), cstrSubject.c_str());
+}
+    
+DslReturnType dsl_tap_record_mailer_remove(const wchar_t* name, 
+    const wchar_t* mailer)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(mailer);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrMailer(mailer);
+    std::string cstrMailer(wstrMailer.begin(), wstrMailer.end());
+
+    return DSL::Services::GetServices()->TapRecordMailerRemove(
+        cstrName.c_str(), cstrMailer.c_str());
+}
+
 DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
     const wchar_t* model_engine_file, uint interval)
 {
@@ -3664,6 +3697,39 @@ DslReturnType dsl_sink_record_video_player_remove(const wchar_t* name,
 
     return DSL::Services::GetServices()->
         SinkRecordVideoPlayerRemove(cstrName.c_str(), cstrPlayer.c_str());
+}
+
+DslReturnType dsl_sink_record_mailer_add(const wchar_t* name, 
+    const wchar_t* mailer, const wchar_t* subject)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(mailer);
+    RETURN_IF_PARAM_IS_NULL(subject);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrMailer(mailer);
+    std::string cstrMailer(wstrMailer.begin(), wstrMailer.end());
+    std::wstring wstrSubject(subject);
+    std::string cstrSubject(wstrSubject.begin(), wstrSubject.end());
+
+    return DSL::Services::GetServices()->SinkRecordMailerAdd(
+        cstrName.c_str(), cstrMailer.c_str(), cstrSubject.c_str());
+}
+    
+DslReturnType dsl_sink_record_mailer_remove(const wchar_t* name, 
+    const wchar_t* mailer)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(mailer);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrMailer(mailer);
+    std::string cstrMailer(wstrMailer.begin(), wstrMailer.end());
+
+    return DSL::Services::GetServices()->SinkRecordMailerRemove(
+        cstrName.c_str(), cstrMailer.c_str());
 }
    
 DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host, 

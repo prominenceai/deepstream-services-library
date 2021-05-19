@@ -131,6 +131,8 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_HANDLER_REMOVE_FAILED                       0x00040011
 #define DSL_RESULT_SINK_PLAYER_ADD_FAILED                           0x00040012
 #define DSL_RESULT_SINK_PLAYER_REMOVE_FAILED                        0x00040013
+#define DSL_RESULT_SINK_MAILER_ADD_FAILED                           0x00040014
+#define DSL_RESULT_SINK_MAILER_REMOVE_FAILED                        0x00040015
 
 
 /**
@@ -352,6 +354,8 @@ THE SOFTWARE.
 #define DSL_RESULT_TAP_CONTAINER_VALUE_INVALID                      0x00300008
 #define DSL_RESULT_TAP_PLAYER_ADD_FAILED                            0x00300009
 #define DSL_RESULT_TAP_PLAYER_REMOVE_FAILED                         0x0030000A
+#define DSL_RESULT_TAP_MAILER_ADD_FAILED                            0x0030000B
+#define DSL_RESULT_TAP_MAILER_REMOVE_FAILED                         0x0030000C
 
 /**
  * Player API Return Values
@@ -2601,10 +2605,10 @@ DslReturnType dsl_tap_record_is_on_get(const wchar_t* name, boolean* is_on);
 DslReturnType dsl_tap_record_reset_done_get(const wchar_t* name, boolean* reset_done);
 
 /**
- * @brief Adds a Video Player, Render or RTSP type, to a named Tap Recorder.
+ * @brief Adds a Video Player, Render or RTSP type, to a named Record Tap.
  * Once added, each recorded video's file_path will be added (or queued) with
  * the Video Player to be played according to the Players settings. 
- * @param[in] name unique name of the Tap Recorder to update
+ * @param[in] name unique name of the Record Tap to update
  * @param[in] player unique name of the Video Player to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
@@ -2612,14 +2616,35 @@ DslReturnType dsl_tap_record_video_player_add(const wchar_t* name,
     const wchar_t* player);
     
 /**
- * @brief Removes a Video Player, Render or RTSP type, from a named Tap Recorder.
- * @param[in] name unique name of the Tap Recorder to update
+ * @brief Removes a Video Player, Render or RTSP type, from a named Record Tap.
+ * @param[in] name unique name of the Record Tap to update
  * @param[in] player unique name of the Video Player to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_tap_record_video_player_remove(const wchar_t* name, 
     const wchar_t* player);
 
+/**
+ * @brief Adds a SMTP mailer to a named Record Tap. Once added, the Tap will 
+ * use the Mailer to send out the file_path and details of each saved recording 
+ * according to the Mailer's settings.
+ * @param[in] name unique name of the Record Tap to update
+ * @param[in] mailer unique name of the Mailer to add
+ * @param[in] subject subject line to use for all outgoing mail
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_tap_record_mailer_add(const wchar_t* name, 
+    const wchar_t* mailer, const wchar_t* subject);
+    
+/**
+ * @brief Removes a named Mailer from a named Record Tap.
+ * @param[in] name unique name of the Record Tap to update
+ * @param[in] mailer unique name of the Mailer to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_tap_record_mailer_remove(const wchar_t* name, 
+    const wchar_t* mailer);
+    
 /**
  * @brief creates a new, uniquely named Primary GIE object
  * @param[in] name unique name for the new GIE object
@@ -3404,25 +3429,47 @@ DslReturnType dsl_sink_record_is_on_get(const wchar_t* name, boolean* is_on);
 DslReturnType dsl_sink_record_reset_done_get(const wchar_t* name, boolean* reset_done);
 
 /**
- * @brief Adds a Video Player, Render or RTSP type, to a named Sink Recorder.
+ * @brief Adds a Video Player, Render or RTSP type, to a named Record Sink.
  * Once added, each recorded video's file_path will be added (or queued) with
  * the Video Player to be played according to the Players settings. 
- * @param[in] name unique name of the Sink Recorder to update
+ * @param[in] name unique name of the Record Sink to update
  * @param[in] player unique name of the Video Player to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_sink_record_video_player_add(const wchar_t* name, 
     const wchar_t* player);
-    
+
+        
 /**
- * @brief Removes a Video Player, Render or RTSP type, from a named Sink Recorder.
- * @param[in] name unique name of the Sink Recorder to update
+ * @brief Removes a Video Player, Render or RTSP type, from a named Record Sink.
+ * @param[in] name unique name of the Record Sink to update
  * @param[in] player unique name of the Video Player to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_sink_record_video_player_remove(const wchar_t* name, 
     const wchar_t* player);
 
+/**
+ * @brief Adds a SMTP mailer to a named Record Sink. Once added, the Sink will 
+ * use the Mailer to send out the file_path and details of each saved recording 
+ * according to the Mailer's settings.
+ * @param[in] name unique name of the Record Sink to update
+ * @param[in] mailer unique name of the Mailer to add
+ * @param[in] subject subject line to use for all outgoing mail
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_record_mailer_add(const wchar_t* name, 
+    const wchar_t* mailer, const wchar_t* subject);
+    
+/**
+ * @brief Removes a named Mailer from a named Record Sink.
+ * @param[in] name unique name of the Record Sink to update
+ * @param[in] mailer unique name of the Mailer to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_record_mailer_remove(const wchar_t* name, 
+    const wchar_t* mailer);
+    
 /**
  * @brief gets the current codec and video media container formats
  * @param[in] name unique name of the Sink to query

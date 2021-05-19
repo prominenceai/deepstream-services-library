@@ -474,9 +474,6 @@ namespace DSL
 
             cv::imwrite(filespec.c_str(), *pImageMat);
 
-            // Increment the global capture count
-            s_captureId++;
-            
             // If there are Image Players for playing the captured image
             for (auto const& iter: m_imagePlayers)
             {
@@ -502,26 +499,6 @@ namespace DSL
                     }
                 }
                 // TODO handle ImageRtspPlayerBintr
-            }
-
-            // If there are Mailers for mailing the capture detals and optional image
-            if (m_mailers.size())
-            {
-                std::vector<std::string> body;
-                
-                body.push_back(std::string("ODE Action Name    : " 
-                    + GetName() + "<br>"));
-                    
-                for (auto const& iter: m_mailers)
-                {
-                    std::string filepath;
-                    if (iter.second->m_attach)
-                    {
-                        filepath.assign(filespec.c_str());
-                    }
-                    iter.second->m_pMailer->QueueMessage(iter.second->m_subject, 
-                        body, filepath);
-                }
             }
             
             // If there are complete listeners to notify
@@ -560,7 +537,44 @@ namespace DSL
                     }
                 }
             }
+
+            // If there are Mailers for mailing the capture detals and optional image
+            if (m_mailers.size())
+            {
+                std::vector<std::string> body;
+                
+                body.push_back(std::string("Action     : " 
+                    + GetName() + "<br>"));
+                body.push_back(std::string("File Name  : " 
+                    + fileNameStream.str() + "<br>"));
+                body.push_back(std::string("Location   : " 
+                    + m_outdir + "<br>"));
+                body.push_back(std::string("Capture Id : " 
+                    + std::to_string(s_captureId) + "<br>"));
+
+                // get the dimensions from the image Mat
+                cv::Size imageSize = pImageMat->size();
+
+                body.push_back(std::string("Width      : " 
+                    + std::to_string(imageSize.width) + "<br>"));
+                body.push_back(std::string("Height     : " 
+                    + std::to_string(imageSize.height) + "<br>"));
+                    
+                for (auto const& iter: m_mailers)
+                {
+                    std::string filepath;
+                    if (iter.second->m_attach)
+                    {
+                        filepath.assign(filespec.c_str());
+                    }
+                    iter.second->m_pMailer->QueueMessage(iter.second->m_subject, 
+                        body, filepath);
+                }
+            }
+            // Increment the global capture count
+            s_captureId++;
         }
+
         // clear the timer id and return false to self remove
         m_captureCompleteTimerId = 0;
         return false;

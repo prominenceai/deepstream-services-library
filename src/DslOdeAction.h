@@ -273,43 +273,6 @@ namespace DSL
     // ********************************************************************
 
     /**
-     * @struct MailerSpecs
-     * @file DslOdeAction.h
-     * @brief Specifies a Mailer with a specific Subject Line and
-     * file attachment flag
-     */
-    struct MailerSpecs
-    {
-        /**
-         * @brief ctor for the MailerSpecs struct
-         * @param pMailer shared pointer to a Mailer object
-         * @param subject Subject text to use when sending mail with with Mailer
-         * @param attach flag to specify if the file should be included as an attachment
-         */
-        MailerSpecs(DSL_MAILER_PTR pMailer,
-            const char* subject, bool attach)
-            : m_pMailer(pMailer)
-            , m_subject(subject)
-            , m_attach(attach)
-        {};
-        
-        /**
-         * @brief shared pointer to a Mailer object
-         */
-        DSL_MAILER_PTR m_pMailer; 
-        
-        /**
-         * @brief subject line to use with this Mailer
-         */
-        std::string m_subject; 
-
-        /**
-         * @brief flag to specify if the file should be included as an attachment
-         */
-        bool m_attach;        
-    };
-    
-    /**
      * @class CaptureOdeAction
      * @brief ODE Capture Action class
      */
@@ -376,13 +339,14 @@ namespace DSL
          * @brief adds a SMTP Mailer to this CaptureAction
          * @param[in] pMailer shared pointer to a Mailer to add
          * @param[in] subject subject line to use for all email
+         * @param[in] attach boolean flag to optionally attach the image file
          * @return true on successfull add, false otherwise
          */
         bool AddMailer(DSL_MAILER_PTR pMailer, const char* subject, bool attach);
         
         /**
-         * @brief removes an , Render or RTSP type, to this CaptureAction
-         * @param[in] pPlayer shared pointer to an Mailer to remove
+         * @brief removes a SMPT Mailer to this CaptureAction
+         * @param[in] pMailer shared pointer to an Mailer to remove
          * @return true on successfull remove, false otherwise
          */
         bool RemoveMailer(DSL_MAILER_PTR pMailer);

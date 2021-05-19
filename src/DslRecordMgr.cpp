@@ -345,6 +345,39 @@ namespace DSL
         
         return true;
     }
+
+    bool RecordMgr::AddMailer(DSL_MAILER_PTR pMailer,
+        const char* subject)
+    {
+        LOG_FUNC();
+        
+        if (m_mailers.find(pMailer->GetName()) != m_mailers.end())
+        {   
+            LOG_ERROR("Record Manager - Mailer is not unique");
+            return false;
+        }
+        // combine all input parameters as MailerSpecs and add
+        std::shared_ptr<MailerSpecs> pMailerSpecs = 
+            std::shared_ptr<MailerSpecs>(new MailerSpecs(pMailer, subject, false));
+            
+        m_mailers[pMailer->GetName()] = pMailerSpecs;
+        
+        return true;
+    }
+    
+    bool RecordMgr::RemoveMailer(DSL_MAILER_PTR pMailer)
+    {
+        LOG_FUNC();
+        
+        if (m_mailers.find(pMailer->GetCStrName()) == m_mailers.end())
+        {   
+            LOG_ERROR("Record Manager- Mailer not found");
+            return false;
+        }
+        m_mailers.erase(pMailer->GetName());
+        
+        return true;
+    }
     
     void* RecordMgr::HandleRecordComplete(NvDsSRRecordingInfo* pNvDsInfo)
     {
@@ -419,6 +452,31 @@ namespace DSL
             LOG_ERROR("Client Listener for RecordMgr '" << m_name << "' threw an exception");
             return NULL;
         }
+        
+        // If there are Mailers for mailing the recording details
+        if (m_mailers.size())
+        {
+            std::vector<std::string> body;
+
+            body.push_back(std::string("File Name  : " 
+                + std::string(pNvDsInfo->filename) + "<br>"));
+            body.push_back(std::string("Location   : " 
+                + std::string(pNvDsInfo->dirpath) + "<br>"));
+            body.push_back(std::string("Session Id : " 
+                + std::to_string(pNvDsInfo->sessionId) + "<br>"));
+            body.push_back(std::string("Duration   : " 
+                + std::to_string(pNvDsInfo->duration) + "<br>"));
+            body.push_back(std::string("Width      : " 
+                + std::to_string(pNvDsInfo->width) + "<br>"));
+            body.push_back(std::string("Height     : " 
+                + std::to_string(pNvDsInfo->height) + "<br>"));
+                
+            for (auto const& iter: m_mailers)
+            {
+                iter.second->m_pMailer->QueueMessage(iter.second->m_subject, body);
+            }
+        }
+        
     }
 
     //******************************************************************************************

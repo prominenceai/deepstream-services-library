@@ -363,6 +363,7 @@ namespace DSL {
         uint m_purgeTimerId;
     };
 
+
     /**
      * @class Mailer
      * @brief Implements a Mailer abstraction class for libcurl
@@ -539,6 +540,43 @@ namespace DSL {
     };
 
     static int MailerSendMessage(gpointer pMailer);
+    
+    /**
+     * @struct MailerSpecs
+     * @brief Specifies a Mailer with a specific Subject Line and
+     * file attachment flag
+     */
+    struct MailerSpecs
+    {
+        /**
+         * @brief ctor for the MailerSpecs struct
+         * @param pMailer shared pointer to a Mailer object
+         * @param subject Subject text to use when sending mail with with Mailer
+         * @param attach flag to specify if the file should be included as an attachment
+         */
+        MailerSpecs(DSL_MAILER_PTR pMailer,
+            const char* subject, bool attach)
+            : m_pMailer(pMailer)
+            , m_subject(subject)
+            , m_attach(attach)
+        {};
+        
+        /**
+         * @brief shared pointer to a Mailer object
+         */
+        DSL_MAILER_PTR m_pMailer; 
+        
+        /**
+         * @brief subject line to use with this Mailer
+         */
+        std::string m_subject; 
+
+        /**
+         * @brief flag to specify if the file should be included as an attachment
+         */
+        bool m_attach;        
+    };
+        
 }
 
 

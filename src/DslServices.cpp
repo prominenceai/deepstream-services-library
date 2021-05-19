@@ -5511,11 +5511,72 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Record Tap '" << name 
-                << "' threw an exception adding Player '" << player << "'");
+                << "' threw an exception removing Player '" << player << "'");
             return DSL_RESULT_TAP_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }
+
+    DslReturnType Services::TapRecordMailerAdd(const char* name, 
+        const char* mailer, const char* subject)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            if (!pRecordTapBintr->AddMailer(m_mailers[mailer], subject))
+            {
+                LOG_ERROR("Record Tap '" << name 
+                    << "' failed to add Mailer '" << mailer << "'");
+                return DSL_RESULT_TAP_MAILER_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name 
+                << "' threw an exception adding Mailer '" << mailer << "'");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::TapRecordMailerRemove(const char* name, 
+        const char* mailer)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            if (!pRecordTapBintr->RemoveMailer(m_mailers[mailer]))
+            {
+                LOG_ERROR("Record Tap '" << name 
+                    << "' failed to remove Mailer '" << mailer << "'");
+                return DSL_RESULT_TAP_MAILER_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name 
+                << "' threw an exception removing Mailer '" << mailer << "'");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
     
     DslReturnType Services::PrimaryGieNew(const char* name, const char* inferConfigFile,
         const char* modelEngineFile, uint interval)
@@ -7844,6 +7905,7 @@ namespace DSL
         const char* player)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
     
         try
         {
@@ -7875,7 +7937,8 @@ namespace DSL
         const char* player)
     {
         LOG_FUNC();
-    
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
@@ -7897,6 +7960,68 @@ namespace DSL
         {
             LOG_ERROR("Record Sink '" << name 
                 << "' threw an exception adding Player '" << player << "'");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkRecordMailerAdd(const char* name, 
+        const char* mailer, const char* subject)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+    
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
+
+            DSL_RECORD_SINK_PTR pRecordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            if (!pRecordSinkBintr->AddMailer(m_mailers[mailer], subject))
+            {
+                LOG_ERROR("Record Sink '" << name 
+                    << "' failed to add Mailer '" << mailer << "'");
+                return DSL_RESULT_SINK_MAILER_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" << name 
+                << "' threw an exception adding Mailer '" << mailer << "'");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkRecordMailerRemove(const char* name, 
+        const char* mailer)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+    
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
+
+            DSL_RECORD_SINK_PTR pRecordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            if (!pRecordSinkBintr->RemoveMailer(m_mailers[mailer]))
+            {
+                LOG_ERROR("Record Sink '" << name 
+                    << "' failed to remove Mailer '" << mailer << "'");
+                return DSL_RESULT_SINK_MAILER_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" << name 
+                << "' threw an exception adding Mailer '" << mailer << "'");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
@@ -10861,6 +10986,8 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SINK_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_SINK_HANDLER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_PLAYER_ADD_FAILED] = L"DSL_RESULT_SINK_PLAYER_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_PLAYER_REMOVE_FAILED] = L"DSL_RESULT_SINK_PLAYER_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_SINK_MAILER_ADD_FAILED] = L"DSL_RESULT_SINK_MAILER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_SINK_MAILER_REMOVE_FAILED] = L"DSL_RESULT_SINK_MAILER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_UNIQUE] = L"DSL_RESULT_OSD_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_FOUND] = L"DSL_RESULT_OSD_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_OSD_NAME_BAD_FORMAT] = L"DSL_RESULT_OSD_NAME_BAD_FORMAT";
@@ -10965,6 +11092,8 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_TAP_CONTAINER_VALUE_INVALID] = L"DSL_RESULT_TAP_CONTAINER_VALUE_INVALID";
         m_returnValueToString[DSL_RESULT_TAP_PLAYER_ADD_FAILED] = L"DSL_RESULT_TAP_PLAYER_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_TAP_PLAYER_REMOVE_FAILED] = L"DSL_RESULT_TAP_PLAYER_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_TAP_MAILER_ADD_FAILED] = L"DSL_RESULT_TAP_MAILER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_TAP_MAILER_REMOVE_FAILED] = L"DSL_RESULT_TAP_MAILER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_PLAYER_RESULT] = L"DSL_RESULT_PLAYER_RESULT";
         m_returnValueToString[DSL_RESULT_PLAYER_NAME_NOT_UNIQUE] = L"DSL_RESULT_PLAYER_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_PLAYER_NAME_NOT_FOUND] = L"DSL_RESULT_PLAYER_NAME_NOT_FOUND";

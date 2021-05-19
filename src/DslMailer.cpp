@@ -485,6 +485,7 @@ namespace DSL
         {
             part = curl_mime_addpart(mime);
             curl_mime_filedata(part, message->m_attachment.c_str());
+            curl_mime_encoder(part, "base64");
         }
 
         curl_easy_setopt(pCurl, CURLOPT_MIMEPOST, mime);
