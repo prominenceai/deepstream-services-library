@@ -223,7 +223,7 @@ SCENARIO( "A Player can be added to and removed from a Record Tap", "[tap-api]" 
         REQUIRE( dsl_player_render_video_new(player_name.c_str(),file_path.c_str(), 
             DSL_RENDER_TYPE_OVERLAY, 10, 10, 75, 0) == DSL_RESULT_SUCCESS );
 
-        WHEN( "A capture-complete-listner is added" )
+        WHEN( "A Image Player is added" )
         {
             REQUIRE( dsl_tap_record_video_player_add(recordTapName.c_str(),
                 player_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -232,7 +232,7 @@ SCENARIO( "A Player can be added to and removed from a Record Tap", "[tap-api]" 
             REQUIRE( dsl_tap_record_video_player_add(recordTapName.c_str(),
                 player_name.c_str()) == DSL_RESULT_TAP_PLAYER_ADD_FAILED );
 
-            THEN( "The same listner can be remove" ) 
+            THEN( "The same Image Player can be remove" ) 
             {
                 REQUIRE( dsl_tap_record_video_player_remove(recordTapName.c_str(),
                     player_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -248,6 +248,52 @@ SCENARIO( "A Player can be added to and removed from a Record Tap", "[tap-api]" 
     }
 }    
 
+SCENARIO( "A Mailer can be added to and removed from a Record Tap", "[tap-api]" )
+{
+    GIVEN( "A new Record Tap and Mailer" )
+    {
+        std::wstring recordTapName(L"record-tap");
+        std::wstring outdir(L"./");
+        uint container(DSL_CONTAINER_MP4);
+
+        dsl_record_client_listener_cb client_listener;
+        
+        REQUIRE( dsl_tap_record_new(recordTapName.c_str(), outdir.c_str(),
+            container, client_listener) == DSL_RESULT_SUCCESS );
+
+        std::wstring mailer_name(L"mailer");
+        
+        std::wstring subject(L"Subject line");
+        
+        REQUIRE( dsl_mailer_new(mailer_name.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Mailer is added" )
+        {
+            REQUIRE( dsl_tap_record_mailer_add(recordTapName.c_str(),
+                mailer_name.c_str(), subject.c_str()) == DSL_RESULT_SUCCESS );
+
+            // ensure the same listener twice fails
+            REQUIRE( dsl_tap_record_mailer_add(recordTapName.c_str(),
+                mailer_name.c_str(), subject.c_str()) == DSL_RESULT_TAP_MAILER_ADD_FAILED );
+
+            THEN( "The Mailer can be removed" ) 
+            {
+                REQUIRE( dsl_tap_record_mailer_remove(recordTapName.c_str(),
+                    mailer_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                // calling a second time must fail
+                REQUIRE( dsl_tap_record_mailer_remove(recordTapName.c_str(),
+                    mailer_name.c_str()) == DSL_RESULT_TAP_MAILER_REMOVE_FAILED );
+                    
+                REQUIRE( dsl_component_delete(recordTapName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_mailer_delete(mailer_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_mailer_list_size() == 0 );
+            }
+        }
+    }
+}    
+
 SCENARIO( "The Tap API checks for NULL input parameters", "[tap-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -257,7 +303,8 @@ SCENARIO( "The Tap API checks for NULL input parameters", "[tap-api]" )
         
         uint cache_size(0), width(0), height(0);
         boolean is_on(0), reset_done(0), sync(0), async(0);
-        
+
+       std::wstring mailerName(L"mailer");        
         REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "When NULL pointers are used as input" ) 
@@ -278,6 +325,17 @@ SCENARIO( "The Tap API checks for NULL input parameters", "[tap-api]" )
                 REQUIRE( dsl_tap_record_is_on_get(NULL, &is_on) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_tap_record_reset_done_get(NULL, &reset_done) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tap_record_video_player_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_video_player_add(tapName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_video_player_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_video_player_remove(tapName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tap_record_mailer_add(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_mailer_add(tapName.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_mailer_add(tapName.c_str(), mailerName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_mailer_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_mailer_remove(tapName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_list_size() == 0 );
             }

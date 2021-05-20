@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2021, Prominence AI, Inc.
+# Copyright (c) 2021, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -52,7 +52,7 @@ from_address = 'my.smtps.server'
 to_name = 'Joe Bloe'
 to_address = 'joe.blow@gmail.com'
 
-uri_file = "../../test/streams/sample_1080p_h264.mp4"
+file_path = "../../test/streams/sample_1080p_h264.mp4"
 
 # Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
@@ -63,6 +63,9 @@ PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
+
+MIN_OBJECTS = 3
+MAX_OBJECTS = 8
 
 TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
 TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
@@ -103,7 +106,28 @@ def state_change_listener(old_state, new_state, client_data):
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
+## 
+# Function to be called on Player termination event
+## 
+def player_termination_event_listener(client_data):
+    print(' ***  Display Image Complete  *** ')
+
+## 
+# Function to be called on Object Capture (and file-save) complete
+## 
+def capture_complete_listener(capture_info_ptr, client_data):
+    print(' ***  Object Capture Complete  *** ')
     
+    capture_info = capture_info_ptr.contents
+    print('capture_id: ', capture_info.capture_id)
+    print('filename:   ', capture_info.filename)
+    print('dirpath:    ', capture_info.dirpath)
+    print('width:      ', capture_info.width)
+    print('height:     ', capture_info.height)
+    
+## 
+# Function to create and setup a Mailer object for sending SMTP email
+## 
 def setup_smpt_mail():
 
     global server_url, user_name, password, from_name, from_address, \
@@ -128,84 +152,149 @@ def setup_smpt_mail():
         
     # (optional) queue a test message to be sent out when main_loop starts
     return dsl_mailer_test_message_send('mailer')
-
+    
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
+    
+        # This example demonstrates the use of a Polygon Area for Inclusion 
+        # or Exlucion critera for ODE occurrence. Change the variable below to try each.
+        
+        #```````````````````````````````````````````````````````````````````````````````````
 
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # This example is used to demonstrate the use of a First Occurrence Trigger and an Email Action
-        # to send an emal using SMTP service. Addional actions are added to "Capture" the frame to an 
-        # image-file and "Fill" (flash) the frame red as a visual marker.
-
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Setup the SMTP Server URL, Credentials, and From/To addresss
         retval = setup_smpt_mail()
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Create new RGBA color types
-        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, blue=0.5, green=0.5, alpha=0.7)
+        #```````````````````````````````````````````````````````````````````````````````````
+
+        # Create a Hide-Area Action to hide all Display Text and Bounding Boxes
+        retval = dsl_ode_action_hide_new('hide-both', text=True, border=True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create a new Action to Queue an email
-        retval = dsl_ode_action_email_new('email-action', 
-            mailer = 'mailer',
-            subject = "Bicycle Occurrence!")
+        # Create an Any-Class Occurrence Trigger for our Hide Action
+        retval = dsl_ode_trigger_occurrence_new('any-occurrence-trigger', source=DSL_ODE_ANY_SOURCE,
+            class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add('any-occurrence-trigger', action='hide-both')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create a Fill-Area Action as a visual indicator to identify the frame that triggered the recording
-        retval = dsl_ode_action_fill_frame_new('red-flash-action', 'opaque-red')
+        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, green=0.0, blue=0.0, alpha=0.3)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Create a new Capture Action to capture the full-frame to jpeg image, and save to file. 
-        # The action will be triggered on firt occurrence of a bicycle and will be saved to the current dir.
-        retval = dsl_ode_action_capture_frame_new('bicycle-capture-action', outdir="./", annotate=True)
+        # Create a new  Action used to fill a bounding box with the opaque red color
+        retval = dsl_ode_action_fill_object_new('fill-action', color='opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Next, create the Bicycle Occurrence Trigger. We will reset the trigger in the recording complete callback
-        retval = dsl_ode_trigger_occurrence_new('bicycle-occurrence-trigger', 
-            source=DSL_ODE_ANY_SOURCE, class_id=PGIE_CLASS_ID_BICYCLE, limit=1)
+        # create a list of X,Y coordinates defining the points of the Polygon.
+        # Polygon can have a minimum of 3, maximum of 8 points (sides)
+        coordinates = [dsl_coordinate(365,600), dsl_coordinate(580,620), 
+            dsl_coordinate(600, 770), dsl_coordinate(180,750)]
+            
+        # Create the Polygon display type 
+        retval = dsl_display_type_rgba_polygon_new('polygon1', 
+            coordinates=coordinates, num_coordinates=len(coordinates), border_width=4, color='opaque-red')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # create the ODE inclusion area to use as criteria for ODE occurrence
+        retval = dsl_ode_area_inclusion_new('polygon-area', polygon='polygon1', 
+            show=True, bbox_test_point=DSL_BBOX_POINT_SOUTH)    
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Add the actions to our Bicycle Occurence Trigger.
-        retval = dsl_ode_trigger_action_add_many('bicycle-occurrence-trigger', actions=[
-            'email-action',
-            'red-flash-action', 
-            'bicycle-capture-action',
-            None])
+        # New Occurrence Trigger, filtering on PERSON class_id, 
+        # and with no limit on the number of occurrences
+        retval = dsl_ode_trigger_occurrence_new('person-in-area-trigger',
+            source = DSL_ODE_ANY_SOURCE,
+            class_id = PGIE_CLASS_ID_PERSON, 
+            limit = DSL_ODE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        retval = dsl_ode_trigger_area_add('person-in-area-trigger', area='polygon-area')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        retval = dsl_ode_trigger_action_add('person-in-area-trigger', action='fill-action')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # New ODE Handler for our Trigger
+
+        # New Occurrence Trigger, filtering on PERSON class_id, for our capture object action
+        # with a limit of one which will be reset in the capture-complete callback
+        retval = dsl_ode_trigger_instance_new('person-enter-area-trigger', 
+            source = DSL_ODE_ANY_SOURCE,
+            class_id = PGIE_CLASS_ID_PERSON, 
+            limit = DSL_ODE_TRIGGER_LIMIT_ONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Using the same Inclusion area as the New Occurrence Trigger
+        retval = dsl_ode_trigger_area_add('person-enter-area-trigger', area='polygon-area')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Create a new Capture Action to capture the Frame to jpeg image, and save to file. 
+        retval = dsl_ode_action_capture_frame_new('person-capture-action', 
+            annotate = False,
+            outdir = "./")
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        ### ADD THE MAILER OBJECT TO THE CAPTURE FRAME ACTION ###
+        
+        # The mailer will be used to email information on the Captured Frame
+        # -- file location, size, etc. -- with the image file included as an attachment.
+        retval = dsl_ode_action_capture_mailer_add('person-capture-action', 
+            mailer = 'mailer',
+            subject = 'ATTENTION: Person in Area!',
+            attach = True)
+        
+        # Add the capture complete listener function to the action
+        retval = dsl_ode_action_capture_complete_listener_add('person-capture-action', 
+            capture_complete_listener, None)
+
+        retval = dsl_ode_trigger_action_add('person-enter-area-trigger', 
+            action='person-capture-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+
+        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
+        
+        # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
         retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pph_ode_trigger_add('ode-handler', trigger='bicycle-occurrence-trigger')
+        retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
+            'any-occurrence-trigger', 
+            'person-in-area-trigger', 
+            'person-enter-area-trigger',
+            None])
         if retval != DSL_RETURN_SUCCESS:
             break
-            ############################################################################################
+        
+        ############################################################################################
         #
         # Create the remaining Pipeline components
         
-        retval = dsl_source_uri_new('uri-source', uri_file, is_live=False, 
-            cudadec_mem_type=0, intra_decode=0, drop_frame_interval=0)
+        # New File Source using the file path defined at the top of the file
+        retval = dsl_source_file_new('file-source', 
+            file_path = file_path, 
+            repeat_enabled = True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Primary GIE using the filespecs above with interval = 1
-        retval = dsl_gie_primary_new('primary-gie', 
-            primary_infer_config_file, primary_model_engine_file, 1)
+        # New Primary GIE using the filespecs above with interval = 0
+        retval = dsl_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -219,11 +308,11 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
  
-        # add our ODE Pad Probe Handle to the Sink Pad of the Tiler
-        retval = dsl_tiler_pph_add('tiler', 'ode-handler', DSL_PAD_SINK)
+         # Add our ODE Pad Probe Handler to the Sink pad of the Tiler
+        retval = dsl_tiler_pph_add('tiler', handler='ode-handler', pad=DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             break
- 
+
         # New OSD with clock and text enabled... using default values.
         retval = dsl_osd_new('on-screen-display', True, True)
         if retval != DSL_RETURN_SUCCESS:
@@ -234,13 +323,17 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to our pipeline - except for our second source and overlay sink 
+        # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 
-            'on-screen-display', 'window-sink', None])
+            ['file-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
             
+        # Set the XWindow into full-screen mode for a kiosk look
+        retval = dsl_pipeline_xwindow_fullscreen_enabled_set('pipeline', True)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # Add the XWindow event handler functions defined above
         retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
@@ -274,4 +367,3 @@ def main(args):
     
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
-    

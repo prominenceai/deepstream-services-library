@@ -31,6 +31,7 @@ THE SOFTWARE.
 #include "DslSurfaceTransform.h"
 #include "DslDisplayTypes.h"
 #include "DslPlayerBintr.h"
+#include "DslMailer.h"
 
 namespace DSL
 {
@@ -63,8 +64,8 @@ namespace DSL
         std::shared_ptr<DisableHandlerOdeAction>(new DisableHandlerOdeAction(name, handler))
 
     #define DSL_ODE_ACTION_EMAIL_PTR std::shared_ptr<EmailOdeAction>
-    #define DSL_ODE_ACTION_EMAIL_NEW(name, subject) \
-        std::shared_ptr<EmailOdeAction>(new EmailOdeAction(name, subject))
+    #define DSL_ODE_ACTION_EMAIL_NEW(name, pMailer, subject) \
+        std::shared_ptr<EmailOdeAction>(new EmailOdeAction(name, pMailer, subject))
         
     #define DSL_ODE_ACTION_FILL_AREA_PTR std::shared_ptr<FillAreaOdeAction>
     #define DSL_ODE_ACTION_FILL_AREA_NEW(name, area, pColor) \
@@ -328,11 +329,32 @@ namespace DSL
         bool AddImagePlayer(DSL_PLAYER_BINTR_PTR pPlayer);
         
         /**
-         * @brief adds an Image Player, Render or RTSP type, to this CaptureAction
-         * @param pPlayer shared pointer to an Image Player to add
-         * @return true on successfull add, false otherwise
+         * @brief removes an Image Player, Render or RTSP type, from this CaptureAction
+         * @param pPlayer shared pointer to an Image Player to remove
+         * @return true on successfull remove, false otherwise
          */
         bool RemoveImagePlayer(DSL_PLAYER_BINTR_PTR pPlayer);
+        
+        /**
+         * @brief adds a SMTP Mailer to this CaptureAction
+         * @param[in] pMailer shared pointer to a Mailer to add
+         * @param[in] subject subject line to use for all email
+         * @param[in] attach boolean flag to optionally attach the image file
+         * @return true on successfull add, false otherwise
+         */
+        bool AddMailer(DSL_MAILER_PTR pMailer, const char* subject, bool attach);
+        
+        /**
+         * @brief removes a SMPT Mailer to this CaptureAction
+         * @param[in] pMailer shared pointer to an Mailer to remove
+         * @return true on successfull remove, false otherwise
+         */
+        bool RemoveMailer(DSL_MAILER_PTR pMailer);
+        
+        /**
+         * @brief removes all child Mailers, Players, and Listeners from this parent Object
+         */
+        void RemoveAllChildren();
         
         /**
          * @brief Queues capture info and starts the Listener notification timer
@@ -341,11 +363,13 @@ namespace DSL
         void QueueCapturedImage(std::shared_ptr<cv::Mat> pImageMat);
         
         /**
-         * @brief implements a timer callback to notify all client listeners in the main loop context.
-         * @return false always to self remove timer once clients have been notified. Timer/tread will
-         * be restarted on next Image Capture
+         * @brief implements a timer callback to complete the capture process 
+         * by saving the image to file, notifying all client listeners, and 
+         * sending email all in the main loop context.
+         * @return false always to self remove timer once clients have been notified. 
+         * Timer/tread will be restarted on next Image Capture
          */
-        int NotifyClientListeners();
+        int CompleteCapture();
         
     protected:
     
@@ -377,7 +401,7 @@ namespace DSL
         /**
          * @brief gnome timer Id for the capture complete callback
          */
-        uint m_listenerNotifierTimerId;
+        uint m_captureCompleteTimerId;
         
         /**
          * @brief map of all currently registered capture-complete-listeners
@@ -391,17 +415,23 @@ namespace DSL
         std::map<std::string, DSL_PLAYER_BINTR_PTR> m_imagePlayers;
         
         /**
+         * @brief map of all Mailers to send email.
+         */
+        std::map<std::string, std::shared_ptr<MailerSpecs>> m_mailers;
+        
+        /**
          * @brief a queue of captured Images to save to file and notify clients
          */
         std::queue<std::shared_ptr<cv::Mat>> m_imageMats;
     };
 
     /**
-     * @brief Timer callback handler to invoke the Capture Actions Listerner notification.
+     * @brief Timer callback handler to complete the capture process
+     * by notifying all listeners and sending email with all mailers.
      * @param[in] pSource shared pointer to Capture Action to invoke.
      * @return int true to continue, 0 to self remove
      */
-    static int CaptureListenerNotificationHandler(gpointer pAction);
+    static int CompleteCaptureHandler(gpointer pAction);
     
     // ********************************************************************
 
@@ -572,9 +602,11 @@ namespace DSL
         /**
          * @brief ctor for the ODE Fill Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] pColor shared pointer to an RGBA Color to fill the Frame
+         * @param[in] pMailer shared pointer
+         * @param[in] subject line to use in all emails
          */
-        EmailOdeAction(const char* name, const char* subject);
+        EmailOdeAction(const char* name, 
+            DSL_BASE_PTR pMailer, const char* subject);
         
         /**
          * @brief dtor for the ODE Display Action class
@@ -593,6 +625,11 @@ namespace DSL
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
+    
+        /**
+         * @bried shared pointer to Mailer object in use by this Action
+         */
+        DSL_BASE_PTR m_pMailer;
     
         /**
          * @brief Subject line used for all email messages sent by this action

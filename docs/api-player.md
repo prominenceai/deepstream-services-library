@@ -752,5 +752,5 @@ player_count = dsl_player_list_size()
 * [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
-* [SMTP Services](/docs/api-smtp.md)
+* [Mailer](/docs/api-mailer.md)
 

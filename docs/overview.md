@@ -1138,7 +1138,7 @@ if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
 * [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
-* [SMTP Services](/docs/api-smpt.md)
+* [Mailer](/docs/api-mailer.md)
 
 --- 
 * <b id="f1">1</b> Quote from GStreamer documentation [here](https://gstreamer.freedesktop.org/documentation/?gi-language=c). [↩](#a1)

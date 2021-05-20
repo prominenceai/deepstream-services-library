@@ -119,7 +119,7 @@ namespace DSL
         , m_captureType(captureType)
         , m_outdir(outdir)
         , m_annotate(annotate)
-        , m_listenerNotifierTimerId(0)
+        , m_captureCompleteTimerId(0)
     {
         LOG_FUNC();
 
@@ -130,12 +130,14 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (m_listenerNotifierTimerId)
         {
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
-            g_source_remove(m_listenerNotifierTimerId);
+            if (m_captureCompleteTimerId)
+            {
+                g_source_remove(m_captureCompleteTimerId);
+            }
+            RemoveAllChildren();
         }
-
         g_mutex_clear(&m_captureCompleteMutex);
     }
 
@@ -203,6 +205,48 @@ namespace DSL
         m_imagePlayers.erase(pPlayer->GetName());
         
         return true;
+    }
+    
+    bool CaptureOdeAction::AddMailer(DSL_MAILER_PTR pMailer,
+        const char* subject, bool attach)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        
+        if (m_mailers.find(pMailer->GetName()) != m_mailers.end())
+        {   
+            LOG_ERROR("ODE Capture Action '" << GetName() 
+                << "'  - Mailer is not unique");
+            return false;
+        }
+        // combine all input parameters as MailerSpecs and add
+        std::shared_ptr<MailerSpecs> pMailerSpecs = 
+            std::shared_ptr<MailerSpecs>(new MailerSpecs(pMailer, subject, attach));
+            
+        m_mailers[pMailer->GetName()] = pMailerSpecs;
+        
+        return true;
+    }
+    
+    bool CaptureOdeAction::RemoveMailer(DSL_MAILER_PTR pMailer)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        
+        if (m_mailers.find(pMailer->GetCStrName()) == m_mailers.end())
+        {   
+            LOG_ERROR("ODE Capture Action '" << GetName() 
+                << "' - Mailer not found");
+            return false;
+        }
+        m_mailers.erase(pMailer->GetName());
+        
+        return true;
+    }
+
+    void CaptureOdeAction::RemoveAllChildren()
+    {
+        LOG_FUNC();
     }
     
     cv::Mat& CaptureOdeAction::AnnotateObject(NvDsObjectMeta* pObjectMeta, 
@@ -395,13 +439,13 @@ namespace DSL
         m_imageMats.push(pImageMat);
         
         // start the asynchronous notification timer if not currently running
-        if (!m_listenerNotifierTimerId)
+        if (!m_captureCompleteTimerId)
         {
-            m_listenerNotifierTimerId = g_timeout_add(1, CaptureListenerNotificationHandler, this);
+            m_captureCompleteTimerId = g_timeout_add(1, CompleteCaptureHandler, this);
         }
     }
 
-    int CaptureOdeAction::NotifyClientListeners()
+    int CaptureOdeAction::CompleteCapture()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
@@ -430,9 +474,6 @@ namespace DSL
 
             cv::imwrite(filespec.c_str(), *pImageMat);
 
-            // Increment the global capture count
-            s_captureId++;
-            
             // If there are Image Players for playing the captured image
             for (auto const& iter: m_imagePlayers)
             {
@@ -496,16 +537,53 @@ namespace DSL
                     }
                 }
             }
+
+            // If there are Mailers for mailing the capture detals and optional image
+            if (m_mailers.size())
+            {
+                std::vector<std::string> body;
+                
+                body.push_back(std::string("Action     : " 
+                    + GetName() + "<br>"));
+                body.push_back(std::string("File Name  : " 
+                    + fileNameStream.str() + "<br>"));
+                body.push_back(std::string("Location   : " 
+                    + m_outdir + "<br>"));
+                body.push_back(std::string("Capture Id : " 
+                    + std::to_string(s_captureId) + "<br>"));
+
+                // get the dimensions from the image Mat
+                cv::Size imageSize = pImageMat->size();
+
+                body.push_back(std::string("Width      : " 
+                    + std::to_string(imageSize.width) + "<br>"));
+                body.push_back(std::string("Height     : " 
+                    + std::to_string(imageSize.height) + "<br>"));
+                    
+                for (auto const& iter: m_mailers)
+                {
+                    std::string filepath;
+                    if (iter.second->m_attach)
+                    {
+                        filepath.assign(filespec.c_str());
+                    }
+                    iter.second->m_pMailer->QueueMessage(iter.second->m_subject, 
+                        body, filepath);
+                }
+            }
+            // Increment the global capture count
+            s_captureId++;
         }
+
         // clear the timer id and return false to self remove
-        m_listenerNotifierTimerId = 0;
+        m_captureCompleteTimerId = 0;
         return false;
     }
 
-    static int CaptureListenerNotificationHandler(gpointer pAction)
+    static int CompleteCaptureHandler(gpointer pAction)
     {
         return static_cast<CaptureOdeAction*>(pAction)->
-            NotifyClientListeners();
+            CompleteCapture();
     }
 
     // ********************************************************************
@@ -595,8 +673,10 @@ namespace DSL
     
     // ********************************************************************
 
-    EmailOdeAction::EmailOdeAction(const char* name, const char* subject)
+    EmailOdeAction::EmailOdeAction(const char* name, 
+        DSL_BASE_PTR pMailer, const char* subject)
         : OdeAction(name)
+        , m_pMailer(pMailer)
         , m_subject(subject)
     {
         LOG_FUNC();
@@ -694,8 +774,7 @@ namespace DSL
                 body.push_back(std::string("    Inference   : No<br>"));
             }
             
-            const std::shared_ptr<Comms> pComms = DSL::Services::GetServices()->GetComms();
-            pComms->QueueSmtpMessage(m_subject, body);
+            std::dynamic_pointer_cast<Mailer>(m_pMailer)->QueueMessage(m_subject, body);
         }
     }
 

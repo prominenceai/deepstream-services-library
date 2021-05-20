@@ -272,7 +272,7 @@ SCENARIO( "A Player can be added and removed from a Capture Action", "[ode-actio
         REQUIRE( dsl_player_render_image_new(player_name.c_str(),file_path.c_str(), 
             DSL_RENDER_TYPE_OVERLAY, 10, 10, 75, 0) == DSL_RESULT_SUCCESS );
 
-        WHEN( "A capture-complete-listner is added" )
+        WHEN( "A Player is added" )
         {
             REQUIRE( dsl_ode_action_capture_image_player_add(action_name.c_str(),
                 player_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -281,7 +281,7 @@ SCENARIO( "A Player can be added and removed from a Capture Action", "[ode-actio
             REQUIRE( dsl_ode_action_capture_image_player_add(action_name.c_str(),
                 player_name.c_str()) == DSL_RESULT_ODE_ACTION_PLAYER_ADD_FAILED );
 
-            THEN( "The same listner can be remove" ) 
+            THEN( "The same Player can be removed" ) 
             {
                 REQUIRE( dsl_ode_action_capture_image_player_remove(action_name.c_str(),
                     player_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -293,6 +293,49 @@ SCENARIO( "A Player can be added and removed from a Capture Action", "[ode-actio
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
                 REQUIRE( dsl_player_delete(player_name.c_str()) == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A Mailer can be added and removed from a Capture Action", "[ode-action-api]" )
+{
+    GIVEN( "A new Capture Action and Mailer" )
+    {
+        std::wstring action_name(L"capture-action");
+        std::wstring outdir(L"./");
+
+        std::wstring mailer_name(L"mailer");
+        
+        std::wstring subject(L"Subject line");
+        
+        REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), 
+            outdir.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_mailer_new(mailer_name.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A capture-complete-listner is added" )
+        {
+            REQUIRE( dsl_ode_action_capture_mailer_add(action_name.c_str(),
+                mailer_name.c_str(), subject.c_str(), false) == DSL_RESULT_SUCCESS );
+
+            // ensure the same listener twice fails
+            REQUIRE( dsl_ode_action_capture_mailer_add(action_name.c_str(),
+                mailer_name.c_str(), subject.c_str(), false) == DSL_RESULT_ODE_ACTION_MAILER_ADD_FAILED );
+
+            THEN( "The same listner can be removed" ) 
+            {
+                REQUIRE( dsl_ode_action_capture_mailer_remove(action_name.c_str(),
+                    mailer_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                // calling a second time must fail
+                REQUIRE( dsl_ode_action_capture_mailer_remove(action_name.c_str(),
+                    mailer_name.c_str()) == DSL_RESULT_ODE_ACTION_MAILER_REMOVE_FAILED );
+                    
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_mailer_delete(mailer_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_mailer_list_size() == 0 );
             }
         }
     }
@@ -1049,14 +1092,27 @@ SCENARIO( "A new Start Record Sink ODE Action can be created and deleted", "[ode
         std::wstring action_name(L"start-record-action");
         std::wstring recordSinkName(L"record-sink");
 
+        std::wstring outdir(L"./");
+        uint container(DSL_CONTAINER_MP4);
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(2000000);
+        uint interval(0);
+
+        dsl_record_client_listener_cb client_listener;
+
+        REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
+            codec, container, bitrate, interval, client_listener) == DSL_RESULT_SUCCESS );
+
         WHEN( "A new Start Record Sink Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_sink_record_start_new(action_name.c_str(), recordSinkName.c_str(), 1, 1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_sink_record_start_new(action_name.c_str(), 
+                recordSinkName.c_str(), 1, 1, NULL) == DSL_RESULT_SUCCESS );
             
             THEN( "The Start Record Sink Action can be deleted" ) 
             {
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "A new Start Record Action is created" ) 
@@ -1069,6 +1125,7 @@ SCENARIO( "A new Start Record Sink ODE Action can be created and deleted", "[ode
                     
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
@@ -1081,6 +1138,17 @@ SCENARIO( "A new Stop Record Sink ODE Action can be created and deleted", "[ode-
         std::wstring action_name(L"stop-record-action");
         std::wstring recordSinkName(L"record-sink");
 
+        std::wstring outdir(L"./");
+        uint container(DSL_CONTAINER_MP4);
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(2000000);
+        uint interval(0);
+
+        dsl_record_client_listener_cb client_listener;
+
+        REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
+            codec, container, bitrate, interval, client_listener) == DSL_RESULT_SUCCESS );
+
         WHEN( "A new Stop Record Sink Action is created" ) 
         {
             REQUIRE( dsl_ode_action_sink_record_stop_new(action_name.c_str(), 
@@ -1090,6 +1158,7 @@ SCENARIO( "A new Stop Record Sink ODE Action can be created and deleted", "[ode-
             {
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "A new Stop Record Action is created" ) 
@@ -1104,6 +1173,7 @@ SCENARIO( "A new Stop Record Sink ODE Action can be created and deleted", "[ode-
                     
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
@@ -1116,6 +1186,14 @@ SCENARIO( "A new Start Record Tap ODE Action can be created and deleted", "[ode-
         std::wstring action_name(L"start-record-action");
         std::wstring recordTapName(L"record-sink");
 
+        std::wstring outdir(L"./");
+        uint container(DSL_CONTAINER_MP4);
+
+        dsl_record_client_listener_cb client_listener;
+
+        REQUIRE( dsl_tap_record_new(recordTapName.c_str(), outdir.c_str(),
+            container, client_listener) == DSL_RESULT_SUCCESS );
+
         WHEN( "A new Start Record Sink Action is created" ) 
         {
             REQUIRE( dsl_ode_action_tap_record_start_new(action_name.c_str(), 
@@ -1125,6 +1203,7 @@ SCENARIO( "A new Start Record Tap ODE Action can be created and deleted", "[ode-
             {
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "A new Start Record Tap Action is created" ) 
@@ -1139,6 +1218,7 @@ SCENARIO( "A new Start Record Tap ODE Action can be created and deleted", "[ode-
                     
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
@@ -1151,6 +1231,14 @@ SCENARIO( "A new Stop Record Tap ODE Action can be created and deleted", "[ode-a
         std::wstring action_name(L"stop-record-action");
         std::wstring recordTapName(L"record-sink");
 
+        std::wstring outdir(L"./");
+        uint container(DSL_CONTAINER_MP4);
+
+        dsl_record_client_listener_cb client_listener;
+
+        REQUIRE( dsl_tap_record_new(recordTapName.c_str(), outdir.c_str(),
+            container, client_listener) == DSL_RESULT_SUCCESS );
+
         WHEN( "A new Stop Record Tap Action is created" ) 
         {
             REQUIRE( dsl_ode_action_tap_record_start_new(action_name.c_str(), 
@@ -1161,6 +1249,7 @@ SCENARIO( "A new Stop Record Tap ODE Action can be created and deleted", "[ode-a
             {
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "A new Stop Record Tap Action is created" ) 
@@ -1176,6 +1265,7 @@ SCENARIO( "A new Stop Record Tap ODE Action can be created and deleted", "[ode-a
                     
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }

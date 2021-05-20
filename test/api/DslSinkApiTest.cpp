@@ -1012,6 +1012,53 @@ SCENARIO( "A Player can be added to and removed from a Record Sink", "[sink-api]
     }
 }    
 
+SCENARIO( "A Mailer can be added to and removed from a Record Sink", "[sink-api]" )
+{
+    GIVEN( "A new Record Sink and Mailer" )
+    {
+        std::wstring recordSinkName(L"record-sink");
+        std::wstring outdir(L"./");
+        uint container(DSL_CONTAINER_MP4);
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(2000000);
+        uint interval(0);
+
+        dsl_record_client_listener_cb client_listener;
+
+        REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
+            codec, container, bitrate, interval, client_listener) == DSL_RESULT_SUCCESS );
+
+        std::wstring mailer_name(L"mailer");
+        std::wstring subject(L"Subject line");
+        
+        REQUIRE( dsl_mailer_new(mailer_name.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Mailer is added" )
+        {
+            REQUIRE( dsl_sink_record_mailer_add(recordSinkName.c_str(),
+                mailer_name.c_str(), subject.c_str()) == DSL_RESULT_SUCCESS );
+
+            // ensure the same Mailer twice fails
+            REQUIRE( dsl_sink_record_mailer_add(recordSinkName.c_str(),
+                mailer_name.c_str(), subject.c_str()) == DSL_RESULT_SINK_MAILER_ADD_FAILED );
+
+            THEN( "The Mailer can be removed" ) 
+            {
+                REQUIRE( dsl_sink_record_mailer_remove(recordSinkName.c_str(),
+                    mailer_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                // calling a second time must fail
+                REQUIRE( dsl_sink_record_mailer_remove(recordSinkName.c_str(),
+                    mailer_name.c_str()) == DSL_RESULT_SINK_MAILER_REMOVE_FAILED );
+                    
+                REQUIRE( dsl_component_delete(recordSinkName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_mailer_delete(mailer_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_mailer_list_size() == 0 );
+            }
+        }
+    }
+}
 
 SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H264 RTSP Sink", "[sink-api]" )
 {
@@ -1389,11 +1436,13 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
-        std::wstring sinkName  = L"test-sink";
-        std::wstring otherName  = L"other";
+        std::wstring sinkName(L"test-sink");
+        std::wstring otherName(L"other");
         
         uint cache_size(0), width(0), height(0), codec(0), container(0), bitrate(0), interval(0), udpPort(0), rtspPort(0);
         boolean is_on(0), reset_done(0), sync(0), async(0);
+        
+        std::wstring mailerName(L"mailer");
         
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -1427,6 +1476,17 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
                 REQUIRE( dsl_sink_record_is_on_get(NULL, &is_on) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_sink_record_reset_done_get(NULL, &reset_done) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_sink_record_video_player_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_video_player_add(sinkName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_video_player_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_video_player_remove(sinkName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_sink_record_mailer_add(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_mailer_add(sinkName.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_mailer_add(sinkName.c_str(), mailerName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_mailer_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_mailer_remove(sinkName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_sink_encode_video_formats_get(NULL, &codec, &container) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_encode_settings_get(NULL, &bitrate, &interval) == DSL_RESULT_INVALID_INPUT_PARAM );

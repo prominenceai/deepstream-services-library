@@ -131,6 +131,8 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_HANDLER_REMOVE_FAILED                       0x00040011
 #define DSL_RESULT_SINK_PLAYER_ADD_FAILED                           0x00040012
 #define DSL_RESULT_SINK_PLAYER_REMOVE_FAILED                        0x00040013
+#define DSL_RESULT_SINK_MAILER_ADD_FAILED                           0x00040014
+#define DSL_RESULT_SINK_MAILER_REMOVE_FAILED                        0x00040015
 
 
 /**
@@ -301,6 +303,8 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED                0x000F000B
 #define DSL_RESULT_ODE_ACTION_PLAYER_ADD_FAILED                     0x000F000C
 #define DSL_RESULT_ODE_ACTION_PLAYER_REMOVE_FAILED                  0x000F000D
+#define DSL_RESULT_ODE_ACTION_MAILER_ADD_FAILED                     0x000F000E
+#define DSL_RESULT_ODE_ACTION_MAILER_REMOVE_FAILED                  0x000F000F
 
 /**
  * ODE Area API Return Values
@@ -350,6 +354,8 @@ THE SOFTWARE.
 #define DSL_RESULT_TAP_CONTAINER_VALUE_INVALID                      0x00300008
 #define DSL_RESULT_TAP_PLAYER_ADD_FAILED                            0x00300009
 #define DSL_RESULT_TAP_PLAYER_REMOVE_FAILED                         0x0030000A
+#define DSL_RESULT_TAP_MAILER_ADD_FAILED                            0x0030000B
+#define DSL_RESULT_TAP_MAILER_REMOVE_FAILED                         0x0030000C
 
 /**
  * Player API Return Values
@@ -362,15 +368,27 @@ THE SOFTWARE.
 #define DSL_RESULT_PLAYER_IS_NOT_IMAGE_PLAYER                       0x00400005
 #define DSL_RESULT_PLAYER_IS_NOT_VIDEO_PLAYER                       0x00400006
 #define DSL_RESULT_PLAYER_THREW_EXCEPTION                           0x00400007
-#define DSL_RESULT_PLAYER_XWINDOW_GET_FAILED                        0x00400008
-#define DSL_RESULT_PLAYER_XWINDOW_SET_FAILED                        0x00400009
-#define DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED                       0x0040000A
-#define DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED                    0x0040000B
-#define DSL_RESULT_PLAYER_FAILED_TO_PLAY                            0x0040000C
-#define DSL_RESULT_PLAYER_FAILED_TO_PAUSE                           0x0040000D
-#define DSL_RESULT_PLAYER_FAILED_TO_STOP                            0x0040000E
-#define DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT                0x0040000F
-#define DSL_RESULT_PLAYER_SET_FAILED                                0x00400010
+#define DSL_RESULT_PLAYER_IN_USE                                    0x00400008
+#define DSL_RESULT_PLAYER_XWINDOW_GET_FAILED                        0x00400009
+#define DSL_RESULT_PLAYER_XWINDOW_SET_FAILED                        0x0040000A
+#define DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED                       0x0040000B
+#define DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED                    0x0040000C
+#define DSL_RESULT_PLAYER_FAILED_TO_PLAY                            0x0040000D
+#define DSL_RESULT_PLAYER_FAILED_TO_PAUSE                           0x0040000E
+#define DSL_RESULT_PLAYER_FAILED_TO_STOP                            0x0040000F
+#define DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT                0x00400010
+#define DSL_RESULT_PLAYER_SET_FAILED                                0x00400011
+
+/**
+ * SMTP Mailer API Return Values
+ */
+#define DSL_RESULT_MAILER_RESULT                                    0x00500000
+#define DSL_RESULT_MAILER_NAME_NOT_UNIQUE                           0x00500001
+#define DSL_RESULT_MAILER_NAME_NOT_FOUND                            0x00500002
+#define DSL_RESULT_MAILER_THREW_EXCEPTION                           0x00500003
+#define DSL_RESULT_MAILER_IN_USE                                    0x00500004
+#define DSL_RESULT_MAILER_SET_FAILED                                0x00500005
+#define DSL_RESULT_MAILER_PARAMETER_INVALID                         0x00500006
 
 /**
  *
@@ -574,6 +592,10 @@ typedef struct dsl_rtsp_connection_data
  */
 typedef struct dsl_recording_info
 {
+    /**
+     * @brief specifies which recording event has occurred. One of 
+     * DSL_RECORDING_EVENT_START or DSL_RECORDING_EVENT_END
+     */
     uint recording_event;
     
     /**
@@ -1046,8 +1068,7 @@ DslReturnType dsl_ode_action_capture_complete_listener_remove(const wchar_t* nam
 /**
  * @brief Adds an Image Player, Render or RTSP type, to a named Capture Action.
  * Once added, each captured image's file_path will be added (or queued) with
- * the Image Player to be played according to the Players settings. The Action can
- * have at most one Image Player.
+ * the Image Player to be played according to the Players settings. 
  * @param[in] name unique name of the Capture Action to update
  * @param[in] player unique name of the Image Player to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
@@ -1063,6 +1084,28 @@ DslReturnType dsl_ode_action_capture_image_player_add(const wchar_t* name,
  */
 DslReturnType dsl_ode_action_capture_image_player_remove(const wchar_t* name, 
     const wchar_t* player);
+    
+/**
+ * @brief Adds a SMTP mailer to a named Capture Action. Once added, each
+ * captured image's file_path and details will be sent out according to the 
+ * Mailer's settings. The image file can be attached to the email as an option.
+ * @param[in] name unique name of the Capture Action to update
+ * @param[in] mailer unique name of the Mailer to add
+ * @param[in] subject subject line to use for all outgoing mail
+ * @param[in] attach set to true to attach the image file, false otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_capture_mailer_add(const wchar_t* name, 
+    const wchar_t* mailer, const wchar_t* subject, boolean attach);
+    
+/**
+ * @brief Removes a named Mailer from a named Capture Action.
+ * @param[in] name unique name of the Capture Action to update
+ * @param[in] mailer unique name of the Mailer to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_capture_mailer_remove(const wchar_t* name, 
+    const wchar_t* mailer);
     
 /**
  * @brief Creates a uniquely named Display ODE Action
@@ -1105,12 +1148,14 @@ DslReturnType dsl_ode_action_display_meta_add_many_new(const wchar_t* name,
 
 /**
  * @brief Creates a uniquely named Email ODE Action, that sends an email message using the
- * SMTP parameters setup through the SMTP API
+ * SMTP Mailer Object specified by its unique name.
  * @param[in] name unique name for the Email ODE Action
+ * @param[in] mailer unique name of the SMTP Mailer Object to use.
  * @param[in] subject text to use as the subject line for all messages sent from this Action
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_email_new(const wchar_t* name, const wchar_t* subject);
+DslReturnType dsl_ode_action_email_new(const wchar_t* name, 
+    const wchar_t* mailer, const wchar_t* subject);
 
 /**
  * @brief Creates a uniquely named Fill Frame ODE Action, that fills the entire
@@ -2560,10 +2605,10 @@ DslReturnType dsl_tap_record_is_on_get(const wchar_t* name, boolean* is_on);
 DslReturnType dsl_tap_record_reset_done_get(const wchar_t* name, boolean* reset_done);
 
 /**
- * @brief Adds a Video Player, Render or RTSP type, to a named Tap Recorder.
+ * @brief Adds a Video Player, Render or RTSP type, to a named Record Tap.
  * Once added, each recorded video's file_path will be added (or queued) with
  * the Video Player to be played according to the Players settings. 
- * @param[in] name unique name of the Tap Recorder to update
+ * @param[in] name unique name of the Record Tap to update
  * @param[in] player unique name of the Video Player to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
@@ -2571,14 +2616,35 @@ DslReturnType dsl_tap_record_video_player_add(const wchar_t* name,
     const wchar_t* player);
     
 /**
- * @brief Removes a Video Player, Render or RTSP type, from a named Tap Recorder.
- * @param[in] name unique name of the Tap Recorder to update
+ * @brief Removes a Video Player, Render or RTSP type, from a named Record Tap.
+ * @param[in] name unique name of the Record Tap to update
  * @param[in] player unique name of the Video Player to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_tap_record_video_player_remove(const wchar_t* name, 
     const wchar_t* player);
 
+/**
+ * @brief Adds a SMTP mailer to a named Record Tap. Once added, the Tap will 
+ * use the Mailer to send out the file_path and details of each saved recording 
+ * according to the Mailer's settings.
+ * @param[in] name unique name of the Record Tap to update
+ * @param[in] mailer unique name of the Mailer to add
+ * @param[in] subject subject line to use for all outgoing mail
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_tap_record_mailer_add(const wchar_t* name, 
+    const wchar_t* mailer, const wchar_t* subject);
+    
+/**
+ * @brief Removes a named Mailer from a named Record Tap.
+ * @param[in] name unique name of the Record Tap to update
+ * @param[in] mailer unique name of the Mailer to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_tap_record_mailer_remove(const wchar_t* name, 
+    const wchar_t* mailer);
+    
 /**
  * @brief creates a new, uniquely named Primary GIE object
  * @param[in] name unique name for the new GIE object
@@ -3363,25 +3429,47 @@ DslReturnType dsl_sink_record_is_on_get(const wchar_t* name, boolean* is_on);
 DslReturnType dsl_sink_record_reset_done_get(const wchar_t* name, boolean* reset_done);
 
 /**
- * @brief Adds a Video Player, Render or RTSP type, to a named Sink Recorder.
+ * @brief Adds a Video Player, Render or RTSP type, to a named Record Sink.
  * Once added, each recorded video's file_path will be added (or queued) with
  * the Video Player to be played according to the Players settings. 
- * @param[in] name unique name of the Sink Recorder to update
+ * @param[in] name unique name of the Record Sink to update
  * @param[in] player unique name of the Video Player to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_sink_record_video_player_add(const wchar_t* name, 
     const wchar_t* player);
-    
+
+        
 /**
- * @brief Removes a Video Player, Render or RTSP type, from a named Sink Recorder.
- * @param[in] name unique name of the Sink Recorder to update
+ * @brief Removes a Video Player, Render or RTSP type, from a named Record Sink.
+ * @param[in] name unique name of the Record Sink to update
  * @param[in] player unique name of the Video Player to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_sink_record_video_player_remove(const wchar_t* name, 
     const wchar_t* player);
 
+/**
+ * @brief Adds a SMTP mailer to a named Record Sink. Once added, the Sink will 
+ * use the Mailer to send out the file_path and details of each saved recording 
+ * according to the Mailer's settings.
+ * @param[in] name unique name of the Record Sink to update
+ * @param[in] mailer unique name of the Mailer to add
+ * @param[in] subject subject line to use for all outgoing mail
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_record_mailer_add(const wchar_t* name, 
+    const wchar_t* mailer, const wchar_t* subject);
+    
+/**
+ * @brief Removes a named Mailer from a named Record Sink.
+ * @param[in] name unique name of the Record Sink to update
+ * @param[in] mailer unique name of the Mailer to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_record_mailer_remove(const wchar_t* name, 
+    const wchar_t* mailer);
+    
 /**
  * @brief gets the current codec and video media container formats
  * @param[in] name unique name of the Sink to query
@@ -4316,115 +4404,168 @@ DslReturnType dsl_player_delete(const wchar_t* name);
 DslReturnType dsl_player_delete_all();
 
 /**
- * @brief Returns the current number of Players in memeory
+ * @brief Returns the current number of Players in memory
  * @return size of the list of Players
  */
 uint dsl_player_list_size();
 
 /**
- * @brief Gets the current Enabled state of the SMTP Email Services
- * @return DSL_RESULT_SUCCESS on success, one DSL_RESULT_FAILED on failure
+ * @brief Creates a uniquely named SMTP Mailer 
+ * @param[in] name unique name for the new Mailer
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_MAILER_RESULT otherwise
  */
-DslReturnType dsl_smtp_mail_enabled_get(boolean* enabled);
+DslReturnType dsl_mailer_new(const wchar_t* name);
 
 /**
- * @brief Sets the state of the SMTP Email Services
- * Disabling SMTP services will block all subsequent emails from being queued for sending.
- * @param enabled set to true to enable, false to disabled
+ * @brief Gets the current Enabled state for the named SMTP Mailer
+ * @param[in] name unique name of the Mailer to query
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_MAILER_RESULT otherwise
  */
-DslReturnType dsl_smtp_mail_enabled_set(boolean enabled);
+DslReturnType dsl_mailer_enabled_get(const wchar_t* name, boolean* enabled);
 
 /**
- * @brief sets the user credentials for the SMTP host for all subsequent emails
+ * @brief Sets the Enabled state of the named SMTP Mailer
+ * Disabling the Mailer will block all subsequent emails from being queued for sending.
+ * @param[in] name unique name of the Mailer to update
+ * @param[in] enabled set to true to enable, false to disabled
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_MAILER_RESULT otherwise
+ */
+DslReturnType dsl_mailer_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief Sets the user credentials for the Mailer's SMTP host for all subsequent emails
+ * @param[in] name unique name of the Mailer to update
  * @param[in] username username to use
  * @param[in] password password to use
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INVALID_INPUT_PARAM if param(s) NULL.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_MAILER_RESULT otherwise
  */
-DslReturnType dsl_smtp_credentials_set(const wchar_t* username, 
-    const wchar_t* password);
+DslReturnType dsl_mailer_credentials_set(const wchar_t* name, 
+    const wchar_t* username, const wchar_t* password);
 
 /**
- * @brief gets the current SMTP server URL setting
+ * @brief Gets the current SMTP server URL setting for the named Mailer
+ * @param[in] name unique name of the Mailer to query
  * @param[out] server_url current server URL in use
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_MAILER_RESULT otherwise
  */
-DslReturnType dsl_smtp_server_url_get(const wchar_t** server_url);
+DslReturnType dsl_mailer_server_url_get(const wchar_t* name,
+    const wchar_t** server_url);
 
 /**
- * @brief sets the SMTP server URL to use for all subsequent emails
- * for all subsequence email sent out
+ * @brief Sets the SMTP server URL for the Mailer to use for all 
+ * subsequence email sent out
+ * @param[in] name unique name of the Mailer to update
  * @param[in] server_url to use 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_MAILER_RESULT otherwise
  */
-DslReturnType dsl_smtp_server_url_set(const wchar_t* server_url);
+DslReturnType dsl_mailer_server_url_set(const wchar_t* name,
+    const wchar_t* server_url);
 
 /**
- * @brief gets the current From address components
- * @param[out] name current From address display name
+ * @brief Gets the current From address for the named Mailer
+ * @param[in] name unique name of the Mailer to query
+ * @param[out] display_name current From address display name
  * @param[out] address current From address
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_MAILER_RESULT otherwise
  */
-DslReturnType dsl_smtp_address_from_get(const wchar_t** name,
-    const wchar_t** address);
+DslReturnType dsl_mailer_address_from_get(const wchar_t* name,
+    const wchar_t** display_name, const wchar_t** address);
 
 /**
- * @brief sets the current From address componts to use for all subsequent email
- * @param[in] name new From address display name to use
+ * @brief Sets the current From address for the Mailer to use 
+ * for all subsequent emails
+ * @param[in] name unique name of the Mailer to update
+ * @param[in] display_name new From address display name to use
  * @param[in] address new From address
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_MAILER_RESULT otherwise
  */
-DslReturnType dsl_smtp_address_from_set(const wchar_t* name,
-    const wchar_t* address);
+DslReturnType dsl_mailer_address_from_set(const wchar_t* name,
+    const wchar_t* display_name, const wchar_t* address);
 
 /**
- * @brief returns the current SMTP SSL enabled setting
+ * @brief Returns the current SMTP SSL enabled setting in use by the named Mailer
  * The setting is enabled by default
+ * @param[in] name unique name of the Mailer to query
  * @param[out] enabled true if SSL is enabled, false otherwise 
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_MAILER_RESULT otherwise
  */
-DslReturnType dsl_smtp_ssl_enabled_get(boolean* enabled);
+DslReturnType dsl_mailer_ssl_enabled_get(const wchar_t* name, boolean* enabled);
 
 /**
- * @brief sets the SMTP SSL enabled setting
+ * @brief Sets the SMTP SSL enabled setting for the named Mailer
+ * @param[in] name unique name of the Mailer to update
  * @param[in] enabled set to true to enable, false otherwise
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_MAILER_RESULT otherwise
 */
-DslReturnType dsl_smtp_ssl_enabled_set(boolean enabled);
+DslReturnType dsl_mailer_ssl_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
- * @brief adds a new email address to the To list
- * @param name display name for the To address
- * @param address qualifed email To address
+ * @brief Adds a new email address to the To list of the named Mailer
+ * @param[in] name unique name of the Mailer to update
+ * @param[in] display_name display name for the To address
+ * @param[in] address qualifed email To address
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
  */
-DslReturnType dsl_smtp_address_to_add(const wchar_t* name,
-    const wchar_t* address);
+DslReturnType dsl_mailer_address_to_add(const wchar_t* name,
+    const wchar_t* display_name, const wchar_t* address);
 
 /**
- * @brief removes all current TO addresses
+ * @brief Removes all current To addresses from the named Mailer
+ * @param[in] name unique name of the Mailer to update
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
  */
-DslReturnType dsl_smtp_address_to_remove_all();
+DslReturnType dsl_mailer_address_to_remove_all(const wchar_t* name);
 
 /**
- * @brief adds a new email address to the Cc list
- * @param name display name for the Cc address
- * @param address qualifed email Cc address
+ * @brief Adds a new email address to the Cc list of the name Mailer
+ * @param[in] name unique name of the Mailer to update
+ * @param[in] display_name display name for the Cc address
+ * @param[in] address qualifed email Cc address
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
  */
-DslReturnType dsl_smtp_address_cc_add(const wchar_t* name,
-    const wchar_t* address);
+DslReturnType dsl_mailer_address_cc_add(const wchar_t* name,
+    const wchar_t* display_name, const wchar_t* address);
 
 /**
- * @brief removes all current CC addresses
+ * @brief Removes all current CC addresses from the named Mailer
+ * @param[in] name unique name of the Mailer to update
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
  */
-DslReturnType dsl_smtp_address_cc_remove_all();
+DslReturnType dsl_mailer_address_cc_remove_all(const wchar_t* name);
 
 /**
- * @brief sends a test message using the current SMTP
+ * @brief Sends a test message using the current SMTP
  * settings and email addresses (From, To, Cc)
+ * @param[in] name unique name of the Mailer to test
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
  */
-DslReturnType dsl_smtp_test_message_send();
+DslReturnType dsl_mailer_test_message_send(const wchar_t* name);
+
+/**
+ * @brief Deletes a SMTP Mailer Object by name.
+ * @param[in] name unique name of the Mailer to delete.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise.
+ */
+DslReturnType dsl_mailer_delete(const wchar_t* name);
+
+/**
+ * @brief Deletes all SMTP Mailers in memory
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT
+ */
+DslReturnType dsl_mailer_delete_all();
+
+/**
+ * @brief Queries DSL to determine if a uniquely named Mailer Object exists 
+ * @param name of the Mailer to check for existence
+ * @return true if the named Mailer exists, false otherwise
+ */
+boolean dsl_mailer_exists(const wchar_t* name);
+
+/**
+ * @brief Returns the current number of Mailers in memeory
+ * @return size of the list of Mailers
+ */
+uint dsl_mailer_list_size();
 
 /**
  * @brief entry point to the GST Main Loop
@@ -4463,6 +4604,11 @@ const wchar_t* dsl_version_get();
  */
 void dsl_delete_all();
 
+/**
+ * @brief Returns the current number of Mailers in memory
+ * @return size of the list of Mailers
+ */
+uint dsl_mailer_list_size();
 
 EXTERN_C_END
 

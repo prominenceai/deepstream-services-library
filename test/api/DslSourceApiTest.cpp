@@ -774,6 +774,7 @@ SCENARIO( "A new File Source returns the correct attribute values", "[source-api
                     &pRetFilePath) == DSL_RESULT_SUCCESS );
                 std::wstring ret_file_path(pRetFilePath);
                 REQUIRE( ret_file_path == empty_file_path );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }

@@ -403,6 +403,28 @@ def dsl_ode_action_capture_image_player_remove(name, player):
     return int(result)
     
 ##
+## dsl_ode_action_capture_mailer_add()
+##
+_dsl.dsl_ode_action_capture_mailer_add.argtypes = [c_wchar_p, 
+    c_wchar_p, c_wchar_p, c_bool]
+_dsl.dsl_ode_action_capture_mailer_add.restype = c_uint
+def dsl_ode_action_capture_mailer_add(name, mailer, subject, attach):
+    global _dsl
+    result = _dsl.dsl_ode_action_capture_mailer_add(name, 
+        mailer, subject, attach)
+    return int(result)
+
+##
+## dsl_ode_action_capture_mailer_remove()
+##
+_dsl.dsl_ode_action_capture_mailer_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_capture_mailer_remove.restype = c_uint
+def dsl_ode_action_capture_mailer_remove(name, mailer):
+    global _dsl
+    result = _dsl.dsl_ode_action_capture_mailer_remove(name, mailer)
+    return int(result)
+    
+##
 ## dsl_ode_action_display_new()
 ##
 _dsl.dsl_ode_action_display_new.argtypes = [c_wchar_p, 
@@ -420,9 +442,9 @@ def dsl_ode_action_display_new(name,
 ##
 _dsl.dsl_ode_action_email_new.argtypes = [c_wchar_p, c_wchar_p]
 _dsl.dsl_ode_action_email_new.restype = c_uint
-def dsl_ode_action_email_new(name, subject):
+def dsl_ode_action_email_new(name, mailer, subject):
     global _dsl
-    result =_dsl.dsl_ode_action_email_new(name, subject)
+    result =_dsl.dsl_ode_action_email_new(name, mailer, subject)
     return int(result)
 
 ##
@@ -2006,6 +2028,26 @@ def dsl_tap_record_video_player_remove(name, player):
     return int(result)
 
 ##
+## dsl_tap_record_mailer_add()
+##
+_dsl.dsl_tap_record_mailer_add.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_tap_record_mailer_add.restype = c_uint
+def dsl_tap_record_mailer_add(name, mailer, subject):
+    global _dsl
+    result = _dsl.dsl_tap_record_mailer_add(name, mailer, subject)
+    return int(result)
+
+##
+## dsl_tap_record_mailer_remove()
+##
+_dsl.dsl_tap_record_mailer_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_tap_record_mailer_remove.restype = c_uint
+def dsl_tap_record_mailer_remove(name, mailer):
+    global _dsl
+    result = _dsl.dsl_tap_record_mailer_remove(name, mailer)
+    return int(result)
+
+##
 ## dsl_gie_primary_new()
 ##
 _dsl.dsl_gie_primary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_uint]
@@ -2785,6 +2827,26 @@ _dsl.dsl_sink_record_video_player_remove.restype = c_uint
 def dsl_sink_record_video_player_remove(name, player):
     global _dsl
     result = _dsl.dsl_sink_record_video_player_remove(name, player)
+    return int(result)
+
+##
+## dsl_sink_record_mailer_add()
+##
+_dsl.dsl_sink_record_mailer_add.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_record_mailer_add.restype = c_uint
+def dsl_sink_record_mailer_add(name, mailer, subject):
+    global _dsl
+    result = _dsl.dsl_sink_record_mailer_add(name, mailer, subject)
+    return int(result)
+
+##
+## dsl_sink_record_mailer_remove()
+##
+_dsl.dsl_sink_record_mailer_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_record_mailer_remove.restype = c_uint
+def dsl_sink_record_mailer_remove(name, player):
+    global _dsl
+    result = _dsl.dsl_sink_record_mailer_remove(name, mailer)
     return int(result)
 
 ##
@@ -3873,143 +3935,185 @@ def dsl_player_delete_all():
     return int(result)
 
 ##
-## dsl_smtp_mail_enabled_get()
+## dsl_mailer_new()
 ##
-_dsl.dsl_smtp_mail_enabled_get.argtypes = [POINTER(c_bool)]
-_dsl.dsl_smtp_mail_enabled_get.restype = c_uint
-def dsl_smtp_mail_enabled_get():
+_dsl.dsl_mailer_new.argtypes = [c_wchar_p]
+_dsl.dsl_mailer_new.restype = c_uint
+def dsl_mailer_new(name):
+    global _dsl
+    result =_dsl.dsl_mailer_new(name)
+    return int(result)
+
+##
+## dsl_mailer_enabled_get()
+##
+_dsl.dsl_mailer_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_mailer_enabled_get.restype = c_uint
+def dsl_mailer_enabled_get(name):
     global _dsl
     enabled = c_bool(0)
-    result = _dsl.dsl_smtp_mail_enabled_get(DSL_BOOL_P(enabled))
+    result = _dsl.dsl_mailer_enabled_get(name, DSL_BOOL_P(enabled))
     return int(result), enabled.value
 
 ##
-## dsl_smtp_mail_enabled_set()
+## dsl_mailer_enabled_set()
 ##
-_dsl.dsl_smtp_mail_enabled_set.argtypes = [c_bool]
-def dsl_smtp_mail_enabled_set(enabled):
+_dsl.dsl_mailer_enabled_set.argtypes = [c_wchar_p, c_bool]
+def dsl_mailer_enabled_set(name, enabled):
     global _dsl
-    result = _dsl.dsl_smtp_mail_enabled_set(c_uint)
+    result = _dsl.dsl_mailer_enabled_set(name, enabled)
     return int(result)
 
 ##
-## dsl_smtp_credentials_set()
+## dsl_mailer_credentials_set()
 ##
-_dsl.dsl_smtp_credentials_set.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_smtp_credentials_set.restype = c_uint
-def dsl_smtp_credentials_set(name, password):
+_dsl.dsl_mailer_credentials_set.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_mailer_credentials_set.restype = c_uint
+def dsl_mailer_credentials_set(name, username, password):
     global _dsl
-    result = _dsl.dsl_smtp_credentials_set(name, password)
+    result = _dsl.dsl_mailer_credentials_set(name, username, password)
     return int(result)
     
 ##
-## dsl_smtp_server_url_get()
+## dsl_mailer_server_url_get()
 ##
-_dsl.dsl_smtp_server_url_get.argtypes = [POINTER(c_wchar_p)]
-_dsl.dsl_smtp_server_url_get.restype = c_uint
-def dsl_smtp_server_url_get():
+_dsl.dsl_mailer_server_url_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_mailer_server_url_get.restype = c_uint
+def dsl_mailer_server_url_get(name):
     global _dsl
     url = c_wchar_p(0)
-    result = _dsl.dsl_smtp_server_url_get(DSL_WCHAR_PP(url))
+    result = _dsl.dsl_mailer_server_url_get(name, DSL_WCHAR_PP(url))
     return int(result), url.value 
     
 ##
-## dsl_smtp_server_url_set()
+## dsl_mailer_server_url_set()
 ##
-_dsl.dsl_smtp_server_url_set.argtypes = [c_wchar_p]
-_dsl.dsl_smtp_server_url_set.restype = c_uint
-def dsl_smtp_server_url_set(url):
+_dsl.dsl_mailer_server_url_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_mailer_server_url_set.restype = c_uint
+def dsl_mailer_server_url_set(name, url):
     global _dsl
-    result = _dsl.dsl_smtp_server_url_set(url)
+    result = _dsl.dsl_mailer_server_url_set(name, url)
     return int(result)
 
 ##
-## dsl_smtp_address_from_get()
+## dsl_mailer_address_from_get()
 ##
-_dsl.dsl_smtp_address_from_get.argtypes = [POINTER(c_wchar_p), POINTER(c_wchar_p)]
-_dsl.dsl_smtp_address_from_get.restype = c_uint
-def dsl_smtp_address_from_get():
+_dsl.dsl_mailer_address_from_get.argtypes = [c_wchar_p, POINTER(c_wchar_p), POINTER(c_wchar_p)]
+_dsl.dsl_mailer_address_from_get.restype = c_uint
+def dsl_mailer_address_from_get(name):
     global _dsl
     name = c_wchar_p(0)
     address = c_wchar_p(0)
-    result = _dsl.dsl_smtp_address_from_get(DSL_WCHAR_PP(name), DSL_WCHAR_PP(address))
-    return int(result), name.value, address.value
+    result = _dsl.dsl_mailer_address_from_get(DSL_WCHAR_PP(display_name), DSL_WCHAR_PP(address))
+    return int(result), display_name.value, address.value
 
 ##
-## dsl_smtp_address_from_set()
+## dsl_mailer_address_from_set()
 ##
-_dsl.dsl_smtp_address_from_set.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_smtp_address_from_set.restype = c_uint
-def dsl_smtp_address_from_set(name, address):
+_dsl.dsl_mailer_address_from_set.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_mailer_address_from_set.restype = c_uint
+def dsl_mailer_address_from_set(name, display_name, address):
     global _dsl
-    result = _dsl.dsl_smtp_address_from_set(name, address)
+    result = _dsl.dsl_mailer_address_from_set(name, display_name, address)
     return int(result)
 
 ##
-## dsl_smtp_ssl_enabled_get()
+## dsl_mailer_ssl_enabled_get()
 ##
-_dsl.dsl_smtp_ssl_enabled_get.argtypes = [POINTER(c_bool)]
-_dsl.dsl_smtp_ssl_enabled_get.restype = c_uint
-def dsl_smtp_ssl_enabled_get():
+_dsl.dsl_mailer_ssl_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_mailer_ssl_enabled_get.restype = c_uint
+def dsl_mailer_ssl_enabled_get(name):
     global _dsl
     enabled = c_bool(0)
-    result = _dsl.dsl_smtp_ssl_enabled_get(DSL_BOOL_P(enabled))
+    result = _dsl.dsl_mailer_ssl_enabled_get(name, DSL_BOOL_P(enabled))
     return int(result), enabled.value
 
 ##
-## dsl_smtp_ssl_enabled_set()
+## dsl_mailer_ssl_enabled_set()
 ##
-_dsl.dsl_smtp_ssl_enabled_set.argtypes = [c_bool]
-def dsl_smtp_mail_enabled_set(enabled):
+_dsl.dsl_mailer_ssl_enabled_set.argtypes = [c_wchar_p, c_bool]
+def dsl_mailer_mail_enabled_set(name, enabled):
     global _dsl
-    result = _dsl.dsl_smtp_ssl_enabled_set(enabled)
+    result = _dsl.dsl_mailer_ssl_enabled_set(name, enabled)
     return int(result)
 
 ##
-## dsl_smtp_address_to_add()
+## dsl_mailer_address_to_add()
 ##
-_dsl.dsl_smtp_address_to_add.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_smtp_address_to_add.restype = c_uint
-def dsl_smtp_address_to_add(name, address):
+_dsl.dsl_mailer_address_to_add.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_mailer_address_to_add.restype = c_uint
+def dsl_mailer_address_to_add(name, display_name, address):
     global _dsl
-    result = _dsl.dsl_smtp_address_to_add(name, address)
+    result = _dsl.dsl_mailer_address_to_add(name, display_name, address)
     return int(result)
 
 ##
-## dsl_smtp_address_to_remove_all()
+## dsl_mailer_address_to_remove_all()
 ##
-_dsl.dsl_smtp_address_to_remove_all.restype = c_uint
-def dsl_smtp_address_to_remove_all():
+_dsl.dsl_mailer_address_to_remove_all.argtypes = [c_wchar_p]
+_dsl.dsl_mailer_address_to_remove_all.restype = c_uint
+def dsl_mailer_address_to_remove_all(name):
     global _dsl
-    result = _dsl.dsl_smtp_address_to_remove_all()
+    result = _dsl.dsl_mailer_address_to_remove_all(name)
     return int(result)
 
 ##
-## dsl_smtp_address_cc_add()
+## dsl_mailer_address_cc_add()
 ##
-_dsl.dsl_smtp_address_cc_add.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_smtp_address_cc_add.restype = c_uint
-def dsl_smtp_address_cc_add(name, address):
+_dsl.dsl_mailer_address_cc_add.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_mailer_address_cc_add.restype = c_uint
+def dsl_mailer_address_cc_add(name, display_name, address):
     global _dsl
-    result = _dsl.dsl_smtp_address_cc_add(name, address)
+    result = _dsl.dsl_mailer_address_cc_add(name, display_name, address)
     return int(result)
 
 ##
-## dsl_smtp_address_cc_remove_all()
+## dsl_mailer_address_cc_remove_all()
 ##
-_dsl.dsl_smtp_address_to_remove_all.restype = c_uint
-def dsl_smtp_address_cc_remove_all():
+_dsl.dsl_mailer_address_cc_remove_all.argtypes = [c_wchar_p]
+_dsl.dsl_mailer_address_cc_remove_all.restype = c_uint
+def dsl_mailer_address_cc_remove_all(name):
     global _dsl
-    result = _dsl.dsl_smtp_address_cc_remove_all()
+    result = _dsl.dsl_mailer_address_cc_remove_all(name)
     return int(result)
 
 ##
-## dsl_smtp_test_message_send()
+## dsl_mailer_test_message_send()
 ##
-_dsl.dsl_smtp_test_message_send.restype = c_uint
-def dsl_smtp_test_message_send():
+_dsl.dsl_mailer_test_message_send.argtypes = [c_wchar_p]
+_dsl.dsl_mailer_test_message_send.restype = c_uint
+def dsl_mailer_test_message_send(name):
     global _dsl
-    result = _dsl.dsl_smtp_test_message_send()
+    result = _dsl.dsl_mailer_test_message_send(name)
+    return int(result)
+
+##
+## dsl_mailer_delete()
+##
+_dsl.dsl_mailer_delete.argtypes = [c_wchar_p]
+_dsl.dsl_mailer_delete.restype = c_uint
+def dsl_mailer_delete(name):
+    global _dsl
+    result =_dsl.dsl_mailer_delete(name)
+    return int(result)
+
+##
+## dsl_mailer_exists()
+##
+_dsl.dsl_mailer_exists.argtypes = [c_wchar_p]
+_dsl.dsl_mailer_exists.restype = c_uint
+def dsl_mailer_exists(name):
+    global _dsl
+    return _dsl.dsl_mailer_exists(name)
+
+##
+## dsl_mailer_delete_all()
+##
+_dsl.dsl_mailer_delete_all.argtypes = []
+_dsl.dsl_mailer_delete_all.restype = c_uint
+def dsl_mailer_delete_all():
+    global _dsl
+    result =_dsl.dsl_mailer_delete_all()
     return int(result)
 
 ##

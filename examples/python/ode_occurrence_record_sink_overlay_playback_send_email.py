@@ -28,6 +28,30 @@ import sys
 sys.path.insert(0, "../../")
 from dsl import *
 
+##########################################################################33####
+# IMPORTANT! it is STRONGLY advised that you create a new, free Gmail account -- 
+# that is seperate/unlinked from all your other email accounts -- strictly for 
+# the purpose of sending ODE Event data uploaded from DSL.  Then, add your 
+# Personal email address as a "To" address to receive the emails.
+#
+# Gmail considers regular email programs (i.e Outlook, etc.) and non-registered 
+# third-party apps to be "less secure". The email account used for sending email 
+# must have the "Allow less secure apps" option turned on. Once you've created 
+# this new account, you can go to the account settings and enable Less secure 
+# app access. see https://myaccount.google.com/lesssecureapps
+#
+# CAUTION - Do not check sripts into your repo with valid credentials
+#
+#######################################################################
+user_name = 'my.smtps.server'
+password = 'my-server-pw'
+server_url = 'smtps://smtp.gmail.com:465'
+
+from_name = ''
+from_address = 'my.smtps.server'
+to_name = 'Joe Bloe'
+to_address = 'joe.blow@gmail.com'
+
 uri_file = "../../test/streams/sample_1080p_h264.mp4"
 
 # Filespecs for the Primary GIE and IOU Trcaker
@@ -124,6 +148,31 @@ def player_termination_event_listener(client_data):
 
     # reset the Player to close its rendering surface
     dsl_player_render_reset('video-player')
+    
+def setup_smpt_mail():
+
+    global server_url, user_name, password, from_name, from_address, \
+        to_name, to_address
+        
+    retval = dsl_mailer_new('mailer')
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    
+    retval = dsl_mailer_server_url_set('mailer', server_url)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    retval = dsl_mailer_credentials_set('mailer' , user_name, password)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    retval = dsl_mailer_address_from_set('mailer', from_name, from_address)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    retval = dsl_mailer_address_to_add('mailer', to_name, to_address)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+        
+    # (optional) queue a test message to be sent out when the main_loop starts
+    return dsl_mailer_test_message_send('mailer')    
 
 def main(args):
 
@@ -135,11 +184,20 @@ def main(args):
         # to control a Record Sink.  A callback function, called on completion of the recording session, will
         # reset the Trigger allowing a new session to be started on next occurrence.
         # Addional actions are added to "Capture" the frame to an image-file and "Fill" the frame red as a visual marker.
+        # A Video Render Player is added to the Capture Action to playback the video on record complete.
+        # A Mailer is added to Capture Action to email information about the saved recording; name, location, etc.
+        
+
+        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
+        # Setup the SMTP Server URL, Credentials, and From/To addresss
+        retval = setup_smpt_mail()
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # New Record-Sink that will buffer encoded video while waiting for the ODE trigger/action, defined below, 
         # to start a new session on first occurrence. The default 'cache-size' and 'duration' are defined in
-        # Setting the bit rate to 12 Mbps for 1080p ??? 
+        # Setting the bit rate to 12 Mbps for 1080p
         retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H265, container=DSL_CONTAINER_MKV, 
             bitrate=12000000, interval=0, client_listener=recording_event_listener)
         if retval != DSL_RETURN_SUCCESS:
@@ -174,12 +232,18 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             return
 
-        # Add the Player to the Recorder Sink. The Action will add/queue
+        # Add the Player to the Recorder Sink. The Sink will add/queue
         # the file_path to each video recording created. 
         retval = dsl_sink_record_video_player_add('record-sink', 
             player='video-player')
         if retval != DSL_RETURN_SUCCESS:
             break
+            
+        # Add the Mailer to Recorder Sink. The Sink will use the Mailer to email information
+        # -- file location, size, etc. -- on the completion each recorded video.
+        retval = dsl_sink_record_mailer_add('record-sink', 
+            mailer = 'mailer',
+            subject = 'ATTENTION: Bycicle Occurence!')
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Create new RGBA color types

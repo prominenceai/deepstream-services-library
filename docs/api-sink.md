@@ -19,7 +19,7 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 
 ## Sink API
 **Types:**
-* [dsl_recording_info](#dsl_recording_info)
+* [dsl_record_info](#dsl_record_info)
 
 **Callback Types:**
 * [dsl_record_client_listener_cb](#dsl_record_client_listener_cb)
@@ -37,7 +37,6 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_render_offsets_set](#dsl_sink_render_offsets_set)
 * [dsl_sink_render_dimensions_get](#dsl_sink_render_dimensions_get)
 * [dsl_sink_render_dimensions_set](#dsl_sink_render_dimensions_set)
-* [dsl_sink_render_reset](#dsl_sink_render_reset)
 * [dsl_sink_window_force_aspect_ratio_get](#dsl_sink_window_force_aspect_ratio_get)
 * [dsl_sink_window_force_aspect_ratio_set](#dsl_sink_window_force_aspect_ratio_set)
 * [dsl_sink_record_session_start](#dsl_sink_record_session_start)
@@ -51,9 +50,11 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_record_dimensions_get](#dsl_sink_record_dimensions_get)
 * [dsl_sink_record_dimensions_set](#dsl_sink_record_dimensions_set)
 * [dsl_sink_record_is_on_get](#dsl_sink_record_is_on_get)
-* [dsl_sink_record_reset_done_get](#dsl_sink_record_reset_done_get)
 * [dsl_sink_record_video_player_add](#dsl_sink_record_video_player_add)
 * [dsl_sink_record_video_player_remove](#dsl_sink_record_video_player_remove)
+* [dsl_sink_record_mailer_add](#dsl_sink_record_mailer_add)
+* [dsl_sink_record_mailer_remove](#dsl_sink_record_mailer_remove)
+* [dsl_sink_record_reset_done_get](#dsl_sink_record_reset_done_get)
 * [dsl_sink_encode_video_formats_get](#dsl_sink_encode_video_formats_get)
 * [dsl_sink_encode_settings_get](#dsl_sink_encode_settings_get)
 * [dsl_sink_encode_settings_set](#dsl_sink_encode_settings_set)
@@ -82,12 +83,16 @@ The following return codes are used by the Sink API
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000B
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK                0x0004000C
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_RENDER_SINK                0x0004000D
-#define DSL_RESULT_SINK_HANDLER_ADD_FAILED                          0x0004000E
-#define DSL_RESULT_SINK_HANDLER_REMOVE_FAILED                       0x0004000F
-#define DSL_RESULT_SINK_PLAYER_ADD_FAILED                           0x00040010
-#define DSL_RESULT_SINK_PLAYER_REMOVE_FAILED                        0x00040011
-
+#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED             0x0004000E
+#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x0004000F
+#define DSL_RESULT_SINK_HANDLER_ADD_FAILED                          0x00040010
+#define DSL_RESULT_SINK_HANDLER_REMOVE_FAILED                       0x00040011
+#define DSL_RESULT_SINK_PLAYER_ADD_FAILED                           0x00040012
+#define DSL_RESULT_SINK_PLAYER_REMOVE_FAILED                        0x00040013
+#define DSL_RESULT_SINK_MAILER_ADD_FAILED                           0x00040014
+#define DSL_RESULT_SINK_MAILER_REMOVE_FAILED                        0x00040015
 ```
+
 ## Codec Types
 The following codec types are used by the Sink API
 ```C++
@@ -101,20 +106,15 @@ The following video container types are used by the File Sink API
 #define DSL_CONTAINER_MPEG4                                         0
 #define DSL_CONTAINER_MK4                                           1
 ```
-## Recording Events
-The following Event Type identifiers are used by the Recoring Sink
-```C++
-#define DSL_RECORDING_EVENT_START                                   0
-#define DSL_RECORDING_EVENT_END                                     1
-```
 <br>
 
-## Types
-### *dsl_recording_info*
+---
+
+## Types:
+
 ```C
 typedef struct dsl_recording_info
 {
-    uint recording_event;
     uint sessionId;
     const wchar_t* filename;
     const wchar_t* dirpath;
@@ -124,10 +124,9 @@ typedef struct dsl_recording_info
     uint height;
 } dsl_recording_info;
 ```
-Structure typedef used to provide recording session information to the client on callback
+Structure typedef used to provide recording session information provided to the client on callback
 
 **Fields**
-* `recording_event` - one of DSL_RECORDING_EVENT_START or DSL_RECORDING_EVENT_END
 * `sessionId` - the unique sesions id assigned on record start
 * `filename` - filename generated for the completed recording. 
 * `directory` - path for the completed recording
@@ -145,24 +144,22 @@ def recording_event_listener(session_info_ptr, client_data):
     print(' ***  Recording Event  *** ')
     
     session_info = session_info_ptr.contents
-    print('event type: ', recording_info.recording_event)
-    print('session_id: ', recording_info.session_id)
-    print('filename:   ', recording_info.filename)
-    print('dirpath:    ', recording_info.dirpath)
-    print('duration:   ', recording_info.duration)
-    print('container:  ', recording_info.container_type)
-    print('width:      ', recording_info.width)
-    print('height:     ', recording_info.height)
-    
-    return None
+    print('event type: ', session_info.recording_event)
+    print('session_id: ', session_info.session_id)
+    print('filename:   ', session_info.filename)
+    print('dirpath:    ', session_info.dirpath)
+    print('duration:   ', session_info.duration)
+    print('container:  ', session_info.container_type)
+    print('width:      ', session_info.width)
+    print('height:     ', session_info.height)
 ```
 
-## Callback Types
+## Callback Types:
 ### *dsl_record_client_listener_cb*
 ```C++
 typedef void* (*dsl_record_client_listener_cb)(void* info, void* user_data);
 ```
-Callback typedef for clients to listen for Recording Session Start and End events.
+Callback typedef for clients to listen for a notification that a Recording Session has ended.
 
 **Parameters**
 * `info` [in] opaque pointer to the session info, see... dsl_capture_info. 
@@ -402,12 +399,12 @@ retval, width, height = dsl_sink_render_dimensions_get('my-overlay-sink')
 DslReturnType dsl_sink_overlay_dimensions_set(const wchar_t* name, 
     uint width, uint height);
 ```
-This service updates the dimensions of a named Render Sink; Overlay or Window. This service will fail if the Render Sink is currently `in-use`.
+This service updates the dimensions of a named Overlay Sink. This service will fail if the Overlay Sink is currently `in-use`.
 
 **Parameters**
-* `name` - [in] unique name of the Render Sink to update.
-* `width` - [in] new width setting for the Render Sink.
-* `height` - [in] new height setting to use on in pixels.
+* `name` - [in] unique name of the Overlay Sink to update.
+* `width` - [in] new width setting for the Overlay Sink.
+* `height` - [in] new height setting to use on XWindow creation in pixels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
@@ -415,33 +412,6 @@ This service updates the dimensions of a named Render Sink; Overlay or Window. T
 **Python Example**
 ```Python
 retval = dsl_sink_render_dimensions_set('my-overlay-sink', 1280, 720)
-```
-
-<br>
-
-### *dsl_sink_render_reset*
-```C++
-DslReturnType dsl_sink_render_reset(const wchar_t* name);
-```
-This service resets the Render Sink causing it to close it's Rendering surface. This service will fail if the Render Sink is currently `linked`.
-
-**Parameters**
-* `name` - [in] unique name of the Render Sink to update; Overlay or Window.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-# If using a Window Sink, the client needs to destroy the XWindow
-# to completely remove the Sink's rendering surface after Stop.
-
-retval = dsl_pipeline_stop('my-pipeline')
-retval = dsl_sink_render_reset('my-overlay-sink')
-retval = dsl_pipeline_xwindow_destroy('my-pipeline')
-
-# The XWindow will be recreated on next Play
-retval = dsl_pipeline_play('my-pipeline')
 ```
 
 <br>
@@ -652,7 +622,7 @@ retval = dsl_sink_record_cache_size_set('my-record-sink', 15)
 
 <br>
 
-### *dsl_sink_record_dimensions_get*
+### *dsl_sink_record_dimensions_get
 ```C++
 DslReturnType dsl_sink_record_dimensions_get(const wchar_t* name, uint* width, uint* height);
 ```
@@ -739,18 +709,18 @@ retval, reset_done = dsl_sink_record_reset_done_get('my-record-sink')
 DslReturnType dsl_sink_record_video_player_add(const wchar_t* name, 
     const wchar_t* player)
 ```
-This services adds a Video Player, Render or RTSP type, to a named Recording Sink. Once added, each recorded video's file_path will be added (or queued) with the Video Player to be played according to the Players settings. 
+This services adds a [Video Player](/docs/api-player.md), Render or RTSP type, to a named Recording Sink. Once added, each recorded video's file_path will be added (or queued) with the Video Player to be played according to the Players settings. 
 
 **Parameters**
  * `name` [in] name of the Record Sink to update
- * `player` [in] player name of the Video Player to add
+ * `player` [in] name of the Video Player to add
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_sink_record_video_player_add('my-record-sink', 'my-video-render-player')
+retval = dsl_sink_record_video_player_add('my-record-sink, 'my-video-render-player')
 ```
 
 <br>
@@ -760,7 +730,7 @@ retval = dsl_sink_record_video_player_add('my-record-sink', 'my-video-render-pla
 DslReturnType dsl_sink_record_video_player_remve(const wchar_t* name, 
     const wchar_t* player)
 ```
-This services removes a Video Player, Render or RTSP type, from a named Recording Sink. 
+This services removes a [Video Player](/docs/api-player.md), Render or RTSP type, from a named Recording Sink. 
 
 **Parameters**
  * `name` [in] name of the Record Sink to update
@@ -771,10 +741,51 @@ This services removes a Video Player, Render or RTSP type, from a named Recordin
 
 **Python Example**
 ```Python
-retval = dsl_sink_record_video_player_remove('my-record-sink', 'my-video-render-player')
+retval = dsl_sink_record_video_player_remove('my-record-sink', 'my-video-render-player'
+```
+
+### *dsl_sink_record_mailer_add*
+```C++
+DslReturnType dsl_sink_record_mailer_add(const wchar_t* name, 
+    const wchar_t* mailer)
+```
+This services adds a [Mailer](/docs/api-mailer.md) to a named Recording Sink. Once added, the file_name, location, and specifics of each recorded video will be emailed by the Mailer according to its current settings. 
+
+**Parameters**
+ * `name` [in] name of the Record Sink to update
+ * `mailer` [in] name of the Mailer to add
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_record_mailer_add('my-record-sink, 'my-mailer')
 ```
 
 <br>
+
+### *dsl_sink_record_mailer_remove*
+```C++
+DslReturnType dsl_sink_record_mailer_remove(const wchar_t* name, 
+    const wchar_t* mailer)
+```
+This services removes a [Mailer](/docs/api-mailer.md) from a named Recording Sink. 
+
+**Parameters**
+ * `name` [in] name of the Record Sink to update
+ * `mailer` [in] name of the Mailer to remove
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_record_mailer_remove('my-record-sink', 'my-mailer')
+```
+
+<br>
+
 
 ### *dsl_sink_encode_video_formats_get*
 This service returns the current video codec and container formats for the uniquely named Enocde Sink
@@ -1009,4 +1020,4 @@ retval = dsl_sink_num_in_use_max_set(24)
 * [ODE Area](/docs/api-ode-area.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
-* [SMTP Services](/docs/api-smtp.md)
+* [Mailer](/docs/api-mailer.md)
