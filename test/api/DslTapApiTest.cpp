@@ -303,7 +303,8 @@ SCENARIO( "The Tap API checks for NULL input parameters", "[tap-api]" )
         
         uint cache_size(0), width(0), height(0);
         boolean is_on(0), reset_done(0), sync(0), async(0);
-        
+
+       std::wstring mailerName(L"mailer");        
         REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "When NULL pointers are used as input" ) 
@@ -324,6 +325,17 @@ SCENARIO( "The Tap API checks for NULL input parameters", "[tap-api]" )
                 REQUIRE( dsl_tap_record_is_on_get(NULL, &is_on) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_tap_record_reset_done_get(NULL, &reset_done) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tap_record_video_player_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_video_player_add(tapName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_video_player_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_video_player_remove(tapName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tap_record_mailer_add(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_mailer_add(tapName.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_mailer_add(tapName.c_str(), mailerName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_mailer_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_mailer_remove(tapName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_list_size() == 0 );
             }

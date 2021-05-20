@@ -417,6 +417,30 @@ namespace DSL
             }
             // TODO handle ImageRtspPlayerBintr
         }
+
+        // If there are Mailers for mailing the recording details
+        if (m_mailers.size())
+        {
+            std::vector<std::string> body;
+
+            body.push_back(std::string("File Name  : " 
+                + std::string(pNvDsInfo->filename) + "<br>"));
+            body.push_back(std::string("Location   : " 
+                + std::string(pNvDsInfo->dirpath) + "<br>"));
+            body.push_back(std::string("Session Id : " 
+                + std::to_string(pNvDsInfo->sessionId) + "<br>"));
+            body.push_back(std::string("Duration   : " 
+                + std::to_string(pNvDsInfo->duration) + "<br>"));
+            body.push_back(std::string("Width      : " 
+                + std::to_string(pNvDsInfo->width) + "<br>"));
+            body.push_back(std::string("Height     : " 
+                + std::to_string(pNvDsInfo->height) + "<br>"));
+                
+            for (auto const& iter: m_mailers)
+            {
+                iter.second->m_pMailer->QueueMessage(iter.second->m_subject, body);
+            }
+        }
         
         // new DSL info structure with unicode strings for python3 compatibility
         dsl_recording_info dslInfo{0};
@@ -451,30 +475,6 @@ namespace DSL
         {
             LOG_ERROR("Client Listener for RecordMgr '" << m_name << "' threw an exception");
             return NULL;
-        }
-        
-        // If there are Mailers for mailing the recording details
-        if (m_mailers.size())
-        {
-            std::vector<std::string> body;
-
-            body.push_back(std::string("File Name  : " 
-                + std::string(pNvDsInfo->filename) + "<br>"));
-            body.push_back(std::string("Location   : " 
-                + std::string(pNvDsInfo->dirpath) + "<br>"));
-            body.push_back(std::string("Session Id : " 
-                + std::to_string(pNvDsInfo->sessionId) + "<br>"));
-            body.push_back(std::string("Duration   : " 
-                + std::to_string(pNvDsInfo->duration) + "<br>"));
-            body.push_back(std::string("Width      : " 
-                + std::to_string(pNvDsInfo->width) + "<br>"));
-            body.push_back(std::string("Height     : " 
-                + std::to_string(pNvDsInfo->height) + "<br>"));
-                
-            for (auto const& iter: m_mailers)
-            {
-                iter.second->m_pMailer->QueueMessage(iter.second->m_subject, body);
-            }
         }
         
     }

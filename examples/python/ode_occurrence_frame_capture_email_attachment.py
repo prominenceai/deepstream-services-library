@@ -251,7 +251,7 @@ def main(args):
             
         ### ADD THE MAILER OBJECT TO THE CAPTURE FRAME ACTION ###
         
-        # The mailer will be called on to email information on the Captured Frame
+        # The mailer will be used to email information on the Captured Frame
         # -- file location, size, etc. -- with the image file included as an attachment.
         retval = dsl_ode_action_capture_mailer_add('person-capture-action', 
             mailer = 'mailer',

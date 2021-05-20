@@ -2028,6 +2028,26 @@ def dsl_tap_record_video_player_remove(name, player):
     return int(result)
 
 ##
+## dsl_tap_record_mailer_add()
+##
+_dsl.dsl_tap_record_mailer_add.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_tap_record_mailer_add.restype = c_uint
+def dsl_tap_record_mailer_add(name, mailer, subject):
+    global _dsl
+    result = _dsl.dsl_tap_record_mailer_add(name, mailer, subject)
+    return int(result)
+
+##
+## dsl_tap_record_mailer_remove()
+##
+_dsl.dsl_tap_record_mailer_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_tap_record_mailer_remove.restype = c_uint
+def dsl_tap_record_mailer_remove(name, mailer):
+    global _dsl
+    result = _dsl.dsl_tap_record_mailer_remove(name, mailer)
+    return int(result)
+
+##
 ## dsl_gie_primary_new()
 ##
 _dsl.dsl_gie_primary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_uint]
@@ -2807,6 +2827,26 @@ _dsl.dsl_sink_record_video_player_remove.restype = c_uint
 def dsl_sink_record_video_player_remove(name, player):
     global _dsl
     result = _dsl.dsl_sink_record_video_player_remove(name, player)
+    return int(result)
+
+##
+## dsl_sink_record_mailer_add()
+##
+_dsl.dsl_sink_record_mailer_add.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_record_mailer_add.restype = c_uint
+def dsl_sink_record_mailer_add(name, mailer, subject):
+    global _dsl
+    result = _dsl.dsl_sink_record_mailer_add(name, mailer, subject)
+    return int(result)
+
+##
+## dsl_sink_record_mailer_remove()
+##
+_dsl.dsl_sink_record_mailer_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_record_mailer_remove.restype = c_uint
+def dsl_sink_record_mailer_remove(name, player):
+    global _dsl
+    result = _dsl.dsl_sink_record_mailer_remove(name, mailer)
     return int(result)
 
 ##
