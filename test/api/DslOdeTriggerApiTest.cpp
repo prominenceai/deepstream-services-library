@@ -118,6 +118,36 @@ SCENARIO( "An ODE Trigger's Enabled setting can be set/get", "[ode-trigger-api]"
     }
 }    
 
+SCENARIO( "An ODE Trigger's Auto-Reset Timeout setting can be set/get", "[ode-trigger-api]" )
+{
+    GIVEN( "An ODE Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"occurrence");
+        
+        uint class_id(9);
+        uint limit(0);
+
+        REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName.c_str(), NULL, class_id, limit) == DSL_RESULT_SUCCESS );
+
+        uint ret_timeout(99);
+        REQUIRE( dsl_ode_trigger_reset_timeout_get(odeTriggerName.c_str(), &ret_timeout) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_timeout == 0 );
+
+        WHEN( "When the ODE Type's Enabled setting is disabled" )         
+        {
+            uint new_timeout(44);
+            REQUIRE( dsl_ode_trigger_reset_timeout_set(odeTriggerName.c_str(), new_timeout) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_ode_trigger_reset_timeout_get(odeTriggerName.c_str(), &ret_timeout) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_timeout == new_timeout );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
 SCENARIO( "An ODE Trigger's classId can be set/get", "[ode-trigger-api]" )
 {
     GIVEN( "An ODE Trigger" ) 

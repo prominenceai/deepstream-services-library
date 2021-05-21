@@ -51,6 +51,7 @@ SCENARIO( "A new OdeOccurreceTrigger is created correctly", "[OdeTrigger]" )
                 REQUIRE( pOdeTrigger->GetClassId() == classId );
                 REQUIRE( pOdeTrigger->GetLimit() == limit );
                 REQUIRE( pOdeTrigger->GetSource() == NULL );
+                REQUIRE( pOdeTrigger->GetResetTimeout() == 0);
                 float minWidth(123), minHeight(123);
                 pOdeTrigger->GetMinDimensions(&minWidth, &minHeight);
                 REQUIRE( minWidth == 0 );
@@ -1560,7 +1561,7 @@ SCENARIO( "An NewHighOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger
 
 SCENARIO( "A new OdeDistanceTrigger is created correctly", "[OdeTrigger]" )
 {
-    GIVEN( "Attributes for a new DetectionEvent" ) 
+    GIVEN( "Attributes for a new OdeDistanceTrigger" ) 
     {
         std::string odeTriggerName("occurence");
         uint classId(1);

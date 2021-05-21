@@ -268,6 +268,10 @@ namespace DSL {
 
         DslReturnType OdeTriggerReset(const char* name);
 
+        DslReturnType OdeTriggerResetTimeoutGet(const char* name, uint* timeout);
+
+        DslReturnType OdeTriggerResetTimeoutSet(const char* name, uint timeout);
+
         DslReturnType OdeTriggerEnabledGet(const char* name, boolean* enabled);
 
         DslReturnType OdeTriggerEnabledSet(const char* name, boolean enabled);

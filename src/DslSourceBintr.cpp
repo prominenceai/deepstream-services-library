@@ -1149,11 +1149,6 @@ namespace DSL
         {
             UnlinkAll();
         }
-        if (m_streamManagerTimerId)
-        {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
-            g_source_remove(m_streamManagerTimerId);
-        }
         if (m_reconnectionManagerTimerId)
         {
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionManagerMutex);

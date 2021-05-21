@@ -1297,6 +1297,26 @@ DslReturnType dsl_ode_trigger_reset(const wchar_t* name)
     return DSL::Services::GetServices()->OdeTriggerReset(cstrName.c_str());
 }
 
+DslReturnType dsl_ode_trigger_reset_timeout_get(const wchar_t* name, uint *timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerResetTimeoutGet(cstrName.c_str(), timeout);
+}
+
+DslReturnType dsl_ode_trigger_reset_timeout_set(const wchar_t* name, uint timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerResetTimeoutSet(cstrName.c_str(), timeout);
+}
+
 DslReturnType dsl_ode_trigger_enabled_get(const wchar_t* name, boolean* enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);

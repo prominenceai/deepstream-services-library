@@ -1001,6 +1001,27 @@ def dsl_ode_trigger_reset(name):
     return int(result)
 
 ##
+## dsl_ode_trigger_reset_timeout_get()
+##
+_dsl.dsl_ode_trigger_reset_timeout_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_ode_trigger_reset_timeout_get.restype = c_uint
+def dsl_ode_trigger_reset_timeout_get(name):
+    global _dsl
+    timeout = c_uint(0)
+    result =_dsl.dsl_ode_trigger_reset_timeout_get(name, DSL_BOOL_P(c_uint))
+    return int(result), timeout.value
+
+##
+## dsl_ode_trigger_reset_timeout_set()
+##
+_dsl.dsl_ode_trigger_reset_timeout_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_ode_trigger_reset_timeout_set.restype = c_uint
+def dsl_ode_trigger_reset_timeout_set(name, timeout):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_reset_timeout_set(name, timeout)
+    return int(result)
+
+##
 ## dsl_ode_trigger_enabled_get()
 ##
 _dsl.dsl_ode_trigger_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
