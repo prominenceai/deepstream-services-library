@@ -194,6 +194,24 @@ namespace DSL
         virtual void Reset();
         
         /**
+         * @brief Timer callback function to handle the Reset timer timeout
+         * @return false always to destroy the one shot timer.
+         */
+        int HandleResetTimeout();
+        
+        /**
+         * @brief Gets the current timeout value for the auto-reset timer.
+         * @return current timeout value. 0 = disabled (default).
+         */
+        uint GetResetTimeout();
+        
+        /**
+         * @brief Set the timeout value for the auto-reset timer.
+         * @param[in] timeout new timeout value to use. Set to 0 to disable.
+         */
+        void SetResetTimeout(uint timeout);
+        
+        /**
          * @brief Gets the current Enabled setting, default = true
          * @return the current Enabled setting
          */
@@ -342,6 +360,13 @@ namespace DSL
         bool CheckForSourceId(int sourceId);
         
         /**
+         * @brief Increments the Trigger Occurrence counter and checks to see
+         * if the count has been exceeded. If so, starts the reset timer if a 
+         * timeout value is set/enabled.
+         */
+        void IncrementAndCheckTriggerCount();
+        
+        /**
          * @brief Map of ODE Areas to use for minimum critera
          */
         std::map <std::string, DSL_BASE_PTR> m_pOdeAreas;
@@ -355,11 +380,25 @@ namespace DSL
          * @brief Mutex to ensure mutual exlusion for propery get/sets
          */
         GMutex m_propertyMutex;
+        
+        /**
+         * @brief auto-reset timeout in units of seconds
+         */
+        uint m_resetTimeout;
 
+        /**
+         * @brief gnome timer Id for the auto-reset timeout
+         */
+        uint m_resetTimerId;
+        
+        /**
+         * @brief Mutex for timer reset logic
+         */
+        GMutex m_resetTimerMutex;
     
     public:
     
-        // access made public for performace reasons
+        // access made public for performance reasons
 
         /**
          * @brief Wide string name used for C/Python API
@@ -446,6 +485,9 @@ namespace DSL
         bool m_inferDoneOnly;
 
     };
+    
+    static int TriggerResetTimeoutHandler(gpointer pTrigger);
+    
     
     class AlwaysOdeTrigger : public OdeTrigger
     {

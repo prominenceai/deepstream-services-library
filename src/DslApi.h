@@ -1720,6 +1720,24 @@ DslReturnType dsl_ode_trigger_distance_new(const wchar_t* name, const wchar_t* s
 DslReturnType dsl_ode_trigger_reset(const wchar_t* name);
 
 /**
+ * @brief Gets the current auto-reset timer setting for the named ODE Trigger. If set, 
+ * the Trigger, upon reaching its limit, will start a timer to then auto-reset on expiration.
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[out] time in seconds after reaching trigger limit before auto reset. 0 = disabled (default)
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_reset_timeout_get(const wchar_t* name, uint *timeout);
+
+/**
+ * @brief Sets the auto-reset timer setting for the named ODE Trigger. If set, 
+ * the Trigger, upon reaching its limit, will start a timer to then auto-reset on expiration.
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] time in seconds after reaching trigger limit before auto reset. Set to 0 to disable (default)
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_reset_timeout_set(const wchar_t* name, uint timeout);
+
+/**
  * @brief Gets the current enabled setting for the ODE Trigger
  * @param[in] name unique name of the ODE Trigger to query
  * @param[out] enabled true if the ODE Trigger is currently enabled, false otherwise

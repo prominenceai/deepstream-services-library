@@ -53,10 +53,13 @@ namespace DSL
         , m_minFrameCountN(1)
         , m_minFrameCountD(1)
         , m_inferDoneOnly(false)
+        , m_resetTimeout(0)
+        , m_resetTimerId(0)
     {
         LOG_FUNC();
 
         g_mutex_init(&m_propertyMutex);
+        g_mutex_init(&m_resetTimerMutex);
     }
 
     OdeTrigger::~OdeTrigger()
@@ -66,6 +69,12 @@ namespace DSL
         RemoveAllActions();
         RemoveAllAreas();
         
+        if (m_resetTimerId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_resetTimerMutex);
+            g_source_remove(m_resetTimerId);
+        }
+        g_mutex_clear(&m_resetTimerMutex);
         g_mutex_clear(&m_propertyMutex);
     }
     
@@ -161,6 +170,61 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         m_triggered = 0;
+    }
+    
+    void OdeTrigger::IncrementAndCheckTriggerCount()
+    {
+        LOG_FUNC();
+        // internal do not lock m_propertyMutex
+        
+        m_triggered++;
+        
+        if (m_triggered >= m_limit and m_resetTimeout)
+        {
+            m_resetTimerId = g_timeout_add(1000*m_resetTimeout, 
+                TriggerResetTimeoutHandler, this);            
+        }
+    }
+
+    static int TriggerResetTimeoutHandler(gpointer pTrigger)
+    {
+        return static_cast<OdeTrigger*>(pTrigger)->
+            HandleResetTimeout();
+    }
+
+    int OdeTrigger::HandleResetTimeout()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_resetTimerMutex);
+        
+        m_resetTimerId = 0;
+        Reset();
+        
+        // One shot - return false.
+        return false;
+    }
+    
+    uint OdeTrigger::GetResetTimeout()
+    {
+        LOG_FUNC();
+        
+        return m_resetTimeout;
+    }
+        
+    void OdeTrigger::SetResetTimeout(uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_resetTimerMutex);
+        
+        // If the timer is currently running and the new 
+        // timeout value = 0 = disable, then kill the timer.
+        if (m_resetTimerId and !timeout)
+        {
+            g_source_remove(m_resetTimerId);
+            m_resetTimerId == 0;
+        }
+        
+        m_resetTimeout = timeout;
     }
         
     bool OdeTrigger::GetEnabled()
@@ -492,7 +556,7 @@ namespace DSL
             return false;
         }
 
-        m_triggered++;
+        IncrementAndCheckTriggerCount();
         m_occurrences++;
         
         // update the total event count static variable
@@ -555,10 +619,10 @@ namespace DSL
             return 0;
         }        
         
-        // event has been triggered
-        m_triggered++;
+        // event has been triggered 
+        IncrementAndCheckTriggerCount();
 
-         // update the total event count static variable
+        // update the total event count static variable
         s_eventCount++;
 
         for (const auto &imap: m_pOdeActions)
@@ -607,7 +671,7 @@ namespace DSL
             // Update the running instance
             m_instances[sourceAndClassId] = pObjectMeta->object_id;
             
-            m_triggered++;
+            IncrementAndCheckTriggerCount();
             m_occurrences++;
             
             // update the total event count static variable
@@ -668,7 +732,7 @@ namespace DSL
             return 0;
         }
         // event has been triggered
-        m_triggered++;
+        IncrementAndCheckTriggerCount();
 
          // update the total event count static variable
         s_eventCount++;
@@ -723,7 +787,7 @@ namespace DSL
             return false;
         }
 
-        m_triggered++;
+        IncrementAndCheckTriggerCount();
         m_occurrences++;
         
         // update the total event count static variable
@@ -761,7 +825,7 @@ namespace DSL
         }
 
         // event has been triggered
-        m_triggered++;
+        IncrementAndCheckTriggerCount();
 
          // update the total event count static variable
         s_eventCount++;
@@ -860,7 +924,7 @@ namespace DSL
 				if (trackedTimeMs >= m_minimumMs and trackedTimeMs <= m_maximumMs)
 				{
 					// event has been triggered
-					m_triggered++;
+					IncrementAndCheckTriggerCount();
 					m_occurrences++;
 
 					// update the total event count static variable
@@ -949,7 +1013,7 @@ namespace DSL
             return 0;
         }
         // event has been triggered
-        m_triggered++;
+        IncrementAndCheckTriggerCount();
 
          // update the total event count static variable
         s_eventCount++;
@@ -999,9 +1063,9 @@ namespace DSL
         // need at least one object for a Minimum event
         if (m_enabled and m_occurrenceMetaList.size())
         {
-            // Once occurrence to return and increment the accumulative Trigger count
+            // One occurrence to return and increment the accumulative Trigger count
             m_occurrences = 1;
-            m_triggered++;
+            IncrementAndCheckTriggerCount();
             // update the total event count static variable
             s_eventCount++;
 
@@ -1070,7 +1134,7 @@ namespace DSL
         {
             // Once occurrence to return and increment the accumulative Trigger count
             m_occurrences = 1;
-            m_triggered++;
+            IncrementAndCheckTriggerCount();
             // update the total event count static variable
             s_eventCount++;
 
@@ -1152,7 +1216,7 @@ namespace DSL
         m_currentLow = m_occurrences;
         
         // event has been triggered
-        m_triggered++;
+        IncrementAndCheckTriggerCount();
 
          // update the total event count static variable
         s_eventCount++;
@@ -1217,7 +1281,7 @@ namespace DSL
         m_currentHigh = m_occurrences;
         
         // event has been triggered
-        m_triggered++;
+        IncrementAndCheckTriggerCount();
 
          // update the total event count static variable
         s_eventCount++;
@@ -1342,7 +1406,7 @@ namespace DSL
                     {
                         // event has been triggered
                         m_occurrences++;
-                        m_triggered++;
+                        IncrementAndCheckTriggerCount();
                         
                          // update the total event count static variable
                         s_eventCount++;
@@ -1393,7 +1457,7 @@ namespace DSL
                         {
                             // event has been triggered
                             m_occurrences++;
-                            m_triggered++;
+                            IncrementAndCheckTriggerCount();
                             
                              // update the total event count static variable
                             s_eventCount++;
@@ -1566,7 +1630,7 @@ namespace DSL
                     {
                         // event has been triggered
                         m_occurrences++;
-                        m_triggered++;
+                        IncrementAndCheckTriggerCount();
                         
                          // update the total event count static variable
                         s_eventCount++;
@@ -1620,7 +1684,7 @@ namespace DSL
                         {
                             // event has been triggered
                             m_occurrences++;
-                            m_triggered++;
+                            IncrementAndCheckTriggerCount();
                             
                              // update the total event count static variable
                             s_eventCount++;
