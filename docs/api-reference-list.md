@@ -334,6 +334,8 @@
 * [dsl_ode_trigger_delete_many](/docs/api-ode-trigger.md#dsl_ode_trigger_delete_many)
 * [dsl_ode_trigger_delete_all](/docs/api-ode-trigger.md#dsl_ode_trigger_delete_all)
 * [dsl_ode_trigger_reset](/docs/api-ode-trigger.md#dsl_ode_trigger_reset)
+* [dsl_ode_trigger_reset_timeout_get](/docs/api-ode-trigger.md#dsl_ode_trigger_reset_timeout_get)
+* [dsl_ode_trigger_reset_timeout_set](/docs/api-ode-trigger.md#dsl_ode_trigger_reset_timeout_set)
 * [dsl_ode_trigger_enabled_get](/docs/api-ode-trigger.md#dsl_ode_trigger_enabled_get)
 * [dsl_ode_trigger_enabled_set](/docs/api-ode-trigger.md#dsl_ode_trigger_enabled_set)
 * [dsl_ode_trigger_class_id_get](/docs/api-ode-trigger.md#dsl_ode_trigger_class_id_get)
