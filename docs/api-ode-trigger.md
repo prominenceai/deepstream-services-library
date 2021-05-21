@@ -42,6 +42,8 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 
 **Methods:**
 * [dsl_ode_trigger_reset](#dsl_ode_trigger_reset)
+* [dsl_ode_trigger_reset_timeout_get](#dsl_ode_trigger_reset_timeout_get)
+* [dsl_ode_trigger_reset_timeout_set](#dsl_ode_trigger_reset_timeout_set)
 * [dsl_ode_trigger_enabled_get](#dsl_ode_trigger_enabled_get)
 * [dsl_ode_trigger_enabled_set](#dsl_ode_trigger_enabled_set)
 * [dsl_ode_trigger_source_get](#dsl_ode_trigger_source_get)
@@ -623,6 +625,48 @@ This service resets a named ODE Trigger, setting its triggered count to 0.  This
 **Python Example**
 ```Python
 retval = dsl_ode_trigger_reset('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_reset_timeout_get*
+```c++
+DslReturnType dsl_ode_trigger_reset_timeout_get(const wchar_t* name, uint *timeout);
+```
+
+This service gets the current auto-reset timeout setting for the named ODE Trigger. If set, upon reaching its limit, the Trigger will start a timer to auto-reset on expiration. A timeout of 0 disables auto-reset -- default setting for all triggers.  
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to reset.
+* `timeout` - [out] current timeout value in units of seconds.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, timeout = dsl_ode_trigger_reset_timeout_get('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_reset_timeout_set*
+```c++
+DslReturnType dsl_ode_trigger_reset_timeout_set(const wchar_t* name, uint timeout);
+```
+
+This service sets the current auto-reset timeout setting for the named ODE Trigger. If set, upon reaching its limit, the Trigger will start a timer to auto-reset on expiration. A timeout of 0 disables auto-reset -- the default setting for all triggers.  
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to reset.
+* `timeout` - [in] new timeout value in units of seconds.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_reset_timeout_set('my-trigger', 3)
 ```
 
 <br>
