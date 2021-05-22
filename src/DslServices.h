@@ -879,7 +879,7 @@ namespace DSL {
         
         DslReturnType PlayerDelete(const char* name);
         
-        DslReturnType PlayerDeleteAll();
+        DslReturnType PlayerDeleteAll(bool checkInUse=true);
 
         uint PlayerListSize();
         
@@ -925,6 +925,8 @@ namespace DSL {
         DslReturnType MailerDeleteAll();
         
         uint MailerListSize();
+        
+        void DeleteAll();
 
         GMainLoop* GetMainLoopHandle()
         {

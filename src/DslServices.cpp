@@ -1076,6 +1076,10 @@ namespace DSL
 
         try
         {
+            if (m_displayTypes.empty())
+            {
+                return DSL_RESULT_SUCCESS;
+            }
             // Don't check for in-use on deleting all. 
             m_displayTypes.clear();
             
@@ -2305,6 +2309,10 @@ namespace DSL
 
         try
         {
+            if (m_odeActions.empty())
+            {
+                return DSL_RESULT_SUCCESS;
+            }
             for (auto const& imap: m_odeActions)
             {
                 // In the case of Delete all
@@ -2494,6 +2502,10 @@ namespace DSL
 
         try
         {
+            if (m_odeAreas.empty())
+            {
+                return DSL_RESULT_SUCCESS;
+            }
             for (auto const& imap: m_odeAreas)
             {
                 // In the case of Delete all
@@ -3655,6 +3667,10 @@ namespace DSL
 
         try
         {
+            if (m_odeTriggers.empty())
+            {
+                return DSL_RESULT_SUCCESS;
+            }
             for (auto const& imap: m_odeTriggers)
             {
                 // In the case of Delete all
@@ -4011,11 +4027,16 @@ namespace DSL
 
         try
         {
+            if (m_padProbeHandlers.empty())
+            {
+                return DSL_RESULT_SUCCESS;
+            }
             for (auto const& imap: m_padProbeHandlers)
             {
                 if (imap.second->IsInUse())
                 {
-                    LOG_ERROR("Pad Probe Handler '" << imap.second->GetName() << "' is currently in use");
+                    LOG_ERROR("Pad Probe Handler '" << imap.second->GetName() 
+                        << "' is currently in use");
                     return DSL_RESULT_PPH_IS_IN_USE;
                 }
             }
@@ -8352,7 +8373,6 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         try
         {
@@ -8432,24 +8452,36 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // Only if there are Pipelines do we check if the component is in use.
-        if (m_pipelines.size())
+        try
         {
-            for (auto const& imap: m_components)
+            if (m_components.empty())
             {
-                // In the case of Delete all
-                if (imap.second->IsInUse())
+                return DSL_RESULT_SUCCESS;
+            }
+            // Only if there are Pipelines do we check if the component is in use.
+            if (m_pipelines.size())
+            {
+                for (auto const& imap: m_components)
                 {
-                    LOG_ERROR("Component '" << imap.second->GetName() << "' is currently in use");
-                    return DSL_RESULT_COMPONENT_IN_USE;
+                    // In the case of Delete all
+                    if (imap.second->IsInUse())
+                    {
+                        LOG_ERROR("Component '" << imap.second->GetName() << "' is currently in use");
+                        return DSL_RESULT_COMPONENT_IN_USE;
+                    }
                 }
             }
+
+            m_components.clear();
+            LOG_INFO("All Components deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
-
-        m_components.clear();
-        LOG_INFO("All Components deleted successfully");
-
-        return DSL_RESULT_SUCCESS;
+        catch(...)
+        {
+            LOG_ERROR("DSL threw exception on Delete All Components");
+            return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
+        }
     }
 
     uint Services::ComponentListSize()
@@ -8464,18 +8496,27 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
         
-        if (m_components[component]->IsInUse())
+        try
         {
-            LOG_INFO("Component '" << component << "' is in use");
-            return DSL_RESULT_COMPONENT_IN_USE;
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+            
+            if (m_components[component]->IsInUse())
+            {
+                LOG_INFO("Component '" << component << "' is in use");
+                return DSL_RESULT_COMPONENT_IN_USE;
+            }
+            *gpuid = m_components[component]->GetGpuId();
+
+            LOG_INFO("Current GPU ID = " << *gpuid << " for component '" << component << "'");
+
+            return DSL_RESULT_SUCCESS;
         }
-        *gpuid = m_components[component]->GetGpuId();
-
-        LOG_INFO("Current GPU ID = " << *gpuid << " for component '" << component << "'");
-
-        return DSL_RESULT_SUCCESS;
+        catch(...)
+        {
+            LOG_ERROR("Component '" << component << "' threw exception on Get GPU ID");
+            return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
+        }
     }
     
     DslReturnType Services::ComponentGpuIdSet(const char* component, uint gpuid)
@@ -10345,17 +10386,24 @@ namespace DSL
 
     }
 
-    DslReturnType Services::PlayerDeleteAll()
+    DslReturnType Services::PlayerDeleteAll(bool checkInUse)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
+            if (m_players.empty())
+            {
+                return DSL_RESULT_SUCCESS;
+            }
             for (auto &imap: m_players)
             {
-                // In the case of Delete all
-                if (imap.second.use_count() > 1)
+                // In the case of DSL Delete all - we don't check for in-use
+                // as their can be a circular type ownership/relation that will
+                // cause it to fail... i.e. players can own record sinks which 
+                // can own players, and so on...
+                if (checkInUse and imap.second.use_count() > 1)
                 {
                     LOG_ERROR("Can't delete Player '" << imap.second->GetName() 
                         << "' as it is currently in use");
@@ -10796,6 +10844,10 @@ namespace DSL
 
         try
         {
+            if (m_mailers.empty())
+            {
+                return DSL_RESULT_SUCCESS;
+            }
             for (auto &imap: m_mailers)
             {
                 // In the case of Delete all
@@ -10827,6 +10879,21 @@ namespace DSL
         return m_mailers.size();
     }
 
+    void Services::DeleteAll()
+    {
+        LOG_FUNC();
+        // DO NOT lock mutex - will be done by each service
+        
+        PipelineDeleteAll();
+        PlayerDeleteAll(false);
+        ComponentDeleteAll();
+        PphDeleteAll();
+        OdeTriggerDeleteAll();
+        OdeAreaDeleteAll();
+        OdeActionDeleteAll();
+        DisplayTypeDeleteAll();
+        MailerDeleteAll();
+    }
    
     // ------------------------------------------------------------------------------
     
@@ -10927,6 +10994,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_COMPONENT_NAME_NOT_UNIQUE] = L"DSL_RESULT_COMPONENT_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_COMPONENT_NAME_NOT_FOUND] = L"DSL_RESULT_COMPONENT_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_COMPONENT_NAME_BAD_FORMAT] = L"DSL_RESULT_COMPONENT_NAME_BAD_FORMAT";
+        m_returnValueToString[DSL_RESULT_COMPONENT_THREW_EXCEPTION] = L"DSL_RESULT_COMPONENT_THREW_EXCEPTION";
         m_returnValueToString[DSL_RESULT_COMPONENT_IN_USE] = L"DSL_RESULT_COMPONENT_IN_USE";
         m_returnValueToString[DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE] = L"DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE";
         m_returnValueToString[DSL_RESULT_COMPONENT_NOT_USED_BY_BRANCH] = L"DSL_RESULT_COMPONENT_NOT_USED_BY_BRANCH";

@@ -5290,15 +5290,7 @@ uint dsl_mailer_list_size()
     
 void dsl_delete_all()
 {
-    dsl_pipeline_delete_all();
-    dsl_player_delete_all();
-    dsl_component_delete_all();
-    dsl_pph_delete_all();
-    dsl_ode_trigger_delete_all();
-    dsl_ode_area_delete_all();
-    dsl_ode_action_delete_all();
-    dsl_display_type_delete_all();
-    dsl_mailer_delete_all();
+    DSL::Services::GetServices()->DeleteAll();
 }
 
 

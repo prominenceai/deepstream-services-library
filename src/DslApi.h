@@ -50,11 +50,12 @@ THE SOFTWARE.
 #define DSL_RESULT_COMPONENT_NAME_NOT_UNIQUE                        0x00010001
 #define DSL_RESULT_COMPONENT_NAME_NOT_FOUND                         0x00010002
 #define DSL_RESULT_COMPONENT_NAME_BAD_FORMAT                        0x00010003
-#define DSL_RESULT_COMPONENT_IN_USE                                 0x00010004
-#define DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE                   0x00010005
-#define DSL_RESULT_COMPONENT_NOT_USED_BY_BRANCH                     0x00010006
-#define DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE                   0x00010007
-#define DSL_RESULT_COMPONENT_SET_GPUID_FAILED                       0x00010008
+#define DSL_RESULT_COMPONENT_THREW_EXCEPTION                        0x00010004
+#define DSL_RESULT_COMPONENT_IN_USE                                 0x00010005
+#define DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE                   0x00010006
+#define DSL_RESULT_COMPONENT_NOT_USED_BY_BRANCH                     0x00010007
+#define DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE                   0x00010008
+#define DSL_RESULT_COMPONENT_SET_GPUID_FAILED                       0x00010009
 
 /**
  * Source API Return Values
