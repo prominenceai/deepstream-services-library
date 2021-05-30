@@ -234,11 +234,11 @@ namespace DSL
             LOG_ERROR("Timeout value can not be 0 when enabling cycle-all-sources for TilerBintr '" << GetName());
             return false;
         }
-        if (!IsLinked())
-        {
-            LOG_ERROR("Cycle-all-sources can not be set until TilerBintr '" << GetName() << "' is linked");
-            return false;
-        }
+//        if (!IsLinked())
+//        {
+//            LOG_ERROR("Cycle-all-sources can not be set until TilerBintr '" << GetName() << "' is linked");
+//            return false;
+//        }
         if (m_showSourceCycle)
         {
             LOG_ERROR("Cycle-all-sources is already enbled for TilerBintr '" << GetName());

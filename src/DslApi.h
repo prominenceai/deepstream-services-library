@@ -4304,7 +4304,7 @@ DslReturnType dsl_player_render_video_repeat_enabled_get(const wchar_t* name,
  */
 DslReturnType dsl_player_render_video_repeat_enabled_set(const wchar_t* name, 
     boolean repeat_enabled);
-        
+   
 /**
  * @brief Adds a callback to be notified on Player Termination Event.
  * Termination can be the result of EOS, image timeout, or XWindow deletion.
@@ -4623,11 +4623,10 @@ const wchar_t* dsl_version_get();
  */
 void dsl_delete_all();
 
-/**
- * @brief Returns the current number of Mailers in memory
- * @return size of the list of Mailers
- */
-uint dsl_mailer_list_size();
+DslReturnType dsl_stdout_redirect(const wchar_t* file_path);
+
+void dsl_stdout_restore();
+
 
 EXTERN_C_END
 

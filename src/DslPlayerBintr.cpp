@@ -553,7 +553,7 @@ namespace DSL
             std::dynamic_pointer_cast<RenderSinkBintr>(m_pSink);
 
         // If the RenderSink is a WindowSinkBintr
-        if (GetXWindow())
+        if (OwnsXWindow())
         {
             SetXWindowDimensions(width, height);
             return true;
@@ -585,7 +585,7 @@ namespace DSL
             std::dynamic_pointer_cast<RenderSinkBintr>(m_pSink);
 
         // If the RenderSink is a WindowSinkBintr
-        if (GetXWindow())
+        if (OwnsXWindow())
         {
             DestroyXWindow();
         }

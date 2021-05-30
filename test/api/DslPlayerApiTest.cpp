@@ -251,7 +251,7 @@ SCENARIO( "An Image Render Player's Attributes are updated correctly'", "[player
     }
 }
 
-SCENARIO( "An Video Render Player's Attributes are updated correctly'", "[player-api]" )
+SCENARIO( "An Video Render Player's Attributes are updated correctly'", "[mmm]" )
 {
     GIVEN( "A new Video Render Player with Overlay Sink" ) 
     {
@@ -286,6 +286,10 @@ SCENARIO( "An Video Render Player's Attributes are updated correctly'", "[player
 
         WHEN( "A the Player's Attributes are Set" ) 
         {
+            std::wstring new_file_path = L"./test/streams/sample_1080p_h265.mp4";
+            REQUIRE( dsl_player_render_file_path_set(player_name.c_str(),
+                new_file_path.c_str()) == DSL_RESULT_SUCCESS );
+            
             uint newOffsetX(321), newOffsetY(321);
             REQUIRE( dsl_player_render_offsets_set(player_name.c_str(),
                 newOffsetX, newOffsetY) == DSL_RESULT_SUCCESS );

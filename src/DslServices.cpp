@@ -10894,6 +10894,62 @@ namespace DSL
         DisplayTypeDeleteAll();
         MailerDeleteAll();
     }
+    
+    DslReturnType Services::StdOutRedirect(const char* filepath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            if (m_stdOutRedirectFile.is_open())
+            {
+                LOG_ERROR("stdout is currently/already in a redirected state");
+                return DSL_RESULT_FAILURE;
+            }
+            
+            // backup the default 
+            m_stdOutRdBufBackup = std::cout.rdbuf();
+            
+            // open the redirect file and the rdbuf
+            m_stdOutRedirectFile.open(filepath, std::ios::out);
+            std::streambuf* redirectFileRdBuf = m_stdOutRedirectFile.rdbuf();
+            
+            // assign the file's rdbuf to the stdout's
+            std::cout.rdbuf(redirectFileRdBuf);
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("DSL threw an exception redirecting stdout");
+            return DSL_RESULT_THREW_EXCEPTION;
+        }
+    }
+    
+    void Services::StdOutRestore()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            if (!m_stdOutRedirectFile.is_open())
+            {
+                LOG_ERROR("stdout is not currently in a redirected state");
+                return;
+            }
+
+            // restore the stdout to the initial backupt
+            std::cout.rdbuf(m_stdOutRdBufBackup);
+
+            // close the redirct file
+            m_stdOutRedirectFile.close();
+        }
+        catch(...)
+        {
+            LOG_ERROR("DSL threw an exception close stdout redirect file");
+        }
+    }
    
     // ------------------------------------------------------------------------------
     

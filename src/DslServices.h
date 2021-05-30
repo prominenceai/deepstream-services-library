@@ -927,6 +927,10 @@ namespace DSL {
         uint MailerListSize();
         
         void DeleteAll();
+        
+        DslReturnType StdOutRedirect(const char* filepath);
+        
+        void StdOutRestore();
 
         GMainLoop* GetMainLoopHandle()
         {
@@ -1088,6 +1092,10 @@ namespace DSL {
          * @brief DSL Comms object for libcurl services
          */
         std::map <std::string, std::shared_ptr<Mailer>> m_mailers;
+        
+        std::fstream m_stdOutRedirectFile;
+        
+        std::streambuf* m_stdOutRdBufBackup;
         
     };  
 
