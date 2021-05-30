@@ -146,6 +146,12 @@ namespace DSL
         bool CreateXWindow();
         
         /**
+         * @brief queries the player to determine if it owns an xwindow
+         * @return true if the Player has ownership of an xwindow, false otherwise
+         */
+        bool OwnsXWindow();
+        
+        /**
          * @brief returns a handle to this PipelineBintr's XWindow
          * @return XWindow handle, NULL untill created
          */

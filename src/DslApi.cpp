@@ -5293,4 +5293,18 @@ void dsl_delete_all()
     DSL::Services::GetServices()->DeleteAll();
 }
 
+DslReturnType dsl_stdout_redirect(const wchar_t* file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->StdOutRedirect(cstrFilePath.c_str());
+}
+
+void dsl_stdout_restore()
+{
+    DSL::Services::GetServices()->StdOutRestore();
+}
 

@@ -4184,3 +4184,21 @@ _dsl.dsl_delete_all.restype = c_bool
 def dsl_delete_all():
     global _dsl
     return _dsl.dsl_delete_all()
+    
+##
+## dsl_stdout_redirect()
+##
+_dsl.dsl_stdout_redirect.argtypes = [c_wchar_p]
+_dsl.dsl_stdout_redirect.restype = c_uint
+def dsl_stdout_redirect(file_path):
+    global _dsl
+    result = _dsl.dsl_stdout_redirect(file_path)
+    return int(result)
+
+##
+## dsl_stdout_restore()
+##
+_dsl.dsl_stdout_restore.restype = c_bool
+def dsl_stdout_restore():
+    global _dsl
+    return _dsl.dsl_stdout_restore()
