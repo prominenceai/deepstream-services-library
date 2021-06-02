@@ -134,6 +134,9 @@ namespace DSL {
         DslReturnType OdeActionEmailNew(const char* name, 
             const char* mailer, const char* subject);
         
+        DslReturnType OdeActionFileNew(const char* name, 
+            const char* filePath, boolean forceFlush);
+        
         DslReturnType OdeActionFillSurroundingsNew(const char* name, const char* color);
         
         DslReturnType OdeActionFillFrameNew(const char* name, const char* color);

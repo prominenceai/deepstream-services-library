@@ -440,11 +440,21 @@ def dsl_ode_action_display_new(name,
 ##
 ## dsl_ode_action_email_new()
 ##
-_dsl.dsl_ode_action_email_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_email_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
 _dsl.dsl_ode_action_email_new.restype = c_uint
 def dsl_ode_action_email_new(name, mailer, subject):
     global _dsl
     result =_dsl.dsl_ode_action_email_new(name, mailer, subject)
+    return int(result)
+
+##
+## dsl_ode_action_file_new()
+##
+_dsl.dsl_ode_action_file_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
+_dsl.dsl_ode_action_file_new.restype = c_uint
+def dsl_ode_action_file_new(name, file_path, force_flush):
+    global _dsl
+    result =_dsl.dsl_ode_action_file_new(name, file_path, force_flush)
     return int(result)
 
 ##

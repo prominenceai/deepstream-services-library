@@ -511,6 +511,42 @@ SCENARIO( "A new Add Many Display Meta ODE Action can be created and deleted", "
     }
 }
 
+SCENARIO( "A new File ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new File ODE Action" ) 
+    {
+        std::wstring action_name(L"file-action");
+        std::wstring file_path(L"./file-action.txt");
+        boolean force_flush(true);
+
+        WHEN( "A new Log Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_file_new(action_name.c_str(),
+                file_path.c_str(), force_flush) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Log Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Log Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_file_new(action_name.c_str(),
+                file_path.c_str(), force_flush) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Log Action of the same names fails to create" ) 
+            {
+                REQUIRE( dsl_ode_action_file_new(action_name.c_str(),
+                    file_path.c_str(), force_flush) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new Fill Frame ODE Action can be created and deleted", "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Fill Frame ODE Action" ) 
@@ -1336,6 +1372,8 @@ SCENARIO( "The ODE Action API checks for NULL input parameters", "[ode-action-ap
                 REQUIRE( dsl_ode_action_display_new(NULL, 0, 0, false, NULL, false, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_display_new(action_name.c_str(), 0, 0, false, NULL, false, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
+                REQUIRE( dsl_ode_action_file_new(NULL, NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_file_new(action_name.c_str(), NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_fill_frame_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_fill_frame_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );

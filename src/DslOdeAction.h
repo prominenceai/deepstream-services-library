@@ -102,6 +102,10 @@ namespace DSL
     #define DSL_ODE_ACTION_PRINT_PTR std::shared_ptr<PrintOdeAction>
     #define DSL_ODE_ACTION_PRINT_NEW(name) \
         std::shared_ptr<PrintOdeAction>(new PrintOdeAction(name))
+
+    #define DSL_ODE_ACTION_FILE_PTR std::shared_ptr<FileOdeAction>
+    #define DSL_ODE_ACTION_FILE_NEW(name, filePath, forceFlush) \
+        std::shared_ptr<FileOdeAction>(new FileOdeAction(name, filePath, forceFlush))
         
     #define DSL_ODE_ACTION_REDACT_PTR std::shared_ptr<RedactOdeAction>
     #define DSL_ODE_ACTION_REDACT_NEW(name) \
@@ -973,6 +977,80 @@ namespace DSL
     private:
     
     };
+
+    // ********************************************************************
+
+    /**
+     * @class PrintOdeAction
+     * @brief Print ODE Action class
+     */
+    class FileOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the ODE Print Action class
+         * @param[in] name unique name for the ODE Action
+         */
+        FileOdeAction(const char* name, const char* filePath, bool forceflush);
+        
+        /**
+         * @brief dtor for the Print ODE Action class
+         */
+        ~FileOdeAction();
+        
+        /**
+         * @brief Handles the ODE occurrence by printing the  
+         * the occurrence data to the console
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+            
+        /**
+         * @brief Flushes the ostream buffer. ** To be called by the idle thread only **.
+         * @return false to unschedule always - single flush operation.
+         */
+        bool Flush();
+
+    private:
+    
+        /**
+         * @brief relative or absolute path to the file to write to
+         */ 
+        std::string m_filePath;
+        
+        /**
+         * @brief output stream for all file writes
+         */
+        std::fstream m_ostream;
+        
+        /**
+         * @brief flag to enable/disable forced stream buffer flushing
+         */
+        bool m_forceFlush;
+    
+        /**
+         * @brief gnome thread id for the background thread to flush
+         */
+        uint m_flushThreadFunctionId;
+
+        /**
+         * @brief mutex to protect mutual access to comms data
+         */
+        GMutex m_ostreamMutex;
+    };
+
+    /**
+     * @brief Idle Thread Function to flush the ostream buffer
+     * @param pAction pointer to the File Action to call flush
+     * @return false to unschedule always
+     */
+    static gboolean FileActionFlush(gpointer pAction);
         
     // ********************************************************************
 

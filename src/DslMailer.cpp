@@ -236,6 +236,11 @@ namespace DSL
     {
         LOG_FUNC();
         
+        if (m_sendMessageThreadId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
+            g_source_remove(m_sendMessageThreadId);
+        }
         g_mutex_clear(&m_commsMutex);
     }
     
