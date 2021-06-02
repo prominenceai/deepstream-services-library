@@ -519,23 +519,23 @@ SCENARIO( "A new File ODE Action can be created and deleted", "[ode-action-api]"
         std::wstring file_path(L"./file-action.txt");
         boolean force_flush(true);
 
-        WHEN( "A new Log Action is created" ) 
+        WHEN( "A new File Action is created" ) 
         {
             REQUIRE( dsl_ode_action_file_new(action_name.c_str(),
                 file_path.c_str(), force_flush) == DSL_RESULT_SUCCESS );
             
-            THEN( "The Log Action can be deleted" ) 
+            THEN( "The File Action can be deleted" ) 
             {
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
-        WHEN( "A new Log Action is created" ) 
+        WHEN( "A new File Action is created" ) 
         {
             REQUIRE( dsl_ode_action_file_new(action_name.c_str(),
                 file_path.c_str(), force_flush) == DSL_RESULT_SUCCESS );
             
-            THEN( "A second Log Action of the same names fails to create" ) 
+            THEN( "A second File Action of the same names fails to create" ) 
             {
                 REQUIRE( dsl_ode_action_file_new(action_name.c_str(),
                     file_path.c_str(), force_flush) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
