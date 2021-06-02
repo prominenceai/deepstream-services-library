@@ -378,6 +378,7 @@
 * [dsl_ode_action_display_new](/docs/api-ode-action.md#dsl_ode_action_display_new)
 * [dsl_ode_action_display_meta_add_new](/docs/api-ode-action.md#dsl_ode_action_display_meta_add_new)
 * [dsl_ode_action_display_meta_add_many_new](/docs/api-ode-action.md#dsl_ode_action_display_meta_add_many_new)
+* [dsl_ode_action_file_new](/docs/api-ode-action.md#dsl_ode_action_file_new)
 * [dsl_ode_action_fill_frame_new](/docs/api-ode-action.md#dsl_ode_action_fill_frame_new)
 * [dsl_ode_action_fill_object_new](/docs/api-ode-action.md#dsl_ode_action_fill_object_new)
 * [dsl_ode_action_fill_surroundings_new](/docs/api-ode-action.md#dsl_ode_action_fill_surroundings_new)

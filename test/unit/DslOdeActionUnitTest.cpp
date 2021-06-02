@@ -321,6 +321,98 @@ SCENARIO( "A EmailOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
     }
 }
 
+SCENARIO( "A new FileOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new FileOdeAction" ) 
+    {
+        std::string actionName("ode-action");
+        std::string filePath("./my-file.txt");
+        bool forceFlush(true);
+
+        WHEN( "A new OdeAction is created" )
+        {
+            DSL_ODE_ACTION_FILE_PTR pAction = DSL_ODE_ACTION_FILE_NEW(
+                actionName.c_str(), filePath.c_str(), forceFlush);
+
+            THEN( "The Action's memebers are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A FileOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new FileOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        std::string source;
+        uint classId(1);
+        uint limit(1);
+        
+        std::string actionName("action");
+        std::string filePath("./my-file.txt");
+        bool forceFlush(false);
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_FILE_PTR pAction = DSL_ODE_ACTION_FILE_NEW(
+            actionName.c_str(), filePath.c_str(), forceFlush);
+
+        WHEN( "A new ODE is created" )
+        {
+            NvDsFrameMeta frameMeta = {0};
+            NvDsObjectMeta objectMeta = {0};
+            
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                // NOTE:: Action disable other Handler will produce an error message as Handler does not exist
+                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+            }
+        }
+    }
+}
+
+SCENARIO( "A FileOdeAction with forceFlush set flushes the stream correctly", "[OdeAction]" )
+{
+    GIVEN( "A new FileOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        std::string source;
+        uint classId(1);
+        uint limit(1);
+        
+        std::string actionName("action");
+        std::string filePath("./my-file.txt");
+        bool forceFlush(true);
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_FILE_PTR pAction = DSL_ODE_ACTION_FILE_NEW(
+            actionName.c_str(), filePath.c_str(), forceFlush);
+
+        WHEN( "A new ODE is created" )
+        {
+            NvDsFrameMeta frameMeta = {0};
+            NvDsObjectMeta objectMeta = {0};
+            
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                // NOTE:: verification requires visual post inspection of the file.
+                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                
+                // Simulate the idle thread callback
+                // Flush must return false to unschedule, self remove
+                REQUIRE( pAction->Flush() == false );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new HandlerDisableOdeAction is created correctly", "[OdeAction]" )
 {
     GIVEN( "Attributes for a new HandlerDisableOdeAction" ) 

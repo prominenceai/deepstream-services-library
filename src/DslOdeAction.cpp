@@ -27,6 +27,8 @@ THE SOFTWARE.
 #include "DslOdeAction.h"
 #include "DslDisplayTypes.h"
 
+#define DATE_BUFF_LENGTH 40
+
 namespace DSL
 {
     OdeAction::OdeAction(const char* name)
@@ -776,6 +778,162 @@ namespace DSL
             
             std::dynamic_pointer_cast<Mailer>(m_pMailer)->QueueMessage(m_subject, body);
         }
+    }
+
+    // ********************************************************************
+
+    FileOdeAction::FileOdeAction(const char* name,
+        const char* filePath, bool forceFlush)
+        : OdeAction(name)
+        , m_filePath(filePath)
+        , m_forceFlush(forceFlush)
+        , m_flushThreadFunctionId(0)
+    {
+        LOG_FUNC();
+
+        try
+        {
+            m_ostream.open(m_filePath, std::fstream::out | std::fstream::app);
+        }
+        catch(...) 
+        {
+            LOG_ERROR("New FileOdeAction '" << name << "' failed to open");
+            throw;
+        }
+    
+        char dateTime[DATE_BUFF_LENGTH] = {0};
+        time_t seconds = time(NULL);
+        struct tm currentTm;
+        localtime_r(&seconds, &currentTm);
+
+        strftime(dateTime, DATE_BUFF_LENGTH, "%a, %d %b %Y %H:%M:%S %z", &currentTm);
+        std::string dateTimeStr(dateTime);
+        
+        m_ostream << "-------------------------------------------------------------------" << "\n";
+        m_ostream << " File opened: " << dateTimeStr.c_str() << "\n";
+        m_ostream << "-------------------------------------------------------------------" << "\n";
+    
+        g_mutex_init(&m_ostreamMutex);
+    }
+
+    FileOdeAction::~FileOdeAction()
+    {
+        LOG_FUNC();
+        
+        if (!m_ostream.is_open())
+        {
+            return;
+        }
+        
+        if (m_flushThreadFunctionId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_ostreamMutex);
+            g_source_remove(m_flushThreadFunctionId);
+        }
+
+        char dateTime[DATE_BUFF_LENGTH] = {0};
+        time_t seconds = time(NULL);
+        struct tm currentTm;
+        localtime_r(&seconds, &currentTm);
+
+        strftime(dateTime, DATE_BUFF_LENGTH, "%a, %d %b %Y %H:%M:%S %z", &currentTm);
+        std::string dateTimeStr(dateTime);
+
+        m_ostream << "-------------------------------------------------------------------" << "\n";
+        m_ostream << " File closed: " << dateTimeStr.c_str() << "\n";
+        m_ostream << "-------------------------------------------------------------------" << "\n";
+        
+        m_ostream.close();
+        
+        g_mutex_clear(&m_ostreamMutex);
+    }
+
+    void FileOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_ostreamMutex);
+
+        if (!m_enabled)
+        {
+            return;
+        }
+        DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+        
+        m_ostream << "Trigger Name    : " << pTrigger->GetName() << "\n";
+        m_ostream << "  Unique ODE Id : " << pTrigger->s_eventCount << "\n";
+        m_ostream << "  NTP Timestamp : " << Ntp2Str(pFrameMeta->ntp_timestamp) << "\n";
+        m_ostream << "  Source Data   : ------------------------" << "\n";
+        if (pFrameMeta->bInferDone)
+        {
+            m_ostream << "    Inference   : Yes\n";
+        }
+        else
+        {
+            m_ostream << "    Inference   : No\n";
+        }
+        m_ostream << "    SourceId    : " << pFrameMeta->source_id << "\n";
+        m_ostream << "    BatchId     : " << pFrameMeta->batch_id << "\n";
+        m_ostream << "    PadIndex    : " << pFrameMeta->pad_index << "\n";
+        m_ostream << "    Frame       : " << pFrameMeta->frame_num << "\n";
+        m_ostream << "    Width       : " << pFrameMeta->source_frame_width << "\n";
+        m_ostream << "    Heigh       : " << pFrameMeta->source_frame_height << "\n";
+        m_ostream << "  Object Data   : ------------------------" << "\n";
+        m_ostream << "    Class Id    : " << pTrigger->m_classId << "\n";
+        m_ostream << "    Occurrences : " << pTrigger->m_occurrences << "\n";
+
+        if (pObjectMeta)
+        {
+            m_ostream << "    Obj ClassId : " << pObjectMeta->class_id << "\n";
+            m_ostream << "    Tracking Id : " << pObjectMeta->object_id << "\n";
+            m_ostream << "    Label       : " << pObjectMeta->obj_label << "\n";
+            m_ostream << "    Confidence  : " << pObjectMeta->confidence << "\n";
+            m_ostream << "    Left        : " << lrint(pObjectMeta->rect_params.left) << "\n";
+            m_ostream << "    Top         : " << lrint(pObjectMeta->rect_params.top) << "\n";
+            m_ostream << "    Width       : " << lrint(pObjectMeta->rect_params.width) << "\n";
+            m_ostream << "    Height      : " << lrint(pObjectMeta->rect_params.height) << "\n";
+        }
+
+        m_ostream << "  Criteria      : ------------------------" << "\n";
+        m_ostream << "    Confidence  : " << pTrigger->m_minConfidence << "\n";
+        m_ostream << "    Frame Count : " << pTrigger->m_minFrameCountN
+            << " out of " << pTrigger->m_minFrameCountD << "\n";
+        m_ostream << "    Min Width   : " << lrint(pTrigger->m_minWidth) << "\n";
+        m_ostream << "    Min Height  : " << lrint(pTrigger->m_minHeight) << "\n";
+        m_ostream << "    Max Width   : " << lrint(pTrigger->m_maxWidth) << "\n";
+        m_ostream << "    Max Height  : " << lrint(pTrigger->m_maxHeight) << "\n";
+
+        if (pTrigger->m_inferDoneOnly)
+        {
+            m_ostream << "    Inference   : Yes\n\n";
+        }
+        else
+        {
+            m_ostream << "    Inference   : No\n\n";
+        }
+        
+        // If we're force flushing the stream and the flush
+        // handler is not currently added to the idle thread
+        if (m_forceFlush and !m_flushThreadFunctionId)
+        {
+            m_flushThreadFunctionId = g_idle_add(FileActionFlush, this);
+        }
+    }
+    
+    bool FileOdeAction::Flush()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_ostreamMutex);
+        
+        m_ostream.flush();
+        
+        // end the thread
+        m_flushThreadFunctionId = 0;
+        return false;
+    }
+
+    static gboolean FileActionFlush(gpointer pAction)
+    {
+        return static_cast<FileOdeAction*>(pAction)->Flush();
     }
 
     // ********************************************************************

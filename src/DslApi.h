@@ -1159,6 +1159,21 @@ DslReturnType dsl_ode_action_email_new(const wchar_t* name,
     const wchar_t* mailer, const wchar_t* subject);
 
 /**
+ * @brief Creates a uniquely named File ODE Action, that write the ODE Event Info to file.
+ * @param[in] name unique name for the File ODE Action
+ * @param[in] file_path absolute or relative file path of the output file to use
+ * The file will be created if one does exists, or opened for append if found.
+ * @param[in] force_flush  if true, the action will schedule a flush to be performed 
+ * by the idle thread. NOTE: although the flush event occurs in a background thread,
+ * flushing is still a CPU intensive operation and should be used sparingly, when tailing
+ * the file for runtime debugging as an example. Set to 0 to disable forced flushing, 
+ * and to allow the operating system to more effectively handle the stream flushing.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_file_new(const wchar_t* name, 
+    const wchar_t* file_path, boolean force_flush);
+
+/**
  * @brief Creates a uniquely named Fill Frame ODE Action, that fills the entire
  * frame with a give RGBA color value
  * @param[in] name unique name for the Fill Frame ODE Action
@@ -4623,8 +4638,17 @@ const wchar_t* dsl_version_get();
  */
 void dsl_delete_all();
 
+/**
+ * @brief Redirects all data streamed to std::cout << by DSL to a specified file.
+ * The file is opened for append if it currently exists. 
+ * @param[in] file_path absolute or relative file path specification
+ * @return true on success, one DSL_RESULT otherwise
+ */
 DslReturnType dsl_stdout_redirect(const wchar_t* file_path);
 
+/**
+ * @brief Restores the std::cout rdbuf from redirection
+ */
 void dsl_stdout_restore();
 
 

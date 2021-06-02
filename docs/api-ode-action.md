@@ -49,6 +49,7 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 * [dsl_ode_action_display_meta_add_new](#dsl_ode_action_display_meta_add_new)
 * [dsl_ode_action_display_meta_add_many_new](#dsl_ode_action_display_meta_add_many_new)
 * [dsl_ode_action_email_new](#dsl_ode_action_email_new)
+* [dsl_ode_action_file_new](#dsl_ode_action_file_new)
 * [dsl_ode_action_fill_frame_new](#dsl_ode_action_fill_frame_new)
 * [dsl_ode_action_fill_object_new](#dsl_ode_action_fill_object_new)
 * [dsl_ode_action_fill_surroundings_new](#dsl_ode_action_fill_surroundings_new)
@@ -406,6 +407,32 @@ retval = dsl_ode_action_email_new('my-email-action', 'Bicycle has entered Inclus
 ```
 
 <br>
+
+### *dsl_ode_action_file_new*
+```C++
+DslReturnType dsl_ode_action_file_new(const wchar_t* name, 
+    const wchar_t* file_path, boolean force_flush);
+```
+The constructor creates a uniquely named **File** ODE Action. When invoked, this Action will write the Frame/Object and Trigger Criteria information for the ODE occurence that triggered the event to a specified file. The file will be created if one does exists, or opened for append if found.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `file_path` - [in] absolute or relative file path specification of the output file to use.
+* `force_flush` - [in] if set, the action will schedule a flush buffer operation to be performed by the idle thread.  
+
+NOTE: although the flush event occurrs in the lowest priority background (idle) thread, flushing is still a CPU intensive operation and should be used sparingly -- when tailing the file for runtime debugging as an example. Set to 0 to disable forced flushing, and to allow the operating system to more effectively handle the process.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_file_new('my-file-action', 
+    './event_files/my-events.txt', false)
+```
+
+<br>
+
 
 ### *dsl_ode_action_fill_frame_new*
 ```C++
