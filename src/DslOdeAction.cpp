@@ -35,10 +35,16 @@ namespace DSL
         : Base(name)
         , m_enabled(true)
     {
+        LOG_FUNC();
+
+        g_mutex_init(&m_propertyMutex);
     }
 
     OdeAction::~OdeAction()
     {
+        LOG_FUNC();
+
+        g_mutex_clear(&m_propertyMutex);
     }
 
     bool OdeAction::GetEnabled()
@@ -51,6 +57,7 @@ namespace DSL
     void OdeAction::SetEnabled(bool enabled)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         m_enabled = enabled;
     }
@@ -93,6 +100,8 @@ namespace DSL
         GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         if (!m_enabled)
         {
             return;
@@ -304,6 +313,8 @@ namespace DSL
         GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (!m_enabled)
         {
             return;
@@ -606,6 +617,8 @@ namespace DSL
         GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
@@ -638,6 +651,8 @@ namespace DSL
         GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
@@ -693,6 +708,8 @@ namespace DSL
         GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
@@ -852,7 +869,8 @@ namespace DSL
         GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_ostreamMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        LOCK_2ND_MUTEX_FOR_CURRENT_SCOPE(&m_ostreamMutex);
 
         if (!m_enabled)
         {
@@ -956,6 +974,8 @@ namespace DSL
         GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         if (m_enabled and pObjectMeta)
         {
             
@@ -1016,6 +1036,8 @@ namespace DSL
         GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             NvOSD_RectParams rectParams{0};
@@ -1050,6 +1072,8 @@ namespace DSL
         GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled and pObjectMeta)
         {
             pObjectMeta->rect_params.has_bg_color = true;
@@ -1076,6 +1100,8 @@ namespace DSL
         GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled and pObjectMeta)
         {
             if (m_hideText and (pObjectMeta->text_params.display_text))
@@ -1107,6 +1133,8 @@ namespace DSL
         GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
@@ -1193,6 +1221,8 @@ namespace DSL
         GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             for (const auto &ivec: m_pDisplayTypes)
@@ -1220,6 +1250,8 @@ namespace DSL
         GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
@@ -1229,77 +1261,115 @@ namespace DSL
 
     // ********************************************************************
 
-    PrintOdeAction::PrintOdeAction(const char* name)
+    PrintOdeAction::PrintOdeAction(const char* name,
+        bool forceFlush)
         : OdeAction(name)
+        , m_forceFlush(forceFlush)
+        , m_flushThreadFunctionId(0)
     {
         LOG_FUNC();
+
+        g_mutex_init(&m_ostreamMutex);
     }
 
     PrintOdeAction::~PrintOdeAction()
     {
         LOG_FUNC();
+
+        if (m_flushThreadFunctionId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_ostreamMutex);
+            g_source_remove(m_flushThreadFunctionId);
+        }
     }
 
     void PrintOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
         GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        if (m_enabled)
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        if (!m_enabled)
         {
-            DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
-            
-            std::cout << "Trigger Name    : " << pTrigger->GetName() << "\n";
-            std::cout << "  Unique ODE Id : " << pTrigger->s_eventCount << "\n";
-            std::cout << "  NTP Timestamp : " << Ntp2Str(pFrameMeta->ntp_timestamp) << "\n";
-            std::cout << "  Source Data   : ------------------------" << "\n";
-            if (pFrameMeta->bInferDone)
-            {
-                std::cout << "    Inference   : Yes\n";
-            }
-            else
-            {
-                std::cout << "    Inference   : No\n";
-            }
-            std::cout << "    SourceId    : " << pFrameMeta->source_id << "\n";
-            std::cout << "    BatchId     : " << pFrameMeta->batch_id << "\n";
-            std::cout << "    PadIndex    : " << pFrameMeta->pad_index << "\n";
-            std::cout << "    Frame       : " << pFrameMeta->frame_num << "\n";
-            std::cout << "    Width       : " << pFrameMeta->source_frame_width << "\n";
-            std::cout << "    Heigh       : " << pFrameMeta->source_frame_height << "\n";
-            std::cout << "  Object Data   : ------------------------" << "\n";
-            std::cout << "    Class Id    : " << pTrigger->m_classId << "\n";
-            std::cout << "    Occurrences : " << pTrigger->m_occurrences << "\n";
-
-            if (pObjectMeta)
-            {
-                std::cout << "    Obj ClassId : " << pObjectMeta->class_id << "\n";
-                std::cout << "    Tracking Id : " << pObjectMeta->object_id << "\n";
-                std::cout << "    Label       : " << pObjectMeta->obj_label << "\n";
-                std::cout << "    Confidence  : " << pObjectMeta->confidence << "\n";
-                std::cout << "    Left        : " << lrint(pObjectMeta->rect_params.left) << "\n";
-                std::cout << "    Top         : " << lrint(pObjectMeta->rect_params.top) << "\n";
-                std::cout << "    Width       : " << lrint(pObjectMeta->rect_params.width) << "\n";
-                std::cout << "    Height      : " << lrint(pObjectMeta->rect_params.height) << "\n";
-            }
-
-            std::cout << "  Criteria      : ------------------------" << "\n";
-            std::cout << "    Confidence  : " << pTrigger->m_minConfidence << "\n";
-            std::cout << "    Frame Count : " << pTrigger->m_minFrameCountN
-                << " out of " << pTrigger->m_minFrameCountD << "\n";
-            std::cout << "    Min Width   : " << lrint(pTrigger->m_minWidth) << "\n";
-            std::cout << "    Min Height  : " << lrint(pTrigger->m_minHeight) << "\n";
-            std::cout << "    Max Width   : " << lrint(pTrigger->m_maxWidth) << "\n";
-            std::cout << "    Max Height  : " << lrint(pTrigger->m_maxHeight) << "\n";
-
-            if (pTrigger->m_inferDoneOnly)
-            {
-                std::cout << "    Inference   : Yes\n\n";
-            }
-            else
-            {
-                std::cout << "    Inference   : No\n\n";
-            }
+            return;
         }
+        DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+        
+        std::cout << "Trigger Name    : " << pTrigger->GetName() << "\n";
+        std::cout << "  Unique ODE Id : " << pTrigger->s_eventCount << "\n";
+        std::cout << "  NTP Timestamp : " << Ntp2Str(pFrameMeta->ntp_timestamp) << "\n";
+        std::cout << "  Source Data   : ------------------------" << "\n";
+        if (pFrameMeta->bInferDone)
+        {
+            std::cout << "    Inference   : Yes\n";
+        }
+        else
+        {
+            std::cout << "    Inference   : No\n";
+        }
+        std::cout << "    SourceId    : " << pFrameMeta->source_id << "\n";
+        std::cout << "    BatchId     : " << pFrameMeta->batch_id << "\n";
+        std::cout << "    PadIndex    : " << pFrameMeta->pad_index << "\n";
+        std::cout << "    Frame       : " << pFrameMeta->frame_num << "\n";
+        std::cout << "    Width       : " << pFrameMeta->source_frame_width << "\n";
+        std::cout << "    Heigh       : " << pFrameMeta->source_frame_height << "\n";
+        std::cout << "  Object Data   : ------------------------" << "\n";
+        std::cout << "    Class Id    : " << pTrigger->m_classId << "\n";
+        std::cout << "    Occurrences : " << pTrigger->m_occurrences << "\n";
+
+        if (pObjectMeta)
+        {
+            std::cout << "    Obj ClassId : " << pObjectMeta->class_id << "\n";
+            std::cout << "    Tracking Id : " << pObjectMeta->object_id << "\n";
+            std::cout << "    Label       : " << pObjectMeta->obj_label << "\n";
+            std::cout << "    Confidence  : " << pObjectMeta->confidence << "\n";
+            std::cout << "    Left        : " << lrint(pObjectMeta->rect_params.left) << "\n";
+            std::cout << "    Top         : " << lrint(pObjectMeta->rect_params.top) << "\n";
+            std::cout << "    Width       : " << lrint(pObjectMeta->rect_params.width) << "\n";
+            std::cout << "    Height      : " << lrint(pObjectMeta->rect_params.height) << "\n";
+        }
+
+        std::cout << "  Criteria      : ------------------------" << "\n";
+        std::cout << "    Confidence  : " << pTrigger->m_minConfidence << "\n";
+        std::cout << "    Frame Count : " << pTrigger->m_minFrameCountN
+            << " out of " << pTrigger->m_minFrameCountD << "\n";
+        std::cout << "    Min Width   : " << lrint(pTrigger->m_minWidth) << "\n";
+        std::cout << "    Min Height  : " << lrint(pTrigger->m_minHeight) << "\n";
+        std::cout << "    Max Width   : " << lrint(pTrigger->m_maxWidth) << "\n";
+        std::cout << "    Max Height  : " << lrint(pTrigger->m_maxHeight) << "\n";
+
+        if (pTrigger->m_inferDoneOnly)
+        {
+            std::cout << "    Inference   : Yes\n\n";
+        }
+        else
+        {
+            std::cout << "    Inference   : No\n\n";
+        }
+
+        // If we're force flushing the stream and the flush
+        // handler is not currently added to the idle thread
+        if (m_forceFlush and !m_flushThreadFunctionId)
+        {
+            m_flushThreadFunctionId = g_idle_add(PrintActionFlush, this);
+        }
+        
+    }
+
+    bool PrintOdeAction::Flush()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_ostreamMutex);
+        
+        std::cout << std::flush;
+        
+        // end the thread
+        m_flushThreadFunctionId = 0;
+        return false;
+    }
+
+    static gboolean PrintActionFlush(gpointer pAction)
+    {
+        return static_cast<PrintOdeAction*>(pAction)->Flush();
     }
 
     // ********************************************************************
@@ -1319,6 +1389,8 @@ namespace DSL
     void RedactOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled and pObjectMeta)
         {
             // hide the OSD display text
@@ -1356,6 +1428,8 @@ namespace DSL
     void AddSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), m_sink.c_str());
@@ -1381,6 +1455,8 @@ namespace DSL
     void RemoveSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
@@ -1407,6 +1483,8 @@ namespace DSL
     void AddSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
@@ -1433,6 +1511,8 @@ namespace DSL
     void RemoveSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
@@ -1457,6 +1537,8 @@ namespace DSL
     void ResetTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
@@ -1482,6 +1564,8 @@ namespace DSL
     void DisableTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
@@ -1506,6 +1590,8 @@ namespace DSL
     void EnableTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
@@ -1530,6 +1616,8 @@ namespace DSL
     void DisableActionOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
@@ -1554,6 +1642,8 @@ namespace DSL
     void EnableActionOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
@@ -1580,6 +1670,8 @@ namespace DSL
     void AddAreaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
@@ -1606,6 +1698,8 @@ namespace DSL
     void RemoveAreaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
@@ -1634,6 +1728,8 @@ namespace DSL
     void RecordSinkStartOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
@@ -1660,6 +1756,8 @@ namespace DSL
     void RecordSinkStopOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
@@ -1688,6 +1786,8 @@ namespace DSL
     void RecordTapStartOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
@@ -1714,6 +1814,8 @@ namespace DSL
     void RecordTapStopOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
@@ -1739,13 +1841,13 @@ namespace DSL
     void TilerShowSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (m_enabled)
         {
             // Ignore the return value,
             Services::GetServices()->TilerSourceShowSet(m_tiler.c_str(), pFrameMeta->source_id, m_timeout, m_hasPrecedence);
         }
     }
-
-
 }    
 

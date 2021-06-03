@@ -100,8 +100,8 @@ namespace DSL
         std::shared_ptr<PauseOdeAction>(new PauseOdeAction(name, pipeline))
         
     #define DSL_ODE_ACTION_PRINT_PTR std::shared_ptr<PrintOdeAction>
-    #define DSL_ODE_ACTION_PRINT_NEW(name) \
-        std::shared_ptr<PrintOdeAction>(new PrintOdeAction(name))
+    #define DSL_ODE_ACTION_PRINT_NEW(name, forceFlush) \
+        std::shared_ptr<PrintOdeAction>(new PrintOdeAction(name, forceFlush))
 
     #define DSL_ODE_ACTION_FILE_PTR std::shared_ptr<FileOdeAction>
     #define DSL_ODE_ACTION_FILE_NEW(name, filePath, forceFlush) \
@@ -223,7 +223,11 @@ namespace DSL
         bool m_enabled;
         
         std::string Ntp2Str(uint64_t ntp);
-        
+
+        /**
+         * @brief Mutex to ensure mutual exlusion for propery get/sets
+         */
+        GMutex m_propertyMutex;
     };
 
     // ********************************************************************
@@ -955,7 +959,7 @@ namespace DSL
          * @brief ctor for the ODE Print Action class
          * @param[in] name unique name for the ODE Action
          */
-        PrintOdeAction(const char* name);
+        PrintOdeAction(const char* name, bool forceFlush);
         
         /**
          * @brief dtor for the Print ODE Action class
@@ -974,9 +978,36 @@ namespace DSL
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
+        /**
+         * @brief Flushes the stdout buffer. ** To be called by the idle thread only **.
+         * @return false to unschedule always - single flush operation.
+         */
+        bool Flush();
+
     private:
+
+        /**
+         * @brief flag to enable/disable forced stream buffer flushing
+         */
+        bool m_forceFlush;
     
+        /**
+         * @brief gnome thread id for the background thread to flush
+         */
+        uint m_flushThreadFunctionId;
+
+        /**
+         * @brief mutex to protect mutual access to m_flushThreadFunctionId
+         */
+        GMutex m_ostreamMutex;
     };
+
+    /**
+     * @brief Idle Thread Function to flush the stdout buffer
+     * @param pAction pointer to the File Action to call flush
+     * @return false to unschedule always
+     */
+    static gboolean PrintActionFlush(gpointer pAction);
 
     // ********************************************************************
 

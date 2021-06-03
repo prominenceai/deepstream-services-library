@@ -643,14 +643,16 @@ DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipel
         cstrPipeline.c_str());
 }
 
-DslReturnType dsl_ode_action_print_new(const wchar_t* name)
+DslReturnType dsl_ode_action_print_new(const wchar_t* name, 
+    boolean force_flush)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeActionPrintNew(cstrName.c_str());
+    return DSL::Services::GetServices()->OdeActionPrintNew(cstrName.c_str(),
+        force_flush);
 }
 
 DslReturnType dsl_ode_action_redact_new(const wchar_t* name)

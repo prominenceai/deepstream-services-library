@@ -779,7 +779,7 @@ SCENARIO( "A new PrintOdeAction is created correctly", "[OdeAction]" )
         WHEN( "A new OdeAction is created" )
         {
             DSL_ODE_ACTION_PRINT_PTR pAction = 
-                DSL_ODE_ACTION_PRINT_NEW(actionName.c_str());
+                DSL_ODE_ACTION_PRINT_NEW(actionName.c_str(), false);
 
             THEN( "The Action's memebers are setup and returned correctly" )
             {
@@ -805,7 +805,7 @@ SCENARIO( "A PrintOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pAction = 
-            DSL_ODE_ACTION_PRINT_NEW(actionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(actionName.c_str(), false);
 
         WHEN( "A new ODE is created" )
         {

@@ -1236,9 +1236,14 @@ DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipel
 /**
  * @brief Creates a uniquely named Print ODE Action
  * @param[in] name unique name for the Print ODE Action 
+ * @param[in] force_flush  if true, the action will schedule a flush to be performed 
+ * by the idle thread. NOTE: although the flush event occurs in a background thread,
+ * flushing is still a CPU intensive operation and should be used sparingly, when tailing
+ * the console ouput for runtime debugging as an example. Set to 0 to disable forced flushing, 
+ * and to allow the operating system to more effectively handle the process.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_print_new(const wchar_t* name);
+DslReturnType dsl_ode_action_print_new(const wchar_t* name, boolean force_flush);
     
 /**
  * @brief Creates a uniquely named Redact Object ODE Action, that blacks out an 

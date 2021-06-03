@@ -1749,7 +1749,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeActionPrintNew(const char* name)
+    DslReturnType Services::OdeActionPrintNew(const char* name,
+        boolean forceFlush)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1762,7 +1763,7 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_PRINT_NEW(name);
+            m_odeActions[name] = DSL_ODE_ACTION_PRINT_NEW(name, forceFlush);
 
             LOG_INFO("New ODE Print Action '" << name << "' created successfully");
 

@@ -166,7 +166,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Print
         REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), odePphName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName.c_str(), NULL, classId, limit) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_action_print_new(odeActionName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_print_new(odeActionName.c_str(), false) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(odeTriggerName.c_str(), odeActionName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
         
@@ -1020,7 +1020,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
         REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
             codec, container, bitrate, interval, NULL) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_print_new(printActionName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_print_new(printActionName.c_str(), false) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_action_sink_record_start_new(recordActionName.c_str(), 
             recordSinkName.c_str(), 2, 5, NULL) == DSL_RESULT_SUCCESS );
         
