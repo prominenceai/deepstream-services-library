@@ -86,7 +86,7 @@ SCENARIO( "An OdeOccurrenceTrigger checks its enabled setting ", "[OdeTrigger]" 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
@@ -142,7 +142,7 @@ SCENARIO( "An ODE Occurrence Trigger checks its minimum confidence correctly", "
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
@@ -216,7 +216,7 @@ SCENARIO( "A OdeOccurrenceTrigger checks for Source Name correctly", "[OdeTrigge
         REQUIRE( retSource == source );
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
@@ -281,7 +281,7 @@ SCENARIO( "A OdeOccurrenceTrigger checks for Minimum Dimensions correctly", "[Od
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
@@ -354,7 +354,7 @@ SCENARIO( "A OdeOccurrenceTrigger checks for Maximum Dimensions correctly", "[Od
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
@@ -426,7 +426,7 @@ SCENARIO( "An OdeOccurrenceTrigger checks its InferDoneOnly setting ", "[OdeTrig
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
@@ -496,7 +496,7 @@ SCENARIO( "A OdeOccurrenceTrigger checks for Area overlap correctly", "[OdeTrigg
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
 
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
@@ -706,7 +706,7 @@ SCENARIO( "A OdeAbsenceTrigger checks for Source Name correctly", "[OdeTrigger]"
         REQUIRE( retSource == source );
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
@@ -777,7 +777,7 @@ SCENARIO( "An InstanceOdeTrigger handles ODE Occurrences correctly", "[OdeTrigge
             DSL_ODE_TRIGGER_INSTANCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
@@ -854,7 +854,7 @@ SCENARIO( "An Intersection OdeTrigger checks for intersection correctly", "[OdeT
                 source.c_str(), classIdA, classIdB, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
@@ -970,7 +970,7 @@ SCENARIO( "A Custom OdeTrigger checks for and handles Occurrence correctly", "[O
                 ode_post_process_frame_cb, NULL);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
@@ -1016,7 +1016,7 @@ SCENARIO( "A CountOdeTrigger handles ODE Occurrence correctly", "[OdeTrigger]" )
 				classId, limit, minimum, maximum);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
@@ -1097,7 +1097,7 @@ SCENARIO( "A SmallestOdeTrigger handles an ODE Occurrence correctly", "[OdeTrigg
             DSL_ODE_TRIGGER_SMALLEST_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
@@ -1148,7 +1148,7 @@ SCENARIO( "A LargestOdeTrigger handles am ODE Occurrence correctly", "[OdeTrigge
             DSL_ODE_TRIGGER_LARGEST_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
@@ -1202,7 +1202,7 @@ SCENARIO( "A PersistenceOdeTrigger adds/updates tracked objects correctly", "[Od
 				source.c_str(), classId, limit, minimum, maximum);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
@@ -1271,7 +1271,7 @@ SCENARIO( "A PersistenceOdeTrigger purges tracked objects correctly", "[OdeTrigg
 				source.c_str(), classId, limit, minimum, maximum);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
@@ -1326,7 +1326,7 @@ SCENARIO( "A PersistenceOdeTrigger Post Processes ODE Occurrences correctly", "[
 				source.c_str(), classId, limit, minimum, maximum);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
@@ -1425,7 +1425,7 @@ SCENARIO( "An NewLowOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]
                 source.c_str(), classId, limit, preset);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
@@ -1501,7 +1501,7 @@ SCENARIO( "An NewHighOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger
                 source.c_str(), classId, limit, preset);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
@@ -1654,7 +1654,7 @@ SCENARIO( "A new Fixed-Pixel OdeDistanceTrigger handles occurrence correctly", "
         std::string source;
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
 
         NvDsFrameMeta frameMeta =  {0};
         frameMeta.frame_num = 444;
@@ -1796,7 +1796,7 @@ SCENARIO( "A new Ralational OdeDistanceTrigger handles occurrence correctly", "[
         std::string source;
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
 
         NvDsFrameMeta frameMeta =  {0};
         frameMeta.frame_num = 444;

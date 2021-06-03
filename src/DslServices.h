@@ -153,7 +153,7 @@ namespace DSL {
 
         DslReturnType OdeActionPauseNew(const char* name, const char* pipeline);
 
-        DslReturnType OdeActionPrintNew(const char* name);
+        DslReturnType OdeActionPrintNew(const char* name, boolean forceFlush);
         
         DslReturnType OdeActionRedactNew(const char* name);
 

@@ -542,11 +542,11 @@ def dsl_ode_action_display_meta_add_many_new(name, display_types):
 ##
 ## dsl_ode_action_print_new()
 ##
-_dsl.dsl_ode_action_print_new.argtypes = [c_wchar_p]
+_dsl.dsl_ode_action_print_new.argtypes = [c_wchar_p, c_bool]
 _dsl.dsl_ode_action_print_new.restype = c_uint
-def dsl_ode_action_print_new(name):
+def dsl_ode_action_print_new(name, force_flush):
     global _dsl
-    result =_dsl.dsl_ode_action_print_new(name)
+    result =_dsl.dsl_ode_action_print_new(name, force_flush)
     return int(result)
 
 ##
@@ -731,6 +731,27 @@ _dsl.dsl_ode_action_tiler_source_show_new.restype = c_uint
 def dsl_ode_action_tiler_source_show_new(name, tiler, timeout, has_precedence):
     global _dsl
     result =_dsl.dsl_ode_action_tiler_source_show_new(name, tiler, timeout, has_precedence)
+    return int(result)
+    
+##
+## dsl_ode_action_enabled_get()
+##
+_dsl.dsl_ode_action_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_ode_action_enabled_get.restype = c_uint
+def dsl_ode_action_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result =_dsl.dsl_ode_action_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_ode_action_enabled_set()
+##
+_dsl.dsl_ode_action_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_ode_action_enabled_set.restype = c_uint
+def dsl_ode_action_enabled_set(name, enabled):
+    global _dsl
+    result =_dsl.dsl_ode_action_enabled_set(name, enabled)
     return int(result)
 
 ##
