@@ -104,7 +104,7 @@ def main(args):
             break
 
         # Create a Print Action to print out the ODE occurrence information to the console
-        retval = dsl_ode_action_print_new('print-action')
+        retval = dsl_ode_action_print_new('print-action', force_flush=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
