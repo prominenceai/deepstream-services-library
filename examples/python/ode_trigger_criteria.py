@@ -130,7 +130,7 @@ def main(args):
             break
 
         # Create a Print Action to print out the Capture Object's Attributes and Trigger information
-        retval = dsl_ode_action_print_new('print-action')
+        retval = dsl_ode_action_print_new('print-action', force_flush=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
