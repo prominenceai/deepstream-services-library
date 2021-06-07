@@ -1382,6 +1382,8 @@ namespace DSL
         , m_testMethod(testMethod)
     {
         LOG_FUNC();
+        
+        LOG_WARN("min = " << m_minimum << ", max = " << m_maximum);
     }
 
     DistanceOdeTrigger::~DistanceOdeTrigger()
@@ -1404,6 +1406,7 @@ namespace DSL
         
         m_minimum = minimum;
         m_maximum = maximum;
+        LOG_WARN("min = " << m_minimum << ", max = " << m_maximum);
     }
 
     void DistanceOdeTrigger::GetTestParams(uint* testPoint, uint* testMethod)
@@ -1490,6 +1493,7 @@ namespace DSL
                     {
                         if (CheckDistance(iterA, iterB))
                         {
+                            LOG_WARN("min = " << m_minimum << ", max = " << m_maximum);
                             // event has been triggered
                             m_occurrences++;
                             IncrementAndCheckTriggerCount();
@@ -1527,8 +1531,10 @@ namespace DSL
 
     bool DistanceOdeTrigger::CheckDistance(NvDsObjectMeta* pObjectMetaA, NvDsObjectMeta* pObjectMetaB)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         uint distance(0);
-        if (m_testPoint = DSL_BBOX_POINT_ANY)
+        if (m_testPoint == DSL_BBOX_POINT_ANY)
         {
             GeosRectangle rectA(pObjectMetaA->rect_params);
             GeosRectangle rectB(pObjectMetaB->rect_params);

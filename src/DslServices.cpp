@@ -2871,8 +2871,12 @@ namespace DSL
             
             DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<DistanceOdeTrigger>(m_odeTriggers[name]);
-         
+
             pOdeTrigger->GetRange(minimum, maximum);
+            
+            // check for no maximum
+            *maximum = (*maximum == UINT32_MAX) ? 0 : *maximum;
+
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
@@ -2896,6 +2900,9 @@ namespace DSL
             
             DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<DistanceOdeTrigger>(m_odeTriggers[name]);
+
+            // check for no maximum
+            maximum = (maximum == 0) ? UINT32_MAX : maximum;
          
             pOdeTrigger->SetRange(minimum, maximum);
             
