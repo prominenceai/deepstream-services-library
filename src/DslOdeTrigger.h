@@ -1183,6 +1183,37 @@ namespace DSL
             uint testPoint, uint testMethod);
         
         ~DistanceOdeTrigger();
+        
+        /**
+         * @brief Gets the current Minimum and Maximum distance setting in use. 
+         * a value of 0 means no minimum or maximum
+         * @param[out] minimim current minimum distance setting in use
+         * @param[out] maximum current maximum distance setting in use
+         */
+        void GetRange(uint* minimum, uint* maximum);
+
+        /**
+         * @brief Sets new Minimum and Maximum distance settings to use.
+         * a value of 0 means no minimum or maximum
+         * @param[in] minimum new minimum distance value to use
+         * @param[in] maximum new maximum distance value to use
+         */
+        void SetRange(uint minimum, uint maximum);
+
+        /**
+         * @brief Gets the current Test Point and Test Methods parameters in use. 
+         * @param[out] testPoint current test point value in use
+         * @param[out] testMethod current test method value in use
+         */
+        void GetTestParams(uint* testPoint, uint* testMethod);
+        
+        /**
+         * @brief Sets the current Test Point and Test Methods parameters in use. 
+         * @param[in] testPoint new test point value to use
+         * @param[in] testMethod new test method value to use
+         */
+        void SetTestParams(uint testPoint, uint testMethod);
+        
 
     private:
 

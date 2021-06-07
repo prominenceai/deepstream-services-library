@@ -1570,6 +1570,9 @@ SCENARIO( "A new OdeDistanceTrigger is created correctly", "[OdeTrigger]" )
         uint classIdB(1);
         uint minimum(10);
         uint maximum(20);
+        uint testPoint(DSL_BBOX_POINT_ANY);
+        uint testMethod(DSL_DISTANCE_METHOD_PERCENT_HEIGHT_B);
+        
         
         std::string source;
 
@@ -1578,7 +1581,7 @@ SCENARIO( "A new OdeDistanceTrigger is created correctly", "[OdeTrigger]" )
             DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
                 DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
                     classIdA, classIdB, limit, minimum, maximum, 
-                    DSL_BBOX_POINT_ANY, DSL_DISTANCE_METHOD_FIXED_PIXELS);
+                    testPoint, testMethod);
 
             THEN( "The OdeTriggers's members are setup and returned correctly" )
             {
@@ -1587,6 +1590,14 @@ SCENARIO( "A new OdeDistanceTrigger is created correctly", "[OdeTrigger]" )
                 pOdeTrigger->GetClassIdAB(&retClassIdA, &retClassIdB);
                 REQUIRE( retClassIdA == classIdA );
                 REQUIRE( retClassIdB == classIdB );
+                uint retMinimum(0), retMaximum(0);
+                pOdeTrigger->GetRange(&retMinimum, &retMaximum);
+                REQUIRE( retMinimum == minimum );
+                REQUIRE( retMaximum == maximum);
+                uint retTestPoint(0), retTestMethod(0);
+                pOdeTrigger->GetTestParams(&retTestPoint, &retTestMethod);
+                REQUIRE( retTestPoint == testPoint );
+                REQUIRE( retTestMethod == testMethod );
                 REQUIRE( pOdeTrigger->GetLimit() == limit );
                 REQUIRE( pOdeTrigger->GetSource() == NULL );
                 float minWidth(123), minHeight(123);

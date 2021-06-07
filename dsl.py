@@ -1001,6 +1001,55 @@ def dsl_ode_trigger_distance_new(name,
     return int(result)
 
 ##
+## dsl_ode_trigger_distance_range_get()
+##
+_dsl.dsl_ode_trigger_distance_range_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_ode_trigger_distance_range_get.restype = c_uint
+def dsl_ode_trigger_distance_range_get(name):
+    global _dsl
+    minimum = c_uint(0)
+    maximum = c_uint(0)
+    result =_dsl.dsl_ode_trigger_distance_range_get(name, 
+        DSL_UINT_P(minimum), DSL_UINT_P(maximum))
+    return int(result), minimum.value, maximum.value
+
+##
+## dsl_ode_trigger_distance_range_set()
+##
+_dsl.dsl_ode_trigger_distance_range_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_distance_range_set.restype = c_uint
+def dsl_ode_trigger_distance_range_set(name, minimum, maximum):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_distance_range_set(name, 
+        minimum, maximum)
+    return int(result)
+
+##
+## dsl_ode_trigger_distance_test_params_get()
+##
+_dsl.dsl_ode_trigger_distance_test_params_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_ode_trigger_distance_test_params_get.restype = c_uint
+def dsl_ode_trigger_distance_test_params_get(name):
+    global _dsl
+    test_point = c_uint(0)
+    test_method = c_uint(0)
+    result =_dsl.dsl_ode_trigger_distance_test_params_get(name, 
+        DSL_UINT_P(test_point), DSL_UINT_P(test_method))
+    return int(result), test_point.value, test_method.value
+
+##
+## dsl_ode_trigger_distance_test_params_set()
+##
+_dsl.dsl_ode_trigger_distance_test_params_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_distance_test_params_set.restype = c_uint
+def dsl_ode_trigger_distance_test_params_set(name, test_point, test_method):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_distance_test_params_set(name, 
+        test_point, test_method)
+    return int(result)
+##
 ## dsl_ode_trigger_smallest_new()
 ##
 _dsl.dsl_ode_trigger_smallest_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]

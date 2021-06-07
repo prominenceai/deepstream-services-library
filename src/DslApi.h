@@ -1720,9 +1720,9 @@ DslReturnType dsl_ode_trigger_new_low_new(const wchar_t* name,
  * @param[in] class_id_a class id A filter for this ODE Trigger
  * @param[in] class_id_b class id B filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @param[in] minimum the minimum distance between objects in either pixels or percentage of BBox edge
+ * @param[in] minimum the minimum distance between objects in either pixels or percentage of BBox point
  * as specified by the test_method parameter below.
- * @param[in] minimum the minimum distance between objects in either pixels or percentage of BBox edge
+ * @param[in] maximum the maximum distance between objects in either pixels or percentage of BBox point
  * as specified by the test_method parameter below.
  * @param[in] test_point the point on the bounding box rectangle to use for measurement, one of DSL_BBOX_POINT
  * @param[in] test_method method of measuring the distance between objects, one of DSL_DISTANCE_METHOD
@@ -1731,6 +1731,56 @@ DslReturnType dsl_ode_trigger_new_low_new(const wchar_t* name,
 DslReturnType dsl_ode_trigger_distance_new(const wchar_t* name, const wchar_t* source, 
     uint class_id_a, uint class_id_b, uint limit, uint minimum, uint maximum, 
     uint test_point, uint test_method);
+    
+/**
+ * @brief Gets the current minimum and maximum distance settings in use 
+ * be the named Distance Trigger
+ * @param[in] name unqiue name of the Distance Trigger to query
+ * @param[out] minimum the minimum distance between objects in either pixels or 
+ * percentage of BBox point as specified by the test_method parameter below.
+ * @param[out] maximum the minimum distance between objects in either pixels or
+ * percentage of BBox point as specified by the test_method parameter below.
+ */
+DslReturnType dsl_ode_trigger_distance_range_get(const wchar_t* name, 
+    uint* minimum, uint* maximum);
+
+/**
+ * @brief Sets the minimum and maximum distance settings to use for a 
+ * named Distance Trigger
+ * @param[in] name unqiue name of the Distance Trigger to update
+ * @param[in] minimum the minimum distance between objects in either pixels or 
+ * percentage of BBox point as specified by the test_method parameter below.
+ * @param[in] minimum the minimum distance between objects in either pixels or 
+ * percentage of BBox point as specified by the test_method parameter below.
+ */
+DslReturnType dsl_ode_trigger_distance_range_set(const wchar_t* name, 
+    uint minimum, uint maximum);
+    
+/**
+ * @brief Gets the current Test Point and Test Methods parameters in 
+ * use by the named Distance Trigger
+ * @param[in] name unqiue name of the Distance Trigger to Query
+ * @param[out] test_point the point on the bounding box rectangle used for 
+ * measurement, one of DSL_BBOX_POINT
+ * @param[out] test_method method of measuring the distance between objects, 
+ * one of DSL_DISTANCE_METHOD
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_distance_test_params_get(const wchar_t* name, 
+    uint* test_point, uint* test_method);    
+
+/**
+ * @brief sets the current Test Point and Test Methods parameters in 
+ * use by the named Distance Trigger
+ * @param[in] name unqiue name of the Distance Trigger to Query
+ * @param[in] test_point the point on the bounding box rectangle to use 
+ * for measurement, one of DSL_BBOX_POINT
+ * @param[in] test_method method of measuring the distance between objects, 
+ * one of DSL_DISTANCE_METHOD
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_distance_test_params_set(const wchar_t* name, 
+    uint test_point, uint test_method);    
 
 /**
  * @brief Resets the a named ODE Trigger, setting it's triggered count to 0
