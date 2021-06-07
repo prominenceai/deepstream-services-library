@@ -256,6 +256,18 @@ namespace DSL {
         DslReturnType OdeTriggerDistanceNew(const char* name, const char* source, 
             uint classIdA, uint classIdB, uint limit, uint minimum, uint maximum, 
             uint testPoint, uint testMethod);
+
+        DslReturnType OdeTriggerDistanceRangeGet(const char* name, 
+            uint* minimum, uint* maximum);
+        
+        DslReturnType OdeTriggerDistanceRangeSet(const char* name, 
+            uint minimum, uint maximum);
+
+        DslReturnType OdeTriggerDistanceTestParamsGet(const char* name, 
+            uint* testPoint, uint* testMethod);
+        
+        DslReturnType OdeTriggerDistanceTestParamsSet(const char* name, 
+            uint testPoint, uint testMethod);
         
         DslReturnType OdeTriggerSmallestNew(const char* name, 
             const char* source, uint classId, uint limit);

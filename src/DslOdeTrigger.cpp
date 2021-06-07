@@ -1389,6 +1389,41 @@ namespace DSL
         LOG_FUNC();
     }
 
+    void DistanceOdeTrigger::GetRange(uint* minimum, uint* maximum)
+    {
+        LOG_FUNC();
+        
+        *minimum = m_minimum;
+        *maximum = m_maximum;
+    }
+
+    void DistanceOdeTrigger::SetRange(uint minimum, uint maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_minimum = minimum;
+        m_maximum = maximum;
+    }
+
+    void DistanceOdeTrigger::GetTestParams(uint* testPoint, uint* testMethod)
+    {
+        LOG_FUNC();
+
+        *testPoint = m_testPoint;
+        *testMethod = m_testMethod;
+    }
+
+    void DistanceOdeTrigger::SetTestParams(uint testPoint, uint testMethod)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_testPoint = testPoint;
+        m_testMethod = testMethod;
+    }
+    
+    
     uint DistanceOdeTrigger::PostProcessFrameA(GstBuffer* pBuffer, 
         NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
     {

@@ -41,6 +41,10 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_delete_all](#dsl_ode_trigger_delete_all)
 
 **Methods:**
+* [dsl_ode_trigger_distance_range_get](#dsl_ode_trigger_distance_range_get)
+* [dsl_ode_trigger_distance_range_set](#dsl_ode_trigger_distance_range_set)
+* [dsl_ode_trigger_distance_test_params_get](#dsl_ode_trigger_distance_test_params_get)
+* [dsl_ode_trigger_distance_test_params_set](#dsl_ode_trigger_distance_test_params_set)
 * [dsl_ode_trigger_reset](#dsl_ode_trigger_reset)
 * [dsl_ode_trigger_reset_timeout_get](#dsl_ode_trigger_reset_timeout_get)
 * [dsl_ode_trigger_reset_timeout_set](#dsl_ode_trigger_reset_timeout_set)
@@ -609,6 +613,100 @@ retval = dsl_ode_trigger_delete_all()
 <br>
 
 ## Methods
+### *dsl_ode_trigger_distance_range_get*
+```c++
+DslReturnType dsl_ode_trigger_distance_range_get(const wchar_t* name, 
+    uint* minimum, uint* maximum);
+```
+
+This service gets the current minimum and maximum distance settings in use by the named ODE Distance Trigger.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to reset.
+* `minimum` - [out] the current minimum distance between objects in either pixels or percentage of BBox point as specified by the test_method parameter below.
+* `maximum` - [out] the current maximum distance between objects in either pixels or percentage of BBox point as specified by the test_method parameter below.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, minimum, maximum = dsl_ode_trigger_distance_range_get('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_distance_range_set*
+```c++
+DslReturnType dsl_ode_trigger_distance_range_set(const wchar_t* name, 
+    uint minimum, uint maximum);
+```
+
+This service sets the current minimum and maximum distance settings to use for the named ODE Distance Trigger.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to reset.
+* `minimum` - [in] the distance between objects in either pixels or percentage of BBox point as specified by the test_method parameter below.
+* `maximum` - [in] the maximum distance between objects in either pixels or percentage of BBox point as specified by the test_method parameter below.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_distance_range_set('my-trigger', 100, 300)
+```
+
+<br>
+
+### *dsl_ode_trigger_distance_test_params_get*
+```c++
+DslReturnType dsl_ode_trigger_distance_test_params_get(const wchar_t* name, 
+    uint* test_point, uint* test_method); 
+```
+
+This service gets the current Test Point and Test Method parameters for the named ODE Distance Trigger
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to reset.
+* `test_point` - [out] the point on the bounding box rectangle to use for measurement, one of DSL_BBOX_POINT
+* `test_method` - [out] method of measuring the distance between objects, one of DSL_DISTANCE_METHOD
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, test_point, test_method = dsl_ode_trigger_distance_test_params_get('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_distance_test_params_set*
+```c++
+DslReturnType dsl_ode_trigger_distance_test_params_set(const wchar_t* name, 
+    uint test_point, uint test_method); 
+```
+
+This service sets the current Test Point and Test Method parameters for the named ODE Distance Trigger to use.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to reset.
+* `test_point` - [in] the point on the bounding box rectangle to use for measurement, one of DSL_BBOX_POINT
+* `test_method` - [in] method of measuring the distance between objects, one of DSL_DISTANCE_METHOD
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_distance_test_params_get('my-trigger', 
+    test_point = DSL_BBOX_POINT_SOUTH,
+    test_method = DSL_DISTANCE_METHOD_PERCENT_WIDTH_A)
+```
+
+<br>
+
 ### *dsl_ode_trigger_reset*
 ```c++
 DslReturnType dsl_ode_trigger_reset(const wchar_t* name);

@@ -2858,6 +2858,111 @@ namespace DSL
         }
     }
             
+    DslReturnType Services::OdeTriggerDistanceRangeGet(const char* name, 
+        uint* minimum, uint* maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, DistanceOdeTrigger);
+            
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<DistanceOdeTrigger>(m_odeTriggers[name]);
+         
+            pOdeTrigger->GetRange(minimum, maximum);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Distance Trigger '" << name 
+                << "' threw exception getting range");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::OdeTriggerDistanceRangeSet(const char* name, 
+        uint minimum, uint maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, DistanceOdeTrigger);
+            
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<DistanceOdeTrigger>(m_odeTriggers[name]);
+         
+            pOdeTrigger->SetRange(minimum, maximum);
+            
+            LOG_INFO("ODE Distance Trigger '" << name << "' set new range from mimimum " 
+                << minimum << " to maximum " << maximum << " successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Distance Trigger '" << name 
+                << "' threw exception setting range");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerDistanceTestParamsGet(const char* name, 
+        uint* testPoint, uint* testMethod)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, DistanceOdeTrigger);
+            
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<DistanceOdeTrigger>(m_odeTriggers[name]);
+         
+            pOdeTrigger->GetTestParams(testPoint, testMethod);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Distance Trigger '" << name 
+                << "' threw exception getting test parameters");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::OdeTriggerDistanceTestParamsSet(const char* name, 
+        uint testPoint, uint testMethod)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, DistanceOdeTrigger);
+            
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<DistanceOdeTrigger>(m_odeTriggers[name]);
+         
+            pOdeTrigger->SetTestParams(testPoint, testMethod);
+
+            LOG_INFO("ODE Distance Trigger '" << name << "' set new test parameters test_point " 
+                << testPoint << " and test_method " << testMethod << " successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Distance Trigger '" << name 
+                << "' threw exception setting test parameters");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
     
     DslReturnType Services::OdeTriggerSmallestNew(const char* name, 
         const char* source, uint classId, uint limit)

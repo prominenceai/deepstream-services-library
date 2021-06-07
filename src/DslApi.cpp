@@ -1272,6 +1272,54 @@ DslReturnType dsl_ode_trigger_distance_new(const wchar_t* name, const wchar_t* s
         class_id_a, class_id_b, limit, minimum, maximum, test_point, test_method);
 }
 
+DslReturnType dsl_ode_trigger_distance_range_get(const wchar_t* name, 
+    uint* minimum, uint* maximum)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerDistanceRangeGet(cstrName.c_str(), 
+        minimum, maximum);
+}
+    
+DslReturnType dsl_ode_trigger_distance_range_set(const wchar_t* name, 
+    uint minimum, uint maximum)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerDistanceRangeSet(cstrName.c_str(), 
+        minimum, maximum);
+}
+
+DslReturnType dsl_ode_trigger_distance_test_params_get(const wchar_t* name, 
+    uint* test_point, uint* test_method)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerDistanceTestParamsGet(cstrName.c_str(), 
+        test_point, test_method);
+}
+
+DslReturnType dsl_ode_trigger_distance_test_params_set(const wchar_t* name, 
+    uint test_point, uint test_method)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerDistanceTestParamsSet(cstrName.c_str(), 
+        test_point, test_method);
+}
+    
 DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit)
 {
     RETURN_IF_PARAM_IS_NULL(name);
