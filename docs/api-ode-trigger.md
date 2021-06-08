@@ -41,10 +41,14 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_delete_all](#dsl_ode_trigger_delete_all)
 
 **Methods:**
+* [dsl_ode_trigger_count_range_get](#dsl_ode_trigger_count_range_get)
+* [dsl_ode_trigger_count_range_set](#dsl_ode_trigger_count_range_set)
 * [dsl_ode_trigger_distance_range_get](#dsl_ode_trigger_distance_range_get)
 * [dsl_ode_trigger_distance_range_set](#dsl_ode_trigger_distance_range_set)
 * [dsl_ode_trigger_distance_test_params_get](#dsl_ode_trigger_distance_test_params_get)
 * [dsl_ode_trigger_distance_test_params_set](#dsl_ode_trigger_distance_test_params_set)
+* [dsl_ode_trigger_persistence_range_get](#dsl_ode_trigger_persistence_range_get)
+* [dsl_ode_trigger_persistence_range_set](#dsl_ode_trigger_persistence_range_set)
 * [dsl_ode_trigger_reset](#dsl_ode_trigger_reset)
 * [dsl_ode_trigger_reset_timeout_get](#dsl_ode_trigger_reset_timeout_get)
 * [dsl_ode_trigger_reset_timeout_set](#dsl_ode_trigger_reset_timeout_set)
@@ -406,8 +410,8 @@ This constructor creates a uniquely named Count Trigger that checks for the occu
 * `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
-* `minimum` - [in] minimum the minimum count for triggering ODE occurrence, 0 = no minimum
-* `maximum` - [in] minimum the minimum count for triggering ODE occurrence, 0 = no minimum
+* `minimum` - [in] the minimum count for triggering ODE occurrence, 0 = no minimum
+* `maximum` - [in] the maximum count for triggering ODE occurrence, 0 = no maximum
 
 **Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
 
@@ -613,6 +617,52 @@ retval = dsl_ode_trigger_delete_all()
 <br>
 
 ## Methods
+### *dsl_ode_trigger_count_range_get*
+```c++
+DslReturnType dsl_ode_trigger_count_range_get(const wchar_t* name, 
+    uint* minimum, uint* maximum);
+```
+
+This service gets the current minimum and maximum count settings in use by the named ODE Count Trigger.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Count Trigger to query.
+* `minimum` - [in] the current minimum count for triggering ODE occurrence, 0 = no minimum
+* `maximum` - [in] the current minimum count for triggering ODE occurrence, 0 = no maximum
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, minimum, maximum = dsl_ode_trigger_count_range_get('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_count_range_set*
+```c++
+DslReturnType dsl_ode_trigger_count_range_set(const wchar_t* name, 
+    uint minimum, uint maximum);
+```
+
+This service sets the current minimum and maximum count settings to use for the named ODE Count Trigger.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Count Trigger to update.
+* `minimum` - [in] the new minimum count for triggering ODE occurrence, 0 = no minimum
+* `maximum` - [in] the new maximum count for triggering ODE occurrence, 0 = no maximum
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_count_range_set('my-trigger', 10, 0)
+```
+
+<br>
+
 ### *dsl_ode_trigger_distance_range_get*
 ```c++
 DslReturnType dsl_ode_trigger_distance_range_get(const wchar_t* name, 
@@ -622,7 +672,7 @@ DslReturnType dsl_ode_trigger_distance_range_get(const wchar_t* name,
 This service gets the current minimum and maximum distance settings in use by the named ODE Distance Trigger.
 
 **Parameters**
-* `name` - [in] unique name of the ODE Trigger to reset.
+* `name` - [in] unique name of the ODE Trigger to query.
 * `minimum` - [out] the current minimum distance between objects in either pixels or percentage of BBox point as specified by the test_method parameter below.
 * `maximum` - [out] the current maximum distance between objects in either pixels or percentage of BBox point as specified by the test_method parameter below.
 
@@ -645,7 +695,7 @@ DslReturnType dsl_ode_trigger_distance_range_set(const wchar_t* name,
 This service sets the current minimum and maximum distance settings to use for the named ODE Distance Trigger.
 
 **Parameters**
-* `name` - [in] unique name of the ODE Trigger to reset.
+* `name` - [in] unique name of the ODE Trigger to query.
 * `minimum` - [in] the distance between objects in either pixels or percentage of BBox point as specified by the test_method parameter below.
 * `maximum` - [in] the maximum distance between objects in either pixels or percentage of BBox point as specified by the test_method parameter below.
 
@@ -668,7 +718,7 @@ DslReturnType dsl_ode_trigger_distance_test_params_get(const wchar_t* name,
 This service gets the current Test Point and Test Method parameters for the named ODE Distance Trigger
 
 **Parameters**
-* `name` - [in] unique name of the ODE Trigger to reset.
+* `name` - [in] unique name of the ODE Trigger to update.
 * `test_point` - [out] the point on the bounding box rectangle to use for measurement, one of DSL_BBOX_POINT
 * `test_method` - [out] method of measuring the distance between objects, one of DSL_DISTANCE_METHOD
 
@@ -691,7 +741,7 @@ DslReturnType dsl_ode_trigger_distance_test_params_set(const wchar_t* name,
 This service sets the current Test Point and Test Method parameters for the named ODE Distance Trigger to use.
 
 **Parameters**
-* `name` - [in] unique name of the ODE Trigger to reset.
+* `name` - [in] unique name of the ODE Distance Trigger to update.
 * `test_point` - [in] the point on the bounding box rectangle to use for measurement, one of DSL_BBOX_POINT
 * `test_method` - [in] method of measuring the distance between objects, one of DSL_DISTANCE_METHOD
 
@@ -703,6 +753,52 @@ This service sets the current Test Point and Test Method parameters for the name
 retval = dsl_ode_trigger_distance_test_params_get('my-trigger', 
     test_point = DSL_BBOX_POINT_SOUTH,
     test_method = DSL_DISTANCE_METHOD_PERCENT_WIDTH_A)
+```
+
+<br>
+
+### *dsl_ode_trigger_persistence_range_get*
+```c++
+DslReturnType dsl_ode_trigger_persistence_range_get(const wchar_t* name, 
+    uint* minimum, uint* maximum);
+```
+
+This service gets the current minimum and maximum time settings in use by the named ODE Persistence Trigger.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Count Trigger to query.
+* `minimum` - [in] the minimum amount of time a unique object must remain detected before triggering an ODE occurrence - in units of seconds. 0 = no minimum
+* `maximum` - [in] the maximum amount of time a unique object can remain detected before triggering an ODE occurrence - in units of seconds. 0 = no maximum
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, minimum, maximum = dsl_ode_trigger_persistence_range_get('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_persistence_range_set*
+```c++
+DslReturnType dsl_ode_trigger_persistence_range_set(const wchar_t* name, 
+    uint minimum, uint maximum);
+```
+
+This service sets the current minimum and maximum time settings to use for the named ODE Persistence Trigger.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Count Trigger to update.
+* `minimum` - [in] the minimum amount of time a unique object must remain detected before triggering an ODE occurrence - in units of seconds. 0 = no minimum
+* `maximum` - [in] the maximum amount of time a unique object can remain detected before triggering an ODE occurrence - in units of seconds. 0 = no maximum
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_persistence_range_set('my-trigger', 100, 300)
 ```
 
 <br>
