@@ -853,6 +853,23 @@ namespace DSL
     {
         LOG_FUNC();
     }
+
+    void PersistenceOdeTrigger::GetRange(uint* minimum, uint* maximum)
+    {
+        LOG_FUNC();
+        
+        *minimum = m_minimumMs/1000;
+        *maximum = m_maximumMs/1000;
+    }
+
+    void PersistenceOdeTrigger::SetRange(uint minimum, uint maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_minimumMs = minimum*1000.0;
+        m_maximumMs = maximum*1000.0;
+    }
     
     bool PersistenceOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
@@ -906,6 +923,8 @@ namespace DSL
 			}
 			else
 			{
+                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+                
 				LOG_DEBUG("Tracked objected detected with id = " << pObjectMeta->object_id 
 					<< " for source = " << pFrameMeta->source_id);
 				// else, the object is currently being tracked - so update the frame number
@@ -990,6 +1009,23 @@ namespace DSL
     {
         LOG_FUNC();
     }
+
+    void CountOdeTrigger::GetRange(uint* minimum, uint* maximum)
+    {
+        LOG_FUNC();
+        
+        *minimum = m_minimum;
+        *maximum = m_maximum;
+    }
+
+    void CountOdeTrigger::SetRange(uint minimum, uint maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_minimum = minimum;
+        m_maximum = maximum;
+    }
     
     bool CountOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
@@ -1008,6 +1044,8 @@ namespace DSL
     uint CountOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
         NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (!m_enabled or (m_occurrences < m_minimum) or (m_occurrences > m_maximum))
         {
             return 0;
@@ -1406,7 +1444,6 @@ namespace DSL
         
         m_minimum = minimum;
         m_maximum = maximum;
-        LOG_WARN("min = " << m_minimum << ", max = " << m_maximum);
     }
 
     void DistanceOdeTrigger::GetTestParams(uint* testPoint, uint* testMethod)
