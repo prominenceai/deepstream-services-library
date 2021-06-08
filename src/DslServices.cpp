@@ -2842,13 +2842,13 @@ namespace DSL
          
             pOdeTrigger->SetRange(minimum, maximum);
             
-            LOG_INFO("ODE Count Trigger '" << name << "' set new range from mimimum " 
+            LOG_INFO("ODE Persistence Trigger '" << name << "' set new range from mimimum " 
                 << minimum << " to maximum " << maximum << " successfully");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("ODE Count Trigger '" << name 
+            LOG_ERROR("ODE Persistence Trigger '" << name 
                 << "' threw exception setting range");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
