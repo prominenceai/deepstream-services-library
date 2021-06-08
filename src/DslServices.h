@@ -250,8 +250,20 @@ namespace DSL {
         DslReturnType OdeTriggerPersistenceNew(const char* name, const char* source,
             uint classId, uint limit, uint minimum, uint maximum);
 
+        DslReturnType OdeTriggerPersistenceRangeGet(const char* name, 
+            uint* minimum, uint* maximum);
+        
+        DslReturnType OdeTriggerPersistenceRangeSet(const char* name, 
+            uint minimum, uint maximum);
+
         DslReturnType OdeTriggerCountNew(const char* name, const char* source, 
             uint classId, uint limit, uint minimum, uint maximum);
+
+        DslReturnType OdeTriggerCountRangeGet(const char* name, 
+            uint* minimum, uint* maximum);
+        
+        DslReturnType OdeTriggerCountRangeSet(const char* name, 
+            uint minimum, uint maximum);
         
         DslReturnType OdeTriggerDistanceNew(const char* name, const char* source, 
             uint classIdA, uint classIdB, uint limit, uint minimum, uint maximum, 

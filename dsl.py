@@ -968,6 +968,31 @@ def dsl_ode_trigger_persistence_new(name, source, class_id, limit, minimum, maxi
     return int(result)
 
 ##
+## dsl_ode_trigger_persistence_range_get()
+##
+_dsl.dsl_ode_trigger_persistence_range_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_ode_trigger_persistence_range_get.restype = c_uint
+def dsl_ode_trigger_persistence_range_get(name):
+    global _dsl
+    minimum = c_uint(0)
+    maximum = c_uint(0)
+    result =_dsl.dsl_ode_trigger_persistence_range_get(name, 
+        DSL_UINT_P(minimum), DSL_UINT_P(maximum))
+    return int(result), minimum.value, maximum.value
+
+##
+## dsl_ode_trigger_persistence_range_set()
+##
+_dsl.dsl_ode_trigger_persistence_range_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_persistence_range_set.restype = c_uint
+def dsl_ode_trigger_persistence_range_set(name, minimum, maximum):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_persistence_range_set(name, 
+        minimum, maximum)
+    return int(result)
+
+##
 ## dsl_ode_trigger_summation_new()
 ##
 _dsl.dsl_ode_trigger_summation_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
@@ -985,6 +1010,31 @@ _dsl.dsl_ode_trigger_count_new.restype = c_uint
 def dsl_ode_trigger_count_new(name, source, class_id, limit, minimum, maximum):
     global _dsl
     result =_dsl.dsl_ode_trigger_count_new(name, source, class_id, limit, minimum, maximum)
+    return int(result)
+
+##
+## dsl_ode_trigger_count_range_get()
+##
+_dsl.dsl_ode_trigger_count_range_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_ode_trigger_count_range_get.restype = c_uint
+def dsl_ode_trigger_count_range_get(name):
+    global _dsl
+    minimum = c_uint(0)
+    maximum = c_uint(0)
+    result =_dsl.dsl_ode_trigger_count_range_get(name, 
+        DSL_UINT_P(minimum), DSL_UINT_P(maximum))
+    return int(result), minimum.value, maximum.value
+
+##
+## dsl_ode_trigger_count_range_set()
+##
+_dsl.dsl_ode_trigger_count_range_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_count_range_set.restype = c_uint
+def dsl_ode_trigger_count_range_set(name, minimum, maximum):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_count_range_set(name, 
+        minimum, maximum)
     return int(result)
 
 ##
@@ -1049,14 +1099,14 @@ def dsl_ode_trigger_distance_test_params_set(name, test_point, test_method):
     result =_dsl.dsl_ode_trigger_distance_test_params_set(name, 
         test_point, test_method)
     return int(result)
+
 ##
 ## dsl_ode_trigger_smallest_new()
 ##
 _dsl.dsl_ode_trigger_smallest_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
 _dsl.dsl_ode_trigger_smallest_new.restype = c_uint
-def dsl_ode_trigger_smallest_new(name, souce, class_id, limit):
+def dsl_ode_trigger_smallest_new(name, source, class_id, limit):
     global _dsl
-    print('name =', name, 'source = ', source, 'class_id =', class_id, 'limit =', limit)
     result =_dsl.dsl_ode_trigger_smallest_new(name, source, class_id, limit)
     return int(result)
 

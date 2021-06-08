@@ -464,6 +464,61 @@ SCENARIO( "A new Count Trigger can be created and deleted correctly", "[ode-trig
     }
 }    
 
+SCENARIO( "An ODE Count Trigger's minimum and maximum can be set/get", "[ode-trigger-api]" )
+{
+    GIVEN( "An ODE Count Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"count");
+        uint class_id(0);
+        uint limit(0);
+        uint minimum(10);
+        uint maximum(30);
+
+        REQUIRE( dsl_ode_trigger_count_new(odeTriggerName.c_str(), 
+            NULL, class_id, limit, minimum, maximum) == DSL_RESULT_SUCCESS );
+
+        uint ret_minimum(1), ret_maximum(1);
+        REQUIRE( dsl_ode_trigger_count_range_get(odeTriggerName.c_str(), 
+            &ret_minimum, &ret_maximum) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_minimum == minimum );
+        REQUIRE( ret_maximum == maximum );
+
+        WHEN( "When the Count Trigger's minimum and maximum are updated" )         
+        {
+            uint new_minimum(100), new_maximum(200);
+            REQUIRE( dsl_ode_trigger_count_range_set(odeTriggerName.c_str(), 
+                new_minimum, new_maximum) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct values are returned on get" ) 
+            {
+                REQUIRE( dsl_ode_trigger_count_range_get(odeTriggerName.c_str(), 
+                    &ret_minimum, &ret_maximum) == DSL_RESULT_SUCCESS );
+                REQUIRE( new_minimum == ret_minimum );
+                REQUIRE( new_maximum == ret_maximum );
+                
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        // Need to test special case of Maximum = 0
+        WHEN( "When the Count Trigger's maximum is set to 0" )         
+        {
+            uint new_minimum(100), new_maximum(0);
+            REQUIRE( dsl_ode_trigger_count_range_set(odeTriggerName.c_str(), 
+                new_minimum, new_maximum) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct values are returned on get" ) 
+            {
+                REQUIRE( dsl_ode_trigger_count_range_get(odeTriggerName.c_str(), 
+                    &ret_minimum, &ret_maximum) == DSL_RESULT_SUCCESS );
+                REQUIRE( new_minimum == ret_minimum );
+                REQUIRE( new_maximum == ret_maximum );
+                
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new Summation Trigger can be created and deleted correctly", "[ode-trigger-api]" )
 {
     GIVEN( "Attributes for a new Summation Trigger" ) 
@@ -646,6 +701,61 @@ SCENARIO( "A new Persistence Trigger can be created and deleted correctly", "[od
     }
 }    
 
+SCENARIO( "An ODE Persistence Trigger's minimum and maximum can be set/get", "[ode-trigger-api]" )
+{
+    GIVEN( "An ODE Persistence Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"persistence");
+        uint class_id(0);
+        uint limit(0);
+		uint minimum(10);
+		uint maximum(30);
+
+        REQUIRE( dsl_ode_trigger_persistence_new(odeTriggerName.c_str(), 
+            NULL, class_id, limit, minimum, maximum) == DSL_RESULT_SUCCESS );
+
+        uint ret_minimum(1), ret_maximum(1);
+        REQUIRE( dsl_ode_trigger_persistence_range_get(odeTriggerName.c_str(), 
+            &ret_minimum, &ret_maximum) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_minimum == minimum );
+        REQUIRE( ret_maximum == maximum );
+
+        WHEN( "When the Count Trigger's minimum and maximum are updated" )         
+        {
+            uint new_minimum(100), new_maximum(200);
+            REQUIRE( dsl_ode_trigger_persistence_range_set(odeTriggerName.c_str(), 
+                new_minimum, new_maximum) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct values are returned on get" ) 
+            {
+                REQUIRE( dsl_ode_trigger_persistence_range_get(odeTriggerName.c_str(), 
+                    &ret_minimum, &ret_maximum) == DSL_RESULT_SUCCESS );
+                REQUIRE( new_minimum == ret_minimum );
+                REQUIRE( new_maximum == ret_maximum );
+                
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        // need to test special case of maximum = 0
+        WHEN( "When the Count Trigger's maximum is set to 0" )         
+        {
+            uint new_minimum(100), new_maximum(0);
+            REQUIRE( dsl_ode_trigger_persistence_range_set(odeTriggerName.c_str(), 
+                new_minimum, new_maximum) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct values are returned on get" ) 
+            {
+                REQUIRE( dsl_ode_trigger_persistence_range_get(odeTriggerName.c_str(), 
+                    &ret_minimum, &ret_maximum) == DSL_RESULT_SUCCESS );
+                REQUIRE( new_minimum == ret_minimum );
+                REQUIRE( new_maximum == ret_maximum );
+                
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
 SCENARIO( "A New High Trigger can be created and deleted correctly", "[ode-trigger-api]" )
 {
     GIVEN( "Attributes for a new High Trigger" ) 
@@ -803,6 +913,23 @@ SCENARIO( "An ODE Distance Trigger's minimum and maximum can be set/get", "[ode-
                 REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
+        // maximum = 0 is handled as special case
+        WHEN( "When the Distance Trigger's maximum is set to 0" )         
+        {
+            uint new_minimum(100), new_maximum(0);
+            REQUIRE( dsl_ode_trigger_distance_range_set(odeTriggerName.c_str(), 
+                new_minimum, new_maximum) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct values are returned on get" ) 
+            {
+                REQUIRE( dsl_ode_trigger_distance_range_get(odeTriggerName.c_str(), 
+                    &ret_minimum, &ret_maximum) == DSL_RESULT_SUCCESS );
+                REQUIRE( new_minimum == ret_minimum );
+                REQUIRE( new_maximum == ret_maximum );
+                
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
     }
 }    
 
@@ -882,6 +1009,9 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
                 REQUIRE( dsl_ode_trigger_custom_new(triggerName.c_str(), NULL, 0, 0, callback, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_trigger_count_new(NULL, NULL, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_count_range_get(NULL, &minimum, &maximum)  == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_count_range_set(NULL, minimum, maximum)  == DSL_RESULT_INVALID_INPUT_PARAM );
+
                 REQUIRE( dsl_ode_trigger_distance_new(NULL, NULL, 0, 0, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_distance_range_get(NULL, &minimum, &maximum)  == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_distance_range_set(NULL, minimum, maximum)  == DSL_RESULT_INVALID_INPUT_PARAM );
@@ -892,6 +1022,8 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
                 REQUIRE( dsl_ode_trigger_largest_new(NULL, NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_trigger_persistence_new(NULL, NULL, 0, 0, 1, 2) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_persistence_range_get(NULL, &minimum, &maximum)  == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_persistence_range_set(NULL, minimum, maximum)  == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_trigger_new_low_new(NULL, NULL, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_new_high_new(NULL, NULL, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
@@ -936,8 +1068,6 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
 
                 REQUIRE( dsl_ode_trigger_delete(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_delete_many(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-
-
 
                 REQUIRE( dsl_component_list_size() == 0 );
             }

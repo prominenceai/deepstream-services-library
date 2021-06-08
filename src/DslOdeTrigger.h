@@ -809,6 +809,22 @@ namespace DSL
         ~PersistenceOdeTrigger();
 
         /**
+         * @brief Gets the current Minimum and Maximum time settings in use. 
+         * a value of 0 means no minimum or maximum
+         * @param[out] minimim current minimum time setting in use
+         * @param[out] maximum current maximum time setting in use
+         */
+        void GetRange(uint* minimum, uint* maximum);
+
+        /**
+         * @brief Sets new Minimum and Maximum time settings to use.
+         * a value of 0 means no minimum or maximum
+         * @param[in] minimum new minimum time value to use
+         * @param[in] maximum new maximum time value to use
+         */
+        void SetRange(uint minimum, uint maximum);
+
+        /**
          * @brief Function to check a given Object Meta data structure for Object occurrence, 
          * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame 
          * Meta - that holds the Object Meta
@@ -857,6 +873,22 @@ namespace DSL
 			const char* source, uint classId, uint limit, uint minimum, uint maximum);
         
         ~CountOdeTrigger();
+
+        /**
+         * @brief Gets the current Minimum and Maximum count setting in use. 
+         * a value of 0 means no minimum or maximum
+         * @param[out] minimim current minimum count setting in use
+         * @param[out] maximum current maximum count setting in use
+         */
+        void GetRange(uint* minimum, uint* maximum);
+
+        /**
+         * @brief Sets new Minimum and Maximum count settings to use.
+         * a value of 0 means no minimum or maximum
+         * @param[in] minimum new minimum count value to use
+         * @param[in] maximum new maximum count value to use
+         */
+        void SetRange(uint minimum, uint maximum);
 
         /**
          * @brief Function to check a given Object Meta data structure for Object occurrence, 

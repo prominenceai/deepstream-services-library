@@ -1574,6 +1574,28 @@ DslReturnType dsl_ode_trigger_count_new(const wchar_t* name, const wchar_t* sour
     uint class_id, uint limit, uint minimum, uint maximum);
 
 /**
+ * @brief Gets the current minimum and maximum count settings in use 
+ * by the named Count Trigger
+ * @param[in] name unique name of the Count Trigger to query
+ * @param[out] minimum the current minimum count for triggering ODE occurrence, 0 = no minimum
+ * @param[out] maximum the current maximum count for triggering ODE occurrence, 0 = no maximum
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_count_range_get(const wchar_t* name, 
+    uint* minimum, uint* maximum);
+
+/**
+ * @brief Sets the minimum and maximum count settings to use for a 
+ * named Count Trigger
+ * @param[in] name unique name of the Count Trigger to update
+ * @param[in] minimum the new minimum count for triggering ODE occurrence, 0 = no minimum
+ * @param[in] maximum the new maximum count for triggering ODE occurrence, 0 = no maximum
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_count_range_set(const wchar_t* name, 
+    uint minimum, uint maximum);
+    
+/**
  * @brief Occurence trigger that checks for a new instance of an Object for a 
  * specified source and object class_id. Instance identification is based on Tracking Id
  * @param[in] name unique name for the ODE Trigger
@@ -1647,6 +1669,30 @@ DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name,
  */
 DslReturnType dsl_ode_trigger_persistence_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit, uint minimum, uint maximum);
+
+/**
+ * @brief Gets the current minimum and maximum time settings in use 
+ * by the named Persistence Trigger
+ * @param[in] name unique name of the Persistence Trigger to query
+ * @param[out] minimum the minimum amount of time a unique object must remain detected 
+ * before triggering an ODE occurrence - in units of seconds. 0 = no minimum
+ * @param[out] maximum the maximum amount of time a unique object can remain detected 
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_persistence_range_get(const wchar_t* name, 
+    uint* minimum, uint* maximum);
+
+/**
+ * @brief Sets the minimum and maximum time settings to use for a 
+ * named Persistence Trigger
+ * @param[in] name unique name of the Persitence Trigger to update
+ * @param[in] minimum the minimum amount of time a unique object must remain detected 
+ * before triggering an ODE occurrence - in units of seconds. 0 = no minimum
+ * @param[in] maximum the maximum amount of time a unique object can remain detected 
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_persistence_range_set(const wchar_t* name, 
+    uint minimum, uint maximum);
 	
 /**
  * @brief Smallest trigger that checks for the occurrence of Objects within a frame
@@ -1735,7 +1781,7 @@ DslReturnType dsl_ode_trigger_distance_new(const wchar_t* name, const wchar_t* s
 /**
  * @brief Gets the current minimum and maximum distance settings in use 
  * be the named Distance Trigger
- * @param[in] name unqiue name of the Distance Trigger to query
+ * @param[in] name unique name of the Distance Trigger to query
  * @param[out] minimum the minimum distance between objects in either pixels or 
  * percentage of BBox point as specified by the test_method parameter below.
  * @param[out] maximum the minimum distance between objects in either pixels or
@@ -1747,7 +1793,7 @@ DslReturnType dsl_ode_trigger_distance_range_get(const wchar_t* name,
 /**
  * @brief Sets the minimum and maximum distance settings to use for a 
  * named Distance Trigger
- * @param[in] name unqiue name of the Distance Trigger to update
+ * @param[in] name unique name of the Distance Trigger to update
  * @param[in] minimum the minimum distance between objects in either pixels or 
  * percentage of BBox point as specified by the test_method parameter below.
  * @param[in] minimum the minimum distance between objects in either pixels or 
@@ -1759,7 +1805,7 @@ DslReturnType dsl_ode_trigger_distance_range_set(const wchar_t* name,
 /**
  * @brief Gets the current Test Point and Test Methods parameters in 
  * use by the named Distance Trigger
- * @param[in] name unqiue name of the Distance Trigger to Query
+ * @param[in] name unique name of the Distance Trigger to Query
  * @param[out] test_point the point on the bounding box rectangle used for 
  * measurement, one of DSL_BBOX_POINT
  * @param[out] test_method method of measuring the distance between objects, 
@@ -1772,7 +1818,7 @@ DslReturnType dsl_ode_trigger_distance_test_params_get(const wchar_t* name,
 /**
  * @brief sets the current Test Point and Test Methods parameters in 
  * use by the named Distance Trigger
- * @param[in] name unqiue name of the Distance Trigger to Query
+ * @param[in] name unique name of the Distance Trigger to Query
  * @param[in] test_point the point on the bounding box rectangle to use 
  * for measurement, one of DSL_BBOX_POINT
  * @param[in] test_method method of measuring the distance between objects, 
@@ -2511,7 +2557,7 @@ DslReturnType dsl_source_rtsp_tap_add(const wchar_t* name, const wchar_t* tap);
 DslReturnType dsl_source_rtsp_tap_remove(const wchar_t* name);
 
 /**
- * @brief returns the name of a Source component from a unqiue Source Id
+ * @brief returns the name of a Source component from a unique Source Id
  * @param[in] source_id unique Source Id to check for
  * @param[out] name the name of Source component if found
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.

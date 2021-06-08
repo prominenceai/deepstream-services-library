@@ -2762,7 +2762,7 @@ namespace DSL
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
-            
+
     DslReturnType Services::OdeTriggerPersistenceNew(const char* name, const char* source, 
         uint classId, uint limit, uint minimum, uint maximum)
     {
@@ -2794,6 +2794,66 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::OdeTriggerPersistenceRangeGet(const char* name, 
+        uint* minimum, uint* maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, PersistenceOdeTrigger);
+            
+            DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<PersistenceOdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->GetRange(minimum, maximum);
+            
+            // check for no maximum
+            *maximum = (*maximum == UINT32_MAX) ? 0 : *maximum;
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Persistence Trigger '" << name 
+                << "' threw exception getting range");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::OdeTriggerPersistenceRangeSet(const char* name, 
+        uint minimum, uint maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, PersistenceOdeTrigger);
+            
+            DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<PersistenceOdeTrigger>(m_odeTriggers[name]);
+
+            // check for no maximum
+            maximum = (maximum == 0) ? UINT32_MAX : maximum;
+         
+            pOdeTrigger->SetRange(minimum, maximum);
+            
+            LOG_INFO("ODE Persistence Trigger '" << name << "' set new range from mimimum " 
+                << minimum << " to maximum " << maximum << " successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Persistence Trigger '" << name 
+                << "' threw exception setting range");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
     DslReturnType Services::OdeTriggerCountNew(const char* name, const char* source, 
         uint classId, uint limit, uint minimum, uint maximum)
     {
@@ -2824,6 +2884,66 @@ namespace DSL
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
+
+    DslReturnType Services::OdeTriggerCountRangeGet(const char* name, 
+        uint* minimum, uint* maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, CountOdeTrigger);
+            
+            DSL_ODE_TRIGGER_COUNT_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<CountOdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->GetRange(minimum, maximum);
+            
+            // check for no maximum
+            *maximum = (*maximum == UINT32_MAX) ? 0 : *maximum;
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Count Trigger '" << name 
+                << "' threw exception getting range");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::OdeTriggerCountRangeSet(const char* name, 
+        uint minimum, uint maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, CountOdeTrigger);
+            
+            DSL_ODE_TRIGGER_COUNT_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<CountOdeTrigger>(m_odeTriggers[name]);
+
+            // check for no maximum
+            maximum = (maximum == 0) ? UINT32_MAX : maximum;
+         
+            pOdeTrigger->SetRange(minimum, maximum);
+            
+            LOG_INFO("ODE Count Trigger '" << name << "' set new range from mimimum " 
+                << minimum << " to maximum " << maximum << " successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Count Trigger '" << name 
+                << "' threw exception setting range");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
     
     DslReturnType Services::OdeTriggerDistanceNew(const char* name, const char* source, 
         uint classIdA, uint classIdB, uint limit, uint minimum, uint maximum, 

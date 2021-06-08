@@ -1234,6 +1234,29 @@ DslReturnType dsl_ode_trigger_persistence_new(const wchar_t* name,
         class_id, limit, minimum, maximum);
 }
 
+DslReturnType dsl_ode_trigger_persistence_range_get(const wchar_t* name, 
+    uint* minimum, uint* maximum)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerPersistenceRangeGet(cstrName.c_str(), 
+        minimum, maximum);
+}
+    
+DslReturnType dsl_ode_trigger_persistence_range_set(const wchar_t* name, 
+    uint minimum, uint maximum)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerPersistenceRangeSet(cstrName.c_str(), 
+        minimum, maximum);
+}
 	
 DslReturnType dsl_ode_trigger_count_new(const wchar_t* name, const wchar_t* source, 
     uint class_id, uint limit, uint minimum, uint maximum)
@@ -1251,6 +1274,30 @@ DslReturnType dsl_ode_trigger_count_new(const wchar_t* name, const wchar_t* sour
     }
     return DSL::Services::GetServices()->OdeTriggerCountNew(cstrName.c_str(), cstrSource.c_str(), 
         class_id, limit, minimum, maximum);
+}
+
+DslReturnType dsl_ode_trigger_count_range_get(const wchar_t* name, 
+    uint* minimum, uint* maximum)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerCountRangeGet(cstrName.c_str(), 
+        minimum, maximum);
+}
+    
+DslReturnType dsl_ode_trigger_count_range_set(const wchar_t* name, 
+    uint minimum, uint maximum)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerCountRangeSet(cstrName.c_str(), 
+        minimum, maximum);
 }
 
 DslReturnType dsl_ode_trigger_distance_new(const wchar_t* name, const wchar_t* source, 
