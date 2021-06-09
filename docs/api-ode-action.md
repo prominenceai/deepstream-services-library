@@ -78,6 +78,10 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 **Methods:**
 * [dsl_ode_action_capture_complete_listener_add](#dsl_ode_action_capture_complete_listener_add)
 * [dsl_ode_action_capture_complete_listener_remove](#dsl_ode_action_capture_complete_listener_remove)
+* [dsl_ode_action_capture_image_player_add](#dsl_ode_action_capture_image_player_add)
+* [dsl_ode_action_capture_image_player_remove](#dsl_ode_action_capture_image_player_remove)
+* [dsl_ode_action_capture_mailer_add](#dsl_ode_action_capture_mailer_add)
+* [dsl_ode_action_capture_mailer_remove](#dsl_ode_action_capture_mailer_remove)
 * [dsl_ode_action_enabled_get](#dsl_ode_action_enabled_get)
 * [dsl_ode_action_enabled_set](#dsl_ode_action_enabled_set)
 * [dsl_ode_action_list_size](#dsl_ode_action_list_size)
@@ -96,6 +100,12 @@ The following return codes are used by the OSD Action API
 #define DSL_RESULT_ODE_ACTION_IS_NOT_ACTION                         0x000F0007
 #define DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND                   0x000F0008
 #define DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE                  0x000F0009
+#define DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED                   0x000F000A
+#define DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED                0x000F000B
+#define DSL_RESULT_ODE_ACTION_PLAYER_ADD_FAILED                     0x000F000C
+#define DSL_RESULT_ODE_ACTION_PLAYER_REMOVE_FAILED                  0x000F000D
+#define DSL_RESULT_ODE_ACTION_MAILER_ADD_FAILED                     0x000F000E
+#define DSL_RESULT_ODE_ACTION_MAILER_REMOVE_FAILED                  0x000F000F
 ```
 ---
 
@@ -951,6 +961,93 @@ pipeline identified by it's unique name, previously added with [dsl_ode_action_c
 **Python Example**
 ```Python
 retval = dsl_ode_action_capture_complete_listener_remove('frame-capture-action', capture_complete_listener,)
+```
+
+<br>
+
+### *dsl_ode_action_capture_image_player_add*
+```C++
+DslReturnType dsl_ode_action_capture_image_player_add(const wchar_t* name, 
+    const wchar_t* player);
+```
+This service adds an [Image Player](/docs/api-player.md) to a named Capture Action. Once added, each captured image's file_path will be added (or queued) with the Image Player to be played according to the Players settings. 
+
+**Parameters**
+* `name` - [in] unique name of the Action to update.
+* `player` - [in] unique name of the Image Player to add.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_capture_image_player_add('frame-capture-action', 'image-player')
+```
+
+<br>
+
+### *dsl_ode_action_capture_image_player_remove*
+```C++
+DslReturnType dsl_ode_action_capture_image_player_remove(const wchar_t* name, 
+    const wchar_t* player);
+```
+This service removes an  [Image Player](/docs/api-player.md) from a named Capture Action previously added with [dsl_ode_action_capture_image_player_add](#dsl_ode_action_capture_image_player_add). 
+
+**Parameters**
+* `name` - [in] unique name of the Action to update.
+* `player` - [in] unique name of the Image Player to remove.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_capture_image_player_remove('frame-capture-action', 'image-player')
+```
+
+<br>
+
+### *dsl_ode_action_capture_mailer_add*
+```C++
+DslReturnType dsl_ode_action_capture_mailer_add(const wchar_t* name, 
+    const wchar_t* mailer, const wchar_t* subject, boolean attach);
+```
+This service adds a [SMTP Mailer](/docs/api-mailer.md) to a named Capture Action. Once added, each captured image's file_path and details will be sent out according to the Mailer's settings. The image file can be attached to the email as an option.
+
+**Parameters**
+* `name` - [in] unique name of the Action to update.
+* `player` - [in] unique name of the Image Player to add.
+* `subject` - [in] subject line to use for all outgoing mail
+* `attach` - [in] set to true to attach the image file, false otherwise
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_capture_mailer_add('frame-capture-action', 
+    'mailer', 'Person has entered area', True)
+```
+
+<br>
+
+### *dsl_ode_action_capture_mailer_remove*
+```C++
+DslReturnType dsl_ode_action_capture_mailer_remove(const wchar_t* name, 
+    const wchar_t* mailer);
+```
+This service removes a [SMTP Mailer](/docs/api-mailer.md) from a named Capture Action previously added with [dsl_ode_action_capture_mailer_add](#dsl_ode_action_capture_mailer_add). 
+
+**Parameters**
+* `name` - [in] unique name of the Action to update.
+* `player` - [in] unique name of the Image Player to remove.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_capture_mailer_remove('frame-capture-action', 'mailer')
 ```
 
 <br>
