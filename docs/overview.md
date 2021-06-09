@@ -990,58 +990,33 @@ Players are specialized Pipelines that simplify the processes of:
 * testing/confirming camera connections and URIs
 * rendering captured images and video recordings.
 
-The following python3 example shows how to use an **Image Render Player** to Play an Image captured by an Object Detection Event (ODE) Action. See the [Player API Documentation](/docs/api-player.md) for more information.
+The following python3 example shows how to add a **Video Render Player** to a **Smart Record Sink" which will automatically playback each video on recording complete. See the [Player API Documentation](/docs/api-player.md) for more information.
 
 ```Python
-## 
-# Function to be called on Object Capture (and file-save) complete
-## 
-def capture_complete_listener(capture_info_ptr, client_data):
-    print(' ***  Object Capture Complete  *** ')
-    
-    capture_info = capture_info_ptr.contents
-    print('capture_id: ', capture_info.capture_id)
-    print('filename:   ', capture_info.filename)
-    print('dirpath:    ', capture_info.dirpath)
-    print('width:      ', capture_info.width)
-    print('height:     ', capture_info.height)
-    
-    # One time creation of the Image Render Player
-    if dsl_player_exists('image-player') == False:
-        dsl_player_render_image_new(
-            name = 'image-player',
-            file_path = capture_info.dirpath + '/' + capture_info.filename,
-            render_type = DSL_RENDER_TYPE_OVERLAY,
-            offset_x = 400, 
-            offset_y = 100, 
-            zoom = 150,
-            timeout = 1)
+# New Record-Sink that will buffer encoded video while waiting for the ODE trigger/action, 
+retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H265, container=DSL_CONTAINER_MKV, 
+    bitrate=12000000, interval=0, client_listener=recording_event_listener)
+if retval != DSL_RETURN_SUCCESS:
+    break
 
-    # Else, update the Render-Player's file-path with the new image path
-    else:
-        # Check the Player's state to see if it's currently displaying an image
-        retval, state = dsl_player_state_get('image-player')
-        if retval != DSL_RETURN_SUCCESS:
-            return
+# Create the Video Render Player with a NULL file_path to be updated by the Smart Record Sink
+retval = dsl_player_render_video_new(
+    name = 'video-player',
+    file_path = None,
+    render_type = DSL_RENDER_TYPE_OVERLAY,
+    offset_x = 500, 
+    offset_y = 20, 
+    zoom = 50,
+    repeat_enabled = False)
+if retval != DSL_RETURN_SUCCESS:
+    break
 
-        if state == DSL_STATE_PLAYING:
-            # If we are playing then we need to queue the file to be played next.
-            retval = dsl_player_render_file_path_queue('image-player',
-                file_path = capture_info.dirpath + '/' + capture_info.filename)
-
-            # return without changing the players state
-            return
-
-        # otherwise, we can set the path in preparation for playing 
-        retval = dsl_player_render_file_path_set('image-player',
-            file_path = capture_info.dirpath + '/' + capture_info.filename)
-        if retval != DSL_RETURN_SUCCESS:
-            return
-    
-    # Play the Player until end-of-stream (EOS)
-    retval = dsl_player_play('image-player')
-    if retval != DSL_RETURN_SUCCESS:
-        return
+# Add the Player to the Record Sink. The Sink will add/queue
+# the file_path to each video recording created. 
+retval = dsl_sink_record_video_player_add('record-sink', 
+    player='video-player')
+if retval != DSL_RETURN_SUCCESS:
+    break
 ```
 
 See the script [ode_occurrence_object_capture_overlay_image.py](/examples/python/ode_occurrence_object_capture_overlay_image.py) for the complete example.
