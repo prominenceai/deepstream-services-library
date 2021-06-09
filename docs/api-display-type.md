@@ -603,4 +603,4 @@ retval = dsl_display_type_meta_add('blue-circle', buffer, frame_meta)
 * **Display Types**
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
-* [SMTP Services](/docs/api-smtp.md)
+* [Mailer](/docs/api-mailer.md)

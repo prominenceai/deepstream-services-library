@@ -38,6 +38,7 @@ Clients can be notified of **Player Termination** on **End-of-Stream** and **Win
 * [dsl_player_render_offsets_set](#dsl_player_render_offsets_set)
 * [dsl_player_render_zoom_get](#dsl_player_render_zoom_get)
 * [dsl_player_render_zoom_set](#dsl_player_render_zoom_set)
+* [dsl_player_render_reset](#dsl_player_render_reset)
 * [dsl_player_render_image_timeout_get](#dsl_player_render_image_timeout_get)
 * [dsl_player_render_image_timeout_set](#dsl_player_render_image_timeout_set)
 * [dsl_player_render_video_repeat_enabled_get](#dsl_player_render_video_repeat_enabled_get)
@@ -366,6 +367,29 @@ This service sets the zoom setting to use for the named Render Player. The zoom 
 **Python Example**
 ```Python
 retval = dsl_player_render_zoom_set('my-render-player', 50)
+```
+
+<br>
+
+### *dsl_player_render_reset*
+```C++
+DslReturnType dsl_player_render_reset(const wchar_t* name);
+```
+This service resets the named Render Player causing it to close it's rendering surface. This service will fail if the Render Player is currently `playing` or `paused`.
+
+**Parameters**
+* `name` - [in] unique name of the Render Player to update; Overlay or Window type.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_player_stop('my-player')
+retval = dsl_player_render_reset('my-player)
+
+# The rendering surface (Overlay or Window) will be recreated on next Play
+retval = dsl_player_play('my-player')
 ```
 
 <br>
@@ -728,5 +752,5 @@ player_count = dsl_player_list_size()
 * [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
-* [SMTP Services](/docs/api-smtp.md)
+* [Mailer](/docs/api-mailer.md)
 

@@ -11,6 +11,9 @@ Note: Adding a Tap component to a Pipeline or Branch directly will fail.
 
 
 ## Tap API
+**Types:**
+* [dsl_recording_info](#dsl_recording_info)
+
 **Callback Types:**
 * [dsl_record_client_listner_cb](#dsl_record_client_listner_cb)
 
@@ -30,18 +33,28 @@ Note: Adding a Tap component to a Pipeline or Branch directly will fail.
 * [dsl_tap_record_dimensions_set](#dsl_tap_record_dimensions_set)
 * [dsl_tap_record_is_on_get](#dsl_tap_record_is_on_get)
 * [dsl_tap_record_reset_done_get](#dsl_tap_record_reset_done_get)
+* [dsl_tap_record_video_player_add](#dsl_tap_record_video_player_add)
+* [dsl_tap_record_video_player_remove](#dsl_tap_record_video_player_remove)
+* [dsl_tap_record_mailer_add](#dsl_tap_record_mailer_add)
+* [dsl_tap_record_mailer_remove](#dsl_tap_record_mailer_remove)
+
 
 ## Return Values
 The following return codes are used by the Tap API
 ```C++
-#define DSL_RESULT_TAP_NAME_NOT_UNIQUE                              0x00200001
-#define DSL_RESULT_TAP_NAME_NOT_FOUND                               0x00200002
-#define DSL_RESULT_TAP_THREW_EXCEPTION                              0x00200003
-#define DSL_RESULT_TAP_IN_USE                                       0x00200004
-#define DSL_RESULT_TAP_SET_FAILED                                   0x00200005
-#define DSL_RESULT_TAP_COMPONENT_IS_NOT_TAP                         0x00200006
-#define DSL_RESULT_TAP_FILE_PATH_NOT_FOUND                          0x00200007
-#define DSL_RESULT_TAP_CONTAINER_VALUE_INVALID                      0x00200008
+#define DSL_RESULT_TAP_RESULT                                       0x00300000
+#define DSL_RESULT_TAP_NAME_NOT_UNIQUE                              0x00300001
+#define DSL_RESULT_TAP_NAME_NOT_FOUND                               0x00300002
+#define DSL_RESULT_TAP_THREW_EXCEPTION                              0x00300003
+#define DSL_RESULT_TAP_IN_USE                                       0x00300004
+#define DSL_RESULT_TAP_SET_FAILED                                   0x00300005
+#define DSL_RESULT_TAP_COMPONENT_IS_NOT_TAP                         0x00300006
+#define DSL_RESULT_TAP_FILE_PATH_NOT_FOUND                          0x00300007
+#define DSL_RESULT_TAP_CONTAINER_VALUE_INVALID                      0x00300008
+#define DSL_RESULT_TAP_PLAYER_ADD_FAILED                            0x00300009
+#define DSL_RESULT_TAP_PLAYER_REMOVE_FAILED                         0x0030000A
+#define DSL_RESULT_TAP_MAILER_ADD_FAILED                            0x0030000B
+#define DSL_RESULT_TAP_MAILER_REMOVE_FAILED                         0x0030000C
 ```
 
 ## Video Container Types
@@ -50,11 +63,63 @@ The following video container types are used by the Record Tap API
 #define DSL_CONTAINER_MPEG4                                         0
 #define DSL_CONTAINER_MK4                                           1
 ```
+## Recording Events
+The following Event Type identifiers are used by the Recoring Tap API
+```C++
+#define DSL_RECORDING_EVENT_START                                   0
+#define DSL_RECORDING_EVENT_END                                     1
+```
 <br>
 
----
+## Types
+### *dsl_recording_info*
+```C
+typedef struct dsl_recording_info
+{
+    uint recording_event;
+    uint sessionId;
+    const wchar_t* filename;
+    const wchar_t* dirpath;
+    uint64_t duration;
+    uint containerType;
+    uint width;
+    uint height;
+} dsl_recording_info;
+```
+Structure typedef used to provide recording session information to the client on callback
 
-## Callback Types:
+**Fields**
+* `recording_event` - one of DSL_RECORDING_EVENT_START or DSL_RECORDING_EVENT_END
+* `sessionId` - the unique sesions id assigned on record start
+* `filename` - filename generated for the completed recording. 
+* `directory` - path for the completed recording
+* `duration` - duration of the recording in milliseconds
+* `containerType` - DSL_CONTAINER_MP4 or DSL_CONTAINER_MP4
+* `width` - width of the recording in pixels
+* `height` - height of the recording in pixels
+
+**Python Example**
+```Python
+## 
+# Function to be called on recording start and complete
+## 
+def recording_event_listener(session_info_ptr, client_data):
+    print(' ***  Recording Event  *** ')
+    
+    session_info = session_info_ptr.contents
+    print('event type: ', recording_info.recording_event)
+    print('session_id: ', recording_info.session_id)
+    print('filename:   ', recording_info.filename)
+    print('dirpath:    ', recording_info.dirpath)
+    print('duration:   ', recording_info.duration)
+    print('container:  ', recording_info.container_type)
+    print('width:      ', recording_info.width)
+    print('height:     ', recording_info.height)
+    
+    return None
+```
+
+## Callback Types
 ### *dsl_record_client_listner_cb*
 ```C++
 typedef void* (*dsl_record_client_listner_cb)(void* info, void* user_data);
@@ -267,7 +332,7 @@ retval = dsl_tap_record_cache_size_set('my-record-tap', 15)
 
 <br>
 
-### *dsl_tap_record_dimensions_get
+### *dsl_tap_record_dimensions_get*
 ```C++
 DslReturnType dsl_tap_record_dimensions_get(const wchar_t* name, uint* width, uint* height);
 ```
@@ -349,6 +414,88 @@ retval, reset_done = dsl_tap_record_reset_done_get('my-record-tap')
 
 <br>
 
+### *dsl_tap_record_video_player_add*
+```C++
+DslReturnType dsl_tap_record_video_player_add(const wchar_t* name, 
+    const wchar_t* player)
+```
+This services adds a [Video Player](/docs/api-player.md), Render or RTSP type, to a named Recording Tap. Once added, each recorded video's file_path will be added (or queued) with the Video Player to be played according to the Players settings. 
+
+**Parameters**
+ * `name` [in] name of the Record Tap to update
+ * `player` [in] name of the Video Player to add
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tap_record_video_player_add('my-record-tap, 'my-video-render-player')
+```
+
+<br>
+
+### *dsl_tap_record_video_player_remove*
+```C++
+DslReturnType dsl_tap_record_video_player_remve(const wchar_t* name, 
+    const wchar_t* player)
+```
+This services removes a [Video Player](/docs/api-player.md), Render or RTSP type, from a named Recording Tap. 
+
+**Parameters**
+ * `name` [in] name of the Record Tap to update
+ * `player` [in] player name of the Video Player to remove
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tap_record_video_player_remove('my-record-tap', 'my-video-render-player'
+```
+
+### *dsl_tap_record_mailer_add*
+```C++
+DslReturnType dsl_tap_record_mailer_add(const wchar_t* name, 
+    const wchar_t* mailer, const wchar_t* subject);
+```
+This services adds a [Mailer](/docs/api-mailer.md) to a named Recording Tap. Once added, the file_name, location, and specifics of each recorded video will be emailed by the Mailer according to its current settings. 
+
+**Parameters**
+ * `name` [in] name of the Record Tap to update
+ * `mailer` [in] name of the Mailer to add
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tap_record_mailer_add('my-record-tap, 'my-mailer', 'New recording for my-record-tap')
+```
+
+<br>
+
+### *dsl_tap_record_mailer_remove*
+```C++
+DslReturnType dsl_tap_record_mailer_remove(const wchar_t* name, 
+    const wchar_t* mailer)
+```
+This services removes a [Mailer](/docs/api-mailer.md) from a named Recording Tap. 
+
+**Parameters**
+ * `name` [in] name of the Record Tap to update
+ * `mailer` [in] name of the Mailer to remove
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tap_record_mailer_remove('my-record-tap', 'my-mailer')
+```
+
+<br>
+
 ---
 
 ## API Reference
@@ -371,4 +518,4 @@ retval, reset_done = dsl_tap_record_reset_done_get('my-record-tap')
 * [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
-* [SMTP Services](/docs/api-smtp.md)
+* [Mailer](/docs/api-mailer.md)

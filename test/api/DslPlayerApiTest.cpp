@@ -156,12 +156,8 @@ SCENARIO( "An Image Render Player can Play, Pause, and Stop", "[player-api]" )
     GIVEN( "An empty list of Players" ) 
     {
         std::wstring player_name  = L"player";
-
         std::wstring file_path = L"./test/streams/first-person-occurrence-438.jpeg";
 
-        uint offsetX(0);
-        uint offsetY(0);
-        
         REQUIRE( dsl_player_list_size() == 0 );
 
         WHEN( "A new Player is created" ) 
@@ -255,7 +251,7 @@ SCENARIO( "An Image Render Player's Attributes are updated correctly'", "[player
     }
 }
 
-SCENARIO( "An Video Render Player's Attributes are updated correctly'", "[player-api]" )
+SCENARIO( "An Video Render Player's Attributes are updated correctly'", "[mmm]" )
 {
     GIVEN( "A new Video Render Player with Overlay Sink" ) 
     {
@@ -290,6 +286,10 @@ SCENARIO( "An Video Render Player's Attributes are updated correctly'", "[player
 
         WHEN( "A the Player's Attributes are Set" ) 
         {
+            std::wstring new_file_path = L"./test/streams/sample_1080p_h265.mp4";
+            REQUIRE( dsl_player_render_file_path_set(player_name.c_str(),
+                new_file_path.c_str()) == DSL_RESULT_SUCCESS );
+            
             uint newOffsetX(321), newOffsetY(321);
             REQUIRE( dsl_player_render_offsets_set(player_name.c_str(),
                 newOffsetX, newOffsetY) == DSL_RESULT_SUCCESS );
@@ -406,15 +406,15 @@ SCENARIO( "The Player API checks for NULL input parameters", "[player-api]" )
                 REQUIRE( dsl_player_new(player_name.c_str(),
                     source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
+                REQUIRE( dsl_player_render_reset(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
                 REQUIRE( dsl_player_render_video_new(NULL, NULL, 
-                    DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, repeat_enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_player_render_video_new(player_name.c_str(), NULL, 
                     DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, repeat_enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_player_render_image_new(NULL, NULL, 
                     DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, timeout) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_player_render_image_new(player_name.c_str(), NULL, 
-                    DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, timeout) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_sink_render_reset(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_player_play(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_player_pause(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );

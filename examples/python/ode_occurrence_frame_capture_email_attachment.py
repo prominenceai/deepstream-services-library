@@ -28,6 +28,30 @@ import sys
 sys.path.insert(0, "../../")
 from dsl import *
 
+##########################################################################33####
+# IMPORTANT! it is STRONGLY advised that you create a new, free Gmail account -- 
+# that is seperate/unlinked from all your other email accounts -- strictly for 
+# the purpose of sending ODE Event data uploaded from DSL.  Then, add your 
+# Personal email address as a "To" address to receive the emails.
+#
+# Gmail considers regular email programs (i.e Outlook, etc.) and non-registered 
+# third-party apps to be "less secure". The email account used for sending email 
+# must have the "Allow less secure apps" option turned on. Once you've created 
+# this new account, you can go to the account settings and enable Less secure 
+# app access. see https://myaccount.google.com/lesssecureapps
+#
+# CAUTION - Do not check sripts into your repo with valid credentials
+#
+#######################################################################
+user_name = 'my.smtps.server'
+password = 'my-server-pw'
+server_url = 'smtps://smtp.gmail.com:465'
+
+from_name = ''
+from_address = 'my.smtps.server'
+to_name = 'Joe Bloe'
+to_address = 'joe.blow@gmail.com'
+
 file_path = "../../test/streams/sample_1080p_h264.mp4"
 
 # Filespecs for the Primary GIE and IOU Trcaker
@@ -101,7 +125,34 @@ def capture_complete_listener(capture_info_ptr, client_data):
     print('width:      ', capture_info.width)
     print('height:     ', capture_info.height)
     
+## 
+# Function to create and setup a Mailer object for sending SMTP email
+## 
+def setup_smpt_mail():
 
+    global server_url, user_name, password, from_name, from_address, \
+        to_name, to_address
+        
+    retval = dsl_mailer_new('mailer')
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    
+    retval = dsl_mailer_server_url_set('mailer', server_url)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    retval = dsl_mailer_credentials_set('mailer' , user_name, password)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    retval = dsl_mailer_address_from_set('mailer', from_name, from_address)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    retval = dsl_mailer_address_to_add('mailer', to_name, to_address)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+        
+    # (optional) queue a test message to be sent out when main_loop starts
+    return dsl_mailer_test_message_send('mailer')
+    
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
@@ -110,6 +161,13 @@ def main(args):
         # This example demonstrates the use of a Polygon Area for Inclusion 
         # or Exlucion critera for ODE occurrence. Change the variable below to try each.
         
+        #```````````````````````````````````````````````````````````````````````````````````
+
+        # Setup the SMTP Server URL, Credentials, and From/To addresss
+        retval = setup_smpt_mail()
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         #```````````````````````````````````````````````````````````````````````````````````
 
         # Create a Hide-Area Action to hide all Display Text and Bounding Boxes
@@ -175,7 +233,7 @@ def main(args):
         retval = dsl_ode_trigger_instance_new('person-enter-area-trigger', 
             source = DSL_ODE_ANY_SOURCE,
             class_id = PGIE_CLASS_ID_PERSON, 
-            limit = DSL_ODE_TRIGGER_LIMIT_NONE)
+            limit = DSL_ODE_TRIGGER_LIMIT_ONE)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -184,10 +242,21 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create a new Capture Action to capture the object to jpeg image, and save to file. 
-        retval = dsl_ode_action_capture_object_new('person-capture-action', outdir="./")
+        # Create a new Capture Action to capture the Frame to jpeg image, and save to file. 
+        retval = dsl_ode_action_capture_frame_new('person-capture-action', 
+            annotate = False,
+            outdir = "./")
         if retval != DSL_RETURN_SUCCESS:
             break
+            
+        ### ADD THE MAILER OBJECT TO THE CAPTURE FRAME ACTION ###
+        
+        # The mailer will be used to email information on the Captured Frame
+        # -- file location, size, etc. -- with the image file included as an attachment.
+        retval = dsl_ode_action_capture_mailer_add('person-capture-action', 
+            mailer = 'mailer',
+            subject = 'ATTENTION: Person in Area!',
+            attach = True)
         
         # Add the capture complete listener function to the action
         retval = dsl_ode_action_capture_complete_listener_add('person-capture-action', 
@@ -212,30 +281,6 @@ def main(args):
             None])
         if retval != DSL_RETURN_SUCCESS:
             break
-        
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-
-        # Create the Image Render Player with a NULL file_path to by updated by the Capture Action
-        dsl_player_render_image_new(
-            name = 'image-player',
-            file_path = None,
-            render_type = DSL_RENDER_TYPE_OVERLAY,
-            offset_x = 400, 
-            offset_y = 100, 
-            zoom = 150,
-            timeout = 1)
-
-        # Add the Termination listener callback to the Player 
-        retval = dsl_player_termination_event_listener_add('image-player',
-            client_listener=player_termination_event_listener, client_data=None)
-        if retval != DSL_RETURN_SUCCESS:
-            return
-
-        # Add the Player to the Object Capture Action. The Action will add/queue
-        # the file_path to each image file created during capture. 
-        retval = dsl_ode_action_capture_image_player_add('person-capture-action', 
-            player='image-player')
-
         
         ############################################################################################
         #

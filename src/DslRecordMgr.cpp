@@ -25,6 +25,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslRecordMgr.h"
+#include "DslPlayerBintr.h"
 
 namespace DSL
 {
@@ -227,10 +228,32 @@ namespace DSL
             return false;
         }
         
-        LOG_INFO("Starting record session for RecordMgr '" << m_name << "' with start = " << start << " and durarion = " << duration);
-        m_clientData = clientData;
-        return bool(NvDsSRStart(m_pContext, &m_currentSessionId, start, duration, this) == NVDSSR_STATUS_OK);
+        LOG_INFO("Starting record session for RecordMgr '" << m_name 
+            << "' with start = " << start << " and durarion = " << duration);
         
+        // Save the client data to return     
+        m_clientData = clientData;
+        
+        if (NvDsSRStart(m_pContext, &m_currentSessionId, start, duration, this) 
+            != NVDSSR_STATUS_OK)
+        {
+            LOG_ERROR("Failed to Start Session for RecordMgr '" << m_name << "'");
+            return false;
+        }
+        dsl_recording_info dslInfo{0};
+        
+        dslInfo.session_id = m_currentSessionId;
+        dslInfo.recording_event = DSL_RECORDING_EVENT_START;
+        try
+        {
+            m_clientListener(&dslInfo, m_clientData);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Client Listener for RecordMgr '" << m_name << "' threw an exception");
+            return false;
+        }
+        return true;
     }
     
     bool RecordMgr::StopSession()
@@ -251,6 +274,7 @@ namespace DSL
         }
         LOG_INFO("Stoping record session for RecordMgre '" << m_name << "'");
         bool retval = (NvDsSRStop(m_pContext, m_currentSessionId) == NVDSSR_STATUS_OK);
+        
         m_currentSessionId = UINT32_MAX;
         return retval;
     }
@@ -294,18 +318,132 @@ namespace DSL
         return m_pContext->resetDone;
     }
     
-    void* RecordMgr::HandleRecordComplete(NvDsSRRecordingInfo* pNvDsInfo)
+    bool RecordMgr::AddVideoPlayer(DSL_BINTR_PTR pPlayer)
     {
         LOG_FUNC();
         
-        // new DSL info structure with unicode strings for python3 compatibility
-        dsl_recording_info dslInfo{0};
+        if (m_videoPlayers.find(pPlayer->GetName()) != m_videoPlayers.end())
+        {   
+            LOG_ERROR("Video Player is not unique");
+            return false;
+        }
+        m_videoPlayers[pPlayer->GetName()] = pPlayer;
+        
+        return true;
+    }
+    
+    bool RecordMgr::RemoveVideoPlayer(DSL_BINTR_PTR pPlayer)
+    {
+        LOG_FUNC();
+        
+        if (m_videoPlayers.find(pPlayer->GetCStrName()) == m_videoPlayers.end())
+        {   
+            LOG_ERROR("Video Player not found");
+            return false;
+        }
+        m_videoPlayers.erase(pPlayer->GetName());
+        
+        return true;
+    }
 
-        // convert the filename and dirpath to wchar string types
+    bool RecordMgr::AddMailer(DSL_MAILER_PTR pMailer,
+        const char* subject)
+    {
+        LOG_FUNC();
+        
+        if (m_mailers.find(pMailer->GetName()) != m_mailers.end())
+        {   
+            LOG_ERROR("Record Manager - Mailer is not unique");
+            return false;
+        }
+        // combine all input parameters as MailerSpecs and add
+        std::shared_ptr<MailerSpecs> pMailerSpecs = 
+            std::shared_ptr<MailerSpecs>(new MailerSpecs(pMailer, subject, false));
+            
+        m_mailers[pMailer->GetName()] = pMailerSpecs;
+        
+        return true;
+    }
+    
+    bool RecordMgr::RemoveMailer(DSL_MAILER_PTR pMailer)
+    {
+        LOG_FUNC();
+        
+        if (m_mailers.find(pMailer->GetCStrName()) == m_mailers.end())
+        {   
+            LOG_ERROR("Record Manager- Mailer not found");
+            return false;
+        }
+        m_mailers.erase(pMailer->GetName());
+        
+        return true;
+    }
+    
+    void* RecordMgr::HandleRecordComplete(NvDsSRRecordingInfo* pNvDsInfo)
+    {
+        LOG_FUNC();
+
+        // String and WString viersion of the filename and dirpath
         std::string cstrFilename(pNvDsInfo->filename);
         std::wstring wstrFilename(cstrFilename.begin(), cstrFilename.end());
         std::string cstrDirpath(pNvDsInfo->dirpath);
         std::wstring wstrDirpath(cstrDirpath.begin(), cstrDirpath.end());
+
+        std::string filespec = cstrDirpath + "/" +  cstrFilename;
+
+        // If there are Video Players for playing the completed recording
+        for (auto const& iter: m_videoPlayers)
+        {
+            if (iter.second->IsType(typeid(VideoRenderPlayerBintr)))
+            {
+                DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pVideoPlayer = 
+                    std::dynamic_pointer_cast<VideoRenderPlayerBintr>(iter.second);
+
+                GstState state;
+                pVideoPlayer->GetState(state, 0);
+
+                // Queue the filepath if the Player is currently Playing/Paused
+                // otherwise, set the filepath and Play the Player
+                if (state == GST_STATE_PLAYING or state == GST_STATE_PAUSED)
+                {
+                    pVideoPlayer->QueueFilePath(filespec.c_str());
+                }
+                else
+                {
+                    pVideoPlayer->SetFilePath(filespec.c_str());
+                    pVideoPlayer->Play();
+                    
+                }
+            }
+            // TODO handle ImageRtspPlayerBintr
+        }
+
+        // If there are Mailers for mailing the recording details
+        if (m_mailers.size())
+        {
+            std::vector<std::string> body;
+
+            body.push_back(std::string("File Name  : " 
+                + std::string(pNvDsInfo->filename) + "<br>"));
+            body.push_back(std::string("Location   : " 
+                + std::string(pNvDsInfo->dirpath) + "<br>"));
+            body.push_back(std::string("Session Id : " 
+                + std::to_string(pNvDsInfo->sessionId) + "<br>"));
+            body.push_back(std::string("Duration   : " 
+                + std::to_string(pNvDsInfo->duration) + "<br>"));
+            body.push_back(std::string("Width      : " 
+                + std::to_string(pNvDsInfo->width) + "<br>"));
+            body.push_back(std::string("Height     : " 
+                + std::to_string(pNvDsInfo->height) + "<br>"));
+                
+            for (auto const& iter: m_mailers)
+            {
+                iter.second->m_pMailer->QueueMessage(iter.second->m_subject, body);
+            }
+        }
+        
+        // new DSL info structure with unicode strings for python3 compatibility
+        dsl_recording_info dslInfo{0};
 
         dslInfo.filename = wstrFilename.c_str();
         dslInfo.dirpath = wstrDirpath.c_str();
@@ -313,17 +451,18 @@ namespace DSL
         switch (pNvDsInfo->containerType)
         {
         case NVDSSR_CONTAINER_MP4 :
-            dslInfo.containerType = DSL_CONTAINER_MP4;
+            dslInfo.container_type = DSL_CONTAINER_MP4;
             break;
         case NVDSSR_CONTAINER_MKV :
-            dslInfo.containerType = DSL_CONTAINER_MKV;        
+            dslInfo.container_type = DSL_CONTAINER_MKV;        
             break;
         default:
             LOG_ERROR("Invalid container = '" << pNvDsInfo->containerType << "' received from NvDsSR for RecordMgr'" << m_name << "'");
         }
         
         // copy the remaining data received from the nvidia lib
-        dslInfo.sessionId = pNvDsInfo->sessionId;
+        dslInfo.session_id = pNvDsInfo->sessionId;
+        dslInfo.recording_event = DSL_RECORDING_EVENT_END;
         dslInfo.duration = pNvDsInfo->duration;
         dslInfo.width = pNvDsInfo->width;
         dslInfo.height = pNvDsInfo->height;
@@ -337,6 +476,7 @@ namespace DSL
             LOG_ERROR("Client Listener for RecordMgr '" << m_name << "' threw an exception");
             return NULL;
         }
+        
     }
 
     //******************************************************************************************

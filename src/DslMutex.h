@@ -34,6 +34,7 @@ THE SOFTWARE.
 namespace DSL
 {
     #define LOCK_MUTEX_FOR_CURRENT_SCOPE(mutex) LockMutexForCurrentScope lock(mutex)
+    #define LOCK_2ND_MUTEX_FOR_CURRENT_SCOPE(mutex) LockMutexForCurrentScope lock2(mutex)
 
     /**
      * @class LockMutexForCurrentScope

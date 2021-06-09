@@ -26,11 +26,13 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslServices.h"
 #include "DslPlayerBintr.h"
+#include "DslSourceBintr.h"
+#include "DslSinkBintr.h"
 
 namespace DSL
 {
     PlayerBintr::PlayerBintr(const char* name, 
-        DSL_SOURCE_PTR pSource, DSL_SINK_PTR pSink)
+        DSL_BINTR_PTR pSource, DSL_BINTR_PTR pSink)
         : Bintr(name, true) // Pipeline = true
         , PipelineStateMgr(m_pGstObj)
         , PipelineXWinMgr(m_pGstObj)
@@ -177,24 +179,52 @@ namespace DSL
                 << "' as it's already in a state of playing");
             return false;
         }
-        
-        return HandlePlay();
+        // m_pSource is of type DSL_BINTR_PTR - need to cast to DSL_SOURCE_PTR
+        // for the source to be used as such
+        DSL_SOURCE_PTR pSourceBintr = 
+            std::dynamic_pointer_cast<SourceBintr>(m_pSource);
+        if (!pSourceBintr->IsLinkable())
+        {
+            LOG_ERROR("Unable to Play Player '" << GetName() 
+                << "' as its Source is in an un-playable state");
+            return false;
+        }
+        // If the main loop is running -- normal case -- then we can't change the 
+        // state of the Player in the Application's context. 
+        if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+            g_timeout_add(1, PlayerPlay, this);
+//            g_cond_wait(&m_asyncCondition, &m_asyncCommMutex);
+        }
+        // Else, we are running under test without the mainloop
+        else
+        {
+            HandlePlay();
+        }
+        return true;
     }
     
     bool PlayerBintr::HandlePlay()
     {
         LOG_FUNC();
+
+        // m_pSource is of type DSL_BINTR_PTR - need to cast to DSL_SOURCE_PTR
+        // for the source to be used as such
+        DSL_SOURCE_PTR pSourceBintr = 
+            std::dynamic_pointer_cast<SourceBintr>(m_pSource);
+        
         GstState currentState;
         GetState(currentState, 0);
         if (currentState == GST_STATE_NULL or currentState == GST_STATE_READY)
         {
             if (!LinkAll())
             {
-                LOG_ERROR("Unable to prepare Pipeline '" << GetName() << "' for Play");
+                LOG_ERROR("Unable to prepare Player '" << GetName() << "' for Play");
                 return false;
             }
             // For non-live sources we Pause to preroll before we play
-            if (!m_pSource->IsLive())
+            if (!pSourceBintr->IsLive())
             {
                 if (!SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
                 {
@@ -295,8 +325,11 @@ namespace DSL
         // Stop function When we send the EOS message.
         RemoveEosListener(PlayerHandleEos);
 
+        DSL_SOURCE_PTR pSourceBintr = 
+            std::dynamic_pointer_cast<SourceBintr>(m_pSource);
+
         // Call the source to disable its EOS consumer, before sending EOS
-        m_pSource->DisableEosConsumer();
+        pSourceBintr->DisableEosConsumer();
 
         SendEos();
     }
@@ -451,7 +484,7 @@ namespace DSL
             return false;
         }
         
-        m_pSource->GetDimensions(&m_width, &m_height);
+        pResourceSource->GetDimensions(&m_width, &m_height);
         
         // everything we need to create the SinkBintr
         if (!SetDimensions())
@@ -520,9 +553,10 @@ namespace DSL
             std::dynamic_pointer_cast<RenderSinkBintr>(m_pSink);
 
         // If the RenderSink is a WindowSinkBintr
-        if (GetXWindow())
+        if (OwnsXWindow())
         {
             SetXWindowDimensions(width, height);
+            return true;
         }
         // Else, update the OverlaySinkBintr;
         return pRenderSink->SetDimensions(width, height);
@@ -541,6 +575,22 @@ namespace DSL
 
         m_zoom = zoom;
         return SetDimensions();
+    }
+    
+    bool RenderPlayerBintr::Reset()
+    {
+        LOG_FUNC();
+
+        DSL_RENDER_SINK_PTR pRenderSink = 
+            std::dynamic_pointer_cast<RenderSinkBintr>(m_pSink);
+
+        // If the RenderSink is a WindowSinkBintr
+        if (OwnsXWindow())
+        {
+            DestroyXWindow();
+        }
+        
+        return pRenderSink->Reset();
     }
     
     bool RenderPlayerBintr::CreateRenderSink()
@@ -655,17 +705,17 @@ namespace DSL
 
         
         std::string sourceName = m_name + "-file-source";
-        m_pSource = DSL_FILE_SOURCE_NEW(name, filePath, repeatEnabled);
+        DSL_FILE_SOURCE_PTR pSource = DSL_FILE_SOURCE_NEW(name, filePath, repeatEnabled);
             
-        if (!AddChild(m_pSource))
+        if (!AddChild(pSource))
         {
-            LOG_ERROR("Failed to add SourceBintr '" << m_pSource->GetName() 
+            LOG_ERROR("Failed to add SourceBintr '" << pSource->GetName() 
                 << "' to PlayerBintr '" << GetName() << "'");
             throw;
         }
 
         // update the Bintr's dimensions from the SourceBintr's dimensions
-        m_pSource->GetDimensions(&m_width, &m_height);
+        pSource->GetDimensions(&m_width, &m_height);
         
         // everything we need to create the SinkBintr
         if (!CreateRenderSink())
@@ -674,6 +724,9 @@ namespace DSL
                 << GetName() << "'");
             throw;
         }
+        
+        // save to member variable of type DSL_BINTR_PTR
+        m_pSource = pSource;
     }
     
     VideoRenderPlayerBintr::~VideoRenderPlayerBintr()
@@ -721,18 +774,18 @@ namespace DSL
         const uint fpsN(4), fpsD(1);
         
         std::string sourceName = m_name + "-image-source";
-        m_pSource = DSL_IMAGE_SOURCE_NEW(sourceName.c_str(), 
+        DSL_IMAGE_SOURCE_PTR pSource = DSL_IMAGE_SOURCE_NEW(sourceName.c_str(), 
             filePath, isLive, fpsN, fpsD, m_timeout);        
 
-        if (!AddChild(m_pSource))
+        if (!AddChild(pSource))
         {
-            LOG_ERROR("Failed to add SourceBintr '" << m_pSource->GetName() 
+            LOG_ERROR("Failed to add SourceBintr '" << pSource->GetName() 
                 << "' to PlayerBintr '" << GetName() << "'");
             throw;
         }
         
-        // get the image dimensions from Souce
-        m_pSource->GetDimensions(&m_width, &m_height);
+        // get the image dimensions from the Source
+        pSource->GetDimensions(&m_width, &m_height);
 
         // everything we need to create the SinkBintr
         if (!CreateRenderSink())
@@ -741,6 +794,9 @@ namespace DSL
                 << GetName() << "'");
             throw;
         }
+        
+        // save to member variable of type DSL_BINTR_PTR
+        m_pSource = pSource;
     }
     
     ImageRenderPlayerBintr::~ImageRenderPlayerBintr()
@@ -775,6 +831,14 @@ namespace DSL
     }
     
     //--------------------------------------------------------------------------------
+    
+    static int PlayerPlay(gpointer pPlayer)
+    {
+        static_cast<PlayerBintr*>(pPlayer)->HandlePlay();
+        
+        // Return false to self destroy timer - one shot.
+        return false;
+    }
     
     static int PlayerPause(gpointer pPlayer)
     {

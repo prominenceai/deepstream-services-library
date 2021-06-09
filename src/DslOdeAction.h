@@ -30,6 +30,8 @@ THE SOFTWARE.
 #include "DslBase.h"
 #include "DslSurfaceTransform.h"
 #include "DslDisplayTypes.h"
+#include "DslPlayerBintr.h"
+#include "DslMailer.h"
 
 namespace DSL
 {
@@ -62,8 +64,8 @@ namespace DSL
         std::shared_ptr<DisableHandlerOdeAction>(new DisableHandlerOdeAction(name, handler))
 
     #define DSL_ODE_ACTION_EMAIL_PTR std::shared_ptr<EmailOdeAction>
-    #define DSL_ODE_ACTION_EMAIL_NEW(name, subject) \
-        std::shared_ptr<EmailOdeAction>(new EmailOdeAction(name, subject))
+    #define DSL_ODE_ACTION_EMAIL_NEW(name, pMailer, subject) \
+        std::shared_ptr<EmailOdeAction>(new EmailOdeAction(name, pMailer, subject))
         
     #define DSL_ODE_ACTION_FILL_AREA_PTR std::shared_ptr<FillAreaOdeAction>
     #define DSL_ODE_ACTION_FILL_AREA_NEW(name, area, pColor) \
@@ -98,8 +100,12 @@ namespace DSL
         std::shared_ptr<PauseOdeAction>(new PauseOdeAction(name, pipeline))
         
     #define DSL_ODE_ACTION_PRINT_PTR std::shared_ptr<PrintOdeAction>
-    #define DSL_ODE_ACTION_PRINT_NEW(name) \
-        std::shared_ptr<PrintOdeAction>(new PrintOdeAction(name))
+    #define DSL_ODE_ACTION_PRINT_NEW(name, forceFlush) \
+        std::shared_ptr<PrintOdeAction>(new PrintOdeAction(name, forceFlush))
+
+    #define DSL_ODE_ACTION_FILE_PTR std::shared_ptr<FileOdeAction>
+    #define DSL_ODE_ACTION_FILE_NEW(name, filePath, forceFlush) \
+        std::shared_ptr<FileOdeAction>(new FileOdeAction(name, filePath, forceFlush))
         
     #define DSL_ODE_ACTION_REDACT_PTR std::shared_ptr<RedactOdeAction>
     #define DSL_ODE_ACTION_REDACT_NEW(name) \
@@ -150,20 +156,20 @@ namespace DSL
         std::shared_ptr<RemoveAreaOdeAction>(new RemoveAreaOdeAction(name, trigger, area))
         
     #define DSL_ODE_ACTION_SINK_RECORD_START_PTR std::shared_ptr<RecordSinkStartOdeAction>
-    #define DSL_ODE_ACTION_SINK_RECORD_START_NEW(name, recordSink, start, duration, clientData) \
-        std::shared_ptr<RecordSinkStartOdeAction>(new RecordSinkStartOdeAction(name, recordSink, start, duration, clientData))
+    #define DSL_ODE_ACTION_SINK_RECORD_START_NEW(name, pRecordSink, start, duration, clientData) \
+        std::shared_ptr<RecordSinkStartOdeAction>(new RecordSinkStartOdeAction(name, pRecordSink, start, duration, clientData))
         
     #define DSL_ODE_ACTION_SINK_RECORD_STOP_PTR std::shared_ptr<RecordSinkStopOdeAction>
-    #define DSL_ODE_ACTION_SINK_RECORD_STOP_NEW(name, recordSink) \
-        std::shared_ptr<RecordSinkStopOdeAction>(new RecordSinkStopOdeAction(name, recordSink))
+    #define DSL_ODE_ACTION_SINK_RECORD_STOP_NEW(name, pRecordSink) \
+        std::shared_ptr<RecordSinkStopOdeAction>(new RecordSinkStopOdeAction(name, pRecordSink))
         
     #define DSL_ODE_ACTION_TAP_RECORD_START_PTR std::shared_ptr<RecordTapStartOdeAction>
-    #define DSL_ODE_ACTION_TAP_RECORD_START_NEW(name, recordTap, start, duration, clientData) \
-        std::shared_ptr<RecordTapStartOdeAction>(new RecordTapStartOdeAction(name, recordTap, start, duration, clientData))
+    #define DSL_ODE_ACTION_TAP_RECORD_START_NEW(name, pRecordTap, start, duration, clientData) \
+        std::shared_ptr<RecordTapStartOdeAction>(new RecordTapStartOdeAction(name, pRecordTap, start, duration, clientData))
         
     #define DSL_ODE_ACTION_TAP_RECORD_STOP_PTR std::shared_ptr<RecordTapStopOdeAction>
-    #define DSL_ODE_ACTION_TAP_RECORD_STOP_NEW(name, recordTap) \
-        std::shared_ptr<RecordTapStopOdeAction>(new RecordTapStopOdeAction(name, recordTap))
+    #define DSL_ODE_ACTION_TAP_RECORD_STOP_NEW(name, pRecordTap) \
+        std::shared_ptr<RecordTapStopOdeAction>(new RecordTapStopOdeAction(name, pRecordTap))
         
     #define DSL_ODE_ACTION_TILER_SHOW_SOURCE_PTR std::shared_ptr<TilerShowSourceOdeAction>
     #define DSL_ODE_ACTION_TILER_SHOW_SOURCE_NEW(name, tiler, timeout, hasPrecedence) \
@@ -217,7 +223,11 @@ namespace DSL
         bool m_enabled;
         
         std::string Ntp2Str(uint64_t ntp);
-        
+
+        /**
+         * @brief Mutex to ensure mutual exlusion for propery get/sets
+         */
+        GMutex m_propertyMutex;
     };
 
     // ********************************************************************
@@ -320,17 +330,54 @@ namespace DSL
         bool RemoveCaptureCompleteListener(dsl_capture_complete_listener_cb listener);
         
         /**
+         * @brief adds an Image Player, Render or RTSP type, to this CaptureAction
+         * @param pPlayer shared pointer to an Image Player to add
+         * @return true on successfull add, false otherwise
+         */
+        bool AddImagePlayer(DSL_PLAYER_BINTR_PTR pPlayer);
+        
+        /**
+         * @brief removes an Image Player, Render or RTSP type, from this CaptureAction
+         * @param pPlayer shared pointer to an Image Player to remove
+         * @return true on successfull remove, false otherwise
+         */
+        bool RemoveImagePlayer(DSL_PLAYER_BINTR_PTR pPlayer);
+        
+        /**
+         * @brief adds a SMTP Mailer to this CaptureAction
+         * @param[in] pMailer shared pointer to a Mailer to add
+         * @param[in] subject subject line to use for all email
+         * @param[in] attach boolean flag to optionally attach the image file
+         * @return true on successfull add, false otherwise
+         */
+        bool AddMailer(DSL_MAILER_PTR pMailer, const char* subject, bool attach);
+        
+        /**
+         * @brief removes a SMPT Mailer to this CaptureAction
+         * @param[in] pMailer shared pointer to an Mailer to remove
+         * @return true on successfull remove, false otherwise
+         */
+        bool RemoveMailer(DSL_MAILER_PTR pMailer);
+        
+        /**
+         * @brief removes all child Mailers, Players, and Listeners from this parent Object
+         */
+        void RemoveAllChildren();
+        
+        /**
          * @brief Queues capture info and starts the Listener notification timer
          * @param info shared pointer to cv::MAT containing the captured image
          */
         void QueueCapturedImage(std::shared_ptr<cv::Mat> pImageMat);
         
         /**
-         * @brief implements a timer callback to notify all client listeners in the main loop context.
-         * @return false always to self remove timer once clients have been notified. Timer/tread will
-         * be restarted on next Image Capture
+         * @brief implements a timer callback to complete the capture process 
+         * by saving the image to file, notifying all client listeners, and 
+         * sending email all in the main loop context.
+         * @return false always to self remove timer once clients have been notified. 
+         * Timer/tread will be restarted on next Image Capture
          */
-        int NotifyClientListeners();
+        int CompleteCapture();
         
     protected:
     
@@ -362,27 +409,37 @@ namespace DSL
         /**
          * @brief gnome timer Id for the capture complete callback
          */
-        uint m_listenerNotifierTimerId;
+        uint m_captureCompleteTimerId;
         
         /**
          * @brief map of all currently registered capture-complete-listeners
-         * callback functions mapped with the user provided data
+         * callback functions mapped with thier user provided data
          */
         std::map<dsl_capture_complete_listener_cb, void*> m_captureCompleteListeners;
+        
+        /**
+         * @brief map of all Image Players to play captured images.
+         */
+        std::map<std::string, DSL_PLAYER_BINTR_PTR> m_imagePlayers;
+        
+        /**
+         * @brief map of all Mailers to send email.
+         */
+        std::map<std::string, std::shared_ptr<MailerSpecs>> m_mailers;
         
         /**
          * @brief a queue of captured Images to save to file and notify clients
          */
         std::queue<std::shared_ptr<cv::Mat>> m_imageMats;
-
     };
 
     /**
-     * @brief Timer callback handler to invoke the Capture Actions Listerner notification.
+     * @brief Timer callback handler to complete the capture process
+     * by notifying all listeners and sending email with all mailers.
      * @param[in] pSource shared pointer to Capture Action to invoke.
      * @return int true to continue, 0 to self remove
      */
-    static int CaptureListenerNotificationHandler(gpointer pAction);
+    static int CompleteCaptureHandler(gpointer pAction);
     
     // ********************************************************************
 
@@ -553,9 +610,11 @@ namespace DSL
         /**
          * @brief ctor for the ODE Fill Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] pColor shared pointer to an RGBA Color to fill the Frame
+         * @param[in] pMailer shared pointer
+         * @param[in] subject line to use in all emails
          */
-        EmailOdeAction(const char* name, const char* subject);
+        EmailOdeAction(const char* name, 
+            DSL_BASE_PTR pMailer, const char* subject);
         
         /**
          * @brief dtor for the ODE Display Action class
@@ -574,6 +633,11 @@ namespace DSL
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
+    
+        /**
+         * @bried shared pointer to Mailer object in use by this Action
+         */
+        DSL_BASE_PTR m_pMailer;
     
         /**
          * @brief Subject line used for all email messages sent by this action
@@ -895,7 +959,7 @@ namespace DSL
          * @brief ctor for the ODE Print Action class
          * @param[in] name unique name for the ODE Action
          */
-        PrintOdeAction(const char* name);
+        PrintOdeAction(const char* name, bool forceFlush);
         
         /**
          * @brief dtor for the Print ODE Action class
@@ -914,9 +978,110 @@ namespace DSL
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
+        /**
+         * @brief Flushes the stdout buffer. ** To be called by the idle thread only **.
+         * @return false to unschedule always - single flush operation.
+         */
+        bool Flush();
+
+    private:
+
+        /**
+         * @brief flag to enable/disable forced stream buffer flushing
+         */
+        bool m_forceFlush;
+    
+        /**
+         * @brief gnome thread id for the background thread to flush
+         */
+        uint m_flushThreadFunctionId;
+
+        /**
+         * @brief mutex to protect mutual access to m_flushThreadFunctionId
+         */
+        GMutex m_ostreamMutex;
+    };
+
+    /**
+     * @brief Idle Thread Function to flush the stdout buffer
+     * @param pAction pointer to the File Action to call flush
+     * @return false to unschedule always
+     */
+    static gboolean PrintActionFlush(gpointer pAction);
+
+    // ********************************************************************
+
+    /**
+     * @class PrintOdeAction
+     * @brief Print ODE Action class
+     */
+    class FileOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the ODE Print Action class
+         * @param[in] name unique name for the ODE Action
+         */
+        FileOdeAction(const char* name, const char* filePath, bool forceflush);
+        
+        /**
+         * @brief dtor for the Print ODE Action class
+         */
+        ~FileOdeAction();
+        
+        /**
+         * @brief Handles the ODE occurrence by printing the  
+         * the occurrence data to the console
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+            
+        /**
+         * @brief Flushes the ostream buffer. ** To be called by the idle thread only **.
+         * @return false to unschedule always - single flush operation.
+         */
+        bool Flush();
+
     private:
     
+        /**
+         * @brief relative or absolute path to the file to write to
+         */ 
+        std::string m_filePath;
+        
+        /**
+         * @brief output stream for all file writes
+         */
+        std::fstream m_ostream;
+        
+        /**
+         * @brief flag to enable/disable forced stream buffer flushing
+         */
+        bool m_forceFlush;
+    
+        /**
+         * @brief gnome thread id for the background thread to flush
+         */
+        uint m_flushThreadFunctionId;
+
+        /**
+         * @brief mutex to protect mutual access to comms data
+         */
+        GMutex m_ostreamMutex;
     };
+
+    /**
+     * @brief Idle Thread Function to flush the ostream buffer
+     * @param pAction pointer to the File Action to call flush
+     * @return false to unschedule always
+     */
+    static gboolean FileActionFlush(gpointer pAction);
         
     // ********************************************************************
 
@@ -1464,12 +1629,12 @@ namespace DSL
         /**
          * @brief ctor for the Start Record Sink ODE Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] recordSink Record Sink component name to Start on ODE
+         * @param[in] pRecordSink shared pointer to Record Sink to Start on ODE
          * @param[in] start time before current time in secs
          * @param[in] duration for recording unless stopped before completion
          */
         RecordSinkStartOdeAction(const char* name, 
-            const char* recordSink, uint start, uint duration, void* clientData);
+            DSL_BASE_PTR pRecordSink, uint start, uint duration, void* clientData);
         
         /**
          * @brief dtor for the Start Record ODE Action class
@@ -1492,7 +1657,7 @@ namespace DSL
         /**
          * @brief Record Sink to start the recording session
          */ 
-        std::string m_recordSink;
+         DSL_BASE_PTR m_pRecordSink;
 
         /**
          * @brief Start time before current time in seconds
@@ -1524,11 +1689,10 @@ namespace DSL
         /**
          * @brief ctor for the Stop Record Sink ODE Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] recordSink Record Sink component name to Stop on ODE
-         * @param[in] start time before current time in secs
+         * @param[in] pRecordSink shared pointer to a Record Sink to Stop on ODE
          * @param[in] duration for recording unless stopped before completion
          */
-        RecordSinkStopOdeAction(const char* name, const char* recordSink);
+        RecordSinkStopOdeAction(const char* name, DSL_BASE_PTR pRecordSink);
         
         /**
          * @brief dtor for the Stop Record ODE Action class
@@ -1551,7 +1715,7 @@ namespace DSL
         /**
          * @brief Record Sink to start the recording session
          */ 
-        std::string m_recordSink;
+        DSL_BASE_PTR m_pRecordSink;
         
     };
 
@@ -1568,12 +1732,12 @@ namespace DSL
         /**
          * @brief ctor for the Start Record Tap ODE Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] recordSink Record Sink component name to Start on ODE
-         * @param[in] start time before current time in secs
+         * @param[in] pRecordTap shared pointer to a Record Tap to Start on ODE
+         * @param[in] start time before current time in seconds
          * @param[in] duration for recording unless stopped before completion
          */
         RecordTapStartOdeAction(const char* name, 
-            const char* recordTap, uint start, uint duration, void* clientData);
+            DSL_BASE_PTR pRecordTap, uint start, uint duration, void* clientData);
         
         /**
          * @brief dtor for the Start Record ODE Action class
@@ -1596,7 +1760,7 @@ namespace DSL
         /**
          * @brief Record Tap to start the recording session
          */ 
-        std::string m_recordTap;
+        DSL_BASE_PTR m_pRecordTap;
 
         /**
          * @brief Start time before current time in seconds
@@ -1627,12 +1791,11 @@ namespace DSL
         /**
          * @brief ctor for the Stop Record Tap ODE Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] recordSink Record Sink component name to Stop on ODE
+         * @param[in] pRecordSink shared pointer to Record Sink to Stop on ODE
          * @param[in] start time before current time in secs
          * @param[in] duration for recording unless stopped before completion
          */
-        RecordTapStopOdeAction(const char* name, 
-            const char* recordTap);
+        RecordTapStopOdeAction(const char* name, DSL_BASE_PTR pRecordTap);
         
         /**
          * @brief dtor for the Stop Record ODE Action class
@@ -1655,7 +1818,7 @@ namespace DSL
         /**
          * @brief Record Tap to start the recording session
          */ 
-        std::string m_recordTap;
+        DSL_BASE_PTR m_pRecordTap;
 
     };
 

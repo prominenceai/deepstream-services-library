@@ -57,6 +57,7 @@ DSL is released under the [MIT License](LICENSE). Contributions are welcome and 
   * [Display Type](/docs/api-display-type.md)
   * [Branch](/docs/api-branch.md)
   * [Component](/docs/api-component.md)
+  * [Mailer](/docs/api-mailer.md)
 * [Examples](/docs/examples.md)
   * [C/C++](/docs/examples-cpp.md)
   * [Python](/docs/examples-python.md)

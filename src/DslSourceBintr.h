@@ -125,6 +125,14 @@ namespace DSL
          */ 
         void GetFrameRate(uint* fpsN, uint* fpsD);
         
+        /**
+         * @brief Returns the current linkable state of the Source. Camera Sources
+         * HTTP, and RTSP sources are linkable for the life of the Source.
+         * File and Image Sources can be created without a file path and are unlinkable
+         * until they are updated with a valid path.
+         * @return true if the Source if linkable (able to link), false otherwise
+         */
+        virtual bool IsLinkable(){return true;};
 
     public:
     
@@ -294,6 +302,14 @@ namespace DSL
         }
 
         virtual bool SetUri(const char* uri) = 0;
+        
+       /**
+         * @brief Returns the current linkable state of the Source. File and 
+         * Image Sources can be created without a file path and are unlinkable
+         * until they are updated with a valid path.
+         * @return true if the Source is linkable (able to link), false otherwise
+         */
+        bool IsLinkable(){return bool(m_uri.size());};        
     
     protected:
     

@@ -33,7 +33,7 @@ THE SOFTWARE.
 #include "DslOdeArea.h"
 #include "DslPipelineBintr.h"
 #include "DslPlayerBintr.h"
-#include "DslComms.h"
+#include "DslMailer.h"
 
 namespace DSL {
     
@@ -113,13 +113,29 @@ namespace DSL {
         
         DslReturnType OdeActionCaptureCompleteListenerRemove(const char* name, 
             dsl_capture_complete_listener_cb listener);
+            
+        DslReturnType OdeActionCaptureImagePlayerAdd(const char* name,
+            const char* player);
+        
+        DslReturnType OdeActionCaptureImagePlayerRemove(const char* name,
+            const char* player);
+        
+        DslReturnType OdeActionCaptureMailerAdd(const char* name,
+            const char* mailer, const char* subject, boolean attach);
+        
+        DslReturnType OdeActionCaptureMailerRemove(const char* name,
+            const char* mailer);
         
         DslReturnType OdeActionDisplayNew(const char* name, uint offsetX, uint offsetY, 
             boolean offsetYWithClassId, const char* font, boolean hasBgColor, const char* bgColor);
         
         DslReturnType OdeActionLogNew(const char* name);
 
-        DslReturnType OdeActionEmailNew(const char* name, const char* subject);
+        DslReturnType OdeActionEmailNew(const char* name, 
+            const char* mailer, const char* subject);
+        
+        DslReturnType OdeActionFileNew(const char* name, 
+            const char* filePath, boolean forceFlush);
         
         DslReturnType OdeActionFillSurroundingsNew(const char* name, const char* color);
         
@@ -137,7 +153,7 @@ namespace DSL {
 
         DslReturnType OdeActionPauseNew(const char* name, const char* pipeline);
 
-        DslReturnType OdeActionPrintNew(const char* name);
+        DslReturnType OdeActionPrintNew(const char* name, boolean forceFlush);
         
         DslReturnType OdeActionRedactNew(const char* name);
 
@@ -234,11 +250,35 @@ namespace DSL {
         DslReturnType OdeTriggerPersistenceNew(const char* name, const char* source,
             uint classId, uint limit, uint minimum, uint maximum);
 
+        DslReturnType OdeTriggerPersistenceRangeGet(const char* name, 
+            uint* minimum, uint* maximum);
+        
+        DslReturnType OdeTriggerPersistenceRangeSet(const char* name, 
+            uint minimum, uint maximum);
+
         DslReturnType OdeTriggerCountNew(const char* name, const char* source, 
             uint classId, uint limit, uint minimum, uint maximum);
+
+        DslReturnType OdeTriggerCountRangeGet(const char* name, 
+            uint* minimum, uint* maximum);
+        
+        DslReturnType OdeTriggerCountRangeSet(const char* name, 
+            uint minimum, uint maximum);
         
         DslReturnType OdeTriggerDistanceNew(const char* name, const char* source, 
             uint classIdA, uint classIdB, uint limit, uint minimum, uint maximum, 
+            uint testPoint, uint testMethod);
+
+        DslReturnType OdeTriggerDistanceRangeGet(const char* name, 
+            uint* minimum, uint* maximum);
+        
+        DslReturnType OdeTriggerDistanceRangeSet(const char* name, 
+            uint minimum, uint maximum);
+
+        DslReturnType OdeTriggerDistanceTestParamsGet(const char* name, 
+            uint* testPoint, uint* testMethod);
+        
+        DslReturnType OdeTriggerDistanceTestParamsSet(const char* name, 
             uint testPoint, uint testMethod);
         
         DslReturnType OdeTriggerSmallestNew(const char* name, 
@@ -254,6 +294,10 @@ namespace DSL {
             const char* source, uint classId, uint limit, uint preset);
 
         DslReturnType OdeTriggerReset(const char* name);
+
+        DslReturnType OdeTriggerResetTimeoutGet(const char* name, uint* timeout);
+
+        DslReturnType OdeTriggerResetTimeoutSet(const char* name, uint timeout);
 
         DslReturnType OdeTriggerEnabledGet(const char* name, boolean* enabled);
 
@@ -458,6 +502,18 @@ namespace DSL {
         DslReturnType TapRecordIsOnGet(const char* name, boolean* isOn);
 
         DslReturnType TapRecordResetDoneGet(const char* name, boolean* resetDone);
+        
+        DslReturnType TapRecordVideoPlayerAdd(const char* name,
+            const char* player);
+        
+        DslReturnType TapRecordVideoPlayerRemove(const char* name,
+            const char* player);
+
+        DslReturnType TapRecordMailerAdd(const char* name,
+            const char* mailer, const char* subject);
+        
+        DslReturnType TapRecordMailerRemove(const char* name,
+            const char* mailer);
 
         DslReturnType PrimaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, uint interval);
@@ -589,6 +645,8 @@ namespace DSL {
         DslReturnType SinkRenderDimensionsGet(const char* name, uint* width, uint* height);
 
         DslReturnType SinkRenderDimensionsSet(const char* name, uint width, uint height);
+        
+        DslReturnType SinkRenderReset(const char* name);
 
         DslReturnType SinkFileNew(const char* name, const char* filepath, 
             uint codec, uint muxer, uint bit_rate, uint interval);
@@ -620,6 +678,18 @@ namespace DSL {
         DslReturnType SinkRecordIsOnGet(const char* name, boolean* isOn);
 
         DslReturnType SinkRecordResetDoneGet(const char* name, boolean* resetDone);
+
+        DslReturnType SinkRecordVideoPlayerAdd(const char* name,
+            const char* player);
+        
+        DslReturnType SinkRecordVideoPlayerRemove(const char* name,
+            const char* player);
+
+        DslReturnType SinkRecordMailerAdd(const char* name,
+            const char* mailer, const char* subject);
+        
+        DslReturnType SinkRecordMailerRemove(const char* name,
+            const char* mailer);
 
         DslReturnType SinkEncodeVideoFormatsGet(const char* name, uint* codec, uint* container);
 
@@ -794,6 +864,8 @@ namespace DSL {
 
         DslReturnType PlayerRenderZoomSet(const char* name, uint zoom);
 
+        DslReturnType PlayerRenderReset(const char* name);
+
         DslReturnType PlayerRenderImageTimeoutGet(const char* name, uint* timeout);
 
         DslReturnType PlayerRenderImageTimeoutSet(const char* name, uint timeout);
@@ -834,37 +906,58 @@ namespace DSL {
         
         DslReturnType PlayerDelete(const char* name);
         
-        DslReturnType PlayerDeleteAll();
+        DslReturnType PlayerDeleteAll(bool checkInUse=true);
 
         uint PlayerListSize();
-
-        DslReturnType SmtpMailEnabledGet(boolean* enabled);
         
-        DslReturnType SmtpMailEnabledSet(boolean enabled);   
+        DslReturnType MailerNew(const char* name);
+
+        DslReturnType MailerEnabledGet(const char* name, boolean* enabled);
+        
+        DslReturnType MailerEnabledSet(const char* name, boolean enabled);   
             
-        DslReturnType SmtpCredentialsSet(const char* username, const char* password);
+        DslReturnType MailerCredentialsSet(const char* name, 
+            const char* username, const char* password);
         
-        DslReturnType SmtpServerUrlGet(const char** serverUrl);
+        DslReturnType MailerServerUrlGet(const char* name, const char** serverUrl);
         
-        DslReturnType SmtpServerUrlSet(const char* serverUrl);
+        DslReturnType MailerServerUrlSet(const char* name, const char* serverUrl);
 
-        DslReturnType SmtpFromAddressGet(const char** name, const char** address);
+        DslReturnType MailerFromAddressGet(const char* name, 
+            const char** displayName, const char** address);
 
-        DslReturnType SmtpFromAddressSet(const char* name, const char* address);
+        DslReturnType MailerFromAddressSet(const char* name, 
+            const char* displayName, const char* address);
         
-        DslReturnType SmtpSslEnabledGet(boolean* enabled);
+        DslReturnType MailerSslEnabledGet(const char* name, boolean* enabled);
         
-        DslReturnType SmtpSslEnabledSet(boolean enabled);
+        DslReturnType MailerSslEnabledSet(const char* name, boolean enabled);
         
-        DslReturnType SmtpToAddressAdd(const char* name, const char* address);
+        DslReturnType MailerToAddressAdd(const char* name, 
+            const char* displayName, const char* address);
         
-        DslReturnType SmtpToAddressesRemoveAll();
+        DslReturnType MailerToAddressesRemoveAll(const char* name);
         
-        DslReturnType SmtpCcAddressAdd(const char* name, const char* address);
+        DslReturnType MailerCcAddressAdd(const char* name, 
+            const char* displayName, const char* address);
 
-        DslReturnType SmtpCcAddressesRemoveAll();
+        DslReturnType MailerCcAddressesRemoveAll(const char* name);
         
-        DslReturnType SendSmtpTestMessage();
+        DslReturnType MailerSendTestMessage(const char* name);
+
+        DslReturnType MailerExists(const char* name);
+        
+        DslReturnType MailerDelete(const char* name);
+        
+        DslReturnType MailerDeleteAll();
+        
+        uint MailerListSize();
+        
+        void DeleteAll();
+        
+        DslReturnType StdOutRedirect(const char* filepath);
+        
+        void StdOutRestore();
 
         GMainLoop* GetMainLoopHandle()
         {
@@ -886,12 +979,6 @@ namespace DSL {
          * @return true if all events were handled succesfully
          */
         bool HandleXWindowEvents(); 
-        
-        /**
-         * @brief Returns the single Comms object owned by the DSL
-         * @return const unique pointer to the Service Lib's Comm object
-         */
-        std::shared_ptr<Comms> GetComms();
 
     private:
 
@@ -1031,7 +1118,11 @@ namespace DSL {
         /**
          * @brief DSL Comms object for libcurl services
          */
-        std::shared_ptr<Comms> m_pComms;
+        std::map <std::string, std::shared_ptr<Mailer>> m_mailers;
+        
+        std::fstream m_stdOutRedirectFile;
+        
+        std::streambuf* m_stdOutRdBufBackup;
         
     };  
 

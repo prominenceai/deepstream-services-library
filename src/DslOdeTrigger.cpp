@@ -53,10 +53,13 @@ namespace DSL
         , m_minFrameCountN(1)
         , m_minFrameCountD(1)
         , m_inferDoneOnly(false)
+        , m_resetTimeout(0)
+        , m_resetTimerId(0)
     {
         LOG_FUNC();
 
         g_mutex_init(&m_propertyMutex);
+        g_mutex_init(&m_resetTimerMutex);
     }
 
     OdeTrigger::~OdeTrigger()
@@ -66,6 +69,12 @@ namespace DSL
         RemoveAllActions();
         RemoveAllAreas();
         
+        if (m_resetTimerId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_resetTimerMutex);
+            g_source_remove(m_resetTimerId);
+        }
+        g_mutex_clear(&m_resetTimerMutex);
         g_mutex_clear(&m_propertyMutex);
     }
     
@@ -161,6 +170,61 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         m_triggered = 0;
+    }
+    
+    void OdeTrigger::IncrementAndCheckTriggerCount()
+    {
+        LOG_FUNC();
+        // internal do not lock m_propertyMutex
+        
+        m_triggered++;
+        
+        if (m_triggered >= m_limit and m_resetTimeout)
+        {
+            m_resetTimerId = g_timeout_add(1000*m_resetTimeout, 
+                TriggerResetTimeoutHandler, this);            
+        }
+    }
+
+    static int TriggerResetTimeoutHandler(gpointer pTrigger)
+    {
+        return static_cast<OdeTrigger*>(pTrigger)->
+            HandleResetTimeout();
+    }
+
+    int OdeTrigger::HandleResetTimeout()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_resetTimerMutex);
+        
+        m_resetTimerId = 0;
+        Reset();
+        
+        // One shot - return false.
+        return false;
+    }
+    
+    uint OdeTrigger::GetResetTimeout()
+    {
+        LOG_FUNC();
+        
+        return m_resetTimeout;
+    }
+        
+    void OdeTrigger::SetResetTimeout(uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_resetTimerMutex);
+        
+        // If the timer is currently running and the new 
+        // timeout value = 0 = disable, then kill the timer.
+        if (m_resetTimerId and !timeout)
+        {
+            g_source_remove(m_resetTimerId);
+            m_resetTimerId == 0;
+        }
+        
+        m_resetTimeout = timeout;
     }
         
     bool OdeTrigger::GetEnabled()
@@ -492,7 +556,7 @@ namespace DSL
             return false;
         }
 
-        m_triggered++;
+        IncrementAndCheckTriggerCount();
         m_occurrences++;
         
         // update the total event count static variable
@@ -555,10 +619,10 @@ namespace DSL
             return 0;
         }        
         
-        // event has been triggered
-        m_triggered++;
+        // event has been triggered 
+        IncrementAndCheckTriggerCount();
 
-         // update the total event count static variable
+        // update the total event count static variable
         s_eventCount++;
 
         for (const auto &imap: m_pOdeActions)
@@ -607,7 +671,7 @@ namespace DSL
             // Update the running instance
             m_instances[sourceAndClassId] = pObjectMeta->object_id;
             
-            m_triggered++;
+            IncrementAndCheckTriggerCount();
             m_occurrences++;
             
             // update the total event count static variable
@@ -668,7 +732,7 @@ namespace DSL
             return 0;
         }
         // event has been triggered
-        m_triggered++;
+        IncrementAndCheckTriggerCount();
 
          // update the total event count static variable
         s_eventCount++;
@@ -723,7 +787,7 @@ namespace DSL
             return false;
         }
 
-        m_triggered++;
+        IncrementAndCheckTriggerCount();
         m_occurrences++;
         
         // update the total event count static variable
@@ -761,7 +825,7 @@ namespace DSL
         }
 
         // event has been triggered
-        m_triggered++;
+        IncrementAndCheckTriggerCount();
 
          // update the total event count static variable
         s_eventCount++;
@@ -788,6 +852,23 @@ namespace DSL
     PersistenceOdeTrigger::~PersistenceOdeTrigger()
     {
         LOG_FUNC();
+    }
+
+    void PersistenceOdeTrigger::GetRange(uint* minimum, uint* maximum)
+    {
+        LOG_FUNC();
+        
+        *minimum = m_minimumMs/1000;
+        *maximum = m_maximumMs/1000;
+    }
+
+    void PersistenceOdeTrigger::SetRange(uint minimum, uint maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_minimumMs = minimum*1000.0;
+        m_maximumMs = maximum*1000.0;
     }
     
     bool PersistenceOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
@@ -842,6 +923,8 @@ namespace DSL
 			}
 			else
 			{
+                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+                
 				LOG_DEBUG("Tracked objected detected with id = " << pObjectMeta->object_id 
 					<< " for source = " << pFrameMeta->source_id);
 				// else, the object is currently being tracked - so update the frame number
@@ -860,7 +943,7 @@ namespace DSL
 				if (trackedTimeMs >= m_minimumMs and trackedTimeMs <= m_maximumMs)
 				{
 					// event has been triggered
-					m_triggered++;
+					IncrementAndCheckTriggerCount();
 					m_occurrences++;
 
 					// update the total event count static variable
@@ -926,6 +1009,23 @@ namespace DSL
     {
         LOG_FUNC();
     }
+
+    void CountOdeTrigger::GetRange(uint* minimum, uint* maximum)
+    {
+        LOG_FUNC();
+        
+        *minimum = m_minimum;
+        *maximum = m_maximum;
+    }
+
+    void CountOdeTrigger::SetRange(uint minimum, uint maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_minimum = minimum;
+        m_maximum = maximum;
+    }
     
     bool CountOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
@@ -944,12 +1044,14 @@ namespace DSL
     uint CountOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
         NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (!m_enabled or (m_occurrences < m_minimum) or (m_occurrences > m_maximum))
         {
             return 0;
         }
         // event has been triggered
-        m_triggered++;
+        IncrementAndCheckTriggerCount();
 
          // update the total event count static variable
         s_eventCount++;
@@ -999,9 +1101,9 @@ namespace DSL
         // need at least one object for a Minimum event
         if (m_enabled and m_occurrenceMetaList.size())
         {
-            // Once occurrence to return and increment the accumulative Trigger count
+            // One occurrence to return and increment the accumulative Trigger count
             m_occurrences = 1;
-            m_triggered++;
+            IncrementAndCheckTriggerCount();
             // update the total event count static variable
             s_eventCount++;
 
@@ -1070,7 +1172,7 @@ namespace DSL
         {
             // Once occurrence to return and increment the accumulative Trigger count
             m_occurrences = 1;
-            m_triggered++;
+            IncrementAndCheckTriggerCount();
             // update the total event count static variable
             s_eventCount++;
 
@@ -1152,7 +1254,7 @@ namespace DSL
         m_currentLow = m_occurrences;
         
         // event has been triggered
-        m_triggered++;
+        IncrementAndCheckTriggerCount();
 
          // update the total event count static variable
         s_eventCount++;
@@ -1217,7 +1319,7 @@ namespace DSL
         m_currentHigh = m_occurrences;
         
         // event has been triggered
-        m_triggered++;
+        IncrementAndCheckTriggerCount();
 
          // update the total event count static variable
         s_eventCount++;
@@ -1318,6 +1420,8 @@ namespace DSL
         , m_testMethod(testMethod)
     {
         LOG_FUNC();
+        
+        LOG_WARN("min = " << m_minimum << ", max = " << m_maximum);
     }
 
     DistanceOdeTrigger::~DistanceOdeTrigger()
@@ -1325,6 +1429,41 @@ namespace DSL
         LOG_FUNC();
     }
 
+    void DistanceOdeTrigger::GetRange(uint* minimum, uint* maximum)
+    {
+        LOG_FUNC();
+        
+        *minimum = m_minimum;
+        *maximum = m_maximum;
+    }
+
+    void DistanceOdeTrigger::SetRange(uint minimum, uint maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_minimum = minimum;
+        m_maximum = maximum;
+    }
+
+    void DistanceOdeTrigger::GetTestParams(uint* testPoint, uint* testMethod)
+    {
+        LOG_FUNC();
+
+        *testPoint = m_testPoint;
+        *testMethod = m_testMethod;
+    }
+
+    void DistanceOdeTrigger::SetTestParams(uint testPoint, uint testMethod)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_testPoint = testPoint;
+        m_testMethod = testMethod;
+    }
+    
+    
     uint DistanceOdeTrigger::PostProcessFrameA(GstBuffer* pBuffer, 
         NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
     {
@@ -1342,7 +1481,7 @@ namespace DSL
                     {
                         // event has been triggered
                         m_occurrences++;
-                        m_triggered++;
+                        IncrementAndCheckTriggerCount();
                         
                          // update the total event count static variable
                         s_eventCount++;
@@ -1391,9 +1530,10 @@ namespace DSL
                     {
                         if (CheckDistance(iterA, iterB))
                         {
+                            LOG_WARN("min = " << m_minimum << ", max = " << m_maximum);
                             // event has been triggered
                             m_occurrences++;
-                            m_triggered++;
+                            IncrementAndCheckTriggerCount();
                             
                              // update the total event count static variable
                             s_eventCount++;
@@ -1428,8 +1568,10 @@ namespace DSL
 
     bool DistanceOdeTrigger::CheckDistance(NvDsObjectMeta* pObjectMetaA, NvDsObjectMeta* pObjectMetaB)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         uint distance(0);
-        if (m_testPoint = DSL_BBOX_POINT_ANY)
+        if (m_testPoint == DSL_BBOX_POINT_ANY)
         {
             GeosRectangle rectA(pObjectMetaA->rect_params);
             GeosRectangle rectB(pObjectMetaB->rect_params);
@@ -1566,7 +1708,7 @@ namespace DSL
                     {
                         // event has been triggered
                         m_occurrences++;
-                        m_triggered++;
+                        IncrementAndCheckTriggerCount();
                         
                          // update the total event count static variable
                         s_eventCount++;
@@ -1620,7 +1762,7 @@ namespace DSL
                         {
                             // event has been triggered
                             m_occurrences++;
-                            m_triggered++;
+                            IncrementAndCheckTriggerCount();
                             
                              // update the total event count static variable
                             s_eventCount++;

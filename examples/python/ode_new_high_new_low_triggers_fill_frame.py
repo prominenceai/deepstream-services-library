@@ -125,7 +125,7 @@ def main(args):
 
         # And a single action to print the event data to the console, which will be used
         # by both our new-min and new-max Triggers - created next
-        retval = dsl_ode_action_print_new('print-data')
+        retval = dsl_ode_action_print_new('print-data', force_flush=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 

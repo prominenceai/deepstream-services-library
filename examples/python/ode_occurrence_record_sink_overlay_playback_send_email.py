@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2021, Prominence AI, Inc.
+# Copyright (c) 2021, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -103,6 +103,51 @@ def state_change_listener(old_state, new_state, client_data):
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
+## 
+# Function to be called on recording start and complete
+## 
+def recording_event_listener(session_info_ptr, client_data):
+    print(' ***  Recording Event  *** ')
+    
+    session_info = session_info_ptr.contents
+    print('event type: ', session_info.recording_event)
+    print('session_id: ', session_info.session_id)
+    print('filename:   ', session_info.filename)
+    print('dirpath:    ', session_info.dirpath)
+    print('duration:   ', session_info.duration)
+    print('container:  ', session_info.container_type)
+    print('width:      ', session_info.width)
+    print('height:     ', session_info.height)
+
+    retval, is_on = dsl_sink_record_is_on_get('record-sink')
+    print('is_on:      ', is_on)
+    
+    retval, reset_done = dsl_sink_record_reset_done_get('record-sink')
+    print('reset_done: ', reset_done)
+
+    # If it's the start of a new recording, ove
+    if session_info.recording_event == DSL_RECORDING_EVENT_START:
+
+        print('Enable Add "REC" display meta result =', 
+            dsl_ode_trigger_enabled_set('rec-on-trigger', enabled=True)) 
+    else:
+        print('Disable Add "REC" display meta result =', 
+            dsl_ode_trigger_enabled_set('rec-on-trigger', enabled=False)) 
+    
+        # reset the Trigger so that a new session can be started.
+        print('Trigger Reset result =', 
+            dsl_return_value_to_string(dsl_ode_trigger_reset('bicycle-occurrence-trigger')))
+    
+    return None
+    
+## 
+# Function to be called on Player termination event
+## 
+def player_termination_event_listener(client_data):
+    print(' ***  Video Playback Complete  *** ')
+
+    # reset the Player to close its rendering surface
+    dsl_player_render_reset('video-player')
     
 def setup_smpt_mail():
 
@@ -126,8 +171,8 @@ def setup_smpt_mail():
     if retval != DSL_RETURN_SUCCESS:
         return retval
         
-    # (optional) queue a test message to be sent out when main_loop starts
-    return dsl_mailer_test_message_send('mailer')
+    # (optional) queue a test message to be sent out when the main_loop starts
+    return dsl_mailer_test_message_send('mailer')    
 
 def main(args):
 
@@ -135,9 +180,13 @@ def main(args):
     while True:
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # This example is used to demonstrate the use of a First Occurrence Trigger and an Email Action
-        # to send an emal using SMTP service. Addional actions are added to "Capture" the frame to an 
-        # image-file and "Fill" (flash) the frame red as a visual marker.
+        # This example is used to demonstrate the use of a First Occurrence Trigger and a Start Record Action
+        # to control a Record Sink.  A callback function, called on completion of the recording session, will
+        # reset the Trigger allowing a new session to be started on next occurrence.
+        # Addional actions are added to "Capture" the frame to an image-file and "Fill" the frame red as a visual marker.
+        # A Video Render Player is added to the Capture Action to playback the video on record complete.
+        # A Mailer is added to Capture Action to email information about the saved recording; name, location, etc.
+        
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Setup the SMTP Server URL, Credentials, and From/To addresss
@@ -146,15 +195,106 @@ def main(args):
             break
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
+        # New Record-Sink that will buffer encoded video while waiting for the ODE trigger/action, defined below, 
+        # to start a new session on first occurrence. The default 'cache-size' and 'duration' are defined in
+        # Setting the bit rate to 12 Mbps for 1080p
+        retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H265, container=DSL_CONTAINER_MKV, 
+            bitrate=12000000, interval=0, client_listener=recording_event_listener)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Let's check the default cache size, and reduce it. We only need a short buffer for this example.
+        retval, cache_size = dsl_sink_record_cache_size_get('record-sink')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        print(' ***  Default cache_size = ', cache_size, 'seconds  *** ')
+        
+        # Update the cache size to 5 seconds.
+        retval = dsl_sink_record_cache_size_set('record-sink', 5)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Create the Video Render Player with a NULL file_path to be updated by the Record Sink
+        dsl_player_render_video_new(
+            name = 'video-player',
+            file_path = None,
+            render_type = DSL_RENDER_TYPE_OVERLAY,
+            offset_x = 500, 
+            offset_y = 20, 
+            zoom = 50,
+            repeat_enabled = False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the Termination listener callback to the Player 
+        retval = dsl_player_termination_event_listener_add('video-player',
+            client_listener=player_termination_event_listener, client_data=None)
+        if retval != DSL_RETURN_SUCCESS:
+            return
+
+        # Add the Player to the Recorder Sink. The Sink will add/queue
+        # the file_path to each video recording created. 
+        retval = dsl_sink_record_video_player_add('record-sink', 
+            player='video-player')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Add the Mailer to Recorder Sink. The Sink will use the Mailer to email information
+        # -- file location, size, etc. -- on the completion each recorded video.
+        retval = dsl_sink_record_mailer_add('record-sink', 
+            mailer = 'mailer',
+            subject = 'ATTENTION: Bycicle Occurence!')
+
+        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Create new RGBA color types
         retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, blue=0.5, green=0.5, alpha=0.7)
         if retval != DSL_RETURN_SUCCESS:
             break
+        retval = dsl_display_type_rgba_color_new('full-red', red=1.0, blue=0.0, green=0.0, alpha=1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_display_type_rgba_color_new('full-white', red=1.0, blue=1.0, green=1.0, alpha=1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_display_type_rgba_color_new('opaque-black', red=0.0, blue=0.0, green=0.0, alpha=0.8)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_display_type_rgba_font_new('impact-20-white', font='impact', size=20, color='full-white')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Create a new Text type object that will be used to show the recording in progress
+        retval = dsl_display_type_rgba_text_new('rec-text', 'REC    ', x_offset=10, y_offset=30, 
+            font='impact-20-white', has_bg_color=True, bg_color='opaque-black')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        # A new RGBA Circle to be used to simulate a red LED light for the recording in progress.
+        retval = dsl_display_type_rgba_circle_new('red-led', x_center=94, y_center=52, radius=8, 
+            color='full-red', has_bg_color=True, bg_color='full-red')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Create a new Action to display the "recording in-progress" text
+        retval = dsl_ode_action_display_meta_add_many_new('add-rec-on', display_types=
+            ['rec-text', 'red-led', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Create an Always trigger to add the "REC" text meta-data to every frame when enabled.
+        retval = dsl_ode_trigger_always_new('rec-on-trigger', 
+            source = DSL_ODE_ANY_SOURCE, 
+            when = DSL_ODE_PRE_OCCURRENCE_CHECK)
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
 
-        # Create a new Action to Queue an email
-        retval = dsl_ode_action_email_new('email-action', 
-            mailer = 'mailer',
-            subject = "Bicycle Occurrence!")
+        # Disable the trigger. Will be re-enabled on DSL_RECORDING_EVENT_START
+        # and then disabled again on DSL_RECORDING_EVENT_END
+        retval = dsl_ode_trigger_enabled_set('rec-on-trigger', enabled=False) 
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the display-meta add action to the Always trigger
+        retval = dsl_ode_trigger_action_add('rec-on-trigger', action='add-rec-on')
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -165,7 +305,13 @@ def main(args):
             
         # Create a new Capture Action to capture the full-frame to jpeg image, and save to file. 
         # The action will be triggered on firt occurrence of a bicycle and will be saved to the current dir.
-        retval = dsl_ode_action_capture_frame_new('bicycle-capture-action', outdir="./", annotate=True)
+        retval = dsl_ode_action_capture_object_new('bicycle-capture-action', outdir="./")
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        # Create a new Capture Action to start a new record session
+        retval = dsl_ode_action_sink_record_start_new('start-record-action', 
+            record_sink='record-sink', start=3, duration=10, client_data=None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -176,25 +322,39 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Add the actions to our Bicycle Occurence Trigger.
-        retval = dsl_ode_trigger_action_add_many('bicycle-occurrence-trigger', actions=[
-            'email-action',
-            'red-flash-action', 
-            'bicycle-capture-action',
-            None])
+        # set the "infer-done-only" criteria so we can capture the confidence level
+        retval = dsl_ode_trigger_infer_done_only_set('bicycle-occurrence-trigger', True)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        retval = dsl_ode_action_print_new('print')
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
+        # Add the actions to our Bicycle Occurence Trigger.
+        retval = dsl_ode_trigger_action_add_many('bicycle-occurrence-trigger', actions=[
+            'red-flash-action', 
+            'bicycle-capture-action', 
+            'start-record-action', 
+            'print',
+            None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # New ODE Handler for our Trigger
         retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pph_ode_trigger_add('ode-handler', trigger='bicycle-occurrence-trigger')
+        retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
+            'bicycle-occurrence-trigger',
+            'rec-on-trigger', 
+            None])
         if retval != DSL_RETURN_SUCCESS:
             break
-            ############################################################################################
+    
+        ############################################################################################
         #
         # Create the remaining Pipeline components
         
@@ -237,7 +397,7 @@ def main(args):
         # Add all the components to our pipeline - except for our second source and overlay sink 
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 
-            'on-screen-display', 'window-sink', None])
+            'on-screen-display', 'window-sink', 'record-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
             

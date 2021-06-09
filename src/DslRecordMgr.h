@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslBintr.h"
+#include "DslMailer.h"
 
 #include <gst-nvdssr.h>
 
@@ -147,6 +148,36 @@ namespace DSL
         bool ResetDone();
 
         /**
+         * @brief adds a Video Player, Render or RTSP type, to this RecordMgr
+         * @param pPlayer shared pointer to an Video Player to add
+         * @return true on successfull add, false otherwise
+         */
+        bool AddVideoPlayer(DSL_BINTR_PTR pPlayer);
+        
+        /**
+         * @brief adds a Video Player, Render or RTSP type, to this RecordMgr
+         * @param pPlayer shared pointer to an Video Player to add
+         * @return true on successfull add, false otherwise
+         */
+        bool RemoveVideoPlayer(DSL_BINTR_PTR pPlayer);
+        
+        /**
+         * @brief adds a SMTP Mailer to this RecordMgr
+         * @param[in] pMailer shared pointer to a Mailer to add
+         * @param[in] subject subject line to use for all email
+         * @return true on successfull add, false otherwise
+         */
+        bool AddMailer(DSL_MAILER_PTR pMailer, const char* subject);
+        
+        /**
+         * @brief removes a SMTP Mailer from this RecordMgr
+         * @param[in] pMailer shared pointer to an Mailer to remove
+         * @return true on successfull remove, false otherwise
+         */
+        bool RemoveMailer(DSL_MAILER_PTR pMailer);
+        
+
+        /**
          * @brief Record complete handler function to conver the gchar* strings in
          * NvDsSRRecordingInfo to 
          * @return true if reset has been done.
@@ -184,6 +215,17 @@ protected:
          * @brief client listener function to be called on session complete
          */
         dsl_record_client_listener_cb m_clientListener;
+        
+        /**
+         * @brief map of all Video Players to play recordings.
+         */
+        std::map<std::string, DSL_BINTR_PTR> m_videoPlayers;
+
+        /**
+         * @brief map of all Mailers to send email.
+         */
+        std::map<std::string, std::shared_ptr<MailerSpecs>> m_mailers;
+        
         
         void* m_clientData;
         

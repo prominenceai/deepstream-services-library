@@ -194,6 +194,24 @@ namespace DSL
         virtual void Reset();
         
         /**
+         * @brief Timer callback function to handle the Reset timer timeout
+         * @return false always to destroy the one shot timer.
+         */
+        int HandleResetTimeout();
+        
+        /**
+         * @brief Gets the current timeout value for the auto-reset timer.
+         * @return current timeout value. 0 = disabled (default).
+         */
+        uint GetResetTimeout();
+        
+        /**
+         * @brief Set the timeout value for the auto-reset timer.
+         * @param[in] timeout new timeout value to use. Set to 0 to disable.
+         */
+        void SetResetTimeout(uint timeout);
+        
+        /**
          * @brief Gets the current Enabled setting, default = true
          * @return the current Enabled setting
          */
@@ -342,6 +360,13 @@ namespace DSL
         bool CheckForSourceId(int sourceId);
         
         /**
+         * @brief Increments the Trigger Occurrence counter and checks to see
+         * if the count has been exceeded. If so, starts the reset timer if a 
+         * timeout value is set/enabled.
+         */
+        void IncrementAndCheckTriggerCount();
+        
+        /**
          * @brief Map of ODE Areas to use for minimum critera
          */
         std::map <std::string, DSL_BASE_PTR> m_pOdeAreas;
@@ -355,11 +380,25 @@ namespace DSL
          * @brief Mutex to ensure mutual exlusion for propery get/sets
          */
         GMutex m_propertyMutex;
+        
+        /**
+         * @brief auto-reset timeout in units of seconds
+         */
+        uint m_resetTimeout;
 
+        /**
+         * @brief gnome timer Id for the auto-reset timeout
+         */
+        uint m_resetTimerId;
+        
+        /**
+         * @brief Mutex for timer reset logic
+         */
+        GMutex m_resetTimerMutex;
     
     public:
     
-        // access made public for performace reasons
+        // access made public for performance reasons
 
         /**
          * @brief Wide string name used for C/Python API
@@ -446,6 +485,9 @@ namespace DSL
         bool m_inferDoneOnly;
 
     };
+    
+    static int TriggerResetTimeoutHandler(gpointer pTrigger);
+    
     
     class AlwaysOdeTrigger : public OdeTrigger
     {
@@ -767,6 +809,22 @@ namespace DSL
         ~PersistenceOdeTrigger();
 
         /**
+         * @brief Gets the current Minimum and Maximum time settings in use. 
+         * a value of 0 means no minimum or maximum
+         * @param[out] minimim current minimum time setting in use
+         * @param[out] maximum current maximum time setting in use
+         */
+        void GetRange(uint* minimum, uint* maximum);
+
+        /**
+         * @brief Sets new Minimum and Maximum time settings to use.
+         * a value of 0 means no minimum or maximum
+         * @param[in] minimum new minimum time value to use
+         * @param[in] maximum new maximum time value to use
+         */
+        void SetRange(uint minimum, uint maximum);
+
+        /**
          * @brief Function to check a given Object Meta data structure for Object occurrence, 
          * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame 
          * Meta - that holds the Object Meta
@@ -815,6 +873,22 @@ namespace DSL
 			const char* source, uint classId, uint limit, uint minimum, uint maximum);
         
         ~CountOdeTrigger();
+
+        /**
+         * @brief Gets the current Minimum and Maximum count setting in use. 
+         * a value of 0 means no minimum or maximum
+         * @param[out] minimim current minimum count setting in use
+         * @param[out] maximum current maximum count setting in use
+         */
+        void GetRange(uint* minimum, uint* maximum);
+
+        /**
+         * @brief Sets new Minimum and Maximum count settings to use.
+         * a value of 0 means no minimum or maximum
+         * @param[in] minimum new minimum count value to use
+         * @param[in] maximum new maximum count value to use
+         */
+        void SetRange(uint minimum, uint maximum);
 
         /**
          * @brief Function to check a given Object Meta data structure for Object occurrence, 
@@ -1141,6 +1215,37 @@ namespace DSL
             uint testPoint, uint testMethod);
         
         ~DistanceOdeTrigger();
+        
+        /**
+         * @brief Gets the current Minimum and Maximum distance setting in use. 
+         * a value of 0 means no minimum or maximum
+         * @param[out] minimim current minimum distance setting in use
+         * @param[out] maximum current maximum distance setting in use
+         */
+        void GetRange(uint* minimum, uint* maximum);
+
+        /**
+         * @brief Sets new Minimum and Maximum distance settings to use.
+         * a value of 0 means no minimum or maximum
+         * @param[in] minimum new minimum distance value to use
+         * @param[in] maximum new maximum distance value to use
+         */
+        void SetRange(uint minimum, uint maximum);
+
+        /**
+         * @brief Gets the current Test Point and Test Methods parameters in use. 
+         * @param[out] testPoint current test point value in use
+         * @param[out] testMethod current test method value in use
+         */
+        void GetTestParams(uint* testPoint, uint* testMethod);
+        
+        /**
+         * @brief Sets the current Test Point and Test Methods parameters in use. 
+         * @param[in] testPoint new test point value to use
+         * @param[in] testMethod new test method value to use
+         */
+        void SetTestParams(uint testPoint, uint testMethod);
+        
 
     private:
 

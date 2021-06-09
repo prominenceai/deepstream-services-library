@@ -89,6 +89,9 @@ DSL_DISTANCE_METHOD_PERCENT_HEIGHT_B = 4
 DSL_RENDER_TYPE_OVERLAY = 0
 DSL_RENDER_TYPE_WINDOW  = 1
 
+DSL_RECORDING_EVENT_START = 0
+DSL_RECORDING_EVENT_END   = 1
+
 class dsl_coordinate(Structure):
     _fields_ = [
         ('x', c_uint),
@@ -96,6 +99,7 @@ class dsl_coordinate(Structure):
         
 class dsl_recording_info(Structure):
     _fields_ = [
+        ('recording_event', c_uint),
         ('session_id', c_uint),
         ('filename', c_wchar_p),
         ('dirpath', c_wchar_p),
@@ -379,6 +383,48 @@ def dsl_ode_action_capture_complete_listener_remove(name, client_listener):
     return int(result)
 
 ##
+## dsl_ode_action_capture_image_player_add()
+##
+_dsl.dsl_ode_action_capture_image_player_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_capture_image_player_add.restype = c_uint
+def dsl_ode_action_capture_image_player_add(name, player):
+    global _dsl
+    result = _dsl.dsl_ode_action_capture_image_player_add(name, player)
+    return int(result)
+
+##
+## dsl_ode_action_capture_image_player_remove()
+##
+_dsl.dsl_ode_action_capture_image_player_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_capture_image_player_remove.restype = c_uint
+def dsl_ode_action_capture_image_player_remove(name, player):
+    global _dsl
+    result = _dsl.dsl_ode_action_capture_image_player_remove(name, player)
+    return int(result)
+    
+##
+## dsl_ode_action_capture_mailer_add()
+##
+_dsl.dsl_ode_action_capture_mailer_add.argtypes = [c_wchar_p, 
+    c_wchar_p, c_wchar_p, c_bool]
+_dsl.dsl_ode_action_capture_mailer_add.restype = c_uint
+def dsl_ode_action_capture_mailer_add(name, mailer, subject, attach):
+    global _dsl
+    result = _dsl.dsl_ode_action_capture_mailer_add(name, 
+        mailer, subject, attach)
+    return int(result)
+
+##
+## dsl_ode_action_capture_mailer_remove()
+##
+_dsl.dsl_ode_action_capture_mailer_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_capture_mailer_remove.restype = c_uint
+def dsl_ode_action_capture_mailer_remove(name, mailer):
+    global _dsl
+    result = _dsl.dsl_ode_action_capture_mailer_remove(name, mailer)
+    return int(result)
+    
+##
 ## dsl_ode_action_display_new()
 ##
 _dsl.dsl_ode_action_display_new.argtypes = [c_wchar_p, 
@@ -394,11 +440,21 @@ def dsl_ode_action_display_new(name,
 ##
 ## dsl_ode_action_email_new()
 ##
-_dsl.dsl_ode_action_email_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_email_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
 _dsl.dsl_ode_action_email_new.restype = c_uint
-def dsl_ode_action_email_new(name, subject):
+def dsl_ode_action_email_new(name, mailer, subject):
     global _dsl
-    result =_dsl.dsl_ode_action_email_new(name, subject)
+    result =_dsl.dsl_ode_action_email_new(name, mailer, subject)
+    return int(result)
+
+##
+## dsl_ode_action_file_new()
+##
+_dsl.dsl_ode_action_file_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
+_dsl.dsl_ode_action_file_new.restype = c_uint
+def dsl_ode_action_file_new(name, file_path, force_flush):
+    global _dsl
+    result =_dsl.dsl_ode_action_file_new(name, file_path, force_flush)
     return int(result)
 
 ##
@@ -486,11 +542,11 @@ def dsl_ode_action_display_meta_add_many_new(name, display_types):
 ##
 ## dsl_ode_action_print_new()
 ##
-_dsl.dsl_ode_action_print_new.argtypes = [c_wchar_p]
+_dsl.dsl_ode_action_print_new.argtypes = [c_wchar_p, c_bool]
 _dsl.dsl_ode_action_print_new.restype = c_uint
-def dsl_ode_action_print_new(name):
+def dsl_ode_action_print_new(name, force_flush):
     global _dsl
-    result =_dsl.dsl_ode_action_print_new(name)
+    result =_dsl.dsl_ode_action_print_new(name, force_flush)
     return int(result)
 
 ##
@@ -675,6 +731,27 @@ _dsl.dsl_ode_action_tiler_source_show_new.restype = c_uint
 def dsl_ode_action_tiler_source_show_new(name, tiler, timeout, has_precedence):
     global _dsl
     result =_dsl.dsl_ode_action_tiler_source_show_new(name, tiler, timeout, has_precedence)
+    return int(result)
+    
+##
+## dsl_ode_action_enabled_get()
+##
+_dsl.dsl_ode_action_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_ode_action_enabled_get.restype = c_uint
+def dsl_ode_action_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result =_dsl.dsl_ode_action_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_ode_action_enabled_set()
+##
+_dsl.dsl_ode_action_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_ode_action_enabled_set.restype = c_uint
+def dsl_ode_action_enabled_set(name, enabled):
+    global _dsl
+    result =_dsl.dsl_ode_action_enabled_set(name, enabled)
     return int(result)
 
 ##
@@ -891,6 +968,31 @@ def dsl_ode_trigger_persistence_new(name, source, class_id, limit, minimum, maxi
     return int(result)
 
 ##
+## dsl_ode_trigger_persistence_range_get()
+##
+_dsl.dsl_ode_trigger_persistence_range_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_ode_trigger_persistence_range_get.restype = c_uint
+def dsl_ode_trigger_persistence_range_get(name):
+    global _dsl
+    minimum = c_uint(0)
+    maximum = c_uint(0)
+    result =_dsl.dsl_ode_trigger_persistence_range_get(name, 
+        DSL_UINT_P(minimum), DSL_UINT_P(maximum))
+    return int(result), minimum.value, maximum.value
+
+##
+## dsl_ode_trigger_persistence_range_set()
+##
+_dsl.dsl_ode_trigger_persistence_range_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_persistence_range_set.restype = c_uint
+def dsl_ode_trigger_persistence_range_set(name, minimum, maximum):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_persistence_range_set(name, 
+        minimum, maximum)
+    return int(result)
+
+##
 ## dsl_ode_trigger_summation_new()
 ##
 _dsl.dsl_ode_trigger_summation_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
@@ -911,6 +1013,31 @@ def dsl_ode_trigger_count_new(name, source, class_id, limit, minimum, maximum):
     return int(result)
 
 ##
+## dsl_ode_trigger_count_range_get()
+##
+_dsl.dsl_ode_trigger_count_range_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_ode_trigger_count_range_get.restype = c_uint
+def dsl_ode_trigger_count_range_get(name):
+    global _dsl
+    minimum = c_uint(0)
+    maximum = c_uint(0)
+    result =_dsl.dsl_ode_trigger_count_range_get(name, 
+        DSL_UINT_P(minimum), DSL_UINT_P(maximum))
+    return int(result), minimum.value, maximum.value
+
+##
+## dsl_ode_trigger_count_range_set()
+##
+_dsl.dsl_ode_trigger_count_range_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_count_range_set.restype = c_uint
+def dsl_ode_trigger_count_range_set(name, minimum, maximum):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_count_range_set(name, 
+        minimum, maximum)
+    return int(result)
+
+##
 ## dsl_ode_trigger_distance_new()
 ##
 _dsl.dsl_ode_trigger_distance_new.argtypes = [c_wchar_p, 
@@ -924,13 +1051,62 @@ def dsl_ode_trigger_distance_new(name,
     return int(result)
 
 ##
+## dsl_ode_trigger_distance_range_get()
+##
+_dsl.dsl_ode_trigger_distance_range_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_ode_trigger_distance_range_get.restype = c_uint
+def dsl_ode_trigger_distance_range_get(name):
+    global _dsl
+    minimum = c_uint(0)
+    maximum = c_uint(0)
+    result =_dsl.dsl_ode_trigger_distance_range_get(name, 
+        DSL_UINT_P(minimum), DSL_UINT_P(maximum))
+    return int(result), minimum.value, maximum.value
+
+##
+## dsl_ode_trigger_distance_range_set()
+##
+_dsl.dsl_ode_trigger_distance_range_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_distance_range_set.restype = c_uint
+def dsl_ode_trigger_distance_range_set(name, minimum, maximum):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_distance_range_set(name, 
+        minimum, maximum)
+    return int(result)
+
+##
+## dsl_ode_trigger_distance_test_params_get()
+##
+_dsl.dsl_ode_trigger_distance_test_params_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_ode_trigger_distance_test_params_get.restype = c_uint
+def dsl_ode_trigger_distance_test_params_get(name):
+    global _dsl
+    test_point = c_uint(0)
+    test_method = c_uint(0)
+    result =_dsl.dsl_ode_trigger_distance_test_params_get(name, 
+        DSL_UINT_P(test_point), DSL_UINT_P(test_method))
+    return int(result), test_point.value, test_method.value
+
+##
+## dsl_ode_trigger_distance_test_params_set()
+##
+_dsl.dsl_ode_trigger_distance_test_params_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_distance_test_params_set.restype = c_uint
+def dsl_ode_trigger_distance_test_params_set(name, test_point, test_method):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_distance_test_params_set(name, 
+        test_point, test_method)
+    return int(result)
+
+##
 ## dsl_ode_trigger_smallest_new()
 ##
 _dsl.dsl_ode_trigger_smallest_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
 _dsl.dsl_ode_trigger_smallest_new.restype = c_uint
-def dsl_ode_trigger_smallest_new(name, souce, class_id, limit):
+def dsl_ode_trigger_smallest_new(name, source, class_id, limit):
     global _dsl
-    print('name =', name, 'source = ', source, 'class_id =', class_id, 'limit =', limit)
     result =_dsl.dsl_ode_trigger_smallest_new(name, source, class_id, limit)
     return int(result)
 
@@ -952,6 +1128,27 @@ _dsl.dsl_ode_trigger_reset.restype = c_uint
 def dsl_ode_trigger_reset(name):
     global _dsl
     result =_dsl.dsl_ode_trigger_reset(name)
+    return int(result)
+
+##
+## dsl_ode_trigger_reset_timeout_get()
+##
+_dsl.dsl_ode_trigger_reset_timeout_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_ode_trigger_reset_timeout_get.restype = c_uint
+def dsl_ode_trigger_reset_timeout_get(name):
+    global _dsl
+    timeout = c_uint(0)
+    result =_dsl.dsl_ode_trigger_reset_timeout_get(name, DSL_BOOL_P(c_uint))
+    return int(result), timeout.value
+
+##
+## dsl_ode_trigger_reset_timeout_set()
+##
+_dsl.dsl_ode_trigger_reset_timeout_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_ode_trigger_reset_timeout_set.restype = c_uint
+def dsl_ode_trigger_reset_timeout_set(name, timeout):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_reset_timeout_set(name, timeout)
     return int(result)
 
 ##
@@ -1962,6 +2159,46 @@ def dsl_tap_record_reset_done_get(name):
     return int(result), reset_done.value 
 
 ##
+## dsl_tap_record_video_player_add()
+##
+_dsl.dsl_tap_record_video_player_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_tap_record_video_player_add.restype = c_uint
+def dsl_tap_record_video_player_add(name, player):
+    global _dsl
+    result = _dsl.dsl_tap_record_video_player_add(name, player)
+    return int(result)
+
+##
+## dsl_tap_record_video_player_remove()
+##
+_dsl.dsl_tap_record_video_player_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_tap_record_video_player_remove.restype = c_uint
+def dsl_tap_record_video_player_remove(name, player):
+    global _dsl
+    result = _dsl.dsl_tap_record_video_player_remove(name, player)
+    return int(result)
+
+##
+## dsl_tap_record_mailer_add()
+##
+_dsl.dsl_tap_record_mailer_add.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_tap_record_mailer_add.restype = c_uint
+def dsl_tap_record_mailer_add(name, mailer, subject):
+    global _dsl
+    result = _dsl.dsl_tap_record_mailer_add(name, mailer, subject)
+    return int(result)
+
+##
+## dsl_tap_record_mailer_remove()
+##
+_dsl.dsl_tap_record_mailer_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_tap_record_mailer_remove.restype = c_uint
+def dsl_tap_record_mailer_remove(name, mailer):
+    global _dsl
+    result = _dsl.dsl_tap_record_mailer_remove(name, mailer)
+    return int(result)
+
+##
 ## dsl_gie_primary_new()
 ##
 _dsl.dsl_gie_primary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_uint]
@@ -2542,6 +2779,16 @@ def dsl_sink_window_new(name, offset_x, offset_y, width, height):
     return int(result)
 
 ##
+## dsl_sink_render_reset()
+##
+_dsl.dsl_sink_render_reset.argtypes = [c_wchar_p]
+_dsl.dsl_sink_render_reset.restype = c_uint
+def dsl_sink_render_reset(name):
+    global _dsl
+    result =_dsl.dsl_sink_render_reset(name)
+    return int(result)
+
+##
 ## dsl_sink_window_force_aspect_ratio_get()
 ##
 _dsl.dsl_sink_window_force_aspect_ratio_get.argtypes = [c_wchar_p, POINTER(c_bool)]
@@ -2712,6 +2959,46 @@ def dsl_sink_record_reset_done_get(name):
     reset_done = c_uint(0)
     result = _dsl.dsl_sink_record_reset_done_get(name, DSL_BOOL_P(reset_done))
     return int(result), reset_done.value 
+
+##
+## dsl_sink_record_video_player_add()
+##
+_dsl.dsl_sink_record_video_player_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_record_video_player_add.restype = c_uint
+def dsl_sink_record_video_player_add(name, player):
+    global _dsl
+    result = _dsl.dsl_sink_record_video_player_add(name, player)
+    return int(result)
+
+##
+## dsl_sink_record_video_player_remove()
+##
+_dsl.dsl_sink_record_video_player_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_record_video_player_remove.restype = c_uint
+def dsl_sink_record_video_player_remove(name, player):
+    global _dsl
+    result = _dsl.dsl_sink_record_video_player_remove(name, player)
+    return int(result)
+
+##
+## dsl_sink_record_mailer_add()
+##
+_dsl.dsl_sink_record_mailer_add.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_record_mailer_add.restype = c_uint
+def dsl_sink_record_mailer_add(name, mailer, subject):
+    global _dsl
+    result = _dsl.dsl_sink_record_mailer_add(name, mailer, subject)
+    return int(result)
+
+##
+## dsl_sink_record_mailer_remove()
+##
+_dsl.dsl_sink_record_mailer_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_record_mailer_remove.restype = c_uint
+def dsl_sink_record_mailer_remove(name, player):
+    global _dsl
+    result = _dsl.dsl_sink_record_mailer_remove(name, mailer)
+    return int(result)
 
 ##
 ## dsl_sink_encode_video_formats_get()
@@ -3593,6 +3880,16 @@ def dsl_player_render_zoom_set(name, zoom):
     return int(result)
 
 ##
+## dsl_player_render_reset()
+##
+_dsl.dsl_player_render_reset.argtypes = [c_wchar_p]
+_dsl.dsl_player_render_reset.restype = c_uint
+def dsl_player_render_reset(name):
+    global _dsl
+    result =_dsl.dsl_player_render_reset(name)
+    return int(result)
+
+##
 ## dsl_player_render_image_timeout_get()
 ##
 _dsl.dsl_player_render_image_timeout_get.argtypes = [c_wchar_p, POINTER(c_uint)]
@@ -3688,6 +3985,27 @@ def dsl_player_xwindow_key_event_handler_remove(name, client_handler):
     return int(result)
 
 ##
+## dsl_player_xwindow_handle_get()
+##
+_dsl.dsl_player_xwindow_handle_get.argtypes = [c_wchar_p, POINTER(c_uint64)]
+_dsl.dsl_player_xwindow_handle_get.restype = c_uint
+def dsl_player_xwindow_handle_get(name):
+    global _dsl
+    handle = c_uint64(0)
+    result = _dsl.dsl_player_xwindow_handle_get(name, DSL_UINT64_P(handle))
+    return int(result), handle.value
+
+##
+## dsl_player_xwindow_handle_set()
+##
+_dsl.dsl_player_xwindow_handle_set.argtypes = [c_wchar_p, c_uint64]
+_dsl.dsl_player_xwindow_handle_set.restype = c_uint
+def dsl_player_xwindow_handle_set(name, handle):
+    global _dsl
+    result = _dsl.dsl_player_xwindow_handle_set(name, handle)
+    return int(result)
+    
+##
 ## dsl_player_pause()
 ##
 _dsl.dsl_player_pause.argtypes = [c_wchar_p]
@@ -3768,143 +4086,185 @@ def dsl_player_delete_all():
     return int(result)
 
 ##
-## dsl_smtp_mail_enabled_get()
+## dsl_mailer_new()
 ##
-_dsl.dsl_smtp_mail_enabled_get.argtypes = [POINTER(c_bool)]
-_dsl.dsl_smtp_mail_enabled_get.restype = c_uint
-def dsl_smtp_mail_enabled_get():
+_dsl.dsl_mailer_new.argtypes = [c_wchar_p]
+_dsl.dsl_mailer_new.restype = c_uint
+def dsl_mailer_new(name):
+    global _dsl
+    result =_dsl.dsl_mailer_new(name)
+    return int(result)
+
+##
+## dsl_mailer_enabled_get()
+##
+_dsl.dsl_mailer_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_mailer_enabled_get.restype = c_uint
+def dsl_mailer_enabled_get(name):
     global _dsl
     enabled = c_bool(0)
-    result = _dsl.dsl_smtp_mail_enabled_get(DSL_BOOL_P(enabled))
+    result = _dsl.dsl_mailer_enabled_get(name, DSL_BOOL_P(enabled))
     return int(result), enabled.value
 
 ##
-## dsl_smtp_mail_enabled_set()
+## dsl_mailer_enabled_set()
 ##
-_dsl.dsl_smtp_mail_enabled_set.argtypes = [c_bool]
-def dsl_smtp_mail_enabled_set(enabled):
+_dsl.dsl_mailer_enabled_set.argtypes = [c_wchar_p, c_bool]
+def dsl_mailer_enabled_set(name, enabled):
     global _dsl
-    result = _dsl.dsl_smtp_mail_enabled_set(c_uint)
+    result = _dsl.dsl_mailer_enabled_set(name, enabled)
     return int(result)
 
 ##
-## dsl_smtp_credentials_set()
+## dsl_mailer_credentials_set()
 ##
-_dsl.dsl_smtp_credentials_set.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_smtp_credentials_set.restype = c_uint
-def dsl_smtp_credentials_set(name, password):
+_dsl.dsl_mailer_credentials_set.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_mailer_credentials_set.restype = c_uint
+def dsl_mailer_credentials_set(name, username, password):
     global _dsl
-    result = _dsl.dsl_smtp_credentials_set(name, password)
+    result = _dsl.dsl_mailer_credentials_set(name, username, password)
     return int(result)
     
 ##
-## dsl_smtp_server_url_get()
+## dsl_mailer_server_url_get()
 ##
-_dsl.dsl_smtp_server_url_get.argtypes = [POINTER(c_wchar_p)]
-_dsl.dsl_smtp_server_url_get.restype = c_uint
-def dsl_smtp_server_url_get():
+_dsl.dsl_mailer_server_url_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_mailer_server_url_get.restype = c_uint
+def dsl_mailer_server_url_get(name):
     global _dsl
     url = c_wchar_p(0)
-    result = _dsl.dsl_smtp_server_url_get(DSL_WCHAR_PP(url))
+    result = _dsl.dsl_mailer_server_url_get(name, DSL_WCHAR_PP(url))
     return int(result), url.value 
     
 ##
-## dsl_smtp_server_url_set()
+## dsl_mailer_server_url_set()
 ##
-_dsl.dsl_smtp_server_url_set.argtypes = [c_wchar_p]
-_dsl.dsl_smtp_server_url_set.restype = c_uint
-def dsl_smtp_server_url_set(url):
+_dsl.dsl_mailer_server_url_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_mailer_server_url_set.restype = c_uint
+def dsl_mailer_server_url_set(name, url):
     global _dsl
-    result = _dsl.dsl_smtp_server_url_set(url)
+    result = _dsl.dsl_mailer_server_url_set(name, url)
     return int(result)
 
 ##
-## dsl_smtp_address_from_get()
+## dsl_mailer_address_from_get()
 ##
-_dsl.dsl_smtp_address_from_get.argtypes = [POINTER(c_wchar_p), POINTER(c_wchar_p)]
-_dsl.dsl_smtp_address_from_get.restype = c_uint
-def dsl_smtp_address_from_get():
+_dsl.dsl_mailer_address_from_get.argtypes = [c_wchar_p, POINTER(c_wchar_p), POINTER(c_wchar_p)]
+_dsl.dsl_mailer_address_from_get.restype = c_uint
+def dsl_mailer_address_from_get(name):
     global _dsl
     name = c_wchar_p(0)
     address = c_wchar_p(0)
-    result = _dsl.dsl_smtp_address_from_get(DSL_WCHAR_PP(name), DSL_WCHAR_PP(address))
-    return int(result), name.value, address.value
+    result = _dsl.dsl_mailer_address_from_get(DSL_WCHAR_PP(display_name), DSL_WCHAR_PP(address))
+    return int(result), display_name.value, address.value
 
 ##
-## dsl_smtp_address_from_set()
+## dsl_mailer_address_from_set()
 ##
-_dsl.dsl_smtp_address_from_set.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_smtp_address_from_set.restype = c_uint
-def dsl_smtp_address_from_set(name, address):
+_dsl.dsl_mailer_address_from_set.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_mailer_address_from_set.restype = c_uint
+def dsl_mailer_address_from_set(name, display_name, address):
     global _dsl
-    result = _dsl.dsl_smtp_address_from_set(name, address)
+    result = _dsl.dsl_mailer_address_from_set(name, display_name, address)
     return int(result)
 
 ##
-## dsl_smtp_ssl_enabled_get()
+## dsl_mailer_ssl_enabled_get()
 ##
-_dsl.dsl_smtp_ssl_enabled_get.argtypes = [POINTER(c_bool)]
-_dsl.dsl_smtp_ssl_enabled_get.restype = c_uint
-def dsl_smtp_ssl_enabled_get():
+_dsl.dsl_mailer_ssl_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_mailer_ssl_enabled_get.restype = c_uint
+def dsl_mailer_ssl_enabled_get(name):
     global _dsl
     enabled = c_bool(0)
-    result = _dsl.dsl_smtp_ssl_enabled_get(DSL_BOOL_P(enabled))
+    result = _dsl.dsl_mailer_ssl_enabled_get(name, DSL_BOOL_P(enabled))
     return int(result), enabled.value
 
 ##
-## dsl_smtp_ssl_enabled_set()
+## dsl_mailer_ssl_enabled_set()
 ##
-_dsl.dsl_smtp_ssl_enabled_set.argtypes = [c_bool]
-def dsl_smtp_mail_enabled_set(enabled):
+_dsl.dsl_mailer_ssl_enabled_set.argtypes = [c_wchar_p, c_bool]
+def dsl_mailer_mail_enabled_set(name, enabled):
     global _dsl
-    result = _dsl.dsl_smtp_ssl_enabled_set(enabled)
+    result = _dsl.dsl_mailer_ssl_enabled_set(name, enabled)
     return int(result)
 
 ##
-## dsl_smtp_address_to_add()
+## dsl_mailer_address_to_add()
 ##
-_dsl.dsl_smtp_address_to_add.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_smtp_address_to_add.restype = c_uint
-def dsl_smtp_address_to_add(name, address):
+_dsl.dsl_mailer_address_to_add.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_mailer_address_to_add.restype = c_uint
+def dsl_mailer_address_to_add(name, display_name, address):
     global _dsl
-    result = _dsl.dsl_smtp_address_to_add(name, address)
+    result = _dsl.dsl_mailer_address_to_add(name, display_name, address)
     return int(result)
 
 ##
-## dsl_smtp_address_to_remove_all()
+## dsl_mailer_address_to_remove_all()
 ##
-_dsl.dsl_smtp_address_to_remove_all.restype = c_uint
-def dsl_smtp_address_to_remove_all():
+_dsl.dsl_mailer_address_to_remove_all.argtypes = [c_wchar_p]
+_dsl.dsl_mailer_address_to_remove_all.restype = c_uint
+def dsl_mailer_address_to_remove_all(name):
     global _dsl
-    result = _dsl.dsl_smtp_address_to_remove_all()
+    result = _dsl.dsl_mailer_address_to_remove_all(name)
     return int(result)
 
 ##
-## dsl_smtp_address_cc_add()
+## dsl_mailer_address_cc_add()
 ##
-_dsl.dsl_smtp_address_cc_add.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_smtp_address_cc_add.restype = c_uint
-def dsl_smtp_address_cc_add(name, address):
+_dsl.dsl_mailer_address_cc_add.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_mailer_address_cc_add.restype = c_uint
+def dsl_mailer_address_cc_add(name, display_name, address):
     global _dsl
-    result = _dsl.dsl_smtp_address_cc_add(name, address)
+    result = _dsl.dsl_mailer_address_cc_add(name, display_name, address)
     return int(result)
 
 ##
-## dsl_smtp_address_cc_remove_all()
+## dsl_mailer_address_cc_remove_all()
 ##
-_dsl.dsl_smtp_address_to_remove_all.restype = c_uint
-def dsl_smtp_address_cc_remove_all():
+_dsl.dsl_mailer_address_cc_remove_all.argtypes = [c_wchar_p]
+_dsl.dsl_mailer_address_cc_remove_all.restype = c_uint
+def dsl_mailer_address_cc_remove_all(name):
     global _dsl
-    result = _dsl.dsl_smtp_address_cc_remove_all()
+    result = _dsl.dsl_mailer_address_cc_remove_all(name)
     return int(result)
 
 ##
-## dsl_smtp_test_message_send()
+## dsl_mailer_test_message_send()
 ##
-_dsl.dsl_smtp_test_message_send.restype = c_uint
-def dsl_smtp_test_message_send():
+_dsl.dsl_mailer_test_message_send.argtypes = [c_wchar_p]
+_dsl.dsl_mailer_test_message_send.restype = c_uint
+def dsl_mailer_test_message_send(name):
     global _dsl
-    result = _dsl.dsl_smtp_test_message_send()
+    result = _dsl.dsl_mailer_test_message_send(name)
+    return int(result)
+
+##
+## dsl_mailer_delete()
+##
+_dsl.dsl_mailer_delete.argtypes = [c_wchar_p]
+_dsl.dsl_mailer_delete.restype = c_uint
+def dsl_mailer_delete(name):
+    global _dsl
+    result =_dsl.dsl_mailer_delete(name)
+    return int(result)
+
+##
+## dsl_mailer_exists()
+##
+_dsl.dsl_mailer_exists.argtypes = [c_wchar_p]
+_dsl.dsl_mailer_exists.restype = c_uint
+def dsl_mailer_exists(name):
+    global _dsl
+    return _dsl.dsl_mailer_exists(name)
+
+##
+## dsl_mailer_delete_all()
+##
+_dsl.dsl_mailer_delete_all.argtypes = []
+_dsl.dsl_mailer_delete_all.restype = c_uint
+def dsl_mailer_delete_all():
+    global _dsl
+    result =_dsl.dsl_mailer_delete_all()
     return int(result)
 
 ##
@@ -3954,3 +4314,21 @@ _dsl.dsl_delete_all.restype = c_bool
 def dsl_delete_all():
     global _dsl
     return _dsl.dsl_delete_all()
+    
+##
+## dsl_stdout_redirect()
+##
+_dsl.dsl_stdout_redirect.argtypes = [c_wchar_p]
+_dsl.dsl_stdout_redirect.restype = c_uint
+def dsl_stdout_redirect(file_path):
+    global _dsl
+    result = _dsl.dsl_stdout_redirect(file_path)
+    return int(result)
+
+##
+## dsl_stdout_restore()
+##
+_dsl.dsl_stdout_restore.restype = c_bool
+def dsl_stdout_restore():
+    global _dsl
+    return _dsl.dsl_stdout_restore()

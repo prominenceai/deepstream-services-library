@@ -348,9 +348,13 @@ namespace DSL
         }
         else
         {
-            m_pSourceElement->SetAttribute("uri", m_uri.c_str());
+            // File Source may have empty URI (a.k.a file_path), in which case we
+            // hold off setting the Source Element untill path is set.
+            if (m_uri.size())
+            {
+                m_pSourceElement->SetAttribute("uri", m_uri.c_str());
+            }
         }
-        
         AddChild(m_pSourceElement);
     }
     
@@ -366,10 +370,18 @@ namespace DSL
     {
         LOG_FUNC();
 
+        std::string testUri(uri);
+        if (testUri.empty())
+        {
+            LOG_INFO("File Path for SourceBintr '" << GetName() 
+                << "' is empty. Source is in a non playable state");
+            return true;
+        }
+
         std::ifstream streamUriFile(uri);
         if (!streamUriFile.good())
         {
-            LOG_ERROR("File Source'" << uri << "' Not found");
+            LOG_ERROR("File Source '" << uri << "' Not found");
             return false;
         }
         // File source, not live - setup full path
@@ -788,7 +800,8 @@ namespace DSL
         }
         // if it's a file source, 
         std::string newUri(uri);
-        if ((newUri.find("http") == std::string::npos) and (newUri.find("rtsp") == std::string::npos))
+        
+        if ((newUri.find("http") == std::string::npos))
         {
             // Setup the absolute File URI and query dimensions
             if (!SetFileUri(uri))
@@ -799,7 +812,10 @@ namespace DSL
         }        
         LOG_INFO("URI Path for File Source '" << GetName() << "' = " << m_uri);
         
-        m_pSourceElement->SetAttribute("uri", m_uri.c_str());
+        if (m_uri.size())
+        {
+            m_pSourceElement->SetAttribute("uri", m_uri.c_str());
+        }
         
         return true;
     }
@@ -837,7 +853,10 @@ namespace DSL
         {
             return false;
         }
-        m_pSourceElement->SetAttribute("uri", m_uri.c_str()); 
+        if (m_uri.size())
+        {
+            m_pSourceElement->SetAttribute("uri", m_uri.c_str());
+        }
         return true;
     }
     
@@ -985,6 +1004,14 @@ namespace DSL
                 << "' as it's currently in use");
             return false;
         }
+        std::string pathString(uri);
+        if (pathString.empty())
+        {
+            LOG_INFO("File Path for ImageSourceBintr '" << GetName() 
+                << "' is empty. Source is in a non playable state");
+            return true;
+        }
+            
         std::ifstream streamUriFile(uri);
         if (!streamUriFile.good())
         {
@@ -1121,11 +1148,6 @@ namespace DSL
         if (IsLinked())
         {
             UnlinkAll();
-        }
-        if (m_streamManagerTimerId)
-        {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
-            g_source_remove(m_streamManagerTimerId);
         }
         if (m_reconnectionManagerTimerId)
         {

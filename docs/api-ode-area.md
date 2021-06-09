@@ -1,7 +1,7 @@
 # ODE Area Services API
 Object Detection Event (ODE) Areas use [Lines](/docs/api-display-type.md#dsl_display_type_rgba_line_new) and [Polygons](/docs/api-display-type.md#dsl_display_type_rgba_polygon_new) as [ODE Trigger](/docs/api-ode-trigger.md) criteria for an ODE occurrence. 
 
-There are two types of Areas:
+There are three types of Areas:
 * **Line Areas** - criteria is met when a specific edge of an object's bounding box - left, right, top, bottom - intersects with the Line Area
 * **Inclusion Areas** - criteria is met when a specific point on an object's bounding box - south, south-west, west, north-west, north, etc - is within the Polygon Area.
 * **Exclusion Areas** - criteria is met when a specific point on an object's bounding box is NOT within the Polygon Area. 
@@ -21,7 +21,6 @@ ODE Areas are added to to ODE Triggers by calling [dsl_ode_trigger_area_add](/do
 ## ODE Area Services API
 
 **Constructors:**
-
 * [dsl_ode_area_inclusion_new](#dsl_ode_area_inclusion_new)
 * [dsl_ode_area_exclusion_new](#dsl_ode_area_exclusion_new)
 * [dsl_ode_area_line_new](#dsl_ode_area_line_new)
@@ -245,5 +244,4 @@ size = dsl_ode_area_list_size()
 * [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
-* [SMTP Services](/docs/api-smtp.md)
-* 
+* [Mailer](/docs/api-mailer.md)

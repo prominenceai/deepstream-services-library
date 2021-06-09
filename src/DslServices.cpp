@@ -119,12 +119,31 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define RETURN_IF_PLAYER_IS_NOT_IMAGE_PLAYER(players, name) do \
+{ \
+    if (!players[name]->IsType(typeid(ImageRenderPlayerBintr))) \
+    { \
+        LOG_ERROR("Player '" << name << "' is not an Image Player"); \
+        return DSL_RESULT_PLAYER_IS_NOT_IMAGE_PLAYER; \
+    } \
+}while(0); 
+
+#define RETURN_IF_PLAYER_IS_NOT_VIDEO_PLAYER(players, name) do \
+{ \
+    if (!players[name]->IsType(typeid(VideoRenderPlayerBintr))) \
+    { \
+        LOG_ERROR("Player '" << name << "' is not an Video Player"); \
+        return DSL_RESULT_PLAYER_IS_NOT_VIDEO_PLAYER; \
+    } \
+}while(0); 
+
+
 #define RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(players, name) do \
 { \
     if (!players[name]->IsType(typeid(ImageRenderPlayerBintr)) and  \
         !players[name]->IsType(typeid(VideoRenderPlayerBintr))) \
     { \
-        LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
+        LOG_ERROR("Player '" << name << "' is not a Render Player"); \
         return DSL_RESULT_PLAYER_IS_NOT_RENDER_PLAYER; \
     } \
 }while(0); 
@@ -301,6 +320,16 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define RETURN_IF_MAILER_NAME_NOT_FOUND(mailers, name) do \
+{ \
+    if (mailers.find(name) == mailers.end()) \
+    { \
+        LOG_ERROR("Mailer name '" << name << "' was not found"); \
+        return DSL_RESULT_MAILER_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+
+
 
 // TODO move these defines to DSL utility file
 #define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
@@ -390,6 +419,9 @@ namespace DSL
         if (!m_pInstatnce)
         {
             boolean doGstDeinit(false);
+
+            // Initialize the single debug category used by the lib
+            GST_DEBUG_CATEGORY_INIT(GST_CAT_DSL, "DSL", 0, "DeepStream Services");
         
             // If gst has not been initialized by the client software
             if (!gst_is_initialized())
@@ -400,9 +432,24 @@ namespace DSL
                 // initialize the GStreamer library
                 gst_init(&argc, &argv);
                 doGstDeinit = true;
+                
+                // One-time init of Curl with no addition features
+                CURLcode result = curl_global_init(CURL_GLOBAL_NOTHING);
+                if (result != CURLE_OK)
+                {
+                    LOG_ERROR("curl_global_init failed: " << curl_easy_strerror(result));
+                    throw;
+                }
+                curl_version_info_data* info = curl_version_info(CURLVERSION_NOW);
+                
+                LOG_INFO("Libcurl Initialized Successfully");
+                LOG_INFO("Version: " << info->version);
+                LOG_INFO("Host: " << info->host);
+                LOG_INFO("Features: " << info->features);
+                LOG_INFO("SSL Version: " << info->ssl_version);
+                LOG_INFO("Libz Version: " << info->libz_version);
+                LOG_INFO("Protocols: " << info->protocols);
             }
-            // Initialize the single debug category used by the lib
-            GST_DEBUG_CATEGORY_INIT(GST_CAT_DSL, "DSL", 0, "DeepStream Services");
             
             // Safe to start logging
             LOG_INFO("Services Initialization");
@@ -426,7 +473,6 @@ namespace DSL
         , m_pMainLoop(g_main_loop_new(NULL, FALSE))
         , m_sourceNumInUseMax(DSL_DEFAULT_SOURCE_IN_USE_MAX)
         , m_sinkNumInUseMax(DSL_DEFAULT_SINK_IN_USE_MAX)
-        , m_pComms(std::unique_ptr<Comms>(new Comms()))
     {
         LOG_FUNC();
 
@@ -439,8 +485,12 @@ namespace DSL
         
         {
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-            
+
+            // Cleanup GEOS
             finishGEOS();
+            
+            // Cleanup Lib cURL
+            curl_global_cleanup();
             
             // If this Services object called gst_init(), and not the client.
             if (m_doGstDeinit)
@@ -1026,6 +1076,10 @@ namespace DSL
 
         try
         {
+            if (m_displayTypes.empty())
+            {
+                return DSL_RESULT_SUCCESS;
+            }
             // Don't check for in-use on deleting all. 
             m_displayTypes.clear();
             
@@ -1203,6 +1257,128 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
+    DslReturnType Services::OdeActionCaptureImagePlayerAdd(const char* name, 
+        const char* player)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
+            RETURN_IF_PLAYER_IS_NOT_IMAGE_PLAYER(m_players, player)
+
+            DSL_ODE_ACTION_CATPURE_PTR pOdeAction = 
+                std::dynamic_pointer_cast<CaptureOdeAction>(m_odeActions[name]);
+
+            if (!pOdeAction->AddImagePlayer(m_players[player]))
+            {
+                LOG_ERROR("Capture Action '" << name 
+                    << "' failed to add Player '" << player << "'");
+                return DSL_RESULT_ODE_ACTION_PLAYER_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Capture Action '" << name 
+                << "' threw an exception adding Player '" << player << "'");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::OdeActionCaptureImagePlayerRemove(const char* name, 
+        const char* player)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
+            RETURN_IF_PLAYER_IS_NOT_IMAGE_PLAYER(m_players, player)
+
+            DSL_ODE_ACTION_CATPURE_PTR pOdeAction = 
+                std::dynamic_pointer_cast<CaptureOdeAction>(m_odeActions[name]);
+
+            if (!pOdeAction->RemoveImagePlayer(m_players[player]))
+            {
+                LOG_ERROR("Capture Action '" << name 
+                    << "' failed to remove Player '" << player << "'");
+                return DSL_RESULT_ODE_ACTION_PLAYER_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Capture Action '" << name 
+                << "' threw an exception removeing Player '" << player << "'");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::OdeActionCaptureMailerAdd(const char* name, 
+        const char* mailer, const char* subject, boolean attach)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
+
+            DSL_ODE_ACTION_CATPURE_PTR pOdeAction = 
+                std::dynamic_pointer_cast<CaptureOdeAction>(m_odeActions[name]);
+
+            if (!pOdeAction->AddMailer(m_mailers[mailer], subject, attach))
+            {
+                LOG_ERROR("Capture Action '" << name 
+                    << "' failed to add Mailer '" << mailer << "'");
+                return DSL_RESULT_ODE_ACTION_MAILER_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Capture Action '" << name 
+                << "' threw an exception adding Mailer '" << mailer << "'");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::OdeActionCaptureMailerRemove(const char* name, 
+        const char* mailer)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
+
+            DSL_ODE_ACTION_CATPURE_PTR pOdeAction = 
+                std::dynamic_pointer_cast<CaptureOdeAction>(m_odeActions[name]);
+
+            if (!pOdeAction->RemoveMailer(m_mailers[mailer]))
+            {
+                LOG_ERROR("Capture Action '" << name 
+                    << "' failed to remove Mailer '" << mailer << "'");
+                return DSL_RESULT_ODE_ACTION_MAILER_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Capture Action '" << name 
+                << "' threw an exception removeing Player '" << mailer << "'");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+    
     DslReturnType Services::OdeActionDisplayNew(const char* name, uint offsetX, uint offsetY, 
         boolean offsetYWithClassId, const char* font, boolean hasBgColor, const char* bgColor)
     {
@@ -1249,7 +1425,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeActionEmailNew(const char* name, const char* subject)
+    DslReturnType Services::OdeActionEmailNew(const char* name, 
+        const char* mailer, const char* subject)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1262,8 +1439,10 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer)
             
-            m_odeActions[name] = DSL_ODE_ACTION_EMAIL_NEW(name, subject);
+            m_odeActions[name] = DSL_ODE_ACTION_EMAIL_NEW(name, 
+                m_mailers[mailer], subject);
 
             LOG_INFO("New ODE Email Action '" << name << "' created successfully");
 
@@ -1276,6 +1455,34 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::OdeActionFileNew(const char* name, 
+        const char* filePath, boolean forceFlush)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_FILE_NEW(name, 
+                filePath, forceFlush);
+
+            LOG_INFO("New ODE File Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE File Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::OdeActionFillSurroundingsNew(const char* name, const char* color)
     {
         LOG_FUNC();
@@ -1542,7 +1749,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeActionPrintNew(const char* name)
+    DslReturnType Services::OdeActionPrintNew(const char* name,
+        boolean forceFlush)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1555,7 +1763,7 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_PRINT_NEW(name);
+            m_odeActions[name] = DSL_ODE_ACTION_PRINT_NEW(name, forceFlush);
 
             LOG_INFO("New ODE Print Action '" << name << "' created successfully");
 
@@ -1662,8 +1870,15 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
+
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, recordSink);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, recordSink, RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR pRecordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[recordSink]);
+            
             m_odeActions[name] = DSL_ODE_ACTION_SINK_RECORD_START_NEW(name,
-                recordSink, start, duration, clientData);
+                pRecordSinkBintr, start, duration, clientData);
 
             LOG_INFO("New ODE Record Sink Start Action '" << name << "' created successfully");
 
@@ -1690,8 +1905,15 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
+
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, recordSink);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, recordSink, RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR pRecordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[recordSink]);
+            
             m_odeActions[name] = DSL_ODE_ACTION_SINK_RECORD_STOP_NEW(name,
-                recordSink);
+                pRecordSinkBintr);
 
             LOG_INFO("New ODE Record Sink Stop Action '" << name << "' created successfully");
 
@@ -1772,8 +1994,15 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
+            
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, recordTap);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, recordTap, RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[recordTap]);
+
             m_odeActions[name] = DSL_ODE_ACTION_TAP_RECORD_START_NEW(name,
-                recordTap, start, duration, clientData);
+                pRecordTapBintr, start, duration, clientData);
 
             LOG_INFO("New ODE Record Tap Start Action '" << name << "' created successfully");
 
@@ -1800,7 +2029,14 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_TAP_RECORD_STOP_NEW(name, recordTap);
+            
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, recordTap);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, recordTap, RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[recordTap]);
+            
+            m_odeActions[name] = DSL_ODE_ACTION_TAP_RECORD_STOP_NEW(name, pRecordTapBintr);
 
             LOG_INFO("New ODE Record Tap Stop Action '" << name << "' created successfully");
 
@@ -1812,6 +2048,7 @@ namespace DSL
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
+    
     DslReturnType Services::OdeActionActionDisableNew(const char* name, const char* action)
     {
         LOG_FUNC();
@@ -2101,6 +2338,10 @@ namespace DSL
 
         try
         {
+            if (m_odeActions.empty())
+            {
+                return DSL_RESULT_SUCCESS;
+            }
             for (auto const& imap: m_odeActions)
             {
                 // In the case of Delete all
@@ -2290,6 +2531,10 @@ namespace DSL
 
         try
         {
+            if (m_odeAreas.empty())
+            {
+                return DSL_RESULT_SUCCESS;
+            }
             for (auto const& imap: m_odeAreas)
             {
                 // In the case of Delete all
@@ -2517,7 +2762,7 @@ namespace DSL
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
-            
+
     DslReturnType Services::OdeTriggerPersistenceNew(const char* name, const char* source, 
         uint classId, uint limit, uint minimum, uint maximum)
     {
@@ -2549,6 +2794,66 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::OdeTriggerPersistenceRangeGet(const char* name, 
+        uint* minimum, uint* maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, PersistenceOdeTrigger);
+            
+            DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<PersistenceOdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->GetRange(minimum, maximum);
+            
+            // check for no maximum
+            *maximum = (*maximum == UINT32_MAX) ? 0 : *maximum;
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Persistence Trigger '" << name 
+                << "' threw exception getting range");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::OdeTriggerPersistenceRangeSet(const char* name, 
+        uint minimum, uint maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, PersistenceOdeTrigger);
+            
+            DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<PersistenceOdeTrigger>(m_odeTriggers[name]);
+
+            // check for no maximum
+            maximum = (maximum == 0) ? UINT32_MAX : maximum;
+         
+            pOdeTrigger->SetRange(minimum, maximum);
+            
+            LOG_INFO("ODE Persistence Trigger '" << name << "' set new range from mimimum " 
+                << minimum << " to maximum " << maximum << " successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Persistence Trigger '" << name 
+                << "' threw exception setting range");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
     DslReturnType Services::OdeTriggerCountNew(const char* name, const char* source, 
         uint classId, uint limit, uint minimum, uint maximum)
     {
@@ -2579,6 +2884,66 @@ namespace DSL
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
+
+    DslReturnType Services::OdeTriggerCountRangeGet(const char* name, 
+        uint* minimum, uint* maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, CountOdeTrigger);
+            
+            DSL_ODE_TRIGGER_COUNT_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<CountOdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->GetRange(minimum, maximum);
+            
+            // check for no maximum
+            *maximum = (*maximum == UINT32_MAX) ? 0 : *maximum;
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Count Trigger '" << name 
+                << "' threw exception getting range");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::OdeTriggerCountRangeSet(const char* name, 
+        uint minimum, uint maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, CountOdeTrigger);
+            
+            DSL_ODE_TRIGGER_COUNT_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<CountOdeTrigger>(m_odeTriggers[name]);
+
+            // check for no maximum
+            maximum = (maximum == 0) ? UINT32_MAX : maximum;
+         
+            pOdeTrigger->SetRange(minimum, maximum);
+            
+            LOG_INFO("ODE Count Trigger '" << name << "' set new range from mimimum " 
+                << minimum << " to maximum " << maximum << " successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Count Trigger '" << name 
+                << "' threw exception setting range");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
     
     DslReturnType Services::OdeTriggerDistanceNew(const char* name, const char* source, 
         uint classIdA, uint classIdB, uint limit, uint minimum, uint maximum, 
@@ -2613,6 +2978,118 @@ namespace DSL
         }
     }
             
+    DslReturnType Services::OdeTriggerDistanceRangeGet(const char* name, 
+        uint* minimum, uint* maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, DistanceOdeTrigger);
+            
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<DistanceOdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->GetRange(minimum, maximum);
+            
+            // check for no maximum
+            *maximum = (*maximum == UINT32_MAX) ? 0 : *maximum;
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Distance Trigger '" << name 
+                << "' threw exception getting range");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::OdeTriggerDistanceRangeSet(const char* name, 
+        uint minimum, uint maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, DistanceOdeTrigger);
+            
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<DistanceOdeTrigger>(m_odeTriggers[name]);
+
+            // check for no maximum
+            maximum = (maximum == 0) ? UINT32_MAX : maximum;
+         
+            pOdeTrigger->SetRange(minimum, maximum);
+            
+            LOG_INFO("ODE Distance Trigger '" << name << "' set new range from mimimum " 
+                << minimum << " to maximum " << maximum << " successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Distance Trigger '" << name 
+                << "' threw exception setting range");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerDistanceTestParamsGet(const char* name, 
+        uint* testPoint, uint* testMethod)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, DistanceOdeTrigger);
+            
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<DistanceOdeTrigger>(m_odeTriggers[name]);
+         
+            pOdeTrigger->GetTestParams(testPoint, testMethod);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Distance Trigger '" << name 
+                << "' threw exception getting test parameters");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::OdeTriggerDistanceTestParamsSet(const char* name, 
+        uint testPoint, uint testMethod)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, DistanceOdeTrigger);
+            
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<DistanceOdeTrigger>(m_odeTriggers[name]);
+         
+            pOdeTrigger->SetTestParams(testPoint, testMethod);
+
+            LOG_INFO("ODE Distance Trigger '" << name << "' set new test parameters test_point " 
+                << testPoint << " and test_method " << testMethod << " successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Distance Trigger '" << name 
+                << "' threw exception setting test parameters");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
     
     DslReturnType Services::OdeTriggerSmallestNew(const char* name, 
         const char* source, uint classId, uint limit)
@@ -2742,6 +3219,50 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("ODE Trigger '" << name << "' threw exception getting Enabled setting");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerResetTimeoutGet(const char* name, uint* timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            *timeout = pOdeTrigger->GetResetTimeout();
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting Reset Timer");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerResetTimeoutSet(const char* name, uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            pOdeTrigger->SetResetTimeout(timeout);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception setting Reset Timer");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -3407,6 +3928,10 @@ namespace DSL
 
         try
         {
+            if (m_odeTriggers.empty())
+            {
+                return DSL_RESULT_SUCCESS;
+            }
             for (auto const& imap: m_odeTriggers)
             {
                 // In the case of Delete all
@@ -3763,11 +4288,16 @@ namespace DSL
 
         try
         {
+            if (m_padProbeHandlers.empty())
+            {
+                return DSL_RESULT_SUCCESS;
+            }
             for (auto const& imap: m_padProbeHandlers)
             {
                 if (imap.second->IsInUse())
                 {
-                    LOG_ERROR("Pad Probe Handler '" << imap.second->GetName() << "' is currently in use");
+                    LOG_ERROR("Pad Probe Handler '" << imap.second->GetName() 
+                        << "' is currently in use");
                     return DSL_RESULT_PPH_IS_IN_USE;
                 }
             }
@@ -3903,11 +4433,15 @@ namespace DSL
                 LOG_ERROR("Source name '" << name << "' is not unique");
                 return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
             }
-            std::ifstream streamUriFile(filePath);
-            if (!streamUriFile.good())
+            std::string pathString(filePath);
+            if (pathString.size())
             {
-                LOG_ERROR("File Source'" << filePath << "' Not found");
-                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+                std::ifstream streamUriFile(filePath);
+                if (!streamUriFile.good())
+                {
+                    LOG_ERROR("File Source'" << filePath << "' Not found");
+                    return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+                }
             }
             m_components[name] = DSL_FILE_SOURCE_NEW(
                 name, filePath, repeatEnabled);
@@ -3967,7 +4501,7 @@ namespace DSL
                 LOG_ERROR("File Source'" << filePath << "' Not found");
                 return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
             }
-            if (!pSourceBintr->SetUri(filePath));
+            if (!pSourceBintr->SetUri(filePath))
             {
                 LOG_ERROR("Failed to Set FilePath '" << filePath << "' for File Source '" << name << "'");
                 return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
@@ -5246,6 +5780,129 @@ namespace DSL
             return DSL_RESULT_TAP_THREW_EXCEPTION;
         }
     }
+
+    DslReturnType Services::TapRecordVideoPlayerAdd(const char* name, 
+        const char* player)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
+            RETURN_IF_PLAYER_IS_NOT_VIDEO_PLAYER(m_players, player)
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            if (!pRecordTapBintr->AddVideoPlayer(m_players[player]))
+            {
+                LOG_ERROR("Record Tap '" << name 
+                    << "' failed to add Player '" << player << "'");
+                return DSL_RESULT_TAP_PLAYER_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name 
+                << "' threw an exception adding Player '" << player << "'");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::TapRecordVideoPlayerRemove(const char* name, 
+        const char* player)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
+            RETURN_IF_PLAYER_IS_NOT_VIDEO_PLAYER(m_players, player)
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            if (!pRecordTapBintr->RemoveVideoPlayer(m_players[player]))
+            {
+                LOG_ERROR("Record Tap '" << name 
+                    << "' failed to remove Player '" << player << "'");
+                return DSL_RESULT_TAP_PLAYER_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name 
+                << "' threw an exception removing Player '" << player << "'");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::TapRecordMailerAdd(const char* name, 
+        const char* mailer, const char* subject)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            if (!pRecordTapBintr->AddMailer(m_mailers[mailer], subject))
+            {
+                LOG_ERROR("Record Tap '" << name 
+                    << "' failed to add Mailer '" << mailer << "'");
+                return DSL_RESULT_TAP_MAILER_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name 
+                << "' threw an exception adding Mailer '" << mailer << "'");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::TapRecordMailerRemove(const char* name, 
+        const char* mailer)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            if (!pRecordTapBintr->RemoveMailer(m_mailers[mailer]))
+            {
+                LOG_ERROR("Record Tap '" << name 
+                    << "' failed to remove Mailer '" << mailer << "'");
+                return DSL_RESULT_TAP_MAILER_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name 
+                << "' threw an exception removing Mailer '" << mailer << "'");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
     
     DslReturnType Services::PrimaryGieNew(const char* name, const char* inferConfigFile,
         const char* modelEngineFile, uint interval)
@@ -7130,6 +7787,33 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::SinkRenderReset(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+
+            DSL_RENDER_SINK_PTR pRenderSink = 
+                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
+
+            if (!pRenderSink->Reset())
+            {
+                LOG_ERROR("Render Sink '" << name << "' failed to reset its render suface");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Sink '" << name << "' threw an exception reseting its surface");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::SinkFileNew(const char* name, const char* filepath, 
             uint codec, uint container, uint bitrate, uint interval)
     {
@@ -7430,11 +8114,13 @@ namespace DSL
                 LOG_ERROR("Record Sink '" << name << "' failed to set cache size");
                 return DSL_RESULT_SINK_SET_FAILED;
             }
+            LOG_INFO("Record Sink '" << name 
+                << "' successfully set cache size to " << cacheSize << " seconds");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Record Sink '" << name << "' threw an exception setting s");
+            LOG_ERROR("Record Sink '" << name << "' threw an exception setting cache size");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -7539,6 +8225,132 @@ namespace DSL
             LOG_ERROR("Record Sink '" << name << "' threw an exception getting reset done flag");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
+    }
+
+    DslReturnType Services::SinkRecordVideoPlayerAdd(const char* name, 
+        const char* player)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+    
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
+            RETURN_IF_PLAYER_IS_NOT_VIDEO_PLAYER(m_players, player)
+
+            DSL_RECORD_SINK_PTR pRecordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            if (!pRecordSinkBintr->AddVideoPlayer(m_players[player]))
+            {
+                LOG_ERROR("Record Sink '" << name 
+                    << "' failed to add Player '" << player << "'");
+                return DSL_RESULT_SINK_PLAYER_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" << name 
+                << "' threw an exception adding Player '" << player << "'");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkRecordVideoPlayerRemove(const char* name, 
+        const char* player)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
+            RETURN_IF_PLAYER_IS_NOT_VIDEO_PLAYER(m_players, player)
+
+            DSL_RECORD_SINK_PTR pRecordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            if (!pRecordSinkBintr->RemoveVideoPlayer(m_players[player]))
+            {
+                LOG_ERROR("Record Sink '" << name 
+                    << "' failed to remove Player '" << player << "'");
+                return DSL_RESULT_SINK_PLAYER_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" << name 
+                << "' threw an exception adding Player '" << player << "'");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkRecordMailerAdd(const char* name, 
+        const char* mailer, const char* subject)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+    
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
+
+            DSL_RECORD_SINK_PTR pRecordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            if (!pRecordSinkBintr->AddMailer(m_mailers[mailer], subject))
+            {
+                LOG_ERROR("Record Sink '" << name 
+                    << "' failed to add Mailer '" << mailer << "'");
+                return DSL_RESULT_SINK_MAILER_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" << name 
+                << "' threw an exception adding Mailer '" << mailer << "'");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkRecordMailerRemove(const char* name, 
+        const char* mailer)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+    
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
+
+            DSL_RECORD_SINK_PTR pRecordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            if (!pRecordSinkBintr->RemoveMailer(m_mailers[mailer]))
+            {
+                LOG_ERROR("Record Sink '" << name 
+                    << "' failed to remove Mailer '" << mailer << "'");
+                return DSL_RESULT_SINK_MAILER_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" << name 
+                << "' threw an exception adding Mailer '" << mailer << "'");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::SinkEncodeVideoFormatsGet(const char* name, uint* codec, uint* container)
@@ -7822,7 +8634,6 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         try
         {
@@ -7902,24 +8713,36 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // Only if there are Pipelines do we check if the component is in use.
-        if (m_pipelines.size())
+        try
         {
-            for (auto const& imap: m_components)
+            if (m_components.empty())
             {
-                // In the case of Delete all
-                if (imap.second->IsInUse())
+                return DSL_RESULT_SUCCESS;
+            }
+            // Only if there are Pipelines do we check if the component is in use.
+            if (m_pipelines.size())
+            {
+                for (auto const& imap: m_components)
                 {
-                    LOG_ERROR("Component '" << imap.second->GetName() << "' is currently in use");
-                    return DSL_RESULT_COMPONENT_IN_USE;
+                    // In the case of Delete all
+                    if (imap.second->IsInUse())
+                    {
+                        LOG_ERROR("Component '" << imap.second->GetName() << "' is currently in use");
+                        return DSL_RESULT_COMPONENT_IN_USE;
+                    }
                 }
             }
+
+            m_components.clear();
+            LOG_INFO("All Components deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
-
-        m_components.clear();
-        LOG_INFO("All Components deleted successfully");
-
-        return DSL_RESULT_SUCCESS;
+        catch(...)
+        {
+            LOG_ERROR("DSL threw exception on Delete All Components");
+            return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
+        }
     }
 
     uint Services::ComponentListSize()
@@ -7934,18 +8757,27 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
         
-        if (m_components[component]->IsInUse())
+        try
         {
-            LOG_INFO("Component '" << component << "' is in use");
-            return DSL_RESULT_COMPONENT_IN_USE;
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+            
+            if (m_components[component]->IsInUse())
+            {
+                LOG_INFO("Component '" << component << "' is in use");
+                return DSL_RESULT_COMPONENT_IN_USE;
+            }
+            *gpuid = m_components[component]->GetGpuId();
+
+            LOG_INFO("Current GPU ID = " << *gpuid << " for component '" << component << "'");
+
+            return DSL_RESULT_SUCCESS;
         }
-        *gpuid = m_components[component]->GetGpuId();
-
-        LOG_INFO("Current GPU ID = " << *gpuid << " for component '" << component << "'");
-
-        return DSL_RESULT_SUCCESS;
+        catch(...)
+        {
+            LOG_ERROR("Component '" << component << "' threw exception on Get GPU ID");
+            return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
+        }
     }
     
     DslReturnType Services::ComponentGpuIdSet(const char* component, uint gpuid)
@@ -8108,14 +8940,24 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        try
+        {
+            
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
-        m_pipelines[pipeline]->RemoveAllChildren();
-        m_pipelines.erase(pipeline);
+            m_pipelines[pipeline]->RemoveAllChildren();
+            m_pipelines.erase(pipeline);
 
-        LOG_INFO("Pipeline '" << pipeline << "' deleted successfully");
+            LOG_INFO("Pipeline '" << pipeline << "' deleted successfully");
 
-        return DSL_RESULT_SUCCESS;
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline << "' threw an exception on Delete");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+            
     }
 
     DslReturnType Services::PipelineDeleteAll()
@@ -8123,16 +8965,24 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        for (auto &imap: m_pipelines)
+        try
         {
-            imap.second->RemoveAllChildren();
-            imap.second = nullptr;
+            for (auto &imap: m_pipelines)
+            {
+                imap.second->RemoveAllChildren();
+                imap.second = nullptr;
+            }
+            m_pipelines.clear();
+
+            LOG_INFO("All Pipelines deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
-        m_pipelines.clear();
-
-        LOG_INFO("All Pipelines deleted successfully");
-
-        return DSL_RESULT_SUCCESS;
+        catch(...)
+        {
+            LOG_ERROR("DSL threw an exception on PipelineDeleteAll");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
     }
 
     uint Services::PipelineListSize()
@@ -9104,11 +9954,15 @@ namespace DSL
                 LOG_ERROR("Player name '" << name << "' is not unique");
                 return DSL_RESULT_PLAYER_NAME_NOT_UNIQUE;
             }
-            std::ifstream streamUriFile(filePath);
-            if (!streamUriFile.good())
+            std::string pathString(filePath);
+            if (pathString.size())
             {
-                LOG_ERROR("File Source'" << filePath << "' Not found");
-                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+                std::ifstream streamUriFile(filePath);
+                if (!streamUriFile.good())
+                {
+                    LOG_ERROR("File Source'" << filePath << "' Not found");
+                    return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+                }
             }
             m_players[name] = std::shared_ptr<VideoRenderPlayerBintr>(new 
                 VideoRenderPlayerBintr(name, filePath, renderType,
@@ -9133,17 +9987,20 @@ namespace DSL
 
         try
         {
-        
             if (m_players.find(name) != m_players.end())
             {   
                 LOG_ERROR("Player name '" << name << "' is not unique");
                 return DSL_RESULT_PLAYER_NAME_NOT_UNIQUE;
             }
-            std::ifstream streamUriFile(filePath);
-            if (!streamUriFile.good())
+            std::string pathString(filePath);
+            if (pathString.size())
             {
-                LOG_ERROR("File Source'" << filePath << "' Not found");
-                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+                std::ifstream streamUriFile(filePath);
+                if (!streamUriFile.good())
+                {
+                    LOG_ERROR("File Source'" << filePath << "' Not found");
+                    return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+                }
             }
             m_players[name] = std::shared_ptr<ImageRenderPlayerBintr>(new 
                 ImageRenderPlayerBintr(name, filePath, renderType,
@@ -9349,6 +10206,34 @@ namespace DSL
         {
             LOG_ERROR("Render Player '" << name 
                 << "' threw exception setting Zoom");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerRenderReset(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+
+            DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
+                std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
+
+            if (!pRenderPlayer->Reset())
+            {
+                LOG_ERROR("Failed to Reset Render Player '" << name << "'");
+                return DSL_RESULT_PLAYER_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Player '" << name 
+                << "' threw exception on Reset");
             return DSL_RESULT_PLAYER_THREW_EXCEPTION;
         }
     }
@@ -9733,7 +10618,7 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Player '" << name 
-                << "' threw an exception adding Termination Event Listner");
+                << "' threw an exception on check for Exists");
             return false;
         }
     }
@@ -9762,22 +10647,45 @@ namespace DSL
 
     }
 
-    DslReturnType Services::PlayerDeleteAll()
+    DslReturnType Services::PlayerDeleteAll(bool checkInUse)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        for (auto &imap: m_players)
+        try
         {
-            imap.second->RemoveAllChildren();
-            imap.second = nullptr;
+            if (m_players.empty())
+            {
+                return DSL_RESULT_SUCCESS;
+            }
+            for (auto &imap: m_players)
+            {
+                // In the case of DSL Delete all - we don't check for in-use
+                // as their can be a circular type ownership/relation that will
+                // cause it to fail... i.e. players can own record sinks which 
+                // can own players, and so on...
+                if (checkInUse and imap.second.use_count() > 1)
+                {
+                    LOG_ERROR("Can't delete Player '" << imap.second->GetName() 
+                        << "' as it is currently in use");
+                    return DSL_RESULT_PLAYER_IN_USE;
+                }
+
+                imap.second->RemoveAllChildren();
+                imap.second = nullptr;
+            }
+
+            m_players.clear();
+
+            LOG_INFO("All Players deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
-
-        m_players.clear();
-
-        LOG_INFO("All Players deleted successfully");
-
-        return DSL_RESULT_SUCCESS;
+        catch(...)
+        {
+            LOG_ERROR("DSL threw an exception on PlayerDeleteAll");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
     }
 
     uint Services::PlayerListSize()
@@ -9788,107 +10696,154 @@ namespace DSL
         return m_players.size();
     }
 
-    DslReturnType Services::SmtpMailEnabledGet(boolean* enabled)
+    DslReturnType Services::MailerNew(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            *enabled = m_pComms->GetSmtpMailEnabled();
-            LOG_INFO("Returning SMTP Mail Enabled = " << *enabled);
+            if (m_mailers.find(name) != m_mailers.end())
+            {   
+                LOG_ERROR("Mailer name '" << name << "' is not unique");
+                return DSL_RESULT_MAILER_NAME_NOT_UNIQUE;
+            }
+            m_mailers[name] = std::shared_ptr<Mailer>(new Mailer(name));
+            LOG_INFO("New Mailer '" << name << "' created successfully");
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Mailer '" << name << "' threw exception on create");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::MailerEnabledGet(const char* name, 
+        boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+            
+            *enabled = m_mailers[name]->GetEnabled();
+            LOG_INFO("Returning Mailer Enabled = " << *enabled);
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception on get enabled setting");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SmtpMailEnabledSet(boolean enabled)
+    DslReturnType Services::MailerEnabledSet(const char* name, 
+        boolean enabled)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            m_pComms->SetSmtpMailEnabled(enabled);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+
+            m_mailers[name]->SetEnabled(enabled);
             LOG_INFO("Setting SMTP Mail Enabled = " << enabled);
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception on set enabled setting");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
      
-    DslReturnType Services::SmtpCredentialsSet(const char* username, const char* password)
+    DslReturnType Services::MailerCredentialsSet(const char* name,
+        const char* username, const char* password)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            LOG_INFO("New SMTP Username and Password set");
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
             
-            m_pComms->SetSmtpCredentials(username, password);
+            m_mailers[name]->SetCredentials(username, password);
+
+            LOG_INFO("New SMTP Username and Password set");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception setting the enabled setting");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SmtpServerUrlGet(const char** serverUrl)
+    DslReturnType Services::MailerServerUrlGet(const char* name,
+        const char** serverUrl)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         try
         {
-            m_pComms->GetSmtpServerUrl(serverUrl);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+
+            m_mailers[name]->GetServerUrl(serverUrl);
 
             LOG_INFO("Returning SMTP Server URL = '" << *serverUrl << "'");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception getting the Server URL");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SmtpServerUrlSet(const char* serverUrl)
+    DslReturnType Services::MailerServerUrlSet(const char* name,
+        const char* serverUrl)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         try
         {
-            m_pComms->SetSmtpServerUrl(serverUrl);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+
+            m_mailers[name]->SetServerUrl(serverUrl);
 
             LOG_INFO("New SMTP Server URL = '" << serverUrl << "' set");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception setting the Server URL");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SmtpFromAddressGet(const char** name, const char** address)
+    DslReturnType Services::MailerFromAddressGet(const char* name,
+        const char** displayName, const char** address)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         try
         {
-            m_pComms->GetSmtpFromAddress(name, address);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+
+            m_mailers[name]->GetFromAddress(displayName, address);
 
             LOG_INFO("Returning SMTP From Address with Name = '" << *name 
                 << "', and Address = '" << *address << "'" );
@@ -9896,19 +10851,23 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception getting the From Address");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SmtpFromAddressSet(const char* name, const char* address)
+    DslReturnType Services::MailerFromAddressSet(const char* name,
+        const char* displayName, const char* address)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         try
         {
-            m_pComms->SetSmtpFromAddress(name, address);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+
+            m_mailers[name]->SetFromAddress(displayName, address);
 
             LOG_INFO("New SMTP From Address with Name = '" << name 
                 << "', and Address = '" << address << "' set");
@@ -9916,141 +10875,166 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception setting the From Address");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SmtpSslEnabledGet(boolean* enabled)
+    DslReturnType Services::MailerSslEnabledGet(const char* name,
+        boolean* enabled)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         try
         {
-            *enabled = m_pComms->GetSmtpSslEnabled();
-            
-            LOG_INFO("Returning SMTP SSL Enabled = '" << *enabled  << "'" );
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SmtpSslEnabledSet(boolean enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        try
-        {
-            m_pComms->SetSmtpSslEnabled(enabled);
-            LOG_INFO("Set SMTP SSL Enabled = '" << enabled  << "'" );
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SmtpToAddressAdd(const char* name, const char* address)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        try
-        {
-            m_pComms->AddSmtpToAddress(name, address);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
 
-            LOG_INFO("New SMTP To Address with Name = '" << name 
+            *enabled = m_mailers[name]->GetSslEnabled();
+            
+            LOG_INFO("Returning SSL Enabled = '" << *enabled  << "'" );
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception getting the SSL Enabled Setting");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::MailerSslEnabledSet(const char* name,
+        boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+
+            m_mailers[name]->SetSslEnabled(enabled);
+            LOG_INFO("Set SSL Enabled = '" << enabled  << "'" );
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception getting the SSL Enabled Setting");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::MailerToAddressAdd(const char* name,
+        const char* displayName, const char* address)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+
+            m_mailers[name]->AddToAddress(displayName, address);
+
+            LOG_INFO("New To Address with Name = '" << name 
                 << "', and Address = '" << address << "' added");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception adding a To Address");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SmtpToAddressesRemoveAll()
+    DslReturnType Services::MailerToAddressesRemoveAll(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            m_pComms->RemoveAllSmtpToAddresses();
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
 
-            LOG_INFO("All SMTP To Addresses removed");
+            m_mailers[name]->RemoveAllToAddresses();
+
+            LOG_INFO("All To Addresses removed");
         
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception removing SSL Enabled Setting");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SmtpCcAddressAdd(const char* name, const char* address)
+    DslReturnType Services::MailerCcAddressAdd(const char* name,
+        const char* displayName, const char* address)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         try
         {
-            m_pComms->AddSmtpCcAddress(name, address);
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
 
-            LOG_INFO("New SMTP Cc Address with Name = '" << name 
+            m_mailers[name]->AddCcAddress(displayName, address);
+
+            LOG_INFO("New Cc Address with Name = '" << name 
                 << "', and Address = '" << address << "' set");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception adding a Cc Address");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::SmtpCcAddressesRemoveAll()
+    DslReturnType Services::MailerCcAddressesRemoveAll(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            m_pComms->RemoveAllSmtpCcAddresses();
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
 
-            LOG_INFO("All SMTP Cc Addresses removed");
+            m_mailers[name]->RemoveAllCcAddresses();
+
+            LOG_INFO("All Cc Addresses removed");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
-            return DSL_RESULT_THREW_EXCEPTION;
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception removing all Cc Addresses");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SendSmtpTestMessage()
+    DslReturnType Services::MailerSendTestMessage(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+
             std::string subject("Test message");
             std::string bline1("Test message.\r\n");
             
             std::vector<std::string> body{bline1};
 
-            if (!m_pComms->QueueSmtpMessage(subject, body))
+            if (!m_mailers[name]->QueueMessage(subject, body))
             {
                 LOG_ERROR("Failed to queue SMTP Test Message");
                 return DSL_RESULT_FAILURE;
@@ -10060,11 +11044,174 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("DSL threw an exception enabling SMTP Mail");
+            LOG_ERROR("Mailer '" << name 
+                << "' threw exception queuing a Test Message");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
+        }
+    }
+ 
+    boolean Services::MailerExists(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            return (boolean)(m_mailers.find(name) != m_mailers.end());
+        }
+        catch(...)
+        {
+            LOG_ERROR("Mailer '" << name 
+                << "' threw an exception on check for Exists");
+            return false;
+        }
+    }
+
+    DslReturnType Services::MailerDelete(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+            
+            if (m_mailers[name]->IsInUse())
+            {
+                LOG_ERROR("Cannot delete Mailer '" << name 
+                    << "' as it is currently in use");
+                return DSL_RESULT_MAILER_IN_USE;
+            }
+
+            m_mailers.erase(name);
+
+            LOG_INFO("Mailer '" << name << "' deleted successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Mailer '" << name 
+                << "' threw an exception on Delete");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
+        }
+
+    }
+
+    DslReturnType Services::MailerDeleteAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            if (m_mailers.empty())
+            {
+                return DSL_RESULT_SUCCESS;
+            }
+            for (auto &imap: m_mailers)
+            {
+                // In the case of Delete all
+                if (imap.second.use_count() > 1)
+                {
+                    LOG_ERROR("Can't delete Player '" << imap.second->GetName() 
+                        << "' as it is currently in use");
+                    return DSL_RESULT_MAILER_IN_USE;
+                }
+            }
+            m_mailers.clear();
+
+            LOG_INFO("All Mailers deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("DSL threw an exception on MailerDeleteAll");
+            return DSL_RESULT_MAILER_THREW_EXCEPTION;
+        }
+    }
+
+    uint Services::MailerListSize()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        return m_mailers.size();
+    }
+
+    void Services::DeleteAll()
+    {
+        LOG_FUNC();
+        // DO NOT lock mutex - will be done by each service
+        
+        PipelineDeleteAll();
+        PlayerDeleteAll(false);
+        ComponentDeleteAll();
+        PphDeleteAll();
+        OdeTriggerDeleteAll();
+        OdeAreaDeleteAll();
+        OdeActionDeleteAll();
+        DisplayTypeDeleteAll();
+        MailerDeleteAll();
+    }
+    
+    DslReturnType Services::StdOutRedirect(const char* filepath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            if (m_stdOutRedirectFile.is_open())
+            {
+                LOG_ERROR("stdout is currently/already in a redirected state");
+                return DSL_RESULT_FAILURE;
+            }
+            
+            // backup the default 
+            m_stdOutRdBufBackup = std::cout.rdbuf();
+            
+            // open the redirect file and the rdbuf
+            m_stdOutRedirectFile.open(filepath, std::ios::out);
+            std::streambuf* redirectFileRdBuf = m_stdOutRedirectFile.rdbuf();
+            
+            // assign the file's rdbuf to the stdout's
+            std::cout.rdbuf(redirectFileRdBuf);
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("DSL threw an exception redirecting stdout");
             return DSL_RESULT_THREW_EXCEPTION;
         }
     }
     
+    void Services::StdOutRestore()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            if (!m_stdOutRedirectFile.is_open())
+            {
+                LOG_ERROR("stdout is not currently in a redirected state");
+                return;
+            }
+
+            // restore the stdout to the initial backupt
+            std::cout.rdbuf(m_stdOutRdBufBackup);
+
+            // close the redirct file
+            m_stdOutRedirectFile.close();
+        }
+        catch(...)
+        {
+            LOG_ERROR("DSL threw an exception close stdout redirect file");
+        }
+    }
+   
     // ------------------------------------------------------------------------------
     
     bool Services::IsSourceComponent(const char* component)
@@ -10164,6 +11311,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_COMPONENT_NAME_NOT_UNIQUE] = L"DSL_RESULT_COMPONENT_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_COMPONENT_NAME_NOT_FOUND] = L"DSL_RESULT_COMPONENT_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_COMPONENT_NAME_BAD_FORMAT] = L"DSL_RESULT_COMPONENT_NAME_BAD_FORMAT";
+        m_returnValueToString[DSL_RESULT_COMPONENT_THREW_EXCEPTION] = L"DSL_RESULT_COMPONENT_THREW_EXCEPTION";
         m_returnValueToString[DSL_RESULT_COMPONENT_IN_USE] = L"DSL_RESULT_COMPONENT_IN_USE";
         m_returnValueToString[DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE] = L"DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE";
         m_returnValueToString[DSL_RESULT_COMPONENT_NOT_USED_BY_BRANCH] = L"DSL_RESULT_COMPONENT_NOT_USED_BY_BRANCH";
@@ -10237,6 +11385,10 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_ODE_ACTION_IS_NOT_ACTION] = L"DSL_RESULT_ODE_ACTION_IS_NOT_ACTION";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND] = L"DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_CAPTURE_TYPE_INVALID] = L"DSL_RESULT_ODE_ACTION_CAPTURE_TYPE_INVALID";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_PLAYER_ADD_FAILED] = L"DSL_RESULT_ODE_ACTION_PLAYER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_PLAYER_REMOVE_FAILED] = L"DSL_RESULT_ODE_ACTION_PLAYER_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_MAILER_ADD_FAILED] = L"DSL_RESULT_ODE_ACTION_MAILER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_MAILER_REMOVE_FAILED] = L"DSL_RESULT_ODE_ACTION_MAILER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE] = L"DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED] = L"DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED] = L"DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED";
@@ -10261,6 +11413,10 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED] = L"DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_HANDLER_ADD_FAILED] = L"DSL_RESULT_SINK_HANDLER_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_SINK_HANDLER_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_SINK_PLAYER_ADD_FAILED] = L"DSL_RESULT_SINK_PLAYER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_SINK_PLAYER_REMOVE_FAILED] = L"DSL_RESULT_SINK_PLAYER_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_SINK_MAILER_ADD_FAILED] = L"DSL_RESULT_SINK_MAILER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_SINK_MAILER_REMOVE_FAILED] = L"DSL_RESULT_SINK_MAILER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_UNIQUE] = L"DSL_RESULT_OSD_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_FOUND] = L"DSL_RESULT_OSD_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_OSD_NAME_BAD_FORMAT] = L"DSL_RESULT_OSD_NAME_BAD_FORMAT";
@@ -10363,13 +11519,17 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_TAP_SET_FAILED] = L"DSL_RESULT_TAP_SET_FAILED";
         m_returnValueToString[DSL_RESULT_TAP_FILE_PATH_NOT_FOUND] = L"DSL_RESULT_TAP_FILE_PATH_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_TAP_CONTAINER_VALUE_INVALID] = L"DSL_RESULT_TAP_CONTAINER_VALUE_INVALID";
+        m_returnValueToString[DSL_RESULT_TAP_PLAYER_ADD_FAILED] = L"DSL_RESULT_TAP_PLAYER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_TAP_PLAYER_REMOVE_FAILED] = L"DSL_RESULT_TAP_PLAYER_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_TAP_MAILER_ADD_FAILED] = L"DSL_RESULT_TAP_MAILER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_TAP_MAILER_REMOVE_FAILED] = L"DSL_RESULT_TAP_MAILER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_PLAYER_RESULT] = L"DSL_RESULT_PLAYER_RESULT";
         m_returnValueToString[DSL_RESULT_PLAYER_NAME_NOT_UNIQUE] = L"DSL_RESULT_PLAYER_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_PLAYER_NAME_NOT_FOUND] = L"DSL_RESULT_PLAYER_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_PLAYER_NAME_BAD_FORMAT] = L"DSL_RESULT_PLAYER_NAME_BAD_FORMAT";
         m_returnValueToString[DSL_RESULT_PLAYER_IS_NOT_RENDER_PLAYER] = L"DSL_RESULT_PLAYER_IS_NOT_RENDER_PLAYER";
-        m_returnValueToString[DSL_RESULT_PLAYER_STATE_PAUSED] = L"DSL_RESULT_PLAYER_STATE_PAUSED";
-        m_returnValueToString[DSL_RESULT_PLAYER_STATE_RUNNING] = L"DSL_RESULT_PLAYER_STATE_RUNNING";
+        m_returnValueToString[DSL_RESULT_PLAYER_IS_NOT_IMAGE_PLAYER] = L"DSL_RESULT_PLAYER_IS_NOT_IMAGE_PLAYER";
+        m_returnValueToString[DSL_RESULT_PLAYER_IS_NOT_VIDEO_PLAYER] = L"DSL_RESULT_PLAYER_IS_NOT_VIDEO_PLAYER";
         m_returnValueToString[DSL_RESULT_PLAYER_THREW_EXCEPTION] = L"DSL_RESULT_PLAYER_THREW_EXCEPTION";
         m_returnValueToString[DSL_RESULT_PLAYER_XWINDOW_GET_FAILED] = L"DSL_RESULT_PLAYER_XWINDOW_GET_FAILED";
         m_returnValueToString[DSL_RESULT_PLAYER_XWINDOW_SET_FAILED] = L"DSL_RESULT_PLAYER_XWINDOW_SET_FAILED";
@@ -10380,13 +11540,13 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_PLAYER_FAILED_TO_STOP] = L"DSL_RESULT_PLAYER_FAILED_TO_STOP";
         m_returnValueToString[DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT] = L"DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT";
         m_returnValueToString[DSL_RESULT_PLAYER_SET_FAILED] = L"DSL_RESULT_PLAYER_SET_FAILED";
-        
+        m_returnValueToString[DSL_RESULT_MAILER_NAME_NOT_UNIQUE] = L"DSL_RESULT_MAILER_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_MAILER_NAME_NOT_FOUND] = L"DSL_RESULT_MAILER_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_MAILER_THREW_EXCEPTION] = L"DSL_RESULT_MAILER_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_MAILER_IN_USE] = L"DSL_RESULT_MAILER_IN_USE";
+        m_returnValueToString[DSL_RESULT_MAILER_SET_FAILED] = L"DSL_RESULT_MAILER_SET_FAILED";
+        m_returnValueToString[DSL_RESULT_MAILER_PARAMETER_INVALID] = L"DSL_RESULT_MAILER_PARAMETER_INVALID";
         m_returnValueToString[DSL_RESULT_INVALID_RESULT_CODE] = L"Invalid DSL Result CODE";
-    }
-    
-    std::shared_ptr<Comms> Services::GetComms()
-    {
-        return m_pComms;
     }
 
 } // namespace
