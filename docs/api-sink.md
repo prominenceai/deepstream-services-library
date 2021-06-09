@@ -115,6 +115,7 @@ The following video container types are used by the File Sink API
 ```C
 typedef struct dsl_recording_info
 {
+    uint recording_event;
     uint sessionId;
     const wchar_t* filename;
     const wchar_t* dirpath;
@@ -127,10 +128,11 @@ typedef struct dsl_recording_info
 Structure typedef used to provide recording session information provided to the client on callback
 
 **Fields**
+* `recording_event` - specifies which recording event has occurred. One of DSL_RECORDING_EVENT_START or DSL_RECORDING_EVENT_END
 * `sessionId` - the unique sesions id assigned on record start
-* `filename` - filename generated for the completed recording. 
-* `directory` - path for the completed recording
-* `duration` - duration of the recording in milliseconds
+* `filename` - filename generated for the completed recording. Null on recording start.
+* `directory` - path for the completed recording. Null on recording start.
+* `duration` - duration of the recording in milliseconds. 0 on recording start.
 * `containerType` - DSL_CONTAINER_MP4 or DSL_CONTAINER_MP4
 * `width` - width of the recording in pixels
 * `height` - height of the recording in pixels
@@ -747,20 +749,21 @@ retval = dsl_sink_record_video_player_remove('my-record-sink', 'my-video-render-
 ### *dsl_sink_record_mailer_add*
 ```C++
 DslReturnType dsl_sink_record_mailer_add(const wchar_t* name, 
-    const wchar_t* mailer)
+    const wchar_t* mailer, const wchar_t* subject);
 ```
 This services adds a [Mailer](/docs/api-mailer.md) to a named Recording Sink. Once added, the file_name, location, and specifics of each recorded video will be emailed by the Mailer according to its current settings. 
 
 **Parameters**
  * `name` [in] name of the Record Sink to update
  * `mailer` [in] name of the Mailer to add
+ * `subject` [in] subject subject line to use for all outgoing mail
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_sink_record_mailer_add('my-record-sink, 'my-mailer')
+retval = dsl_sink_record_mailer_add('my-record-sink, 'my-mailer', "New Recording Complete!")
 ```
 
 <br>
