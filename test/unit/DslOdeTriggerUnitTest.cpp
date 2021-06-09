@@ -1834,7 +1834,7 @@ SCENARIO( "A new Ralational OdeDistanceTrigger handles occurrence correctly", "[
 
         WHEN( "The distance between two detected objects is calculated" )
         {
-            uint minimum(100); // units of percent
+            uint minimum(200); // units of percent
             uint maximum(UINT32_MAX);
 
             DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
@@ -1851,7 +1851,7 @@ SCENARIO( "A new Ralational OdeDistanceTrigger handles occurrence correctly", "[
         }
         WHEN( "The distance between two detected objects is calculated" )
         {
-            uint minimum(101); // units of percent
+            uint minimum(201); // units of percent
             uint maximum(UINT32_MAX);
 
             DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
@@ -1868,7 +1868,7 @@ SCENARIO( "A new Ralational OdeDistanceTrigger handles occurrence correctly", "[
         }
         WHEN( "The distance between two detected objects is calculated" )
         {
-            uint minimum(100); // units of percent
+            uint minimum(200); // units of percent
             uint maximum(UINT32_MAX);
 
             DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
@@ -1885,7 +1885,7 @@ SCENARIO( "A new Ralational OdeDistanceTrigger handles occurrence correctly", "[
         }
         WHEN( "The distance between two detected objects is calculated" )
         {
-            uint minimum(101); // units of percent
+            uint minimum(201); // units of percent
             uint maximum(UINT32_MAX);
 
             DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
@@ -1902,7 +1902,7 @@ SCENARIO( "A new Ralational OdeDistanceTrigger handles occurrence correctly", "[
         }
         WHEN( "The distance between two detected objects is calculated" )
         {
-            uint minimum(100); // units of percent
+            uint minimum(200); // units of percent
             uint maximum(UINT32_MAX);
 
             DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
@@ -1919,7 +1919,7 @@ SCENARIO( "A new Ralational OdeDistanceTrigger handles occurrence correctly", "[
         }
         WHEN( "The distance between two detected objects is calculated" )
         {
-            uint minimum(101); // units of percent
+            uint minimum(201); // units of percent
             uint maximum(UINT32_MAX);
 
             DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
@@ -1936,7 +1936,7 @@ SCENARIO( "A new Ralational OdeDistanceTrigger handles occurrence correctly", "[
         }
         WHEN( "The distance between two detected objects is calculated" )
         {
-            uint minimum(100); // units of percent
+            uint minimum(200); // units of percent
             uint maximum(UINT32_MAX);
 
             DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
@@ -1953,7 +1953,7 @@ SCENARIO( "A new Ralational OdeDistanceTrigger handles occurrence correctly", "[
         }
         WHEN( "The distance between two detected objects is calculated" )
         {
-            uint minimum(101); // units of percent
+            uint minimum(201); // units of percent
             uint maximum(UINT32_MAX);
 
             DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
@@ -1970,7 +1970,7 @@ SCENARIO( "A new Ralational OdeDistanceTrigger handles occurrence correctly", "[
         }
         WHEN( "The distance between two detected objects is calculated" )
         {
-            uint minimum(100); // units of percent
+            uint minimum(200); // units of percent
             uint maximum(UINT32_MAX);
 
             DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
@@ -1987,7 +1987,7 @@ SCENARIO( "A new Ralational OdeDistanceTrigger handles occurrence correctly", "[
         }
         WHEN( "The distance between two detected objects is calculated" )
         {
-            uint minimum(101); // units of percent
+            uint minimum(201); // units of percent
             uint maximum(UINT32_MAX);
 
             DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
@@ -2004,7 +2004,7 @@ SCENARIO( "A new Ralational OdeDistanceTrigger handles occurrence correctly", "[
         }
         WHEN( "The distance between two detected objects is calculated" )
         {
-            uint minimum(100); // units of percent
+            uint minimum(200); // units of percent
             uint maximum(UINT32_MAX);
 
             DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
@@ -2021,7 +2021,7 @@ SCENARIO( "A new Ralational OdeDistanceTrigger handles occurrence correctly", "[
         }
         WHEN( "The distance between two detected objects is calculated" )
         {
-            uint minimum(101); // units of percent
+            uint minimum(201); // units of percent
             uint maximum(UINT32_MAX);
 
             DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
