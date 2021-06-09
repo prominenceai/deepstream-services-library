@@ -1,3 +1,7 @@
+## *Warning: this page is extreamly out of date!* 
+
+It is scheduled to be updated to coincide with the firts official Beta comming this fall. Untill then, please refer to the current set of working python examples [available here](/examples/python)
+
 # DSL Python Examples
 Note: Many of the examples use the NVIDIA® DeepStream [Python-bindings](https://github.com/NVIDIA-AI-IOT/deepstream_python_apps#python-bindings) (pyds.so),  which can be downloaded from [here](https://developer.nvidia.com/deepstream-download#python_bindings).
 
