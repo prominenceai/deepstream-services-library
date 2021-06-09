@@ -457,7 +457,7 @@ retval = dsl_tap_record_video_player_remove('my-record-tap', 'my-video-render-pl
 ### *dsl_tap_record_mailer_add*
 ```C++
 DslReturnType dsl_tap_record_mailer_add(const wchar_t* name, 
-    const wchar_t* mailer)
+    const wchar_t* mailer, const wchar_t* subject);
 ```
 This services adds a [Mailer](/docs/api-mailer.md) to a named Recording Tap. Once added, the file_name, location, and specifics of each recorded video will be emailed by the Mailer according to its current settings. 
 
@@ -470,7 +470,7 @@ This services adds a [Mailer](/docs/api-mailer.md) to a named Recording Tap. Onc
 
 **Python Example**
 ```Python
-retval = dsl_tap_record_mailer_add('my-record-tap, 'my-mailer')
+retval = dsl_tap_record_mailer_add('my-record-tap, 'my-mailer', 'New recording for my-record-tap')
 ```
 
 <br>
