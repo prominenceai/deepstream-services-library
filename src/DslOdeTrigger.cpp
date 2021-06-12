@@ -727,7 +727,7 @@ namespace DSL
     uint SummationOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
         NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
     {
-        if (!m_enabled)
+        if (!m_enabled or (m_limit and m_triggered >= m_limit))
         {
             return 0;
         }
