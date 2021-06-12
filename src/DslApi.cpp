@@ -615,7 +615,7 @@ DslReturnType dsl_ode_action_display_meta_add_many_new(const wchar_t* name, cons
 }
 
 DslReturnType dsl_ode_action_file_new(const wchar_t* name, 
-    const wchar_t* file_path, boolean force_flush)
+    const wchar_t* file_path, uint format, boolean force_flush)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(file_path);
@@ -626,7 +626,7 @@ DslReturnType dsl_ode_action_file_new(const wchar_t* name,
     std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
 
     return DSL::Services::GetServices()->OdeActionFileNew(cstrName.c_str(),
-        cstrFilePath.c_str(), force_flush);
+        cstrFilePath.c_str(), format, force_flush);
 }
 
 DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipeline)

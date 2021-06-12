@@ -92,6 +92,10 @@ DSL_RENDER_TYPE_WINDOW  = 1
 DSL_RECORDING_EVENT_START = 0
 DSL_RECORDING_EVENT_END   = 1
 
+DSL_EVENT_FILE_FORMAT_TEXT = 0
+DSL_EVENT_FILE_FORMAT_CSV  = 1
+
+
 class dsl_coordinate(Structure):
     _fields_ = [
         ('x', c_uint),
@@ -450,11 +454,11 @@ def dsl_ode_action_email_new(name, mailer, subject):
 ##
 ## dsl_ode_action_file_new()
 ##
-_dsl.dsl_ode_action_file_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
+_dsl.dsl_ode_action_file_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_bool]
 _dsl.dsl_ode_action_file_new.restype = c_uint
-def dsl_ode_action_file_new(name, file_path, force_flush):
+def dsl_ode_action_file_new(name, file_path, format, force_flush):
     global _dsl
-    result =_dsl.dsl_ode_action_file_new(name, file_path, force_flush)
+    result =_dsl.dsl_ode_action_file_new(name, file_path, format, force_flush)
     return int(result)
 
 ##
@@ -1662,9 +1666,11 @@ def dsl_source_usb_new(name, width, height, fps_n, fps_d):
 ##
 _dsl.dsl_source_uri_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint, c_uint, c_uint]
 _dsl.dsl_source_uri_new.restype = c_uint
-def dsl_source_uri_new(name, uri, is_live, cudadec_mem_type, intra_decode, drop_frame_interval):
+def dsl_source_uri_new(name, 
+    uri, is_live, cudadec_mem_type, intra_decode, drop_frame_interval):
     global _dsl
-    result = _dsl.dsl_source_uri_new(name, uri, is_live, cudadec_mem_type, intra_decode, drop_frame_interval)
+    result = _dsl.dsl_source_uri_new(name, 
+        uri, is_live, cudadec_mem_type, intra_decode, drop_frame_interval)
     return int(result)
 
 ##

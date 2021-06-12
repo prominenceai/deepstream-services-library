@@ -332,7 +332,7 @@ SCENARIO( "A new FileOdeAction is created correctly", "[OdeAction]" )
         WHEN( "A new OdeAction is created" )
         {
             DSL_ODE_ACTION_FILE_PTR pAction = DSL_ODE_ACTION_FILE_NEW(
-                actionName.c_str(), filePath.c_str(), forceFlush);
+                actionName.c_str(), filePath.c_str(), DSL_EVENT_FILE_FORMAT_TEXT, forceFlush);
 
             THEN( "The Action's memebers are setup and returned correctly" )
             {
@@ -360,7 +360,7 @@ SCENARIO( "A FileOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_FILE_PTR pAction = DSL_ODE_ACTION_FILE_NEW(
-            actionName.c_str(), filePath.c_str(), forceFlush);
+            actionName.c_str(), filePath.c_str(), DSL_EVENT_FILE_FORMAT_TEXT, forceFlush);
 
         WHEN( "A new ODE is created" )
         {
@@ -393,7 +393,7 @@ SCENARIO( "A FileOdeAction with forceFlush set flushes the stream correctly", "[
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_FILE_PTR pAction = DSL_ODE_ACTION_FILE_NEW(
-            actionName.c_str(), filePath.c_str(), forceFlush);
+            actionName.c_str(), filePath.c_str(), DSL_EVENT_FILE_FORMAT_TEXT, forceFlush);
 
         WHEN( "A new ODE is created" )
         {

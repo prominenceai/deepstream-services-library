@@ -1456,7 +1456,7 @@ namespace DSL
     }
 
     DslReturnType Services::OdeActionFileNew(const char* name, 
-        const char* filePath, boolean forceFlush)
+        const char* filePath, uint format, boolean forceFlush)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1469,8 +1469,14 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
+            if (format > DSL_EVENT_FILE_FORMAT_CSV)
+            {
+                LOG_ERROR("File format " << format 
+                    << " is invalid for ODE Action '" << name << "'");
+                return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
+            }
             m_odeActions[name] = DSL_ODE_ACTION_FILE_NEW(name, 
-                filePath, forceFlush);
+                filePath, format, forceFlush);
 
             LOG_INFO("New ODE File Action '" << name << "' created successfully");
 
@@ -11391,6 +11397,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_ODE_ACTION_MAILER_REMOVE_FAILED] = L"DSL_RESULT_ODE_ACTION_MAILER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE] = L"DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED] = L"DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_PARAMETER_INVALID] = L"DSL_RESULT_ODE_ACTION_PARAMETER_INVALID";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED] = L"DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_ODE_AREA_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_AREA_NAME_NOT_FOUND";

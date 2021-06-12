@@ -306,6 +306,7 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_ACTION_PLAYER_REMOVE_FAILED                  0x000F000D
 #define DSL_RESULT_ODE_ACTION_MAILER_ADD_FAILED                     0x000F000E
 #define DSL_RESULT_ODE_ACTION_MAILER_REMOVE_FAILED                  0x000F000F
+#define DSL_RESULT_ODE_ACTION_PARAMETER_INVALID                     0x000F0010
 
 /**
  * ODE Area API Return Values
@@ -519,8 +520,14 @@ THE SOFTWARE.
  * @brief Smart Recording Events - to identify which event
  * has occurred when processing dsl_recording_info
  */
-#define DSL_RECORDING_EVENT_START 0
-#define DSL_RECORDING_EVENT_END   1
+#define DSL_RECORDING_EVENT_START                                   0
+#define DSL_RECORDING_EVENT_END                                     1
+
+/**
+ * @brief File Format Options when saving Event Data to file.
+ */
+#define DSL_EVENT_FILE_FORMAT_TEXT                                  0
+#define DSL_EVENT_FILE_FORMAT_CSV                                   1
 
 
 EXTERN_C_BEGIN
@@ -1163,6 +1170,7 @@ DslReturnType dsl_ode_action_email_new(const wchar_t* name,
  * @param[in] name unique name for the File ODE Action
  * @param[in] file_path absolute or relative file path of the output file to use
  * The file will be created if one does exists, or opened for append if found.
+ * @param[in] format one of the DSL_EVENT_FILE_FORMAT_* options
  * @param[in] force_flush  if true, the action will schedule a flush to be performed 
  * by the idle thread. NOTE: although the flush event occurs in a background thread,
  * flushing is still a CPU intensive operation and should be used sparingly, when tailing
@@ -1171,7 +1179,7 @@ DslReturnType dsl_ode_action_email_new(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_file_new(const wchar_t* name, 
-    const wchar_t* file_path, boolean force_flush);
+    const wchar_t* file_path, uint format, boolean force_flush);
 
 /**
  * @brief Creates a uniquely named Fill Frame ODE Action, that fills the entire
