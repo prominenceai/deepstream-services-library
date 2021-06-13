@@ -1350,6 +1350,27 @@ def dsl_ode_trigger_infer_done_only_set(name, infer_done_only):
     return int(result)
 
 ##
+## dsl_ode_trigger_interval_get()
+##
+_dsl.dsl_ode_trigger_interval_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_ode_trigger_interval_get.restype = c_uint
+def dsl_ode_trigger_interval_get(name):
+    global _dsl
+    interval = c_uint(0)
+    result =_dsl.dsl_ode_trigger_interval_get(name, DSL_UINT_P(interval))
+    return int(result), interval.value
+
+##
+## dsl_ode_trigger_interval_set()
+##
+_dsl.dsl_ode_trigger_interval_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_ode_trigger_interval_set.restype = c_uint
+def dsl_ode_trigger_interval_set(name, interval):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_interval_set(name, interval)
+    return int(result)
+
+##
 ## dsl_ode_trigger_action_add()
 ##
 _dsl.dsl_ode_trigger_action_add.argtypes = [c_wchar_p, c_wchar_p]

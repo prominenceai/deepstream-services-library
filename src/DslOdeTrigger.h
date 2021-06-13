@@ -340,6 +340,18 @@ namespace DSL
          */
         void SetInferDoneOnlySetting(bool inferDoneOnly);
         
+        /**
+         * @brief Gets the current process interval for this Trigger
+         * @return the current process interval, default = 0
+         */
+        uint GetInterval();
+        
+        /**
+         * @brief Sets the process interval for this Trigger
+         * @param interval new interval to use in units of frames
+         */
+        void SetInterval(uint interval);
+        
     protected:
     
         /**
@@ -395,7 +407,22 @@ namespace DSL
          * @brief Mutex for timer reset logic
          */
         GMutex m_resetTimerMutex;
-    
+        
+        /**
+         * @brief process interval, default = 0
+         */
+        uint m_interval;
+        
+        /**
+         * @brief current number of frames in the current interval
+         */
+        uint m_intervalCounter;
+        
+        /**
+         * @brief flag to identify frames that should be skipped, if m_skipFrameInterval > 0
+         */
+         bool m_skipFrame;
+         
     public:
     
         // access made public for performance reasons

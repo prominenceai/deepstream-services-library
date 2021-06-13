@@ -2044,6 +2044,25 @@ DslReturnType dsl_ode_trigger_frame_count_min_get(const wchar_t* name, uint* min
 DslReturnType dsl_ode_trigger_frame_count_min_set(const wchar_t* name, uint min_count_n, uint min_count_d);
 
 /**
+ * @brief Gets the current process interval setting for the named ODE Trigger
+ * If set, the Trigger will only process every  
+ * @param[in] name unique name of the ODE Trigger to query
+ * @param[out] interval the current interval to use, Default = 0
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_interval_get(const wchar_t* name, uint* interval);
+
+/**
+ * @brief Sets the process interval for the named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] interval new interval to use. Setting the interval will reset the
+ * frame counter to zero, meaning a new value of n will skip the next n-1 frames
+ * from the current frame at the time this service is called.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_interval_set(const wchar_t* name, uint interval);
+
+/**
  * @brief Adds a named ODE Action to a named ODE Trigger
  * @param[in] name unique name of the ODE Trigger to update
  * @param[in] action unique name of the ODE Action to Add

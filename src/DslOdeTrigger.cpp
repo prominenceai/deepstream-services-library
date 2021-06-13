@@ -55,6 +55,9 @@ namespace DSL
         , m_inferDoneOnly(false)
         , m_resetTimeout(0)
         , m_resetTimerId(0)
+        , m_interval(0)
+        , m_intervalCounter(0)
+        , m_skipFrame(false)
     {
         LOG_FUNC();
 
@@ -379,6 +382,23 @@ namespace DSL
         m_minFrameCountD = minFrameCountD;
     }
 
+    uint OdeTrigger::GetInterval()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        return m_interval;
+    }
+    
+    void OdeTrigger::SetInterval(uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_interval = interval;
+        m_intervalCounter = 0;
+    }
+    
     bool OdeTrigger::CheckForSourceId(int sourceId)
     {
         LOG_FUNC();
@@ -406,6 +426,17 @@ namespace DSL
         // Reset the occurrences from the last frame, even if disabled  
         m_occurrences = 0;
 
+        if (m_interval)
+        {
+            m_intervalCounter = (m_intervalCounter + 1) % m_interval; 
+            if (m_intervalCounter != 0)
+            {
+                m_skipFrame = true;
+                return;
+            }
+        }
+        m_skipFrame = false;
+
         if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id))
         {
             return;
@@ -425,6 +456,12 @@ namespace DSL
         // Note: function is called from the system (callback) context
         // Gaurd against property updates from the client API
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        // Filter on skip-frame interval
+        if (m_skipFrame)
+        {
+            return false;
+        }
         
         // Ensure enabled, and that the limit has not been exceeded
         if (m_limit and m_triggered >= m_limit) 
@@ -502,7 +539,6 @@ namespace DSL
     void AlwaysOdeTrigger::PreProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta)
     {
-
         if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or 
             m_when != DSL_ODE_PRE_OCCURRENCE_CHECK)
         {
@@ -519,7 +555,7 @@ namespace DSL
     uint AlwaysOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta)
     {
-        if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or 
+        if (m_skipFrame or !m_enabled or !CheckForSourceId(pFrameMeta->source_id) or 
             m_when != DSL_ODE_POST_OCCURRENCE_CHECK)
         {
             return 0;

@@ -51,7 +51,8 @@ SCENARIO( "A new OdeOccurreceTrigger is created correctly", "[OdeTrigger]" )
                 REQUIRE( pOdeTrigger->GetClassId() == classId );
                 REQUIRE( pOdeTrigger->GetLimit() == limit );
                 REQUIRE( pOdeTrigger->GetSource() == NULL );
-                REQUIRE( pOdeTrigger->GetResetTimeout() == 0);
+                REQUIRE( pOdeTrigger->GetResetTimeout() == 0 );
+                REQUIRE( pOdeTrigger->GetInterval() == 0 );
                 float minWidth(123), minHeight(123);
                 pOdeTrigger->GetMinDimensions(&minWidth, &minHeight);
                 REQUIRE( minWidth == 0 );
@@ -99,14 +100,14 @@ SCENARIO( "An OdeOccurrenceTrigger checks its enabled setting ", "[OdeTrigger]" 
 
         // Object Meta test data
         NvDsObjectMeta objectMeta = {0};
-        objectMeta.class_id = classId; // must match ODE Type's classId
+        objectMeta.class_id = classId; // must match ODE Trigger's classId
         objectMeta.object_id = INT64_MAX; 
         objectMeta.rect_params.left = 10;
         objectMeta.rect_params.top = 10;
         objectMeta.rect_params.width = 200;
         objectMeta.rect_params.height = 100;
         
-        WHEN( "The ODE Type is enabled and an ODE occurrence is simulated" )
+        WHEN( "The ODE Trigger is enabled and an ODE occurrence is simulated" )
         {
             pOdeTrigger->SetEnabled(true);
             
@@ -115,7 +116,7 @@ SCENARIO( "An OdeOccurrenceTrigger checks its enabled setting ", "[OdeTrigger]" 
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
-        WHEN( "The ODE Type is disabled and an ODE occurrence is simulated" )
+        WHEN( "The ODE Trigger is disabled and an ODE occurrence is simulated" )
         {
             pOdeTrigger->SetEnabled(false);
             
@@ -155,7 +156,7 @@ SCENARIO( "An ODE Occurrence Trigger checks its minimum confidence correctly", "
 
         // Object Meta test data
         NvDsObjectMeta objectMeta = {0};
-        objectMeta.class_id = classId; // must match ODE Type's classId
+        objectMeta.class_id = classId; // must match ODE Trigger's classId
         objectMeta.object_id = INT64_MAX; 
         objectMeta.rect_params.left = 10;
         objectMeta.rect_params.top = 10;
@@ -164,7 +165,7 @@ SCENARIO( "An ODE Occurrence Trigger checks its minimum confidence correctly", "
         
         objectMeta.confidence = 0.5;
         
-        WHEN( "The ODE Type's minimum confidence is less than the Object's confidence" )
+        WHEN( "The ODE Trigger's minimum confidence is less than the Object's confidence" )
         {
             pOdeTrigger->SetMinConfidence(0.4999);
             
@@ -173,7 +174,7 @@ SCENARIO( "An ODE Occurrence Trigger checks its minimum confidence correctly", "
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
-        WHEN( "The ODE Type's minimum confidence is equal to the Object's confidence" )
+        WHEN( "The ODE Trigger's minimum confidence is equal to the Object's confidence" )
         {
             pOdeTrigger->SetMinConfidence(0.5);
             
@@ -182,7 +183,7 @@ SCENARIO( "An ODE Occurrence Trigger checks its minimum confidence correctly", "
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
-        WHEN( "The ODE Type's minimum confidence is greater tahn the Object's confidence" )
+        WHEN( "The ODE Trigger's minimum confidence is greater tahn the Object's confidence" )
         {
             pOdeTrigger->SetMinConfidence(0.5001);
             
@@ -226,7 +227,7 @@ SCENARIO( "A OdeOccurrenceTrigger checks for Source Name correctly", "[OdeTrigge
         frameMeta.ntp_timestamp = INT64_MAX;
 
         NvDsObjectMeta objectMeta = {0};
-        objectMeta.class_id = classId; // must match ODE Type's classId
+        objectMeta.class_id = classId; // must match ODE Trigger's classId
         objectMeta.object_id = INT64_MAX; 
         objectMeta.rect_params.left = 10;
         objectMeta.rect_params.top = 10;
@@ -292,7 +293,7 @@ SCENARIO( "A OdeOccurrenceTrigger checks for Minimum Dimensions correctly", "[Od
         frameMeta.source_id = 2;
 
         NvDsObjectMeta objectMeta = {0};
-        objectMeta.class_id = classId; // must match ODE Type's classId
+        objectMeta.class_id = classId; // must match ODE Trigger's classId
         objectMeta.object_id = INT64_MAX; 
         objectMeta.rect_params.left = 10;
         objectMeta.rect_params.top = 10;
@@ -365,7 +366,7 @@ SCENARIO( "A OdeOccurrenceTrigger checks for Maximum Dimensions correctly", "[Od
         frameMeta.source_id = 2;
 
         NvDsObjectMeta objectMeta = {0};
-        objectMeta.class_id = classId; // must match ODE Type's classId
+        objectMeta.class_id = classId; // must match ODE Trigger's classId
         objectMeta.object_id = INT64_MAX; 
         objectMeta.rect_params.left = 10;
         objectMeta.rect_params.top = 10;
@@ -439,14 +440,14 @@ SCENARIO( "An OdeOccurrenceTrigger checks its InferDoneOnly setting ", "[OdeTrig
 
         // Object Meta test data
         NvDsObjectMeta objectMeta = {0};
-        objectMeta.class_id = classId; // must match ODE Type's classId
+        objectMeta.class_id = classId; // must match ODE Trigger's classId
         objectMeta.object_id = INT64_MAX; 
         objectMeta.rect_params.left = 10;
         objectMeta.rect_params.top = 10;
         objectMeta.rect_params.width = 200;
         objectMeta.rect_params.height = 100;
         
-        WHEN( "The ODE Type's InferOnOnly setting is enable and an ODE occurrence is simulated" )
+        WHEN( "The ODE Trigger's InferOnOnly setting is enable and an ODE occurrence is simulated" )
         {
             pOdeTrigger->SetInferDoneOnlySetting(true);
             
@@ -455,12 +456,97 @@ SCENARIO( "An OdeOccurrenceTrigger checks its InferDoneOnly setting ", "[OdeTrig
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == false );
             }
         }
-        WHEN( "The ODE Type's InferOnOnly setting is disabled and an ODE occurrence is simulated" )
+        WHEN( "The ODE Trigger's InferOnOnly setting is disabled and an ODE occurrence is simulated" )
         {
             pOdeTrigger->SetInferDoneOnlySetting(false);
             
             THEN( "The ODE is triggered because the criteria is not set" )
             {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "An OdeOccurrenceTrigger checks its interval setting ", "[OdeTrigger]" )
+{
+    GIVEN( "A new OdeTrigger with a non-zero skip-frame interval" ) 
+    {
+        std::string odeTriggerName("occurence");
+        uint classId(1);
+        uint limit(0); // not limit
+
+        std::string source;
+
+        std::string odeActionName("print-action");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        // Frame Meta test data
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  
+        frameMeta.frame_num = 1;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        // Object Meta test data
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match ODE Trigger's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.rect_params.left = 10;
+        objectMeta.rect_params.top = 10;
+        objectMeta.rect_params.width = 200;
+        objectMeta.rect_params.height = 100;
+        
+        WHEN( "The ODE Trigger's skip-interval is set" )
+        {
+            pOdeTrigger->SetInterval(2);
+            
+            THEN( "Then ODE occurrence is triggered correctly" )
+            {
+                pOdeTrigger->PreProcessFrame(NULL, NULL, &frameMeta);
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == false );
+                pOdeTrigger->PreProcessFrame(NULL, NULL, &frameMeta);
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
+                pOdeTrigger->PreProcessFrame(NULL, NULL, &frameMeta);
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == false );
+                pOdeTrigger->PreProcessFrame(NULL, NULL, &frameMeta);
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The ODE Trigger's skip-interval is updated" )
+        {
+            pOdeTrigger->SetInterval(3);
+            
+            THEN( "Then ODE occurrence is triggered correctly" )
+            {
+                pOdeTrigger->PreProcessFrame(NULL, NULL, &frameMeta);
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == false );
+                pOdeTrigger->PreProcessFrame(NULL, NULL, &frameMeta);
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == false );
+                pOdeTrigger->PreProcessFrame(NULL, NULL, &frameMeta);
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
+                pOdeTrigger->PreProcessFrame(NULL, NULL, &frameMeta);
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == false );
+            }
+        }
+        WHEN( "The ODE Trigger's skip-interval is disabled" )
+        {
+            pOdeTrigger->SetInterval(0);
+            
+            THEN( "The ODE is NOT triggered" )
+            {
+                pOdeTrigger->PreProcessFrame(NULL, NULL, &frameMeta);
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
+                pOdeTrigger->PreProcessFrame(NULL, NULL, &frameMeta);
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
+                pOdeTrigger->PreProcessFrame(NULL, NULL, &frameMeta);
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
@@ -507,7 +593,7 @@ SCENARIO( "A OdeOccurrenceTrigger checks for Area overlap correctly", "[OdeTrigg
         frameMeta.source_id = 2;
 
         NvDsObjectMeta objectMeta = {0};
-        objectMeta.class_id = classId; // must match ODE Type's classId
+        objectMeta.class_id = classId; // must match ODE Trigger's classId
         objectMeta.object_id = INT64_MAX; 
         objectMeta.confidence = 0.4999; 
 
@@ -716,7 +802,7 @@ SCENARIO( "A OdeAbsenceTrigger checks for Source Name correctly", "[OdeTrigger]"
         frameMeta.ntp_timestamp = INT64_MAX;
 
         NvDsObjectMeta objectMeta = {0};
-        objectMeta.class_id = classId; // must match ODE Type's classId
+        objectMeta.class_id = classId; // must match ODE Trigger's classId
         objectMeta.object_id = INT64_MAX; 
         objectMeta.rect_params.left = 10;
         objectMeta.rect_params.top = 10;
@@ -865,13 +951,13 @@ SCENARIO( "An Intersection OdeTrigger checks for intersection correctly", "[OdeT
         frameMeta.source_id = 2;
 
         NvDsObjectMeta objectMeta1 = {0};
-        objectMeta1.class_id = classIdA; // must match ODE Type's classId
+        objectMeta1.class_id = classIdA; // must match ODE Trigger's classId
         
         NvDsObjectMeta objectMeta2 = {0};
-        objectMeta2.class_id = classIdA; // must match ODE Type's classId
+        objectMeta2.class_id = classIdA; // must match ODE Trigger's classId
         
         NvDsObjectMeta objectMeta3 = {0};
-        objectMeta3.class_id = classIdA; // must match ODE Type's classId
+        objectMeta3.class_id = classIdA; // must match ODE Trigger's classId
         
         WHEN( "Two objects occur without overlap" )
         {
@@ -983,7 +1069,7 @@ SCENARIO( "A Custom OdeTrigger checks for and handles Occurrence correctly", "[O
             frameMeta.source_id = 2;
 
             NvDsObjectMeta objectMeta = {0};
-            objectMeta.class_id = classId; // must match ODE Type's classId
+            objectMeta.class_id = classId; // must match ODE Trigger's classId
             
             objectMeta.rect_params.left = 0;
             objectMeta.rect_params.top = 0;
@@ -1026,16 +1112,16 @@ SCENARIO( "A CountOdeTrigger handles ODE Occurrence correctly", "[OdeTrigger]" )
         frameMeta.source_id = 2;
 
         NvDsObjectMeta objectMeta1 = {0};
-        objectMeta1.class_id = classId; // must match ODE Type's classId
+        objectMeta1.class_id = classId; // must match ODE Trigger's classId
         
         NvDsObjectMeta objectMeta2 = {0};
-        objectMeta2.class_id = classId; // must match ODE Type's classId
+        objectMeta2.class_id = classId; // must match ODE Trigger's classId
         
         NvDsObjectMeta objectMeta3 = {0};
-        objectMeta3.class_id = classId; // must match ODE Type's classId
+        objectMeta3.class_id = classId; // must match ODE Trigger's classId
 
         NvDsObjectMeta objectMeta4 = {0};
-        objectMeta4.class_id = classId; // must match ODE Type's classId
+        objectMeta4.class_id = classId; // must match ODE Trigger's classId
         
         WHEN( "Two objects occur -- equal to the Minimum" )
         {
@@ -1107,14 +1193,14 @@ SCENARIO( "A SmallestOdeTrigger handles an ODE Occurrence correctly", "[OdeTrigg
         frameMeta.source_id = 2;
 
         NvDsObjectMeta objectMeta1 = {0};
-        objectMeta1.class_id = classId; // must match ODE Type's classId
+        objectMeta1.class_id = classId; // must match ODE Trigger's classId
         objectMeta1.rect_params.left = 0;
         objectMeta1.rect_params.top = 0;
         objectMeta1.rect_params.width = 100;
         objectMeta1.rect_params.height = 100;
 
         NvDsObjectMeta objectMeta2 = {0};
-        objectMeta2.class_id = classId; // must match ODE Type's classId
+        objectMeta2.class_id = classId; // must match ODE Trigger's classId
         objectMeta2.rect_params.left = 0;
         objectMeta2.rect_params.top = 0;
         objectMeta2.rect_params.width = 99;
@@ -1158,14 +1244,14 @@ SCENARIO( "A LargestOdeTrigger handles am ODE Occurrence correctly", "[OdeTrigge
         frameMeta.source_id = 2;
 
         NvDsObjectMeta objectMeta1 = {0};
-        objectMeta1.class_id = classId; // must match ODE Type's classId
+        objectMeta1.class_id = classId; // must match ODE Trigger's classId
         objectMeta1.rect_params.left = 0;
         objectMeta1.rect_params.top = 0;
         objectMeta1.rect_params.width = 100;
         objectMeta1.rect_params.height = 100;
 
         NvDsObjectMeta objectMeta2 = {0};
-        objectMeta2.class_id = classId; // must match ODE Type's classId
+        objectMeta2.class_id = classId; // must match ODE Trigger's classId
         objectMeta2.rect_params.left = 0;
         objectMeta2.rect_params.top = 0;
         objectMeta2.rect_params.width = 99;
