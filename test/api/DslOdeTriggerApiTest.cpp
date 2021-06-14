@@ -309,6 +309,37 @@ SCENARIO( "An ODE Trigger's minimum frame count can be set/get", "[ode-trigger-a
     }
 }    
 
+SCENARIO( "An ODE Trigger's interval can be set/get", "[ode-trigger-api]" )
+{
+    GIVEN( "An ODE Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"occurrence");
+        
+        uint class_id(9);
+        uint limit(0);
+
+        REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName.c_str(), NULL, class_id, limit) == DSL_RESULT_SUCCESS );
+
+        uint ret_interval(99);
+        REQUIRE( dsl_ode_trigger_interval_get(odeTriggerName.c_str(), &ret_interval) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_interval == 0 );
+
+
+        WHEN( "When the Trigger's limit is updated" )         
+        {
+            uint new_interval(44);
+            REQUIRE( dsl_ode_trigger_interval_set(odeTriggerName.c_str(), new_interval) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_ode_trigger_interval_get(odeTriggerName.c_str(), &ret_interval) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_interval == new_interval );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
 SCENARIO( "A new Absence Trigger can be created and deleted correctly", "[ode-trigger-api]" )
 {
     GIVEN( "Attributes for a new Absence Trigger" ) 

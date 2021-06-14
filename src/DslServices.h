@@ -339,6 +339,10 @@ namespace DSL {
         
         DslReturnType OdeTriggerInferDoneOnlySet(const char* name, boolean inferDoneOnly);
         
+        DslReturnType OdeTriggerIntervalGet(const char* name, uint* interval);
+        
+        DslReturnType OdeTriggerIntervalSet(const char* name, uint interval);
+        
         DslReturnType OdeTriggerActionAdd(const char* name, const char* action);
 
         DslReturnType OdeTriggerActionRemove(const char* name, const char* action);

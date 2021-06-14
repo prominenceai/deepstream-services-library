@@ -3695,7 +3695,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting source id");
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting Inference Done Only");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -3717,11 +3718,56 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting class id");
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting Inference Done Only");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
+    DslReturnType Services::OdeTriggerIntervalGet(const char* name, uint* interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            *interval = pOdeTrigger->GetInterval();
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting Interval");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::OdeTriggerIntervalSet(const char* name, uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            pOdeTrigger->SetInterval(interval);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception setting Interval");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
     DslReturnType Services::OdeTriggerActionAdd(const char* name, const char* action)
     {
         LOG_FUNC();

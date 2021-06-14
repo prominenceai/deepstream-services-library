@@ -1635,24 +1635,48 @@ DslReturnType dsl_ode_trigger_infer_done_only_set(const wchar_t* name, boolean i
     return DSL::Services::GetServices()->OdeTriggerInferDoneOnlySet(cstrName.c_str(), infer_done_only);
 }
 
-DslReturnType dsl_ode_trigger_frame_count_min_get(const wchar_t* name, uint* min_count_n, uint* min_count_d)
+DslReturnType dsl_ode_trigger_frame_count_min_get(const wchar_t* name, 
+    uint* min_count_n, uint* min_count_d)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerFrameCountMinGet(cstrName.c_str(), min_count_n, min_count_d);
+    return DSL::Services::GetServices()->OdeTriggerFrameCountMinGet(cstrName.c_str(), 
+        min_count_n, min_count_d);
 }
 
-DslReturnType dsl_ode_trigger_frame_count_min_set(const wchar_t* name, uint min_count_n, uint min_count_d)
+DslReturnType dsl_ode_trigger_frame_count_min_set(const wchar_t* name, 
+    uint min_count_n, uint min_count_d)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerFrameCountMinSet(cstrName.c_str(), min_count_n, min_count_d);
+    return DSL::Services::GetServices()->OdeTriggerFrameCountMinSet(cstrName.c_str(), 
+        min_count_n, min_count_d);
+}
+
+DslReturnType dsl_ode_trigger_interval_get(const wchar_t* name, uint* interval)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerIntervalGet(cstrName.c_str(), interval);
+}
+
+DslReturnType dsl_ode_trigger_interval_set(const wchar_t* name, uint interval)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerIntervalSet(cstrName.c_str(), interval);
 }
 
 DslReturnType dsl_ode_trigger_action_add(const wchar_t* name, const wchar_t* action)
