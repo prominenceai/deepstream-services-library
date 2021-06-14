@@ -70,6 +70,8 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_dimensions_max_set](#dsl_ode_trigger_dimensions_max_set)
 * [dsl_ode_trigger_infer_done_only_get](#dsl_ode_trigger_infer_done_only_get)
 * [dsl_ode_trigger_infer_done_only_set](#dsl_ode_trigger_infer_done_only_set)
+* [dsl_ode_trigger_interval_get](#dsl_ode_trigger_interval_get)
+* [dsl_ode_trigger_interval_set](#dsl_ode_trigger_interval_set)
 * [dsl_ode_trigger_action_add](#dsl_ode_trigger_action_add)
 * [dsl_ode_trigger_action_add_many](#dsl_ode_trigger_action_remove_many)
 * [dsl_ode_trigger_action_remove](#dsl_ode_trigger_action_add)
@@ -1249,6 +1251,47 @@ This service sets the "inference-done-only" criteria for the named ODE Trigger. 
 **Python Example**
 ```Python
 retval = dsl_ode_trigger_infer_done_only_get('my-trigger', 'infer_done_only')
+```
+
+<br>
+
+### *dsl_ode_trigger_interval_get*
+```c++
+DslReturnType dsl_ode_trigger_interval_get(const wchar_t* name, uint* interval);
+```
+This service gets the current frame processing interval setting for the named ODE Trigger, If set to `n`, the Trigger will only process every `nth` frame while skipping the others.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to query.
+* `limit` - [out] current interval setting for the ODE Trigger. Default = 0.  
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, interval = dsl_ode_trigger_interval_get('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_interval_set*
+```c++
+DslReturnType dsl_ode_trigger_interval_set(const wchar_t* name, uint interval);
+```
+
+This service sets the current frame processing interval setting for the named ODE Trigger, If set to `n`, the Trigger will only process every `nth` frame while skipping the others. 
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to update.
+* `interval` - [in] new interval for the ODE Trigger to process frames on. Set to 0 (default) or 1 to processess all frames.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_interval_set('my-trigger', 5)
 ```
 
 <br>
