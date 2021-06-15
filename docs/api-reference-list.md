@@ -362,6 +362,8 @@
 * [dsl_ode_trigger_dimensions_max_set](/docs/api-ode-trigger.md#dsl_ode_trigger_dimensions_max_set)
 * [dsl_ode_trigger_infer_done_only_get](/docs/api-ode-trigger.md#dsl_ode_trigger_infer_done_only_get)
 * [dsl_ode_trigger_infer_done_only_set](/docs/api-ode-trigger.md#dsl_ode_trigger_infer_done_only_set)
+* [dsl_ode_trigger_interval_get](/docs/api-ode-trigger.md#dsl_ode_trigger_interval_get)
+* [dsl_ode_trigger_interval_set](/docs/api-ode-trigger.md#dsl_ode_trigger_interval_set)
 * [dsl_ode_trigger_action_add](/docs/api-ode-trigger.md#dsl_ode_trigger_action_add)
 * [dsl_ode_trigger_action_add_many](/docs/api-ode-trigger.md#dsl_ode_trigger_action_remove_many)
 * [dsl_ode_trigger_action_remove](/docs/api-ode-trigger.md#dsl_ode_trigger_action_add)
