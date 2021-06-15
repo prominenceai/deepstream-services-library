@@ -1568,6 +1568,21 @@ DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name,
     const wchar_t* source, uint class_id, uint limit);
 
 /**
+ * @brief Accumulation trigger that checks for new instances of Objects for a specified
+ * source and object class_id accumulating the occurrences over consecutive frames. 
+ * The current accumulative occurrence value is reported after each frame. New instance 
+ * identification is based on Tracking Id.
+ * Note: the accumulative occurrence value is cleared on trigger reset.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
+ * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_accumulation_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
+    
+/**
  * @brief Count trigger that checks for the occurrence of Objects within a frame
  * and tests if the count is within a specified range.
  * @param[in] name unique name for the ODE Trigger

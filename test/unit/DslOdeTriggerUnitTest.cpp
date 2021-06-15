@@ -845,6 +845,238 @@ SCENARIO( "A OdeAbsenceTrigger checks for Source Name correctly", "[OdeTrigger]"
     }
 }
 
+SCENARIO( "An AccumulationOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]" )
+{
+    GIVEN( "A new AccumulationOdeTrigger with specific Class Id and Source Id criteria" ) 
+    {
+        std::string odeTriggerName("accumulation");
+        std::string source("source-1");
+        uint sourceId(1);
+        uint classId(1);
+        uint limit(0);
+
+        std::string odeActionName("event-action");
+
+        Services::GetServices()->_sourceNameSet(sourceId, source.c_str());
+
+        DSL_ODE_TRIGGER_ACCUMULATION_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_ACCUMULATION_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = sourceId;
+
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId; 
+        
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId; 
+        
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId; 
+        
+        WHEN( "Three objects have the same object Id" )
+        {
+            objectMeta1.object_id = 1; 
+            objectMeta2.object_id = 1; 
+            objectMeta3.object_id = 1; 
+
+            THEN( "Only the first object triggers ODE occurrence" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == false );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == false );
+            }
+        }
+        WHEN( "Three objects have different object Id's" )
+        {
+            objectMeta1.object_id = 1; 
+            objectMeta2.object_id = 2; 
+            objectMeta3.object_id = 3; 
+
+            THEN( "All three object triggers ODE occurrence" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            }
+        }
+        WHEN( "Two objects have the same object Id and a third object is difference" )
+        {
+            objectMeta1.object_id = 1; 
+            objectMeta2.object_id = 3; 
+            objectMeta3.object_id = 1; 
+
+            THEN( "Only the first and second objects trigger ODE occurrence" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "An AccumulationOdeTrigger accumulates ODE Occurrences correctly", "[OdeTrigger]" )
+{
+    GIVEN( "A new AccumulationOdeTrigger with specific Class Id and Source Id criteria" ) 
+    {
+        std::string odeTriggerName("accumulation");
+        std::string source("source-1");
+        uint sourceId(1);
+        uint classId(1);
+        uint limit(0);
+
+        std::string odeActionName("event-action");
+
+        Services::GetServices()->_sourceNameSet(sourceId, source.c_str());
+
+        DSL_ODE_TRIGGER_ACCUMULATION_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_ACCUMULATION_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = sourceId;
+
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId; 
+        
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId; 
+        
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId; 
+
+        frameMeta.frame_num = 1;
+        objectMeta1.object_id = 1; 
+        objectMeta2.object_id = 2; 
+        objectMeta3.object_id = 3; 
+        REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+        REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+        REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+
+        REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 3 );
+        
+        WHEN( "The same 3 objects are in the next frame" )
+        {
+            frameMeta.frame_num = 2;
+
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == false );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == false );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == false );
+
+            THEN( "The accumulation count is unchanged" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 3 );
+            }
+        }
+        WHEN( "Only 1 object is new in the next frame" )
+        {
+            frameMeta.frame_num = 2;
+            objectMeta3.object_id = 4; 
+
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == false );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == false );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+
+            THEN( "The accumulation count is updated correctly" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 4 );
+            }
+        }
+        WHEN( "All 3 objects in the next frame are new" )
+        {
+            frameMeta.frame_num = 3;
+            objectMeta1.object_id = 5; 
+            objectMeta2.object_id = 6; 
+            objectMeta3.object_id = 7; 
+
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+
+            THEN( "The accumulation count is updated correctly" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 6 );
+            }
+        }
+    }
+}
+
+SCENARIO( "An AccumulationOdeTrigger clears its count on Reset", "[OdeTrigger]" )
+{
+    GIVEN( "A new AccumulationOdeTrigger with specific Class Id and Source Id criteria" ) 
+    {
+        std::string odeTriggerName("accumulation");
+        std::string source("source-1");
+        uint sourceId(1);
+        uint classId(1);
+        uint limit(0);
+
+        std::string odeActionName("event-action");
+
+        Services::GetServices()->_sourceNameSet(sourceId, source.c_str());
+
+        DSL_ODE_TRIGGER_ACCUMULATION_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_ACCUMULATION_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = sourceId;
+
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId; 
+        
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId; 
+        
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId; 
+
+        frameMeta.frame_num = 1;
+        objectMeta1.object_id = 1; 
+        objectMeta2.object_id = 2; 
+        objectMeta3.object_id = 3; 
+        REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+        REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+        REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+
+        REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 3 );
+        
+        WHEN( "The same 3 objects are in the next frame after reset" )
+        {
+            frameMeta.frame_num = 2;
+
+            pOdeTrigger->Reset();
+
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+
+            THEN( "The accumulation count has restarted from 0" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 3 );
+            }
+        }
+    }
+}
+
 SCENARIO( "An InstanceOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]" )
 {
     GIVEN( "A new InstanceOdeTrigger with specific Class Id and Source Id criteria" ) 

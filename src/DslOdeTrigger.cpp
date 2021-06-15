@@ -672,6 +672,92 @@ namespace DSL
 
     // *****************************************************************************
 
+    AccumulationOdeTrigger::AccumulationOdeTrigger(const char* name, 
+        const char* source, uint classId, uint limit)
+        : OdeTrigger(name, source, classId, limit)
+        , m_accumulativeOccurrences(0)
+    {
+        LOG_FUNC();
+    }
+
+    AccumulationOdeTrigger::~AccumulationOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+
+    void AccumulationOdeTrigger::Reset()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_triggered = 0;
+        m_accumulativeOccurrences = 0;
+        m_instances.clear();
+    }
+    
+    bool AccumulationOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or 
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+        {
+            return false;
+        }
+
+        std::string sourceAndClassId = std::to_string(pFrameMeta->source_id) + "_" 
+            + std::to_string(pObjectMeta->class_id);
+            
+        // If this is the first time seeing an object of "class_id" for "source_id".
+        if (m_instances.find(sourceAndClassId) == m_instances.end())
+        {
+            // Initial the frame number for the new source
+            m_instances[sourceAndClassId] = 0;
+        }
+
+        if (m_instances[sourceAndClassId] < pObjectMeta->object_id)
+        {
+            // Update the running instance
+            m_instances[sourceAndClassId] = pObjectMeta->object_id;
+            
+            // Increment the Accumulative count. 
+            m_accumulativeOccurrences++;
+            
+            // update for current frame
+            m_occurrences = m_accumulativeOccurrences;
+            
+            return true;
+        }
+        // set to accumulative value always. Occurrences will be cleared in Pre-process frame.
+        m_occurrences = m_accumulativeOccurrences;
+        return false;
+    }
+
+    uint AccumulationOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+        NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
+    {
+        if (!m_enabled or m_skipFrame or (m_limit and m_triggered >= m_limit))
+        {
+            return 0;
+        }
+        // event has been triggered
+        IncrementAndCheckTriggerCount();
+
+         // update the total event count static variable
+        s_eventCount++;
+
+        for (const auto &imap: m_pOdeActions)
+        {
+            DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+            pOdeAction->HandleOccurrence(shared_from_this(), 
+                pBuffer, pDisplayMeta, pFrameMeta, NULL);
+        }
+        
+        // return the running accumulative total
+        return m_accumulativeOccurrences;
+   }
+
+    // *****************************************************************************
+
     InstanceOdeTrigger::InstanceOdeTrigger(const char* name, 
         const char* source, uint classId, uint limit)
         : OdeTrigger(name, source, classId, limit)
@@ -763,7 +849,7 @@ namespace DSL
     uint SummationOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
         NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
     {
-        if (!m_enabled or (m_limit and m_triggered >= m_limit))
+        if (!m_enabled or m_skipFrame or (m_limit and m_triggered >= m_limit))
         {
             return 0;
         }
