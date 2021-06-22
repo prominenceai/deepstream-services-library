@@ -178,6 +178,14 @@ def main(args):
             limit = DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
+            
+        # Processing at 30 frames per second can create a lot of images quickly. This is
+        # true even when triggering on new Instances, as the object Tracker has LIMITED
+        # accuracy with such a low camera angle, i.e. it has trouble when objects cross
+        # in front of one another. We need to throttle the processing interval to 
+        # allow each captured image time to load and play in the Image Player
+        # Change from the default of 0 (every frame) to every 15 frames (2 Hz).
+        retval = dsl_ode_trigger_interval_set('person-enter-area-trigger', 15)
 
         # Using the same Inclusion area as the New Occurrence Trigger
         retval = dsl_ode_trigger_area_add('person-enter-area-trigger', area='polygon-area')
@@ -223,7 +231,7 @@ def main(args):
             offset_x = 400, 
             offset_y = 100, 
             zoom = 150,
-            timeout = 1)
+            timeout = 0) # show indefinetely, until new image is captured
 
         # Add the Termination listener callback to the Player 
         retval = dsl_player_termination_event_listener_add('image-player',
