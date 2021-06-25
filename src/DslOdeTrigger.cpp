@@ -220,15 +220,40 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_resetTimerMutex);
         
         // If the timer is currently running and the new 
-        // timeout value = 0 = disable, then kill the timer.
+        // timeout value zero (disabled), then kill the timer.
         if (m_resetTimerId and !timeout)
         {
             g_source_remove(m_resetTimerId);
-            m_resetTimerId == 0;
+            m_resetTimerId = 0;
         }
+        
+        // Else, if the Timer is currently running and the new
+        // timeout value is non-zero, stop and restart the timer.
+        else if (m_resetTimerId and timeout)
+        {
+            g_source_remove(m_resetTimerId);
+            m_resetTimerId = g_timeout_add(1000*m_resetTimeout, 
+                TriggerResetTimeoutHandler, this);            
+        }
+        
+        // Else, if the Trigger has reached its limit and the 
+        // client is setting a Timeout value, start the timer.
+        else if (m_limit and m_triggered >= m_limit and timeout)
+        {
+            m_resetTimerId = g_timeout_add(1000*m_resetTimeout, 
+                TriggerResetTimeoutHandler, this);            
+        } 
         
         m_resetTimeout = timeout;
     }
+    
+    bool OdeTrigger::IsResetTimerRunning()
+    {
+        LOG_FUNC();
+
+        return m_resetTimerId;
+    }
+    
         
     bool OdeTrigger::GetEnabled()
     {
@@ -769,6 +794,15 @@ namespace DSL
     {
         LOG_FUNC();
     }
+
+    void InstanceOdeTrigger::Reset()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_triggered = 0;
+        m_instances.clear();
+    }
     
     bool InstanceOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
@@ -974,6 +1008,15 @@ namespace DSL
     PersistenceOdeTrigger::~PersistenceOdeTrigger()
     {
         LOG_FUNC();
+    }
+
+    void PersistenceOdeTrigger::Reset()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_triggered = 0;
+        m_trackedObjectsPerSource.clear();
     }
 
     void PersistenceOdeTrigger::GetRange(uint* minimum, uint* maximum)
