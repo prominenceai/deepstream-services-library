@@ -216,6 +216,12 @@ namespace DSL
         void SetResetTimeout(uint timeout);
         
         /**
+         * @brief Returns the current state of the Reset Timer.
+         * @return ture if the Reset Timer is running, false otherwise.
+         */
+        bool IsResetTimerRunning();
+        
+        /**
          * @brief Gets the current Enabled setting, default = true
          * @return the current Enabled setting
          */

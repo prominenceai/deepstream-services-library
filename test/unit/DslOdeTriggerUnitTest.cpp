@@ -128,6 +128,120 @@ SCENARIO( "An OdeOccurrenceTrigger checks its enabled setting ", "[OdeTrigger]" 
     }
 }
 
+SCENARIO( "An OdeOccurrenceTrigger handles a timed reset correctly", "[new]" )
+{
+    GIVEN( "A new OdeTrigger with default criteria" ) 
+    {
+        std::string odeTriggerName("occurence");
+        uint classId(1);
+        uint limit(1); // one-shot tirgger
+        uint reset_timeout(1);
+
+        std::string source;
+
+        std::string odeActionName("print-action");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        // Frame Meta test data
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  
+        frameMeta.frame_num = 1;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        // Object Meta test data
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match ODE Trigger's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.rect_params.left = 10;
+        objectMeta.rect_params.top = 10;
+        objectMeta.rect_params.width = 200;
+        objectMeta.rect_params.height = 100;
+
+        // Ensure correct defaults
+        REQUIRE( pOdeTrigger->GetResetTimeout() == 0 );
+        REQUIRE( pOdeTrigger->IsResetTimerRunning() == false);
+        
+        WHEN( "The ODE Trigger's ResetTimeout is first set" )
+        {
+            // Limit has NOT been reached
+            pOdeTrigger->SetResetTimeout(reset_timeout);
+            
+            THEN( "The correct timeout and is-running values are returned" )
+            {
+                REQUIRE( pOdeTrigger->GetResetTimeout() == reset_timeout );
+                REQUIRE( pOdeTrigger->IsResetTimerRunning() == false);
+            }
+        }
+
+        WHEN( "The ODE Trigger's ResetTimeout is set when limit has been reached" )
+        {
+            // First occurrence will reach the Trigger's limit of one
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
+
+            // Limit has been reached
+            pOdeTrigger->SetResetTimeout(reset_timeout);
+            
+            THEN( "The correct timeout and is-running values are returned" )
+            {
+                REQUIRE( pOdeTrigger->GetResetTimeout() == reset_timeout );
+                REQUIRE( pOdeTrigger->IsResetTimerRunning() == true);
+            }
+        }
+        WHEN( "The ODE Trigger's ResetTimeout is set when the timer is running" )
+        {
+            // Timeout is set before limit is reached
+            pOdeTrigger->SetResetTimeout(reset_timeout);
+
+            // First occurrence will reach the Trigger's limit of one
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
+
+            // Timer must now be running
+            REQUIRE( pOdeTrigger->IsResetTimerRunning() == true);
+
+            uint new_reset_timeout(5);
+            
+            // Timeout is set before limit is reached
+            pOdeTrigger->SetResetTimeout(new_reset_timeout);
+            
+            THEN( "The correct timeout and is-running values are returned" )
+            {
+                REQUIRE( pOdeTrigger->GetResetTimeout() == new_reset_timeout );
+                REQUIRE( pOdeTrigger->IsResetTimerRunning() == true);
+            }
+        }
+        WHEN( "The ODE Trigger's ResetTimeout is cleared when the timer is running" )
+        {
+            // Timeout is set before limit is reached
+            pOdeTrigger->SetResetTimeout(reset_timeout);
+
+            // First occurrence will reach the Trigger's limit of one
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
+
+            // Timer must now be running
+            REQUIRE( pOdeTrigger->IsResetTimerRunning() == true);
+
+            uint new_reset_timeout(0);
+            
+            // Timeout is set before limit is reached
+            pOdeTrigger->SetResetTimeout(new_reset_timeout);
+            
+            THEN( "The correct timeout and is-running values are returned" )
+            {
+                REQUIRE( pOdeTrigger->GetResetTimeout() == new_reset_timeout );
+                REQUIRE( pOdeTrigger->IsResetTimerRunning() == false);
+            }
+        }
+    }
+}
+
 SCENARIO( "An ODE Occurrence Trigger checks its minimum confidence correctly", "[OdeTrigger]" )
 {
     GIVEN( "A new OdeTrigger with default criteria" ) 
