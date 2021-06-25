@@ -769,6 +769,15 @@ namespace DSL
     {
         LOG_FUNC();
     }
+
+    void InstanceOdeTrigger::Reset()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_triggered = 0;
+        m_instances.clear();
+    }
     
     bool InstanceOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
@@ -974,6 +983,15 @@ namespace DSL
     PersistenceOdeTrigger::~PersistenceOdeTrigger()
     {
         LOG_FUNC();
+    }
+
+    void PersistenceOdeTrigger::Reset()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_triggered = 0;
+        m_trackedObjectsPerSource.clear();
     }
 
     void PersistenceOdeTrigger::GetRange(uint* minimum, uint* maximum)

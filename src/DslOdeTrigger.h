@@ -661,6 +661,11 @@ namespace DSL
         ~InstanceOdeTrigger();
 
         /**
+         * @brief Overrides the base Reset in order to clear m_instances
+         */
+        void Reset();
+
+        /**
          * @brief Function to check a given Object Meta data structure for New Instances of a Class
          * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
          * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
@@ -885,6 +890,11 @@ namespace DSL
         ~PersistenceOdeTrigger();
 
         /**
+         * @brief Overrides the base Reset in order to clear m_trackedObjectsPerSource
+         */
+        void Reset();
+
+        /**
          * @brief Gets the current Minimum and Maximum time settings in use. 
          * a value of 0 means no minimum or maximum
          * @param[out] minimim current minimum time setting in use
@@ -1094,7 +1104,7 @@ namespace DSL
         ~NewLowOdeTrigger();
 
         /**
-         * @brief Resets the Trigger
+         * @brief Overrides the base Reset to reset the m_currentLow to m_preset
          */
         virtual void Reset();
 
@@ -1145,7 +1155,7 @@ namespace DSL
         ~NewHighOdeTrigger();
 
         /**
-         * @brief Resets the Trigger
+         * @brief Overrides the base Reset to reset the m_currentHigh to m_preset
          */
         void Reset();
 
