@@ -92,9 +92,10 @@ DSL_RENDER_TYPE_WINDOW  = 1
 DSL_RECORDING_EVENT_START = 0
 DSL_RECORDING_EVENT_END   = 1
 
-DSL_EVENT_FILE_FORMAT_TEXT = 0
-DSL_EVENT_FILE_FORMAT_CSV  = 1
-
+DSL_EVENT_FILE_MODE_APPEND   = 0
+DSL_EVENT_FILE_MODE_TRUNCATE = 1
+DSL_EVENT_FILE_FORMAT_TEXT   = 0
+DSL_EVENT_FILE_FORMAT_CSV    = 1
 
 class dsl_coordinate(Structure):
     _fields_ = [
@@ -454,11 +455,11 @@ def dsl_ode_action_email_new(name, mailer, subject):
 ##
 ## dsl_ode_action_file_new()
 ##
-_dsl.dsl_ode_action_file_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_bool]
+_dsl.dsl_ode_action_file_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_bool]
 _dsl.dsl_ode_action_file_new.restype = c_uint
-def dsl_ode_action_file_new(name, file_path, format, force_flush):
+def dsl_ode_action_file_new(name, file_path, mode, format, force_flush):
     global _dsl
-    result =_dsl.dsl_ode_action_file_new(name, file_path, format, force_flush)
+    result =_dsl.dsl_ode_action_file_new(name, file_path, mode, format, force_flush)
     return int(result)
 
 ##

@@ -88,9 +88,18 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 
 ---
 
+## Constants
+The following symbolic constants are used by the OSD Action API
+```C
+#define DSL_EVENT_FILE_MODE_APPEND                                  0
+#define DSL_EVENT_FILE_MODE_TRUNCATE                                1
+#define DSL_EVENT_FILE_FORMAT_TEXT                                  0
+#define DSL_EVENT_FILE_FORMAT_CSV                                   1
+```
+
 ## Return Values
 The following return codes are used by the OSD Action API
-```C++
+```C
 #define DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE                       0x000F0001
 #define DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND                        0x000F0002
 #define DSL_RESULT_ODE_ACTION_CAPTURE_TYPE_INVALID                  0x000F0003
@@ -421,12 +430,18 @@ retval = dsl_ode_action_email_new('my-email-action', 'Bicycle has entered Inclus
 ### *dsl_ode_action_file_new*
 ```C++
 DslReturnType dsl_ode_action_file_new(const wchar_t* name, 
-    const wchar_t* file_path, boolean force_flush);
+    const wchar_t* file_path, uint mode, uint format, boolean force_flush);
 ```
-The constructor creates a uniquely named **File** ODE Action. When invoked, this Action will write the Frame/Object and Trigger Criteria information for the ODE occurence that triggered the event to a specified file. The file will be created if one does exists, or opened for append if found.
+The constructor creates a uniquely named **File** ODE Action. When invoked, this Action will write the Frame/Object and Trigger Criteria information for the ODE occurence that triggered the event to a specified file. The file will be created if one does exists. Existing file can be in either append or truncate modes.
+
+Event data can be saved in one of two formats; formated text or comma seperated values (CSV). Click on the image below to view the CSV column headers and example data.
+
+![CSV Event File Format](/Images/csv-file.png)
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
+* `mode` - [in] file open mode, either DSL_EVENT_FILE_MODE_APPEND or DSL_EVENT_FILE_MODE_TRUNCATE
+* `format` - [in] file format, either DSL_EVENT_FILE_FORMAT_TEXT or DSL_EVENT_FILE_FORMAT_CSV
 * `file_path` - [in] absolute or relative file path specification of the output file to use.
 * `force_flush` - [in] if set, the action will schedule a flush buffer operation to be performed by the idle thread.  
 
@@ -437,8 +452,8 @@ NOTE: although the flush event occurrs in the lowest priority background (idle) 
 
 **Python Example**
 ```Python
-retval = dsl_ode_action_file_new('my-file-action', 
-    './event_files/my-events.txt', false)
+retval = dsl_ode_action_file_new('my-file-action', './event_files/my-events.csv', 
+    DSL_EVENT_FILE_MODE_APPEND, DSL_EVENT_FILE_FORMAT_CSV, false)
 ```
 
 <br>

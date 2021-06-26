@@ -524,6 +524,12 @@ THE SOFTWARE.
 #define DSL_RECORDING_EVENT_END                                     1
 
 /**
+ * @brief File Open/Write Mode Options when saving Event Data to file.
+ */
+#define DSL_EVENT_FILE_MODE_APPEND                                  0
+#define DSL_EVENT_FILE_MODE_TRUNCATE                                1
+
+/**
  * @brief File Format Options when saving Event Data to file.
  */
 #define DSL_EVENT_FILE_FORMAT_TEXT                                  0
@@ -1170,6 +1176,7 @@ DslReturnType dsl_ode_action_email_new(const wchar_t* name,
  * @param[in] name unique name for the File ODE Action
  * @param[in] file_path absolute or relative file path of the output file to use
  * The file will be created if one does exists, or opened for append if found.
+ * @param[in] mode file open/write mode, one of DSL_EVENT_FILE_MODE_* options
  * @param[in] format one of the DSL_EVENT_FILE_FORMAT_* options
  * @param[in] force_flush  if true, the action will schedule a flush to be performed 
  * by the idle thread. NOTE: although the flush event occurs in a background thread,
@@ -1179,8 +1186,8 @@ DslReturnType dsl_ode_action_email_new(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_file_new(const wchar_t* name, 
-    const wchar_t* file_path, uint format, boolean force_flush);
-
+    const wchar_t* file_path, uint mode, uint format, boolean force_flush);
+    
 /**
  * @brief Creates a uniquely named Fill Frame ODE Action, that fills the entire
  * frame with a give RGBA color value
