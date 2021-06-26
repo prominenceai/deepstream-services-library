@@ -104,8 +104,9 @@ namespace DSL
         std::shared_ptr<PrintOdeAction>(new PrintOdeAction(name, forceFlush))
 
     #define DSL_ODE_ACTION_FILE_PTR std::shared_ptr<FileOdeAction>
-    #define DSL_ODE_ACTION_FILE_NEW(name, filePath, format, forceFlush) \
-        std::shared_ptr<FileOdeAction>(new FileOdeAction(name, filePath, format, forceFlush))
+    #define DSL_ODE_ACTION_FILE_NEW(name, filePath, mode, format, forceFlush) \
+        std::shared_ptr<FileOdeAction>(new FileOdeAction(name, \
+            filePath, mode, format, forceFlush))
         
     #define DSL_ODE_ACTION_REDACT_PTR std::shared_ptr<RedactOdeAction>
     #define DSL_ODE_ACTION_REDACT_NEW(name) \
@@ -1024,7 +1025,7 @@ namespace DSL
          * @param[in] name unique name for the ODE Action
          */
         FileOdeAction(const char* name, 
-            const char* filePath, uint format, bool forceflush);
+            const char* filePath, uint mode, uint format, bool forceflush);
         
         /**
          * @brief dtor for the Print ODE Action class
@@ -1055,6 +1056,12 @@ namespace DSL
          * @brief relative or absolute path to the file to write to
          */ 
         std::string m_filePath;
+        
+        /**
+         * @brief specifies the file open mode, DSL_EVENT_FILE_MODE_APPEND or
+         * DSL_EVENT_FILE_MODE_OVERWRITE
+         */
+        uint m_mode;
         
         /**
          * @brief specifies which data format to use, DSL_EVENT_FILE_FORMAT_TEXT or

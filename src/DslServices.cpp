@@ -1456,7 +1456,7 @@ namespace DSL
     }
 
     DslReturnType Services::OdeActionFileNew(const char* name, 
-        const char* filePath, uint format, boolean forceFlush)
+        const char* filePath, uint mode, uint format, boolean forceFlush)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1469,6 +1469,12 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
+            if (mode > DSL_EVENT_FILE_MODE_TRUNCATE)
+            {
+                LOG_ERROR("File open mode " << mode 
+                    << " is invalid for ODE Action '" << name << "'");
+                return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
+            }
             if (format > DSL_EVENT_FILE_FORMAT_CSV)
             {
                 LOG_ERROR("File format " << format 
@@ -1476,7 +1482,7 @@ namespace DSL
                 return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
             }
             m_odeActions[name] = DSL_ODE_ACTION_FILE_NEW(name, 
-                filePath, format, forceFlush);
+                filePath, mode, format, forceFlush);
 
             LOG_INFO("New ODE File Action '" << name << "' created successfully");
 

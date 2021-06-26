@@ -807,18 +807,36 @@ namespace DSL
     // ********************************************************************
 
     FileOdeAction::FileOdeAction(const char* name,
-        const char* filePath, uint format, bool forceFlush)
+        const char* filePath, uint mode, uint format, bool forceFlush)
         : OdeAction(name)
         , m_filePath(filePath)
+        , m_mode(mode)
         , m_format(format)
         , m_forceFlush(forceFlush)
         , m_flushThreadFunctionId(0)
     {
         LOG_FUNC();
 
+        // determine if new or existing file
+        std::ifstream streamUriFile(filePath);
+        bool fileExists(streamUriFile.good());
+        
+        // add the CSV header by default (if format == CSV)
+        bool addCsvHeader(true);
+
         try
         {
-            m_ostream.open(m_filePath, std::fstream::out | std::fstream::app);
+            if (m_mode == DSL_EVENT_FILE_MODE_APPEND)
+            {
+                m_ostream.open(m_filePath, std::fstream::out | std::fstream::app);
+                
+                // don't add the header if we're appending to an existing file
+                addCsvHeader = !fileExists;
+            }
+            else
+            {
+                m_ostream.open(m_filePath, std::fstream::out | std::fstream::trunc);
+            }
         }
         catch(...) 
         {
@@ -840,7 +858,9 @@ namespace DSL
             m_ostream << " File opened: " << dateTimeStr.c_str() << "\n";
             m_ostream << "-------------------------------------------------------------------" << "\n";
         }
-        else
+        
+        // Else it's CSV format, so add header if new/empty file
+        else if (addCsvHeader)
         {
             m_ostream << "Trigger Name,";
             m_ostream << "Event Id,";

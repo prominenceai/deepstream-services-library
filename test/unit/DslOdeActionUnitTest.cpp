@@ -72,7 +72,7 @@ SCENARIO( "A new CustomOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_CUSTOM_PTR pAction = 
                 DSL_ODE_ACTION_CUSTOM_NEW(actionName.c_str(), ode_occurrence_handler_cb, NULL);
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -135,7 +135,7 @@ SCENARIO( "A new CaptureFrameOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_CAPTURE_FRAME_PTR pAction = 
                 DSL_ODE_ACTION_CAPTURE_FRAME_NEW(actionName.c_str(), outdir.c_str(), annotate);
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -156,7 +156,7 @@ SCENARIO( "A new CaptureOjbectOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_CAPTURE_OBJECT_PTR pAction = 
                 DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(actionName.c_str(), outdir.c_str());
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -266,7 +266,7 @@ SCENARIO( "A new EmailOdeAction is created correctly", "[OdeAction]" )
                 DSL_ODE_ACTION_EMAIL_NEW(actionName.c_str(), 
                     pMailer, subject.c_str());
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -321,20 +321,71 @@ SCENARIO( "A EmailOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
     }
 }
 
-SCENARIO( "A new FileOdeAction is created correctly", "[OdeAction]" )
+SCENARIO( "A new Text FileOdeAction is created correctly", "[OdeAction]" )
 {
     GIVEN( "Attributes for a new FileOdeAction" ) 
     {
         std::string actionName("ode-action");
-        std::string filePath("./my-file.txt");
+        std::string filePath("./event-file.txt");
+        uint mode(DSL_EVENT_FILE_MODE_APPEND);
+        uint format(DSL_EVENT_FILE_FORMAT_TEXT);
         bool forceFlush(true);
 
         WHEN( "A new OdeAction is created" )
         {
             DSL_ODE_ACTION_FILE_PTR pAction = DSL_ODE_ACTION_FILE_NEW(
-                actionName.c_str(), filePath.c_str(), DSL_EVENT_FILE_FORMAT_TEXT, forceFlush);
+                actionName.c_str(), filePath.c_str(), mode, format, forceFlush);
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new CSV FileOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new FileOdeAction" ) 
+    {
+        std::string actionName("ode-action");
+        uint format(DSL_EVENT_FILE_FORMAT_CSV);
+        bool forceFlush(true);
+
+        WHEN( "A new CSV FileOdeAction is created in APPEND mode" )
+        {
+            std::string filePath("./event-file-append.csv");
+            uint mode(DSL_EVENT_FILE_MODE_APPEND);
+
+            // create the action and CSV file once
+            {
+                DSL_ODE_ACTION_FILE_PTR pAction = DSL_ODE_ACTION_FILE_NEW(
+                    actionName.c_str(), filePath.c_str(), mode, format, forceFlush);
+                    
+                REQUIRE( pAction != nullptr );
+            }
+            // create the action and CSV file a second time 
+            DSL_ODE_ACTION_FILE_PTR pAction = DSL_ODE_ACTION_FILE_NEW(
+                actionName.c_str(), filePath.c_str(), mode, format, forceFlush);
+
+            // ***************************************************
+            // NOTE: requires manual verification to ensure header is only added once.
+            THEN( "The Action's members are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+        WHEN( "A new CSV FileOdeAction is created in TRUNCATE mode" )
+        {
+            std::string filePath("./event-file-truncate.csv");
+            uint mode(DSL_EVENT_FILE_MODE_TRUNCATE);
+            
+            DSL_ODE_ACTION_FILE_PTR pAction = DSL_ODE_ACTION_FILE_NEW(
+                actionName.c_str(), filePath.c_str(), mode, format, forceFlush);
+
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -354,13 +405,15 @@ SCENARIO( "A FileOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
         
         std::string actionName("action");
         std::string filePath("./my-file.txt");
+        uint mode(DSL_EVENT_FILE_MODE_APPEND);
+        uint format(DSL_EVENT_FILE_FORMAT_CSV);
         bool forceFlush(false);
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_FILE_PTR pAction = DSL_ODE_ACTION_FILE_NEW(
-            actionName.c_str(), filePath.c_str(), DSL_EVENT_FILE_FORMAT_TEXT, forceFlush);
+            actionName.c_str(), filePath.c_str(), mode, format, forceFlush);
 
         WHEN( "A new ODE is created" )
         {
@@ -382,6 +435,8 @@ SCENARIO( "A FileOdeAction with forceFlush set flushes the stream correctly", "[
     {
         std::string triggerName("first-occurence");
         std::string source;
+        uint mode(DSL_EVENT_FILE_MODE_APPEND);
+        uint format(DSL_EVENT_FILE_FORMAT_CSV);
         uint classId(1);
         uint limit(1);
         
@@ -393,7 +448,7 @@ SCENARIO( "A FileOdeAction with forceFlush set flushes the stream correctly", "[
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_FILE_PTR pAction = DSL_ODE_ACTION_FILE_NEW(
-            actionName.c_str(), filePath.c_str(), DSL_EVENT_FILE_FORMAT_TEXT, forceFlush);
+            actionName.c_str(), filePath.c_str(), mode, format, forceFlush);
 
         WHEN( "A new ODE is created" )
         {
@@ -425,7 +480,7 @@ SCENARIO( "A new HandlerDisableOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_TRIGGER_DISABLE_PTR pAction = 
                 DSL_ODE_ACTION_TRIGGER_DISABLE_NEW(actionName.c_str(), handlerName.c_str());
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -482,7 +537,7 @@ SCENARIO( "A new FillSurroundingsOdeAction is created correctly", "[OdeAction]" 
             DSL_ODE_ACTION_FILL_OBJECT_PTR pAction = 
                 DSL_ODE_ACTION_FILL_OBJECT_NEW(actionName.c_str(), pBgColor);
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -507,7 +562,7 @@ SCENARIO( "A new FillObjectOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_FILL_OBJECT_PTR pAction = 
                 DSL_ODE_ACTION_FILL_OBJECT_NEW(actionName.c_str(), pColor);
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -591,7 +646,7 @@ SCENARIO( "A new HideOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_HIDE_PTR pAction = 
                 DSL_ODE_ACTION_HIDE_NEW(actionName.c_str(), true, true);
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -656,7 +711,7 @@ SCENARIO( "A new LogOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_LOG_PTR pAction = 
                 DSL_ODE_ACTION_LOG_NEW(actionName.c_str());
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -718,7 +773,7 @@ SCENARIO( "A new PauseOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_PAUSE_PTR pAction = 
                 DSL_ODE_ACTION_PAUSE_NEW(actionName.c_str(), pipelineName.c_str());
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -781,7 +836,7 @@ SCENARIO( "A new PrintOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_PRINT_PTR pAction = 
                 DSL_ODE_ACTION_PRINT_NEW(actionName.c_str(), false);
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -842,7 +897,7 @@ SCENARIO( "A new RedactOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_REDACT_PTR pAction = 
                 DSL_ODE_ACTION_REDACT_NEW(actionName.c_str());
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -918,7 +973,7 @@ SCENARIO( "A new SinkAddOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_SINK_ADD_PTR pAction = 
                 DSL_ODE_ACTION_SINK_ADD_NEW(actionName.c_str(), pipelineName.c_str(), sinkName.c_str());
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -973,7 +1028,7 @@ SCENARIO( "A new SinkRemoveOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_SINK_REMOVE_PTR pAction = 
                 DSL_ODE_ACTION_SINK_REMOVE_NEW(actionName.c_str(), pipelineName.c_str(), sinkName.c_str());
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -1028,7 +1083,7 @@ SCENARIO( "A new SourceAddOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_SOURCE_ADD_PTR pAction = 
                 DSL_ODE_ACTION_SOURCE_ADD_NEW(actionName.c_str(), pipelineName.c_str(), sourceName.c_str());
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -1083,7 +1138,7 @@ SCENARIO( "A new SourceRemoveOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_SOURCE_REMOVE_PTR pAction = 
                 DSL_ODE_ACTION_SOURCE_REMOVE_NEW(actionName.c_str(), pipelineName.c_str(), sourceName.c_str());
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -1138,7 +1193,7 @@ SCENARIO( "A new ActionAddOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_AREA_ADD_PTR pAction = 
                 DSL_ODE_ACTION_AREA_ADD_NEW(actionName.c_str(), triggerName.c_str(), otherActionName.c_str());
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -1191,7 +1246,7 @@ SCENARIO( "A new ActionDisableOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_ACTION_DISABLE_PTR pAction = 
                 DSL_ODE_ACTION_ACTION_DISABLE_NEW(actionName.c_str(), otherActionName.c_str());
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -1244,7 +1299,7 @@ SCENARIO( "A new ActionEnableOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_ACTION_ENABLE_PTR pAction = 
                 DSL_ODE_ACTION_ACTION_ENABLE_NEW(actionName.c_str(), otherActionName.c_str());
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -1298,7 +1353,7 @@ SCENARIO( "A new AreaAddOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_AREA_ADD_PTR pAction = 
                 DSL_ODE_ACTION_AREA_ADD_NEW(actionName.c_str(), triggerName.c_str(), areaName.c_str());
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -1352,7 +1407,7 @@ SCENARIO( "A new TriggerResetOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_TRIGGER_DISABLE_PTR pAction = 
                 DSL_ODE_ACTION_TRIGGER_DISABLE_NEW(actionName.c_str(), otherTriggerName.c_str());
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -1406,7 +1461,7 @@ SCENARIO( "A new TriggerDisableOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_TRIGGER_DISABLE_PTR pAction = 
                 DSL_ODE_ACTION_TRIGGER_DISABLE_NEW(actionName.c_str(), otherTriggerName.c_str());
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -1459,7 +1514,7 @@ SCENARIO( "A new TriggerEnableOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_TRIGGER_ENABLE_PTR pAction = 
                 DSL_ODE_ACTION_TRIGGER_ENABLE_NEW(actionName.c_str(), otherTriggerName.c_str());
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -1524,7 +1579,7 @@ SCENARIO( "A new RecordSinkStartOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_SINK_RECORD_START_PTR pAction = 
                 DSL_ODE_ACTION_SINK_RECORD_START_NEW(actionName.c_str(), pRecordingSinkBintr, 1, 1, NULL);
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -1601,7 +1656,7 @@ SCENARIO( "A new RecordSinkStopOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_SINK_RECORD_STOP_PTR pAction = 
                 DSL_ODE_ACTION_SINK_RECORD_STOP_NEW(actionName.c_str(), pRecordingSinkBintr);
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -1672,7 +1727,7 @@ SCENARIO( "A new RecordTapStartOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_TAP_RECORD_START_PTR pAction = 
                 DSL_ODE_ACTION_TAP_RECORD_START_NEW(actionName.c_str(), pRecordTapBintr, 1, 1, NULL);
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -1739,7 +1794,7 @@ SCENARIO( "A new RecordTapStopOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_TAP_RECORD_STOP_PTR pAction = 
                 DSL_ODE_ACTION_TAP_RECORD_STOP_NEW(actionName.c_str(), pRecordTapBintr);
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
@@ -1801,7 +1856,7 @@ SCENARIO( "A new TilerShowSourceOdeAction is created correctly", "[OdeAction]" )
             DSL_ODE_ACTION_TILER_SHOW_SOURCE_PTR pAction = 
                 DSL_ODE_ACTION_TILER_SHOW_SOURCE_NEW(actionName.c_str(), tilerName.c_str(), timeout, hasPrecedence);
 
-            THEN( "The Action's memebers are setup and returned correctly" )
+            THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
