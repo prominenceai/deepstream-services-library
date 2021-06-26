@@ -751,8 +751,6 @@ namespace DSL
             body.push_back(std::string("    Heigh       : " 
                 +  std::to_string(pFrameMeta->source_frame_height) + "<br>"));
             body.push_back(std::string("  Object Data   : ------------------------<br>"));
-            body.push_back(std::string("    Class Id    : " 
-                +  std::to_string(pTrigger->m_classId) + "<br>"));
             body.push_back(std::string("    Occurrences : " 
                 +  std::to_string(pTrigger->m_occurrences) + "<br>"));
 
@@ -777,8 +775,8 @@ namespace DSL
             }
 
             body.push_back(std::string("  Criteria      : ------------------------<br>"));
-            body.push_back(std::string("    Confidence  : " 
-                +  std::to_string(pTrigger->m_minConfidence) + "<br>"));
+            body.push_back(std::string("    Class Id    : " 
+                +  std::to_string(pTrigger->m_classId) + "<br>"));
             body.push_back(std::string("    Frame Count : " 
                 +  std::to_string(pTrigger->m_minFrameCountN) + " out of " 
                 +  std::to_string(pTrigger->m_minFrameCountD) + "<br>"));
@@ -790,6 +788,8 @@ namespace DSL
                 +  std::to_string(lrint(pTrigger->m_maxWidth)) + "<br>"));
             body.push_back(std::string("    Max Height  : " 
                 +  std::to_string(lrint(pTrigger->m_maxHeight)) + "<br>"));
+            body.push_back(std::string("    Confidence  : " 
+                +  std::to_string(pTrigger->m_minConfidence) + "<br>"));
 
             if (pTrigger->m_inferDoneOnly)
             {
@@ -842,7 +842,32 @@ namespace DSL
         }
         else
         {
-            
+            m_ostream << "Trigger Name,";
+            m_ostream << "Event Id,";
+            m_ostream << "NTP Timestamp,";
+            m_ostream << "Inference Done,";
+            m_ostream << "Source Id,";
+            m_ostream << "Batch Idx,";
+            m_ostream << "Pad Idx,";
+            m_ostream << "Frame,";
+            m_ostream << "Width,";
+            m_ostream << "Height,";
+            m_ostream << "Occurrences,";
+            m_ostream << "Class Id,";
+            m_ostream << "Object Id,";
+            m_ostream << "Label,";
+            m_ostream << "Confidence,";
+            m_ostream << "Left,";
+            m_ostream << "Top,";
+            m_ostream << "Width,";
+            m_ostream << "Height,";
+            m_ostream << "Class Id Filter,";
+            m_ostream << "Min Width,";
+            m_ostream << "Min Height,";
+            m_ostream << "Max Width,";
+            m_ostream << "Max Height,";
+            m_ostream << "Min Confidence,";
+            m_ostream << "Inference Done Only\n";
         }
     
         g_mutex_init(&m_ostreamMutex);
@@ -877,6 +902,7 @@ namespace DSL
             m_ostream << " File closed: " << dateTimeStr.c_str() << "\n";
             m_ostream << "-------------------------------------------------------------------" << "\n";
         }
+            
         m_ostream.close();
         g_mutex_clear(&m_ostreamMutex);
     }
@@ -915,7 +941,6 @@ namespace DSL
             m_ostream << "    Width       : " << pFrameMeta->source_frame_width << "\n";
             m_ostream << "    Heigh       : " << pFrameMeta->source_frame_height << "\n";
             m_ostream << "  Object Data   : ------------------------" << "\n";
-            m_ostream << "    Class Id    : " << pTrigger->m_classId << "\n";
             m_ostream << "    Occurrences : " << pTrigger->m_occurrences << "\n";
 
             if (pObjectMeta)
@@ -931,6 +956,7 @@ namespace DSL
             }
 
             m_ostream << "  Criteria      : ------------------------" << "\n";
+            m_ostream << "    Class Id    : " << pTrigger->m_classId << "\n";
             m_ostream << "    Confidence  : " << pTrigger->m_minConfidence << "\n";
             m_ostream << "    Frame Count : " << pTrigger->m_minFrameCountN
                 << " out of " << pTrigger->m_minFrameCountD << "\n";
@@ -952,7 +978,7 @@ namespace DSL
         {
             m_ostream << pTrigger->GetName() << ",";
             m_ostream << pTrigger->s_eventCount << ",";
-            m_ostream << Ntp2Str(pFrameMeta->ntp_timestamp) << ",";
+            m_ostream << pFrameMeta->ntp_timestamp << ",";
             if (pFrameMeta->bInferDone)
             {
                 m_ostream << "Yes,";
@@ -967,7 +993,6 @@ namespace DSL
             m_ostream << pFrameMeta->frame_num << ",";
             m_ostream << pFrameMeta->source_frame_width << ",";
             m_ostream << pFrameMeta->source_frame_height << ",";
-            m_ostream << pTrigger->m_classId << ",";
             m_ostream << pTrigger->m_occurrences << ",";
 
             if (pObjectMeta)
@@ -981,12 +1006,17 @@ namespace DSL
                 m_ostream << lrint(pObjectMeta->rect_params.width) << ",";
                 m_ostream << lrint(pObjectMeta->rect_params.height) << ",";
             }
+            else
+            {
+                m_ostream << "0,0,0,0,0,0,0,0";
+            }
 
-            m_ostream << pTrigger->m_minConfidence << ",";
+            m_ostream << pTrigger->m_classId << ",";
             m_ostream << lrint(pTrigger->m_minWidth) << ",";
             m_ostream << lrint(pTrigger->m_minHeight) << ",";
             m_ostream << lrint(pTrigger->m_maxWidth) << ",";
             m_ostream << lrint(pTrigger->m_maxHeight) << ",";
+            m_ostream << pTrigger->m_minConfidence << ",";
 
             if (pTrigger->m_inferDoneOnly)
             {
@@ -1227,7 +1257,6 @@ namespace DSL
             LOG_INFO("    Width       : " << pFrameMeta->source_frame_width);
             LOG_INFO("    Heigh       : " << pFrameMeta->source_frame_height );
             LOG_INFO("  Object Data   : ------------------------");
-            LOG_INFO("    Class Id    : " << pTrigger->m_classId );
             LOG_INFO("    Occurrences : " << pTrigger->m_occurrences );
             
             if (pObjectMeta)
@@ -1242,6 +1271,7 @@ namespace DSL
                 LOG_INFO("    Height      : " << pObjectMeta->rect_params.height);
             }
             LOG_INFO("  Criteria      : ------------------------");
+            LOG_INFO("    Class Id    : " << pTrigger->m_classId );
             LOG_INFO("    Confidence  : " << pTrigger->m_minConfidence);
             LOG_INFO("    Frame Count : " << pTrigger->m_minFrameCountN
                 << " out of " << pTrigger->m_minFrameCountD);
@@ -1382,7 +1412,6 @@ namespace DSL
         std::cout << "    Width       : " << pFrameMeta->source_frame_width << "\n";
         std::cout << "    Heigh       : " << pFrameMeta->source_frame_height << "\n";
         std::cout << "  Object Data   : ------------------------" << "\n";
-        std::cout << "    Class Id    : " << pTrigger->m_classId << "\n";
         std::cout << "    Occurrences : " << pTrigger->m_occurrences << "\n";
 
         if (pObjectMeta)
@@ -1398,13 +1427,14 @@ namespace DSL
         }
 
         std::cout << "  Criteria      : ------------------------" << "\n";
-        std::cout << "    Confidence  : " << pTrigger->m_minConfidence << "\n";
+        std::cout << "    Class Id    : " << pTrigger->m_classId << "\n";
         std::cout << "    Frame Count : " << pTrigger->m_minFrameCountN
             << " out of " << pTrigger->m_minFrameCountD << "\n";
         std::cout << "    Min Width   : " << lrint(pTrigger->m_minWidth) << "\n";
         std::cout << "    Min Height  : " << lrint(pTrigger->m_minHeight) << "\n";
         std::cout << "    Max Width   : " << lrint(pTrigger->m_maxWidth) << "\n";
         std::cout << "    Max Height  : " << lrint(pTrigger->m_maxHeight) << "\n";
+        std::cout << "    Confidence  : " << pTrigger->m_minConfidence << "\n";
 
         if (pTrigger->m_inferDoneOnly)
         {
