@@ -7162,7 +7162,7 @@ namespace DSL
 
             if (!pTilerBintr->CycleAllSources(timeout))
             {
-                    LOG_ERROR("Tiler '" << name << "' failed to select specific source");
+                    LOG_ERROR("Tiler '" << name << "' failed to set Cycle all sources");
                     return DSL_RESULT_TILER_SET_FAILED;
             }
             LOG_INFO("Cycle all sources with timeout " << timeout 
