@@ -234,15 +234,11 @@ namespace DSL
             LOG_ERROR("Timeout value can not be 0 when enabling cycle-all-sources for TilerBintr '" << GetName());
             return false;
         }
-//        if (!IsLinked())
-//        {
-//            LOG_ERROR("Cycle-all-sources can not be set until TilerBintr '" << GetName() << "' is linked");
-//            return false;
-//        }
-        if (m_showSourceCycle)
+        // if the timer is currently running, stop and remove first.
+        if (m_showSourceTimerId)
         {
-            LOG_ERROR("Cycle-all-sources is already enbled for TilerBintr '" << GetName());
-            return false;
+            g_source_remove(m_showSourceTimerId);
+            m_showSourceTimerId = 0;
         }
 
         m_showSourceCycle = true;
@@ -283,13 +279,14 @@ namespace DSL
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
         
-        // Tiler is no longer linked return false to detroy timer
+        // Tiler is no longer linked but the main_loop and timer are still running
         if (!IsLinked())
         {
-            m_showSourceTimerId = 0;
-            m_showSourceId = -1;
-            return false;
+            // do nothing, but keep the timer running to support relink and play
+            // The Timer's Cycle Source setting should remain as is.
+            return true;
         }
+        LOG_INFO("Counter = " << m_showSourceCounter);
         if (--m_showSourceCounter == 0)
         {
             // if we are cycling through sources
