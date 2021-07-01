@@ -135,7 +135,7 @@ namespace DSL {
             const char* mailer, const char* subject);
         
         DslReturnType OdeActionFileNew(const char* name, 
-            const char* filePath, boolean forceFlush);
+            const char* filePath, uint mode, uint format, boolean forceFlush);
         
         DslReturnType OdeActionFillSurroundingsNew(const char* name, const char* color);
         
@@ -232,6 +232,9 @@ namespace DSL {
             const char* source, uint classId, uint limit);
         
         DslReturnType OdeTriggerAbsenceNew(const char* name, 
+            const char* source, uint classId, uint limit);
+
+        DslReturnType OdeTriggerAccumulationNew(const char* name, 
             const char* source, uint classId, uint limit);
 
         DslReturnType OdeTriggerInstanceNew(const char* name, 
@@ -338,6 +341,10 @@ namespace DSL {
         DslReturnType OdeTriggerInferDoneOnlyGet(const char* name, boolean* inferDoneOnly);
         
         DslReturnType OdeTriggerInferDoneOnlySet(const char* name, boolean inferDoneOnly);
+        
+        DslReturnType OdeTriggerIntervalGet(const char* name, uint* interval);
+        
+        DslReturnType OdeTriggerIntervalSet(const char* name, uint interval);
         
         DslReturnType OdeTriggerActionAdd(const char* name, const char* action);
 

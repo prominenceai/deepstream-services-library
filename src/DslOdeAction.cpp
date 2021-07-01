@@ -503,6 +503,13 @@ namespace DSL
                     if (state == GST_STATE_PLAYING or state == GST_STATE_PAUSED)
                     {
                         pImagePlayer->QueueFilePath(filespec.c_str());
+                        
+                        // If the Player's EOS timeout is not running, i.e the previous
+                        // image is being shown indefinetely - show next (i.e. this image)
+                        if (!pImagePlayer->GetTimeout())
+                        {
+                            pImagePlayer->Next();
+                        }
                     }
                     else
                     {
@@ -744,8 +751,6 @@ namespace DSL
             body.push_back(std::string("    Heigh       : " 
                 +  std::to_string(pFrameMeta->source_frame_height) + "<br>"));
             body.push_back(std::string("  Object Data   : ------------------------<br>"));
-            body.push_back(std::string("    Class Id    : " 
-                +  std::to_string(pTrigger->m_classId) + "<br>"));
             body.push_back(std::string("    Occurrences : " 
                 +  std::to_string(pTrigger->m_occurrences) + "<br>"));
 
@@ -770,8 +775,8 @@ namespace DSL
             }
 
             body.push_back(std::string("  Criteria      : ------------------------<br>"));
-            body.push_back(std::string("    Confidence  : " 
-                +  std::to_string(pTrigger->m_minConfidence) + "<br>"));
+            body.push_back(std::string("    Class Id    : " 
+                +  std::to_string(pTrigger->m_classId) + "<br>"));
             body.push_back(std::string("    Frame Count : " 
                 +  std::to_string(pTrigger->m_minFrameCountN) + " out of " 
                 +  std::to_string(pTrigger->m_minFrameCountD) + "<br>"));
@@ -783,6 +788,8 @@ namespace DSL
                 +  std::to_string(lrint(pTrigger->m_maxWidth)) + "<br>"));
             body.push_back(std::string("    Max Height  : " 
                 +  std::to_string(lrint(pTrigger->m_maxHeight)) + "<br>"));
+            body.push_back(std::string("    Confidence  : " 
+                +  std::to_string(pTrigger->m_minConfidence) + "<br>"));
 
             if (pTrigger->m_inferDoneOnly)
             {
@@ -800,17 +807,36 @@ namespace DSL
     // ********************************************************************
 
     FileOdeAction::FileOdeAction(const char* name,
-        const char* filePath, bool forceFlush)
+        const char* filePath, uint mode, uint format, bool forceFlush)
         : OdeAction(name)
         , m_filePath(filePath)
+        , m_mode(mode)
+        , m_format(format)
         , m_forceFlush(forceFlush)
         , m_flushThreadFunctionId(0)
     {
         LOG_FUNC();
 
+        // determine if new or existing file
+        std::ifstream streamUriFile(filePath);
+        bool fileExists(streamUriFile.good());
+        
+        // add the CSV header by default (if format == CSV)
+        bool addCsvHeader(true);
+
         try
         {
-            m_ostream.open(m_filePath, std::fstream::out | std::fstream::app);
+            if (m_mode == DSL_EVENT_FILE_MODE_APPEND)
+            {
+                m_ostream.open(m_filePath, std::fstream::out | std::fstream::app);
+                
+                // don't add the header if we're appending to an existing file
+                addCsvHeader = !fileExists;
+            }
+            else
+            {
+                m_ostream.open(m_filePath, std::fstream::out | std::fstream::trunc);
+            }
         }
         catch(...) 
         {
@@ -818,17 +844,51 @@ namespace DSL
             throw;
         }
     
-        char dateTime[DATE_BUFF_LENGTH] = {0};
-        time_t seconds = time(NULL);
-        struct tm currentTm;
-        localtime_r(&seconds, &currentTm);
+        if (m_format == DSL_EVENT_FILE_FORMAT_TEXT)
+        {
+            char dateTime[DATE_BUFF_LENGTH] = {0};
+            time_t seconds = time(NULL);
+            struct tm currentTm;
+            localtime_r(&seconds, &currentTm);
 
-        strftime(dateTime, DATE_BUFF_LENGTH, "%a, %d %b %Y %H:%M:%S %z", &currentTm);
-        std::string dateTimeStr(dateTime);
+            strftime(dateTime, DATE_BUFF_LENGTH, "%a, %d %b %Y %H:%M:%S %z", &currentTm);
+            std::string dateTimeStr(dateTime);
+            
+            m_ostream << "-------------------------------------------------------------------" << "\n";
+            m_ostream << " File opened: " << dateTimeStr.c_str() << "\n";
+            m_ostream << "-------------------------------------------------------------------" << "\n";
+        }
         
-        m_ostream << "-------------------------------------------------------------------" << "\n";
-        m_ostream << " File opened: " << dateTimeStr.c_str() << "\n";
-        m_ostream << "-------------------------------------------------------------------" << "\n";
+        // Else it's CSV format, so add header if new/empty file
+        else if (addCsvHeader)
+        {
+            m_ostream << "Trigger Name,";
+            m_ostream << "Event Id,";
+            m_ostream << "NTP Timestamp,";
+            m_ostream << "Inference Done,";
+            m_ostream << "Source Id,";
+            m_ostream << "Batch Idx,";
+            m_ostream << "Pad Idx,";
+            m_ostream << "Frame,";
+            m_ostream << "Width,";
+            m_ostream << "Height,";
+            m_ostream << "Occurrences,";
+            m_ostream << "Class Id,";
+            m_ostream << "Object Id,";
+            m_ostream << "Label,";
+            m_ostream << "Confidence,";
+            m_ostream << "Left,";
+            m_ostream << "Top,";
+            m_ostream << "Width,";
+            m_ostream << "Height,";
+            m_ostream << "Class Id Filter,";
+            m_ostream << "Min Width,";
+            m_ostream << "Min Height,";
+            m_ostream << "Max Width,";
+            m_ostream << "Max Height,";
+            m_ostream << "Min Confidence,";
+            m_ostream << "Inference Done Only\n";
+        }
     
         g_mutex_init(&m_ostreamMutex);
     }
@@ -848,20 +908,22 @@ namespace DSL
             g_source_remove(m_flushThreadFunctionId);
         }
 
-        char dateTime[DATE_BUFF_LENGTH] = {0};
-        time_t seconds = time(NULL);
-        struct tm currentTm;
-        localtime_r(&seconds, &currentTm);
+        if (m_format == DSL_EVENT_FILE_FORMAT_TEXT)
+        {
+            char dateTime[DATE_BUFF_LENGTH] = {0};
+            time_t seconds = time(NULL);
+            struct tm currentTm;
+            localtime_r(&seconds, &currentTm);
 
-        strftime(dateTime, DATE_BUFF_LENGTH, "%a, %d %b %Y %H:%M:%S %z", &currentTm);
-        std::string dateTimeStr(dateTime);
+            strftime(dateTime, DATE_BUFF_LENGTH, "%a, %d %b %Y %H:%M:%S %z", &currentTm);
+            std::string dateTimeStr(dateTime);
 
-        m_ostream << "-------------------------------------------------------------------" << "\n";
-        m_ostream << " File closed: " << dateTimeStr.c_str() << "\n";
-        m_ostream << "-------------------------------------------------------------------" << "\n";
-        
+            m_ostream << "-------------------------------------------------------------------" << "\n";
+            m_ostream << " File closed: " << dateTimeStr.c_str() << "\n";
+            m_ostream << "-------------------------------------------------------------------" << "\n";
+        }
+            
         m_ostream.close();
-        
         g_mutex_clear(&m_ostreamMutex);
     }
 
@@ -878,56 +940,112 @@ namespace DSL
         }
         DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
         
-        m_ostream << "Trigger Name    : " << pTrigger->GetName() << "\n";
-        m_ostream << "  Unique ODE Id : " << pTrigger->s_eventCount << "\n";
-        m_ostream << "  NTP Timestamp : " << Ntp2Str(pFrameMeta->ntp_timestamp) << "\n";
-        m_ostream << "  Source Data   : ------------------------" << "\n";
-        if (pFrameMeta->bInferDone)
+        if (m_format == DSL_EVENT_FILE_FORMAT_TEXT)
         {
-            m_ostream << "    Inference   : Yes\n";
+            m_ostream << "Trigger Name    : " << pTrigger->GetName() << "\n";
+            m_ostream << "  Unique ODE Id : " << pTrigger->s_eventCount << "\n";
+            m_ostream << "  NTP Timestamp : " << Ntp2Str(pFrameMeta->ntp_timestamp) << "\n";
+            m_ostream << "  Source Data   : ------------------------" << "\n";
+            if (pFrameMeta->bInferDone)
+            {
+                m_ostream << "    Inference   : Yes\n";
+            }
+            else
+            {
+                m_ostream << "    Inference   : No\n";
+            }
+            m_ostream << "    SourceId    : " << pFrameMeta->source_id << "\n";
+            m_ostream << "    BatchId     : " << pFrameMeta->batch_id << "\n";
+            m_ostream << "    PadIndex    : " << pFrameMeta->pad_index << "\n";
+            m_ostream << "    Frame       : " << pFrameMeta->frame_num << "\n";
+            m_ostream << "    Width       : " << pFrameMeta->source_frame_width << "\n";
+            m_ostream << "    Heigh       : " << pFrameMeta->source_frame_height << "\n";
+            m_ostream << "  Object Data   : ------------------------" << "\n";
+            m_ostream << "    Occurrences : " << pTrigger->m_occurrences << "\n";
+
+            if (pObjectMeta)
+            {
+                m_ostream << "    Obj ClassId : " << pObjectMeta->class_id << "\n";
+                m_ostream << "    Tracking Id : " << pObjectMeta->object_id << "\n";
+                m_ostream << "    Label       : " << pObjectMeta->obj_label << "\n";
+                m_ostream << "    Confidence  : " << pObjectMeta->confidence << "\n";
+                m_ostream << "    Left        : " << lrint(pObjectMeta->rect_params.left) << "\n";
+                m_ostream << "    Top         : " << lrint(pObjectMeta->rect_params.top) << "\n";
+                m_ostream << "    Width       : " << lrint(pObjectMeta->rect_params.width) << "\n";
+                m_ostream << "    Height      : " << lrint(pObjectMeta->rect_params.height) << "\n";
+            }
+
+            m_ostream << "  Criteria      : ------------------------" << "\n";
+            m_ostream << "    Class Id    : " << pTrigger->m_classId << "\n";
+            m_ostream << "    Confidence  : " << pTrigger->m_minConfidence << "\n";
+            m_ostream << "    Frame Count : " << pTrigger->m_minFrameCountN
+                << " out of " << pTrigger->m_minFrameCountD << "\n";
+            m_ostream << "    Min Width   : " << lrint(pTrigger->m_minWidth) << "\n";
+            m_ostream << "    Min Height  : " << lrint(pTrigger->m_minHeight) << "\n";
+            m_ostream << "    Max Width   : " << lrint(pTrigger->m_maxWidth) << "\n";
+            m_ostream << "    Max Height  : " << lrint(pTrigger->m_maxHeight) << "\n";
+
+            if (pTrigger->m_inferDoneOnly)
+            {
+                m_ostream << "    Inference   : Yes\n\n";
+            }
+            else
+            {
+                m_ostream << "    Inference   : No\n\n";
+            }
         }
         else
         {
-            m_ostream << "    Inference   : No\n";
-        }
-        m_ostream << "    SourceId    : " << pFrameMeta->source_id << "\n";
-        m_ostream << "    BatchId     : " << pFrameMeta->batch_id << "\n";
-        m_ostream << "    PadIndex    : " << pFrameMeta->pad_index << "\n";
-        m_ostream << "    Frame       : " << pFrameMeta->frame_num << "\n";
-        m_ostream << "    Width       : " << pFrameMeta->source_frame_width << "\n";
-        m_ostream << "    Heigh       : " << pFrameMeta->source_frame_height << "\n";
-        m_ostream << "  Object Data   : ------------------------" << "\n";
-        m_ostream << "    Class Id    : " << pTrigger->m_classId << "\n";
-        m_ostream << "    Occurrences : " << pTrigger->m_occurrences << "\n";
+            m_ostream << pTrigger->GetName() << ",";
+            m_ostream << pTrigger->s_eventCount << ",";
+            m_ostream << pFrameMeta->ntp_timestamp << ",";
+            if (pFrameMeta->bInferDone)
+            {
+                m_ostream << "Yes,";
+            }
+            else
+            {
+                m_ostream << "No,";
+            }
+            m_ostream << pFrameMeta->source_id << ",";
+            m_ostream << pFrameMeta->batch_id << ",";
+            m_ostream << pFrameMeta->pad_index << ",";
+            m_ostream << pFrameMeta->frame_num << ",";
+            m_ostream << pFrameMeta->source_frame_width << ",";
+            m_ostream << pFrameMeta->source_frame_height << ",";
+            m_ostream << pTrigger->m_occurrences << ",";
 
-        if (pObjectMeta)
-        {
-            m_ostream << "    Obj ClassId : " << pObjectMeta->class_id << "\n";
-            m_ostream << "    Tracking Id : " << pObjectMeta->object_id << "\n";
-            m_ostream << "    Label       : " << pObjectMeta->obj_label << "\n";
-            m_ostream << "    Confidence  : " << pObjectMeta->confidence << "\n";
-            m_ostream << "    Left        : " << lrint(pObjectMeta->rect_params.left) << "\n";
-            m_ostream << "    Top         : " << lrint(pObjectMeta->rect_params.top) << "\n";
-            m_ostream << "    Width       : " << lrint(pObjectMeta->rect_params.width) << "\n";
-            m_ostream << "    Height      : " << lrint(pObjectMeta->rect_params.height) << "\n";
-        }
+            if (pObjectMeta)
+            {
+                m_ostream << pObjectMeta->class_id << ",";
+                m_ostream << pObjectMeta->object_id << ",";
+                m_ostream << pObjectMeta->obj_label << ",";
+                m_ostream << pObjectMeta->confidence << ",";
+                m_ostream << lrint(pObjectMeta->rect_params.left) << ",";
+                m_ostream << lrint(pObjectMeta->rect_params.top) << ",";
+                m_ostream << lrint(pObjectMeta->rect_params.width) << ",";
+                m_ostream << lrint(pObjectMeta->rect_params.height) << ",";
+            }
+            else
+            {
+                m_ostream << "0,0,0,0,0,0,0,0";
+            }
 
-        m_ostream << "  Criteria      : ------------------------" << "\n";
-        m_ostream << "    Confidence  : " << pTrigger->m_minConfidence << "\n";
-        m_ostream << "    Frame Count : " << pTrigger->m_minFrameCountN
-            << " out of " << pTrigger->m_minFrameCountD << "\n";
-        m_ostream << "    Min Width   : " << lrint(pTrigger->m_minWidth) << "\n";
-        m_ostream << "    Min Height  : " << lrint(pTrigger->m_minHeight) << "\n";
-        m_ostream << "    Max Width   : " << lrint(pTrigger->m_maxWidth) << "\n";
-        m_ostream << "    Max Height  : " << lrint(pTrigger->m_maxHeight) << "\n";
+            m_ostream << pTrigger->m_classId << ",";
+            m_ostream << lrint(pTrigger->m_minWidth) << ",";
+            m_ostream << lrint(pTrigger->m_minHeight) << ",";
+            m_ostream << lrint(pTrigger->m_maxWidth) << ",";
+            m_ostream << lrint(pTrigger->m_maxHeight) << ",";
+            m_ostream << pTrigger->m_minConfidence << ",";
 
-        if (pTrigger->m_inferDoneOnly)
-        {
-            m_ostream << "    Inference   : Yes\n\n";
-        }
-        else
-        {
-            m_ostream << "    Inference   : No\n\n";
+            if (pTrigger->m_inferDoneOnly)
+            {
+                m_ostream << "Yes\n";
+            }
+            else
+            {
+                m_ostream << "No\n";
+            }
         }
         
         // If we're force flushing the stream and the flush
@@ -1159,7 +1277,6 @@ namespace DSL
             LOG_INFO("    Width       : " << pFrameMeta->source_frame_width);
             LOG_INFO("    Heigh       : " << pFrameMeta->source_frame_height );
             LOG_INFO("  Object Data   : ------------------------");
-            LOG_INFO("    Class Id    : " << pTrigger->m_classId );
             LOG_INFO("    Occurrences : " << pTrigger->m_occurrences );
             
             if (pObjectMeta)
@@ -1174,6 +1291,7 @@ namespace DSL
                 LOG_INFO("    Height      : " << pObjectMeta->rect_params.height);
             }
             LOG_INFO("  Criteria      : ------------------------");
+            LOG_INFO("    Class Id    : " << pTrigger->m_classId );
             LOG_INFO("    Confidence  : " << pTrigger->m_minConfidence);
             LOG_INFO("    Frame Count : " << pTrigger->m_minFrameCountN
                 << " out of " << pTrigger->m_minFrameCountD);
@@ -1314,7 +1432,6 @@ namespace DSL
         std::cout << "    Width       : " << pFrameMeta->source_frame_width << "\n";
         std::cout << "    Heigh       : " << pFrameMeta->source_frame_height << "\n";
         std::cout << "  Object Data   : ------------------------" << "\n";
-        std::cout << "    Class Id    : " << pTrigger->m_classId << "\n";
         std::cout << "    Occurrences : " << pTrigger->m_occurrences << "\n";
 
         if (pObjectMeta)
@@ -1330,13 +1447,14 @@ namespace DSL
         }
 
         std::cout << "  Criteria      : ------------------------" << "\n";
-        std::cout << "    Confidence  : " << pTrigger->m_minConfidence << "\n";
+        std::cout << "    Class Id    : " << pTrigger->m_classId << "\n";
         std::cout << "    Frame Count : " << pTrigger->m_minFrameCountN
             << " out of " << pTrigger->m_minFrameCountD << "\n";
         std::cout << "    Min Width   : " << lrint(pTrigger->m_minWidth) << "\n";
         std::cout << "    Min Height  : " << lrint(pTrigger->m_minHeight) << "\n";
         std::cout << "    Max Width   : " << lrint(pTrigger->m_maxWidth) << "\n";
         std::cout << "    Max Height  : " << lrint(pTrigger->m_maxHeight) << "\n";
+        std::cout << "    Confidence  : " << pTrigger->m_minConfidence << "\n";
 
         if (pTrigger->m_inferDoneOnly)
         {

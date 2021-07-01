@@ -1456,7 +1456,7 @@ namespace DSL
     }
 
     DslReturnType Services::OdeActionFileNew(const char* name, 
-        const char* filePath, boolean forceFlush)
+        const char* filePath, uint mode, uint format, boolean forceFlush)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1469,8 +1469,20 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
+            if (mode > DSL_EVENT_FILE_MODE_TRUNCATE)
+            {
+                LOG_ERROR("File open mode " << mode 
+                    << " is invalid for ODE Action '" << name << "'");
+                return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
+            }
+            if (format > DSL_EVENT_FILE_FORMAT_CSV)
+            {
+                LOG_ERROR("File format " << format 
+                    << " is invalid for ODE Action '" << name << "'");
+                return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
+            }
             m_odeActions[name] = DSL_ODE_ACTION_FILE_NEW(name, 
-                filePath, forceFlush);
+                filePath, mode, format, forceFlush);
 
             LOG_INFO("New ODE File Action '" << name << "' created successfully");
 
@@ -2591,12 +2603,14 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("New Always ODE Trigger '" << name << "' threw exception on create");
+            LOG_ERROR("New Always ODE Trigger '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::OdeTriggerOccurrenceNew(const char* name, const char* source, uint classId, uint limit)
+    DslReturnType Services::OdeTriggerOccurrenceNew(const char* name, 
+        const char* source, uint classId, uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2609,20 +2623,24 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_OCCURRENCE_NEW(name, source, classId, limit);
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_OCCURRENCE_NEW(name, 
+                source, classId, limit);
             
-            LOG_INFO("New Occurrence ODE Trigger '" << name << "' created successfully");
+            LOG_INFO("New Occurrence ODE Trigger '" << name 
+                << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Occurrence ODE Trigger '" << name << "' threw exception on create");
+            LOG_ERROR("New Occurrence ODE Trigger '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::OdeTriggerAbsenceNew(const char* name, const char* source, uint classId, uint limit)
+    DslReturnType Services::OdeTriggerAbsenceNew(const char* name, 
+        const char* source, uint classId, uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2635,20 +2653,25 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_ABSENCE_NEW(name, source, classId, limit);
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_ABSENCE_NEW(name, 
+                source, classId, limit);
             
-            LOG_INFO("New Absence ODE Trigger '" << name << "' created successfully");
+            LOG_INFO("New Absence ODE Trigger '" << name 
+                << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Absence ODE Trigger '" << name << "' threw exception on create");
+            LOG_ERROR("New Absence ODE Trigger '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::OdeTriggerInstanceNew(const char* name, const char* source, uint classId, uint limit)
+    
+    DslReturnType Services::OdeTriggerAccumulationNew(const char* name, 
+        const char* source, uint classId, uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2661,15 +2684,48 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_INSTANCE_NEW(name, source, classId, limit);
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_ACCUMULATION_NEW(name, 
+                source, classId, limit);
             
-            LOG_INFO("New Instance ODE Trigger '" << name << "' created successfully");
+            LOG_INFO("New Accumulation ODE Trigger '" << name 
+                << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Instance ODE Trigger '" << name << "' threw exception on create");
+            LOG_ERROR("New Accumulation ODE Trigger '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeTriggerInstanceNew(const char* name, 
+        const char* source, uint classId, uint limit)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_INSTANCE_NEW(name, 
+                source, classId, limit);
+            
+            LOG_INFO("New Instance ODE Trigger '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Instance ODE Trigger '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
@@ -2691,18 +2747,21 @@ namespace DSL
             m_odeTriggers[name] = DSL_ODE_TRIGGER_INTERSECTION_NEW(name, 
                 source, classIdA, classIdB, limit);
             
-            LOG_INFO("New Intersection ODE Trigger '" << name << "' created successfully");
+            LOG_INFO("New Intersection ODE Trigger '" << name 
+                << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Intersection ODE Trigger '" << name << "' threw exception on create");
+            LOG_ERROR("New Intersection ODE Trigger '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::OdeTriggerSummationNew(const char* name, const char* source, uint classId, uint limit)
+    DslReturnType Services::OdeTriggerSummationNew(const char* name, 
+        const char* source, uint classId, uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3689,7 +3748,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting source id");
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting Inference Done Only");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -3711,11 +3771,56 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting class id");
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting Inference Done Only");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
+    DslReturnType Services::OdeTriggerIntervalGet(const char* name, uint* interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            *interval = pOdeTrigger->GetInterval();
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting Interval");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::OdeTriggerIntervalSet(const char* name, uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            pOdeTrigger->SetInterval(interval);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception setting Interval");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
     DslReturnType Services::OdeTriggerActionAdd(const char* name, const char* action)
     {
         LOG_FUNC();
@@ -7057,7 +7162,7 @@ namespace DSL
 
             if (!pTilerBintr->CycleAllSources(timeout))
             {
-                    LOG_ERROR("Tiler '" << name << "' failed to select specific source");
+                    LOG_ERROR("Tiler '" << name << "' failed to set Cycle all sources");
                     return DSL_RESULT_TILER_SET_FAILED;
             }
             LOG_INFO("Cycle all sources with timeout " << timeout 
@@ -11391,6 +11496,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_ODE_ACTION_MAILER_REMOVE_FAILED] = L"DSL_RESULT_ODE_ACTION_MAILER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE] = L"DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED] = L"DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_PARAMETER_INVALID] = L"DSL_RESULT_ODE_ACTION_PARAMETER_INVALID";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED] = L"DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_ODE_AREA_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_AREA_NAME_NOT_FOUND";

@@ -615,7 +615,7 @@ DslReturnType dsl_ode_action_display_meta_add_many_new(const wchar_t* name, cons
 }
 
 DslReturnType dsl_ode_action_file_new(const wchar_t* name, 
-    const wchar_t* file_path, boolean force_flush)
+    const wchar_t* file_path, uint mode, uint format, boolean force_flush)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(file_path);
@@ -626,7 +626,7 @@ DslReturnType dsl_ode_action_file_new(const wchar_t* name,
     std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
 
     return DSL::Services::GetServices()->OdeActionFileNew(cstrName.c_str(),
-        cstrFilePath.c_str(), force_flush);
+        cstrFilePath.c_str(), mode, format, force_flush);
 }
 
 DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipeline)
@@ -1075,7 +1075,8 @@ DslReturnType dsl_ode_trigger_always_new(const wchar_t* name, const wchar_t* sou
     return DSL::Services::GetServices()->OdeTriggerAlwaysNew(cstrName.c_str(), cstrSource.c_str(), when);
 }
 
-DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit)
+DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -1088,10 +1089,12 @@ DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, const wchar_t*
         std::wstring wstrSource(source);
         cstrSource.assign(wstrSource.begin(), wstrSource.end());
     }
-    return DSL::Services::GetServices()->OdeTriggerOccurrenceNew(cstrName.c_str(), cstrSource.c_str(), class_id, limit);
+    return DSL::Services::GetServices()->OdeTriggerOccurrenceNew(cstrName.c_str(), 
+        cstrSource.c_str(), class_id, limit);
 }
 
-DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit)
+DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -1104,10 +1107,12 @@ DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, const wchar_t* so
         std::wstring wstrSource(source);
         cstrSource.assign(wstrSource.begin(), wstrSource.end());
     }
-    return DSL::Services::GetServices()->OdeTriggerAbsenceNew(cstrName.c_str(), cstrSource.c_str(), class_id, limit);
+    return DSL::Services::GetServices()->OdeTriggerAbsenceNew(cstrName.c_str(), 
+        cstrSource.c_str(), class_id, limit);
 }
 
-DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit)
+DslReturnType dsl_ode_trigger_accumulation_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -1120,7 +1125,27 @@ DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name, const wchar_t* s
         std::wstring wstrSource(source);
         cstrSource.assign(wstrSource.begin(), wstrSource.end());
     }
-    return DSL::Services::GetServices()->OdeTriggerInstanceNew(cstrName.c_str(), cstrSource.c_str(), class_id, limit);
+    return DSL::Services::GetServices()->OdeTriggerAccumulationNew(cstrName.c_str(), 
+        cstrSource.c_str(), class_id, limit);
+}
+    
+    
+DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrSource;
+    if (source)
+    {
+        std::wstring wstrSource(source);
+        cstrSource.assign(wstrSource.begin(), wstrSource.end());
+    }
+    return DSL::Services::GetServices()->OdeTriggerInstanceNew(cstrName.c_str(), 
+        cstrSource.c_str(), class_id, limit);
 }
 
 DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, 
@@ -1141,7 +1166,8 @@ DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name,
         cstrSource.c_str(), class_id_a, class_id_b, limit);
 }
 
-DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit)
+DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -1635,24 +1661,48 @@ DslReturnType dsl_ode_trigger_infer_done_only_set(const wchar_t* name, boolean i
     return DSL::Services::GetServices()->OdeTriggerInferDoneOnlySet(cstrName.c_str(), infer_done_only);
 }
 
-DslReturnType dsl_ode_trigger_frame_count_min_get(const wchar_t* name, uint* min_count_n, uint* min_count_d)
+DslReturnType dsl_ode_trigger_frame_count_min_get(const wchar_t* name, 
+    uint* min_count_n, uint* min_count_d)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerFrameCountMinGet(cstrName.c_str(), min_count_n, min_count_d);
+    return DSL::Services::GetServices()->OdeTriggerFrameCountMinGet(cstrName.c_str(), 
+        min_count_n, min_count_d);
 }
 
-DslReturnType dsl_ode_trigger_frame_count_min_set(const wchar_t* name, uint min_count_n, uint min_count_d)
+DslReturnType dsl_ode_trigger_frame_count_min_set(const wchar_t* name, 
+    uint min_count_n, uint min_count_d)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerFrameCountMinSet(cstrName.c_str(), min_count_n, min_count_d);
+    return DSL::Services::GetServices()->OdeTriggerFrameCountMinSet(cstrName.c_str(), 
+        min_count_n, min_count_d);
+}
+
+DslReturnType dsl_ode_trigger_interval_get(const wchar_t* name, uint* interval)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerIntervalGet(cstrName.c_str(), interval);
+}
+
+DslReturnType dsl_ode_trigger_interval_set(const wchar_t* name, uint interval)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerIntervalSet(cstrName.c_str(), interval);
 }
 
 DslReturnType dsl_ode_trigger_action_add(const wchar_t* name, const wchar_t* action)

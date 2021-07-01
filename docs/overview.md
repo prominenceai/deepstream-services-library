@@ -374,6 +374,7 @@ Current **ODE Triggers** supported:
 * **Instance** - triggers on each new object instance across frames based on a unique tracker id. Once per new tracking id. 
 * **Persitence** - triggers on each object instance that persists in view/frame for a specified period of time.
 * **Summation** - triggers on the summation of all objects detected within a frame. Once per-frame always.
+* **Accumulation** - triggers on the accumulative count of unique instances across frames, Once per-frame always.
 * **Intersection** - triggers on the intersection of two objects detected within a frame. Once per-intersecting-pair.
 * **Count** - triggers when the count of objects within a frame is within a specified range.. Once per-frame at most.
 * **New Low** - triggers when the count of objects within a frame reaches a new low count.

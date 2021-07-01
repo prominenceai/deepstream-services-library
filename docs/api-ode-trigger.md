@@ -26,6 +26,7 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_instance_new](#dsl_ode_trigger_instance_new)
 * [dsl_ode_trigger_persistence_new](#dsl_ode_trigger_persistence_new)
 * [dsl_ode_trigger_summation_new](#dsl_ode_trigger_summation_new)
+* [dsl_ode_trigger_accumulation_new](#dsl_ode_trigger_accumulation_new)
 * [dsl_ode_trigger_distance_new](#dsl_ode_trigger_distance_new)
 * [dsl_ode_trigger_intersection_new](#dsl_ode_trigger_intersection_new)
 * [dsl_ode_trigger_count_new](#dsl_ode_trigger_count_new)
@@ -70,6 +71,8 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_dimensions_max_set](#dsl_ode_trigger_dimensions_max_set)
 * [dsl_ode_trigger_infer_done_only_get](#dsl_ode_trigger_infer_done_only_get)
 * [dsl_ode_trigger_infer_done_only_set](#dsl_ode_trigger_infer_done_only_set)
+* [dsl_ode_trigger_interval_get](#dsl_ode_trigger_interval_get)
+* [dsl_ode_trigger_interval_set](#dsl_ode_trigger_interval_set)
 * [dsl_ode_trigger_action_add](#dsl_ode_trigger_action_add)
 * [dsl_ode_trigger_action_add_many](#dsl_ode_trigger_action_remove_many)
 * [dsl_ode_trigger_action_remove](#dsl_ode_trigger_action_add)
@@ -317,6 +320,34 @@ Note: Adding Actions to a Summation Trigger that require Object metadata during 
 ```Python
 retval = dsl_ode_trigger_summation_new('my-summation-trigger', DSL_ODE_ANY_SOURCE, 
     DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE)
+```
+
+<br>
+
+### *dsl_ode_trigger_accumulation_new*
+```C++
+DslReturnType dsl_ode_trigger_accumulation_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);  
+```
+This constructor creates a uniquely named Accumulation trigger that that checks for new instances of Objects that meet the Triggers (optional) criteria, while accumulating the number of occurrences over consecutive frames. New instance identification is based on Tracking Id, with the current accumulative occurrence value reported after each frame. The Trigger generates an ODE occurrence invoking all ODE Actions once for **per-frame** until the Trigger limit is reached. 
+
+Note: Adding Actions to an Accumulation Trigger that require Object metadata during invocation - Object-Capture and Object-Fill as examples - will result in a non-action when invoked. 
+
+**Parameters**
+* `name` - [in] unique name for the ODE Trigger to create.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
+* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
+* `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
+
+**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_accumulation_new('my-accumulation-trigger', 'source-1, 
+    PERSON_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE)
 ```
 
 <br>
@@ -1249,6 +1280,47 @@ This service sets the "inference-done-only" criteria for the named ODE Trigger. 
 **Python Example**
 ```Python
 retval = dsl_ode_trigger_infer_done_only_get('my-trigger', 'infer_done_only')
+```
+
+<br>
+
+### *dsl_ode_trigger_interval_get*
+```c++
+DslReturnType dsl_ode_trigger_interval_get(const wchar_t* name, uint* interval);
+```
+This service gets the current frame processing interval setting for the named ODE Trigger, If set to `n`, the Trigger will only process every `nth` frame while skipping the others.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to query.
+* `limit` - [out] current interval setting for the ODE Trigger. Default = 0.  
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, interval = dsl_ode_trigger_interval_get('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_interval_set*
+```c++
+DslReturnType dsl_ode_trigger_interval_set(const wchar_t* name, uint interval);
+```
+
+This service sets the current frame processing interval setting for the named ODE Trigger, If set to `n`, the Trigger will only process every `nth` frame while skipping the others. 
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to update.
+* `interval` - [in] new interval for the ODE Trigger to process frames on. Set to 0 (default) or 1 to processess all frames.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_interval_set('my-trigger', 5)
 ```
 
 <br>

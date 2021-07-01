@@ -44,6 +44,10 @@ namespace DSL
     #define DSL_ODE_TRIGGER_ABSENCE_NEW(name, source, classId, limit) \
         std::shared_ptr<AbsenceOdeTrigger>(new AbsenceOdeTrigger(name, source, classId, limit))
 
+    #define DSL_ODE_TRIGGER_ACCUMULATION_PTR std::shared_ptr<AccumulationOdeTrigger>
+    #define DSL_ODE_TRIGGER_ACCUMULATION_NEW(name, source, classId, limit) \
+        std::shared_ptr<AccumulationOdeTrigger>(new AccumulationOdeTrigger(name, source, classId, limit))
+
     #define DSL_ODE_TRIGGER_INSTANCE_PTR std::shared_ptr<InstanceOdeTrigger>
     #define DSL_ODE_TRIGGER_INSTANCE_NEW(name, source, classId, limit) \
         std::shared_ptr<InstanceOdeTrigger>(new InstanceOdeTrigger(name, source, classId, limit))
@@ -212,6 +216,12 @@ namespace DSL
         void SetResetTimeout(uint timeout);
         
         /**
+         * @brief Returns the current state of the Reset Timer.
+         * @return ture if the Reset Timer is running, false otherwise.
+         */
+        bool IsResetTimerRunning();
+        
+        /**
          * @brief Gets the current Enabled setting, default = true
          * @return the current Enabled setting
          */
@@ -340,6 +350,18 @@ namespace DSL
          */
         void SetInferDoneOnlySetting(bool inferDoneOnly);
         
+        /**
+         * @brief Gets the current process interval for this Trigger
+         * @return the current process interval, default = 0
+         */
+        uint GetInterval();
+        
+        /**
+         * @brief Sets the process interval for this Trigger
+         * @param interval new interval to use in units of frames
+         */
+        void SetInterval(uint interval);
+        
     protected:
     
         /**
@@ -395,7 +417,22 @@ namespace DSL
          * @brief Mutex for timer reset logic
          */
         GMutex m_resetTimerMutex;
-    
+        
+        /**
+         * @brief process interval, default = 0
+         */
+        uint m_interval;
+        
+        /**
+         * @brief current number of frames in the current interval
+         */
+        uint m_intervalCounter;
+        
+        /**
+         * @brief flag to identify frames that should be skipped, if m_skipFrameInterval > 0
+         */
+         bool m_skipFrame;
+         
     public:
     
         // access made public for performance reasons
@@ -576,6 +613,51 @@ namespace DSL
     
     };
 
+    class AccumulationOdeTrigger : public OdeTrigger
+    {
+    public:
+    
+        AccumulationOdeTrigger(const char* name, const char* source, uint classId, uint limit);
+        
+        ~AccumulationOdeTrigger();
+
+        /**
+         * @brief Overrides the base Reset in order to clear the m_accumulativeOccurrences
+         */
+        void Reset();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for a New Instance of a Class and accumulate
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to post process the frame and generate an Accumulation Event 
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+            
+    private:
+        /**
+         * @brief map of last Tracking Ids per unique source_id-class_id combination
+         */
+        std::map <std::string, uint64_t> m_instances;
+        
+        /**
+         * @brief accumulative Occurrence count of all unique objects
+         */
+        uint m_accumulativeOccurrences;
+    
+    };
+
     class InstanceOdeTrigger : public OdeTrigger
     {
     public:
@@ -583,6 +665,11 @@ namespace DSL
         InstanceOdeTrigger(const char* name, const char* source, uint classId, uint limit);
         
         ~InstanceOdeTrigger();
+
+        /**
+         * @brief Overrides the base Reset in order to clear m_instances
+         */
+        void Reset();
 
         /**
          * @brief Function to check a given Object Meta data structure for New Instances of a Class
@@ -809,6 +896,11 @@ namespace DSL
         ~PersistenceOdeTrigger();
 
         /**
+         * @brief Overrides the base Reset in order to clear m_trackedObjectsPerSource
+         */
+        void Reset();
+
+        /**
          * @brief Gets the current Minimum and Maximum time settings in use. 
          * a value of 0 means no minimum or maximum
          * @param[out] minimim current minimum time setting in use
@@ -1018,7 +1110,7 @@ namespace DSL
         ~NewLowOdeTrigger();
 
         /**
-         * @brief Resets the Trigger
+         * @brief Overrides the base Reset to reset the m_currentLow to m_preset
          */
         virtual void Reset();
 
@@ -1069,7 +1161,7 @@ namespace DSL
         ~NewHighOdeTrigger();
 
         /**
-         * @brief Resets the Trigger
+         * @brief Overrides the base Reset to reset the m_currentHigh to m_preset
          */
         void Reset();
 

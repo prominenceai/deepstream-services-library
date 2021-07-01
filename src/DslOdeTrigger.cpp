@@ -55,6 +55,9 @@ namespace DSL
         , m_inferDoneOnly(false)
         , m_resetTimeout(0)
         , m_resetTimerId(0)
+        , m_interval(0)
+        , m_intervalCounter(0)
+        , m_skipFrame(false)
     {
         LOG_FUNC();
 
@@ -217,15 +220,40 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_resetTimerMutex);
         
         // If the timer is currently running and the new 
-        // timeout value = 0 = disable, then kill the timer.
+        // timeout value zero (disabled), then kill the timer.
         if (m_resetTimerId and !timeout)
         {
             g_source_remove(m_resetTimerId);
-            m_resetTimerId == 0;
+            m_resetTimerId = 0;
         }
+        
+        // Else, if the Timer is currently running and the new
+        // timeout value is non-zero, stop and restart the timer.
+        else if (m_resetTimerId and timeout)
+        {
+            g_source_remove(m_resetTimerId);
+            m_resetTimerId = g_timeout_add(1000*m_resetTimeout, 
+                TriggerResetTimeoutHandler, this);            
+        }
+        
+        // Else, if the Trigger has reached its limit and the 
+        // client is setting a Timeout value, start the timer.
+        else if (m_limit and m_triggered >= m_limit and timeout)
+        {
+            m_resetTimerId = g_timeout_add(1000*m_resetTimeout, 
+                TriggerResetTimeoutHandler, this);            
+        } 
         
         m_resetTimeout = timeout;
     }
+    
+    bool OdeTrigger::IsResetTimerRunning()
+    {
+        LOG_FUNC();
+
+        return m_resetTimerId;
+    }
+    
         
     bool OdeTrigger::GetEnabled()
     {
@@ -379,6 +407,23 @@ namespace DSL
         m_minFrameCountD = minFrameCountD;
     }
 
+    uint OdeTrigger::GetInterval()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        return m_interval;
+    }
+    
+    void OdeTrigger::SetInterval(uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_interval = interval;
+        m_intervalCounter = 0;
+    }
+    
     bool OdeTrigger::CheckForSourceId(int sourceId)
     {
         LOG_FUNC();
@@ -406,6 +451,17 @@ namespace DSL
         // Reset the occurrences from the last frame, even if disabled  
         m_occurrences = 0;
 
+        if (m_interval)
+        {
+            m_intervalCounter = (m_intervalCounter + 1) % m_interval; 
+            if (m_intervalCounter != 0)
+            {
+                m_skipFrame = true;
+                return;
+            }
+        }
+        m_skipFrame = false;
+
         if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id))
         {
             return;
@@ -425,6 +481,12 @@ namespace DSL
         // Note: function is called from the system (callback) context
         // Gaurd against property updates from the client API
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        // Filter on skip-frame interval
+        if (m_skipFrame)
+        {
+            return false;
+        }
         
         // Ensure enabled, and that the limit has not been exceeded
         if (m_limit and m_triggered >= m_limit) 
@@ -502,7 +564,6 @@ namespace DSL
     void AlwaysOdeTrigger::PreProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta)
     {
-
         if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or 
             m_when != DSL_ODE_PRE_OCCURRENCE_CHECK)
         {
@@ -519,7 +580,7 @@ namespace DSL
     uint AlwaysOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta)
     {
-        if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or 
+        if (m_skipFrame or !m_enabled or !CheckForSourceId(pFrameMeta->source_id) or 
             m_when != DSL_ODE_POST_OCCURRENCE_CHECK)
         {
             return 0;
@@ -636,6 +697,92 @@ namespace DSL
 
     // *****************************************************************************
 
+    AccumulationOdeTrigger::AccumulationOdeTrigger(const char* name, 
+        const char* source, uint classId, uint limit)
+        : OdeTrigger(name, source, classId, limit)
+        , m_accumulativeOccurrences(0)
+    {
+        LOG_FUNC();
+    }
+
+    AccumulationOdeTrigger::~AccumulationOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+
+    void AccumulationOdeTrigger::Reset()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_triggered = 0;
+        m_accumulativeOccurrences = 0;
+        m_instances.clear();
+    }
+    
+    bool AccumulationOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or 
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+        {
+            return false;
+        }
+
+        std::string sourceAndClassId = std::to_string(pFrameMeta->source_id) + "_" 
+            + std::to_string(pObjectMeta->class_id);
+            
+        // If this is the first time seeing an object of "class_id" for "source_id".
+        if (m_instances.find(sourceAndClassId) == m_instances.end())
+        {
+            // Initial the frame number for the new source
+            m_instances[sourceAndClassId] = 0;
+        }
+
+        if (m_instances[sourceAndClassId] < pObjectMeta->object_id)
+        {
+            // Update the running instance
+            m_instances[sourceAndClassId] = pObjectMeta->object_id;
+            
+            // Increment the Accumulative count. 
+            m_accumulativeOccurrences++;
+            
+            // update for current frame
+            m_occurrences = m_accumulativeOccurrences;
+            
+            return true;
+        }
+        // set to accumulative value always. Occurrences will be cleared in Pre-process frame.
+        m_occurrences = m_accumulativeOccurrences;
+        return false;
+    }
+
+    uint AccumulationOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+        NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
+    {
+        if (!m_enabled or m_skipFrame or (m_limit and m_triggered >= m_limit))
+        {
+            return 0;
+        }
+        // event has been triggered
+        IncrementAndCheckTriggerCount();
+
+         // update the total event count static variable
+        s_eventCount++;
+
+        for (const auto &imap: m_pOdeActions)
+        {
+            DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+            pOdeAction->HandleOccurrence(shared_from_this(), 
+                pBuffer, pDisplayMeta, pFrameMeta, NULL);
+        }
+        
+        // return the running accumulative total
+        return m_accumulativeOccurrences;
+   }
+
+    // *****************************************************************************
+
     InstanceOdeTrigger::InstanceOdeTrigger(const char* name, 
         const char* source, uint classId, uint limit)
         : OdeTrigger(name, source, classId, limit)
@@ -646,6 +793,15 @@ namespace DSL
     InstanceOdeTrigger::~InstanceOdeTrigger()
     {
         LOG_FUNC();
+    }
+
+    void InstanceOdeTrigger::Reset()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_triggered = 0;
+        m_instances.clear();
     }
     
     bool InstanceOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
@@ -727,7 +883,7 @@ namespace DSL
     uint SummationOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
         NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
     {
-        if (!m_enabled)
+        if (!m_enabled or m_skipFrame or (m_limit and m_triggered >= m_limit))
         {
             return 0;
         }
@@ -852,6 +1008,15 @@ namespace DSL
     PersistenceOdeTrigger::~PersistenceOdeTrigger()
     {
         LOG_FUNC();
+    }
+
+    void PersistenceOdeTrigger::Reset()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_triggered = 0;
+        m_trackedObjectsPerSource.clear();
     }
 
     void PersistenceOdeTrigger::GetRange(uint* minimum, uint* maximum)
