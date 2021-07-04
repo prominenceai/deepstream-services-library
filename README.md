@@ -33,6 +33,12 @@ The DeepStream SDK and DSL use the open source [GStreamer](https://gstreamer.fre
 ## Contributing
 DSL is released under the [MIT License](LICENSE). Contributions are welcome and greatly appreciated. Contributor guidelines and code of conduct are still TBW. 
 
+## Instructional Videos
+Vist our YouTube channel for instructional videos on using DSL (and DMS) ... Note: still in the early stages, but new content will be added weekly.
+<br>
+
+[<img src="/Images/youtube-link.png">](https://www.youtube.com/channel/UCxaJo95fbp2aFXopdquF96Q)
+
 ## DSL Users Guide
 
 * [Overview](/docs/overview.md)
