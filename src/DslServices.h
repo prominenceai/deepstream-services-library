@@ -522,15 +522,22 @@ namespace DSL {
         DslReturnType TapRecordMailerRemove(const char* name,
             const char* mailer);
 
-        DslReturnType PrimaryGieNew(const char* name, const char* inferConfigFile,
-            const char* modelEngineFile, uint interval);
+        DslReturnType SegVisualNew(const char* name, uint width, uint height);
+        
+        DslReturnType SegVisualDimensionsGet(const char* name, uint* width, uint* height);
+
+        DslReturnType SegVisualDimensionsSet(const char* name, uint width, uint height);
+
+        DslReturnType PrimaryGieNew(const char* name, boolean tritonEnabled, 
+            const char* inferConfigFile, const char* modelEngineFile, uint interval);
 
         DslReturnType PrimaryGiePphAdd(const char* name, const char* handler, uint pad);
 
         DslReturnType PrimaryGiePphRemove(const char* name, const char* handler, uint pad);
 
-        DslReturnType SecondaryGieNew(const char* name, const char* inferConfigFile,
-            const char* modelEngineFile, const char* inferOnGieName, uint interval);
+        DslReturnType SecondaryGieNew(const char* name, boolean tritonEnabled, 
+            const char* inferConfigFile,const char* modelEngineFile, 
+            const char* inferOnGieName, uint interval);
 
         DslReturnType GieInferConfigFileGet(const char* name, const char** inferConfigFile);
 

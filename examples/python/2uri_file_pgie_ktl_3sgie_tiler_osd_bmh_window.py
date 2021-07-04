@@ -93,18 +93,22 @@ def main(args):
             break
 
         # New Primary GIE using the filespecs above with interval = 0
-        retval = dsl_gie_primary_new('pgie', primary_infer_config_file, primary_model_engine_file, 1)
+        retval = dsl_gie_primary_new('pgie', False,
+            primary_infer_config_file, primary_model_engine_file, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Secondary GIEs using the filespecs above with interval = 0
-        retval = dsl_gie_secondary_new('carcolor-sgie', sgie1_config_file, sgie1_model_file, 'pgie', 0)
+        retval = dsl_gie_secondary_new('carcolor-sgie', False,
+            sgie1_config_file, sgie1_model_file, 'pgie', 0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_gie_secondary_new('carmake-sgie', sgie2_config_file, sgie2_model_file, 'pgie', 0)
+        retval = dsl_gie_secondary_new('carmake-sgie', False,
+            sgie2_config_file, sgie2_model_file, 'pgie', 0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_gie_secondary_new('vehicletype-sgie', sgie3_config_file, sgie3_model_file, 'pgie', 0)
+        retval = dsl_gie_secondary_new('vehicletype-sgie', False,
+            sgie3_config_file, sgie3_model_file, 'pgie', 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 

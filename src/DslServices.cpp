@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "DslServices.h"
 #include "DslSourceBintr.h"
 #include "DslGieBintr.h"
+#include "DslSegVisualBintr.h"
 #include "DslTrackerBintr.h"
 #include "DslPadProbeHandler.h"
 #include "DslTilerBintr.h"
@@ -328,7 +329,6 @@ THE SOFTWARE.
         return DSL_RESULT_MAILER_NAME_NOT_FOUND; \
     } \
 }while(0); 
-
 
 
 // TODO move these defines to DSL utility file
@@ -6008,9 +6008,99 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
+    DslReturnType Services::SegVisualNew(const char* name, 
+        uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure element name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Segmentation Visualizer name '" << name 
+                    << "' is not unique");
+                return DSL_RESULT_SEGVISUAL_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = std::shared_ptr<Bintr>(new SegVisualBintr(
+                name, width, height));
+                
+            LOG_INFO("New Segmentation Visualizer '" << name 
+                << "' created successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Segmentation Visualizer'" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SEGVISUAL_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SegVisualDimensionsGet(const char* name, 
+        uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, SegVisualBintr);
+
+            DSL_SEGVISUAL_PTR pSegVisual = 
+                std::dynamic_pointer_cast<SegVisualBintr>(m_components[name]);
+
+            pSegVisual->GetDimensions(width, height);
+            
+            LOG_INFO("Width = " << *width << " height = " << *height << 
+                " returned successfully for Segmentation Visualizer '" << name << "'");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Segmentation Visualizer '" << name 
+                << "' threw an exception getting dimensions");
+            return DSL_RESULT_SEGVISUAL_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SegVisualDimensionsSet(const char* name, 
+        uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, SegVisualBintr);
+
+            DSL_SEGVISUAL_PTR pSegVisual = 
+                std::dynamic_pointer_cast<SegVisualBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!pSegVisual->SetDimensions(width, height))
+            {
+                LOG_ERROR("Segmentation Visualizer '" << name 
+                    << "' failed to set dimensions");
+                return DSL_RESULT_SEGVISUAL_SET_FAILED;
+            }
+            LOG_INFO("Width = " << width << " height = " << height << 
+                " set successfully for Tiler '" << name << "'");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Segmentation Visualizer '" << name 
+                << "' threw an exception setting dimensions");
+            return DSL_RESULT_SEGVISUAL_THREW_EXCEPTION;
+        }
+    }
     
-    DslReturnType Services::PrimaryGieNew(const char* name, const char* inferConfigFile,
-        const char* modelEngineFile, uint interval)
+    DslReturnType Services::PrimaryGieNew(const char* name, boolean tritonEnabled, 
+        const char* inferConfigFile, const char* modelEngineFile, uint interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -6045,7 +6135,7 @@ namespace DSL
                     return DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND;
                 }
             }
-            m_components[name] = DSL_PRIMARY_GIE_NEW(name, 
+            m_components[name] = DSL_PRIMARY_GIE_NEW(name, tritonEnabled,
                 inferConfigFile, modelEngineFile, interval);
             LOG_INFO("New Primary GIE '" << name << "' created successfully");
 
@@ -6058,7 +6148,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::PrimaryGiePphAdd(const char* name, const char* handler, uint pad)
+    DslReturnType Services::PrimaryGiePphAdd(const char* name, 
+        const char* handler, uint pad)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -6071,7 +6162,8 @@ namespace DSL
 
             if (pad > DSL_PAD_SRC)
             {
-                LOG_ERROR("Invalid Pad type = " << pad << " for PrimaryGie '" << name << "'");
+                LOG_ERROR("Invalid Pad type = " << pad 
+                    << " for PrimaryGie '" << name << "'");
                 return DSL_RESULT_PPH_PAD_TYPE_INVALID;
             }
 
@@ -6085,12 +6177,14 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Primary GIE '" << name << "' threw an exception adding Pad Probe Handler");
+            LOG_ERROR("Primary GIE '" << name 
+                << "' threw an exception adding Pad Probe Handler");
             return DSL_RESULT_GIE_THREW_EXCEPTION;
         }
     }
    
-    DslReturnType Services::PrimaryGiePphRemove(const char* name, const char* handler, uint pad) 
+    DslReturnType Services::PrimaryGiePphRemove(const char* name, 
+        const char* handler, uint pad) 
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -6111,7 +6205,8 @@ namespace DSL
             // call on the Handler to remove itself from the PrimaryGie
             if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], pad))
             {
-                LOG_ERROR("Pad Probe Handler '" << handler << "' is not a child of Primary GIE '" << name << "'");
+                LOG_ERROR("Pad Probe Handler '" << handler 
+                    << "' is not a child of Primary GIE '" << name << "'");
                 return DSL_RESULT_GIE_HANDLER_REMOVE_FAILED;
             }
             return DSL_RESULT_SUCCESS;
@@ -6123,8 +6218,9 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SecondaryGieNew(const char* name, const char* inferConfigFile,
-        const char* modelEngineFile, const char* inferOnGieName, uint interval)
+    DslReturnType Services::SecondaryGieNew(const char* name, boolean tritonEnabled, 
+        const char* inferConfigFile, const char* modelEngineFile, 
+        const char* inferOnGieName, uint interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -6159,7 +6255,7 @@ namespace DSL
                     return DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND;
                 }
             }
-            m_components[name] = DSL_SECONDARY_GIE_NEW(name, 
+            m_components[name] = DSL_SECONDARY_GIE_NEW(name, tritonEnabled,
                 inferConfigFile, modelEngineFile, inferOnGieName, interval);
 
             LOG_INFO("New Secondary GIE '" << name << "' created successfully");
@@ -11652,6 +11748,12 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_MAILER_IN_USE] = L"DSL_RESULT_MAILER_IN_USE";
         m_returnValueToString[DSL_RESULT_MAILER_SET_FAILED] = L"DSL_RESULT_MAILER_SET_FAILED";
         m_returnValueToString[DSL_RESULT_MAILER_PARAMETER_INVALID] = L"DSL_RESULT_MAILER_PARAMETER_INVALID";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_NAME_NOT_UNIQUE] = L"DSL_RESULT_SEGVISUAL_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_NAME_NOT_FOUND] = L"DSL_RESULT_SEGVISUAL_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_THREW_EXCEPTION] = L"DSL_RESULT_SEGVISUAL_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_IN_USE] = L"DSL_RESULT_SEGVISUAL_IN_USE";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_SET_FAILED] = L"DSL_RESULT_SEGVISUAL_SET_FAILED";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_PARAMETER_INVALID] = L"DSL_RESULT_SEGVISUAL_PARAMETER_INVALID";
         m_returnValueToString[DSL_RESULT_INVALID_RESULT_CODE] = L"Invalid DSL Result CODE";
     }
 

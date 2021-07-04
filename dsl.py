@@ -2239,11 +2239,13 @@ def dsl_tap_record_mailer_remove(name, mailer):
 ##
 ## dsl_gie_primary_new()
 ##
-_dsl.dsl_gie_primary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_gie_primary_new.argtypes = [c_wchar_p, c_bool, c_wchar_p, c_wchar_p, c_uint]
 _dsl.dsl_gie_primary_new.restype = c_uint
-def dsl_gie_primary_new(name, infer_config_file, model_engine_file, interval):
+def dsl_gie_primary_new(name, triton_enabled, 
+    infer_config_file, model_engine_file, interval):
     global _dsl
-    result = _dsl.dsl_gie_primary_new(name, infer_config_file, model_engine_file, interval)
+    result = _dsl.dsl_gie_primary_new(name, triton_enabled, 
+        infer_config_file, model_engine_file, interval)
     return int(result)
 
 ##
@@ -2269,11 +2271,13 @@ def dsl_gie_primary_pph_remove(name, handler, pad):
 ##
 ## dsl_gie_secondary_new()
 ##
-_dsl.dsl_gie_secondary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_gie_secondary_new.argtypes = [c_wchar_p, c_bool, c_wchar_p, c_wchar_p, c_wchar_p, c_uint]
 _dsl.dsl_gie_secondary_new.restype = c_uint
-def dsl_gie_secondary_new(name, infer_config_file, model_engine_file, infer_on_gie_name, interval):
+def dsl_gie_secondary_new(name, triton_enabled, 
+    infer_config_file, model_engine_file, infer_on_gie_name, interval):
     global _dsl
-    result = _dsl.dsl_gie_secondary_new(name, infer_config_file, model_engine_file, infer_on_gie_name, interval)
+    result = _dsl.dsl_gie_secondary_new(name, triton_enabled, 
+        infer_config_file, model_engine_file, infer_on_gie_name, interval)
     return int(result)
 
 ##

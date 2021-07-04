@@ -52,6 +52,21 @@ namespace DSL
         return AddChild(pPrmaryGieBintr);
     }
 
+    bool BranchBintr::AddSegVisualBintr(DSL_BASE_PTR pSegVisualBintr)
+    {
+        LOG_FUNC();
+
+        if (m_pSegVisualBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Segmentation Visualizer");
+            return false;
+        }
+        m_pSegVisualBintr = std::dynamic_pointer_cast<SegVisualBintr>(pSegVisualBintr);
+        
+        return AddChild(pSegVisualBintr);
+    }
+
     bool BranchBintr::AddTrackerBintr(DSL_BASE_PTR pTrackerBintr)
     {
         LOG_FUNC();
@@ -76,7 +91,8 @@ namespace DSL
             m_pSecondaryGiesBintr = DSL_PIPELINE_SGIES_NEW("sgies-bin");
             AddChild(m_pSecondaryGiesBintr);
         }
-        return m_pSecondaryGiesBintr->AddChild(std::dynamic_pointer_cast<SecondaryGieBintr>(pSecondaryGieBintr));
+        return m_pSecondaryGiesBintr->
+            AddChild(std::dynamic_pointer_cast<SecondaryGieBintr>(pSecondaryGieBintr));
     }
 
     bool BranchBintr::AddOfvBintr(DSL_BASE_PTR pOfvBintr)
@@ -256,19 +272,27 @@ namespace DSL
             return false;
         }
         if (!m_pDemuxerBintr and !m_pSplitterBintr and !m_pMultiSinksBintr)
-//        if (!m_pDemuxerBintr and !m_pTilerBintr)
         {
-            LOG_ERROR("Pipline '" << GetName() << "' has no Demuxer, Splitter or Sink - and is unable to link");
+            LOG_ERROR("Pipline '" << GetName() 
+                << "' has no Demuxer, Splitter or Sink - and is unable to link");
             return false;
         }
         if (m_pTrackerBintr and !m_pPrimaryGieBintr)
         {
-            LOG_ERROR("Pipline '" << GetName() << "' has a Tracker and no Primary GIE - and is unable to link");
+            LOG_ERROR("Pipline '" << GetName() 
+                << "' has a Tracker and no Primary GIE - and is unable to link");
+            return false;
+        }
+        if (m_pSegVisualBintr and !m_pPrimaryGieBintr)
+        {
+            LOG_ERROR("Pipline '" << GetName() 
+                << "' has a Segmentation Visualizer and no Primary GIE - and is unable to link");
             return false;
         }
         if (m_pSecondaryGiesBintr and !m_pPrimaryGieBintr)
         {
-            LOG_ERROR("Pipline '" << GetName() << "' has a Seconday GIE and no Primary GIE - and is unable to link");
+            LOG_ERROR("Pipline '" << GetName() 
+                << "' has a Seconday GIE and no Primary GIE - and is unable to link");
             return false;
         }
         
@@ -278,7 +302,8 @@ namespace DSL
             // then LinkAll PrimaryGie Elementrs and add as the next component in the Branch
             m_pPrimaryGieBintr->SetBatchSize(m_batchSize);
             if (!m_pPrimaryGieBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pPrimaryGieBintr)))
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pPrimaryGieBintr)))
             {
                 return false;
             }
@@ -292,7 +317,8 @@ namespace DSL
             // LinkAll Tracker Elementrs and add as the next component in the Branch
             m_pTrackerBintr->SetBatchSize(m_batchSize);
             if (!m_pTrackerBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pTrackerBintr)))
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pTrackerBintr)))
             {
                 return false;
             }
@@ -309,7 +335,8 @@ namespace DSL
             
             // LinkAll SecondaryGie Elementrs and add the Bintr as next component in the Branch
             if (!m_pSecondaryGiesBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pSecondaryGiesBintr)))
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pSecondaryGiesBintr)))
             {
                 return false;
             }
@@ -318,12 +345,28 @@ namespace DSL
                 m_pSecondaryGiesBintr->GetName() << "' successfully");
         }
 
+        if (m_pSegVisualBintr)
+        {
+            // LinkAll Segmentation Visualizer Elementrs and add as the next component in the Branch
+            m_pSegVisualBintr->SetBatchSize(m_batchSize);
+            if (!m_pSegVisualBintr->LinkAll() or
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pSegVisualBintr)))
+            {
+                return false;
+            }
+            m_linkedComponents.push_back(m_pSegVisualBintr);
+            LOG_INFO("Branch '" << GetName() << "' Linked up Segmentation Visualizer '" << 
+                m_pSegVisualBintr->GetName() << "' successfully");
+        }
+
         if (m_pOfvBintr)
         {
             // LinkAll Optical Flow Elementrs and add as the next component in the Branch
             m_pOfvBintr->SetBatchSize(m_batchSize);
             if (!m_pOfvBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pOfvBintr)))
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pOfvBintr)))
             {
                 return false;
             }
@@ -338,7 +381,8 @@ namespace DSL
             // Link All Tiler Elementrs and add as the next component in the Branch
             m_pTilerBintr->SetBatchSize(m_batchSize);
             if (!m_pTilerBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pTilerBintr)))
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pTilerBintr)))
             {
                 return false;
             }
@@ -353,7 +397,8 @@ namespace DSL
             // LinkAll Osd Elementrs and add as next component in the Branch
             m_pOsdBintr->SetBatchSize(m_batchSize);
             if (!m_pOsdBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pOsdBintr)))
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pOsdBintr)))
             {
                 return false;
             }
@@ -365,10 +410,12 @@ namespace DSL
         // mutually exclusive with TilerBintr, Pipeline-OsdBintr, and Pieline-MultiSinksBintr
         if (m_pDemuxerBintr)
         {
-            // Link All Demuxer Elementrs and add as the next ** AND LAST ** component in the Pipeline
+            // Link All Demuxer Elementrs and add as the next ** AND LAST ** 
+            // component in the Pipeline
             m_pDemuxerBintr->SetBatchSize(m_batchSize);
             if (!m_pDemuxerBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pDemuxerBintr)))
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pDemuxerBintr)))
             {
                 return false;
             }
@@ -377,13 +424,16 @@ namespace DSL
                 m_pDemuxerBintr->GetName() << "' successfully");
         }
 
-        // mutually exclusive with TilerBintr, Pipeline-OsdBintr, and Pieline-MultiSinksBintr
+        // mutually exclusive with TilerBintr, Pipeline-OsdBintr, 
+        // and Pieline-MultiSinksBintr
         if (m_pSplitterBintr)
         {
-            // Link All Demuxer Elementrs and add as the next ** AND LAST ** component in the Pipeline
+            // Link All Demuxer Elementrs and add as the next ** AND LAST ** 
+            // component in the Pipeline
             m_pSplitterBintr->SetBatchSize(m_batchSize);
             if (!m_pSplitterBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pSplitterBintr)))
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pSplitterBintr)))
             {
                 return false;
             }
@@ -395,10 +445,12 @@ namespace DSL
         // mutually exclusive with Demuxer
         if (m_pMultiSinksBintr)
         {
-            // Link all Sinks and their elementrs and add as finale (tail) components in the Branch
+            // Link all Sinks and their elementrs and add as finale (tail) 
+            //components in the Branch
             m_pMultiSinksBintr->SetBatchSize(m_batchSize);
             if (!m_pMultiSinksBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pMultiSinksBintr)))
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pMultiSinksBintr)))
             {
                 return false;
             }

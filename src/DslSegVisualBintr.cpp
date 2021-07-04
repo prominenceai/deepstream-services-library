@@ -24,30 +24,85 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslSegVisualBintr.h"
+#include "DslBranchBintr.h"
 
 namespace DSL
 {
-    SegVisualElementr::SegVisualElementr(const char* name, 
+    SegVisualBintr::SegVisualBintr(const char* name, 
         uint width, uint height)
-        : Elementr("nvsegvisual", name)
+        : Bintr(name)
         , m_width(width)
         , m_height(height)
-        , m_batchSize(0)
-        , m_gpuId(0)
     {
         LOG_FUNC();
         
-        SetAttribute("width", m_width);
-        SetAttribute("height", m_height);
-        SetAttribute("gpu-id", m_gpuId);
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "segvisual-queue");
+        m_pSegVisual = DSL_ELEMENT_NEW("nvsegvisual", "segvisual");
+        
+        m_pSegVisual->SetAttribute("width", m_width);
+        m_pSegVisual->SetAttribute("height", m_height);
+        m_pSegVisual->SetAttribute("gpu-id", m_gpuId);
+
+        AddChild(m_pQueue);
+        AddChild(m_pSegVisual);
+        
+        m_pQueue->AddGhostPadToParent("sink");
+        m_pSegVisual->AddGhostPadToParent("src");
     }
 
-    SegVisualElementr::~SegVisualElementr()
+    SegVisualBintr::~SegVisualBintr()
     {
         LOG_FUNC();
     }
 
-    void SegVisualElementr::GetDimensions(uint* width, uint* height)
+    bool SegVisualBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+        if (!m_batchSize)
+        {
+            LOG_ERROR("SegVisualBintr '" << GetName() << "' can not be linked: batch size = 0");
+            return false;
+        }
+        if (m_isLinked)
+        {
+            LOG_ERROR("SegVisualBintr '" << GetName() << "' is already linked");
+            return false;
+        }
+        if (!m_pQueue->LinkToSink(m_pSegVisual))
+        {
+            return false;
+        }
+        
+        m_isLinked = true;
+        
+        return true;
+    }
+    
+    void SegVisualBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("SegVisualBintr '" << GetName() << "' is not linked");
+            return;
+        }
+        m_pQueue->UnlinkFromSink();
+
+        m_isLinked = false;
+    }
+
+    bool SegVisualBintr::AddToParent(DSL_BASE_PTR pParentBintr)
+    {
+        LOG_FUNC();
+        
+        // add 'this' SegVisualBintr to the Parent Pipeline 
+        return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
+            AddSegVisualBintr(shared_from_this());
+    }
+
+    void SegVisualBintr::GetDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
         
@@ -55,13 +110,13 @@ namespace DSL
         *height = m_height;
     }
 
-    bool SegVisualElementr::SetDimensions(uint width, uint height)
+    bool SegVisualBintr::SetDimensions(uint width, uint height)
     {
         LOG_FUNC();
         
-        if (IsInUse())
+        if (IsLinked())
         {
-            LOG_ERROR("Unable to set dimensions for SegVisualElementr '" << GetName() 
+            LOG_ERROR("Unable to set dimensions for SegVisualBintr '" << GetName() 
                 << "' as it's currently in use");
             return false;
         }
@@ -69,51 +124,45 @@ namespace DSL
         m_width = width;
         m_height = height;
 
-        SetAttribute("width", m_width);
-        SetAttribute("height", m_height);
+        m_pSegVisual->SetAttribute("width", m_width);
+        m_pSegVisual->SetAttribute("height", m_height);
         
         return true;
     }
 
-    uint SegVisualElementr::GetBatchSize()
+    bool SegVisualBintr::SetBatchSize(uint batchSize)
     {
         LOG_FUNC();
         
-        return m_batchSize;
-    };
-    
-    bool SegVisualElementr::SetBatchSize(uint batchSize)
-    {
-        LOG_FUNC();
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set batch-size for SegVisualBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        
         LOG_INFO("Setting batch size to '" << batchSize 
-            << "' for SegVisualElementr '" << GetName() << "'");
+            << "' for SegVisualBintr '" << GetName() << "'");
         
         m_batchSize = batchSize;
         
-        SetAttribute("batch-size", m_batchSize);
+        m_pSegVisual->SetAttribute("batch-size", m_batchSize);
         return true;
     };
 
-    uint SegVisualElementr::GetGpuId()
-    {
-        LOG_FUNC();
 
-        LOG_DEBUG("Returning a GPU ID of " << m_gpuId <<"' for Bintr '" << GetName() << "'");
-        return m_gpuId;
-    }
-
-    bool SegVisualElementr::SetGpuId(uint gpuId)
+    bool SegVisualBintr::SetGpuId(uint gpuId)
     {
         LOG_FUNC();
         
-        if (IsInUse())
+        if (IsLinked())
         {
-            LOG_ERROR("Unable to set GPU ID for Bintr '" << GetName() 
+            LOG_ERROR("Unable to set GPU ID for SegVisualBintr '" << GetName() 
                 << "' as it's currently in use");
             return false;
         }
         m_gpuId = gpuId;
-        SetAttribute("gpu-id", m_batchSize);
+        m_pSegVisual->SetAttribute("gpu-id", m_batchSize);
         
         return true;
     }

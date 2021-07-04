@@ -393,6 +393,17 @@ THE SOFTWARE.
 #define DSL_RESULT_MAILER_PARAMETER_INVALID                         0x00500006
 
 /**
+ * Segmentation Visualizer API Return Values
+ */
+#define DSL_RESULT_SEGVISUAL_RESULT                                 0x00600000
+#define DSL_RESULT_SEGVISUAL_NAME_NOT_UNIQUE                        0x00600001
+#define DSL_RESULT_SEGVISUAL_NAME_NOT_FOUND                         0x00600002
+#define DSL_RESULT_SEGVISUAL_THREW_EXCEPTION                        0x00600003
+#define DSL_RESULT_SEGVISUAL_IN_USE                                 0x00600004
+#define DSL_RESULT_SEGVISUAL_SET_FAILED                             0x00600005
+#define DSL_RESULT_SEGVISUAL_PARAMETER_INVALID                      0x00600006
+
+/**
  *
  */
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
@@ -2828,10 +2839,43 @@ DslReturnType dsl_tap_record_mailer_add(const wchar_t* name,
  */
 DslReturnType dsl_tap_record_mailer_remove(const wchar_t* name, 
     const wchar_t* mailer);
+
+/**
+ * @brief Creates a new, uniquely named Segmentation Visualizer. Once created,
+ * the Segmentation Visualizer can be added to a Primary GIE. 
+ * @param[in] name unique name for the new Segmentation Visualizer
+ * @param[in] width output width in pixels, typically same as input to GIE
+ * @param[in] height output height in pixels, typically same as input to GIE
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SIGVISUAL_RESULT
+ */
+DslReturnType dsl_segvisual_new(const wchar_t* name, uint width, uint height);
+
+/**
+ * @brief Returns the output dimensions, width and height, for the named
+ * Segmentation Visualizer.  
+ * @param[in] name name of the Segmentation Visualizer to query
+ * @param[out] width current output width in pixels
+ * @param[out] height current output height in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SIGVISUAL_RESULT
+ */
+DslReturnType dsl_segvisual_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
+
+/**
+ * @brief Sets the output dimensions, width and height, for the named 
+ * Segmentation Visualizer.
+ * @param[in] name name of the Display to update
+ * @param[in] width new output width in pixels
+ * @param[in] height new output height in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SIGVISUAL_RESULT
+ */
+DslReturnType dsl_segvisual_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
     
 /**
  * @brief creates a new, uniquely named Primary GIE object
  * @param[in] name unique name for the new GIE object
+ * @param[in] triton_enabled set to true to enabled the Triton Inference Server, 
  * @param[in] infer_config_file pathspec of the Infer Config file to use
  * @param[in] model_engine_file pathspec of the Model Engine file to use
  * Set to NULL or empty string "" to leave unspecified, indicating that
@@ -2839,8 +2883,8 @@ DslReturnType dsl_tap_record_mailer_remove(const wchar_t* name,
  * @param[in] interval frame interval to infer on. 0 = every frame, 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
  */
-DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
-    const wchar_t* model_engine_file, uint interval);
+DslReturnType dsl_gie_primary_new(const wchar_t* name, boolean triton_enabled, 
+    const wchar_t* infer_config_file, const wchar_t* model_engine_file, uint interval);
 
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
@@ -2864,6 +2908,7 @@ DslReturnType dsl_gie_primary_pph_remove(const wchar_t* name, const wchar_t* han
 /**
  * @brief creates a new, uniquely named Secondary GIE object
  * @param[in] name unique name for the new GIE object
+ * @param[in] triton_enabled set to true to enabled the Triton Inference Server
  * @param[in] infer_config_file pathspec of the Infer Config file to use
  * @param[in] model_engine_file pathspec of the Model Engine file to use
  * Set to NULL or empty string "" to leave unspecified, indicating that
@@ -2872,8 +2917,16 @@ DslReturnType dsl_gie_primary_pph_remove(const wchar_t* name, const wchar_t* han
  * @param[in] interval frame interval to infer on. 0 = every frame, 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
  */
-DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
-    const wchar_t* model_engine_file, const wchar_t* infer_on_gie, uint interval);
+DslReturnType dsl_gie_secondary_new(const wchar_t* name, boolean triton_enabled, 
+    const wchar_t* infer_config_file, const wchar_t* model_engine_file, 
+    const wchar_t* infer_on_gie, uint interval);
+
+/**
+ * @brief Gets the "triton_enabled" setting for the named GIE object
+ * @param[in] name unique name for the GIE object to query
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_GIE_RESULT otherwise.
+ */
+DslReturnType dsl_gie_triton_enabled_get(const wchar_t* name, bool* enabled);
 
 /**
  * @brief Gets the current Infer Config File in use by the named Primary or Secondary GIE
