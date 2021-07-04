@@ -157,7 +157,8 @@ def main(args):
         dsl_source_uri_new('Camera 8', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
 
         # New Primary GIE using the filespecs above, with interval and Id
-        retval = dsl_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, interval=4)
+        retval = dsl_gie_primary_new('primary-gie', False,
+            inferConfigFile, modelEngineFile, interval=4)
         if retval != DSL_RETURN_SUCCESS:
             break
 
