@@ -28,13 +28,9 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    #define DSL_GIE_PROCESS_MODE_PRIMARY   1
-    #define DSL_GIE_PROCESS_MODE_SECONDARY 2
-    
-    GieBintr::GieBintr(const char* name, bool tritonEnabled, uint processMode,
+    GieBintr::GieBintr(const char* name, const char* factoryname, uint processMode,
         const char* inferConfigFile, const char* modelEngineFile)
         : Bintr(name)
-        , m_tritonEnabled(tritonEnabled)
         , m_processMode(processMode)
         , m_interval(0)
         , m_uniqueId(CreateUniqueIdFromName(name))
@@ -57,8 +53,7 @@ namespace DSL
         LOG_INFO("Creating GIE  '" << gieName << "' with unique Id = " << m_uniqueId);
         
         // create and setup unique GIE Elementr
-        m_pInferEngine = DSL_ELEMENT_NEW(tritonEnabled 
-            ? NVDS_ELEM_INFER_SERVER : NVDS_ELEM_NVINFER, gieName.c_str());
+        m_pInferEngine = DSL_ELEMENT_NEW(factoryname, gieName.c_str());
         m_pInferEngine->SetAttribute("config-file-path", inferConfigFile);
         m_pInferEngine->SetAttribute("process-mode", m_processMode);
         m_pInferEngine->SetAttribute("unique-id", m_uniqueId);
@@ -276,10 +271,9 @@ namespace DSL
 
     // ***********************************************************************
     
-    PrimaryGieBintr::PrimaryGieBintr(const char* name, bool tritonEnabled, 
-        const char* inferConfigFile, const char* modelEngineFile, uint interval)
-        : GieBintr(name, tritonEnabled, DSL_GIE_PROCESS_MODE_PRIMARY, 
-            inferConfigFile, modelEngineFile)
+    PrimaryGieBintr::PrimaryGieBintr(const char* name, const char* inferConfigFile,
+        const char* modelEngineFile, uint interval)
+        : GieBintr(name, NVDS_ELEM_PGIE, 1, inferConfigFile, modelEngineFile)
     {
         LOG_FUNC();
         
@@ -383,11 +377,9 @@ namespace DSL
 
     // ***********************************************************************
 
-    SecondaryGieBintr::SecondaryGieBintr(const char* name, bool tritonEnabled, 
-            const char* inferConfigFile,const char* modelEngineFile, 
-            const char* inferOnGieName, uint interval)
-        : GieBintr(name, tritonEnabled, DSL_GIE_PROCESS_MODE_SECONDARY, 
-            inferConfigFile, modelEngineFile)
+    SecondaryGieBintr::SecondaryGieBintr(const char* name, const char* inferConfigFile,
+            const char* modelEngineFile, const char* inferOnGieName, uint interval)
+        : GieBintr(name, NVDS_ELEM_SGIE, 2, inferConfigFile, modelEngineFile)
     {
         LOG_FUNC();
         

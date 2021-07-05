@@ -301,7 +301,7 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components and a PrimaryGi
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
@@ -356,7 +356,7 @@ SCENARIO( "A Pipeline is unable to LinkAll with a SecondaryGieBintr and no Prima
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
@@ -413,8 +413,8 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr an
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
-                modelEngineFile.c_str(), interval);
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
 
         DSL_OSD_PTR pOsdBintr = 
             DSL_OSD_NEW(osdName.c_str(), true, true);
@@ -475,7 +475,7 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, O
             DSL_KTL_TRACKER_NEW(trackerName.c_str(), trackerW, trackerH);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
 
         DSL_TILER_PTR pTilerBintr = 
@@ -547,11 +547,11 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with all Optional Compone
             DSL_KTL_TRACKER_NEW(trackerName.c_str(), trackerW, trackerH);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, primaryInferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
             primaryModelEngineFile.c_str(), interval);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), false, secondaryInferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), secondaryInferConfigFile.c_str(), 
             secondaryModelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         DSL_OSD_PTR pOsdBintr = 
@@ -662,11 +662,11 @@ SCENARIO( "A Pipeline can have at most one PrimaryGieBintr", "[PipelineBintr]" )
         uint interval(1);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr1 = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName1.c_str(), false, primaryInferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName1.c_str(), primaryInferConfigFile.c_str(), 
             primaryModelEngineFile.c_str(), interval);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr2 = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName2.c_str(), false, primaryInferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName2.c_str(), primaryInferConfigFile.c_str(), 
             primaryModelEngineFile.c_str(), interval);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
@@ -1042,7 +1042,7 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and Primary GI
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
@@ -1067,7 +1067,6 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and Primary GI
         }
     }
 }
-
 
 SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, and Tracker", "[PipelineBintr]" )
 {
@@ -1105,7 +1104,7 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
 
         DSL_KTL_TRACKER_PTR pTrackerBintr = 
@@ -1174,11 +1173,11 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, primaryInferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
             primaryModelEngineFile.c_str(), interval);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), false, secondaryInferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), secondaryInferConfigFile.c_str(), 
             secondaryModelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         DSL_KTL_TRACKER_PTR pTrackerBintr = 
@@ -1246,7 +1245,7 @@ SCENARIO( "A Pipeline with an ImageSourceBintr is able to Link/UnlinkAll", "[Pip
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
@@ -1305,7 +1304,7 @@ SCENARIO( "A Pipeline with an FileSourceBintr is able to Link/UnlinkAll", "[Pipe
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());

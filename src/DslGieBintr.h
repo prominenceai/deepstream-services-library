@@ -40,15 +40,14 @@ namespace DSL
     #define DSL_GIE_PTR std::shared_ptr<GieBintr>
 
     #define DSL_PRIMARY_GIE_PTR std::shared_ptr<PrimaryGieBintr>
-    #define DSL_PRIMARY_GIE_NEW(name, tritonEnabled, inferConfigFile, modelEngineFile, interval) \
-        std::shared_ptr<PrimaryGieBintr>(new PrimaryGieBintr(name, \
-        tritonEnabled, inferConfigFile, modelEngineFile, interval))
+    #define DSL_PRIMARY_GIE_NEW(name, inferConfigFile, modelEngineFile, interval) \
+        std::shared_ptr<PrimaryGieBintr>(new PrimaryGieBintr( \
+        name, inferConfigFile, modelEngineFile, interval))
 
     #define DSL_SECONDARY_GIE_PTR std::shared_ptr<SecondaryGieBintr>
-    #define DSL_SECONDARY_GIE_NEW(name, tritonEnabled, inferConfigFile, \
-        modelEngineFile, inferOnGieName, interval) \
-        std::shared_ptr<SecondaryGieBintr>(new SecondaryGieBintr(name, \
-        tritonEnabled, inferConfigFile, modelEngineFile, inferOnGieName, interval))
+    #define DSL_SECONDARY_GIE_NEW(name, inferConfigFile, modelEngineFile, inferOnGieName, interval) \
+        std::shared_ptr<SecondaryGieBintr>(new SecondaryGieBintr( \
+        name, inferConfigFile, modelEngineFile, inferOnGieName, interval))
 
     /**
      * @class GieBintr
@@ -61,12 +60,11 @@ namespace DSL
         /**
          * @brief ctor for the GST InferEngine
          * @param[in] name name to give the new Bintr
-         * @param[in] tritonEnabled set to true to enable the Triton Inference Server
          * @param[in] inferConfigFile fully qualified pathspec for the infer config file to use
          * @param[in] modelEngineFile fully qualified pathspec for the model engine file to use
          * @param[in] interval
          */
-        GieBintr(const char* name, bool tritonEnabled, uint processMode,
+        GieBintr(const char* name, const char* factoryname, uint processMode,
             const char* inferConfigFile, const char* modelEngineFile);
 
         /**
@@ -170,11 +168,6 @@ namespace DSL
          * @brief Unique GIE ID derived from unique name
          */
         int m_uniqueId;
-        
-        /**
-         * @brief True if the Triton Server pluggin is used/enabled
-         */
-        bool m_tritonEnabled;
 
         /**
          @brief Current process mode in use by the Primary
@@ -182,7 +175,7 @@ namespace DSL
         uint m_processMode;
 
         /**
-         * @brief True if raw output is currently enabled.
+         * true if raw output is currently enabled.
          */
         bool m_rawOutputEnabled;
         
@@ -227,12 +220,12 @@ namespace DSL
         /**
          * @brief ctor for the PrimaryGieBintr
          * @param[in] name name to give the new Bintr
-         * @param[in] tritonEnabled set to true to enable the Triton Inference Server
          * @param[in] inferConfigFile fully qualified pathspec for the infer config file to use
          * @param[in] modelEnginFile fully qualified pathspec for the model engine file to use
-         * @param[in] interval GIE frame processing interval
+         * @param[in] interval
+         * @param[in] uniqueId
          */
-        PrimaryGieBintr(const char* name, bool tritonEnabled, const char* inferConfigFile,
+        PrimaryGieBintr(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, uint interval);
 
         /**
@@ -288,12 +281,11 @@ namespace DSL
         /**
          * @brief ctor for the SecondaryGieBintr
          * @param[in] name name to give the new Bintr
-         * @param[in] tritonEnabled set to true to enable the Triton Inference Server
          * @param[in] inferConfigFile fully qualified pathspec for the infer config file to use
          * @param[in] modelEnginFile fully qualified pathspec for the model engine file to use
          * @param[in] frame interval to infer on
          */
-        SecondaryGieBintr(const char* name, bool tritonEnable, const char* inferConfigFile,
+        SecondaryGieBintr(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, const char* inferOnGieName, uint interval);
 
         /**

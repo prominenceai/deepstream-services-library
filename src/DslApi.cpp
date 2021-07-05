@@ -2786,38 +2786,8 @@ DslReturnType dsl_tap_record_mailer_remove(const wchar_t* name,
         cstrName.c_str(), cstrMailer.c_str());
 }
 
-DslReturnType dsl_segvisual_new(const wchar_t* name, uint width, uint height)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SegVisualNew(cstrName.c_str(), width, height);
-}
-
-DslReturnType dsl_segvisual_dimensions_get(const wchar_t* name, uint* width, uint* height)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SegVisualDimensionsGet(cstrName.c_str(), width, height);
-}
-
-DslReturnType dsl_segvisual_dimensions_set(const wchar_t* name, uint width, uint height)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SegVisualDimensionsSet(cstrName.c_str(), width, height);
-}
-
-DslReturnType dsl_gie_primary_new(const wchar_t* name, boolean tritonEnabled, 
-    const wchar_t* infer_config_file, const wchar_t* model_engine_file, uint interval)
+DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
+    const wchar_t* model_engine_file, uint interval)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(infer_config_file);
@@ -2833,8 +2803,8 @@ DslReturnType dsl_gie_primary_new(const wchar_t* name, boolean tritonEnabled,
 		std::wstring wstrEngine(model_engine_file);
 		cstrEngine.assign(wstrEngine.begin(), wstrEngine.end());
     }
-    return DSL::Services::GetServices()->PrimaryGieNew(cstrName.c_str(), tritonEnabled,
-        cstrConfig.c_str(), cstrEngine.c_str(), interval);
+    return DSL::Services::GetServices()->PrimaryGieNew(cstrName.c_str(), cstrConfig.c_str(),
+        cstrEngine.c_str(), interval);
 }
 
 DslReturnType dsl_gie_primary_pph_add(const wchar_t* name, 
@@ -2865,9 +2835,8 @@ DslReturnType dsl_gie_primary_pph_remove(const wchar_t* name,
     return DSL::Services::GetServices()->PrimaryGiePphRemove(cstrName.c_str(), cstrHandler.c_str(), pad);
 }
 
-DslReturnType dsl_gie_secondary_new(const wchar_t* name, boolean tritonEnabled, 
-    const wchar_t* infer_config_file, const wchar_t* model_engine_file, 
-    const wchar_t* infer_on_gie, uint interval)
+DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
+    const wchar_t* model_engine_file, const wchar_t* infer_on_gie, uint interval)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(infer_config_file);
@@ -2886,8 +2855,8 @@ DslReturnType dsl_gie_secondary_new(const wchar_t* name, boolean tritonEnabled,
 		std::wstring wstrEngine(model_engine_file);
 		cstrEngine.assign(wstrEngine.begin(), wstrEngine.end());
     }
-    return DSL::Services::GetServices()->SecondaryGieNew(cstrName.c_str(), tritonEnabled,
-        cstrConfig.c_str(), cstrEngine.c_str(), cstrInferOnGie.c_str(), interval);
+    return DSL::Services::GetServices()->SecondaryGieNew(cstrName.c_str(), cstrConfig.c_str(),
+        cstrEngine.c_str(), cstrInferOnGie.c_str(), interval);
 }
 
 DslReturnType dsl_gie_infer_config_file_get(const wchar_t* name, const wchar_t** infer_config_file)
