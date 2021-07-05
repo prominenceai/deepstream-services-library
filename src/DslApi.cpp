@@ -2786,6 +2786,36 @@ DslReturnType dsl_tap_record_mailer_remove(const wchar_t* name,
         cstrName.c_str(), cstrMailer.c_str());
 }
 
+DslReturnType dsl_segvisual_new(const wchar_t* name, uint width, uint height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SegVisualNew(cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_segvisual_dimensions_get(const wchar_t* name, uint* width, uint* height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SegVisualDimensionsGet(cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_segvisual_dimensions_set(const wchar_t* name, uint width, uint height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SegVisualDimensionsSet(cstrName.c_str(), width, height);
+}
+
 DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
     const wchar_t* model_engine_file, uint interval)
 {

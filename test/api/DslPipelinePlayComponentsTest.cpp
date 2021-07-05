@@ -1656,3 +1656,150 @@ SCENARIO( "A new Pipeline with a Image Source, OverlaySink, and Tiled Display ca
         }
     }
 }
+
+SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Semantic Segmentation, Overlay Sink can play", "[pipeline-play]" )
+{
+    GIVEN( "A Pipeline, URI source, Segmentation Visualizer, Primary GIE, and Overlay Sink" ) 
+    {
+        std::wstring sourceName1(L"uri-source");
+        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint interval(0);
+
+        std::wstring primaryGieName(L"primary-gie");
+        std::wstring pgieInferConfigFile(L"./test/configs/segvisual_config_semantic.txt");
+        std::wstring modelEngineFile(L"./test/models/Segmentation/semantic/unetres18_v4_pruned0.65_800_data.uff_b1_gpu0_fp16.engine");
+
+        std::wstring segVisualName(L"segvisual");
+        uint segVisualW(512);
+        uint segVisualH(512);
+        
+        std::wstring onScreenDisplayName(L"on-screen-display");
+        boolean textEnabled(false);
+        boolean clockEnabled(false);
+
+        std::wstring overlaySinkName(L"overlay-sink");
+        uint displayId(0);
+        uint depth(0);
+        uint offsetX(100);
+        uint offsetY(140);
+        uint sinkW(512);
+        uint sinkH(512);
+
+        std::wstring pipelineName(L"test-pipeline");
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), pgieInferConfigFile.c_str(), 
+            modelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_segvisual_new(segVisualName.c_str(), segVisualW, segVisualH) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {L"uri-source", L"primary-gie",
+            L"segvisual", L"on-screen-display", L"overlay-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+            
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                bool currIsClockEnabled(false);
+                
+                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+
+SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Industrial Segmentation, Overlay Sink can play", "[pipeline-play]" )
+{
+    GIVEN( "A Pipeline, URI source, Segmentation Visualizer, Primary GIE, and Overlay Sink" ) 
+    {
+        std::wstring sourceName1(L"uri-source");
+        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint interval(0);
+
+        std::wstring primaryGieName(L"primary-gie");
+        std::wstring pgieInferConfigFile(L"./test/configs/segvisual_config_industrial.txt");
+        std::wstring modelEngineFile(L"./test/models/Segmentation/industrial/unet_output_graph.uff_b1_gpu0_fp16.engine");
+
+        std::wstring segVisualName(L"segvisual");
+        uint segVisualW(512);
+        uint segVisualH(512);
+        
+        std::wstring onScreenDisplayName(L"on-screen-display");
+        boolean textEnabled(false);
+        boolean clockEnabled(false);
+
+        std::wstring overlaySinkName(L"overlay-sink");
+        uint displayId(0);
+        uint depth(0);
+        uint offsetX(100);
+        uint offsetY(140);
+        uint sinkW(512);
+        uint sinkH(512);
+
+        std::wstring pipelineName(L"test-pipeline");
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), pgieInferConfigFile.c_str(), 
+            modelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_segvisual_new(segVisualName.c_str(), segVisualW, segVisualH) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {L"uri-source", L"primary-gie",
+            L"segvisual", L"on-screen-display", L"overlay-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+            
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                bool currIsClockEnabled(false);
+                
+                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
