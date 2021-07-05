@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "DslServices.h"
 #include "DslSourceBintr.h"
 #include "DslGieBintr.h"
+#include "DslSegVisualBintr.h"
 #include "DslTrackerBintr.h"
 #include "DslPadProbeHandler.h"
 #include "DslTilerBintr.h"
@@ -6008,6 +6009,96 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
+    DslReturnType Services::SegVisualNew(const char* name, 
+        uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure element name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Segmentation Visualizer name '" << name 
+                    << "' is not unique");
+                return DSL_RESULT_SEGVISUAL_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = std::shared_ptr<Bintr>(new SegVisualBintr(
+                name, width, height));
+                
+            LOG_INFO("New Segmentation Visualizer '" << name 
+                << "' created successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Segmentation Visualizer'" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SEGVISUAL_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SegVisualDimensionsGet(const char* name, 
+        uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, SegVisualBintr);
+
+            DSL_SEGVISUAL_PTR pSegVisual = 
+                std::dynamic_pointer_cast<SegVisualBintr>(m_components[name]);
+
+            pSegVisual->GetDimensions(width, height);
+            
+            LOG_INFO("Width = " << *width << " height = " << *height << 
+                " returned successfully for Segmentation Visualizer '" << name << "'");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Segmentation Visualizer '" << name 
+                << "' threw an exception getting dimensions");
+            return DSL_RESULT_SEGVISUAL_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SegVisualDimensionsSet(const char* name, 
+        uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, SegVisualBintr);
+
+            DSL_SEGVISUAL_PTR pSegVisual = 
+                std::dynamic_pointer_cast<SegVisualBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!pSegVisual->SetDimensions(width, height))
+            {
+                LOG_ERROR("Segmentation Visualizer '" << name 
+                    << "' failed to set dimensions");
+                return DSL_RESULT_SEGVISUAL_SET_FAILED;
+            }
+            LOG_INFO("Width = " << width << " height = " << height << 
+                " set successfully for Tiler '" << name << "'");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Segmentation Visualizer '" << name 
+                << "' threw an exception setting dimensions");
+            return DSL_RESULT_SEGVISUAL_THREW_EXCEPTION;
+        }
+    }
     
     DslReturnType Services::PrimaryGieNew(const char* name, const char* inferConfigFile,
         const char* modelEngineFile, uint interval)

@@ -522,6 +522,12 @@ namespace DSL {
         DslReturnType TapRecordMailerRemove(const char* name,
             const char* mailer);
 
+        DslReturnType SegVisualNew(const char* name, uint width, uint height);
+        
+        DslReturnType SegVisualDimensionsGet(const char* name, uint* width, uint* height);
+
+        DslReturnType SegVisualDimensionsSet(const char* name, uint width, uint height);
+
         DslReturnType PrimaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, uint interval);
 

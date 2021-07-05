@@ -36,27 +36,45 @@ namespace DSL
      * @brief convenience macros for shared pointer abstraction
      */
         
-    #define DSL_SEG_VISUAL_ELEMENT_PTR std::shared_ptr<SegVisualElementr>
-    #define DSL_SEG_VISUAL_ELEMENT_NEW(name, width, height) \
-        std::shared_ptr<SegVisualElementr>(new SegVisualElementr(name, width, height))
+    #define DSL_SEGVISUAL_PTR std::shared_ptr<SegVisualBintr>
+    #define DSL_SEGVISUAL_NEW(name, width, height) \
+        std::shared_ptr<SegVisualBintr>(new SegVisualBintr(name, width, height))
         
-    class SegVisualElementr : public Elementr
+    class SegVisualBintr : public Bintr
     {
     public: 
     
-        SegVisualElementr(const char* name, uint width, uint height);
+        SegVisualBintr(const char* name, uint width, uint height);
 
-        ~SegVisualElementr();
+        ~SegVisualBintr();
+
+        /**
+         * @brief Adds the SegVisualBintr to a Parent Bintr
+         * @param[in] pParentBintr Parent to add this Bintr to
+         */
+        bool AddToParent(DSL_BASE_PTR pParentBintr);
+
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
         
         /**
-         * @brief Gets the current output width and height settings for this SegVisualElementr
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+        
+        /**
+         * @brief Gets the current output width and height settings for this SegVisualBintr
          * @param[out] width the current width setting in pixels
          * @param[out] height the current height setting in pixels
          */ 
         void GetDimensions(uint* width, uint* height);
         
         /**
-         * @brief Sets the current output width and height settings for this SegVisualElementr
+         * @brief Sets the current output width and height settings for this SegVisualBintr
          * The caller is required to provide valid width and height values
          * @param[in] width the width value to set in pixels
          * @param[in] height the height value to set in pixels
@@ -65,25 +83,13 @@ namespace DSL
         bool SetDimensions(uint width, uint hieght);
 
         /**
-         * @brief gets the current batchSize in use by this SigVisualElementr
-         * @return the current batchSize
-         */
-        uint GetBatchSize();
-
-        /**
-         * @brief sets the batch size for this SegVisualElementr
+         * @brief sets the batch size for this SegVisualBintr
          * @param the new batchSize to use
          */
         bool SetBatchSize(uint batchSize);
 
         /**
-         * @brief Gets the current GPU ID used by this SegVisualElementr
-         * @return the ID for the current GPU in use.
-         */
-        uint GetGpuId();
-
-        /**
-         * @brief Sets the GPU ID for this SegVisualElementr
+         * @brief Sets the GPU ID for this SegVisualBintr
          * @param[in] gpuId new GPU ID setting.
          * @return true if successfully set, false otherwise.
          */
@@ -100,18 +106,16 @@ namespace DSL
          * @brief output frame height of the input buffer in pixels
          */
         uint m_height;
-        
+
         /**
-         * @brief current batch size for this Bintr
+         * @brief Queue Elementr as Sink for this SegVisualBintr
          */
-        uint m_batchSize;
-        
-        
+        DSL_ELEMENT_PTR  m_pQueue;
+
         /**
-         * @brief current GPU Id used by this SegVisualElementr
+         * @brief SegVisual Elementr as Source for SegVisualBintr 
          */
-        guint m_gpuId;
-        
+        DSL_ELEMENT_PTR  m_pSegVisual;
     };
 
 } // DSL
