@@ -36,7 +36,7 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink, and Tiled Display ca
         std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
-        uint interval(0); 
+        uint dropFrameInterval(0); 
 
         std::wstring tilerName(L"tiler");
         uint width(1280);
@@ -49,7 +49,7 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink, and Tiled Display ca
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         // overlay sink for observation 
         REQUIRE( dsl_sink_fake_new(fakeSinkName.c_str()) == DSL_RESULT_SUCCESS );
@@ -93,7 +93,7 @@ SCENARIO( "A new Pipeline with a URI File Source, GIE, FakeSink, and Tiled Displ
         std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
-        uint interval(0); 
+        uint dropFrameInterval(0); 
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
@@ -110,9 +110,9 @@ SCENARIO( "A new Pipeline with a URI File Source, GIE, FakeSink, and Tiled Displ
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         // overlay sink for observation 
@@ -157,7 +157,7 @@ SCENARIO( "A new Pipeline with a URI File Source, OverlaySink, and Tiled Display
         std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
-        uint interval(0);
+        uint dropFrameInterval(0);
 
         std::wstring tilerName(L"tiler");
         uint width(1280);
@@ -176,7 +176,7 @@ SCENARIO( "A new Pipeline with a URI File Source, OverlaySink, and Tiled Display
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         // overlay sink for observation 
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
@@ -215,7 +215,7 @@ SCENARIO( "A new Pipeline with a URI File Source, OverlaySink, and Tiled Display
 //        std::wstring uri = L"https://www.radiantmediaplayer.com/media/bbb-360p.mp4";
 //        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
 //        uint intrDecode(false);
-//        uint interval(0);
+//        uint dropFrameInterval(0);
 //
 //        std::wstring tilerName(L"tiler");
 //        uint width(1280);
@@ -235,7 +235,7 @@ SCENARIO( "A new Pipeline with a URI File Source, OverlaySink, and Tiled Display
 //
 //        // create for of the same types of source
 //        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-//            true, intrDecode, interval) == DSL_RESULT_SUCCESS );
+//            true, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 //
 //        // overlay sink for observation 
 //        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
@@ -277,7 +277,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Window Sink, and Tiled Display
         std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
-        uint interval(0);
+        uint dropFrameInterval(0);
 
         std::wstring tilerName(L"tiler");
         uint width(1280);
@@ -295,7 +295,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Window Sink, and Tiled Display
 
         // create for of the same types of source
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         // overlay sink for observation 
         REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
@@ -338,7 +338,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Overlay Sink, and Tile
         std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
-        uint interval(0);
+        uint dropFrameInterval(0);
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
@@ -361,9 +361,9 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Overlay Sink, and Tile
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
@@ -405,7 +405,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
         std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
-        uint interval(0);
+        uint dropFrameInterval(0);
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
@@ -432,9 +432,9 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), trackerW, trackerH) == DSL_RESULT_SUCCESS );
@@ -477,7 +477,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
         std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
-        uint interval(0);
+        uint dropFrameInterval(0);
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
@@ -508,9 +508,9 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), trackerW, trackerH) == DSL_RESULT_SUCCESS );
@@ -557,7 +557,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
 //        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
 //        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
 //        uint intrDecode(false);
-//        uint interval(0);
+//        uint dropFrameInterval(0);
 //
 //        std::wstring tilerName(L"tiler");
 //        uint width(1280);
@@ -575,7 +575,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
 //        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-//            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+//            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
 //        
@@ -615,7 +615,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
 //        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
 //        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
 //        uint intrDecode(false);
-//        uint interval(0);
+//        uint dropFrameInterval(0);
 //
 //        std::wstring tilerName(L"tiler");
 //        uint width(1280);
@@ -633,7 +633,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
 //        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-//            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+//            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
 //        
@@ -673,7 +673,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
 //        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
 //        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
 //        uint intrDecode(false);
-//        uint interval(0);
+//        uint dropFrameInterval(0);
 //
 //        std::wstring tilerName(L"tiler");
 //        uint width(1280);
@@ -691,7 +691,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
 //        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-//            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+//            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
 //        
@@ -731,7 +731,7 @@ SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and 
         std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
-        uint interval(0);
+        uint dropFrameInterval(0);
 
         std::wstring tilerName(L"tiler");
         uint width(1280);
@@ -743,18 +743,18 @@ SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and 
         uint rtspPort(8554);
         uint codec(DSL_CODEC_H264);
         uint bitrate(4000000);
-        uint rtsp_interval(0);
+        uint interval(0);
 
         std::wstring pipelineName(L"test-pipeline");
         
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         // RTSP sink for this scenario
         REQUIRE( dsl_sink_rtsp_new(rtspSinkName.c_str(), host.c_str(),
-            udpPort, rtspPort, codec, bitrate, rtsp_interval) == DSL_RESULT_SUCCESS );
+            udpPort, rtspPort, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
 
         // new tiler for this scenario
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
@@ -792,7 +792,7 @@ SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and 
 //        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
 //        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
 //        uint intrDecode(false);
-//        uint interval(0);
+//        uint dropFrameInterval(0);
 //
 //        std::wstring tilerName(L"tiler");
 //        uint width(1280);
@@ -811,7 +811,7 @@ SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and 
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
 //        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-//            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+//            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 //
 //        // RTSP sink for this scenario
 //        REQUIRE( dsl_sink_rtsp_new(rtspSinkName.c_str(), host.c_str(),
@@ -845,153 +845,6 @@ SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and 
 //    }
 //}
 
-SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Semantic Segmentation, Overlay Sink can play", "[pipeline-play]" )
-{
-    GIVEN( "A Pipeline, URI source, Segmentation Visualizer, Primary GIE, and Overlay Sink" ) 
-    {
-        std::wstring sourceName1(L"uri-source");
-        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
-        uint intrDecode(false);
-        uint interval(0);
-
-        std::wstring primaryGieName(L"primary-gie");
-        std::wstring pgieInferConfigFile(L"./test/configs/segvisual_config_semantic.txt");
-        std::wstring modelEngineFile(L"./test/models/Segmentation/semantic/unetres18_v4_pruned0.65_800_data.uff_b1_gpu0_fp16.engine");
-
-        std::wstring segVisualName(L"segvisual");
-        uint segVisualW(512);
-        uint segVisualH(512);
-        
-        std::wstring onScreenDisplayName(L"on-screen-display");
-        boolean textEnabled(false);
-        boolean clockEnabled(false);
-
-        std::wstring overlaySinkName(L"overlay-sink");
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(100);
-        uint offsetY(140);
-        uint sinkW(512);
-        uint sinkH(512);
-
-        std::wstring pipelineName(L"test-pipeline");
-        
-        REQUIRE( dsl_component_list_size() == 0 );
-
-        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), false, pgieInferConfigFile.c_str(), 
-            modelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_segvisual_new(segVisualName.c_str(), segVisualW, segVisualH) == DSL_RESULT_SUCCESS );
-        
-        REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
-        
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
-            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
-
-        const wchar_t* components[] = {L"uri-source", L"primary-gie",
-            L"segvisual", L"on-screen-display", L"overlay-sink", NULL};
-        
-        WHEN( "When the Pipeline is Assembled" ) 
-        {
-            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        
-            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
-            
-            THEN( "Pipeline is Able to LinkAll and Play" )
-            {
-                bool currIsClockEnabled(false);
-                
-                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_list_size() == 0 );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_list_size() == 0 );
-            }
-        }
-    }
-}
-
-
-SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Industrial Segmentation, Overlay Sink can play", "[pipeline-play]" )
-{
-    GIVEN( "A Pipeline, URI source, Segmentation Visualizer, Primary GIE, and Overlay Sink" ) 
-    {
-        std::wstring sourceName1(L"uri-source");
-        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
-        uint intrDecode(false);
-        uint interval(0);
-
-        std::wstring primaryGieName(L"primary-gie");
-        std::wstring pgieInferConfigFile(L"./test/configs/segvisual_config_industrial.txt");
-        std::wstring modelEngineFile(L"./test/models/Segmentation/industrial/unet_output_graph.uff_b1_gpu0_fp16.engine");
-
-        std::wstring segVisualName(L"segvisual");
-        uint segVisualW(512);
-        uint segVisualH(512);
-        
-        std::wstring onScreenDisplayName(L"on-screen-display");
-        boolean textEnabled(false);
-        boolean clockEnabled(false);
-
-        std::wstring overlaySinkName(L"overlay-sink");
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(100);
-        uint offsetY(140);
-        uint sinkW(512);
-        uint sinkH(512);
-
-        std::wstring pipelineName(L"test-pipeline");
-        
-        REQUIRE( dsl_component_list_size() == 0 );
-
-        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), false, pgieInferConfigFile.c_str(), 
-            modelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_segvisual_new(segVisualName.c_str(), segVisualW, segVisualH) == DSL_RESULT_SUCCESS );
-        
-        REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
-        
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
-            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
-
-        const wchar_t* components[] = {L"uri-source", L"primary-gie",
-            L"segvisual", L"on-screen-display", L"overlay-sink", NULL};
-        
-        WHEN( "When the Pipeline is Assembled" ) 
-        {
-            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        
-            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
-            
-            THEN( "Pipeline is Able to LinkAll and Play" )
-            {
-                bool currIsClockEnabled(false);
-                
-                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_list_size() == 0 );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_list_size() == 0 );
-            }
-        }
-    }
-}
-
 SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, Overlay Sink, and Tiled Display can play", "[pipeline-play]" )
 {
     GIVEN( "A Pipeline, URI source, Primary GIE, Overlay Sink, and Tiled Display" ) 
@@ -1000,7 +853,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, Overlay
         std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
-        uint interval(0);
+        uint dropFrameInterval(0);
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring pgieInferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
@@ -1035,14 +888,14 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, Overlay
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), false, pgieInferConfigFile.c_str(), 
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), pgieInferConfigFile.c_str(), 
             pgieModelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), trackerW, trackerH) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_gie_secondary_new(secondaryGieName1.c_str(), false, sgieInferConfigFile1.c_str(), 
+        REQUIRE( dsl_gie_secondary_new(secondaryGieName1.c_str(), sgieInferConfigFile1.c_str(), 
             sgieModelEngineFile1.c_str(), primaryGieName.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
@@ -1085,7 +938,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, 
         std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
-        uint interval(0);
+        uint dropFrameInterval(0);
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring pgieInferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
@@ -1128,20 +981,20 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, 
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), false, pgieInferConfigFile.c_str(), 
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), pgieInferConfigFile.c_str(), 
             pgieModelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), trackerW, trackerH) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_gie_secondary_new(secondaryGieName1.c_str(), false, sgieInferConfigFile1.c_str(), 
+        REQUIRE( dsl_gie_secondary_new(secondaryGieName1.c_str(), sgieInferConfigFile1.c_str(), 
             sgieModelEngineFile1.c_str(), primaryGieName.c_str(), 0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_secondary_new(secondaryGieName2.c_str(), false, sgieInferConfigFile2.c_str(), 
+        REQUIRE( dsl_gie_secondary_new(secondaryGieName2.c_str(), sgieInferConfigFile2.c_str(), 
             sgieModelEngineFile2.c_str(), primaryGieName.c_str(), 0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_secondary_new(secondaryGieName3.c_str(), false, sgieInferConfigFile3.c_str(), 
+        REQUIRE( dsl_gie_secondary_new(secondaryGieName3.c_str(), sgieInferConfigFile3.c_str(), 
             sgieModelEngineFile3.c_str(), primaryGieName.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
@@ -1183,7 +1036,7 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink, and Demuxer can play
         std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
-        uint interval(0);
+        uint dropFrameInterval(0);
 
         std::wstring demuxerName(L"demuxer");
         std::wstring fakeSinkName(L"fake-sink");
@@ -1193,7 +1046,7 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink, and Demuxer can play
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_fake_new(fakeSinkName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
@@ -1237,7 +1090,7 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink, OverlaySink and Demu
         std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
-        uint interval(0);
+        uint dropFrameInterval(0);
 
         std::wstring demuxerName(L"demuxer");
         std::wstring fakeSinkName(L"fake-sink");
@@ -1255,7 +1108,7 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink, OverlaySink and Demu
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_fake_new(fakeSinkName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
@@ -1302,7 +1155,7 @@ SCENARIO( "A new Pipeline with two URI File Sources, two overlaySinks and Demuxe
         std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
-        uint interval(0);
+        uint dropFrameInterval(0);
 
         std::wstring demuxerName(L"demuxer");
 
@@ -1328,10 +1181,10 @@ SCENARIO( "A new Pipeline with two URI File Sources, two overlaySinks and Demuxe
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_overlay_new(overlaySinkName1.c_str(), displayId1, depth1,
             offsetX1, offsetY1, sinkW1, sinkH1) == DSL_RESULT_SUCCESS );
@@ -1379,7 +1232,7 @@ SCENARIO( "A new Pipeline with two URI File Sources, PGIE, Demuxer two Overlay S
         std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
-        uint interval(0);
+        uint dropFrameInterval(0);
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring pgieInferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
@@ -1410,10 +1263,10 @@ SCENARIO( "A new Pipeline with two URI File Sources, PGIE, Demuxer two Overlay S
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(osdName.c_str(), false, false) == DSL_RESULT_SUCCESS );
 
@@ -1423,7 +1276,7 @@ SCENARIO( "A new Pipeline with two URI File Sources, PGIE, Demuxer two Overlay S
         REQUIRE( dsl_sink_overlay_new(overlaySinkName2.c_str(), displayId2, depth2,
             offsetX2, offsetY2, sinkW2, sinkH2) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), false, pgieInferConfigFile.c_str(), 
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), pgieInferConfigFile.c_str(), 
             pgieModelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
@@ -1468,7 +1321,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
         std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
-        uint interval(0);
+        uint dropFrameInterval(0);
 
         std::wstring splitterName(L"splitter");
 
@@ -1506,7 +1359,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tee_splitter_new(splitterName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_branch_new(branchName1.c_str()) == DSL_RESULT_SUCCESS );
@@ -1522,7 +1375,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
         REQUIRE( dsl_sink_overlay_new(overlaySinkName2.c_str(), displayId2, depth2,
             offsetX2, offsetY2, sinkW2, sinkH2) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), false, pgieInferConfigFile.c_str(), 
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), pgieInferConfigFile.c_str(), 
             pgieModelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
@@ -1566,7 +1419,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 //        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
 //        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
 //        uint intrDecode(false);
-//        uint interval(0);
+//        uint dropFrameInterval(0);
 //
 //        std::wstring tilerName(L"tiler");
 //        uint width(1280);
@@ -1584,7 +1437,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
 //        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-//            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+//            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
 //        
@@ -1624,7 +1477,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 //        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
 //        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
 //        uint intrDecode(false);
-//        uint interval(0);
+//        uint dropFrameInterval(0);
 //
 //        std::wstring ofvName(L"ofv");
 //
@@ -1644,7 +1497,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 //
 //        // create for of the same types of source
 //        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-//            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+//            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 //
 //        // overlay sink for observation 
 //        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
@@ -1687,7 +1540,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and Meter PPH c
         std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
-        uint interval(0); 
+        uint dropFrameInterval(0); 
 
         std::wstring tilerName(L"tiler");
         uint width(1280);
@@ -1696,7 +1549,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and Meter PPH c
         std::wstring fakeSinkName(L"fake-sink");
 
         std::wstring meterPphName(L"meter-pph");
-        uint pph_interval(1);
+        uint interval(1);
         dsl_pph_meter_client_handler_cb client_handler;
 
         std::wstring pipelineName(L"test-pipeline");
@@ -1704,11 +1557,11 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and Meter PPH c
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, interval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_pph_meter_new(meterPphName.c_str(), pph_interval, client_handler, NULL) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_meter_new(meterPphName.c_str(), interval, client_handler, NULL) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), meterPphName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
         

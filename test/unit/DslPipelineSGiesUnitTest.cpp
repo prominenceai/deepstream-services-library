@@ -62,7 +62,7 @@ SCENARIO( "A SecondaryGieBintr can be added to a PipelineSGiesBintr", "[Pipeline
         uint secondaryUniqueId = std::hash<std::string>{}(secondaryGieName.c_str());
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), 0);
 
         REQUIRE( pSecondaryGieBintr->GetUniqueId() == secondaryUniqueId);
@@ -101,7 +101,7 @@ SCENARIO( "A SecondaryGieBintr can be removed from a PipelineSGiesBintr", "[Pipe
         uint interval(1);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         REQUIRE( pSecondaryGieBintr->GetUniqueId() == secondaryUniqueId);
@@ -140,7 +140,7 @@ SCENARIO( "A SecondaryGieBintr can only be added to a PipelineSGiesBintr once", 
         uint interval(1);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         DSL_PIPELINE_SGIES_PTR pPipelineSGiesBintr = 
@@ -174,7 +174,7 @@ SCENARIO( "A PipelineSGiesBintr can not LinkAll without setting the PrimaryGieId
         uint interval(1);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         DSL_PIPELINE_SGIES_PTR pPipelineSGiesBintr = 
@@ -210,11 +210,11 @@ SCENARIO( "A PipelineSGiesBintr can not LinkAll without setting the Batch Size f
         uint interval(1);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, pgieInferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), pgieInferConfigFile.c_str(), 
             pgieModelEngineFile.c_str(), interval);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), false, sgieInferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), sgieInferConfigFile.c_str(), 
             sgieModelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         DSL_PIPELINE_SGIES_PTR pPipelineSGiesBintr = 
@@ -252,11 +252,11 @@ SCENARIO( "A PipelineSGiesBintr with its PrimaryGieId and Batch Size set can Lin
         uint interval(1);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, pgieInferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), pgieInferConfigFile.c_str(), 
             pgieModelEngineFile.c_str(), interval);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), false, sgieInferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), sgieInferConfigFile.c_str(), 
             sgieModelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         DSL_PIPELINE_SGIES_PTR pPipelineSGiesBintr = 
@@ -294,11 +294,11 @@ SCENARIO( "A PipelineSGiesBintr Linked with a SecondaryGieBintr can UnlinkAll", 
         uint interval(1);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, pgieInferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), pgieInferConfigFile.c_str(), 
             pgieModelEngineFile.c_str(), interval);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), false, sgieInferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), sgieInferConfigFile.c_str(), 
             sgieModelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         DSL_PIPELINE_SGIES_PTR pPipelineSGiesBintr = 
@@ -341,19 +341,19 @@ SCENARIO( "A PipelineSGiesBintr with several SecondaryGieBintrs can LinkAll", "[
         uint interval(0);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, pgieInferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), pgieInferConfigFile.c_str(), 
             pgieModelEngineFile.c_str(), interval);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr1 = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName1.c_str(), false, inferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName1.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr2 = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName2.c_str(), false, inferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName2.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr3 = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName3.c_str(), false, inferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName3.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         DSL_PIPELINE_SGIES_PTR pPipelineSGiesBintr = 
@@ -399,19 +399,19 @@ SCENARIO( "A PipelineSGiesBintr with several SecondaryGieBintrs can UnlinkAll", 
         uint interval(0);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, pgieInferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), pgieInferConfigFile.c_str(), 
             pgieModelEngineFile.c_str(), interval);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr1 = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName1.c_str(), false, inferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName1.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr2 = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName2.c_str(), false, inferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName2.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr3 = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName3.c_str(), false, inferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName3.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         DSL_PIPELINE_SGIES_PTR pPipelineSGiesBintr = 

@@ -40,7 +40,7 @@ SCENARIO( "A new SecondaryGieBintr is created correctly",  "[SecondaryGieBintr]"
         WHEN( "A new SecondaryGieBintr is created" )
         {
             DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-                DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), false, inferConfigFile.c_str(), 
+                DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
                 modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
             THEN( "The SecondaryGieBintr's memebers are setup and returned correctly" )
@@ -70,7 +70,7 @@ SCENARIO( "A SecondaryGieBintr can not LinkAll before setting batch size",  "[Se
         uint interval(1);
         
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         WHEN( "A new SecondaryGieBintr is called to LinkAll" )
@@ -97,7 +97,7 @@ SCENARIO( "After setting batch size, a new SecondaryGieBintr can LinkAll Child E
         uint interval(1);
         
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         WHEN( "A new SecondaryGieBintr is Linked" )
@@ -125,7 +125,7 @@ SCENARIO( "A Linked SecondaryGieBintr can UnlinkAll Child Elementrs",  "[Seconda
         uint interval(1);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         pSecondaryGieBintr->SetBatchSize(1);
@@ -153,7 +153,7 @@ SCENARIO( "A Linked SecondaryGieBintr can not be linked again",  "[SecondaryGieB
         uint interval(1);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         WHEN( "A SecondaryGieBintr is Linked" )
@@ -183,7 +183,7 @@ SCENARIO( "A SecondaryGieBintr can Get and Set its GPU ID",  "[SecondaryGieBintr
         uint GPUID1(1);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         REQUIRE( pSecondaryGieBintr->GetGpuId() == GPUID0 );
@@ -211,7 +211,7 @@ SCENARIO( "A SecondaryGieBintr can Set and Get its Infer Config and Model Engine
         uint interval(1);
         
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         std::string retInferConfigFile = pSecondaryGieBintr->GetInferConfigFile();

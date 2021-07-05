@@ -28,7 +28,6 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslGieBintr.h"
-#include "DslSegVisualBintr.h"
 #include "DslTrackerBintr.h"
 #include "DslOfvBintr.h"
 #include "DslOsdBintr.h"
@@ -60,22 +59,16 @@ namespace DSL
         BranchBintr(const char* name, bool pipeline = false);
 
         /**
-         * @brief adds a single PrimaryGieBintr to this Branch 
-         * @param[in] pGieBintr shared pointer to PrimaryGieBintr to add
+         * @brief adds a single GIE Bintr to this Branch 
+         * @param[in] pGieBintr shared pointer to GIE Bintr to add
          */
         bool AddPrimaryGieBintr(DSL_BASE_PTR pPrmaryGieBintr);
 
         /**
-         * @brief adds a single SecondaryGgieBintr to this Branch 
-         * @param[in] pSecondaryGieNodetr shared pointer to SecondaryGgieBintr to add
+         * @brief adds a single Secondary GIE Nodetr to this Branch 
+         * @param[in] pSecondaryGieNodetr shared pointer to SGIE Nodetr to add
          */
         bool AddSecondaryGieBintr(DSL_BASE_PTR pSecondaryGieBintr);
-
-        /**
-         * @brief adds a single SegVisualBintr to this Branch 
-         * @param[in] pSegVisualBintr shared pointer to the SegVisual Bintr to add
-         */
-        bool AddSegVisualBintr(DSL_BASE_PTR pSegVisualBintr);
 
         /**
          * @brief adds a single TrackerBintr to this Branch 
@@ -187,11 +180,6 @@ namespace DSL
          * @brief optional, one or more Secondary GIEs for this Branch
          */
         DSL_PIPELINE_SGIES_PTR m_pSecondaryGiesBintr;
-
-        /**
-         * @brief optional, one at most Segmentation Visualizater for this Branch
-         */
-        DSL_SEGVISUAL_PTR m_pSegVisualBintr;
         
         /**
          * @brief optional, one at most Tracker for this Branch

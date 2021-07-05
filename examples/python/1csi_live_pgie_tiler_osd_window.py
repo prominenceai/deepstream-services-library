@@ -67,8 +67,7 @@ def main(args):
             break
 
         # New Primary GIE using the filespecs above, with interval and Id
-        retval = dsl_gie_primary_new('primary-gie', False, 
-            primary_infer_config_file, primary_model_engine_file, 0)
+        retval = dsl_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 

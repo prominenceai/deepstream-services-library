@@ -89,7 +89,7 @@ SCENARIO( "All DisplayTypes can be displayed by and eODE Action", "[display-type
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
             false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), trackerW, trackerH) == DSL_RESULT_SUCCESS );

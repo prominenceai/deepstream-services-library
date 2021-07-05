@@ -41,7 +41,7 @@ SCENARIO( "A new PrimaryGieBintr is created correctly",  "[PrimaryGieBintr]" )
         {
             
             DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
                 modelEngineFile.c_str(), interval);
 
             THEN( "The PrimaryGieBintr's memebers are setup and returned correctly" )
@@ -71,7 +71,7 @@ SCENARIO( "A new PrimaryGieBintr can not LinkAll without setting the Batch Size 
         uint interval(1);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
 
         WHEN( "A new PrimaryGieBintr is requested to LinkAll prior to setting the Batch Size" )
@@ -97,7 +97,7 @@ SCENARIO( "A new PrimaryGieBintr with its Batch Size set can LinkAll Child Eleme
         uint interval(1);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
 
         WHEN( "The Batch Size is set and the PrimaryGieBintr is asked to LinkAll" )
@@ -125,7 +125,7 @@ SCENARIO( "A Linked PrimaryGieBintr can UnlinkAll Child Elementrs",  "[PrimaryGi
         uint interval(1);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
 
         pPrimaryGieBintr->SetBatchSize(1);
@@ -154,7 +154,7 @@ SCENARIO( "A Linked PrimaryGieBintr can not be linked again", "[PrimaryGieBintr]
         uint interval(1);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
 
         WHEN( "A new PrimaryGieBintr is Linked" )
@@ -183,7 +183,7 @@ SCENARIO( "A PrimaryGieBintr can Get and Set its GPU ID",  "[PrimaryGieBintr]" )
         uint GPUID1(1);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
 
         REQUIRE( pPrimaryGieBintr->GetGpuId() == GPUID0 );
@@ -210,7 +210,7 @@ SCENARIO( "A PrimaryGieBintr can Enable and Disable raw layer info output",  "[P
         uint interval(1);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
         
         WHEN( "The PrimaryGieBintr's raw output is enabled" )
@@ -235,7 +235,7 @@ SCENARIO( "A PrimaryGieBintr fails to Enable raw layer info output given a bad p
         uint interval(1);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
         
         WHEN( "A bad path is constructed" )
@@ -260,7 +260,7 @@ SCENARIO( "A PrimaryGieBintr can Get and Set its Interval",  "[PrimaryGieBintr]"
         uint interval(1);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
 
         REQUIRE( pPrimaryGieBintr->GetInterval() == interval );
@@ -288,7 +288,7 @@ SCENARIO( "A PrimaryGieBintr in a Linked state fails to Set its Interval",  "[Pr
         uint interval(1);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), false, inferConfigFile.c_str(), 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
 
         REQUIRE( pPrimaryGieBintr->GetInterval() == interval );
