@@ -531,31 +531,35 @@ namespace DSL {
         DslReturnType PrimaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, uint interval);
 
-        DslReturnType PrimaryGiePphAdd(const char* name, const char* handler, uint pad);
-
-        DslReturnType PrimaryGiePphRemove(const char* name, const char* handler, uint pad);
+        DslReturnType PrimaryTisNew(const char* name, 
+            const char* inferConfigFile, uint interval);
 
         DslReturnType SecondaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, const char* inferOnGieName, uint interval);
 
-        DslReturnType GieInferConfigFileGet(const char* name, const char** inferConfigFile);
+        DslReturnType PrimaryInferPphAdd(const char* name, const char* handler, uint pad);
 
-        DslReturnType GieInferConfigFileSet(const char* name, const char* inferConfigFile);
-            
+        DslReturnType PrimaryInferPphRemove(const char* name, const char* handler, uint pad);
+
         DslReturnType GieModelEngineFileGet(const char* name, const char** modelEngineFile);
 
         DslReturnType GieModelEngineFileSet(const char* name, const char* modelEngineFile);
+
+        DslReturnType InferConfigFileGet(const char* name, const char** inferConfigFile);
+
+        DslReturnType InferConfigFileSet(const char* name, const char* inferConfigFile);
             
-        DslReturnType GieRawOutputEnabledSet(const char* name, boolean enabled,
+        DslReturnType InferRawOutputEnabledSet(const char* name, boolean enabled,
             const char* path);
             
-        DslReturnType GieIntervalGet(const char* name, uint* interval);
+        DslReturnType InferIntervalGet(const char* name, uint* interval);
 
-        DslReturnType GieIntervalSet(const char* name, uint interval);
+        DslReturnType InferIntervalSet(const char* name, uint interval);
 
         DslReturnType TrackerKtlNew(const char* name, uint width, uint height);
         
-        DslReturnType TrackerIouNew(const char* name, const char* configFile, uint width, uint height);
+        DslReturnType TrackerIouNew(const char* name, 
+            const char* configFile, uint width, uint height);
         
         DslReturnType TrackerMaxDimensionsGet(const char* name, uint* width, uint* height);
         

@@ -37,19 +37,19 @@ namespace DSL
         LOG_FUNC();
     }
 
-    bool BranchBintr::AddPrimaryGieBintr(DSL_BASE_PTR pPrmaryGieBintr)
+    bool BranchBintr::AddPrimaryInferBintr(DSL_BASE_PTR pPrmaryInferBintr)
     {
         LOG_FUNC();
         
-        if (m_pPrimaryGieBintr)
+        if (m_pPrimaryInferBintr)
         {
-            LOG_ERROR("Branch '" << GetName() << "' has an exisiting Primary GIE '" 
-                << m_pPrimaryGieBintr->GetName());
+            LOG_ERROR("Branch '" << GetName() << "' has an exisiting PrimaryInferBintr '" 
+                << m_pPrimaryInferBintr->GetName());
             return false;
         }
-        m_pPrimaryGieBintr = std::dynamic_pointer_cast<PrimaryGieBintr>(pPrmaryGieBintr);
+        m_pPrimaryInferBintr = std::dynamic_pointer_cast<PrimaryInferBintr>(pPrmaryInferBintr);
         
-        return AddChild(pPrmaryGieBintr);
+        return AddChild(pPrmaryInferBintr);
     }
 
     bool BranchBintr::AddSegVisualBintr(DSL_BASE_PTR pSegVisualBintr)
@@ -81,18 +81,18 @@ namespace DSL
         return AddChild(pTrackerBintr);
     }
 
-    bool BranchBintr::AddSecondaryGieBintr(DSL_BASE_PTR pSecondaryGieBintr)
+    bool BranchBintr::AddSecondaryInferBintr(DSL_BASE_PTR pSecondaryInferBintr)
     {
         LOG_FUNC();
         
         // Create the optional Secondary GIEs bintr 
-        if (!m_pSecondaryGiesBintr)
+        if (!m_pSecondaryInfersBintr)
         {
-            m_pSecondaryGiesBintr = DSL_PIPELINE_SGIES_NEW("sgies-bin");
-            AddChild(m_pSecondaryGiesBintr);
+            m_pSecondaryInfersBintr = DSL_PIPELINE_SINFERS_NEW("secondary-infer-bin");
+            AddChild(m_pSecondaryInfersBintr);
         }
-        return m_pSecondaryGiesBintr->
-            AddChild(std::dynamic_pointer_cast<SecondaryGieBintr>(pSecondaryGieBintr));
+        return m_pSecondaryInfersBintr->
+            AddChild(std::dynamic_pointer_cast<SecondaryInferBintr>(pSecondaryInferBintr));
     }
 
     bool BranchBintr::AddOfvBintr(DSL_BASE_PTR pOfvBintr)
@@ -277,39 +277,39 @@ namespace DSL
                 << "' has no Demuxer, Splitter or Sink - and is unable to link");
             return false;
         }
-        if (m_pTrackerBintr and !m_pPrimaryGieBintr)
+        if (m_pTrackerBintr and !m_pPrimaryInferBintr)
         {
             LOG_ERROR("Pipline '" << GetName() 
-                << "' has a Tracker and no Primary GIE - and is unable to link");
+                << "' has a Tracker and no PrimaryInferBintr - and is unable to link");
             return false;
         }
-        if (m_pSegVisualBintr and !m_pPrimaryGieBintr)
+        if (m_pSegVisualBintr and !m_pPrimaryInferBintr)
         {
             LOG_ERROR("Pipline '" << GetName() 
-                << "' has a Segmentation Visualizer and no Primary GIE - and is unable to link");
+                << "' has a Segmentation Visualizer with no PrimaryInferBintr - and is unable to link");
             return false;
         }
-        if (m_pSecondaryGiesBintr and !m_pPrimaryGieBintr)
+        if (m_pSecondaryInfersBintr and !m_pPrimaryInferBintr)
         {
             LOG_ERROR("Pipline '" << GetName() 
-                << "' has a Seconday GIE and no Primary GIE - and is unable to link");
+                << "' has a SecondayInferbintr with no PrimaryInferBintr - and is unable to link");
             return false;
         }
         
-        if (m_pPrimaryGieBintr)
+        if (m_pPrimaryInferBintr)
         {
-            // Set the GIE's batch size to the current stream muxer batch size, 
-            // then LinkAll PrimaryGie Elementrs and add as the next component in the Branch
-            m_pPrimaryGieBintr->SetBatchSize(m_batchSize);
-            if (!m_pPrimaryGieBintr->LinkAll() or
+            // Set the SecondarInferBintrs batch size to the current stream muxer batch size, 
+            // then LinkAll PrimaryInfer Elementrs and add as the next component in the Branch
+            m_pPrimaryInferBintr->SetBatchSize(m_batchSize);
+            if (!m_pPrimaryInferBintr->LinkAll() or
                 (m_linkedComponents.size() and 
-                !m_linkedComponents.back()->LinkToSink(m_pPrimaryGieBintr)))
+                !m_linkedComponents.back()->LinkToSink(m_pPrimaryInferBintr)))
             {
                 return false;
             }
-            m_linkedComponents.push_back(m_pPrimaryGieBintr);
-            LOG_INFO("Branch '" << GetName() << "' Linked up Primary GIE '" << 
-                m_pPrimaryGieBintr->GetName() << "' successfully");
+            m_linkedComponents.push_back(m_pPrimaryInferBintr);
+            LOG_INFO("Branch '" << GetName() << "' Linked up PrimaryInferBintr '" << 
+                m_pPrimaryInferBintr->GetName() << "' successfully");
         }
         
         if (m_pTrackerBintr)
@@ -327,22 +327,22 @@ namespace DSL
                 m_pTrackerBintr->GetName() << "' successfully");
         }
         
-        if (m_pSecondaryGiesBintr)
+        if (m_pSecondaryInfersBintr)
         {
-            // Set the Secondary GIEs' Primary GIE Name, and set batch sizes
-            m_pSecondaryGiesBintr->SetInferOnGieId(m_pPrimaryGieBintr->GetUniqueId());
-            m_pSecondaryGiesBintr->SetBatchSize(m_batchSize);
+            // Set the SecondaryInferBintr' Primary Infer Name, and set batch sizes
+            m_pSecondaryInfersBintr->SetInferOnId(m_pPrimaryInferBintr->GetUniqueId());
+            m_pSecondaryInfersBintr->SetBatchSize(m_batchSize);
             
             // LinkAll SecondaryGie Elementrs and add the Bintr as next component in the Branch
-            if (!m_pSecondaryGiesBintr->LinkAll() or
+            if (!m_pSecondaryInfersBintr->LinkAll() or
                 (m_linkedComponents.size() and 
-                !m_linkedComponents.back()->LinkToSink(m_pSecondaryGiesBintr)))
+                !m_linkedComponents.back()->LinkToSink(m_pSecondaryInfersBintr)))
             {
                 return false;
             }
-            m_linkedComponents.push_back(m_pSecondaryGiesBintr);
+            m_linkedComponents.push_back(m_pSecondaryInfersBintr);
             LOG_INFO("Branch '" << GetName() << "' Linked up all Secondary GIEs '" << 
-                m_pSecondaryGiesBintr->GetName() << "' successfully");
+                m_pSecondaryInfersBintr->GetName() << "' successfully");
         }
 
         if (m_pSegVisualBintr)

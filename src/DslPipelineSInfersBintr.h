@@ -22,13 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_SGIES_BINTR_H
-#define _DSL_SGIES_BINTR_H
+#ifndef _DSL_SINFERS_BINTR_H
+#define _DSL_SINFERS_BINTR_H
 
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslBintr.h"
-#include "DslGieBintr.h"
+#include "DslInferBintr.h"
     
    
 namespace DSL 
@@ -36,52 +36,53 @@ namespace DSL
     /**
      * @brief convenience macros for shared pointer abstraction
      */
-    #define DSL_PIPELINE_SGIES_PTR std::shared_ptr<PipelineSecondaryGiesBintr>
-    #define DSL_PIPELINE_SGIES_NEW(name) \
-        std::shared_ptr<PipelineSecondaryGiesBintr>(new PipelineSecondaryGiesBintr(name))
+    #define DSL_PIPELINE_SINFERS_PTR std::shared_ptr<PipelineSInfersBintr>
+    #define DSL_PIPELINE_SINFERS_NEW(name) \
+        std::shared_ptr<PipelineSInfersBintr>(new PipelineSInfersBintr(name))
 
     /**
-     * @class PipelineSecondaryGiesBintr
-     * @brief Implements a container class for a collection of Secondary GIEs
+     * @class PipelineSInfersBintr
+     * @brief Implements a container class for a collection of 
+     * Secondary GIEs or TIEs - types cannot be mixed
      */
-    class PipelineSecondaryGiesBintr : public Bintr
+    class PipelineSInfersBintr : public Bintr
     {
     public: 
     
-        PipelineSecondaryGiesBintr(const char* name);
+        PipelineSInfersBintr(const char* name);
 
-        ~PipelineSecondaryGiesBintr();
+        ~PipelineSInfersBintr();
 
         /**
-         * @brief adds a child SecondaryGieBintr to this PipelineSecondaryGiesBintr
-         * @param pChildSecondaryGie shared pointer to SecondaryGieBintr to add
-         * @return true if the SecondaryGieBintr was added correctly, false otherwise
+         * @brief adds a child SecondaryInferBintr to this PipelineSInfersBintr
+         * @param pChildSecondaryInfer shared pointer to SecondaryInferBintr to add
+         * @return true if the SecondaryInferBintr was added correctly, false otherwise
          */
-        bool AddChild(DSL_SECONDARY_GIE_PTR pChildSecondaryGie);
+        bool AddChild(DSL_SECONDARY_INFER_PTR pChildSecondaryInfer);
         
         /**
-         * @brief removes a child SecondaryGieBintr from this PipelineSecondaryGiesBintr
-         * @param pChildSecondaryGie a shared pointer to SecondaryGieBintr to remove
-         * @return true if the SecondaryGieBintr was removed correctly, false otherwise
+         * @brief removes a child SecondaryInferBintr from this PipelineSInfersBintr
+         * @param pChildSecondaryInfr a shared pointer to SecondaryInferBintr to remove
+         * @return true if the SecondaryInferBintr was removed correctly, false otherwise
          */
-        bool RemoveChild(DSL_SECONDARY_GIE_PTR pChildSecondaryGie);
+        bool RemoveChild(DSL_SECONDARY_INFER_PTR pChildSecondaryInfer);
 
         /**
          * @brief overrides the base method and checks in m_pChildSecondaryGies only.
          */
-        bool IsChild(DSL_SECONDARY_GIE_PTR pChildSecondaryGie);
+        bool IsChild(DSL_SECONDARY_INFER_PTR pChildSecondaryInfer);
 
         /**
          * @brief overrides the base Noder method to only return the number of 
-         * child SecondaryGieBintrs and not the total number of children... 
+         * child SecondaryInferBintrs and not the total number of children... 
          * i.e. exclude the nuber of child Elementrs from the count
-         * @return the number of Child SecondaryGieBintrs held by this PipelineSecondaryGiesBintr
+         * @return the number of Child SecondaryInferBintrs held by this PipelineSInfersBintr
          */
         uint GetNumChildren()
         {
             LOG_FUNC();
             
-            return m_pChildSecondaryGies.size();
+            return m_pChildSInfers.size();
         }
 
         /** 
@@ -99,7 +100,7 @@ namespace DSL
          * which the first Secondary GIE will Infer-on
          * @param id unique id of the Primary GIE in use by the Parent Pipeline
          */
-        void SetInferOnGieId(int id);
+        void SetInferOnId(int id);
         
         /**
          * @brief Gets the Interval for all child Secondary GIE's
@@ -119,7 +120,7 @@ namespace DSL
          * @param pInfo
          * @return 
          */
-        GstPadProbeReturn HandleSecondaryGiesSinkProbe(GstPad* pPad, GstPadProbeInfo* pInfo);
+        GstPadProbeReturn HandleSInfersSinkProbe(GstPad* pPad, GstPadProbeInfo* pInfo);
         
         /**
          * @brief 
@@ -127,7 +128,7 @@ namespace DSL
          * @param pInfo
          * @return 
          */
-        GstPadProbeReturn HandleSecondaryGiesSrcProbe(GstPad* pPad, GstPadProbeInfo* pInfo);
+        GstPadProbeReturn HandleSInfersSrcProbe(GstPad* pPad, GstPadProbeInfo* pInfo);
 
     private:
         /**
@@ -138,29 +139,29 @@ namespace DSL
         bool AddChild(DSL_BASE_PTR pChildElement);
         
         /**
-         * @brief removes a child Elementr from this PipelineSecondaryGiesBintr
+         * @brief removes a child Elementr from this PipelineSInfersBintr
          * @param pChildElement a shared pointer to the Elementr to remove
          */
         bool RemoveChild(DSL_BASE_PTR pChildElement);
 
         /**
          * @brief Tee's the output from the Primary GIE as input for all 
-         * 2nd-level SGIEs. 2nd-level SGIEs create their own Tees for all
-         * for any third level SGIEs, and so on.
+         * 2nd-level SecondaryInferBintrs. 2nd-level SecondaryInferBintrs create their own Tees for all
+         * for any third level SecondaryInferBintrs, and so on.
          */
         DSL_ELEMENT_PTR m_pTee;
         
         /**
-         * @brief All SGIEs, at all levels, infer on the same buffer of data
+         * @brief All SecondaryInferBintrs, at all levels, infer on the same buffer of data
          * which get's queued by this Elementr. A Pad Probe is used to block the
-         * output of the Queue until all inference by all SGIEs is complete.
+         * output of the Queue until all inference by all SecondaryInferBintrs is complete.
          */
         DSL_ELEMENT_PTR m_pQueue;
     
         /**
-         * @brief map of all child SGIEs keyed by their unique component name
+         * @brief map of all child SecondaryInferBintrs keyed by their unique component name
          */
-        std::map<std::string, DSL_SECONDARY_GIE_PTR> m_pChildSecondaryGies;
+        std::map<std::string, DSL_SECONDARY_INFER_PTR> m_pChildSInfers;
         
         /**
          * @brief mutex for sink (Tee) Pad Probe handler
@@ -182,7 +183,7 @@ namespace DSL
          */
         uint m_srcPadProbeId;
         
-        int m_primaryGieUniqueId;
+        int m_primaryInferUniqueId;
         
         uint m_interval;
 
@@ -197,23 +198,23 @@ namespace DSL
      * @brief Sink Pad Probe function 
      * @param pPad
      * @param pInfo
-     * @param pGiesBintr
+     * @param pSInfersBintr
      * @return 
      */
-    static GstPadProbeReturn SecondaryGiesSinkProbeCB(GstPad* pPad, 
-        GstPadProbeInfo* pInfo, gpointer pGiesBintr);    
+    static GstPadProbeReturn SInfersSinkProbeCB(GstPad* pPad, 
+        GstPadProbeInfo* pInfo, gpointer pSInfersBintr);    
     
     /**
      * @brief Probe function to synchronize with the completion
-     * of all Secondary GIEs working on the same buffer.
+     * of all Secondary Infers working on the same buffer.
      * @param pPad
      * @param pInfo
-     * @param pointer to a specific PipelineSecondaryGiesBintr
+     * @param pointer to a specific PipelineSInfersBintr
      * @return 
      */
-    static GstPadProbeReturn SecondaryGiesSrcProbeCB(GstPad* pPad, 
-        GstPadProbeInfo* pInfo, gpointer pGiesBintr);    
+    static GstPadProbeReturn SInfersSrcProbeCB(GstPad* pPad, 
+        GstPadProbeInfo* pInfo, gpointer pSInfersBintr);    
 
 }
 
-#endif // _DSL_SGIES_BINTR_H
+#endif // _DSL_SINFERS_BINTR_H
