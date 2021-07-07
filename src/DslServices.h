@@ -537,6 +537,9 @@ namespace DSL {
         DslReturnType SecondaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, const char* inferOnGieName, uint interval);
 
+        DslReturnType SecondaryTisNew(const char* name, const char* inferConfigFile,
+            const char* inferOnGieName, uint interval);
+
         DslReturnType PrimaryInferPphAdd(const char* name, const char* handler, uint pad);
 
         DslReturnType PrimaryInferPphRemove(const char* name, const char* handler, uint pad);

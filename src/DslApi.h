@@ -2910,6 +2910,17 @@ DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_co
     const wchar_t* model_engine_file, const wchar_t* infer_on_gie, uint interval);
 
 /**
+ * @brief creates a new, uniquely named Secondary TIS object
+ * @param[in] name unique name for the new TIS object
+ * @param[in] infer_config_file pathspec of the Infer Config file to use
+ * @param[in] infer_on_tis name of the Primary or Secondary TIS to infer on
+ * @param[in] interval frame interval to infer on. 0 = every frame, 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
+ */
+DslReturnType dsl_tis_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
+    const wchar_t* infer_on_tis, uint interval);
+
+/**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
  * A Primary GIE can have multiple Sink and Source pad-probe-handlers
  * @param[in] name unique name of the Primary GIE to update

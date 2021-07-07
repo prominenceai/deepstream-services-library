@@ -6258,6 +6258,44 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SecondaryTisNew(const char* name, const char* inferConfigFile,
+        const char* inferOnTieName, uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Secondary TIS name '" << name << "' is not unique");
+                return DSL_RESULT_INFER_NAME_NOT_UNIQUE;
+            }
+            
+            LOG_INFO("Infer config file: " << inferConfigFile);
+            
+            std::ifstream configFile(inferConfigFile);
+            if (!configFile.good())
+            {
+                LOG_ERROR("Infer Config File not found");
+                return DSL_RESULT_INFER_CONFIG_FILE_NOT_FOUND;
+            }
+            
+            m_components[name] = DSL_SECONDARY_TIS_NEW(name, 
+                inferConfigFile, inferOnTieName, interval);
+
+            LOG_INFO("New Secondary TIS '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Secondary TIS '" << name << "' threw exception on create");
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::PrimaryInferPphAdd(const char* name, const char* handler, uint pad)
     {
         LOG_FUNC();

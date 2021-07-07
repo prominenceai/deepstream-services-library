@@ -339,7 +339,7 @@ SCENARIO( "A Primary GIE fails to Enable raw layer info output given a bad path"
         {
             std::wstring badPath(L"this/is/an/invalid/path");
             
-            THEN( "The raw output will fail to enale" )
+            THEN( "The raw output will fail to enable" )
             {
                 REQUIRE( dsl_infer_raw_output_enabled_set(primaryGieName.c_str(), 
                     true, badPath.c_str()) == DSL_RESULT_INFER_OUTPUT_DIR_DOES_NOT_EXIST );

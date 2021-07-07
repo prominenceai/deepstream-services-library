@@ -2904,6 +2904,24 @@ DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_co
         cstrEngine.c_str(), cstrInferOnGie.c_str(), interval);
 }
 
+DslReturnType dsl_tis_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
+    const wchar_t* infer_on_tis, uint interval)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(infer_config_file);
+    RETURN_IF_PARAM_IS_NULL(infer_on_tis);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrConfig(infer_config_file);
+    std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
+    std::wstring wstrInferOnTis(infer_on_tis);
+    std::string cstrInferOnTis(wstrInferOnTis.begin(), wstrInferOnTis.end());
+
+    return DSL::Services::GetServices()->SecondaryTisNew(cstrName.c_str(), cstrConfig.c_str(),
+        cstrInferOnTis.c_str(), interval);
+}
+
 DslReturnType dsl_infer_config_file_get(const wchar_t* name, const wchar_t** infer_config_file)
 {
     RETURN_IF_PARAM_IS_NULL(name);
