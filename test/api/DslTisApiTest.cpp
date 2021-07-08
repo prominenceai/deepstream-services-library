@@ -45,7 +45,7 @@ SCENARIO( "The Components container is updated correctly on new Primary TIS", "[
 
         WHEN( "A new Primary TIS is created" ) 
         {
-            REQUIRE( dsl_tis_primary_new(primaryTisName.c_str(), inferConfigFile.c_str(), 
+            REQUIRE( dsl_infer_tis_primary_new(primaryTisName.c_str(), inferConfigFile.c_str(), 
                 interval) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
@@ -66,7 +66,7 @@ SCENARIO( "The Components container is updated correctly on Primary TIS delete",
 
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_tis_primary_new(primaryTisName.c_str(), inferConfigFile.c_str(), 
+        REQUIRE( dsl_infer_tis_primary_new(primaryTisName.c_str(), inferConfigFile.c_str(), 
             interval) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new Primary TIS is deleted" ) 
@@ -87,9 +87,9 @@ SCENARIO( "Only one Primary TIS can be added to a Pipeline", "[tis-api]" )
     {
         uint interval(1);
 
-        REQUIRE( dsl_tis_primary_new(primaryTisName.c_str(), inferConfigFile.c_str(), 
+        REQUIRE( dsl_infer_tis_primary_new(primaryTisName.c_str(), inferConfigFile.c_str(), 
             interval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_tis_primary_new(primaryTisName2.c_str(), inferConfigFile.c_str(), 
+        REQUIRE( dsl_infer_tis_primary_new(primaryTisName2.c_str(), inferConfigFile.c_str(), 
             interval) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
@@ -119,7 +119,7 @@ SCENARIO( "A Primary TIS in use can't be deleted", "[tis-api]" )
     {
         uint interval(1);
 
-        REQUIRE( dsl_tis_primary_new(primaryTisName.c_str(), 
+        REQUIRE( dsl_infer_tis_primary_new(primaryTisName.c_str(), 
             inferConfigFile.c_str(), interval) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -146,7 +146,7 @@ SCENARIO( "A Primary TIS, once removed from a Pipeline, can be deleted", "[tis-a
     {
         uint interval(1);
 
-        REQUIRE( dsl_tis_primary_new(primaryTisName.c_str(), 
+        REQUIRE( dsl_infer_tis_primary_new(primaryTisName.c_str(), 
             inferConfigFile.c_str(), interval) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -182,7 +182,7 @@ SCENARIO( "A Sink Pad Probe Handler can be added and removed from a Primary TIS"
     {
         uint interval(1);
 
-        REQUIRE( dsl_tis_primary_new(primaryTisName.c_str(), 
+        REQUIRE( dsl_infer_tis_primary_new(primaryTisName.c_str(), 
             inferConfigFile.c_str(), interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), 
@@ -229,7 +229,7 @@ SCENARIO( "A Source Pad Probe Handler can be added and removed froma a Primary T
     {
         uint interval(1);
 
-        REQUIRE( dsl_tis_primary_new(primaryTisName.c_str(), 
+        REQUIRE( dsl_infer_tis_primary_new(primaryTisName.c_str(), 
             inferConfigFile.c_str(), interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, 

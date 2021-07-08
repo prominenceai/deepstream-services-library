@@ -2882,7 +2882,7 @@ DslReturnType dsl_segvisual_dimensions_set(const wchar_t* name,
  * @param[in] interval frame interval to infer on. 0 = every frame, 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
+DslReturnType dsl_infer_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
     const wchar_t* model_engine_file, uint interval);
 
 /**
@@ -2892,7 +2892,7 @@ DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_conf
  * @param[in] interval frame interval to infer on. 0 = every frame, 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TIS_RESULT otherwise.
  */
-DslReturnType dsl_tis_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
+DslReturnType dsl_infer_tis_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
     uint interval);
 
 /**
@@ -2906,7 +2906,7 @@ DslReturnType dsl_tis_primary_new(const wchar_t* name, const wchar_t* infer_conf
  * @param[in] interval frame interval to infer on. 0 = every frame, 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
+DslReturnType dsl_infer_gie_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
     const wchar_t* model_engine_file, const wchar_t* infer_on_gie, uint interval);
 
 /**
@@ -2917,7 +2917,7 @@ DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_co
  * @param[in] interval frame interval to infer on. 0 = every frame, 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_tis_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
+DslReturnType dsl_infer_tis_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
     const wchar_t* infer_on_tis, uint interval);
 
 /**

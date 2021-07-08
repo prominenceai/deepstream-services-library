@@ -75,7 +75,7 @@ SCENARIO( "A new Pipeline with a File Source, Primary TIS, Overlay Sink can play
         REQUIRE( dsl_source_file_new(source_name.c_str(), file_path.c_str(), 
             false) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tis_primary_new(primary_tis_name.c_str(), ptis_infer_config_file.c_str(), 
+        REQUIRE( dsl_infer_tis_primary_new(primary_tis_name.c_str(), ptis_infer_config_file.c_str(), 
             0) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_overlay_new(sink_name.c_str(), display_id, depth,
@@ -112,7 +112,7 @@ SCENARIO( "A new Pipeline with a File Source, Primary TIS, KTL Tracker, OSD, and
         REQUIRE( dsl_source_file_new(source_name.c_str(), file_path.c_str(), 
             false) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tis_primary_new(primary_tis_name.c_str(), ptis_infer_config_file.c_str(), 0) 
+        REQUIRE( dsl_infer_tis_primary_new(primary_tis_name.c_str(), ptis_infer_config_file.c_str(), 0) 
             == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tracker_ktl_new(ktl_tracker_name.c_str(), tracker_width, tracker_height) 
@@ -155,13 +155,13 @@ SCENARIO( "A new Pipeline with a File Source, Primary TIS, KTL Tracker, Secondar
         REQUIRE( dsl_source_file_new(source_name.c_str(), file_path.c_str(), 
             false) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tis_primary_new(primary_tis_name.c_str(), ptis_infer_config_file.c_str(), 0) 
+        REQUIRE( dsl_infer_tis_primary_new(primary_tis_name.c_str(), ptis_infer_config_file.c_str(), 0) 
             == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tracker_ktl_new(ktl_tracker_name.c_str(), tracker_width, tracker_height) 
             == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tis_secondary_new(secondary_tis_name.c_str(), stis_infer_config_file.c_str(), 
+        REQUIRE( dsl_infer_tis_secondary_new(secondary_tis_name.c_str(), stis_infer_config_file.c_str(), 
             primary_tis_name.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );

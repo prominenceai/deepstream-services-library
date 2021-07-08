@@ -162,7 +162,7 @@ SCENARIO( "A new Pipeline with a URI File Source, GIE, FakeSink, and Tiled Displ
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), cudadec_mem_type, 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         // overlay sink for observation 
@@ -324,7 +324,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Overlay Sink, and Tile
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), cudadec_mem_type, 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_overlay_new(overlay_sink_name1.c_str(), display_id, depth,
@@ -367,7 +367,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), cudadec_mem_type, 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
@@ -411,7 +411,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), cudadec_mem_type, 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
@@ -685,12 +685,12 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, Overlay
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), cudadec_mem_type, 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_gie_secondary_new(secondary_gie_name1.c_str(), sgie_infer_config_file1.c_str(), 
+        REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name1.c_str(), sgie_infer_config_file1.c_str(), 
             sgie_model_engine_file1.c_str(), primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
@@ -735,19 +735,19 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), cudadec_mem_type, 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), 
             tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_gie_secondary_new(secondary_gie_name1.c_str(), sgie_infer_config_file1.c_str(), 
+        REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name1.c_str(), sgie_infer_config_file1.c_str(), 
             sgie_model_engine_file1.c_str(), primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_secondary_new(secondary_gie_name2.c_str(), sgie_infer_config_file2.c_str(), 
+        REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name2.c_str(), sgie_infer_config_file2.c_str(), 
             sgie_model_engine_file2.c_str(), primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_secondary_new(secondary_gie_name3.c_str(), sgie_infer_config_file3.c_str(), 
+        REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name3.c_str(), sgie_infer_config_file3.c_str(), 
             sgie_model_engine_file3.c_str(), primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
@@ -956,7 +956,7 @@ SCENARIO( "A new Pipeline with two URI File Sources, PGIE, Demuxer two Overlay S
         REQUIRE( dsl_sink_overlay_new(overlay_sink_name2.c_str(), display_id, depth,
             offest_x2, offest_y2, sink_width2, sink_height2) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tee_demuxer_new(demuxer_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -1027,7 +1027,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
         REQUIRE( dsl_sink_overlay_new(overlay_sink_name2.c_str(), display_id, depth,
             offest_x2, offest_y2, sink_width2, sink_height2) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -1285,7 +1285,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Semantic Segmentation"
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), cudadec_mem_type, 
             false, intr_decode, interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_primary_new(primary_gie_name.c_str(), sem_seg_infer_config_file.c_str(), 
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), sem_seg_infer_config_file.c_str(), 
             sem_seg_model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_segvisual_new(seg_visual_name.c_str(), seg_visual_width, seg_visual_height) == DSL_RESULT_SUCCESS );
@@ -1331,7 +1331,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Industrial Segmentatio
         REQUIRE( dsl_source_image_new(image_source.c_str(), image_path1.c_str(), false, 
             fps_n, fps_d, 0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gie_primary_new(primary_gie_name.c_str(), ind_seg_infer_config_file.c_str(), 
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), ind_seg_infer_config_file.c_str(), 
             ind_seg_model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_segvisual_new(seg_visual_name.c_str(), seg_visual_width, seg_visual_height) == DSL_RESULT_SUCCESS );

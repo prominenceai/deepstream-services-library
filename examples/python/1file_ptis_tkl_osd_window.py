@@ -93,7 +93,7 @@ def main(args):
             break
             
         # New Primary TIS using the filespec specified above, with interval = 0
-        retval = dsl_tis_primary_new('primary-tis', primary_infer_config_file, 0)
+        retval = dsl_infer_tis_primary_new('primary-tis', primary_infer_config_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
