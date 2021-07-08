@@ -2243,7 +2243,20 @@ _dsl.dsl_infer_gie_primary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_ui
 _dsl.dsl_infer_gie_primary_new.restype = c_uint
 def dsl_infer_gie_primary_new(name, infer_config_file, model_engine_file, interval):
     global _dsl
-    result = _dsl.dsl_infer_gie_primary_new(name, infer_config_file, model_engine_file, interval)
+    result = _dsl.dsl_infer_gie_primary_new(name, infer_config_file, 
+        model_engine_file, interval)
+    return int(result)
+
+##
+## dsl_infer_gie_secondary_new()
+##
+_dsl.dsl_infer_gie_secondary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_infer_gie_secondary_new.restype = c_uint
+def dsl_infer_gie_secondary_new(name, infer_config_file, 
+    model_engine_file, infer_on_gie, interval):
+    global _dsl
+    result = _dsl.dsl_infer_gie_secondary_new(name, infer_config_file, 
+        model_engine_file, infer_on_gie, interval)
     return int(result)
 
 ##
@@ -2254,6 +2267,17 @@ _dsl.dsl_infer_tis_primary_new.restype = c_uint
 def dsl_infer_tis_primary_new(name, infer_config_file, interval):
     global _dsl
     result = _dsl.dsl_infer_tis_primary_new(name, infer_config_file, interval)
+    return int(result)
+
+##
+## dsl_infer_tis_secondary_new()
+##
+_dsl.dsl_infer_tis_secondary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_infer_tis_secondary_new.restype = c_uint
+def dsl_infer_tis_secondary_new(name, infer_config_file, infer_on_tis, interval):
+    global _dsl
+    result = _dsl.dsl_infer_tis_secondary_new(name, infer_config_file, 
+        infer_on_tis, interval)
     return int(result)
 
 ##
@@ -2274,16 +2298,6 @@ _dsl.dsl_infer_primary_pph_remove.restype = c_uint
 def dsl_infer_primary_pph_remove(name, handler, pad):
     global _dsl
     result = _dsl.dsl_infer_primary_pph_remove(name, handler, pad)
-    return int(result)
-
-##
-## dsl_infer_gie_secondary_new()
-##
-_dsl.dsl_infer_gie_secondary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_wchar_p]
-_dsl.dsl_infer_gie_secondary_new.restype = c_uint
-def dsl_infer_gie_secondary_new(name, infer_config_file, model_engine_file, infer_on_gie_name, interval):
-    global _dsl
-    result = _dsl.dsl_infer_gie_secondary_new(name, infer_config_file, model_engine_file, infer_on_gie_name, interval)
     return int(result)
 
 ##

@@ -32,10 +32,12 @@ from dsl import *
 
 #-------------------------------------------------------------------------------------------
 #
-# This script demonstrates the use of a Primary Triton Inference Server (PTIS). The PTIS
-# requires a unique name, TIS inference config file, and inference interval when created.
+# This script demonstrates the use of a Primary Triton Inference Server (PTIS), and three 
+# Secondary Triton Inference Servers (STIS). All Inference Servers require a unique name, 
+# TIS inference config file, and inference interval when created. The STIS requires an
+# additional "infer_on_tis" name parameter, which in this scenario is the name of PTIS. 
 #
-# The PTIS is added to a new Pipeline with a single File Source, KTL Tracker, 
+# The PTIS and 3 STISs are added to a new Pipeline with a single File Source, KTL Tracker, 
 # On-Screen-Display (OSD), and Window Sink with 1280x720 dimensions.
 
 # File path for the single File Source
@@ -44,6 +46,14 @@ file_path = '/opt/nvidia/deepstream/deepstream-5.1/samples/streams/sample_qHD.mp
 # Filespecs for the Primary Triton Inference Server (PTIS)
 primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt'
+
+# Filespecs for the Three Secondary Triton Inference Servers (STIS)
+secondary_infer_config_file1 = \
+    '/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_secondary_plan_engine_carcolor.txt'
+secondary_infer_config_file2 = \
+    '/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_secondary_plan_engine_carmake.txt'
+secondary_infer_config_file3 = \
+    '/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_secondary_plan_engine_vehicletypes.txt'
 
 # Window Sink Dimensions
 sink_width = 1280
@@ -91,8 +101,22 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # New Primary TIS using the filespec specified above, with interval = 0
-        retval = dsl_infer_tis_primary_new('primary-tis', primary_infer_config_file, 0)
+        # New Primary TIS using the filespec specified above, with interval = 4
+        retval = dsl_infer_tis_primary_new('primary-tis', primary_infer_config_file, 4)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Three New Secondary TISs using the filespec specified above, with interval = 0
+        retval = dsl_infer_tis_secondary_new('secondary-tis-1', 
+            secondary_infer_config_file1, 'primary-tis', 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_infer_tis_secondary_new('secondary-tis-2', 
+            secondary_infer_config_file2, 'primary-tis', 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_infer_tis_secondary_new('secondary-tis-3', 
+            secondary_infer_config_file3, 'primary-tis', 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -113,7 +137,8 @@ def main(args):
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-tis', 'ktl-tracker', 'on-screen-display', 'window-sink', None])
+            ['uri-source', 'primary-tis', 'ktl-tracker', 'secondary-tis-1', 'secondary-tis-2', 
+            'secondary-tis-3', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
