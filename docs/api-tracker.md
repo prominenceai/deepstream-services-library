@@ -219,7 +219,7 @@ retval = dsl_tracker_pph_remove('my-tracker', 'my-pph-handler', `DSL_PAD_SINK`)
 * [Source](/docs/api-source.md)
 * [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
-* [Primary and Secondary GIE](/docs/api-gie.md)
+* [Inference Engine and Server](/docs/api-infer.md)
 * **Tracker**
 * [On-Screen Display](/docs/api-osd.md)
 * [Tiler](/docs/api-tiler.md)
