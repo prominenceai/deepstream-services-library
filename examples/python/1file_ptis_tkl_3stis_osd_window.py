@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2021, Prominence AI, Inc.
+# Copyright (c) 2021, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -30,11 +30,34 @@ import time
 
 from dsl import *
 
-# Filespecs for the Primary GIE
-primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+#-------------------------------------------------------------------------------------------
+#
+# This script demonstrates the use of a Primary Triton Inference Server (PTIS), and three 
+# Secondary Triton Inference Servers (STIS). All Inference Servers require a unique name, 
+# TIS inference config file, and inference interval when created. The STIS requires an
+# additional "infer_on_tis" name parameter, which in this scenario is the name of PTIS. 
+#
+# The PTIS and 3 STISs are added to a new Pipeline with a single File Source, KTL Tracker, 
+# On-Screen-Display (OSD), and Window Sink with 1280x720 dimensions.
 
-source_uri = '../../test/streams/sample_1080p_h265.mp4'
+# File path for the single File Source
+file_path = '/opt/nvidia/deepstream/deepstream-5.1/samples/streams/sample_qHD.mp4'
+
+# Filespecs for the Primary Triton Inference Server (PTIS)
+primary_infer_config_file = \
+    '/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt'
+
+# Filespecs for the Three Secondary Triton Inference Servers (STIS)
+secondary_infer_config_file1 = \
+    '/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_secondary_plan_engine_carcolor.txt'
+secondary_infer_config_file2 = \
+    '/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_secondary_plan_engine_carmake.txt'
+secondary_infer_config_file3 = \
+    '/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_secondary_plan_engine_vehicletypes.txt'
+
+# Window Sink Dimensions
+sink_width = 1280
+sink_height = 720
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -73,24 +96,32 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        ## First new URI File Source
-        retval = dsl_source_uri_new('uri-source', source_uri, False, 0, 0, 0)
+        # New File Source using the file path specified above, repeat diabled.
+        retval = dsl_source_file_new('uri-source', file_path, False)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        ## New Primary GIE using the filespecs above with interval = 0
-        retval = dsl_infer_gie_primary_new('primary-gie', 
-            primary_infer_config_file, primary_model_engine_file, 0)
+        # New Primary TIS using the filespec specified above, with interval = 4
+        retval = dsl_infer_tis_primary_new('primary-tis', primary_infer_config_file, 4)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## New KTL Tracker, setting max width and height of input frame
+        # Three New Secondary TISs using the filespec specified above, with interval = 0
+        retval = dsl_infer_tis_secondary_new('secondary-tis-1', 
+            secondary_infer_config_file1, 'primary-tis', 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_infer_tis_secondary_new('secondary-tis-2', 
+            secondary_infer_config_file2, 'primary-tis', 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_infer_tis_secondary_new('secondary-tis-3', 
+            secondary_infer_config_file3, 'primary-tis', 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New KTL Tracker, setting output width and height of tracked objects
         retval = dsl_tracker_ktl_new('ktl-tracker', 480, 272)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        ## New Tiled Display, setting width and height, use default cols/rows set by source count
-        retval = dsl_tiler_new('tiler', 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -99,23 +130,19 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        ## New File Sink with H264 Codec type and MKV conatiner muxer, and bit-rate and iframe interval
-        retval = dsl_sink_file_new('file-sink', "./output.mkv", DSL_CODEC_H264, DSL_CONTAINER_MKV, 2000000, 0)
+        # New Window Sink, 0 x/y offsets and dimensions 
+        retval = dsl_sink_window_new('window-sink', 0, 0, sink_width, sink_height)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'ktl-tracker', 'tiler', 'on-screen-display', 'window-sink', 'file-sink', None])
+            ['uri-source', 'primary-tis', 'ktl-tracker', 'secondary-tis-1', 'secondary-tis-2', 
+            'secondary-tis-3', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## Add the XWindow event handler functions defined above
+        # Add the XWindow event handler functions defined above
         retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -123,7 +150,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## Add the listener callback functions defined above
+        # Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break

@@ -23,7 +23,7 @@ THE SOFTWARE.
 */
 
 #include "catch.hpp"
-#include "DslGieBintr.h"
+#include "DslInferBintr.h"
 
 using namespace DSL;
 

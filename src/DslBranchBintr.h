@@ -27,13 +27,13 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
-#include "DslGieBintr.h"
+#include "DslInferBintr.h"
 #include "DslSegVisualBintr.h"
 #include "DslTrackerBintr.h"
 #include "DslOfvBintr.h"
 #include "DslOsdBintr.h"
 #include "DslTilerBintr.h"
-#include "DslPipelineSGiesBintr.h"
+#include "DslPipelineSInfersBintr.h"
 #include "DslMultiComponentsBintr.h"
 #include "DslSinkBintr.h"
     
@@ -60,16 +60,16 @@ namespace DSL
         BranchBintr(const char* name, bool pipeline = false);
 
         /**
-         * @brief adds a single PrimaryGieBintr to this Branch 
-         * @param[in] pGieBintr shared pointer to PrimaryGieBintr to add
+         * @brief adds a single GIE or TIS PrimaryInferBintr to this Branch 
+         * @param[in] pPrmaryInferBintr shared pointer to PrmaryInferBintr to add
          */
-        bool AddPrimaryGieBintr(DSL_BASE_PTR pPrmaryGieBintr);
+        bool AddPrimaryInferBintr(DSL_BASE_PTR pPrmaryInferBintr);
 
         /**
-         * @brief adds a single SecondaryGgieBintr to this Branch 
-         * @param[in] pSecondaryGieNodetr shared pointer to SecondaryGgieBintr to add
+         * @brief adds a single GIE or TIS SecondaryInferBintr to this Branch 
+         * @param[in] pSecondaryInferBintr shared pointer to SecondaryInferBintr to add
          */
-        bool AddSecondaryGieBintr(DSL_BASE_PTR pSecondaryGieBintr);
+        bool AddSecondaryInferBintr(DSL_BASE_PTR pSecondaryInferBintr);
 
         /**
          * @brief adds a single SegVisualBintr to this Branch 
@@ -179,14 +179,14 @@ namespace DSL
         std::vector<DSL_BINTR_PTR> m_linkedComponents;
         
         /**
-         * @brief optional, one at most Primary GIE for this Branch
+         * @brief optional, one at most GIE or TIS PrimaryInferBintr for this Branch
          */
-        DSL_PRIMARY_GIE_PTR m_pPrimaryGieBintr;
+        DSL_PRIMARY_INFER_PTR m_pPrimaryInferBintr;
         
         /**
          * @brief optional, one or more Secondary GIEs for this Branch
          */
-        DSL_PIPELINE_SGIES_PTR m_pSecondaryGiesBintr;
+        DSL_PIPELINE_SINFERS_PTR m_pSecondaryInfersBintr;
 
         /**
          * @brief optional, one at most Segmentation Visualizater for this Branch

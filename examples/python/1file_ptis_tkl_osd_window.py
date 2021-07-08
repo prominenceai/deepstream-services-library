@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2021-2021, Prominence AI, Inc.
+# Copyright (c) 2021, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -27,22 +27,27 @@
 import sys
 sys.path.insert(0, "../../")
 import time
+
 from dsl import *
 
-# NOTE: the below example video runs at 15/1 frame-rate which seems to be beyond 
-# the limit of the PGIE to perform segmentation. This becomes apparent half-way
-# through the video when the Pipeline starts experiencing QOS issues. A slower
-# camera rate may be required.
-input_file = "../../test/streams/nevskiy-avenue-night3.mp4"
+#-------------------------------------------------------------------------------------------
+#
+# This script demonstrates the use of a Primary Triton Inference Server (PTIS). The PTIS
+# requires a unique name, TIS inference config file, and inference interval when created.
+#
+# The PTIS is added to a new Pipeline with a single File Source, KTL Tracker, 
+# On-Screen-Display (OSD), and Window Sink with 1280x720 dimensions.
 
-# Filespecs for the Primary GIE
-primary_infer_config_file = '../../test/configs/segvisual_config_semantic.txt'
-primary_model_engine_file = '../../test/models/Segmentation/semantic/unetres18_v4_pruned0.65_800_data.uff_b1_gpu0_fp16.engine'
+# File path for the single File Source
+file_path = '/opt/nvidia/deepstream/deepstream-5.1/samples/streams/sample_qHD.mp4'
 
-# Segmentation Visualizer output dimensions should (typically) match the
-# inference dimensions defined in segvisual_config_semantic.txt (512x512)
-width = 512
-height = 512
+# Filespecs for the Primary Triton Inference Server (PTIS)
+primary_infer_config_file = \
+    '/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt'
+
+# Window Sink Dimensions
+sink_width = 1280
+sink_height = 720
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -54,9 +59,8 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
-        dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
-
+ 
 ## 
 # Function to be called on XWindow Delete event
 ## 
@@ -64,50 +68,68 @@ def xwindow_delete_event_handler(client_data):
     print('delete window event')
     dsl_main_loop_quit()
 
+# Function to be called on End-of-Stream (EOS) event
+def eos_event_listener(client_data):
+    print('Pipeline EOS event')
+    dsl_main_loop_quit()
+
+## 
+# Function to be called on every change of Pipeline state
+## 
+def state_change_listener(old_state, new_state, client_data):
+    print('previous state = ', old_state, ', new state = ', new_state)
+    if new_state == DSL_STATE_PLAYING:
+        dsl_pipeline_dump_to_dot('pipeline', "state-playing")
+
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # New File Source
-        retval = dsl_source_file_new('file-source', file_path=input_file, repeat_enabled=False)
+        # New File Source using the file path specified above, repeat diabled.
+        retval = dsl_source_file_new('uri-source', file_path, False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # New Primary TIS using the filespec specified above, with interval = 0
+        retval = dsl_infer_tis_primary_new('primary-tis', primary_infer_config_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Primary GIE using the filespecs above, with interval and Id
-        retval = dsl_infer_gie_primary_new('primary-gie', False,
-            primary_infer_config_file, primary_model_engine_file, 0)
+        # New KTL Tracker, setting output width and height of tracked objects
+        retval = dsl_tracker_ktl_new('ktl-tracker', 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Segmentation Visualizer with output dimensions
-        retval = dsl_segvisual_new('segvisual', width=width, height=height)
+        # New OSD with clock and text enabled... using default values.
+        retval = dsl_osd_new('on-screen-display', True, True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 100, 1000, width, height)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
-        # Example of how to force the aspect ratio during window resize
-        dsl_sink_window_force_aspect_ratio_set('window-sink', force=True)
+        # New Window Sink, 0 x/y offsets and dimensions 
+        retval = dsl_sink_window_new('window-sink', 0, 0, sink_width, sink_height)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to our pipeline
+        # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['file-source', 'primary-gie', 'segvisual', 'window-sink', None])
+            ['uri-source', 'primary-tis', 'ktl-tracker', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 
-            xwindow_key_event_handler, None)
+        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", 
-            xwindow_delete_event_handler, None)
+        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the listener callback functions defined above
+        retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -116,16 +138,16 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Join with main loop until released - blocking call
         dsl_main_loop_run()
         retval = DSL_RETURN_SUCCESS
         break
 
-        # Print out the final result
-        print(dsl_return_value_to_string(retval))
+    # Print out the final result
+    print(dsl_return_value_to_string(retval))
 
     dsl_pipeline_delete_all()
     dsl_component_delete_all()
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
-

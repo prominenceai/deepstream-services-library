@@ -23,14 +23,16 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
-#include "DslGieBintr.h"
+#include "DslInferBintr.h"
 #include "DslBranchBintr.h"
 
 namespace DSL
 {
-    GieBintr::GieBintr(const char* name, const char* factoryname, uint processMode,
-        const char* inferConfigFile, const char* modelEngineFile)
+    InferBintr::InferBintr(const char* name, uint processMode, 
+        const char* inferConfigFile, const char* modelEngineFile, 
+        uint interval, uint inferType)
         : Bintr(name)
+        , m_inferType(inferType)
         , m_processMode(processMode)
         , m_interval(0)
         , m_uniqueId(CreateUniqueIdFromName(name))
@@ -48,21 +50,29 @@ namespace DSL
             throw;
         }        
         // generate a unique Id for the GIE based on its unique name
-        std::string gieName = "gie-" + GetName();
+        std::string inferBintrName = "infer-" + GetName();
         
-        LOG_INFO("Creating GIE  '" << gieName << "' with unique Id = " << m_uniqueId);
+        LOG_INFO("Creating GIE  '" << inferBintrName << "' with unique Id = " << m_uniqueId);
         
-        // create and setup unique GIE Elementr
-        m_pInferEngine = DSL_ELEMENT_NEW(factoryname, gieName.c_str());
+        // create and setup unique Inference Element, GIE or TIS
+        if (m_inferType == DSL_INFER_TYPE_TIS)
+        {
+            m_pInferEngine = DSL_ELEMENT_NEW(NVDS_ELEM_INFER_SERVER, inferBintrName.c_str());
+        }
+        else
+        {
+            m_pInferEngine = DSL_ELEMENT_NEW(NVDS_ELEM_NVINFER, inferBintrName.c_str());
+            m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
+            
+            // If a model engine file is provided (non-server only)
+            if (m_modelEngineFile.size())
+            {
+                m_pInferEngine->SetAttribute("model-engine-file", modelEngineFile);
+            }
+        }
         m_pInferEngine->SetAttribute("config-file-path", inferConfigFile);
         m_pInferEngine->SetAttribute("process-mode", m_processMode);
         m_pInferEngine->SetAttribute("unique-id", m_uniqueId);
-        m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
-
-        if (m_modelEngineFile.size())
-        {
-            m_pInferEngine->SetAttribute("model-engine-file", modelEngineFile);
-        }
         
 //        g_object_set (m_pInferEngine->GetGstObject(),
 //            "raw-output-generated-callback", OnRawOutputGeneratedCB,
@@ -70,19 +80,26 @@ namespace DSL
 //            NULL);
     }    
     
-    GieBintr::~GieBintr()
+    InferBintr::~InferBintr()
     {
         LOG_FUNC();
     }
 
-    const char* GieBintr::GetInferConfigFile()
+    uint InferBintr::GetInferType()
+    {
+        LOG_FUNC();
+        
+        return m_inferType;
+    }
+
+    const char* InferBintr::GetInferConfigFile()
     {
         LOG_FUNC();
         
         return m_inferConfigFile.c_str();
     }
 
-    bool GieBintr::SetInferConfigFile(const char* inferConfigFile)
+    bool InferBintr::SetInferConfigFile(const char* inferConfigFile)
     {
         LOG_FUNC();
         
@@ -95,7 +112,7 @@ namespace DSL
                 
         if (IsInUse())
         {
-            LOG_ERROR("Unable to set Infer Config File for GIE '" << GetName() 
+            LOG_ERROR("Unable to set Infer Config File for InferBintr '" << GetName() 
                 << "' as it's currently in use");
             return false;
         }
@@ -105,16 +122,22 @@ namespace DSL
         return true;
     }
     
-    const char* GieBintr::GetModelEngineFile()
+    const char* InferBintr::GetModelEngineFile()
     {
         LOG_FUNC();
         
         return m_modelEngineFile.c_str();
     }
     
-    bool GieBintr::SetModelEngineFile(const char* modelEngineFile)
+    bool InferBintr::SetModelEngineFile(const char* modelEngineFile)
     {
         LOG_FUNC();
+        
+        if (m_inferType == DSL_INFER_TYPE_TIS)
+        {
+            LOG_ERROR("Cannot set Model Engine File for TIS");
+            return false;
+        }
         
         std::ifstream streamModelEngineFile(modelEngineFile);
         if (!streamModelEngineFile.good())
@@ -135,13 +158,13 @@ namespace DSL
         return true;
     }
     
-    bool GieBintr::SetBatchSize(uint batchSize)
+    bool InferBintr::SetBatchSize(uint batchSize)
     {
         LOG_FUNC();
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set Batch size for GIE '" << GetName() 
+            LOG_ERROR("Unable to set Batch size for InferBintr '" << GetName() 
                 << "' as it's currently linked");
             return false;
         }
@@ -149,13 +172,13 @@ namespace DSL
         return Bintr::SetBatchSize(batchSize);
     }
 
-    bool GieBintr::SetInterval(uint interval)
+    bool InferBintr::SetInterval(uint interval)
     {
         LOG_FUNC();
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set Interval for GIE '" << GetName() 
+            LOG_ERROR("Unable to set Interval for InferBintr '" << GetName() 
                 << "' as it's currently linked");
             return false;
         }
@@ -165,21 +188,21 @@ namespace DSL
         return true;
     }
     
-    uint GieBintr::GetInterval()
+    uint InferBintr::GetInterval()
     {
         LOG_FUNC();
         
         return m_interval;
     }
 
-    int GieBintr::GetUniqueId()
+    int InferBintr::GetUniqueId()
     {
         LOG_FUNC();
         
         return m_uniqueId;
     }
     
-    int GieBintr::CreateUniqueIdFromName(const char* name)
+    int InferBintr::CreateUniqueIdFromName(const char* name)
     {
         LOG_FUNC();
         
@@ -194,7 +217,7 @@ namespace DSL
         return (id < 0) ? id*-1 : id;
     }
 
-    bool GieBintr::SetRawOutputEnabled(bool enabled, const char* path)
+    bool InferBintr::SetRawOutputEnabled(bool enabled, const char* path)
     {
         LOG_FUNC();
         
@@ -204,31 +227,36 @@ namespace DSL
 
             if( stat(path, &info) != 0 )
             {
-                LOG_ERROR("Unable to access path '" << path << "' for GieBintr '" << GetName() << "'");
+                LOG_ERROR("Unable to access path '" << path << "' for InferBintr '" 
+                    << GetName() << "'");
                 return false;
             }
             else if(info.st_mode & S_IFDIR)
             {
-                LOG_INFO("Enabling raw layer-info output to path '" << path << "' for GieBintr '" << GetName() << "'");
+                LOG_INFO("Enabling raw layer-info output to path '" << path 
+                    << "' for InferBintr '" << GetName() << "'");
                 m_rawOutputPath.assign(path);
             }
             else
             {
-                LOG_ERROR("Unable to access path '" << path << "' for GieBintr '" << GetName() << "'");
+                LOG_ERROR("Unable to access path '" << path 
+                    << "' for InferBintr '" << GetName() << "'");
                 return false;
             }
         }
         else
         {
-            LOG_INFO("Disabling raw layer-info output to path '" << m_rawOutputPath << "' for GieBintr '" << GetName() << "'");
+            LOG_INFO("Disabling raw layer-info output to path '" << m_rawOutputPath 
+                << "' for InferBintr '" << GetName() << "'");
             m_rawOutputPath.clear();
         }
         m_rawOutputEnabled = enabled;
         return true;
     }
 
-    void GieBintr::HandleOnRawOutputGeneratedCB(GstBuffer* pBuffer, NvDsInferNetworkInfo* pNetworkInfo, 
-        NvDsInferLayerInfo *pLayersInfo, guint layersCount, guint batchSize)
+    void InferBintr::HandleOnRawOutputGeneratedCB(GstBuffer* pBuffer, 
+        NvDsInferNetworkInfo* pNetworkInfo, NvDsInferLayerInfo *pLayersInfo, 
+        guint layersCount, guint batchSize)
     {
         if (!m_rawOutputEnabled)
         {
@@ -241,7 +269,8 @@ namespace DSL
             std::string layerName(pLayerInfo->layerName);
             std::replace(layerName.begin(), layerName.end(), '/', '_');
             std::string oFilePath = m_rawOutputPath + "/" + layerName + 
-                "_batch" + std::to_string(m_rawOutputFrameNumber) + "_bsize" + std::to_string(batchSize) + ".bin";
+                "_batch" + std::to_string(m_rawOutputFrameNumber) + 
+                    "_bsize" + std::to_string(batchSize) + ".bin";
                 
             std::ofstream streamOutputFile(oFilePath, std::ofstream::out | std::ofstream::binary);
             if (!streamOutputFile.good())
@@ -256,7 +285,8 @@ namespace DSL
                 case INT32: typeSize = 4; break;
                 case INT8: typeSize = 1; break;
             }
-            streamOutputFile.write((char*)pLayerInfo->buffer, typeSize * pLayerInfo->inferDims.numElements * batchSize);
+            streamOutputFile.write((char*)pLayerInfo->buffer, 
+                typeSize * pLayerInfo->inferDims.numElements * batchSize);
             streamOutputFile.close();
         }
         m_rawOutputFrameNumber++;
@@ -265,15 +295,16 @@ namespace DSL
     static void OnRawOutputGeneratedCB(GstBuffer* pBuffer, NvDsInferNetworkInfo* pNetworkInfo, 
         NvDsInferLayerInfo *pLayersInfo, guint layersCount, guint batchSize, gpointer pGie)
     {
-        static_cast<GieBintr*>(pGie)->HandleOnRawOutputGeneratedCB(pBuffer, pNetworkInfo, 
+        static_cast<InferBintr*>(pGie)->HandleOnRawOutputGeneratedCB(pBuffer, pNetworkInfo, 
             pLayersInfo, layersCount, batchSize);
     }
 
     // ***********************************************************************
     
-    PrimaryGieBintr::PrimaryGieBintr(const char* name, const char* inferConfigFile,
-        const char* modelEngineFile, uint interval)
-        : GieBintr(name, NVDS_ELEM_PGIE, 1, inferConfigFile, modelEngineFile)
+    PrimaryInferBintr::PrimaryInferBintr(const char* name, const char* inferConfigFile,
+            const char* modelEngineFile, uint interval, uint inferType)
+        : InferBintr(name, DSL_INFER_MODE_PRIMARY, inferConfigFile, 
+            modelEngineFile, interval, inferType)
     {
         LOG_FUNC();
         
@@ -293,11 +324,11 @@ namespace DSL
         m_pQueue->AddGhostPadToParent("sink");
         m_pInferEngine->AddGhostPadToParent("src");
         
-        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("gie-sink-pad-probe", "sink", m_pQueue);
+        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("gie/s-sink-pad-probe", "sink", m_pQueue);
         m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW("gie-src-pad-probe", "src", m_pInferEngine);
     }    
     
-    PrimaryGieBintr::~PrimaryGieBintr()
+    PrimaryInferBintr::~PrimaryInferBintr()
     {
         LOG_FUNC();
 
@@ -307,18 +338,20 @@ namespace DSL
         }
     }
 
-    bool PrimaryGieBintr::LinkAll()
+    bool PrimaryInferBintr::LinkAll()
     {
         LOG_FUNC();
 
         if (!m_batchSize)
         {
-            LOG_ERROR("PrimaryGieBintr '" << GetName() << "' can not be linked: batch size = 0");
+            LOG_ERROR("PrimaryInferBintr '" << GetName() 
+                << "' can not be linked: batch size = 0");
             return false;
         }
         if (m_isLinked)
         {
-            LOG_ERROR("PrimaryGieBintr '" << GetName() << "' is already linked");
+            LOG_ERROR("PrimaryInferBintr '" << GetName() 
+                << "' is already linked");
             return false;
         }
         if (!m_pQueue->LinkToSink(m_pVidConv) or !m_pVidConv->LinkToSink(m_pInferEngine))
@@ -331,13 +364,13 @@ namespace DSL
         return true;
     }
     
-    void PrimaryGieBintr::UnlinkAll()
+    void PrimaryInferBintr::UnlinkAll()
     {
         LOG_FUNC();
         
         if (!m_isLinked)
         {
-            LOG_ERROR("PrimaryGieBintr '" << GetName() << "' is not linked");
+            LOG_ERROR("PrimaryInferBintr '" << GetName() << "' is not linked");
             return;
         }
         m_pQueue->UnlinkFromSink();
@@ -346,28 +379,42 @@ namespace DSL
         m_isLinked = false;
     }
 
-    bool PrimaryGieBintr::AddToParent(DSL_BASE_PTR pParentBintr)
+    bool PrimaryInferBintr::AddToParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         
         // add 'this' GIE to the Parent Pipeline 
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
-            AddPrimaryGieBintr(shared_from_this());
+            AddPrimaryInferBintr(shared_from_this());
+    }
+
+    // ***********************************************************************
+
+    PrimaryGieBintr::PrimaryGieBintr(const char* name, 
+        const char* inferConfigFile, const char* modelEngineFile, uint interval)
+        : PrimaryInferBintr(name, inferConfigFile, modelEngineFile, 
+            interval, DSL_INFER_TYPE_GIE) 
+    {
+        LOG_FUNC();
+    }
+
+    PrimaryGieBintr::~PrimaryGieBintr()
+    {
+        LOG_FUNC();
     }
 
     bool PrimaryGieBintr::SetGpuId(uint gpuId)
     {
         LOG_FUNC();
-        
+
         if (IsInUse())
         {
-            LOG_ERROR("Unable to set GPU ID for Primary GIE '" << GetName() 
+            LOG_ERROR("Unable to set GPU ID for PrimaryGieBintr '" << GetName() 
                 << "' as it's currently in use");
             return false;
         }
 
         m_gpuId = gpuId;
-        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for PrimaryBintr '" << m_name << "'");
 
         m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
         m_pVidConv->SetAttribute("gpu-id", m_gpuId);
@@ -375,39 +422,57 @@ namespace DSL
         return true;
     }
 
+
     // ***********************************************************************
 
-    SecondaryGieBintr::SecondaryGieBintr(const char* name, const char* inferConfigFile,
-            const char* modelEngineFile, const char* inferOnGieName, uint interval)
-        : GieBintr(name, NVDS_ELEM_SGIE, 2, inferConfigFile, modelEngineFile)
+    PrimaryTisBintr::PrimaryTisBintr(const char* name, 
+        const char* inferConfigFile, uint interval)
+        : PrimaryInferBintr(name, inferConfigFile, "", 
+            interval, DSL_INFER_TYPE_TIS) 
+    {
+        LOG_FUNC();
+    }
+    
+    PrimaryTisBintr::~PrimaryTisBintr()
+    {
+        LOG_FUNC();
+    }
+
+    // ***********************************************************************
+
+    SecondaryInferBintr::SecondaryInferBintr(const char* name, 
+        const char* inferConfigFile, const char* modelEngineFile, 
+        const char* inferOn, uint interval, uint inferType)
+        : InferBintr(name, DSL_INFER_MODE_SECONDARY, inferConfigFile, 
+            modelEngineFile, interval, inferType)
     {
         LOG_FUNC();
         
         // create the unique queue-name from the SGIE name
-        std::string queueName = "sgie-queue-" + GetName();
+        std::string queueName = "secondary-infer-queue-" + GetName();
 
         m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueName.c_str());
 
         
         // update the InferEngine interval setting
-        SetInferOnGieName(inferOnGieName);
+        SetInferOnName(inferOn);
         SetInterval(interval);
         
         // create the unique sink-name from the SGIE name
-        std::string fakeSinkName = "sgie-fake-sink-" + GetName();
+        std::string fakeSinkName = "secondary-infer-fake-sink-" + GetName();
         
         m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, fakeSinkName.c_str());
         m_pFakeSink->SetAttribute("async", false);
         m_pFakeSink->SetAttribute("sync", false);
         m_pFakeSink->SetAttribute("enable-last-sample", false);
         
-        // Note: the Elementrs created/owned by this SecondaryGieBintr are added as 
-        // children to the parent PipelineSGiesBintr, and not to this Bintr's GST BIN
-        // In this way, all Secondary GIEs Infer on the same buffer of data, regardless
+        // Note: the Elementrs created/owned by this SecondaryInferBintr are added as 
+        // children to the parent PipelineSInferBintr, and not to this Bintr's GST BIN
+        // In this way, all SecondaryInferBintrs Infer on the same buffer of data, regardless
         // of the depth of secondary Inference. Ghost Pads are not required for this bin
     }    
     
-    SecondaryGieBintr::~SecondaryGieBintr()
+    SecondaryInferBintr::~SecondaryInferBintr()
     {
         LOG_FUNC();
 
@@ -417,23 +482,27 @@ namespace DSL
         }
     }
 
-    bool SecondaryGieBintr::LinkAll()
+    bool SecondaryInferBintr::LinkAll()
     {
         LOG_FUNC();
 
         if (!m_batchSize)
         {
-            LOG_ERROR("SecondaryGieBintr '" << GetName() << "' can not be linked: batch size = 0");
+            LOG_ERROR("SecondaryInferBintr '" << GetName() 
+                << "' can not be linked: batch size = 0");
             return false;
         }
         if (m_isLinked)
         {
-            LOG_ERROR("SecondaryGieBintr '" << GetName() << "' is already linked");
+            LOG_ERROR("SecondaryInferBintr '" << GetName() 
+                << "' is already linked");
             return false;
         }
-        if (!m_pQueue->LinkToSink(m_pInferEngine) or !m_pInferEngine->LinkToSink(m_pFakeSink))
+        if (!m_pQueue->LinkToSink(m_pInferEngine) or 
+            !m_pInferEngine->LinkToSink(m_pFakeSink))
         {
-            LOG_ERROR("SecondaryGieBintr '" << GetName() << "' failed to link");
+            LOG_ERROR("SecondaryInferBintr '" << GetName() 
+                << "' failed to link");
             return false;
         }
         
@@ -442,13 +511,14 @@ namespace DSL
         return true;
     }
     
-    void SecondaryGieBintr::UnlinkAll()
+    void SecondaryInferBintr::UnlinkAll()
     {
         LOG_FUNC();
         
         if (!m_isLinked)
         {
-            LOG_ERROR("SecondaryGieBintr '" << GetName() << "' is not linked");
+            LOG_ERROR("SecondaryInferBintr '" << GetName() 
+                << "' is not linked");
             return;
         }
         m_pInferEngine->UnlinkFromSink();
@@ -457,64 +527,69 @@ namespace DSL
         m_isLinked = false;
     }
 
-    bool SecondaryGieBintr::AddToParent(DSL_BASE_PTR pParentBintr)
+    bool SecondaryInferBintr::AddToParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         
         // add 'this' GIE to the Parent Pipeline 
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
-            AddSecondaryGieBintr(shared_from_this());
+            AddSecondaryInferBintr(shared_from_this());
     }
     
-    uint SecondaryGieBintr::GetInferOnGieUniqueId()
+    uint SecondaryInferBintr::GetInferOnUniqueId()
     {
         LOG_FUNC();
 
-        return m_inferOnGieUniqueId;
+        return m_inferOnUniqueId;
     }
     
-    const char* SecondaryGieBintr::GetInferOnGieName()
+    const char* SecondaryInferBintr::GetInferOnName()
     {
         LOG_FUNC();
 
-        return m_inferOnGieName.c_str();
+        return m_inferOn.c_str();
     }
     
-    bool SecondaryGieBintr::SetInferOnGieName(const char* name)
+    bool SecondaryInferBintr::SetInferOnName(const char* name)
     {
         LOG_FUNC();
 
         if (IsLinked())
         {
-            LOG_ERROR("Unable to update SecondaryGieBintr '" << GetName() << 
-                "' as its in a linked state");
+            LOG_ERROR("Unable to update SecondaryInferBintr '" 
+                << GetName() << "' as its in a linked state");
             return false;
             
         }
-        m_inferOnGieName.assign(name);
-        m_inferOnGieUniqueId = CreateUniqueIdFromName(name);
+        m_inferOn.assign(name);
+        m_inferOnUniqueId = CreateUniqueIdFromName(name);
         
-        LOG_INFO("Setting infer-on-gie-id for SecondaryGieBintr '" << GetName() << "' to " << m_inferOnGieUniqueId);
+        LOG_INFO("Setting infer-on-id for SecondaryInferBintr '" 
+            << GetName() << "' to " << m_inferOnUniqueId);
         
-        m_pInferEngine->SetAttribute("infer-on-gie-id", m_inferOnGieUniqueId);
+        m_pInferEngine->SetAttribute("infer-on-gie-id", m_inferOnUniqueId);
         
         return true;
     }
 
-    bool SecondaryGieBintr::LinkToSource(DSL_NODETR_PTR pTee)
+    bool SecondaryInferBintr::LinkToSource(DSL_NODETR_PTR pTee)
     {
         LOG_FUNC();
 
-        LOG_INFO("Linking SecondaryGieBintr '" << GetName() << "' to Tee '" << pTee->GetName() << "'");
+        LOG_INFO("Linking SecondaryInferBintr '" << GetName() 
+            << "' to Tee '" << pTee->GetName() << "'");
         
-        m_pGstStaticSinkPad = gst_element_get_static_pad(m_pQueue->GetGstElement(), "sink");
+        m_pGstStaticSinkPad = 
+            gst_element_get_static_pad(m_pQueue->GetGstElement(), "sink");
         if (!m_pGstStaticSinkPad)
         {
-            LOG_ERROR("Failed to get Static Sink Pad for SecondaryGieBintr '" << GetName() << "'");
+            LOG_ERROR("Failed to get Static Sink Pad for SecondaryInferBintr '" 
+                << GetName() << "'");
             return false;
         }
 
-        GstPad* pGstRequestedSourcePad = gst_element_get_request_pad(pTee->GetGstElement(), "src_%u");
+        GstPad* pGstRequestedSourcePad = 
+            gst_element_get_request_pad(pTee->GetGstElement(), "src_%u");
             
         if (!pGstRequestedSourcePad)
         {
@@ -524,7 +599,8 @@ namespace DSL
 
         if (!m_pQueue->LinkToSource(pTee))
         {
-            LOG_ERROR("Failed to link Tee '" << pTee->GetName() << "' with SecondaryGieBintr '" << GetName() << "'");
+            LOG_ERROR("Failed to link Tee '" << pTee->GetName() 
+                << "' with SecondaryInferBintr '" << GetName() << "'");
             return false;
         }
 
@@ -533,30 +609,50 @@ namespace DSL
         return true;
     }
 
-    bool SecondaryGieBintr::UnlinkFromSource()
+    bool SecondaryInferBintr::UnlinkFromSource()
     {
         LOG_FUNC();
         
         // If we're not currently linked to the Tee
         if (!m_pQueue->IsLinkedToSource())
         {
-            LOG_ERROR("SecondaryGieBintr '" << GetName() << "' is not in a Linked state");
+            LOG_ERROR("SecondaryInferBintr '" << GetName() 
+                << "' is not in a Linked state");
             return false;
         }
 
         if (!m_pQueue->UnlinkFromSource())
         {
-            LOG_ERROR("SecondaryGieBintr '" << GetName() << "' was not able to unlink from src Tee");
+            LOG_ERROR("SecondaryInferBintr '" << GetName() 
+                << "' was not able to unlink from src Tee");
             return false;
         }
-        LOG_INFO("Unlinking and releasing requested Source Pad for SecondaryGieBintr " << GetName());
+        LOG_INFO("Unlinking and releasing requested Source Pad for SecondaryInferBintr " 
+            << GetName());
         
-//        gst_element_release_request_pad(GetSource()->GetGstElement(), m_pGstRequestedSourcePads["src"]);
+//        gst_element_release_request_pad(GetSource()->GetGstElement(), 
+//            m_pGstRequestedSourcePads["src"]);
                 
         m_pGstRequestedSourcePads.erase("src");
         
         return true;
     }
+
+    SecondaryGieBintr::SecondaryGieBintr(const char* name,
+        const char* inferConfigFile, const char* modelEngineFile, 
+        const char* inferOn, uint interval)
+        : SecondaryInferBintr(name, inferConfigFile, modelEngineFile, inferOn, 
+            interval, DSL_INFER_TYPE_GIE)
+    {
+        LOG_FUNC();
+    }
+
+    SecondaryGieBintr::~SecondaryGieBintr()
+    {
+        LOG_FUNC();
+    }
+
+    // ***********************************************************************
 
     bool SecondaryGieBintr::SetGpuId(uint gpuId)
     {
@@ -564,15 +660,30 @@ namespace DSL
         
         if (IsInUse())
         {
-            LOG_ERROR("Unable to set GPU ID for Secondary GIE '" << GetName() 
+            LOG_ERROR("Unable to set GPU ID for SecondaryGieBintr '" << GetName() 
                 << "' as it's currently in use");
             return false;
         }
 
         m_gpuId = gpuId;
-        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for DewarperBintr '" << m_name << "'");
-
         m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
         return true;
     }
+    
+    // ***********************************************************************
+
+    SecondaryTisBintr::SecondaryTisBintr(const char* name,
+        const char* inferConfigFile, const char* inferOn, uint interval)
+        : SecondaryInferBintr(name, inferConfigFile, "", inferOn, 
+            interval, DSL_INFER_TYPE_TIS)
+    {
+        LOG_FUNC();
+    }
+
+    SecondaryTisBintr::~SecondaryTisBintr()
+    {
+        LOG_FUNC();
+    }
+    
 }    
+
