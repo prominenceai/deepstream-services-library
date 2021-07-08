@@ -71,7 +71,7 @@ $ sudo apt-get install doxygen
 * [Source](/docs/api-source.md)
 * [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
-* [Primary and Secondary GIEs](/docs/api-gie.md)
+* [Inference Engine and Server](/docs/api-infer.md)
 * [Tracker](/docs/api-tracker.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Tiler](/docs/api-tiler.md)
