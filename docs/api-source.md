@@ -994,7 +994,7 @@ retval = dsl_source_num_in_use_max_set(24)
 * **Source**
 * [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
-* [Primary and Secondary GIE](/docs/api-gie.md)
+* [Inference Engine and Server](/docs/api-infer.md)
 * [Tracker](/docs/api-tracker.md)
 * [Tiler](/docs/api-tiler.md)
 * [On-Screen Display](/docs/api-osd.md)
