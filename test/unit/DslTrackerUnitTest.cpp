@@ -91,7 +91,7 @@ SCENARIO( "A Tracker's dimensions can be updated", "[TrackerBintr]" )
         uint currWidth(0);
         uint currHeight(0);
     
-        pTrackerBintr->GetMaxDimensions(&currWidth, &currHeight);
+        pTrackerBintr->GetDimensions(&currWidth, &currHeight);
         REQUIRE( currWidth == initWidth );
         REQUIRE( currHeight == initHeight );
 
@@ -100,11 +100,11 @@ SCENARIO( "A Tracker's dimensions can be updated", "[TrackerBintr]" )
             uint newWidth(300);
             uint newHeight(150);
             
-            pTrackerBintr->SetMaxDimensions(newWidth, newHeight);
+            pTrackerBintr->SetDimensions(newWidth, newHeight);
 
             THEN( "The Display's new demensions are returned on Get")
             {
-                pTrackerBintr->GetMaxDimensions(&currWidth, &currHeight);
+                pTrackerBintr->GetDimensions(&currWidth, &currHeight);
                 REQUIRE( currWidth == newWidth );
                 REQUIRE( currHeight == newHeight );
             }

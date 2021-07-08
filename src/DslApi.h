@@ -2994,44 +2994,46 @@ DslReturnType dsl_infer_interval_set(const wchar_t* name, uint interval);
  * @param[in] path absolute or relative direcory path to write to. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_infer_raw_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* path);
+DslReturnType dsl_infer_raw_output_enabled_set(const wchar_t* name, 
+    boolean enabled, const wchar_t* path);
 
 /**
  * @brief creates a new, uniquely named KTL Tracker object
  * @param[in] name unique name for the new Tracker
- * @param[in] max_width maximum frame width of the input transform buffer
- * @param[in] max_height maximum_frame height of the input tranform buffer
+ * @param[in] width output frame width for GIEs and TISs to work on
+ * @param[in] height output frame height for GIEs and TIS to work on
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_ktl_new(const wchar_t* name, uint max_width, uint max_height);
+DslReturnType dsl_tracker_ktl_new(const wchar_t* name, uint width, uint height);
 
 /**
  * @brief creates a new, uniquely named IOU Tracker object
  * @param[in] name unique name for the new Tracker
  * @param[in] config_file fully qualified pathspec to the IOU Lib config text file
- * @param[in] max_width maximum frame width of the input transform buffer
- * @param[in] max_height maximum_frame height of the input tranform buffer
+ * @param[in] width output frame width for GIEs and TISs to work on
+ * @param[in] height output frame height for GIEs and TIS to work on
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_iou_new(const wchar_t* name, const wchar_t* config_file, uint max_width, uint max_height);
+DslReturnType dsl_tracker_iou_new(const wchar_t* name, 
+    const wchar_t* config_file, uint width, uint height);
 
 /**
  * @brief returns the current maximum frame width and height settings for the named IOU Tracker object
  * @param[in] name unique name of the Tracker to query
- * @param[out] max_width maximum frame width of the input transform buffer
- * @param[out] max_height maximum_frame height of the input tranform buffer
+ * @param[out] width output frame width for GIEs and TISs to work on
+ * @param[out] height output frame height for GIEs and TIS to work on
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_max_dimensions_get(const wchar_t* name, uint* max_width, uint* max_height);
+DslReturnType dsl_tracker_dimensions_get(const wchar_t* name, uint* width, uint* height);
 
 /**
  * @brief sets the maximum frame width and height settings for the named IOU Tracker object
  * @param[in] name unique name of the Tracker to update
- * @param[in] max_width new maximum frame width of the input transform buffer
- * @param[in] max_height new maximum_frame height of the input tranform buffer
+ * @param[in] width output frame width for GIEs and TISs to work on
+ * @param[in] height output frame height for GIEs and TIS to work on
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_max_dimensions_set(const wchar_t* name, uint max_width, uint max_height);
+DslReturnType dsl_tracker_dimensions_set(const wchar_t* name, uint width, uint height);
 
 /**
  * @brief returns the current config file in use by the named IOU Tracker object

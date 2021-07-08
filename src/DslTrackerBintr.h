@@ -103,7 +103,7 @@ namespace DSL
          * @param[out] width the current width setting in pixels
          * @param[out] height the current height setting in pixels
          */ 
-        void GetMaxDimensions(uint* width, uint* height);
+        void GetDimensions(uint* width, uint* height);
         
         /**
          * @brief Sets the current width and height settings for this Tracker
@@ -112,7 +112,7 @@ namespace DSL
          * @param[in] height the height value to set in pixels
          * @return false if the Tracker is currently in Use. True otherwise
          */ 
-        bool SetMaxDimensions(uint width, uint hieght);
+        bool SetDimensions(uint width, uint hieght);
 
         /**
          * @brief Sets the GPU ID for all Elementrs

@@ -3036,7 +3036,8 @@ DslReturnType dsl_tracker_ktl_new(const wchar_t* name, uint width, uint height)
     return DSL::Services::GetServices()->TrackerKtlNew(cstrName.c_str(), width, height);
 }
     
-DslReturnType dsl_tracker_iou_new(const wchar_t* name, const wchar_t* config_file, uint width, uint height)
+DslReturnType dsl_tracker_iou_new(const wchar_t* name, 
+    const wchar_t* config_file, uint width, uint height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(config_file);
@@ -3046,27 +3047,30 @@ DslReturnType dsl_tracker_iou_new(const wchar_t* name, const wchar_t* config_fil
     std::wstring wstrFile(config_file);
     std::string cstrFile(wstrFile.begin(), wstrFile.end());
 
-    return DSL::Services::GetServices()->TrackerIouNew(cstrName.c_str(), cstrFile.c_str(), width, height);
+    return DSL::Services::GetServices()->TrackerIouNew(cstrName.c_str(), 
+        cstrFile.c_str(), width, height);
 }
 
-DslReturnType dsl_tracker_max_dimensions_get(const wchar_t* name, uint* width, uint* height)
+DslReturnType dsl_tracker_dimensions_get(const wchar_t* name, uint* width, uint* height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TrackerMaxDimensionsGet(cstrName.c_str(), width, height);
+    return DSL::Services::GetServices()->TrackerDimensionsGet(cstrName.c_str(), 
+        width, height);
 }
 
-DslReturnType dsl_tracker_max_dimensions_set(const wchar_t* name, uint width, uint height)
+DslReturnType dsl_tracker_dimensions_set(const wchar_t* name, uint width, uint height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TrackerMaxDimensionsSet(cstrName.c_str(), width, height);
+    return DSL::Services::GetServices()->TrackerDimensionsSet(cstrName.c_str(), 
+    width, height);
 }
 
 DslReturnType dsl_tracker_pph_add(const wchar_t* name,
