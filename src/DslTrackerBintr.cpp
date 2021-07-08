@@ -114,7 +114,7 @@ namespace DSL
         return m_llConfigFile.c_str();
     }
     
-    void TrackerBintr::GetMaxDimensions(uint* width, uint* height)
+    void TrackerBintr::GetDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
         
@@ -125,13 +125,13 @@ namespace DSL
         *height = m_height;
     }
 
-    bool TrackerBintr::SetMaxDimensions(uint width, uint height)
+    bool TrackerBintr::SetDimensions(uint width, uint height)
     {
         LOG_FUNC();
         
-        if (IsInUse())
+        if (IsLinked())
         {
-            LOG_ERROR("Unable to set Tiles for TrackerBintr '" << GetName() 
+            LOG_ERROR("Unable to set Dimensions for TrackerBintr '" << GetName() 
                 << "' as it's currently in use");
             return false;
         }

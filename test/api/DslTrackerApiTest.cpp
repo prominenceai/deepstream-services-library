@@ -233,7 +233,7 @@ SCENARIO( "The Trackers Max Dimensions can be queried and updated", "[tracker-ap
         uint currWidth(0);
         uint currHeight(0);
 
-        REQUIRE( dsl_tracker_max_dimensions_get(trackerName.c_str(), &currWidth, &currHeight) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tracker_dimensions_get(trackerName.c_str(), &currWidth, &currHeight) == DSL_RESULT_SUCCESS );
         REQUIRE( currWidth == initWidth );
         REQUIRE( currHeight == initHeight );
 
@@ -241,11 +241,11 @@ SCENARIO( "The Trackers Max Dimensions can be queried and updated", "[tracker-ap
         {
             uint newWidth(300);
             uint newHeight(150);
-            REQUIRE( dsl_tracker_max_dimensions_set(trackerName.c_str(), newWidth, newHeight) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tracker_dimensions_set(trackerName.c_str(), newWidth, newHeight) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
-                REQUIRE( dsl_tracker_max_dimensions_get(trackerName.c_str(), &currWidth, &currHeight) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tracker_dimensions_get(trackerName.c_str(), &currWidth, &currHeight) == DSL_RESULT_SUCCESS );
                 REQUIRE( currWidth == newWidth );
                 REQUIRE( currHeight == newHeight );
 
@@ -365,8 +365,8 @@ SCENARIO( "An invalid Tracker is caught by all Set and Get API calls", "[tracker
                 uint width(0), height(0);
                 const wchar_t* config;
                 
-                REQUIRE( dsl_tracker_max_dimensions_get(fakeSinkName.c_str(), &width, &height) == DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER);
-                REQUIRE( dsl_tracker_max_dimensions_set(fakeSinkName.c_str(), 500, 300) == DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER);
+                REQUIRE( dsl_tracker_dimensions_get(fakeSinkName.c_str(), &width, &height) == DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER);
+                REQUIRE( dsl_tracker_dimensions_set(fakeSinkName.c_str(), 500, 300) == DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER);
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
@@ -403,8 +403,8 @@ SCENARIO( "The Tracker API checks for NULL input parameters", "[tracker-api]" )
 //                REQUIRE( dsl_tracker_iou_config_file_set(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 //                REQUIRE( dsl_tracker_iou_config_file_set(trackerName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_tracker_max_dimensions_get(NULL, &width, &height) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tracker_max_dimensions_set(NULL, width, height) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tracker_dimensions_get(NULL, &width, &height) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tracker_dimensions_set(NULL, width, height) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_tracker_pph_add( NULL, NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_tracker_pph_add(trackerName.c_str(), NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );

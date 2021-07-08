@@ -6606,7 +6606,7 @@ namespace DSL
         }
     }
    
-       DslReturnType Services::TrackerMaxDimensionsGet(const char* name, uint* width, uint* height)
+       DslReturnType Services::TrackerDimensionsGet(const char* name, uint* width, uint* height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -6620,7 +6620,7 @@ namespace DSL
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
 
             // TODO verify args before calling
-            trackerBintr->GetMaxDimensions(width, height);
+            trackerBintr->GetDimensions(width, height);
 
             return DSL_RESULT_SUCCESS;
         }
@@ -6631,7 +6631,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::TrackerMaxDimensionsSet(const char* name, uint width, uint height)
+    DslReturnType Services::TrackerDimensionsSet(const char* name, uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -6641,18 +6641,11 @@ namespace DSL
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
 
-            if (m_components[name]->IsInUse())
-            {
-                LOG_ERROR("Unable to set Max Dimensions for Tracker '" << name 
-                    << "' as it's currently in use");
-                return DSL_RESULT_TILER_IS_IN_USE;
-            }
-
             DSL_TRACKER_PTR trackerBintr = 
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
 
             // TODO verify args before calling
-            if (!trackerBintr->SetMaxDimensions(width, height))
+            if (!trackerBintr->SetDimensions(width, height))
             {
                 LOG_ERROR("Tracker '" << name << "' failed to set dimensions");
                 return DSL_RESULT_TRACKER_SET_FAILED;

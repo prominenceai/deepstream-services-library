@@ -564,9 +564,9 @@ namespace DSL {
         DslReturnType TrackerIouNew(const char* name, 
             const char* configFile, uint width, uint height);
         
-        DslReturnType TrackerMaxDimensionsGet(const char* name, uint* width, uint* height);
+        DslReturnType TrackerDimensionsGet(const char* name, uint* width, uint* height);
         
-        DslReturnType TrackerMaxDimensionsSet(const char* name, uint width, uint height);
+        DslReturnType TrackerDimensionsSet(const char* name, uint width, uint height);
         
         DslReturnType TrackerPphAdd(const char* name, const char* handler, uint pad);
 
