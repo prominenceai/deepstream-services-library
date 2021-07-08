@@ -130,7 +130,7 @@ A [Record-Tap](#smart-recording) (not show in the image above) can be added to a
 See the [Source API](/docs/api-source.md) reference section for more information.
 
 ## Inference Engines and Servers
-NVIDIA's GStreamer Inference Engines (GIEs) and Triton Inference Servers (TISs), using pre-trained models, classify data to “infer” a result, e.g.: person, dog, car? A Pipeline may have at most one Primary Gst Inference Engine (PGIE) or Primary Triton Inference Engine (PTIS) -- with a specified set of classification labels to infer-with -- and multiple Secondary Gst Inference Engines (SGIEs) or Secondary Triton Inference Engines (STIE) that can Infer-on the output of either the Primary or other Secondary GIEs/TISs. Although optional, a Primary Inference Engine or Server is required when adding a Multi-Object Tracker, Secondary Inference Engines or Servers, or On-Screen-Display to a Pipeline.
+NVIDIA's GStreamer Inference Engines (GIEs) and Triton Inference Servers (TISs), using pre-trained models, classify data to “infer” a result, e.g.: person, dog, car? A Pipeline may have at most one Primary Gst Inference Engine (PGIE) or Primary Triton Inference Server (PTIS) -- with a specified set of classification labels to infer-with -- and multiple Secondary Gst Inference Engines (SGIEs) or Secondary Triton Inference Servers (STISs) that can Infer-on the output of either the Primary or other Secondary GIEs/TISs. Although optional, a Primary Inference Engine or Server is required when adding a Multi-Object Tracker, Secondary Inference Engines or Servers, or On-Screen-Display to a Pipeline.
 
 After creation, GIEs and TISs can be updated to use a new model-engine (GIE only), config file, and/or inference interval 
 
