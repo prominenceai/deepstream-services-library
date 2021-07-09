@@ -44,8 +44,9 @@ SCENARIO( "A KTL Tracker is created correctly", "[TrackerBintr]" )
             {
                 std::string defPathSpec(NVDS_KLT_LIB);
                 std::string retPathSpec(pTrackerBintr->GetLibFile());
-                
                 REQUIRE( retPathSpec == defPathSpec );
+                REQUIRE( pTrackerBintr->GetBatchProcessingEnabled() == true );
+                REQUIRE( pTrackerBintr->GetPastFrameReportingEnabled() == true );
             }
         }
     }
@@ -112,5 +113,29 @@ SCENARIO( "A Tracker's dimensions can be updated", "[TrackerBintr]" )
     }
 }
 
+SCENARIO( "A Tracker's enable-patch-processing and enable-past-frame settings can be updated", "[TrackerBintr]" )
+{
+    GIVEN( "A new Tracker in memory" ) 
+    {
+        std::string trackerName("ktl-tracker");
+        uint width(640);
+        uint height(368);
+
+        DSL_KTL_TRACKER_PTR pTrackerBintr = 
+            DSL_KTL_TRACKER_NEW(trackerName.c_str(), width, height);
+
+        WHEN( "The Trackers's demensions are Set" )
+        {
+            REQUIRE( pTrackerBintr->SetBatchProcessingEnabled(false) == true );
+            REQUIRE( pTrackerBintr->SetPastFrameReportingEnabled(false) == true );
+
+            THEN( "The Display's new demensions are returned on Get")
+            {
+                REQUIRE( pTrackerBintr->GetBatchProcessingEnabled() == false );
+                REQUIRE( pTrackerBintr->GetPastFrameReportingEnabled() == false );
+            }
+        }
+    }
+}
 
 
