@@ -1,4 +1,4 @@
-# ODE Area Services API
+# ODE Area API Reference
 Object Detection Event (ODE) Areas use [Lines](/docs/api-display-type.md#dsl_display_type_rgba_line_new) and [Polygons](/docs/api-display-type.md#dsl_display_type_rgba_polygon_new) as [ODE Trigger](/docs/api-ode-trigger.md) criteria for an ODE occurrence. 
 
 There are three types of Areas:
