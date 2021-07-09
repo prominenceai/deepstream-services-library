@@ -6606,7 +6606,7 @@ namespace DSL
         }
     }
    
-       DslReturnType Services::TrackerDimensionsGet(const char* name, uint* width, uint* height)
+    DslReturnType Services::TrackerDimensionsGet(const char* name, uint* width, uint* height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -6655,6 +6655,118 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Tracker '" << name << "' threw an exception setting dimensions");
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TrackerBatchProcessingEnabledGet(const char* name, 
+        boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+
+            DSL_TRACKER_PTR trackerBintr = 
+                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
+
+            *enabled = trackerBintr->GetBatchProcessingEnabled();
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tracker '" << name 
+                << "' threw an exception getting batch-process enabled setting");
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TrackerBatchProcessingEnabledSet(const char* name, 
+        boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+
+            DSL_TRACKER_PTR trackerBintr = 
+                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
+
+            if (!trackerBintr->SetBatchProcessingEnabled(enabled))
+            {
+                LOG_ERROR("Tracker '" << name 
+                    << "' failed to set batch-processing enabled setting");
+                return DSL_RESULT_TRACKER_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tracker '" << name 
+                << "' threw an exception setting batch-processing enabled setting");
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TrackerPastFrameReportingEnabledGet(const char* name, 
+        boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+
+            DSL_TRACKER_PTR trackerBintr = 
+                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
+
+            *enabled = trackerBintr->GetPastFrameReportingEnabled();
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tracker '" << name 
+                << "' threw an exception getting past-frame-reporting enabled setting");
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TrackerPastFrameReportingEnabledSet(const char* name, 
+        boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+
+            DSL_TRACKER_PTR trackerBintr = 
+                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
+
+            if (!trackerBintr->SetPastFrameReportingEnabled(enabled))
+            {
+                LOG_ERROR("Tracker '" << name 
+                    << "' failed to set past-frame-reporting enabled setting");
+                return DSL_RESULT_TRACKER_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tracker '" << name 
+                << "' threw an exception setting past-frame-reporting enabled setting");
             return DSL_RESULT_TRACKER_THREW_EXCEPTION;
         }
     }

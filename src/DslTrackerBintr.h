@@ -113,6 +113,34 @@ namespace DSL
          * @return false if the Tracker is currently in Use. True otherwise
          */ 
         bool SetDimensions(uint width, uint hieght);
+        
+        /**
+         * @brief Gets the current batch-processing-enabled setting for this Tracker
+         * @return True if enabled, false otherwise
+         */
+        bool GetBatchProcessingEnabled();
+        
+        /**
+         * @brief Sets the enable-batch-processing setting for this Tracker
+         * @return Set to true to enable, false otherwise. 
+         * Note: This call is only effective if the low-level library supports 
+         * both batch and per-stream processing.
+         */
+        bool SetBatchProcessingEnabled(bool enabled);
+        
+        /**
+         * @brief Gets the enable-past-frame setting for this Tracker
+         * @return True if enabled, false otherwise
+         */
+        bool GetPastFrameReportingEnabled();
+
+        /**
+         * @brief Sets the enable-past-frame setting for this Tracker
+         * @return Set to true if enable, false otherwise
+         * Note: This call is only effective if the low-level library supports 
+         * past frame reporting.
+         */
+        bool SetPastFrameReportingEnabled(bool enabled);
 
         /**
          * @brief Sets the GPU ID for all Elementrs
@@ -141,6 +169,16 @@ namespace DSL
          * @brief max frame height of the input buffer in pixels
          */
         uint m_height;
+        
+        /**
+         * @brief true if the enable-batch-processing setting is set, false otherwise.
+         */
+        bool m_batchProcessingEnabled;
+        
+        /**
+         * @brief true if the enable-past-frame setting is set, false otherwise.
+         */
+        bool m_pastFrameReporting;
         
         /**
          * @brief Tracker Elementr for this TrackerBintr

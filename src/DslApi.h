@@ -3018,7 +3018,8 @@ DslReturnType dsl_tracker_iou_new(const wchar_t* name,
     const wchar_t* config_file, uint width, uint height);
 
 /**
- * @brief returns the current maximum frame width and height settings for the named IOU Tracker object
+ * @brief returns the current frame width and height settings for the named KTL 
+ * or IOU Tracker
  * @param[in] name unique name of the Tracker to query
  * @param[out] width output frame width for GIEs and TISs to work on
  * @param[out] height output frame height for GIEs and TIS to work on
@@ -3027,7 +3028,7 @@ DslReturnType dsl_tracker_iou_new(const wchar_t* name,
 DslReturnType dsl_tracker_dimensions_get(const wchar_t* name, uint* width, uint* height);
 
 /**
- * @brief sets the maximum frame width and height settings for the named IOU Tracker object
+ * @brief sets the frame width and height settings for the named KTL or IOU Tracker
  * @param[in] name unique name of the Tracker to update
  * @param[in] width output frame width for GIEs and TISs to work on
  * @param[in] height output frame height for GIEs and TIS to work on
@@ -3049,7 +3050,52 @@ DslReturnType dsl_tracker_iou_config_file_get(const wchar_t* name, const wchar_t
  * @param[in] config_file absolute or relative pathspec to the new config file to use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_iou_config_file_set(const wchar_t* name, const wchar_t* config_file);
+DslReturnType dsl_tracker_iou_config_file_set(const wchar_t* name, 
+    const wchar_t* config_file);
+
+/**
+ * @brief Gets the current "enable-batch-process" settings for the named KTL 
+ * or IOU Tracker object. 
+ * @param[in] name unique name of the Tracker to query
+ * @param[out] true if batch-processing is enabled, fale otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_batch_processing_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+
+/**
+ * @brief Sets the "enable-batch-process" settings for the named KTL 
+ * or IOU Tracker
+ * Note: This call is only effective if the low-level library supports 
+ * both batch and per-stream processing.
+ * @param[in] name unique name of the Tracker to query
+ * @param[out] true to enable batch-processing enabled, fale otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_batch_processing_enabled_set(const wchar_t* name, 
+    boolean enabled);
+
+/**
+ * @brief Gets the current "enable-past-frame" settings for the named KTL 
+ * or IOU Tracker
+ * @param[in] name unique name of the Tracker to query
+ * @param[out] true if past-frame reporting is enabled, fale otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_past_frame_reporting_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+
+/**
+ * @brief Sets current "enable-past-frame" settings for the named KTL 
+ * or IOU Tracker object
+ * Note: This call is only effective if the low-level library supports 
+ * past frame reporting.
+ * @param[in] name unique name of the Tracker to query
+ * @param[out] true if past frame reporting is enabled, fale otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_past_frame_reporting_enabled_set(const wchar_t* name, 
+    boolean enabled);
 
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.

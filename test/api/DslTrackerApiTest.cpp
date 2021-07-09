@@ -384,6 +384,7 @@ SCENARIO( "The Tracker API checks for NULL input parameters", "[tracker-api]" )
         
         uint width(0), height(0);
         boolean is_on(0), reset_done(0), sync(0), async(0);
+        boolean enabled;
         
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -405,6 +406,12 @@ SCENARIO( "The Tracker API checks for NULL input parameters", "[tracker-api]" )
 
                 REQUIRE( dsl_tracker_dimensions_get(NULL, &width, &height) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_tracker_dimensions_set(NULL, width, height) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tracker_batch_processing_enabled_get(NULL, &enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tracker_batch_processing_enabled_set(NULL, enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tracker_past_frame_reporting_enabled_get(NULL, &enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tracker_past_frame_reporting_enabled_set(NULL, enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_tracker_pph_add( NULL, NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_tracker_pph_add(trackerName.c_str(), NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );

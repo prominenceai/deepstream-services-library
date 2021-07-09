@@ -568,6 +568,18 @@ namespace DSL {
         
         DslReturnType TrackerDimensionsSet(const char* name, uint width, uint height);
         
+        DslReturnType TrackerBatchProcessingEnabledGet(const char* name, 
+            boolean* enabled);
+        
+        DslReturnType TrackerBatchProcessingEnabledSet(const char* name, 
+            boolean enabled);
+
+        DslReturnType TrackerPastFrameReportingEnabledGet(const char* name, 
+            boolean* enabled);
+
+        DslReturnType TrackerPastFrameReportingEnabledSet(const char* name, 
+            boolean enabled);
+        
         DslReturnType TrackerPphAdd(const char* name, const char* handler, uint pad);
 
         DslReturnType TrackerPphRemove(const char* name, const char* handler, uint pad);

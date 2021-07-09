@@ -2394,25 +2394,25 @@ def dsl_tracker_iou_new(name, config_file, width, height):
     return int(result)
 
 ##
-## dsl_tracker_max_dimensions_get()
+## dsl_tracker_dimensions_get()
 ##
-_dsl.dsl_tracker_max_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_tracker_max_dimensions_get.restype = c_uint
-def dsl_tracker_max_dimensions_get(name):
+_dsl.dsl_tracker_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_tracker_dimensions_get.restype = c_uint
+def dsl_tracker_dimensions_get(name):
     global _dsl
-    max_width = c_uint(0)
-    max_height = c_uint(0)
-    result = _dsl.dsl_tracker_max_dimensions_get(name, DSL_UINT_P(max_width), DSL_UINT_P(max_height))
-    return int(result), max_width.value, max_height.value 
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_tracker_dimensions_get(name, DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), width.value, height.value 
 
 ##
-## dsl_tracker_max_dimensions_set()
+## dsl_tracker_dimensions_set()
 ##
-_dsl.dsl_tracker_max_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
-_dsl.dsl_tracker_max_dimensions_set.restype = c_uint
-def dsl_tracker_max_dimensions_set(name, max_width, max_height):
+_dsl.dsl_tracker_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_tracker_dimensions_set.restype = c_uint
+def dsl_tracker_dimensions_set(name, width, height):
     global _dsl
-    result = _dsl.dsl_tracker_max_dimensions_set(name, max_width, max_height)
+    result = _dsl.dsl_tracker_dimensions_set(name, width, height)
     return int(result)
 
 ##

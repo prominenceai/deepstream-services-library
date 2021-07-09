@@ -34,6 +34,8 @@ namespace DSL
         , m_llLibFile(llLibFileName)
         , m_width(width)
         , m_height(height)
+        , m_batchProcessingEnabled(true)
+        , m_pastFrameReporting(true)
     {
         LOG_FUNC();
         m_pTracker = DSL_ELEMENT_NEW(NVDS_ELEM_TRACKER, "tracker-tracker");
@@ -42,7 +44,8 @@ namespace DSL
         m_pTracker->SetAttribute("tracker-height", m_height);
         m_pTracker->SetAttribute("gpu-id", m_gpuId);
         m_pTracker->SetAttribute("ll-lib-file", llLibFileName);
-        m_pTracker->SetAttribute("enable-batch-process", true);
+        m_pTracker->SetAttribute("enable-batch-process", m_batchProcessingEnabled);
+        m_pTracker->SetAttribute("enable-past-frame", m_pastFrameReporting);
 
         AddChild(m_pTracker);
 
@@ -142,6 +145,51 @@ namespace DSL
         m_pTracker->SetAttribute("tracker-width", m_width);
         m_pTracker->SetAttribute("tracker-height", m_height);
         
+        return true;
+    }
+
+    bool TrackerBintr::GetBatchProcessingEnabled()
+    {
+        LOG_FUNC();
+
+        return m_batchProcessingEnabled;
+    }
+    
+    bool TrackerBintr::SetBatchProcessingEnabled(bool enabled)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set the enable-batch-processing setting for TrackerBintr '" 
+                << GetName() << "' as it's currently in use");
+            return false;
+        }
+        
+        m_batchProcessingEnabled = enabled;
+        m_pTracker->SetAttribute("enable-batch-process", m_batchProcessingEnabled);
+        return true;
+    }
+    
+    bool TrackerBintr::GetPastFrameReportingEnabled()
+    {
+        LOG_FUNC();
+
+        return m_pastFrameReporting;
+    }
+    
+    bool TrackerBintr::SetPastFrameReportingEnabled(bool enabled)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set the enable-past-frame setting for TrackerBintr '" 
+                << GetName() << "' as it's currently in use");
+            return false;
+        }
+        m_pastFrameReporting = enabled;
+        m_pTracker->SetAttribute("enable-past-frame", m_pastFrameReporting);
         return true;
     }
 
