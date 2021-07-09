@@ -1,4 +1,4 @@
-# ODE Action Services API
+# ODE Action API Reference
 Object Detection Event (ODE) Actions implement a type specific `handle-ode-occurrence` function that gets invoked by an ODE Trigger on ODE Occurrence. The relationship of ODE Trigger to ODE Actions is many-to-many. Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can be added to multiple ODE Triggers.
 
 #### Actions on Metadata
