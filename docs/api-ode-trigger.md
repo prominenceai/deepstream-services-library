@@ -1,5 +1,5 @@
 # ODE Trigger API Reference
-ODE Triggers use settable criteria to parse the frame and detected-object metadata looking for occurrences of specific object-detection-events: Absence, Occurrence, Intersection, etc. Triggers, on ODE occurrence, iterate through their collection of ordered [ODE Actions](/docs/api-ode-action.md) invoking each. 
+ODE Triggers use settable criteria to parse the frame and detected-object metadata looking for occurrences of specific object-detection-events (ODEs): Occurrence, Absence, Intersection, etc. Triggers, on ODE occurrence, iterate through their collection of ordered [ODE Actions](/docs/api-ode-action.md) invoking each. 
 
 [ODE Areas](/docs/api-ode-area.md) -- created from [RGBA Polygons](/docs/api-display-type.md#dsl_display_type_rgba_polygon_new) with up to eight (8) sides -- can be added to one or more Triggers as criteria for ODE occurrence as well.
 
