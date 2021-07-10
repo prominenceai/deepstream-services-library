@@ -1,10 +1,10 @@
 # ODE Area API Reference
-Object Detection Event (ODE) Areas use [Lines](/docs/api-display-type.md#dsl_display_type_rgba_line_new) and [Polygons](/docs/api-display-type.md#dsl_display_type_rgba_polygon_new) as [ODE Trigger](/docs/api-ode-trigger.md) criteria for an ODE occurrence. 
+ODE Areas use [Lines](/docs/api-display-type.md#dsl_display_type_rgba_line_new) and [Polygons](/docs/api-display-type.md#dsl_display_type_rgba_polygon_new) as [ODE Trigger](/docs/api-ode-trigger.md) criteria for an ODE occurrence. 
 
 There are three types of Areas:
-* **Line Areas** - criteria is met when a specific edge of an object's bounding box - left, right, top, bottom - intersects with the Line Area
 * **Inclusion Areas** - criteria is met when a specific point on an object's bounding box - south, south-west, west, north-west, north, etc - is within the Polygon Area.
 * **Exclusion Areas** - criteria is met when a specific point on an object's bounding box is NOT within the Polygon Area. 
+* **Line Areas** - criteria is met when a specific edge of an object's bounding box - left, right, top, bottom - intersects with the Line Area
 
 The relationship between Triggers and Areas is many-to-many as multiple Areas can be added to a Trigger and the same Area can be added to multiple Triggers.  If a New Ares's `display` is enabled, Areas owned by Triggers will be added as display metadata for an On-Screen-Component to display.
 
