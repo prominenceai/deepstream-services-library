@@ -17,6 +17,10 @@ Pipelines with a Tracker component requirie a [Primary GIE](/docs/api-gie.md) co
 * [dsl_tracker_dimensions_set](#dsl_tracker_dimensions_set)
 * [dsl_tracker_iou_config_file_get](#dsl_tracker_iou_config_file_get)
 * [dsl_tracker_iou_config_file_set](#dsl_tracker_iou_config_file_set)
+* [dsl_tracker_batch_processing_enabled_get](#dsl_tracker_batch_processing_enabled_get)
+* [dsl_tracker_batch_processing_enabled_set](#dsl_tracker_batch_processing_enabled_set)
+* [dsl_tracker_past_frame_reporting_enabled_get](#dsl_tracker_past_frame_reporting_enabled_get)
+* [dsl_tracker_past_frame_reporting_enabled_set](#dsl_tracker_past_frame_reporting_enabled_set)
 * [dsl_tracker_pph_add](#dsl_tracker_pph_add)
 * [dsl_tracker_pph_remove](#dsl_tracker_pph_remove)
 
@@ -89,7 +93,7 @@ retval = dsl_tracker_iou_new('my-', './test/configs/iou_config.txt', 368, 368)
 DslReturnType dsl_tracker_dimensions_get(const wchar_t* name, uint* width, uint* height);
 ```
 
-This service returns the max input frame dimensions to track on in use by the named Tracker.
+This service returns the operational dimensions use by the named Tracker.
 
 **Parameters**
 * `name` - [in] unique name of the Tracker to query.
@@ -110,7 +114,7 @@ retval, width, height = dsl_tracker_dimensions_get('my-tracker')
 ```C++
 DslReturnType dsl_tracker_dimensions_set(const wchar_t* name, uint max_width, uint max_height);
 ```
-This Service sets the max input frame dimensions for the name Tracker.
+This Service sets the operational dimensions for the name Tracker.
 
 **Parameters**
 * `name` - [in] unique name of the Tracker to update.
@@ -167,11 +171,102 @@ retval = dsl_tracker_iou_config_file_set('my-iou-tracker', './test/configs/iou_c
 
 <br>
 
+### *dsl_tracker_batch_processing_enabled_get*
+```C++
+DslReturnType dsl_tracker_batch_processing_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+```
+
+This service gets the current `enable-batch-process` setting for the named Tracker object. 
+
+**Parameters**
+* `name` - [in] unique name of the Tracker to query.
+* `enabled` - [out] true if "batch processing" is enabled, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, enabled = dsl_tracker_batch_processing_enabled_get('my-tracker')
+```
+
+<br>
+
+### *dsl_tracker_batch_processing_enabled_set*
+```C++
+DslReturnType dsl_tracker_batch_processing_enabled_set(const wchar_t* name, 
+    boolean enabled);
+```
+This service sets the `enable-batch-process` setting for the named Tracker object. 
+
+Note: This call is only effective if the low-level library supports both batch and per-stream processing.
+
+**Parameters**
+* `name` - [in] unique name of the Tracker to update.
+* `enabled` - [in] set to true to enabled batch processing, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tracker_batch_processing_enabled_set('my-tracker', True)
+```
+
+<br>
+
+### *dsl_tracker_past_frame_reporting_enabled_get*
+```C++
+DslReturnType dsl_tracker_past_frame_reporting_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+```
+
+This service gets the current `enable-past-frame` setting for the named Tracker object. 
+
+**Parameters**
+* `name` - [in] unique name of the Tracker to query.
+* `enabled` - [out] true if "past frame reporting" is enabled, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, enabled = dsl_tracker_past_frame_reporting_enabled_get('my-tracker')
+```
+
+<br>
+
+### *dsl_tracker_past_frame_reporting_enabled_set*
+```C++
+DslReturnType dsl_tracker_past_frame_reporting_enabled_set(const wchar_t* name, 
+    boolean enabled);
+```
+This service sets the `enable-past-frame` setting for the named Tracker object. 
+
+Note: This call is only effective if the low-level library supports both batch and per-stream processing.
+
+**Parameters**
+* `name` - [in] unique name of the Tracker to update.
+* `enabled` - [in] set to true to enable "past frame reporting", false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tracker_past_frame_reporting_enabled_set('my-tracker', True)
+```
+
+<br>
+
+
 ### *dsl_tracker_pph_add*
 ```C++
 DslReturnType dsl_tracker_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
 ```
-This service adds a [Pad Probe Handler](/docs/api-pph.md) to either the Sink or Source pad of the named of a Tracker.
+This service adds a [Pad Probe Handler](/docs/api-pph.md) to either the Sink or Source pad of the named Tracker.
 
 **Parameters**
 * `name` - [in] unique name of the Tracker to update.
