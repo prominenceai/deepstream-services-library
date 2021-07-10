@@ -30,13 +30,12 @@ The following return codes are used specifically by the Tracker API
 #define DSL_RESULT_TRACKER_NAME_BAD_FORMAT                          0x00030003
 #define DSL_RESULT_TRACKER_THREW_EXCEPTION                          0x00030004
 #define DSL_RESULT_TRACKER_CONFIG_FILE_NOT_FOUND                    0x00030005
-#define DSL_RESULT_TRACKER_MAX_DIMENSIONS_INVALID                   0x00030006
-#define DSL_RESULT_TRACKER_IS_IN_USE                                0x00030007
-#define DSL_RESULT_TRACKER_SET_FAILED                               0x00030008
-#define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00030009
-#define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x0003000A
-#define DSL_RESULT_TRACKER_PAD_TYPE_INVALID                         0x0003000B
-#define DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER                 0x0003000C
+#define DSL_RESULT_TRACKER_IS_IN_USE                                0x00030006
+#define DSL_RESULT_TRACKER_SET_FAILED                               0x00030007
+#define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00030008
+#define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x00030009
+#define DSL_RESULT_TRACKER_PAD_TYPE_INVALID                         0x0003000A
+#define DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER                 0x0003000B
 ```
 
 ## Constructors
