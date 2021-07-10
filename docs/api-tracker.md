@@ -13,8 +13,8 @@ Pipelines with a Tracker component requirie a [Primary GIE](/docs/api-gie.md) co
 * [dsl_tracker_iou_new](#dsl_tracker_iou_new)
 
 **Methods:**
-* [dsl_tracker_max_dimensions_get](#dsl_tracker_max_dimensions_get)
-* [dsl_tracker_max_dimensions_set](#dsl_tracker_max_dimensions_set)
+* [dsl_tracker_dimensions_get](#dsl_tracker_dimensions_get)
+* [dsl_tracker_dimensions_set](#dsl_tracker_dimensions_set)
 * [dsl_tracker_iou_config_file_get](#dsl_tracker_iou_config_file_get)
 * [dsl_tracker_iou_config_file_set](#dsl_tracker_iou_config_file_set)
 * [dsl_tracker_pph_add](#dsl_tracker_pph_add)
@@ -48,15 +48,15 @@ This service creates a unqiuely named KTL Tracker component. Construction will f
 
 **Parameters**
 * `name` - [in] unique name for the KTL Tracker to create.
-* `max_width` - [in] maximum width of each frame for the input transform
-* `max_height` - [in] maximum height of each frame for the input transform
+* `width` - [in] Frame width at which the tracker is to operate, in pixels.
+* `height` - [in] Frame height at which the tracker is to operate, in pixels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_tracker_ktl_new('my-ktl-tracker', 480, 270)
+retval = dsl_tracker_ktl_new('my-ktl-tracker', 640, 368)
 ```
 
 <br>
@@ -71,59 +71,59 @@ This service creates a unqiuely named IOU Tracker component. Construction will f
 **Parameters**
 * `name` - [in] unique name for the IOU Tracker to create.
 * `config_file` - [in] relative or absolute pathspec to a valid IOU config text file
-* `max_width` - [in] maximum width of each frame for the input transform
-* `max_height` - [in] maximum height of each frame for the input transform
+* `width` - [in] Frame width at which the tracker is to operate, in pixels.
+* `height` - [in] Frame height at which the tracker is to operate, in pixels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_tracker_iou_new('my-', './test/configs/iou_config.txt', 480, 270)
+retval = dsl_tracker_iou_new('my-', './test/configs/iou_config.txt', 368, 368)
 ```
 
 <br>
 
 ## Methods
-### *dsl_tracker_max_dimensions_get*
+### *dsl_tracker_dimensions_get*
 ```C++
-DslReturnType dsl_tracker_max_dimensions_get(const wchar_t* name, uint* max_width, uint* max_height);
+DslReturnType dsl_tracker_dimensions_get(const wchar_t* name, uint* width, uint* height);
 ```
 
 This service returns the max input frame dimensions to track on in use by the named Tracker.
 
 **Parameters**
 * `name` - [in] unique name of the Tracker to query.
-* `max_width` - [out] current maximum width of each frame for the input transform
-* `max_height` - [out] current maximum height of each frame for the input transform
+* `width` - [out] Current frame width at which the tracker is to operate, in pixels.
+* `height` - [out] Current frame height at which the tracker is to operate, in pixels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval, max_width, max_height = dsl_tracker_dimensions_get('my-tracker')
+retval, width, height = dsl_tracker_dimensions_get('my-tracker')
 ```
 
 <br>
 
-### *dsl_tracker_max_dimensions_set*
+### *dsl_tracker_dimensions_set*
 ```C++
-DslReturnType dsl_tracker_max_dimensions_set(const wchar_t* name, uint max_width, uint max_height);
+DslReturnType dsl_tracker_dimensions_set(const wchar_t* name, uint max_width, uint max_height);
 ```
 This Service sets the max input frame dimensions for the name Tracker.
 
 **Parameters**
 * `name` - [in] unique name of the Tracker to update.
-* `max_width` - [in] new maximum width of each frame for the input transform.
-* `max_height` - [in] new maximum height of each frame for the input transform.
+* `width` - [in] Frame width at which the tracker is to operate, in pixels.
+* `height` - [in] Frame height at which the tracker is to operate, in pixels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_tracker_dimensions_set('my-tracker', 480, 270)
+retval = dsl_tracker_dimensions_set('my-tracker', 640, 368)
 ```
 
 <br>
