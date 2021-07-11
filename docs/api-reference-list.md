@@ -201,6 +201,10 @@
 * [dsl_tracker_max_dimensions_set](/docs/api-tracker.md#dsl_tracker_dimensions_set)
 * [dsl_tracker_iou_config_file_get](/docs/api-tracker.md#dsl_tracker_iou_config_file_get)
 * [dsl_tracker_iou_config_file_set](/docs/api-tracker.md#dsl_tracker_iou_config_file_set)
+* [dsl_tracker_batch_processing_enabled_get](/docs/api-tracker.md#dsl_tracker_batch_processing_enabled_get)
+* [dsl_tracker_batch_processing_enabled_set](/docs/api-tracker.md#dsl_tracker_batch_processing_enabled_set)
+* [dsl_tracker_past_frame_reporting_enabled_get](/docs/api-tracker.md#dsl_tracker_past_frame_reporting_enabled_get)
+* [dsl_tracker_past_frame_reporting_enabled_set](/docs/api-tracker.md#dsl_tracker_past_frame_reporting_enabled_set)
 * [dsl_tracker_pph_add](/docs/api-tracker.md#dsl_tracker_pph_add)
 * [dsl_tracker_pph_remove](/docs/api-tracker.md#dsl_tracker_pph_remove)
 
