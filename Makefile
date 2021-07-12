@@ -83,6 +83,7 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
     -DDS_VERSION_MINOR=0 \
     -DDS_VERSION_MAJOR=4 \
     -DDSL_LOGGER_IMP='"DslLogGst.h"'\
+	-DNVDS_DCF_LIB='"$(LIB_INSTALL_DIR)/libnvds_nvdcf.so"' \
 	-DNVDS_KLT_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_klt.so"' \
 	-DNVDS_IOU_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_iou.so"' \
     -fPIC 

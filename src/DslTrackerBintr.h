@@ -40,6 +40,12 @@ namespace DSL
     #define DSL_TRACKER_NEW(name, llLibFile, width, height) \
         std::shared_ptr<TrackerBintr>(new TrackerBintr(name, llLibFile, width, height))
         
+    #define DSL_DCF_TRACKER_PTR std::shared_ptr<DcfTrackerBintr>
+    #define DSL_DCF_TRACKER_NEW(name, width, height, \
+        batchProcessingEnabled, pastFrameReportingEnabled) \
+        std::shared_ptr<DcfTrackerBintr>(new DcfTrackerBintr(name, width, height, \
+            batchProcessingEnabled, pastFrameReportingEnabled))
+        
     #define DSL_KTL_TRACKER_PTR std::shared_ptr<KtlTrackerBintr>
     #define DSL_KTL_TRACKER_NEW(name, width, height) \
         std::shared_ptr<KtlTrackerBintr>(new KtlTrackerBintr(name, width, height))
@@ -113,34 +119,6 @@ namespace DSL
          * @return false if the Tracker is currently in Use. True otherwise
          */ 
         bool SetDimensions(uint width, uint hieght);
-        
-        /**
-         * @brief Gets the current batch-processing-enabled setting for this Tracker
-         * @return True if enabled, false otherwise
-         */
-        bool GetBatchProcessingEnabled();
-        
-        /**
-         * @brief Sets the enable-batch-processing setting for this Tracker
-         * @return Set to true to enable, false otherwise. 
-         * Note: This call is only effective if the low-level library supports 
-         * both batch and per-stream processing.
-         */
-        bool SetBatchProcessingEnabled(bool enabled);
-        
-        /**
-         * @brief Gets the enable-past-frame setting for this Tracker
-         * @return True if enabled, false otherwise
-         */
-        bool GetPastFrameReportingEnabled();
-
-        /**
-         * @brief Sets the enable-past-frame setting for this Tracker
-         * @return Set to true if enable, false otherwise
-         * Note: This call is only effective if the low-level library supports 
-         * past frame reporting.
-         */
-        bool SetPastFrameReportingEnabled(bool enabled);
 
         /**
          * @brief Sets the GPU ID for all Elementrs
@@ -171,6 +149,58 @@ namespace DSL
         uint m_height;
         
         /**
+         * @brief Tracker Elementr for this TrackerBintr
+         */
+        DSL_ELEMENT_PTR  m_pTracker;
+    };
+
+    class DcfTrackerBintr : public TrackerBintr
+    {
+    public: 
+    
+        DcfTrackerBintr(const char* name, guint width, guint height,
+            bool batchProcessingEnabled, bool pastFrameReportingEnabled);
+
+        /**
+         * @brief Gets the current batch-processing-enabled setting for this Tracker
+         * @return True if enabled, false otherwise
+         */
+        bool GetBatchProcessingEnabled();
+        
+        /**
+         * @brief Sets the enable-batch-processing setting for this Tracker
+         * @return Set to true to enable, false otherwise. 
+         * Note: This call is only effective if the low-level library supports 
+         * both batch and per-stream processing.
+         */
+        bool SetBatchProcessingEnabled(bool enabled);
+        
+        /**
+         * @brief Gets the enable-past-frame setting for this Tracker
+         * @return True if enabled, false otherwise
+         */
+        bool GetPastFrameReportingEnabled();
+
+        /**
+         * @brief Sets the enable-past-frame setting for this Tracker
+         * @return Set to true if enable, false otherwise
+         * Note: This call is only effective if the low-level library supports 
+         * past frame reporting.
+         */
+        bool SetPastFrameReportingEnabled(bool enabled);
+        
+        /**
+         * @brief This Bintr uses the common SetBatchSize bintr method to check
+         * if batch-processing is disabled and batchSize for the Pipeline > 1
+         * The function logs a WARN message if this case is found to be true.
+         * @param the pipeline batchSize to check
+         * @return true always.
+         */
+        bool SetBatchSize(uint batchSize);
+
+    private:
+    
+        /**
          * @brief true if the enable-batch-processing setting is set, false otherwise.
          */
         bool m_batchProcessingEnabled;
@@ -180,10 +210,7 @@ namespace DSL
          */
         bool m_pastFrameReporting;
         
-        /**
-         * @brief Tracker Elementr for this TrackerBintr
-         */
-        DSL_ELEMENT_PTR  m_pTracker;
+
     };
 
     class KtlTrackerBintr : public TrackerBintr

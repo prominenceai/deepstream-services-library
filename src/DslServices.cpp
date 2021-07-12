@@ -246,7 +246,8 @@ THE SOFTWARE.
 
 #define RETURN_IF_COMPONENT_IS_NOT_TRACKER(components, name) do \
 { \
-    if (!components[name]->IsType(typeid(KtlTrackerBintr)) and  \
+    if (!components[name]->IsType(typeid(DcfTrackerBintr)) and  \
+        !components[name]->IsType(typeid(KtlTrackerBintr)) and  \
         !components[name]->IsType(typeid(IouTrackerBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Tracker"); \
@@ -6544,6 +6545,33 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::TrackerDcfNew(const char* name, uint width, uint height,
+        boolean batch_processing_enabled, boolean past_frame_reporting_enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("DCF Tracker name '" << name << "' is not unique");
+                return DSL_RESULT_TRACKER_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = std::shared_ptr<Bintr>(new DcfTrackerBintr(
+                name, width, height, batch_processing_enabled, past_frame_reporting_enabled));
+            LOG_INFO("New DCF Tracker '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("DCF Tracker '" << name << "' threw exception on create");
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::TrackerKtlNew(const char* name, uint width, uint height)
     {
         LOG_FUNC();
@@ -6659,7 +6687,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::TrackerBatchProcessingEnabledGet(const char* name, 
+    DslReturnType Services::TrackerDcfBatchProcessingEnabledGet(const char* name, 
         boolean* enabled)
     {
         LOG_FUNC();
@@ -6668,10 +6696,10 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DcfTrackerBintr);
 
-            DSL_TRACKER_PTR trackerBintr = 
-                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
+            DSL_DCF_TRACKER_PTR trackerBintr = 
+                std::dynamic_pointer_cast<DcfTrackerBintr>(m_components[name]);
 
             *enabled = trackerBintr->GetBatchProcessingEnabled();
 
@@ -6685,7 +6713,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::TrackerBatchProcessingEnabledSet(const char* name, 
+    DslReturnType Services::TrackerDcfBatchProcessingEnabledSet(const char* name, 
         boolean enabled)
     {
         LOG_FUNC();
@@ -6694,10 +6722,10 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DcfTrackerBintr);
 
-            DSL_TRACKER_PTR trackerBintr = 
-                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
+            DSL_DCF_TRACKER_PTR trackerBintr = 
+                std::dynamic_pointer_cast<DcfTrackerBintr>(m_components[name]);
 
             if (!trackerBintr->SetBatchProcessingEnabled(enabled))
             {
@@ -6715,7 +6743,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::TrackerPastFrameReportingEnabledGet(const char* name, 
+    DslReturnType Services::TrackerDcfPastFrameReportingEnabledGet(const char* name, 
         boolean* enabled)
     {
         LOG_FUNC();
@@ -6724,10 +6752,10 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DcfTrackerBintr);
 
-            DSL_TRACKER_PTR trackerBintr = 
-                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
+            DSL_DCF_TRACKER_PTR trackerBintr = 
+                std::dynamic_pointer_cast<DcfTrackerBintr>(m_components[name]);
 
             *enabled = trackerBintr->GetPastFrameReportingEnabled();
 
@@ -6741,7 +6769,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::TrackerPastFrameReportingEnabledSet(const char* name, 
+    DslReturnType Services::TrackerDcfPastFrameReportingEnabledSet(const char* name, 
         boolean enabled)
     {
         LOG_FUNC();
@@ -6750,10 +6778,10 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DcfTrackerBintr);
 
-            DSL_TRACKER_PTR trackerBintr = 
-                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
+            DSL_DCF_TRACKER_PTR trackerBintr = 
+                std::dynamic_pointer_cast<DcfTrackerBintr>(m_components[name]);
 
             if (!trackerBintr->SetPastFrameReportingEnabled(enabled))
             {

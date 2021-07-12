@@ -27,6 +27,99 @@ THE SOFTWARE.
 
 using namespace DSL;
 
+SCENARIO( "A DCF Tracker is created correctly", "[TrackerBintr]" )
+{
+    GIVEN( "Attributes for a new DCF Tracker" ) 
+    {
+        std::string trackerName("dcf-tracker");
+        uint width(32);
+        uint height(32);
+        bool batchProcessingEnabled(true);
+        bool pastFrameReportingEnabled(true);
+
+        WHEN( "The DCF Tracker is created" )
+        {
+            DSL_DCF_TRACKER_PTR pTrackerBintr = 
+                DSL_DCF_TRACKER_NEW(trackerName.c_str(), width, height,
+                    batchProcessingEnabled, pastFrameReportingEnabled);
+
+            THEN( "The DCF Tracker's lib is found, loaded, and returned correctly")
+            {
+                std::string defPathSpec(NVDS_DCF_LIB);
+                std::string retPathSpec(pTrackerBintr->GetLibFile());
+                REQUIRE( retPathSpec == defPathSpec );
+                REQUIRE( pTrackerBintr->GetBatchProcessingEnabled() == batchProcessingEnabled );
+                REQUIRE( pTrackerBintr->GetPastFrameReportingEnabled() == pastFrameReportingEnabled );
+            }
+        }
+    }
+}
+
+SCENARIO( "A DCF Tracker's enable-patch-processing and enable-past-frame settings can be updated", "[TrackerBintr]" )
+{
+    GIVEN( "A new Tracker in memory" ) 
+    {
+        std::string trackerName("dcf-tracker");
+        uint width(64);
+        uint height(64);
+        bool batchProcessingEnabled(true);
+        bool pastFrameReportingEnabled(true);
+
+        DSL_DCF_TRACKER_PTR pTrackerBintr = 
+            DSL_DCF_TRACKER_NEW(trackerName.c_str(), width, height,
+                batchProcessingEnabled, pastFrameReportingEnabled);
+
+        WHEN( "The Trackers's demensions are Set" )
+        {
+            REQUIRE( pTrackerBintr->SetBatchProcessingEnabled(false) == true );
+            REQUIRE( pTrackerBintr->SetPastFrameReportingEnabled(false) == true );
+
+            THEN( "The Display's new demensions are returned on Get")
+            {
+                REQUIRE( pTrackerBintr->GetBatchProcessingEnabled() == false );
+                REQUIRE( pTrackerBintr->GetPastFrameReportingEnabled() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A DCF Tracker's generates a warning if enable-patch-processing is false and batch-size > 1", "[TrackerBintr]" )
+{
+    GIVEN( "A new Tracker in memory" ) 
+    {
+        std::string trackerName("dcf-tracker");
+        uint width(64);
+        uint height(64);
+        bool batchProcessingEnabled(true);
+        bool pastFrameReportingEnabled(true);
+
+        DSL_DCF_TRACKER_PTR pTrackerBintr = 
+            DSL_DCF_TRACKER_NEW(trackerName.c_str(), width, height,
+                batchProcessingEnabled, pastFrameReportingEnabled);
+
+        WHEN( "The Trackers's batch-processing is enabled when batch-size is set > 1" )
+        {
+            REQUIRE( pTrackerBintr->SetBatchProcessingEnabled(true) == true );
+            REQUIRE( pTrackerBintr->SetBatchSize(2) == true );
+
+            THEN( "The Tracker does NOT generate a WARN log")
+            {
+                // Note: this test requires manual/visual verification at this time.
+            }
+        }
+        WHEN( "The Trackers's batch-processing is disabled when batch-size is set > 1" )
+        {
+            REQUIRE( pTrackerBintr->SetBatchProcessingEnabled(false) == true );
+            REQUIRE( pTrackerBintr->SetBatchSize(2) == true );
+
+            THEN( "The Tracker generates a WARN log")
+            {
+                // Note: this test requires manual/visual verification at this time.
+            }
+        }
+    }
+}
+
 SCENARIO( "A KTL Tracker is created correctly", "[TrackerBintr]" )
 {
     GIVEN( "Attributes for a new KTL Tracker" ) 
@@ -45,8 +138,6 @@ SCENARIO( "A KTL Tracker is created correctly", "[TrackerBintr]" )
                 std::string defPathSpec(NVDS_KLT_LIB);
                 std::string retPathSpec(pTrackerBintr->GetLibFile());
                 REQUIRE( retPathSpec == defPathSpec );
-                REQUIRE( pTrackerBintr->GetBatchProcessingEnabled() == true );
-                REQUIRE( pTrackerBintr->GetPastFrameReportingEnabled() == true );
             }
         }
     }
@@ -112,30 +203,4 @@ SCENARIO( "A Tracker's dimensions can be updated", "[TrackerBintr]" )
         }
     }
 }
-
-SCENARIO( "A Tracker's enable-patch-processing and enable-past-frame settings can be updated", "[TrackerBintr]" )
-{
-    GIVEN( "A new Tracker in memory" ) 
-    {
-        std::string trackerName("ktl-tracker");
-        uint width(640);
-        uint height(368);
-
-        DSL_KTL_TRACKER_PTR pTrackerBintr = 
-            DSL_KTL_TRACKER_NEW(trackerName.c_str(), width, height);
-
-        WHEN( "The Trackers's demensions are Set" )
-        {
-            REQUIRE( pTrackerBintr->SetBatchProcessingEnabled(false) == true );
-            REQUIRE( pTrackerBintr->SetPastFrameReportingEnabled(false) == true );
-
-            THEN( "The Display's new demensions are returned on Get")
-            {
-                REQUIRE( pTrackerBintr->GetBatchProcessingEnabled() == false );
-                REQUIRE( pTrackerBintr->GetPastFrameReportingEnabled() == false );
-            }
-        }
-    }
-}
-
 

@@ -3013,7 +3013,8 @@ DslReturnType dsl_infer_interval_set(const wchar_t* name, uint interval)
 }
 
 
-DslReturnType dsl_infer_raw_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* path)
+DslReturnType dsl_infer_raw_output_enabled_set(const wchar_t* name, 
+    boolean enabled, const wchar_t* path)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(path);
@@ -3023,7 +3024,20 @@ DslReturnType dsl_infer_raw_output_enabled_set(const wchar_t* name, boolean enab
     std::wstring wstrPath(path);
     std::string cstrPath(wstrPath.begin(), wstrPath.end());
 
-    return DSL::Services::GetServices()->InferRawOutputEnabledSet(cstrName.c_str(), enabled, cstrPath.c_str());
+    return DSL::Services::GetServices()->InferRawOutputEnabledSet(cstrName.c_str(), 
+        enabled, cstrPath.c_str());
+}
+
+DslReturnType dsl_tracker_dcf_new(const wchar_t* name, uint width, uint height,
+    boolean batch_processing_enabled, boolean past_frame_reporting_enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TrackerDcfNew(cstrName.c_str(), width, height,
+        batch_processing_enabled, past_frame_reporting_enabled);
 }
 
 DslReturnType dsl_tracker_ktl_new(const wchar_t* name, uint width, uint height)
@@ -3073,7 +3087,7 @@ DslReturnType dsl_tracker_dimensions_set(const wchar_t* name, uint width, uint h
         width, height);
 }
 
-DslReturnType dsl_tracker_batch_processing_enabled_get(const wchar_t* name, 
+DslReturnType dsl_tracker_dcf_batch_processing_enabled_get(const wchar_t* name, 
     boolean* enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -3081,11 +3095,11 @@ DslReturnType dsl_tracker_batch_processing_enabled_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TrackerBatchProcessingEnabledGet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->TrackerDcfBatchProcessingEnabledGet(cstrName.c_str(), 
         enabled);
 }
     
-DslReturnType dsl_tracker_batch_processing_enabled_set(const wchar_t* name, 
+DslReturnType dsl_tracker_dcf_batch_processing_enabled_set(const wchar_t* name, 
     boolean enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -3093,11 +3107,11 @@ DslReturnType dsl_tracker_batch_processing_enabled_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TrackerBatchProcessingEnabledSet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->TrackerDcfBatchProcessingEnabledSet(cstrName.c_str(), 
         enabled);
 }
     
-DslReturnType dsl_tracker_past_frame_reporting_enabled_get(const wchar_t* name, 
+DslReturnType dsl_tracker_dcf_past_frame_reporting_enabled_get(const wchar_t* name, 
     boolean* enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -3105,11 +3119,11 @@ DslReturnType dsl_tracker_past_frame_reporting_enabled_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TrackerPastFrameReportingEnabledGet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->TrackerDcfPastFrameReportingEnabledGet(cstrName.c_str(), 
         enabled);
 }
     
-DslReturnType dsl_tracker_past_frame_reporting_enabled_set(const wchar_t* name, 
+DslReturnType dsl_tracker_dcf_past_frame_reporting_enabled_set(const wchar_t* name, 
     boolean enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -3117,7 +3131,7 @@ DslReturnType dsl_tracker_past_frame_reporting_enabled_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TrackerPastFrameReportingEnabledSet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->TrackerDcfPastFrameReportingEnabledSet(cstrName.c_str(), 
         enabled);
 }
 
