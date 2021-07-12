@@ -69,10 +69,17 @@ namespace DSL
         const char* GetLlLibFile();
 
         /**
-         * @brief Adds the TrackerBintr to a Parent Pipeline Bintr
+         * @brief Adds the TrackerBintr to a Parent Branch Bintr
          * @param[in] pParentBintr Parent Pipeline to add this Bintr to
          */
         bool AddToParent(DSL_BASE_PTR pParentBintr);
+
+        /**
+         * @brief Removes this TrackerBintr from its Parent Branch Bintr
+         * @param[in] pParentBintr parent Pipeline to remove from
+         * @return true on successful add, false otherwise
+         */
+        bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
 
         /**
          * @brief Links all Child Elementrs owned by this Bintr

@@ -70,9 +70,18 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // add 'this' display to the Parent Pipeline 
+        // add 'this' Tracker to the Parent Branch 
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             AddTrackerBintr(shared_from_this());
+    }
+
+    bool TrackerBintr::RemoveFromParent(DSL_BASE_PTR pParentBintr)
+    {
+        LOG_FUNC();
+        
+        // remove 'this' Tracker from the Parent Branch
+        return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
+            RemoveTrackerBintr(shared_from_this());
     }
     
     bool TrackerBintr::LinkAll()

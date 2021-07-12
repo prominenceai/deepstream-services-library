@@ -383,9 +383,18 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // add 'this' GIE to the Parent Pipeline 
+        // add 'this' PrimaryInferBintr to the Parent Pipeline 
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             AddPrimaryInferBintr(shared_from_this());
+    }
+
+    bool PrimaryInferBintr::RemoveFromParent(DSL_BASE_PTR pParentBintr)
+    {
+        LOG_FUNC();
+        
+        // remove 'this' PrimaryInfrBintr from the Parent Branch
+        return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
+            RemovePrimaryInferBintr(shared_from_this());
     }
 
     // ***********************************************************************

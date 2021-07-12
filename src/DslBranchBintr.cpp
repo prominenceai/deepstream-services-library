@@ -37,7 +37,7 @@ namespace DSL
         LOG_FUNC();
     }
 
-    bool BranchBintr::AddPrimaryInferBintr(DSL_BASE_PTR pPrmaryInferBintr)
+    bool BranchBintr::AddPrimaryInferBintr(DSL_BASE_PTR pPrimaryInferBintr)
     {
         LOG_FUNC();
         
@@ -47,9 +47,37 @@ namespace DSL
                 << m_pPrimaryInferBintr->GetName());
             return false;
         }
-        m_pPrimaryInferBintr = std::dynamic_pointer_cast<PrimaryInferBintr>(pPrmaryInferBintr);
+        m_pPrimaryInferBintr = std::dynamic_pointer_cast<PrimaryInferBintr>(pPrimaryInferBintr);
         
-        return AddChild(pPrmaryInferBintr);
+        return AddChild(pPrimaryInferBintr);
+    }
+
+    bool BranchBintr::RemovePrimaryInferBintr(DSL_BASE_PTR pPrimaryInferBintr)
+    {
+        LOG_FUNC();
+        
+        if (!pPrimaryInferBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' has no Primary Infer to remove'");
+            return false;
+        }
+        if (m_pPrimaryInferBintr != pPrimaryInferBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' does not own Primary Infer' " 
+                << pPrimaryInferBintr->GetName() << "'");
+            return false;
+        }
+        if (IsLinked())
+        {
+            LOG_ERROR("Primary Infer cannot be removed from Branch '" << GetName() 
+                << "' as it is currently linked");
+            return false;
+        }
+        m_pPrimaryInferBintr = nullptr;
+        
+        LOG_INFO("Removing Primary Infer '"<< pPrimaryInferBintr->GetName() 
+            << "' from Branch '" << GetName() << "'");
+        return RemoveChild(pPrimaryInferBintr);
     }
 
     bool BranchBintr::AddSegVisualBintr(DSL_BASE_PTR pSegVisualBintr)
@@ -79,6 +107,34 @@ namespace DSL
         m_pTrackerBintr = std::dynamic_pointer_cast<TrackerBintr>(pTrackerBintr);
         
         return AddChild(pTrackerBintr);
+    }
+
+    bool BranchBintr::RemoveTrackerBintr(DSL_BASE_PTR pTrackerBintr)
+    {
+        LOG_FUNC();
+        
+        if (!m_pTrackerBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' has no Tracker to remove'");
+            return false;
+        }
+        if (m_pTrackerBintr != pTrackerBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' does not own Tracker' " 
+                << m_pTrackerBintr->GetName() << "'");
+            return false;
+        }
+        if (IsLinked())
+        {
+            LOG_ERROR("Tracker cannot be removed from Branch '" << GetName() 
+                << "' as it is currently linked'");
+            return false;
+        }
+        m_pTrackerBintr = nullptr;
+        
+        LOG_INFO("Removing Tracker '"<< pTrackerBintr->GetName() 
+            << "' from Branch '" << GetName() << "'");
+        return RemoveChild(pTrackerBintr);
     }
 
     bool BranchBintr::AddSecondaryInferBintr(DSL_BASE_PTR pSecondaryInferBintr)
