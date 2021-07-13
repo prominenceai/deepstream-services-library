@@ -3000,6 +3000,8 @@ DslReturnType dsl_infer_raw_output_enabled_set(const wchar_t* name,
 /**
  * @brief creates a new, uniquely named DCF Tracker object
  * @param[in] name unique name for the new Tracker
+ * @param[in] config_file (optional) relative or absolute pathspec to 
+ * the NvDCF Lib config text file
  * @param[in] width operational frame width for Tracker
  * @param[in] height operational frame height for the Tracker
  * @param[in] batch_processing_enabled set to true to enable batch_mode 
@@ -3008,7 +3010,8 @@ DslReturnType dsl_infer_raw_output_enabled_set(const wchar_t* name,
  * reporting of past frame data when available, false otherwise.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_dcf_new(const wchar_t* name, uint width, uint height,
+DslReturnType dsl_tracker_dcf_new(const wchar_t* name, 
+    const wchar_t* config_file, uint width, uint height,
     boolean batch_processing_enabled, boolean past_frame_reporting_enabled);
 
 /**
@@ -3023,7 +3026,8 @@ DslReturnType dsl_tracker_ktl_new(const wchar_t* name, uint width, uint height);
 /**
  * @brief creates a new, uniquely named IOU Tracker object
  * @param[in] name unique name for the new Tracker
- * @param[in] config_file fully qualified pathspec to the IOU Lib config text file
+ * @param[in] config_file (optional) relative or absolute pathspec to 
+ * the IOU Lib config text file
  * @param[in] width operational frame width for the Tracker
  * @param[in] height operational frame height for the Tracker
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
@@ -3095,20 +3099,22 @@ DslReturnType dsl_tracker_dcf_past_frame_reporting_enabled_set(const wchar_t* na
     boolean enabled);
 
 /**
- * @brief returns the current config file in use by the named IOU Tracker object
+ * @brief returns the current config file in use by the named Tracker object
  * @param[in] name unique name of the Tracker to query
  * @param[out] config_file absolute or relative pathspec to the new config file to use
+ * Note: the config_file is an optional setting. An empty string will be returned if omitted
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_iou_config_file_get(const wchar_t* name, const wchar_t** config_file);
+DslReturnType dsl_tracker_config_file_get(const wchar_t* name, const wchar_t** config_file);
 
 /**
- * @brief sets the config file to use by named IOU Tracker object
+ * @brief sets the config file to use by named IOU of DCF Tracker object. Calling this
+ * service on a KTL Tracker will have no affect.
  * @param[in] name unique name of the Tracker to Update
  * @param[in] config_file absolute or relative pathspec to the new config file to use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_iou_config_file_set(const wchar_t* name, 
+DslReturnType dsl_tracker_config_file_set(const wchar_t* name, 
     const wchar_t* config_file);
 
 /**

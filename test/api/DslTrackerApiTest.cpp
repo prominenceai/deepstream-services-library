@@ -40,7 +40,7 @@ SCENARIO( "The Components container is updated correctly on new DCF Tracker", "[
         WHEN( "A new DCF Tracker is created" ) 
         {
 
-            REQUIRE( dsl_tracker_dcf_new(tracker_name.c_str(), width, height,
+            REQUIRE( dsl_tracker_dcf_new(tracker_name.c_str(), NULL, width, height,
                 batch_processing_enabled, pastFrameReportingEnabled) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
@@ -63,7 +63,7 @@ SCENARIO( "The Components container is updated correctly on DCF Tracker delete",
         uint pastFrameReportingEnabled(true);
 
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( dsl_tracker_dcf_new(tracker_name.c_str(), width, height,
+        REQUIRE( dsl_tracker_dcf_new(tracker_name.c_str(), NULL, width, height,
             batch_processing_enabled, pastFrameReportingEnabled) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
 
@@ -90,7 +90,7 @@ SCENARIO( "A DCF Tracker can update its batch-processing-enabled and past-frame-
         uint past_frame_reporting_enabled(true);
 
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( dsl_tracker_dcf_new(tracker_name.c_str(), width, height,
+        REQUIRE( dsl_tracker_dcf_new(tracker_name.c_str(), NULL, width, height,
             batch_processing_enabled, past_frame_reporting_enabled) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
 

@@ -41,9 +41,13 @@ from dsl import *
 # File path for the single File Source
 file_path = '/opt/nvidia/deepstream/deepstream-5.1/samples/streams/sample_qHD.mp4'
 
-# Filespecs for the Primary Triton Inference Server (PTIS)
+# Filespec for the Primary Triton Inference Server (PTIS) config file
 primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt'
+
+# Filespec for the NvDCF Tracker config file
+dcf_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app/tracker_config.yml'
 
 # Window Sink Dimensions
 sink_width = 1280
@@ -101,10 +105,11 @@ def main(args):
         # New NvDCF Tracker, setting output width and height of tracked objects
         # NOTE: width and height paramaters must be multiples of 32
         retval = dsl_tracker_dcf_new('dcf-tracker', 
+            config_file = dcf_tracker_config_file,
             width = 640, 
             height = 384,
             batch_processing_enabled = True, # only matters when using multiple source
-            past_frame_reporting_enabled = True) 
+            past_frame_reporting_enabled = False) 
         if retval != DSL_RETURN_SUCCESS:
             break
 

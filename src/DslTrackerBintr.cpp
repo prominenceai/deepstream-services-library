@@ -28,10 +28,11 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    TrackerBintr::TrackerBintr(const char* name, 
-        const char* llLibFileName, guint width, guint height)
+    TrackerBintr::TrackerBintr(const char* name, const char* llLibFile, 
+        const char* configFile, guint width, guint height)
         : Bintr(name)
-        , m_llLibFile(llLibFileName)
+        , m_llLibFile(llLibFile)
+        , m_llConfigFile(configFile)
         , m_width(width)
         , m_height(height)
     {
@@ -41,7 +42,13 @@ namespace DSL
         m_pTracker->SetAttribute("tracker-width", m_width);
         m_pTracker->SetAttribute("tracker-height", m_height);
         m_pTracker->SetAttribute("gpu-id", m_gpuId);
-        m_pTracker->SetAttribute("ll-lib-file", llLibFileName);
+        m_pTracker->SetAttribute("ll-lib-file", llLibFile);
+
+        // set the low-level configuration file property if provided.
+        if (m_llConfigFile.size())
+        {
+            m_pTracker->SetAttribute("ll-config-file", configFile);
+        }
 
         AddChild(m_pTracker);
 
@@ -113,6 +120,19 @@ namespace DSL
         return m_llConfigFile.c_str();
     }
     
+    bool TrackerBintr::SetConfigFile(const char* configFile)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set config file for TrackerBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_pTracker->SetAttribute("ll-config-file", configFile);
+    }
+    
     void TrackerBintr::GetDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
@@ -131,7 +151,7 @@ namespace DSL
         if (IsLinked())
         {
             LOG_ERROR("Unable to set Dimensions for TrackerBintr '" << GetName() 
-                << "' as it's currently in use");
+                << "' as it's currently linked");
             return false;
         }
 
@@ -165,9 +185,10 @@ namespace DSL
 
     //------------------------------------------------------------------------------
     
-    DcfTrackerBintr::DcfTrackerBintr(const char* name, guint width, guint height,
+    DcfTrackerBintr::DcfTrackerBintr(const char* name, 
+        const char* configFile,guint width, guint height,
         bool batchProcessingEnabled, bool pastFrameReportingEnabled)
-        : TrackerBintr(name, NVDS_DCF_LIB, width, height)
+        : TrackerBintr(name, NVDS_DCF_LIB, configFile, width, height)
         , m_batchProcessingEnabled(batchProcessingEnabled)
         , m_pastFrameReporting(pastFrameReportingEnabled)
     {
@@ -237,26 +258,18 @@ namespace DSL
     //------------------------------------------------------------------------------
     
     KtlTrackerBintr::KtlTrackerBintr(const char* name, guint width, guint height)
-        : TrackerBintr(name, NVDS_KLT_LIB, width, height)
+        : TrackerBintr(name, NVDS_KLT_LIB, "", width, height)
     {
         LOG_FUNC();
     }
 
     //------------------------------------------------------------------------------
     
-    IouTrackerBintr::IouTrackerBintr(const char* name, const char* configFile, guint width, guint height)
-        : TrackerBintr(name, NVDS_IOU_LIB, width, height)
+    IouTrackerBintr::IouTrackerBintr(const char* name, 
+        const char* configFile, guint width, guint height)
+        : TrackerBintr(name, NVDS_IOU_LIB, configFile, width, height)
     {
         LOG_FUNC();
 
-        m_llConfigFile = configFile;
-
-        std::ifstream streamConfigFile(configFile);
-        if (!streamConfigFile.good())
-        {
-            LOG_ERROR("IOU Tracker Config File '" << configFile << "' Not found");
-            throw;
-        }
-        m_pTracker->SetAttribute("ll-config-file", configFile);
     }
 } // DSL

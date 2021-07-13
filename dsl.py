@@ -2376,12 +2376,12 @@ def dsl_infer_raw_output_enabled_set(name, enabled, path):
 ##
 ## dsl_tracker_dcf_new()
 ##
-_dsl.dsl_tracker_dcf_new.argtypes = [c_wchar_p, c_uint, c_uint, c_bool, c_bool]
+_dsl.dsl_tracker_dcf_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_bool, c_bool]
 _dsl.dsl_tracker_dcf_new.restype = c_uint
-def dsl_tracker_dcf_new(name, width, height,
+def dsl_tracker_dcf_new(name, config_file, width, height,
     batch_processing_enabled, past_frame_reporting_enabled):
     global _dsl
-    result = _dsl.dsl_tracker_dcf_new(name, width, height,
+    result = _dsl.dsl_tracker_dcf_new(name, config_file, width, height,
         batch_processing_enabled, past_frame_reporting_enabled)
     return int(result)
 

@@ -37,14 +37,12 @@ namespace DSL
      * @brief convenience macros for shared pointer abstraction
      */
     #define DSL_TRACKER_PTR std::shared_ptr<TrackerBintr>
-    #define DSL_TRACKER_NEW(name, llLibFile, width, height) \
-        std::shared_ptr<TrackerBintr>(new TrackerBintr(name, llLibFile, width, height))
         
     #define DSL_DCF_TRACKER_PTR std::shared_ptr<DcfTrackerBintr>
-    #define DSL_DCF_TRACKER_NEW(name, width, height, \
+    #define DSL_DCF_TRACKER_NEW(name, configFile, width, height, \
         batchProcessingEnabled, pastFrameReportingEnabled) \
-        std::shared_ptr<DcfTrackerBintr>(new DcfTrackerBintr(name, width, height, \
-            batchProcessingEnabled, pastFrameReportingEnabled))
+        std::shared_ptr<DcfTrackerBintr>(new DcfTrackerBintr(name, configFile, \
+            width, height, batchProcessingEnabled, pastFrameReportingEnabled))
         
     #define DSL_KTL_TRACKER_PTR std::shared_ptr<KtlTrackerBintr>
     #define DSL_KTL_TRACKER_NEW(name, width, height) \
@@ -58,7 +56,8 @@ namespace DSL
     {
     public: 
     
-        TrackerBintr(const char* name, const char* llLibFile, guint width, guint height);
+        TrackerBintr(const char* name, const char* llLibFile, 
+            const char* configFile, guint width, guint height);
 
         ~TrackerBintr();
 
@@ -103,6 +102,13 @@ namespace DSL
          * @return fully qualified patspec used to create this TrackerBintr
          */
         const char* GetConfigFile();
+        
+        /**
+         * @brief sets the name of the Tracker Config File to use for this TrackerBintr
+         * @fully qualified patspec to use
+         * @return true on successful update, false otherwise
+         */
+        bool SetConfigFile(const char* configFile);
         
         /**
          * @brief Gets the current width and height settings for this Tracker
@@ -158,7 +164,7 @@ namespace DSL
     {
     public: 
     
-        DcfTrackerBintr(const char* name, guint width, guint height,
+        DcfTrackerBintr(const char* name, const char* configFile, guint width, guint height,
             bool batchProcessingEnabled, bool pastFrameReportingEnabled);
 
         /**
@@ -224,7 +230,8 @@ namespace DSL
     {
     public: 
     
-        IouTrackerBintr(const char* name, const char* configFile, guint width, guint height);
+        IouTrackerBintr(const char* name, 
+            const char* configFile, guint width, guint height);
     };
 
 } // DSL

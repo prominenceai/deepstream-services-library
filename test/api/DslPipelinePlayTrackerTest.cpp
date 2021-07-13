@@ -38,6 +38,10 @@ static const std::wstring ptis_infer_config_file(
 static const std::wstring secondary_tis_name(L"secondary-tis");
 static const std::wstring stis_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_secondary_plan_engine_carcolor.txt");
+    
+static const std::wstring dcf_tracker_config_file(
+     L"./test/configs/tracker_config.yml");
+//     L"/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app/tracker_config.yml");
 
 static const std::wstring file_path(L"./test/streams/sample_1080p_h264.mp4");
 
@@ -92,7 +96,7 @@ SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker with its Batch Process
             ptis_infer_config_file.c_str(), inference_interval)
             == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tracker_dcf_new(dcf_tracker_name.c_str(), tracker_width, tracker_height,
+        REQUIRE( dsl_tracker_dcf_new(dcf_tracker_name.c_str(), NULL, tracker_width, tracker_height,
             batch_processing_enabled, past_frame_reporting_enabled) 
             == DSL_RESULT_SUCCESS );
 
@@ -143,7 +147,7 @@ SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker with its Batch Process
             ptis_infer_config_file.c_str(), inference_interval)
             == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tracker_dcf_new(dcf_tracker_name.c_str(), tracker_width, tracker_height,
+        REQUIRE( dsl_tracker_dcf_new(dcf_tracker_name.c_str(), NULL, tracker_width, tracker_height,
             batch_processing_enabled, past_frame_reporting_enabled) 
             == DSL_RESULT_SUCCESS );
 
@@ -173,3 +177,61 @@ SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker with its Batch Process
         }
     }
 }
+
+SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker and optional config file", "[tracker-play]" )
+{
+    GIVEN( "A Pipeline, File source, Primary TIS, KTL Tracker, OSD, and Overlay Sink" ) 
+    {
+        boolean inference_interval(4);
+        boolean batch_processing_enabled(true);
+        boolean past_frame_reporting_enabled(true);
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_file_new(source_name1.c_str(), file_path.c_str(), 
+            false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(source_name2.c_str(), file_path.c_str(), 
+            false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(source_name3.c_str(), file_path.c_str(), 
+            false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(source_name4.c_str(), file_path.c_str(), 
+            false) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_infer_tis_primary_new(primary_tis_name.c_str(), 
+            ptis_infer_config_file.c_str(), inference_interval)
+            == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tracker_dcf_new(dcf_tracker_name.c_str(), dcf_tracker_config_file.c_str(), tracker_width, tracker_height,
+            batch_processing_enabled, past_frame_reporting_enabled) 
+            == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tiler_new(tiler_name.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_overlay_new(sink_name.c_str(), display_id, depth,
+            offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {L"file-source-1", L"file-source-2", 
+            L"file-source-3", L"file-source-4", L"primary-tis", 
+            L"dcf-tracker", L"tiler", L"on-screen-display", L"overlay-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                dsl_delete_all();
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+

@@ -40,7 +40,36 @@ SCENARIO( "A DCF Tracker is created correctly", "[TrackerBintr]" )
         WHEN( "The DCF Tracker is created" )
         {
             DSL_DCF_TRACKER_PTR pTrackerBintr = 
-                DSL_DCF_TRACKER_NEW(trackerName.c_str(), width, height,
+                DSL_DCF_TRACKER_NEW(trackerName.c_str(), "", width, height,
+                    batchProcessingEnabled, pastFrameReportingEnabled);
+
+            THEN( "The DCF Tracker's lib is found, loaded, and returned correctly")
+            {
+                std::string defPathSpec(NVDS_DCF_LIB);
+                std::string retPathSpec(pTrackerBintr->GetLibFile());
+                REQUIRE( retPathSpec == defPathSpec );
+                REQUIRE( pTrackerBintr->GetBatchProcessingEnabled() == batchProcessingEnabled );
+                REQUIRE( pTrackerBintr->GetPastFrameReportingEnabled() == pastFrameReportingEnabled );
+            }
+        }
+    }
+}
+
+SCENARIO( "A DCF Tracker is created correctly with a config file", "[TrackerBintr]" )
+{
+    GIVEN( "Attributes for a new DCF Tracker" ) 
+    {
+        std::string trackerName("dcf-tracker");
+        std::string configFile("./test/tracker_config.yml");
+        uint width(32);
+        uint height(32);
+        bool batchProcessingEnabled(true);
+        bool pastFrameReportingEnabled(true);
+
+        WHEN( "The DCF Tracker is created" )
+        {
+            DSL_DCF_TRACKER_PTR pTrackerBintr = 
+                DSL_DCF_TRACKER_NEW(trackerName.c_str(), configFile.c_str(), width, height,
                     batchProcessingEnabled, pastFrameReportingEnabled);
 
             THEN( "The DCF Tracker's lib is found, loaded, and returned correctly")
@@ -66,7 +95,7 @@ SCENARIO( "A DCF Tracker's enable-patch-processing and enable-past-frame setting
         bool pastFrameReportingEnabled(true);
 
         DSL_DCF_TRACKER_PTR pTrackerBintr = 
-            DSL_DCF_TRACKER_NEW(trackerName.c_str(), width, height,
+            DSL_DCF_TRACKER_NEW(trackerName.c_str(), "", width, height,
                 batchProcessingEnabled, pastFrameReportingEnabled);
 
         WHEN( "The Trackers's demensions are Set" )
@@ -94,7 +123,7 @@ SCENARIO( "A DCF Tracker's generates a warning if enable-patch-processing is fal
         bool pastFrameReportingEnabled(true);
 
         DSL_DCF_TRACKER_PTR pTrackerBintr = 
-            DSL_DCF_TRACKER_NEW(trackerName.c_str(), width, height,
+            DSL_DCF_TRACKER_NEW(trackerName.c_str(), "", width, height,
                 batchProcessingEnabled, pastFrameReportingEnabled);
 
         WHEN( "The Trackers's batch-processing is enabled when batch-size is set > 1" )

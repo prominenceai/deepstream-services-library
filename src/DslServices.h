@@ -559,13 +559,18 @@ namespace DSL {
 
         DslReturnType InferIntervalSet(const char* name, uint interval);
 
-        DslReturnType TrackerDcfNew(const char* name, uint width, uint height,
+        DslReturnType TrackerDcfNew(const char* name, 
+            const char* configFile, uint width, uint height,
             boolean batch_processing_enabled, boolean past_frame_reporting_enabled);
         
         DslReturnType TrackerKtlNew(const char* name, uint width, uint height);
         
         DslReturnType TrackerIouNew(const char* name, 
             const char* configFile, uint width, uint height);
+
+        DslReturnType TrackerConfigFileGet(const char* name, const char** inferConfigFile);
+
+        DslReturnType TrackerConfigFileSet(const char* name, const char* inferConfigFile);
         
         DslReturnType TrackerDimensionsGet(const char* name, uint* width, uint* height);
         
