@@ -370,6 +370,7 @@ retval = dsl_infer_primary_pph_remove('my-primary-gie', 'my-pph-handler', `DSL_P
 * [On-Screen Display](/docs/api-osd.md)
 * [Tiler](/docs/api-tiler.md)
 * [Demuxer and Splitter](/docs/api-tee.md)
+* [On-Screen Display](/docs/api-osd.md)
 * [Sink](/docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
