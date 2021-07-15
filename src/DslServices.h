@@ -528,6 +528,10 @@ namespace DSL {
 
         DslReturnType SegVisualDimensionsSet(const char* name, uint width, uint height);
 
+        DslReturnType SegVisualPphAdd(const char* name, const char* handler);
+
+        DslReturnType SegVisualPphRemove(const char* name, const char* handler);
+
         DslReturnType PrimaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, uint interval);
 

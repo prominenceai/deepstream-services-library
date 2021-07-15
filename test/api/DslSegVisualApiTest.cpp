@@ -224,6 +224,59 @@ SCENARIO( "A Segmentation Visualizer can Set and Get all properties", "[segvisua
     }
 }
 
+static boolean pad_probe_handler_cb1(void* buffer, void* user_data)
+{
+}
+
+SCENARIO( "A Source Pad Probe Handler can be added and removed froma a Segmentation Visualizer", "[segvisual-api]" )
+{
+    GIVEN( "A new Segmentation Visualizer and Custom PPH" ) 
+    {
+        std::wstring segvisualName(L"segvisual");
+        uint width(1280);
+        uint height(720);
+
+        std::wstring customPpmName(L"custom-ppm");
+
+        REQUIRE( dsl_segvisual_new(segvisualName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), 
+            pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Sink Pad Probe Handler is added to the Segmentation Visulizer" ) 
+        {
+            // Test the remove failure case first, prior to adding the handler
+            REQUIRE( dsl_segvisual_pph_remove(segvisualName.c_str(), customPpmName.c_str()) 
+                == DSL_RESULT_SEGVISUAL_HANDLER_REMOVE_FAILED );
+
+            REQUIRE( dsl_segvisual_pph_add(segvisualName.c_str(), customPpmName.c_str()) 
+                == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Padd Probe Handler can then be removed" ) 
+            {
+                REQUIRE( dsl_segvisual_pph_remove(segvisualName.c_str(), customPpmName.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "A Sink Pad Probe Handler is added to the Segmentation Visulize" ) 
+        {
+            REQUIRE( dsl_segvisual_pph_add(segvisualName.c_str(), customPpmName.c_str()) 
+                == DSL_RESULT_SUCCESS );
+            
+            THEN( "Attempting to add the same Sink Pad Probe Handler twice failes" ) 
+            {
+                REQUIRE( dsl_segvisual_pph_add(segvisualName.c_str(), customPpmName.c_str()) 
+                    == DSL_RESULT_SEGVISUAL_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_segvisual_pph_remove(segvisualName.c_str(), customPpmName.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 SCENARIO( "The Segmentation Visualizer API checks for NULL input parameters", "[segvisual-api]" )
 {
     GIVEN( "An empty list of Components" ) 

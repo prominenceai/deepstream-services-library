@@ -401,6 +401,8 @@ THE SOFTWARE.
 #define DSL_RESULT_SEGVISUAL_IN_USE                                 0x00600004
 #define DSL_RESULT_SEGVISUAL_SET_FAILED                             0x00600005
 #define DSL_RESULT_SEGVISUAL_PARAMETER_INVALID                      0x00600006
+#define DSL_RESULT_SEGVISUAL_HANDLER_ADD_FAILED                     0x00600007
+#define DSL_RESULT_SEGVISUAL_HANDLER_REMOVE_FAILED                  0x00600008
 
 /**
  *
@@ -2355,7 +2357,8 @@ DslReturnType dsl_source_usb_new(const wchar_t* name,
 
 /**
  * @brief creates a new, uniquely named URI Source component
- * @param[in] name Unique Resource Identifier (file or live)
+ * @param[in] name unique name for the new URI Source
+ * @param[in] uri Unique Resource Identifier (file or live)
  * @param[in] is_live true if source is live false if file
  * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
  * @param[in] intra_decode set to True to enable, false to disable
@@ -2870,6 +2873,24 @@ DslReturnType dsl_segvisual_dimensions_get(const wchar_t* name,
  */
 DslReturnType dsl_segvisual_dimensions_set(const wchar_t* name, 
     uint width, uint height);
+
+/**
+ * @brief Adds a pad-probe-handler to be called to process each frame buffer.
+ * One or more Pad Probe Handlers can be added to the SOURCE PAD only.
+ * @param[in] name unique name of the Segmentation visualizer to update
+ * @param[in] handler unique name of the pad probe handler to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_segvisual_pph_add(const wchar_t* name, const wchar_t* handler);
+
+/**
+ * @brief Removes a pad probe handler callback function from a named
+ * Segmentation visualizer.
+ * @param[in] name unique name of the Segmentation visualizer to update
+ * @param[in] handler unique name of the pad probe handler to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_segvisual_pph_remove(const wchar_t* name, const wchar_t* handler);
     
 /**
  * @brief creates a new, uniquely named Primary GIE object

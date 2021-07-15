@@ -6122,6 +6122,62 @@ namespace DSL
             return DSL_RESULT_SEGVISUAL_THREW_EXCEPTION;
         }
     }
+
+    DslReturnType Services::SegVisualPphAdd(const char* name, const char* handler)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, SegVisualBintr);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
+            // call on the Handler to add itself to the Tiler as a PadProbeHandler
+            if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], DSL_PAD_SRC))
+            {
+                LOG_ERROR("Segmentation Visualizer '" << name 
+                    << "' failed to add Pad Probe Handler");
+                return DSL_RESULT_SEGVISUAL_HANDLER_ADD_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Segmentation Visualizer '" << name 
+                << "' threw an exception adding Pad Probe Handler");
+            return DSL_RESULT_SEGVISUAL_THREW_EXCEPTION;
+        }
+    }
+   
+    DslReturnType Services::SegVisualPphRemove(const char* name, const char* handler) 
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, SegVisualBintr);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
+            // call on the Handler to remove itself from the Tee
+            if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], DSL_PAD_SRC))
+            {
+                LOG_ERROR("Pad Probe Handler '" << handler 
+                    << "' is not a child of Segmentation Visualizer '" << name << "'");
+                return DSL_RESULT_SEGVISUAL_HANDLER_REMOVE_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Segmentation Visualizer '" << name 
+                << "' threw an exception removing Pad Probe Handler");
+            return DSL_RESULT_SEGVISUAL_THREW_EXCEPTION;
+        }
+    }
     
     DslReturnType Services::PrimaryGieNew(const char* name, const char* inferConfigFile,
         const char* modelEngineFile, uint interval)
@@ -11959,6 +12015,14 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_INFER_PAD_TYPE_INVALID] = L"DSL_RESULT_INFER_PAD_TYPE_INVALID";
         m_returnValueToString[DSL_RESULT_INFER_COMPONENT_IS_NOT_INFER] = L"DSL_RESULT_INFER_COMPONENT_IS_NOT_INFER";
         m_returnValueToString[DSL_RESULT_INFER_OUTPUT_DIR_DOES_NOT_EXIST] = L"DSL_RESULT_INFER_OUTPUT_DIR_DOES_NOT_EXIST";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_NAME_NOT_UNIQUE] = L"DSL_RESULT_SEGVISUAL_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_NAME_NOT_FOUND] = L"DSL_RESULT_SEGVISUAL_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_THREW_EXCEPTION] = L"DSL_RESULT_SEGVISUAL_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_IN_USE] = L"DSL_RESULT_SEGVISUAL_IN_USE";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_SET_FAILED] = L"DSL_RESULT_SEGVISUAL_SET_FAILED";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_PARAMETER_INVALID] = L"DSL_RESULT_SEGVISUAL_PARAMETER_INVALID";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_HANDLER_ADD_FAILED] = L"DSL_RESULT_SEGVISUAL_HANDLER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_SEGVISUAL_HANDLER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_TEE_NAME_NOT_UNIQUE] = L"DSL_RESULT_TEE_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_TEE_NAME_NOT_FOUND] = L"DSL_RESULT_TEE_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_TEE_NAME_BAD_FORMAT] = L"DSL_RESULT_TEE_NAME_BAD_FORMAT";

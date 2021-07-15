@@ -33,11 +33,13 @@ from dsl import *
 # the limit of the PGIE to perform segmentation. This becomes apparent half-way
 # through the video when the Pipeline starts experiencing QOS issues. A slower
 # camera rate may be required.
-input_file = "../../test/streams/nevskiy-avenue-night3.mp4"
+
+# File path for the single File Source
+file_path = '/opt/nvidia/deepstream/deepstream-5.1/samples/streams/sample_720p.jpg'
 
 # Filespecs for the Primary GIE
-primary_infer_config_file = '../../test/configs/segvisual_config_semantic.txt'
-primary_model_engine_file = '../../test/models/Segmentation/semantic/unetres18_v4_pruned0.65_800_data.uff_b1_gpu0_fp16.engine'
+primary_infer_config_file = \
+    '/opt/nvidia/deepstream/deepstream-5.1/sources/apps/sample_apps/deepstream-segmentation-test/dstest_segmentation_config_industrial.txt'
 
 # Segmentation Visualizer output dimensions should (typically) match the
 # inference dimensions defined in segvisual_config_semantic.txt (512x512)
@@ -69,14 +71,23 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # New File Source
-        retval = dsl_source_file_new('file-source', file_path=input_file, repeat_enabled=False)
+        # New URI Image Source using the files path defined above, not simulating
+        # a live source, stream at 15 hz, and generate EOS after 10 seconds.
+        retval = dsl_source_uri_new('image-source', 
+            uri = file_path, 
+            is_live = False,
+            cudadec_mem_type = 0, 
+            intra_decode = False,
+            drop_frame_interval = False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Primary GIE using the filespecs above, with interval and Id
-        retval = dsl_infer_gie_primary_new('primary-gie', False,
-            primary_infer_config_file, primary_model_engine_file, 0)
+        # New Primary GIE using the Config filespec above, with interval and Id
+        # Setting the model_engine_file parameter to None == attemp to create model 
+        retval = dsl_infer_gie_primary_new('primary-gie',
+            infer_config_file = primary_infer_config_file, 
+            model_engine_file = None, 
+            interval = 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -97,9 +108,13 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['file-source', 'primary-gie', 'segvisual', 'window-sink', None])
+            ['image-source', 'primary-gie', 'segvisual', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
+
+        # Set the Streammuxer dimensions to the same as GIE Config and Sink dimensions
+        retval = dsl_pipeline_streammux_dimensions_set("pipeline", 
+            width=width, height=height)
 
         # Add the XWindow event handler functions defined above
         retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 

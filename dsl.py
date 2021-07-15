@@ -2739,6 +2739,36 @@ def dsl_tee_pph_remove(name, handler):
     return int(result)
 
 ##
+## dsl_segvisual_new()
+##
+_dsl.dsl_segvisual_new.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_segvisual_new.restype = c_uint
+def dsl_segvisual_new(name, width, height):
+    global _dsl
+    result =_dsl.dsl_segvisual_new(name, width, height)
+    return int(result)
+
+##
+## dsl_segvisual_pph_add()
+##
+_dsl.dsl_segvisual_pph_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_segvisual_pph_add.restype = c_uint
+def dsl_segvisual_pph_add(name, handler):
+    global _dsl
+    result = _dsl.dsl_segvisual_pph_add(name, handler)
+    return int(result)
+
+##
+## dsl_segvisual_pph_remove()
+##
+_dsl.dsl_segvisual_pph_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_segvisual_pph_remove.restype = c_uint
+def dsl_segvisual_pph_remove(name, handler):
+    global _dsl
+    result = _dsl.dsl_segvisual_pph_remove(name, handler)
+    return int(result)
+
+##
 ## dsl_tiler_new()
 ##
 _dsl.dsl_tiler_new.argtypes = [c_wchar_p, c_uint, c_uint]
@@ -3215,6 +3245,26 @@ _dsl.dsl_sink_sync_settings_set.restype = c_uint
 def dsl_sink_sync_settings_set(name, sync, async):
     global _dsl
     result = _dsl.dsl_sink_sync_settings_set(name, sync, async)
+    return int(result)
+
+##
+## dsl_sink_pph_add()
+##
+_dsl.dsl_sink_pph_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_pph_add.restype = c_uint
+def dsl_sink_pph_add(name, handler):
+    global _dsl
+    result = _dsl.dsl_sink_pph_add(name, handler)
+    return int(result)
+
+##
+## dsl_sink_pph_remove()
+##
+_dsl.dsl_sink_pph_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_pph_remove.restype = c_uint
+def dsl_sink_pph_remove(name, handler):
+    global _dsl
+    result = _dsl.dsl_sink_pph_remove(name, handler)
     return int(result)
 
 ##
