@@ -15,6 +15,12 @@ GIEs/TISs are added to a Pipeline by calling [dsl_pipeline_component_add](/docs/
 
 Primary and Secondary GIEs/TISs are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_delete_all](/dosc/overview.md#dsl_delete_all).
 
+## Relevant Examples
+* [1uri_file_pgie_iou_tiler_osd_custom_pph_window.py](/examples/python/1uri_file_pgie_iou_tiler_osd_custom_pph_window.py)
+* [2uri_file_pgie_ktl_3sgie_tiler_osd_bmh_window.py](/examples/python/2uri_file_pgie_ktl_3sgie_tiler_osd_bmh_window.py)
+* [1file_ptis_ktl_osd_window.py](/examples/python/1file_ptis_ktl_osd_window.py)
+* [1file_ptis_ktl_3stis_osd_window.py](/examples/python/1file_ptis_ktl_3stis_osd_window.py)
+
 ## Primary and Secondary Inference API
 **Constructors**
 * [dsl_infer_gie_primary_new](#dsl_infer_gie_primary_new)
