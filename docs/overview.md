@@ -5,8 +5,8 @@
   * [Streaming Sources](#streaming-sources)
   * [Inference Engines and Servers](#inference-engines-and-servers)
   * [Multi-Object Trackers](#multi-object-trackers)
-  * [On-Screen Display](#on-screen-display)
   * [Multi-Source Tiler](#multi-source-tiler)
+  * [On-Screen Display](#on-screen-display)
   * [Rendering and Encoding Sinks](#rendering-and-encoding-sinks)
   * [Tees and Branches](#tees-and-branches)
   * [Pad Probe Handlers](#pad-probe-handlers)
@@ -139,6 +139,10 @@ With Primary GIEs and TISs, applications can:
 * Enable/disable raw layer-info output to binary file, one file per layer, per frame.
 
 See the [Inference Engine and Server API](/docs/api-infer.md) reference section for more information.
+
+DSL supports NVIDIA's [Segmentation Visualizer plugin](https://docs.nvidia.com/metropolis/deepstream/5.0DP/plugin-manual/index.html#page/DeepStream%20Plugins%20Development%20Guide/deepstream_plugin_details.3.11.html#wwpID0E0WT0HA) for viewing segmentation results produced from either a Primary Gst Inference Engine (PGIE) or Primary Triton Inference Server (TIS).
+
+See the [Segmentation Visualizer API](/docs/api-segvisual.md) reference setction for more inforamtion.
 
 ## Multi-Object Trackers
 There are two types of streaming Multi-Object Tracker Components.
@@ -1101,9 +1105,10 @@ if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
 * [Dewarper](/docs/api-dewarper.md)
 * [Inference Engine and Server](/docs/api-infer.md)
 * [Tracker](/docs/api-tracker.md)
-* [On-Screen Display](/docs/api-osd.md)
+* [Segmentation Visualizer](/docs/api-segvisual.md)
 * [Tiler](/docs/api-tiler.md)
 * [Demuxer and Splitter Tees](/docs/api-tee)
+* [On-Screen Display](/docs/api-osd.md)
 * [Sink](docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
