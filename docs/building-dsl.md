@@ -44,7 +44,7 @@ $ ./dsl-test-app
 After completion, ensure that all tests have passed before building the shared library.
 ```
 ===============================================================================
-All tests passed (4561 assertions in 592 test cases)
+All tests passed (5199 assertions in 670 test cases)
 ```
 
 Note: the total passed assertions and test cases are subject to change.
@@ -85,11 +85,12 @@ if retval != DSL_RETURN_SUCCESS:
 * [Source](/docs/api-source.md)
 * [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
-* [Primary and Secondary GIEs](/docs/api-gie.md)
+* [Inference Engine and Server](/docs/api-infer.md)
 * [Tracker](/docs/api-tracker.md)
-* [On-Screen Display](/docs/api-osd.md)
+* [Segmentation Visualizer](/docs/api-segvisual.md)
 * [Tiler](/docs/api-tiler.md)
 * [Demuxer and Splitter Tees](/docs/api-tee)
+* [On-Screen Display](/docs/api-osd.md)
 * [Sink](/docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)

@@ -1,4 +1,4 @@
-## Display Type API
+# Display Type API
 Display Types are used to add Display metadata to a Frame's metadata to be displayed downstream by an [On-Screen Display](/docs/api-osd.md). Display Types, once created, can be added to an [ODE Action](/docs/api-ode-action.md) in turn added to one or more [ODE Triggers](/docs/api-ode-trigger.md).  Each Trigger, on ODE occurrence, invokes the action to add the Display metadata to the current Frame metadata that triggerd the event.
 
 Further control of the Display Types can be achieved by enabling/disabling the Action or Trigger in a Client callback function when other events occur.  The start and end of a recording session for example. 
@@ -590,11 +590,12 @@ retval = dsl_display_type_meta_add('blue-circle', buffer, frame_meta)
 * [Source](/docs/api-source.md)
 * [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
-* [Primary and Secondary GIE](/docs/api-gie.md)
+* [Inference Engine and Server](/docs/api-infer.md)
 * [Tracker](/docs/api-tracker.md)
+* [Segmentation Visualizer](/docs/api-segvisual.md)
 * [Tiler](/docs/api-tiler.md)
-* [On-Screen Display](/docs/api-osd.md)
 * [Demuxer and Splitter](/docs/api-tee.md)
+* [On-Screen Display](/docs/api-osd.md)
 * [Sink](/docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE-Trigger](/docs/api-ode-trigger.md)

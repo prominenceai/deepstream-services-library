@@ -102,13 +102,12 @@ THE SOFTWARE.
 #define DSL_RESULT_TRACKER_NAME_BAD_FORMAT                          0x00030003
 #define DSL_RESULT_TRACKER_THREW_EXCEPTION                          0x00030004
 #define DSL_RESULT_TRACKER_CONFIG_FILE_NOT_FOUND                    0x00030005
-#define DSL_RESULT_TRACKER_MAX_DIMENSIONS_INVALID                   0x00030006
-#define DSL_RESULT_TRACKER_IS_IN_USE                                0x00030007
-#define DSL_RESULT_TRACKER_SET_FAILED                               0x00030008
-#define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00030009
-#define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x0003000A
-#define DSL_RESULT_TRACKER_PAD_TYPE_INVALID                         0x0003000B
-#define DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER                 0x0003000C
+#define DSL_RESULT_TRACKER_IS_IN_USE                                0x00030006
+#define DSL_RESULT_TRACKER_SET_FAILED                               0x00030007
+#define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00030008
+#define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x00030009
+#define DSL_RESULT_TRACKER_PAD_TYPE_INVALID                         0x0003000A
+#define DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER                 0x0003000B
 
 /**
  * Sink API Return Values
@@ -170,22 +169,22 @@ THE SOFTWARE.
 #define DSL_RESULT_OFV_COMPONENT_IS_NOT_OFV                         0x000C000B
 
 /**
- * GIE API Return Values
+ * GIE and TIS API Return Values
  */
-#define DSL_RESULT_GIE_RESULT                                       0x00060000
-#define DSL_RESULT_GIE_NAME_NOT_UNIQUE                              0x00060001
-#define DSL_RESULT_GIE_NAME_NOT_FOUND                               0x00060002
-#define DSL_RESULT_GIE_NAME_BAD_FORMAT                              0x00060003
-#define DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND                        0x00060004
-#define DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND                         0x00060005
-#define DSL_RESULT_GIE_THREW_EXCEPTION                              0x00060006
-#define DSL_RESULT_GIE_IS_IN_USE                                    0x00060007
-#define DSL_RESULT_GIE_SET_FAILED                                   0x00060008
-#define DSL_RESULT_GIE_HANDLER_ADD_FAILED                           0x00060009
-#define DSL_RESULT_GIE_HANDLER_REMOVE_FAILED                        0x0006000A
-#define DSL_RESULT_GIE_PAD_TYPE_INVALID                             0x0006000B
-#define DSL_RESULT_GIE_COMPONENT_IS_NOT_GIE                         0x0006000C
-#define DSL_RESULT_GIE_OUTPUT_DIR_DOES_NOT_EXIST                    0x0006000D
+#define DSL_RESULT_INFER_RESULT                                     0x00060000
+#define DSL_RESULT_INFER_NAME_NOT_UNIQUE                            0x00060001
+#define DSL_RESULT_INFER_NAME_NOT_FOUND                             0x00060002
+#define DSL_RESULT_INFER_NAME_BAD_FORMAT                            0x00060003
+#define DSL_RESULT_INFER_CONFIG_FILE_NOT_FOUND                      0x00060004
+#define DSL_RESULT_INFER_MODEL_FILE_NOT_FOUND                       0x00060005
+#define DSL_RESULT_INFER_THREW_EXCEPTION                            0x00060006
+#define DSL_RESULT_INFER_IS_IN_USE                                  0x00060007
+#define DSL_RESULT_INFER_SET_FAILED                                 0x00060008
+#define DSL_RESULT_INFER_HANDLER_ADD_FAILED                         0x00060009
+#define DSL_RESULT_INFER_HANDLER_REMOVE_FAILED                      0x0006000A
+#define DSL_RESULT_INFER_PAD_TYPE_INVALID                           0x0006000B
+#define DSL_RESULT_INFER_COMPONENT_IS_NOT_INFER                     0x0006000C
+#define DSL_RESULT_INFER_OUTPUT_DIR_DOES_NOT_EXIST                  0x0006000D
 
 /**
  * Demuxer API Return Values
@@ -391,6 +390,19 @@ THE SOFTWARE.
 #define DSL_RESULT_MAILER_IN_USE                                    0x00500004
 #define DSL_RESULT_MAILER_SET_FAILED                                0x00500005
 #define DSL_RESULT_MAILER_PARAMETER_INVALID                         0x00500006
+
+/**
+ * Segmentation Visualizer API Return Values
+ */
+#define DSL_RESULT_SEGVISUAL_RESULT                                 0x00600000
+#define DSL_RESULT_SEGVISUAL_NAME_NOT_UNIQUE                        0x00600001
+#define DSL_RESULT_SEGVISUAL_NAME_NOT_FOUND                         0x00600002
+#define DSL_RESULT_SEGVISUAL_THREW_EXCEPTION                        0x00600003
+#define DSL_RESULT_SEGVISUAL_IN_USE                                 0x00600004
+#define DSL_RESULT_SEGVISUAL_SET_FAILED                             0x00600005
+#define DSL_RESULT_SEGVISUAL_PARAMETER_INVALID                      0x00600006
+#define DSL_RESULT_SEGVISUAL_HANDLER_ADD_FAILED                     0x00600007
+#define DSL_RESULT_SEGVISUAL_HANDLER_REMOVE_FAILED                  0x00600008
 
 /**
  *
@@ -2345,7 +2357,8 @@ DslReturnType dsl_source_usb_new(const wchar_t* name,
 
 /**
  * @brief creates a new, uniquely named URI Source component
- * @param[in] name Unique Resource Identifier (file or live)
+ * @param[in] name unique name for the new URI Source
+ * @param[in] uri Unique Resource Identifier (file or live)
  * @param[in] is_live true if source is live false if file
  * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
  * @param[in] intra_decode set to True to enable, false to disable
@@ -2664,7 +2677,7 @@ boolean dsl_source_num_in_use_max_set(uint max);
  * @brief create a new, uniquely named Dewarper object
  * @param[in] name unique name for the new Dewarper object
  * @param[in] config_file absolute or relative path to Dewarper config text file
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
 DslReturnType dsl_dewarper_new(const wchar_t* name, const wchar_t* config_file);
 
@@ -2828,6 +2841,56 @@ DslReturnType dsl_tap_record_mailer_add(const wchar_t* name,
  */
 DslReturnType dsl_tap_record_mailer_remove(const wchar_t* name, 
     const wchar_t* mailer);
+
+/**
+ * @brief Creates a new, uniquely named Segmentation Visualizer. Once created,
+ * the Segmentation Visualizer can be added to a Primary GIE. 
+ * @param[in] name unique name for the new Segmentation Visualizer
+ * @param[in] width output width in pixels, typically same as input to GIE
+ * @param[in] height output height in pixels, typically same as input to GIE
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SIGVISUAL_RESULT
+ */
+DslReturnType dsl_segvisual_new(const wchar_t* name, uint width, uint height);
+
+/**
+ * @brief Returns the output dimensions, width and height, for the named
+ * Segmentation Visualizer.  
+ * @param[in] name name of the Segmentation Visualizer to query
+ * @param[out] width current output width in pixels
+ * @param[out] height current output height in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SIGVISUAL_RESULT
+ */
+DslReturnType dsl_segvisual_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
+
+/**
+ * @brief Sets the output dimensions, width and height, for the named 
+ * Segmentation Visualizer.
+ * @param[in] name name of the Display to update
+ * @param[in] width new output width in pixels
+ * @param[in] height new output height in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SIGVISUAL_RESULT
+ */
+DslReturnType dsl_segvisual_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
+
+/**
+ * @brief Adds a pad-probe-handler to be called to process each frame buffer.
+ * One or more Pad Probe Handlers can be added to the SOURCE PAD only.
+ * @param[in] name unique name of the Segmentation visualizer to update
+ * @param[in] handler unique name of the pad probe handler to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_segvisual_pph_add(const wchar_t* name, const wchar_t* handler);
+
+/**
+ * @brief Removes a pad probe handler callback function from a named
+ * Segmentation visualizer.
+ * @param[in] name unique name of the Segmentation visualizer to update
+ * @param[in] handler unique name of the pad probe handler to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_segvisual_pph_remove(const wchar_t* name, const wchar_t* handler);
     
 /**
  * @brief creates a new, uniquely named Primary GIE object
@@ -2837,29 +2900,20 @@ DslReturnType dsl_tap_record_mailer_remove(const wchar_t* name,
  * Set to NULL or empty string "" to leave unspecified, indicating that
  * the model should be created based on the infer_config_file settings
  * @param[in] interval frame interval to infer on. 0 = every frame, 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
+DslReturnType dsl_infer_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
     const wchar_t* model_engine_file, uint interval);
 
 /**
- * @brief Adds a pad-probe-handler to be called to process each frame buffer.
- * A Primary GIE can have multiple Sink and Source pad-probe-handlers
- * @param[in] name unique name of the Primary GIE to update
- * @param[in] handler callback function to process pad probe data
- * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise
+ * @brief creates a new, uniquely named Primary Triton Inference Server (TIS) object
+ * @param[in] name unique name for the new TIS object
+ * @param[in] infer_config_file pathspec of the Infer Config file to use
+ * @param[in] interval frame interval to infer on. 0 = every frame, 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TIS_RESULT otherwise.
  */
-DslReturnType dsl_gie_primary_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
-
-/**
- * @brief Removes a pad-probe-handler from the Primary GIE
- * @param[in] name unique name of the Primary GIE to update
- * @param[in] handler pad-probe-handler to remove
- * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise
- */
-DslReturnType dsl_gie_primary_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
+DslReturnType dsl_infer_tis_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
+    uint interval);
 
 /**
  * @brief creates a new, uniquely named Secondary GIE object
@@ -2870,120 +2924,21 @@ DslReturnType dsl_gie_primary_pph_remove(const wchar_t* name, const wchar_t* han
  * the model should be created based on the infer_config_file settings
  * @param[in] infer_on_gie name of the Primary or Secondary GIE to infer on
  * @param[in] interval frame interval to infer on. 0 = every frame, 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
+DslReturnType dsl_infer_gie_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
     const wchar_t* model_engine_file, const wchar_t* infer_on_gie, uint interval);
 
 /**
- * @brief Gets the current Infer Config File in use by the named Primary or Secondary GIE
- * @param[in] name of Primary or Secondary GIE to query
- * @param[out] infer_config_file Infer Config file currently in use
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
+ * @brief creates a new, uniquely named Secondary TIS object
+ * @param[in] name unique name for the new TIS object
+ * @param[in] infer_config_file pathspec of the Infer Config file to use
+ * @param[in] infer_on_tis name of the Primary or Secondary TIS to infer on
+ * @param[in] interval frame interval to infer on. 0 = every frame, 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_gie_infer_config_file_get(const wchar_t* name, const wchar_t** infer_config_file);
-
-/**
- * @brief Sets the Infer Config File to use by the named Primary or Secondary GIE
- * @param[in] name of Primary or Secondary GIE to update
- * @param[in] infer_config_file new Infer Config file to use
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
- */
-DslReturnType dsl_gie_infer_config_file_set(const wchar_t* name, const wchar_t* infer_config_file);
-
-/**
- * @brief Gets the current Model Engine File in use by the named Primary or Secondary GIE
- * @param[in] name of Primary or Secondary GIE to query
- * @param[out] model_engi_file Model Engine file currently in use
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
- */
-DslReturnType dsl_gie_model_engine_file_get(const wchar_t* name, const wchar_t** model_engine_file);
-
-/**
- * @brief Sets the Model Engine File to use by the named Primary or Secondary GIE
- * @param[in] name of Primary or Secondary GIE to update
- * @param[in] model_engine_file new Model Engine file to use
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
- */
-DslReturnType dsl_gie_model_engine_file_set(const wchar_t* name, const wchar_t* model_engine_file);
-
-/**
- * @brief Gets the current Infer Interval in use by the named Primary or Secondary GIE
- * @param[in] name of Primary or Secondary GIE to query
- * @param[out] interval Infer interval value currently in use
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
- */
-DslReturnType dsl_gie_interval_get(const wchar_t* name, uint* interval);
-
-/**
- * @brief Sets the Model Engine File to use by the named Primary or Secondary GIE
- * @param[in] name of Primary or Secondary GIE to update
- * @param[in] interval new Infer Interval value to use
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
- */
-DslReturnType dsl_gie_interval_set(const wchar_t* name, uint interval);
-
-/**
- * @brief Enbles/disables the raw layer-info output to binary file for the named the GIE
- * @param[in] name name of the Primary or Secondary GIE to update
- * @param[in] enabled set to true to enable frame-to-file output for each GIE layer
- * @param[in] path absolute or relative direcory path to write to. 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
- */
-DslReturnType dsl_gie_raw_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* path);
-
-/**
- * @brief creates a new, uniquely named KTL Tracker object
- * @param[in] name unique name for the new Tracker
- * @param[in] max_width maximum frame width of the input transform buffer
- * @param[in] max_height maximum_frame height of the input tranform buffer
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
- */
-DslReturnType dsl_tracker_ktl_new(const wchar_t* name, uint max_width, uint max_height);
-
-/**
- * @brief creates a new, uniquely named IOU Tracker object
- * @param[in] name unique name for the new Tracker
- * @param[in] config_file fully qualified pathspec to the IOU Lib config text file
- * @param[in] max_width maximum frame width of the input transform buffer
- * @param[in] max_height maximum_frame height of the input tranform buffer
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
- */
-DslReturnType dsl_tracker_iou_new(const wchar_t* name, const wchar_t* config_file, uint max_width, uint max_height);
-
-/**
- * @brief returns the current maximum frame width and height settings for the named IOU Tracker object
- * @param[in] name unique name of the Tracker to query
- * @param[out] max_width maximum frame width of the input transform buffer
- * @param[out] max_height maximum_frame height of the input tranform buffer
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
- */
-DslReturnType dsl_tracker_max_dimensions_get(const wchar_t* name, uint* max_width, uint* max_height);
-
-/**
- * @brief sets the maximum frame width and height settings for the named IOU Tracker object
- * @param[in] name unique name of the Tracker to update
- * @param[in] max_width new maximum frame width of the input transform buffer
- * @param[in] max_height new maximum_frame height of the input tranform buffer
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
- */
-DslReturnType dsl_tracker_max_dimensions_set(const wchar_t* name, uint max_width, uint max_height);
-
-/**
- * @brief returns the current config file in use by the named IOU Tracker object
- * @param[in] name unique name of the Tracker to query
- * @param[out] config_file absolute or relative pathspec to the new config file to use
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
- */
-DslReturnType dsl_tracker_iou_config_file_get(const wchar_t* name, const wchar_t** config_file);
-
-/**
- * @brief sets the config file to use by named IOU Tracker object
- * @param[in] name unique name of the Tracker to Update
- * @param[in] config_file absolute or relative pathspec to the new config file to use
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
- */
-DslReturnType dsl_tracker_iou_config_file_set(const wchar_t* name, const wchar_t* config_file);
+DslReturnType dsl_infer_tis_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
+    const wchar_t* infer_on_tis, uint interval);
 
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
@@ -2991,7 +2946,204 @@ DslReturnType dsl_tracker_iou_config_file_set(const wchar_t* name, const wchar_t
  * @param[in] name unique name of the Primary GIE to update
  * @param[in] handler callback function to process pad probe data
  * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
+ */
+DslReturnType dsl_infer_primary_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
+
+/**
+ * @brief Removes a pad-probe-handler from the Primary GIE
+ * @param[in] name unique name of the Primary GIE to update
+ * @param[in] handler pad-probe-handler to remove
+ * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
+ */
+DslReturnType dsl_infer_primary_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
+
+/**
+ * @brief Gets the current Infer Config File in use by the named Primary or Secondary GIE
+ * @param[in] name of Primary or Secondary GIE to query
+ * @param[out] infer_config_file Infer Config file currently in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
+ */
+DslReturnType dsl_infer_config_file_get(const wchar_t* name, const wchar_t** infer_config_file);
+
+/**
+ * @brief Sets the Infer Config File to use by the named Primary or Secondary GIE
+ * @param[in] name of Primary or Secondary GIE to update
+ * @param[in] infer_config_file new Infer Config file to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
+ */
+DslReturnType dsl_infer_config_file_set(const wchar_t* name, const wchar_t* infer_config_file);
+
+/**
+ * @brief Gets the current Model Engine File in use by the named Primary or Secondary GIE
+ * @param[in] name of Primary or Secondary GIE to query
+ * @param[out] model_engi_file Model Engine file currently in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
+ */
+DslReturnType dsl_gie_model_engine_file_get(const wchar_t* name, const wchar_t** model_engine_file);
+
+/**
+ * @brief Sets the Model Engine File to use by the named Primary or Secondary GIE
+ * @param[in] name of Primary or Secondary GIE to update
+ * @param[in] model_engine_file new Model Engine file to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
+ */
+DslReturnType dsl_gie_model_engine_file_set(const wchar_t* name, const wchar_t* model_engine_file);
+
+/**
+ * @brief Gets the current Infer Interval in use by the named Primary or Secondary GIE
+ * @param[in] name of Primary or Secondary GIE to query
+ * @param[out] interval Infer interval value currently in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
+ */
+DslReturnType dsl_infer_interval_get(const wchar_t* name, uint* interval);
+
+/**
+ * @brief Sets the Model Engine File to use by the named Primary or Secondary GIE
+ * @param[in] name of Primary or Secondary GIE to update
+ * @param[in] interval new Infer Interval value to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
+ */
+DslReturnType dsl_infer_interval_set(const wchar_t* name, uint interval);
+
+/**
+ * @brief Enbles/disables the raw layer-info output to binary file for the named the GIE
+ * @param[in] name name of the Primary or Secondary GIE to update
+ * @param[in] enabled set to true to enable frame-to-file output for each GIE layer
+ * @param[in] path absolute or relative direcory path to write to. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
+ */
+DslReturnType dsl_infer_raw_output_enabled_set(const wchar_t* name, 
+    boolean enabled, const wchar_t* path);
+
+/**
+ * @brief creates a new, uniquely named DCF Tracker object
+ * @param[in] name unique name for the new Tracker
+ * @param[in] config_file (optional) relative or absolute pathspec to 
+ * the NvDCF Lib config text file
+ * @param[in] width operational frame width for Tracker
+ * @param[in] height operational frame height for the Tracker
+ * @param[in] batch_processing_enabled set to true to enable batch_mode 
+ * processing, false for single stream mode
+ * @param[in] past_frame_reporting_enabled set to true to enable 
+ * reporting of past frame data when available, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_dcf_new(const wchar_t* name, 
+    const wchar_t* config_file, uint width, uint height,
+    boolean batch_processing_enabled, boolean past_frame_reporting_enabled);
+
+/**
+ * @brief creates a new, uniquely named KTL Tracker object
+ * @param[in] name unique name for the new for Tracker
+ * @param[in] width operational frame width for Tracker
+ * @param[in] height operational frame height for the Tracker
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_ktl_new(const wchar_t* name, uint width, uint height);
+
+/**
+ * @brief creates a new, uniquely named IOU Tracker object
+ * @param[in] name unique name for the new Tracker
+ * @param[in] config_file (optional) relative or absolute pathspec to 
+ * the IOU Lib config text file
+ * @param[in] width operational frame width for the Tracker
+ * @param[in] height operational frame height for the Tracker
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_iou_new(const wchar_t* name, 
+    const wchar_t* config_file, uint width, uint height);
+
+/**
+ * @brief returns the current frame width and height settings for the named KTL 
+ * or IOU Tracker
+ * @param[in] name unique name of the Tracker to query
+ * @param[in] width operational frame width for the Tracker
+ * @param[in] height operational frame height for the Tracker
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_dimensions_get(const wchar_t* name, uint* width, uint* height);
+
+/**
+ * @brief sets the frame width and height settings for the named KTL or IOU Tracker
+ * @param[in] name unique name of the Tracker to update
+ * @param[in] width output frame width for GIEs and TISs to work on
+ * @param[in] height output frame height for GIEs and TIS to work on
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_dimensions_set(const wchar_t* name, uint width, uint height);
+
+/**
+ * @brief Gets the current "enable-batch-process" settings for the named KTL 
+ * or IOU Tracker object. 
+ * @param[in] name unique name of the Tracker to query
+ * @param[out] true if batch-processing is enabled, fale otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_dcf_batch_processing_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+
+/**
+ * @brief Sets the "enable-batch-process" settings for the named KTL 
+ * or IOU Tracker
+ * Note: This call is only effective if the low-level library supports 
+ * both batch and per-stream processing.
+ * @param[in] name unique name of the Tracker to query
+ * @param[out] true to enable batch-processing enabled, fale otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_dcf_batch_processing_enabled_set(const wchar_t* name, 
+    boolean enabled);
+
+/**
+ * @brief Gets the current "enable-past-frame" settings for the named KTL 
+ * or IOU Tracker
+ * @param[in] name unique name of the Tracker to query
+ * @param[out] true if past-frame reporting is enabled, fale otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_dcf_past_frame_reporting_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+
+/**
+ * @brief Sets current "enable-past-frame" settings for the named KTL 
+ * or IOU Tracker object
+ * Note: This call is only effective if the low-level library supports 
+ * past frame reporting.
+ * @param[in] name unique name of the Tracker to query
+ * @param[out] true if past frame reporting is enabled, fale otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_dcf_past_frame_reporting_enabled_set(const wchar_t* name, 
+    boolean enabled);
+
+/**
+ * @brief returns the current config file in use by the named Tracker object
+ * @param[in] name unique name of the Tracker to query
+ * @param[out] config_file absolute or relative pathspec to the new config file to use
+ * Note: the config_file is an optional setting. An empty string will be returned if omitted
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_config_file_get(const wchar_t* name, const wchar_t** config_file);
+
+/**
+ * @brief sets the config file to use by named IOU of DCF Tracker object. Calling this
+ * service on a KTL Tracker will have no affect.
+ * @param[in] name unique name of the Tracker to Update
+ * @param[in] config_file absolute or relative pathspec to the new config file to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_config_file_set(const wchar_t* name, 
+    const wchar_t* config_file);
+
+/**
+ * @brief Adds a pad-probe-handler to be called to process each frame buffer.
+ * A Primary GIE can have multiple Sink and Source pad-probe-handlers
+ * @param[in] name unique name of the Primary GIE to update
+ * @param[in] handler callback function to process pad probe data
+ * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
  */
 DslReturnType dsl_tracker_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
 
@@ -3000,7 +3152,7 @@ DslReturnType dsl_tracker_pph_add(const wchar_t* name, const wchar_t* handler, u
  * @param[in] name unique name of the Primary GIE to update
  * @param[in] handler pad-probe-handler to remove
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
  */
 DslReturnType dsl_tracker_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
 

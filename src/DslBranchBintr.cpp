@@ -37,19 +37,62 @@ namespace DSL
         LOG_FUNC();
     }
 
-    bool BranchBintr::AddPrimaryGieBintr(DSL_BASE_PTR pPrmaryGieBintr)
+    bool BranchBintr::AddPrimaryInferBintr(DSL_BASE_PTR pPrimaryInferBintr)
     {
         LOG_FUNC();
         
-        if (m_pPrimaryGieBintr)
+        if (m_pPrimaryInferBintr)
         {
-            LOG_ERROR("Branch '" << GetName() << "' has an exisiting Primary GIE '" 
-                << m_pPrimaryGieBintr->GetName());
+            LOG_ERROR("Branch '" << GetName() << "' has an exisiting PrimaryInferBintr '" 
+                << m_pPrimaryInferBintr->GetName());
             return false;
         }
-        m_pPrimaryGieBintr = std::dynamic_pointer_cast<PrimaryGieBintr>(pPrmaryGieBintr);
+        m_pPrimaryInferBintr = std::dynamic_pointer_cast<PrimaryInferBintr>(pPrimaryInferBintr);
         
-        return AddChild(pPrmaryGieBintr);
+        return AddChild(pPrimaryInferBintr);
+    }
+
+    bool BranchBintr::RemovePrimaryInferBintr(DSL_BASE_PTR pPrimaryInferBintr)
+    {
+        LOG_FUNC();
+        
+        if (!pPrimaryInferBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' has no Primary Infer to remove'");
+            return false;
+        }
+        if (m_pPrimaryInferBintr != pPrimaryInferBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' does not own Primary Infer' " 
+                << pPrimaryInferBintr->GetName() << "'");
+            return false;
+        }
+        if (IsLinked())
+        {
+            LOG_ERROR("Primary Infer cannot be removed from Branch '" << GetName() 
+                << "' as it is currently linked");
+            return false;
+        }
+        m_pPrimaryInferBintr = nullptr;
+        
+        LOG_INFO("Removing Primary Infer '"<< pPrimaryInferBintr->GetName() 
+            << "' from Branch '" << GetName() << "'");
+        return RemoveChild(pPrimaryInferBintr);
+    }
+
+    bool BranchBintr::AddSegVisualBintr(DSL_BASE_PTR pSegVisualBintr)
+    {
+        LOG_FUNC();
+
+        if (m_pSegVisualBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Segmentation Visualizer");
+            return false;
+        }
+        m_pSegVisualBintr = std::dynamic_pointer_cast<SegVisualBintr>(pSegVisualBintr);
+        
+        return AddChild(pSegVisualBintr);
     }
 
     bool BranchBintr::AddTrackerBintr(DSL_BASE_PTR pTrackerBintr)
@@ -66,17 +109,46 @@ namespace DSL
         return AddChild(pTrackerBintr);
     }
 
-    bool BranchBintr::AddSecondaryGieBintr(DSL_BASE_PTR pSecondaryGieBintr)
+    bool BranchBintr::RemoveTrackerBintr(DSL_BASE_PTR pTrackerBintr)
+    {
+        LOG_FUNC();
+        
+        if (!m_pTrackerBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' has no Tracker to remove'");
+            return false;
+        }
+        if (m_pTrackerBintr != pTrackerBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' does not own Tracker' " 
+                << m_pTrackerBintr->GetName() << "'");
+            return false;
+        }
+        if (IsLinked())
+        {
+            LOG_ERROR("Tracker cannot be removed from Branch '" << GetName() 
+                << "' as it is currently linked'");
+            return false;
+        }
+        m_pTrackerBintr = nullptr;
+        
+        LOG_INFO("Removing Tracker '"<< pTrackerBintr->GetName() 
+            << "' from Branch '" << GetName() << "'");
+        return RemoveChild(pTrackerBintr);
+    }
+
+    bool BranchBintr::AddSecondaryInferBintr(DSL_BASE_PTR pSecondaryInferBintr)
     {
         LOG_FUNC();
         
         // Create the optional Secondary GIEs bintr 
-        if (!m_pSecondaryGiesBintr)
+        if (!m_pSecondaryInfersBintr)
         {
-            m_pSecondaryGiesBintr = DSL_PIPELINE_SGIES_NEW("sgies-bin");
-            AddChild(m_pSecondaryGiesBintr);
+            m_pSecondaryInfersBintr = DSL_PIPELINE_SINFERS_NEW("secondary-infer-bin");
+            AddChild(m_pSecondaryInfersBintr);
         }
-        return m_pSecondaryGiesBintr->AddChild(std::dynamic_pointer_cast<SecondaryGieBintr>(pSecondaryGieBintr));
+        return m_pSecondaryInfersBintr->
+            AddChild(std::dynamic_pointer_cast<SecondaryInferBintr>(pSecondaryInferBintr));
     }
 
     bool BranchBintr::AddOfvBintr(DSL_BASE_PTR pOfvBintr)
@@ -256,35 +328,44 @@ namespace DSL
             return false;
         }
         if (!m_pDemuxerBintr and !m_pSplitterBintr and !m_pMultiSinksBintr)
-//        if (!m_pDemuxerBintr and !m_pTilerBintr)
         {
-            LOG_ERROR("Pipline '" << GetName() << "' has no Demuxer, Splitter or Sink - and is unable to link");
+            LOG_ERROR("Pipline '" << GetName() 
+                << "' has no Demuxer, Splitter or Sink - and is unable to link");
             return false;
         }
-        if (m_pTrackerBintr and !m_pPrimaryGieBintr)
+        if (m_pTrackerBintr and !m_pPrimaryInferBintr)
         {
-            LOG_ERROR("Pipline '" << GetName() << "' has a Tracker and no Primary GIE - and is unable to link");
+            LOG_ERROR("Pipline '" << GetName() 
+                << "' has a Tracker and no PrimaryInferBintr - and is unable to link");
             return false;
         }
-        if (m_pSecondaryGiesBintr and !m_pPrimaryGieBintr)
+        if (m_pSegVisualBintr and !m_pPrimaryInferBintr)
         {
-            LOG_ERROR("Pipline '" << GetName() << "' has a Seconday GIE and no Primary GIE - and is unable to link");
+            LOG_ERROR("Pipline '" << GetName() 
+                << "' has a Segmentation Visualizer with no PrimaryInferBintr - and is unable to link");
+            return false;
+        }
+        if (m_pSecondaryInfersBintr and !m_pPrimaryInferBintr)
+        {
+            LOG_ERROR("Pipline '" << GetName() 
+                << "' has a SecondayInferbintr with no PrimaryInferBintr - and is unable to link");
             return false;
         }
         
-        if (m_pPrimaryGieBintr)
+        if (m_pPrimaryInferBintr)
         {
-            // Set the GIE's batch size to the current stream muxer batch size, 
-            // then LinkAll PrimaryGie Elementrs and add as the next component in the Branch
-            m_pPrimaryGieBintr->SetBatchSize(m_batchSize);
-            if (!m_pPrimaryGieBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pPrimaryGieBintr)))
+            // Set the SecondarInferBintrs batch size to the current stream muxer batch size, 
+            // then LinkAll PrimaryInfer Elementrs and add as the next component in the Branch
+            m_pPrimaryInferBintr->SetBatchSize(m_batchSize);
+            if (!m_pPrimaryInferBintr->LinkAll() or
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pPrimaryInferBintr)))
             {
                 return false;
             }
-            m_linkedComponents.push_back(m_pPrimaryGieBintr);
-            LOG_INFO("Branch '" << GetName() << "' Linked up Primary GIE '" << 
-                m_pPrimaryGieBintr->GetName() << "' successfully");
+            m_linkedComponents.push_back(m_pPrimaryInferBintr);
+            LOG_INFO("Branch '" << GetName() << "' Linked up PrimaryInferBintr '" << 
+                m_pPrimaryInferBintr->GetName() << "' successfully");
         }
         
         if (m_pTrackerBintr)
@@ -292,7 +373,8 @@ namespace DSL
             // LinkAll Tracker Elementrs and add as the next component in the Branch
             m_pTrackerBintr->SetBatchSize(m_batchSize);
             if (!m_pTrackerBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pTrackerBintr)))
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pTrackerBintr)))
             {
                 return false;
             }
@@ -301,21 +383,37 @@ namespace DSL
                 m_pTrackerBintr->GetName() << "' successfully");
         }
         
-        if (m_pSecondaryGiesBintr)
+        if (m_pSecondaryInfersBintr)
         {
-            // Set the Secondary GIEs' Primary GIE Name, and set batch sizes
-            m_pSecondaryGiesBintr->SetInferOnGieId(m_pPrimaryGieBintr->GetUniqueId());
-            m_pSecondaryGiesBintr->SetBatchSize(m_batchSize);
+            // Set the SecondaryInferBintr' Primary Infer Name, and set batch sizes
+            m_pSecondaryInfersBintr->SetInferOnId(m_pPrimaryInferBintr->GetUniqueId());
+            m_pSecondaryInfersBintr->SetBatchSize(m_batchSize);
             
             // LinkAll SecondaryGie Elementrs and add the Bintr as next component in the Branch
-            if (!m_pSecondaryGiesBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pSecondaryGiesBintr)))
+            if (!m_pSecondaryInfersBintr->LinkAll() or
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pSecondaryInfersBintr)))
             {
                 return false;
             }
-            m_linkedComponents.push_back(m_pSecondaryGiesBintr);
+            m_linkedComponents.push_back(m_pSecondaryInfersBintr);
             LOG_INFO("Branch '" << GetName() << "' Linked up all Secondary GIEs '" << 
-                m_pSecondaryGiesBintr->GetName() << "' successfully");
+                m_pSecondaryInfersBintr->GetName() << "' successfully");
+        }
+
+        if (m_pSegVisualBintr)
+        {
+            // LinkAll Segmentation Visualizer Elementrs and add as the next component in the Branch
+            m_pSegVisualBintr->SetBatchSize(m_batchSize);
+            if (!m_pSegVisualBintr->LinkAll() or
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pSegVisualBintr)))
+            {
+                return false;
+            }
+            m_linkedComponents.push_back(m_pSegVisualBintr);
+            LOG_INFO("Branch '" << GetName() << "' Linked up Segmentation Visualizer '" << 
+                m_pSegVisualBintr->GetName() << "' successfully");
         }
 
         if (m_pOfvBintr)
@@ -323,7 +421,8 @@ namespace DSL
             // LinkAll Optical Flow Elementrs and add as the next component in the Branch
             m_pOfvBintr->SetBatchSize(m_batchSize);
             if (!m_pOfvBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pOfvBintr)))
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pOfvBintr)))
             {
                 return false;
             }
@@ -338,7 +437,8 @@ namespace DSL
             // Link All Tiler Elementrs and add as the next component in the Branch
             m_pTilerBintr->SetBatchSize(m_batchSize);
             if (!m_pTilerBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pTilerBintr)))
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pTilerBintr)))
             {
                 return false;
             }
@@ -353,7 +453,8 @@ namespace DSL
             // LinkAll Osd Elementrs and add as next component in the Branch
             m_pOsdBintr->SetBatchSize(m_batchSize);
             if (!m_pOsdBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pOsdBintr)))
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pOsdBintr)))
             {
                 return false;
             }
@@ -365,10 +466,12 @@ namespace DSL
         // mutually exclusive with TilerBintr, Pipeline-OsdBintr, and Pieline-MultiSinksBintr
         if (m_pDemuxerBintr)
         {
-            // Link All Demuxer Elementrs and add as the next ** AND LAST ** component in the Pipeline
+            // Link All Demuxer Elementrs and add as the next ** AND LAST ** 
+            // component in the Pipeline
             m_pDemuxerBintr->SetBatchSize(m_batchSize);
             if (!m_pDemuxerBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pDemuxerBintr)))
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pDemuxerBintr)))
             {
                 return false;
             }
@@ -377,13 +480,16 @@ namespace DSL
                 m_pDemuxerBintr->GetName() << "' successfully");
         }
 
-        // mutually exclusive with TilerBintr, Pipeline-OsdBintr, and Pieline-MultiSinksBintr
+        // mutually exclusive with TilerBintr, Pipeline-OsdBintr, 
+        // and Pieline-MultiSinksBintr
         if (m_pSplitterBintr)
         {
-            // Link All Demuxer Elementrs and add as the next ** AND LAST ** component in the Pipeline
+            // Link All Demuxer Elementrs and add as the next ** AND LAST ** 
+            // component in the Pipeline
             m_pSplitterBintr->SetBatchSize(m_batchSize);
             if (!m_pSplitterBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pSplitterBintr)))
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pSplitterBintr)))
             {
                 return false;
             }
@@ -395,10 +501,12 @@ namespace DSL
         // mutually exclusive with Demuxer
         if (m_pMultiSinksBintr)
         {
-            // Link all Sinks and their elementrs and add as finale (tail) components in the Branch
+            // Link all Sinks and their elementrs and add as finale (tail) 
+            //components in the Branch
             m_pMultiSinksBintr->SetBatchSize(m_batchSize);
             if (!m_pMultiSinksBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pMultiSinksBintr)))
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pMultiSinksBintr)))
             {
                 return false;
             }

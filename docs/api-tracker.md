@@ -1,22 +1,33 @@
 # Multi-Object Tracker API Reference
-KTL and IOU Tracker components are created by calling their type specific constructor, [dsl_tracker_ktl_new](#dsl_tracker_ktl_new) and [dsl_tracker_iou_new](#dsl_tracker_iou_new)
+The DeepStream Services Liberary supports Nvidia's three reference low-level trackers (*Note: the below bullets are copied from the Nvidia DeepStream* [*Gst-nvtracker plugin-guide*](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvtracker.html)). 
+
+1. The KLT tracker uses a CPU-based implementation of the Kanade-Lucas-Tomasi (KLT) tracker algorithm. This library requires no configuration file.
+2. The Intersection-Over-Union (IOU) tracker uses the IOU values among the detector’s bounding boxes between the two consecutive frames to perform the association between them or assign a new ID. This library takes an optional configuration file.
+3. The NVIDIA®-adapted Discriminative Correlation Filter (NvDCF) tracker uses a correlation filter-based online discriminative learning algorithm as a visual object tracker, while using a data association algorithm for multi-object tracking. This library accepts an optional configuration file.
+
+Tracker components are created by calling their type specific constructor, [dsl_tracker_ktl_new](#dsl_tracker_ktl_new), [dsl_tracker_iou_new](#dsl_tracker_iou_new), and [dsl_tracker_dcf_new](#dsl_tracker_dcf_new)
 
 A Tracker is added to a Pipeline by calling [dsl_pipeline_component_add](/docs/api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) (when adding with other compnents) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
 
 The relationship between Pipelines and Trackers is one-to-one. Once added to a Pipeline, a Tracker must be removed before it can used with another. Tracker components are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all). Calling a delete service on a Tracker `in-use` by a Pipeline will fail.
 
-Pipelines with a Tracker component requirie a [Primary GIE](/docs/api-gie.md) component in order to Play. 
+Pipelines with a Tracker component require a [Primary GIE/TIS](/docs/api-infer.md) component in order to Play. 
 
 ## Tracker API
 **Constructors:**
 * [dsl_tracker_ktl_new](#dsl_tracker_ktl_new)
 * [dsl_tracker_iou_new](#dsl_tracker_iou_new)
+* [dsl_tracker_dcf_new](#dsl_tracker_dcf_new)
 
 **Methods:**
-* [dsl_tracker_max_dimensions_get](#dsl_tracker_max_dimensions_get)
-* [dsl_tracker_max_dimensions_set](#dsl_tracker_max_dimensions_set)
-* [dsl_tracker_iou_config_file_get](#dsl_tracker_iou_config_file_get)
-* [dsl_tracker_iou_config_file_set](#dsl_tracker_iou_config_file_set)
+* [dsl_tracker_dimensions_get](#dsl_tracker_dimensions_get)
+* [dsl_tracker_dimensions_set](#dsl_tracker_dimensions_set)
+* [dsl_tracker_config_file_get](#dsl_tracker_config_file_get)
+* [dsl_tracker_config_file_set](#dsl_tracker_config_file_set)
+* [dsl_tracker_dcf_batch_processing_enabled_get](#dsl_tracker_dcf_batch_processing_enabled_get)
+* [dsl_tracker_dcf_batch_processing_enabled_set](#dsl_tracker_dcf_batch_processing_enabled_set)
+* [dsl_tracker_dcf_past_frame_reporting_enabled_get](#dsl_tracker_dcf_past_frame_reporting_enabled_get)
+* [dsl_tracker_dcf_past_frame_reporting_enabled_set](#dsl_tracker_dcf_past_frame_reporting_enabled_set)
 * [dsl_tracker_pph_add](#dsl_tracker_pph_add)
 * [dsl_tracker_pph_remove](#dsl_tracker_pph_remove)
 
@@ -30,33 +41,32 @@ The following return codes are used specifically by the Tracker API
 #define DSL_RESULT_TRACKER_NAME_BAD_FORMAT                          0x00030003
 #define DSL_RESULT_TRACKER_THREW_EXCEPTION                          0x00030004
 #define DSL_RESULT_TRACKER_CONFIG_FILE_NOT_FOUND                    0x00030005
-#define DSL_RESULT_TRACKER_MAX_DIMENSIONS_INVALID                   0x00030006
-#define DSL_RESULT_TRACKER_IS_IN_USE                                0x00030007
-#define DSL_RESULT_TRACKER_SET_FAILED                               0x00030008
-#define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00030009
-#define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x0003000A
-#define DSL_RESULT_TRACKER_PAD_TYPE_INVALID                         0x0003000B
-#define DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER                 0x0003000C
+#define DSL_RESULT_TRACKER_IS_IN_USE                                0x00030006
+#define DSL_RESULT_TRACKER_SET_FAILED                               0x00030007
+#define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00030008
+#define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x00030009
+#define DSL_RESULT_TRACKER_PAD_TYPE_INVALID                         0x0003000A
+#define DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER                 0x0003000B
 ```
 
 ## Constructors
 ### *dsl_tracker_ktl_new*
 ```C++
-DslReturnType dsl_tracker_ktl_new(const wchar_t* name, uint max_width, uint max_height);
+DslReturnType dsl_tracker_ktl_new(const wchar_t* name, uint width, uint height);
 ```
 This service creates a unqiuely named KTL Tracker component. Construction will fail if the name is currently in use. 
 
 **Parameters**
 * `name` - [in] unique name for the KTL Tracker to create.
-* `max_width` - [in] maximum width of each frame for the input transform
-* `max_height` - [in] maximum height of each frame for the input transform
+* `width` - [in] Frame width at which the tracker is to operate, in pixels.
+* `height` - [in] Frame height at which the tracker is to operate, in pixels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_tracker_ktl_new('my-ktl-tracker', 480, 270)
+retval = dsl_tracker_ktl_new('my-ktl-tracker', 640, 384)
 ```
 
 <br>
@@ -66,73 +76,101 @@ retval = dsl_tracker_ktl_new('my-ktl-tracker', 480, 270)
 DslReturnType dsl_tracker_iou_new(const wchar_t* name, const wchar_t* config_file, 
     uint width, uint height);
 ```
-This service creates a unqiuely named IOU Tracker component. Construction will fail if the name is currently in use. 
+This service creates a unqiuely named IOU Tracker component. Construction will fail if the name is currently in use. The `config_file` parameter for the IOU Tracker is optional.
 
 **Parameters**
 * `name` - [in] unique name for the IOU Tracker to create.
-* `config_file` - [in] relative or absolute pathspec to a valid IOU config text file
-* `max_width` - [in] maximum width of each frame for the input transform
-* `max_height` - [in] maximum height of each frame for the input transform
+* `config_file` - [in] relative or absolute pathspec to a valid IOU config text file. Set to NULL or empty string to omit. 
+* `width` - [in] Frame width at which the tracker is to operate, in pixels.
+* `height` - [in] Frame height at which the tracker is to operate, in pixels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_tracker_iou_new('my-', './test/configs/iou_config.txt', 480, 270)
+retval = dsl_tracker_iou_new('my-iou-tracker', './test/configs/iou_config.txt', 640, 384)
+```
+
+<br>
+
+### *dsl_tracker_dcf_new*
+```C++
+DslReturnType dsl_tracker_dcf_new(const wchar_t* name, const wchar_t* config_file, 
+    uint width, uint height, boolean batch_processing_enabled, boolean past_frame_reporting_enabled);
+```
+This service creates a unqiuely named IOU Tracker component. Construction will fail if the name is currently in use. The `config_file` parameter for the DCF Tracker is optional.
+
+**Parameters**
+* `name` - [in] unique name for the IOU Tracker to create.
+* `config_file` - [in] relative or absolute pathspec to a valid IOU config text file. Set to NULL or empty string to omit. 
+* `width` - [in] Frame width at which the tracker is to operate, in pixels.
+* `height` - [in] Frame height at which the tracker is to operate, in pixels.
+* `batch_processing_enabled` - [in] set to true to enable batch_mode processing, false for single stream mode.
+* `past_frame_reporting_enabled` - [in] set to true to enable reporting of past frame data when available, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tracker_dcf_new('my-dcf-tracker', 
+    './test/configs/tracker_config.yml', 640, 384, True, False)
 ```
 
 <br>
 
 ## Methods
-### *dsl_tracker_max_dimensions_get*
+### *dsl_tracker_dimensions_get*
 ```C++
-DslReturnType dsl_tracker_max_dimensions_get(const wchar_t* name, uint* max_width, uint* max_height);
+DslReturnType dsl_tracker_dimensions_get(const wchar_t* name, uint* width, uint* height);
 ```
 
-This service returns the max input frame dimensions to track on in use by the named Tracker.
+This service returns the operational dimensions in use by the named Tracker.
 
 **Parameters**
 * `name` - [in] unique name of the Tracker to query.
-* `max_width` - [out] current maximum width of each frame for the input transform
-* `max_height` - [out] current maximum height of each frame for the input transform
+* `width` - [out] Current frame width at which the tracker is to operate, in pixels.
+* `height` - [out] Current frame height at which the tracker is to operate, in pixels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval, max_width, max_height = dsl_tracker_dimensions_get('my-tracker')
+retval, width, height = dsl_tracker_dimensions_get('my-tracker')
 ```
 
 <br>
 
-### *dsl_tracker_max_dimensions_set*
+### *dsl_tracker_dimensions_set*
 ```C++
-DslReturnType dsl_tracker_max_dimensions_set(const wchar_t* name, uint max_width, uint max_height);
+DslReturnType dsl_tracker_dimensions_set(const wchar_t* name, uint max_width, uint max_height);
 ```
-This Service sets the max input frame dimensions for the name Tracker.
+This Service sets the operational dimensions for the name Tracker.
 
 **Parameters**
 * `name` - [in] unique name of the Tracker to update.
-* `max_width` - [in] new maximum width of each frame for the input transform.
-* `max_height` - [in] new maximum height of each frame for the input transform.
+* `width` - [in] Frame width at which the tracker is to operate, in pixels.
+* `height` - [in] Frame height at which the tracker is to operate, in pixels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_tracker_dimensions_set('my-tracker', 480, 270)
+retval = dsl_tracker_dimensions_set('my-tracker', 640, 368)
 ```
 
 <br>
 
-### *dsl_tracker_iou_config_file_get*
+### *dsl_tracker_config_file_get*
 ```C++
-DslReturnType dsl_tracker_iou_config_file_get(const wchar_t* name, const wchar_t** config_file);
+DslReturnType dsl_tracker_config_file_get(const wchar_t* name, const wchar_t** config_file);
 ```
-This service returns the absolute path to the IOU Tracker Config File in use by the named Tracker.
+This service returns the absolute path to the (optional) Tracker Config File in use by the named IOU or DCF Tracker. This service returns an empty string if the configuration file was omitted on construction, or removed by a call to [dsl_tracker_config_file_set](#dsl_tracker_config_file_set)
+
+NOTE: Calling this service on a KTL Tracker will return an empty string..
 
 **Parameters**
 * `name` - [in] unique name for the IOU Tracker to query.
@@ -143,36 +181,124 @@ This service returns the absolute path to the IOU Tracker Config File in use by 
 
 **Python Example**
 ```Python
-retval, config_file = dsl_tracker_iou_config_file_get('my-iou-tracker')
+retval, config_file = dsl_tracker_config_file_get('my-iou-tracker')
 ```
 
 <br>
 
-### *dsl_tracker_iou_config_file_set*
+### *dsl_tracker_config_file_set*
 ```C++
 DslReturnType dsl_tracker_iou_config_file_set(const wchar_t* name, const wchar_t* config_file);
 ```
-This service updates the named IOU tracker with a new config file to use.
+This service updates the named IOU or DCF tracker with a new config file to use. 
+
+NOTE: Calling this service on a KTL Tracker will have no affect.
 
 **Parameters**
 * `name` - [in] unique name for the IOU Tracker to update.
-* `config_file` - [in] absolute pathspec to the IOU config text file in use.
+* `config_file` - [in] absolute pathspec to the IOU config text file in use. Set config_file to NULL or an empty string to clear the optional configuration file setting
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_tracker_iou_config_file_set('my-iou-tracker', './test/configs/iou_config.txt')
+retval = dsl_tracker_config_file_set('my-iou-tracker', './test/configs/iou_config.txt')
 ```
 
 <br>
+
+### *dsl_tracker_dcf_batch_processing_enabled_get*
+```C++
+DslReturnType dsl_tracker_dcf_batch_processing_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+```
+
+This service gets the current `enable-batch-process` setting for the named DCF Tracker object. 
+
+**Parameters**
+* `name` - [in] unique name of the DCF Tracker to query.
+* `enabled` - [out] true if "batch processing" is enabled, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, enabled = dsl_tracker_dcf_batch_processing_enabled_get('my-tracker')
+```
+
+<br>
+
+### *dsl_tracker_dcf_batch_processing_enabled_set*
+```C++
+DslReturnType dsl_tracker_dcf_batch_processing_enabled_set(const wchar_t* name, 
+    boolean enabled);
+```
+This service sets the `enable-batch-process` setting for the named DCF Tracker object. 
+
+**Parameters**
+* `name` - [in] unique name of the DCF Tracker to update.
+* `enabled` - [in] set to true to enabled batch processing, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tracker_dcf_batch_processing_enabled_set('my-tracker', True)
+```
+
+<br>
+
+### *dsl_tracker_dcf_past_frame_reporting_enabled_get*
+```C++
+DslReturnType dsl_tracker_dcf_past_frame_reporting_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+```
+This service gets the current `enable-past-frame` setting for the named DCF Tracker object. 
+
+**Parameters**
+* `name` - [in] unique name of the DCF Tracker to query.
+* `enabled` - [out] true if "past frame reporting" is enabled, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, enabled = dsl_tracker_dcf_past_frame_reporting_enabled_get('my-tracker')
+```
+
+<br>
+
+### *dsl_tracker_dcf_past_frame_reporting_enabled_set*
+```C++
+DslReturnType dsl_tracker_dcf_past_frame_reporting_enabled_set(const wchar_t* name, 
+    boolean enabled);
+```
+This service sets the `enable-past-frame` setting for the named DCF Tracker object. 
+
+**Parameters**
+* `name` - [in] unique name of the DCF Tracker to update.
+* `enabled` - [in] set to true to enable "past frame reporting", false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tracker_dcf_past_frame_reporting_enabled_set('my-tracker', True)
+```
+
+<br>
+
 
 ### *dsl_tracker_pph_add*
 ```C++
 DslReturnType dsl_tracker_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
 ```
-This service adds a [Pad Probe Handler](/docs/api-pph.md) to either the Sink or Source pad of the named of a Tracker.
+This service adds a [Pad Probe Handler](/docs/api-pph.md) to either the Sink or Source pad of the named Tracker.
 
 **Parameters**
 * `name` - [in] unique name of the Tracker to update.
@@ -219,11 +345,12 @@ retval = dsl_tracker_pph_remove('my-tracker', 'my-pph-handler', `DSL_PAD_SINK`)
 * [Source](/docs/api-source.md)
 * [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
-* [Primary and Secondary GIE](/docs/api-gie.md)
+* [Inference Engine and Server](/docs/api-infer.md)
 * **Tracker**
-* [On-Screen Display](/docs/api-osd.md)
+* [Segmentation Visualizer](/docs/api-segvisual.md)
 * [Tiler](/docs/api-tiler.md)
 * [Demuxer and Splitter](/docs/api-tee.md)
+* [On-Screen Display](/docs/api-osd.md)
 * [Sink](/docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)

@@ -21,7 +21,7 @@ DSL takes advantage of GStreamer's capability to output graph files. These are `
 free programs like GraphViz. Pipeline Graphs describe the topology of your DSL pipeline, along with the 
 caps negotiated in each link. 
 
-GStreamer creates the information when a Pipeline transition into states of `GST_STATE_READY`, `GST_STATE_PAUSED` and `GST_STATE_PLAYING` when the following environment variable is set.
+GStreamer creates the information when a Pipeline transitions into states of `GST_STATE_READY`, `GST_STATE_PAUSED` and `GST_STATE_PLAYING` when the following environment variable is set.
 
 ```
 $ export GST_DEBUG_DUMP_DOT_DIR=./.dot

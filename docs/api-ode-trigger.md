@@ -1,5 +1,7 @@
-## ODE Trigger API
-ODE Triggers use settable criteria to parse the frame and detected-object metadata looking for occurrences of specific object-detection-events: Absence, Occurrence, Intersection, etc. Triggers, on ODE occurrence, iterate through their collection of ordered [ODE Actions](/docs/api-ode-action.md) invoking each. [ODE Areas](/docs/api-ode-area.md), rectangles with location and dimension, can be added to one or more Triggers as criteria for ODE occurrence as well.
+# ODE Trigger API Reference
+ODE Triggers use settable criteria to parse the frame and detected-object metadata looking for occurrences of specific object-detection-events (ODEs): Occurrence, Absence, Intersection, etc. Triggers, on ODE occurrence, iterate through their collection of ordered [ODE Actions](/docs/api-ode-action.md) invoking each. 
+
+[ODE Areas](/docs/api-ode-area.md) -- created from [RGBA Polygons](/docs/api-display-type.md#dsl_display_type_rgba_polygon_new) with up to eight (8) sides -- can be added to one or more Triggers as criteria for ODE occurrence as well.
 
 #### Construction and Destruction
 Triggers are created by calling one of the Type specific constructors defined below. Triggers are deleted by calling [dsl_ode_trigger_delete](#dsl_ode_trigger_delete), [dsl_ode_trigger_delete_many](#dsl_ode_trigger_delete_many), or [dsl_ode_trigger_delete_all](#dsl_ode_trigger_delete_all).
@@ -1559,11 +1561,12 @@ size = dsl_ode_trigger_list_size()
 * [Source](/docs/api-source.md)
 * [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
-* [Primary and Secondary GIE](/docs/api-gie.md)
+* [Inference Engine and Server](/docs/api-infer.md)
 * [Tracker](/docs/api-tracker.md)
+* [Segmentation Visualizer](/docs/api-segvisual.md)
 * [Tiler](/docs/api-tiler.md)
-* [On-Screen Display](/docs/api-osd.md)
 * [Demuxer and Splitter](/docs/api-tee.md)
+* [On-Screen Display](/docs/api-osd.md)
 * [Sink](/docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * **ODE-Trigger**

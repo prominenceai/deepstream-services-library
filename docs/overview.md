@@ -3,10 +3,10 @@
 * [Introduction](#introduction)
 * [Pipeline Components](#pipeline-components)
   * [Streaming Sources](#streaming-sources)
-  * [Primary and Secondary Inference Engines](#primary-and-secondary-inference-engines)
+  * [Inference Engines and Servers](#inference-engines-and-servers)
   * [Multi-Object Trackers](#multi-object-trackers)
-  * [On-Screen Display](#on-screen-display)
   * [Multi-Source Tiler](#multi-source-tiler)
+  * [On-Screen Display](#on-screen-display)
   * [Rendering and Encoding Sinks](#rendering-and-encoding-sinks)
   * [Tees and Branches](#tees-and-branches)
   * [Pad Probe Handlers](#pad-probe-handlers)
@@ -53,7 +53,7 @@ retval += dsl_source_csi_new('my-source', width=1280, height=720, fps_n=30, fps_
 # ...
 
 # new Primary Inference Engine - path to model engine and config file, interval=0 - infer on every frame
-retval += dsl_gie_primary_new('my-pgie', path_to_engine_file, path_to_config_file, interval=0)
+retval += dsl_infer_gie_primary_new('my-pgie', path_to_engine_file, path_to_config_file, interval=0)
 
 # new Multi-Source Tiler with dimensions of width and height 
 retval += dsl_tiler_new('my-tiler', width=1280, height=720)
@@ -129,18 +129,20 @@ A [Record-Tap](#smart-recording) (not show in the image above) can be added to a
 
 See the [Source API](/docs/api-source.md) reference section for more information.
 
-## Primary and Secondary Inference Engines
-NVIDIA's GStreamer Inference Engines (GIEs), using pre-trained models, classify data to “infer” a result, e.g.: person, dog, car? A Pipeline may have at most one Primary Inference Engine (PGIE) -- with a specified set of classification labels to infer-with -- and multiple Secondary Inference Engines (SGIEs) that can Infer-on the output of either the Primary or other Secondary GIEs. Although optional, a Primary Inference Engine is required when adding a Multi-Object Tracker, Secondary Inference Engines, or On-Screen-Display to a Pipeline.
+## Inference Engines and Servers
+NVIDIA's GStreamer Inference Engines (GIEs) and Triton Inference Servers (TISs), using pre-trained models, classify data to “infer” a result, e.g.: person, dog, car? A Pipeline may have at most one Primary Gst Inference Engine (PGIE) or Primary Triton Inference Server (PTIS) -- with a specified set of classification labels to infer-with -- and multiple Secondary Gst Inference Engines (SGIEs) or Secondary Triton Inference Servers (STISs) that can Infer-on the output of either the Primary or other Secondary GIEs/TISs. Although optional, a Primary Inference Engine or Server is required when adding a Multi-Object Tracker, Secondary Inference Engines or Servers, or On-Screen-Display to a Pipeline.
 
-After creation, GIEs can be updated to: 
-* Use a new model-engine, config file and/or inference interval 
-* Update the Primary or Secondary GIE to infer on (SGIEs only).
+After creation, GIEs and TISs can be updated to use a new model-engine (GIE only), config file, and/or inference interval 
 
-With Primary GIEs, applications can:
+With Primary GIEs and TISs, applications can:
 * Add/remove [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers with Metadata for each Frame and Detected-Object found within. 
 * Enable/disable raw layer-info output to binary file, one file per layer, per frame.
 
-See the [Primary and Secondary GIE API](/docs/api-gie.md) reference section for more information.
+See the [Inference Engine and Server API](/docs/api-infer.md) reference section for more information.
+
+DSL supports NVIDIA's [Segmentation Visualizer plugin](https://docs.nvidia.com/metropolis/deepstream/5.0DP/plugin-manual/index.html#page/DeepStream%20Plugins%20Development%20Guide/deepstream_plugin_details.3.11.html#wwpID0E0WT0HA) for viewing segmentation results produced from either a Primary Gst Inference Engine (PGIE) or Primary Triton Inference Server (TIS).
+
+See the [Segmentation Visualizer API](/docs/api-segvisual.md) reference setction for more inforamtion.
 
 ## Multi-Object Trackers
 There are two types of streaming Multi-Object Tracker Components.
@@ -152,7 +154,7 @@ Clients of Tracker components can add/remove [Pad Probe Handlers](#pad-probe-han
 Tracker components are optional and a Pipeline, or [Branch](#tees-and-branches) can have at most one. See the [Tracker API](/docs/api-tracker.md) reference section for more details. See NVIDIA's [Low-Level Tracker Library Comparisons and Tradeoffs](https://docs.nvidia.com/metropolis/deepstream/dev-guide/DeepStream%20Plugins%20Development%20Guide/deepstream_plugin_details.3.02.html#wwpID0E0Q20HA) for additional information.
 
 ## Multi-Source Tiler
-To support the dynamic addition and removal of Sources and Sinks, all Source components connect to the Pipeline's internal Stream-Muxer, even when there is only one. The multiplexed stream must either be Tiled **or** Demuxed before reaching an On-Screen Display or Sink component downstream.
+All Source components connect to the Pipeline's internal Stream-Muxer -- responsible for batching multiple sources and adding the meta-data structures to each frame -- even when there is only one. When using more that one source, the multiplexed stream must either be Tiled **or** Demuxed before reaching an On-Screen Display or Sink component downstream.
 
 Tiler components transform the multiplexed streams into a 2D grid array of tiles, one per Source component. Tilers output a single stream that can connect to a single On-Screen Display (OSD). When using a Tiler, the OSD (optional) and Sinks (minimum one) are added directly to the Pipeline or Branch to operate on the Tiler's single output stream.
 ```Python
@@ -1101,11 +1103,12 @@ if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
 * [Source](/docs/api-source.md)
 * [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
-* [Primary and Secondary GIEs](/docs/api-gie.md)
+* [Inference Engine and Server](/docs/api-infer.md)
 * [Tracker](/docs/api-tracker.md)
-* [On-Screen Display](/docs/api-osd.md)
+* [Segmentation Visualizer](/docs/api-segvisual.md)
 * [Tiler](/docs/api-tiler.md)
 * [Demuxer and Splitter Tees](/docs/api-tee)
+* [On-Screen Display](/docs/api-osd.md)
 * [Sink](docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)

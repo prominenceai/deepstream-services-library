@@ -28,7 +28,8 @@ THE SOFTWARE.
 #include "DslOdeTrigger.h"
 #include "DslServices.h"
 #include "DslSourceBintr.h"
-#include "DslGieBintr.h"
+#include "DslInferBintr.h"
+#include "DslSegVisualBintr.h"
 #include "DslTrackerBintr.h"
 #include "DslPadProbeHandler.h"
 #include "DslTilerBintr.h"
@@ -217,13 +218,36 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(SecondaryGieBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Primary or Secondary GIE"); \
-        return DSL_RESULT_GIE_COMPONENT_IS_NOT_GIE; \
+        return DSL_RESULT_INFER_COMPONENT_IS_NOT_INFER; \
+    } \
+}while(0); 
+
+#define RETURN_IF_COMPONENT_IS_NOT_INFER(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(PrimaryGieBintr)) and  \
+        !components[name]->IsType(typeid(SecondaryGieBintr)) and \
+        !components[name]->IsType(typeid(PrimaryTisBintr)) and \
+        !components[name]->IsType(typeid(SecondaryTisBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a GIE or TIS"); \
+        return DSL_RESULT_INFER_COMPONENT_IS_NOT_INFER; \
+    } \
+}while(0); 
+
+#define RETURN_IF_COMPONENT_IS_NOT_PRIMARY_INFER_TYPE(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(PrimaryGieBintr)) and  \
+        !components[name]->IsType(typeid(PrimaryTisBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a Primary GIE or TIS"); \
+        return DSL_RESULT_INFER_COMPONENT_IS_NOT_INFER; \
     } \
 }while(0); 
 
 #define RETURN_IF_COMPONENT_IS_NOT_TRACKER(components, name) do \
 { \
-    if (!components[name]->IsType(typeid(KtlTrackerBintr)) and  \
+    if (!components[name]->IsType(typeid(DcfTrackerBintr)) and  \
+        !components[name]->IsType(typeid(KtlTrackerBintr)) and  \
         !components[name]->IsType(typeid(IouTrackerBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Tracker"); \
@@ -6008,6 +6032,152 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
+    DslReturnType Services::SegVisualNew(const char* name, 
+        uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure element name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Segmentation Visualizer name '" << name 
+                    << "' is not unique");
+                return DSL_RESULT_SEGVISUAL_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = std::shared_ptr<Bintr>(new SegVisualBintr(
+                name, width, height));
+                
+            LOG_INFO("New Segmentation Visualizer '" << name 
+                << "' created successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Segmentation Visualizer'" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SEGVISUAL_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SegVisualDimensionsGet(const char* name, 
+        uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, SegVisualBintr);
+
+            DSL_SEGVISUAL_PTR pSegVisual = 
+                std::dynamic_pointer_cast<SegVisualBintr>(m_components[name]);
+
+            pSegVisual->GetDimensions(width, height);
+            
+            LOG_INFO("Width = " << *width << " height = " << *height << 
+                " returned successfully for Segmentation Visualizer '" << name << "'");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Segmentation Visualizer '" << name 
+                << "' threw an exception getting dimensions");
+            return DSL_RESULT_SEGVISUAL_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SegVisualDimensionsSet(const char* name, 
+        uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, SegVisualBintr);
+
+            DSL_SEGVISUAL_PTR pSegVisual = 
+                std::dynamic_pointer_cast<SegVisualBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!pSegVisual->SetDimensions(width, height))
+            {
+                LOG_ERROR("Segmentation Visualizer '" << name 
+                    << "' failed to set dimensions");
+                return DSL_RESULT_SEGVISUAL_SET_FAILED;
+            }
+            LOG_INFO("Width = " << width << " height = " << height << 
+                " set successfully for Tiler '" << name << "'");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Segmentation Visualizer '" << name 
+                << "' threw an exception setting dimensions");
+            return DSL_RESULT_SEGVISUAL_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SegVisualPphAdd(const char* name, const char* handler)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, SegVisualBintr);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
+            // call on the Handler to add itself to the Tiler as a PadProbeHandler
+            if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], DSL_PAD_SRC))
+            {
+                LOG_ERROR("Segmentation Visualizer '" << name 
+                    << "' failed to add Pad Probe Handler");
+                return DSL_RESULT_SEGVISUAL_HANDLER_ADD_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Segmentation Visualizer '" << name 
+                << "' threw an exception adding Pad Probe Handler");
+            return DSL_RESULT_SEGVISUAL_THREW_EXCEPTION;
+        }
+    }
+   
+    DslReturnType Services::SegVisualPphRemove(const char* name, const char* handler) 
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, SegVisualBintr);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
+            // call on the Handler to remove itself from the Tee
+            if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], DSL_PAD_SRC))
+            {
+                LOG_ERROR("Pad Probe Handler '" << handler 
+                    << "' is not a child of Segmentation Visualizer '" << name << "'");
+                return DSL_RESULT_SEGVISUAL_HANDLER_REMOVE_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Segmentation Visualizer '" << name 
+                << "' threw an exception removing Pad Probe Handler");
+            return DSL_RESULT_SEGVISUAL_THREW_EXCEPTION;
+        }
+    }
     
     DslReturnType Services::PrimaryGieNew(const char* name, const char* inferConfigFile,
         const char* modelEngineFile, uint interval)
@@ -6021,7 +6191,7 @@ namespace DSL
             if (m_components.find(name) != m_components.end())
             {   
                 LOG_ERROR("GIE name '" << name << "' is not unique");
-                return DSL_RESULT_GIE_NAME_NOT_UNIQUE;
+                return DSL_RESULT_INFER_NAME_NOT_UNIQUE;
             }
             
             LOG_INFO("Infer config file: " << inferConfigFile);
@@ -6030,7 +6200,7 @@ namespace DSL
             if (!configFile.good())
             {
                 LOG_ERROR("Infer Config File not found");
-                return DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND;
+                return DSL_RESULT_INFER_CONFIG_FILE_NOT_FOUND;
             }
             
             std::string testPath(modelEngineFile);
@@ -6042,7 +6212,7 @@ namespace DSL
                 if (!modelFile.good())
                 {
                     LOG_ERROR("Model Engine File not found");
-                    return DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND;
+                    return DSL_RESULT_INFER_MODEL_FILE_NOT_FOUND;
                 }
             }
             m_components[name] = DSL_PRIMARY_GIE_NEW(name, 
@@ -6054,72 +6224,44 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New Primary GIE '" << name << "' threw exception on create");
-            return DSL_RESULT_GIE_THREW_EXCEPTION;
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::PrimaryGiePphAdd(const char* name, const char* handler, uint pad)
+    DslReturnType Services::PrimaryTisNew(const char* name, 
+        const char* inferConfigFile, uint interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
+
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, PrimaryGieBintr);
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
-
-            if (pad > DSL_PAD_SRC)
-            {
-                LOG_ERROR("Invalid Pad type = " << pad << " for PrimaryGie '" << name << "'");
-                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("TIS name '" << name << "' is not unique");
+                return DSL_RESULT_INFER_NAME_NOT_UNIQUE;
             }
-
-            // call on the Handler to add itself to the Tiler as a PadProbeHandler
-            if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], pad))
+            
+            LOG_INFO("Infer config file: " << inferConfigFile);
+            
+            std::ifstream configFile(inferConfigFile);
+            if (!configFile.good())
             {
-                LOG_ERROR("Primary GIE '" << name << "' failed to add Pad Probe Handler");
-                return DSL_RESULT_GIE_HANDLER_ADD_FAILED;
+                LOG_ERROR("Infer Config File not found");
+                return DSL_RESULT_INFER_CONFIG_FILE_NOT_FOUND;
             }
+            
+            m_components[name] = DSL_PRIMARY_TIS_NEW(name, 
+                inferConfigFile, interval);
+            LOG_INFO("New Primary TIS '" << name << "' created successfully");
+
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Primary GIE '" << name << "' threw an exception adding Pad Probe Handler");
-            return DSL_RESULT_GIE_THREW_EXCEPTION;
-        }
-    }
-   
-    DslReturnType Services::PrimaryGiePphRemove(const char* name, const char* handler, uint pad) 
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-        
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, PrimaryGieBintr);
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
-
-            if (pad > DSL_PAD_SRC)
-            {
-                LOG_ERROR("Invalid Pad type = " << pad << " for Primary GIE '" << name << "'");
-                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
-            }
-
-            // call on the Handler to remove itself from the PrimaryGie
-            if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], pad))
-            {
-                LOG_ERROR("Pad Probe Handler '" << handler << "' is not a child of Primary GIE '" << name << "'");
-                return DSL_RESULT_GIE_HANDLER_REMOVE_FAILED;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Primary GIE '" << name << "' threw an exception removing Pad Probe Handler");
-            return DSL_RESULT_GIE_THREW_EXCEPTION;
+            LOG_ERROR("New Primary TIS '" << name << "' threw exception on create");
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
 
@@ -6135,7 +6277,7 @@ namespace DSL
             if (m_components.find(name) != m_components.end())
             {   
                 LOG_ERROR("GIE name '" << name << "' is not unique");
-                return DSL_RESULT_GIE_NAME_NOT_UNIQUE;
+                return DSL_RESULT_INFER_NAME_NOT_UNIQUE;
             }
             
             LOG_INFO("Infer config file: " << inferConfigFile);
@@ -6144,7 +6286,7 @@ namespace DSL
             if (!configFile.good())
             {
                 LOG_ERROR("Infer Config File not found");
-                return DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND;
+                return DSL_RESULT_INFER_CONFIG_FILE_NOT_FOUND;
             }
             
             LOG_INFO("Model engine file: " << modelEngineFile);
@@ -6156,7 +6298,7 @@ namespace DSL
                 if (!modelFile.good())
                 {
                     LOG_ERROR("Model Engine File not found");
-                    return DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND;
+                    return DSL_RESULT_INFER_MODEL_FILE_NOT_FOUND;
                 }
             }
             m_components[name] = DSL_SECONDARY_GIE_NEW(name, 
@@ -6169,11 +6311,114 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New Primary GIE '" << name << "' threw exception on create");
-            return DSL_RESULT_GIE_THREW_EXCEPTION;
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::GieRawOutputEnabledSet(const char* name, boolean enabled,
+    DslReturnType Services::SecondaryTisNew(const char* name, const char* inferConfigFile,
+        const char* inferOnTieName, uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Secondary TIS name '" << name << "' is not unique");
+                return DSL_RESULT_INFER_NAME_NOT_UNIQUE;
+            }
+            
+            LOG_INFO("Infer config file: " << inferConfigFile);
+            
+            std::ifstream configFile(inferConfigFile);
+            if (!configFile.good())
+            {
+                LOG_ERROR("Infer Config File not found");
+                return DSL_RESULT_INFER_CONFIG_FILE_NOT_FOUND;
+            }
+            
+            m_components[name] = DSL_SECONDARY_TIS_NEW(name, 
+                inferConfigFile, inferOnTieName, interval);
+
+            LOG_INFO("New Secondary TIS '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Secondary TIS '" << name << "' threw exception on create");
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PrimaryInferPphAdd(const char* name, const char* handler, uint pad)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_PRIMARY_INFER_TYPE(m_components, name)
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
+            if (pad > DSL_PAD_SRC)
+            {
+                LOG_ERROR("Invalid Pad type = " << pad << " for PrimaryInfer '" << name << "'");
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
+            }
+
+            // call on the Handler to add itself to the Tiler as a PadProbeHandler
+            if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], pad))
+            {
+                LOG_ERROR("Primary GIE '" << name << "' failed to add Pad Probe Handler");
+                return DSL_RESULT_INFER_HANDLER_ADD_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Primary GIE '" << name << "' threw an exception adding Pad Probe Handler");
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
+        }
+    }
+   
+    DslReturnType Services::PrimaryInferPphRemove(const char* name, const char* handler, uint pad) 
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_PRIMARY_INFER_TYPE(m_components, name);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
+            if (pad > DSL_PAD_SRC)
+            {
+                LOG_ERROR("Invalid Pad type = " << pad << " for Primary GIE '" << name << "'");
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
+            }
+
+            // call on the Handler to remove itself from the PrimaryInfer
+            if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], pad))
+            {
+                LOG_ERROR("Pad Probe Handler '" << handler << "' is not a child of Primary GIE '" << name << "'");
+                return DSL_RESULT_INFER_HANDLER_REMOVE_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Primary GIE '" << name << "' threw an exception removing Pad Probe Handler");
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::InferRawOutputEnabledSet(const char* name, boolean enabled,
         const char* path)
     {
         LOG_FUNC();
@@ -6182,26 +6427,26 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
             
-            DSL_GIE_PTR pGieBintr = 
-                std::dynamic_pointer_cast<GieBintr>(m_components[name]);
+            DSL_INFER_PTR pInferBintr = 
+                std::dynamic_pointer_cast<InferBintr>(m_components[name]);
                 
-            if (!pGieBintr->SetRawOutputEnabled(enabled, path))
+            if (!pInferBintr->SetRawOutputEnabled(enabled, path))
             {
                 LOG_ERROR("GIE '" << name << "' failed to enable raw output");
-                return DSL_RESULT_GIE_OUTPUT_DIR_DOES_NOT_EXIST;
+                return DSL_RESULT_INFER_OUTPUT_DIR_DOES_NOT_EXIST;
             }
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("GIE '" << name << "' threw exception on raw output enabled set");
-            return DSL_RESULT_GIE_THREW_EXCEPTION;
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::GieInferConfigFileGet(const char* name, const char** inferConfigFile)
+    DslReturnType Services::InferConfigFileGet(const char* name, const char** inferConfigFile)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -6209,23 +6454,23 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
             
-            DSL_GIE_PTR pGieBintr = 
-                std::dynamic_pointer_cast<GieBintr>(m_components[name]);
+            DSL_INFER_PTR pInferBintr = 
+                std::dynamic_pointer_cast<InferBintr>(m_components[name]);
 
-            *inferConfigFile = pGieBintr->GetInferConfigFile();
+            *inferConfigFile = pInferBintr->GetInferConfigFile();
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("GIE '" << name << "' threw exception on Infer Config file get");
-            return DSL_RESULT_GIE_THREW_EXCEPTION;
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::GieInferConfigFileSet(const char* name, const char* inferConfigFile)
+    DslReturnType Services::InferConfigFileSet(const char* name, const char* inferConfigFile)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -6233,21 +6478,21 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
             
-            DSL_GIE_PTR pGieBintr = 
-                std::dynamic_pointer_cast<GieBintr>(m_components[name]);
+            DSL_INFER_PTR pInferBintr = 
+                std::dynamic_pointer_cast<InferBintr>(m_components[name]);
 
-            if (!pGieBintr->SetInferConfigFile(inferConfigFile))
+            if (!pInferBintr->SetInferConfigFile(inferConfigFile))
             {
                 LOG_ERROR("GIE '" << name << "' failed to set the Infer Config file");
-                return DSL_RESULT_GIE_SET_FAILED;
+                return DSL_RESULT_INFER_SET_FAILED;
             }
         }
         catch(...)
         {
             LOG_ERROR("GIE '" << name << "' threw exception on Infer Config file get");
-            return DSL_RESULT_GIE_THREW_EXCEPTION;
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
 
         return DSL_RESULT_SUCCESS;
@@ -6263,8 +6508,8 @@ namespace DSL
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
             
-            DSL_GIE_PTR pGieBintr = 
-                std::dynamic_pointer_cast<GieBintr>(m_components[name]);
+            DSL_INFER_PTR pGieBintr = 
+                std::dynamic_pointer_cast<InferBintr>(m_components[name]);
 
             *inferConfigFile = pGieBintr->GetModelEngineFile();
 
@@ -6273,7 +6518,7 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("GIE '" << name << "' threw exception on Infer Config file get");
-            return DSL_RESULT_GIE_THREW_EXCEPTION;
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
 
@@ -6287,13 +6532,13 @@ namespace DSL
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
             
-            DSL_GIE_PTR pGieBintr = 
-                std::dynamic_pointer_cast<GieBintr>(m_components[name]);
+            DSL_INFER_PTR pGieBintr = 
+                std::dynamic_pointer_cast<InferBintr>(m_components[name]);
 
             if (!pGieBintr->SetModelEngineFile(inferConfigFile))
             {
                 LOG_ERROR("GIE '" << name << "' failed to set the Infer Config file");
-                return DSL_RESULT_GIE_SET_FAILED;
+                return DSL_RESULT_INFER_SET_FAILED;
             }
 
             return DSL_RESULT_SUCCESS;
@@ -6301,11 +6546,11 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("GIE '" << name << "' threw exception on Infer Config file get");
-            return DSL_RESULT_GIE_THREW_EXCEPTION;
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::GieIntervalGet(const char* name, uint* interval)
+    DslReturnType Services::InferIntervalGet(const char* name, uint* interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -6313,23 +6558,23 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
             
-            DSL_GIE_PTR pGieBintr = 
-                std::dynamic_pointer_cast<GieBintr>(m_components[name]);
+            DSL_INFER_PTR pInferBintr = 
+                std::dynamic_pointer_cast<InferBintr>(m_components[name]);
 
-            *interval = pGieBintr->GetInterval();
+            *interval = pInferBintr->GetInterval();
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("GIE '" << name << "' threw an exception adding Batch Meta Handler");
-            return DSL_RESULT_GIE_THREW_EXCEPTION;
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::GieIntervalSet(const char* name, uint interval)
+    DslReturnType Services::InferIntervalSet(const char* name, uint interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -6337,25 +6582,68 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
             
-            DSL_GIE_PTR pGieBintr = 
-                std::dynamic_pointer_cast<GieBintr>(m_components[name]);
+            DSL_INFER_PTR pInferBintr = 
+                std::dynamic_pointer_cast<InferBintr>(m_components[name]);
 
-            if (!pGieBintr->SetInterval(interval))
+            if (!pInferBintr->SetInterval(interval))
             {
                 LOG_ERROR("GIE '" << name << "' failed to set new Interval");
-                return DSL_RESULT_GIE_SET_FAILED;
+                return DSL_RESULT_INFER_SET_FAILED;
             }
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("GIE '" << name << "' threw an exception setting Interval");
-            return DSL_RESULT_GIE_THREW_EXCEPTION;
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
 
+    DslReturnType Services::TrackerDcfNew(const char* name, 
+        const char* configFile, uint width, uint height, 
+        boolean batch_processing_enabled, boolean past_frame_reporting_enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("DCF Tracker name '" << name << "' is not unique");
+                return DSL_RESULT_TRACKER_NAME_NOT_UNIQUE;
+            }
+
+            std::string testPath(configFile);
+            if (testPath.size())
+            {
+                LOG_INFO("Tracker config file: " << configFile);
+                
+                std::ifstream streamConfigFile(configFile);
+                if (!streamConfigFile.good())
+                {
+                    LOG_ERROR("Tracker Config File not found");
+                    return DSL_RESULT_TRACKER_CONFIG_FILE_NOT_FOUND;
+                }
+            }
+            m_components[name] = std::shared_ptr<Bintr>(new DcfTrackerBintr(
+                name, configFile, width, height, batch_processing_enabled, 
+                past_frame_reporting_enabled));
+
+            LOG_INFO("New DCF Tracker '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("DCF Tracker '" << name << "' threw exception on create");
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::TrackerKtlNew(const char* name, uint width, uint height)
     {
         LOG_FUNC();
@@ -6396,14 +6684,20 @@ namespace DSL
                 LOG_ERROR("IOU Tracker name '" << name << "' is not unique");
                 return DSL_RESULT_TRACKER_NAME_NOT_UNIQUE;
             }
-            LOG_INFO("Infer config file: " << configFile);
             
-            std::ifstream streamConfigFile(configFile);
-            if (!streamConfigFile.good())
+            std::string testPath(configFile);
+            if (testPath.size())
             {
-                LOG_ERROR("Infer Config File not found");
-                return DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND;
+                LOG_INFO("Tracker config file: " << configFile);
+                
+                std::ifstream streamConfigFile(configFile);
+                if (!streamConfigFile.good())
+                {
+                    LOG_ERROR("Tracker Config File not found");
+                    return DSL_RESULT_TRACKER_CONFIG_FILE_NOT_FOUND;
+                }
             }
+            
             m_components[name] = std::shared_ptr<Bintr>(new IouTrackerBintr(
                 name, configFile, width, height));
                 
@@ -6417,8 +6711,77 @@ namespace DSL
             return DSL_RESULT_TRACKER_THREW_EXCEPTION;
         }
     }
+
+    DslReturnType Services::TrackerConfigFileGet(const char* name, 
+        const char** configFile)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+            
+            DSL_TRACKER_PTR pTrackerBintr = 
+                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
+
+            *configFile = pTrackerBintr->GetConfigFile();
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tracker '" << name 
+                << "' threw exception getting the Config File pathspec");
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TrackerConfigFileSet(const char* name, 
+        const char* configFile)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+
+            std::string testPath(configFile);
+            if (testPath.size())
+            {
+                LOG_INFO("Tracker config file: " << configFile);
+                
+                std::ifstream streamConfigFile(configFile);
+                if (!streamConfigFile.good())
+                {
+                    LOG_ERROR("Tracker Config File not found");
+                    return DSL_RESULT_TRACKER_CONFIG_FILE_NOT_FOUND;
+                }
+            }
+            
+            DSL_TRACKER_PTR pTrackerBintr = 
+                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
+
+            if (!pTrackerBintr->SetConfigFile(configFile))
+            {
+                LOG_ERROR("Tracker '" << name << "' failed to set the Config file");
+                return DSL_RESULT_INFER_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("GIE '" << name << "' threw exception setting Config file");
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+
    
-       DslReturnType Services::TrackerMaxDimensionsGet(const char* name, uint* width, uint* height)
+    DslReturnType Services::TrackerDimensionsGet(const char* name, uint* width, uint* height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -6432,7 +6795,7 @@ namespace DSL
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
 
             // TODO verify args before calling
-            trackerBintr->GetMaxDimensions(width, height);
+            trackerBintr->GetDimensions(width, height);
 
             return DSL_RESULT_SUCCESS;
         }
@@ -6443,7 +6806,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::TrackerMaxDimensionsSet(const char* name, uint width, uint height)
+    DslReturnType Services::TrackerDimensionsSet(const char* name, uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -6453,18 +6816,11 @@ namespace DSL
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
 
-            if (m_components[name]->IsInUse())
-            {
-                LOG_ERROR("Unable to set Max Dimensions for Tracker '" << name 
-                    << "' as it's currently in use");
-                return DSL_RESULT_TILER_IS_IN_USE;
-            }
-
             DSL_TRACKER_PTR trackerBintr = 
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
 
             // TODO verify args before calling
-            if (!trackerBintr->SetMaxDimensions(width, height))
+            if (!trackerBintr->SetDimensions(width, height))
             {
                 LOG_ERROR("Tracker '" << name << "' failed to set dimensions");
                 return DSL_RESULT_TRACKER_SET_FAILED;
@@ -6474,6 +6830,118 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Tracker '" << name << "' threw an exception setting dimensions");
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TrackerDcfBatchProcessingEnabledGet(const char* name, 
+        boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DcfTrackerBintr);
+
+            DSL_DCF_TRACKER_PTR trackerBintr = 
+                std::dynamic_pointer_cast<DcfTrackerBintr>(m_components[name]);
+
+            *enabled = trackerBintr->GetBatchProcessingEnabled();
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tracker '" << name 
+                << "' threw an exception getting batch-process enabled setting");
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TrackerDcfBatchProcessingEnabledSet(const char* name, 
+        boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DcfTrackerBintr);
+
+            DSL_DCF_TRACKER_PTR trackerBintr = 
+                std::dynamic_pointer_cast<DcfTrackerBintr>(m_components[name]);
+
+            if (!trackerBintr->SetBatchProcessingEnabled(enabled))
+            {
+                LOG_ERROR("Tracker '" << name 
+                    << "' failed to set batch-processing enabled setting");
+                return DSL_RESULT_TRACKER_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tracker '" << name 
+                << "' threw an exception setting batch-processing enabled setting");
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TrackerDcfPastFrameReportingEnabledGet(const char* name, 
+        boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DcfTrackerBintr);
+
+            DSL_DCF_TRACKER_PTR trackerBintr = 
+                std::dynamic_pointer_cast<DcfTrackerBintr>(m_components[name]);
+
+            *enabled = trackerBintr->GetPastFrameReportingEnabled();
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tracker '" << name 
+                << "' threw an exception getting past-frame-reporting enabled setting");
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TrackerDcfPastFrameReportingEnabledSet(const char* name, 
+        boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DcfTrackerBintr);
+
+            DSL_DCF_TRACKER_PTR trackerBintr = 
+                std::dynamic_pointer_cast<DcfTrackerBintr>(m_components[name]);
+
+            if (!trackerBintr->SetPastFrameReportingEnabled(enabled))
+            {
+                LOG_ERROR("Tracker '" << name 
+                    << "' failed to set past-frame-reporting enabled setting");
+                return DSL_RESULT_TRACKER_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tracker '" << name 
+                << "' threw an exception setting past-frame-reporting enabled setting");
             return DSL_RESULT_TRACKER_THREW_EXCEPTION;
         }
     }
@@ -11450,7 +11918,6 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_TRACKER_NAME_BAD_FORMAT] = L"DSL_RESULT_TRACKER_NAME_BAD_FORMAT";
         m_returnValueToString[DSL_RESULT_TRACKER_THREW_EXCEPTION] = L"DSL_RESULT_TRACKER_THREW_EXCEPTION";
         m_returnValueToString[DSL_RESULT_TRACKER_CONFIG_FILE_NOT_FOUND] = L"DSL_RESULT_TRACKER_CONFIG_FILE_NOT_FOUND";
-        m_returnValueToString[DSL_RESULT_TRACKER_MAX_DIMENSIONS_INVALID] = L"DSL_RESULT_TRACKER_MAX_DIMENSIONS_INVALID";
         m_returnValueToString[DSL_RESULT_TRACKER_IS_IN_USE] = L"DSL_RESULT_TRACKER_IS_IN_USE";
         m_returnValueToString[DSL_RESULT_TRACKER_SET_FAILED] = L"DSL_RESULT_TRACKER_SET_FAILED";
         m_returnValueToString[DSL_RESULT_TRACKER_HANDLER_ADD_FAILED] = L"DSL_RESULT_TRACKER_HANDLER_ADD_FAILED";
@@ -11535,19 +12002,27 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_OSD_PAD_TYPE_INVALID] = L"DSL_RESULT_OSD_PAD_TYPE_INVALID";
         m_returnValueToString[DSL_RESULT_OSD_COMPONENT_IS_NOT_OSD] = L"DSL_RESULT_OSD_COMPONENT_IS_NOT_OSD";
         m_returnValueToString[DSL_RESULT_OSD_COLOR_PARAM_INVALID] = L"DSL_RESULT_OSD_COLOR_PARAM_INVALID";
-        m_returnValueToString[DSL_RESULT_GIE_NAME_NOT_UNIQUE] = L"DSL_RESULT_GIE_NAME_NOT_UNIQUE";
-        m_returnValueToString[DSL_RESULT_GIE_NAME_NOT_FOUND] = L"DSL_RESULT_GIE_NAME_NOT_FOUND";
-        m_returnValueToString[DSL_RESULT_GIE_NAME_BAD_FORMAT] = L"DSL_RESULT_GIE_NAME_BAD_FORMAT";
-        m_returnValueToString[DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND] = L"DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND";
-        m_returnValueToString[DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND] = L"DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND";
-        m_returnValueToString[DSL_RESULT_GIE_THREW_EXCEPTION] = L"DSL_RESULT_GIE_THREW_EXCEPTION";
-        m_returnValueToString[DSL_RESULT_GIE_IS_IN_USE] = L"DSL_RESULT_GIE_IS_IN_USE";
-        m_returnValueToString[DSL_RESULT_GIE_SET_FAILED] = L"DSL_RESULT_GIE_SET_FAILED";
-        m_returnValueToString[DSL_RESULT_GIE_HANDLER_ADD_FAILED] = L"DSL_RESULT_GIE_HANDLER_ADD_FAILED";
-        m_returnValueToString[DSL_RESULT_GIE_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_GIE_HANDLER_REMOVE_FAILED";
-        m_returnValueToString[DSL_RESULT_GIE_PAD_TYPE_INVALID] = L"DSL_RESULT_GIE_PAD_TYPE_INVALID";
-        m_returnValueToString[DSL_RESULT_GIE_COMPONENT_IS_NOT_GIE] = L"DSL_RESULT_GIE_COMPONENT_IS_NOT_GIE";
-        m_returnValueToString[DSL_RESULT_GIE_OUTPUT_DIR_DOES_NOT_EXIST] = L"DSL_RESULT_GIE_OUTPUT_DIR_DOES_NOT_EXIST";
+        m_returnValueToString[DSL_RESULT_INFER_NAME_NOT_UNIQUE] = L"DSL_RESULT_INFER_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_INFER_NAME_NOT_FOUND] = L"DSL_RESULT_INFER_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_INFER_NAME_BAD_FORMAT] = L"DSL_RESULT_INFER_NAME_BAD_FORMAT";
+        m_returnValueToString[DSL_RESULT_INFER_CONFIG_FILE_NOT_FOUND] = L"DSL_RESULT_INFER_CONFIG_FILE_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_INFER_MODEL_FILE_NOT_FOUND] = L"DSL_RESULT_INFER_MODEL_FILE_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_INFER_THREW_EXCEPTION] = L"DSL_RESULT_INFER_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_INFER_IS_IN_USE] = L"DSL_RESULT_INFER_IS_IN_USE";
+        m_returnValueToString[DSL_RESULT_INFER_SET_FAILED] = L"DSL_RESULT_INFER_SET_FAILED";
+        m_returnValueToString[DSL_RESULT_INFER_HANDLER_ADD_FAILED] = L"DSL_RESULT_INFER_HANDLER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_INFER_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_INFER_HANDLER_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_INFER_PAD_TYPE_INVALID] = L"DSL_RESULT_INFER_PAD_TYPE_INVALID";
+        m_returnValueToString[DSL_RESULT_INFER_COMPONENT_IS_NOT_INFER] = L"DSL_RESULT_INFER_COMPONENT_IS_NOT_INFER";
+        m_returnValueToString[DSL_RESULT_INFER_OUTPUT_DIR_DOES_NOT_EXIST] = L"DSL_RESULT_INFER_OUTPUT_DIR_DOES_NOT_EXIST";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_NAME_NOT_UNIQUE] = L"DSL_RESULT_SEGVISUAL_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_NAME_NOT_FOUND] = L"DSL_RESULT_SEGVISUAL_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_THREW_EXCEPTION] = L"DSL_RESULT_SEGVISUAL_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_IN_USE] = L"DSL_RESULT_SEGVISUAL_IN_USE";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_SET_FAILED] = L"DSL_RESULT_SEGVISUAL_SET_FAILED";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_PARAMETER_INVALID] = L"DSL_RESULT_SEGVISUAL_PARAMETER_INVALID";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_HANDLER_ADD_FAILED] = L"DSL_RESULT_SEGVISUAL_HANDLER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_SEGVISUAL_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_SEGVISUAL_HANDLER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_TEE_NAME_NOT_UNIQUE] = L"DSL_RESULT_TEE_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_TEE_NAME_NOT_FOUND] = L"DSL_RESULT_TEE_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_TEE_NAME_BAD_FORMAT] = L"DSL_RESULT_TEE_NAME_BAD_FORMAT";
@@ -11653,7 +12128,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_MAILER_SET_FAILED] = L"DSL_RESULT_MAILER_SET_FAILED";
         m_returnValueToString[DSL_RESULT_MAILER_PARAMETER_INVALID] = L"DSL_RESULT_MAILER_PARAMETER_INVALID";
         m_returnValueToString[DSL_RESULT_INVALID_RESULT_CODE] = L"Invalid DSL Result CODE";
-    }
+   }
 
 } // namespace
  

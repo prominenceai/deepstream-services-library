@@ -45,7 +45,7 @@ NvDCF:
 
   # [Tracker Creation Policy] [Target Candidacy]
   minDetectorConfidence: -1  # If the confidence of a detector bbox is lower than this, then it won't be considered for tracking
-  minTrackerConfidence: 0.7  # If the confidence of an object tracker is lower than this on the fly, then it will be tracked in shadow mode. Valid Range: [0.0, 1.0]
+  #minTrackerConfidence: 0.7  # If the confidence of an object tracker is lower than this on the fly, then it will be tracked in shadow mode. Valid Range: [0.0, 1.0]
   minTargetBboxSize: 10      # If the width or height of the bbox size gets smaller than this threshold, the target will be terminated.
   minDetectorBboxVisibilityTobeTracked: 0.0  # If the detector-provided bbox's visibility (i.e., IOU with image) is lower than this, it won't be considered.
   minVisibiilty4Tracking: 0.0  # If the visibility of the tracked object (i.e., IOU with image) is lower than this, it will be terminated immediately, assuming it is going out of scene.

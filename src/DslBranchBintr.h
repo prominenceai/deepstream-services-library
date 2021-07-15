@@ -27,12 +27,13 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
-#include "DslGieBintr.h"
+#include "DslInferBintr.h"
+#include "DslSegVisualBintr.h"
 #include "DslTrackerBintr.h"
 #include "DslOfvBintr.h"
 #include "DslOsdBintr.h"
 #include "DslTilerBintr.h"
-#include "DslPipelineSGiesBintr.h"
+#include "DslPipelineSInfersBintr.h"
 #include "DslMultiComponentsBintr.h"
 #include "DslSinkBintr.h"
     
@@ -59,32 +60,58 @@ namespace DSL
         BranchBintr(const char* name, bool pipeline = false);
 
         /**
-         * @brief adds a single GIE Bintr to this Branch 
-         * @param[in] pGieBintr shared pointer to GIE Bintr to add
+         * @brief adds a single GIE or TIS PrimaryInferBintr to this Branch 
+         * @param[in] pPrimaryInferBintr shared pointer to PrmaryInferBintr to add
+         * @return true on successful add, false otherwise
          */
-        bool AddPrimaryGieBintr(DSL_BASE_PTR pPrmaryGieBintr);
+        bool AddPrimaryInferBintr(DSL_BASE_PTR pPrimaryInferBintr);
 
         /**
-         * @brief adds a single Secondary GIE Nodetr to this Branch 
-         * @param[in] pSecondaryGieNodetr shared pointer to SGIE Nodetr to add
+         * @brief removes a single GIE or TIS PrimaryInferBintr from this Branch 
+         * @param[in] pPrimaryInferBintr shared pointer to PrmaryInferBintr to remove
+         * @return true on successful remove, false otherwise
          */
-        bool AddSecondaryGieBintr(DSL_BASE_PTR pSecondaryGieBintr);
+        bool RemovePrimaryInferBintr(DSL_BASE_PTR pPrimaryInferBintr);
+        
+        /**
+         * @brief adds a single GIE or TIS SecondaryInferBintr to this Branch 
+         * @param[in] pSecondaryInferBintr shared pointer to SecondaryInferBintr to add
+         * @return true on successful add, false otherwise
+         */
+        bool AddSecondaryInferBintr(DSL_BASE_PTR pSecondaryInferBintr);
+
+        /**
+         * @brief adds a single SegVisualBintr to this Branch 
+         * @param[in] pSegVisualBintr shared pointer to the SegVisual Bintr to add
+         * @return true on successful add, false otherwise
+         */
+        bool AddSegVisualBintr(DSL_BASE_PTR pSegVisualBintr);
 
         /**
          * @brief adds a single TrackerBintr to this Branch 
          * @param[in] pTrackerBintr shared pointer to the Tracker Bintr to add
+         * @return true on successful add, false otherwise
          */
         bool AddTrackerBintr(DSL_BASE_PTR pTrackerBintr);
         
         /**
+         * @brief remove a single TrackerBintr from this Branch 
+         * @param[in] pTrackerBintr shared pointer to the Tracker Bintr to remove
+         * @return true on successful remove, false otherwise
+         */
+        bool RemoveTrackerBintr(DSL_BASE_PTR pTrackerBintr);
+        
+        /**
          * @brief adds a single OfvBintr to this Branch 
          * @param[in] pOfvBintr shared pointer to the OFV Bintr to add
+         * @return true on successful add, false otherwise
          */
         bool AddOfvBintr(DSL_BASE_PTR pOfvBintr);
         
         /**
          * @brief adds a single TilerBintr to this Branch 
          * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
+         * @return true on successful add, false otherwise
          */
         bool AddTilerBintr(DSL_BASE_PTR pTilerBintr);
         
@@ -105,24 +132,28 @@ namespace DSL
         /**
          * @brief adds a single TeeBintr to this Branch 
          * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
+         * @return true on successful add, false otherwise
          */
         bool AddTeeBintr(DSL_BASE_PTR pTeeBintr);
         
         /**
          * @brief adds a single DemuxerBintr to this Branch 
          * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
+         * @return true on successful add, false otherwise
          */
         bool AddDemuxerBintr(DSL_BASE_PTR pDemuxerBintr);
 
         /**
          * @brief adds a single SplitterBintr to this Branch 
          * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
+         * @return true on successful add, false otherwise
          */
         bool AddSplitterBintr(DSL_BASE_PTR pSplitterBintr);
 
         /**
          * @brief adds a single SinkBintr to this Branch 
          * @param[in] pSinkBintr shared pointer to Sink Bintr to add
+         * @return true on successful add, false otherwise
          */
         bool AddSinkBintr(DSL_BASE_PTR pSinkBintr);
 
@@ -136,6 +167,7 @@ namespace DSL
         /**
          * @brief removes a single SinkBintr from this Branch 
          * @param[in] pSinkBintr shared pointer to Sink Bintr to add
+         * @return true on successful remove, false otherwise
          */
         bool RemoveSinkBintr(DSL_BASE_PTR pSinkBintr);
 
@@ -172,14 +204,19 @@ namespace DSL
         std::vector<DSL_BINTR_PTR> m_linkedComponents;
         
         /**
-         * @brief optional, one at most Primary GIE for this Branch
+         * @brief optional, one at most GIE or TIS PrimaryInferBintr for this Branch
          */
-        DSL_PRIMARY_GIE_PTR m_pPrimaryGieBintr;
+        DSL_PRIMARY_INFER_PTR m_pPrimaryInferBintr;
         
         /**
          * @brief optional, one or more Secondary GIEs for this Branch
          */
-        DSL_PIPELINE_SGIES_PTR m_pSecondaryGiesBintr;
+        DSL_PIPELINE_SINFERS_PTR m_pSecondaryInfersBintr;
+
+        /**
+         * @brief optional, one at most Segmentation Visualizater for this Branch
+         */
+        DSL_SEGVISUAL_PTR m_pSegVisualBintr;
         
         /**
          * @brief optional, one at most Tracker for this Branch

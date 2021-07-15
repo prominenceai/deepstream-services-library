@@ -522,38 +522,75 @@ namespace DSL {
         DslReturnType TapRecordMailerRemove(const char* name,
             const char* mailer);
 
+        DslReturnType SegVisualNew(const char* name, uint width, uint height);
+        
+        DslReturnType SegVisualDimensionsGet(const char* name, uint* width, uint* height);
+
+        DslReturnType SegVisualDimensionsSet(const char* name, uint width, uint height);
+
+        DslReturnType SegVisualPphAdd(const char* name, const char* handler);
+
+        DslReturnType SegVisualPphRemove(const char* name, const char* handler);
+
         DslReturnType PrimaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, uint interval);
 
-        DslReturnType PrimaryGiePphAdd(const char* name, const char* handler, uint pad);
-
-        DslReturnType PrimaryGiePphRemove(const char* name, const char* handler, uint pad);
+        DslReturnType PrimaryTisNew(const char* name, 
+            const char* inferConfigFile, uint interval);
 
         DslReturnType SecondaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, const char* inferOnGieName, uint interval);
 
-        DslReturnType GieInferConfigFileGet(const char* name, const char** inferConfigFile);
+        DslReturnType SecondaryTisNew(const char* name, const char* inferConfigFile,
+            const char* inferOnGieName, uint interval);
 
-        DslReturnType GieInferConfigFileSet(const char* name, const char* inferConfigFile);
-            
+        DslReturnType PrimaryInferPphAdd(const char* name, const char* handler, uint pad);
+
+        DslReturnType PrimaryInferPphRemove(const char* name, const char* handler, uint pad);
+
         DslReturnType GieModelEngineFileGet(const char* name, const char** modelEngineFile);
 
         DslReturnType GieModelEngineFileSet(const char* name, const char* modelEngineFile);
+
+        DslReturnType InferConfigFileGet(const char* name, const char** inferConfigFile);
+
+        DslReturnType InferConfigFileSet(const char* name, const char* inferConfigFile);
             
-        DslReturnType GieRawOutputEnabledSet(const char* name, boolean enabled,
+        DslReturnType InferRawOutputEnabledSet(const char* name, boolean enabled,
             const char* path);
             
-        DslReturnType GieIntervalGet(const char* name, uint* interval);
+        DslReturnType InferIntervalGet(const char* name, uint* interval);
 
-        DslReturnType GieIntervalSet(const char* name, uint interval);
+        DslReturnType InferIntervalSet(const char* name, uint interval);
 
+        DslReturnType TrackerDcfNew(const char* name, 
+            const char* configFile, uint width, uint height,
+            boolean batch_processing_enabled, boolean past_frame_reporting_enabled);
+        
         DslReturnType TrackerKtlNew(const char* name, uint width, uint height);
         
-        DslReturnType TrackerIouNew(const char* name, const char* configFile, uint width, uint height);
+        DslReturnType TrackerIouNew(const char* name, 
+            const char* configFile, uint width, uint height);
+
+        DslReturnType TrackerConfigFileGet(const char* name, const char** inferConfigFile);
+
+        DslReturnType TrackerConfigFileSet(const char* name, const char* inferConfigFile);
         
-        DslReturnType TrackerMaxDimensionsGet(const char* name, uint* width, uint* height);
+        DslReturnType TrackerDimensionsGet(const char* name, uint* width, uint* height);
         
-        DslReturnType TrackerMaxDimensionsSet(const char* name, uint width, uint height);
+        DslReturnType TrackerDimensionsSet(const char* name, uint width, uint height);
+        
+        DslReturnType TrackerDcfBatchProcessingEnabledGet(const char* name, 
+            boolean* enabled);
+        
+        DslReturnType TrackerDcfBatchProcessingEnabledSet(const char* name, 
+            boolean enabled);
+
+        DslReturnType TrackerDcfPastFrameReportingEnabledGet(const char* name, 
+            boolean* enabled);
+
+        DslReturnType TrackerDcfPastFrameReportingEnabledSet(const char* name, 
+            boolean enabled);
         
         DslReturnType TrackerPphAdd(const char* name, const char* handler, uint pad);
 

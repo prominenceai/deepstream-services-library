@@ -31,7 +31,7 @@ CXX = g++
 
 TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 
-DSL_VERSION:='L"v0.15.alpha"'
+DSL_VERSION:='L"v0.16.alpha"'
 NVDS_VERSION:=5.1
 GS_VERSION:=1.0
 GLIB_VERSION:=2.0
@@ -83,6 +83,7 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
     -DDS_VERSION_MINOR=0 \
     -DDS_VERSION_MAJOR=4 \
     -DDSL_LOGGER_IMP='"DslLogGst.h"'\
+	-DNVDS_DCF_LIB='"$(LIB_INSTALL_DIR)/libnvds_nvdcf.so"' \
 	-DNVDS_KLT_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_klt.so"' \
 	-DNVDS_IOU_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_iou.so"' \
     -fPIC 

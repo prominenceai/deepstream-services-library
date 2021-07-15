@@ -2237,64 +2237,88 @@ def dsl_tap_record_mailer_remove(name, mailer):
     return int(result)
 
 ##
-## dsl_gie_primary_new()
+## dsl_infer_gie_primary_new()
 ##
-_dsl.dsl_gie_primary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_uint]
-_dsl.dsl_gie_primary_new.restype = c_uint
-def dsl_gie_primary_new(name, infer_config_file, model_engine_file, interval):
+_dsl.dsl_infer_gie_primary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_infer_gie_primary_new.restype = c_uint
+def dsl_infer_gie_primary_new(name, infer_config_file, model_engine_file, interval):
     global _dsl
-    result = _dsl.dsl_gie_primary_new(name, infer_config_file, model_engine_file, interval)
+    result = _dsl.dsl_infer_gie_primary_new(name, infer_config_file, 
+        model_engine_file, interval)
     return int(result)
 
 ##
-## dsl_gie_primary_pph_add()
+## dsl_infer_gie_secondary_new()
 ##
-_dsl.dsl_gie_primary_pph_add.argtypes = [c_wchar_p, c_wchar_p, c_uint]
-_dsl.dsl_gie_primary_pph_add.restype = c_uint
-def dsl_gie_primary_pph_add(name, handler, pad):
+_dsl.dsl_infer_gie_secondary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_infer_gie_secondary_new.restype = c_uint
+def dsl_infer_gie_secondary_new(name, infer_config_file, 
+    model_engine_file, infer_on_gie, interval):
     global _dsl
-    result = _dsl.dsl_gie_primary_pph_add(name, handler, pad)
+    result = _dsl.dsl_infer_gie_secondary_new(name, infer_config_file, 
+        model_engine_file, infer_on_gie, interval)
     return int(result)
 
 ##
-## dsl_gie_primary_pph_remove()
+## dsl_infer_tis_primary_new()
 ##
-_dsl.dsl_gie_primary_pph_remove.argtypes = [c_wchar_p, c_wchar_p, c_uint]
-_dsl.dsl_gie_primary_pph_remove.restype = c_uint
-def dsl_gie_primary_pph_remove(name, handler, pad):
+_dsl.dsl_infer_tis_primary_new.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_infer_tis_primary_new.restype = c_uint
+def dsl_infer_tis_primary_new(name, infer_config_file, interval):
     global _dsl
-    result = _dsl.dsl_gie_primary_pph_remove(name, handler, pad)
+    result = _dsl.dsl_infer_tis_primary_new(name, infer_config_file, interval)
     return int(result)
 
 ##
-## dsl_gie_secondary_new()
+## dsl_infer_tis_secondary_new()
 ##
-_dsl.dsl_gie_secondary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_wchar_p]
-_dsl.dsl_gie_secondary_new.restype = c_uint
-def dsl_gie_secondary_new(name, infer_config_file, model_engine_file, infer_on_gie_name, interval):
+_dsl.dsl_infer_tis_secondary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_infer_tis_secondary_new.restype = c_uint
+def dsl_infer_tis_secondary_new(name, infer_config_file, infer_on_tis, interval):
     global _dsl
-    result = _dsl.dsl_gie_secondary_new(name, infer_config_file, model_engine_file, infer_on_gie_name, interval)
+    result = _dsl.dsl_infer_tis_secondary_new(name, infer_config_file, 
+        infer_on_tis, interval)
     return int(result)
 
 ##
-## dsl_gie_infer_config_file_get()
+## dsl_infer_primary_pph_add()
 ##
-_dsl.dsl_gie_infer_config_file_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
-_dsl.dsl_gie_infer_config_file_get.restype = c_uint
-def dsl_gie_infer_config_file_get(name):
+_dsl.dsl_infer_primary_pph_add.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_infer_primary_pph_add.restype = c_uint
+def dsl_infer_primary_pph_add(name, handler, pad):
+    global _dsl
+    result = _dsl.dsl_infer_primary_pph_add(name, handler, pad)
+    return int(result)
+
+##
+## dsl_infer_primary_pph_remove()
+##
+_dsl.dsl_infer_primary_pph_remove.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_infer_primary_pph_remove.restype = c_uint
+def dsl_infer_primary_pph_remove(name, handler, pad):
+    global _dsl
+    result = _dsl.dsl_infer_primary_pph_remove(name, handler, pad)
+    return int(result)
+
+##
+## dsl_infer_config_file_get()
+##
+_dsl.dsl_infer_config_file_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_infer_config_file_get.restype = c_uint
+def dsl_infer_config_file_get(name):
     global _dsl
     file = c_wchar_p(0)
-    result = _dsl.dsl_gie_infer_config_file_get(name, DSL_WCHAR_PP(file))
+    result = _dsl.dsl_infer_config_file_get(name, DSL_WCHAR_PP(file))
     return int(result), file.value 
 
 ##
-## dsl_gie_infer_config_file_set()
+## dsl_infer_config_file_set()
 ##
-_dsl.dsl_gie_infer_config_file_set.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_gie_infer_config_file_set.restype = c_uint
-def dsl_gie_infer_config_file_set(name, infer_config_file):
+_dsl.dsl_infer_config_file_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_infer_config_file_set.restype = c_uint
+def dsl_infer_config_file_set(name, infer_config_file):
     global _dsl
-    result = _dsl.dsl_gie_infer_config_file_set(name, infer_config_file)
+    result = _dsl.dsl_infer_config_file_set(name, infer_config_file)
     return int(result)
 
 ##
@@ -2319,34 +2343,46 @@ def dsl_gie_model_engine_file_set(name, model_engine_file):
     return int(result)
 
 ##
-## dsl_gie_interval_get()
+## dsl_infer_interval_get()
 ##
-_dsl.dsl_gie_interval_get.argtypes = [c_wchar_p, POINTER(c_uint)]
-_dsl.dsl_gie_interval_get.restype = c_uint
-def dsl_gie_interval_get(name):
+_dsl.dsl_infer_interval_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_infer_interval_get.restype = c_uint
+def dsl_infer_interval_get(name):
     global _dsl
     interval = c_uint(0)
     result = _dsl.dsl_gie_model_interval_get(name, DSL_UINT_P(interval))
     return int(result), interval.value 
 
 ##
-## dsl_gie_interval_set()
+## dsl_infer_interval_set()
 ##
-_dsl.dsl_gie_interval_set.argtypes = [c_wchar_p, c_uint]
-_dsl.dsl_gie_interval_set.restype = c_uint
-def dsl_gie_interval_set(name, interval):
+_dsl.dsl_infer_interval_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_infer_interval_set.restype = c_uint
+def dsl_infer_interval_set(name, interval):
     global _dsl
-    result = _dsl.dsl_gie_interval_set(name, interval)
+    result = _dsl.dsl_infer_interval_set(name, interval)
     return int(result)
 
 ##
-## dsl_gie_raw_output_enabled_set()
+## dsl_infer_raw_output_enabled_set()
 ##
-_dsl.dsl_gie_raw_output_enabled_set.argtypes = [c_wchar_p, c_bool, c_wchar_p]
-_dsl.dsl_gie_raw_output_enabled_set.restype = c_uint
-def dsl_gie_raw_output_enabled_set(name, enabled, path):
+_dsl.dsl_infer_raw_output_enabled_set.argtypes = [c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_infer_raw_output_enabled_set.restype = c_uint
+def dsl_infer_raw_output_enabled_set(name, enabled, path):
     global _dsl
-    result = _dsl.dsl_gie_raw_output_enabled_set(name, enabled, path)
+    result = _dsl.dsl_infer_raw_output_enabled_set(name, enabled, path)
+    return int(result)
+
+##
+## dsl_tracker_dcf_new()
+##
+_dsl.dsl_tracker_dcf_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_bool, c_bool]
+_dsl.dsl_tracker_dcf_new.restype = c_uint
+def dsl_tracker_dcf_new(name, config_file, width, height,
+    batch_processing_enabled, past_frame_reporting_enabled):
+    global _dsl
+    result = _dsl.dsl_tracker_dcf_new(name, config_file, width, height,
+        batch_processing_enabled, past_frame_reporting_enabled)
     return int(result)
 
 ##
@@ -2370,25 +2406,67 @@ def dsl_tracker_iou_new(name, config_file, width, height):
     return int(result)
 
 ##
-## dsl_tracker_max_dimensions_get()
+## dsl_tracker_dimensions_get()
 ##
-_dsl.dsl_tracker_max_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_tracker_max_dimensions_get.restype = c_uint
-def dsl_tracker_max_dimensions_get(name):
+_dsl.dsl_tracker_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_tracker_dimensions_get.restype = c_uint
+def dsl_tracker_dimensions_get(name):
     global _dsl
-    max_width = c_uint(0)
-    max_height = c_uint(0)
-    result = _dsl.dsl_tracker_max_dimensions_get(name, DSL_UINT_P(max_width), DSL_UINT_P(max_height))
-    return int(result), max_width.value, max_height.value 
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_tracker_dimensions_get(name, DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), width.value, height.value 
 
 ##
-## dsl_tracker_max_dimensions_set()
+## dsl_tracker_dimensions_set()
 ##
-_dsl.dsl_tracker_max_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
-_dsl.dsl_tracker_max_dimensions_set.restype = c_uint
-def dsl_tracker_max_dimensions_set(name, max_width, max_height):
+_dsl.dsl_tracker_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_tracker_dimensions_set.restype = c_uint
+def dsl_tracker_dimensions_set(name, width, height):
     global _dsl
-    result = _dsl.dsl_tracker_max_dimensions_set(name, max_width, max_height)
+    result = _dsl.dsl_tracker_dimensions_set(name, width, height)
+    return int(result)
+
+##
+## dsl_tracker_dcf_batch_processing_enabled_get()
+##
+_dsl.dsl_tracker_dcf_batch_processing_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_tracker_dcf_batch_processing_enabled_get.restype = c_uint
+def dsl_tracker_dcf_batch_processing_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_tracker_dcf_batch_processing_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_tracker_dcf_batch_processing_enabled_set()
+##
+_dsl.dsl_tracker_dcf_batch_processing_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_tracker_dcf_batch_processing_enabled_set.restype = c_uint
+def dsl_tracker_dcf_batch_processing_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_tracker_dcf_batch_processing_enabled_set(name, enabled)
+    return int(result)
+
+##
+## dsl_tracker_dcf_past_frame_reporting_enabled_get()
+##
+_dsl.dsl_tracker_dcf_past_frame_reporting_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_tracker_dcf_past_frame_reporting_enabled_get.restype = c_uint
+def dsl_tracker_dcf_past_frame_reporting_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_tracker_dcf_past_frame_reporting_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_tracker_dcf_past_frame_reporting_enabled_set()
+##
+_dsl.dsl_tracker_dcf_past_frame_reporting_enabled_set.argtypes = [c_wchar_p, c_uint, c_bool]
+_dsl.dsl_tracker_dcf_past_frame_reporting_enabled_set.restype = c_uint
+def dsl_tracker_dcf_past_frame_reporting_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_tracker_dcf_past_frame_reporting_enabled_set(name, enabled)
     return int(result)
 
 ##
@@ -2658,6 +2736,36 @@ _dsl.dsl_tee_pph_remove.restype = c_uint
 def dsl_tee_pph_remove(name, handler):
     global _dsl
     result = _dsl.dsl_tee_pph_remove(name, handler)
+    return int(result)
+
+##
+## dsl_segvisual_new()
+##
+_dsl.dsl_segvisual_new.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_segvisual_new.restype = c_uint
+def dsl_segvisual_new(name, width, height):
+    global _dsl
+    result =_dsl.dsl_segvisual_new(name, width, height)
+    return int(result)
+
+##
+## dsl_segvisual_pph_add()
+##
+_dsl.dsl_segvisual_pph_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_segvisual_pph_add.restype = c_uint
+def dsl_segvisual_pph_add(name, handler):
+    global _dsl
+    result = _dsl.dsl_segvisual_pph_add(name, handler)
+    return int(result)
+
+##
+## dsl_segvisual_pph_remove()
+##
+_dsl.dsl_segvisual_pph_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_segvisual_pph_remove.restype = c_uint
+def dsl_segvisual_pph_remove(name, handler):
+    global _dsl
+    result = _dsl.dsl_segvisual_pph_remove(name, handler)
     return int(result)
 
 ##
@@ -3137,6 +3245,26 @@ _dsl.dsl_sink_sync_settings_set.restype = c_uint
 def dsl_sink_sync_settings_set(name, sync, async):
     global _dsl
     result = _dsl.dsl_sink_sync_settings_set(name, sync, async)
+    return int(result)
+
+##
+## dsl_sink_pph_add()
+##
+_dsl.dsl_sink_pph_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_pph_add.restype = c_uint
+def dsl_sink_pph_add(name, handler):
+    global _dsl
+    result = _dsl.dsl_sink_pph_add(name, handler)
+    return int(result)
+
+##
+## dsl_sink_pph_remove()
+##
+_dsl.dsl_sink_pph_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_pph_remove.restype = c_uint
+def dsl_sink_pph_remove(name, handler):
+    global _dsl
+    result = _dsl.dsl_sink_pph_remove(name, handler)
     return int(result)
 
 ##
