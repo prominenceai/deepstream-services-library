@@ -2816,6 +2816,32 @@ DslReturnType dsl_segvisual_dimensions_set(const wchar_t* name, uint width, uint
     return DSL::Services::GetServices()->SegVisualDimensionsSet(cstrName.c_str(), width, height);
 }
 
+DslReturnType dsl_segvisual_pph_add(const wchar_t* name, const wchar_t* handler)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
+    
+    return DSL::Services::GetServices()->SegVisualPphAdd(cstrName.c_str(), cstrHandler.c_str());
+}
+
+DslReturnType dsl_segvisual_pph_remove(const wchar_t* name, const wchar_t* handler)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
+    
+    return DSL::Services::GetServices()->SegVisualPphRemove(cstrName.c_str(), cstrHandler.c_str());
+}
+
 DslReturnType dsl_infer_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
     const wchar_t* model_engine_file, uint interval)
 {
@@ -4155,7 +4181,7 @@ DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler)
 }
 
 DslReturnType dsl_sink_pph_remove(const wchar_t* name,
-    const wchar_t* handler, uint pad)
+    const wchar_t* handler)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(handler);

@@ -48,6 +48,8 @@ namespace DSL
         
         m_pQueue->AddGhostPadToParent("sink");
         m_pSegVisual->AddGhostPadToParent("src");
+        
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW("segvisual-src-pad-probe", "src", m_pSegVisual);
     }
 
     SegVisualBintr::~SegVisualBintr()
