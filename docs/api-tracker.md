@@ -52,7 +52,7 @@ The following return codes are used specifically by the Tracker API
 ## Constructors
 ### *dsl_tracker_ktl_new*
 ```C++
-DslReturnType dsl_tracker_ktl_new(const wchar_t* name, uint max_width, uint max_height);
+DslReturnType dsl_tracker_ktl_new(const wchar_t* name, uint width, uint height);
 ```
 This service creates a unqiuely named KTL Tracker component. Construction will fail if the name is currently in use. 
 
