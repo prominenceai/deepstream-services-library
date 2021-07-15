@@ -34,7 +34,7 @@ The DeepStream SDK and DSL use the open source [GStreamer](https://gstreamer.fre
 DSL is released under the [MIT License](LICENSE). Contributions are welcome and greatly appreciated. Contributor guidelines and code of conduct are still TBW. 
 
 ## Instructional Videos
-Vist our YouTube channel for instructional videos on using DSL (and DMS) ... Note: still in the early stages, but new content will be added weekly.
+Vist our YouTube channel for instructional videos on using DSL (and DMS) ... Note: this is still in a very early stage as the DSL/DMS APIs, and demonstartion application, are still in developement, but new content will be added weekly. There is no audio yet, but some might find the videos helpful in understatnd DSL. 
 <br>
 
 [<img src="/Images/youtube-link.png">](https://www.youtube.com/channel/UCxaJo95fbp2aFXopdquF96Q)
@@ -50,8 +50,9 @@ Vist our YouTube channel for instructional videos on using DSL (and DMS) ... Not
   * [Source](/docs/api-source.md)
   * [Tap](/docs/api-tap.md)
   * [Video Dewarper](/docs/api-dewarper.md)
-  * [Inference Engine](/docs/api-gie.md)
+  * [Inference Engines and Servers](/docs/api-infer.md)
   * [Multi-Object Tracker](/docs/api-tracker.md)
+  * [Segmentation Visualizer](/docs/api-segvisual.md)
   * [Tiler](/docs/api-tiler.md)
   * [Demuxer and Splitter](/docs/api-tee.md)
   * [On-Screen Display](/docs/api-osd.md)
