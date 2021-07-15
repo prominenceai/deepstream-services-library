@@ -15,6 +15,10 @@ Tilers are added to Branches by calling [dsl_branch_component_add](api-branch.md
 #### Adding/Removing Pad-Probe-handlers
 Multiple Sink and/or Source [Pad-Probe Handlers](/docs/api-pph/md) can be added to a Tiler by calling [dsl_tiler_pph_add](#dsl_tiler_pph_add) and removed with [dsl_tiler_pph_remove](#dsl_tiler_pph_remove).
 
+## Relevant Examples
+* [4uri_file_tiler_show_source_control.py](/examples/python/4uri_file_tiler_show_source_control.py)
+* [8uri_file_pph_meter_performace_reporting.py](/examples/python/8uri_file_pph_meter_performace_reporting.py)
+
 ## Tiler API
 **Constructors**
 * [dsl_tiler_new](#dsl_tiler_new)
@@ -57,8 +61,8 @@ The constructor creates a uniquely named Tiler with given dimensions. Constructi
 
 **Parameters**
 * `name` - [in] unique name for the Tiler to create.
-* `width` - [in] width of the Tilded Display in pixels
-* `height` - [in] height of the Tilded Display in pixels
+* `width` - [in] width of the Tiler in pixels
+* `height` - [in] height of the Tiler in pixels
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
@@ -96,19 +100,19 @@ retval, width, height = dsl_tiler_dimensions_get('my-tiler')
 ```C++
 DslReturnType dsl_tiler_dimensions_set(const wchar_t* name, uint width, uint height);
 ```
-This service sets the width and height of the named Tiler. This service can be called at any time.
+This service sets the width and height of the named Tiler. The call will also fail if the Tiler is currently `linked`.
 
 **Parameters**
 * `name` - [in] unique name for the Tiler to update.
-* `width` - [in] current width of the Tiler in pixels.
-* `height` - [in] current height of the Tiler in pixels.
+* `width` - [in] new width for the Tiler in pixels.
+* `height` - [in] new height for the Tiler in pixels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_tiler_dimensions_get('my-tiler', 1280, 720)
+retval = dsl_tiler_dimensions_set('my-tiler', 1280, 720)
 ```
 
 <br>
@@ -138,7 +142,7 @@ retval, cols, rows = dsl_tiler_tiles_get('my-tiler')
 ```C++
 DslReturnType dsl_tiler_tiles_set(const wchar_t* name, uint cols, uint rows);
 ```
-This service sets the number of columns and rows for the named Tiler. Setting both values to 0 - the default - allows the Tiler to determine a best-fit based on the number of Sources upstream. The number of rows must be at least one half that of columns or the call will fail (e.g. 4x1). The call will also fail if the Tiler is currently `in-use`.
+This service sets the number of columns and rows for the named Tiler. Setting both values to 0 - the default - allows the Tiler to determine a best-fit based on the number of Sources upstream. The number of rows must be at least one half that of columns or the call will fail (e.g. 4x1). The call will also fail if the Tiler is currently `linked`.
 
 **Parameters**
 * `name` - [in] unique name for the Tiler to update.
@@ -289,8 +293,6 @@ This service adds a [Pad Probe Handler](/docs/api-pph.md) to either the Sink or 
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
-* Example using Nvidia's pyds lib to handle batch-meta data
-
 ```Python
 retval = dsl_tiler_pph_add('my-tiler', 'my-pph-handler', `DSL_PAD_SINK`)
 ```
@@ -328,9 +330,10 @@ retval = dsl_tiler_pph_remove('my-tiler', 'my-pph-handler', `DSL_PAD_SINK`)
 * [Dewarper](/docs/api-dewarper.md)
 * [Inference Engine and Server](/docs/api-infer.md)
 * [Tracker](/docs/api-tracker.md)
+* [Segmentation Visualizer](/docs/api-segvisual.md)
 * **Tiler**
-* [On-Screen Display](/docs/api-osd.md)
 * [Demuxer and Splitter](/docs/api-tee.md)
+* [On-Screen Display](/docs/api-osd.md)
 * [Sink](/docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
