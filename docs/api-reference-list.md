@@ -209,6 +209,14 @@
 * [dsl_tracker_pph_add](/docs/api-tracker.md#dsl_tracker_pph_add)
 * [dsl_tracker_pph_remove](/docs/api-tracker.md#dsl_tracker_pph_remove)
 
+### Segmentation Visualizer
+* [Overview](/docs/api-segvisual.md)
+* [dsl_segvisual_new](/docs/api-segvisual.md#dsl_segvisual_new)
+* [dsl_segvisual_dimensions_get](/docs/api-segvisual.md#dsl_segvisual_dimensions_get)
+* [dsl_segvisual_dimensions_set](/docs/api-segvisual.md#dsl_segvisual_dimensions_set)
+* [dsl_segvisual_pph_add](/docs/api-segvisual.md#dsl_segvisual_pph_add).
+* [dsl_segvisual_pph_remove](/docs/api-segvisual.md#dsl_segvisual_pph_remove).
+
 ### Tiler:
 * [Overview](/docs/api-tiler.md)
 * [dsl_tiler_new](/docs/api-tiler.md#dsl_tiler_new)
