@@ -1,4 +1,4 @@
-# Sink API
+# Sink API Reference
 Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must have at least one sink in use, along with other certain components, to reach a state of Ready. DSL supports six types of Sinks:
 * Overlay Sink - renders/overlays video on a Parent display
 * Window Sink - renders/overlays video on a Parent XWindow
