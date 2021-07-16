@@ -555,18 +555,18 @@ retval, x_window = dsl_pipeline_xwindow_handle_get('my-pipeline')
 ```C++
 DslReturnType dsl_pipeline_xwindow_handle_set(const wchar_t* pipeline, Window handle);
 ```
-This service sets the the XWindow for the named Pipeline to use. The Pipeline must have a single [Window Sink](/docs/api-sink.md#dsl_sink_window_new)
+This service sets the the XWindow for the named Pipeline to use. The Pipeline must have a single [Window Sink](/docs/api-sink.md#dsl_sink_window_new) for this service to take effect.
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to update.
-* `handle` - [in] XWindow handle to use by all Child Window-Sink components of this Pipeline.
+* `handle` - [in] XWindow handle to use by the Pipeline's Child Window-Sink.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_pipeline_xwindow_handle_set('my-pipeline', x_window)
+retval = dsl_pipeline_xwindow_handle_set('my-pipeline', handle)
 ```
 <br>
 
