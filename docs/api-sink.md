@@ -369,7 +369,7 @@ This service updates the X and Y offsets of a named Render Sink; Overlay or Wind
 
 **Python Example**
 ```Python
-retval = dsl_sink_render_dimensions_set('my-overlay-sink', 100, 100)
+retval = dsl_sink_render_offests_set('my-overlay-sink', 100, 100)
 ```
 
 <br>
@@ -401,7 +401,7 @@ retval, width, height = dsl_sink_render_dimensions_get('my-overlay-sink')
 DslReturnType dsl_sink_overlay_dimensions_set(const wchar_t* name, 
     uint width, uint height);
 ```
-This service updates the dimensions of a named Render Sink; Overlay or Window. This service will fail if the  Sink is currently linked.
+This service updates the dimensions of a named Render Sink; Overlay or Window. This service will fail if the Sink is currently linked.
 
 **Parameters**
 * `name` - [in] unique name of the Overlay Sink to update.
@@ -444,10 +444,10 @@ retval, force = dsl_sink_window_force_aspect_ratio_get('my-window-sink')
 DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name, 
     boolean force);
 ```
-This service set the "force-aspect-ratio" property for the uniquely named Window Sink.  The Sink's aspect ratio will be maintained on Window resize if set. This service will fail if the Sink is currently linked.
+This service sets the "force-aspect-ratio" property for the uniquely named Window Sink. The Sink's aspect ratio will be maintained on Window resize if set. This service will fail if the Sink is currently linked.
 
 **Parameters**
-* `name` - [in] unique name of the Window Sink to query.
+* `name` - [in] unique name of the Window Sink to update.
 * `force` - [in] set true to force the aspect ratio on window resize., false otherwise.
 
 **Returns**
@@ -455,7 +455,7 @@ This service set the "force-aspect-ratio" property for the uniquely named Window
 
 **Python Example**
 ```Python
-retval, force = dsl_sink_window_force_aspect_ratio_get('my-window-sink')
+retval = dsl_sink_window_force_aspect_ratio_get('my-window-sink', True)
 ```
 
 <br>
