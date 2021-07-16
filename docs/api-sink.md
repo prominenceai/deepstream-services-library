@@ -207,8 +207,8 @@ The constructor creates a uniquely named Window Sink with given offsets and dime
 * `name` - [in] unique name for the Window Sink to create.
 * `x_offset` - [out] offset in the X direction in pixels from the upper left most corner of the parent XWindow.
 * `y_offset` - [out] offset in the Y direction in pixels from the upper left most corner of the parent XWindow.
-* `width` - [in] width of the Overlay Sink in pixels
-* `height` - [in] height of the Overlay Sink in pixels
+* `width` - [in] width of the Window Sink in pixels
+* `height` - [in] height of the Window Sink in pixels
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
@@ -339,8 +339,8 @@ This service returns the current X and Y offsets for the uniquely named Render S
 
 **Parameters**
 * `name` - [in] unique name of the Render Sink to query.
-* `x_offset` - [out] offset in the X direction in pixels from the upper left most corner of the display.
-* `y_offset` - [out] offset in the Y direction in pixels from the upper left most corner of the display.
+* `x_offset` - [out] offset in the X direction in pixels from the upper left most corner of the sink's parent.
+* `y_offset` - [out] offset in the Y direction in pixels from the upper left most corner of the sink's parent.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
@@ -357,12 +357,12 @@ retval, x_offset, y_offset = dsl_sink_render_offsets_get('my-overlay-sink')
 DslReturnType dsl_sink_render_offsets_set(const wchar_t* name, 
     uint x_offset, uint y_offset);
 ```
-This service updates the X and Y offsets of a named Render Sink; Overlay or Window. Offsets can be set while the Pipeline or Player is playing, 
+This service updates the X and Y offsets of a named Render Sink; Overlay or Window. Note: this service will fail if the Sink is currently linked.
 
 **Parameters**
 * `name` - [in] unique name of the Render Sink to update.
-* `x_offset` - [in] new offset in the X direction in pixels from the upper left most corner of the parent display.
-* `y_offset` - [in] new offset in the Y direction in pixels from the upper left most corner of the parent display.
+* `x_offset` - [in] new offset in the X direction in pixels from the upper left most corner of the sink's parent.
+* `y_offset` - [in] new offset in the Y direction in pixels from the upper left most corner of the sink's parent.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
@@ -401,12 +401,12 @@ retval, width, height = dsl_sink_render_dimensions_get('my-overlay-sink')
 DslReturnType dsl_sink_overlay_dimensions_set(const wchar_t* name, 
     uint width, uint height);
 ```
-This service updates the dimensions of a named Overlay Sink. This service will fail if the Overlay Sink is currently `in-use`.
+This service updates the dimensions of a named Render Sink; Overlay or Window. This service will fail if the  Sink is currently linked.
 
 **Parameters**
 * `name` - [in] unique name of the Overlay Sink to update.
-* `width` - [in] new width setting for the Overlay Sink.
-* `height` - [in] new height setting to use on XWindow creation in pixels.
+* `width` - [in] new width setting for the Render Sink in pixels.
+* `height` - [in] new height setting for the Render Sink in pixels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
@@ -444,7 +444,7 @@ retval, force = dsl_sink_window_force_aspect_ratio_get('my-window-sink')
 DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name, 
     boolean force);
 ```
-This service set the "force-aspect-ratio" property for the uniquely named Window Sink.  The Sink's aspect ratio will be maintained on Window resize if set.
+This service set the "force-aspect-ratio" property for the uniquely named Window Sink.  The Sink's aspect ratio will be maintained on Window resize if set. This service will fail if the Sink is currently linked.
 
 **Parameters**
 * `name` - [in] unique name of the Window Sink to query.
