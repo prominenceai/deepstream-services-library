@@ -21,7 +21,7 @@ Clients can be notified of Pipeline events by registering/deregistering one or m
 * **Error Message Received** - with [dsl_pipeline_error_message_handler_add](#dsl_pipeline_error_message_handler_add) / [dsl_pipeline_error_message_handler_remove](#dsl_pipeline_error_message_handler_remove).
 
 #### Pipeline XWindow Support
-Pipelines - that have at least one Window-Sink - will create an XWindow by default, unless one is provided. Clients can obtain a handle to this window by calling [dsl_pipeline_xwindow_handle_get](#dsl_pipeline_xwindow_handle_get). The Client can provide the Pipeline with the XWindow handle to use by calling [dsl_pipeline_xwindow_handle_set](#dsl_pipeline_display_xwindow_handle_set). A multi-Pipeline Application can have one Pipeline create the XWindow and then sharing with others, all with Window Sinks using difference offsets within the XWindow.
+Pipelines - that have a Window-Sink - will create an XWindow by default unless one is provided. Clients can obtain a handle to this window by calling [dsl_pipeline_xwindow_handle_get](#dsl_pipeline_xwindow_handle_get). The Client Application can provide the Pipeline with the XWindow handle to use by calling [dsl_pipeline_xwindow_handle_set](#dsl_pipeline_display_xwindow_handle_set). 
 
 In the case that the Pipeline creates the XWindow, Clients can be notified of XWindow `KeyRelease` events by registering one or more callback functions with [dsl_pipeline_xwindow_key_event_handler_add](#dsl_pipeline_xwindow_key_event_handler_add). Notifications are stopped by calling [dsl_pipeline_xwindow_key_event_handler_remove](#dsl_pipeline_xwindow_key_event_handler_remove). Notifications of XWindow `ButtonPress` events can be enabled and stopped by calling [dsl_pipeline_xwindow_button_event_handler_add](#dsl_pipeline_xwindow_button_event_handler_add) and [dsl_pipeline_xwindow_button_event_handler_remove](#dsl_pipeline_xwindow_button_event_handler_remove) respectively.
 
@@ -555,7 +555,7 @@ retval, x_window = dsl_pipeline_xwindow_handle_get('my-pipeline')
 ```C++
 DslReturnType dsl_pipeline_xwindow_handle_set(const wchar_t* pipeline, Window handle);
 ```
-This service sets the the XWindow for the named Pipeline to use. 
+This service sets the the XWindow for the named Pipeline to use. The Pipeline must have a single [Window Sink](/docs/api-sink.md#dsl_sink_window_new)
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to update.
