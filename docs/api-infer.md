@@ -5,7 +5,7 @@ Pipelines can have at most one Primary GIE or TIS with any number of correspondi
 
 Primary GIEs and TISs are constructed by calling [dsl_infer_gie_primary_new](#dsl_gie_primary_new) and [dsl_infer_tis_primary_new](#dsl_infer_tis_primary_new) respectively. Secondary GIEs and TISs are created by calling [dsl_gie_secondary_new](#dsl_gie_secondary_new) and [dsl_infer_tis_secondary_new](#dsl_infer_tis_secondary_new) respectively. As with all components, Primary and Secondary GIEs/TISs must be uniquely named from all other components created.
 
-The interval for inferencing is set as an unsigned integer with `0 and 1 = everyframe`, `2 = every 2nd frame`, `3 = every 3rd frame`, etc., when created.  The current interval in-use by any GIE/TIS can querried by calling [dsl_infer_interval_get](#dsl_infer_interval_get), and changed by calling [dsl_infer_interval_set](#dsl_infer_interval_set).
+The interval for inferencing -- or the number of frames to skip between inferencing -- is set as an unsigned integer with `0 = everyframe`, `1 = every other frame`, `2 = every 3rd frame`, etc., when created.  The current interval in-use by any GIE/TIS can querried by calling [dsl_infer_interval_get](#dsl_infer_interval_get), and changed by calling [dsl_infer_interval_set](#dsl_infer_interval_set).
 
 Both GIEs and TIE's require a Primary or Secondary **Inference Configuration File**. Once created, clients can query both Primary and Secondary GIEs/TIEs for their Config File in-use by calling [dsl_infer_config_file_get](#dsl_infer_config_file_get) or change the GIE/TIS's configuration by calling [dsl_infer_config_file_set](#dsl_infer_config_file_set).
 
