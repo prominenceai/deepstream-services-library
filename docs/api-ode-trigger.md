@@ -194,7 +194,7 @@ DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name,
     const wchar_t* source, uint class_id, uint limit);
 ```
 
-The constructor creates an Absence trigger that checks for the absence of Objects within a frame and generates an ODE occurrence if no object occur.
+The constructor creates an Absence trigger that checks for the absence of Objects within a frame and generates an ODE occurrence if no objects occur.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
@@ -303,7 +303,7 @@ retval = dsl_ode_trigger_persistence_new('my-instance-trigger', DSL_ODE_ANY_SOUR
 DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit);    
 ```
-This constructor creates a uniquely named Summation trigger that counts the number Objects within a frame that pass the trigger's (option) criteria. The Trigger generates an ODE occurrence invoking all ODE Actions once for **per-frame** until the Trigger limit is reached. 
+This constructor creates a uniquely named Summation trigger that counts the number Objects within a frame that pass the trigger's criteria. The Trigger generates an ODE occurrence invoking all ODE Actions once for **per-frame** until the Trigger limit is reached. 
 
 Note: Adding Actions to a Summation Trigger that require Object metadata during invocation - Object-Capture and Object-Fill as examples - will result in a non-action when invoked. 
 
@@ -331,7 +331,7 @@ retval = dsl_ode_trigger_summation_new('my-summation-trigger', DSL_ODE_ANY_SOURC
 DslReturnType dsl_ode_trigger_accumulation_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit);  
 ```
-This constructor creates a uniquely named Accumulation trigger that that checks for new instances of Objects that meet the Triggers (optional) criteria, while accumulating the number of occurrences over consecutive frames. New instance identification is based on Tracking Id, with the current accumulative occurrence value reported after each frame. The Trigger generates an ODE occurrence invoking all ODE Actions once for **per-frame** until the Trigger limit is reached. 
+This constructor creates a uniquely named Accumulation trigger that that checks for new instances of Objects that meet the Triggers criteria, while accumulating the number of occurrences over consecutive frames. New instance identification is based on Tracking Id, with the current accumulative occurrence value reported after each frame. The Trigger generates an ODE occurrence invoking all ODE Actions once for **per-frame** until the Trigger limit is reached. 
 
 Note: Adding Actions to an Accumulation Trigger that require Object metadata during invocation - Object-Capture and Object-Fill as examples - will result in a non-action when invoked. 
 
@@ -361,7 +361,7 @@ DslReturnType dsl_ode_trigger_distance_new(const wchar_t* name, const wchar_t* s
     uint test_point, uint test_method);
 ```
 
-This constructor creates a uniquely named Distance Trigger that determines if Objects, that meet the Trigger's (optional) criteria, are less than a minimum and/or greater than a maximum distance from one another. If detected, the Trigger will generate an ODE occurrence invoking all ODE Actions twice, once for **each object** in the pair. Object detection is based on the specification of two Class IDs; A and B. All Objects of Class A will be tested against all Objects of Class B. `class_id_a` and `class_id_b` can both be set to the same Class Id and `DSL_ODE_ANY_CLASS`.  The points and method of distance measurement (fixed or ratio) are defined as well.
+This constructor creates a uniquely named Distance Trigger that determines if Objects, that meet the Trigger's criteria, are less than a minimum and/or greater than a maximum distance from one another. If detected, the Trigger will generate an ODE occurrence invoking all ODE Actions twice, once for **each object** in the pair. Object detection is based on the specification of two Class IDs; A and B. All Objects of Class A will be tested against all Objects of Class B. `class_id_a` and `class_id_b` can both be set to the same Class Id and `DSL_ODE_ANY_CLASS`.  The points and method of distance measurement (fixed or ratio) are defined as well.
 
 Intersection requires at least one pixel of overlap between a pair of object's rectangles.
 
@@ -401,7 +401,7 @@ DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name,
     const wchar_t* source, uint class_id, uint limit);
 ```
 
-This constructor creates a uniquely named Intersection Trigger that determines if Objects, that meet the Trigger's (optional) criteria, intersect, and generates an ODE occurrence invoking all ODE Actions twice, once for **each object** in the intersection pair. Object detection is based on the specification of two Class IDs; A and B. All Objects of Class A will be tested against all Objects of Class B. `class_id_a` and `class_id_b` can both be set to the same Class Id and `DSL_ODE_ANY_CLASS`.
+This constructor creates a uniquely named Intersection Trigger that determines if Objects that meet the Trigger's criteria intersect, and generates an ODE occurrence invoking all ODE Actions twice, once for **each object** in the intersection pair. Object detection is based on the specification of two Class IDs; A and B. All Objects of Class A will be tested against all Objects of Class B. `class_id_a` and `class_id_b` can both be set to the same Class Id and `DSL_ODE_ANY_CLASS`.
 
 For example: Given three objects A, B, and C. If A intersects B and B intersects C, then two unique ODE occurrences are generated. Each Action owned by the Trigger will be called for each object for every overlapping pair, i.e. a total of four times in this example.  If each of the three objects intersect with the other two, then three ODE occurrences will be triggered with each action called a total of 6 times. 
 
@@ -436,7 +436,7 @@ DslReturnType dsl_ode_trigger_range_new(const wchar_t* name, const wchar_t* sour
     uint class_id, uint limit, uint lower, uint upper);
 ```
 
-This constructor creates a uniquely named Count Trigger that checks for the occurrence of Objects within a frame that meet the Trigger's (optional) criteria against a range of numbers. The Trigger generates an ODE occurrence invoking all Actions if the object count is below and/or above  a minimum and maximum count.
+This constructor creates a uniquely named Count Trigger that checks for the occurrence of Objects within a frame that meet the Trigger's criteria against a range of numbers. The Trigger generates an ODE occurrence invoking all Actions if the object count is below and/or above  a minimum and maximum count.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
@@ -465,7 +465,7 @@ DslReturnType dsl_ode_trigger_new_high_new(const wchar_t* name,
     const wchar_t* source, uint class_id, uint limit, uint preset);
 ```
 
-This constructor creates a uniquely named New High Trigger that checks for the occurrence of Objects within a frame that meet the Trigger's (optional) criteria and deterines if the numbers has reached a new high. The Trigger generates an ODE occurrence invoking all Actions if the object count is above the highest count. The Trigger can be created with a preset high value of 0 or greater.
+This constructor creates a uniquely named New High Trigger that checks for the occurrence of Objects within a frame that meet the Trigger's criteria and deterines if the numbers has reached a new high. The Trigger generates an ODE occurrence invoking all Actions if the object count is above the highest count. The Trigger can be created with a preset high value of 0 or greater.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
@@ -493,7 +493,7 @@ DslReturnType dsl_ode_trigger_new_low_new(const wchar_t* name,
     const wchar_t* source, uint class_id, uint limit, uint preset);
 ```
 
-This constructor creates a uniquely named New Low Trigger that checks for the occurrence of Objects within a frame that meet the Trigger's (optional) criteria and deterines if the number has reached a new low. The Trigger generates an ODE occurrence invoking all Actions if the object count is above the lowest count. The Trigger can be created with a preset low value of 0 or greater.
+This constructor creates a uniquely named New Low Trigger that checks for the occurrence of Objects within a frame that meet the Trigger's criteria and deterines if the number has reached a new low. The Trigger generates an ODE occurrence invoking all Actions if the object count is above the lowest count. The Trigger can be created with a preset low value of 0 or greater.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
@@ -573,7 +573,7 @@ DslReturnType dsl_ode_trigger_custom_new(const wchar_t* name, const wchar_t* sou
     uint class_id, uint limit, dsl_ode_check_for_occurrence_cb client_checker, void* client_data);
 ```
 
-The constructor creates a Uniquely named Custom Trigger that checks for the occurrence of Objects within a frame that meets the Triggers (optional) criteria and calls a Callback function that allows the client to customize the Trigger. The Callback function is called with the buffer 
+The constructor creates a Uniquely named Custom Trigger that checks for the occurrence of Objects within a frame that meets the Triggers criteria and calls a Callback function that allows the client to customize the Trigger. The Callback function is called with the buffer 
 
 
 **Parameters**
