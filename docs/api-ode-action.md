@@ -344,24 +344,30 @@ retval = dsl_ode_action_capture_object_new('my-object-action', './images/frames'
 
 ### *dsl_ode_action_display_new*
 ```C++
-DslReturnType dsl_ode_action_display_new(const wchar_t* name, 
-    uint offsetX, uint offsetY, boolean offsetY_with_classId);
+DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offset_x, uint offset_y, 
+    boolean offset_y_with_classId, const wchar_t* font, boolean has_bg_color, 
+    const wchar_t* bg_color);
 ```
-The constructor creates a uniquely named **Display Data** ODE Action. When invoked, this Action writes the ODE Trigger's name and occurrence count as metadata to the current Frame Meta for display by a downstream On-Screen-Display (OSD) component.
-
+The constructor creates a uniquely named **Display Occurrences** ODE Action. When invoked, this Action writes the ODE Trigger's name and occurrence count as metadata to the current Frame Meta for display by a downstream On-Screen-Display (OSD) component.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
 * `offsetX` - [in] offset for the display text in the X direction.
 * `offsetY` - [in] offset for the display text in the Y direction.
 * `offsetY_with_classId` - [in] if true adds an additional Y offset based on the Class Id of the Trigger invoking the Action. This allows multiple Triggers with different Class Ids to share the same Display Action
+* `font` - [in] unique name of the RGBA Font to use.
+* `has_bg_color` - [in] set to true display the text with a background color.
+* `bg_color` - [in] unique name of the RGBA Color to use for the background.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_ode_action_display_new('my-display-event-data-action', 10, 30, True)
+retval = dsl_ode_action_display_new('my-display-event-data-action', 
+    10, 30, True, 'my-custom-font, true, 'my-custom-bg-
+    
+    color')
 ```
 
 <br>
