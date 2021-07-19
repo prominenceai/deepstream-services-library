@@ -325,7 +325,7 @@ retval = dsl_pipeline_delete_all()
 ```C++
 DslReturnType dsl_pipeline_component_add(const wchar_t* pipeline, const wchar_t* component);
 ```
-Adds a single named Component to a named Pipeline. The add service will fail if the component is currently `in-use` by any Pipeline. The add service will also fail if adding a `one-only` type of Component, such as a Tiled-Display, for which the Pipeline already has. The Component's `in-use` state will be set to `true` on successful add. 
+Adds a single named Component to a named Pipeline. The add service will fail if the component is currently `in-use` by any Pipeline. The add service will also fail if adding a `one-only` type of Component, such as a Tiled-Display, when the Pipeline already has one. The Component's `in-use` state will be set to `true` on successful add. 
 
 If a Pipeline is in a `playing` or `paused` state, the service will attempt a dynamic update if possible, returning from the call with the Pipeline in the same state.
 
@@ -350,7 +350,7 @@ retval = dsl_pipeline_component_add('my-pipeline', 'my-camera-source')
 ```C++
 DslReturnType dsl_pipeline_component_add_many(const wchar_t* pipeline, const wchar_t** components);
 ```
-Adds a list of named Component to a named Pipeline. The add service will fail if any of components are currently `in-use` by any Pipeline. The add service will fail if any of the components to add are a `one-only` type of component for which the Pipeline already has. All of the component's `in-use` states will be set to true on successful add. 
+Adds a list of named Component to a named Pipeline. The add service will fail if any of components are currently `in-use` by any Pipeline. The add service will fail if any of the components to add are a `one-only` type and the Pipeline already has one. All of the component's `in-use` states will be set to true on successful add. 
 
 If a Pipeline is in a `playing` or `paused` state, the service will attempt a dynamic update if possible, returning from the call with the Pipeline in the same state.
 
@@ -392,8 +392,6 @@ DslReturnType dsl_pipeline_component_remove(const wchar_t* pipeline, const wchar
 ```
 Removes a single named Component from a named Pipeline. The remove service will fail if the Component is not currently `in-use` by the Pipeline. The Component's `in-use` state will be set to `false` on successful removal. 
 
-If a Pipeline is in a `playing` or `paused` state, the service will attempt a dynamic update if possible, returning from the call with the Pipeline in the same state.
-
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to update.
 * `component` - [in] unique name of the Component to remove.
@@ -433,7 +431,7 @@ retval = dsl_pipeline_component_remove_many('my-pipeline', ['my-camera-source', 
 ```C++
 DslReturnType dsl_pipeline_component_add_(const wchar_t* pipeline);
 ```
-Removes all child components from a named Pipeline. The add service will fail if any of components are currently `not-in-use` by the named Pipeline.  All of the removed component's `in-use` state will be set to `false` on successful removal. 
+Removes all child components from a named Pipeline. The remove service will fail if any of components are currently `not-in-use` by the named Pipeline.  All of the removed component's `in-use` state will be set to `false` on successful removal. 
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to update.
@@ -455,7 +453,7 @@ DslReturnType dsl_pipeline_source_name_get(const wchar_t name uint source_id, co
 This service returns the name of a Source component from a unqiue Source Id. The service will only return a Source that is currently `in-use` by a Pipeline in a Playing state.
 
 **Parameters**
-* `source_id` - [in] 
+* `source_id` - [in] unique source id to query.
 * `name` - [out] unique name of the Source for the given Id. Name will be equal to Null if the source id is invalid.
 
 **Returns**
@@ -474,6 +472,7 @@ DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* pipelin
     uint* batch_size, uint* batch_timeout);
 ```
 This service returns the current `batch_size` and `batch_timeout` for the named Pipeline
+
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to query.
 * `batch_size` - [out] the current batch size, set by the Pipeline according to the current number of child Source components.
@@ -574,7 +573,7 @@ retval = dsl_pipeline_xwindow_handle_set('my-pipeline', handle)
 ```C++
 DslReturnType dsl_pipeline_xwindow_destroy(const wchar_t* pipeline);
 ```
-This service destroys the Pipeline's XWindow if one exists and was created by the Pipeline, i.e. was not provided by the client with an earlier call to [dsl_pipeline_xwindow_handle_set](#dsl_pipeline_xwindow_handle_set)
+This service destroys the Pipeline's XWindow if one exists and was created by the Pipeline, i.e. was not provided by the client with an earlier call to [dsl_pipeline_xwindow_handle_set](#dsl_pipeline_xwindow_handle_set). This service will fail if the Pipeline is in a state of `passed` or `playing`.
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to update.
@@ -640,7 +639,7 @@ DslReturnType dsl_pipeline_xwindow_key_event_handler_add(const wchar_t* pipeline
 This service adds a callback function of type [dsl_xwindow_key_event_handler_cb](#dsl_xwindow_key_event_handler_cb) to a
 pipeline identified by it's unique name. The function will be called on every Pipeline XWindow `KeyReleased` event with Key string and the client provided `client_data`. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
 
-**Note** Client XWindow Callback functions will only be called if the Pipeline creates the XWindow, which requires a minimum of one Window-Sink component.
+**Note** Client XWindow Callback functions will only be called if the Pipeline creates the XWindow, which requires a [Window-Sink](/docs/api-sink.md#dsl_sink_window_new) component.
 
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update.
@@ -689,7 +688,7 @@ DslReturnType dsl_pipeline_xwindow_button_event_handler_add(const wchar_t* pipel
 This service adds a callback function of type [dsl_xwindow_button_event_handler_cb](#dsl_xwindow_button_event_handler_cb) to a
 pipeline identified by it's unique name. The function will be called on every Pipeline XWindow `ButtonPressed` event with Button ID, X and Y positional offsets, and the client provided `client_data`. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
 
-**Note** Client XWindow Callback functions will only be called if the Pipeline has created an XWindow, which requires a minimum of one Window-Sink component.
+**Note** Client XWindow Callback functions will only be called if the Pipeline has created an XWindow, which requires a [Window-Sink](/docs/api-sink.md#dsl_sink_window_new) component.
 
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update.
@@ -785,8 +784,8 @@ retval = dsl_pipeline_xwindow_delete_event_handler_remove('my-pipeline', xwindow
 ```C++
 DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_get(const wchar_t* pipeline, boolean* enabled)
 ```
-This service gets the current full-screen-enabled setting for the Pipeline's XWindow
-.
+This service gets the current full-screen-enabled setting for the Pipeline's XWindow.
+
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update
 * `enbled` - [out] true if the XWindow's full-screen mode is enabled, false otherwise. 
@@ -805,8 +804,8 @@ retval, enabled = dsl_pipeline_xwindow_fullscreen_enabled_get('my-pipeline')
 ```C++
 DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_set(const wchar_t* pipeline, boolean enabled)
 ```
-This service sets the current full-screen-enabled setting for the Pipeline's XWindow
-.
+This service sets the current full-screen-enabled setting for the Pipeline's XWindow.
+
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update
 * `enbled` - [in] set to true to enable the XWindow's full-screen mode, false otherwise. 
@@ -1005,7 +1004,7 @@ retval = dsl_pipeline_play('my-pipeline')
 ```C++
 DslReturnType dsl_pipeline_pause(wchar_t* pipeline);
 ```
-This service is used to pause a named Pipeline. The service will fail if the Pipeline is not currently in a `playing` state. The service will also fail if one of the Pipeline's components fails to transition to a state of `paused`.  
+This service is used to pause a **non-live** Pipeline. The service will fail if the Pipeline is not currently in a `playing` state. The service will also fail if one of the Pipeline's components fails to transition to a state of `paused`. Attempts to Pause a live Pipeline (having 1 or more live sources) will fail.
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to pause.
@@ -1024,7 +1023,7 @@ retval = dsl_pipeline_pause('my-pipeline')
 ```C++
 DslReturnType  dsl_pipeline_stop(wchar_t* pipeline);
 ```
-This service is used to stop a named Pipeline and return it to a state of `read`. The service will fail if the Pipeline is not currently in a `playing` or `paused` state. The service will also fail if one of the Pipeline's components fails to transition to a state of `ready`.  
+This service is used to stop a named Pipeline and return it to a state of `ready`. The service will fail if the Pipeline is not currently in a `playing` or `paused` state. The service will also fail if one of the Pipeline's components fails to transition to a state of `ready`.  All components will be unlinked on a successful transition to `stopped` so that updates to the Pipeline can be made; adding and removing components, etc. 
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to stop.
@@ -1080,13 +1079,9 @@ pipeline_count = dsl_pipeline_list_size()
 ```C++
 DslReturnType dsl_pipeline_dump_to_dot(const char* pipeline, char* filename);
 ```
-This method dumps a Pipeline's graph to dot file. The GStreamer Pipeline will a create 
-topology graph on each change of state to ready, playing and paused if the debug 
-environment variable `GST_DEBUG_DUMP_DOT_DIR` is set.
+This method dumps a Pipeline's graph to dot file. The GStreamer Pipeline will a create topology graph on each change of state to ready, playing and paused if the debug environment variable `GST_DEBUG_DUMP_DOT_DIR` is set.
 
-GStreamer will add the `.dot` suffix and write the file to the directory specified by
-the environment variable. The caller of this service is responsible for providing a 
-correctly formatted filename. 
+GStreamer will add the `.dot` suffix and write the file to the directory specified by the environment variable. The caller of this service is responsible for providing a correctly formatted filename. 
 
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to dump
