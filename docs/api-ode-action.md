@@ -365,9 +365,7 @@ The constructor creates a uniquely named **Display Occurrences** ODE Action. Whe
 **Python Example**
 ```Python
 retval = dsl_ode_action_display_new('my-display-event-data-action', 
-    10, 30, True, 'my-custom-font, true, 'my-custom-bg-
-    
-    color')
+    10, 30, True, 'my-custom-font, true, 'my-custom-bg-color')
 ```
 
 <br>
@@ -438,7 +436,7 @@ retval = dsl_ode_action_email_new('my-email-action', 'Bicycle has entered Inclus
 DslReturnType dsl_ode_action_file_new(const wchar_t* name, 
     const wchar_t* file_path, uint mode, uint format, boolean force_flush);
 ```
-The constructor creates a uniquely named **File** ODE Action. When invoked, this Action will write the Frame/Object and Trigger Criteria information for the ODE occurence that triggered the event to a specified file. The file will be created if one does exists. Existing file can be in either append or truncate modes.
+The constructor creates a uniquely named **File** ODE Action. When invoked, this Action will write the Frame/Object and Trigger Criteria information for the ODE occurence that triggered the event to a specified file. The file will be created if one does exists. Existing file can be opened in either append or truncate modes.
 
 Event data can be saved in one of two formats; formated text or comma seperated values (CSV). Click on the image below to view the CSV column headers and example data.
 
@@ -451,7 +449,7 @@ Event data can be saved in one of two formats; formated text or comma seperated 
 * `file_path` - [in] absolute or relative file path specification of the output file to use.
 * `force_flush` - [in] if set, the action will schedule a flush buffer operation to be performed by the idle thread.  
 
-NOTE: although the flush event occurrs in the lowest priority background (idle) thread, flushing is still a CPU intensive operation and should be used sparingly -- when tailing the file for runtime debugging as an example. Set to 0 to disable forced flushing, and to allow the operating system to more effectively handle the process.
+NOTE: although the flush event occurs in the lowest priority background (idle) thread, flushing is still a CPU intensive operation and should be used sparingly -- when tailing the file for runtime debugging as an example. Set to 0 to disable forced flushing, and to allow the operating system to more effectively handle the process.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
