@@ -201,7 +201,7 @@ retval = dsl_sink_overlay_new('my-overlay-sink', 0, 0, 200, 100, 1280, 720)
 DslReturnType dsl_sink_window_new(const wchar_t* name, 
     uint x_offset, uint y_offset, uint width, uint height);
 ```
-The constructor creates a uniquely named Window Sink with given offsets and dimensions. Construction will fail if the name is currently in use. Window Sinks are used render video onto an XWindow's Display. See [Pipeline XWindow Support](api-pipeline.md#pipeline-xwindow-support) for more information.
+The constructor creates a uniquely named Window Sink with given offsets and dimensions. Construction will fail if the name is currently in use. Window Sinks are used to render video onto an XWindows. See [Pipeline XWindow Support](api-pipeline.md#pipeline-xwindow-support) for more information.
 
 **Parameters**
 * `name` - [in] unique name for the Window Sink to create.
@@ -277,7 +277,7 @@ retval = dsl_sink_record_new('my-record-sink',
 DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host, 
      uint udp_port, uint rtmp_port, uint codec, uint bitrate, uint interval);
 ```
-The constructor creates a uniquely named RTSP Sink. Construction will fail if the name is currently in use. There are three Codec formats - `H.264`, `H.265`, and `MPEG` supported. The RTSP server is configured when the Pipeline owning Sink as called to Play. The server is then started and attached to the Main Loop context once [dsl_main_loop_run](#dsl_main_loop_run) is called. Once attached, the server can accept connects.
+The constructor creates a uniquely named RTSP Sink. Construction will fail if the name is currently in use. There are three Codec formats - `H.264`, `H.265`, and `MPEG` supported. The RTSP server is configured when the Pipeline is called to Play. The server is then started and attached to the Main Loop context once [dsl_main_loop_run](#dsl_main_loop_run) is called. Once attached, the server can accept connections.
 
 Note: the server Mount point will be derived from the unique RTSP Sink name, for example: 
 ```
@@ -423,7 +423,7 @@ retval = dsl_sink_render_dimensions_set('my-overlay-sink', 1280, 720)
 DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name, 
     boolean* force);
 ```
-This service returns the "force-aspect-ratio" property setting for the uniquely named Window Sink. The Sink's aspect ratio will be maintained on Window resize if set. 
+This service returns the "force-aspect-ratio" property setting for the named Window Sink. The Sink's aspect ratio will be maintained on Window resize if set. 
 
 **Parameters**
 * `name` - [in] unique name of the Window Sink to query.
@@ -444,7 +444,7 @@ retval, force = dsl_sink_window_force_aspect_ratio_get('my-window-sink')
 DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name, 
     boolean force);
 ```
-This service sets the "force-aspect-ratio" property for the uniquely named Window Sink. The Sink's aspect ratio will be maintained on Window resize if set. This service will fail if the Sink is currently linked.
+This service sets the "force-aspect-ratio" property for the named Window Sink. The Sink's aspect ratio will be maintained on Window resize if set. This service will fail if the Sink is currently linked.
 
 **Parameters**
 * `name` - [in] unique name of the Window Sink to update.
@@ -462,7 +462,7 @@ retval = dsl_sink_window_force_aspect_ratio_get('my-window-sink', True)
 
 ### *dsl_sink_record_session_start*
 ```C++
-DslReturnType dsl_sink_record_session_start(const wchar_t* name, uint* session,
+DslReturnType dsl_sink_record_session_start(const wchar_t* name,
     uint start, uint duration, void* client_data);
 ```
 This services starts a new recording session for the named Record Sink
@@ -486,20 +486,19 @@ retval, session = dsl_sink_record_session_start('my-record-sink', 15, 900, None)
 
 ### *dsl_sink_record_session_stop*
 ```C++
-DslReturnType dsl_sink_record_session_stop(const wchar_t* name, uint session);
+DslReturnType dsl_sink_record_session_stop(const wchar_t* name);;
 ```
 This services stops a current recording in session.
 
 **Parameters**
-* `name` [in] unique of the Record Sink to stop 
-* `session` [in] unique id for the session to stop
+* `name` [in] unique name of the Record Sink to stop 
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful Stop. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_sink_record_session_stop('my-record-sink', current_session)
+retval = dsl_sink_record_session_stop('my-record-sink')
 ```
 
 <br>
@@ -624,7 +623,7 @@ retval = dsl_sink_record_cache_size_set('my-record-sink', 15)
 
 <br>
 
-### *dsl_sink_record_dimensions_get
+### dsl_sink_record_dimensions_get
 ```C++
 DslReturnType dsl_sink_record_dimensions_get(const wchar_t* name, uint* width, uint* height);
 ```
@@ -649,7 +648,7 @@ retval, width, height = dsl_sink_record_dimensions_get('my-record-sink')
 ```C++
 DslReturnType dsl_sink_record_dimensions_set(const wchar_t* name, uint width, uint height);
 ```
-This services sets the dimensions, width and height, for the video recordings created values of zero (default) indicate no-transcode
+This services sets the dimensions, width and height, for the video recordings created. Values of zero (default) indicate no-transcode
 
 **Parameters**
  * `name` [in] name of the Record Sink to update
@@ -791,7 +790,7 @@ retval = dsl_sink_record_mailer_remove('my-record-sink', 'my-mailer')
 
 
 ### *dsl_sink_encode_video_formats_get*
-This service returns the current video codec and container formats for the uniquely named Enocde Sink
+This service returns the current video codec and container formats for the named Enocde Sink; File or Record
 ```C++
 DslReturnType dsl_sink_encode_video_formats_get(const wchar_t* name, 
     uint* codec, uint* container);
@@ -812,7 +811,7 @@ retval, codec, container = dsl_sink_encode_video_formats_get('my-record-sink')
 <br>
 
 ### *dsl_sink_encode_settings_get*
-This service returns the current bitrate and interval settings for the uniquely named Encode Sink.
+This service returns the current bitrate and interval settings for the uniquely named Encode Sink. File or Record
 ```C++
 DslReturnType dsl_sink_file_encode_settings_get(const wchar_t* name, 
     uint* bitrate, uint* interval);
