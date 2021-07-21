@@ -10,7 +10,10 @@ The Pipeline Component API provides the common services that apply to all Pipeli
 * [On Sreen Displays](/docs/api-osd.md)
 * [Sinks](/docs/api-sink.md)
 
-##
+---
+
+## Component API
+**Methods**
 * [dsl_component_delete](#dsl_component_delete)
 * [dsl_component_delete_many](#dsl_component_delete_many)
 * [dsl_component_delete_all](#dsl_component_delete_all)
