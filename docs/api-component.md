@@ -9,6 +9,7 @@ The Pipeline Component API provides the common services that apply to all Pipeli
 * [2D-Tilers](/docs/api-tiler.md)
 * [On Sreen Displays](/docs/api-osd.md)
 * [Sinks](/docs/api-sink.md)
+* [Branches](/docs/api-branch.md)
 
 ---
 
