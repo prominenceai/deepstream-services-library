@@ -1,5 +1,5 @@
 # ODE Trigger API Reference
-ODE Triggers use settable criteria to parse the frame and detected-object metadata looking for occurrences of specific object-detection-events (ODEs): Occurrence, Absence, Intersection, etc. Triggers, on ODE occurrence, iterate through their collection of ordered [ODE Actions](/docs/api-ode-action.md) invoking each. 
+ODE Triggers use settable criteria to parse the frame and detected-object metadata looking for occurrences of specific "object detection events" (ODEs): Occurrence, Absence, Intersection, etc. Triggers, on ODE occurrence, iterate through their collection of ordered [ODE Actions](/docs/api-ode-action.md) invoking each. 
 
 [ODE Areas](/docs/api-ode-area.md) -- created from [RGBA Polygons](/docs/api-display-type.md#dsl_display_type_rgba_polygon_new) with up to eight (8) sides -- can be added to one or more Triggers as criteria for ODE occurrence as well.
 
@@ -149,12 +149,12 @@ The following symbolic constants are used by the ODE Trigger API
 typedef boolean (*dsl_ode_check_for_occurrence_cb)(void* buffer,
     void* frame_meta, void* object_meta, void* client_data);
 ```
-Defines a Callback typedef for a Custom ODE Trigger. Once registered, the function will be called on every object detected that meets the (optional) criteria for the Custom Trigger. The client, determining that **custom** criteria has been met, returns true signaling ODE occurrence. The Custom Trigger will then invoke all the client provided Actions.
+Defines a Callback typedef for a Custom ODE Trigger. Once registered, the function will be called on every object detected that meets the criteria for the Custom Trigger. The client, determining that **custom** criteria have been met, returns true signaling ODE occurrence. The Custom Trigger will then invoke all the client provided Actions.
 
 **Parameters**
-* `buffer` - [in] pointer to frame buffer containing the Metadata for the object detected
-* `frame_meta` - [in] opaque pointer to a frame_meta structure that triggered the ODE event
-* `object_meta` - [in] opaque pointer to an object_meta structure that triggered the ODE event
+* `buffer` - [in] pointer to frame buffer containing the Metadata for the object detected.
+* `frame_meta` - [in] opaque pointer to a frame_meta structure that triggered the ODE event.
+* `object_meta` - [in] opaque pointer to an object_meta structure that triggered the ODE event.
 * `client_data` - [in] opque point to client user data provided by the client on callback registration
 
 <br>
@@ -167,14 +167,14 @@ Defines a Callback typedef for a Custom ODE Trigger. Once registered, the functi
 DslReturnType dsl_ode_trigger_always_new(const wchar_t* name, const wchar_t* source, uint when);
 ```
 
-The constructor creates an Always trigger that triggers and ODE occurrece on every new frame. Note, this is a No-Limit trigger, and setting a Class ID filer will have no effect. The Source ID default == ANY_SOURCE and can be update to specificy a single source id. Although always triggered, the client selects when to Trigger an ODE occurrence for each frame; before (pre) or after (post) processing of all Object metadata by all other Triggers.
+The constructor creates an Always trigger that triggers an ODE occurrece on every new frame. Note, this is a No-Limit trigger, and setting a Class ID filer will have no effect.  Although always triggered, the client selects when to Trigger an ODE occurrence for each frame; before (pre) or after (post) processing of all Object metadata by all other Triggers. As with all Triggers, Always Triggers can be enabled and disabled at anytime by calling [dsl_ode_trigger_enabled_set](#dsl_ode_trigger_enabled_set)
 
 Always triggers are helpful for adding [Display Types](/dsoc/api-display-types.md) -- text, lines, rectangles, etc. -- to each frame for one or all sources. 
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
-* `when` - [in] either DSL_PRE_CHECK_FOR_OCCURRENCES or DSL_POST_CHECK_FOR_OCCURRENCES
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable the filter.
+* `when` - [in] either DSL_PRE_CHECK_FOR_OCCURRENCES or DSL_POST_CHECK_FOR_OCCURRENCES.
 
 **Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this operation can consume all available diskspace.
 
@@ -198,8 +198,8 @@ The constructor creates an Absence trigger that checks for the absence of Object
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
-* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter.
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
 **Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this operation can consume all available diskspace.
@@ -279,11 +279,11 @@ The constructor creates a Persistence trigger that checks for the persistence of
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
-* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter.
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
-* `minimum` - [in] the minimum amount of time a unique object must remain detected before triggering an ODE occurrence - in units of seconds. 0 = no minimum
-* `maximum` - [in] the maximum amount of time a unique object can remain detected before triggering an ODE occurrence - in units of seconds. 0 = no maximum
+* `minimum` - [in] the minimum amount of time a unique object must remain detected before triggering an ODE occurrence - in units of seconds. 0 = no minimum.
+* `maximum` - [in] the maximum amount of time a unique object can remain detected before triggering an ODE occurrence - in units of seconds. 0 = no maximum.
 
 **Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
 
@@ -309,8 +309,8 @@ Note: Adding Actions to a Summation Trigger that require Object metadata during 
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
-* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter.
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
 **Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
@@ -367,14 +367,14 @@ Intersection requires at least one pixel of overlap between a pair of object's r
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
-* `class_id_a` - [in] inference class id filter A. Use `DSL_ODE_ANY_CLASS` to disable the filter
-* `class_id_b` - [in] inference class id filter B. Use `DSL_ODE_ANY_CLASS` to disable the filter
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `class_id_a` - [in] inference class id filter A. Use `DSL_ODE_ANY_CLASS` to disable the filter.
+* `class_id_b` - [in] inference class id filter B. Use `DSL_ODE_ANY_CLASS` to disable the filter.
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 * `minimum` - [in] the minimum distance between objects in either pixels or percentage of BBox edge as specified by the test_method parameter below.
 * `maximum` - [in] the maximum distance between objects in either pixels or percentage of BBox edge as specified by the test_method parameter below.
-* `test_point` - [in] the point on the bounding box rectangle to use for measurement, one of DSL_BBOX_POINT
-* `test_method` - [in] method of measuring the distance between objects, one of DSL_DISTANCE_METHOD
+* `test_point` - [in] the point on the bounding box rectangle to use for measurement, one of DSL_BBOX_POINT.
+* `test_method` - [in] method of measuring the distance between objects, one of DSL_DISTANCE_METHOD.
 
 **Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
 
@@ -409,9 +409,9 @@ Intersection requires at least one pixel of overlap between a pair of object's r
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
-* `class_id_a` - [in] inference class id filter A. Use `DSL_ODE_ANY_CLASS` to disable the filter
-* `class_id_b` - [in] inference class id filter B. Use `DSL_ODE_ANY_CLASS` to disable the filter
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `class_id_a` - [in] inference class id filter A. Use `DSL_ODE_ANY_CLASS` to disable the filter.
+* `class_id_b` - [in] inference class id filter B. Use `DSL_ODE_ANY_CLASS` to disable the filter.
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
 **Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
@@ -440,11 +440,11 @@ This constructor creates a uniquely named Count Trigger that checks for the occu
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
-* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter.
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
-* `minimum` - [in] the minimum count for triggering ODE occurrence, 0 = no minimum
-* `maximum` - [in] the maximum count for triggering ODE occurrence, 0 = no maximum
+* `minimum` - [in] the minimum count for triggering ODE occurrence, 0 = no minimum.
+* `maximum` - [in] the maximum count for triggering ODE occurrence, 0 = no maximum.
 
 **Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
 
@@ -469,8 +469,8 @@ This constructor creates a uniquely named New High Trigger that checks for the o
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
-* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter.
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 * `preset` - [in] initial high count to start with. High count will be reset to the preset on trigger reset.
 
@@ -493,12 +493,12 @@ DslReturnType dsl_ode_trigger_new_low_new(const wchar_t* name,
     const wchar_t* source, uint class_id, uint limit, uint preset);
 ```
 
-This constructor creates a uniquely named New Low Trigger that checks for the occurrence of Objects within a frame that meet the Trigger's criteria and deterines if the number has reached a new low. The Trigger generates an ODE occurrence invoking all Actions if the object count is above the lowest count. The Trigger can be created with a preset low value of 0 or greater.
+This constructor creates a uniquely named New Low Trigger that checks for the occurrence of Objects within a frame that meets the Trigger's criteria and deterines if the number has reached a new low. The Trigger generates an ODE occurrence invoking all Actions if the object count is above the lowest count. The Trigger can be created with a preset low value of 0 or greater.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
-* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter.
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 * `preset` - [in] initial low count to start with. Low count will be reset to the preset on trigger reset.
 
@@ -524,8 +524,8 @@ This constructor creates a uniquely named smallest trigger that checks for the o
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
-* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter.
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
 **Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
@@ -602,10 +602,10 @@ DslReturnType dsl_ode_trigger_delete(const wchar_t* trigger);
 This destructor deletes a single, uniquely named ODE Trigger. The destructor will fail if the Trigger is currently `in-use` by an ODE Handler
 
 **Parameters**
-* `trigger` - [in] unique name for the ODE Trigger to delete
+* `trigger` - [in] unique name for the ODE Trigger to delete.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -618,13 +618,13 @@ retval = dsl_ode_trigger_delete('my-trigger')
 ```C++
 DslReturnType dsl_trigger_delete_many(const wchar_t** triggers);
 ```
-This destructor deletes multiple uniquely named ODE Triggers. Each name is checked for existence, with the function returning `DSL_RESULT_TRIGGER_NAME_NOT_FOUND` on first occurrence of failure. The destructor will fail if one of the Actions is currently `in-use` by one or more ODE Triggers
+This destructor deletes multiple uniquely named ODE Triggers. Each name is checked for existence, with the function returning on first failure. The destructor will fail if one of the Actions is currently `in-use` by one or more ODE Triggers
 
 **Parameters**
 * `trigger` - [in] a NULL terminated array of uniquely named ODE Triggers to delete.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -660,11 +660,11 @@ This service gets the current minimum and maximum count settings in use by the n
 
 **Parameters**
 * `name` - [in] unique name of the ODE Count Trigger to query.
-* `minimum` - [in] the current minimum count for triggering ODE occurrence, 0 = no minimum
-* `maximum` - [in] the current minimum count for triggering ODE occurrence, 0 = no maximum
+* `minimum` - [in] the current minimum count for triggering ODE occurrence, 0 = no minimum.
+* `maximum` - [in] the current minimum count for triggering ODE occurrence, 0 = no maximum.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -683,11 +683,11 @@ This service sets the current minimum and maximum count settings to use for the 
 
 **Parameters**
 * `name` - [in] unique name of the ODE Count Trigger to update.
-* `minimum` - [in] the new minimum count for triggering ODE occurrence, 0 = no minimum
-* `maximum` - [in] the new maximum count for triggering ODE occurrence, 0 = no maximum
+* `minimum` - [in] the new minimum count for triggering ODE occurrence, 0 = no minimum.
+* `maximum` - [in] the new maximum count for triggering ODE occurrence, 0 = no maximum.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -882,10 +882,10 @@ retval, timeout = dsl_ode_trigger_reset_timeout_get('my-trigger')
 DslReturnType dsl_ode_trigger_reset_timeout_set(const wchar_t* name, uint timeout);
 ```
 
-This service sets the current auto-reset timeout setting for the named ODE Trigger. If set, upon reaching its limit, the Trigger will start a timer to auto-reset on expiration. A timeout of 0 disables auto-reset -- the default setting for all triggers.  
+This service sets the current auto-reset timeout setting for the named ODE Trigger. If set, upon reaching its limit, the Trigger will start a timer to auto-reset on expiration. A timeout of 0 disables auto-reset, the default setting for all triggers.  
 
 **Parameters**
-* `name` - [in] unique name of the ODE Trigger to reset.
+* `name` - [in] unique name of the ODE Trigger to update.
 * `timeout` - [in] new timeout value in units of seconds.
 
 **Returns**
@@ -903,11 +903,11 @@ retval = dsl_ode_trigger_reset_timeout_set('my-trigger', 3)
 DslReturnType dsl_ode_trigger_enabled_get(const wchar_t* name, boolean* enabled);
 ```
 
-This service returns the current enabled setting for the named ODE Trigger. Note: Triggers are enabled by default during construction.
+This service returns the current enabled setting for the named ODE Trigger. Triggers are enabled by default during construction.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
-* `enabled` - [out] true if the ODE Trigger is currently enabled, false otherwise
+* `enabled` - [out] true if the ODE Trigger is currently enabled, false otherwise.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
@@ -924,11 +924,11 @@ retval, enabled = dsl_ode_trigger_enabled_get('my-trigger')
 DslReturnType dsl_ode_trigger_enabled_set(const wchar_t* name, boolean enabled);
 ```
 
-This service sets the enabled setting for the named ODE Trigger. Note: Triggers are enabled by default during construction.
+This service sets the enabled setting for the named ODE Trigger. Triggers are enabled by default during construction.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to update.
-* `enabled` - [in] set to true to enable the ODE Trigger, false otherwise
+* `enabled` - [in] set to true to enable the ODE Trigger, false otherwise.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
@@ -946,14 +946,14 @@ retval = dsl_ode_trigger_enabled_set('my-trigger', False)
 DslReturnType dsl_ode_trigger_source_get(const wchar_t* name, const wchar_t** source);
 ```
 
-This service returns the current source_id filter setting for the named ODE Trigger. A value of `DSL_ODE_ANY_SOURCE` indicates that the filter is disable and Source name will not be used as criteria for ODE occurrence.
+This service returns the current source_id filter setting for the named ODE Trigger. A value of `DSL_ODE_ANY_SOURCE` (defined as NULL) indicates that the filter is disable and Source name will not be used as criteria for ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
-* `source` - [out] current source name filter for the ODE Trigger to filter on. A value of 
+* `source` - [out] current source name filter for the ODE Trigger to filter on. 
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -967,7 +967,7 @@ retval, source_name = dsl_ode_trigger_source_get('my-trigger')
 DslReturnType dsl_ode_trigger_source_set(const wchar_t* name, const wchar_t* source);
 ```
 
-This service sets the current source filter setting for the named ODE Trigger. A value of `DSL_ODE_ANY_SOURCE` disables the filter and the Source name will not be used as criteria for ODE occurrence.
+This service sets the current source filter setting for the named ODE Trigger. A value of `DSL_ODE_ANY_SOURCE` (or NULL) disables the filter and the Source name will not be used as criteria for ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
@@ -995,7 +995,7 @@ This service returns the current class_id filter setting for the named ODE Trigg
 * `class_id` - [out] current class Id filter for the ODE Trigger to filter on. 
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1054,15 +1054,15 @@ DslReturnType dsl_ode_trigger_class_id_ab_set(const wchar_t* name,
     uint class_id_a, uint class_id_b);;
 ```
 
-This service sets the current class_id_a filter setting for a named **AB Type** ODE Trigger. Both can be set to the same Class Id or `DSL_ODE_ANY_CLASS`
+This service sets the currentclass_id_a and class_id_b filter settings for a named **AB Type** ODE Trigger. Both can be set to the same Class Id or `DSL_ODE_ANY_CLASS`
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
 * `class_id_a` - [in] new class Id A filter for the ODE Trigger to filter on.
-* `class_id_b` - [in] new class Id A filter for the ODE Trigger to filter on.
+* `class_id_b` - [in] new class Id B filter for the ODE Trigger to filter on.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1084,7 +1084,7 @@ This service returns the current Trigger limit setting for the named ODE Trigger
 * `limit` - [out] current limit setting for the ODE Trigger. 
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure..
 
 **Python Example**
 ```Python
@@ -1105,7 +1105,7 @@ This service sets the current limit setting for the named ODE Trigger. Setting t
 * `limit` - [in] new limit for the ODE Trigger to filter on, 0 to indicate no limit.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1126,7 +1126,7 @@ This service returns the current minimum confidence criteria for the named ODE T
 * `min_confidence` - [out] current minimum confidence value between 0.0 and 1.0 for the ODE Trigger to filter on, 0 indicates disable.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1147,7 +1147,7 @@ This service sets the minimum confidence criteria for the named ODE Trigger. A v
 * `min_confidence` - [in] new minimum confidence value as criteria for the ODE Trigger to filter on, or 0 to disable.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1169,7 +1169,7 @@ This service returns the current minimum dimensions for the named ODE Trigger. A
 * `min_hight` - [out] current minimum height value for the ODE Trigger to filter on, 0 indicates disabled.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1191,7 +1191,7 @@ This service sets the current minimum dimensions for the named ODE Trigger. A va
 * `min_hight` - [out] minimum height value for the ODE Trigger to filter on, 0 indicates disabled.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1213,7 +1213,7 @@ This service returns the current maximum dimensions for the named ODE Trigger. A
 * `max_hight` - [out] current maximum height value for the ODE Trigger to filter on, 0 indicates disabled.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1235,7 +1235,7 @@ This service sets the current maximum dimensions for the named ODE Trigger. A va
 * `max_hight` - [out] maximum height value for the ODE Trigger to filter on, 0 indicates disabled.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1256,7 +1256,7 @@ This service returns the current "infer-done-only" criteria for the named ODE Tr
 * `infer_done_only` - [out] if set to true, then the "inference-done" filer is enable, false indicates disabled.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1277,11 +1277,11 @@ This service sets the "inference-done-only" criteria for the named ODE Trigger. 
 * `infer_done_only` - [in] set to true ot enable the "infer-done-only" criteria, false (default) to disable.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_infer_done_only_get('my-trigger', 'infer_done_only')
+retval = dsl_ode_trigger_infer_done_only_get('my-trigger', True)
 ```
 
 <br>
@@ -1297,7 +1297,7 @@ This service gets the current frame processing interval setting for the named OD
 * `limit` - [out] current interval setting for the ODE Trigger. Default = 0.  
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1315,7 +1315,7 @@ This service sets the current frame processing interval setting for the named OD
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to update.
-* `interval` - [in] new interval for the ODE Trigger to process frames on. Set to 0 (default) or 1 to processess all frames.
+* `interval` - [in] new interval for the ODE Trigger to process frames on. Set to 0 (default) or 1 to process all frames.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
@@ -1336,10 +1336,10 @@ This service adds a named ODE Action to a named ODE Trigger. The same Action can
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to update.
-* `action` - [in] unique name of the ODE Action to add
+* `action` - [in] unique name of the ODE Action to add.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1357,10 +1357,10 @@ This service adds a Null terminated list of named ODE Actions to a named ODE Tri
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to update.
-* `actions` - [in] a Null terminated list of unique names of the ODE Actions to add
+* `actions` - [in] a Null terminated list of unique names of the ODE Actions to add.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1374,7 +1374,7 @@ retval = dsl_ode_trigger_action_add_many('my-trigger', ['my-action-a', 'my-actio
 DslReturnType dsl_ode_trigger_action_remove(const wchar_t* name, const wchar_t* action);
 ```
 
-This service removes a named ODE Action from a named ODE Trigger. The services will fail with DSL_RESULT_ODE_TRIGGER_ACTION_NOT_IN_USE if the Action is not currently in-use by the named Trigger
+This service removes a named ODE Action from a named ODE Trigger. The services will fail if the Action is not currently in-use by the named Trigger
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to update.
@@ -1395,14 +1395,14 @@ retval = dsl_ode_trigger_action_remove('my-trigger', 'my-action')
 DslReturnType dsl_ode_trigger_action_remove_many(const wchar_t* name, const wchar_t** actions);
 ```
 
-This service removes a Null terminated list of named ODE Actions to a named ODE Trigger. The service returns DSL_RESULT_ODE_TRIGGER_ACTION_NOT_IN_USE if at any point one of the named Actions is not currently in-use by the named Trigger
+This service removes a Null terminated list of named ODE Actions to a named ODE Trigger. The service will fail if any of the named Actions are not currently in-use by the named Trigger.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to update.
-* `actions` - [in] a Null terminated list of unique names of the ODE Actions to remove
+* `actions` - [in] a Null terminated list of unique names of the ODE Actions to remove.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1422,7 +1422,7 @@ This service removes all ODE Actions from a named ODE Trigger.
 * `name` - [in] unique name of the ODE Trigger to update.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1457,14 +1457,14 @@ retval = dsl_ode_trigger_area_add('my-trigger', 'my-area')
 DslReturnType dsl_ode_trigger_area_add_many(const wchar_t* name, const wchar_t** areas);
 ```
 
-This service adds a Null terminated list of named ODE Areas to a named ODE Trigger. The same Area can be added to multiple Triggers. 
+This service adds a Null terminated list of named ODE Areas to a named ODE Trigger.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to update.
-* `areas` - [in] a Null terminated list of unique names of the ODE Areas to add
+* `areas` - [in] a Null terminated list of unique names of the ODE Areas to add.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1478,7 +1478,7 @@ retval = dsl_ode_trigger_area_add_many('my-trigger', ['my-area-a', 'my-area-b', 
 DslReturnType dsl_ode_trigger_area_remove(const wchar_t* name, const wchar_t* area);
 ```
 
-This service removes a named ODE Area from a named ODE Trigger. The services will fail with DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE if the Area is not currently in-use by the named Trigger
+This service removes a named ODE Area from a named ODE Trigger. The services will fail if the Area is not currently in-use by the named Trigger
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to update.
@@ -1499,14 +1499,14 @@ retval = dsl_ode_trigger_area_remove('my-trigger', 'my-area')
 DslReturnType dsl_ode_trigger_area_remove_many(const wchar_t* name, const wchar_t** areas);
 ```
 
-This service removes a Null terminated list of named ODE Areas to a named ODE Trigger. The service returns DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE if at any point one of the named Areas is not currently in-use by the named Trigger
+This service removes a Null terminated list of named ODE Areas to a named ODE Trigger. The service will fail if one of the named Areas is not currently in-use by the named Trigger.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to update.
-* `areas` - [in] a Null terminated list of unique names of the ODE Areas to remove
+* `areas` - [in] a Null terminated list of unique names of the ODE Areas to remove.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1526,7 +1526,7 @@ This service removes all ODE Areas from a named ODE Trigger.
 * `name` - [in] unique name of the ODE Trigger to update.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1542,7 +1542,7 @@ uint dsl_ode_trigger_list_size();
 This service returns the size of the ODE Trigger container, i.e. the number of Triggers currently in memory. 
 
 **Returns**
-* The size of the ODE Trigger container
+* The size of the ODE Trigger container.
 
 **Python Example**
 ```Python
