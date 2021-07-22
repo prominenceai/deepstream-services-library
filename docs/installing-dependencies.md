@@ -14,7 +14,7 @@ The RTSP Server lib is required by the RTSP Sink Component
 ## Apache Runtime
 The Apache Runtime is used by the GStreamer Window Sink requiring the following libraries to be installed
 ```
-sudo apt-get install libapr1 libapr1-dev libaprutil1 libaprutil1-dev`
+sudo apt-get install libapr1 libapr1-dev libaprutil1 libaprutil1-dev
 ```
 
 ## Geometry Engine, Open Source (GEOS)
