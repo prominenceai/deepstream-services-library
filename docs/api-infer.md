@@ -3,9 +3,9 @@ The DeepStream Services Library (DSL) provides services for Nvidia's two Inferen
 
 Pipelines can have at most one Primary GIE or TIS with any number of corresponding Secondary GIEs or TISs (only limited by hardware). Pipelines cannot be created with a mix of GIEs and TISs. Pipelines that have secondary GIEs/TISs but no Primary GIE/TIS will fail to Link and Play. Secondary GIEs/TISs can `infer-on` both Primary and Secondary GIEs/TISs creating multiple levels of inference.
 
-Primary GIEs and TISs are constructed by calling [dsl_infer_gie_primary_new](#dsl_gie_primary_new) and [dsl_infer_tis_primary_new](#dsl_infer_tis_primary_new) respectively. Secondary GIEs and TISs are created by calling [dsl_gie_secondary_new](#dsl_gie_secondary_new) and [dsl_infer_tis_secondary_new](#dsl_infer_tis_secondary_new) respectively. As with all components, Primary and Secondary GIEs/TISs must be uniquely named from all other components created.
+Primary GIEs and TISs are constructed by calling [dsl_infer_gie_primary_new](#dsl_infer_gie_primary_new) and [dsl_infer_tis_primary_new](#dsl_infer_tis_primary_new) respectively. Secondary GIEs and TISs are created by calling [dsl_infer_gie_secondary_new](#dsl_gie_secondary_new) and [dsl_infer_tis_secondary_new](#dsl_infer_tis_secondary_new) respectively. As with all components, Primary and Secondary GIEs/TISs must be uniquely named from all other components created.
 
-The interval for inferencing is set as an unsigned integer with `0 and 1 = everyframe`, `2 = every 2nd frame`, `3 = every 3rd frame`, etc., when created.  The current interval in-use by any GIE/TIS can querried by calling [dsl_infer_interval_get](#dsl_infer_interval_get), and changed by calling [dsl_infer_interval_set](#dsl_infer_interval_set).
+The interval for inferencing -- or the number of frames to skip between inferencing -- is set as an unsigned integer with `0 = everyframe`, `1 = every other frame`, `2 = every 3rd frame`, etc., when created.  The current interval in-use by any GIE/TIS can querried by calling [dsl_infer_interval_get](#dsl_infer_interval_get), and changed by calling [dsl_infer_interval_set](#dsl_infer_interval_set).
 
 Both GIEs and TIE's require a Primary or Secondary **Inference Configuration File**. Once created, clients can query both Primary and Secondary GIEs/TIEs for their Config File in-use by calling [dsl_infer_config_file_get](#dsl_infer_config_file_get) or change the GIE/TIS's configuration by calling [dsl_infer_config_file_set](#dsl_infer_config_file_set).
 
@@ -97,13 +97,12 @@ if retval != DSL_RETURN_SUCCESS:
 DslReturnType dsl_infer_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
     const wchar_t* model_engine_file, uint interval);
 ```
-This constructor creates a uniquely named Primary GIE. Construction will fail
-if the name is currently in use.
+This constructor creates a uniquely named Primary Gst Inference Engine (GIE). Construction will fail if the name is currently in use. 
 
 **Parameters**
 * `name` - [in] unique name for the Primary GIE to create.
 * `infer_config_file` - [in] relative or absolute file path/name for the infer config file to load
-* `model_engine_file` - [in] relative or absolute file path/name for the model engine file to load
+* `model_engine_file` - [in] relative or absolute file path/name for the model engine file to load. Set to NULL and the GIE Plugin will attempt to create a model-engine file based on the configuration file.
 * `interval` - [in] frame interval to infer on
 
 **Returns**
@@ -122,13 +121,12 @@ DslReturnType dsl_infer_gie_secondary_new(const wchar_t* name, const wchar_t* in
     const wchar_t* model_engine_file, const wchar_t* infer_on_gie, uint interval);
 ```
 
-This constructor creates a uniquely named Secondary GIE. Construction will fail
-if the name is currently in use.
+This constructor creates a uniquely named Secondary Gst Inference Engine (GIE). Construction will fail if the name is currently in use.
 
 **Parameters**
 * `name` - [in] unique name for the Secondary GIE to create.
 * `infer_config_file` - [in] relative or absolute file path/name for the infer config file to load
-* `model_engine_file` - [in] relative or absolute file path/name for the model engine file to load
+* `model_engine_file` - [in] relative or absolute file path/name for the model engine file to load. Set to NULL and the GIE Plugin will attempt to create a model-engine file based on the configuration file.
 * `infer_on_gie` - [in] unique name of the Primary or Secondary GIE to infer on
 * `interval` - [in] frame interval to infer on
 
@@ -137,7 +135,7 @@ if the name is currently in use.
 
 **Python Example**
 ```Python
-retval = dsl_infer_gie_seondary_new('my-sgie', sgie_config_file, sgie_model_file, 0, 'my-pgie')
+retval = dsl_infer_gie_seondary_new('my-sgie', sgie_config_file, sgie_model_file, 'my-pgie', 0)
 ```
 
 <br>
@@ -147,8 +145,7 @@ retval = dsl_infer_gie_seondary_new('my-sgie', sgie_config_file, sgie_model_file
 DslReturnType dsl_infer_tis_primary_new(const wchar_t* name,
     const wchar_t* infer_config_file, uint interval);
 ```
-This constructor creates a uniquely named Primary TIS. Construction will fail
-if the name is currently in use.
+This constructor creates a uniquely named Primary Triton Inference Server (TIS). Construction will fail if the name is currently in use.
 
 **Parameters**
 * `name` - [in] unique name for the Primary TIS to create.
@@ -171,8 +168,7 @@ DslReturnType dsl_infer_tis_secondary_new(const wchar_t* name, const wchar_t* in
     const wchar_t* infer_on_tis, uint interval);
 ```
 
-This constructor creates a uniquely named Secondary TIS. Construction will fail
-if the name is currently in use.
+This constructor creates a uniquely named Secondary Triton Inference Server (TIS). Construction will fail if the name is currently in use.
 
 **Parameters**
 * `name` - [in] unique name for the Secondary TIS to create.

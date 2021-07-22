@@ -99,7 +99,7 @@ retval = dsl_tracker_iou_new('my-iou-tracker', './test/configs/iou_config.txt', 
 DslReturnType dsl_tracker_dcf_new(const wchar_t* name, const wchar_t* config_file, 
     uint width, uint height, boolean batch_processing_enabled, boolean past_frame_reporting_enabled);
 ```
-This service creates a unqiuely named IOU Tracker component. Construction will fail if the name is currently in use. The `config_file` parameter for the DCF Tracker is optional.
+This service creates a unqiuely named DCF Tracker component. Construction will fail if the name is currently in use. The `config_file` parameter for the DCF Tracker is optional.
 
 **Parameters**
 * `name` - [in] unique name for the IOU Tracker to create.
@@ -168,7 +168,7 @@ retval = dsl_tracker_dimensions_set('my-tracker', 640, 368)
 ```C++
 DslReturnType dsl_tracker_config_file_get(const wchar_t* name, const wchar_t** config_file);
 ```
-This service returns the absolute path to the (optional) Tracker Config File in use by the named IOU or DCF Tracker. This service returns an empty string if the configuration file was omitted on construction, or removed by a call to [dsl_tracker_config_file_set](#dsl_tracker_config_file_set)
+This service returns the absolute path to the (optional) Tracker Config File in use by the named IOU or DCF Tracker. This service returns an empty string if the configuration file was omitted on construction, or removed by calling [dsl_tracker_config_file_set](#dsl_tracker_config_file_set) with a NULL pointer.
 
 NOTE: Calling this service on a KTL Tracker will return an empty string..
 
@@ -218,7 +218,7 @@ This service gets the current `enable-batch-process` setting for the named DCF T
 
 **Parameters**
 * `name` - [in] unique name of the DCF Tracker to query.
-* `enabled` - [out] true if "batch processing" is enabled, false otherwise.
+* `enabled` - [out] true if batch processing is enabled, false otherwise.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
@@ -260,7 +260,7 @@ This service gets the current `enable-past-frame` setting for the named DCF Trac
 
 **Parameters**
 * `name` - [in] unique name of the DCF Tracker to query.
-* `enabled` - [out] true if "past frame reporting" is enabled, false otherwise.
+* `enabled` - [out] true if past frame reporting is enabled, false otherwise.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
@@ -319,10 +319,10 @@ retval = dsl_tracker_pph_add('my-tracker', 'my-pph-handler', `DSL_PAD_SINK`)
 ```C++
 DslReturnType dsl_tracker_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
 ```
-This service removes a [Pad Probe Handler](/docs/api-pph.md) from either the Sink or Source pad of the named On-Screen Display. The service will fail if the named handler is not owned by the Tiler
+This service removes a [Pad Probe Handler](/docs/api-pph.md) from either the Sink or Source pad of the named Tracker. The service will fail if the named handler is not owned by the Tracker
 
 **Parameters**
-* `name` - [in] unique name of the On-Screen Display to update.
+* `name` - [in] unique name of the Tracker to update.
 * `handler` - [in] unique name of Pad Probe Handler to remove
 * `pad` - [in] to which of the two pads to remove the handler from: `DSL_PAD_SIK` or `DSL_PAD SRC`
 

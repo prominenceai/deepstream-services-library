@@ -16,8 +16,7 @@ Mailers are created by calling the constructor [dsl_mailer_new](#dsl_mailer_new)
 * **Smart Recording Sink** - added with [dsl_sink_record_mailer_add](/docs/api-sink.md#dsl_sink_record_mailer_add) and removed with [dsl_sink_record_mailer_remove](/docs/api-sink.md#dsl_sink_record_mailer_remove)
 
 ## Using GMAIL's SMTP server
-**IMPORTANT!** it is STRONGLY advised that you create a new, free [Gmail account](https://support.google.com/mail/answer/56256?hl=en) -- that is seperate/unlinked from all your other email accounts -- strictly for the purpose of sending ODE Event data uploaded from DSL.  Then, add your Personal email address as a `To` address to
-receive the emails. 
+**IMPORTANT!** if using GMAIL, it is STRONGLY advised that you create a new, free [Gmail account](https://support.google.com/mail/answer/56256?hl=en) -- that is seperate/unlinked from all your other email accounts -- strictly for the purpose of sending ODE Event data uploaded from DSL.  Then, add your Personal email address as a `To` address to receive the emails. 
 
 Gmail considers regular email programs (i.e Outlook, etc.) and non-registered third-party apps to be "less secure". The email account used for sending email must have the "Allow less secure apps" option turned on. Once you've created this new account, you can go to the account settings and enable [Less secure app access](https://myaccount.google.com/lesssecureapps).
 
@@ -122,10 +121,10 @@ DslReturnType dsl_mailer_delete(const wchar_t* name);
 This destructor deletes a single, uniquely named Mailer. The destructor will fail if the Mailer is currently `in-use` by one or more Actions or Components.
 
 **Parameters**
-* `name` - [in] unique name of the Mailer to delete
+* `name` - [in] unique name of the Mailer to delete.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -141,7 +140,7 @@ DslReturnType dsl_mailer_delete_all();
 This destructor deletes all Mailers currently in memory. The destructor will fail if any one of the Mailers is currently `in-use` by one or more Actions or Components.. 
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -161,11 +160,11 @@ DslReturnType dsl_mailer_enabled_get(const wchar_t* name, boolean* enabled);
 This service queries the Mailer for its current enabled state. Mailers are automatically disabled if and while their outgoing queue size exceeds `DSL_MAILER_MAX_PENDING_MESSAGES`. Services are enabled by default.
 
 **Parameters**
-* `name` [in] unique name of the Mailer to query.
-* `enabled` [out] true if the Mailer is currently enabled, false otherwise.
+* `name` - [in] unique name of the Mailer to query.
+* `enabled` - [out] true if the Mailer is currently enabled, false otherwise.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -181,11 +180,11 @@ DslReturnType dsl_mailer_enabled_set(const wchar_t* name, boolean enabled);
 This service sets the enabled state for the named Mailer object. Setting the state to true while the outgoing queue size exceeds `DSL_SMTP_MAX_PENDING_MESSAGES` will return `DSL_RESULT_FAILURE`. Mailers are enabled by default.
 
 **Parameters**
-* `name` [in] unique name of the Mailer to update.
-* `enabled` [in] set to true to enable the Mailer, false to disable.
+* `name` - [in] unique name of the Mailer to update.
+* `enabled` - [in] set to true to enable the Mailer, false to disable.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -202,12 +201,12 @@ DslReturnType dsl_mailer_credentials_set(const wchar_t* name,
 This service is used to set the SMTP account credentials, username and password, for all subsequent emails sent by the Mailer.
 
 **Parameters**
-* `name` [in] unique name of the Mailer to update.
-* `username` [in] username for the SMTP account
-* `password` [in] password for the same account
+* `name` - [in] unique name of the Mailer to update.
+* `username` - [in] username for the SMTP account.
+* `password` - [in] password for the same account.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -222,14 +221,14 @@ retval = dsl_mailer_credentials_set('my-mailer',
 DslReturnType dsl_mailer_server_url_get(const wchar_t* name,
     const wchar_t** server_url);
 ```
-This service gets the current Server URL in use by the name Mailer. The service will return an empty string unless set by a previous call made to [dsl_mailer_server_url_set](#dsl_mailer_server_url_set).
+This service gets the current Server URL in use by the named Mailer. The service will return an empty string until the URL is set by calling [dsl_mailer_server_url_set](#dsl_mailer_server_url_set).
 
 **Parameters**
-* `name` [in] unique name of the Mailer to query.
-* `server_url` [out] current Server URL in use.
+* `name` - [in] unique name of the Mailer to query.
+* `server_url` - [out] current Server URL in use.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -243,14 +242,14 @@ retval, server_url = dsl_mailer_server_url_get('my-mailer')
 DslReturnType dsl_mailer_server_url_set(const wchar_t* name,
     const wchar_t* server_url);
 ```
-This service sets the Server URL to use for all subsequent emails sent out by the name Mailer.
+This service sets the Server URL to use for all subsequent emails sent out by the named Mailer.
 
 **Parameters**
-* `name` [in] unique name of the Mailer to update.
-* `server_url` [in] new Server URL to use.
+* `name` - [in] unique name of the Mailer to update.
+* `server_url` - [in] new Server URL to use.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -265,12 +264,12 @@ retval = dsl_mailer_server_url_set('my-mailer',
 DslReturnType dsl_mailer_address_from_get(const wchar_t* name,
     const wchar_t** display_name, const wchar_t** address);
 ```
-This service gets the current `From` address in use by the named Mailer, values that were previously set with a call to [dsl_mailer_address_from_set](#dsl_mailer_address_from_set).
+This service gets the current `From` address in use by the named Mailer. Both the display_name and address parameters will return an empty string until set with a call to [dsl_mailer_address_from_set](#dsl_mailer_address_from_set).
 
 **Parameters**
-* `name` [in] unique name of the Mailer to query.
-* `display_name` [out] returns the display name (optional) for the `From` address in use
-* `address` [out] returns the email address in use.
+* `name` - [in] unique name of the Mailer to query.
+* `display_name` - [out] returns the display name (optional) for the `From` address in use.
+* `address` - [out] returns the email address in use.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure.
@@ -290,9 +289,9 @@ DslReturnType dsl_mailer_address_from_set(const wchar_t* name,
 This service sets the `From` address to use for all subsequent emails by the name Mailer.
 
 **Parameters**
-* `name` [in] unique name of the Mailer to update.
-* `display_name` [in] the display name (optional) to use for the `From` address
-* `address` [in] the email address to use. Will be set by the server if omitted.
+* `name` - [in] unique name of the Mailer to update.
+* `display_name` - [in] the display name (optional) to use for the `From` address.
+* `address` - [in] the email address to use. Will be set by the server if omitted.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure.
@@ -312,11 +311,11 @@ DslReturnType dsl_mailer_ssl_enabled_get(const wchar_t* name, boolean* enabled);
 This service gets the SSL enabled setting for the named Mailer. SSL is enabled by default
 
 **Parameters**
-* `name` [in] unique name of the Mailer to query.
-* `enabled` [out] true if SSL is currently enabled, false otherwise.
+* `name` - [in] unique name of the Mailer to query.
+* `enabled` - [out] true if SSL is currently enabled, false otherwise.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -329,14 +328,14 @@ retval, enabled = dsl_mailer_ssl_enabled_get('my-mailer')
 ```C++
 DslReturnType dsl_mailer_ssl_enabled_set(const wchar_t* name, boolean enabled);
 ```
-This service sets the SSL enabled state for the named Mailer. SSL is enabled by default
+This service sets the SSL enabled state for the named Mailer. SSL is enabled by default.
 
 **Parameters**
-* `name` [in] unique name of the Mailer to update.
-* `enabled` [in] set to true to enable SSL, false to disable.
+* `name` - [in] unique name of the Mailer to update.
+* `enabled` - [in] set to true to enable SSL, false to disable.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -353,9 +352,9 @@ DslReturnType dsl_mailer_address_to_add(const wchar_t* name,
 This service adds a `To` address to use for all subsequent emails.
 
 **Parameters**
-* `name` [in] unique name of the Mailer to update.
-* `display_name` [in] the display name (optional) to use for the `To` address
-* `address` [in] the email address to add. 
+* `name` - [in] unique name of the Mailer to update.
+* `display_name` - [in] the display name (optional) to use for the `To` address.
+* `address` - [in] the email address to add. 
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure.
@@ -372,10 +371,10 @@ retval  = dsl_mailer_address_to_add('my-mailer',
 ```C++
 DslReturnType dsl_mailer_address_to_remove_all(const wchar_t* name);
 ```
-This service removes all `To` addresses from the name Mailer. At least one `To` address must exist for email to be sent out.
+This service removes all `To` addresses from the named Mailer. At least one `To` address must exist for email to be sent out.
 
 **Parameters**
-* `name` [in] unique name of the Mailer to update.
+* `name` - [in] unique name of the Mailer to update.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure.
@@ -395,9 +394,9 @@ DslReturnType dsl_mailer_address_cc_add(const wchar_t* name,
 This service adds a `Cc` address to use for all subsequent emails by the named Mailer. `Cc` addresses are optional.
 
 **Parameters**
-* `name` [in] unique name of the Mailer to update.
-* `display_name` [in] the display name (optional) to use for the `Cc` address
-* `address` [in] the email address to add. 
+* `name` - [in] unique name of the Mailer to update.
+* `display_name` - [in] the display name (optional) to use for the `Cc` address.
+* `address` - [in] the email address to add. 
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
@@ -417,7 +416,7 @@ DslReturnType dsl_mailer_address_cc_remove_all(const wchar_t* name);
 This service removes all `Cc` addresses from the named Mailer. `Cc` addresses are optional.
 
 **Parameters**
-* `name` [in] unique name of the Mailer to update.
+* `name` - [in] unique name of the Mailer to update.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure.
@@ -437,14 +436,14 @@ This service sends a test message using the current SMTP settings and email addr
 **Note:** The message will not be sent until the `main_loop` has been started.
 
 **Parameters**
-* `name` [in] unique name of the Mailer to test.
+* `name` - [in] unique name of the Mailer to test.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful queue. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval  = dsl_mailer_test_message_send('my-mailer)
+retval  = dsl_mailer_test_message_send('my-mailer')
 ```
 
 <br>
@@ -456,14 +455,14 @@ boolean dsl_mailer_exists(const wchar_t* name);
 This service is used to determine if a named Mailer currently exists in memory.
 
 **Parameters**
-* `name` [in] unique name of the Mailer to test.
+* `name` - [in] unique name of the Mailer to test.
 
 **Returns**
-* `true` if the Maile exists, false otherwise.
+* `true` if the Mailer exists, false otherwise.
 
 **Python Example**
 ```Python
-exists = dsl_mailer_exists('my-mailer)
+exists = dsl_mailer_exists('my-mailer')
 ```
 
 <br>
@@ -474,13 +473,12 @@ uint dsl_mailer_list_size();
 ```
 This service returns the current number of Mailers in memory.
 
-
 **Returns**
 * The current number of mailers in memory.
 
 **Python Example**
 ```Python
-exists = dsl_mailer_exists('my-mailer)
+num_mailers = dsl_mailer_list_size()
 ```
 
 <br>

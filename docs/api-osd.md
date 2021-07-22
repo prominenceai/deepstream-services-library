@@ -1,8 +1,10 @@
-# On-Screen Display (OSD)
-On-Screen Display components provide visualization of object categorization and tracking. OSDs add bounding boxes, labels, and clocks to objects detected in the video stream. As with all components, OSDs must be uniquely named from all other components created. 
+# On-Screen Display Refernce
+The On-Screen Display (OSD) component provides visualization of object categorization and tracking. OSDs display bounding boxes and labels for objects detected in the video stream. Bounding boxes and lables are defined using meta-data added to stream by the Inference and Traker components. All [RGBA Display Types](/docs/api-display-type.md) added upstream from the OSD will be displayed as well
+
+As with all components, OSDs must be uniquely named from all other components created. 
 
 #### OSD Construction and Destruction
-The constructor [dsl_osd_new](#dsl_osd_new) is used to create an OSD with a single option of enabling the on-screen clock. Once created, the OSD's clock parameters -- fonts, color and offsets -- can be modified from their default values. OSDs are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
+The constructor [dsl_osd_new](#dsl_osd_new) is used to create an OSD with two boolean imputs for enabling object labels and the on-screen clock. Once created, the OSD's clock parameters -- fonts, color and offsets -- can be modified from their default values. OSDs are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
 
 #### Adding and Removing 
 A single OSD can be added to Pipeline trunk or inidividual branch. OSD are added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all). 

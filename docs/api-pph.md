@@ -1,4 +1,4 @@
-## Pad Probe Handler API Reference
+# Pad Probe Handler API Reference
 Data flowing over a Pipeline Component’s Pads – link points between components  –  can be monitored and updated using a Pad Probe Handler. There are three types of Handlers supported in the current release.
 * Custom PPH
 * Source Meter PPH
@@ -11,7 +11,7 @@ The Custom PPH allows the client to add a custom callback function to a Pipeline
 The Pipeline Meter PPH measures a Pipeline's throughput in frames-per-second. Adding the Meter to the Tiler's sink-pad -- or any pad after the Stream-muxer and before the Tiler -- will measure all sources. Adding the Meter to the Tiler's source-pad -- or any component downstream of the Tiler -- will measure the throughput of the single tiled stream.
 
 #### Object-Detection-Event (ODE) Pad Probe Handler
-The ODE PPH manages an ordered collection of [ODE Triggers](/docs/api-ode-trigger.md), each with their own ordered collections of [ODE Actions](/docs/api-ode-action.md) and (optional) [ODE Areas](/docs/api-ode-area.md). The Handler installs pad-probe callback to handle each GST Buffer flowing over Source Pad connected to the Sink Pad of the next component; On-Screen-Display for example. The handler extracts the Frame and Object metadata iterating through its collection of ODE Triggers. Triggers, created with specific purpose and criteria, check for the occurrence of specific Object Detection Events (ODEs). On ODE occurrence, the Trigger iterates through its ordered collection of ODE Actions invoking their `handle-ode-occurrence` service. ODE Areas, rectangle locations and dimensions, can be added to Triggers as additional criteria for ODE occurrence. Both Actions and Areas can be shared, or co-owned, by multiple Triggers
+The ODE PPH manages an ordered collection of [ODE Triggers](/docs/api-ode-trigger.md), each with their own ordered collections of [ODE Actions](/docs/api-ode-action.md) and (optional) [ODE Areas](/docs/api-ode-area.md). The Handler installs a pad-probe callback to handle each GST Buffer flowing over either the Sink (Input) Pad or the Source (output) pad of the named component; a 2D Tiler or On-Screen-Display as examples. The handler extracts the Frame and Object metadata iterating through its collection of ODE Triggers. Triggers, created with specific purpose and criteria, check for the occurrence of specific Object Detection Events (ODEs). On ODE occurrence, the Trigger iterates through its ordered collection of ODE Actions invoking their `handle-ode-occurrence` service. ODE Areas can be added to Triggers as additional criteria for ODE occurrence. Both Actions and Areas can be shared, or co-owned, by multiple Triggers
 
 #### Pad Probe Handler Construction and Destruction
 Pad Probe Handlers are created by calling their type specific constructor.  Handlers are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
@@ -77,7 +77,7 @@ The following return codes are used by the ODE Handler API
 typedef boolean (*dsl_pph_custom_client_handler_cb)(void* buffer, void* client_data);
 ```
 
-This Type defines a Client Callback function is added to a Custom Pad Probe Handler during handler construction (see [dsl_pph_custom_new](#dsl_pph_custom_new)). The same function can added to multiple Custom Pad Probe Handlers. 
+This Type defines a Client Callback function that is added to a Custom Pad Probe Handler during handler construction (see [dsl_pph_custom_new](#dsl_pph_custom_new)). The same function can added to multiple Custom Pad Probe Handlers. 
 
 **Parameters**
 * `buffer` - [in] opaque pointer to a batched source buffer.
@@ -130,12 +130,12 @@ typedef boolean (*dsl_pph_meter_client_handler_cb)(double* session_fps_averages,
     uint source_count, void* client_data);
 ```
 
-This Type defines a Client Callback function is added to a Custom Pad Probe Handler during handler construction (see [dsl_pph_custom_new](#dsl_pph_custom_new)). The same function can added to multiple Custom Pad Probe Handlers. 
+This Type defines a Client Callback function that is added to a Custom Pad Probe Handler during handler construction (see [dsl_pph_custom_new](#dsl_pph_custom_new)). The same function can be added to multiple Custom Pad Probe Handlers. 
 
 **Parameters**
 * `session_fps_averages` - [in] array of average frames-per-second measurements for the current session, one per source, specified by `source_count` 
 * `interval_fps_averages` - [in] array of average frames-per-second measurements for the current interval, one per source, specified by `source_count` 
-* `source_count` - [in] count of both session_fps_averages and avg_fps interval_fps_averages, one Pipeline Source
+* `source_count` - [in] number of sources - i.e. the number of measurements in each of the arrays
 * `client_data` - [in] opaque pointer to the client's data, provided on Custom PPH construction
 
 **Returns**
@@ -213,10 +213,13 @@ retval = dsl_pph_custom_new('my-custom-handler', my_client_callback, my_client_d
 DslReturnType dsl_pph_meter_new(const wchar_t* name, uint interval,
     dsl_pph_meter_client_handler_cb client_handler, void* client_data);
 ```
-The constructor creates a uniquely named Object Detection Event (ODE) Pad Probe Handler.
+The constructor creates a uniquely named source stream Meter Pad Probe Handler.
 
 **Parameters**
-* `name` - [in] unique name for the ODE Pad Probe Handler to create.
+* `name` - [in] unique name for the Meter Pad Probe Handler to create.
+* `interval` - [in] interval at which to call the client handler with Meter data in units of seconds.
+* `client_handler` - [in] client callback function of type [dsl_pph_meter_client_handler_cb](#dsl_pph_meter_client_handler_cb).
+* `client_data` - [] opaque pointer to the client's data. 
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -232,7 +235,7 @@ retval = dsl_pph_meter_new('meter-pph', interval=1, client_handler=meter_sink_ha
 ```C++
 DslReturnType dsl_pph_ode_new(const wchar_t* name);
 ```
-The constructor creates a uniquely named Object Detection Event (ODE) Pad Probe Handler.
+The constructor creates a uniquely named Object Detection Event (ODE) Pad Probe Handler. [ODE Triggers](/docs/api-ode-triggers.md) can be added to the ODE Pad Probe Handler prior and after adding the Handler to a Pipeline component
 
 **Parameters**
 * `name` - [in] unique name for the ODE Pad Probe Handler to create.
@@ -252,13 +255,13 @@ retval = dsl_pph_ode_new('my-ode-handler')
 ```C++
 DslReturnType dsl_pph_delete(const wchar_t* name);
 ```
-This destructor deletes a single, uniquely named Pad Probe handler. The destructor will fail returning `DSL_RESULT_PPH_IS_IN_USE` if the Pad Probe Handler is currently `in-use` by a Pipeline Component. 
+This destructor deletes a single, uniquely named Pad Probe handler. The destructor will fail if the Pad Probe Handler is currently `in-use` by a Pipeline Component. 
 
 **Parameters**
-* `name` - [in] unique name for the Pad Probe Handler to delete
+* `name` - [in] unique name for the Pad Probe Handler to delete.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -271,13 +274,13 @@ retval = dsl_pph_delete('my-ode-handler')
 ```C++
 DslReturnType dsl_pph_delete_many(const wchar_t** names);
 ```
-This destructor deletes a null terminated list of uniquely named Pad Probe Handlers. Each name is checked for existence, with the service returning `DSL_RESULT_PPH_NAME_NOT_FOUND` on first occurrence of failure. The destructor will fail returning `DSL_RESULT_PPH_IS_IN_USE` if one of the Pad Probe Handlers is currently `in-use` by a Pipeline Component.
+This destructor deletes a null terminated list of uniquely named Pad Probe Handlers. Each name is checked for existence with the service returning on first failure. The destructor will also fail if one of the Pad Probe Handlers is currently `in-use` by a Pipeline Component.
 
 **Parameters**
 * `names` - [in] a NULL terminated array of uniquely named Pad Probe Handlers to delete.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -293,7 +296,7 @@ DslReturnType dsl_pph_delete_all();
 This destructor deletes all Pad Probe Handlers currently in memory. The destructor will fail if any one of the Pad Probe Handlers is currently `in-use` by a Pipeline Component. 
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -314,10 +317,10 @@ This service gets the current reporting interval - the interval at which results
 
 **Parameters**
 * `name` - [in] unique name of the ODE Pad Probe Handler to update.
-* `interval` - [out] reporting interval in seconds
+* `interval` - [out] reporting interval in seconds.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -331,14 +334,14 @@ retval, interval = dsl_pph_meter_interval_get('my-meter')
 DslReturnType dsl_pph_meter_interval_set(const wchar_t* name, uint* interval);
 ```
 
-This service sets the current reporting interval - the interval at which results are reported by callback -- for the named Source Meter Pad Probe Handler. This service will fail if the Meter is currently enabled. Disable by calling [dsl_pph_disable](#dsl_pph_disable) and then re-enable with [dsl_pph_enable](#dsl_pph_enable)
+This service sets the current reporting interval - the interval at which results are reported by callback -- for the named Source Meter Pad Probe Handler. This service will fail if the Meter is currently enabled. Disable by calling [dsl_pph_disable](#dsl_pph_disable) and then re-enable with [dsl_pph_enable](#dsl_pph_enable).
 
 **Parameters**
 * `name` - [in] unique name of the ODE Pad Probe Handler to update.
-* `interval` - [in] reporting interval in seconds
+* `interval` - [in] reporting interval in seconds.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -356,10 +359,10 @@ This service adds a named ODE Trigger to a named ODE Handler. The relationship b
 
 **Parameters**
 * `name` - [in] unique name of the ODE Pad Probe Handler to update.
-* `trigger` - [in] unique name of the ODE Trigger to add
+* `trigger` - [in] unique name of the ODE Trigger to add.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -377,10 +380,10 @@ This service adds a Null terminated list of named ODE Triggers to a named ODE Pa
 
 **Parameters**
 * `name` - [in] unique name of the ODE Pad Probe Handler to update.
-* `triggers` - [in] a Null terminated list of unique names of the ODE Triggers to add
+* `triggers` - [in] a Null terminated list of unique names of the ODE Triggers to add.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -394,14 +397,14 @@ retval = dsl_pph_ode_trigger_add_many('my-handler', ['my-trigger-a', 'my-trigger
 DslReturnType dsl_pph_ode_trigger_remove(const wchar_t* name, const wchar_t* trigger);
 ```
 
-This service removes a named ODE Trigger from a named ODE Pad Probe Handler. The services will fail with `DSL_RESULT_PPH_ODE_TRIGGER_NOT_IN_USE` if the Trigger is not currently in-use by the named Handler
+This service removes a named ODE Trigger from a named ODE Pad Probe Handler. The services will fail if the Trigger is not currently in-use by the named Handler.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Pad Probe Handler to update.
-* `Trigger` - [in] unique name of the ODE Trigger to remove
+* `Trigger` - [in] unique name of the ODE Trigger to remove.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -415,14 +418,14 @@ retval = dsl_pph_ode_trigger_remove('my-handler', 'my-trigger')
 DslReturnType dsl_pph_ode_trigger_remove_many(const wchar_t* name, const wchar_t** triggers);
 ```
 
-This service removes a Null terminated list of named ODE Triggers from a named ODE Pad Probe Handler. The service returns `DSL_RESULT_PPH_ODE_TRIGGER_NOT_IN_USE` if at any point one of the named Triggers is not currently in-use by the named Handler
+This service removes a Null terminated list of named ODE Triggers from a named ODE Pad Probe Handler. The service will fail if any one of the named Triggers is not currently in-use by the named Handler.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Pad Probe Handler to update.
-* `triggers` - [in] a Null terminated list of unique names of the ODE Triggers to remove
+* `triggers` - [in] a Null terminated list of unique names of the ODE Triggers to remove.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -442,7 +445,7 @@ This service removes all ODE Triggers from a named ODE Pad Probe Handler.
 * `name` - [in] unique name of the ODE Pad Probe Handler to update.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -460,7 +463,7 @@ This service returns the current enabled setting for the named Pad Probe Handler
 
 **Parameters**
 * `name` - [in] unique name of the Pad Probe Handler to query.
-* `enabled` - [out] true if the Pad Probe Handler is currently enabled, false otherwise
+* `enabled` - [out] true if the Pad Probe Handler is currently enabled, false otherwise.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.

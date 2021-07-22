@@ -121,7 +121,7 @@ retval = dsl_tiler_dimensions_set('my-tiler', 1280, 720)
 ```C++
 DslReturnType dsl_tiler_tiles_get(const wchar_t* name, uint* cols, uint* rows);
 ```
-This service returns the current columns and rows in use by the named Tiler. Values of 0 - the default – indicate that the is using a best-fit based on the number of Sources upstream in the Pipeline.
+This service returns the current columns and rows in use by the named Tiler. Values of 0 - the default – indicate that the Tiler is using a best-fit based on the number of Sources upstream in the Pipeline.
 
 **Parameters**
 * `name` - [in] unique name for the Tiler to query.
@@ -142,7 +142,7 @@ retval, cols, rows = dsl_tiler_tiles_get('my-tiler')
 ```C++
 DslReturnType dsl_tiler_tiles_set(const wchar_t* name, uint cols, uint rows);
 ```
-This service sets the number of columns and rows for the named Tiler. Setting both values to 0 - the default - allows the Tiler to determine a best-fit based on the number of Sources upstream. The number of rows must be at least one half that of columns or the call will fail (e.g. 4x1). The call will also fail if the Tiler is currently `linked`.
+This service sets the number of columns and rows for the named Tiler. Once set, the values cannot be reset back to the default 0. The call will also fail if the Tiler is currently `linked`.
 
 **Parameters**
 * `name` - [in] unique name for the Tiler to update.
@@ -168,7 +168,7 @@ This service get the current show-source parameters for the named Tiler. The ser
 
 **Parameters**
 * `name` - [in] unique name for the Tiler to update.
-* `source` - [out] unique name of the current source show. `DSL_TILER_ALL_SOURCES` (equal to NULL) indicates that all source (default).
+* `source` - [out] unique name of the current source show. `DSL_TILER_ALL_SOURCES` (equal to NULL) indicates that all sources are shown (default).
 * `timeout` - [out] the remaining number of seconds that the current source will be shown for. A value of 0 indicates show indefinately (default).
 
 **Returns**
@@ -199,7 +199,7 @@ Note: It's advised to set the `has_precedence ` value to `False` when controllin
 **Parameters**
 * `name` - [in] unique name for the Tiler to update.
 * `source` - [in] unique name of the source to show. The service will fail if the Source is not found
-* `timeout` - [in] the remaining number of seconds that the current source will be shown for. A value of 0 indicates show indefinitely. 
+* `timeout` - [in] the number of seconds that the current source will be shown for. A value of 0 indicates show indefinitely. 
 * `has_precedence` - [in] set to true to give this call precedence over the current setting, false to switch only if another source is not currently shown. 
 
 **Returns**

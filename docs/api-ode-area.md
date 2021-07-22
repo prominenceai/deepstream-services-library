@@ -1,22 +1,22 @@
 # ODE Area API Reference
-ODE Areas use [Lines](/docs/api-display-type.md#dsl_display_type_rgba_line_new) and [Polygons](/docs/api-display-type.md#dsl_display_type_rgba_polygon_new) as [ODE Trigger](/docs/api-ode-trigger.md) criteria for an ODE occurrence. 
+ODE Areas, derived from [RGBA Lines](/docs/api-display-type.md#dsl_display_type_rgba_line_new) and [RGBA Polygons](/docs/api-display-type.md#dsl_display_type_rgba_polygon_new) are added to [ODE Triggers](/docs/api-ode-trigger.md) as additional criteria for Object Detection Events (ODE) to occur. 
 
 There are three types of Areas:
 * **Inclusion Areas** - criteria is met when a specific point on an object's bounding box - south, south-west, west, north-west, north, etc - is within the Polygon Area.
 * **Exclusion Areas** - criteria is met when a specific point on an object's bounding box is NOT within the Polygon Area. 
 * **Line Areas** - criteria is met when a specific edge of an object's bounding box - left, right, top, bottom - intersects with the Line Area
 
-The relationship between Triggers and Areas is many-to-many as multiple Areas can be added to a Trigger and the same Area can be added to multiple Triggers.  If a New Ares's `display` is enabled, Areas owned by Triggers will be added as display metadata for an On-Screen-Component to display.
+The relationship between Triggers and Areas is many-to-many as multiple Areas can be added to one Trigger and one Area can be added to multiple Triggers.  Once added to an Trigger, if a Areas's `display` setting is enabled, the Polygon's or Line's metadata will be added to each frame for a downstream On-Screen-Component to display.
 
 If both Areas of Inclusion and Exclusion are added to an ODE Trigger, the order of addition determines the order of precedence. 
 
 ODE Actions can be used to update a Trigger's container of ODE Areas on ODE occurrence. See [dsl_ode_action_area_add_new](/docs/api-ode-action.md#dsl_ode_action_area_add_new) and [dsl_ode_action_area_remove_new](/docs/api-ode-action.md#dsl_ode_action_area_remove_new). 
 
 #### ODE Area Construction and Destruction
-Areas are created by calling one of two type specific constructors: [dsl_ode_area_inclusion_new](#dsl_ode_area_inclusion_new) and [dsl_ode_area_exclusion_new](#dsl_ode_area_exclusion_new)
+Areas are created by calling one of three type specific constructors: [dsl_ode_area_inclusion_new](#dsl_ode_area_inclusion_new), [dsl_ode_area_exclusion_new](#dsl_ode_area_exclusion_new), and [dsl_ode_area_line_new](#dsl_ode_area_line_new).
 
 #### Adding/Removing ODE Areas
-ODE Areas are added to to ODE Triggers by calling [dsl_ode_trigger_area_add](/docs/api-ode-trigger.md#dsl_ode_trigger_area_add), [dsl_ode_trigger_area_add_many](/docs/api-ode-trigger.md#dsl_ode_trigger_area_add_many) and deleted with [dsl_ode_trigger_area_remove](/docs/api-ode-trigger.md#dsl_ode_trigger_area_add)
+ODE Areas are added to to ODE Triggers by calling [dsl_ode_trigger_area_add](/docs/api-ode-trigger.md#dsl_ode_trigger_area_add) or [dsl_ode_trigger_area_add_many](/docs/api-ode-trigger.md#dsl_ode_trigger_area_add_many) and removed by [dsl_ode_trigger_area_remove](/docs/api-ode-trigger.md#dsl_ode_trigger_area_remove), [dsl_ode_trigger_area_remove_many](/docs/api-ode-trigger.md#dsl_ode_trigger_area_remove_many), or [dsl_ode_trigger_area_remove_all](/docs/api-ode-trigger.md#dsl_ode_trigger_area_remove_all).
 
 ## ODE Area Services API
 
@@ -75,7 +75,7 @@ The following constants are used by the OSD Area API
 DslReturnType dsl_ode_area_inclusion_new(const wchar_t* name, 
     const wchar_t* polygon, boolean show, uint bbox_test_point);
 ```
-The constructor creates a uniquely named ODE **Area of Inclusion** using a uniquely named RGBA Polygon. Inclusion requires that a specified point on the Object's bounding box is within the Polygon Area to trigger ODE occurrence.
+The constructor creates a uniquely named ODE **Area of Inclusion** using a uniquely named RGBA Polygon. Inclusion requires that a specified point on the Object's bounding box be within the Polygon Area to trigger ODE occurrence.
 
 The Polygon can be shown (requires an [On-Screen Display](/docs/api-osd.md)) or left hidden.
 
@@ -100,7 +100,7 @@ retval = dsl_ode_area_inclusion_new('my-inclusion-area', 'my-polygon', True, DSL
 DslReturnType dsl_ode_area_exclusion_new(const wchar_t* name, 
     const wchar_t* polygon, boolean show, uint bbox_test_point);
 ```
-The constructor creates a uniquely named ODE **Area of Exclusion** using a uniquely named RGBA Polygon. Exclusion requires that that a specified point on the Object's bounding box is **not** within the Polygon Area to trigger ODE occurrence.
+The constructor creates a uniquely named ODE **Area of Exclusion** using a uniquely named RGBA Polygon. Exclusion requires that that a specified point on the Object's bounding box is **not** within the Polygon Area to trigger ODE occurrence. 
 
 The Polygon can be shown (requires an [On-Screen Display](/docs/api-osd.md)) or left hidden.
 
@@ -158,7 +158,7 @@ This destructor deletes a single, uniquely named ODE Area. The destructor will f
 * `area` - [in] unique name for the ODE Area to delete
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -171,13 +171,13 @@ retval = dsl_ode_area_delete('my-area')
 ```C++
 DslReturnType dsl_area_delete_many(const wchar_t** area);
 ```
-This destructor deletes multiple uniquely named ODE Areas. Each name is checked for existence, with the function returning `DSL_RESULT_AREA_NAME_NOT_FOUND` on first occurrence of failure. The destructor will fail if one of the Areas is currently `in-use` by one or more ODE Triggers
+This destructor deletes multiple uniquely named ODE Areas. Each name is checked for existence, with the function returning on first failure. The destructor will fail if one of the Areas is currently `in-use` by one or more ODE Triggers
 
 **Parameters**
 * `areas` - [in] a NULL terminated array of uniquely named ODE Areas to delete.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -193,7 +193,7 @@ DslReturnType dsl_ode_area_delete_all();
 This destructor deletes all ODE Areas currently in memory. The destructor will fail if any one of the Areas is currently `in-use` by one or more ODE Triggers. 
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -213,7 +213,7 @@ uint dsl_ode_area_list_size();
 This service returns the size of the ODE Area container, i.e. the number of Areas currently in memory. 
 
 **Returns**
-* The size of the ODE Area container
+* The size of the ODE Area container.
 
 **Python Example**
 ```Python
