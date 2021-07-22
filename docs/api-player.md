@@ -1,5 +1,5 @@
 # Player API Reference
-Players are simplified/specialized Pipelines, created with a single [Source](/docs/api-source.md) and single [Sink](/docs/api-sink.md) component. Once created, the Source and Sink attributes can be updated, however, the components cannot be removed or replaced.
+Players are simplified/specialized Pipelines, created with a single [Source](/docs/api-source.md) and single [Sink](/docs/api-sink.md). Once created, the Source and Sink attributes can be updated, however, the components cannot be removed or replaced.
 
 #### Player Construction and Destruction
 There are three types of Players that can be created. 
@@ -424,6 +424,7 @@ retval, timeout = dsl_player_render_image_timeout_get('my-image-render-player')
 DslReturnType dsl_player_render_image_timeout_set(const wchar_t* name, uint timeout);
 ```
 This service sets the timeout setting to use for the named Image Render Player. If set, the Image Source will generate an end-of-stream (EOS) event on timeout. The Player will play the next Image if a new file path has been queued. The timeout setting cannot be changed while the Player is playing.
+
 **Parameters**
 * `name` - [in] unique name of the Image Render Player to update
 * `timeout` - [in] new timeout setting to use in units of seconds
@@ -524,7 +525,7 @@ retval = dsl_player_termination_event_listener_remove('my-player', listener_cb)
 ```C++
 DslReturnType dsl_player_xwindow_handle_get(const wchar_t* name, uint64_t* xwindow);
 ```
-This service returns the current XWindow handle in use by the named Player. The handle is set to `Null` on Pipeline creation and will remain `Null` until,
+This service returns the current XWindow handle in use by the named Player. The handle is set to `Null` on Player creation and will remain `Null` until,
 1. The Player creates an internal XWindow synchronized with a Window-Sink on Transition to a state of playing, or
 2. The Client Application passes an XWindow handle into the Player by calling [dsl_player_xwindow_handle_set](#dsl_player_xwindow_handle_set).
 
@@ -650,7 +651,8 @@ retval = dsl_player_pause('my-player')
 ```C++
 DslReturnType  dsl_player_stop(wchar_t* name);
 ```
-This service is used to stop a named Player and return it to a state of `ready`. The service is supported by Players with a `non-live` Source only.  The service will fail if the Player is not currently in a `playing` or `paused` state.
+This service is used to stop a named Player and return it to a state of `ready`. The service will fail if the Player is not currently in a `playing` or `paused` state.
+
 **Parameters**
 * `name` - [in] unique name for the Player to stop.
 

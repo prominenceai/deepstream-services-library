@@ -15,7 +15,9 @@ Branches are added to a Tee by calling [dsl_tee_branch_add](api-branch.md#dsl_te
 ## Tee API
 **Constructors**
 * [dsl_tee_demuxer_new](#dsl_tee_demuxer_new)
+* [dsl_tee_demuxer_new_branch_add_many](#dsl_tee_demuxer_new_branch_add_many)
 * [dsl_tee_splitter_new](#dsl_tee_splitter_new) 
+* [dsl_tee_splitter_new_branch_add_many](#dsl_tee_demuxer_new_branch_add_many)
 
 **Methods**
 * [dsl_tee_branch_add](#dsl_tee_branch_add)
@@ -23,7 +25,6 @@ Branches are added to a Tee by calling [dsl_tee_branch_add](api-branch.md#dsl_te
 * [dsl_tee_branch_remove](#dsl_tee_branch_remove)
 * [dsl_tee_branch_remove_many](#dsl_tee_branch_remove_many)
 * [dsl_tee_branch_remove_all](#dsl_tee_branch_remove_all).
-* [dsl_tee_branch_count_get](#dsl_tee_branch_count_get).
 * [dsl_tee_pph_add](#dsl_tee_pph_add).
 * [dsl_tee_pph_remove](#dsl_tee_pph_remove).
 
@@ -64,6 +65,27 @@ retval = dsl_tee_demuxer_new('my-demuxer')
 
 <br>
 
+### *dsl_tee_demuxer_new_branch_add_many*
+```C++
+DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, const wchar_t** branches);
+```
+The constructor creates a uniquely named Demuxer Tee and adds a list of brances to it. Construction will fail if the name is currently in use. 
+
+**Parameters**
+* `name` - [in] unique name for the Demuxer to create.
+* `branches` [in] Null terminated listed of unique branch names to add.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_tee_demuxer_new_branch_add_many('my-demuxer', 
+    ['my-branch-1', 'my-branch-2', None])
+```
+
+<br>
+
 ### *dsl_tee_splitter_new*
 ```C++
 DslReturnType dsl_tee_splitter_new(const wchar_t* name);
@@ -83,14 +105,33 @@ retval = dsl_tee_splitter_new('my-demuxer')
 
 <br>
 
+### *dsl_tee_splitter_new_branch_add_many*
+```C++
+DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name, const wchar_t** branches)
+```
+The constructor creates a uniquely named Splitter Tee and adds a list of Branches to it. Construction will fail if the name is currently in use. 
+
+**Parameters**
+* `name` - [in] unique name for the Splitter to create.
+* `branches` [in] Null terminated listed of unique branch names to add.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_tee_splitter_new_branch_add_many('my-demuxer', 
+   ['my-branch-1', 'my-branch-2', None])
+```
+
+<br>
+
 ## Methods
 ### *dsl_tee_branch_add*
 ```C++
-DslReturnType dsl_tee_branch_add(const wchar_t* branch, const wchar_t* component);
+DslReturnType dsl_tee_branch_add(const wchar_t* name, const wchar_t* branch);
 ```
-Adds a single named Component to a named Branch. The add service will fail if the component is currently `in-use` by any Branch. The add service will also fail if adding a `one-only` type of Component, such as a Tiled-Display, for which the Branch already has. The Component's `in-use` state will be set to `true` on successful add. 
-
-If a Branch is in a `playing` or `paused` state, the service will attempt a dynamic update if possible, returning from the call with the Branch in the same state.
+This service adds a single branch to a named Spliter or Demuxer Tee. The add service will fail if the branch is currently `in-use`. The branches `in-use` state will be set to `true` on successful add. 
 
 **Parameters**
 * `branch` - [in] unique name for the Branch to update.
@@ -101,108 +142,87 @@ If a Branch is in a `playing` or `paused` state, the service will attempt a dyna
 
 **Python Example**
 ```Python
-retval = dsl_source_csi_new('my-camera-source', 1280, 720, 30, 1)
-retval = dsl_branch_new('my-branch')
-
-retval = dsl_tee_branch_add('my-branch', 'my-tiler’)
+retval = dsl_tee_branch_add('my-splitter', 'my-branch’)
 ```
 
 <br>
 
 ### *dsl_tee_branch_add_many*
 ```C++
-DslReturnType dsl_tee_branch_add_many(const wchar_t* branch, const wchar_t** components);
+DslReturnType dsl_tee_branch_add_many(const wchar_t* name, const wchar_t** branches);
 ```
-Adds a list of named Component to a named Branch. The add service will fail if any of components are currently `in-use` by any Branch. The add service will fail if any of the components to add are a `one-only` type of component for which the Branch already has. All the component's `in-use` states will be set to true on successful add. 
-
-If a Branch is in a `playing` or `paused` state, the service will attempt a dynamic update if possible, returning from the call with the Branch in the same state.
+This service adds a list of named Branches to a Null termainted list of branches to a named Splitter or Demuxer Tee.  Each of the branches `in-use` state will be set to true on successful add. 
 
 **Parameters**
-* `branch` - [in] unique name for the Branch to update.
-* `components` - [in] a NULL terminated array of uniquely named Components to add.
+* `name` - [in] unique name for the Spliter to update.
+* `branches` - [in] a NULL terminated array of uniquely named Components to add.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_tee_branch_add_many('my-branch', ['my-pgie', 'my-tiler', 'my-window-sink', None])
+retval = dsl_tee_branch_add_many('my-splitter', 
+   ['my-branch-1', 'my-branch-2', None])
 ```
-
-<br>
-
-### *dsl_branch_componen_count_get*
-```C++
-uint dsl_branch_list_size(wchar_t* branch);
-```
-This method returns the size of the current list of Components `in-use` by the named Branch
-
-**Parameters**
-* `branch` - [in] unique name for the Branch to query.
-
-**Returns** 
-* The size of the list of Components currently in use
 
 <br>
 
 ### *dsl_tee_branch_remove*
 ```C++
-DslReturnType dsl_tee_branch_remove(const wchar_t* branch, const wchar_t* component);
+DslReturnType dsl_tee_branch_remove(const wchar_t* name, const wchar_t* branch);
 ```
-Removes a single named Component from a named Branch. The remove service will fail if the Component is not currently `in-use` by the Branch. The Component's `in-use` state will be set to `false` on successful removal. 
-
-If a Branch is in a `playing` or `paused` state, the service will attempt a dynamic update if possible, returning from the call with the Branch in the same state.
+This service removes a single named Branch from a Demuxer or Splitter Tee. The remove service will fail if the Branch is not currently `in-use` by the Tee. The branches' `in-use` state will be set to `false` on successful removal. 
 
 **Parameters**
-* `branch` - [in] unique name for the Branch to update.
-* `component` - [in] unique name of the Component to remove.
+* `name` - [in] unique name for the Demuxer or Spltter Tee to update.
+* `branch` - [in] unique name of the Branch to remove.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_tee_branch_remove('my-branch', 'my-tiler')
+retval = dsl_tee_branch_remove('my-splitter', 'my-branch')
 ```
 <br>
 
 ### *dsl_tee_branch_remove_many*
 ```C++
-DslReturnType dsl_tee_branch_remove_many(const wchar_t* branch, const wchar_t** components);
+DslReturnType dsl_tee_branch_remove_many(const wchar_t* name, const wchar_t** branches);
 ```
-Removes a list of named components from a named Branch. The remove service will fail if any of components are currently `not-in-use` by the named Branch.  All of the removed component's `in-use` state will be set to `false` on successful removal. 
-
-If a Branch is in a `playing` or `paused` state, the service will attempt a dynamic update if possible, returning from the call with the Branch in the same state.
+This service removes a list of named components from a named Branch. The remove service will fail if any of branches are currently `not-in-use` by the named Branch.  All of the removed branches' `in-use` state will be set to `false` on successful removal. 
 
 **Parameters**
-* `branch` - [in] unique name for the Branch to update.
-* `components` - [in] a NULL terminated array of uniquely named Components to add.
+* `name` - [in] unique name for the Demuxer or Splitter Tee to update.
+* `components` - [in] a NULL terminated array of uniquely named Brances to remove.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_tee_branch_remove_many('my-branch', ['my-pgie', 'my-tiler', 'my-window-sink', None])
+retval = dsl_tee_branch_remove_many('my-splitter',
+    ['my-branch-1', 'my-branch-2', None])
 ```
 
 <br>
 
 ### *dsl_tee_branch_remove_all*
 ```C++
-DslReturnType dsl_tee_branch_add_(const wchar_t* branch);
+DslReturnType dsl_tee_branch_remove_all(const wchar_t* name);
 ```
-Removes all child components from a named Branch. The add service will fail if any of components are currently `not-in-use` by the named Branch.  All the removed component's `in-use` state will be set to `false` on successful removal. 
+This service removes all child branches from a named Demuxer or Spiltter Tee. All of the removed branches' `in-use` state will be set to `false` on successful removal. 
 
 **Parameters**
-* `branch` - [in] unique name for the Branch to update.
+* `name` - [in] unique name for the Branch to update.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_tee_branch_remove_all('my-branch')
+retval = dsl_tee_branch_remove_all('my-splitter')
 ```
 
 
@@ -210,7 +230,7 @@ retval = dsl_tee_branch_remove_all('my-branch')
 ```C++
 DslReturnType dsl_tee_pph_add(const wchar_t* name, const wchar_t* handler);
 ```
-This services adds a named Pad-Probe-Handler to the sink pad of the Named Tee component. The PPH will be invoked on every buffer-ready event for the sink pad. More than one PPH can be added to a single Tee Component.
+This services adds a named Pad-Probe-Handler to the sink pad (only) of the Named Tee component. The PPH will be invoked on every buffer-ready event for the sink pad. More than one PPH can be added to a single Tee Component.
 
 **Parameters**
  * `name` [in] unique name of the Tee to update
@@ -230,7 +250,7 @@ retval = dsl_tee_pph_add('my-demuxer-tee', 'my-meter-pph')
 ```C++
 DslReturnType dsl_tee_pph_remove(const wchar_t* name, const wchar_t* handler);
 ```
-This services removes a named Pad-Probe-Handler from a named Tee. The services will fail if the 
+This services removes a named Pad-Probe-Handler from a named Tee. The services will fail if the handler is not a child of the Tee
 
 **Parameters**
  * `name` [in] unique name of the Tee to update.
@@ -245,6 +265,7 @@ retval = dsl_tee_pph_remove('my-demuxer-tee', 'my-meter-pph')
 ```
 
 <br>
+
 ---
 
 ## API Reference

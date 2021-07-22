@@ -1,7 +1,20 @@
 # Component API Reference
-The Pipeline Component API provides the common services that apply to all component types.
+The Pipeline Component API provides the common services that apply to all Pipeline Component types.
+* [Sources](/docs/api-source.md)
+* [Taps](/docs/api-tap.md)
+* [Inference Engines and Servers](/docs/api-infer.md)
+* [Trackers](/docs/api-tracker.md)
+* [Segmentation Visualizers](/dos/api-segvisual.md)
+* [Splitters and Demuxers](/docs/api-tee.md)
+* [2D-Tilers](/docs/api-tiler.md)
+* [On Sreen Displays](/docs/api-osd.md)
+* [Sinks](/docs/api-sink.md)
+* [Branches](/docs/api-branch.md)
 
-##
+---
+
+## Component API
+**Methods**
 * [dsl_component_delete](#dsl_component_delete)
 * [dsl_component_delete_many](#dsl_component_delete_many)
 * [dsl_component_delete_all](#dsl_component_delete_all)
@@ -29,13 +42,13 @@ The following return codes are used by the Component API
 ```c++
 DslReturnType dsl_component_delete(const wchar_t* component);
 ```
-This service deletes a single named component of any type. The call will fail if the component is currently `in-use` by a Pipeline.
+This service deletes a single Pipeline Component of any type. The call will fail if the Component is currently `in-use` by a Pipeline.
 
 **Parameters**
 * `component` - [in] unique name of the component to delete.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful delete. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful delete. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -48,13 +61,13 @@ retval = dsl_component_delete('my-uri-source')
 ```c++
 DslReturnType dsl_component_delete_many(const wchar_t** component);
 ```
-This service deletes a Null terminated list of named components of any type. The call will fail if any component is currently `in-use` by a Pipeline, on first exception.
+This service deletes a Null terminated list of named Components of any type. The call will fail if any Component is currently `in-use` by a Pipeline.
 
 **Parameters**
 * `components` - [in] Null terminated list of unique component names to delete.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful delete. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful delete. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -67,10 +80,10 @@ retval = dsl_component_delete_many(['my-uri-source', 'my-primary-gie', 'my-osd',
 ```c++
 DslReturnType dsl_component_delete_all();
 ```
-This service deletes all components in memory. The call will fail if any component is currently `in-use` by a Pipeline, on first exception.
+This service deletes all Components in memory. The call will fail if any Component is currently `in-use` by a Pipeline.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful delete. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful delete. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -84,28 +97,30 @@ retval = dsl_component_all()
 ```c++
 uint dsl_component_list_size();
 ```
-This service returns the current number of components (all types) in memory. The number does not include Pipelines
+This service returns the current number of Components (all types) in memory. The number does not include Pipelines.
 
 **Returns**
-* The number of components in memory
+* The number of Components in memory
 
 **Python Example**
 ```Python
 number_of_components = dsl_component_list_size()
 ```
 
+<br>
+
 ### *dsl_component_gpuid_get*
 ```c++
 DslReturnType dsl_component_gpuid_get(const wchar_t* component, uint* gpuid);
 ```
-This service returns the current GPU ID for the named component. The default setting for all components is GPU ID = 0.
+This service returns the current GPU ID for the named Component. The default setting for all components is GPU ID = 0.
 
 **Parameters**
-* `component` - [in] unique name of the component to query.
-* `gpuid` - [out] current GPU ID in use by the component
+* `component` - [in] unique name of the Component to query.
+* `gpuid` - [out] current GPU ID in use by the Component.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above otherwise
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above otherwise.
 
 **Python Example**
 ```Python
@@ -118,14 +133,14 @@ retval, gpuid = dsl_component_gpuid_get('my-primary-gie')
 ```c++
 DslReturnType dsl_component_gpuid_set(const wchar_t* component, uint gpuid);
 ```
-This service sets the current GPU ID for the named component to use. The call will fail if the Component is currently `in-use` by a Pipline.
+This service sets the current GPU ID for the named Component to use. The call will fail if the Component is currently `in-use` by a Pipline.
 
 **Parameters**
-* `component` - [in] unique name of the component to query.
-* `gpuid` - [in] new GPU ID to use by the component
+* `component` - [in] unique name of the Component to query.
+* `gpuid` - [in] new GPU ID to use by the Component.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above otherwise
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above otherwise.
 
 **Python Example**
 ```Python
@@ -138,14 +153,14 @@ retval = dsl_component_gpuid_set('my-primary-gie', 1)
 ```c++
 DslReturnType dsl_component_gpuid_set_many(const wchar_t** component, uint gpuid);
 ```
-This service sets the GPU ID for a Null terminated list of named components. The call will fail if any component is currently `in-use` by a Pipeline, on first exception.
+This service sets the GPU ID for a Null terminated list of named components. The call will fail if any Component is currently `in-use` by a Pipeline, on first exception.
 
 **Parameters**
-* `components` - [in] Null terminated list of unique component names to delete.
-* `gpuid` - [in] new GPU ID to use by all named components
+* `components` - [in] Null terminated list of unique Component names to delete.
+* `gpuid` - [in] new GPU ID to use by all named Components.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python

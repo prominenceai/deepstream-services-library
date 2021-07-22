@@ -221,7 +221,7 @@ retval = dsl_source_csi_new('my-csi-source', 1280, 720, 30, 1)
 
 ### *dsl_source_usb_new*
 ```C
-DslReturnType dsl_source_usb_new(const wchar_t* source,
+DslReturnType dsl_source_usb_new(const wchar_t* name,
     uint width, uint height, uint fps_n, uint fps_d);
 ```
 Creates a new, uniquely named USB Camera Source object. 
@@ -238,7 +238,7 @@ Creates a new, uniquely named USB Camera Source object.
 
 **Python Example**
 ```Python
-retval = dsl_source_csi_new('my-csi-source', 1280, 720, 30, 1)
+retval = dsl_source_usb_new('my-csi-source', 1280, 720, 30, 1)
 ```
 <br>
 
@@ -247,7 +247,7 @@ retval = dsl_source_csi_new('my-csi-source', 1280, 720, 30, 1)
 DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, boolean is_live,
     uint cudadec_mem_type, boolean intra_decode, uint drop_frame_interval);
 ```
-This service creates a new, uniquely named URI Source component
+This service creates a new, uniquely named URI Source component.
 
 **Parameters**
 * `name` - [in] unique name for the new Source
@@ -255,7 +255,7 @@ This service creates a new, uniquely named URI Source component
 * `is_live` [in] `true` if the URI is a live source, `false` otherwise. File URI's will used a fixed value of `false`
 * `cudadec_mem_type` - [in] one of the [Cuda Decode Memory Types](#cuda-decode-memory-types) defined below
 * `intra_decode` - [in] set to true for M-JPEG codec format
-* `drop_frame_interval` [in] interval to drop frames at. 0 = decode all frames
+* `drop_frame_interval` [in] nunber of frames to drop between each decoded frame. 0 = decode all frames
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
@@ -332,7 +332,7 @@ This service creates a new, uniquely named Image Source component. The Image is 
 **Parameters**
 * `name` - [in] unique name for the new Source
 * `file_path` - [in] absolute or relative path to the image file to play
-* `is_live` [in] `true` if the Source is to act as a live source, `false` otherwise. 
+* `is_live` [in] true if the Source is to act as a live source, false otherwise. 
 * `fps-n` - [in] frames per second fraction numerator
 * `fps-d` - [in] frames per second fraction denominator
 * `timeout` [in] time to stream the image before generating an end-of-stream (EOS) event, in units of seconds. Set to 0 for no timeout.
@@ -360,7 +360,7 @@ DslReturnType dsl_source_dimensions_get(const wchar_t* name, uint* width, uint* 
 This service returns the width and height values of a named source. CSI and USB Camera sources will return the values they were created with. URI and RTSP sources will return 0's while `not-in` and will be updated once the Source has transitioned to a state of `playing`.
 
 **Parameters**
-* `source` - [in]unique name of the Source to play
+* `source` - [in] unique name of the Source to play
 * `width` - [out] width of the Source in pixels.
 * `height` - [out] height of the Source in pixels.
 
@@ -405,6 +405,7 @@ Returns `true` if the Source component's stream is live. CSI and USB Camera sour
 * `name` - [in] unique name of the Source to query
 * `is_live` - [out] `true` if the source is live, false otherwise
 
+**Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
@@ -538,7 +539,7 @@ retval = dsl_source_decode_drop_farme_interval_set('my-uri-source', 2)
 ```C
 DslReturnType dsl_source_decode_dewarper_add(const wchar_t* name, const wchar_t* dewarper);
 ```
-This service adds a previously constructed [Dewarper](api-dewarper.md) component to either a named URI or RTSP source. A source can have at most one Dewarper, and calls to add more will fail. Attempts to add a Dewarper to a Source `in use` will fail. 
+This service adds a previously constructed [Dewarper](api-dewarper.md) component to either a named URI or RTSP source. A source can have at most one Dewarper, and calls to add more will fail. Attempts to add a Dewarper to a Source in a state of `PLAYING` or `PAUSED` will fail. 
 
 **Parameters**
 * `name` - [in] unique name of the Source to update
@@ -558,7 +559,7 @@ retval = dsl_source_decode_dewarper_add('my-uri-source', 'my-dewarper')
 ```C
 DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name);
 ```
-This service remove a [Dewarper](api-dewarper.md) component, previously added with [dsl_source_decode_dewarper_add](#dsl_source_decode_dewarper_add) to a named URI source. Calls to remove will fail if the Source is currently without a Dewarper or `in use`.
+This service remove a [Dewarper](api-dewarper.md) component, previously added with [dsl_source_decode_dewarper_add](#dsl_source_decode_dewarper_add) to a named URI source. Calls to remove will fail if the Source is in a state of `PLAYING` or `PAUSED` will fail. 
 
 **Parameters**
 * `name` - [in] unique name of the Source to update
@@ -653,26 +654,22 @@ retval = dsl_source_rtsp_reconnection_params_get('my-rtsp-source', sleep_ms, tim
 ```
 <br>
 
-### *dsl_source_rtsp_reconnection_stats_get*
+### *dsl_source_rtsp_connection_data_get*
 ```C
-DslReturnType dsl_source_rtsp_reconnection_stats_get(const wchar_t* name, 
-    time_t* last, uint* count, boolean* in_reconnect, uint* retries); 
+DslReturnType dsl_source_rtsp_connection_data_get(const wchar_t* name, dsl_rtsp_connection_data* data); 
 ```
-This service gets the current reconnection stats for the named RTSP Source.
+This service gets the current connection setting add stats for the named RTSP Source.
 
 **Parameters**
  * `name` - [in] unique name of the Source to query
- * `last` - [out] time of the last reconnect from the system time in seconds (see timeval <sys/time.h>)
- * `count` - [out] the count of reconnections for the named source, since first played or cleared.
- * `in_reconnect` - [out] true if the RTSP source is currently in a "reconnection-cycle"
- * `retries` [out] - number of reconnection retries in either the current reconnection-cycle if `in_reconnect == true` or the last reconnection if `in_reconnect == false`. 
+ * `data` [out] - pointer to a [dsl_rtsp_connection_data](#dsl_rtsp_connection_data) structure. 
  
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval, last, count, in_reconnect, retries = dsl_source_rtsp_reconnection_stats_get('my-rtsp-source')
+retval, connection_data = dsl_source_rtsp_connection_data_get('my-rtsp-source')
 ```
 <br>
 
@@ -692,7 +689,7 @@ This service clears the current reconnection stats for the named RTSP Source.
 
 **Python Example**
 ```Python
-retval, last, count, in_reconnect, retries = dsl_source_rtsp_reconnection_stats_get('my-rtsp-source')
+retval = dsl_source_rtsp_reconnection_stats_clear('my-rtsp-source')
 ```
 <br>
 
@@ -749,10 +746,11 @@ retval = dsl_source_rtsp_state_change_listener_remove('my-pipeline', state_chang
 ```C
 DslReturnType dsl_source_rtsp_tap_add(const wchar_t* name, const wchar_t* tap);
 ```
-This service adds a named Tap to a named RTSP source
+This service adds a named Tap to a named RTSP source. There is currently only one type of Tap which is the [Smart Recording Tap](/docs/api-tap.md#dsl_tap_record_new)
+
 **Parameters**
- * `name` [in] name of the Source object to update
- * `tap` [in] name of the Tap to add
+ * `name` [in] unique name of the Source object to update
+ * `tap` [in] unique name of the Tap to add
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
@@ -928,7 +926,7 @@ This service sets the File Path to use by the named Image source.
 
 **Parameters**
 * `name` - [in] unique name of the Image Source to update
-* `timeout` - [out] current timeout setting in units of seconds. 0 = no timeout.
+* `timeout` - [out] new timeout setting in units of seconds. 0 = no timeout.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
@@ -944,10 +942,10 @@ retval = dsl_source_image_timeout_set('my-image-source', 30)
 ```C
 uint dsl_source_num_in_use_get();
 ```
-This service returns the total number of all Sinks currently `in-use` by all Pipelines.
+This service returns the total number of Source currently `in-use` by all Pipelines.
 
 **Returns**
-* The current number of Sinks `in-use`
+* The current number of Sources `in-use`
 
 **Python Example**
 ```Python
@@ -976,7 +974,7 @@ max_source_in_use = dsl_source_num_in_use_max_get()
 ```C
 boolean dsl_source_num_in_use_max_set(uint max);
 ```
-This service sets the "maximum number of Source" that can be `in-use` at any one time. The value is defined as `DSL_DEFAULT_SOURCE_NUM_IN_USE_MAX` on service initilization. The actual maximum is impossed by the Jetson model in use. It's the responsibility of the client application to set the value correctly.
+This service sets the "maximum number of Sources" that can be `in-use` at any one time. The value is defined as `DSL_DEFAULT_SOURCE_NUM_IN_USE_MAX` on service initilization. The actual maximum is impossed by the Jetson model in use. It's the responsibility of the client application to set the value correctly.
 
 **Returns**
 * `false` if the new value is less than the actual current number of Sources in use, `true` otherwise
