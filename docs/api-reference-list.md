@@ -251,7 +251,9 @@
 ### Demuxer and Splitter - Tee:
 * [Overview](/docs/api-tee.md)
 * [dsl_tee_demuxer_new](/docs/api-tee.md#dsl_tee_demuxer_new)
+* [dsl_tee_demuxer_new_branch_add_many](/docs/api-tee.md#dsl_tee_demuxer_new_branch_add_many)
 * [dsl_tee_splitter_new](/docs/api-tee.md#dsl_tee_splitter_new) 
+* [dsl_tee_splitter_new_branch_add_many](/docs/api-tee.md#dsl_tee_demuxer_new_branch_add_many)
 * [dsl_tee_branch_add](/docs/api-tee.md#dsl_tee_branch_add)
 * [dsl_tee_branch_add_many](/docs/api-tee.md#dsl_tee_branch_add_many)
 * [dsl_tee_branch_remove](/docs/api-tee.md#dsl_tee_branch_remove)
