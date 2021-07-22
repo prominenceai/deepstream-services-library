@@ -1,11 +1,11 @@
 # ODE Action API Reference
-ODE Actions implement their own "action-specific" event-handler that gets invoked by an ODE Trigger on the occurrence of an Object Detection Event (ODE). The relationship of ODE Trigger to ODE Actions is many-to-many. Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can be added to multiple ODE Triggers.
+ODE Actions implement their own "action-specific" event-handler that gets invoked by an ODE Trigger on the occurrence of an Object Detection Event (ODE). The relationship between ODE Triggers and ODE Actions is many-to-many. Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can be added to multiple ODE Triggers.
 
 #### Actions on Metadata
-Several ODE Actions can be created to update the Frame and object Metadata to be used by the [On-Screen-Display](/docs/api-osd.md), the next component in the Pipeline (if added).  by See [dsl_ode_action_fill_area_new](#dsl_ode_action_fill_area_new), [dsl_ode_action_fill_frame_new](#dsl_ode_action_fill_frame_new), [dsl_ode_action_fill_object_new](#dsl_ode_action_fill_object_new), [dsl_ode_action_hide_new](#dsl_ode_action_hide_new), [dsl_ode_action_overlay_frame_new](#dsl_ode_action_overlay_frame_new), and [dsl_ode_action_redact_new](#dsl_ode_action_redact_new)
+Several ODE Actions can be created to update the Frame and object Metadata to be rendered by a downstream [On-Screen-Display](/docs/api-osd.md) if added.  See [dsl_ode_action_fill_area_new](#dsl_ode_action_fill_area_new), [dsl_ode_action_fill_frame_new](#dsl_ode_action_fill_frame_new), [dsl_ode_action_fill_object_new](#dsl_ode_action_fill_object_new), [dsl_ode_action_hide_new](#dsl_ode_action_hide_new), [dsl_ode_action_overlay_frame_new](#dsl_ode_action_overlay_frame_new), and [dsl_ode_action_redact_new](#dsl_ode_action_redact_new)
 
 #### Actions on Record Components
-There are two actions for starting a record session, one for the [Record-Sink](/docs/api-sink.md) created with [dsl_ode_action_sink_record_start_new](#dsl_ode_action_sink_record_start_new) and the other for the [Record-Tap](/docs/api-tap.md) created with [dsl_ode_action_tap_record_start_new](#dsl_ode_action_tap_record_start_new)
+There are two actions that start a new recording session, one for the [Record-Sink](/docs/api-sink.md) created with [dsl_ode_action_sink_record_start_new](#dsl_ode_action_sink_record_start_new) and the other for the [Record-Tap](/docs/api-tap.md) created with [dsl_ode_action_tap_record_start_new](#dsl_ode_action_tap_record_start_new)
 
 #### Actions on Actions
 Actions can be created to Disable other Actions on invocation. See [dsl_ode_action_action_disable_new](#dsl_ode_action_action_disable_new) and [dsl_ode_action_action_enable_new](#dsl_ode_action_action_enable_new). 
@@ -17,14 +17,13 @@ Actions performed with the ODE occurrence data include  [dsl_ode_action_callback
 Actions can be used to Add and Remove Areas to/from a Trigger on invocation. See [dsl_ode_action_area_add_new](#dsl_ode_action_area_add_new) and [dsl_ode_action_area_remove_new](#dsl_ode_action_area_remove_new). 
 
 #### Actions on Triggers
-Actions can be created to Disable, Enable or Reset a Trigger on invocation. See [dsl_ode_action_trigger_reset_new](#dsl_ode_action_trigger_reset_new), [dsl_ode_action_trigger_disable_new](#dsl_ode_action_trigger_disable_new), and [dsl_ode_action_trigger_enable_new](#dsl_ode_action_trigger_enable_new)
+Actions can be created to Disable, Enable or Reset a Trigger on invocation. See [dsl_ode_action_trigger_reset_new](#dsl_ode_action_trigger_reset_new), [dsl_ode_action_trigger_disable_new](#dsl_ode_action_trigger_disable_new), and [dsl_ode_action_trigger_enable_new](#dsl_ode_action_trigger_enable_new).
 
 #### Actions on Pipelines
-There are a number of Actions that dynamically update the state or components in a Pipeline. [dsl_ode_action_pause_new](#dsl_ode_action_pause_new), [dsl_ode_action_sink_add_new](#dsl_ode_action_sink_add_new), [dsl_ode_action_sink_remove_new](#dsl_ode_action_sink_remove_new), [dsl_ode_action_sink_record_start_new](#dsl_ode_action_sink_record_start_new), [dsl_ode_action_source_add_new](#dsl_ode_action_source_add_new), [dsl_ode_action_source_remove_new](#dsl_ode_action_source_remove_new), and 
+There are a number of Actions that dynamically update the state or components in a Pipeline. [dsl_ode_action_pause_new](#dsl_ode_action_pause_new), [dsl_ode_action_sink_add_new](#dsl_ode_action_sink_add_new), [dsl_ode_action_sink_remove_new](#dsl_ode_action_sink_remove_new), [dsl_ode_action_source_add_new](#dsl_ode_action_source_add_new), [dsl_ode_action_source_remove_new](#dsl_ode_action_source_remove_new).
 
 #### ODE Action Construction and Destruction
-ODE Actions are created by calling one of type specific [constructors](#ode-action-api) defined below. Each constructor must have a unique name and using a duplicate name will fail with a result of `DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE`. Once created, all Actions are deleted by calling [dsl_ode_action_delete](#dsl_ode_action_delete),
-[dsl_ode_action_delete_many](#dsl_ode_action_delete_many), or [dsl_ode_action_delete_all](#dsl_ode_action_delete_all). Attempting to delete an Action in-use by a Trigger will fail with a result of `DSL_RESULT_ODE_ACTION_IN_USE`
+ODE Actions are created by calling one of type specific [constructors](#ode-action-api) defined below. Each constructor must have a unique name from all other Actions. Once created, Actions are deleted by calling [dsl_ode_action_delete](#dsl_ode_action_delete), [dsl_ode_action_delete_many](#dsl_ode_action_delete_many), or [dsl_ode_action_delete_all](#dsl_ode_action_delete_all). Attempting to delete an Action in-use by a Trigger will fail.
 
 #### Adding/Removing Actions
 ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](docs/api-ode-trigger#dsl_ode_trigger_action_add) and [dsl_ode_trigger_action_add_many](docs/api-ode-trigger#dsl_ode_trigger_action_add_many) and removed with [dsl_ode_trigger_action_remove](docs/api-ode-trigger#dsl_ode_trigger_action_remove), [dsl_ode_trigger_action_remove_many](docs/api-ode-traigger#dsl_ode_trigger_action_remove_many), and [dsl_ode_trigger_action_remove_all](docs/api-ode-trigger#dsl_ode_trigger_action_remove_all).
@@ -133,11 +132,11 @@ typedef struct dsl_capture_info
 Structure typedef used to provide Image Capture information to a Client [dsl_record_client_listener_cb](#dsl_record_client_listener_cb) function on capture and file save complete.
 
 **Fields**
-* `captureId` - the unique capture id assigned on file save
+* `captureId` - the unique capture id assigned on file save.
 * `filename` - filename generated for the captured image. 
 * `dirpath` - directory path for the captured image
-* `width` - width of the image in pixels
-* `height` - height of the image in pixels
+* `width` - width of the image in pixels.
+* `height` - height of the image in pixels.
 
 **Python Example**
 ```Python
@@ -378,7 +377,7 @@ The constructor creates a uniquely named **Add Display Meta** ODE Action. When i
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
-* `display_type` - [in] unique name of the Display Type to add
+* `display_type` - [in] unique name of the Display Type to add.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
