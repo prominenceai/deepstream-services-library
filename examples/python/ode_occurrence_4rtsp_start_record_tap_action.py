@@ -1,4 +1,3 @@
-<<<<<<< HEAD:examples/python/ode_occurrence_rtsp_start_record_tap_action.py
 ################################################################################	
 # The MIT License	
 #	
@@ -169,7 +168,8 @@ def CreatePerSourceComponents(pipeline, source, rtsp_uri, ode_handler):
         cudadec_mem_type = DSL_CUDADEC_MEMTYPE_DEVICE, 	
         intra_decode = False, 	
         drop_frame_interval = 0, 	
-        latency=100)	
+        latency = 100,
+        timeout = 2)	
     if (retval != DSL_RETURN_SUCCESS):	
         return retval	
 

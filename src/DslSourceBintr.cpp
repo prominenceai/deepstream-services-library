@@ -1512,9 +1512,14 @@ namespace DSL
         GstCaps* pCaps = gst_pad_query_caps(pPad, NULL);
         GstStructure* structure = gst_caps_get_structure(pCaps, 0);
         std::string name = gst_structure_get_name(structure);
-        
+        std::string media = gst_structure_get_string (structure, "media");
+        std::string encoding = gst_structure_get_string (structure, "encoding-name");
+
         LOG_INFO("Caps structs name " << name);
-        if (name.find("x-rtp") != std::string::npos)
+        LOG_INFO("Media = '" << media << "' for RtspSourceBitnr '" << GetName() << "'");
+        
+        if (name.find("x-rtp") != std::string::npos and 
+            media.find("video")!= std::string::npos)
         {
             m_pGstStaticSinkPad = gst_element_get_static_pad(m_pDepay->GetGstElement(), "sink");
             if (!m_pGstStaticSinkPad)
@@ -1525,11 +1530,11 @@ namespace DSL
             
             if (gst_pad_link(pPad, m_pGstStaticSinkPad) != GST_PAD_LINK_OK) 
             {
-                LOG_ERROR("Failed to link de-payload to pipeline");
+                LOG_ERROR("Failed to link source to de-payload");
                 throw;
             }
             
-            LOG_INFO("Video decode linked for URI source '" << GetName() << "'");
+            LOG_INFO("Video decode linked for RTSP source '" << GetName() << "'");
         }
     }
     
