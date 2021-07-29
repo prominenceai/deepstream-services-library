@@ -23,10 +23,10 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
-#include "Dsl.h"
 #include "DslApi.h"
 #include "DslOdeTrigger.h"
 #include "DslServices.h"
+#include "DslServicesValidate.h"
 #include "DslSourceBintr.h"
 #include "DslInferBintr.h"
 #include "DslSegVisualBintr.h"
@@ -35,325 +35,6 @@ THE SOFTWARE.
 #include "DslTilerBintr.h"
 #include "DslOsdBintr.h"
 #include "DslSinkBintr.h"
-
-#define RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(actions, name) do \
-{ \
-    if (actions.find(name) == actions.end()) \
-    { \
-        LOG_ERROR("ODE Action name '" << name << "' was not found"); \
-        return DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND; \
-    } \
-}while(0); 
-
-#define RETURN_IF_ODE_AREA_NAME_NOT_FOUND(areas, name) do \
-{ \
-    if (areas.find(name) == areas.end()) \
-    { \
-        LOG_ERROR("ODE Area name '" << name << "' was not found"); \
-        return DSL_RESULT_ODE_AREA_NAME_NOT_FOUND; \
-    } \
-}while(0); 
-
-#define RETURN_IF_ODE_ACTION_IS_NOT_CORRECT_TYPE(actions, name, action) do \
-{ \
-    if (!actions[name]->IsType(typeid(action)))\
-    { \
-        LOG_ERROR("ODE Action '" << name << "' is not the correct type"); \
-        return DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE; \
-    } \
-}while(0); 
-
-#define RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(actions, name) do \
-{ \
-    if (!actions[name]->IsType(typeid(CaptureFrameOdeAction)) and \
-        !actions[name]->IsType(typeid(CaptureObjectOdeAction)))\
-    { \
-        LOG_ERROR("ODE Action '" << name << "' is not the correct type"); \
-        return DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE; \
-    } \
-}while(0); 
-
-
-#define RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(events, name) do \
-{ \
-    if (events.find(name) == events.end()) \
-    { \
-        LOG_ERROR("ODE Trigger name '" << name << "' was not found"); \
-        return DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND; \
-    } \
-}while(0); 
-
-#define RETURN_IF_ODE_TRIGGER_IS_NOT_AB_TYPE(components, name) do \
-{ \
-    if (!components[name]->IsType(typeid(DistanceOdeTrigger)) and  \
-        !components[name]->IsType(typeid(IntersectionOdeTrigger))) \
-    { \
-        LOG_ERROR("Component '" << name << "' is not an AB ODE Trigger"); \
-        return DSL_RESULT_ODE_TRIGGER_IS_NOT_AB_TYPE; \
-    } \
-}while(0); 
-
-#define RETURN_IF_BRANCH_NAME_NOT_FOUND(branches, name) do \
-{ \
-    if (branches.find(name) == branches.end()) \
-    { \
-        LOG_ERROR("Branch name '" << name << "' was not found"); \
-        return DSL_RESULT_BRANCH_NAME_NOT_FOUND; \
-    } \
-}while(0); 
-    
-#define RETURN_IF_PIPELINE_NAME_NOT_FOUND(pipelines, name) do \
-{ \
-    if (pipelines.find(name) == pipelines.end()) \
-    { \
-        LOG_ERROR("Pipeline name '" << name << "' was not found"); \
-        return DSL_RESULT_PIPELINE_NAME_NOT_FOUND; \
-    } \
-}while(0); 
-    
-#define RETURN_IF_PLAYER_NAME_NOT_FOUND(players, name) do \
-{ \
-    if (players.find(name) == players.end()) \
-    { \
-        LOG_ERROR("Player name '" << name << "' was not found"); \
-        return DSL_RESULT_PLAYER_NAME_NOT_FOUND; \
-    } \
-}while(0); 
-
-#define RETURN_IF_PLAYER_IS_NOT_IMAGE_PLAYER(players, name) do \
-{ \
-    if (!players[name]->IsType(typeid(ImageRenderPlayerBintr))) \
-    { \
-        LOG_ERROR("Player '" << name << "' is not an Image Player"); \
-        return DSL_RESULT_PLAYER_IS_NOT_IMAGE_PLAYER; \
-    } \
-}while(0); 
-
-#define RETURN_IF_PLAYER_IS_NOT_VIDEO_PLAYER(players, name) do \
-{ \
-    if (!players[name]->IsType(typeid(VideoRenderPlayerBintr))) \
-    { \
-        LOG_ERROR("Player '" << name << "' is not an Video Player"); \
-        return DSL_RESULT_PLAYER_IS_NOT_VIDEO_PLAYER; \
-    } \
-}while(0); 
-
-
-#define RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(players, name) do \
-{ \
-    if (!players[name]->IsType(typeid(ImageRenderPlayerBintr)) and  \
-        !players[name]->IsType(typeid(VideoRenderPlayerBintr))) \
-    { \
-        LOG_ERROR("Player '" << name << "' is not a Render Player"); \
-        return DSL_RESULT_PLAYER_IS_NOT_RENDER_PLAYER; \
-    } \
-}while(0); 
-        
-#define RETURN_IF_COMPONENT_NAME_NOT_FOUND(components, name) do \
-{ \
-    if (components.find(name) == components.end()) \
-    { \
-        LOG_ERROR("Component name '" << name << "' was not found"); \
-        return DSL_RESULT_COMPONENT_NAME_NOT_FOUND; \
-    } \
-}while(0); 
-
-#define RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(components, name, bintr) do \
-{ \
-    if (!components[name]->IsType(typeid(bintr)))\
-    { \
-        LOG_ERROR("Component '" << name << "' is not the correct type"); \
-        return DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE; \
-    } \
-}while(0); 
-
-#define RETURN_IF_COMPONENT_IS_NOT_SOURCE(components, name) do \
-{ \
-    if (!components[name]->IsType(typeid(CsiSourceBintr)) and  \
-        !components[name]->IsType(typeid(UsbSourceBintr)) and  \
-        !components[name]->IsType(typeid(UriSourceBintr)) and  \
-        !components[name]->IsType(typeid(FileSourceBintr)) and  \
-        !components[name]->IsType(typeid(ImageSourceBintr)) and  \
-        !components[name]->IsType(typeid(RtspSourceBintr))) \
-    { \
-        LOG_ERROR("Component '" << name << "' is not a Source"); \
-        return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE; \
-    } \
-}while(0); 
-
-#define RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(components, name) do \
-{ \
-    if (!components[name]->IsType(typeid(UriSourceBintr)) and  \
-        !components[name]->IsType(typeid(RtspSourceBintr))) \
-    { \
-        LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
-        return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE; \
-    } \
-}while(0); 
-
-#define RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(components, name) do \
-{ \
-    if (!components[name]->IsType(typeid(OverlaySinkBintr)) and \
-        !components[name]->IsType(typeid(WindowSinkBintr)))\
-    { \
-        LOG_ERROR("ODE Action '" << name << "' is not the correct type"); \
-        return DSL_RESULT_SINK_COMPONENT_IS_NOT_RENDER_SINK; \
-    } \
-}while(0); 
-
-
-#define RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(components, name) do \
-{ \
-    if (!components[name]->IsType(typeid(FileSinkBintr)) and  \
-        !components[name]->IsType(typeid(RecordSinkBintr))) \
-    { \
-        LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
-        return DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK; \
-    } \
-}while(0); 
-
-#define RETURN_IF_COMPONENT_IS_NOT_GIE(components, name) do \
-{ \
-    if (!components[name]->IsType(typeid(PrimaryGieBintr)) and  \
-        !components[name]->IsType(typeid(SecondaryGieBintr))) \
-    { \
-        LOG_ERROR("Component '" << name << "' is not a Primary or Secondary GIE"); \
-        return DSL_RESULT_INFER_COMPONENT_IS_NOT_INFER; \
-    } \
-}while(0); 
-
-#define RETURN_IF_COMPONENT_IS_NOT_INFER(components, name) do \
-{ \
-    if (!components[name]->IsType(typeid(PrimaryGieBintr)) and  \
-        !components[name]->IsType(typeid(SecondaryGieBintr)) and \
-        !components[name]->IsType(typeid(PrimaryTisBintr)) and \
-        !components[name]->IsType(typeid(SecondaryTisBintr))) \
-    { \
-        LOG_ERROR("Component '" << name << "' is not a GIE or TIS"); \
-        return DSL_RESULT_INFER_COMPONENT_IS_NOT_INFER; \
-    } \
-}while(0); 
-
-#define RETURN_IF_COMPONENT_IS_NOT_PRIMARY_INFER_TYPE(components, name) do \
-{ \
-    if (!components[name]->IsType(typeid(PrimaryGieBintr)) and  \
-        !components[name]->IsType(typeid(PrimaryTisBintr))) \
-    { \
-        LOG_ERROR("Component '" << name << "' is not a Primary GIE or TIS"); \
-        return DSL_RESULT_INFER_COMPONENT_IS_NOT_INFER; \
-    } \
-}while(0); 
-
-#define RETURN_IF_COMPONENT_IS_NOT_TRACKER(components, name) do \
-{ \
-    if (!components[name]->IsType(typeid(DcfTrackerBintr)) and  \
-        !components[name]->IsType(typeid(KtlTrackerBintr)) and  \
-        !components[name]->IsType(typeid(IouTrackerBintr))) \
-    { \
-        LOG_ERROR("Component '" << name << "' is not a Tracker"); \
-        return DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER; \
-    } \
-}while(0); 
-
-#define RETURN_IF_COMPONENT_IS_NOT_TEE(components, name) do \
-{ \
-    if (!components[name]->IsType(typeid(DemuxerBintr)) and  \
-        !components[name]->IsType(typeid(SplitterBintr))) \
-    { \
-        LOG_ERROR("Component '" << name << "' is not a Tee"); \
-        return DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE; \
-    } \
-}while(0); 
-
-// All Bintr's that can be added as a "branch" to a "Tee"
-#define RETURN_IF_COMPONENT_IS_NOT_BRANCH(components, name) do \
-{ \
-    if (!components[name]->IsType(typeid(FakeSinkBintr)) and  \
-        !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
-        !components[name]->IsType(typeid(WindowSinkBintr)) and  \
-        !components[name]->IsType(typeid(FileSinkBintr)) and  \
-        !components[name]->IsType(typeid(RecordSinkBintr)) and  \
-        !components[name]->IsType(typeid(RtspSinkBintr)) and \
-        !components[name]->IsType(typeid(BranchBintr)) and \
-        !components[name]->IsType(typeid(DemuxerBintr)) and \
-        !components[name]->IsType(typeid(BranchBintr))) \
-    { \
-        LOG_ERROR("Component '" << name << "' is not a Branch type"); \
-        return DSL_RESULT_TEE_BRANCH_IS_NOT_BRANCH; \
-    } \
-}while(0); 
-
-#define RETURN_IF_COMPONENT_IS_NOT_SINK(components, name) do \
-{ \
-    if (!components[name]->IsType(typeid(FakeSinkBintr)) and  \
-        !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
-        !components[name]->IsType(typeid(WindowSinkBintr)) and  \
-        !components[name]->IsType(typeid(FileSinkBintr)) and  \
-        !components[name]->IsType(typeid(RecordSinkBintr)) and  \
-        !components[name]->IsType(typeid(RtspSinkBintr))) \
-    { \
-        LOG_ERROR("Component '" << name << "' is not a Sink"); \
-        return DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK; \
-    } \
-}while(0); 
-
-#define RETURN_IF_COMPONENT_IS_NOT_TAP(components, name) do \
-{ \
-    if (!components[name]->IsType(typeid(RecordTapBintr))) \
-    { \
-        LOG_ERROR("Component '" << name << "' is not a Tap"); \
-        return DSL_RESULT_TAP_COMPONENT_IS_NOT_TAP; \
-    } \
-}while(0); 
-
-
-#define RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(types, name) do \
-{ \
-    if (types.find(name) == types.end()) \
-    { \
-        LOG_ERROR("Display Type '" << name << "' was not found"); \
-        return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_FOUND; \
-    } \
-}while(0); 
-
-#define RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(types, name, displayType) do \
-{ \
-    if (!types[name]->IsType(typeid(displayType))) \
-    { \
-        LOG_ERROR("Display Type '" << name << "' is not the correct type"); \
-        return DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE; \
-    } \
-}while(0); 
-
-#define RETURN_IF_DISPLAY_TYPE_IS_BASE_TYPE(types, name) do \
-{ \
-    if (types[name]->IsType(typeid(RgbaColor)) or \
-        types[name]->IsType(typeid(RgbaFont))) \
-    { \
-        LOG_ERROR("Display Type '" << name << "' is base type and can not be displayed"); \
-        return DSL_RESULT_DISPLAY_TYPE_IS_BASE_TYPE; \
-    } \
-}while(0); 
-
-#define RETURN_IF_PPH_NAME_NOT_FOUND(handlers, name) do \
-{ \
-    if (handlers.find(name) == handlers.end()) \
-    { \
-        LOG_ERROR("Pad Probe Handler name '" << name << "' was not found"); \
-        return DSL_RESULT_PPH_NAME_NOT_FOUND; \
-    } \
-}while(0); 
-
-#define RETURN_IF_MAILER_NAME_NOT_FOUND(mailers, name) do \
-{ \
-    if (mailers.find(name) == mailers.end()) \
-    { \
-        LOG_ERROR("Mailer name '" << name << "' was not found"); \
-        return DSL_RESULT_MAILER_NAME_NOT_FOUND; \
-    } \
-}while(0); 
-
-
 
 // TODO move these defines to DSL utility file
 #define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
@@ -573,8 +254,8 @@ namespace DSL
                 return DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE;
             }
             
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
 
             DSL_RGBA_COLOR_PTR pColor = 
                 std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
@@ -607,14 +288,14 @@ namespace DSL
                 return DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE;
             }
             
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
 
             DSL_RGBA_COLOR_PTR pBgColor(nullptr);
             if (hasBgColor)
             {
-                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
 
                 pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
             }
@@ -655,8 +336,8 @@ namespace DSL
                 return DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE;
             }
             
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
 
             DSL_RGBA_COLOR_PTR pColor = 
                 std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
@@ -694,8 +375,8 @@ namespace DSL
                 LOG_ERROR("RGBA Head Type Invalid for RGBA Arrow'" << name << "'");
                 return DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID;
             }
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
             
             DSL_RGBA_COLOR_PTR pColor = 
                 std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
@@ -728,8 +409,8 @@ namespace DSL
                 return DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE;
             }
             
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
 
             DSL_RGBA_COLOR_PTR pColor = 
                 std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
@@ -737,8 +418,8 @@ namespace DSL
             DSL_RGBA_COLOR_PTR pBgColor(nullptr);
             if (hasBgColor)
             {
-                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
 
                 pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
             }
@@ -782,8 +463,8 @@ namespace DSL
                 return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
             }
             
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
 
             DSL_RGBA_COLOR_PTR pColor = 
                 std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
@@ -818,8 +499,8 @@ namespace DSL
                 return DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE;
             }
             
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
 
             DSL_RGBA_COLOR_PTR pColor = 
                 std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
@@ -827,8 +508,8 @@ namespace DSL
             DSL_RGBA_COLOR_PTR pBgColor(nullptr);
             if (hasBgColor)
             {
-                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
 
                 pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
             }
@@ -866,14 +547,14 @@ namespace DSL
                 return DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE;
             }
             
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
 
             DSL_RGBA_COLOR_PTR pBgColor(nullptr);
             if (hasBgColor)
             {
-                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
 
                 pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
             }
@@ -914,14 +595,14 @@ namespace DSL
                 return DSL_RESULT_DISPLAY_SOURCE_NAME_NAME_NOT_UNIQUE;
             }
             
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
 
             DSL_RGBA_COLOR_PTR pBgColor(nullptr);
             if (hasBgColor)
             {
-                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
 
                 pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
             }
@@ -962,14 +643,14 @@ namespace DSL
                 return DSL_RESULT_DISPLAY_SOURCE_DIMENSIONS_NAME_NOT_UNIQUE;
             }
             
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
 
             DSL_RGBA_COLOR_PTR pBgColor(nullptr);
             if (hasBgColor)
             {
-                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
 
                 pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
             }
@@ -1010,14 +691,14 @@ namespace DSL
                 return DSL_RESULT_DISPLAY_SOURCE_FRAMERATE_NAME_NOT_UNIQUE;
             }
             
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
 
             DSL_RGBA_COLOR_PTR pBgColor(nullptr);
             if (hasBgColor)
             {
-                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
 
                 pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
             }
@@ -1050,7 +731,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, name);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, name);
             
             DSL_DISPLAY_TYPE_PTR pDisplayType = 
                 std::dynamic_pointer_cast<DisplayType>(m_displayTypes[name]);
@@ -1074,7 +755,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, name);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, name);
             
             if (m_displayTypes[name].use_count() > 1)
             {
@@ -1230,8 +911,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
-            RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);   
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            DSL_RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);   
 
             DSL_ODE_ACTION_CATPURE_PTR pOdeAction = 
                 std::dynamic_pointer_cast<CaptureOdeAction>(m_odeActions[name]);
@@ -1259,8 +940,8 @@ namespace DSL
     
         try
         {
-            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
-            RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);   
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            DSL_RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);   
 
             DSL_ODE_ACTION_CATPURE_PTR pOdeAction = 
                 std::dynamic_pointer_cast<CaptureOdeAction>(m_odeActions[name]);
@@ -1288,10 +969,10 @@ namespace DSL
     
         try
         {
-            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
-            RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
-            RETURN_IF_PLAYER_IS_NOT_IMAGE_PLAYER(m_players, player)
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            DSL_RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
+            DSL_RETURN_IF_PLAYER_IS_NOT_IMAGE_PLAYER(m_players, player)
 
             DSL_ODE_ACTION_CATPURE_PTR pOdeAction = 
                 std::dynamic_pointer_cast<CaptureOdeAction>(m_odeActions[name]);
@@ -1319,10 +1000,10 @@ namespace DSL
     
         try
         {
-            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
-            RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
-            RETURN_IF_PLAYER_IS_NOT_IMAGE_PLAYER(m_players, player)
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            DSL_RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
+            DSL_RETURN_IF_PLAYER_IS_NOT_IMAGE_PLAYER(m_players, player)
 
             DSL_ODE_ACTION_CATPURE_PTR pOdeAction = 
                 std::dynamic_pointer_cast<CaptureOdeAction>(m_odeActions[name]);
@@ -1350,9 +1031,9 @@ namespace DSL
     
         try
         {
-            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
-            RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            DSL_RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);
+            DSL_RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
 
             DSL_ODE_ACTION_CATPURE_PTR pOdeAction = 
                 std::dynamic_pointer_cast<CaptureOdeAction>(m_odeActions[name]);
@@ -1380,9 +1061,9 @@ namespace DSL
     
         try
         {
-            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
-            RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            DSL_RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);
+            DSL_RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
 
             DSL_ODE_ACTION_CATPURE_PTR pOdeAction = 
                 std::dynamic_pointer_cast<CaptureOdeAction>(m_odeActions[name]);
@@ -1417,14 +1098,14 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
             
             DSL_RGBA_COLOR_PTR pBgColor(nullptr);
             if (hasBgColor)
             {
-                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
 
                 pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
             }
@@ -1463,7 +1144,7 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer)
+            DSL_RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer)
             
             m_odeActions[name] = DSL_ODE_ACTION_EMAIL_NEW(name, 
                 m_mailers[mailer], subject);
@@ -1533,8 +1214,8 @@ namespace DSL
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
             
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
 
             DSL_RGBA_COLOR_PTR pColor = 
                 std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
@@ -1566,8 +1247,8 @@ namespace DSL
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
             
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
 
             DSL_RGBA_COLOR_PTR pColor = 
                 std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
@@ -1599,8 +1280,8 @@ namespace DSL
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
 
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
 
             DSL_RGBA_COLOR_PTR pColor = 
                 std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
@@ -1710,8 +1391,8 @@ namespace DSL
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
             
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, displayType);
-            RETURN_IF_DISPLAY_TYPE_IS_BASE_TYPE(m_displayTypes, displayType);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, displayType);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_BASE_TYPE(m_displayTypes, displayType);
             
             DSL_DISPLAY_TYPE_PTR pDisplayType = std::dynamic_pointer_cast<DisplayType>(m_displayTypes[displayType]);
             
@@ -1735,10 +1416,10 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
-            RETURN_IF_ODE_ACTION_IS_NOT_CORRECT_TYPE(m_odeActions, name, AddDisplayMetaOdeAction);
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, displayType);
-            RETURN_IF_DISPLAY_TYPE_IS_BASE_TYPE(m_displayTypes, displayType);
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            DSL_RETURN_IF_ODE_ACTION_IS_NOT_CORRECT_TYPE(m_odeActions, name, AddDisplayMetaOdeAction);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, displayType);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_BASE_TYPE(m_displayTypes, displayType);
             
             DSL_DISPLAY_TYPE_PTR pDisplayType = std::dynamic_pointer_cast<DisplayType>(m_displayTypes[displayType]);
             
@@ -1907,8 +1588,8 @@ namespace DSL
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
 
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, recordSink);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, recordSink, RecordSinkBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, recordSink);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, recordSink, RecordSinkBintr);
 
             DSL_RECORD_SINK_PTR pRecordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[recordSink]);
@@ -1942,8 +1623,8 @@ namespace DSL
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
 
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, recordSink);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, recordSink, RecordSinkBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, recordSink);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, recordSink, RecordSinkBintr);
 
             DSL_RECORD_SINK_PTR pRecordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[recordSink]);
@@ -2031,8 +1712,8 @@ namespace DSL
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
             
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, recordTap);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, recordTap, RecordTapBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, recordTap);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, recordTap, RecordTapBintr);
 
             DSL_RECORD_TAP_PTR pRecordTapBintr = 
                 std::dynamic_pointer_cast<RecordTapBintr>(m_components[recordTap]);
@@ -2066,8 +1747,8 @@ namespace DSL
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
             
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, recordTap);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, recordTap, RecordTapBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, recordTap);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, recordTap, RecordTapBintr);
 
             DSL_RECORD_TAP_PTR pRecordTapBintr = 
                 std::dynamic_pointer_cast<RecordTapBintr>(m_components[recordTap]);
@@ -2303,7 +1984,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
             
             DSL_ODE_ACTION_PTR pOdeAction = 
                 std::dynamic_pointer_cast<OdeAction>(m_odeActions[name]);
@@ -2325,7 +2006,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
             
             DSL_ODE_ACTION_PTR pOdeAction = 
                 std::dynamic_pointer_cast<OdeAction>(m_odeActions[name]);
@@ -2347,7 +2028,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
             
             if (m_odeActions[name].use_count() > 1)
             {
@@ -2422,10 +2103,10 @@ namespace DSL
                 LOG_ERROR("ODE Area name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE;
             }
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, polygon);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, polygon);
             
             // Interim ... only supporting rectangles at this
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, polygon, RgbaPolygon);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, polygon, RgbaPolygon);
             
             if (bboxTestPoint > DSL_BBOX_POINT_ANY)
             {
@@ -2465,9 +2146,9 @@ namespace DSL
                 LOG_ERROR("ODE Area name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE;
             }
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, polygon);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, polygon);
             
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, polygon, RgbaPolygon);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, polygon, RgbaPolygon);
 
             if (bboxTestPoint > DSL_BBOX_POINT_ANY)
             {
@@ -2507,8 +2188,8 @@ namespace DSL
                 LOG_ERROR("ODE Area name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE;
             }
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, line);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, line, RgbaLine);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, line);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, line, RgbaLine);
             
             if (bboxTestEdge > DSL_BBOX_EDGE_RIGHT)
             {
@@ -2540,7 +2221,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeAreas, name);
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeAreas, name);
             
             if (m_odeAreas[name].use_count() > 1)
             {
@@ -2885,8 +2566,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, PersistenceOdeTrigger);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, PersistenceOdeTrigger);
             
             DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<PersistenceOdeTrigger>(m_odeTriggers[name]);
@@ -2914,8 +2595,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, PersistenceOdeTrigger);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, PersistenceOdeTrigger);
             
             DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<PersistenceOdeTrigger>(m_odeTriggers[name]);
@@ -2976,8 +2657,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, CountOdeTrigger);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, CountOdeTrigger);
             
             DSL_ODE_TRIGGER_COUNT_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<CountOdeTrigger>(m_odeTriggers[name]);
@@ -3005,8 +2686,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, CountOdeTrigger);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, CountOdeTrigger);
             
             DSL_ODE_TRIGGER_COUNT_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<CountOdeTrigger>(m_odeTriggers[name]);
@@ -3069,8 +2750,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, DistanceOdeTrigger);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, DistanceOdeTrigger);
             
             DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<DistanceOdeTrigger>(m_odeTriggers[name]);
@@ -3098,8 +2779,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, DistanceOdeTrigger);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, DistanceOdeTrigger);
             
             DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<DistanceOdeTrigger>(m_odeTriggers[name]);
@@ -3129,8 +2810,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, DistanceOdeTrigger);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, DistanceOdeTrigger);
             
             DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<DistanceOdeTrigger>(m_odeTriggers[name]);
@@ -3154,8 +2835,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, DistanceOdeTrigger);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, DistanceOdeTrigger);
             
             DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<DistanceOdeTrigger>(m_odeTriggers[name]);
@@ -3291,7 +2972,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3313,7 +2994,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3335,7 +3016,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3357,7 +3038,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3379,7 +3060,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3401,7 +3082,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3423,7 +3104,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3445,7 +3126,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3467,7 +3148,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3490,8 +3171,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            RETURN_IF_ODE_TRIGGER_IS_NOT_AB_TYPE(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_IS_NOT_AB_TYPE(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_AB_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<ABOdeTrigger>(m_odeTriggers[name]);
@@ -3514,8 +3195,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            RETURN_IF_ODE_TRIGGER_IS_NOT_AB_TYPE(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_IS_NOT_AB_TYPE(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_AB_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<ABOdeTrigger>(m_odeTriggers[name]);
@@ -3536,7 +3217,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3558,7 +3239,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3579,7 +3260,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3601,7 +3282,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3623,7 +3304,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3645,7 +3326,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3669,7 +3350,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3691,7 +3372,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3715,7 +3396,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3738,7 +3419,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3762,7 +3443,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3785,7 +3466,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3808,7 +3489,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3830,7 +3511,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
@@ -3852,8 +3533,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, action);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, action);
 
             // Note: Actions can be added when in use, i.e. shared between
             // multiple ODE Triggers
@@ -3883,8 +3564,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, action);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, action);
 
             if (!m_odeActions[action]->IsParent(m_odeTriggers[name]))
             {
@@ -3919,7 +3600,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
 
             m_odeTriggers[name]->RemoveAllActions();
 
@@ -3941,8 +3622,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            RETURN_IF_ODE_AREA_NAME_NOT_FOUND(m_odeAreas, area);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_AREA_NAME_NOT_FOUND(m_odeAreas, area);
 
             // Note: Areas can be added when in use, i.e. shared between
             // multiple ODE Triggers
@@ -3972,8 +3653,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            RETURN_IF_ODE_AREA_NAME_NOT_FOUND(m_odeAreas, area);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_AREA_NAME_NOT_FOUND(m_odeAreas, area);
 
             if (!m_odeAreas[area]->IsParent(m_odeTriggers[name]))
             {
@@ -4008,7 +3689,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
 
             m_odeTriggers[name]->RemoveAllAreas();
 
@@ -4030,7 +3711,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
             if (m_odeTriggers[name]->IsInUse())
             {
@@ -4159,8 +3840,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, MeterPadProbeHandler);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, MeterPadProbeHandler);
 
             DSL_PPH_METER_PTR pMeter = 
                 std::dynamic_pointer_cast<MeterPadProbeHandler>(m_padProbeHandlers[name]);
@@ -4183,8 +3864,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, MeterPadProbeHandler);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, MeterPadProbeHandler);
             
             if (!interval)
             {
@@ -4242,9 +3923,9 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, OdePadProbeHandler);
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, trigger);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, OdePadProbeHandler);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, trigger);
 
             // Can't add Events if they're In use by another Handler
             if (m_odeTriggers[trigger]->IsInUse())
@@ -4283,9 +3964,9 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, OdePadProbeHandler);
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, trigger);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, OdePadProbeHandler);
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, trigger);
 
             if (!m_odeTriggers[trigger]->IsParent(m_padProbeHandlers[name]))
             {
@@ -4320,8 +4001,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, OdePadProbeHandler);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, OdePadProbeHandler);
             
             m_padProbeHandlers[name]->RemoveAllChildren();
 
@@ -4344,7 +4025,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
 
             *enabled = m_padProbeHandlers[name]->GetEnabled();
 
@@ -4365,7 +4046,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
 
             if (!m_padProbeHandlers[name]->SetEnabled(enabled))
             {
@@ -4390,7 +4071,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
             
             if (m_padProbeHandlers[name]->IsInUse())
             {
@@ -4451,1587 +4132,6 @@ namespace DSL
         return m_padProbeHandlers.size();
     }
     
-    DslReturnType Services::SourceCsiNew(const char* name,
-        uint width, uint height, uint fpsN, uint fpsD)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure component name uniqueness 
-            if (m_components.find(name) != m_components.end())
-            {   
-                LOG_ERROR("Source name '" << name << "' is not unique");
-                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
-            }
-            m_components[name] = DSL_CSI_SOURCE_NEW(name, width, height, fpsN, fpsD);
-
-            LOG_INFO("New CSI Source '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New CSI Source '" << name << "' threw exception on create");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SourceUsbNew(const char* name,
-        uint width, uint height, uint fpsN, uint fpsD)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure component name uniqueness 
-            if (m_components.find(name) != m_components.end())
-            {   
-                LOG_ERROR("Source name '" << name << "' is not unique");
-                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
-            }
-            m_components[name] = DSL_USB_SOURCE_NEW(name, width, height, fpsN, fpsD);
-
-            LOG_INFO("New USB Source '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New USB Source '" << name << "' threw exception on create");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SourceUriNew(const char* name, const char* uri, 
-        boolean isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure component name uniqueness 
-            if (m_components.find(name) != m_components.end())
-            {   
-                LOG_ERROR("Source name '" << name << "' is not unique");
-                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
-            }
-            std::string stringUri(uri);
-            if (stringUri.find("http") == std::string::npos)
-            {
-                if (isLive)
-                {
-                    LOG_ERROR("Invalid URI '" << uri << "' for Live source '" << name << "'");
-                    return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-                }
-                std::ifstream streamUriFile(uri);
-                if (!streamUriFile.good())
-                {
-                    LOG_ERROR("URI Source'" << uri << "' Not found");
-                    return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-                }
-            }
-            m_components[name] = DSL_URI_SOURCE_NEW(
-                name, uri, isLive, cudadecMemType, intraDecode, dropFrameInterval);
-
-            LOG_INFO("New URI Source '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New URI Source '" << name << "' threw exception on create");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SourceFileNew(const char* name, const char* filePath, 
-            boolean repeatEnabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure component name uniqueness 
-            if (m_components.find(name) != m_components.end())
-            {   
-                LOG_ERROR("Source name '" << name << "' is not unique");
-                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
-            }
-            std::string pathString(filePath);
-            if (pathString.size())
-            {
-                std::ifstream streamUriFile(filePath);
-                if (!streamUriFile.good())
-                {
-                    LOG_ERROR("File Source'" << filePath << "' Not found");
-                    return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-                }
-            }
-            m_components[name] = DSL_FILE_SOURCE_NEW(
-                name, filePath, repeatEnabled);
-
-            LOG_INFO("New File Source '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New File Source '" << name << "' threw exception on create");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SourceFilePathGet(const char* name, const char** filePath)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSourceBintr);
-
-            DSL_FILE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<FileSourceBintr>(m_components[name]);
-
-            *filePath = pSourceBintr->GetUri();
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("File Source '" << name << "' threw exception getting File Path");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-            
-
-    DslReturnType Services::SourceFilePathSet(const char* name, const char* filePath)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSourceBintr);
-
-            DSL_FILE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<FileSourceBintr>(m_components[name]);
-
-            std::ifstream streamUriFile(filePath);
-            if (!streamUriFile.good())
-            {
-                LOG_ERROR("File Source'" << filePath << "' Not found");
-                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-            }
-            if (!pSourceBintr->SetUri(filePath))
-            {
-                LOG_ERROR("Failed to Set FilePath '" << filePath << "' for File Source '" << name << "'");
-                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("File Source '" << name << "' threw exception setting File path");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SourceFileRepeatEnabledGet(const char* name, boolean* enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSourceBintr);
-
-            DSL_FILE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<FileSourceBintr>(m_components[name]);
-         
-            *enabled = pSourceBintr->GetRepeatEnabled();
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("File Source '" << name << "' threw exception getting Repeat Enabled");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SourceFileRepeatEnabledSet(const char* name, boolean enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSourceBintr);
-
-            DSL_FILE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<FileSourceBintr>(m_components[name]);
-         
-            if (!pSourceBintr->SetRepeatEnabled(enabled))
-            {
-                LOG_ERROR("Failed to set Repeat Enabled for File Source '" << name << "'");
-                return DSL_RESULT_SOURCE_SET_FAILED;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("File Source '" << name << "' threw exception setting Repeat Enabled");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SourceImageNew(const char* name, const char* filePath, 
-        boolean isLive, uint fpsN, uint fpsD, uint timeout)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure component name uniqueness 
-            if (m_components.find(name) != m_components.end())
-            {   
-                LOG_ERROR("Source name '" << name << "' is not unique");
-                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
-            }
-            std::ifstream streamUriFile(filePath);
-            if (!streamUriFile.good())
-            {
-                LOG_ERROR("Image Source'" << filePath << "' Not found");
-                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-            }
-            m_components[name] = DSL_IMAGE_SOURCE_NEW(
-                name, filePath, isLive, fpsN, fpsD, timeout);
-
-            LOG_INFO("New Image Source '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Image Source '" << name << "' threw exception on create");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SourceImagePathGet(const char* name, const char** filePath)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSourceBintr);
-
-            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
-
-            *filePath = pSourceBintr->GetUri();
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Source '" << name << "' threw exception getting File Path");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-            
-
-    DslReturnType Services::SourceImagePathSet(const char* name, const char* filePath)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSourceBintr);
-
-            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
-
-            std::ifstream streamUriFile(filePath);
-            if (!streamUriFile.good())
-            {
-                LOG_ERROR("Image Source'" << filePath << "' Not found");
-                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-            }
-            if (!pSourceBintr->SetUri(filePath));
-            {
-                LOG_ERROR("Failed to Set FilePath '" << filePath << "' for Image Source '" << name << "'");
-                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Source '" << name << "' threw exception setting File path");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SourceImageTimeoutGet(const char* name, uint* timeout)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSourceBintr);
-
-            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
-         
-            *timeout = pSourceBintr->GetTimeout();
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Source '" << name << "' threw exception getting Timeout");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SourceImageTimeoutSet(const char* name, uint timeout)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSourceBintr);
-
-            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
-         
-            if (!pSourceBintr->SetTimeout(timeout))
-            {
-                LOG_ERROR("Failed to set Timeout for Image Source '" << name << "'");
-                return DSL_RESULT_SOURCE_SET_FAILED;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Source '" << name << "' threw exception setting Timeout");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SourceRtspNew(const char* name, const char* uri,  uint protocol, 
-       uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency, uint timeout)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure component name uniqueness 
-            if (m_components.find(name) != m_components.end())
-            {   
-                LOG_ERROR("Source name '" << name << "' is not unique");
-                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
-            }
-            m_components[name] = DSL_RTSP_SOURCE_NEW(
-                name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval, latency, timeout);
-
-            LOG_INFO("New RTSP Source '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New RTSP Source '" << name << "' threw exception on create");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SourceDimensionsGet(const char* name, uint* width, uint* height)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
-            
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
-         
-            pSourceBintr->GetDimensions(width, height);
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name << "' threw exception getting dimensions");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }                
-    
-    DslReturnType Services::SourceFrameRateGet(const char* name, uint* fpsN, uint* fpsD)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
-            
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
-         
-            pSourceBintr->GetFrameRate(fpsN, fpsD);
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name << "' threw exception getting dimensions");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SourceDecodeUriGet(const char* name, const char** uri)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
-
-            DSL_DECODE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
-
-            *uri = pSourceBintr->GetUri();
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name << "' threw exception getting URI");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-            
-
-    DslReturnType Services::SourceDecodeUriSet(const char* name, const char* uri)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
-
-            DSL_DECODE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
-
-            if (!pSourceBintr->SetUri(uri));
-            {
-                LOG_ERROR("Failed to Set URI '" << uri << "' for Decode Source '" << name << "'");
-                return DSL_RESULT_SOURCE_SET_FAILED;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name << "' threw exception setting URI");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SourceDecodeDewarperAdd(const char* name, const char* dewarper)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, dewarper);
-            RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, dewarper, DewarperBintr);
-
-            DSL_DECODE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
-         
-            DSL_DEWARPER_PTR pDewarperBintr = 
-                std::dynamic_pointer_cast<DewarperBintr>(m_components[dewarper]);
-         
-            if (!pSourceBintr->AddDewarperBintr(pDewarperBintr))
-            {
-                LOG_ERROR("Failed to add Dewarper '" << dewarper << "' to Decode Source '" << name << "'");
-                return DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name << "' threw exception adding Dewarper");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SourceDecodeDewarperRemove(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
-
-            DSL_DECODE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
-         
-            if (!pSourceBintr->RemoveDewarperBintr())
-            {
-                LOG_ERROR("Failed to remove Dewarper from Decode Source '" << name << "'");
-                return DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name << "' threw exception removing Dewarper");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SourceRtspTimeoutGet(const char* name, uint* timeout)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSourceBintr);   
-
-            DSL_RTSP_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
-                
-            *timeout = pSourceBintr->GetBufferTimeout();
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("RTSP Source '" << name << "' threw exception getting buffer timeout");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SourceRtspTimeoutSet(const char* name, uint timeout)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSourceBintr);   
-
-            DSL_RTSP_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
-                
-            pSourceBintr->SetBufferTimeout(timeout);
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("RTSP Source '" << name << "' threw exception setting buffer timeout");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SourceRtspReconnectionParamsGet(const char* name, uint* sleep, uint* timeout)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSourceBintr);   
-
-            DSL_RTSP_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
-                
-            pSourceBintr->GetReconnectionParams(sleep, timeout);
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("RTSP Source '" << name << "' threw exception getting reconnection params");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SourceRtspReconnectionParamsSet(const char* name, uint sleep, uint timeout)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSourceBintr);   
-
-            DSL_RTSP_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
-                
-            if (!pSourceBintr->SetReconnectionParams(sleep, timeout))
-            {
-                LOG_ERROR("RTSP Source '" << name << "' failed to set reconnection params");
-                return DSL_RESULT_SOURCE_SET_FAILED;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("RTSP Source '" << name << "' threw exception setting reconnection params");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SourceRtspConnectionDataGet(const char* name, dsl_rtsp_connection_data* data)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSourceBintr);   
-
-            DSL_RTSP_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
-                
-            pSourceBintr->GetConnectionData(data);
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("RTSP Source '" << name << "' threw exception getting Connection Data");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SourceRtspConnectionStatsClear(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSourceBintr);   
-
-            DSL_RTSP_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
-                
-            pSourceBintr->ClearConnectionStats();
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name << "' threw exception clearing Connection Stats");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SourceRtspStateChangeListenerAdd(const char* name, 
-        dsl_state_change_listener_cb listener, void* clientData)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSourceBintr);   
-
-            DSL_RTSP_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
-
-            if (!pSourceBintr->AddStateChangeListener(listener, clientData))
-            {
-                LOG_ERROR("RTSP Source '" << name 
-                    << "' failed to add a State Change Listener");
-                return DSL_RESULT_SOURCE_CALLBACK_ADD_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("RTSP Source '" << name 
-                << "' threw an exception adding a State Change Lister");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-        
-    DslReturnType Services::SourceRtspStateChangeListenerRemove(const char* name, 
-        dsl_state_change_listener_cb listener)
-    {
-        LOG_FUNC();
-    
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSourceBintr);   
-
-            DSL_RTSP_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
-
-            if (!pSourceBintr->RemoveStateChangeListener(listener))
-            {
-                LOG_ERROR("RTSP Source '" << name 
-                    << "' failed to remove a State Change Listener");
-                return DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("RTSP Source '" << name 
-                << "' threw an exception removeing a State Change Lister");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-    
-    DslReturnType Services::SourceRtspTapAdd(const char* name, const char* tap)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, tap);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSourceBintr);
-            RETURN_IF_COMPONENT_IS_NOT_TAP(m_components, tap);
-
-            DSL_RTSP_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
-                
-            if (pSourceBintr->IsLinked())
-            {
-                LOG_ERROR("Can not add Tap '" << tap << "' to RTSP Source '" << name << 
-                    "' as the Source is in a linked state");
-                return DSL_RESULT_SOURCE_TAP_ADD_FAILED;
-            }
-         
-            DSL_TAP_PTR pTapBintr = 
-                std::dynamic_pointer_cast<TapBintr>(m_components[tap]);
-         
-            if (!pSourceBintr->AddTapBintr(pTapBintr))
-            {
-                LOG_ERROR("Failed to add Tap '" << tap << "' to RTSP Source '" << name << "'");
-                return DSL_RESULT_SOURCE_TAP_ADD_FAILED;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name << "' threw exception adding Tap");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SourceRtspTapRemove(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSourceBintr);
-
-            DSL_RTSP_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
-         
-            if (pSourceBintr->IsLinked())
-            {
-                LOG_ERROR("Can not remove Tap from RTSP Source '" << name << 
-                    "' as the Source is in a linked state");
-                return DSL_RESULT_SOURCE_TAP_ADD_FAILED;
-            }
-
-            if (!pSourceBintr->RemoveTapBintr())
-            {
-                LOG_ERROR("Failed to remove Tap from RTSP Source '" << name << "'");
-                return DSL_RESULT_SOURCE_TAP_REMOVE_FAILED;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name << "' threw exception removing Tap");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SourceNameGet(int sourceId, const char** name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        if (m_sourceNames.find(sourceId) != m_sourceNames.end())
-        {
-            *name = m_sourceNames[sourceId].c_str();
-            return DSL_RESULT_SUCCESS;
-        }
-        *name = NULL;
-        return DSL_RESULT_SOURCE_NOT_FOUND;
-    }
-
-    DslReturnType Services::SourceIdGet(const char* name, int* sourceId)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        if (m_sourceIds.find(name) != m_sourceIds.end())
-        {
-            *sourceId = m_sourceIds[name];
-            return DSL_RESULT_SUCCESS;
-        }
-        *sourceId = -1;
-        return DSL_RESULT_SOURCE_NOT_FOUND;
-    }
-
-    DslReturnType Services::_sourceNameSet(uint sourceId, const char* name)
-    {
-        LOG_FUNC();
-        
-        // called internally, do not lock mutex
-        
-        m_sourceNames[sourceId] = name;
-        m_sourceIds[name] = sourceId;
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::_sourceNameErase(uint sourceId)
-    {
-        LOG_FUNC();
-
-        // called internally, do not lock mutex
-        
-        if (m_sourceNames.find(sourceId) != m_sourceNames.end())
-        {
-            m_sourceIds.erase(m_sourceNames[sourceId]);
-            m_sourceNames.erase(sourceId);
-            return DSL_RESULT_SUCCESS;
-        }
-        return DSL_RESULT_SOURCE_NOT_FOUND;
-    }
-
-    DslReturnType Services::SourcePause(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
-
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
-                
-            if (!pSourceBintr->IsInUse())
-            {
-                LOG_ERROR("Source '" << name << "' can not be paused - is not in use");
-                return DSL_RESULT_SOURCE_NOT_IN_USE;
-            }
-            GstState state;
-            pSourceBintr->GetState(state, 0);
-            if (state != GST_STATE_PLAYING)
-            {
-                LOG_ERROR("Source '" << name << "' can not be paused - is not in play");
-                return DSL_RESULT_SOURCE_NOT_IN_PLAY;
-            }
-            if (!pSourceBintr->SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
-            {
-                LOG_ERROR("Source '" << name << "' failed to change state to paused");
-                return DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Component '" << name << "' threw exception on pause");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SourceResume(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
-
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
-                
-            if (!pSourceBintr->IsInUse())
-            {
-                LOG_ERROR("Source '" << name << "' can not be resumed - is not in use");
-                return DSL_RESULT_SOURCE_NOT_IN_USE;
-            }
-            GstState state;
-            pSourceBintr->GetState(state, 0);
-            if (state != GST_STATE_PAUSED)
-            {
-                LOG_ERROR("Source '" << name << "' can not be resumed - is not in pause");
-                return DSL_RESULT_SOURCE_NOT_IN_PAUSE;
-            }
-
-            if (!pSourceBintr->SetState(GST_STATE_PLAYING, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
-            {
-                LOG_ERROR("Source '" << name << "' failed to change state to play");
-                return DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Component '" << name << "' threw exception on pause");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-        
-    boolean Services::SourceIsLive(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
-
-            return std::dynamic_pointer_cast<SourceBintr>(m_components[name])->IsLive();
-        }
-        catch(...)
-        {
-            LOG_ERROR("Component '" << name << "' threw exception on create");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-    
-    uint Services::SourceNumInUseGet()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        uint numInUse(0);
-        
-        for (auto const& imap: m_pipelines)
-        {
-            numInUse += imap.second->GetNumSourcesInUse();
-        }
-        return numInUse;
-    }
-    
-    uint Services::SourceNumInUseMaxGet()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        return m_sourceNumInUseMax;
-    }
-    
-    boolean Services::SourceNumInUseMaxSet(uint max)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        uint numInUse(0);
-        
-        if (max < GetNumSourcesInUse())
-        {
-            LOG_ERROR("max setting = " << max << 
-                " is less than the current number of Sources in use = " << numInUse);
-            return false;
-        }
-        m_sourceNumInUseMax = max;
-        return true;
-    }
-
-    DslReturnType Services::DewarperNew(const char* name, const char* configFile)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure component name uniqueness 
-            if (m_components.find(name) != m_components.end())
-            {   
-                LOG_ERROR("Dewarper name '" << name << "' is not unique");
-                return DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE;
-            }
-            
-            LOG_INFO("Dewarper config file: " << configFile);
-            
-            std::ifstream ifsConfigFile(configFile);
-            if (!ifsConfigFile.good())
-            {
-                LOG_ERROR("Dewarper Config File not found");
-                return DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND;
-            }
-
-            m_components[name] = DSL_DEWARPER_NEW(name, configFile);
-
-            LOG_INFO("New Dewarper '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Dewarper '" << name << "' threw exception on create");
-            return DSL_RESULT_DEWARPER_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::TapRecordNew(const char* name, const char* outdir, uint container, 
-        dsl_record_client_listener_cb clientListener)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        try
-        {
-            struct stat info;
-
-            // ensure component name uniqueness 
-            if (m_components.find(name) != m_components.end())
-            {   
-                LOG_ERROR("Tap name '" << name << "' is not unique");
-                return DSL_RESULT_TAP_NAME_NOT_UNIQUE;
-            }
-            // ensure outdir exists
-            if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
-            {
-                LOG_ERROR("Unable to access outdir '" << outdir << "' for Record Tape '" << name << "'");
-                return DSL_RESULT_TAP_FILE_PATH_NOT_FOUND;
-            }
-
-            if (container > DSL_CONTAINER_MKV)
-            {   
-                LOG_ERROR("Invalid Container value = " << container << " for File Tap '" << name << "'");
-                return DSL_RESULT_TAP_CONTAINER_VALUE_INVALID;
-            }
-
-            m_components[name] = DSL_RECORD_TAP_NEW(name, outdir, 
-                container, clientListener);
-            
-            LOG_INFO("New Record Tap '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Record Tap '" << name << "' threw exception on create");
-            return DSL_RESULT_TAP_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::TapRecordSessionStart(const char* name, 
-        uint start, uint duration, void* clientData)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
-
-            DSL_RECORD_TAP_PTR pRecordTapBintr = 
-                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
-
-            if (!pRecordTapBintr->StartSession(start, duration, clientData))
-            {
-                LOG_ERROR("Record Tap '" << name << "' failed to Start Session");
-                return DSL_RESULT_TAP_SET_FAILED;
-            }
-            LOG_INFO("Session started successfully for Record Tap '" << name << "'");
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Record Tap'" << name << "' threw an exception Starting Session");
-            return DSL_RESULT_TAP_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::TapRecordSessionStop(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
-
-            DSL_RECORD_TAP_PTR pRecordTapBintr = 
-                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
-
-            if (!pRecordTapBintr->StopSession())
-            {
-                LOG_ERROR("Record Tap '" << name << "' failed to Stop Session");
-                return DSL_RESULT_TAP_SET_FAILED;
-            }
-            LOG_INFO("Session stopped successfully for Record Tap '" << name << "'");
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Record Tap'" << name << "' threw an exception setting Stoping Session");
-            return DSL_RESULT_TAP_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::TapRecordOutdirGet(const char* name, const char** outdir)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
-            
-            DSL_RECORD_TAP_PTR pRecordTapBintr = 
-                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
-
-            *outdir = pRecordTapBintr->GetOutdir();
-            
-            LOG_INFO("Outdir = " << *outdir << " returned successfully for Record Tap '" << name << "'");
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Record Tap'" << name << "' threw an exception setting getting outdir");
-            return DSL_RESULT_TAP_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::TapRecordOutdirSet(const char* name, const char* outdir)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
-            
-            DSL_RECORD_TAP_PTR pRecordTapBintr = 
-                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
-
-            if (!pRecordTapBintr->SetOutdir(outdir))
-            {
-                LOG_ERROR("Record Tap '" << name << "' failed to set the outdir");
-                return DSL_RESULT_TAP_SET_FAILED;
-            }
-            LOG_INFO("Outdir = " << outdir << " set successfully for Record Tap '" << name << "'");
-        }
-        catch(...)
-        {
-            LOG_ERROR("Record Tap '" << name << "' threw an exception setting getting outdir");
-            return DSL_RESULT_TAP_THREW_EXCEPTION;
-        }
-
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::TapRecordContainerGet(const char* name, uint* container)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
-
-            DSL_RECORD_TAP_PTR pRecordTapBintr = 
-                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
-
-            *container = pRecordTapBintr->GetContainer();
-
-            LOG_INFO("Container = " << *container 
-                << " returned successfully for Record Tap '" << name << "'");
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Record Tap '" << name << "' threw an exception getting Cache Size");
-            return DSL_RESULT_TAP_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::TapRecordContainerSet(const char* name, uint container)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
-
-            if (container > DSL_CONTAINER_MKV)
-            {   
-                LOG_ERROR("Invalid Container value = " 
-                    << container << " for Record Tap '" << name << "'");
-                return DSL_RESULT_TAP_CONTAINER_VALUE_INVALID;
-            }
-
-            DSL_RECORD_TAP_PTR pRecordTapBintr = 
-                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
-
-            if (!pRecordTapBintr->SetContainer(container))
-            {
-                LOG_ERROR("Record Tap '" << name << "' failed to set container");
-                return DSL_RESULT_TAP_SET_FAILED;
-            }
-            LOG_INFO("Container = " << container 
-                << " set successfully for Record Tap '" << name << "'");
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Record Tap '" << name << "' threw an exception setting container type");
-            return DSL_RESULT_TAP_THREW_EXCEPTION;
-        }
-    }
-        
-    DslReturnType Services::TapRecordCacheSizeGet(const char* name, uint* cacheSize)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
-
-            DSL_RECORD_TAP_PTR pRecordTapBintr = 
-                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
-
-            *cacheSize = pRecordTapBintr->GetCacheSize();
-
-            LOG_INFO("Cashe size = " << *cacheSize << 
-                " returned successfully for Record Tap '" << name << "'");
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Record Tap '" << name << "' threw an exception getting Cache Size");
-            return DSL_RESULT_TAP_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::TapRecordCacheSizeSet(const char* name, uint cacheSize)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
-
-            DSL_RECORD_TAP_PTR pRecordTapBintr = 
-                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
-
-            // TODO verify args before calling
-            if (!pRecordTapBintr->SetCacheSize(cacheSize))
-            {
-                LOG_ERROR("Record Tap '" << name << "' failed to set cache size");
-                return DSL_RESULT_TAP_SET_FAILED;
-            }
-            LOG_INFO("Cashe size = " << cacheSize << 
-                " set successfully for Record Tap '" << name << "'");
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Record Tap '" << name 
-                << "' threw an exception setting cache size");
-            return DSL_RESULT_TAP_THREW_EXCEPTION;
-        }
-    }
-        
-    DslReturnType Services::TapRecordDimensionsGet(const char* name, uint* width, uint* height)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
-
-            DSL_RECORD_TAP_PTR pRecordTapBintr = 
-                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
-
-            // TODO verify args before calling
-            pRecordTapBintr->GetDimensions(width, height);
-
-            LOG_INFO("Width = " << *width << " height = " << *height << 
-                " returned successfully for Record Tap '" << name << "'");
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Record Tap '" << name 
-                << "' threw an exception getting dimensions");
-            return DSL_RESULT_TAP_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::TapRecordDimensionsSet(const char* name, uint width, uint height)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
-
-
-            DSL_RECORD_TAP_PTR pRecordTapBintr = 
-                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
-
-            // TODO verify args before calling
-            if (!pRecordTapBintr->SetDimensions(width, height))
-            {
-                LOG_ERROR("Record Tap '" << name << "' failed to set dimensions");
-                return DSL_RESULT_TAP_SET_FAILED;
-            }
-            LOG_INFO("Width = " << width << " height = " << height << 
-                " returned successfully for Record Tap '" << name << "'");
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Record Tap '" << name 
-                << "' threw an exception setting dimensions");
-            return DSL_RESULT_TAP_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::TapRecordIsOnGet(const char* name, boolean* isOn)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
-
-            DSL_RECORD_TAP_PTR pRecordTapBintr = 
-                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
-
-            *isOn = pRecordTapBintr->IsOn();
-
-            LOG_INFO("Is on = " << *isOn 
-                << "returned successfully for Record Tap '" << name << "'");
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Record Tap '" << name 
-                << "' threw an exception getting is-recording-on flag");
-            return DSL_RESULT_TAP_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::TapRecordResetDoneGet(const char* name, boolean* resetDone)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
-
-            DSL_RECORD_TAP_PTR pRecordTapBintr = 
-                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
-
-            *resetDone = pRecordTapBintr->ResetDone();
-
-            LOG_INFO("Reset done = " << *resetDone 
-                << "returned successfully for Record Tap '" << name << "'");
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Record Tap '" << name << "' threw an exception getting reset done flag");
-            return DSL_RESULT_TAP_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::TapRecordVideoPlayerAdd(const char* name, 
-        const char* player)
-    {
-        LOG_FUNC();
-    
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
-            RETURN_IF_PLAYER_IS_NOT_VIDEO_PLAYER(m_players, player)
-
-            DSL_RECORD_TAP_PTR pRecordTapBintr = 
-                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
-
-            if (!pRecordTapBintr->AddVideoPlayer(m_players[player]))
-            {
-                LOG_ERROR("Record Tap '" << name 
-                    << "' failed to add Player '" << player << "'");
-                return DSL_RESULT_TAP_PLAYER_ADD_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("Record Tap '" << name 
-                << "' threw an exception adding Player '" << player << "'");
-            return DSL_RESULT_TAP_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::TapRecordVideoPlayerRemove(const char* name, 
-        const char* player)
-    {
-        LOG_FUNC();
-    
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
-            RETURN_IF_PLAYER_IS_NOT_VIDEO_PLAYER(m_players, player)
-
-            DSL_RECORD_TAP_PTR pRecordTapBintr = 
-                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
-
-            if (!pRecordTapBintr->RemoveVideoPlayer(m_players[player]))
-            {
-                LOG_ERROR("Record Tap '" << name 
-                    << "' failed to remove Player '" << player << "'");
-                return DSL_RESULT_TAP_PLAYER_REMOVE_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("Record Tap '" << name 
-                << "' threw an exception removing Player '" << player << "'");
-            return DSL_RESULT_TAP_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::TapRecordMailerAdd(const char* name, 
-        const char* mailer, const char* subject)
-    {
-        LOG_FUNC();
-    
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
-
-            DSL_RECORD_TAP_PTR pRecordTapBintr = 
-                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
-
-            if (!pRecordTapBintr->AddMailer(m_mailers[mailer], subject))
-            {
-                LOG_ERROR("Record Tap '" << name 
-                    << "' failed to add Mailer '" << mailer << "'");
-                return DSL_RESULT_TAP_MAILER_ADD_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("Record Tap '" << name 
-                << "' threw an exception adding Mailer '" << mailer << "'");
-            return DSL_RESULT_TAP_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::TapRecordMailerRemove(const char* name, 
-        const char* mailer)
-    {
-        LOG_FUNC();
-    
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
-
-            DSL_RECORD_TAP_PTR pRecordTapBintr = 
-                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
-
-            if (!pRecordTapBintr->RemoveMailer(m_mailers[mailer]))
-            {
-                LOG_ERROR("Record Tap '" << name 
-                    << "' failed to remove Mailer '" << mailer << "'");
-                return DSL_RESULT_TAP_MAILER_REMOVE_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("Record Tap '" << name 
-                << "' threw an exception removing Mailer '" << mailer << "'");
-            return DSL_RESULT_TAP_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-
     DslReturnType Services::SegVisualNew(const char* name, 
         uint width, uint height)
     {
@@ -6070,8 +4170,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, SegVisualBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, SegVisualBintr);
 
             DSL_SEGVISUAL_PTR pSegVisual = 
                 std::dynamic_pointer_cast<SegVisualBintr>(m_components[name]);
@@ -6098,8 +4198,8 @@ namespace DSL
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, SegVisualBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, SegVisualBintr);
 
             DSL_SEGVISUAL_PTR pSegVisual = 
                 std::dynamic_pointer_cast<SegVisualBintr>(m_components[name]);
@@ -6130,9 +4230,9 @@ namespace DSL
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, SegVisualBintr);
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, SegVisualBintr);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
             // call on the Handler to add itself to the Tiler as a PadProbeHandler
             if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], DSL_PAD_SRC))
@@ -6158,9 +4258,9 @@ namespace DSL
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, SegVisualBintr);
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, SegVisualBintr);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
             // call on the Handler to remove itself from the Tee
             if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], DSL_PAD_SRC))
@@ -6360,9 +4460,9 @@ namespace DSL
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_PRIMARY_INFER_TYPE(m_components, name)
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_PRIMARY_INFER_TYPE(m_components, name)
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
             if (pad > DSL_PAD_SRC)
             {
@@ -6389,13 +4489,13 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_PRIMARY_INFER_TYPE(m_components, name);
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_PRIMARY_INFER_TYPE(m_components, name);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
             if (pad > DSL_PAD_SRC)
             {
@@ -6426,8 +4526,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
             
             DSL_INFER_PTR pInferBintr = 
                 std::dynamic_pointer_cast<InferBintr>(m_components[name]);
@@ -6453,8 +4553,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
             
             DSL_INFER_PTR pInferBintr = 
                 std::dynamic_pointer_cast<InferBintr>(m_components[name]);
@@ -6477,8 +4577,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
             
             DSL_INFER_PTR pInferBintr = 
                 std::dynamic_pointer_cast<InferBintr>(m_components[name]);
@@ -6505,8 +4605,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
             
             DSL_INFER_PTR pGieBintr = 
                 std::dynamic_pointer_cast<InferBintr>(m_components[name]);
@@ -6529,8 +4629,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
             
             DSL_INFER_PTR pGieBintr = 
                 std::dynamic_pointer_cast<InferBintr>(m_components[name]);
@@ -6557,8 +4657,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
             
             DSL_INFER_PTR pInferBintr = 
                 std::dynamic_pointer_cast<InferBintr>(m_components[name]);
@@ -6581,8 +4681,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
             
             DSL_INFER_PTR pInferBintr = 
                 std::dynamic_pointer_cast<InferBintr>(m_components[name]);
@@ -6720,8 +4820,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
             
             DSL_TRACKER_PTR pTrackerBintr = 
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
@@ -6746,8 +4846,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
 
             std::string testPath(configFile);
             if (testPath.size())
@@ -6788,8 +4888,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
 
             DSL_TRACKER_PTR trackerBintr = 
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
@@ -6813,8 +4913,8 @@ namespace DSL
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
 
             DSL_TRACKER_PTR trackerBintr = 
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
@@ -6842,8 +4942,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DcfTrackerBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DcfTrackerBintr);
 
             DSL_DCF_TRACKER_PTR trackerBintr = 
                 std::dynamic_pointer_cast<DcfTrackerBintr>(m_components[name]);
@@ -6868,8 +4968,8 @@ namespace DSL
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DcfTrackerBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DcfTrackerBintr);
 
             DSL_DCF_TRACKER_PTR trackerBintr = 
                 std::dynamic_pointer_cast<DcfTrackerBintr>(m_components[name]);
@@ -6898,8 +4998,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DcfTrackerBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DcfTrackerBintr);
 
             DSL_DCF_TRACKER_PTR trackerBintr = 
                 std::dynamic_pointer_cast<DcfTrackerBintr>(m_components[name]);
@@ -6924,8 +5024,8 @@ namespace DSL
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DcfTrackerBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DcfTrackerBintr);
 
             DSL_DCF_TRACKER_PTR trackerBintr = 
                 std::dynamic_pointer_cast<DcfTrackerBintr>(m_components[name]);
@@ -6953,9 +5053,9 @@ namespace DSL
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
             if (pad > DSL_PAD_SRC)
             {
@@ -6982,13 +5082,13 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
             if (pad > DSL_PAD_SRC)
             {
@@ -7071,10 +5171,10 @@ namespace DSL
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, tee);
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, branch);
-            RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, tee);
-            RETURN_IF_COMPONENT_IS_NOT_BRANCH(m_components, branch);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, tee);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, branch);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, tee);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_BRANCH(m_components, branch);
             
             // Can't add components if they're In use by another Branch
             if (m_components[branch]->IsInUse())
@@ -7116,9 +5216,9 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, tee);
-            RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, tee);
-            RETURN_IF_BRANCH_NAME_NOT_FOUND(m_components, branch);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, tee);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, tee);
+            DSL_RETURN_IF_BRANCH_NAME_NOT_FOUND(m_components, branch);
 
             DSL_MULTI_COMPONENTS_PTR pTeeBintr = 
                 std::dynamic_pointer_cast<MultiComponentsBintr>(m_components[tee]);
@@ -7157,8 +5257,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, tee);
-            RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, tee);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, tee);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, tee);
 
             DSL_MULTI_COMPONENTS_PTR pTeeBintr = 
                 std::dynamic_pointer_cast<MultiComponentsBintr>(m_components[tee]);
@@ -7182,8 +5282,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, tee);
-            RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, tee);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, tee);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, tee);
 
             DSL_MULTI_COMPONENTS_PTR pTeeBintr = 
                 std::dynamic_pointer_cast<MultiComponentsBintr>(m_components[tee]);
@@ -7207,9 +5307,9 @@ namespace DSL
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
             // call on the Handler to add itself to the Tiler as a PadProbeHandler
             if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], DSL_PAD_SINK))
@@ -7230,13 +5330,13 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
             // call on the Handler to remove itself from the Tee
             if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], DSL_PAD_SINK))
@@ -7286,8 +5386,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
 
             DSL_TILER_PTR tilerBintr = 
                 std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
@@ -7313,8 +5413,8 @@ namespace DSL
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
 
 
             DSL_TILER_PTR tilerBintr = 
@@ -7344,8 +5444,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
 
             DSL_TILER_PTR tilerBintr = 
                 std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
@@ -7371,8 +5471,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
 
             DSL_TILER_PTR tilerBintr = 
                 std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
@@ -7402,8 +5502,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
 
             DSL_TILER_PTR tilerBintr = 
                 std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
@@ -7442,8 +5542,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
 
             DSL_TILER_PTR pTilerBintr = 
                 std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
@@ -7455,8 +5555,8 @@ namespace DSL
                 return DSL_RESULT_TILER_SET_FAILED;
             }
 
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
-            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, source);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, source);
 
             DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[source]);
@@ -7488,8 +5588,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
 
             DSL_TILER_PTR pTilerBintr = 
                 std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
@@ -7527,8 +5627,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
 
             DSL_TILER_PTR pTilerBintr = 
                 std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
@@ -7598,8 +5698,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
 
             DSL_TILER_PTR pTilerBintr = 
                 std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
@@ -7622,8 +5722,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
 
             DSL_TILER_PTR pTilerBintr = 
                 std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
@@ -7650,9 +5750,9 @@ namespace DSL
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
             if (pad > DSL_PAD_SRC)
             {
@@ -7682,13 +5782,13 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
             if (pad > DSL_PAD_SRC)
             {
@@ -7775,8 +5875,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
             DSL_OSD_PTR osdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
@@ -7799,8 +5899,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
 //            if (m_components[name]->IsInUse())
 //            {
@@ -7834,8 +5934,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
             DSL_OSD_PTR osdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
@@ -7858,8 +5958,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
 //            if (m_components[name]->IsInUse())
 //            {
@@ -7893,8 +5993,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
             DSL_OSD_PTR osdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
@@ -7917,8 +6017,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
             DSL_OSD_PTR osdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
@@ -7945,8 +6045,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
             DSL_OSD_PTR osdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
@@ -7969,8 +6069,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
 //            if (m_components[name]->IsInUse())
 //            {
@@ -8005,8 +6105,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
             DSL_OSD_PTR osdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
@@ -8029,8 +6129,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
 //            if (m_components[name]->IsInUse())
 //            {
@@ -8064,9 +6164,9 @@ namespace DSL
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
             if (pad > DSL_PAD_SRC)
             {
@@ -8093,13 +6193,13 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
             if (pad > DSL_PAD_SRC)
             {
@@ -8211,8 +6311,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, WindowSinkBintr);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -8236,8 +6336,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, WindowSinkBintr);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -8265,8 +6365,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
 
             DSL_RENDER_SINK_PTR pRenderSink = 
                 std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
@@ -8289,8 +6389,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
 
             DSL_RENDER_SINK_PTR pRenderSink = 
                 std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
@@ -8316,8 +6416,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
 
             DSL_RENDER_SINK_PTR pRenderSink = 
                 std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
@@ -8340,8 +6440,8 @@ namespace DSL
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
 
             DSL_RENDER_SINK_PTR pRenderSink = 
                 std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
@@ -8367,8 +6467,8 @@ namespace DSL
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
 
             DSL_RENDER_SINK_PTR pRenderSink = 
                 std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
@@ -8479,8 +6579,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
 
             DSL_RECORD_SINK_PTR recordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
@@ -8506,8 +6606,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
 
             DSL_RECORD_SINK_PTR recordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
@@ -8533,8 +6633,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
             
             DSL_RECORD_SINK_PTR pRecordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
@@ -8558,8 +6658,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
             
             DSL_RECORD_SINK_PTR pRecordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
@@ -8587,8 +6687,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
 
             DSL_RECORD_SINK_PTR pRecordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
@@ -8613,8 +6713,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
 
             if (container > DSL_CONTAINER_MKV)
             {   
@@ -8650,8 +6750,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
 
             DSL_RECORD_SINK_PTR recordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
@@ -8675,8 +6775,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
 
             DSL_RECORD_SINK_PTR recordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
@@ -8705,8 +6805,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
 
             DSL_RECORD_SINK_PTR recordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
@@ -8730,8 +6830,8 @@ namespace DSL
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
 
 
             DSL_RECORD_SINK_PTR recordSinkBintr = 
@@ -8759,8 +6859,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
 
             DSL_RECORD_SINK_PTR recordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
@@ -8783,8 +6883,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
 
             DSL_RECORD_SINK_PTR recordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
@@ -8808,10 +6908,10 @@ namespace DSL
     
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
-            RETURN_IF_PLAYER_IS_NOT_VIDEO_PLAYER(m_players, player)
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
+            DSL_RETURN_IF_PLAYER_IS_NOT_VIDEO_PLAYER(m_players, player)
 
             DSL_RECORD_SINK_PTR pRecordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
@@ -8840,10 +6940,10 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
-            RETURN_IF_PLAYER_IS_NOT_VIDEO_PLAYER(m_players, player)
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, player);
+            DSL_RETURN_IF_PLAYER_IS_NOT_VIDEO_PLAYER(m_players, player)
 
             DSL_RECORD_SINK_PTR pRecordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
@@ -8872,9 +6972,9 @@ namespace DSL
     
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
 
             DSL_RECORD_SINK_PTR pRecordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
@@ -8903,9 +7003,9 @@ namespace DSL
     
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, mailer);
 
             DSL_RECORD_SINK_PTR pRecordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
@@ -8933,8 +7033,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
 
             DSL_ENCODE_SINK_PTR encodeSinkBintr = 
                 std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
@@ -8957,8 +7057,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
 
             DSL_ENCODE_SINK_PTR encodeSinkBintr = 
                 std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
@@ -8981,8 +7081,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
 
             if (m_components[name]->IsLinked())
             {
@@ -9047,8 +7147,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSinkBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSinkBintr);
             
             DSL_RTSP_SINK_PTR rtspSinkBintr = 
                 std::dynamic_pointer_cast<RtspSinkBintr>(m_components[name]);
@@ -9071,8 +7171,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSinkBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSinkBintr);
 
             DSL_RTSP_SINK_PTR rtspSinkBintr = 
                 std::dynamic_pointer_cast<RtspSinkBintr>(m_components[name]);
@@ -9095,8 +7195,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSinkBintr);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSinkBintr);
 
             DSL_RTSP_SINK_PTR rtspSinkBintr = 
                 std::dynamic_pointer_cast<RtspSinkBintr>(m_components[name]);
@@ -9129,9 +7229,9 @@ namespace DSL
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
             // call on the Handler to add itself to the Tiler as a PadProbeHandler
             if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], DSL_PAD_SINK))
@@ -9152,13 +7252,13 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
-            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
             // call on the Handler to remove itself from the Tee
             if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], DSL_PAD_SINK))
@@ -9179,12 +7279,12 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
 
             DSL_SINK_PTR pSinkBintr = 
                 std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
@@ -9210,8 +7310,8 @@ namespace DSL
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
 
             DSL_SINK_PTR pSinkBintr = 
                 std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
@@ -9267,7 +7367,7 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
         
         if (m_components[component]->IsInUse())
         {
@@ -9333,7 +7433,7 @@ namespace DSL
         
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
             
             if (m_components[component]->IsInUse())
             {
@@ -9357,7 +7457,7 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
         
         if (m_components[component]->IsInUse())
         {
@@ -9404,8 +7504,8 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, branch);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, branch);
+        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
 
         try
         {
@@ -9455,8 +7555,8 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, branch);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, branch);
+        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
 
         if (!m_components[component]->IsParent(m_components[branch]))
         {
@@ -9516,7 +7616,7 @@ namespace DSL
         try
         {
             
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
             m_pipelines[pipeline]->RemoveAllChildren();
             m_pipelines.erase(pipeline);
@@ -9574,8 +7674,8 @@ namespace DSL
         
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
             
             // Can't add components if they're In use by another Pipeline
             if (m_components[component]->IsInUse())
@@ -9627,8 +7727,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
 
             if (!m_components[component]->IsParent(m_pipelines[pipeline]))
             {
@@ -9655,7 +7755,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             m_pipelines[pipeline]->GetStreamMuxBatchProperties(batchSize, batchTimeout);
             return DSL_RESULT_SUCCESS;
@@ -9676,7 +7776,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             if (!m_pipelines[pipeline]->SetStreamMuxBatchProperties(batchSize, batchTimeout))
             {
@@ -9702,7 +7802,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             if (!m_pipelines[pipeline]->GetStreamMuxDimensions(width, height))
             {
@@ -9728,7 +7828,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             if (!m_pipelines[pipeline]->SetStreamMuxDimensions(width, height))
             {
@@ -9754,7 +7854,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             if (!m_pipelines[pipeline]->GetStreamMuxPadding((bool*)enabled))
             {
@@ -9780,7 +7880,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             if (!m_pipelines[pipeline]->SetStreamMuxPadding((bool)enabled))
             {
@@ -9806,7 +7906,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             if (!m_pipelines[pipeline]->GetStreamMuxNumSurfacesPerFrame(num))
             {
@@ -9832,7 +7932,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             if (num > 4)
             {
@@ -9864,7 +7964,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             *xwindow = m_pipelines[pipeline]->GetXWindow();
             return DSL_RESULT_SUCCESS;
@@ -9883,7 +7983,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             if (!m_pipelines[pipeline]->SetXWindow(xwindow))
             {
@@ -9906,7 +8006,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             if (!m_pipelines[pipeline]->ClearXWindow())
             {
@@ -9930,7 +8030,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             if (!m_pipelines[pipeline]->DestroyXWindow())
             {
@@ -9955,7 +8055,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             m_pipelines[pipeline]->GetXWindowOffsets(xOffset, yOffset);
             return DSL_RESULT_SUCCESS;
@@ -9976,7 +8076,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             m_pipelines[pipeline]->GetXWindowDimensions(width, height);
             return DSL_RESULT_SUCCESS;
@@ -9996,7 +8096,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             *enabled = (boolean)m_pipelines[pipeline]->GetXWindowFullScreenEnabled();
             return DSL_RESULT_SUCCESS;
@@ -10016,7 +8116,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
             if (!m_pipelines[pipeline]->SetXWindowFullScreenEnabled(enabled))
             {
@@ -10039,7 +8139,7 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         if (!std::dynamic_pointer_cast<PipelineBintr>(m_pipelines[pipeline])->Pause())
         {
@@ -10053,7 +8153,7 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         if (!std::dynamic_pointer_cast<PipelineBintr>(m_pipelines[pipeline])->Play())
         {
@@ -10067,7 +8167,7 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         if (!std::dynamic_pointer_cast<PipelineBintr>(m_pipelines[pipeline])->Stop())
         {
@@ -10081,7 +8181,7 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         try
         {
@@ -10102,7 +8202,7 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         try
         {
@@ -10121,7 +8221,7 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         // TODO check state of debug env var and return NON-success if not set
 
@@ -10134,7 +8234,7 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         // TODO check state of debug env var and return NON-success if not set
 
@@ -10151,7 +8251,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             if (!m_pipelines[pipeline]->AddStateChangeListener(listener, clientData))
             {
@@ -10159,7 +8259,7 @@ namespace DSL
                     << "' failed to add a State Change Listener");
                 return DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED;
             }
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         }
         catch(...)
         {
@@ -10177,7 +8277,7 @@ namespace DSL
     
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             if (!m_pipelines[pipeline]->RemoveStateChangeListener(listener))
             {
@@ -10185,7 +8285,7 @@ namespace DSL
                     << "' failed to remove a State Change Listener");
                 return DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED;
             }
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         }
         catch(...)
         {
@@ -10203,7 +8303,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             if (!m_pipelines[pipeline]->AddEosListener(listener, clientData))
             {
@@ -10211,7 +8311,7 @@ namespace DSL
                     << "' failed to add an EOS Listener");
                 return DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED;
             }
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         }
         catch(...)
         {
@@ -10229,7 +8329,7 @@ namespace DSL
     
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             if (!m_pipelines[pipeline]->RemoveEosListener(listener))
             {
@@ -10237,7 +8337,7 @@ namespace DSL
                     << "' failed to remove an EOS Listener");
                 return DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED;
             }
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         }
         catch(...)
         {
@@ -10255,7 +8355,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             if (!m_pipelines[pipeline]->AddErrorMessageHandler(handler, clientData))
             {
@@ -10263,7 +8363,7 @@ namespace DSL
                     << "' failed to add an Error Message Handler");
                 return DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED;
             }
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         }
         catch(...)
         {
@@ -10281,7 +8381,7 @@ namespace DSL
     
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
             if (!m_pipelines[pipeline]->RemoveErrorMessageHandler(handler))
             {
@@ -10307,7 +8407,7 @@ namespace DSL
     
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             m_pipelines[pipeline]->GetLastErrorMessage(source, message);
             return DSL_RESULT_SUCCESS;
@@ -10328,7 +8428,7 @@ namespace DSL
         
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             if (!m_pipelines[pipeline]->AddXWindowKeyEventHandler(handler, clientData))
             {
@@ -10354,7 +8454,7 @@ namespace DSL
         
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
             if (!m_pipelines[pipeline]->RemoveXWindowKeyEventHandler(handler))
             {
@@ -10380,7 +8480,7 @@ namespace DSL
         
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
             if (!m_pipelines[pipeline]->AddXWindowButtonEventHandler(handler, clientData))
             {
@@ -10406,7 +8506,7 @@ namespace DSL
         
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
             if (!m_pipelines[pipeline]->RemoveXWindowButtonEventHandler(handler))
             {
@@ -10432,7 +8532,7 @@ namespace DSL
         
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
             if (!m_pipelines[pipeline]->AddXWindowDeleteEventHandler(handler, clientData))
             {
@@ -10458,7 +8558,7 @@ namespace DSL
         
         try
         {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
             if (!m_pipelines[pipeline]->RemoveXWindowDeleteEventHandler(handler))
             {
@@ -10484,10 +8584,10 @@ namespace DSL
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
-            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, source);
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, sink);
-            RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, sink);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, source);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, sink);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, sink);
         
             if (m_players.find(name) != m_players.end())
             {   
@@ -10599,8 +8699,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
-            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
 
             DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
                 std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
@@ -10625,8 +8725,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
-            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
 
             DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
                 std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
@@ -10655,8 +8755,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
-            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
 
             DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
                 std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
@@ -10684,8 +8784,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
-            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
 
             DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
                 std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
@@ -10708,8 +8808,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
-            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
 
             DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
                 std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
@@ -10735,8 +8835,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
-            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
 
             DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
                 std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
@@ -10761,8 +8861,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
-            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
 
             DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
                 std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
@@ -10790,8 +8890,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
-            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
 
             DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
                 std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
@@ -10819,8 +8919,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_players, name, ImageRenderPlayerBintr);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_players, name, ImageRenderPlayerBintr);
 
             DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pImageRenderPlayer = 
                 std::dynamic_pointer_cast<ImageRenderPlayerBintr>(m_players[name]);
@@ -10846,8 +8946,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_players, name, ImageRenderPlayerBintr);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_players, name, ImageRenderPlayerBintr);
 
             DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pImageRenderPlayer = 
                 std::dynamic_pointer_cast<ImageRenderPlayerBintr>(m_players[name]);
@@ -10876,8 +8976,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_players, name, VideoRenderPlayerBintr);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_players, name, VideoRenderPlayerBintr);
 
             DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pVideoRenderPlayer = 
                 std::dynamic_pointer_cast<VideoRenderPlayerBintr>(m_players[name]);
@@ -10902,8 +9002,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_players, name, VideoRenderPlayerBintr);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_players, name, VideoRenderPlayerBintr);
 
             DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pVideoRenderPlayer = 
                 std::dynamic_pointer_cast<VideoRenderPlayerBintr>(m_players[name]);
@@ -10929,7 +9029,7 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+        DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
 
         try
         {
@@ -10957,7 +9057,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
             
             if (!m_players[name]->RemoveTerminationEventListener(listener))
             {
@@ -10982,7 +9082,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
             
             *xwindow = m_players[name]->GetXWindow();
             return DSL_RESULT_SUCCESS;
@@ -11001,7 +9101,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
             
             if (!m_players[name]->SetXWindow(xwindow))
             {
@@ -11025,7 +9125,7 @@ namespace DSL
         
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
 
             if (!m_players[name]->AddXWindowKeyEventHandler(handler, clientData))
             {
@@ -11051,7 +9151,7 @@ namespace DSL
         
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
 
             if (!m_players[name]->RemoveXWindowKeyEventHandler(handler))
             {
@@ -11076,7 +9176,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
 
             if (!m_players[name]->Play())
             {
@@ -11098,7 +9198,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
 
             if (!m_players[name]->Pause())
             {
@@ -11119,7 +9219,7 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+        DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
 
         if (!m_players[name]->Stop())
         {
@@ -11135,8 +9235,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
-            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
 
             DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
                 std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
@@ -11164,8 +9264,8 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
-            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
             GstState gstState;
             m_players[name]->GetState(gstState, 0);
             *state = (uint)gstState;
@@ -11203,7 +9303,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
 
             m_players.erase(name);
 
@@ -11301,7 +9401,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+            DSL_RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
             
             *enabled = m_mailers[name]->GetEnabled();
             LOG_INFO("Returning Mailer Enabled = " << *enabled);
@@ -11323,7 +9423,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+            DSL_RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
 
             m_mailers[name]->SetEnabled(enabled);
             LOG_INFO("Setting SMTP Mail Enabled = " << enabled);
@@ -11345,7 +9445,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+            DSL_RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
             
             m_mailers[name]->SetCredentials(username, password);
 
@@ -11368,7 +9468,7 @@ namespace DSL
         
         try
         {
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+            DSL_RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
 
             m_mailers[name]->GetServerUrl(serverUrl);
 
@@ -11391,7 +9491,7 @@ namespace DSL
         
         try
         {
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+            DSL_RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
 
             m_mailers[name]->SetServerUrl(serverUrl);
 
@@ -11414,7 +9514,7 @@ namespace DSL
         
         try
         {
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+            DSL_RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
 
             m_mailers[name]->GetFromAddress(displayName, address);
 
@@ -11438,7 +9538,7 @@ namespace DSL
         
         try
         {
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+            DSL_RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
 
             m_mailers[name]->SetFromAddress(displayName, address);
 
@@ -11462,7 +9562,7 @@ namespace DSL
         
         try
         {
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+            DSL_RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
 
             *enabled = m_mailers[name]->GetSslEnabled();
             
@@ -11486,7 +9586,7 @@ namespace DSL
         
         try
         {
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+            DSL_RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
 
             m_mailers[name]->SetSslEnabled(enabled);
             LOG_INFO("Set SSL Enabled = '" << enabled  << "'" );
@@ -11508,7 +9608,7 @@ namespace DSL
         
         try
         {
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+            DSL_RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
 
             m_mailers[name]->AddToAddress(displayName, address);
 
@@ -11531,7 +9631,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+            DSL_RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
 
             m_mailers[name]->RemoveAllToAddresses();
 
@@ -11555,7 +9655,7 @@ namespace DSL
         
         try
         {
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+            DSL_RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
 
             m_mailers[name]->AddCcAddress(displayName, address);
 
@@ -11578,7 +9678,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+            DSL_RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
 
             m_mailers[name]->RemoveAllCcAddresses();
 
@@ -11600,7 +9700,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+            DSL_RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
 
             std::string subject("Test message");
             std::string bline1("Test message.\r\n");
@@ -11647,7 +9747,7 @@ namespace DSL
 
         try
         {
-            RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
+            DSL_RETURN_IF_MAILER_NAME_NOT_FOUND(m_mailers, name);
             
             if (m_mailers[name]->IsInUse())
             {
