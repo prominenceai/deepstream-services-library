@@ -1251,4 +1251,28 @@ namespace DSL
         return true;
     }
 
+    bool Services::IsSinkComponent(const char* component)
+    {
+        LOG_FUNC();
+     
+        return (m_components[component]->IsType(typeid(FakeSinkBintr)) or 
+            m_components[component]->IsType(typeid(OverlaySinkBintr)) or
+            m_components[component]->IsType(typeid(WindowSinkBintr)) or
+            m_components[component]->IsType(typeid(FileSinkBintr)) or
+            m_components[component]->IsType(typeid(RtspSinkBintr)));
+    }
+ 
+    uint Services::GetNumSinksInUse()
+    {
+        LOG_FUNC();
+        
+        uint numInUse(0);
+        
+        for (auto const& imap: m_pipelines)
+        {
+            numInUse += imap.second->GetNumSinksInUse();
+        }
+        return numInUse;
+    }
+
 }

@@ -627,4 +627,30 @@ namespace DSL
         }
     }
 
+DslReturnType Services::OfvNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {   
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("OFV name '" << name << "' is not unique");
+                return DSL_RESULT_OFV_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = std::shared_ptr<Bintr>(new OfvBintr(name));
+
+            LOG_INFO("New OFV '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New OFV '" << name << "' threw exception on create");
+            return DSL_RESULT_OFV_THREW_EXCEPTION;
+        }
+    }
+    
 }    

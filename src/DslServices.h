@@ -28,12 +28,10 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslBase.h"
-#include "DslPadProbeHandler.h"
 #include "DslOdeAction.h"
 #include "DslOdeArea.h"
+#include "DslOdeTrigger.h"
 #include "DslPipelineBintr.h"
-#include "DslPlayerBintr.h"
-#include "DslMailer.h"
 
 namespace DSL {
     

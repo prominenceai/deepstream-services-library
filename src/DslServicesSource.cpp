@@ -1706,4 +1706,27 @@ namespace DSL
             return DSL_RESULT_TAP_THREW_EXCEPTION;
         }
     }
+
+    bool Services::IsSourceComponent(const char* component)
+    {
+        LOG_FUNC();
+     
+        return (m_components[component]->IsType(typeid(CsiSourceBintr)) or 
+            m_components[component]->IsType(typeid(UriSourceBintr)) or
+            m_components[component]->IsType(typeid(RtspSourceBintr)));
+    }
+ 
+    uint Services::GetNumSourcesInUse()
+    {
+        LOG_FUNC();
+        
+        uint numInUse(0);
+        
+        for (auto const& imap: m_pipelines)
+        {
+            numInUse += imap.second->GetNumSourcesInUse();
+        }
+        return numInUse;
+    }
+    
 }    
