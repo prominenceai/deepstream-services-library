@@ -486,7 +486,7 @@ namespace DSL
             pSourceBintr->GetDimensions(width, height);
 
             LOG_INFO("Image Source '" << name << "' returned Width = " 
-                << *width << " and Height = " << *height << "' successfully");
+                << *width << " and Height = " << *height << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
