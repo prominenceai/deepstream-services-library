@@ -31,7 +31,8 @@ CXX = g++
 
 TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 
-DSL_VERSION:='L"v0.17a.alpha"'
+CXX_VERSION:=c++17
+DSL_VERSION:='L"v0.18.alpha"'
 NVDS_VERSION:=5.1
 GS_VERSION:=1.0
 GLIB_VERSION:=2.0
@@ -68,6 +69,7 @@ ifeq ($(TARGET_DEVICE),aarch64)
 endif
 
 CFLAGS+= -I$(INC_INSTALL_DIR) \
+    -std=$(CXX_VERSION) \
     -I$(SRC_INSTALL_DIR)/apps/apps-common/includes \
     -I/opt/include \
 	-I/usr/include \
