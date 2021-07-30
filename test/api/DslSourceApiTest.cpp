@@ -175,7 +175,7 @@ SCENARIO( "A new CSI Camera Source returns the correct attribute values", "[sour
                 REQUIRE( ret_height == height );
                 REQUIRE( ret_fps_n == fps_n );
                 REQUIRE( ret_fps_d == fps_d );
-                REQUIRE( dsl_source_is_live(sourceName.c_str()) == true );
+                REQUIRE( dsl_source_is_live(sourceName.c_str()) == 0 );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -208,7 +208,7 @@ SCENARIO( "A new USB Camera Source returns the correct attribute values", "[sour
                 REQUIRE( ret_height == height );
                 REQUIRE( ret_fps_n == fps_n );
                 REQUIRE( ret_fps_d == fps_d );
-                REQUIRE( dsl_source_is_live(sourceName.c_str()) == true );
+                REQUIRE( dsl_source_is_live(sourceName.c_str()) == 0 );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
