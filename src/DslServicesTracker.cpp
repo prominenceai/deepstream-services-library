@@ -229,11 +229,10 @@ namespace DSL
             DSL_TRACKER_PTR trackerBintr = 
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
 
-            // TODO verify args before calling
             trackerBintr->GetDimensions(width, height);
 
             LOG_INFO("Tracker '" << name << "' returned Width = " 
-                << *width << " and Height = " << *height << "' successfully");
+                << *width << " and Height = " << *height << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -257,7 +256,6 @@ namespace DSL
             DSL_TRACKER_PTR trackerBintr = 
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
 
-            // TODO verify args before calling
             if (!trackerBintr->SetDimensions(width, height))
             {
                 LOG_ERROR("Tracker '" << name << "' failed to set dimensions");
@@ -421,7 +419,7 @@ namespace DSL
                 LOG_ERROR("Tracker '" << name << "' failed to add Pad Probe Handler");
                 return DSL_RESULT_TRACKER_HANDLER_ADD_FAILED;
             }
-            LOG_INFO("New Primary Infer '" << name << "' added Pad Probe Handler successfully");
+            LOG_INFO("Tracker '" << name << "' added Pad Probe Handler successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -456,7 +454,7 @@ namespace DSL
                 LOG_ERROR("Pad Probe Handler '" << handler << "' is not a child of Tracker '" << name << "'");
                 return DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED;
             }
-            LOG_INFO("New Primary Infer '" << name << "' removed Pad Probe Handler successfully");
+            LOG_INFO("Tracker '" << name << "' removed Pad Probe Handler successfully");
 
             return DSL_RESULT_SUCCESS;
         }

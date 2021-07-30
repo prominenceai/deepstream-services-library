@@ -1245,6 +1245,7 @@ namespace DSL
                 return DSL_RESULT_TAP_SET_FAILED;
             }
             LOG_INFO("Session started successfully for Record Tap '" << name << "'");
+
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
@@ -1473,6 +1474,7 @@ namespace DSL
 
             LOG_INFO("Width = " << *width << " height = " << *height << 
                 " returned successfully for Record Tap '" << name << "'");
+
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
@@ -1505,6 +1507,7 @@ namespace DSL
             }
             LOG_INFO("Width = " << width << " height = " << height << 
                 " returned successfully for Record Tap '" << name << "'");
+                
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
@@ -1532,6 +1535,7 @@ namespace DSL
 
             LOG_INFO("Is on = " << *isOn 
                 << "returned successfully for Record Tap '" << name << "'");
+                
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
@@ -1559,6 +1563,7 @@ namespace DSL
 
             LOG_INFO("Reset Done = " << *resetDone 
                 << "returned successfully for Record Tap '" << name << "'");
+                
             return DSL_RESULT_SUCCESS;
         }
         catch(...)

@@ -3784,7 +3784,7 @@ DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkWindowForceAspectRationGet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SinkWindowForceAspectRatioGet(cstrName.c_str(), 
         force);
 }
     
@@ -3796,7 +3796,7 @@ DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkWindowForceAspectRationSet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SinkWindowForceAspectRatioSet(cstrName.c_str(), 
         force);
 }
 

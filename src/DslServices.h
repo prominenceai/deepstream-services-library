@@ -676,10 +676,10 @@ namespace DSL {
         DslReturnType SinkWindowNew(const char* name, 
             uint offsetX, uint offsetY, uint width, uint height);
             
-        DslReturnType SinkWindowForceAspectRationGet(const char* name, 
+        DslReturnType SinkWindowForceAspectRatioGet(const char* name, 
             boolean* force);
 
-        DslReturnType SinkWindowForceAspectRationSet(const char* name, 
+        DslReturnType SinkWindowForceAspectRatioSet(const char* name, 
             boolean force);
             
         DslReturnType SinkRenderOffsetsGet(const char* name, uint* offsetX, uint* offsetY);
