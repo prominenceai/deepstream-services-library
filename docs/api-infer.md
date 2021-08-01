@@ -9,7 +9,7 @@ The interval for inferencing -- or the number of frames to skip between inferenc
 
 Both GIEs and TIE's require a Primary or Secondary **Inference Configuration File**. Once created, clients can query both Primary and Secondary GIEs/TIEs for their Config File in-use by calling [dsl_infer_config_file_get](#dsl_infer_config_file_get) or change the GIE/TIS's configuration by calling [dsl_infer_config_file_set](#dsl_infer_config_file_set).
 
-GIEs support the specification of a pre-built **Model Engine File**, or one can allow the Plugin to create the model engine based on the configuration. The file in use can be querried by calling [dsl_infer_gie_model_engine_file_get](#dsl_infer_gie_model_engine_file_get) or changed with [dsl_infer_gie_model_engine_file_set](#dsl_infer_gie_model_engine_file_set).
+GIEs support the specification of a pre-built **Model Engine File**, or one can allow the Plugin to create the model engine based on the configuration. The file in use can be queried by calling [dsl_infer_gie_model_engine_file_get](#dsl_infer_gie_model_engine_file_get) or changed with [dsl_infer_gie_model_engine_file_set](#dsl_infer_gie_model_engine_file_set).
 
 GIEs/TISs are added to a Pipeline by calling [dsl_pipeline_component_add](/docs/api-pipeline.md#dsl_pipeline_component_add) and [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed by calling [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove) and [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many).
 

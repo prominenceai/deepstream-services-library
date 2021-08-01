@@ -5,7 +5,7 @@ Demuxers and Splitters are created using a type specific constructor,  [dsl_tee_
 
 Pipelines use Tees to create Branches and Branches can use Tees to create more Branches. Therefore, Tees are added to Pipelines and Branches, while Branches are added to Tees.
 
-The relationship between Pipline/Branch and Tee is one to one with the Tee becoming the end component. The relationshipe between Tees and Branches is one-to-many. Once added to a Pipeline or Branch, a Tee must be removed before it can used with another. 
+The relationship between Pipline/Branch and Tee is one to one with the Tee becoming the end component. The relationship between Tees and Branches is one-to-many. Once added to a Pipeline or Branch, a Tee must be removed before it can used with another. 
 
 Tees and Branches are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
 
@@ -69,7 +69,7 @@ retval = dsl_tee_demuxer_new('my-demuxer')
 ```C++
 DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, const wchar_t** branches);
 ```
-The constructor creates a uniquely named Demuxer Tee and adds a list of brances to it. Construction will fail if the name is currently in use. 
+The constructor creates a uniquely named Demuxer Tee and adds a list of branches to it. Construction will fail if the name is currently in use. 
 
 **Parameters**
 * `name` - [in] unique name for the Demuxer to create.
@@ -212,7 +212,7 @@ retval = dsl_tee_branch_remove_many('my-splitter',
 ```C++
 DslReturnType dsl_tee_branch_remove_all(const wchar_t* name);
 ```
-This service removes all child branches from a named Demuxer or Spiltter Tee. All of the removed branches' `in-use` state will be set to `false` on successful removal. 
+This service removes all child branches from a named Demuxer or Splitter Tee. All of the removed branches' `in-use` state will be set to `false` on successful removal. 
 
 **Parameters**
 * `name` - [in] unique name for the Branch to update.
