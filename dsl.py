@@ -2069,14 +2069,13 @@ def dsl_tap_record_new(name, outdir, container, client_listener):
 ##
 ## dsl_tap_record_session_start()
 ##
-_dsl.dsl_tap_record_session_start.argtypes = [c_wchar_p, POINTER(c_uint), c_uint, c_uint, c_void_p]
+_dsl.dsl_tap_record_session_start.argtypes = [c_wchar_p, c_uint, c_uint, c_void_p]
 _dsl.dsl_tap_record_session_start.restype = c_uint
 def dsl_tap_record_session_start(name, start, duration, client_data):
     global _dsl
-    session = c_uint(0)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
-    result = _dsl.dsl_tap_record_session_start(name, DSL_UINT_P(session), start, duration, c_client_data)
+    result = _dsl.dsl_tap_record_session_start(name, start, duration, c_client_data)
     return int(result) 
 
 ##
