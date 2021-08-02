@@ -115,7 +115,7 @@ There are currently six types of Source components, two live connected Camera So
 
 Two live decode Sources that.
 * Universal Resource Identifier (URI) Source - supports non-live files as well.
-* Real-time Streaming Protocol (RTSP) Source - over the SOM's eithernet port or streaming wirelessly.
+* Real-time Streaming Protocol (RTSP) Source - over the SOM's ethernet port or WiFi link.
 
 Two non-live Sources 
 * File Source that is derived from the URI Decode Source with some of the parameters fixed.
@@ -142,7 +142,7 @@ See the [Inference Engine and Server API](/docs/api-infer.md) reference section 
 
 DSL supports NVIDIA's [Segmentation Visualizer plugin](https://docs.nvidia.com/metropolis/deepstream/5.0DP/plugin-manual/index.html#page/DeepStream%20Plugins%20Development%20Guide/deepstream_plugin_details.3.11.html#wwpID0E0WT0HA) for viewing segmentation results produced from either a Primary Gst Inference Engine (PGIE) or Primary Triton Inference Server (TIS).
 
-See the [Segmentation Visualizer API](/docs/api-segvisual.md) reference setction for more inforamtion.
+See the [Segmentation Visualizer API](/docs/api-segvisual.md) reference section for more information.
 
 ## Multi-Object Trackers
 There are two types of streaming Multi-Object Tracker Components.

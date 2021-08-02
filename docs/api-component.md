@@ -7,7 +7,7 @@ The Pipeline Component API provides the common services that apply to all Pipeli
 * [Segmentation Visualizers](/dos/api-segvisual.md)
 * [Splitters and Demuxers](/docs/api-tee.md)
 * [2D-Tilers](/docs/api-tiler.md)
-* [On Sreen Displays](/docs/api-osd.md)
+* [On Screen Displays](/docs/api-osd.md)
 * [Sinks](/docs/api-sink.md)
 * [Branches](/docs/api-branch.md)
 

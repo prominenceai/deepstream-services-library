@@ -4,7 +4,7 @@ Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must ha
 * Window Sink - renders/overlays video on a Parent XWindow
 * File Sink - encodes video to a media container file
 * Record Sink - similar to the File sink but with Start/Stop/Duration control and a cache for pre-start buffering. 
-* RTSP Sink - streams encoded video on a specifed port
+* RTSP Sink - streams encoded video on a specified port
 * Fake Sink - consumes/drops all data 
 
 Sinks are created with six type-specific constructors. As with all components, Sinks must be uniquely named from all other components created. 

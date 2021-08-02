@@ -1,5 +1,5 @@
 ### Using VSCode
-This repository includes files/confugrations to build/debug DSL and your C/C++/Python applications using VSCode.
+This repository includes files/configurations to build/debug DSL and your C/C++/Python applications using VSCode.
 
 VSCode C++ Extension v0.30.0-insiders4 required for ARM64 support using Remote Extensions
 

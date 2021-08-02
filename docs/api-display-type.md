@@ -251,7 +251,7 @@ The constructor creates an RGBA Text Display Type.
 * `x_offset` - [in] starting x positional offset
 * `y_offset` - [in] starting y positional offset
 * `font` [in] - RGBA font to use for the display dext
-* `hasBgColor` - [in] set to true to enable bacground color, false otherwise
+* `hasBgColor` - [in] set to true to enable background color, false otherwise
 * `bgColor` [in] RGBA Color for the Text background if set
 
 **Returns**
@@ -335,7 +335,7 @@ The constructor creates an RGBA Rectangle Display Type.
 * `height` - [in] height of the rectangle in Pixels.
 * `border_width` - [in] width of the rectangle border in pixels.
 * `color` - [in] RGBA Color for this RGBA Rectangle.
-* `hasBgColor` - [in] set to true to enable bacground color, false otherwise.
+* `hasBgColor` - [in] set to true to enable background color, false otherwise.
 * `bgColor` - [in] RGBA Color for the Circle background if set.
  
 **Returns**
@@ -394,7 +394,7 @@ The constructor creates an RGBA Circle Display Type.
 * `y_center` - [in] y positional offset to center of Circle.
 * `radius` - [in] radius of the RGBA Circle in pixels.
 * `color` - [in] RGBA Color for the RGBA Circle.
-* `hasBgColor` - [in] set to true to enable bacground color, false otherwise.
+* `hasBgColor` - [in] set to true to enable background color, false otherwise.
 * `bgColor` - [in] RGBA Color for the Circle background if set.
 
 **Returns**
@@ -420,7 +420,7 @@ The constructor creates a uniquely name Source Nuumber Display Type.
 * `x_offset` - [in] starting x positional offset.
 * `y_offset` - [in] starting y positional offset.
 * `font` - [in] RGBA font to use for the display text.
-* `hasBgColor` - [in] set to true to enable bacground color, false otherwise.
+* `hasBgColor` - [in] set to true to enable background color, false otherwise.
 * `bgColor` - [in] RGBA Color for the Text background if set.
  
 **Returns**
@@ -446,7 +446,7 @@ The constructor creates a uniquely name Source Name Display Type.
 * `x_offset` - [in] starting x positional offset.
 * `y_offset` - [in] starting y positional offset.
 * `font` - [in] RGBA font to use for the display text.
-* `hasBgColor` - [in] set to true to enable bacground color, false otherwise.
+* `hasBgColor` - [in] set to true to enable background color, false otherwise.
 * `bgColor` - [in] RGBA Color for the Text background if set.
  
 **Returns**
@@ -472,7 +472,7 @@ The constructor creates a uniquely name Source Dimensions Display Type.
 * `x_offset` - [in] starting x positional offset.
 * `y_offset` - [in] starting y positional offset.
 * `font` - [in] RGBA font to use for the display text.
-* `hasBgColor` - [in] set to true to enable bacground color, false otherwise.
+* `hasBgColor` - [in] set to true to enable background color, false otherwise.
 * `bgColor` - [in] RGBA Color for the Text background if set.
  
 **Returns**
@@ -570,7 +570,7 @@ This service, when called from a custom [Pad Probe Handler](/docs/api-pph.md), a
 
 **Parmeters**
 * `name` - [in] unique name for the Display Type to add.
-* `display_meta` - [in] opaque pointer to the aquired display meta to to add the Display Type to.
+* `display_meta` - [in] opaque pointer to the acquired display meta to to add the Display Type to.
 * `frame_meta` - [in] opaque pointer to a Frame's meta data to add the Display Type.
  
 **Returns**

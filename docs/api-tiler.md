@@ -169,7 +169,7 @@ This service get the current show-source parameters for the named Tiler. The ser
 **Parameters**
 * `name` - [in] unique name for the Tiler to update.
 * `source` - [out] unique name of the current source show. `DSL_TILER_ALL_SOURCES` (equal to NULL) indicates that all sources are shown (default).
-* `timeout` - [out] the remaining number of seconds that the current source will be shown for. A value of 0 indicates show indefinately (default).
+* `timeout` - [out] the remaining number of seconds that the current source will be shown for. A value of 0 indicates show indefinitely (default).
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure. 
@@ -243,7 +243,7 @@ dsl_tiler_source_show_select('tiler', x_pos, y_pos, WINDOW_WIDTH, WINDOW_HEIGHT,
 ```C++
 DslReturnType dsl_tiler_source_show_cycle(const wchar_t* name, uint timeout);
 ```
-This service enables the named Tiler to cycle through all sources showing each one for a specifed time before showing the next. This services will fail with `DSL_RESULT_TILER_SET_FAILED` if the provided timeout is 0.
+This service enables the named Tiler to cycle through all sources showing each one for a specified time before showing the next. This services will fail with `DSL_RESULT_TILER_SET_FAILED` if the provided timeout is 0.
 
 **Parameters**
 * `name` - [in] unique name for the Tiler to update.
