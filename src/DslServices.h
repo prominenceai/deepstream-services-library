@@ -102,9 +102,6 @@ namespace DSL {
         DslReturnType OdeActionCustomNew(const char* name,
             dsl_ode_handle_occurrence_cb clientHandler, void* clientData);
             
-        DslReturnType OdeActionBBoxFormatNew(const char* name,
-            uint borderWidth, const char* borderColor, boolean hasBgColor, const char* bgColor);
-
         DslReturnType OdeActionCaptureFrameNew(const char* name, const char* outdir, boolean annotate);
         
         DslReturnType OdeActionCaptureObjectNew(const char* name, const char* outdir);
@@ -129,11 +126,14 @@ namespace DSL {
         
         DslReturnType OdeActionDisplayNew(const char* name, uint offsetX, uint offsetY, 
             boolean offsetYWithClassId, const char* font, boolean hasBgColor, const char* bgColor);
+
+        DslReturnType OdeActionFormatBBoxNew(const char* name,
+            uint borderWidth, const char* borderColor, boolean hasBgColor, const char* bgColor);
+
+        DslReturnType OdeActionFormatLabelNew(const char* name,
+            const char* font, boolean hasBgColor, const char* bgColor);
         
         DslReturnType OdeActionLogNew(const char* name);
-
-        DslReturnType OdeActionLabelFormatNew(const char* name,
-            const char* font, boolean hasBgColor, const char* bgColor);
 
         DslReturnType OdeActionEmailNew(const char* name, 
             const char* mailer, const char* subject);

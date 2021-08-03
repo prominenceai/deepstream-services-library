@@ -80,8 +80,8 @@ SCENARIO( "A new FormatBBoxOdeAction is created correctly", "[OdeAction]" )
 
         WHEN( "A new FormatBBoxOdeAction is created" )
         {
-            DSL_ODE_ACTION_BBOX_FORMAT_PTR pAction = 
-                DSL_ODE_ACTION_BBOX_FORMAT_NEW(actionName.c_str(), 
+            DSL_ODE_ACTION_FORMAT_BBOX_PTR pAction = 
+                DSL_ODE_ACTION_FORMAT_BBOX_NEW(actionName.c_str(), 
                     borderWidth, pBorderColor, hasBgColor, pBgColor);
 
             THEN( "The Action's members are setup and returned correctly" )
@@ -117,8 +117,8 @@ SCENARIO( "A FormatBBoxOdeAction handles an ODE Occurence correctly", "[OdeActio
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
-        DSL_ODE_ACTION_BBOX_FORMAT_PTR pAction = 
-            DSL_ODE_ACTION_BBOX_FORMAT_NEW(actionName.c_str(), 
+        DSL_ODE_ACTION_FORMAT_BBOX_PTR pAction = 
+            DSL_ODE_ACTION_FORMAT_BBOX_NEW(actionName.c_str(), 
                 borderWidth, pBorderColor, hasBgColor, pBgColor);
 
         WHEN( "A new ODE is created" )
@@ -172,8 +172,8 @@ SCENARIO( "A new FormatLabelOdeAction is created correctly", "[OdeAction]" )
 
         WHEN( "A new FormatLabelOdeAction is created" )
         {
-            DSL_ODE_ACTION_LABEL_FORMAT_PTR pAction = 
-                DSL_ODE_ACTION_LABEL_FORMAT_NEW(actionName.c_str(), 
+            DSL_ODE_ACTION_FORMAT_LABEL_PTR pAction = 
+                DSL_ODE_ACTION_FORMAT_LABEL_NEW(actionName.c_str(), 
                     pFont, hasBgColor, pBgColor);
 
             THEN( "The Action's members are setup and returned correctly" )
@@ -218,8 +218,8 @@ SCENARIO( "A FormatLabelOdeAction handles an ODE Occurence correctly", "[OdeActi
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
-        DSL_ODE_ACTION_LABEL_FORMAT_PTR pAction = 
-            DSL_ODE_ACTION_LABEL_FORMAT_NEW(actionName.c_str(), 
+        DSL_ODE_ACTION_FORMAT_LABEL_PTR pAction = 
+            DSL_ODE_ACTION_FORMAT_LABEL_NEW(actionName.c_str(), 
                 pFont, hasBgColor, pBgColor);
 
         WHEN( "A new ODE is created" )

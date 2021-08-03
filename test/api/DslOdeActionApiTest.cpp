@@ -116,11 +116,11 @@ SCENARIO( "A new Format Bounding Box ODE Action can be created and deleted", "[o
 
         WHEN( "A new Format Bounding Box Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_bbox_format_new(action_name.c_str(), border_width, 
+            REQUIRE( dsl_ode_action_format_bbox_new(action_name.c_str(), border_width, 
                 border_color_name.c_str(), has_bg_color, bg_color_name.c_str()) == DSL_RESULT_SUCCESS );
 
             // second attempt must fail
-            REQUIRE( dsl_ode_action_bbox_format_new(action_name.c_str(), border_width, 
+            REQUIRE( dsl_ode_action_format_bbox_new(action_name.c_str(), border_width, 
                 border_color_name.c_str(), has_bg_color, bg_color_name.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
             
             THEN( "The Format Bounding Box Action can be deleted" ) 
@@ -151,7 +151,7 @@ SCENARIO( "A new Format Bounding Box ODE Action with no Border or Background Col
 
             THEN( "The Format Bounding Box Action can be created" ) 
             {
-                REQUIRE( dsl_ode_action_bbox_format_new(action_name.c_str(), border_width, 
+                REQUIRE( dsl_ode_action_format_bbox_new(action_name.c_str(), border_width, 
                     NULL, has_bg_color, NULL) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -187,7 +187,7 @@ SCENARIO( "A new Format Bounding Box ODE Action verifies its input parameters co
         {
             THEN( "The Format Bounding Box Action will fail to create" ) 
             {
-                REQUIRE( dsl_ode_action_bbox_format_new(action_name.c_str(), border_width, 
+                REQUIRE( dsl_ode_action_format_bbox_new(action_name.c_str(), border_width, 
                     NULL, has_bg_color, bg_color_name.c_str()) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_list_size() == 0 );
@@ -202,7 +202,7 @@ SCENARIO( "A new Format Bounding Box ODE Action verifies its input parameters co
             
             THEN( "The Format Bounding Box Action will fail to create" ) 
             {
-                REQUIRE( dsl_ode_action_bbox_format_new(action_name.c_str(), border_width, 
+                REQUIRE( dsl_ode_action_format_bbox_new(action_name.c_str(), border_width, 
                     NULL, has_bg_color, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_list_size() == 0 );
@@ -243,12 +243,12 @@ SCENARIO( "A new Format Object Label ODE Action can be created and deleted", "[o
 
         WHEN( "A new Format Bounding Box Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_label_format_new(action_name.c_str(),  
+            REQUIRE( dsl_ode_action_format_label_new(action_name.c_str(),  
                 font_name.c_str(), has_bg_color, font_bg_color_name.c_str()) 
                     == DSL_RESULT_SUCCESS );
 
             // second attempt must fail
-            REQUIRE( dsl_ode_action_label_format_new(action_name.c_str(),  
+            REQUIRE( dsl_ode_action_format_label_new(action_name.c_str(),  
                 font_name.c_str(), has_bg_color, font_bg_color_name.c_str()) 
                     == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
             
@@ -295,7 +295,7 @@ SCENARIO( "A new Format Object Label ODE Action checks its input parameters corr
 
         WHEN( "A new Format ObjectLabel Action is created with NO Font" ) 
         {
-            REQUIRE( dsl_ode_action_label_format_new(action_name.c_str(),  
+            REQUIRE( dsl_ode_action_format_label_new(action_name.c_str(),  
                 NULL, true, font_bg_color_name.c_str()) 
                     == DSL_RESULT_SUCCESS );
             
@@ -314,7 +314,7 @@ SCENARIO( "A new Format Object Label ODE Action checks its input parameters corr
         }
         WHEN( "A new Format Bounding Box Action is created with NO Background Color" ) 
         {
-            REQUIRE( dsl_ode_action_label_format_new(action_name.c_str(),  
+            REQUIRE( dsl_ode_action_format_label_new(action_name.c_str(),  
                 font_name.c_str(), false, NULL) 
                     == DSL_RESULT_SUCCESS );
             

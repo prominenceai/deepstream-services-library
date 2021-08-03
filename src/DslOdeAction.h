@@ -40,12 +40,6 @@ namespace DSL
      */
     #define DSL_ODE_ACTION_PTR std::shared_ptr<OdeAction>
 
-    #define DSL_ODE_ACTION_BBOX_FORMAT_PTR std::shared_ptr<FormatBBoxOdeAction>
-    #define DSL_ODE_ACTION_BBOX_FORMAT_NEW(name, \
-        borderWidth, pBorderColor, hasBgColor, pBgColor) \
-        std::shared_ptr<FormatBBoxOdeAction>(new FormatBBoxOdeAction(name, \
-            borderWidth, pBorderColor, hasBgColor, pBgColor))
-        
     #define DSL_ODE_ACTION_CUSTOM_PTR std::shared_ptr<CustomOdeAction>
     #define DSL_ODE_ACTION_CUSTOM_NEW(name, clientHandler, clientData) \
         std::shared_ptr<CustomOdeAction>(new CustomOdeAction(name, clientHandler, clientData))
@@ -93,6 +87,17 @@ namespace DSL
     #define DSL_ODE_ACTION_FILL_SURROUNDINGS_NEW(name, pColor) \
         std::shared_ptr<FillSurroundingsOdeAction>(new FillSurroundingsOdeAction(name, pColor))
 
+    #define DSL_ODE_ACTION_FORMAT_BBOX_PTR std::shared_ptr<FormatBBoxOdeAction>
+    #define DSL_ODE_ACTION_FORMAT_BBOX_NEW(name, \
+        borderWidth, pBorderColor, hasBgColor, pBgColor) \
+        std::shared_ptr<FormatBBoxOdeAction>(new FormatBBoxOdeAction(name, \
+            borderWidth, pBorderColor, hasBgColor, pBgColor))
+
+    #define DSL_ODE_ACTION_FORMAT_LABEL_PTR std::shared_ptr<FormatLabelOdeAction>
+    #define DSL_ODE_ACTION_FORMAT_LABEL_NEW(name, pFont, hasBgColor, pBgColor) \
+        std::shared_ptr<FormatLabelOdeAction>(new FormatLabelOdeAction(name, \
+            pFont, hasBgColor, pBgColor))
+
     #define DSL_ODE_ACTION_HIDE_PTR std::shared_ptr<HideOdeAction>
     #define DSL_ODE_ACTION_HIDE_NEW(name, text, border) \
         std::shared_ptr<HideOdeAction>(new HideOdeAction(name, text, border))
@@ -101,11 +106,6 @@ namespace DSL
     #define DSL_ODE_ACTION_LOG_NEW(name) \
         std::shared_ptr<LogOdeAction>(new LogOdeAction(name))
 
-    #define DSL_ODE_ACTION_LABEL_FORMAT_PTR std::shared_ptr<FormatLabelOdeAction>
-    #define DSL_ODE_ACTION_LABEL_FORMAT_NEW(name, pFont, hasBgColor, pBgColor) \
-        std::shared_ptr<FormatLabelOdeAction>(new FormatLabelOdeAction(name, \
-            pFont, hasBgColor, pBgColor))
-        
     #define DSL_ODE_ACTION_PAUSE_PTR std::shared_ptr<PauseOdeAction>
     #define DSL_ODE_ACTION_PAUSE_NEW(name, pipeline) \
         std::shared_ptr<PauseOdeAction>(new PauseOdeAction(name, pipeline))

@@ -1054,21 +1054,6 @@ DslReturnType dsl_display_type_delete_all();
 uint dsl_display_type_list_size();
 
 /**
- * @brief Creates a uniquely named "Format Bounding Box" ODE Action that updates 
- * an Object's RGBA bounding box line width and color. 
- * Note: setting the line width to 0 will exclude/hide the object's bounding box from view.
- * @param[in] name unique name for the "Format Bounding Box" ODE Action. 
- * @param[in] border_width border line width for the object's bounding box. 
- * Set to 0 to exclude/hide the border from view.
- * @param[in] border_color RGBA Color for the bounding box.
- * @param[in] has_bg_color set to true to enable background color, false otherwise
- * @param[in] bg_color RGBA Color for the Text background if set
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_bbox_format_new(const wchar_t* name, uint border_width, 
-    const wchar_t* border_color, boolean has_bg_color, const wchar_t* bg_color);
-
-/**
  * @brief Creates a uniquely named ODE Custom Action
  * @param[in] name unique name for the ODE Custom Action 
  * @param[in] client_handler function to call on ODE occurrence
@@ -1253,6 +1238,34 @@ DslReturnType dsl_ode_action_fill_object_new(const wchar_t* name, const wchar_t*
 DslReturnType dsl_ode_action_fill_surroundings_new(const wchar_t* name, const wchar_t* color);
 
 /**
+ * @brief Creates a uniquely named "Format Bounding Box" ODE Action that updates 
+ * an Object's RGBA bounding box line width and color. 
+ * Note: setting the line width to 0 will exclude/hide the object's bounding box from view.
+ * @param[in] name unique name for the "Format Bounding Box" ODE Action. 
+ * @param[in] border_width border line width for the object's bounding box. 
+ * Set to 0 to exclude/hide the border from view.
+ * @param[in] border_color RGBA Color for the bounding box.
+ * @param[in] has_bg_color set to true to enable background color, false otherwise
+ * @param[in] bg_color RGBA Color for the Text background if set
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_format_bbox_new(const wchar_t* name, uint border_width, 
+    const wchar_t* border_color, boolean has_bg_color, const wchar_t* bg_color);
+
+/**
+ * @brief Creates a uniquely named "Format Label" ODE Action that updates 
+ * an Object's RGBA Label Font
+ * @param[in] name unique name for the Format Label ODE Action 
+ * @param[in] font RGBA font to use for the object's label
+ * @param[in] has_bg_color set to true to enable background color, false otherwise
+ * @param[in] bg_color RGBA Color for the Text background if has_bg_color = true
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_format_label_new(const wchar_t* name, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+    
+
+/**
  * @brief Creates a uniquely named Disable Handler Action that disables
  * a namded Handler
  * @param[in] name unique name for the Fill Backtround ODE Action
@@ -1270,18 +1283,6 @@ DslReturnType dsl_ode_action_handler_disable_new(const wchar_t* name, const wcha
  */
 DslReturnType dsl_ode_action_hide_new(const wchar_t* name, boolean text, boolean border);
 
-/**
- * @brief Creates a uniquely named "Format Label" ODE Action that updates 
- * an Object's RGBA Label Font
- * @param[in] name unique name for the Format Label ODE Action 
- * @param[in] font RGBA font to use for the object's label
- * @param[in] has_bg_color set to true to enable background color, false otherwise
- * @param[in] bg_color RGBA Color for the Text background if has_bg_color = true
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_label_format_new(const wchar_t* name, 
-    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
-    
 /**
  * @brief Creates a uniquely named Log ODE Action
  * @param[in] name unique name for the Log ODE Action 
