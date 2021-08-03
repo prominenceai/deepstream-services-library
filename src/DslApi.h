@@ -558,7 +558,6 @@ THE SOFTWARE.
 #define DSL_META_LABEL_CONFIDENCE                                   4
 #define DSL_META_LABEL_PERSISTENCE                                  5
 
-
 EXTERN_C_BEGIN
 
 typedef uint DslReturnType;
@@ -1271,6 +1270,18 @@ DslReturnType dsl_ode_action_handler_disable_new(const wchar_t* name, const wcha
  */
 DslReturnType dsl_ode_action_hide_new(const wchar_t* name, boolean text, boolean border);
 
+/**
+ * @brief Creates a uniquely named "Format Label" ODE Action that updates 
+ * an Object's RGBA Label Font
+ * @param[in] name unique name for the Format Label ODE Action 
+ * @param[in] font RGBA font to use for the object's label
+ * @param[in] has_bg_color set to true to enable background color, false otherwise
+ * @param[in] bg_color RGBA Color for the Text background if has_bg_color = true
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_label_format_new(const wchar_t* name, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+    
 /**
  * @brief Creates a uniquely named Log ODE Action
  * @param[in] name unique name for the Log ODE Action 

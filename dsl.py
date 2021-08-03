@@ -526,6 +526,19 @@ def dsl_ode_action_hide_new(name, text, border):
     return int(result)
 
 ##
+## dsl_ode_action_label_format_new()
+##
+_dsl.dsl_ode_action_label_format_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_ode_action_label_format_new.restype = c_uint
+def dsl_ode_action_label_format_new(name, 
+    font, has_bg_color, bg_color):
+    global _dsl
+    result =_dsl.dsl_ode_action_label_format_new(name, 
+        font, has_bg_color, bg_color)
+    return int(result)
+
+##
 ## dsl_ode_action_log_new()
 ##
 _dsl.dsl_ode_action_log_new.argtypes = [c_wchar_p]

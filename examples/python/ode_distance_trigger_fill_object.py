@@ -96,9 +96,10 @@ def main(args):
         
         #```````````````````````````````````````````````````````````````````````````````````
 
-        # NOTE: will remove use of the hide action once dsl_ode_action_label_format is complete
-        # Create a Hide Action to hide all Display Text and Bounding Boxes
-        retval = dsl_ode_action_hide_new('hide-both', text=True, border=False)
+        # Create a Format Label Action to remove the Object Label from view
+        # Note: the label can be disabled with the OSD API as well. 
+        retval = dsl_ode_action_label_format_new('remove-label', 
+            font=None, has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -108,13 +109,13 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Create an Any-Class Occurrence Trigger for our Hide Action
+        # Create an Any-Class Occurrence Trigger for Format Actions
         retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', source='uri-source-1',
             class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add_many('every-occurrence-trigger', 
-            actions=['hide-both', 'remove-border', None])
+            actions=['remove-label', 'remove-border', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

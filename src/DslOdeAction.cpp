@@ -1351,6 +1351,42 @@ namespace DSL
 
     // ********************************************************************
 
+    FormatLabelOdeAction::FormatLabelOdeAction(const char* name, 
+        DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
+        : OdeAction(name)
+        , m_pFont(pFont)
+        , m_hasBgColor(hasBgColor)
+        , m_pBgColor(pBgColor)
+    {
+        LOG_FUNC();
+    }
+
+    FormatLabelOdeAction::~FormatLabelOdeAction()
+    {
+        LOG_FUNC();
+
+    }
+
+    void FormatLabelOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled and pObjectMeta)
+        {   
+            pObjectMeta->text_params.font_params = *m_pFont;
+            
+            if (m_hasBgColor)
+            {
+                pObjectMeta->text_params.set_bg_clr = true;
+                pObjectMeta->text_params.text_bg_clr = *m_pBgColor;
+            }
+        }
+    }
+
+    // ********************************************************************
+
     AddDisplayMetaOdeAction::AddDisplayMetaOdeAction(const char* name, 
         DSL_DISPLAY_TYPE_PTR pDisplayType)
         : OdeAction(name)

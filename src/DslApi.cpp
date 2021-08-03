@@ -355,6 +355,33 @@ DslReturnType dsl_ode_action_bbox_format_new(const wchar_t* name, uint border_wi
         border_width, cstrBorderColor.c_str(), has_bg_color, cstrBgColor.c_str());
 }
 
+DslReturnType dsl_ode_action_label_format_new(const wchar_t* name, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    std::string cstrFont;
+    if (font != NULL)
+    {
+        std::wstring wstrFont(font);
+        cstrFont.assign(wstrFont.begin(), wstrFont.end());
+    }
+    
+    std::string cstrBgColor;
+    if (has_bg_color)
+    {
+        RETURN_IF_PARAM_IS_NULL(bg_color);
+        std::wstring wstrBgColor(bg_color);
+        cstrBgColor.assign(wstrBgColor.begin(), wstrBgColor.end());
+    }
+    
+    return DSL::Services::GetServices()->OdeActionLabelFormatNew(cstrName.c_str(), 
+        cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
+}
+    
 DslReturnType dsl_ode_action_custom_new(const wchar_t* name, 
     dsl_ode_handle_occurrence_cb client_hanlder, void* client_data)
 {
