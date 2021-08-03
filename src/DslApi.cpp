@@ -327,6 +327,34 @@ uint dsl_display_type_list_size()
     return DSL::Services::GetServices()->DisplayTypeListSize();
 }
 
+DslReturnType dsl_ode_action_bbox_format_new(const wchar_t* name, uint border_width, 
+    const wchar_t* border_color, boolean has_bg_color, const wchar_t* bg_color)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    std::string cstrBorderColor;
+    if (border_width)
+    {
+        RETURN_IF_PARAM_IS_NULL(border_color);
+        std::wstring wstrBorderColor(border_color);
+        cstrBorderColor.assign(wstrBorderColor.begin(), wstrBorderColor.end());
+    }
+    
+    std::string cstrBgColor;
+    if (has_bg_color)
+    {
+        RETURN_IF_PARAM_IS_NULL(bg_color);
+        std::wstring wstrBgColor(bg_color);
+        cstrBgColor.assign(wstrBgColor.begin(), wstrBgColor.end());
+    }
+    
+    return DSL::Services::GetServices()->OdeActionBBoxFormatNew(cstrName.c_str(), 
+        border_width, cstrBorderColor.c_str(), has_bg_color, cstrBgColor.c_str());
+}
+
 DslReturnType dsl_ode_action_custom_new(const wchar_t* name, 
     dsl_ode_handle_occurrence_cb client_hanlder, void* client_data)
 {
@@ -336,10 +364,12 @@ DslReturnType dsl_ode_action_custom_new(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeActionCustomNew(cstrName.c_str(), client_hanlder, client_data);
+    return DSL::Services::GetServices()->OdeActionCustomNew(cstrName.c_str(), 
+        client_hanlder, client_data);
 }
 
-DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, const wchar_t* outdir, boolean annotate)
+DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, 
+    const wchar_t* outdir, boolean annotate)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(outdir);
@@ -571,6 +601,7 @@ DslReturnType dsl_ode_action_log_new(const wchar_t* name)
     return DSL::Services::GetServices()->OdeActionLogNew(cstrName.c_str());
 }
 
+   
 DslReturnType dsl_ode_action_display_meta_add_new(const wchar_t* name, const wchar_t* display_type)
 {
     RETURN_IF_PARAM_IS_NULL(name);

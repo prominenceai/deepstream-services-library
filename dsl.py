@@ -326,6 +326,19 @@ def dsl_display_type_list_size():
     return int(result)
 
 ##
+## dsl_ode_action_bbox_format_new()
+##
+_dsl.dsl_ode_action_bbox_format_new.argtypes = [c_wchar_p, 
+    c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_ode_action_bbox_format_new.restype = c_uint
+def dsl_ode_action_bbox_format_new(name, 
+    border_width, border_color, has_bg_color, bg_color):
+    global _dsl
+    result =_dsl.dsl_ode_action_bbox_format_new(name, 
+        border_width, border_color, has_bg_color, bg_color)
+    return int(result)
+
+##
 ## dsl_ode_action_custom_new()
 ##
 _dsl.dsl_ode_action_custom_new.argtypes = [c_wchar_p, DSL_ODE_HANDLE_OCCURRENCE, c_void_p]

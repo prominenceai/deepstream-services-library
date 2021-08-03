@@ -40,6 +40,12 @@ namespace DSL
      */
     #define DSL_ODE_ACTION_PTR std::shared_ptr<OdeAction>
 
+    #define DSL_ODE_ACTION_BBOX_FORMAT_PTR std::shared_ptr<FormatBBoxOdeAction>
+    #define DSL_ODE_ACTION_BBOX_FORMAT_NEW(name, \
+        borderWidth, pBorderColor, hasBgColor, pBgColor) \
+        std::shared_ptr<FormatBBoxOdeAction>(new FormatBBoxOdeAction(name, \
+            borderWidth, pBorderColor, hasBgColor, pBgColor))
+        
     #define DSL_ODE_ACTION_CUSTOM_PTR std::shared_ptr<CustomOdeAction>
     #define DSL_ODE_ACTION_CUSTOM_NEW(name, clientHandler, clientData) \
         std::shared_ptr<CustomOdeAction>(new CustomOdeAction(name, clientHandler, clientData))
@@ -158,7 +164,8 @@ namespace DSL
         
     #define DSL_ODE_ACTION_SINK_RECORD_START_PTR std::shared_ptr<RecordSinkStartOdeAction>
     #define DSL_ODE_ACTION_SINK_RECORD_START_NEW(name, pRecordSink, start, duration, clientData) \
-        std::shared_ptr<RecordSinkStartOdeAction>(new RecordSinkStartOdeAction(name, pRecordSink, start, duration, clientData))
+        std::shared_ptr<RecordSinkStartOdeAction>(new RecordSinkStartOdeAction(name, \
+            pRecordSink, start, duration, clientData))
         
     #define DSL_ODE_ACTION_SINK_RECORD_STOP_PTR std::shared_ptr<RecordSinkStopOdeAction>
     #define DSL_ODE_ACTION_SINK_RECORD_STOP_NEW(name, pRecordSink) \
@@ -166,7 +173,8 @@ namespace DSL
         
     #define DSL_ODE_ACTION_TAP_RECORD_START_PTR std::shared_ptr<RecordTapStartOdeAction>
     #define DSL_ODE_ACTION_TAP_RECORD_START_NEW(name, pRecordTap, start, duration, clientData) \
-        std::shared_ptr<RecordTapStartOdeAction>(new RecordTapStartOdeAction(name, pRecordTap, start, duration, clientData))
+        std::shared_ptr<RecordTapStartOdeAction>(new RecordTapStartOdeAction(name, \
+            pRecordTap, start, duration, clientData))
         
     #define DSL_ODE_ACTION_TAP_RECORD_STOP_PTR std::shared_ptr<RecordTapStopOdeAction>
     #define DSL_ODE_ACTION_TAP_RECORD_STOP_NEW(name, pRecordTap) \
@@ -174,7 +182,8 @@ namespace DSL
         
     #define DSL_ODE_ACTION_TILER_SHOW_SOURCE_PTR std::shared_ptr<TilerShowSourceOdeAction>
     #define DSL_ODE_ACTION_TILER_SHOW_SOURCE_NEW(name, tiler, timeout, hasPrecedence) \
-        std::shared_ptr<TilerShowSourceOdeAction>(new TilerShowSourceOdeAction(name, tiler, timeout, hasPrecedence))
+        std::shared_ptr<TilerShowSourceOdeAction>(new TilerShowSourceOdeAction(name, \
+            tiler, timeout, hasPrecedence))
         
         
         
@@ -213,7 +222,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        virtual void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        virtual void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta) = 0;
         
     protected:
@@ -229,6 +239,70 @@ namespace DSL
          * @brief Mutex to ensure mutual exlusion for propery get/sets
          */
         GMutex m_propertyMutex;
+    };
+
+    // ********************************************************************
+
+    /**
+     * @class FormatBBoxOdeAction
+     * @brief Format Bounding Box ODE Action class
+     */
+    class FormatBBoxOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Custom ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] borderWidth line width for the bounding box rectangle
+         * @param[in] pBorderColor shared pointer to an RGBA Color for the border
+         * @param[in] hasBgColor true to fill the background with an RGBA color
+         * @param[in] pBgColor shared pointer to an RGBA fill color to use if 
+         * hasBgColor = true
+         */
+        FormatBBoxOdeAction(const char* name, uint borderWidth,
+            DSL_RGBA_COLOR_PTR pBorderColor, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor);
+        
+        /**
+         * @brief dtor for the ODE Custom Action class
+         */
+        ~FormatBBoxOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by calling the client handler
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief line width to use for the rectengle 
+         */
+        uint m_borderWidth;
+         
+        /**
+         * @brief Color used to Fill the object
+         */
+        DSL_RGBA_COLOR_PTR m_pBorderColor;
+
+        /**
+         * @brief true if the object's bounding box is to be filled with color, 
+         * false otherwise.
+         */
+        bool m_hasBgColor;
+
+        /**
+         * @brief Background color used to Fill the object's bounding box
+         */
+        DSL_RGBA_COLOR_PTR m_pBgColor;
+
     };
 
     // ********************************************************************
@@ -262,7 +336,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -497,12 +572,19 @@ namespace DSL
         /**
          * @brief ctor for the Display ODE Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] offsetX horizontal X-offset for the ODE occurrence data to display
+         * @param[in] offsetX horizontal X-offset for the ODE occurrence 
+         * data to display
          * @param[in] offsetX vertical Y-offset for the ODE occurrence data to display
-         * @param[in] offsetYWithClassId adds an additional offset based on ODE class Id if set true
+         * @param[in] offsetYWithClassId adds an additional offset based 
+         * on ODE class Id if set true
+         * @param[in] pFont shared pointer to an RGBA Font to use for display
+         * @param[in] hasBgColor true to fill the background with an RGBA color
+         * @param[in] pBgColor shared pointer to an RGBA fill color to use if 
+         * hasBgColor = true
          */
-        DisplayOdeAction(const char* name, uint offsetX, uint offsetY, bool offsetYWithClassId,
-            DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor);
+        DisplayOdeAction(const char* name, uint offsetX, uint offsetY, 
+            bool offsetYWithClassId, DSL_RGBA_FONT_PTR pFont, bool hasBgColor, 
+            DSL_RGBA_COLOR_PTR pBgColor);
         
         /**
          * @brief dtor for the Display ODE Action class
@@ -518,7 +600,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
@@ -586,7 +669,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
@@ -630,7 +714,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
@@ -677,7 +762,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
     private:
@@ -716,7 +802,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
@@ -802,7 +889,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
@@ -845,7 +933,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
     private:
@@ -898,7 +987,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
     private:
@@ -937,7 +1027,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
     private:
@@ -976,7 +1067,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
         /**
@@ -1041,7 +1133,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
         /**
@@ -1127,7 +1220,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
@@ -1165,7 +1259,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1213,7 +1308,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1261,7 +1357,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1309,7 +1406,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1356,7 +1454,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pBaseTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1398,7 +1497,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1440,7 +1540,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pBaseTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1482,7 +1583,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1524,7 +1626,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1567,7 +1670,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1614,7 +1718,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1663,7 +1768,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1721,7 +1827,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1766,7 +1873,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1824,7 +1932,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1867,7 +1976,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:

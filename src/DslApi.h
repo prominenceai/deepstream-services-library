@@ -460,6 +460,8 @@ THE SOFTWARE.
  */
 #define DSL_ODE_ANY_SOURCE                                          NULL
 #define DSL_ODE_ANY_CLASS                                           INT32_MAX
+#define DSL_ODE_TRIGGER_LIMIT_NONE                                  0
+#define DSL_ODE_TRIGGER_LIMIT_ONE                                   1
 
 /**
  * @brief Unique class relational identifiers for Class A/B testing
@@ -546,6 +548,15 @@ THE SOFTWARE.
  */
 #define DSL_EVENT_FILE_FORMAT_TEXT                                  0
 #define DSL_EVENT_FILE_FORMAT_CSV                                   1
+
+/**
+ * @brief Label Content Options for Object Label customizaton.
+ */
+#define DSL_META_LABEL_CLASSIFICATION                               1
+#define DSL_META_LABEL_TRACKING_ID                                  2
+#define DSL_META_LABEL_DIMENSIONS                                   3
+#define DSL_META_LABEL_CONFIDENCE                                   4
+#define DSL_META_LABEL_PERSISTENCE                                  5
 
 
 EXTERN_C_BEGIN
@@ -882,9 +893,9 @@ DslReturnType dsl_display_type_rgba_font_new(const wchar_t* name,
  * @param[in] text text string to display
  * @param[in] x_offset starting x positional offset
  * @param[in] y_offset starting y positional offset
- * @param[in] font RGBA font to use for the display dext
- * @param[in] hasBgColor set to true to enable bacground color, false otherwise
- * @param[in] bgColor RGBA Color for the Text background if set
+ * @param[in] font RGBA font to use for the display text
+ * @param[in] has_bg_color set to true to enable background color, false otherwise
+ * @param[in] bg_color RGBA Color for the Text background if set
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_display_type_rgba_text_new(const wchar_t* name, 
@@ -1042,6 +1053,21 @@ DslReturnType dsl_display_type_delete_all();
  * @return the number of Display Types in the list
  */
 uint dsl_display_type_list_size();
+
+/**
+ * @brief Creates a uniquely named "Format Bounding Box" ODE Action that updates 
+ * an Object's RGBA bounding box line width and color. 
+ * Note: setting the line width to 0 will exclude/hide the object's bounding box from view.
+ * @param[in] name unique name for the "Format Bounding Box" ODE Action. 
+ * @param[in] border_width border line width for the object's bounding box. 
+ * Set to 0 to exclude/hide the border from view.
+ * @param[in] border_color RGBA Color for the bounding box.
+ * @param[in] has_bg_color set to true to enable background color, false otherwise
+ * @param[in] bg_color RGBA Color for the Text background if set
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_bbox_format_new(const wchar_t* name, uint border_width, 
+    const wchar_t* border_color, boolean has_bg_color, const wchar_t* bg_color);
 
 /**
  * @brief Creates a uniquely named ODE Custom Action

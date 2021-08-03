@@ -61,6 +61,91 @@ static void ode_occurrence_handler_cb(uint64_t event_id, const wchar_t* name,
     }
 }    
 
+SCENARIO( "A new FormatBBoxOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new FormatBBoxOdeAction" ) 
+    {
+        std::string actionName("ode-action");
+
+        uint borderWidth(10);
+        std::string borderColorName("border-color");
+        bool hasBgColor(true);
+        std::string bgColorName("border-color");
+        
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        DSL_RGBA_COLOR_PTR pBorderColor = DSL_RGBA_COLOR_NEW(borderColorName.c_str(), 
+            red, green, blue, alpha);
+        DSL_RGBA_COLOR_PTR pBgColor = DSL_RGBA_COLOR_NEW(borderColorName.c_str(), 
+            red, green, blue, alpha);
+
+        WHEN( "A new FormatBBoxOdeAction is created" )
+        {
+            DSL_ODE_ACTION_BBOX_FORMAT_PTR pAction = 
+                DSL_ODE_ACTION_BBOX_FORMAT_NEW(actionName.c_str(), 
+                    borderWidth, pBorderColor, hasBgColor, pBgColor);
+
+            THEN( "The Action's members are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A FormatBBoxOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new FormatBBoxOdeAction" ) 
+    {
+        std::string odeTriggerName("first-occurence");
+        std::string source;
+        uint classId(1);
+        uint limit(1);
+
+        std::string actionName("ode-action");
+        uint borderWidth(10);
+        std::string borderColorName("border-color");
+        bool hasBgColor(true);
+        std::string bgColorName("border-color");
+        
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        DSL_RGBA_COLOR_PTR pBorderColor = DSL_RGBA_COLOR_NEW(borderColorName.c_str(), 
+            red, green, blue, alpha);
+        DSL_RGBA_COLOR_PTR pBgColor = DSL_RGBA_COLOR_NEW(borderColorName.c_str(), 
+            red, green, blue, alpha);
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_BBOX_FORMAT_PTR pAction = 
+            DSL_ODE_ACTION_BBOX_FORMAT_NEW(actionName.c_str(), 
+                borderWidth, pBorderColor, hasBgColor, pBgColor);
+
+        WHEN( "A new ODE is created" )
+        {
+            NvDsFrameMeta frameMeta =  {0};
+            frameMeta.bInferDone = true;  // required to process
+            frameMeta.frame_num = 444;
+            frameMeta.ntp_timestamp = INT64_MAX;
+            frameMeta.source_id = 2;
+
+            NvDsObjectMeta objectMeta = {0};
+            objectMeta.class_id = classId; // must match Detections Trigger's classId
+            objectMeta.object_id = INT64_MAX; 
+            objectMeta.rect_params.left = 10;
+            objectMeta.rect_params.top = 10;
+            objectMeta.rect_params.width = 200;
+            objectMeta.rect_params.height = 100;
+            
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+            }
+        }
+    }
+}
+
+
 SCENARIO( "A new CustomOdeAction is created correctly", "[OdeAction]" )
 {
     GIVEN( "Attributes for a new CustomOdeAction" ) 

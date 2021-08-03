@@ -1695,7 +1695,6 @@ namespace DSL
                     {
                         if (CheckDistance(iterA, iterB))
                         {
-                            LOG_WARN("min = " << m_minimum << ", max = " << m_maximum);
                             // event has been triggered
                             m_occurrences++;
                             IncrementAndCheckTriggerCount();
