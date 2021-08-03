@@ -166,6 +166,9 @@ namespace DSL
             
             // Initialize private containers
             m_pInstatnce->InitToStringMaps();
+            
+            // Create the default Display types
+            m_pInstatnce->DisplayTypeCreateIntrinsicTypes();
         }
         return m_pInstatnce;
     }

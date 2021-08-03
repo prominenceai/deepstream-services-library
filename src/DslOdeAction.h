@@ -40,12 +40,6 @@ namespace DSL
      */
     #define DSL_ODE_ACTION_PTR std::shared_ptr<OdeAction>
 
-    #define DSL_ODE_ACTION_BBOX_FORMAT_PTR std::shared_ptr<FormatBBoxOdeAction>
-    #define DSL_ODE_ACTION_BBOX_FORMAT_NEW(name, \
-        borderWidth, pBorderColor, hasBgColor, pBgColor) \
-        std::shared_ptr<FormatBBoxOdeAction>(new FormatBBoxOdeAction(name, \
-            borderWidth, pBorderColor, hasBgColor, pBgColor))
-        
     #define DSL_ODE_ACTION_CUSTOM_PTR std::shared_ptr<CustomOdeAction>
     #define DSL_ODE_ACTION_CUSTOM_NEW(name, clientHandler, clientData) \
         std::shared_ptr<CustomOdeAction>(new CustomOdeAction(name, clientHandler, clientData))
@@ -64,6 +58,10 @@ namespace DSL
     #define DSL_ODE_ACTION_DISPLAY_NEW(name, offsetX, offsetY, offsetYWithClassId, pFont, hasBgColor, pBgColor) \
         std::shared_ptr<DisplayOdeAction>(new DisplayOdeAction(name, \
             offsetX, offsetY, offsetYWithClassId, pFont, hasBgColor, pBgColor))
+
+    #define DSL_ODE_ACTION_DISPLAY_META_ADD_PTR std::shared_ptr<AddDisplayMetaOdeAction>
+    #define DSL_ODE_ACTION_DISPLAY_META_ADD_NEW(name, displayType) \
+        std::shared_ptr<AddDisplayMetaOdeAction>(new AddDisplayMetaOdeAction(name, displayType))
         
     #define DSL_ODE_ACTION_DISABLE_HANDLER_PTR std::shared_ptr<DisableHandlerOdeAction>
     #define DSL_ODE_ACTION_DISABLE_HANDLER_NEW(name, handler) \
@@ -89,6 +87,17 @@ namespace DSL
     #define DSL_ODE_ACTION_FILL_SURROUNDINGS_NEW(name, pColor) \
         std::shared_ptr<FillSurroundingsOdeAction>(new FillSurroundingsOdeAction(name, pColor))
 
+    #define DSL_ODE_ACTION_FORMAT_BBOX_PTR std::shared_ptr<FormatBBoxOdeAction>
+    #define DSL_ODE_ACTION_FORMAT_BBOX_NEW(name, \
+        borderWidth, pBorderColor, hasBgColor, pBgColor) \
+        std::shared_ptr<FormatBBoxOdeAction>(new FormatBBoxOdeAction(name, \
+            borderWidth, pBorderColor, hasBgColor, pBgColor))
+
+    #define DSL_ODE_ACTION_FORMAT_LABEL_PTR std::shared_ptr<FormatLabelOdeAction>
+    #define DSL_ODE_ACTION_FORMAT_LABEL_NEW(name, pFont, hasBgColor, pBgColor) \
+        std::shared_ptr<FormatLabelOdeAction>(new FormatLabelOdeAction(name, \
+            pFont, hasBgColor, pBgColor))
+
     #define DSL_ODE_ACTION_HIDE_PTR std::shared_ptr<HideOdeAction>
     #define DSL_ODE_ACTION_HIDE_NEW(name, text, border) \
         std::shared_ptr<HideOdeAction>(new HideOdeAction(name, text, border))
@@ -96,11 +105,7 @@ namespace DSL
     #define DSL_ODE_ACTION_LOG_PTR std::shared_ptr<LogOdeAction>
     #define DSL_ODE_ACTION_LOG_NEW(name) \
         std::shared_ptr<LogOdeAction>(new LogOdeAction(name))
-        
-    #define DSL_ODE_ACTION_DISPLAY_META_ADD_PTR std::shared_ptr<AddDisplayMetaOdeAction>
-    #define DSL_ODE_ACTION_DISPLAY_META_ADD_NEW(name, displayType) \
-        std::shared_ptr<AddDisplayMetaOdeAction>(new AddDisplayMetaOdeAction(name, displayType))
-        
+
     #define DSL_ODE_ACTION_PAUSE_PTR std::shared_ptr<PauseOdeAction>
     #define DSL_ODE_ACTION_PAUSE_NEW(name, pipeline) \
         std::shared_ptr<PauseOdeAction>(new PauseOdeAction(name, pipeline))
@@ -252,7 +257,7 @@ namespace DSL
     public:
     
         /**
-         * @brief ctor for the Custom ODE Action class
+         * @brief ctor for the Format BBox ODE Action class
          * @param[in] name unique name for the ODE Action
          * @param[in] borderWidth line width for the bounding box rectangle
          * @param[in] pBorderColor shared pointer to an RGBA Color for the border
@@ -264,7 +269,7 @@ namespace DSL
             DSL_RGBA_COLOR_PTR pBorderColor, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor);
         
         /**
-         * @brief dtor for the ODE Custom Action class
+         * @brief dtor for the ODE Format BBox Action class
          */
         ~FormatBBoxOdeAction();
 
@@ -995,6 +1000,64 @@ namespace DSL
     
         std::vector<DSL_DISPLAY_TYPE_PTR> m_pDisplayTypes;
     
+    };
+
+    // ********************************************************************
+
+    /**
+     * @class FormatLabelOdeAction
+     * @brief Format Object Label ODE Action class
+     */
+    class FormatLabelOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Format Label ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] pFont shared pointer to an RGBA Font for the object's label
+         * @param[in] hasBgColor true to fill the label background with an RGBA color
+         * @param[in] pBgColor shared pointer to an RGBA color to use if 
+         * hasBgColor = true
+         */
+        FormatLabelOdeAction(const char* name,
+            DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor);
+        
+        /**
+         * @brief dtor for the ODE Format Label Action class
+         */
+        ~FormatLabelOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by calling the client handler
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief Font to use for the object's label
+         */
+        DSL_RGBA_FONT_PTR m_pFont;
+
+        /**
+         * @brief true if the object's label is to have a background color, 
+         * false otherwise.
+         */
+        bool m_hasBgColor;
+
+        /**
+         * @brief Background color used for the object's label
+         */
+        DSL_RGBA_COLOR_PTR m_pBgColor;
+
     };
 
     // ********************************************************************

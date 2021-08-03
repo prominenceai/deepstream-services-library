@@ -102,9 +102,6 @@ namespace DSL {
         DslReturnType OdeActionCustomNew(const char* name,
             dsl_ode_handle_occurrence_cb clientHandler, void* clientData);
             
-        DslReturnType OdeActionBBoxFormatNew(const char* name,
-            uint borderWidth, const char* borderColor, boolean hasBgColor, const char* bgColor);
-
         DslReturnType OdeActionCaptureFrameNew(const char* name, const char* outdir, boolean annotate);
         
         DslReturnType OdeActionCaptureObjectNew(const char* name, const char* outdir);
@@ -129,6 +126,12 @@ namespace DSL {
         
         DslReturnType OdeActionDisplayNew(const char* name, uint offsetX, uint offsetY, 
             boolean offsetYWithClassId, const char* font, boolean hasBgColor, const char* bgColor);
+
+        DslReturnType OdeActionFormatBBoxNew(const char* name,
+            uint borderWidth, const char* borderColor, boolean hasBgColor, const char* bgColor);
+
+        DslReturnType OdeActionFormatLabelNew(const char* name,
+            const char* font, boolean hasBgColor, const char* bgColor);
         
         DslReturnType OdeActionLogNew(const char* name);
 
@@ -1068,6 +1071,11 @@ namespace DSL {
          * @brief called during construction to intialize all const-to-string maps
          */
         void InitToStringMaps();
+
+        /**
+         * @brief called during construction to intialize the NO type Display Types.
+         */
+        void DisplayTypeCreateIntrinsicTypes();
         
         std::map <uint, std::wstring> m_returnValueToString;
         
@@ -1111,7 +1119,12 @@ namespace DSL {
         uint m_sinkNumInUseMax;
         
         /**
-         * @brief map of all default and custom RGBA colors
+         * @brief map of all default intrinsic RGBA Display Types
+         */
+        std::map<std::string, DSL_BASE_PTR> m_intrinsicDisplayTypes;
+        
+        /**
+         * @brief map of all client created RGBA Display Types
          */
         std::map<std::string, DSL_BASE_PTR> m_displayTypes;
         
@@ -1170,6 +1183,13 @@ namespace DSL {
         std::streambuf* m_stdOutRdBufBackup;
         
     };  
+
+    /**
+     * @brief Intrinsic Display Types created on DSL instantiation.
+     */
+    static const std::string DISPLAY_TYPE_NO_COLOR("no-color");
+    static const std::string DISPLAY_TYPE_NO_FONT("no-font");
+    
 
     static gboolean MainLoopThread(gpointer arg);
 }

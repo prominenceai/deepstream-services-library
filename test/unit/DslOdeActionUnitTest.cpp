@@ -80,8 +80,8 @@ SCENARIO( "A new FormatBBoxOdeAction is created correctly", "[OdeAction]" )
 
         WHEN( "A new FormatBBoxOdeAction is created" )
         {
-            DSL_ODE_ACTION_BBOX_FORMAT_PTR pAction = 
-                DSL_ODE_ACTION_BBOX_FORMAT_NEW(actionName.c_str(), 
+            DSL_ODE_ACTION_FORMAT_BBOX_PTR pAction = 
+                DSL_ODE_ACTION_FORMAT_BBOX_NEW(actionName.c_str(), 
                     borderWidth, pBorderColor, hasBgColor, pBgColor);
 
             THEN( "The Action's members are setup and returned correctly" )
@@ -117,8 +117,8 @@ SCENARIO( "A FormatBBoxOdeAction handles an ODE Occurence correctly", "[OdeActio
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
-        DSL_ODE_ACTION_BBOX_FORMAT_PTR pAction = 
-            DSL_ODE_ACTION_BBOX_FORMAT_NEW(actionName.c_str(), 
+        DSL_ODE_ACTION_FORMAT_BBOX_PTR pAction = 
+            DSL_ODE_ACTION_FORMAT_BBOX_NEW(actionName.c_str(), 
                 borderWidth, pBorderColor, hasBgColor, pBgColor);
 
         WHEN( "A new ODE is created" )
@@ -145,6 +145,106 @@ SCENARIO( "A FormatBBoxOdeAction handles an ODE Occurence correctly", "[OdeActio
     }
 }
 
+SCENARIO( "A new FormatLabelOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new FormatLabelOdeAction" ) 
+    {
+        std::string actionName("ode-action");
+
+        uint borderWidth(10);
+        std::string fontName("label-font");
+        std::string font("arial");
+        uint size(14);
+        std::string fontColorName("black");
+        double redFont(0.0), greenFont(0.0), blueFont(0.0), alphaFont(1.0);
+        
+        bool hasBgColor(true);
+        std::string bgColorName("bg-color");
+        
+        double redBgColor(0.12), greenBgColor(0.34), blueBgColor(0.56), alphaBgColor(0.78);
+        
+        DSL_RGBA_COLOR_PTR pFontColor = DSL_RGBA_COLOR_NEW(fontColorName.c_str(), 
+            redFont, greenFont, blueFont, alphaFont);
+        DSL_RGBA_COLOR_PTR pBgColor = DSL_RGBA_COLOR_NEW(bgColorName.c_str(), 
+            redBgColor, greenBgColor, blueBgColor, alphaBgColor);
+        DSL_RGBA_FONT_PTR pFont = DSL_RGBA_FONT_NEW(fontName.c_str(),
+            font.c_str(), size, pFontColor);
+
+        WHEN( "A new FormatLabelOdeAction is created" )
+        {
+            DSL_ODE_ACTION_FORMAT_LABEL_PTR pAction = 
+                DSL_ODE_ACTION_FORMAT_LABEL_NEW(actionName.c_str(), 
+                    pFont, hasBgColor, pBgColor);
+
+            THEN( "The Action's members are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A FormatLabelOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new FormatLabelOdeAction" ) 
+    {
+        std::string odeTriggerName("first-occurence");
+        std::string source;
+        uint classId(1);
+        uint limit(1);
+
+        std::string actionName("ode-action");
+
+        uint borderWidth(10);
+        std::string fontName("label-font");
+        std::string font("arial");
+        uint size(14);
+        std::string fontColorName("black");
+        double redFont(0.0), greenFont(0.0), blueFont(0.0), alphaFont(1.0);
+        
+        bool hasBgColor(true);
+        std::string bgColorName("bg-color");
+        
+        double redBgColor(0.12), greenBgColor(0.34), blueBgColor(0.56), alphaBgColor(0.78);
+        
+        DSL_RGBA_COLOR_PTR pFontColor = DSL_RGBA_COLOR_NEW(fontColorName.c_str(), 
+            redFont, greenFont, blueFont, alphaFont);
+        DSL_RGBA_COLOR_PTR pBgColor = DSL_RGBA_COLOR_NEW(bgColorName.c_str(), 
+            redBgColor, greenBgColor, blueBgColor, alphaBgColor);
+        DSL_RGBA_FONT_PTR pFont = DSL_RGBA_FONT_NEW(fontName.c_str(),
+            font.c_str(), size, pFontColor);
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_FORMAT_LABEL_PTR pAction = 
+            DSL_ODE_ACTION_FORMAT_LABEL_NEW(actionName.c_str(), 
+                pFont, hasBgColor, pBgColor);
+
+        WHEN( "A new ODE is created" )
+        {
+            NvDsFrameMeta frameMeta =  {0};
+            frameMeta.bInferDone = true;  // required to process
+            frameMeta.frame_num = 444;
+            frameMeta.ntp_timestamp = INT64_MAX;
+            frameMeta.source_id = 2;
+
+            NvDsObjectMeta objectMeta = {0};
+            objectMeta.class_id = classId; // must match Detections Trigger's classId
+            objectMeta.object_id = INT64_MAX; 
+            objectMeta.rect_params.left = 10;
+            objectMeta.rect_params.top = 10;
+            objectMeta.rect_params.width = 200;
+            objectMeta.rect_params.height = 100;
+            
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+            }
+        }
+    }
+}
 
 SCENARIO( "A new CustomOdeAction is created correctly", "[OdeAction]" )
 {

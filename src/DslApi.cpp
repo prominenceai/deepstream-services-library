@@ -327,7 +327,7 @@ uint dsl_display_type_list_size()
     return DSL::Services::GetServices()->DisplayTypeListSize();
 }
 
-DslReturnType dsl_ode_action_bbox_format_new(const wchar_t* name, uint border_width, 
+DslReturnType dsl_ode_action_format_bbox_new(const wchar_t* name, uint border_width, 
     const wchar_t* border_color, boolean has_bg_color, const wchar_t* bg_color)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -351,10 +351,37 @@ DslReturnType dsl_ode_action_bbox_format_new(const wchar_t* name, uint border_wi
         cstrBgColor.assign(wstrBgColor.begin(), wstrBgColor.end());
     }
     
-    return DSL::Services::GetServices()->OdeActionBBoxFormatNew(cstrName.c_str(), 
+    return DSL::Services::GetServices()->OdeActionFormatBBoxNew(cstrName.c_str(), 
         border_width, cstrBorderColor.c_str(), has_bg_color, cstrBgColor.c_str());
 }
 
+DslReturnType dsl_ode_action_format_label_new(const wchar_t* name, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    std::string cstrFont;
+    if (font != NULL)
+    {
+        std::wstring wstrFont(font);
+        cstrFont.assign(wstrFont.begin(), wstrFont.end());
+    }
+    
+    std::string cstrBgColor;
+    if (has_bg_color)
+    {
+        RETURN_IF_PARAM_IS_NULL(bg_color);
+        std::wstring wstrBgColor(bg_color);
+        cstrBgColor.assign(wstrBgColor.begin(), wstrBgColor.end());
+    }
+    
+    return DSL::Services::GetServices()->OdeActionFormatLabelNew(cstrName.c_str(), 
+        cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
+}
+    
 DslReturnType dsl_ode_action_custom_new(const wchar_t* name, 
     dsl_ode_handle_occurrence_cb client_hanlder, void* client_data)
 {

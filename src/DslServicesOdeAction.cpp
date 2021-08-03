@@ -30,8 +30,6 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    #define NO_COLOR "_no_color_"
-    
     DslReturnType Services::OdeActionCustomNew(const char* name,
         dsl_ode_handle_occurrence_cb clientHandler, void* clientData)
     {
@@ -59,73 +57,6 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeActionBBoxFormatNew(const char* name,
-        uint borderWidth, const char* borderColor, boolean hasBgColor, const char* bgColor)  
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure event name uniqueness 
-            if (m_odeActions.find(name) != m_odeActions.end())
-            {   
-                LOG_ERROR("ODE Action name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
-            }
-
-            DSL_RGBA_COLOR_PTR pBorderColor(nullptr);
-            if (borderWidth)
-            {
-                DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, borderColor);
-                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, borderColor, RgbaColor);
-
-                pBorderColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[borderColor]);
-            }
-            else
-            {
-                if (m_displayTypes.find(NO_COLOR) == m_displayTypes.end())
-                {
-                    pBorderColor = DSL_RGBA_COLOR_NEW(NO_COLOR, 0.0, 0.0, 0.0, 0.0);
-                }
-                else
-                {
-                    pBorderColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[NO_COLOR]);
-                }
-            }
-
-            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
-            if (hasBgColor)
-            {
-                DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
-
-                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
-            }
-            else
-            {
-                if (m_displayTypes.find(NO_COLOR) == m_displayTypes.end())
-                {
-                    pBgColor = DSL_RGBA_COLOR_NEW(NO_COLOR, 0.0, 0.0, 0.0, 0.0);
-                }
-                else
-                {
-                    pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[NO_COLOR]);
-                }
-            }
-            m_odeActions[name] = DSL_ODE_ACTION_BBOX_FORMAT_NEW(name, 
-                borderWidth, pBorderColor, hasBgColor, pBgColor);
-                
-            LOG_INFO("New Format Bounding Box ODE Action '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Format Bounding Box ODE Action '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
-        }
-}
 
     DslReturnType Services::OdeActionCaptureFrameNew(const char* name,
         const char* outdir, boolean annotate)
@@ -417,7 +348,8 @@ namespace DSL
             }
             else
             {
-                pBgColor = DSL_RGBA_COLOR_NEW(NO_COLOR, 0.0, 0.0, 0.0, 0.0);
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>
+                    (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
             }
 
             DSL_RGBA_FONT_PTR pFont = 
@@ -606,6 +538,120 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::OdeActionFormatBBoxNew(const char* name,
+        uint borderWidth, const char* borderColor, boolean hasBgColor, const char* bgColor)  
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+
+            DSL_RGBA_COLOR_PTR pBorderColor(nullptr);
+            if (borderWidth)
+            {
+                DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, borderColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, borderColor, RgbaColor);
+
+                pBorderColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[borderColor]);
+            }
+            else
+            {
+                pBorderColor = std::dynamic_pointer_cast<RgbaColor>
+                    (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
+            }
+
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>
+                    (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_FORMAT_BBOX_NEW(name, 
+                borderWidth, pBorderColor, hasBgColor, pBgColor);
+                
+            LOG_INFO("New Format Bounding Box ODE Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Format Bounding Box ODE Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+    
+
+    DslReturnType Services::OdeActionFormatLabelNew(const char* name,
+        const char* font, boolean hasBgColor, const char* bgColor)  
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+
+            DSL_RGBA_FONT_PTR pFont(nullptr);
+            std::string fontString(font);
+            if (fontString.size())
+            {
+                DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+
+                pFont = std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
+            }
+            else
+            {
+                pFont = std::dynamic_pointer_cast<RgbaFont>(
+                    m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_FONT.c_str()]);
+            }
+
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>
+                    (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_FORMAT_LABEL_NEW(name, 
+                pFont, hasBgColor, pBgColor);
+                
+            LOG_INFO("New Format Label ODE Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Format Bounding Box ODE Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::OdeActionHandlerDisableNew(const char* name, const char* handler)
     {
         LOG_FUNC();
@@ -657,7 +703,7 @@ namespace DSL
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
-    
+
     DslReturnType Services::OdeActionLogNew(const char* name)
     {
         LOG_FUNC();

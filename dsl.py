@@ -326,15 +326,15 @@ def dsl_display_type_list_size():
     return int(result)
 
 ##
-## dsl_ode_action_bbox_format_new()
+## dsl_ode_action_format_bbox_new()
 ##
-_dsl.dsl_ode_action_bbox_format_new.argtypes = [c_wchar_p, 
+_dsl.dsl_ode_action_format_bbox_new.argtypes = [c_wchar_p, 
     c_uint, c_wchar_p, c_bool, c_wchar_p]
-_dsl.dsl_ode_action_bbox_format_new.restype = c_uint
-def dsl_ode_action_bbox_format_new(name, 
+_dsl.dsl_ode_action_format_bbox_new.restype = c_uint
+def dsl_ode_action_format_bbox_new(name, 
     border_width, border_color, has_bg_color, bg_color):
     global _dsl
-    result =_dsl.dsl_ode_action_bbox_format_new(name, 
+    result =_dsl.dsl_ode_action_format_bbox_new(name, 
         border_width, border_color, has_bg_color, bg_color)
     return int(result)
 
@@ -503,6 +503,19 @@ _dsl.dsl_ode_action_fill_surroundings_new.restype = c_uint
 def dsl_ode_action_fill_surroundings_new(name, color):
     global _dsl
     result =_dsl.dsl_ode_action_fill_surroundings_new(name, color)
+    return int(result)
+
+##
+## dsl_ode_action_format_label_new()
+##
+_dsl.dsl_ode_action_format_label_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_ode_action_format_label_new.restype = c_uint
+def dsl_ode_action_format_label_new(name, 
+    font, has_bg_color, bg_color):
+    global _dsl
+    result =_dsl.dsl_ode_action_format_label_new(name, 
+        font, has_bg_color, bg_color)
     return int(result)
 
 ##

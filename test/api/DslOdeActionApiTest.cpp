@@ -116,11 +116,11 @@ SCENARIO( "A new Format Bounding Box ODE Action can be created and deleted", "[o
 
         WHEN( "A new Format Bounding Box Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_bbox_format_new(action_name.c_str(), border_width, 
+            REQUIRE( dsl_ode_action_format_bbox_new(action_name.c_str(), border_width, 
                 border_color_name.c_str(), has_bg_color, bg_color_name.c_str()) == DSL_RESULT_SUCCESS );
 
             // second attempt must fail
-            REQUIRE( dsl_ode_action_bbox_format_new(action_name.c_str(), border_width, 
+            REQUIRE( dsl_ode_action_format_bbox_new(action_name.c_str(), border_width, 
                 border_color_name.c_str(), has_bg_color, bg_color_name.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
             
             THEN( "The Format Bounding Box Action can be deleted" ) 
@@ -151,7 +151,7 @@ SCENARIO( "A new Format Bounding Box ODE Action with no Border or Background Col
 
             THEN( "The Format Bounding Box Action can be created" ) 
             {
-                REQUIRE( dsl_ode_action_bbox_format_new(action_name.c_str(), border_width, 
+                REQUIRE( dsl_ode_action_format_bbox_new(action_name.c_str(), border_width, 
                     NULL, has_bg_color, NULL) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -164,7 +164,7 @@ SCENARIO( "A new Format Bounding Box ODE Action with no Border or Background Col
     }
 }
 
-SCENARIO( "A new Format Bounding Box ODE Action verifys its input parameters correctly", "[ode-action-api]" )
+SCENARIO( "A new Format Bounding Box ODE Action verifies its input parameters correctly", "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Format Bounding Box ODE Action" ) 
     {
@@ -174,6 +174,7 @@ SCENARIO( "A new Format Bounding Box ODE Action verifys its input parameters cor
         std::wstring bg_color_name(L"my-bg-color");
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
         
+        uint border_width(5);
         boolean has_bg_color(true);
         
         REQUIRE( dsl_display_type_rgba_color_new(border_color_name.c_str(), 
@@ -184,11 +185,9 @@ SCENARIO( "A new Format Bounding Box ODE Action verifys its input parameters cor
 
         WHEN( "Using input parameters border_width > 0 and a border_coler = NULL" ) 
         {
-            uint border_width(5);
-            
             THEN( "The Format Bounding Box Action will fail to create" ) 
             {
-                REQUIRE( dsl_ode_action_bbox_format_new(action_name.c_str(), border_width, 
+                REQUIRE( dsl_ode_action_format_bbox_new(action_name.c_str(), border_width, 
                     NULL, has_bg_color, bg_color_name.c_str()) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_list_size() == 0 );
@@ -203,10 +202,130 @@ SCENARIO( "A new Format Bounding Box ODE Action verifys its input parameters cor
             
             THEN( "The Format Bounding Box Action will fail to create" ) 
             {
-                REQUIRE( dsl_ode_action_bbox_format_new(action_name.c_str(), border_width, 
+                REQUIRE( dsl_ode_action_format_bbox_new(action_name.c_str(), border_width, 
                     NULL, has_bg_color, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Format Object Label ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Format Object Label ODE Action" ) 
+    {
+        std::wstring action_name(L"format-label-action");
+
+        std::wstring font_name(L"font-name");
+        std::wstring font(L"arial");
+        uint size(14);
+
+        std::wstring font_color_name(L"font-color");
+        std::wstring font_bg_color_name(L"font-bg-color");
+
+        double redFont(0.0), greenFont(0.0), blueFont(0.0), alphaFont(1.0);
+        double redBgColor(0.12), greenBgColor(0.34), blueBgColor(0.56), alphaBgColor(0.78);
+        
+        boolean has_bg_color(true);
+        
+        REQUIRE( dsl_display_type_rgba_color_new(font_color_name.c_str(), 
+            redFont, greenFont, blueFont, alphaFont) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_new(font_bg_color_name.c_str(), 
+            redBgColor, greenBgColor, blueBgColor, alphaBgColor) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_font_new(font_name.c_str(), 
+            font.c_str(), size, font_color_name.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A new Format Bounding Box Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_format_label_new(action_name.c_str(),  
+                font_name.c_str(), has_bg_color, font_bg_color_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+
+            // second attempt must fail
+            REQUIRE( dsl_ode_action_format_label_new(action_name.c_str(),  
+                font_name.c_str(), has_bg_color, font_bg_color_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+            
+            THEN( "The Format Bounding Box Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                
+                // second attempt must fail
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+                
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Format Object Label ODE Action checks its input parameters correctly", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Format Object Label ODE Action" ) 
+    {
+        std::wstring action_name(L"format-label-action");
+
+        std::wstring font_name(L"font-name");
+        std::wstring font(L"arial");
+        uint size(14);
+
+        std::wstring font_color_name(L"font-color");
+        std::wstring font_bg_color_name(L"font-bg-color");
+
+        double redFont(0.0), greenFont(0.0), blueFont(0.0), alphaFont(1.0);
+        double redBgColor(0.12), greenBgColor(0.34), blueBgColor(0.56), alphaBgColor(0.78);
+        
+        REQUIRE( dsl_display_type_rgba_color_new(font_color_name.c_str(), 
+            redFont, greenFont, blueFont, alphaFont) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_new(font_bg_color_name.c_str(), 
+            redBgColor, greenBgColor, blueBgColor, alphaBgColor) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_font_new(font_name.c_str(), 
+            font.c_str(), size, font_color_name.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A new Format ObjectLabel Action is created with NO Font" ) 
+        {
+            REQUIRE( dsl_ode_action_format_label_new(action_name.c_str(),  
+                NULL, true, font_bg_color_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Format Bounding Box Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                
+                // second attempt must fail
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+                
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Format Bounding Box Action is created with NO Background Color" ) 
+        {
+            REQUIRE( dsl_ode_action_format_label_new(action_name.c_str(),  
+                font_name.c_str(), false, NULL) 
+                    == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Format Bounding Box Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                
+                // second attempt must fail
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
                 
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_list_size() == 0 );
