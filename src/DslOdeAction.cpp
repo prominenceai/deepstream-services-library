@@ -82,6 +82,44 @@ namespace DSL
 
     // ********************************************************************
 
+    FormatBBoxOdeAction::FormatBBoxOdeAction(const char* name, uint borderWidth,
+        DSL_RGBA_COLOR_PTR pColor, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
+        : OdeAction(name)
+        , m_borderWidth(borderWidth)
+        , m_pBorderColor(pColor)
+        , m_hasBgColor(hasBgColor)
+        , m_pBgColor(pBgColor)
+    {
+        LOG_FUNC();
+    }
+
+    FormatBBoxOdeAction::~FormatBBoxOdeAction()
+    {
+        LOG_FUNC();
+
+    }
+
+    void FormatBBoxOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled and pObjectMeta)
+        {   
+            pObjectMeta->rect_params.border_width = m_borderWidth;
+            pObjectMeta->rect_params.border_color = *m_pBorderColor;
+            
+            if (m_hasBgColor)
+            {
+                pObjectMeta->rect_params.has_bg_color = true;
+                pObjectMeta->rect_params.bg_color = *m_pBgColor;
+            }
+        }
+    }
+    
+    // ********************************************************************
+
     CustomOdeAction::CustomOdeAction(const char* name, 
         dsl_ode_handle_occurrence_cb clientHandler, void* clientData)
         : OdeAction(name)

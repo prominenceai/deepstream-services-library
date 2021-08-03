@@ -101,6 +101,9 @@ namespace DSL {
          
         DslReturnType OdeActionCustomNew(const char* name,
             dsl_ode_handle_occurrence_cb clientHandler, void* clientData);
+            
+        DslReturnType OdeActionBBoxFormatNew(const char* name,
+            uint borderWidth, const char* borderColor, boolean hasBgColor, const char* bgColor);
 
         DslReturnType OdeActionCaptureFrameNew(const char* name, const char* outdir, boolean annotate);
         

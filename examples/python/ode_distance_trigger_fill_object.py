@@ -95,17 +95,26 @@ def main(args):
         # be filled with a color for visual indication of the events.
         
         #```````````````````````````````````````````````````````````````````````````````````
+
+        # NOTE: will remove use of the hide action once dsl_ode_action_label_format is complete
         # Create a Hide Action to hide all Display Text and Bounding Boxes
-        retval = dsl_ode_action_hide_new('hide-both', text=True, border=True)
+        retval = dsl_ode_action_hide_new('hide-both', text=True, border=False)
         if retval != DSL_RETURN_SUCCESS:
             break
-
+            
+        # Create a Format Bounding Box Action to remove the box border from view
+        retval = dsl_ode_action_bbox_format_new('remove-border', border_width=0,
+            border_color=None, has_bg_color=False, bg_color=None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
         # Create an Any-Class Occurrence Trigger for our Hide Action
         retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', source='uri-source-1',
             class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('every-occurrence-trigger', action='hide-both')
+        retval = dsl_ode_trigger_action_add_many('every-occurrence-trigger', 
+            actions=['hide-both', 'remove-border', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

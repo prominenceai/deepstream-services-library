@@ -128,7 +128,7 @@ SCENARIO( "An OdeOccurrenceTrigger checks its enabled setting ", "[OdeTrigger]" 
     }
 }
 
-SCENARIO( "An OdeOccurrenceTrigger handles a timed reset correctly", "[new]" )
+SCENARIO( "An OdeOccurrenceTrigger handles a timed reset correctly", "[OdeTrigger]" )
 {
     GIVEN( "A new OdeTrigger with default criteria" ) 
     {
