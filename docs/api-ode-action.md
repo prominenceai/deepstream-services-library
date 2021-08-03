@@ -2,7 +2,7 @@
 ODE Actions implement their own "action-specific" event-handler that gets invoked by an ODE Trigger on the occurrence of an Object Detection Event (ODE). The relationship between ODE Triggers and ODE Actions is many-to-many. Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can be added to multiple ODE Triggers.
 
 #### Actions on Metadata
-Several ODE Actions can be created to update the Frame and object Metadata to be rendered by a downstream [On-Screen-Display](/docs/api-osd.md) if added.  See [dsl_ode_action_bbox_format_new](#dsl_ode_action_bbox_format_new), [dsl_ode_action_label_format_new](#dsl_ode_action_label_format_new), [dsl_ode_action_fill_frame_new](#dsl_ode_action_fill_frame_new), [dsl_ode_action_fill_object_new](#dsl_ode_action_fill_object_new).
+Several ODE Actions can be created to update the Frame and object Metadata to be rendered by a downstream [On-Screen-Display](/docs/api-osd.md) if added.  See [dsl_ode_action_format_bbox_new](#dsl_ode_action_format_bbox_new), [dsl_ode_action_format_label_new](#dsl_ode_action_format_label_new), [dsl_ode_action_fill_frame_new](#dsl_ode_action_fill_frame_new), and [dsl_ode_action_fill_object_new](#dsl_ode_action_fill_object_new).
 
 #### Actions on Record Components
 There are two actions that start a new recording session, one for the [Record-Sink](/docs/api-sink.md) created with [dsl_ode_action_sink_record_start_new](#dsl_ode_action_sink_record_start_new) and the other for the [Record-Tap](/docs/api-tap.md) created with [dsl_ode_action_tap_record_start_new](#dsl_ode_action_tap_record_start_new)
@@ -41,7 +41,6 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 * [dsl_ode_action_action_enable_new](#dsl_ode_action_action_enable_new)
 * [dsl_ode_action_area_add_new](#dsl_ode_action_area_add_new)
 * [dsl_ode_action_area_remove_new](#dsl_ode_action_area_remove_new)
-* [dsl_ode_action_bbox_format_new](#dsl_ode_action_bbox_format_new)
 * [dsl_ode_action_custom_new](#dsl_ode_action_custom_new)
 * [dsl_ode_action_capture_frame_new](#dsl_ode_action_capture_frame_new)
 * [dsl_ode_action_capture_object_new](#dsl_ode_action_capture_object_new)
@@ -53,9 +52,10 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 * [dsl_ode_action_fill_frame_new](#dsl_ode_action_fill_frame_new)
 * [dsl_ode_action_fill_object_new](#dsl_ode_action_fill_object_new)
 * [dsl_ode_action_fill_surroundings_new](#dsl_ode_action_fill_surroundings_new)
+* [dsl_ode_action_format_bbox_new](#dsl_ode_action_format_bbox_new)
+* [dsl_ode_action_format_label_new](#dsl_ode_action_format_label_new)
 * [dsl_ode_action_handler_disable_new](#dsl_ode_action_handler_disable_new)
 * [dsl_ode_action_hide_new](#dsl_ode_action_hide_new)
-* [dsl_ode_action_label_format_new](#dsl_ode_action_label_format_new)
 * [dsl_ode_action_log_new](#dsl_ode_action_log_new)
 * [dsl_ode_action_pause_new](#dsl_ode_action_pause_new)
 * [dsl_ode_action_print_new](#dsl_ode_action_print_new)
@@ -272,31 +272,6 @@ The constructor creates a uniquely named **Remove Area** ODE Action. When invoke
 **Python Example**
 ```Python
 retval = dsl_ode_action_area_remove_new('my-remove-area-action', 'my-trigger', 'my-area')
-```
-
-<br>
-
-### *dsl_ode_action_bbox_format_new*
-```C++
-DslReturnType dsl_ode_action_bbox_format_new(const wchar_t* name, uint border_width, 
-    const wchar_t* border_color, boolean has_bg_color, const wchar_t* bg_color);
-```
-The constructor creates a uniquely named **Format Bounding Box** ODE Action. When invoked, this Action updates an Object's RGBA bounding-box line width and color for display by a downstream On-Screen-Display (OSD) component. This action can be used to hide the Object's bounding-box from view.
-
-**Parameters**
-* `name` - [in] unique name for the ODE Action to create.
-* `border_width` - [in] border_width border line-width for the object's bounding box. Use 0 to remove the border from view.
-* `border_color` - [in] unique name of the RGBA Color to use for the bounding box border. Use NULL for no-color when setting `border_width` = 0.
-* `has_bg_color` - [in] set to true to fill the bounding box background color, false otherwise. 
-* `bg_color` - [in] unique name of the RGBA Color to use for the background. Use NULL for no-color when `has_bg_color` = false.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_ode_action_bbox_format_new('my-format-bbox-action', 
-    4, 'my-custom-color, true, 'my-custom-bg-color')
 ```
 
 <br>
@@ -550,6 +525,55 @@ retval = dsl_ode_action_fill_surroundings_new('my-fill-object-action', 'opaque-g
 
 <br>
 
+### *dsl_ode_action_format_bbox_new*
+```C++
+DslReturnType dsl_ode_action_format_bbox_new(const wchar_t* name, uint border_width, 
+    const wchar_t* border_color, boolean has_bg_color, const wchar_t* bg_color);
+```
+The constructor creates a uniquely named **Format Bounding Box** ODE Action. When invoked, this Action updates an Object's RGBA bounding-box line width and color for display by a downstream On-Screen-Display (OSD) component. This action can be used to hide the Object's bounding-box from view.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `border_width` - [in] border_width border line-width for the object's bounding box. Use 0 to remove the border from view.
+* `border_color` - [in] unique name of the RGBA Color to use for the bounding box border. Use NULL for no-color when setting `border_width` = 0.
+* `has_bg_color` - [in] set to true to fill the bounding box background color, false otherwise. 
+* `bg_color` - [in] unique name of the RGBA Color to use for the background. Use NULL for no-color when `has_bg_color` = false.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_format_bbox_new('my-format-bbox-action', 
+    4, 'my-custom-color, true, 'my-custom-bg-color')
+```
+
+<br>
+
+### *dsl_ode_action_format_label_new*
+```C++
+DslReturnType dsl_ode_action_format_label_new(const wchar_t* name, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+```
+The constructor creates a uniquely named **Format Label** ODE Action. When invoked, this Action updates an Object's label font and color for display by a downstream On-Screen-Display (OSD) component. This action can be used to hide the Object's label from view.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `font` - [in] unique name of the RGBA Font to use for the bounding box border. Use NULL to remove the Object's label from view.
+* `has_bg_color` - [in] set to true to fill the bounding box background color, false otherwise. 
+* `bg_color` - [in] unique name of the RGBA Color to use for the background. Use NULL for no-color when `has_bg_color` = false.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_format_label_new('my-format-label-action', 
+    'my-custom-font, true, 'my-custom-bg-color')
+```
+
+<br>
+
 
 ### *dsl_ode_action_handler_disable_new*
 ```C++
@@ -593,30 +617,6 @@ retval = dsl_ode_action_hide_new('my-hide-action', True, True)
 
 <br>
 
-### *dsl_ode_action_label_format_new*
-```C++
-DslReturnType dsl_ode_action_label_format_new(const wchar_t* name, 
-    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
-```
-The constructor creates a uniquely named **Format Label** ODE Action. When invoked, this Action updates an Object's label font and color for display by a downstream On-Screen-Display (OSD) component. This action can be used to hide the Object's label from view.
-
-**Parameters**
-* `name` - [in] unique name for the ODE Action to create.
-* `font` - [in] unique name of the RGBA Font to use for the bounding box border. Use NULL to remove the Object's label from view.
-* `has_bg_color` - [in] set to true to fill the bounding box background color, false otherwise. 
-* `bg_color` - [in] unique name of the RGBA Color to use for the background. Use NULL for no-color when `has_bg_color` = false.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_ode_action_label_format_new('my-format-label-action', 
-    'my-custom-font, true, 'my-custom-bg-color')
-```
-
-<br>
-
 ### *dsl_ode_action_log_new*
 ```C++
 DslReturnType dsl_ode_action_log_new(const wchar_t* name);
@@ -638,7 +638,6 @@ $ export GST_DEBUG=1,DSL:4
 ```Python
 retval = dsl_ode_action_log_new('my-gstreamer-log-action')
 ```
-
 
 <br>
 
