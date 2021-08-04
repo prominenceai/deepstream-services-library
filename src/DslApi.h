@@ -1275,15 +1275,6 @@ DslReturnType dsl_ode_action_format_label_new(const wchar_t* name,
 DslReturnType dsl_ode_action_handler_disable_new(const wchar_t* name, const wchar_t* handler);
 
 /**
- * @brief Creates a uniquely named Hide Object Display ODE Action
- * @param[in] name unique name for the ODE Hide Action 
- * @param[in] if true, hides the Object's Display Text on HandleOccurrence
- * @param[in] if true, hides the Object's Rectangle Border on HandleOccurrence
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_hide_new(const wchar_t* name, boolean text, boolean border);
-
-/**
  * @brief Creates a uniquely named Log ODE Action
  * @param[in] name unique name for the Log ODE Action 
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.

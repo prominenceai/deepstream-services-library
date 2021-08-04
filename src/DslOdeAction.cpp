@@ -1239,41 +1239,6 @@ namespace DSL
 
     // ********************************************************************
 
-    HideOdeAction::HideOdeAction(const char* name, bool text, bool border)
-        : OdeAction(name)
-        , m_hideText(text)
-        , m_hideBorder(border)
-    {
-        LOG_FUNC();
-    }
-
-    HideOdeAction::~HideOdeAction()
-    {
-        LOG_FUNC();
-    }
-
-    void HideOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
-        if (m_enabled and pObjectMeta)
-        {
-            if (m_hideText and (pObjectMeta->text_params.display_text))
-            {
-                pObjectMeta->text_params.set_bg_clr = 0;
-                pObjectMeta->text_params.font_params.font_size = 0;
-            }
-            if (m_hideBorder)
-            {
-                pObjectMeta->rect_params.border_width = 0;
-            }
-        }
-    }
-
-    // ********************************************************************
-
     LogOdeAction::LogOdeAction(const char* name)
         : OdeAction(name)
     {

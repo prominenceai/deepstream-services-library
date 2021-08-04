@@ -97,17 +97,26 @@ def main(args):
         
         #```````````````````````````````````````````````````````````````````````````````````
 
-        # Create a Hide-Area Action to hide all Display Text and Bounding Boxes
-        retval = dsl_ode_action_hide_new('hide-both', text=True, border=True)
+        # Create a Format Label Action to remove the Object Label from view
+        # Note: the label can be disabled with the OSD API as well. 
+        retval = dsl_ode_action_format_label_new('remove-label', 
+            font=None, has_bg_color=False, bg_color=None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Create a Format Bounding Box Action to remove the box border from view
+        retval = dsl_ode_action_format_bbox_new('remove-border', border_width=0,
+            border_color=None, has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Create an Any-Class Occurrence Trigger for our Hide Action
-        retval = dsl_ode_trigger_occurrence_new('any-occurrence-trigger', source=DSL_ODE_ANY_SOURCE,
+        retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', source=DSL_ODE_ANY_SOURCE,
             class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('any-occurrence-trigger', action='hide-both')
+        retval = dsl_ode_trigger_action_add_many('every-occurrence-trigger', 
+            actions=['remove-label', 'remove-border', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -164,7 +173,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_pph_ode_trigger_add_many('ode-handler', 
-            triggers=['any-occurrence-trigger', 'person-occurrence-trigger', None])
+            triggers=['every-occurrence-trigger', 'person-occurrence-trigger', None])
         if retval != DSL_RETURN_SUCCESS:
             break
         
