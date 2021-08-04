@@ -471,6 +471,7 @@ THE SOFTWARE.
 
 #define DSL_AREA_TYPE_INCLUSION                                     0
 #define DSL_AREA_TYPE_EXCLUSION                                     1
+#define DSL_AREA_TYPE_LINE                                          3                         
 
 // Must match NvOSD_Arrow_Head_Direction
 #define DSL_ARROW_START_HEAD                                        0

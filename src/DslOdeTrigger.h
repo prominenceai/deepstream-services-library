@@ -387,16 +387,36 @@ namespace DSL
          * timeout value is set/enabled.
          */
         void IncrementAndCheckTriggerCount();
+
+        /**
+         * @brief Index variable to incremment/assign on ODE Area add.
+         */
+        uint m_nextAreaIndex;
         
         /**
-         * @brief Map of ODE Areas to use for minimum critera
+         * @brief Map of child ODE Areas to use for minimum critera
          */
         std::map <std::string, DSL_BASE_PTR> m_pOdeAreas;
         
         /**
-         * @brief Map of child ODE Actions to invoke on ODE occurrence
+         * @brief Map of child ODE Areas indexed by thier add-order for execution
+         */
+        std::map <uint, DSL_BASE_PTR> m_pOdeAreasIndexed;
+
+        /**
+         * @brief Index variable to incremment/assign on ODE Action add.
+         */
+        uint m_nextActionIndex;
+
+        /**
+         * @brief Map of child ODE Actions owned by this trigger
          */
         std::map <std::string, DSL_BASE_PTR> m_pOdeActions;
+        
+        /**
+         * @brief Map of child ODE Actions indexed by their add-order for execution
+         */
+        std::map <uint, DSL_BASE_PTR> m_pOdeActionsIndexed;
     
         /**
          * @brief Mutex to ensure mutual exlusion for propery get/sets

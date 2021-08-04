@@ -49,6 +49,7 @@ namespace DSL
          */
         Base(const char* name)
             : m_name(name)
+            , m_index(0)
         {
             LOG_FUNC();
         }
@@ -82,6 +83,27 @@ namespace DSL
             LOG_FUNC();
             
             return m_name;
+        }
+        
+        /**
+         * @brief returns the currently assigned Index used for mapping order
+         * @return current index value, default = 0, updated with SetIndex()
+         */
+        uint GetIndex()
+        {
+            LOG_FUNC();
+            
+            return m_index;
+        }
+        
+        /**
+         * @brief sets the Index for map sorting
+         */
+        void SetIndex(uint index)
+        {
+            LOG_FUNC();
+            
+            m_index = index;
         }
         
         /**
@@ -154,7 +176,7 @@ namespace DSL
         
         /**
          * @brief adds a child Object to this parent Object
-         * @param[in] pChild child Object to add to this parent Obejct. 
+         * @param[in] pChild child Object to add. 
          */
         virtual bool AddChild(DSL_BASE_PTR pChild)
         {
@@ -174,8 +196,8 @@ namespace DSL
         }
         
         /**
-         * @brief removed a child Nodetr of this parent Nodetr
-         * @param[in] pChild to remove
+         * @brief removes a child Object from this parent Object
+         * @param[in] pChild child Object to remove.
          */
         virtual bool RemoveChild(DSL_BASE_PTR pChild)
         {
@@ -227,6 +249,11 @@ namespace DSL
          * @brief Unique name for this DSL object
          */
         std::string m_name;
+        
+        /**
+         * @brief Index used when sorting derived objects of DslBase
+         */
+        uint m_index;
 
         /**
          * @brief Unique name of the Parent DSL object if in use.

@@ -62,6 +62,7 @@ namespace DSL
          * @param[in] name unique name for the Area
          * @param[in] pDisplayType a shared pointer to a RGBA Display Type.
          * @param[in] show if true, the area will be displayed by adding meta data
+         * @param[in] 
          */
         OdeArea(const char* name, DSL_DISPLAY_TYPE_PTR pDisplayType, bool show);
 
@@ -101,6 +102,7 @@ namespace DSL
          * once-per-frame-per-source
          */
         std::map<uint, uint64_t> m_frameNumPerSource;
+
     };
     
     class OdePolygonArea : public OdeArea
@@ -116,7 +118,7 @@ namespace DSL
          * @param[in] areaType either DSL_AREA_TYPE_INCLUSION or DSL_AREA_TYPE_EXCLUSION
          */
         OdePolygonArea(const char* name, DSL_RGBA_POLYGON_PTR pPolygon, 
-            bool show, uint bboxTestPoint, uint areaType);
+            bool show, uint bboxTestPoint);
 
         /**
          * @brief dtor for the OdeInclusionArea
@@ -139,12 +141,6 @@ namespace DSL
          * @brief GeosPolygon type created with the Area's display type
          */
         GeosPolygon m_pGeosPolygon;
-        
-        /**
-         * @brief ODE Area type either DSL_AREA_TYPE_INCLUSION or DSL_AREA_TYPE_EXCLUSION
-         */
-        uint m_areaType;
-        
     };
 
 
