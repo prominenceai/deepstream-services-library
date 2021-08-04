@@ -98,10 +98,6 @@ namespace DSL
         std::shared_ptr<FormatLabelOdeAction>(new FormatLabelOdeAction(name, \
             pFont, hasBgColor, pBgColor))
 
-    #define DSL_ODE_ACTION_HIDE_PTR std::shared_ptr<HideOdeAction>
-    #define DSL_ODE_ACTION_HIDE_NEW(name, text, border) \
-        std::shared_ptr<HideOdeAction>(new HideOdeAction(name, text, border))
-        
     #define DSL_ODE_ACTION_LOG_PTR std::shared_ptr<LogOdeAction>
     #define DSL_ODE_ACTION_LOG_NEW(name) \
         std::shared_ptr<LogOdeAction>(new LogOdeAction(name))
@@ -907,55 +903,6 @@ namespace DSL
     
     };
 
-    // ********************************************************************
-
-    /**
-     * @class HideOdeAction
-     * @brief Hide Ode Action class
-     */
-    class HideOdeAction : public OdeAction
-    {
-    public:
-    
-        /**
-         * @brief ctor for the Hide ODE Action class
-         * @param[in] name unique name for the ODE Action
-         * @param[in] text if true, hides the Object's Display Text on HandleOccurrence
-         * @param[in] border if true, hides the Object Rectangle Boarder on HandlerOccurrence 
-         */
-        HideOdeAction(const char* name, bool text, bool border);
-        
-        /**
-         * @brief dtor for the Log ODE Action class
-         */
-        ~HideOdeAction();
-        
-        /**
-         * @brief Handles the ODE occurrence by hiding the Object's Display Text and/or Rectangle Border 
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
-         */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-
-    private:
-    
-        /**
-         * @brief If true, hides the Object's Display Text on HandleOccurrence
-         */
-        bool m_hideText;
-        
-        /**
-         * @brief If true, hides the Object's Rectangle Border on HandlerOccurrence
-         */
-        bool m_hideBorder;
-    
-    };
-        
 
     // ********************************************************************
 

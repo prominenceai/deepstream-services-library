@@ -548,16 +548,6 @@ DslReturnType dsl_ode_action_handler_disable_new(const wchar_t* name, const wcha
         cstrHandler.c_str());
 }
 
-DslReturnType dsl_ode_action_hide_new(const wchar_t* name, boolean text, boolean border)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeActionHideNew(cstrName.c_str(), text, border);
-}
-
 DslReturnType dsl_ode_action_email_new(const wchar_t* name, 
     const wchar_t* mailer, const wchar_t* subject)
 {

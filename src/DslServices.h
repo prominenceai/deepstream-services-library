@@ -149,8 +149,6 @@ namespace DSL {
 
         DslReturnType OdeActionHandlerDisableNew(const char* name, const char* handler);
 
-        DslReturnType OdeActionHideNew(const char* name, boolean text, boolean border);
-        
         DslReturnType OdeActionDisplayMetaAddNew(const char* name, const char* displayType);
         
         DslReturnType OdeActionDisplayMetaAddDisplayType(const char* name, const char* displayType);

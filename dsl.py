@@ -529,16 +529,6 @@ def dsl_ode_action_handler_disable_new(name, handler):
     return int(result)
 
 ##
-## dsl_ode_action_hide_new()
-##
-_dsl.dsl_ode_action_hide_new.argtypes = [c_wchar_p, c_bool, c_bool]
-_dsl.dsl_ode_action_hide_new.restype = c_uint
-def dsl_ode_action_hide_new(name, text, border):
-    global _dsl
-    result =_dsl.dsl_ode_action_hide_new(name, text, border)
-    return int(result)
-
-##
 ## dsl_ode_action_log_new()
 ##
 _dsl.dsl_ode_action_log_new.argtypes = [c_wchar_p]

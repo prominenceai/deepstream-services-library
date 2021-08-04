@@ -171,11 +171,12 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # New Action to hide the display text for each detected object
-        retval = dsl_ode_action_hide_new('hide-text-action', text=True, border=False)
+        # Create a Format Label Action to remove the Object Label from view
+        # Note: the label can be disabled with the OSD API as well. 
+        retval = dsl_ode_action_format_label_new('remove-label', 
+            font=None, has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break
-
 
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Create three new Count triggers while adding their corresponding Fill colors
@@ -227,7 +228,7 @@ def main(args):
             class_id=DSL_ODE_ANY_CLASS, limit=0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('every-object', action='hide-text-action')
+        retval = dsl_ode_trigger_action_add('every-object', action='remove-label')
         if retval != DSL_RETURN_SUCCESS:
             break
 

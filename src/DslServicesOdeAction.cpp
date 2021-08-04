@@ -678,32 +678,6 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeActionHideNew(const char* name, boolean text, boolean border)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure event name uniqueness 
-            if (m_odeActions.find(name) != m_odeActions.end())
-            {   
-                LOG_ERROR("ODE Action name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
-            }
-            m_odeActions[name] = DSL_ODE_ACTION_HIDE_NEW(name, text, border);
-
-            LOG_INFO("New ODE Hide Action '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New ODE Hide Action '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
-        }
-    }
-
     DslReturnType Services::OdeActionLogNew(const char* name)
     {
         LOG_FUNC();

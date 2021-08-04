@@ -55,7 +55,6 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 * [dsl_ode_action_format_bbox_new](#dsl_ode_action_format_bbox_new)
 * [dsl_ode_action_format_label_new](#dsl_ode_action_format_label_new)
 * [dsl_ode_action_handler_disable_new](#dsl_ode_action_handler_disable_new)
-* [dsl_ode_action_hide_new](#dsl_ode_action_hide_new)
 * [dsl_ode_action_log_new](#dsl_ode_action_log_new)
 * [dsl_ode_action_pause_new](#dsl_ode_action_pause_new)
 * [dsl_ode_action_print_new](#dsl_ode_action_print_new)
@@ -592,27 +591,6 @@ The constructor creates a uniquely named **Disable Handler** ODE Action. When in
 **Python Example**
 ```Python
 retval = dsl_ode_action_handler_disable_new('my-disable-handler-action', 'my-handler)
-```
-
-<br>
-
-### *dsl_ode_action_hide_new*
-```C++
-DslReturnType dsl_ode_action_hide_new(const wchar_t* name, boolean text, boolean border);
-```
-The constructor creates a uniquely named **Hide Display Meta** ODE Action. When invoked, this Action will hide the OSD display text and/or rectangle border for the Object Meta that triggered the ODE occurrence.
-
-**Parameters**
-* `name` - [in] unique name for the ODE Action to create.
-* `text` - [in] if true, the action hides the display text for the Object that triggerd the ODE occurrence
-* `border` - [in] if true, the action hides the rectangle border for the Object that triggered the ODE occurrence
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_ode_action_hide_new('my-hide-action', True, True)
 ```
 
 <br>
