@@ -111,6 +111,7 @@ namespace DSL
 
     OdePadProbeHandler::OdePadProbeHandler(const char* name)
         : PadProbeHandler(name)
+        , m_nextTriggerIndex(0)
     {
         LOG_FUNC();
         
@@ -125,6 +126,50 @@ namespace DSL
     {
         LOG_FUNC();
     }
+
+    bool OdePadProbeHandler::AddChild(DSL_BASE_PTR pChild)
+    {
+        LOG_FUNC();
+        
+        if (!Base::AddChild(pChild))
+        {
+            return false;
+        }
+        
+        // increment next index, assign to the Trigger
+        pChild->SetIndex(++m_nextTriggerIndex);
+
+        // Add the child to the Indexed map 
+        m_pChildrenIndexed[m_nextTriggerIndex] = pChild;
+        
+        return true;
+    }
+
+    bool OdePadProbeHandler::RemoveChild(DSL_BASE_PTR pChild)
+    {
+        LOG_FUNC();
+        
+        if (!Base::RemoveChild(pChild))
+        {
+            return false;
+        }
+        
+        // Remove the the child from Indexed map
+        m_pChildrenIndexed.erase(pChild->GetIndex());
+        
+        return true;
+    }
+
+    void OdePadProbeHandler::RemoveAllChildren()
+    {
+        LOG_FUNC();
+        
+        Base::RemoveAllChildren();
+        
+        // Remove all children from Indexed map
+        m_pChildrenIndexed.clear();
+    }
+
     
     GstPadProbeReturn OdePadProbeHandler::HandlePadData(GstPadProbeInfo* pInfo)
     {
@@ -147,7 +192,7 @@ namespace DSL
                 NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(pBatchMeta);
                 
                 // Preprocess the frame
-                for (const auto &imap: m_pChildren)
+                for (const auto &imap: m_pChildrenIndexed)
                 {
                     DSL_ODE_TRIGGER_PTR pOdeTrigger = std::dynamic_pointer_cast<OdeTrigger>(imap.second);
                     pOdeTrigger->PreProcessFrame(pBuffer, pDisplayMeta, pFrameMeta);
@@ -161,7 +206,7 @@ namespace DSL
                     if (pObjectMeta != NULL)
                     {
                         // For each ODE Trigger owned by this ODE Manager, check for ODE
-                        for (const auto &imap: m_pChildren)
+                        for (const auto &imap: m_pChildrenIndexed)
                         {
                             DSL_ODE_TRIGGER_PTR pOdeTrigger = std::dynamic_pointer_cast<OdeTrigger>(imap.second);
                             try
@@ -178,7 +223,7 @@ namespace DSL
                 
                 // After each detected object is checked for ODE individually, post process 
                 // each frame for Absence events, Limit events, etc. (i.e. frame level events).
-                for (const auto &imap: m_pChildren)
+                for (const auto &imap: m_pChildrenIndexed)
                 {
                     DSL_ODE_TRIGGER_PTR pOdeTrigger = std::dynamic_pointer_cast<OdeTrigger>(imap.second);
                     pOdeTrigger->PostProcessFrame(pBuffer, pDisplayMeta, pFrameMeta);

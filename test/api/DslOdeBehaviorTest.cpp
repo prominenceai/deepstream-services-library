@@ -1246,7 +1246,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Forma
     }
 }
 
-SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Format Label Action can play", "[new]" )
+SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Format Label Action can play", "[ode-behavior]" )
 {
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Format Label Action" ) 
     {

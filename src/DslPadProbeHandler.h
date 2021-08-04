@@ -269,12 +269,42 @@ namespace DSL
         ~OdePadProbeHandler();
 
         /**
+         * @brief adds an ODE Trigger to this ODE Pad Probe Handler.
+         * @param[in] pChild child Object to add to this parent Obejct. 
+         */
+        bool AddChild(DSL_BASE_PTR pChild);
+
+        /**
+         * @brief removes a child ODE Trigger from this ODE Pad Probe Handler.
+         * @param[in] pChild to remove
+         */
+        bool RemoveChild(DSL_BASE_PTR pChild);
+
+        /**
+         * @brief removes all childred ODE Triggers from this ODE Pad Probe Handler.
+         */
+        void RemoveAllChildren();
+
+        /**
          * @brief ODE Pad Probe Handler
          * @param[in] pBuffer Pad buffer
-         * @return GstPadProbeReturn see GST reference, one of [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK,
-         * GST_PAD_PROBE_REMOVE, GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
+         * @return GstPadProbeReturn see GST reference, one of [GST_PAD_PROBE_DROP,
+         *  GST_PAD_PROBE_OK,GST_PAD_PROBE_REMOVE, GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
          */
         GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo);
+        
+    private:
+        
+        /**
+         * @brief Index variable to incremment/assign on ODE Action add.
+         */
+        uint m_nextTriggerIndex;
+        
+        /**
+         * @brief Map of child ODE Triggers indexed by their add-order for execution
+         */
+        std::map <uint, DSL_BASE_PTR> m_pChildrenIndexed; 
+        
     };
     
     //----------------------------------------------------------------------------------------------

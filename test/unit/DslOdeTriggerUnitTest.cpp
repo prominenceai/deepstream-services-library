@@ -30,6 +30,44 @@ THE SOFTWARE.
 
 using namespace DSL;
 
+static boolean ode_check_for_occurrence_cb(void* buffer,
+    void* frame_meta, void* object_meta, void* client_data)
+{    
+    return true;
+}
+
+static boolean ode_post_process_frame_cb(void* buffer,
+    void* frame_meta, void* client_data)
+{    
+    return true;
+}
+
+static void ode_occurrence_handler_cb_1(uint64_t event_id, const wchar_t* name,
+    void* buffer, void* frame_meta, void* object_meta, void* client_data)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    std::cout << "Custom Action Calback 1. called\n";
+}    
+
+static void ode_occurrence_handler_cb_2(uint64_t event_id, const wchar_t* name,
+    void* buffer, void* frame_meta, void* object_meta, void* client_data)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    std::cout << "Custom Action Calback 2. called\n";
+}    
+static void ode_occurrence_handler_cb_3(uint64_t event_id, const wchar_t* name,
+    void* buffer, void* frame_meta, void* object_meta, void* client_data)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    std::cout << "Custom Action Calback 3. called\n";
+}    
+
 SCENARIO( "A new OdeOccurreceTrigger is created correctly", "[OdeTrigger]" )
 {
     GIVEN( "Attributes for a new DetectionEvent" ) 
@@ -123,6 +161,70 @@ SCENARIO( "An OdeOccurrenceTrigger checks its enabled setting ", "[OdeTrigger]" 
             THEN( "The ODE is NOT triggered" )
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "An OdeOccurrenceTrigger executes its ODE Actions in the correct order ", "[OdeTrigger]" )
+{
+    GIVEN( "A new OdeTrigger and three print actions" ) 
+    {
+        std::string odeTriggerName("occurence");
+        uint classId(1);
+        uint limit(0); // not limit
+
+        std::string source;
+
+        // The unindexed Child map is order alpha-numerically
+        std::string odeActionName1("1-action");
+        std::string odeActionName2("2-action");
+        std::string odeActionName3("3-action");
+        
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+
+        // Three custom actions using the calbacks defined above. 
+        DSL_ODE_ACTION_CUSTOM_PTR pOdeAction1 = 
+            DSL_ODE_ACTION_CUSTOM_NEW(odeActionName1.c_str(), ode_occurrence_handler_cb_1, NULL);
+        DSL_ODE_ACTION_CUSTOM_PTR pOdeAction2 = 
+            DSL_ODE_ACTION_CUSTOM_NEW(odeActionName2.c_str(), ode_occurrence_handler_cb_2, NULL);
+        DSL_ODE_ACTION_CUSTOM_PTR pOdeAction3 = 
+            DSL_ODE_ACTION_CUSTOM_NEW(odeActionName3.c_str(), ode_occurrence_handler_cb_3, NULL);
+
+        // Frame Meta test data
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  
+        frameMeta.frame_num = 1;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        // Object Meta test data
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match ODE Trigger's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.rect_params.left = 10;
+        objectMeta.rect_params.top = 10;
+        objectMeta.rect_params.width = 200;
+        objectMeta.rect_params.height = 100;
+        
+        WHEN( "The Three actions are added in a specific order" )
+        {
+            // The indexed Child map is ordered by add-order - used for execution.
+            REQUIRE( pOdeTrigger->AddAction(pOdeAction3) == true );        
+            REQUIRE( pOdeTrigger->AddAction(pOdeAction1) == true );        
+            REQUIRE( pOdeTrigger->AddAction(pOdeAction2) == true );        
+            
+            THEN( "The actions are executed in the correct order" )
+            {
+                // Note: this requires manual/visual confirmation at this time.
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
+                
+                // Remove Action 3 and add back in to change order    
+                REQUIRE( pOdeTrigger->RemoveAction(pOdeAction3) == true );        
+                REQUIRE( pOdeTrigger->AddAction(pOdeAction3) == true );        
+                
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
     }
@@ -884,6 +986,89 @@ SCENARIO( "A OdeOccurrenceTrigger checks for Area overlap correctly", "[OdeTrigg
     }
 }
 
+SCENARIO( "A OdeOccurrenceTrigger checks its Areas in the correct order", "[OdeTrigger]" )
+{
+    GIVEN( "A new OdeOccurenceTrigger with criteria" ) 
+    {
+        std::string odeTriggerName("occurence");
+        std::string source;
+        uint classId(1);
+        uint limit(1);
+
+        std::string odeActionName("ode-action");
+        std::string odeAreaName1("1-ode-area");
+        std::string odeAreaName2("2-ode-area");
+
+        std::string polygonName  = "my-polygon";
+        dsl_coordinate coordinates[4] = {{100,100},{200,100},{200, 200},{100,200}};
+        uint numCoordinates(4);
+        uint lineWidth(4);
+
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
+
+        DSL_RGBA_POLYGON_PTR pPolygon = DSL_RGBA_POLYGON_NEW(polygonName.c_str(), 
+            coordinates, numCoordinates, lineWidth, pColor);
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
+
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );     
+
+        DSL_ODE_AREA_INCLUSION_PTR pOdeArea1 =
+            DSL_ODE_AREA_INCLUSION_NEW(odeAreaName1.c_str(), pPolygon, false, DSL_BBOX_POINT_CENTER);
+        DSL_ODE_AREA_EXCLUSION_PTR pOdeArea2 =
+            DSL_ODE_AREA_EXCLUSION_NEW(odeAreaName2.c_str(), pPolygon, false, DSL_BBOX_POINT_CENTER);
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match ODE Trigger's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.confidence = 0.4999; 
+
+        // The P and Object are set so that the Object's Center Point overlaps
+        objectMeta.rect_params.left = 140;
+        objectMeta.rect_params.top = 140;
+        objectMeta.rect_params.width = 20;
+        objectMeta.rect_params.height = 20;
+
+        WHEN( "The Inclusion Area is added first" )
+        {
+                
+            REQUIRE( pOdeTrigger->AddArea(pOdeArea1) == true );
+            REQUIRE( pOdeTrigger->AddArea(pOdeArea2) == true );
+            
+            THEN( "The ODE Occurrence is detected because of the minimum criteria" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL,  
+                    NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The Exclusion Area is added first" )
+        {
+                
+            REQUIRE( pOdeTrigger->AddArea(pOdeArea2) == true );
+            REQUIRE( pOdeTrigger->AddArea(pOdeArea1) == true );
+            
+            THEN( "The ODE Occurrence is NOT detected because of the minimum criteria" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    NULL, &frameMeta, &objectMeta) == false );
+            }
+        }
+    }
+}
+
 SCENARIO( "A OdeAbsenceTrigger checks for Source Name correctly", "[OdeTrigger]" )
 {
     GIVEN( "A new OdeAbsenceTrigger with default criteria" ) 
@@ -1374,17 +1559,6 @@ SCENARIO( "An Intersection OdeTrigger checks for intersection correctly", "[OdeT
     }
 }
 
-static boolean ode_check_for_occurrence_cb(void* buffer,
-    void* frame_meta, void* object_meta, void* client_data)
-{    
-    return true;
-}
-
-static boolean ode_post_process_frame_cb(void* buffer,
-    void* frame_meta, void* client_data)
-{    
-    return true;
-}
 
 SCENARIO( "A Custom OdeTrigger checks for and handles Occurrence correctly", "[OdeTrigger]" )
 {

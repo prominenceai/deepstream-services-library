@@ -58,6 +58,8 @@ namespace DSL
         , m_interval(0)
         , m_intervalCounter(0)
         , m_skipFrame(false)
+        , m_nextAreaIndex(0)
+        , m_nextActionIndex(0)
     {
         LOG_FUNC();
 
@@ -91,8 +93,15 @@ namespace DSL
                 << "' is already a child of ODE Trigger'" << GetName() << "'");
             return false;
         }
-        m_pOdeActions[pChild->GetName()] = pChild;
+        
+        // increment next index, assign to the Action, and update parent releationship.
+        pChild->SetIndex(++m_nextActionIndex);
         pChild->AssignParentName(GetName());
+
+        // Add the shared pointer to child to both Maps, by name and index
+        m_pOdeActions[pChild->GetName()] = pChild;
+        m_pOdeActionsIndexed[m_nextActionIndex] = pChild;
+        
         return true;
     }
 
@@ -106,8 +115,14 @@ namespace DSL
                 <<"' is not a child of ODE Trigger '" << GetName() << "'");
             return false;
         }
+        
+        // Erase the child from both maps
         m_pOdeActions.erase(pChild->GetName());
+        m_pOdeActionsIndexed.erase(pChild->GetIndex());
+        
+        // Clear the parent relationship and index
         pChild->ClearParentName();
+        pChild->SetIndex(0);
         return true;
     }
     
@@ -122,6 +137,7 @@ namespace DSL
             imap.second->ClearParentName();
         }
         m_pOdeActions.clear();
+        m_pOdeActionsIndexed.clear();
     }
     
     bool OdeTrigger::AddArea(DSL_BASE_PTR pChild)
@@ -134,8 +150,14 @@ namespace DSL
                 << "' is already a child of ODE Trigger'" << GetName() << "'");
             return false;
         }
-        m_pOdeAreas[pChild->GetName()] = pChild;
+        // increment next index, assign to the Action, and update parent releationship.
+        pChild->SetIndex(++m_nextAreaIndex);
         pChild->AssignParentName(GetName());
+        
+        // Add the shared pointer to child to both Maps, by name and index
+        m_pOdeAreas[pChild->GetName()] = pChild;
+        m_pOdeAreasIndexed[m_nextAreaIndex] = pChild;
+        
         return true;
     }
 
@@ -149,8 +171,15 @@ namespace DSL
                 <<"' is not a child of ODE Trigger '" << GetName() << "'");
             return false;
         }
+        
+        // Erase the child from both maps
         m_pOdeAreas.erase(pChild->GetName());
+        m_pOdeAreasIndexed.erase(pChild->GetIndex());
+
+        // Clear the parent relationship and index
         pChild->ClearParentName();
+        pChild->SetIndex(0);
+        
         return true;
     }
     
@@ -165,6 +194,7 @@ namespace DSL
             imap.second->ClearParentName();
         }
         m_pOdeAreas.clear();
+        m_pOdeAreasIndexed.clear();
     }
     
     void OdeTrigger::Reset()
@@ -220,7 +250,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_resetTimerMutex);
         
         // If the timer is currently running and the new 
-        // timeout value zero (disabled), then kill the timer.
+        // timeout value is zero (disabled), then kill the timer.
         if (m_resetTimerId and !timeout)
         {
             g_source_remove(m_resetTimerId);
@@ -468,7 +498,7 @@ namespace DSL
         }
 
         // Call on each of the Trigger's Areas to (optionally) display their Rectangle
-        for (const auto &imap: m_pOdeAreas)
+        for (const auto &imap: m_pOdeAreasIndexed)
         {
             DSL_ODE_AREA_PTR pOdeArea = std::dynamic_pointer_cast<OdeArea>(imap.second);
             
@@ -533,14 +563,14 @@ namespace DSL
             return false;
         }
         // If areas are defined, check condition
-        if (m_pOdeAreas.size())
+        if (m_pOdeAreasIndexed.size())
         {
-            for (const auto &imap: m_pOdeAreas)
+            for (const auto &imap: m_pOdeAreasIndexed)
             {
                 DSL_ODE_AREA_PTR pOdeArea = std::dynamic_pointer_cast<OdeArea>(imap.second);
                 if (pOdeArea->CheckForWithin(pObjectMeta->rect_params))
                 {
-                    return true;
+                    return !pOdeArea->IsType(typeid(OdeExclusionArea));
                 }
             }
             return false;
@@ -569,7 +599,7 @@ namespace DSL
         {
             return;
         }
-        for (const auto &imap: m_pOdeActions)
+        for (const auto &imap: m_pOdeActionsIndexed)
         {
             DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
             pOdeAction->HandleOccurrence(shared_from_this(), 
@@ -585,7 +615,7 @@ namespace DSL
         {
             return 0;
         }
-        for (const auto &imap: m_pOdeActions)
+        for (const auto &imap: m_pOdeActionsIndexed)
         {
             DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
             pOdeAction->HandleOccurrence(shared_from_this(), 
@@ -623,7 +653,7 @@ namespace DSL
         // update the total event count static variable
         s_eventCount++;
 
-        for (const auto &imap: m_pOdeActions)
+        for (const auto &imap: m_pOdeActionsIndexed)
         {
             DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
             try
@@ -686,7 +716,7 @@ namespace DSL
         // update the total event count static variable
         s_eventCount++;
 
-        for (const auto &imap: m_pOdeActions)
+        for (const auto &imap: m_pOdeActionsIndexed)
         {
             DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
             pOdeAction->HandleOccurrence(shared_from_this(), 
@@ -770,7 +800,7 @@ namespace DSL
          // update the total event count static variable
         s_eventCount++;
 
-        for (const auto &imap: m_pOdeActions)
+        for (const auto &imap: m_pOdeActionsIndexed)
         {
             DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
             pOdeAction->HandleOccurrence(shared_from_this(), 
@@ -833,7 +863,7 @@ namespace DSL
             // update the total event count static variable
             s_eventCount++;
 
-            for (const auto &imap: m_pOdeActions)
+            for (const auto &imap: m_pOdeActionsIndexed)
             {
                 DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
                 try
@@ -893,7 +923,7 @@ namespace DSL
          // update the total event count static variable
         s_eventCount++;
 
-        for (const auto &imap: m_pOdeActions)
+        for (const auto &imap: m_pOdeActionsIndexed)
         {
             DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
             pOdeAction->HandleOccurrence(shared_from_this(), 
@@ -949,7 +979,7 @@ namespace DSL
         // update the total event count static variable
         s_eventCount++;
 
-        for (const auto &imap: m_pOdeActions)
+        for (const auto &imap: m_pOdeActionsIndexed)
         {
             DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
             pOdeAction->HandleOccurrence(shared_from_this(), 
@@ -986,7 +1016,7 @@ namespace DSL
          // update the total event count static variable
         s_eventCount++;
 
-        for (const auto &imap: m_pOdeActions)
+        for (const auto &imap: m_pOdeActionsIndexed)
         {
             DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
             pOdeAction->HandleOccurrence(shared_from_this(), pBuffer, pDisplayMeta, pFrameMeta, NULL);
@@ -1114,7 +1144,7 @@ namespace DSL
 					// update the total event count static variable
 					s_eventCount++;
 		
-					for (const auto &imap: m_pOdeActions)
+					for (const auto &imap: m_pOdeActionsIndexed)
 					{
 						DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
 						pOdeAction->HandleOccurrence(shared_from_this(), 
@@ -1221,7 +1251,7 @@ namespace DSL
          // update the total event count static variable
         s_eventCount++;
 
-        for (const auto &imap: m_pOdeActions)
+        for (const auto &imap: m_pOdeActionsIndexed)
         {
             DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
             pOdeAction->HandleOccurrence(shared_from_this(), 
@@ -1285,7 +1315,7 @@ namespace DSL
                     smallestObject = ivec;    
                 }
             }
-            for (const auto &imap: m_pOdeActions)
+            for (const auto &imap: m_pOdeActionsIndexed)
             {
                 DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
                 
@@ -1354,7 +1384,7 @@ namespace DSL
                     largestObject = ivec;    
                 }
             }
-            for (const auto &imap: m_pOdeActions)
+            for (const auto &imap: m_pOdeActionsIndexed)
             {
                 DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
                 
@@ -1424,7 +1454,7 @@ namespace DSL
          // update the total event count static variable
         s_eventCount++;
 
-        for (const auto &imap: m_pOdeActions)
+        for (const auto &imap: m_pOdeActionsIndexed)
         {
             DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
             pOdeAction->HandleOccurrence(shared_from_this(), 
@@ -1489,7 +1519,7 @@ namespace DSL
          // update the total event count static variable
         s_eventCount++;
 
-        for (const auto &imap: m_pOdeActions)
+        for (const auto &imap: m_pOdeActionsIndexed)
         {
             DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
             pOdeAction->HandleOccurrence(shared_from_this(), 
@@ -1651,7 +1681,7 @@ namespace DSL
                          // update the total event count static variable
                         s_eventCount++;
 
-                        for (const auto &imap: m_pOdeActions)
+                        for (const auto &imap: m_pOdeActionsIndexed)
                         {
                             DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
                             
@@ -1702,7 +1732,7 @@ namespace DSL
                              // update the total event count static variable
                             s_eventCount++;
 
-                            for (const auto &imap: m_pOdeActions)
+                            for (const auto &imap: m_pOdeActionsIndexed)
                             {
                                 DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
                                 
@@ -1877,7 +1907,7 @@ namespace DSL
                          // update the total event count static variable
                         s_eventCount++;
 
-                        for (const auto &imap: m_pOdeActions)
+                        for (const auto &imap: m_pOdeActionsIndexed)
                         {
                             DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
                             
@@ -1931,7 +1961,7 @@ namespace DSL
                              // update the total event count static variable
                             s_eventCount++;
 
-                            for (const auto &imap: m_pOdeActions)
+                            for (const auto &imap: m_pOdeActionsIndexed)
                             {
                                 DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
                                 

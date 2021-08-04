@@ -72,11 +72,10 @@ namespace DSL
     // *****************************************************************************
 
     OdePolygonArea::OdePolygonArea(const char* name, 
-        DSL_RGBA_POLYGON_PTR pPolygon, bool show, uint bboxTestPoint, uint areaType)
+        DSL_RGBA_POLYGON_PTR pPolygon, bool show, uint bboxTestPoint)
         : OdeArea(name, pPolygon, show)
         , m_pGeosPolygon(*pPolygon)
         , m_bboxTestPoint(bboxTestPoint)
-        , m_areaType(areaType)
     {
         LOG_FUNC();
     }
@@ -97,13 +96,9 @@ namespace DSL
         switch (m_bboxTestPoint)
         {
         case DSL_BBOX_POINT_ANY :
-            result = m_pGeosPolygon.Overlaps(testPolygon) or
+            return result = m_pGeosPolygon.Overlaps(testPolygon) or
                 m_pGeosPolygon.Contains(testPolygon);
-            if (m_areaType == DSL_AREA_TYPE_INCLUSION)
-            {
-                return result;
-            }
-            return !result;
+                
         case DSL_BBOX_POINT_CENTER :
             x = round(bbox.left + bbox.width/2);
             y = round(bbox.top + bbox.height/2);
@@ -147,21 +142,14 @@ namespace DSL
         }
         
         GeosPoint testPoint(x,y);
-        result = m_pGeosPolygon.Contains(testPoint);
-
-        if (m_areaType == DSL_AREA_TYPE_INCLUSION)
-        {
-            return result;
-        }
-        return !result;
+        return m_pGeosPolygon.Contains(testPoint);
     }
     
     // *****************************************************************************
     
     OdeInclusionArea::OdeInclusionArea(const char* name, 
         DSL_RGBA_POLYGON_PTR pPolygon, bool show, uint bboxTestPoint)
-        : OdePolygonArea(name, pPolygon, 
-            show, bboxTestPoint, DSL_AREA_TYPE_INCLUSION)
+        : OdePolygonArea(name, pPolygon, show, bboxTestPoint)
     {
         LOG_FUNC();
     }
@@ -175,8 +163,7 @@ namespace DSL
     
     OdeExclusionArea::OdeExclusionArea(const char* name, 
         DSL_RGBA_POLYGON_PTR pPolygon, bool show, uint bboxTestPoint)
-        : OdePolygonArea(name, pPolygon, 
-            show, bboxTestPoint, DSL_AREA_TYPE_EXCLUSION)
+        : OdePolygonArea(name, pPolygon, show, bboxTestPoint)
     {
         LOG_FUNC();
     }
