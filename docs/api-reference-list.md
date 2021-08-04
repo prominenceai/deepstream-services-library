@@ -407,7 +407,6 @@
 * [dsl_ode_action_format_bbox_new](/docs/api-ode-action.md#dsl_ode_action_format_bbox_new)
 * [dsl_ode_action_format_label_new](/docs/api-ode-action.md#dsl_ode_action_format_label_new)
 * [dsl_ode_action_handler_disable_new](/docs/api-ode-action.md#dsl_ode_action_handler_disable_new)
-* [dsl_ode_action_hide_new](/docs/api-ode-action.md#dsl_ode_action_hide_new)
 * [dsl_ode_action_log_new](/docs/api-ode-action.md#dsl_ode_action_log_new)
 * [dsl_ode_action_pause_new](/docs/api-ode-action.md#dsl_ode_action_pause_new)
 * [dsl_ode_action_print_new](/docs/api-ode-action.md#dsl_ode_action_print_new)
