@@ -580,6 +580,95 @@ SCENARIO( "A Mailer can be added and removed from a Capture Action", "[ode-actio
     }
 }    
 
+SCENARIO( "A new Customze Label ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Display ODE Action" ) 
+    {
+        std::wstring action_name(L"customize-label-action");
+        uint label_types[] = {DSL_OBJECT_LABEL_LOCATION,
+            DSL_OBJECT_LABEL_DIMENSIONS, DSL_OBJECT_LABEL_CONFIDENCE,
+            DSL_OBJECT_LABEL_PERSISTENCE};
+
+        uint mode(DSL_WRITE_MODE_TRUNCATE);
+        uint size(4);
+
+        WHEN( "A new Display Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
+                label_types, size, mode) == DSL_RESULT_SUCCESS );
+
+            // second attempt must fail
+            REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
+                label_types, size, mode) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+            
+            THEN( "The Display Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+
+                // second attempt must fail
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == 
+                    DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+                
+                REQUIRE( dsl_display_type_list_size() == 0 );
+                
+            }
+        }
+        WHEN( "A new Display Action is created with an empty list" ) 
+        {
+            REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
+                NULL, 0, mode) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Display Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+
+                REQUIRE( dsl_display_type_list_size() == 0 );
+                
+            }
+        }
+    }
+}
+
+SCENARIO( "Parameters for a new Customze Label ODE Action are checked on construction", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Customze Label ODE Action" ) 
+    {
+        std::wstring action_name(L"customize-label-action");
+        uint label_types[] = {DSL_OBJECT_LABEL_LOCATION,
+            DSL_OBJECT_LABEL_DIMENSIONS, DSL_OBJECT_LABEL_CONFIDENCE,
+            DSL_OBJECT_LABEL_PERSISTENCE};
+
+        WHEN( "The mode parameter is out of range" ) 
+        {
+            uint mode(DSL_WRITE_MODE_TRUNCATE+1);
+            uint size(4);
+            
+            THEN( "The Customize Label Action fails to create" ) 
+            {
+                REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
+                    label_types, 4, mode) == DSL_RESULT_ODE_ACTION_PARAMETER_INVALID );
+
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+        WHEN( "The format parameter is out of range" ) 
+        {
+            uint mode(DSL_WRITE_MODE_TRUNCATE);
+            uint size(5);
+            
+            THEN( "The Customize Label Action fails to create" ) 
+            {
+                REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
+                    label_types, size, mode) == DSL_RESULT_ODE_ACTION_PARAMETER_INVALID );
+
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
 
 SCENARIO( "A new Display ODE Action can be created and deleted", "[ode-action-api]" )
 {
@@ -756,7 +845,7 @@ SCENARIO( "A new File ODE Action can be created and deleted", "[ode-action-api]"
     {
         std::wstring action_name(L"file-action");
         std::wstring file_path(L"./file-action.txt");
-        uint mode(DSL_EVENT_FILE_MODE_TRUNCATE);
+        uint mode(DSL_WRITE_MODE_TRUNCATE);
         uint format(DSL_EVENT_FILE_FORMAT_TEXT);
         boolean force_flush(true);
 
@@ -798,7 +887,7 @@ SCENARIO( "Parameters for a new File ODE Action are checked on construction", "[
 
         WHEN( "The mode parameter is out of range" ) 
         {
-            uint mode(DSL_EVENT_FILE_MODE_TRUNCATE+1);
+            uint mode(DSL_WRITE_MODE_TRUNCATE+1);
             uint format(DSL_EVENT_FILE_FORMAT_TEXT);
             
             THEN( "The File Action fails to create" ) 
@@ -811,7 +900,7 @@ SCENARIO( "Parameters for a new File ODE Action are checked on construction", "[
         }
         WHEN( "The format parameter is out of range" ) 
         {
-            uint mode(DSL_EVENT_FILE_MODE_TRUNCATE);
+            uint mode(DSL_WRITE_MODE_TRUNCATE);
             uint format(DSL_EVENT_FILE_FORMAT_CSV+1);
             
             THEN( "The File Action fails to create" ) 
@@ -1647,12 +1736,15 @@ SCENARIO( "The ODE Action API checks for NULL input parameters", "[ode-action-ap
                 REQUIRE( dsl_ode_action_capture_object_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
+                REQUIRE( dsl_ode_action_customize_label_new(NULL,
+                    NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+
                 REQUIRE( dsl_ode_action_display_new(NULL, 0, 0, false, NULL, false, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_display_new(action_name.c_str(), 0, 0, false, NULL, false, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_file_new(NULL, NULL, DSL_EVENT_FILE_MODE_APPEND, 
+                REQUIRE( dsl_ode_action_file_new(NULL, NULL, DSL_WRITE_MODE_APPEND, 
                     DSL_EVENT_FILE_FORMAT_TEXT, false) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_file_new(action_name.c_str(), NULL, DSL_EVENT_FILE_MODE_APPEND,
+                REQUIRE( dsl_ode_action_file_new(action_name.c_str(), NULL, DSL_WRITE_MODE_APPEND,
                     DSL_EVENT_FILE_FORMAT_TEXT, false) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_fill_frame_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );

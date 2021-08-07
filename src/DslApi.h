@@ -539,25 +539,26 @@ THE SOFTWARE.
 #define DSL_RECORDING_EVENT_END                                     1
 
 /**
- * @brief File Open/Write Mode Options when saving Event Data to file.
- */
-#define DSL_EVENT_FILE_MODE_APPEND                                  0
-#define DSL_EVENT_FILE_MODE_TRUNCATE                                1
-
-/**
  * @brief File Format Options when saving Event Data to file.
  */
 #define DSL_EVENT_FILE_FORMAT_TEXT                                  0
 #define DSL_EVENT_FILE_FORMAT_CSV                                   1
 
 /**
- * @brief Label Content Options for Object Label customizaton.
+ * @brief File Open/Write Mode Options when saving Event Data 
+ * to file, and when adding custom Object Label Content
+ * 
  */
-#define DSL_META_LABEL_CLASSIFICATION                               1
-#define DSL_META_LABEL_TRACKING_ID                                  2
-#define DSL_META_LABEL_DIMENSIONS                                   3
-#define DSL_META_LABEL_CONFIDENCE                                   4
-#define DSL_META_LABEL_PERSISTENCE                                  5
+#define DSL_WRITE_MODE_APPEND                                       0
+#define DSL_WRITE_MODE_TRUNCATE                                     1
+
+/**
+ * @brief Content Options for Object Label customizaton.
+ */
+#define DSL_OBJECT_LABEL_LOCATION                                   0
+#define DSL_OBJECT_LABEL_DIMENSIONS                                 1
+#define DSL_OBJECT_LABEL_CONFIDENCE                                 2
+#define DSL_OBJECT_LABEL_PERSISTENCE                                3
 
 EXTERN_C_BEGIN
 
@@ -1055,16 +1056,6 @@ DslReturnType dsl_display_type_delete_all();
 uint dsl_display_type_list_size();
 
 /**
- * @brief Creates a uniquely named ODE Custom Action
- * @param[in] name unique name for the ODE Custom Action 
- * @param[in] client_handler function to call on ODE occurrence
- * @param[in] client_data opaue pointer to client's user data, returned on callback
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_custom_new(const wchar_t* name, 
-    dsl_ode_handle_occurrence_cb client_handler, void* client_data);
-
-/**
  * @brief Creates a uniquely named Capture Frame ODE Action
  * @param[in] name unique name for the Capture Frame ODE Action 
  * @param[in] outdir absolute or relative path to image capture directory 
@@ -1143,6 +1134,28 @@ DslReturnType dsl_ode_action_capture_mailer_add(const wchar_t* name,
  */
 DslReturnType dsl_ode_action_capture_mailer_remove(const wchar_t* name, 
     const wchar_t* mailer);
+
+/**
+ * @brief Creates a uniquely named ODE Custom Action
+ * @param[in] name unique name for the ODE Custom Action 
+ * @param[in] client_handler function to call on ODE occurrence
+ * @param[in] client_data opaue pointer to client's user data, returned on callback
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_custom_new(const wchar_t* name, 
+    dsl_ode_handle_occurrence_cb client_handler, void* client_data);
+
+/**
+ * @brief Creates a uniquely named "Customize Object Label" ODE Action that updates 
+ * an Object's label to display specific content.
+ * @param[in] name unique name for the "Customize Object Label ODE Action. 
+ * @param[in] content_types an array of DSL_OBJECT_LABEL_<type> constants.
+ * @param[in] size of the content_types array 
+ * @param[im] mode write mode, either DSL_WRITE_MODE_APPEND or DSL_WRITE_MODE_TRUNCATE
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_customize_label_new(const wchar_t* name,  
+    const uint* content_types, uint size, uint mode);
     
 /**
  * @brief Creates a uniquely named Display ODE Action

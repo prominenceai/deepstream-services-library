@@ -510,6 +510,18 @@ DslReturnType dsl_ode_action_capture_mailer_remove(const wchar_t* name,
     return DSL::Services::GetServices()->OdeActionCaptureMailerRemove(
         cstrName.c_str(), cstrMailer.c_str());
 }
+
+DslReturnType dsl_ode_action_customize_label_new(const wchar_t* name,  
+    const uint* content_types, uint size, uint mode)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionCustomizeLabelNew(
+        cstrName.c_str(), content_types, size, mode);
+}    
     
 DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offset_x, uint offset_y, 
     boolean offset_y_with_classId, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
@@ -646,7 +658,7 @@ DslReturnType dsl_ode_action_display_meta_add_many_new(const wchar_t* name, cons
     uint retval = DSL::Services::GetServices()->OdeActionDisplayMetaAddNew(cstrName.c_str(), 
         cstrType.c_str());
 
-    for (const wchar_t** display_type = display_types+1; *display_type; display_type++)
+    for (const wchar_t** display_type = display_types; *display_type; display_type++)
     {
         wstrType.assign(*display_type);
         cstrType.assign(wstrType.begin(), wstrType.end());

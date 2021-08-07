@@ -123,10 +123,13 @@ namespace DSL {
         
         DslReturnType OdeActionCaptureMailerRemove(const char* name,
             const char* mailer);
+
+        DslReturnType OdeActionCustomizeLabelNew(const char* name, 
+            const uint* contentTypes, uint size, uint mode);
         
         DslReturnType OdeActionDisplayNew(const char* name, uint offsetX, uint offsetY, 
             boolean offsetYWithClassId, const char* font, boolean hasBgColor, const char* bgColor);
-
+            
         DslReturnType OdeActionFormatBBoxNew(const char* name,
             uint borderWidth, const char* borderColor, boolean hasBgColor, const char* bgColor);
 

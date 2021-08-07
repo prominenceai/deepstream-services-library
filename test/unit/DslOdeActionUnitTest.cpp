@@ -435,6 +435,127 @@ SCENARIO( "An CaptureOdeAction calls all Listeners on Capture Complete", "[OdeAc
     }
 }
 
+SCENARIO( "A new CustomLabelOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new CustomLabelOdeAction" ) 
+    {
+        std::string actionName("ode-action");
+        const std::vector<uint> label_types = {DSL_OBJECT_LABEL_LOCATION,
+            DSL_OBJECT_LABEL_DIMENSIONS, DSL_OBJECT_LABEL_CONFIDENCE,
+            DSL_OBJECT_LABEL_PERSISTENCE};
+        uint mode(DSL_WRITE_MODE_APPEND);
+
+        WHEN( "A new OdeAction is created with an array of content types" )
+        {
+            DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR pAction = DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(
+                actionName.c_str(), label_types, mode);
+
+            THEN( "The Action's members are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+        WHEN( "A new OdeAction is created with an array of content types" )
+        {
+            std::vector<uint> label_types;
+            
+            DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR pAction = DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(
+                actionName.c_str(), label_types, mode);
+
+            THEN( "The Action's members are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A CustomLabelOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new CustomLabelOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        std::string source;
+        uint classId(1);
+        uint limit(1);
+        
+        
+        std::string actionName("ode-action");
+        const std::vector<uint> label_types = {DSL_OBJECT_LABEL_LOCATION,
+            DSL_OBJECT_LABEL_DIMENSIONS, DSL_OBJECT_LABEL_CONFIDENCE,
+        DSL_OBJECT_LABEL_PERSISTENCE};
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
+        
+        std::string defaultLabel("Person 123");
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  // required to process
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match Trigger's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.rect_params.left = 10;
+        objectMeta.rect_params.top = 10;
+        objectMeta.rect_params.width = 200;
+        objectMeta.rect_params.height = 100;
+        
+        objectMeta.text_params.display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
+        defaultLabel.copy(objectMeta.text_params.display_text, defaultLabel.size(), 0);
+
+        WHEN( "A the Action is created with mode = DSL_WRITE_MODE_APPEND" )
+        {
+            DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR pAction = DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(
+                actionName.c_str(), label_types, DSL_WRITE_MODE_APPEND);
+
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                std::string expectedLabel("Person 123 | L:10,10 | D:200x100 | C:0.000000");
+                
+                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                std::string actualLabel(objectMeta.text_params.display_text);
+                REQUIRE( actualLabel == expectedLabel );
+            }
+        }
+        WHEN( "A the Action is created with mode = DSL_WRITE_MODE_APPEND" )
+        {
+            DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR pAction = DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(
+                actionName.c_str(), label_types, DSL_WRITE_MODE_TRUNCATE);
+
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                std::string expectedLabel("L:10,10 | D:200x100 | C:0.000000");
+
+                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                std::string actualLabel(objectMeta.text_params.display_text);
+                REQUIRE( actualLabel == expectedLabel );
+            }
+        }
+        WHEN( "A the Action is created with mode = DSL_WRITE_MODE_TRUNCATE and 0 label_types" )
+        {
+            std::vector<uint> label_types;
+            
+            DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR pAction = DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(
+                actionName.c_str(), label_types, DSL_WRITE_MODE_TRUNCATE);
+
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                std::string expectedLabel("");
+
+                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                std::string actualLabel(objectMeta.text_params.display_text);
+                REQUIRE( actualLabel == expectedLabel );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new EmailOdeAction is created correctly", "[OdeAction]" )
 {
     GIVEN( "Attributes for a new EmailOdeAction" ) 
@@ -512,7 +633,7 @@ SCENARIO( "A new Text FileOdeAction is created correctly", "[OdeAction]" )
     {
         std::string actionName("ode-action");
         std::string filePath("./event-file.txt");
-        uint mode(DSL_EVENT_FILE_MODE_APPEND);
+        uint mode(DSL_WRITE_MODE_APPEND);
         uint format(DSL_EVENT_FILE_FORMAT_TEXT);
         bool forceFlush(true);
 
@@ -541,7 +662,7 @@ SCENARIO( "A new CSV FileOdeAction is created correctly", "[OdeAction]" )
         WHEN( "A new CSV FileOdeAction is created in APPEND mode" )
         {
             std::string filePath("./event-file-append.csv");
-            uint mode(DSL_EVENT_FILE_MODE_APPEND);
+            uint mode(DSL_WRITE_MODE_APPEND);
 
             // create the action and CSV file once
             {
@@ -565,7 +686,7 @@ SCENARIO( "A new CSV FileOdeAction is created correctly", "[OdeAction]" )
         WHEN( "A new CSV FileOdeAction is created in TRUNCATE mode" )
         {
             std::string filePath("./event-file-truncate.csv");
-            uint mode(DSL_EVENT_FILE_MODE_TRUNCATE);
+            uint mode(DSL_WRITE_MODE_TRUNCATE);
             
             DSL_ODE_ACTION_FILE_PTR pAction = DSL_ODE_ACTION_FILE_NEW(
                 actionName.c_str(), filePath.c_str(), mode, format, forceFlush);
@@ -590,7 +711,7 @@ SCENARIO( "A FileOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
         
         std::string actionName("action");
         std::string filePath("./my-file.txt");
-        uint mode(DSL_EVENT_FILE_MODE_APPEND);
+        uint mode(DSL_WRITE_MODE_APPEND);
         uint format(DSL_EVENT_FILE_FORMAT_CSV);
         bool forceFlush(false);
 
@@ -620,7 +741,7 @@ SCENARIO( "A FileOdeAction with forceFlush set flushes the stream correctly", "[
     {
         std::string triggerName("first-occurence");
         std::string source;
-        uint mode(DSL_EVENT_FILE_MODE_APPEND);
+        uint mode(DSL_WRITE_MODE_APPEND);
         uint format(DSL_EVENT_FILE_FORMAT_CSV);
         uint classId(1);
         uint limit(1);
