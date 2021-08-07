@@ -42,30 +42,41 @@ namespace DSL
 
     #define DSL_ODE_ACTION_CUSTOM_PTR std::shared_ptr<CustomOdeAction>
     #define DSL_ODE_ACTION_CUSTOM_NEW(name, clientHandler, clientData) \
-        std::shared_ptr<CustomOdeAction>(new CustomOdeAction(name, clientHandler, clientData))
+        std::shared_ptr<CustomOdeAction>(new CustomOdeAction(name, \
+            clientHandler, clientData))
         
     #define DSL_ODE_ACTION_CATPURE_PTR std::shared_ptr<CaptureOdeAction>
     
     #define DSL_ODE_ACTION_CAPTURE_FRAME_PTR std::shared_ptr<CaptureFrameOdeAction>
     #define DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, outdir, annotate) \
-        std::shared_ptr<CaptureFrameOdeAction>(new CaptureFrameOdeAction(name, outdir, annotate))
+        std::shared_ptr<CaptureFrameOdeAction>(new CaptureFrameOdeAction( \
+            name, outdir, annotate))
         
     #define DSL_ODE_ACTION_CAPTURE_OBJECT_PTR std::shared_ptr<CaptureObjectOdeAction>
     #define DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(name, outdir) \
-        std::shared_ptr<CaptureObjectOdeAction>(new CaptureObjectOdeAction(name, outdir))
+        std::shared_ptr<CaptureObjectOdeAction>(new CaptureObjectOdeAction( \
+            name, outdir))
+
+    #define DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR std::shared_ptr<CustomizeLabelOdeAction>
+    #define DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(name, contentTypes, mode) \
+        std::shared_ptr<CustomizeLabelOdeAction>(new CustomizeLabelOdeAction( \
+            name, contentTypes, mode))
         
     #define DSL_ODE_ACTION_DISPLAY_PTR std::shared_ptr<DisplayOdeAction>
-    #define DSL_ODE_ACTION_DISPLAY_NEW(name, offsetX, offsetY, offsetYWithClassId, pFont, hasBgColor, pBgColor) \
+    #define DSL_ODE_ACTION_DISPLAY_NEW(name, offsetX, offsetY, \
+        offsetYWithClassId, pFont, hasBgColor, pBgColor) \
         std::shared_ptr<DisplayOdeAction>(new DisplayOdeAction(name, \
             offsetX, offsetY, offsetYWithClassId, pFont, hasBgColor, pBgColor))
 
     #define DSL_ODE_ACTION_DISPLAY_META_ADD_PTR std::shared_ptr<AddDisplayMetaOdeAction>
     #define DSL_ODE_ACTION_DISPLAY_META_ADD_NEW(name, displayType) \
-        std::shared_ptr<AddDisplayMetaOdeAction>(new AddDisplayMetaOdeAction(name, displayType))
+        std::shared_ptr<AddDisplayMetaOdeAction>(new AddDisplayMetaOdeAction( \
+            name, displayType))
         
     #define DSL_ODE_ACTION_DISABLE_HANDLER_PTR std::shared_ptr<DisableHandlerOdeAction>
     #define DSL_ODE_ACTION_DISABLE_HANDLER_NEW(name, handler) \
-        std::shared_ptr<DisableHandlerOdeAction>(new DisableHandlerOdeAction(name, handler))
+        std::shared_ptr<DisableHandlerOdeAction>(new DisableHandlerOdeAction( \
+            name, handler))
 
     #define DSL_ODE_ACTION_EMAIL_PTR std::shared_ptr<EmailOdeAction>
     #define DSL_ODE_ACTION_EMAIL_NEW(name, pMailer, subject) \
@@ -558,6 +569,58 @@ namespace DSL
             : CaptureOdeAction(name, DSL_CAPTURE_TYPE_OBJECT, outdir, false)
         {};
 
+    };
+
+    // ********************************************************************
+
+    /**
+     * @class CustomizeLabelOdeAction
+     * @brief Customize Object Labels ODE Action class
+     */
+    class CustomizeLabelOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Customize Label ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] contentTypes NULL terminated list of 
+         * DSL_OBJECT_LABEL_<type> values for specific content
+         * @param[in] mode write mode, either DSL_WRITE_MODE_APPEND or 
+         * DSL_WRITE_MODE_TRUNCATE 
+         */
+        CustomizeLabelOdeAction(const char* name, 
+            const std::vector<uint>& contentTypes, uint mode);
+        
+        /**
+         * @brief dtor for the Customize Label ODE Action class
+         */
+        ~CustomizeLabelOdeAction();
+        
+        /**
+         * @brief Handles the ODE occurrence by customizing the Object's label
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+            
+    private:
+        
+        /**
+         * @brief Content types for label customization
+         */
+        std::vector <uint> m_contentTypes;
+        
+        /**
+         * @brief mode write mode, either DSL_WRITE_MODE_APPEND or 
+         * DSL_WRITE_MODE_TRUNCATE 
+         */
+        uint m_mode;
     };
 
     // ********************************************************************
@@ -1161,8 +1224,8 @@ namespace DSL
         std::string m_filePath;
         
         /**
-         * @brief specifies the file open mode, DSL_EVENT_FILE_MODE_APPEND or
-         * DSL_EVENT_FILE_MODE_OVERWRITE
+         * @brief specifies the file open mode, DSL_WRITE_MODE_APPEND or
+         * DSL_WRITE_MODE_OVERWRITE
          */
         uint m_mode;
         

@@ -673,6 +673,67 @@ namespace DSL
 
     // ********************************************************************
 
+    CustomizeLabelOdeAction::CustomizeLabelOdeAction(const char* name, 
+        const std::vector<uint>& contentTypes, uint mode)
+        : OdeAction(name)
+        , m_contentTypes(contentTypes)
+        , m_mode(mode)
+    {
+        LOG_FUNC();
+    }
+
+    CustomizeLabelOdeAction::~CustomizeLabelOdeAction()
+    {
+        LOG_FUNC();
+    }
+
+    void CustomizeLabelOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled and pObjectMeta)
+        {   
+            std::string label;
+            
+            if (m_mode == DSL_WRITE_MODE_APPEND)
+            {
+                label.append(pObjectMeta->text_params.display_text);
+            }
+            // Free up the existing label memory, and reallocate to ensure suffcient size
+            g_free(pObjectMeta->text_params.display_text);
+            pObjectMeta->text_params.display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
+
+            for (auto const &iter: m_contentTypes)
+            {
+                switch(iter)
+                {
+                case DSL_OBJECT_LABEL_LOCATION :
+                    label.append((label.size()) ? " | L:" : "L:");
+                    label.append(std::to_string(lrint(pObjectMeta->rect_params.left)));
+                    label.append(",");
+                    label.append(std::to_string(lrint(pObjectMeta->rect_params.top)));
+                    break;
+                case DSL_OBJECT_LABEL_DIMENSIONS :
+                    label.append(((label.size()) ? " | D:" : "D:"));
+                    label.append(std::to_string(lrint(pObjectMeta->rect_params.width)));
+                    label.append("x");
+                    label.append(std::to_string(lrint(pObjectMeta->rect_params.height)));
+                    break;
+                case DSL_OBJECT_LABEL_CONFIDENCE :
+                    label.append(((label.size()) ? " | C:" : "C:"));
+                    label.append(std::to_string(pObjectMeta->confidence));
+                    break;
+                }
+            }
+            label.copy(pObjectMeta->text_params.display_text, label.size(), 0);
+        }
+    }
+
+
+    // ********************************************************************
+
     DisplayOdeAction::DisplayOdeAction(const char* name, 
         uint offsetX, uint offsetY, bool offsetYWithClassId, 
         DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
@@ -864,7 +925,7 @@ namespace DSL
 
         try
         {
-            if (m_mode == DSL_EVENT_FILE_MODE_APPEND)
+            if (m_mode == DSL_WRITE_MODE_APPEND)
             {
                 m_ostream.open(m_filePath, std::fstream::out | std::fstream::app);
                 
