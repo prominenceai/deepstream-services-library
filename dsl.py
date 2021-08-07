@@ -452,7 +452,7 @@ def dsl_ode_action_capture_mailer_remove(name, mailer):
 ## dsl_ode_action_customize_label_new()
 ##
 _dsl.dsl_ode_action_customize_label_new.argtypes = [c_wchar_p, 
-    c_uint_p, c_uint, c_uint]
+    c_uint, c_uint, c_uint]
 _dsl.dsl_ode_action_customize_label_new.restype = c_uint
 def dsl_ode_action_customize_label_new(name, 
     content_types, size, mode):
