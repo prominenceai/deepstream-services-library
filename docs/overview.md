@@ -383,6 +383,8 @@ Current **ODE Triggers** supported:
 * **New High** trigger when the count of objects within a frame reaches a new high count.
 * **Smallest** - triggers on the smallest object by area if one or more objects are detected. Once per-frame at most.
 * **Largest** - triggers on the largest object by area if one or more objects are detected. Once per-frame at most.
+* **Earliest** - triggers on the object that came into view the earliest (most persistent). Once per-frame at most.
+* **Latest** - triggers on the object that came into view the latest (least persistent). Once per-frame at most.
 * **Custom** - allows the client to provide a callback function that implements a custom "Check for Occurrence".
 
 Triggers have optional, settable criteria and filters: 
