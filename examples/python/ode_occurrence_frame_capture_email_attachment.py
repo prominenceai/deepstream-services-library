@@ -199,7 +199,11 @@ def main(args):
             break
             
         # Create a new  Action used to fill a bounding box with the opaque red color
-        retval = dsl_ode_action_fill_object_new('fill-action', color='opaque-red')
+        retval = dsl_ode_action_format_bbox_new('fill-action',
+            border_width = 0,
+            border_color = None,
+            has_bg_color = True,
+            bg_color = 'opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
 

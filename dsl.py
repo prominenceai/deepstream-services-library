@@ -511,16 +511,6 @@ def dsl_ode_action_fill_frame_new(name, color):
     return int(result)
 
 ##
-## dsl_ode_action_fill_object_new()
-##
-_dsl.dsl_ode_action_fill_object_new.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_ode_action_fill_object_new.restype = c_uint
-def dsl_ode_action_fill_object_new(name, color):
-    global _dsl
-    result =_dsl.dsl_ode_action_fill_object_new(name, color)
-    return int(result)
-
-##
 ## dsl_ode_action_fill_surroundings_new()
 ##
 _dsl.dsl_ode_action_fill_surroundings_new.argtypes = [c_wchar_p, c_wchar_p]

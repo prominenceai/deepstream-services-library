@@ -517,7 +517,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Triggers with
     }
 }
 
-SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with a shared Display ODE Action can play", "[temp]" )
+SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with a shared Display ODE Action can play", "[ode-behavior]" )
 {
     GIVEN( "A Pipeline, ODE Handler, Four Summation ODE Triggers, and Display ODE Action" ) 
     {
@@ -682,8 +682,9 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
         REQUIRE( dsl_ode_trigger_occurrence_new(person_occurrence_name.c_str(), 
             NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_fill_object_new(fillActionName.c_str(), 
-            light_red.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_format_bbox_new(fillActionName.c_str(), 
+            0, NULL, true, light_red.c_str()) == DSL_RESULT_SUCCESS );
+            
         REQUIRE( dsl_ode_trigger_action_add(person_occurrence_name.c_str(), 
             fillActionName.c_str()) == DSL_RESULT_SUCCESS );
         
@@ -915,8 +916,8 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Line Area 
         REQUIRE( dsl_ode_trigger_area_add(person_occurrence_name.c_str(), 
             areaName.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_fill_object_new(odeFillActionName.c_str(), 
-            colorName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_format_bbox_new(odeFillActionName.c_str(), 
+            0, NULL, true, colorName.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_action_add(person_occurrence_name.c_str(), 
             odeFillActionName.c_str()) == DSL_RESULT_SUCCESS );
@@ -1016,8 +1017,8 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Inclussion
         REQUIRE( dsl_ode_trigger_area_add(person_occurrence_name.c_str(), 
             areaName.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_fill_object_new(odeFillActionName.c_str(), 
-            opaqueWhite.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_format_bbox_new(odeFillActionName.c_str(), 
+            0, NULL, true, opaqueWhite.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_action_add(person_occurrence_name.c_str(), 
             odeFillActionName.c_str()) == DSL_RESULT_SUCCESS );
@@ -1117,8 +1118,8 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Exclusion 
         REQUIRE( dsl_ode_trigger_area_add(person_occurrence_name.c_str(), 
             areaName.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_fill_object_new(odeFillActionName.c_str(), 
-            opaqueWhite.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_format_bbox_new(odeFillActionName.c_str(), 
+            0, NULL, true, opaqueWhite.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_action_add(person_occurrence_name.c_str(), 
             odeFillActionName.c_str()) == DSL_RESULT_SUCCESS );

@@ -955,46 +955,6 @@ SCENARIO( "A new Fill Frame ODE Action can be created and deleted", "[ode-action
     }
 }
 
-SCENARIO( "A new Fill Object ODE Action can be created and deleted", "[ode-action-api]" )
-{
-    GIVEN( "Attributes for a new Fill Object ODE Action" ) 
-    {
-        std::wstring action_name(L"fill-object-action");
-
-        std::wstring colorName(L"my-color");
-        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
-
-        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
-            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
-
-        WHEN( "A new Fill Object Action is created" ) 
-        {
-            REQUIRE( dsl_ode_action_fill_object_new(action_name.c_str(), colorName.c_str()) == DSL_RESULT_SUCCESS );
-            
-            THEN( "The Fill Object Action can be deleted" ) 
-            {
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_action_list_size() == 0 );
-                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_display_type_list_size() == 0 );
-            }
-        }
-        WHEN( "A new Fill Object Action is created" ) 
-        {
-            REQUIRE( dsl_ode_action_fill_object_new(action_name.c_str(), colorName.c_str()) == DSL_RESULT_SUCCESS );
-            
-            THEN( "A second Fill Object Action of the same name fails to create" ) 
-            {
-                REQUIRE( dsl_ode_action_fill_object_new(action_name.c_str(), colorName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
-                    
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_action_list_size() == 0 );
-                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_display_type_list_size() == 0 );
-            }
-        }
-    }
-}
 
 SCENARIO( "A new Fill Surroundings ODE Action can be created and deleted", "[ode-action-api]" )
 {
@@ -1749,9 +1709,6 @@ SCENARIO( "The ODE Action API checks for NULL input parameters", "[ode-action-ap
 
                 REQUIRE( dsl_ode_action_fill_frame_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_fill_frame_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-
-                REQUIRE( dsl_ode_action_fill_object_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_fill_object_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_fill_surroundings_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_fill_surroundings_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );

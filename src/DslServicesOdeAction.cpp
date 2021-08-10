@@ -577,38 +577,6 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeActionFillObjectNew(const char* name, const char* color)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure event name uniqueness 
-            if (m_odeActions.find(name) != m_odeActions.end())
-            {   
-                LOG_ERROR("ODE Action name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
-            }
-
-            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
-            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
-
-            DSL_RGBA_COLOR_PTR pColor = 
-                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
-                
-            m_odeActions[name] = DSL_ODE_ACTION_FILL_OBJECT_NEW(name, pColor);
-
-            LOG_INFO("New ODE Fill Object Action '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New ODE Fill Object Action '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
-        }
-    }
 
     DslReturnType Services::OdeActionFormatBBoxNew(const char* name,
         uint borderWidth, const char* borderColor, boolean hasBgColor, const char* bgColor)  
