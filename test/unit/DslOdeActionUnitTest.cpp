@@ -516,7 +516,7 @@ SCENARIO( "A CustomLabelOdeAction handles an ODE Occurence correctly", "[OdeActi
 
             THEN( "The OdeAction can Handle the Occurrence" )
             {
-                std::string expectedLabel("Person 123 | L:10,10 | D:200x100 | C:0.000000");
+                std::string expectedLabel("Person 123 | L:10,10 | D:200x100 | C:0.000000 | T:0s");
                 
                 pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
                 std::string actualLabel(objectMeta.text_params.display_text);
@@ -530,7 +530,7 @@ SCENARIO( "A CustomLabelOdeAction handles an ODE Occurence correctly", "[OdeActi
 
             THEN( "The OdeAction can Handle the Occurrence" )
             {
-                std::string expectedLabel("L:10,10 | D:200x100 | C:0.000000");
+                std::string expectedLabel("L:10,10 | D:200x100 | C:0.000000 | T:0s");
 
                 pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
                 std::string actualLabel(objectMeta.text_params.display_text);

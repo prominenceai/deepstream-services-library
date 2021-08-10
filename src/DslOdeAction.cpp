@@ -709,6 +709,14 @@ namespace DSL
             {
                 switch(iter)
                 {
+                case DSL_OBJECT_LABEL_CLASS :
+                    label.append((label.size()) ? " | " : "");
+                    label.append(pObjectMeta->obj_label);
+                    break;
+                case DSL_OBJECT_LABEL_TRACKING_ID:
+                    label.append((label.size()) ? " | " : "");
+                    label.append(std::to_string(pObjectMeta->object_id));
+                    break;
                 case DSL_OBJECT_LABEL_LOCATION :
                     label.append((label.size()) ? " | L:" : "L:");
                     label.append(std::to_string(lrint(pObjectMeta->rect_params.left)));
@@ -725,6 +733,15 @@ namespace DSL
                     label.append(((label.size()) ? " | C:" : "C:"));
                     label.append(std::to_string(pObjectMeta->confidence));
                     break;
+                case DSL_OBJECT_LABEL_PERSISTENCE :
+                    label.append(((label.size()) ? " | T:" : "T:"));
+                    label.append(std::to_string(pObjectMeta->
+                        misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE]));
+                    label.append("s");
+                    break;
+                default :
+                    LOG_ERROR("Invalid 'object content type' for customize label action '" <<
+                        GetName() << "'");
                 }
             }
             label.copy(pObjectMeta->text_params.display_text, label.size(), 0);
@@ -766,9 +783,18 @@ namespace DSL
             NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
             pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
             
-            std::string text = pTrigger->GetName() + " = " 
-                + std::to_string(pTrigger->m_occurrences);
-            text.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
+            if (pObjectMeta)
+            {
+                std::string text = pTrigger->GetName() + " = " 
+                    + std::to_string(pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC]);
+                text.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
+            }
+            else
+            {
+                std::string text = pTrigger->GetName() + " = " 
+                    + std::to_string(pTrigger->m_occurrences);
+                text.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
+            }
 
             // Setup X and Y display offsets
             pTextParams->x_offset = m_offsetX;
@@ -861,6 +887,9 @@ namespace DSL
                     +  std::to_string(pObjectMeta->object_id) + "<br>"));
                 body.push_back(std::string("    Label       : " 
                     +  std::string(pObjectMeta->obj_label) + "<br>"));
+                body.push_back(std::string("    Persistence       : " 
+                    + std::to_string(pObjectMeta->
+                        misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE]) + "<br>"));
                 body.push_back(std::string("    Confidence  : " 
                     +  std::to_string(pObjectMeta->confidence) + "<br>"));
                 body.push_back(std::string("    Left        : " 
@@ -975,6 +1004,7 @@ namespace DSL
             m_ostream << "Class Id,";
             m_ostream << "Object Id,";
             m_ostream << "Label,";
+            m_ostream << "Persistence,";
             m_ostream << "Confidence,";
             m_ostream << "Left,";
             m_ostream << "Top,";
@@ -1067,6 +1097,8 @@ namespace DSL
                 m_ostream << "    Obj ClassId : " << pObjectMeta->class_id << "\n";
                 m_ostream << "    Tracking Id : " << pObjectMeta->object_id << "\n";
                 m_ostream << "    Label       : " << pObjectMeta->obj_label << "\n";
+                m_ostream << "    Persistence : " << pObjectMeta->
+                    misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] + "\n";
                 m_ostream << "    Confidence  : " << pObjectMeta->confidence << "\n";
                 m_ostream << "    Left        : " << lrint(pObjectMeta->rect_params.left) << "\n";
                 m_ostream << "    Top         : " << lrint(pObjectMeta->rect_params.top) << "\n";
@@ -1120,6 +1152,8 @@ namespace DSL
                 m_ostream << pObjectMeta->object_id << ",";
                 m_ostream << pObjectMeta->obj_label << ",";
                 m_ostream << pObjectMeta->confidence << ",";
+                m_ostream << pObjectMeta->
+                    misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] + ",";
                 m_ostream << lrint(pObjectMeta->rect_params.left) << ",";
                 m_ostream << lrint(pObjectMeta->rect_params.top) << ",";
                 m_ostream << lrint(pObjectMeta->rect_params.width) << ",";
@@ -1349,6 +1383,8 @@ namespace DSL
                 LOG_INFO("    Tracking Id : " << pObjectMeta->object_id);
                 LOG_INFO("    Label       : " << pObjectMeta->obj_label);
                 LOG_INFO("    Confidence  : " << pObjectMeta->confidence);
+                LOG_INFO("    Persistence : " << pObjectMeta->
+                    misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE]);
                 LOG_INFO("    Left        : " << pObjectMeta->rect_params.left);
                 LOG_INFO("    Top         : " << pObjectMeta->rect_params.top);
                 LOG_INFO("    Width       : " << pObjectMeta->rect_params.width);
@@ -1540,6 +1576,8 @@ namespace DSL
             std::cout << "    Tracking Id : " << pObjectMeta->object_id << "\n";
             std::cout << "    Label       : " << pObjectMeta->obj_label << "\n";
             std::cout << "    Confidence  : " << pObjectMeta->confidence << "\n";
+            std::cout << "    Persistence : " << pObjectMeta->
+                misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] << "\n";
             std::cout << "    Left        : " << lrint(pObjectMeta->rect_params.left) << "\n";
             std::cout << "    Top         : " << lrint(pObjectMeta->rect_params.top) << "\n";
             std::cout << "    Width       : " << lrint(pObjectMeta->rect_params.width) << "\n";

@@ -360,8 +360,8 @@ namespace DSL
             {
                 if (*contentType > DSL_OBJECT_LABEL_PERSISTENCE)
                 {
-                    LOG_ERROR("Invalid Content Type for new Customize Label ODE Action" 
-                        << name << "'");
+                    LOG_ERROR("Invalid Content Type = " << *contentType 
+                        << " for new Customize Label ODE Action" << name << "'");
                     return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
                 }
                 contentTypesCopy.push_back(*contentType);

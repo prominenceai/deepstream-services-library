@@ -555,10 +555,12 @@ THE SOFTWARE.
 /**
  * @brief Content Options for Object Label customizaton.
  */
-#define DSL_OBJECT_LABEL_LOCATION                                   0
-#define DSL_OBJECT_LABEL_DIMENSIONS                                 1
-#define DSL_OBJECT_LABEL_CONFIDENCE                                 2
-#define DSL_OBJECT_LABEL_PERSISTENCE                                3
+#define DSL_OBJECT_LABEL_CLASS                                      0
+#define DSL_OBJECT_LABEL_TRACKING_ID                                1
+#define DSL_OBJECT_LABEL_LOCATION                                   2
+#define DSL_OBJECT_LABEL_DIMENSIONS                                 3
+#define DSL_OBJECT_LABEL_CONFIDENCE                                 4
+#define DSL_OBJECT_LABEL_PERSISTENCE                                5
 
 EXTERN_C_BEGIN
 
@@ -1739,9 +1741,9 @@ DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name,
     const wchar_t* source, uint class_id, uint limit);
 
 /**
- * @brief Persistence trigger that checks for the persistence of Objects tracked for a. 
- * specified source and object class_id. Each object tracked or ">= minimum and <= maximum time 
- * will trigger an ODE occurrence.
+ * @brief Persistence trigger that checks for the persistence of Objects tracked 
+ * for a specified source and object class_id. Each object tracked for ">= minimum 
+ * and <= maximum time will trigger an ODE occurrence.
  * @param[in] name unique name for the ODE Trigger
  * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] class_id class id filter for this ODE Trigger
@@ -1801,6 +1803,32 @@ DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
+
+/**
+ * @brief Latest Trigger that checks for the persistence of Objects tracked 
+ * and will trigger on the Object with the least time of persistence (latest)
+ * if at least one is found.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE.
+ * @param[in] class_id class id filter for this ODE Trigger.
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_latest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
+
+/**
+ * @brief Earliest Trigger that checks for the persistence of Objects tracked 
+ * and will trigger on the Object with the greatest time of persistence (earliest) 
+ * if at least one is found.
+ * @param[in] name unique name for the ODE Trigger.
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE.
+ * @param[in] class_id class id filter for this ODE Trigger.
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_earliest_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit);
 
 /**
