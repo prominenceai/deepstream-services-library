@@ -8,7 +8,6 @@ DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT = 4000000
 DSL_DEFAULT_STREAMMUX_WIDTH = 1920
 DSL_DEFAULT_STREAMMUX_HEIGHT = 1080
 
-
 DSL_PAD_SINK = 0
 DSL_PAD_SRC = 1
 
@@ -98,10 +97,12 @@ DSL_EVENT_FILE_FORMAT_CSV    = 1
 DSL_WRITE_MODE_APPEND   = 0
 DSL_WRITE_MODE_TRUNCATE = 1
 
-DSL_OBJECT_LABEL_LOCATION    = 1
-DSL_OBJECT_LABEL_DIMENSIONS  = 2
-DSL_OBJECT_LABEL_CONFIDENCE  = 3
-DSL_OBJECT_LABEL_PERSISTENCE = 4
+DSL_OBJECT_LABEL_CLASS       = 0
+DSL_OBJECT_LABEL_TRACKING_ID = 1
+DSL_OBJECT_LABEL_LOCATION    = 2
+DSL_OBJECT_LABEL_DIMENSIONS  = 3
+DSL_OBJECT_LABEL_CONFIDENCE  = 4
+DSL_OBJECT_LABEL_PERSISTENCE = 5
 
 class dsl_coordinate(Structure):
     _fields_ = [
@@ -451,14 +452,17 @@ def dsl_ode_action_capture_mailer_remove(name, mailer):
 ##
 ## dsl_ode_action_customize_label_new()
 ##
-_dsl.dsl_ode_action_customize_label_new.argtypes = [c_wchar_p, 
-    c_uint, c_uint, c_uint]
+#_dsl.dsl_ode_action_customize_label_new.argtypes = [c_wchar_p, 
+#    c_uint, c_uint, c_uint]
 _dsl.dsl_ode_action_customize_label_new.restype = c_uint
 def dsl_ode_action_customize_label_new(name, 
     content_types, size, mode):
     global _dsl
-    arr = (content_types * size)()
-    arr[:] = content_types
+    if content_types is None:
+        arr = None
+    else:
+        arr = (c_int * size)()
+        arr[:] = content_types
     result =_dsl.dsl_ode_action_customize_label_new(name, 
         arr, size, mode)
     return int(result)
@@ -1170,6 +1174,26 @@ _dsl.dsl_ode_trigger_largest_new.restype = c_uint
 def dsl_ode_trigger_largest_new(name, source, class_id, limit):
     global _dsl
     result =_dsl.dsl_ode_trigger_largest_new(name, source, class_id, limit)
+    return int(result)
+
+##
+## dsl_ode_trigger_latest_new()
+##
+_dsl.dsl_ode_trigger_latest_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_latest_new.restype = c_uint
+def dsl_ode_trigger_latest_new(name, source, class_id, limit):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_latest_new(name, source, class_id, limit)
+    return int(result)
+
+##
+## dsl_ode_trigger_earliest_new()
+##
+_dsl.dsl_ode_trigger_earliest_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_earliest_new.restype = c_uint
+def dsl_ode_trigger_earliest_new(name, source, class_id, limit):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_earliest_new(name, source, class_id, limit)
     return int(result)
 
 ##
