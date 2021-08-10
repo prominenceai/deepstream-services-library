@@ -107,7 +107,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create an Any-Class Occurrence Trigger for our Hide Action
+        # Create an Any-Class Occurrence Trigger for our remove label and bbox actions
         retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', source='uri-source-1',
             class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
