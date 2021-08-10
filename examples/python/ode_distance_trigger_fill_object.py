@@ -132,12 +132,20 @@ def main(args):
             
         #```````````````````````````````````````````````````````````````````````````````````
         # Create the Action to fill the bounding boxes of the two objects within minimim distance
-        retval = dsl_ode_action_fill_object_new('fill-red-action', color='opaque-red')
+        retval = dsl_ode_action_format_bbox_new('fill-red-action',
+            border_width = 0,
+            border_color = None,
+            has_bg_color = True,
+            bg_color = 'opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Create the Action to fill the bounding boxes of all objects with minimim height
-        retval = dsl_ode_action_fill_object_new('fill-white-action', color='opaque-white')
+        retval = dsl_ode_action_format_bbox_new('fill-white-action',
+            border_width = 0,
+            border_color = None,
+            has_bg_color = True,
+            bg_color = 'opaque-white')
         if retval != DSL_RETURN_SUCCESS:
             break
 

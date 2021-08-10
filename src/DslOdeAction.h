@@ -98,10 +98,6 @@ namespace DSL
     #define DSL_ODE_ACTION_FILL_FRAME_NEW(name, pColor) \
         std::shared_ptr<FillFrameOdeAction>(new FillFrameOdeAction(name, pColor))
 
-    #define DSL_ODE_ACTION_FILL_OBJECT_PTR std::shared_ptr<FillObjectOdeAction>
-    #define DSL_ODE_ACTION_FILL_OBJECT_NEW(name, pColor) \
-        std::shared_ptr<FillObjectOdeAction>(new FillObjectOdeAction(name, pColor))
-
     #define DSL_ODE_ACTION_FILL_SURROUNDINGS_PTR std::shared_ptr<FillSurroundingsOdeAction>
     #define DSL_ODE_ACTION_FILL_SURROUNDINGS_NEW(name, pColor) \
         std::shared_ptr<FillSurroundingsOdeAction>(new FillSurroundingsOdeAction(name, pColor))
@@ -887,48 +883,6 @@ namespace DSL
     
     };
 
-    // ********************************************************************
-
-    /**
-     * @class FillObjectOdeAction
-     * @brief Fill ODE Action class
-     */
-    class FillObjectOdeAction : public OdeAction
-    {
-    public:
-    
-        /**
-         * @brief ctor for the ODE Fill Object Action class
-         * @param[in] name unique name for the ODE Action
-         * @param[in] pColor shared pointer to an RGBA Color to fill the Object
-         */
-        FillObjectOdeAction(const char* name, DSL_RGBA_COLOR_PTR pColor);
-        
-        /**
-         * @brief dtor for the ODE Display Action class
-         */
-        ~FillObjectOdeAction();
-        
-        /**
-         * @brief Handles the ODE occurrence by Filling the object's rectangle background 
-         * with a set of RGBA color values
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
-         */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-            
-    private:
-    
-        /**
-         * @brief Background color used to Fill the object
-         */
-        DSL_RGBA_COLOR_PTR m_pColor;
-    
-    };
 
     // ********************************************************************
 

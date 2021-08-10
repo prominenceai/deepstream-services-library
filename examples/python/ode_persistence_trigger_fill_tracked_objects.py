@@ -133,13 +133,25 @@ def main(args):
             
         #```````````````````````````````````````````````````````````````````````````````````
         # Create three new Actions to fill the bounding boxes, one for each Persistence Trigger
-        retval = dsl_ode_action_fill_object_new('fill-opaque-green', color='opaque-green')
+        retval = dsl_ode_action_format_bbox_new('fill-opaque-green',
+            border_width = 0,
+            border_color = None,
+            has_bg_color = True,
+            bg_color = 'opaque-green')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_action_fill_object_new('fill-opaque-yellow', color='opaque-yellow')
+        retval = dsl_ode_action_format_bbox_new('fill-opaque-yellow',
+            border_width = 0,
+            border_color = None,
+            has_bg_color = True,
+            bg_color = 'opaque-yellow')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_action_fill_object_new('fill-opaque-red', color='opaque-red')
+        retval = dsl_ode_action_format_bbox_new('fill-opaque-red',
+            border_width = 0,
+            border_color = None,
+            has_bg_color = True,
+            bg_color = 'opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
 

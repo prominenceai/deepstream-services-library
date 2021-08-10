@@ -148,8 +148,6 @@ namespace DSL {
         
         DslReturnType OdeActionFillFrameNew(const char* name, const char* color);
 
-        DslReturnType OdeActionFillObjectNew(const char* name, const char* color);
-
         DslReturnType OdeActionHandlerDisableNew(const char* name, const char* handler);
 
         DslReturnType OdeActionDisplayMetaAddNew(const char* name, const char* displayType);

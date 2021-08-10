@@ -840,102 +840,13 @@ SCENARIO( "A new FillSurroundingsOdeAction is created correctly", "[OdeAction]" 
 
         WHEN( "A new FillSurroundingsOdeAction is created" )
         {
-            DSL_ODE_ACTION_FILL_OBJECT_PTR pAction = 
-                DSL_ODE_ACTION_FILL_OBJECT_NEW(actionName.c_str(), pBgColor);
+            DSL_ODE_ACTION_FILL_SURROUNDINGS_PTR pAction = 
+                DSL_ODE_ACTION_FILL_SURROUNDINGS_NEW(actionName.c_str(), pBgColor);
 
             THEN( "The Action's members are setup and returned correctly" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
-            }
-        }
-    }
-}
-
-SCENARIO( "A new FillObjectOdeAction is created correctly", "[OdeAction]" )
-{
-    GIVEN( "Attributes for a new FillObjectOdeAction" ) 
-    {
-        std::string actionName("ode-action");
-
-        std::string colorName("my-custom-color");
-        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
-
-        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
-
-        WHEN( "A new FillObjectOdeAction is created" )
-        {
-            DSL_ODE_ACTION_FILL_OBJECT_PTR pAction = 
-                DSL_ODE_ACTION_FILL_OBJECT_NEW(actionName.c_str(), pColor);
-
-            THEN( "The Action's members are setup and returned correctly" )
-            {
-                std::string retName = pAction->GetCStrName();
-                REQUIRE( actionName == retName );
-            }
-        }
-    }
-}
-
-SCENARIO( "A FillObjectOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
-{
-    GIVEN( "A new FillObjectOdeAction" ) 
-    {
-        std::string triggerName("first-occurence");
-        std::string source;
-        uint classId(1);
-        uint limit(1);
-        
-        std::string actionName = "ode-action";
-
-        std::string colorName("my-custom-color");
-        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
-
-        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
-
-        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
-
-        DSL_ODE_ACTION_FILL_OBJECT_PTR pAction = 
-            DSL_ODE_ACTION_FILL_OBJECT_NEW(actionName.c_str(), pColor);
-
-        WHEN( "A new ODE is created" )
-        {
-            NvDsFrameMeta frameMeta =  {0};
-            frameMeta.bInferDone = true;  // required to process
-            frameMeta.frame_num = 444;
-            frameMeta.ntp_timestamp = INT64_MAX;
-            frameMeta.source_id = 2;
-
-            NvDsObjectMeta objectMeta = {0};
-            objectMeta.class_id = classId; // must match Detections Trigger's classId
-            objectMeta.object_id = INT64_MAX; 
-            objectMeta.rect_params.left = 10;
-            objectMeta.rect_params.top = 10;
-            objectMeta.rect_params.width = 200;
-            objectMeta.rect_params.height = 100;
-            
-            objectMeta.rect_params.border_width = 9;
-            objectMeta.rect_params.has_bg_color = false;  // Set false, action must set true
-            objectMeta.rect_params.bg_color.red = 0;
-            objectMeta.rect_params.bg_color.green = 0;
-            objectMeta.rect_params.bg_color.blue = 0;
-            objectMeta.rect_params.bg_color.alpha = 0;
-            
-            THEN( "The OdeAction can Handle the Occurrence" )
-            {
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
-                // Boarder Width must be unchanged
-                REQUIRE( objectMeta.rect_params.border_width == 9 );
-                
-                // Has background color must be enabled
-                REQUIRE( objectMeta.rect_params.has_bg_color == 1 );
-                
-                // Background color must be updated
-                REQUIRE( objectMeta.rect_params.bg_color.red == red );
-                REQUIRE( objectMeta.rect_params.bg_color.green == green );
-                REQUIRE( objectMeta.rect_params.bg_color.blue == blue );
-                REQUIRE( objectMeta.rect_params.bg_color.alpha == alpha );
             }
         }
     }

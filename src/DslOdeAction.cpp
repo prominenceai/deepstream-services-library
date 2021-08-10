@@ -1306,34 +1306,6 @@ namespace DSL
 
     // ********************************************************************
 
-    FillObjectOdeAction::FillObjectOdeAction(const char* name, DSL_RGBA_COLOR_PTR pColor)
-        : OdeAction(name)
-        , m_pColor(pColor)
-    {
-        LOG_FUNC();
-    }
-
-    FillObjectOdeAction::~FillObjectOdeAction()
-    {
-        LOG_FUNC();
-
-    }
-
-    void FillObjectOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
-        if (m_enabled and pObjectMeta)
-        {
-            pObjectMeta->rect_params.has_bg_color = true;
-            pObjectMeta->rect_params.bg_color = *m_pColor;
-        }
-    }
-
-    // ********************************************************************
-
     LogOdeAction::LogOdeAction(const char* name)
         : OdeAction(name)
     {

@@ -126,10 +126,18 @@ def main(args):
         #```````````````````````````````````````````````````````````````````````````````````
         # Create two new Actions to fill the bounding boxes, one for the PERSON class, the
         # other for the VEHICLE class.
-        retval = dsl_ode_action_fill_object_new('fill-person-action', color='solid-red')
+        retval = dsl_ode_action_format_bbox_new('fill-person-action',
+            border_width = 0,
+            border_color = None,
+            has_bg_color = True,
+            bg_color = 'solid-red')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_action_fill_object_new('fill-vehicle-action', color='solid-white')
+        retval = dsl_ode_action_format_bbox_new('fill-vehicle-action',
+            border_width = 0,
+            border_color = None,
+            has_bg_color = True,
+            bg_color = 'solid-white')
         if retval != DSL_RETURN_SUCCESS:
             break
 

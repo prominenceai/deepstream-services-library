@@ -1236,15 +1236,6 @@ DslReturnType dsl_ode_action_file_new(const wchar_t* name,
 DslReturnType dsl_ode_action_fill_frame_new(const wchar_t* name, const wchar_t* color);
 
 /**
- * @brief Creates a uniquely named Fill Object ODE Action, that fills an object's
- * Background with RGBA color values
- * @param[in] name unique name for the Fill Object ODE Action
- * @param[in] color name of the RGBA Color to use for the fill action
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_fill_object_new(const wchar_t* name, const wchar_t* color);
-
-/**
  * @brief Creates a uniquely named Fill Surroundings ODE Action, that fills the entire
  * frame area surroudning an Object's rectangle
  * @param[in] name unique name for the Fill Frame ODE Action

@@ -606,20 +606,6 @@ DslReturnType dsl_ode_action_fill_frame_new(const wchar_t* name, const wchar_t* 
         cstrColor.c_str());
 }
 
-DslReturnType dsl_ode_action_fill_object_new(const wchar_t* name, const wchar_t* color)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(color);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrColor(color);
-    std::string cstrColor(wstrColor.begin(), wstrColor.end());
-
-    return DSL::Services::GetServices()->OdeActionFillObjectNew(cstrName.c_str(),
-        cstrColor.c_str());
-}
-
 DslReturnType dsl_ode_action_log_new(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);

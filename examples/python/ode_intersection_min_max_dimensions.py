@@ -96,10 +96,14 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create a new Fill Action that will fill the Object's rectangle with a shade of red to indicate 
+        # Create a new Format BBox Action that will fill the Object's rectangle with a shade of red to indicate 
         # intersection with one or more other Objects, i.e. ODE occurrence. The action will be used with both
         # the Person and Car class Ids.
-        retval = dsl_ode_action_fill_object_new('red-fill-action', 'opaque-red')
+        retval = dsl_ode_action_format_bbox_new('red-fill-action',
+            border_width = 0,
+            border_color = None,
+            has_bg_color = True,
+            bg_color = 'opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
 
