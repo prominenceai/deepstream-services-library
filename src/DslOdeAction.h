@@ -35,6 +35,14 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    
+    /**
+     * @brief Constants for indexing "pObjectMeta->misc_obj_info" 
+     * Triggers add specific metric data for child Actions to act on.
+     */
+    #define DSL_OBJECT_INFO_PRIMARY_METRIC     0
+    #define DSL_OBJECT_INFO_PERSISTENCE        1
+    
     /**
      * @brief convenience macros for shared pointer abstraction
      */

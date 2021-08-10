@@ -295,6 +295,12 @@ namespace DSL {
         DslReturnType OdeTriggerLargestNew(const char* name, 
             const char* source, uint classId, uint limit);
 
+        DslReturnType OdeTriggerLatestNew(const char* name, 
+            const char* source, uint classId, uint limit);
+
+        DslReturnType OdeTriggerEarliestNew(const char* name, 
+            const char* source, uint classId, uint limit);
+
         DslReturnType OdeTriggerNewHighNew(const char* name, 
             const char* source, uint classId, uint limit, uint preset);
 

@@ -517,7 +517,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Triggers with
     }
 }
 
-SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with a shared Display ODE Action can play", "[ode-behavior]" )
+SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with a shared Display ODE Action can play", "[temp]" )
 {
     GIVEN( "A Pipeline, ODE Handler, Four Summation ODE Triggers, and Display ODE Action" ) 
     {

@@ -1413,8 +1413,8 @@ DslReturnType dsl_ode_trigger_distance_range_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerDistanceRangeGet(cstrName.c_str(), 
-        minimum, maximum);
+    return DSL::Services::GetServices()->OdeTriggerDistanceRangeGet(
+        cstrName.c_str(), minimum, maximum);
 }
     
 DslReturnType dsl_ode_trigger_distance_range_set(const wchar_t* name, 
@@ -1425,8 +1425,8 @@ DslReturnType dsl_ode_trigger_distance_range_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerDistanceRangeSet(cstrName.c_str(), 
-        minimum, maximum);
+    return DSL::Services::GetServices()->OdeTriggerDistanceRangeSet(
+        cstrName.c_str(), minimum, maximum);
 }
 
 DslReturnType dsl_ode_trigger_distance_test_params_get(const wchar_t* name, 
@@ -1437,8 +1437,8 @@ DslReturnType dsl_ode_trigger_distance_test_params_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerDistanceTestParamsGet(cstrName.c_str(), 
-        test_point, test_method);
+    return DSL::Services::GetServices()->OdeTriggerDistanceTestParamsGet(
+        cstrName.c_str(), test_point, test_method);
 }
 
 DslReturnType dsl_ode_trigger_distance_test_params_set(const wchar_t* name, 
@@ -1449,11 +1449,12 @@ DslReturnType dsl_ode_trigger_distance_test_params_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerDistanceTestParamsSet(cstrName.c_str(), 
-        test_point, test_method);
+    return DSL::Services::GetServices()->OdeTriggerDistanceTestParamsSet(
+        cstrName.c_str(), test_point, test_method);
 }
     
-DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit)
+DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -1466,10 +1467,12 @@ DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, const wchar_t* s
         std::wstring wstrSource(source);
         cstrSource.assign(wstrSource.begin(), wstrSource.end());
     }
-    return DSL::Services::GetServices()->OdeTriggerSmallestNew(cstrName.c_str(), cstrSource.c_str(), class_id, limit);
+    return DSL::Services::GetServices()->OdeTriggerSmallestNew(
+        cstrName.c_str(), cstrSource.c_str(), class_id, limit);
 }
 
-DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit)
+DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -1482,7 +1485,44 @@ DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, const wchar_t* so
         std::wstring wstrSource(source);
         cstrSource.assign(wstrSource.begin(), wstrSource.end());
     }
-    return DSL::Services::GetServices()->OdeTriggerLargestNew(cstrName.c_str(), cstrSource.c_str(), class_id, limit);
+    return DSL::Services::GetServices()->OdeTriggerLargestNew(
+        cstrName.c_str(), cstrSource.c_str(), class_id, limit);
+}
+
+DslReturnType dsl_ode_trigger_latest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrSource;
+    if (source)
+    {
+        std::wstring wstrSource(source);
+        cstrSource.assign(wstrSource.begin(), wstrSource.end());
+    }
+    return DSL::Services::GetServices()->OdeTriggerLatestNew(
+        cstrName.c_str(), cstrSource.c_str(), class_id, limit);
+}
+
+DslReturnType dsl_ode_trigger_earliest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrSource;
+    if (source)
+    {
+        std::wstring wstrSource(source);
+        cstrSource.assign(wstrSource.begin(), wstrSource.end());
+    }
+    return DSL::Services::GetServices()->OdeTriggerEarliestNew(
+        cstrName.c_str(), cstrSource.c_str(), class_id, limit);
 }
 
 DslReturnType dsl_ode_trigger_reset(const wchar_t* name)
@@ -1502,7 +1542,8 @@ DslReturnType dsl_ode_trigger_reset_timeout_get(const wchar_t* name, uint *timeo
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerResetTimeoutGet(cstrName.c_str(), timeout);
+    return DSL::Services::GetServices()->OdeTriggerResetTimeoutGet(
+        cstrName.c_str(), timeout);
 }
 
 DslReturnType dsl_ode_trigger_reset_timeout_set(const wchar_t* name, uint timeout)
@@ -1512,7 +1553,8 @@ DslReturnType dsl_ode_trigger_reset_timeout_set(const wchar_t* name, uint timeou
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerResetTimeoutSet(cstrName.c_str(), timeout);
+    return DSL::Services::GetServices()->OdeTriggerResetTimeoutSet(
+        cstrName.c_str(), timeout);
 }
 
 DslReturnType dsl_ode_trigger_enabled_get(const wchar_t* name, boolean* enabled)
