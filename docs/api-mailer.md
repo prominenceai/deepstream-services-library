@@ -16,7 +16,7 @@ Mailers are created by calling the constructor [dsl_mailer_new](#dsl_mailer_new)
 * **Smart Recording Sink** - added with [dsl_sink_record_mailer_add](/docs/api-sink.md#dsl_sink_record_mailer_add) and removed with [dsl_sink_record_mailer_remove](/docs/api-sink.md#dsl_sink_record_mailer_remove)
 
 ## Using GMAIL's SMTP server
-**IMPORTANT!** if using GMAIL, it is STRONGLY advised that you create a new, free [Gmail account](https://support.google.com/mail/answer/56256?hl=en) -- that is seperate/unlinked from all your other email accounts -- strictly for the purpose of sending ODE Event data uploaded from DSL.  Then, add your Personal email address as a `To` address to receive the emails. 
+**IMPORTANT!** if using GMAIL, it is STRONGLY advised that you create a new, free [Gmail account](https://support.google.com/mail/answer/56256?hl=en) -- that is separate/unlinked from all your other email accounts -- strictly for the purpose of sending ODE Event data uploaded from DSL.  Then, add your Personal email address as a `To` address to receive the emails. 
 
 Gmail considers regular email programs (i.e Outlook, etc.) and non-registered third-party apps to be "less secure". The email account used for sending email must have the "Allow less secure apps" option turned on. Once you've created this new account, you can go to the account settings and enable [Less secure app access](https://myaccount.google.com/lesssecureapps).
 

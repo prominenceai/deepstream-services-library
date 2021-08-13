@@ -101,7 +101,7 @@ namespace DSL {
          
         DslReturnType OdeActionCustomNew(const char* name,
             dsl_ode_handle_occurrence_cb clientHandler, void* clientData);
-
+            
         DslReturnType OdeActionCaptureFrameNew(const char* name, const char* outdir, boolean annotate);
         
         DslReturnType OdeActionCaptureObjectNew(const char* name, const char* outdir);
@@ -123,9 +123,19 @@ namespace DSL {
         
         DslReturnType OdeActionCaptureMailerRemove(const char* name,
             const char* mailer);
+
+        DslReturnType OdeActionCustomizeLabelNew(const char* name, 
+            const uint* contentTypes, uint size, uint mode);
         
-        DslReturnType OdeActionDisplayNew(const char* name, uint offsetX, uint offsetY, 
-            boolean offsetYWithClassId, const char* font, boolean hasBgColor, const char* bgColor);
+        DslReturnType OdeActionDisplayNew(const char* name, 
+            const char* formatString, uint offsetX, uint offsetY, 
+            const char* font, boolean hasBgColor, const char* bgColor);
+            
+        DslReturnType OdeActionFormatBBoxNew(const char* name,
+            uint borderWidth, const char* borderColor, boolean hasBgColor, const char* bgColor);
+
+        DslReturnType OdeActionFormatLabelNew(const char* name,
+            const char* font, boolean hasBgColor, const char* bgColor);
         
         DslReturnType OdeActionLogNew(const char* name);
 
@@ -139,12 +149,8 @@ namespace DSL {
         
         DslReturnType OdeActionFillFrameNew(const char* name, const char* color);
 
-        DslReturnType OdeActionFillObjectNew(const char* name, const char* color);
-
         DslReturnType OdeActionHandlerDisableNew(const char* name, const char* handler);
 
-        DslReturnType OdeActionHideNew(const char* name, boolean text, boolean border);
-        
         DslReturnType OdeActionDisplayMetaAddNew(const char* name, const char* displayType);
         
         DslReturnType OdeActionDisplayMetaAddDisplayType(const char* name, const char* displayType);
@@ -286,6 +292,12 @@ namespace DSL {
             const char* source, uint classId, uint limit);
 
         DslReturnType OdeTriggerLargestNew(const char* name, 
+            const char* source, uint classId, uint limit);
+
+        DslReturnType OdeTriggerLatestNew(const char* name, 
+            const char* source, uint classId, uint limit);
+
+        DslReturnType OdeTriggerEarliestNew(const char* name, 
             const char* source, uint classId, uint limit);
 
         DslReturnType OdeTriggerNewHighNew(const char* name, 
@@ -1065,6 +1077,11 @@ namespace DSL {
          * @brief called during construction to intialize all const-to-string maps
          */
         void InitToStringMaps();
+
+        /**
+         * @brief called during construction to intialize the NO type Display Types.
+         */
+        void DisplayTypeCreateIntrinsicTypes();
         
         std::map <uint, std::wstring> m_returnValueToString;
         
@@ -1108,7 +1125,12 @@ namespace DSL {
         uint m_sinkNumInUseMax;
         
         /**
-         * @brief map of all default and custom RGBA colors
+         * @brief map of all default intrinsic RGBA Display Types
+         */
+        std::map<std::string, DSL_BASE_PTR> m_intrinsicDisplayTypes;
+        
+        /**
+         * @brief map of all client created RGBA Display Types
          */
         std::map<std::string, DSL_BASE_PTR> m_displayTypes;
         
@@ -1167,6 +1189,13 @@ namespace DSL {
         std::streambuf* m_stdOutRdBufBackup;
         
     };  
+
+    /**
+     * @brief Intrinsic Display Types created on DSL instantiation.
+     */
+    static const std::string DISPLAY_TYPE_NO_COLOR("no-color");
+    static const std::string DISPLAY_TYPE_NO_FONT("no-font");
+    
 
     static gboolean MainLoopThread(gpointer arg);
 }

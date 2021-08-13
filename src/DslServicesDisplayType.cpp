@@ -30,6 +30,17 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    void Services::DisplayTypeCreateIntrinsicTypes()
+    {
+        LOG_FUNC();
+
+        DSL_RGBA_COLOR_PTR pNoColor = DSL_RGBA_COLOR_NEW(
+            DISPLAY_TYPE_NO_COLOR.c_str(), 0.0, 0.0, 0.0, 0.0);
+        m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()] = pNoColor;
+        m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_FONT.c_str()] = DSL_RGBA_FONT_NEW(
+            DISPLAY_TYPE_NO_FONT.c_str(), "arial", 0, pNoColor);
+    }
+
     DslReturnType Services::DisplayTypeRgbaColorNew(const char* name, 
         double red, double green, double blue, double alpha)
     {

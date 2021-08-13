@@ -95,14 +95,253 @@ SCENARIO( "The ODE Actions container is updated correctly on Delete ODE Action",
     }
 }
 
-SCENARIO( "A new Callback ODE Action can be created and deleted", "[ode-action-api]" )
+SCENARIO( "A new Format Bounding Box ODE Action can be created and deleted", "[ode-action-api]" )
 {
-    GIVEN( "Attributes for a new Callback ODE Action" ) 
+    GIVEN( "Attributes for a new Format Bounding Box ODE Action" ) 
+    {
+        std::wstring action_name(L"format-bbox-action");
+        uint border_width(5);
+
+        std::wstring border_color_name(L"my-border-color");
+        std::wstring bg_color_name(L"my-bg-color");
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        
+        boolean has_bg_color(true);
+        
+        REQUIRE( dsl_display_type_rgba_color_new(border_color_name.c_str(), 
+            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_new(bg_color_name.c_str(), 
+            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A new Format Bounding Box Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_format_bbox_new(action_name.c_str(), border_width, 
+                border_color_name.c_str(), has_bg_color, bg_color_name.c_str()) == DSL_RESULT_SUCCESS );
+
+            // second attempt must fail
+            REQUIRE( dsl_ode_action_format_bbox_new(action_name.c_str(), border_width, 
+                border_color_name.c_str(), has_bg_color, bg_color_name.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+            
+            THEN( "The Format Bounding Box Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                
+                // second attempt must fail
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+                
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Format Bounding Box ODE Action with no Border or Background Color can be created", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Format Bounding Box ODE Action" ) 
+    {
+        std::wstring action_name(L"format-bbox-action");
+
+        WHEN( "Using using input parameters border_width = 0 and has_bg_color = false" ) 
+        {
+            uint border_width(0);
+            boolean has_bg_color(false);
+
+            THEN( "The Format Bounding Box Action can be created" ) 
+            {
+                REQUIRE( dsl_ode_action_format_bbox_new(action_name.c_str(), border_width, 
+                    NULL, has_bg_color, NULL) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Format Bounding Box ODE Action verifies its input parameters correctly", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Format Bounding Box ODE Action" ) 
+    {
+        std::wstring action_name(L"format-bbox-action");
+
+        std::wstring border_color_name(L"my-border-color");
+        std::wstring bg_color_name(L"my-bg-color");
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        
+        uint border_width(5);
+        boolean has_bg_color(true);
+        
+        REQUIRE( dsl_display_type_rgba_color_new(border_color_name.c_str(), 
+            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_new(bg_color_name.c_str(), 
+            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
+
+        WHEN( "Using input parameters border_width > 0 and a border_coler = NULL" ) 
+        {
+            THEN( "The Format Bounding Box Action will fail to create" ) 
+            {
+                REQUIRE( dsl_ode_action_format_bbox_new(action_name.c_str(), border_width, 
+                    NULL, has_bg_color, bg_color_name.c_str()) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "Using input parameters has_bg_color = true and a bg_coler = NULL" ) 
+        {
+            uint border_width(0);
+            
+            THEN( "The Format Bounding Box Action will fail to create" ) 
+            {
+                REQUIRE( dsl_ode_action_format_bbox_new(action_name.c_str(), border_width, 
+                    NULL, has_bg_color, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Format Object Label ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Format Object Label ODE Action" ) 
+    {
+        std::wstring action_name(L"format-label-action");
+
+        std::wstring font_name(L"font-name");
+        std::wstring font(L"arial");
+        uint size(14);
+
+        std::wstring font_color_name(L"font-color");
+        std::wstring font_bg_color_name(L"font-bg-color");
+
+        double redFont(0.0), greenFont(0.0), blueFont(0.0), alphaFont(1.0);
+        double redBgColor(0.12), greenBgColor(0.34), blueBgColor(0.56), alphaBgColor(0.78);
+        
+        boolean has_bg_color(true);
+        
+        REQUIRE( dsl_display_type_rgba_color_new(font_color_name.c_str(), 
+            redFont, greenFont, blueFont, alphaFont) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_new(font_bg_color_name.c_str(), 
+            redBgColor, greenBgColor, blueBgColor, alphaBgColor) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_font_new(font_name.c_str(), 
+            font.c_str(), size, font_color_name.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A new Format Bounding Box Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_format_label_new(action_name.c_str(),  
+                font_name.c_str(), has_bg_color, font_bg_color_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+
+            // second attempt must fail
+            REQUIRE( dsl_ode_action_format_label_new(action_name.c_str(),  
+                font_name.c_str(), has_bg_color, font_bg_color_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+            
+            THEN( "The Format Bounding Box Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                
+                // second attempt must fail
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+                
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Format Object Label ODE Action checks its input parameters correctly", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Format Object Label ODE Action" ) 
+    {
+        std::wstring action_name(L"format-label-action");
+
+        std::wstring font_name(L"font-name");
+        std::wstring font(L"arial");
+        uint size(14);
+
+        std::wstring font_color_name(L"font-color");
+        std::wstring font_bg_color_name(L"font-bg-color");
+
+        double redFont(0.0), greenFont(0.0), blueFont(0.0), alphaFont(1.0);
+        double redBgColor(0.12), greenBgColor(0.34), blueBgColor(0.56), alphaBgColor(0.78);
+        
+        REQUIRE( dsl_display_type_rgba_color_new(font_color_name.c_str(), 
+            redFont, greenFont, blueFont, alphaFont) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_new(font_bg_color_name.c_str(), 
+            redBgColor, greenBgColor, blueBgColor, alphaBgColor) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_font_new(font_name.c_str(), 
+            font.c_str(), size, font_color_name.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A new Format ObjectLabel Action is created with NO Font" ) 
+        {
+            REQUIRE( dsl_ode_action_format_label_new(action_name.c_str(),  
+                NULL, true, font_bg_color_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Format Bounding Box Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                
+                // second attempt must fail
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+                
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Format Bounding Box Action is created with NO Background Color" ) 
+        {
+            REQUIRE( dsl_ode_action_format_label_new(action_name.c_str(),  
+                font_name.c_str(), false, NULL) 
+                    == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Format Bounding Box Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                
+                // second attempt must fail
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+                
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Custom ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Custom ODE Action" ) 
     {
         std::wstring action_name(L"custom-action");
         dsl_ode_handle_occurrence_cb client_handler;
 
-        WHEN( "A new Callback ODE Action is created" ) 
+        WHEN( "A new Custom ODE Action is created" ) 
         {
             REQUIRE( dsl_ode_action_custom_new(action_name.c_str(), client_handler, NULL) == DSL_RESULT_SUCCESS );
             
@@ -112,7 +351,7 @@ SCENARIO( "A new Callback ODE Action can be created and deleted", "[ode-action-a
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
-        WHEN( "A new Callback ODE Action is created" ) 
+        WHEN( "A new Custom ODE Action is created" ) 
         {
             REQUIRE( dsl_ode_action_custom_new(action_name.c_str(), client_handler, NULL) == DSL_RESULT_SUCCESS );
             
@@ -341,6 +580,95 @@ SCENARIO( "A Mailer can be added and removed from a Capture Action", "[ode-actio
     }
 }    
 
+SCENARIO( "A new Customze Label ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Display ODE Action" ) 
+    {
+        std::wstring action_name(L"customize-label-action");
+        uint label_types[] = {DSL_METRIC_OBJECT_LOCATION,
+            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE,
+            DSL_METRIC_OBJECT_PERSISTENCE};
+
+        uint mode(DSL_WRITE_MODE_TRUNCATE);
+        uint size(4);
+
+        WHEN( "A new Display Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
+                label_types, size, mode) == DSL_RESULT_SUCCESS );
+
+            // second attempt must fail
+            REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
+                label_types, size, mode) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+            
+            THEN( "The Display Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+
+                // second attempt must fail
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == 
+                    DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+                
+                REQUIRE( dsl_display_type_list_size() == 0 );
+                
+            }
+        }
+        WHEN( "A new Display Action is created with an empty list" ) 
+        {
+            REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
+                NULL, 0, mode) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Display Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+
+                REQUIRE( dsl_display_type_list_size() == 0 );
+                
+            }
+        }
+    }
+}
+
+SCENARIO( "Parameters for a new Customze Label ODE Action are checked on construction", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Customze Label ODE Action" ) 
+    {
+        std::wstring action_name(L"customize-label-action");
+        uint label_types[] = {DSL_METRIC_OBJECT_LOCATION,
+            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE,
+            DSL_METRIC_OBJECT_PERSISTENCE};
+
+        WHEN( "The mode parameter is out of range" ) 
+        {
+            uint mode(DSL_WRITE_MODE_TRUNCATE+1);
+            uint size(4);
+            
+            THEN( "The Customize Label Action fails to create" ) 
+            {
+                REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
+                    label_types, 4, mode) == DSL_RESULT_ODE_ACTION_PARAMETER_INVALID );
+
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+        WHEN( "The format parameter is out of range" ) 
+        {
+            uint mode(DSL_WRITE_MODE_TRUNCATE);
+            uint size(5);
+            
+            THEN( "The Customize Label Action fails to create" ) 
+            {
+                REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
+                    label_types, size, mode) == DSL_RESULT_ODE_ACTION_PARAMETER_INVALID );
+
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
 
 SCENARIO( "A new Display ODE Action can be created and deleted", "[ode-action-api]" )
 {
@@ -353,8 +681,10 @@ SCENARIO( "A new Display ODE Action can be created and deleted", "[ode-action-ap
         uint size(20);
 
         std::wstring fontColorName(L"my-font-color");
-        std::wstring bgColorName(L"my-bg-color");
+        std::wstring bg_color_name(L"my-bg-color");
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        
+        std::wstring format_string(L"Class: %0");
         
         REQUIRE( dsl_display_type_rgba_color_new(fontColorName.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
@@ -362,13 +692,14 @@ SCENARIO( "A new Display ODE Action can be created and deleted", "[ode-action-ap
         REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
             size, fontColorName.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_color_new(bgColorName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_new(bg_color_name.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new Display Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_display_new(action_name.c_str(), 10, 10, true, 
-                fontName.c_str(), true, bgColorName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_display_new(action_name.c_str(), 
+                format_string.c_str(), 10, 10, fontName.c_str(), true, 
+                bg_color_name.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The Display Action can be deleted" ) 
             {
@@ -381,13 +712,15 @@ SCENARIO( "A new Display ODE Action can be created and deleted", "[ode-action-ap
         }
         WHEN( "A new Display Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_display_new(action_name.c_str(), 10, 10, true, 
-                fontName.c_str(), true, bgColorName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_display_new(action_name.c_str(), 
+                format_string.c_str(), 10, 10, fontName.c_str(), true, 
+                bg_color_name.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Display Action of the same names fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_display_new(action_name.c_str(), 10, 10, true, 
-                    fontName.c_str(), true, bgColorName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_display_new(action_name.c_str(), 
+                    format_string.c_str(), 10, 10, fontName.c_str(), true, 
+                    bg_color_name.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
@@ -410,7 +743,7 @@ SCENARIO( "A new Add Display Meta ODE Action can be created and deleted", "[ode-
         
 
         std::wstring fontColorName(L"my-font-color");
-        std::wstring bgColorName(L"my-bg-color");
+        std::wstring bg_color_name(L"my-bg-color");
         
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
 
@@ -469,7 +802,7 @@ SCENARIO( "A new Add Many Display Meta ODE Action can be created and deleted", "
         
 
         std::wstring fontColorName(L"my-font-color");
-        std::wstring bgColorName(L"my-bg-color");
+        std::wstring bg_color_name(L"my-bg-color");
         
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
 
@@ -517,7 +850,7 @@ SCENARIO( "A new File ODE Action can be created and deleted", "[ode-action-api]"
     {
         std::wstring action_name(L"file-action");
         std::wstring file_path(L"./file-action.txt");
-        uint mode(DSL_EVENT_FILE_MODE_TRUNCATE);
+        uint mode(DSL_WRITE_MODE_TRUNCATE);
         uint format(DSL_EVENT_FILE_FORMAT_TEXT);
         boolean force_flush(true);
 
@@ -559,7 +892,7 @@ SCENARIO( "Parameters for a new File ODE Action are checked on construction", "[
 
         WHEN( "The mode parameter is out of range" ) 
         {
-            uint mode(DSL_EVENT_FILE_MODE_TRUNCATE+1);
+            uint mode(DSL_WRITE_MODE_TRUNCATE+1);
             uint format(DSL_EVENT_FILE_FORMAT_TEXT);
             
             THEN( "The File Action fails to create" ) 
@@ -572,7 +905,7 @@ SCENARIO( "Parameters for a new File ODE Action are checked on construction", "[
         }
         WHEN( "The format parameter is out of range" ) 
         {
-            uint mode(DSL_EVENT_FILE_MODE_TRUNCATE);
+            uint mode(DSL_WRITE_MODE_TRUNCATE);
             uint format(DSL_EVENT_FILE_FORMAT_CSV+1);
             
             THEN( "The File Action fails to create" ) 
@@ -627,46 +960,6 @@ SCENARIO( "A new Fill Frame ODE Action can be created and deleted", "[ode-action
     }
 }
 
-SCENARIO( "A new Fill Object ODE Action can be created and deleted", "[ode-action-api]" )
-{
-    GIVEN( "Attributes for a new Fill Object ODE Action" ) 
-    {
-        std::wstring action_name(L"fill-object-action");
-
-        std::wstring colorName(L"my-color");
-        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
-
-        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
-            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
-
-        WHEN( "A new Fill Object Action is created" ) 
-        {
-            REQUIRE( dsl_ode_action_fill_object_new(action_name.c_str(), colorName.c_str()) == DSL_RESULT_SUCCESS );
-            
-            THEN( "The Fill Object Action can be deleted" ) 
-            {
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_action_list_size() == 0 );
-                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_display_type_list_size() == 0 );
-            }
-        }
-        WHEN( "A new Fill Object Action is created" ) 
-        {
-            REQUIRE( dsl_ode_action_fill_object_new(action_name.c_str(), colorName.c_str()) == DSL_RESULT_SUCCESS );
-            
-            THEN( "A second Fill Object Action of the same name fails to create" ) 
-            {
-                REQUIRE( dsl_ode_action_fill_object_new(action_name.c_str(), colorName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
-                    
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_action_list_size() == 0 );
-                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_display_type_list_size() == 0 );
-            }
-        }
-    }
-}
 
 SCENARIO( "A new Fill Surroundings ODE Action can be created and deleted", "[ode-action-api]" )
 {
@@ -1408,19 +1701,19 @@ SCENARIO( "The ODE Action API checks for NULL input parameters", "[ode-action-ap
                 REQUIRE( dsl_ode_action_capture_object_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
+                REQUIRE( dsl_ode_action_customize_label_new(NULL,
+                    NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+
                 REQUIRE( dsl_ode_action_display_new(NULL, 0, 0, false, NULL, false, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_display_new(action_name.c_str(), 0, 0, false, NULL, false, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_file_new(NULL, NULL, DSL_EVENT_FILE_MODE_APPEND, 
+                REQUIRE( dsl_ode_action_file_new(NULL, NULL, DSL_WRITE_MODE_APPEND, 
                     DSL_EVENT_FILE_FORMAT_TEXT, false) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_file_new(action_name.c_str(), NULL, DSL_EVENT_FILE_MODE_APPEND,
+                REQUIRE( dsl_ode_action_file_new(action_name.c_str(), NULL, DSL_WRITE_MODE_APPEND,
                     DSL_EVENT_FILE_FORMAT_TEXT, false) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_fill_frame_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_fill_frame_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-
-                REQUIRE( dsl_ode_action_fill_object_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_fill_object_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_fill_surroundings_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_fill_surroundings_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
@@ -1428,8 +1721,6 @@ SCENARIO( "The ODE Action API checks for NULL input parameters", "[ode-action-ap
                 REQUIRE( dsl_ode_action_handler_disable_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_handler_disable_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
-                REQUIRE( dsl_ode_action_hide_new(NULL, false, false) == DSL_RESULT_INVALID_INPUT_PARAM );
-
                 REQUIRE( dsl_ode_action_log_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_display_meta_add_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );

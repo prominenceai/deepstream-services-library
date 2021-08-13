@@ -94,17 +94,26 @@ def main(args):
 		# This will have the effect of coloring an object by its time in view
         
         #```````````````````````````````````````````````````````````````````````````````````
-        # Create a Hide Action to hide all Display Text and Bounding Boxes
-        retval = dsl_ode_action_hide_new('hide-both', text=True, border=True)
+        # Create a Format Label Action to remove the Object Label from view
+        # Note: the label can be disabled with the OSD API as well. 
+        retval = dsl_ode_action_format_label_new('remove-label', 
+            font=None, has_bg_color=False, bg_color=None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Create a Format Bounding Box Action to remove the box border from view
+        retval = dsl_ode_action_format_bbox_new('remove-border', border_width=0,
+            border_color=None, has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create an Any-Class Occurrence Trigger for our Hide Action
+        # Create an Any-Class Occurrence Trigger for our remove label and bbox actions
         retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', source='uri-source-1',
             class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('every-occurrence-trigger', action='hide-both')
+        retval = dsl_ode_trigger_action_add_many('every-occurrence-trigger', 
+            actions=['remove-label', 'remove-border', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -124,13 +133,25 @@ def main(args):
             
         #```````````````````````````````````````````````````````````````````````````````````
         # Create three new Actions to fill the bounding boxes, one for each Persistence Trigger
-        retval = dsl_ode_action_fill_object_new('fill-opaque-green', color='opaque-green')
+        retval = dsl_ode_action_format_bbox_new('fill-opaque-green',
+            border_width = 0,
+            border_color = None,
+            has_bg_color = True,
+            bg_color = 'opaque-green')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_action_fill_object_new('fill-opaque-yellow', color='opaque-yellow')
+        retval = dsl_ode_action_format_bbox_new('fill-opaque-yellow',
+            border_width = 0,
+            border_color = None,
+            has_bg_color = True,
+            bg_color = 'opaque-yellow')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_action_fill_object_new('fill-opaque-red', color='opaque-red')
+        retval = dsl_ode_action_format_bbox_new('fill-opaque-red',
+            border_width = 0,
+            border_color = None,
+            has_bg_color = True,
+            bg_color = 'opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
 

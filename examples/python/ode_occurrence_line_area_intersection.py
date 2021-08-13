@@ -95,9 +95,12 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Create a new  Action used to display all Object counts for each frame. Use the classId
-        # to add an additional vertical offset so the one action can be shared accross classId's
-        retval = dsl_ode_action_fill_object_new('fill-action', color='opaque-red')
+        # Create a new  Action used to fill a bounding box with the opaque red color
+        retval = dsl_ode_action_format_bbox_new('fill-action',
+            border_width = 0,
+            border_color = None,
+            has_bg_color = True,
+            bg_color = 'opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -147,7 +150,7 @@ def main(args):
             break
 
         # New Primary GIE using the filespecs above with interval = 0
-        retval = dsl_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 1)
+        retval = dsl_infer_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
 

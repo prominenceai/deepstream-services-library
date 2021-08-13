@@ -1,5 +1,5 @@
 # Tap API
-Taps are used to "Tap" into a single RTSP source pre-decode so that the original source stream can be perserved. As with all components, Taps must be uniquely named from all other components created. There is only one Tap type at this time, a Record Tap -- similar in operation to the [Record Sink](/docs/api-sink.md) -- with Start/Stop/Duration control and a cache for pre-start buffering. 
+Taps are used to "Tap" into a single RTSP source pre-decode so that the original source stream can be preserved. As with all components, Taps must be uniquely named from all other components created. There is only one Tap type at this time, a Record Tap -- similar in operation to the [Record Sink](/docs/api-sink.md) -- with Start/Stop/Duration control and a cache for pre-start buffering. 
 
 ### Tap Construction and Destruction
 Taps are created by calling a type-specific constructor. Taps are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all). Attempting to delete a Tap while in use will fail. 
@@ -64,7 +64,7 @@ The following video container types are used by the Record Tap API
 #define DSL_CONTAINER_MK4                                           1
 ```
 ## Recording Events
-The following Event Type identifiers are used by the Recoring Tap API
+The following Event Type identifiers are used by the Recording Tap API
 ```C++
 #define DSL_RECORDING_EVENT_START                                   0
 #define DSL_RECORDING_EVENT_END                                     1
@@ -90,7 +90,7 @@ Structure typedef used to provide recording session information to the client on
 
 **Fields**
 * `recording_event` - one of DSL_RECORDING_EVENT_START or DSL_RECORDING_EVENT_END
-* `sessionId` - the unique sesions id assigned on record start
+* `sessionId` - the unique sessions id assigned on record start
 * `filename` - filename generated for the completed recording. 
 * `directory` - path for the completed recording
 * `duration` - duration of the recording in milliseconds
@@ -146,7 +146,7 @@ Note: the Tap name is used as the filename prefix, followed by session id and NT
 * `name` - [in] unique name for the Record Tap to create.
 * `outdir` - [in] absolute or relative pathspec for the directory to save the recorded video streams.
 * `container` - [in] one of the [Video Container Types](#video-container-types) defined above
-* `client_listener` - [in] client callback funtion to be called when the recording is complete or stoped.
+* `client_listener` - [in] client callback function to be called when the recording is complete or stopped.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure

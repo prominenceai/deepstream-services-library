@@ -115,7 +115,7 @@ There are currently six types of Source components, two live connected Camera So
 
 Two live decode Sources that.
 * Universal Resource Identifier (URI) Source - supports non-live files as well.
-* Real-time Streaming Protocol (RTSP) Source - over the SOM's eithernet port or streaming wirelessly.
+* Real-time Streaming Protocol (RTSP) Source - over the SOM's ethernet port or WiFi link.
 
 Two non-live Sources 
 * File Source that is derived from the URI Decode Source with some of the parameters fixed.
@@ -142,7 +142,7 @@ See the [Inference Engine and Server API](/docs/api-infer.md) reference section 
 
 DSL supports NVIDIA's [Segmentation Visualizer plugin](https://docs.nvidia.com/metropolis/deepstream/5.0DP/plugin-manual/index.html#page/DeepStream%20Plugins%20Development%20Guide/deepstream_plugin_details.3.11.html#wwpID0E0WT0HA) for viewing segmentation results produced from either a Primary Gst Inference Engine (PGIE) or Primary Triton Inference Server (TIS).
 
-See the [Segmentation Visualizer API](/docs/api-segvisual.md) reference setction for more inforamtion.
+See the [Segmentation Visualizer API](/docs/api-segvisual.md) reference section for more information.
 
 ## Multi-Object Trackers
 There are two types of streaming Multi-Object Tracker Components.
@@ -383,6 +383,8 @@ Current **ODE Triggers** supported:
 * **New High** trigger when the count of objects within a frame reaches a new high count.
 * **Smallest** - triggers on the smallest object by area if one or more objects are detected. Once per-frame at most.
 * **Largest** - triggers on the largest object by area if one or more objects are detected. Once per-frame at most.
+* **Earliest** - triggers on the object that came into view the earliest (most persistent). Once per-frame at most.
+* **Latest** - triggers on the object that came into view the latest (least persistent). Once per-frame at most.
 * **Custom** - allows the client to provide a callback function that implements a custom "Check for Occurrence".
 
 Triggers have optional, settable criteria and filters: 
@@ -395,7 +397,7 @@ Triggers have optional, settable criteria and filters:
 
 **ODE Actions** handle the occurrence of Object Detection Events each with a specific action under the categories below. 
 * **Actions on Buffers** - Capture Frames and Objects to JPEG images and save to file.
-* **Actions on Metadata** - Fill-Frames and Objects with a color, add Text & Shapes to a Frame, Hide Object Text & Borders.
+* **Actions on Metadata** - Format Object Labels & Bounding Boxes, Fill-Frames and Objects with a color, add Text & Shapes to a Frame.
 * **Actions on ODE Data** - Print, Log, and Display ODE occurrence data on screen.
 * **Actions on Recordings** - Start a new recording session for a Record Tap or Sink 
 * **Actions on Pipelines** - Pause Pipeline, Add/Remove Source, Add/Remove Sink, Disable ODE Handler
@@ -403,7 +405,9 @@ Triggers have optional, settable criteria and filters:
 * **Actions on Areas** - Add/Remove Areas
 * **Actions on Actions** - Disable/Enable Actions
 
-Actions acting on Triggers, other Actions and Areas allow for a dynamic sequencing of detection events. For example, a one-time Occurrence Trigger using an Action can enable a one-time Absence Trigger for the same class. The Absence Trigger using an Action can then reset/re-enable the one-time Occurrence Trigger. Combined, they can be used to alert when one or more objects first enters and then exits the frame or Area.
+The below screenshot, captured while running the python example [ode_persistence_and_earliest_triggers_custom_labels.py](/examples/python/ode_persistence_and_earliest_triggers_custom_labels.py), shows how ODE Triggers and Actions can be used to update the Frame and Object metadata to display event metrics.
+
+![meta data](/Images/display-action-screenshot.png)
 
 **ODE Areas**, [Lines](/docs/api-display-type.md#dsl_display_type_rgba_line_new) and [Polygons](/docs/api-display-type.md#dsl_display_type_rgba_polygon_new) can be added to any number of Triggers as additional criteria. 
 
@@ -423,15 +427,20 @@ The above is produced with the following example
 ```python
 # example assumes that all return values are checked before proceeding
 
-# Create a Hide-Area Action to hide all Display Text and Bounding Boxes
-retval = dsl_ode_action_hide_new('hide-both', text=True, border=True)
+# Create a Format Label Action to remove the Object Label from view
+# Note: the label can be disabled with the OSD API as well. 
+retval = dsl_ode_action_format_label_new('remove-label', 
+    font=None, has_bg_color=False, bg_color=None)
+            
+# Create a Format Bounding Box Action to remove the box border from view
+retval = dsl_ode_action_format_bbox_new('remove-border', border_width=0,
+    border_color=None, has_bg_color=False, bg_color=None)
 
 # Create an Any-Class Occurrence Trigger for our Hide Action
-retval = dsl_ode_trigger_occurrence_new('any-occurrence-trigger', source='East Cam 1',
+retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', source='uri-source-1',
     class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
-
-# Add the action to hide/exclude the text and boxes for every object occurrence to the Trigger
-retval = dsl_ode_trigger_action_add('any-occurrence-trigger', action='hide-both')
+retval = dsl_ode_trigger_action_add_many('every-occurrence-trigger', 
+    actions=['remove-label', 'remove-border', None])
 
 # Create the opaque red RGBA Color and "fill-object" Action to fill the bounding box
 retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, green=0.0, blue=0.0, alpha=0.3)

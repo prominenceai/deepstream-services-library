@@ -11,7 +11,7 @@ There are three types of Players that can be created.
 Players are destructed by calling [dsl_player_delete](#dsl_player_delete) or [dsl_player_delete_all](#dsl_player_delete_all).
 
 #### Adding an Image Render Player to an ODE Capture Action
-Images Players can be added to either a Frame or Object Capture Action for auto-play on ODE occurence by calling [dsl_ode_action_capture_image_player_add](/docs/api-ode-action.md#dsl_ode_action_capture_image_player_add) and removed by calling [dsl_ode_action_capture_image_player_remove](/docs/api-ode-action.md#dsl_ode_action_capture_image_player_remove)
+Images Players can be added to either a Frame or Object Capture Action for auto-play on ODE occurrence by calling [dsl_ode_action_capture_image_player_add](/docs/api-ode-action.md#dsl_ode_action_capture_image_player_add) and removed by calling [dsl_ode_action_capture_image_player_remove](/docs/api-ode-action.md#dsl_ode_action_capture_image_player_remove)
 
 #### Adding a Video Render Player to a Smart Recording Tap or Sink
 Video Players can be added to Smart Recording Taps and Sinks for auto-play on recording complete by calling [dsl_tap_record_video_player_add](/docs/api-tap.md#dsl_tap_record_video_player_add) and [dsl_sink_record_video_player_add](/docs/api-sink.md#dsl_sink_record_video_player_add) respectively and removed by calling [dsl_tap_record_video_player_remove](/docs/api-tap.md#dsl_tap_record_video_player_remove) and [dsl_sink_record_video_player_remove](/docs/api-sink.md#dsl_sink_record_video_player_remove)

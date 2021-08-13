@@ -30,33 +30,6 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    DslReturnType Services::OdeActionCustomNew(const char* name,
-        dsl_ode_handle_occurrence_cb clientHandler, void* clientData)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure event name uniqueness 
-            if (m_odeActions.find(name) != m_odeActions.end())
-            {   
-                LOG_ERROR("ODE Action name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
-            }
-            m_odeActions[name] = DSL_ODE_ACTION_CUSTOM_NEW(name, clientHandler, clientData);
-
-            LOG_INFO("New ODE Callback Action '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New ODE Callback Action '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
-        }
-    }
-
     DslReturnType Services::OdeActionCaptureFrameNew(const char* name,
         const char* outdir, boolean annotate)
     {
@@ -319,9 +292,102 @@ namespace DSL
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
+
+    DslReturnType Services::OdeActionCustomNew(const char* name,
+        dsl_ode_handle_occurrence_cb clientHandler, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_CUSTOM_NEW(
+                name, clientHandler, clientData);
+
+            LOG_INFO("New ODE Callback Action '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Callback Action '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType  Services::OdeActionCustomizeLabelNew(const char* name, 
+        const uint* contentTypes, uint size, uint mode)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            
+            if (size > DSL_METRIC_OBJECT_PERSISTENCE+1)
+            {
+                LOG_ERROR("Invalid array size for new Customize Label ODE Action '" 
+                    << name << "'");
+                return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
+            }
+            
+            if (mode > DSL_WRITE_MODE_TRUNCATE)
+            {
+                LOG_ERROR("Invalid write mode parameter = " << mode 
+                    << " for new Customize Label ODE Action '" << name << "'");
+                return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
+            }
+
+            // convert array of Content Type constants into a vector
+            std::vector <uint> contentTypesCopy;
+            
+            uint count(size);
+            for (const uint* contentType = contentTypes; count; contentType++)
+            {
+                if (*contentType > DSL_METRIC_OBJECT_PERSISTENCE)
+                {
+                    LOG_ERROR("Invalid Content Type = " << *contentType 
+                        << " for new Customize Label ODE Action" << name << "'");
+                    return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
+                }
+                contentTypesCopy.push_back(*contentType);
+                count--;
+            }    
+            m_odeActions[name] = DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(
+                name, contentTypesCopy, mode);
+
+            LOG_INFO("New ODE Customize Label Action '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Callback Action '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+        
+    }
+
     
-    DslReturnType Services::OdeActionDisplayNew(const char* name, uint offsetX, uint offsetY, 
-        boolean offsetYWithClassId, const char* font, boolean hasBgColor, const char* bgColor)
+    DslReturnType Services::OdeActionDisplayNew(const char* name, 
+        const char* formatString, uint offsetX, uint offsetY, 
+        const char* font, boolean hasBgColor, const char* bgColor)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -335,26 +401,30 @@ namespace DSL
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
             DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
-            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(
+                m_displayTypes, font, RgbaFont);
             
             DSL_RGBA_COLOR_PTR pBgColor(nullptr);
             if (hasBgColor)
             {
                 DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(
+                    m_displayTypes, bgColor, RgbaColor);
 
-                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(
+                    m_displayTypes[bgColor]);
             }
             else
             {
-                pBgColor = DSL_RGBA_COLOR_NEW("_no_color_", 0.0, 0.0, 0.0, 0.0);
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>
+                    (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
             }
 
             DSL_RGBA_FONT_PTR pFont = 
                 std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
 
             m_odeActions[name] = DSL_ODE_ACTION_DISPLAY_NEW(name, 
-                offsetX, offsetY, offsetYWithClassId, pFont, hasBgColor, pBgColor);
+                formatString, offsetX, offsetY, pFont, hasBgColor, pBgColor);
                 
             LOG_INFO("New Display ODE Action '" << name << "' created successfully");
 
@@ -362,7 +432,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("New Display ODE Action '" << name << "' threw exception on create");
+            LOG_ERROR("New Display ODE Action '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
@@ -392,7 +463,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("New ODE Email Action '" << name << "' threw exception on create");
+            LOG_ERROR("New ODE Email Action '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
@@ -411,7 +483,7 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            if (mode > DSL_EVENT_FILE_MODE_TRUNCATE)
+            if (mode > DSL_WRITE_MODE_TRUNCATE)
             {
                 LOG_ERROR("File open mode " << mode 
                     << " is invalid for ODE Action '" << name << "'");
@@ -432,12 +504,14 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("New ODE File Action '" << name << "' threw exception on create");
+            LOG_ERROR("New ODE File Action '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::OdeActionFillSurroundingsNew(const char* name, const char* color)
+    DslReturnType Services::OdeActionFillSurroundingsNew(const char* 
+        name, const char* color)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -503,7 +577,9 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeActionFillObjectNew(const char* name, const char* color)
+
+    DslReturnType Services::OdeActionFormatBBoxNew(const char* name,
+        uint borderWidth, const char* borderColor, boolean hasBgColor, const char* bgColor)  
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -517,21 +593,101 @@ namespace DSL
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
 
-            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
-            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+            DSL_RGBA_COLOR_PTR pBorderColor(nullptr);
+            if (borderWidth)
+            {
+                DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, borderColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, borderColor, RgbaColor);
 
-            DSL_RGBA_COLOR_PTR pColor = 
-                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+                pBorderColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[borderColor]);
+            }
+            else
+            {
+                pBorderColor = std::dynamic_pointer_cast<RgbaColor>
+                    (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
+            }
+
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>
+                    (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_FORMAT_BBOX_NEW(name, 
+                borderWidth, pBorderColor, hasBgColor, pBgColor);
                 
-            m_odeActions[name] = DSL_ODE_ACTION_FILL_OBJECT_NEW(name, pColor);
-
-            LOG_INFO("New ODE Fill Object Action '" << name << "' created successfully");
+            LOG_INFO("New Format Bounding Box ODE Action '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New ODE Fill Object Action '" << name << "' threw exception on create");
+            LOG_ERROR("New Format Bounding Box ODE Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+    
+
+    DslReturnType Services::OdeActionFormatLabelNew(const char* name,
+        const char* font, boolean hasBgColor, const char* bgColor)  
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+
+            DSL_RGBA_FONT_PTR pFont(nullptr);
+            std::string fontString(font);
+            if (fontString.size())
+            {
+                DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+
+                pFont = std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
+            }
+            else
+            {
+                pFont = std::dynamic_pointer_cast<RgbaFont>(
+                    m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_FONT.c_str()]);
+            }
+
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>
+                    (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_FORMAT_LABEL_NEW(name, 
+                pFont, hasBgColor, pBgColor);
+                
+            LOG_INFO("New Format Label ODE Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Format Bounding Box ODE Action '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
@@ -558,32 +714,6 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New ODE Disable Handler Action '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::OdeActionHideNew(const char* name, boolean text, boolean border)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure event name uniqueness 
-            if (m_odeActions.find(name) != m_odeActions.end())
-            {   
-                LOG_ERROR("ODE Action name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
-            }
-            m_odeActions[name] = DSL_ODE_ACTION_HIDE_NEW(name, text, border);
-
-            LOG_INFO("New ODE Hide Action '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New ODE Hide Action '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }

@@ -306,7 +306,7 @@ namespace DSL
     {
         // Don't log function entry/exit
 
-        char result = GEOSTouches(m_pGeosPolygon, testPolygon.m_pGeosPolygon);
+        char result = GEOSOverlaps(m_pGeosPolygon, testPolygon.m_pGeosPolygon);
         if (result == 2)
         {
             LOG_ERROR("Exception when testing if GEOS Polygons intersect");

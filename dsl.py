@@ -8,7 +8,6 @@ DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT = 4000000
 DSL_DEFAULT_STREAMMUX_WIDTH = 1920
 DSL_DEFAULT_STREAMMUX_HEIGHT = 1080
 
-
 DSL_PAD_SINK = 0
 DSL_PAD_SRC = 1
 
@@ -92,10 +91,20 @@ DSL_RENDER_TYPE_WINDOW  = 1
 DSL_RECORDING_EVENT_START = 0
 DSL_RECORDING_EVENT_END   = 1
 
-DSL_EVENT_FILE_MODE_APPEND   = 0
-DSL_EVENT_FILE_MODE_TRUNCATE = 1
 DSL_EVENT_FILE_FORMAT_TEXT   = 0
 DSL_EVENT_FILE_FORMAT_CSV    = 1
+
+DSL_WRITE_MODE_APPEND   = 0
+DSL_WRITE_MODE_TRUNCATE = 1
+
+DSL_METRIC_OBJECT_CLASS       = 0
+DSL_METRIC_OBJECT_TRACKING_ID = 1
+DSL_METRIC_OBJECT_LOCATION    = 2
+DSL_METRIC_OBJECT_DIMENSIONS  = 3
+DSL_METRIC_OBJECT_CONFIDENCE  = 4
+DSL_METRIC_OBJECT_PERSISTENCE = 5
+DSL_METRIC_OBJECT_OCCURRENCES = 6
+
 
 class dsl_coordinate(Structure):
     _fields_ = [
@@ -326,6 +335,19 @@ def dsl_display_type_list_size():
     return int(result)
 
 ##
+## dsl_ode_action_format_bbox_new()
+##
+_dsl.dsl_ode_action_format_bbox_new.argtypes = [c_wchar_p, 
+    c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_ode_action_format_bbox_new.restype = c_uint
+def dsl_ode_action_format_bbox_new(name, 
+    border_width, border_color, has_bg_color, bg_color):
+    global _dsl
+    result =_dsl.dsl_ode_action_format_bbox_new(name, 
+        border_width, border_color, has_bg_color, bg_color)
+    return int(result)
+
+##
 ## dsl_ode_action_custom_new()
 ##
 _dsl.dsl_ode_action_custom_new.argtypes = [c_wchar_p, DSL_ODE_HANDLE_OCCURRENCE, c_void_p]
@@ -428,18 +450,36 @@ def dsl_ode_action_capture_mailer_remove(name, mailer):
     global _dsl
     result = _dsl.dsl_ode_action_capture_mailer_remove(name, mailer)
     return int(result)
-    
+
+##
+## dsl_ode_action_customize_label_new()
+##
+#_dsl.dsl_ode_action_customize_label_new.argtypes = [c_wchar_p, 
+#    c_uint, c_uint, c_uint]
+_dsl.dsl_ode_action_customize_label_new.restype = c_uint
+def dsl_ode_action_customize_label_new(name, 
+    content_types, size, mode):
+    global _dsl
+    if content_types is None:
+        arr = None
+    else:
+        arr = (c_int * size)()
+        arr[:] = content_types
+    result =_dsl.dsl_ode_action_customize_label_new(name, 
+        arr, size, mode)
+    return int(result)
+
 ##
 ## dsl_ode_action_display_new()
 ##
 _dsl.dsl_ode_action_display_new.argtypes = [c_wchar_p, 
-    c_uint, c_uint, c_bool, c_wchar_p, c_bool, c_wchar_p]
+    c_wchar_p, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
 _dsl.dsl_ode_action_display_new.restype = c_uint
 def dsl_ode_action_display_new(name, 
-    x_offset, y_offset, y_offset_with_classId, font, has_bg_color, bg_color):
+    format_string, offset_x, offset_y, font, has_bg_color, bg_color):
     global _dsl
     result =_dsl.dsl_ode_action_display_new(name, 
-        x_offset, y_offset, y_offset_with_classId, font, has_bg_color, bg_color)
+        format_string, offset_x, offset_y, font, has_bg_color, bg_color)
     return int(result)
 
 ##
@@ -473,16 +513,6 @@ def dsl_ode_action_fill_frame_new(name, color):
     return int(result)
 
 ##
-## dsl_ode_action_fill_object_new()
-##
-_dsl.dsl_ode_action_fill_object_new.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_ode_action_fill_object_new.restype = c_uint
-def dsl_ode_action_fill_object_new(name, color):
-    global _dsl
-    result =_dsl.dsl_ode_action_fill_object_new(name, color)
-    return int(result)
-
-##
 ## dsl_ode_action_fill_surroundings_new()
 ##
 _dsl.dsl_ode_action_fill_surroundings_new.argtypes = [c_wchar_p, c_wchar_p]
@@ -493,6 +523,19 @@ def dsl_ode_action_fill_surroundings_new(name, color):
     return int(result)
 
 ##
+## dsl_ode_action_format_label_new()
+##
+_dsl.dsl_ode_action_format_label_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_ode_action_format_label_new.restype = c_uint
+def dsl_ode_action_format_label_new(name, 
+    font, has_bg_color, bg_color):
+    global _dsl
+    result =_dsl.dsl_ode_action_format_label_new(name, 
+        font, has_bg_color, bg_color)
+    return int(result)
+
+##
 ## dsl_ode_action_handler_disable_new()
 ##
 _dsl.dsl_ode_action_handler_disable_new.argtypes = [c_wchar_p, c_wchar_p]
@@ -500,16 +543,6 @@ _dsl.dsl_ode_action_handler_disable_new.restype = c_uint
 def dsl_ode_action_handler_disable_new(name, handler):
     global _dsl
     result =_dsl.dsl_ode_action_handler_disable_new(name, handler)
-    return int(result)
-
-##
-## dsl_ode_action_hide_new()
-##
-_dsl.dsl_ode_action_hide_new.argtypes = [c_wchar_p, c_bool, c_bool]
-_dsl.dsl_ode_action_hide_new.restype = c_uint
-def dsl_ode_action_hide_new(name, text, border):
-    global _dsl
-    result =_dsl.dsl_ode_action_hide_new(name, text, border)
     return int(result)
 
 ##
@@ -1133,6 +1166,26 @@ _dsl.dsl_ode_trigger_largest_new.restype = c_uint
 def dsl_ode_trigger_largest_new(name, source, class_id, limit):
     global _dsl
     result =_dsl.dsl_ode_trigger_largest_new(name, source, class_id, limit)
+    return int(result)
+
+##
+## dsl_ode_trigger_latest_new()
+##
+_dsl.dsl_ode_trigger_latest_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_latest_new.restype = c_uint
+def dsl_ode_trigger_latest_new(name, source, class_id, limit):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_latest_new(name, source, class_id, limit)
+    return int(result)
+
+##
+## dsl_ode_trigger_earliest_new()
+##
+_dsl.dsl_ode_trigger_earliest_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_earliest_new.restype = c_uint
+def dsl_ode_trigger_earliest_new(name, source, class_id, limit):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_earliest_new(name, source, class_id, limit)
     return int(result)
 
 ##

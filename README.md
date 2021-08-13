@@ -11,14 +11,19 @@ DSL is best described as _"the NVIDIA DeepStream Reference Application — [deep
 
 Written in C++ 17 with an `extern "C"` API, DSL can be called from both C/C++ and Python applications.
 
-**C/C++**
+## Examples
+
+### C++
+
 ```C++
 #include <DslApi.h>
 
 // New CSI Live Camera Source
 uint retval = dsl_source_csi_new("csi-source", 1280, 720, 30, 1);
 ```
-**Python3**
+
+### Python3
+
 ```Python
 from dsl import *
 
@@ -26,15 +31,18 @@ from dsl import *
 retval = dsl_source_csi_new('csi-source', 1280, 720, 30, 1)
 ```
 
-DSL is built on the NVIDA® [DeepStream SDK](https://developer.nvidia.com/deepstream-sdk), _"A complete streaming analytics toolkit for AI-based video and image understanding, as well as multi-sensor processing."_, 
+DSL is built on the NVIDIA® [DeepStream SDK](https://developer.nvidia.com/deepstream-sdk), _"A complete streaming analytics toolkit for AI-based video and image understanding, as well as multi-sensor processing."_,
 
 The DeepStream SDK and DSL use the open source [GStreamer](https://gstreamer.freedesktop.org/),  _"An extremely powerful and versatile framework for creating streaming media applications"_.
 
 ## Contributing
-DSL is released under the [MIT License](LICENSE). Contributions are welcome and greatly appreciated. Contributor guidelines and code of conduct are still TBW. 
+
+DSL is released under the [MIT License](LICENSE). Contributions are welcome and greatly appreciated. Contributor guidelines and code of conduct are still TBW.
 
 ## Instructional Videos
-Vist our YouTube channel for instructional videos on using DSL (and DMS) ... Note: this is still in a very early stage as the DSL/DMS APIs, and demonstration application, are still in development, but new content will be added weekly. There is no audio yet, but some might find the videos helpful in understanding DSL.
+
+Visit our YouTube channel for instructional videos on using DSL (and DMS) ... Note: this is still in a very early stage as the DSL/DMS APIs, and demonstration application, are still in development, but new content will be added weekly. There is no audio yet, but some might find the videos helpful in understanding DSL.
+
 <br>
 
 [<img src="/Images/youtube-link.png">](https://www.youtube.com/channel/UCxaJo95fbp2aFXopdquF96Q)
