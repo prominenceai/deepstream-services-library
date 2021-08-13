@@ -405,7 +405,9 @@ Triggers have optional, settable criteria and filters:
 * **Actions on Areas** - Add/Remove Areas
 * **Actions on Actions** - Disable/Enable Actions
 
-Actions acting on Triggers, other Actions and Areas allow for a dynamic sequencing of detection events. For example, a one-time Occurrence Trigger using an Action can enable a one-time Absence Trigger for the same class. The Absence Trigger using an Action can then reset/re-enable the one-time Occurrence Trigger. Combined, they can be used to alert when one or more objects first enters and then exits the frame or Area.
+The below screenshot, captured while running the python example [ode_persistence_and_earliest_triggers_custom_labels.py](/examples/python/ode_persistence_and_earliest_triggers_custom_labels.py), shows how ODE Triggers and Actions can be used to update the Frame and Object metadata to display event metrics.
+
+![meta data](/Images/display-action-screenshot.png)
 
 **ODE Areas**, [Lines](/docs/api-display-type.md#dsl_display_type_rgba_line_new) and [Polygons](/docs/api-display-type.md#dsl_display_type_rgba_polygon_new) can be added to any number of Triggers as additional criteria. 
 
