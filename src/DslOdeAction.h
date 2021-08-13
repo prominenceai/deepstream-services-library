@@ -44,6 +44,12 @@ namespace DSL
     #define DSL_OBJECT_INFO_PERSISTENCE        1
     
     /**
+     * @brief Constants for indexing "pFrameMeta->misc_frame_info" 
+     * Triggers add specific metric data for child Actions to act on.
+     */
+    #define DSL_FRAME_INFO_OCCURRENCES         0
+    
+    /**
      * @brief convenience macros for shared pointer abstraction
      */
     #define DSL_ODE_ACTION_PTR std::shared_ptr<OdeAction>
@@ -71,10 +77,10 @@ namespace DSL
             name, contentTypes, mode))
         
     #define DSL_ODE_ACTION_DISPLAY_PTR std::shared_ptr<DisplayOdeAction>
-    #define DSL_ODE_ACTION_DISPLAY_NEW(name, offsetX, offsetY, \
-        offsetYWithClassId, pFont, hasBgColor, pBgColor) \
+    #define DSL_ODE_ACTION_DISPLAY_NEW(name, \
+        formatString, offsetX, offsetY, pFont, hasBgColor, pBgColor) \
         std::shared_ptr<DisplayOdeAction>(new DisplayOdeAction(name, \
-            offsetX, offsetY, offsetYWithClassId, pFont, hasBgColor, pBgColor))
+            formatString, offsetX, offsetY, pFont, hasBgColor, pBgColor))
 
     #define DSL_ODE_ACTION_DISPLAY_META_ADD_PTR std::shared_ptr<AddDisplayMetaOdeAction>
     #define DSL_ODE_ACTION_DISPLAY_META_ADD_NEW(name, displayType) \
@@ -640,19 +646,19 @@ namespace DSL
         /**
          * @brief ctor for the Display ODE Action class
          * @param[in] name unique name for the ODE Action
+        * @param[in] formatString string with format tokens for display
          * @param[in] offsetX horizontal X-offset for the ODE occurrence 
          * data to display
          * @param[in] offsetX vertical Y-offset for the ODE occurrence data to display
-         * @param[in] offsetYWithClassId adds an additional offset based 
          * on ODE class Id if set true
          * @param[in] pFont shared pointer to an RGBA Font to use for display
          * @param[in] hasBgColor true to fill the background with an RGBA color
          * @param[in] pBgColor shared pointer to an RGBA fill color to use if 
          * hasBgColor = true
          */
-        DisplayOdeAction(const char* name, uint offsetX, uint offsetY, 
-            bool offsetYWithClassId, DSL_RGBA_FONT_PTR pFont, bool hasBgColor, 
-            DSL_RGBA_COLOR_PTR pBgColor);
+        DisplayOdeAction(const char* name, const char* formatString,
+            uint offsetX, uint offsetY, DSL_RGBA_FONT_PTR pFont, 
+            bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor);
         
         /**
          * @brief dtor for the Display ODE Action class
@@ -674,6 +680,11 @@ namespace DSL
             
     private:
     
+        /**
+         * @brief client defined display string with format tokens
+         */
+        std::string m_formatString;
+        
         /**
          * @brief Horizontal X-offset for the ODE occurrence data to display
          */
@@ -699,11 +710,6 @@ namespace DSL
          */
         DSL_RGBA_COLOR_PTR m_pBgColor;
         
-        /**
-         * @brief Adds an additional offset based on ODE class Id if set true
-         */
-        bool m_offsetYWithClassId;
-    
     };
 
     // ********************************************************************

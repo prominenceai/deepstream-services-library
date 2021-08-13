@@ -145,6 +145,10 @@ def main(args):
             red=0.0, blue=0.0, green=0.0, alpha=0.8)
         if retval != DSL_RETURN_SUCCESS:
             break
+        retval = dsl_display_type_rgba_color_new('shadow-black', 
+            red=0.0, blue=0.0, green=0.0, alpha=0.1)
+        if retval != DSL_RETURN_SUCCESS:
+            break
         retval = dsl_display_type_rgba_font_new('verdana-bold-16-white', 
             font='verdana bold', size=16, color='full-white')
         if retval != DSL_RETURN_SUCCESS:
@@ -160,6 +164,13 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Create a border color for the Custom BBox format
+        # for the earliest object to enter view
+        retval = dsl_display_type_rgba_color_new('light-blue', 
+            red=0.2, blue=1.0, green=0.2, alpha=1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         #------------------------------------------------------------------------
         # Step 3:  Create Actions and a Trigger to customize the Object 
         #          label contents and bounding-box for all Vehicles tracked.
@@ -167,8 +178,8 @@ def main(args):
         # Create a Customize Label Action to add the Tracking Id and Persistence 
         # time value to each object that is tracked across two consecutive frames
         retval = dsl_ode_action_customize_label_new('customize-label', 
-            content_types = [DSL_OBJECT_LABEL_TRACKING_ID,
-                DSL_OBJECT_LABEL_PERSISTENCE], 
+            content_types = [DSL_METRIC_OBJECT_TRACKING_ID,
+                DSL_METRIC_OBJECT_PERSISTENCE], 
             size = 2,
             mode = DSL_WRITE_MODE_TRUNCATE)
         if retval != DSL_RETURN_SUCCESS:
@@ -184,8 +195,15 @@ def main(args):
 
         # Create Format Bounding Box Action to custom the box border 
         # for all Vehicles tracked - to be added with the custom label
-        retval = dsl_ode_action_format_bbox_new('format-bbox', border_width=3,
+        retval = dsl_ode_action_format_bbox_new('format-bbox-green', border_width=3,
             border_color='full-green', has_bg_color=False, bg_color=None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Create Format Bounding Box Action to custom the box border 
+        # for the Earliest tracked Vehicles - to be added with the custom label
+        retval = dsl_ode_action_format_bbox_new('format-bbox-blue', border_width=5,
+            border_color='light-blue', has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -201,32 +219,88 @@ def main(args):
             break
 
         retval = dsl_ode_trigger_action_add_many('persitence-trigger', 
-            actions=['customize-label', 'format-label', 'format-bbox', None])
+            actions=['format-bbox-green', 'customize-label', 'format-label', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
         #------------------------------------------------------------------------
-        # Step 4:  Create a Display Action and an Earliest Trigger to display the time
-        #          of persistence of the object that was the earliest to enter view
-        retval = dsl_ode_action_display_new('display-action',
-            x_offset = 1000,
-            y_offset = 100,
-            y_offset_with_classId = False,
-            font = 'verdana-bold-20-white',
-            has_bg_color = True,
-            bg_color = 'opaque-black')
+        # Step 4:  Create a Black rectangle with a shadow to be used as a background
+        #          for displaying event information. Add them to a new Display Meta
+        #          Action, added to an Always Trigger for continuous display.
+        retval = dsl_display_type_rgba_rectangle_new('display-shadow',
+            left = 1010, 
+            top = 110, 
+            width = 620, 
+            height = 90, 
+            border_width = 0, 
+            color = 'shadow-black', 
+            has_bg_color = True, 
+            bg_color = 'shadow-black')
         if retval != DSL_RETURN_SUCCESS:
             break
         
-        retval = dsl_ode_trigger_earliest_new('Following for', 
+        retval = dsl_display_type_rgba_rectangle_new('display-background',
+            left = 1000, 
+            top = 100, 
+            width = 620, 
+            height = 90, 
+            border_width = 0, 
+            color = 'opaque-black', 
+            has_bg_color = True, 
+            bg_color = 'opaque-black')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        retval = dsl_ode_action_display_meta_add_many_new('display-area',
+            display_types = ['display-shadow', 'display-background', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        retval = dsl_ode_trigger_always_new('always-trigger', 
+            source = 'uri-source',
+            when = DSL_ODE_PRE_OCCURRENCE_CHECK)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        retval = dsl_ode_trigger_action_add('always-trigger', 'display-area')
+        
+        
+        #------------------------------------------------------------------------
+        # Step 5:  Create two Display Actions and an Earliest Trigger to display the time
+        #          of persistence of the object that was the earliest to enter view
+        #          along with the objects location and dimensions
+        retval = dsl_ode_action_display_new('primary-display-action',
+            format_string = 'Following vehicle %{} for %{} seconds'.format(
+                DSL_METRIC_OBJECT_TRACKING_ID, DSL_METRIC_OBJECT_PERSISTENCE),
+            offset_x = 1010,
+            offset_y = 110,
+            font = 'verdana-bold-20-white',
+            has_bg_color = False,
+            bg_color = None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        retval = dsl_ode_action_display_new('secondary-display-action',
+            format_string = 'Location: %{} Dimensions: %{}'.format(
+                DSL_METRIC_OBJECT_LOCATION, DSL_METRIC_OBJECT_DIMENSIONS),
+            offset_x = 1010,
+            offset_y = 150,
+            font = 'verdana-bold-16-white',
+            has_bg_color = False,
+            bg_color = None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        retval = dsl_ode_trigger_earliest_new('earliest-trigger', 
             source = 'uri-source',
             class_id = PGIE_CLASS_ID_VEHICLE, 
             limit = DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_ode_trigger_action_add('Following for',
-            action='display-action')
+        retval = dsl_ode_trigger_action_add_many('earliest-trigger',
+            actions=['format-bbox-blue', 'primary-display-action', 
+            'secondary-display-action', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -238,8 +312,9 @@ def main(args):
             break
             
         # NOTE: Order of addition is important - specifies execution order
-        retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers = 
-            ['occurrence-trigger', 'persitence-trigger', 'Following for', None])
+        retval = dsl_pph_ode_trigger_add_many('ode-handler', 
+            triggers = ['always-trigger', 'occurrence-trigger', 'persitence-trigger', 
+                'earliest-trigger', None])
         if retval != DSL_RETURN_SUCCESS:
             break
         

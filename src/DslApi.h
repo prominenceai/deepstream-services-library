@@ -553,15 +553,26 @@ THE SOFTWARE.
 #define DSL_WRITE_MODE_TRUNCATE                                     1
 
 /**
- * @brief Content Options for Object Label customizaton.
+ * @brief Metric Content Options for Object Label customization
+ * and Display Action string formatting
  */
-#define DSL_OBJECT_LABEL_CLASS                                      0
-#define DSL_OBJECT_LABEL_TRACKING_ID                                1
-#define DSL_OBJECT_LABEL_LOCATION                                   2
-#define DSL_OBJECT_LABEL_DIMENSIONS                                 3
-#define DSL_OBJECT_LABEL_CONFIDENCE                                 4
-#define DSL_OBJECT_LABEL_PERSISTENCE                                5
+#define DSL_METRIC_OBJECT_CLASS                                     0
+#define DSL_METRIC_OBJECT_TRACKING_ID                               1
+#define DSL_METRIC_OBJECT_LOCATION                                  2
+#define DSL_METRIC_OBJECT_DIMENSIONS                                3
+#define DSL_METRIC_OBJECT_CONFIDENCE                                4
+#define DSL_METRIC_OBJECT_PERSISTENCE                               5
 
+/**
+ * @brief Metric Content Options for Trigger Output customization
+ * used by the the Display Action when reporting Frame level
+ * metrics. This constant provides meaningful information for the 
+ * Summation, Accumulation, New High, and New Low Triggers for 
+ * reporting the number of occurrences when post-processing each 
+ * frame. For most other Triggers, this value will always be 1.
+ * For the Absence Trigger, occurrences will always be 0. 
+ */
+#define DSL_METRIC_OBJECT_OCCURRENCES                               6
 EXTERN_C_BEGIN
 
 typedef uint DslReturnType;
@@ -1162,18 +1173,17 @@ DslReturnType dsl_ode_action_customize_label_new(const wchar_t* name,
 /**
  * @brief Creates a uniquely named Display ODE Action
  * @param[in] name unique name for the ODE Display Action 
+ * @param[in] format_string string with format tokens for display
  * @param[in] offset_x offset in the X direction for the Display text
  * @param[in] offset_y offset in the Y direction for the Display text
- * @param[in] offset_y_with_classId adds an additional offset based on ODE class Id if set true
- * The setting allows multiple ODE Triggers with different class Ids to share the same Display action
  * @param[in] font RGBA Font type to use for the Display text
  * @param[in] has_bg_color if true, displays the background color for the Display Text
  * @param[in] bg_color color to use for the Display Text background color, if has_bg_color
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offset_x, uint offset_y, 
-    boolean offset_y_with_classId, const wchar_t* font, boolean has_bg_color, 
-    const wchar_t* bg_color);
+DslReturnType dsl_ode_action_display_new(const wchar_t* name, 
+    const wchar_t* format_string, uint offset_x, uint offset_y, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
 
 /**
  * @brief Creates a uniquely named Add Display Metadata ODE Action to add Display metadata
@@ -1414,7 +1424,7 @@ DslReturnType dsl_ode_action_tap_record_stop_new(const wchar_t* name,
  */
 DslReturnType dsl_ode_action_area_add_new(const wchar_t* name,
     const wchar_t* trigger, const wchar_t* area);
-
+    
 /**
  * @brief Creates a uniquely named Remove Area ODE Action that removes
  * a named ODE Area from a named ODE Trigger on ODE occurrence

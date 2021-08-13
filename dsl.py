@@ -97,12 +97,14 @@ DSL_EVENT_FILE_FORMAT_CSV    = 1
 DSL_WRITE_MODE_APPEND   = 0
 DSL_WRITE_MODE_TRUNCATE = 1
 
-DSL_OBJECT_LABEL_CLASS       = 0
-DSL_OBJECT_LABEL_TRACKING_ID = 1
-DSL_OBJECT_LABEL_LOCATION    = 2
-DSL_OBJECT_LABEL_DIMENSIONS  = 3
-DSL_OBJECT_LABEL_CONFIDENCE  = 4
-DSL_OBJECT_LABEL_PERSISTENCE = 5
+DSL_METRIC_OBJECT_CLASS       = 0
+DSL_METRIC_OBJECT_TRACKING_ID = 1
+DSL_METRIC_OBJECT_LOCATION    = 2
+DSL_METRIC_OBJECT_DIMENSIONS  = 3
+DSL_METRIC_OBJECT_CONFIDENCE  = 4
+DSL_METRIC_OBJECT_PERSISTENCE = 5
+DSL_METRIC_OBJECT_OCCURRENCES = 6
+
 
 class dsl_coordinate(Structure):
     _fields_ = [
@@ -471,13 +473,13 @@ def dsl_ode_action_customize_label_new(name,
 ## dsl_ode_action_display_new()
 ##
 _dsl.dsl_ode_action_display_new.argtypes = [c_wchar_p, 
-    c_uint, c_uint, c_bool, c_wchar_p, c_bool, c_wchar_p]
+    c_wchar_p, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
 _dsl.dsl_ode_action_display_new.restype = c_uint
 def dsl_ode_action_display_new(name, 
-    x_offset, y_offset, y_offset_with_classId, font, has_bg_color, bg_color):
+    format_string, offset_x, offset_y, font, has_bg_color, bg_color):
     global _dsl
     result =_dsl.dsl_ode_action_display_new(name, 
-        x_offset, y_offset, y_offset_with_classId, font, has_bg_color, bg_color)
+        format_string, offset_x, offset_y, font, has_bg_color, bg_color)
     return int(result)
 
 ##

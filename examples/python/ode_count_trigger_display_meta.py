@@ -140,7 +140,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Three new Overlay Actions, one for each of our Minumum/Maximum/Range ODE Trigger occurrences
+        # Three new Display Meta Actions, one for each of our Minumum/Maximum/Range ODE Trigger occurrences
         retval = dsl_ode_action_display_meta_add_new('add-green-rectangle', display_type='green-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -164,10 +164,15 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create a new  Action used to display all Object counts for each frame. Use the classId
-        # to add an additional vertical offset so the one action can be shared accross classId's
-        retval = dsl_ode_action_display_new('display-action', x_offset=45, y_offset=90, y_offset_with_classId=True,
-            font='arial-16-white', has_bg_color=True, bg_color='full-black')
+        # Create a new  Action used to display the summation of all Objects.
+        # Format the display string using the occurrences token.
+        retval = dsl_ode_action_display_new('display-action', 
+            format_string = "Object count = %" + str(DSL_METRIC_OBJECT_OCCURRENCES),  
+            offset_x = 45,
+            offset_y = 60, 
+            font = 'arial-16-white', 
+            has_bg_color = True, 
+            bg_color = 'full-black')
         if retval != DSL_RETURN_SUCCESS:
             break
             

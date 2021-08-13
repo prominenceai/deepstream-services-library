@@ -803,6 +803,9 @@ namespace DSL
          // update the total event count static variable
         s_eventCount++;
 
+        // Add the  accumulates occurrences to the frame info
+        pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] = m_occurrences;
+
         for (const auto &imap: m_pOdeActionsIndexed)
         {
             DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -930,6 +933,7 @@ namespace DSL
          // update the total event count static variable
         s_eventCount++;
 
+        pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] = m_occurrences;
         for (const auto &imap: m_pOdeActionsIndexed)
         {
             DSL_ODE_ACTION_PTR pOdeAction = 
@@ -1806,6 +1810,9 @@ namespace DSL
          // update the total event count static variable
         s_eventCount++;
 
+        // Add the New High occurrences to the frame info
+        pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] = m_occurrences;
+
         for (const auto &imap: m_pOdeActionsIndexed)
         {
             DSL_ODE_ACTION_PTR pOdeAction = 
@@ -1871,6 +1878,9 @@ namespace DSL
 
          // update the total event count static variable
         s_eventCount++;
+
+        // Add the New High occurrences to the frame info
+        pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] = m_occurrences;
 
         for (const auto &imap: m_pOdeActionsIndexed)
         {

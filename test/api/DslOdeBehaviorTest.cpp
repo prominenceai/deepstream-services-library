@@ -69,16 +69,36 @@ static const uint limit_10(10);
 
 static const std::wstring ode_action_name(L"print");
 
-static const std::wstring car_occurrence_name(L"Car");
-static const std::wstring first_car_occurrence_name(L"first-car-occurrence");
-static const uint car_class_id(0);
-static const std::wstring person_occurrence_name(L"Person");
-static const std::wstring first_person_occurrence_name(L"first-person-occurrence");
-static const uint person_class_id(2);
+static const std::wstring vehicle_occurrence_name(L"vehicle-occurence");
+static const std::wstring first_vehicle_occurrence_name(L"first-vehicle-occurrence");
+static const std::wstring vehicle_summation_name(L"vehicle-summation");
+static const std::wstring vehicle_accumulation_name(L"vehicle-accumulation");
+static const uint vehicle_class_id(0);
 static const std::wstring bicycle_occurrence_name(L"Bicycle");
+static const std::wstring first_bycle_occurrence_name(L"first-bicycle-occurrence");
+static const std::wstring bicycle_summation_name(L"bicycle-summation");
+static const std::wstring bicycle_accumulation_name(L"bicycle-accumulation");
 static const uint bicycle_class_id(1);
-static const std::wstring roadsign_occurrence_name(L"Roadsign");
+static const std::wstring person_occurrence_name(L"person-occurrence");
+static const std::wstring first_person_occurrence_name(L"first-person-occurrence");
+static const std::wstring person_summation_name(L"person-summation");
+static const std::wstring person_accumulation_name(L"person-accumulation");
+static const uint person_class_id(2);
+static const std::wstring roadsign_occurrence_name(L"roadsign-occurrence");
+static const std::wstring first_roadsign_occurrence_name(L"first-roadsign-occurrence");
+static const std::wstring roadsign_summation_name(L"roadsign-summation");
+static const std::wstring roadsign_accumulation_name(L"roadsign-accumulation");
 static const uint roadsign_class_id(3);
+
+std::wstring vehicle_string(L"Vehicle count: %6");
+std::wstring bycle_string(L"Bycle count: %6");
+std::wstring person_string(L"Person count: %6");
+std::wstring roadsign_string(L"Roadsign count: %6");
+
+std::wstring vehicle_display_action(L"vehicle-display-action");
+std::wstring bycle_display_action(L"bycle-display-action");
+std::wstring person_display_action(L"person-display-action");
+std::wstring roadsign_display_action(L"roadsign-display-action");
 
 static const std::wstring light_red(L"light-red");
 static const std::wstring full_white(L"full-white");
@@ -226,18 +246,18 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers, each
         
         REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), ode_pph_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_trigger_occurrence_new(car_occurrence_name.c_str(), 
-            NULL, car_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_occurrence_new(vehicle_occurrence_name.c_str(), 
+            NULL, vehicle_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_occurrence_new(person_occurrence_name.c_str(), 
             NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
 
         // shared redaction action
         REQUIRE( dsl_ode_action_redact_new(odeRedactActionName.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_trigger_action_add(car_occurrence_name.c_str(), odeRedactActionName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(vehicle_occurrence_name.c_str(), odeRedactActionName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(person_occurrence_name.c_str(), odeRedactActionName.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), car_occurrence_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), vehicle_occurrence_name.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), person_occurrence_name.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
@@ -301,8 +321,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers shari
         REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), 
             ode_pph_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_trigger_occurrence_new(first_car_occurrence_name.c_str(), 
-            NULL, car_class_id, DSL_ODE_TRIGGER_LIMIT_ONE) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_occurrence_new(first_vehicle_occurrence_name.c_str(), 
+            NULL, vehicle_class_id, DSL_ODE_TRIGGER_LIMIT_ONE) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_occurrence_new(first_person_occurrence_name.c_str(), 
             NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_ONE) == DSL_RESULT_SUCCESS );
         
@@ -310,13 +330,13 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers shari
             outdir.c_str()) == DSL_RESULT_SUCCESS );
         
         // Add the same capture Action to both ODE Triggers
-        REQUIRE( dsl_ode_trigger_action_add(first_car_occurrence_name.c_str(), 
+        REQUIRE( dsl_ode_trigger_action_add(first_vehicle_occurrence_name.c_str(), 
             captureActionName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(first_person_occurrence_name.c_str(), 
             captureActionName.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
-            first_car_occurrence_name.c_str()) == DSL_RESULT_SUCCESS );
+            first_vehicle_occurrence_name.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
             first_person_occurrence_name.c_str()) == DSL_RESULT_SUCCESS );
         
@@ -422,11 +442,10 @@ SCENARIO( "A new Pipeline with an ODE Handler, an Occurrence ODE Trigger, with a
     }
 }
 
-SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Triggers with a shared Display ODE Action can play", "[ode-behavior]" )
+SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Triggers, each with ODE Display Actions can play", "[ode-behavior]" )
 {
-    GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Display ODE Action" ) 
+    GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Display ODE Actions" ) 
     {
-        std::wstring displayActionName(L"display-action");
         uint textOffsetX(10);
         uint textOffsetY(20);
         
@@ -444,7 +463,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Triggers with
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), tracker_width, tracker_height) 
+            == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
@@ -453,29 +473,43 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Triggers with
         REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), ode_pph_name.c_str(), 
             DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
         
-        // Single display action shared by all ODE Occurrence Types
-        REQUIRE( dsl_ode_action_display_new(displayActionName.c_str(), textOffsetX, textOffsetX, true,
-            font_name.c_str(), false, full_black.c_str()) == DSL_RESULT_SUCCESS );
+        // Display actions, one per class.
+        REQUIRE( dsl_ode_action_display_new(vehicle_display_action.c_str(), 
+            vehicle_string.c_str(), textOffsetX, textOffsetY, font_name.c_str(), 
+            false, full_black.c_str()) == DSL_RESULT_SUCCESS );
         
-        // Create all occurrences
-        REQUIRE( dsl_ode_trigger_occurrence_new(car_occurrence_name.c_str(), 
-            NULL, car_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(car_occurrence_name.c_str(), 
-            displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_occurrence_new(bicycle_occurrence_name.c_str(), 
-            NULL, bicycle_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(bicycle_occurrence_name.c_str(), 
-            displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_occurrence_new(person_occurrence_name.c_str(), 
-            NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(person_occurrence_name.c_str(), 
-            displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_occurrence_new(roadsign_occurrence_name.c_str(), 
-            NULL, roadsign_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(roadsign_occurrence_name.c_str(), 
-            displayActionName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_display_new(bycle_display_action.c_str(), 
+            bycle_string.c_str(), textOffsetX, textOffsetY+20, font_name.c_str(), 
+            false, full_black.c_str()) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* odeTypes[] = {L"Car", L"Bicycle", L"Person", L"Roadsign", NULL};
+        REQUIRE( dsl_ode_action_display_new(person_display_action.c_str(), 
+            person_string.c_str(), textOffsetX, textOffsetY+40, font_name.c_str(), 
+            false, full_black.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_action_display_new(roadsign_display_action.c_str(), 
+            roadsign_string.c_str(), textOffsetX, textOffsetY+60, font_name.c_str(), 
+            false, full_black.c_str()) == DSL_RESULT_SUCCESS );
+        
+        // Create all Summation triggers and add their repsective Display Action
+        REQUIRE( dsl_ode_trigger_summation_new(vehicle_summation_name.c_str(), 
+            NULL, vehicle_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(vehicle_summation_name.c_str(), 
+            vehicle_display_action.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_summation_new(bicycle_summation_name.c_str(), 
+            NULL, bicycle_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(bicycle_summation_name.c_str(), 
+            bycle_display_action.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_summation_new(person_summation_name.c_str(), 
+            NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(person_summation_name.c_str(), 
+            person_display_action.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_summation_new(roadsign_summation_name.c_str(), 
+            NULL, roadsign_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(roadsign_summation_name.c_str(), 
+            roadsign_display_action.c_str()) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* odeTypes[] = {L"vehicle-summation", L"bicycle-summation", 
+            L"person-summation", L"roadsign-summation", NULL};
         
         REQUIRE( dsl_pph_ode_trigger_add_many(ode_pph_name.c_str(), odeTypes) == DSL_RESULT_SUCCESS );
 
@@ -517,9 +551,9 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Triggers with
     }
 }
 
-SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with a shared Display ODE Action can play", "[ode-behavior]" )
+SCENARIO( "A new Pipeline with an ODE Handler, Four ODE Accumulation Triggers with ODE Display ActionS can play", "[ode-behavior]" )
 {
-    GIVEN( "A Pipeline, ODE Handler, Four Summation ODE Triggers, and Display ODE Action" ) 
+    GIVEN( "A Pipeline, ODE Handler, Four Aggreation ODE Triggers each with a Display ODE Actions" ) 
     {
         
         std::wstring displayActionName(L"display-action");
@@ -549,31 +583,44 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
         
         REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), 
             ode_pph_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+
         
-        // Single display action shared by all ODT Occurrence Types
-        REQUIRE( dsl_ode_action_display_new(displayActionName.c_str(), 
-            textOffsetX, textOffsetX, true, font_name.c_str(), false, 
-            full_black.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_display_new(vehicle_display_action.c_str(), 
+            vehicle_string.c_str(), textOffsetX, textOffsetY, font_name.c_str(), 
+            false, full_black.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_action_display_new(bycle_display_action.c_str(), 
+            bycle_string.c_str(), textOffsetX, textOffsetY+20, font_name.c_str(), 
+            false, full_black.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_action_display_new(person_display_action.c_str(), 
+            person_string.c_str(), textOffsetX, textOffsetY+40, font_name.c_str(), 
+            false, full_black.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_action_display_new(roadsign_display_action.c_str(), 
+            roadsign_string.c_str(), textOffsetX, textOffsetY+60, font_name.c_str(), 
+            false, full_black.c_str()) == DSL_RESULT_SUCCESS );
         
         // Create all occurrences
-        REQUIRE( dsl_ode_trigger_summation_new(car_occurrence_name.c_str(), 
-            NULL, car_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(car_occurrence_name.c_str(), 
-            displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_summation_new(bicycle_occurrence_name.c_str(),
+        REQUIRE( dsl_ode_trigger_accumulation_new(vehicle_accumulation_name.c_str(), 
+            NULL, vehicle_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(vehicle_accumulation_name.c_str(), 
+            vehicle_display_action.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_accumulation_new(bicycle_accumulation_name.c_str(), 
             NULL, bicycle_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(bicycle_occurrence_name.c_str(), 
-            displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_summation_new(person_occurrence_name.c_str(), 
+        REQUIRE( dsl_ode_trigger_action_add(bicycle_accumulation_name.c_str(), 
+            bycle_display_action.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_accumulation_new(person_accumulation_name.c_str(), 
             NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(person_occurrence_name.c_str(), 
-            displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_summation_new(roadsign_occurrence_name.c_str(), 
+        REQUIRE( dsl_ode_trigger_action_add(person_accumulation_name.c_str(), 
+            person_display_action.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_accumulation_new(roadsign_accumulation_name.c_str(), 
             NULL, roadsign_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(roadsign_occurrence_name.c_str(), 
-            displayActionName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(roadsign_accumulation_name.c_str(), 
+            roadsign_display_action.c_str()) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* odeTypes[] = {L"Car", L"Bicycle", L"Person", L"Roadsign", NULL};
+        const wchar_t* odeTypes[] = {L"vehicle-accumulation", L"bicycle-accumulation", 
+            L"person-accumulation", L"roadsign-accumulation", NULL};
         
         REQUIRE( dsl_pph_ode_trigger_add_many(ode_pph_name.c_str(), 
             odeTypes) == DSL_RESULT_SUCCESS );
@@ -617,15 +664,10 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
     }
 }
 
-SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with shared ODE Inclusion Area", "[ode-behavior]" )
+SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with shared ODE Inclusion Area", "[new]" )
 {
     GIVEN( "A Pipeline, ODE Handler, Four Summation ODE Triggers, and Display ODE Action" ) 
     {
-        std::wstring carSummationName(L"Car");
-        std::wstring bicycleSummationName(L"Bicycle");
-        std::wstring personSummationName(L"Person");
-        std::wstring person_occurrence_name(L"person-occurrence");
-        std::wstring roadsignSummationName(L"Roadsign");
         
         std::wstring displayActionName(L"display-action");
         uint textOffsetX(10);
@@ -654,7 +696,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
         std::wstring polygonName(L"polygon");
         uint border_width(3);
 
-        dsl_coordinate coordinates[4] = {{100,100},{210,110},{220, 300},{110,330}};
+        dsl_coordinate coordinates[4] = {{365,600},{980,620},{1000, 770},{180,750}};
         uint num_coordinates(4);
 
         std::wstring ode_pph_name(L"ode-handler");
@@ -673,9 +715,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
         REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), 
             tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tiler_new(tiler_name.c_str(), width, 
-            height) == DSL_RESULT_SUCCESS );
-        
         REQUIRE( dsl_pph_ode_new(ode_pph_name.c_str()) == DSL_RESULT_SUCCESS );
         
         // Set Area critera, and The fill action for ODE occurrence caused by overlap
@@ -695,46 +734,69 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
         
         REQUIRE( dsl_ode_area_inclusion_new(areaName.c_str(), 
             polygonName.c_str(), true, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_area_add(person_occurrence_name.c_str(), 
+
+        // Display actions, one per class.
+        REQUIRE( dsl_ode_action_display_new(vehicle_display_action.c_str(), 
+            vehicle_string.c_str(), textOffsetX, textOffsetY, font_name.c_str(), 
+            false, full_black.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_action_display_new(bycle_display_action.c_str(), 
+            bycle_string.c_str(), textOffsetX, textOffsetY+20, font_name.c_str(), 
+            false, full_black.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_action_display_new(person_display_action.c_str(), 
+            person_string.c_str(), textOffsetX, textOffsetY+40, font_name.c_str(), 
+            false, full_black.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_action_display_new(roadsign_display_action.c_str(), 
+            roadsign_string.c_str(), textOffsetX, textOffsetY+60, font_name.c_str(), 
+            false, full_black.c_str()) == DSL_RESULT_SUCCESS );
+        
+        // Create all Summation triggers and add their repsective Display Actions
+        // and the shared plygon area
+        REQUIRE( dsl_ode_trigger_summation_new(vehicle_summation_name.c_str(), 
+            NULL, vehicle_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(vehicle_summation_name.c_str(), 
+            vehicle_display_action.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_area_add(vehicle_summation_name.c_str(), 
             areaName.c_str()) == DSL_RESULT_SUCCESS );
 
-        // Single display action shared by all ODT Summation Types
-        REQUIRE( dsl_ode_action_display_new(displayActionName.c_str(), 
-            textOffsetX, textOffsetX, true, font_name.c_str(), true, 
-            full_black.c_str()) == DSL_RESULT_SUCCESS );
-        
-        // Create all Summation types and add common Display action
-        REQUIRE( dsl_ode_trigger_summation_new(carSummationName.c_str(), 
-            NULL, car_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(carSummationName.c_str(), 
-            displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_summation_new(bicycleSummationName.c_str(), 
+        REQUIRE( dsl_ode_trigger_summation_new(bicycle_summation_name.c_str(), 
             NULL, bicycle_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(bicycleSummationName.c_str(), 
-            displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_summation_new(personSummationName.c_str(), 
-            NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(personSummationName.c_str(), 
-            displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_summation_new(roadsignSummationName.c_str(), 
-            NULL, roadsign_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(roadsignSummationName.c_str(), 
-            displayActionName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(bicycle_summation_name.c_str(), 
+            bycle_display_action.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_area_add(bicycle_summation_name.c_str(), 
+            areaName.c_str()) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* odeTypes[] = {L"Car", 
-            L"Bicycle", L"Person", L"Roadsign", L"person-occurrence", NULL};
-        
-        REQUIRE( dsl_pph_ode_trigger_add_many(ode_pph_name.c_str(), 
-            odeTypes) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_summation_new(person_summation_name.c_str(), 
+            NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(person_summation_name.c_str(), 
+            person_display_action.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_area_add(person_summation_name.c_str(), 
+            areaName.c_str()) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_ode_trigger_summation_new(roadsign_summation_name.c_str(), 
+            NULL, roadsign_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(roadsign_summation_name.c_str(), 
+            roadsign_display_action.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_area_add(roadsign_summation_name.c_str(), 
+            areaName.c_str()) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* odeTypes[] = {L"vehicle-summation", L"bicycle-summation", 
+            L"person-summation", L"roadsign-summation", NULL};
+
+        REQUIRE( dsl_pph_ode_trigger_add_many(ode_pph_name.c_str(), odeTypes) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(osd_name.c_str(), 
             text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_pph_add(osd_name.c_str(), 
+            ode_pph_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_overlay_new(overlay_sink_name.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"overlay-sink", NULL};
+            L"primary-gie", L"ktl-tracker", L"osd", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -746,7 +808,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*10);
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
@@ -1342,9 +1404,9 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Custo
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Costomize Label Action" ) 
     {
         std::wstring ode_action_name(L"customize-label-action");
-        uint label_types[] = {DSL_OBJECT_LABEL_LOCATION,
-            DSL_OBJECT_LABEL_DIMENSIONS, DSL_OBJECT_LABEL_CONFIDENCE,
-            DSL_OBJECT_LABEL_PERSISTENCE};
+        uint label_types[] = {DSL_METRIC_OBJECT_LOCATION,
+            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE,
+            DSL_METRIC_OBJECT_PERSISTENCE};
 
         uint mode(DSL_WRITE_MODE_TRUNCATE);
         uint size(4);

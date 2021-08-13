@@ -709,31 +709,31 @@ namespace DSL
             {
                 switch(iter)
                 {
-                case DSL_OBJECT_LABEL_CLASS :
+                case DSL_METRIC_OBJECT_CLASS :
                     label.append((label.size()) ? " | " : "");
                     label.append(pObjectMeta->obj_label);
                     break;
-                case DSL_OBJECT_LABEL_TRACKING_ID:
+                case DSL_METRIC_OBJECT_TRACKING_ID:
                     label.append((label.size()) ? " | " : "");
                     label.append(std::to_string(pObjectMeta->object_id));
                     break;
-                case DSL_OBJECT_LABEL_LOCATION :
+                case DSL_METRIC_OBJECT_LOCATION :
                     label.append((label.size()) ? " | L:" : "L:");
                     label.append(std::to_string(lrint(pObjectMeta->rect_params.left)));
                     label.append(",");
                     label.append(std::to_string(lrint(pObjectMeta->rect_params.top)));
                     break;
-                case DSL_OBJECT_LABEL_DIMENSIONS :
+                case DSL_METRIC_OBJECT_DIMENSIONS :
                     label.append(((label.size()) ? " | D:" : "D:"));
                     label.append(std::to_string(lrint(pObjectMeta->rect_params.width)));
                     label.append("x");
                     label.append(std::to_string(lrint(pObjectMeta->rect_params.height)));
                     break;
-                case DSL_OBJECT_LABEL_CONFIDENCE :
+                case DSL_METRIC_OBJECT_CONFIDENCE :
                     label.append(((label.size()) ? " | C:" : "C:"));
                     label.append(std::to_string(pObjectMeta->confidence));
                     break;
-                case DSL_OBJECT_LABEL_PERSISTENCE :
+                case DSL_METRIC_OBJECT_PERSISTENCE :
                     label.append(((label.size()) ? " | T:" : "T:"));
                     label.append(std::to_string(pObjectMeta->
                         misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE]));
@@ -752,12 +752,12 @@ namespace DSL
     // ********************************************************************
 
     DisplayOdeAction::DisplayOdeAction(const char* name, 
-        uint offsetX, uint offsetY, bool offsetYWithClassId, 
+        const char* formatString, uint offsetX, uint offsetY, 
         DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
         : OdeAction(name)
+        , m_formatString(formatString)
         , m_offsetX(offsetX)
         , m_offsetY(offsetY)
-        , m_offsetYWithClassId(offsetYWithClassId)
         , m_pFont(pFont)
         , m_hasBgColor(hasBgColor)
         , m_pBgColor(pBgColor)
@@ -783,28 +783,38 @@ namespace DSL
             NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
             pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
             
+            std::string text(m_formatString.c_str());
+            
             if (pObjectMeta)
             {
-                std::string text = pTrigger->GetName() + " = " 
-                    + std::to_string(pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC]);
-                text.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
+                std::string location = std::to_string(lrint(pObjectMeta->rect_params.left)) +
+                    "," + std::to_string(lrint(pObjectMeta->rect_params.top));
+                std::string dimensions = std::to_string(lrint(pObjectMeta->rect_params.width)) +
+                    "x" + std::to_string(lrint(pObjectMeta->rect_params.height));
+                
+                text = std::regex_replace(text, std::regex("\%0"), 
+                    pObjectMeta->obj_label);
+                text = std::regex_replace(text, std::regex("\%1"), 
+                    std::to_string(pObjectMeta->object_id));
+                text = std::regex_replace(text, std::regex("\%2"), location);
+                text = std::regex_replace(text, std::regex("\%3"), dimensions);
+                text = std::regex_replace(text, std::regex("\%4"), 
+                    std::to_string(pObjectMeta->confidence));
+                text = std::regex_replace(text, std::regex("\%5"), 
+                    std::to_string(pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE]));
             }
             else
             {
-                std::string text = pTrigger->GetName() + " = " 
-                    + std::to_string(pTrigger->m_occurrences);
-                text.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
+                text = std::regex_replace(text, std::regex("\%6"), 
+                    std::to_string(pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES]));
+                    
             }
+            text.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
+
 
             // Setup X and Y display offsets
             pTextParams->x_offset = m_offsetX;
             pTextParams->y_offset = m_offsetY;
-            
-            // Typically set if action is shared by multiple ODE Triggers/ClassId's 
-            if (m_offsetYWithClassId)
-            {
-                pTextParams->y_offset += pTrigger->m_classId * 2 * m_pFont->font_size + 2;
-            }
 
             // Font, font-size, font-color
             pTextParams->font_params = *m_pFont;

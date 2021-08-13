@@ -523,10 +523,12 @@ DslReturnType dsl_ode_action_customize_label_new(const wchar_t* name,
         cstrName.c_str(), content_types, size, mode);
 }    
     
-DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offset_x, uint offset_y, 
-    boolean offset_y_with_classId, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
+DslReturnType dsl_ode_action_display_new(const wchar_t* name, 
+    const wchar_t* format_string, uint offset_x, uint offset_y, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(format_string);
     RETURN_IF_PARAM_IS_NULL(font);
 
     std::string cstrBgColor;
@@ -539,11 +541,14 @@ DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offset_x, uin
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFormatString(format_string);
+    std::string cstrFormatString(wstrFormatString.begin(), wstrFormatString.end());
     std::wstring wstrFont(font);
     std::string cstrFont(wstrFont.begin(), wstrFont.end());
 
     return DSL::Services::GetServices()->OdeActionDisplayNew(cstrName.c_str(),
-        offset_x, offset_y, offset_y_with_classId, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
+        cstrFormatString.c_str(), offset_x, offset_y, cstrFont.c_str(), 
+        has_bg_color, cstrBgColor.c_str());
 }
 
 DslReturnType dsl_ode_action_handler_disable_new(const wchar_t* name, const wchar_t* handler)

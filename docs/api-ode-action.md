@@ -97,12 +97,13 @@ The following symbolic constants are used by the OSD Action API
 #define DSL_WRITE_MODE_APPEND                                       0
 #define DSL_WRITE_MODE_TRUNCATE                                     1
 
-#define DSL_OBJECT_LABEL_CLASS                                      0
-#define DSL_OBJECT_LABEL_TRACKING_ID                                1
-#define DSL_OBJECT_LABEL_LOCATION                                   2
-#define DSL_OBJECT_LABEL_DIMENSIONS                                 3
-#define DSL_OBJECT_LABEL_CONFIDENCE                                 4
-#define DSL_OBJECT_LABEL_PERSISTENCE                                5    
+#define DSL_METRIC_OBJECT_CLASS                                     0
+#define DSL_METRIC_OBJECT_TRACKING_ID                               1
+#define DSL_METRIC_OBJECT_LOCATION                                  2
+#define DSL_METRIC_OBJECT_DIMENSIONS                                3
+#define DSL_METRIC_OBJECT_CONFIDENCE                                4
+#define DSL_METRIC_OBJECT_PERSISTENCE                               5
+#define DSL_METRIC_OBJECT_OCCURRENCES                               6
 
 ```
 
@@ -378,17 +379,17 @@ retval = dsl_ode_action_display_new('my-customize-label-action',
 
 ### *dsl_ode_action_display_new*
 ```C++
-DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offset_x, uint offset_y, 
-    boolean offset_y_with_classId, const wchar_t* font, boolean has_bg_color, 
-    const wchar_t* bg_color);
+DslReturnType dsl_ode_action_display_new(const wchar_t* name, 
+    const wchar_t* format_string, uint offset_x, uint offset_y, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
 ```
-The constructor creates a uniquely named **Display Occurrences** ODE Action. When invoked, this Action writes the ODE Trigger's name and occurrence count as metadata to the current Frame Meta for display by a downstream On-Screen-Display (OSD) component.
+The constructor creates a uniquely named **Display Data** ODE Action. When invoked, this Action adds the `format_string` with replaced metrics as metadata to the current Frame for display by a downstream On-Screen-Display (OSD) component. 
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
+* `format_string` - [in] format string with `%` tokens for inserting `DSL_METRIC_OBJECT_<type>` values for display.
 * `offsetX` - [in] offset for the display text in the X direction.
 * `offsetY` - [in] offset for the display text in the Y direction.
-* `offsetY_with_classId` - [in] if true adds an additional Y offset based on the Class Id of the Trigger invoking the Action. This allows multiple Triggers with different Class Ids to share the same Display Action
 * `font` - [in] unique name of the RGBA Font to use.
 * `has_bg_color` - [in] set to true display the text with a background color.
 * `bg_color` - [in] unique name of the RGBA Color to use for the background.
@@ -398,8 +399,14 @@ The constructor creates a uniquely named **Display Occurrences** ODE Action. Whe
 
 **Python Example**
 ```Python
-retval = dsl_ode_action_display_new('my-display-event-data-action', 
-    10, 30, True, 'my-custom-font, true, 'my-custom-bg-color')
+retval = dsl_ode_action_display_new('primary-display-action',
+    format_string = 'Following vehicle %{} for %{} seconds'.format(
+        DSL_METRIC_OBJECT_TRACKING_ID, DSL_METRIC_OBJECT_PERSISTENCE),
+    offset_x = 1010,
+    offset_y = 110,
+    font = 'verdana-bold-20-white',
+    has_bg_color = False,
+    bg_color = None)
 ```
 
 <br>

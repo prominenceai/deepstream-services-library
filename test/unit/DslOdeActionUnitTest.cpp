@@ -440,9 +440,9 @@ SCENARIO( "A new CustomLabelOdeAction is created correctly", "[OdeAction]" )
     GIVEN( "Attributes for a new CustomLabelOdeAction" ) 
     {
         std::string actionName("ode-action");
-        const std::vector<uint> label_types = {DSL_OBJECT_LABEL_LOCATION,
-            DSL_OBJECT_LABEL_DIMENSIONS, DSL_OBJECT_LABEL_CONFIDENCE,
-            DSL_OBJECT_LABEL_PERSISTENCE};
+        const std::vector<uint> label_types = {DSL_METRIC_OBJECT_LOCATION,
+            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE,
+            DSL_METRIC_OBJECT_PERSISTENCE};
         uint mode(DSL_WRITE_MODE_APPEND);
 
         WHEN( "A new OdeAction is created with an array of content types" )
@@ -483,9 +483,9 @@ SCENARIO( "A CustomLabelOdeAction handles an ODE Occurence correctly", "[OdeActi
         
         
         std::string actionName("ode-action");
-        const std::vector<uint> label_types = {DSL_OBJECT_LABEL_LOCATION,
-            DSL_OBJECT_LABEL_DIMENSIONS, DSL_OBJECT_LABEL_CONFIDENCE,
-        DSL_OBJECT_LABEL_PERSISTENCE};
+        const std::vector<uint> label_types = {DSL_METRIC_OBJECT_LOCATION,
+            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE,
+        DSL_METRIC_OBJECT_PERSISTENCE};
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
