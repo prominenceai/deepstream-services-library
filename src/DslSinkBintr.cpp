@@ -34,8 +34,12 @@ namespace DSL
         : Bintr(name)
         , m_sync(sync)
         , m_async(async)
+        , m_cudaDeviceProp{0}
     {
         LOG_FUNC();
+
+        // Get the Device properties
+        cudaGetDeviceProperties(&m_cudaDeviceProp, m_gpuId);
 
         m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "sink-bin-queue");
         AddChild(m_pQueue);
@@ -211,10 +215,11 @@ namespace DSL
     {
         LOG_FUNC();
         
-#ifndef PLATFORM_TEGRA
-        LOG_ERROR("Overlay Sink is only supported on the Tegra Platform'");
-        throw;
-#endif
+        if (!m_cudaDeviceProp.integrated)
+        {
+            LOG_ERROR("Overlay Sink is only supported on the aarch64 Platform'");
+            throw;
+        }
         // Reset to create
         if (!Reset())
         {
@@ -391,34 +396,38 @@ namespace DSL
     {
         LOG_FUNC();
 
-        
-#ifndef PLATFORM_TEGRA
-        m_pTransform = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "sink-bin-transform");
-        m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "sink-bin-caps-filter");
-
-        GstCaps * pCaps = gst_caps_new_empty_simple("video/x-raw");
-        if (!pCaps)
+        // x86_64
+        if (!m_cudaDeviceProp.integrated)
         {
-            LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
-            throw;  
+            m_pTransform = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "sink-bin-transform");
+            m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "sink-bin-caps-filter");
+
+            GstCaps * pCaps = gst_caps_new_empty_simple("video/x-raw");
+            if (!pCaps)
+            {
+                LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
+                throw;  
+            }
+
+            GstCapsFeatures *feature = NULL;
+            feature = gst_caps_features_new("memory:NVMM", NULL);
+            gst_caps_set_features(pCaps, 0, feature);
+
+            m_pCapsFilter->SetAttribute("caps", pCaps);
+            
+            gst_caps_unref(pCaps);        
+            
+            m_pTransform->SetAttribute("gpu-id", m_gpuId);
+            m_pTransform->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
+            
+            AddChild(m_pCapsFilter);
+        
         }
-
-        GstCapsFeatures *feature = NULL;
-        feature = gst_caps_features_new("memory:NVMM", NULL);
-        gst_caps_set_features(pCaps, 0, feature);
-
-        m_pCapsFilter->SetAttribute("caps", pCaps);
-        
-        gst_caps_unref(pCaps);        
-        
-        m_pTransform->SetAttribute("gpu-id", m_gpuId);
-        m_pTransform->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
-        
-        AddChild(m_pCapsFilter);
-        
-#else        
-        m_pTransform = DSL_ELEMENT_NEW(NVDS_ELEM_EGLTRANSFORM, "sink-bin-transform");
-#endif        
+        // aarch_64
+        else
+        {
+            m_pTransform = DSL_ELEMENT_NEW(NVDS_ELEM_EGLTRANSFORM, "sink-bin-transform");
+        }
         
         // Reset to create m_pEglGles
         if (!Reset())
@@ -488,16 +497,23 @@ namespace DSL
             LOG_ERROR("WindowSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
-#ifndef PLATFORM_TEGRA
-        if (!m_pQueue->LinkToSink(m_pTransform) or
-            !m_pTransform->LinkToSink(m_pCapsFilter) or
-            !m_pCapsFilter->LinkToSink(m_pEglGles))
-#else
-        if (!m_pQueue->LinkToSink(m_pTransform) or
-            !m_pTransform->LinkToSink(m_pEglGles))
-#endif
+        // x86_64
+        if (!m_cudaDeviceProp.integrated)
         {
-            return false;
+            if (!m_pQueue->LinkToSink(m_pTransform) or
+                !m_pTransform->LinkToSink(m_pCapsFilter) or
+                !m_pCapsFilter->LinkToSink(m_pEglGles))
+            {
+                return false;
+            }
+        }
+        else // aarch_64
+        {
+            if (!m_pQueue->LinkToSink(m_pTransform) or
+                !m_pTransform->LinkToSink(m_pEglGles))
+            {
+                return false;
+            }
         }
         m_isLinked = true;
         return true;
@@ -515,9 +531,11 @@ namespace DSL
         m_pQueue->UnlinkFromSink();
         m_pTransform->UnlinkFromSink();
         
-#ifndef PLATFORM_TEGRA
-        m_pCapsFilter->UnlinkFromSink();
-#endif
+        // x86_64
+        if (!m_cudaDeviceProp.integrated)
+        {
+            m_pCapsFilter->UnlinkFromSink();
+        }
 
         m_isLinked = false;
         //Reset();
@@ -613,9 +631,11 @@ namespace DSL
             m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H264_HW, "encode-sink-bin-encoder");
             m_pEncoder->SetAttribute("bitrate", m_bitRate);
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
-#if PLATFORM_TEGRA            
-            m_pEncoder->SetAttribute("bufapi-version", true);
-#endif            
+            // aarch_64
+            if (m_cudaDeviceProp.integrated)
+            {
+                m_pEncoder->SetAttribute("bufapi-version", true);
+            }                
             m_pParser = DSL_ELEMENT_NEW("h264parse", "encode-sink-bin-parser");
             pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
             break;
@@ -623,9 +643,11 @@ namespace DSL
             m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H265_HW, "encode-sink-bin-encoder");
             m_pEncoder->SetAttribute("bitrate", m_bitRate);
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
-#if PLATFORM_TEGRA            
-            m_pEncoder->SetAttribute("bufapi-version", true);
-#endif            
+            // aarch_64
+            if (m_cudaDeviceProp.integrated)
+            {
+                m_pEncoder->SetAttribute("bufapi-version", true);
+            }      
             m_pParser = DSL_ELEMENT_NEW("h265parse", "encode-sink-bin-parser");
             pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
             break;
@@ -959,13 +981,17 @@ namespace DSL
         m_pEncoder->SetAttribute("bitrate", m_bitRate);
         m_pEncoder->SetAttribute("iframeinterval", m_interval);
 
-#ifdef PLATFORM_TEGRA        
-        m_pEncoder->SetAttribute("preset-level", true);
-        m_pEncoder->SetAttribute("insert-sps-pps", true);
-        m_pEncoder->SetAttribute("bufapi-version", true);
-#else
-        m_pEncoder->SetAttribute("gpu-id", m_gpuId);
-#endif
+        // aarch_64
+        if (m_cudaDeviceProp.integrated)
+        {
+            m_pEncoder->SetAttribute("preset-level", true);
+            m_pEncoder->SetAttribute("insert-sps-pps", true);
+            m_pEncoder->SetAttribute("bufapi-version", true);
+        }
+        else // x86_64
+        {
+            m_pEncoder->SetAttribute("gpu-id", m_gpuId);
+        }
         // Setup the GST RTSP Server
         m_pServer = gst_rtsp_server_new();
         g_object_set(m_pServer, "service", std::to_string(m_rtspPort).c_str(), NULL);

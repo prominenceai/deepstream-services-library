@@ -59,7 +59,7 @@ THE SOFTWARE.
 #include <deepstream_perf.h>
 #include <gstnvdsmeta.h>
 #include <gstnvdsinfer.h>
-
+#include <cuda_runtime_api.h>
 #include <geos_c.h>
 #include <curl/curl.h>
 
