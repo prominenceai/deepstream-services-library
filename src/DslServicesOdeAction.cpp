@@ -338,7 +338,7 @@ namespace DSL
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
             
-            if (size > DSL_OBJECT_LABEL_PERSISTENCE+1)
+            if (size > DSL_METRIC_OBJECT_PERSISTENCE+1)
             {
                 LOG_ERROR("Invalid array size for new Customize Label ODE Action '" 
                     << name << "'");
@@ -358,7 +358,7 @@ namespace DSL
             uint count(size);
             for (const uint* contentType = contentTypes; count; contentType++)
             {
-                if (*contentType > DSL_OBJECT_LABEL_PERSISTENCE)
+                if (*contentType > DSL_METRIC_OBJECT_PERSISTENCE)
                 {
                     LOG_ERROR("Invalid Content Type = " << *contentType 
                         << " for new Customize Label ODE Action" << name << "'");
@@ -386,7 +386,7 @@ namespace DSL
 
     
     DslReturnType Services::OdeActionDisplayNew(const char* name, 
-        uint offsetX, uint offsetY, boolean offsetYWithClassId, 
+        const char* formatString, uint offsetX, uint offsetY, 
         const char* font, boolean hasBgColor, const char* bgColor)
     {
         LOG_FUNC();
@@ -424,7 +424,7 @@ namespace DSL
                 std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
 
             m_odeActions[name] = DSL_ODE_ACTION_DISPLAY_NEW(name, 
-                offsetX, offsetY, offsetYWithClassId, pFont, hasBgColor, pBgColor);
+                formatString, offsetX, offsetY, pFont, hasBgColor, pBgColor);
                 
             LOG_INFO("New Display ODE Action '" << name << "' created successfully");
 

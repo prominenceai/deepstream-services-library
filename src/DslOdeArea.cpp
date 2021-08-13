@@ -91,13 +91,13 @@ namespace DSL
         
         uint x(0), y(0) ;
         GeosPolygon testPolygon(bbox);
-        bool result(false);
         
         switch (m_bboxTestPoint)
         {
         case DSL_BBOX_POINT_ANY :
-            return result = m_pGeosPolygon.Overlaps(testPolygon) or
-                m_pGeosPolygon.Contains(testPolygon);
+            return (m_pGeosPolygon.Overlaps(testPolygon) or
+                m_pGeosPolygon.Contains(testPolygon) or
+                testPolygon.Contains(m_pGeosPolygon));
                 
         case DSL_BBOX_POINT_CENTER :
             x = round(bbox.left + bbox.width/2);

@@ -585,9 +585,9 @@ SCENARIO( "A new Customze Label ODE Action can be created and deleted", "[ode-ac
     GIVEN( "Attributes for a new Display ODE Action" ) 
     {
         std::wstring action_name(L"customize-label-action");
-        uint label_types[] = {DSL_OBJECT_LABEL_LOCATION,
-            DSL_OBJECT_LABEL_DIMENSIONS, DSL_OBJECT_LABEL_CONFIDENCE,
-            DSL_OBJECT_LABEL_PERSISTENCE};
+        uint label_types[] = {DSL_METRIC_OBJECT_LOCATION,
+            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE,
+            DSL_METRIC_OBJECT_PERSISTENCE};
 
         uint mode(DSL_WRITE_MODE_TRUNCATE);
         uint size(4);
@@ -636,9 +636,9 @@ SCENARIO( "Parameters for a new Customze Label ODE Action are checked on constru
     GIVEN( "Attributes for a new Customze Label ODE Action" ) 
     {
         std::wstring action_name(L"customize-label-action");
-        uint label_types[] = {DSL_OBJECT_LABEL_LOCATION,
-            DSL_OBJECT_LABEL_DIMENSIONS, DSL_OBJECT_LABEL_CONFIDENCE,
-            DSL_OBJECT_LABEL_PERSISTENCE};
+        uint label_types[] = {DSL_METRIC_OBJECT_LOCATION,
+            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE,
+            DSL_METRIC_OBJECT_PERSISTENCE};
 
         WHEN( "The mode parameter is out of range" ) 
         {
@@ -684,6 +684,8 @@ SCENARIO( "A new Display ODE Action can be created and deleted", "[ode-action-ap
         std::wstring bg_color_name(L"my-bg-color");
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
         
+        std::wstring format_string(L"Class: %0");
+        
         REQUIRE( dsl_display_type_rgba_color_new(fontColorName.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
@@ -695,8 +697,9 @@ SCENARIO( "A new Display ODE Action can be created and deleted", "[ode-action-ap
 
         WHEN( "A new Display Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_display_new(action_name.c_str(), 10, 10, true, 
-                fontName.c_str(), true, bg_color_name.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_display_new(action_name.c_str(), 
+                format_string.c_str(), 10, 10, fontName.c_str(), true, 
+                bg_color_name.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The Display Action can be deleted" ) 
             {
@@ -709,13 +712,15 @@ SCENARIO( "A new Display ODE Action can be created and deleted", "[ode-action-ap
         }
         WHEN( "A new Display Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_display_new(action_name.c_str(), 10, 10, true, 
-                fontName.c_str(), true, bg_color_name.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_display_new(action_name.c_str(), 
+                format_string.c_str(), 10, 10, fontName.c_str(), true, 
+                bg_color_name.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Display Action of the same names fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_display_new(action_name.c_str(), 10, 10, true, 
-                    fontName.c_str(), true, bg_color_name.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_display_new(action_name.c_str(), 
+                    format_string.c_str(), 10, 10, fontName.c_str(), true, 
+                    bg_color_name.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
