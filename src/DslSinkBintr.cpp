@@ -613,7 +613,9 @@ namespace DSL
             m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H264_HW, "encode-sink-bin-encoder");
             m_pEncoder->SetAttribute("bitrate", m_bitRate);
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
+#if PLATFORM_TEGRA            
             m_pEncoder->SetAttribute("bufapi-version", true);
+#endif            
             m_pParser = DSL_ELEMENT_NEW("h264parse", "encode-sink-bin-parser");
             pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
             break;
@@ -621,7 +623,9 @@ namespace DSL
             m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H265_HW, "encode-sink-bin-encoder");
             m_pEncoder->SetAttribute("bitrate", m_bitRate);
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
+#if PLATFORM_TEGRA            
             m_pEncoder->SetAttribute("bufapi-version", true);
+#endif            
             m_pParser = DSL_ELEMENT_NEW("h265parse", "encode-sink-bin-parser");
             pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
             break;
@@ -954,10 +958,14 @@ namespace DSL
 
         m_pEncoder->SetAttribute("bitrate", m_bitRate);
         m_pEncoder->SetAttribute("iframeinterval", m_interval);
+
+#ifdef PLATFORM_TEGRA        
         m_pEncoder->SetAttribute("preset-level", true);
         m_pEncoder->SetAttribute("insert-sps-pps", true);
         m_pEncoder->SetAttribute("bufapi-version", true);
-        
+#else
+        m_pEncoder->SetAttribute("gpu-id", m_gpuId);
+#endif
         // Setup the GST RTSP Server
         m_pServer = gst_rtsp_server_new();
         g_object_set(m_pServer, "service", std::to_string(m_rtspPort).c_str(), NULL);
