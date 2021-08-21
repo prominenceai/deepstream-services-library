@@ -109,6 +109,11 @@ namespace DSL
     protected:
 
         /**
+         * @brief Device Properties, used for aarch64/x86_64 conditional logic
+         */
+        cudaDeviceProp m_cudaDeviceProp;
+
+        /**
          * @brief Sink element's current synchronous attribute setting.
          */
         boolean m_sync;
@@ -384,7 +389,19 @@ namespace DSL
         boolean m_qos;
         bool m_forceAspectRatio;
 
+        /**
+         * @brief Caps Filter required for dGPU WindowSinkBintr
+         */
+        DSL_ELEMENT_PTR m_pCapsFilter;
+
+        /**
+         * @brief Platform specific Transform element WindowSinkBintr
+         */
         DSL_ELEMENT_PTR m_pTransform;
+        
+        /**
+         * @brief Window Sink Element for the WindowSinkBintr
+         */
         DSL_ELEMENT_PTR m_pEglGles;
     };
 
