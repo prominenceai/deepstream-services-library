@@ -44,9 +44,7 @@ SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineTiler]
         uint width(1280);
         uint height(720);
 
-        std::wstring overlaySinkName = L"overlay-sink";
-        uint displayId(0);
-        uint depth(0);
+        std::wstring windowSinkName(L"window-sink");
         uint offsetX(0);
         uint offsetY(0);
         uint sinkW(1280);
@@ -64,8 +62,7 @@ SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineTiler]
         REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), cudadecMemType, 
             false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        // overlay sink for observation 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth, 
+        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         // new tiler for this scenario
@@ -73,7 +70,7 @@ SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineTiler]
     
             
         const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", 
-            L"tiler", L"overlay-sink", NULL};
+            L"tiler", L"window-sink", NULL};
         
         WHEN( "When the Display Tiles are set, and the Pipeline is Assembled and Played" ) 
         {
