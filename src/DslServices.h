@@ -1092,7 +1092,7 @@ namespace DSL {
         /**
          * @brief instance pointer for this singleton class
          */
-        static Services* m_pInstatnce;
+        static Services* m_pInstance;
         
         /**
          * @breif flag set during construction, determines if the Services should call

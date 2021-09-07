@@ -64,16 +64,15 @@ static const std::wstring osd_name(L"on-screen-display");
 static const boolean text_enabled(true);
 static const boolean clock_enabled(false);
         
-static const std::wstring sink_name(L"overlay-sink");
-static const uint display_id(0);
-static const uint depth(0);
+static const std::wstring sink_name(L"window-sink");
 static const uint offset_x(100);
 static const uint offset_y(140);
 static const uint sink_width(1280);
 static const uint sink_height(720);
 
 
-SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker with its Batch Processing and Past Frame Reporting enabled", "[tracker-play]" )
+SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker with its Batch Processing \
+    and Past Frame Reporting enabled", "[tracker-play]" )
 {
     GIVEN( "A Pipeline, File source, Primary TIS, KTL Tracker, OSD, and Overlay Sink" ) 
     {
@@ -104,12 +103,12 @@ SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker with its Batch Process
 
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(sink_name.c_str(), display_id, depth,
+        REQUIRE( dsl_sink_window_new(sink_name.c_str(),
             offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"file-source-1", L"file-source-2", 
             L"file-source-3", L"file-source-4", L"primary-tis", 
-            L"dcf-tracker", L"tiler", L"on-screen-display", L"overlay-sink", NULL};
+            L"dcf-tracker", L"tiler", L"on-screen-display", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -153,11 +152,11 @@ SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker with its Batch Process
 
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(sink_name.c_str(), display_id, depth,
+        REQUIRE( dsl_sink_window_new(sink_name.c_str(),
             offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"file-source-1", L"primary-tis", 
-            L"dcf-tracker", L"on-screen-display", L"overlay-sink", NULL};
+            L"dcf-tracker", L"on-screen-display", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -209,12 +208,12 @@ SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker and optional config fi
 
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(sink_name.c_str(), display_id, depth,
+        REQUIRE( dsl_sink_window_new(sink_name.c_str(),
             offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"file-source-1", L"file-source-2", 
             L"file-source-3", L"file-source-4", L"primary-tis", 
-            L"dcf-tracker", L"tiler", L"on-screen-display", L"overlay-sink", NULL};
+            L"dcf-tracker", L"tiler", L"on-screen-display", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {

@@ -64,6 +64,16 @@ namespace DSL
 
         try
         {
+            // Get the Device properties
+            cudaDeviceProp deviceProp;
+            cudaGetDeviceProperties(&deviceProp, 0);
+            
+            if (!deviceProp.integrated)
+            {
+                LOG_ERROR("Overlay Sink is not supported on dGPU x86_64 builds");
+                return DSL_RESULT_SINK_OVERLAY_NOT_SUPPORTED;
+            }
+            
             // ensure component name uniqueness 
             if (m_components.find(name) != m_components.end())
             {   

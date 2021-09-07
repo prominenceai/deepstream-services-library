@@ -28,33 +28,34 @@ THE SOFTWARE.
 
 #define TIME_TO_SLEEP_FOR std::chrono::milliseconds(400)
 
+// ---------------------------------------------------------------------------
+// Shared Test Inputs 
+
+static const std::wstring sourceName1(L"test-uri-source-1");
+static const std::wstring sourceName2(L"test-uri-source-2");
+static const std::wstring sourceName3(L"test-uri-source-3");
+static const std::wstring sourceName4(L"test-uri-source-4");
+static const std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
+static const uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+static const uint intrDecode(false);
+static const uint dropFrameInterval(0);
+
+static const std::wstring tilerName(L"tiler");
+static const uint width(1280);
+static const uint height(720);
+
+static const std::wstring windowSinkName(L"window-sink");
+static const uint offsetX(0);
+static const uint offsetY(0);
+static const uint sinkW(1280);
+static const uint sinkH(720);
+
+static const std::wstring pipelineName(L"test-pipeline");
+
 SCENARIO( "A new Pipeline with four URI Sources can Play", "[PipelineSources]" )
 {
     GIVEN( "A Pipeline with four sources and minimal components" ) 
     {
-        std::wstring sourceName1 = L"test-uri-source-1";
-        std::wstring sourceName2 = L"test-uri-source-2";
-        std::wstring sourceName3 = L"test-uri-source-3";
-        std::wstring sourceName4 = L"test-uri-source-4";
-        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
-        uint intrDecode(false);
-        uint dropFrameInterval(0);
-
-        std::wstring tilerName = L"tiler";
-        uint width(1280);
-        uint height(720);
-
-        std::wstring overlaySinkName = L"overlay-sink";
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(1280);
-        uint sinkH(720);
-
-        std::wstring pipelineName  = L"test-pipeline";
-        
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
@@ -68,11 +69,11 @@ SCENARIO( "A new Pipeline with four URI Sources can Play", "[PipelineSources]" )
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
+        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
         const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", L"test-uri-source-4", 
-            L"tiler", L"overlay-sink", NULL};
+            L"tiler", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled and Played" ) 
         {
@@ -99,27 +100,6 @@ SCENARIO( "A new Pipeline with four URI Sources can Pause and Play", "[PipelineS
 {
     GIVEN( "A Pipeline with four sources and minimal components" ) 
     {
-        std::wstring sourceName1 = L"test-uri-source-1";
-        std::wstring sourceName2 = L"test-uri-source-2";
-        std::wstring sourceName3 = L"test-uri-source-3";
-        std::wstring sourceName4 = L"test-uri-source-4";
-        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
-        uint intrDecode(false);
-        uint dropFrameInterval(2);
-
-        std::wstring tilerName = L"tiler";
-        uint width(1280);
-        uint height(720);
-
-        std::wstring overlaySinkName = L"overlay-sink";
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(1280);
-        uint sinkH(720);
-
         std::wstring pipelineName  = L"test-pipeline";
         
         REQUIRE( dsl_component_list_size() == 0 );
@@ -135,11 +115,11 @@ SCENARIO( "A new Pipeline with four URI Sources can Pause and Play", "[PipelineS
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth, 
+        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
         const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", L"test-uri-source-4", 
-            L"tiler", L"overlay-sink", NULL};
+            L"tiler", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Played and then Paused" ) 
         {
@@ -171,29 +151,6 @@ SCENARIO( "A new Pipeline with four URI Sources can Stop and Play", "[PipelineSo
 {
     GIVEN( "A Pipeline with four sources and minimal components" ) 
     {
-        std::wstring sourceName1 = L"test-uri-source-1";
-        std::wstring sourceName2 = L"test-uri-source-2";
-        std::wstring sourceName3 = L"test-uri-source-3";
-        std::wstring sourceName4 = L"test-uri-source-4";
-        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
-        uint intrDecode(false);
-        uint dropFrameInterval(2);
-
-        std::wstring tilerName = L"tiler";
-        uint width(1280);
-        uint height(720);
-
-        std::wstring overlaySinkName = L"overlay-sink";
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(1280);
-        uint sinkH(720);
-
-        std::wstring pipelineName  = L"test-pipeline";
-        
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
@@ -207,11 +164,12 @@ SCENARIO( "A new Pipeline with four URI Sources can Stop and Play", "[PipelineSo
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
+        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
-        const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", L"test-uri-source-4", 
-            L"tiler", L"overlay-sink", NULL};
+        const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", 
+            L"test-uri-source-3", L"test-uri-source-4", 
+            L"tiler", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Played and then Paused" ) 
         {
@@ -244,29 +202,6 @@ SCENARIO( "A single Source of a multi-source Pipeline can Pause and Resume", "[P
 {
     GIVEN( "A Pipeline with four sources and minimal components" ) 
     {
-        std::wstring sourceName1 = L"test-uri-source-1";
-        std::wstring sourceName2 = L"test-uri-source-2";
-        std::wstring sourceName3 = L"test-uri-source-3";
-        std::wstring sourceName4 = L"test-uri-source-4";
-        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
-        uint intrDecode(false);
-        uint dropFrameInterval(0);
-
-        std::wstring tilerName = L"tiler";
-        uint width(1280);
-        uint height(720);
-
-        std::wstring overlaySinkName = L"overlay-sink";
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(1280);
-        uint sinkH(720);
-
-        std::wstring pipelineName  = L"test-pipeline";
-        
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
@@ -280,11 +215,12 @@ SCENARIO( "A single Source of a multi-source Pipeline can Pause and Resume", "[P
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
+        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
-        const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", L"test-uri-source-4", 
-            L"tiler", L"overlay-sink", NULL};
+        const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", 
+            L"test-uri-source-3", L"test-uri-source-4", 
+            L"tiler", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled and Played" ) 
         {
