@@ -44,9 +44,7 @@ SCENARIO( "The Batch Size for a Pipeline with multiple-sources can be updated", 
         uint width(1920);
         uint height(720);
 
-        std::wstring overlaySinkName = L"overlay-sink";
-        uint displayId(0);
-        uint depth(0);
+        std::wstring windowSinkName = L"window-sink";
         uint offsetX(0);
         uint offsetY(0);
         uint sinkW(1920);
@@ -64,13 +62,13 @@ SCENARIO( "The Batch Size for a Pipeline with multiple-sources can be updated", 
         REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), cudadecMemType, 
             false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth, 
+        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
             
         const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", 
-            L"tiler", L"overlay-sink", NULL};
+            L"tiler", L"window-sink", NULL};
 
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
         

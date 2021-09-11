@@ -39,8 +39,17 @@ The DeepStream SDK and DSL use the open source [GStreamer](https://gstreamer.fre
 
 DSL is released under the [MIT License](LICENSE). Contributions are welcome and greatly appreciated. Contributor guidelines and code of conduct are still TBW.
 
-## Discord
+## DSL Branching Workflow
 
+![DSL Git Branching Workflow](/Images/dsl-branching-workflow.png)
+
+1. `Master` is always the latest release and is only updated once per release.
+2. `Develop` is the next release currently in development. The branch will be named with the next release label.
+3. `Feature` all work is done on feature branches, named for the feature under development. 
+
+All pull requests should be made against the current `Develop` branch. 
+
+## Discord
 Come join us on [Discord](https://discord.gg/MJvY9jjpAK), an informal place to chat, ask questions, discuss ideas, etc.
 
 ## DSL Users Guide

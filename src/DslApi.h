@@ -133,6 +133,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_PLAYER_REMOVE_FAILED                        0x00040013
 #define DSL_RESULT_SINK_MAILER_ADD_FAILED                           0x00040014
 #define DSL_RESULT_SINK_MAILER_REMOVE_FAILED                        0x00040015
+#define DSL_RESULT_SINK_OVERLAY_NOT_SUPPORTED                       0x00040016
 
 
 /**
