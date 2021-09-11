@@ -50,7 +50,6 @@ DSL is released under the [MIT License](LICENSE). Contributions are welcome and 
 All pull requests should be made against the current `Develop` branch. 
 
 ## Discord
-
 Come join us on [Discord](https://discord.gg/MJvY9jjpAK), an informal place to chat, ask questions, discuss ideas, etc.
 
 ## DSL Users Guide
