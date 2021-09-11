@@ -37,7 +37,7 @@ The DeepStream SDK and DSL use the open source [GStreamer](https://gstreamer.fre
 
 ## Contributing
 
-DSL is released under the [MIT License](LICENSE). Contributions are welcome and greatly appreciated. Contributor guidelines and code of conduct are still TBW.
+DSL is released under the [MIT License](LICENSE). Contributions are welcome and greatly appreciated. Please review our [code of conduct](/CODE_OF_CONDUCT.md).
 
 ## DSL Branching Workflow
 
