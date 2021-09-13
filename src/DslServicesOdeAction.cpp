@@ -324,7 +324,7 @@ namespace DSL
     }
 
     DslReturnType  Services::OdeActionCustomizeLabelNew(const char* name, 
-        const uint* contentTypes, uint size, uint mode)
+        const uint* contentTypes, uint size)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -345,13 +345,6 @@ namespace DSL
                 return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
             }
             
-            if (mode > DSL_WRITE_MODE_TRUNCATE)
-            {
-                LOG_ERROR("Invalid write mode parameter = " << mode 
-                    << " for new Customize Label ODE Action '" << name << "'");
-                return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
-            }
-
             // convert array of Content Type constants into a vector
             std::vector <uint> contentTypesCopy;
             
@@ -368,7 +361,7 @@ namespace DSL
                 count--;
             }    
             m_odeActions[name] = DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(
-                name, contentTypesCopy, mode);
+                name, contentTypesCopy);
 
             LOG_INFO("New ODE Customize Label Action '" << name 
                 << "' created successfully");
@@ -377,13 +370,103 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("New ODE Callback Action '" << name 
+            LOG_ERROR("New ODE Customize Label Action '" << name 
                 << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
         
     }
 
+    DslReturnType  Services::OdeActionCustomizeLabelGet(const char* name, 
+        uint* contentTypes, uint* size)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeActions, 
+                name, CustomizeLabelOdeAction);
+            
+            DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR pOdeAction = 
+                std::dynamic_pointer_cast<CustomizeLabelOdeAction>(m_odeActions[name]);
+                
+            std::vector <uint> contentTypesCopy = pOdeAction->Get();
+            
+            if (*size < contentTypesCopy.size())
+            {
+                LOG_ERROR("Insufficient 'content_types' array size = " << *size 
+                    << " to Get the ODE Customize Label Action '" << name << "' settings");
+                return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
+            }
+            std::copy(contentTypesCopy.begin(), contentTypesCopy.end(), contentTypes);
+            *size = contentTypesCopy.size();
+
+            LOG_INFO("ODE Customize Label Action '" << name 
+                << "' updated successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Customize Label Action '" << name 
+                << "' threw exception on set");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType  Services::OdeActionCustomizeLabelSet(const char* name, 
+        const uint* contentTypes, uint size)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeActions, 
+                name, CustomizeLabelOdeAction);
+            
+            if (size > DSL_METRIC_OBJECT_PERSISTENCE+1)
+            {
+                LOG_ERROR("Invalid array size for Customize Label ODE Action '" 
+                    << name << "'");
+                return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
+            }
+            
+            // convert array of Content Type constants into a vector
+            std::vector <uint> contentTypesCopy;
+            
+            uint count(size);
+            for (const uint* contentType = contentTypes; count; contentType++)
+            {
+                if (*contentType > DSL_METRIC_OBJECT_PERSISTENCE)
+                {
+                    LOG_ERROR("Invalid Content Type = " << *contentType 
+                        << " for new Customize Label ODE Action" << name << "'");
+                    return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
+                }
+                contentTypesCopy.push_back(*contentType);
+                count--;
+            }
+            DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR pOdeAction = 
+                std::dynamic_pointer_cast<CustomizeLabelOdeAction>(m_odeActions[name]);
+                
+            pOdeAction->Set(contentTypesCopy);
+
+            LOG_INFO("ODE Customize Label Action '" << name 
+                << "' updated successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Customize Label Action '" << name 
+                << "' threw exception on set");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
     
     DslReturnType Services::OdeActionDisplayNew(const char* name, 
         const char* formatString, uint offsetX, uint offsetY, 

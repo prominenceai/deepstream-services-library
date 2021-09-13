@@ -512,15 +512,42 @@ DslReturnType dsl_ode_action_capture_mailer_remove(const wchar_t* name,
 }
 
 DslReturnType dsl_ode_action_customize_label_new(const wchar_t* name,  
-    const uint* content_types, uint size, uint mode)
+    const uint* content_types, uint size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(content_types);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionCustomizeLabelNew(
+        cstrName.c_str(), content_types, size);
+}    
+
+DslReturnType dsl_ode_action_customize_label_get(const wchar_t* name,  
+    uint* content_types, uint* size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(content_types);
+    RETURN_IF_PARAM_IS_NULL(size);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionCustomizeLabelGet(
+        cstrName.c_str(), content_types, size);
+}    
+    
+DslReturnType dsl_ode_action_customize_label_set(const wchar_t* name,  
+    const uint* content_types, uint size)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeActionCustomizeLabelNew(
-        cstrName.c_str(), content_types, size, mode);
+    return DSL::Services::GetServices()->OdeActionCustomizeLabelSet(
+        cstrName.c_str(), content_types, size);
 }    
     
 DslReturnType dsl_ode_action_display_new(const wchar_t* name, 
