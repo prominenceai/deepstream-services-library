@@ -33,11 +33,11 @@ TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 
 CXX_VERSION:=c++17
 DSL_VERSION:='L"v0.20.alpha"'
-NVDS_VERSION:=5.1
+NVDS_VERSION:=6.0
 GS_VERSION:=1.0
 GLIB_VERSION:=2.0
 GSTREAMER_VERSION:=1.0
-CUDA_VERSION:=10.2
+CUDA_VERSION:=11.2
 
 SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources
 INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources/includes
@@ -92,7 +92,7 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-laprutil-1 \
 	-lapr-1 \
 	-lX11 \
-	-L/usr/lib/aarch64-linux-gnu \
+	-L/usr/lib/$(TARGET_DEVICE)-linux-gnu \
 	-lgeos_c \
 	-lcurl \
 	-lnvdsgst_meta \
