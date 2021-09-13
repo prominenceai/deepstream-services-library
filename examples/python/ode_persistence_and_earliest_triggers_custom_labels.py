@@ -180,11 +180,10 @@ def main(args):
         retval = dsl_ode_action_customize_label_new('customize-label', 
             content_types = [DSL_METRIC_OBJECT_TRACKING_ID,
                 DSL_METRIC_OBJECT_PERSISTENCE], 
-            size = 2,
-            mode = DSL_WRITE_MODE_TRUNCATE)
+            size = 2)
         if retval != DSL_RETURN_SUCCESS:
             break
-
+            
         # Create a Format Label Action to
         retval = dsl_ode_action_format_label_new('format-label', 
             font = 'verdana-bold-16-white', 

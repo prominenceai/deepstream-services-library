@@ -82,6 +82,8 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 * [dsl_ode_action_capture_image_player_remove](#dsl_ode_action_capture_image_player_remove)
 * [dsl_ode_action_capture_mailer_add](#dsl_ode_action_capture_mailer_add)
 * [dsl_ode_action_capture_mailer_remove](#dsl_ode_action_capture_mailer_remove)
+* [dsl_ode_action_customize_label_get](#dsl_ode_action_customize_label_get)
+* [dsl_ode_action_customize_label_set](#dsl_ode_action_customize_label_set)
 * [dsl_ode_action_enabled_get](#dsl_ode_action_enabled_get)
 * [dsl_ode_action_enabled_set](#dsl_ode_action_enabled_set)
 * [dsl_ode_action_list_size](#dsl_ode_action_list_size)
@@ -355,7 +357,7 @@ retval = dsl_ode_action_callback_new('my-callback-action', my_ode_callback, my_d
 ### *dsl_ode_action_customize_label_new*
 ```C++
 DslReturnType dsl_ode_action_customize_label_new(const wchar_t* name,  
-    const uint* content_types, uint size, uint mode);
+    const uint* content_types, uint size);
 ```
 The constructor creates a uniquely named **Customize Label** ODE Action. When invoked, this Action updates an Object's label to display specific content.
 
@@ -363,7 +365,6 @@ The constructor creates a uniquely named **Customize Label** ODE Action. When in
 * `name` - [in] unique name for the ODE Action to create.
 * `content_types` - [in] an array of DSL_OBJECT_LABEL constants.
 * `size` - [in] size of the content_types array.
-* `mode` - [in] write mode, either DSL_WRITE_MODE_APPEND or DSL_WRITE_MODE_TRUNCATE
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -371,8 +372,7 @@ The constructor creates a uniquely named **Customize Label** ODE Action. When in
 **Python Example**
 ```Python    
 retval = dsl_ode_action_display_new('my-customize-label-action', 
-    [DSL_OBJECT_LABEL_TRACKING_ID, DSL_OBJECT_LABEL_PERSISTENCE], 
-    2, DSL_WRITE_MODE_TRUNCATE)
+    [DSL_OBJECT_LABEL_TRACKING_ID, DSL_OBJECT_LABEL_PERSISTENCE], 2)
 ```
 
 <br>
@@ -1115,6 +1115,51 @@ This service removes a [SMTP Mailer](/docs/api-mailer.md) from a named Capture A
 **Python Example**
 ```Python
 retval = dsl_ode_action_capture_mailer_remove('frame-capture-action', 'mailer')
+```
+
+<br>
+
+### *dsl_ode_action_customize_label_get*
+```C++
+DslReturnType dsl_ode_action_customize_label_get(const wchar_t* name,  
+    uint* content_types, uint* size);
+```
+The service queries a **Customize Label** ODE Action for its current label `content_types`.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `content_types` - [out] an output buffer for the service to write to.
+* `size` - [inout] max size of the array as input, returned size as output .
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python    
+retval, content_types, size = dsl_ode_action_display_get('my-customize-label-action')
+```
+
+<br>
+
+### *dsl_ode_action_customize_label_set*
+```C++
+DslReturnType dsl_ode_action_customize_label_set(const wchar_t* name,  
+    uint* content_types, uint* size);
+```
+The service updates a uniquely named **Customize Label** ODE Action with new label content types.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `content_types` - [in] an array of DSL_OBJECT_LABEL constants.
+* `size` - [in] size of the content_types array.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python    
+retval = dsl_ode_action_display_set('my-customize-label-action', 
+    [DSL_OBJECT_LABEL_TRACKING_ID, DSL_OBJECT_LABEL_PERSISTENCE], 2)
 ```
 
 <br>

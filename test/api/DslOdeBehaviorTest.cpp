@@ -662,7 +662,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four ODE Accumulation Triggers wi
     }
 }
 
-SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with shared ODE Inclusion Area", "[new]" )
+SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with shared ODE Inclusion Area", "[ode-behavior]" )
 {
     GIVEN( "A Pipeline, ODE Handler, Four Summation ODE Triggers, and Display ODE Action" ) 
     {
@@ -806,7 +806,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*10);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
@@ -1406,11 +1406,10 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Custo
             DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE,
             DSL_METRIC_OBJECT_PERSISTENCE};
 
-        uint mode(DSL_WRITE_MODE_TRUNCATE);
         uint size(4);
 
         REQUIRE( dsl_ode_action_customize_label_new(ode_action_name.c_str(),  
-            label_types, size, mode) 
+            label_types, size) 
                 == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), cudadec_mem_type, 

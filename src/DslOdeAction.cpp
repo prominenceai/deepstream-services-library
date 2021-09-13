@@ -674,10 +674,9 @@ namespace DSL
     // ********************************************************************
 
     CustomizeLabelOdeAction::CustomizeLabelOdeAction(const char* name, 
-        const std::vector<uint>& contentTypes, uint mode)
+        const std::vector<uint>& contentTypes)
         : OdeAction(name)
         , m_contentTypes(contentTypes)
-        , m_mode(mode)
     {
         LOG_FUNC();
     }
@@ -687,7 +686,22 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void CustomizeLabelOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+    const std::vector<uint> CustomizeLabelOdeAction::Get()
+    {
+        LOG_FUNC();
+        
+        return m_contentTypes;
+    }
+    
+    void CustomizeLabelOdeAction::Set(const std::vector<uint>& contentTypes)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_contentTypes.assign(contentTypes.begin(), contentTypes.end());
+    }
+
+        void CustomizeLabelOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
         GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
@@ -697,10 +711,6 @@ namespace DSL
         {   
             std::string label;
             
-            if (m_mode == DSL_WRITE_MODE_APPEND)
-            {
-                label.append(pObjectMeta->text_params.display_text);
-            }
             // Free up the existing label memory, and reallocate to ensure suffcient size
             g_free(pObjectMeta->text_params.display_text);
             pObjectMeta->text_params.display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
@@ -744,7 +754,7 @@ namespace DSL
                         GetName() << "'");
                 }
             }
-            label.copy(pObjectMeta->text_params.display_text, label.size(), 0);
+            label.copy(pObjectMeta->text_params.display_text, MAX_DISPLAY_LEN, 0);
         }
     }
 

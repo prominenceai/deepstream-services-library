@@ -72,9 +72,9 @@ namespace DSL
             name, outdir))
 
     #define DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR std::shared_ptr<CustomizeLabelOdeAction>
-    #define DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(name, contentTypes, mode) \
+    #define DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(name, contentTypes) \
         std::shared_ptr<CustomizeLabelOdeAction>(new CustomizeLabelOdeAction( \
-            name, contentTypes, mode))
+            name, contentTypes))
         
     #define DSL_ODE_ACTION_DISPLAY_PTR std::shared_ptr<DisplayOdeAction>
     #define DSL_ODE_ACTION_DISPLAY_NEW(name, \
@@ -596,16 +596,26 @@ namespace DSL
          * @param[in] name unique name for the ODE Action
          * @param[in] contentTypes NULL terminated list of 
          * DSL_OBJECT_LABEL_<type> values for specific content
-         * @param[in] mode write mode, either DSL_WRITE_MODE_APPEND or 
-         * DSL_WRITE_MODE_TRUNCATE 
          */
         CustomizeLabelOdeAction(const char* name, 
-            const std::vector<uint>& contentTypes, uint mode);
+            const std::vector<uint>& contentTypes);
         
         /**
          * @brief dtor for the Customize Label ODE Action class
          */
         ~CustomizeLabelOdeAction();
+
+        /**
+         * @brief gets the content types in use by this Customize Label Action
+         * @return vector of DSL_OBJECT_LABEL_<type> values
+         */
+        const std::vector<uint> Get();
+        
+        /**
+         * @brief sets the content types for this Customize Label Action to use
+         * @param[in] contentTypes new vector of DSL_OBJECT_LABEL_<type> values to use
+         */
+        void Set(const std::vector<uint>& contentTypes);
         
         /**
          * @brief Handles the ODE occurrence by customizing the Object's label
@@ -625,12 +635,6 @@ namespace DSL
          * @brief Content types for label customization
          */
         std::vector <uint> m_contentTypes;
-        
-        /**
-         * @brief mode write mode, either DSL_WRITE_MODE_APPEND or 
-         * DSL_WRITE_MODE_TRUNCATE 
-         */
-        uint m_mode;
     };
 
     // ********************************************************************

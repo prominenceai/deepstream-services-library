@@ -443,12 +443,11 @@ SCENARIO( "A new CustomLabelOdeAction is created correctly", "[OdeAction]" )
         const std::vector<uint> label_types = {DSL_METRIC_OBJECT_LOCATION,
             DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE,
             DSL_METRIC_OBJECT_PERSISTENCE};
-        uint mode(DSL_WRITE_MODE_APPEND);
 
         WHEN( "A new OdeAction is created with an array of content types" )
         {
             DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR pAction = DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(
-                actionName.c_str(), label_types, mode);
+                actionName.c_str(), label_types);
 
             THEN( "The Action's members are setup and returned correctly" )
             {
@@ -461,7 +460,7 @@ SCENARIO( "A new CustomLabelOdeAction is created correctly", "[OdeAction]" )
             std::vector<uint> label_types;
             
             DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR pAction = DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(
-                actionName.c_str(), label_types, mode);
+                actionName.c_str(), label_types);
 
             THEN( "The Action's members are setup and returned correctly" )
             {
@@ -509,24 +508,10 @@ SCENARIO( "A CustomLabelOdeAction handles an ODE Occurence correctly", "[OdeActi
         objectMeta.text_params.display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
         defaultLabel.copy(objectMeta.text_params.display_text, defaultLabel.size(), 0);
 
-        WHEN( "A the Action is created with mode = DSL_WRITE_MODE_APPEND" )
+        WHEN( "A the Action is created with content types" )
         {
             DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR pAction = DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(
-                actionName.c_str(), label_types, DSL_WRITE_MODE_APPEND);
-
-            THEN( "The OdeAction can Handle the Occurrence" )
-            {
-                std::string expectedLabel("Person 123 | L:10,10 | D:200x100 | C:0.000000 | T:0s");
-                
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
-                std::string actualLabel(objectMeta.text_params.display_text);
-                REQUIRE( actualLabel == expectedLabel );
-            }
-        }
-        WHEN( "A the Action is created with mode = DSL_WRITE_MODE_APPEND" )
-        {
-            DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR pAction = DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(
-                actionName.c_str(), label_types, DSL_WRITE_MODE_TRUNCATE);
+                actionName.c_str(), label_types);
 
             THEN( "The OdeAction can Handle the Occurrence" )
             {
@@ -537,12 +522,12 @@ SCENARIO( "A CustomLabelOdeAction handles an ODE Occurence correctly", "[OdeActi
                 REQUIRE( actualLabel == expectedLabel );
             }
         }
-        WHEN( "A the Action is created with mode = DSL_WRITE_MODE_TRUNCATE and 0 label_types" )
+        WHEN( "A the Action is created with 0 content_types" )
         {
             std::vector<uint> label_types;
             
             DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR pAction = DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(
-                actionName.c_str(), label_types, DSL_WRITE_MODE_TRUNCATE);
+                actionName.c_str(), label_types);
 
             THEN( "The OdeAction can Handle the Occurrence" )
             {

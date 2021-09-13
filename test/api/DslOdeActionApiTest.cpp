@@ -580,7 +580,7 @@ SCENARIO( "A Mailer can be added and removed from a Capture Action", "[ode-actio
     }
 }    
 
-SCENARIO( "A new Customze Label ODE Action can be created and deleted", "[ode-action-api]" )
+SCENARIO( "A new Customize Label ODE Action can be created and deleted", "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Display ODE Action" ) 
     {
@@ -589,19 +589,18 @@ SCENARIO( "A new Customze Label ODE Action can be created and deleted", "[ode-ac
             DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE,
             DSL_METRIC_OBJECT_PERSISTENCE};
 
-        uint mode(DSL_WRITE_MODE_TRUNCATE);
         uint size(4);
 
-        WHEN( "A new Display Action is created" ) 
+        WHEN( "A new Customize Label is created" ) 
         {
             REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
-                label_types, size, mode) == DSL_RESULT_SUCCESS );
+                label_types, size) == DSL_RESULT_SUCCESS );
 
             // second attempt must fail
             REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
-                label_types, size, mode) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                label_types, size) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
             
-            THEN( "The Display Action can be deleted" ) 
+            THEN( "The Customize Label can be deleted" ) 
             {
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
@@ -610,58 +609,28 @@ SCENARIO( "A new Customze Label ODE Action can be created and deleted", "[ode-ac
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == 
                     DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
                 
-                REQUIRE( dsl_display_type_list_size() == 0 );
-                
-            }
-        }
-        WHEN( "A new Display Action is created with an empty list" ) 
-        {
-            REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
-                NULL, 0, mode) == DSL_RESULT_SUCCESS );
-
-            THEN( "The Display Action can be deleted" ) 
-            {
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_action_list_size() == 0 );
-
-                REQUIRE( dsl_display_type_list_size() == 0 );
-                
             }
         }
     }
 }
 
-SCENARIO( "Parameters for a new Customze Label ODE Action are checked on construction", "[ode-action-api]" )
+SCENARIO( "Parameters for a new Customize Label ODE Action are checked on construction", "[ode-action-api]" )
 {
-    GIVEN( "Attributes for a new Customze Label ODE Action" ) 
+    GIVEN( "Attributes for a new Customize Label ODE Action" ) 
     {
         std::wstring action_name(L"customize-label-action");
         uint label_types[] = {DSL_METRIC_OBJECT_LOCATION,
             DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE,
             DSL_METRIC_OBJECT_PERSISTENCE};
 
-        WHEN( "The mode parameter is out of range" ) 
+        WHEN( "The size parameter is out of range" ) 
         {
-            uint mode(DSL_WRITE_MODE_TRUNCATE+1);
-            uint size(4);
-            
-            THEN( "The Customize Label Action fails to create" ) 
-            {
-                REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
-                    label_types, 4, mode) == DSL_RESULT_ODE_ACTION_PARAMETER_INVALID );
-
-                REQUIRE( dsl_ode_action_list_size() == 0 );
-            }
-        }
-        WHEN( "The format parameter is out of range" ) 
-        {
-            uint mode(DSL_WRITE_MODE_TRUNCATE);
             uint size(5);
             
             THEN( "The Customize Label Action fails to create" ) 
             {
                 REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
-                    label_types, size, mode) == DSL_RESULT_ODE_ACTION_PARAMETER_INVALID );
+                    label_types, size) == DSL_RESULT_ODE_ACTION_PARAMETER_INVALID );
 
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
@@ -669,6 +638,99 @@ SCENARIO( "Parameters for a new Customze Label ODE Action are checked on constru
     }
 }
 
+SCENARIO( "A new Customize Label ODE Action can be updated", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Display ODE Action" ) 
+    {
+        std::wstring action_name(L"customize-label-action");
+        uint label_types[] = {DSL_METRIC_OBJECT_LOCATION,
+            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE,
+            DSL_METRIC_OBJECT_PERSISTENCE};
+            
+        uint size(4);
+
+        REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
+            label_types, size) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Customize Label is updated" ) 
+        {
+            uint ret_label_types[DSL_METRIC_OBJECT_PERSISTENCE+1] = {0};
+            uint in_out_size(DSL_METRIC_OBJECT_PERSISTENCE+1);
+
+            // test initial condition first
+            REQUIRE( dsl_ode_action_customize_label_get(action_name.c_str(),
+                ret_label_types, &in_out_size) == DSL_RESULT_SUCCESS );
+            REQUIRE( in_out_size == size );
+            REQUIRE( label_types[0] == ret_label_types[0] );
+            REQUIRE( label_types[1] == ret_label_types[1] );
+            REQUIRE( label_types[2] == ret_label_types[2] );
+            REQUIRE( label_types[3] == ret_label_types[3] );
+
+            uint new_label_types[] = {DSL_METRIC_OBJECT_CLASS};
+            size = 1;
+
+            REQUIRE( dsl_ode_action_customize_label_set(action_name.c_str(),
+                new_label_types, size) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct values are returned on get" ) 
+            {
+                REQUIRE( dsl_ode_action_customize_label_get(action_name.c_str(),
+                    ret_label_types, &in_out_size) == DSL_RESULT_SUCCESS );
+                REQUIRE( in_out_size == size );
+                
+                REQUIRE( new_label_types[0] == ret_label_types[0] );
+                
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Customize Label ODE Action checks its parameters correctly", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Display ODE Action" ) 
+    {
+        std::wstring action_name(L"customize-label-action");
+        uint label_types[] = {DSL_METRIC_OBJECT_LOCATION,
+            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE,
+            DSL_METRIC_OBJECT_PERSISTENCE};
+            
+        uint size(4);
+
+        REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
+            label_types, size) == DSL_RESULT_SUCCESS );
+
+        WHEN( "When insufficient memory is passed in on Get" ) 
+        {
+            uint ret_label_types[2] = {0};
+            uint in_out_size(2);
+            
+            THEN( "The Get call fails correctly" ) 
+            {
+                REQUIRE( dsl_ode_action_customize_label_get(action_name.c_str(),
+                    ret_label_types, &in_out_size) == DSL_RESULT_ODE_ACTION_PARAMETER_INVALID );
+
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+        WHEN( "When the size parameter is NULL" ) 
+        {
+            uint* pSize(NULL);
+            uint ret_label_types[2] = {0};
+            
+            THEN( "The ODE Actions container is unchanged" ) 
+            {
+                REQUIRE( dsl_ode_action_customize_label_get(action_name.c_str(),
+                    ret_label_types, pSize) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
 
 SCENARIO( "A new Display ODE Action can be created and deleted", "[ode-action-api]" )
 {
@@ -1702,7 +1764,7 @@ SCENARIO( "The ODE Action API checks for NULL input parameters", "[ode-action-ap
                 REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_customize_label_new(NULL,
-                    NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_display_new(NULL, 0, 0, false, NULL, false, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_display_new(action_name.c_str(), 0, 0, false, NULL, false, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
