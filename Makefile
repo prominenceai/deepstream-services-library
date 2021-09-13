@@ -92,7 +92,7 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-laprutil-1 \
 	-lapr-1 \
 	-lX11 \
-	-L/usr/lib/aarch64-linux-gnu \
+	-L/usr/lib/$(TARGET_DEVICE)-linux-gnu \
 	-lgeos_c \
 	-lcurl \
 	-lnvdsgst_meta \
