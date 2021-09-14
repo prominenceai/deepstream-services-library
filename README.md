@@ -3,13 +3,12 @@
 [![Documentation Status](https://readthedocs.org/projects/ansicolortags/badge/?version=latest)](https://github.com/canammex-tech/deepstream-services-library/blob/master/docs/overview.md)
 [![Ask Me Anything !](https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg)](https://discord.com/channels/750454524849684540/750457019260993636)
 
-# deepstream-services-library (DSL)
-
 ![](/Images/under-construction.png)
 
-DSL is best described as _"the NVIDIA DeepStream Reference Applications reimagined as a shared library of DeepStream pipeline services"._
+## Intelligent Audio and Video Analytics (IAVA)
+A library of on-demand DeepStream Pipeline services. 
 
-Written in C++ 17 with an `extern "C"` API, DSL can be called from both C/C++ and Python applications.
+Written in C++ 17 with an `extern "C"` API, The DeepStream Services Library (DSL) can be called from both C/C++ and Python applications.
 
 ## Examples
 
