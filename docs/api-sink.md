@@ -1,6 +1,6 @@
 # Sink API Reference
 Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must have at least one sink in use, along with other certain components, to reach a state of Ready. DSL supports six types of Sinks:
-* Overlay Sink - renders/overlays video on a Parent display
+* Overlay Sink - renders/overlays video on a Parent display **(Jetson Platform Only)**
 * Window Sink - renders/overlays video on a Parent XWindow
 * File Sink - encodes video to a media container file
 * Record Sink - similar to the File sink but with Start/Stop/Duration control and a cache for pre-start buffering. 
@@ -176,6 +176,7 @@ DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint display_id,
     uint depth, uint offset_x, uint offset_y, uint width, uint height);
 ```
 The constructor creates a uniquely named Overlay Sink with given offsets and dimensions. Construction will fail if the name is currently in use. 
+**Note: The Overlay Sink is only available on the Jetson platform.**
 
 **Parameters**
 * `name` - [in] unique name for the Overlay Sink to create.

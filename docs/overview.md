@@ -111,11 +111,11 @@ Streaming sources are the head component(s) for all Pipelines and all Pipelines 
 
 There are currently six types of Source components, two live connected Camera Sources:
 * Camera Serial Interface (CSI) Source - connected to one of the serial ports on the Jetson SOM
-* Universal Serial Bus (USB) Source - connected to one of the USB ports on the Jetson SOM.
+* Universal Serial Bus (USB) Source
 
 Two live decode Sources that.
 * Universal Resource Identifier (URI) Source - supports non-live files as well.
-* Real-time Streaming Protocol (RTSP) Source - over the SOM's ethernet port or WiFi link.
+* Real-time Streaming Protocol (RTSP) Source
 
 Two non-live Sources 
 * File Source that is derived from the URI Decode Source with some of the parameters fixed.
@@ -180,7 +180,7 @@ Sinks, as the end components in the Pipeline, are used to render the video strea
 
 Clients can add/remove one or more [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers -- with Metadata for each Frame and Detected-Object -- on the input (sink pad) only.
 
-1. Overlay Render Sink
+1. Overlay Render Sink - Jetson platform only
 2. X11/EGL Window Sink
 3. File Sink
 4. Record Sink
