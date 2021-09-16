@@ -32,7 +32,7 @@ CXX = g++
 TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 
 CXX_VERSION:=c++17
-DSL_VERSION:='L"v0.19.alpha"'
+DSL_VERSION:='L"v0.20.alpha"'
 NVDS_VERSION:=5.1
 GS_VERSION:=1.0
 GLIB_VERSION:=2.0
@@ -64,10 +64,6 @@ PKGS:= gstreamer-$(GSTREAMER_VERSION) \
 OBJS:= $(SRCS:.c=.o)
 OBJS:= $(OBJS:.cpp=.o)
 
-ifeq ($(TARGET_DEVICE),aarch64)
-	CFLAGS:= -DPLATFORM_TEGRA
-endif
-
 CFLAGS+= -I$(INC_INSTALL_DIR) \
     -std=$(CXX_VERSION) \
     -I$(SRC_INSTALL_DIR)/apps/apps-common/includes \
@@ -76,8 +72,8 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-I/usr/include/gstreamer-$(GS_VERSION) \
 	-I/usr/include/glib-$(GLIB_VERSION) \
 	-I/usr/include/glib-$(GLIB_VERSION)/glib \
-	-I/usr/lib/aarch64-linux-gnu/glib-$(GLIB_VERSION)/include \
-	-I/usr/local/cuda-$(CUDA_VERSION)/targets/aarch64-linux/include \
+	-I/usr/lib/$(TARGET_DEVICE)-linux-gnu/glib-$(GLIB_VERSION)/include \
+	-I/usr/local/cuda-$(CUDA_VERSION)/targets/$(TARGET_DEVICE)-linux/include \
 	-I./src \
 	-I./test \
 	-I./test/api \
@@ -96,7 +92,7 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-laprutil-1 \
 	-lapr-1 \
 	-lX11 \
-	-L/usr/lib/aarch64-linux-gnu \
+	-L/usr/lib/$(TARGET_DEVICE)-linux-gnu \
 	-lgeos_c \
 	-lcurl \
 	-lnvdsgst_meta \

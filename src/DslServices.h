@@ -125,7 +125,13 @@ namespace DSL {
             const char* mailer);
 
         DslReturnType OdeActionCustomizeLabelNew(const char* name, 
-            const uint* contentTypes, uint size, uint mode);
+            const uint* contentTypes, uint size);
+
+        DslReturnType OdeActionCustomizeLabelGet(const char* name, 
+            uint* contentTypes, uint* size);
+        
+        DslReturnType OdeActionCustomizeLabelSet(const char* name, 
+            const uint* contentTypes, uint size);
         
         DslReturnType OdeActionDisplayNew(const char* name, 
             const char* formatString, uint offsetX, uint offsetY, 
@@ -1092,7 +1098,7 @@ namespace DSL {
         /**
          * @brief instance pointer for this singleton class
          */
-        static Services* m_pInstatnce;
+        static Services* m_pInstance;
         
         /**
          * @breif flag set during construction, determines if the Services should call

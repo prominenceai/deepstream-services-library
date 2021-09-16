@@ -434,6 +434,8 @@
 * [dsl_ode_action_capture_image_player_remove](/docs/api-ode-action.md#dsl_ode_action_capture_image_player_remove)
 * [dsl_ode_action_capture_mailer_add](/docs/api-ode-action.md#dsl_ode_action_capture_mailer_add)
 * [dsl_ode_action_capture_mailer_remove](/docs/api-ode-action.md#dsl_ode_action_capture_mailer_remove)
+* [dsl_ode_action_customize_label_get](/docs/api-ode-action.md#dsl_ode_action_customize_label_get)
+* [dsl_ode_action_customize_label_set](/docs/api-ode-action.md#dsl_ode_action_customize_label_set)
 * [dsl_ode_action_list_size](/docs/api-ode-action.md#dsl_ode_action_list_size)
 
 ### ODE Area:

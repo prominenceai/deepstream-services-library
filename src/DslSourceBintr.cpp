@@ -192,6 +192,7 @@ namespace DSL
         guint width, guint height, guint fpsN, guint fpsD)
         : SourceBintr(name)
         , m_sensorId(0)
+        , m_cudaDeviceProp{0}
     {
         LOG_FUNC();
 
@@ -202,7 +203,15 @@ namespace DSL
         
         m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_CAMERA_V4L2, "usb_camera_elem");
         m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "src_caps_filter");
-        m_pVidConv1 = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "src_video_conv1");
+
+        // Get the Device properties
+        cudaGetDeviceProperties(&m_cudaDeviceProp, m_gpuId);
+
+        if (!m_cudaDeviceProp.integrated)
+        {
+            m_pVidConv1 = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "src_video_conv1");
+            AddChild(m_pVidConv1);
+        }
         m_pVidConv2 = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "src_video_conv2");
 
         GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
@@ -227,7 +236,6 @@ namespace DSL
 
         AddChild(m_pSourceElement);
         AddChild(m_pCapsFilter);
-        AddChild(m_pVidConv1);
         AddChild(m_pVidConv2);
         
         m_pCapsFilter->AddGhostPadToParent("src");
@@ -252,11 +260,24 @@ namespace DSL
             LOG_ERROR("UsbSourceBintr '" << GetName() << "' is already in a linked state");
             return false;
         }
-        if (!m_pSourceElement->LinkToSink(m_pVidConv1) or 
-            !m_pVidConv1->LinkToSink(m_pVidConv2) or
-            !m_pVidConv2->LinkToSink(m_pCapsFilter))
+        
+        // x86_64
+        if (!m_cudaDeviceProp.integrated)
         {
-            return false;
+            if (!m_pSourceElement->LinkToSink(m_pVidConv1) or 
+                !m_pVidConv1->LinkToSink(m_pVidConv2) or
+                !m_pVidConv2->LinkToSink(m_pCapsFilter))
+            {
+                return false;
+            }
+        }
+        else // aarch_64
+        {
+            if (!m_pSourceElement->LinkToSink(m_pVidConv2) or 
+                !m_pVidConv2->LinkToSink(m_pCapsFilter))
+            {
+                return false;
+            }
         }
         m_isLinked = true;
         
@@ -272,8 +293,13 @@ namespace DSL
             LOG_ERROR("UsbSourceBintr '" << GetName() << "' is not in a linked state");
             return;
         }
+        
+        // x86_64
+        if (!m_cudaDeviceProp.integrated)
+        {
+            m_pVidConv1->UnlinkFromSink();
+        }
         m_pVidConv2->UnlinkFromSink();
-        m_pVidConv1->UnlinkFromSink();
         m_pSourceElement->UnlinkFromSink();
         m_isLinked = false;
     }
@@ -1171,6 +1197,18 @@ namespace DSL
         if (m_isLinked)
         {
             LOG_ERROR("RtspSourceBintr '" << GetName() << "' is already in a linked state");
+            return false;
+        }
+
+        // Note: this is a workaround for an NVIDIA bug. We need to test the stream before
+        // we try and link any pads. Otherwise, unlinking a failed stream connection from 
+        // the Streammuxer will result in a deadlock. Try to open the URL with open CV first.
+        cv::VideoCapture capture(m_uri.c_str());
+
+        if (!capture.isOpened())
+        {
+            LOG_ERROR("RtspSourceBintr '" << GetName() << "' failed to open stream for URI = "
+                << m_uri.c_str());
             return false;
         }
 

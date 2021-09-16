@@ -113,12 +113,12 @@ GQuark _dsmeta_quark;
 namespace DSL
 {
     // Initialize the Services's single instance pointer
-    Services* Services::m_pInstatnce = NULL;
+    Services* Services::m_pInstance = NULL;
 
     Services* Services::GetServices()
     {
         // one time initialization of the single instance pointer
-        if (!m_pInstatnce)
+        if (!m_pInstance)
         {
             boolean doGstDeinit(false);
 
@@ -159,18 +159,18 @@ namespace DSL
             _dsmeta_quark = g_quark_from_static_string (NVDS_META_STRING);
             
             // Single instantiation for the lib's lifetime
-            m_pInstatnce = new Services(doGstDeinit);
+            m_pInstance = new Services(doGstDeinit);
             
             // initialization of GEOS
             initGEOS(geosNoticeHandler, geosErrorHandler);
             
             // Initialize private containers
-            m_pInstatnce->InitToStringMaps();
+            m_pInstance->InitToStringMaps();
             
             // Create the default Display types
-            m_pInstatnce->DisplayTypeCreateIntrinsicTypes();
+            m_pInstance->DisplayTypeCreateIntrinsicTypes();
         }
-        return m_pInstatnce;
+        return m_pInstance;
     }
         
     Services::Services(bool doGstDeinit)
@@ -442,6 +442,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SINK_PLAYER_REMOVE_FAILED] = L"DSL_RESULT_SINK_PLAYER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_MAILER_ADD_FAILED] = L"DSL_RESULT_SINK_MAILER_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_MAILER_REMOVE_FAILED] = L"DSL_RESULT_SINK_MAILER_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_SINK_OVERLAY_NOT_SUPPORTED] = L"DSL_RESULT_SINK_OVERLAY_NOT_SUPPORTED";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_UNIQUE] = L"DSL_RESULT_OSD_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_FOUND] = L"DSL_RESULT_OSD_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_OSD_NAME_BAD_FORMAT] = L"DSL_RESULT_OSD_NAME_BAD_FORMAT";

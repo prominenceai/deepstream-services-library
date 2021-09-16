@@ -133,6 +133,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_PLAYER_REMOVE_FAILED                        0x00040013
 #define DSL_RESULT_SINK_MAILER_ADD_FAILED                           0x00040014
 #define DSL_RESULT_SINK_MAILER_REMOVE_FAILED                        0x00040015
+#define DSL_RESULT_SINK_OVERLAY_NOT_SUPPORTED                       0x00040016
 
 
 /**
@@ -1164,11 +1165,32 @@ DslReturnType dsl_ode_action_custom_new(const wchar_t* name,
  * @param[in] name unique name for the "Customize Object Label ODE Action. 
  * @param[in] content_types an array of DSL_OBJECT_LABEL_<type> constants.
  * @param[in] size of the content_types array 
- * @param[im] mode write mode, either DSL_WRITE_MODE_APPEND or DSL_WRITE_MODE_TRUNCATE
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_customize_label_new(const wchar_t* name,  
-    const uint* content_types, uint size, uint mode);
+    const uint* content_types, uint size);
+
+/**
+ * @brief Gets the current content_types, size and write mode settings for the 
+ * "Customize Object Label" ODE Action 
+ * @param[in] name unique name for the "Customize Object Label ODE Action to query. 
+ * @param[out] content_types an array of DSL_OBJECT_LABEL_<type> constants.
+ * @param[inout] size max size of the content_types array on call, actual size on return
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_customize_label_get(const wchar_t* name,  
+    uint* content_types, uint* size);
+    
+/**
+ * @brief Sets the content_types, size and write mode settings for the 
+ * "Customize Object Label" ODE Action,
+ * @param[in] name unique name for the "Customize Object Label ODE Action. 
+ * @param[in] content_types an array of DSL_OBJECT_LABEL_<type> constants.
+ * @param[in] size of the content_types array 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_customize_label_set(const wchar_t* name,  
+    const uint* content_types, uint size);
     
 /**
  * @brief Creates a uniquely named Display ODE Action

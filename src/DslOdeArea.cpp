@@ -59,8 +59,9 @@ namespace DSL
             m_frameNumPerSource[pFrameMeta->source_id] = 0;
         }
 
-        // If the last frame number for the reported source is less than the current frame
-        if (m_frameNumPerSource[pFrameMeta->source_id] < pFrameMeta->frame_num)
+        // If the last frame number for the reported source is different from the current frame
+        // This can be either greater than or less than depending on play direction.
+        if (m_frameNumPerSource[pFrameMeta->source_id] != pFrameMeta->frame_num)
         {
             // Update the frame number so we only add the rectangle once
             m_frameNumPerSource[pFrameMeta->source_id] = pFrameMeta->frame_num;

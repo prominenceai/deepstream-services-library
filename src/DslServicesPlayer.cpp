@@ -77,6 +77,18 @@ namespace DSL
         try
         {
         
+            if (renderType == DSL_RENDER_TYPE_OVERLAY)
+                {
+                // Get the Device properties
+                cudaDeviceProp deviceProp;
+                cudaGetDeviceProperties(&deviceProp, 0);
+                
+                if (!deviceProp.integrated)
+                {
+                    LOG_ERROR("Overlay Sink is not supported on dGPU x86_64 builds");
+                    return DSL_RESULT_SINK_OVERLAY_NOT_SUPPORTED;
+                }
+            }
             if (m_players.find(name) != m_players.end())
             {   
                 LOG_ERROR("Player name '" << name << "' is not unique");

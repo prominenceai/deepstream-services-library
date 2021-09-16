@@ -481,17 +481,6 @@ namespace DSL
         // Reset the occurrences from the last frame, even if disabled  
         m_occurrences = 0;
 
-        if (m_interval)
-        {
-            m_intervalCounter = (m_intervalCounter + 1) % m_interval; 
-            if (m_intervalCounter != 0)
-            {
-                m_skipFrame = true;
-                return;
-            }
-        }
-        m_skipFrame = false;
-
         if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id))
         {
             return;
@@ -504,6 +493,16 @@ namespace DSL
             
             pOdeArea->AddMeta(pDisplayMeta, pFrameMeta);
         }
+        if (m_interval)
+        {
+            m_intervalCounter = (m_intervalCounter + 1) % m_interval; 
+            if (m_intervalCounter != 0)
+            {
+                m_skipFrame = true;
+                return;
+            }
+        }
+        m_skipFrame = false;
     }
 
     bool OdeTrigger::CheckForMinCriteria(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)

@@ -95,7 +95,10 @@ The following return codes are used by the Player API
 ```
 
 ## Constants
-The following symbolic constants are used by the ODE Trigger API
+The following symbolic constants are used by the ODE Trigger API.
+
+**Note: the Overlay Sink is only available on the Jetson Platform.**
+
 ```C++
 #define DSL_RENDER_TYPE_OVERLAY                                     0
 #define DSL_RENDER_TYPE_WINDOW                                      1
@@ -145,7 +148,8 @@ DslReturnType dsl_player_render_image_new(const wchar_t* name, const wchar_t* fi
     uint render_type, uint offset_x, uint offset_y, uint zoom, uint timeout)
 ```
 The constructor creates a uniquely named Player that creates and manages its own Image Source and Render Sink. Construction will fail
-if the name is currently in use.
+if the name is currently in use. **Note: the Overlay Sink is only available on the Jetson Platform.**
+
 
 **Parameters**
 * `name` - [in] unique name for the Player to create.
@@ -172,7 +176,7 @@ DslReturnType dsl_player_render_video_new(const wchar_t* name,  const wchar_t* 
    uint render_type, uint offset_x, uint offset_y, uint zoom, boolean repeat_enabled);
 ```
 The constructor creates a uniquely named Player that creates and manages its own Video File Source and Render Sink. Construction will fail
-if the name is currently in use.
+if the name is currently in use. **Note: the Overlay Sink is only available on the Jetson Platform.**
 
 **Parameters**
 * `name` - [in] unique name for the Player to create.

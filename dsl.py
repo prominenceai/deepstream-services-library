@@ -103,6 +103,7 @@ DSL_METRIC_OBJECT_LOCATION    = 2
 DSL_METRIC_OBJECT_DIMENSIONS  = 3
 DSL_METRIC_OBJECT_CONFIDENCE  = 4
 DSL_METRIC_OBJECT_PERSISTENCE = 5
+
 DSL_METRIC_OBJECT_OCCURRENCES = 6
 
 
@@ -455,10 +456,10 @@ def dsl_ode_action_capture_mailer_remove(name, mailer):
 ## dsl_ode_action_customize_label_new()
 ##
 #_dsl.dsl_ode_action_customize_label_new.argtypes = [c_wchar_p, 
-#    c_uint, c_uint, c_uint]
+#    c_uint, c_uint]
 _dsl.dsl_ode_action_customize_label_new.restype = c_uint
 def dsl_ode_action_customize_label_new(name, 
-    content_types, size, mode):
+    content_types, size):
     global _dsl
     if content_types is None:
         arr = None
@@ -466,7 +467,41 @@ def dsl_ode_action_customize_label_new(name,
         arr = (c_int * size)()
         arr[:] = content_types
     result =_dsl.dsl_ode_action_customize_label_new(name, 
-        arr, size, mode)
+        arr, size)
+    return int(result)
+
+##
+## dsl_ode_action_customize_label_get()
+##
+_dsl.dsl_ode_action_customize_label_get.argtypes = [c_wchar_p]
+_dsl.dsl_ode_action_customize_label_get.restype = c_uint
+def dsl_ode_action_customize_label_get(name):
+    global _dsl
+    content_types = [0,0,0,0,0,0]
+    size = c_uint(len(content_types))
+    arr = (c_int * len(content_types))()
+    arr[:] = content_types
+    result =_dsl.dsl_ode_action_customize_label_set(name, 
+        arr, DSL_UINT_P(size))
+    return int(result), arr[:], size.value
+
+
+##
+## dsl_ode_action_customize_label_set()
+##
+#_dsl.dsl_ode_action_customize_label_set.argtypes = [c_wchar_p, 
+#    c_uint_p, c_uint]
+_dsl.dsl_ode_action_customize_label_set.restype = c_uint
+def dsl_ode_action_customize_label_set(name, 
+    content_types, size):
+    global _dsl
+    if content_types is None:
+        arr = None
+    else:
+        arr = (c_int * size)()
+        arr[:] = content_types
+    result =_dsl.dsl_ode_action_customize_label_set(name, 
+        arr, size)
     return int(result)
 
 ##

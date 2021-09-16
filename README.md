@@ -3,13 +3,10 @@
 [![Documentation Status](https://readthedocs.org/projects/ansicolortags/badge/?version=latest)](https://github.com/canammex-tech/deepstream-services-library/blob/master/docs/overview.md)
 [![Ask Me Anything !](https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg)](https://discord.com/channels/750454524849684540/750457019260993636)
 
-# deepstream-services-library (DSL)
-
 ![](/Images/under-construction.png)
 
-DSL is best described as _"the NVIDIA DeepStream Reference Applications reimagined as a shared library of DeepStream pipeline services"._
-
-Written in C++ 17 with an `extern "C"` API, DSL can be called from both C/C++ and Python applications.
+## Intelligent Audio and Video Analytics (IAVA)
+A library of on-demand DeepStream Pipeline services. Written in C++ 17 with an `extern "C"` API, The DeepStream Services Library (DSL) can be called from both C/C++ and Python applications.
 
 ## Examples
 
@@ -37,10 +34,19 @@ The DeepStream SDK and DSL use the open source [GStreamer](https://gstreamer.fre
 
 ## Contributing
 
-DSL is released under the [MIT License](LICENSE). Contributions are welcome and greatly appreciated. Contributor guidelines and code of conduct are still TBW.
+DSL is released under the [MIT License](LICENSE). Contributions are welcome and greatly appreciated. Please review our [code of conduct](/CODE_OF_CONDUCT.md).
+
+## DSL Branching Workflow
+
+![DSL Git Branching Workflow](/Images/dsl-branching-workflow.png)
+
+1. `Master` is always the latest release and is only updated once per release.
+2. `Develop` is the next release currently in development. The branch will be named with the next release label.
+3. `Feature` all work is done on feature branches, named for the feature under development. 
+
+All pull requests should be made against the current `Develop` branch. 
 
 ## Discord
-
 Come join us on [Discord](https://discord.gg/MJvY9jjpAK), an informal place to chat, ask questions, discuss ideas, etc.
 
 ## DSL Users Guide
