@@ -1203,16 +1203,14 @@ namespace DSL
         // Note: this is a workaround for an NVIDIA bug. We need to test the stream before
         // we try and link any pads. Otherwise, unlinking a failed stream connection from 
         // the Streammuxer will result in a deadlock. Try to open the URL with open CV first.
-        // Scoping the test so that camera will be release in the VideoCapture destructor
-        {
-            cv::VideoCapture capture(m_uri.c_str());
+        cv::VideoCapture capture(m_uri.c_str());
 
-            if (!capture.isOpened()) {
-                LOG_ERROR("RtspSourceBintr '" << GetName() << "' failed to open stream for URI = "
-                    << m_uri.c_str());
-                return false;
-            }
-        }        
+        if (!capture.isOpened())
+        {
+            LOG_ERROR("RtspSourceBintr '" << GetName() << "' failed to open stream for URI = "
+                << m_uri.c_str());
+            return false;
+        }
 
         if (HasTapBintr())
         {
