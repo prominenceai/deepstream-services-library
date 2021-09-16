@@ -110,33 +110,37 @@ def recording_event_listener(session_info_ptr, client_data):
     print(' ***  Recording Event  *** ')
     
     session_info = session_info_ptr.contents
-    print('event type: ', session_info.recording_event)
+
     print('session_id: ', session_info.session_id)
-    print('filename:   ', session_info.filename)
-    print('dirpath:    ', session_info.dirpath)
-    print('duration:   ', session_info.duration)
-    print('container:  ', session_info.container_type)
-    print('width:      ', session_info.width)
-    print('height:     ', session_info.height)
-
-    retval, is_on = dsl_sink_record_is_on_get('record-sink')
-    print('is_on:      ', is_on)
     
-    retval, reset_done = dsl_sink_record_reset_done_get('record-sink')
-    print('reset_done: ', reset_done)
-
-    # If it's the start of a new recording, ove
+    # If we're starting a new recording for this source
     if session_info.recording_event == DSL_RECORDING_EVENT_START:
+        print('event:      ', 'DSL_RECORDING_EVENT_START')
 
-        print('Enable Add "REC" display meta result =', 
-            dsl_ode_trigger_enabled_set('rec-on-trigger', enabled=True)) 
+        # enable the always trigger showing the metadata for "recording in session" 
+        retval = dsl_ode_trigger_enabled_set('rec-on-trigger', enabled=True)
+        if (retval != DSL_RETURN_SUCCESS):
+            print('Enable trigger failed with error: ', dsl_return_value_to_string(retval))
+
+    # Else, the recording session has ended for this source
     else:
-        print('Disable Add "REC" display meta result =', 
-            dsl_ode_trigger_enabled_set('rec-on-trigger', enabled=False)) 
+        print('event:      ', 'DSL_RECORDING_EVENT_END')
+        print('filename:   ', session_info.filename)
+        print('dirpath:    ', session_info.dirpath)
+        print('duration:   ', session_info.duration)
+        print('container:  ', session_info.container_type)
+        print('width:      ', session_info.width)
+        print('height:     ', session_info.height)
+
+        # disable the always trigger showing the metadata for "recording in session" 
+        retval = dsl_ode_trigger_enabled_set('rec-on-trigger', enabled=False)
+        if (retval != DSL_RETURN_SUCCESS):
+            print('Disable always trigger failed with error: ', dsl_return_value_to_string(retval))
     
-        # reset the Trigger so that a new session can be started.
-        print('Trigger Reset result =', 
-            dsl_return_value_to_string(dsl_ode_trigger_reset('bicycle-occurrence-trigger')))
+        # re-enable the one-shot trigger for the next "New Instance" of a person
+        retval = dsl_ode_trigger_reset('bicycle-instance-trigger')	
+        if (retval != DSL_RETURN_SUCCESS):
+            print('Failed to reset instance trigger with error:', dsl_return_value_to_string(retval))
     
     return None
     
@@ -199,17 +203,11 @@ def main(args):
         # to start a new session on first occurrence. The default 'cache-size' and 'duration' are defined in
         # Setting the bit rate to 12 Mbps for 1080p
         retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H265, container=DSL_CONTAINER_MKV, 
-            bitrate=12000000, interval=0, client_listener=recording_event_listener)
+            bitrate=2000000, interval=0, client_listener=recording_event_listener)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Let's check the default cache size, and reduce it. We only need a short buffer for this example.
-        retval, cache_size = dsl_sink_record_cache_size_get('record-sink')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        print(' ***  Default cache_size = ', cache_size, 'seconds  *** ')
-        
-        # Update the cache size to 5 seconds.
+        # Update the cache size to 5 seconds .
         retval = dsl_sink_record_cache_size_set('record-sink', 5)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -298,42 +296,45 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create a Fill-Area Action as a visual indicator to identify the frame that triggered the recording
+        # Create a Fill-Area Action as a visual indicator to identify 
+        #the frame that triggered the recording
         retval = dsl_ode_action_fill_frame_new('red-flash-action', 'opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Create a new Capture Action to capture the full-frame to jpeg image, and save to file. 
-        # The action will be triggered on firt occurrence of a bicycle and will be saved to the current dir.
-        retval = dsl_ode_action_capture_object_new('bicycle-capture-action', outdir="./")
+        # Create a new Capture Action to capture the full-frame to jpeg image, 
+        # and save to file. The action will be triggered on firt instance of 
+        # a bicycle and will be saved to the current dir.
+        retval = dsl_ode_action_capture_object_new('bicycle-capture-action', outdir="./images")
         if retval != DSL_RETURN_SUCCESS:
             break
         
         # Create a new Capture Action to start a new record session
         retval = dsl_ode_action_sink_record_start_new('start-record-action', 
-            record_sink='record-sink', start=3, duration=10, client_data=None)
+            record_sink='record-sink', start=5, duration=10, client_data=None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Next, create the Bicycle Occurrence Trigger. We will reset the trigger in the recording complete callback
-        retval = dsl_ode_trigger_occurrence_new('bicycle-occurrence-trigger', 
+        # ````````````````````````````````````````````````````````````````````````````
+        # Next, create the New Instance Trigger for the bicycle class. 
+        # We will reset the trigger in the recording complete callback
+        retval = dsl_ode_trigger_instance_new('bicycle-instance-trigger', 
             source=DSL_ODE_ANY_SOURCE, class_id=PGIE_CLASS_ID_BICYCLE, limit=1)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # set the "infer-done-only" criteria so we can capture the confidence level
-        retval = dsl_ode_trigger_infer_done_only_set('bicycle-occurrence-trigger', True)
+        retval = dsl_ode_trigger_infer_done_only_set('bicycle-instance-trigger', True)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_ode_action_print_new('print')
+        retval = dsl_ode_action_print_new('print', force_flush=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Add the actions to our Bicycle Occurence Trigger.
-        retval = dsl_ode_trigger_action_add_many('bicycle-occurrence-trigger', actions=[
+        retval = dsl_ode_trigger_action_add_many('bicycle-instance-trigger', actions=[
             'red-flash-action', 
             'bicycle-capture-action', 
             'start-record-action', 
@@ -348,7 +349,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
-            'bicycle-occurrence-trigger',
+            'bicycle-instance-trigger',
             'rec-on-trigger', 
             None])
         if retval != DSL_RETURN_SUCCESS:
