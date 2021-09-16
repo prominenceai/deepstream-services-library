@@ -6,9 +6,7 @@
 ![](/Images/under-construction.png)
 
 ## Intelligent Audio and Video Analytics (IAVA)
-A library of on-demand DeepStream Pipeline services. 
-
-Written in C++ 17 with an `extern "C"` API, The DeepStream Services Library (DSL) can be called from both C/C++ and Python applications.
+A library of on-demand DeepStream Pipeline services. Written in C++ 17 with an `extern "C"` API, The DeepStream Services Library (DSL) can be called from both C/C++ and Python applications.
 
 ## Examples
 
