@@ -558,57 +558,66 @@ Each Camera requires:
 * Start Record Action - to start the recording
 
 ```Python
+## 	
 # Defines a class of all component names associated with a single RTSP Source. 
-# Objects of this class will be used as "client_data" for all callback notifications.
-# The names are derived from the unique Source name. 
-class ComponentNames:
-    def __init__(self, source):
-        self.source = source
-        self.record_tap = source + '-record-tap'
-        self.occurrence_trigger = source + '-occurrence-trigger'
-        self.ode_notify = source + '-ode-notify'
+# Objects of this class will be used as "client_data" for all callback notifications.	
+# defines a class of all component names associated with a single RTSP Source. 	
+# The names are derived from the unique Source name	
+##	
+class ComponentNames:	
+    def __init__(self, source):	
+        self.source = source	
+        self.instance_trigger = source + '-instance-trigger'
+        self.record_tap = source + '-record-tap'	
         self.start_record = source + '-start-record'
+        
+##
+# Client listner function callad at the start and end of a recording session
+##
+def OnRecordingEvent(session_info_ptr, client_data):
 
-# Callback function to process all "record-start" notifications
-def RecordStarted(event_id, trigger,
-    buffer, frame_meta, object_meta, client_data):
-    
-    global duration
-    
+    if client_data == None:
+        return None
+
     # cast the C void* client_data back to a py_object pointer and deref
     components = cast(client_data, POINTER(py_object)).contents.value
-    
-    # a good place to enabled an Always Trigger that adds `REC` text to the frame which can
-    # be disabled in the RecordComplete callback below. And/or send notifictions to external clients.
-    
-    # in this example we will call on the Tiler to show the source that started recording.
-    dsl_tiler_source_show_set('tiler', source=components.source, timeout=duration, has_precedence=True)
 
-    
-# Callback function to process all "record-complete" notifications
-def RecordComplete(session_info_ptr, client_data):
     session_info = session_info_ptr.contents
 
-    # cast the C void* client_data back to a py_object pointer and deref
-    components = cast(client_data, POINTER(py_object)).contents.value
+    print('session_id: ', session_info.session_id)
     
-    print('sessionId:     ', session_info.sessionId)
-    print('filename:      ', session_info.filename)
-    print('dirpath:       ', session_info.dirpath)
-    print('duration:      ', session_info.duration)
-    print('containerType: ', session_info.containerType)
-    print('width:         ', session_info.width)
-    print('height:        ', session_info.height)
-    
-    retval, is_on = dsl_tap_record_is_on_get(components.record_tap)
-    print('is_on:         ', is_on)
-    
-    retval, reset_done = dsl_tap_record_reset_done_get(components.record_tap)
-    print('reset_done:    ', reset_done)
-    
-    # reset the Trigger so that a new session can be started.
-    dsl_ode_trigger_reset(components.occurrence_trigger)
-    
+    # If we're starting a new recording for this source
+    if session_info.recording_event == DSL_RECORDING_EVENT_START:
+        print('event:      ', 'DSL_RECORDING_EVENT_START')
+
+        # in this example we will call on the Tiler to show the source that started recording.	
+        retval = dsl_tiler_source_show_set('tiler', source=components.source, 
+            timeout=0, has_precedence=True)	
+        if (retval != DSL_RETURN_SUCCESS):
+            print('Tiler show single source failed with error: ', dsl_return_value_to_string(retval))
+        
+    # Else, the recording session has ended for this source
+    else:
+        print('event:      ', 'DSL_RECORDING_EVENT_END')
+        print('filename:   ', session_info.filename)
+        print('dirpath:    ', session_info.dirpath)
+        print('duration:   ', session_info.duration)
+        print('container:  ', session_info.container_type)
+        print('width:      ', session_info.width)
+        print('height:     ', session_info.height)
+
+        # if we're showing the source that started this recording
+        # we can set the tiler back to showing all tiles, otherwise
+        # another source has started recording and taken precendence
+        retval, current_source, timeout  = dsl_tiler_source_show_get('tiler')
+        if reval == DSL_RETURN_SUCCESS and current_source == components.source:
+            dsl_tiler_source_show_all('tiler')
+
+        # re-enable the one-shot trigger for the next "New Instance" of a person
+        retval = dsl_ode_trigger_reset(components.instance_trigger)	
+        if (retval != DSL_RETURN_SUCCESS):
+            print('Failed to reset instance trigger with error:', dsl_return_value_to_string(retval))
+
     return None
 ```    
 The below function creates all "1-per-source" components for a given source-name and RTSP URI.
@@ -653,34 +662,29 @@ def CreatePerSourceComponents(pipeline, source, rtsp_uri, ode_handler):
     if (retval != DSL_RETURN_SUCCESS):
         return retval
 
-    # Next, create the Person Occurrence Trigger. We will reset the trigger in the recording complete callback
-    retval = dsl_ode_trigger_occurrence_new(components.occurrence_trigger, 
-        source=source, class_id=PGIE_CLASS_ID_PERSON, limit=1)
-    if (retval != DSL_RETURN_SUCCESS):
-        return retval
+    # Next, create the Person Instance Trigger. We will reset the trigger on DSL_RECORDING_EVENT_END
+   	# ... see the OnRecordingEvent() client callback function above
+    retval = dsl_ode_trigger_instance_new(components.instance_trigger, 	
+        source=source, class_id=PGIE_CLASS_ID_PERSON, limit=1)	
+    if (retval != DSL_RETURN_SUCCESS):	
+        return retval	
 
-    # New (optional) Custom Action to be notified of ODE Occurrence, and pass component names as client data.
-    retval = dsl_ode_action_custom_new(components.ode_notify, 
-        client_handler=RecordStarted, client_data=components)
-    if (retval != DSL_RETURN_SUCCESS):
-        return retval
+    # Create a new Action to start the record session for this Source, with the component names as client data	
+    retval = dsl_ode_action_tap_record_start_new(components.start_record, 	
+        record_tap=components.record_tap, start=15, duration=360, client_data=components)	
+    if (retval != DSL_RETURN_SUCCESS):	
+        return retval	
 
-    # Create a new Action to start the record session for this Source, with the component names as client data
-    retval = dsl_ode_action_tap_record_start_new(components.start_record, 
-        record_tap=components.record_tap, start=15, duration=duration, client_data=components)
-    if (retval != DSL_RETURN_SUCCESS):
-        return retval
-    
-    # Add the Actions to the trigger for this source. 
-    retval = dsl_ode_trigger_action_add_many(components.occurrence_trigger, 
-        actions=[components.ode_notify, components.start_record, None])
-    if (retval != DSL_RETURN_SUCCESS):
-        return retval
-    
-    # Add the new Source with its Record-Tap to the Pipeline
-    retval = dsl_pipeline_component_add(pipeline, source)
-    if (retval != DSL_RETURN_SUCCESS):
-        return retval
+    # Add the Actions to the trigger for this source. 	
+    retval = dsl_ode_trigger_action_add_many(components.instance_trigger, 	
+        actions=[components.start_record, None])	
+    if (retval != DSL_RETURN_SUCCESS):	
+        return retval	
+
+    # Add the new Source with its Record-Tap to the Pipeline	
+    retval = dsl_pipeline_component_add(pipeline, source)	
+    if (retval != DSL_RETURN_SUCCESS):	
+        return retval	
         
     # Add the new Trigger to the ODE Pad Probe Handler
     return dsl_pph_ode_trigger_add(ode_handler, components.occurrence_trigger)
@@ -764,6 +768,8 @@ print(dsl_return_value_to_string(retval))
 dsl_delete-all()
 
 ```
+
+Please refere to [ode_occurrence_4rtsp_start_record_tap_action.py](/examples/python/ode_occurrence_4rtsp_start_record_tap_action.py) for the complete example.
 
 ---
 ## RTSP Stream Connection Management
