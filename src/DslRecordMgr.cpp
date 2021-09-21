@@ -93,6 +93,7 @@ namespace DSL
             LOG_ERROR("Failed to create Smart Record Context for new RecordMgr '" << m_name << "'");
             return false;
         }
+        return true;
     }
 
     void RecordMgr::DestroyContext()
@@ -106,9 +107,14 @@ namespace DSL
         }
         if (IsOn())
         {
+            LOG_INFO("RecordMgr '" << m_name 
+                << "' is in session, stopping before destroying context");
             StopSession();
         }
+        LOG_INFO("RecordMgr '" << m_name 
+            << "' destroying context " << m_pContext);
         NvDsSRDestroy(m_pContext);
+        LOG_INFO("after destroy context");
         m_pContext = NULL;
     }
 
@@ -466,6 +472,8 @@ namespace DSL
         dslInfo.duration = pNvDsInfo->duration;
         dslInfo.width = pNvDsInfo->width;
         dslInfo.height = pNvDsInfo->height;
+        
+        LOG_ERROR("width: " << pNvDsInfo->width << " height: " << pNvDsInfo->height);
         
         try
         {

@@ -102,7 +102,10 @@ namespace DSL
             return false;
         }
 
-        CreateContext();
+        if (!CreateContext())
+        {
+            return false;
+        }
         
         m_pRecordBin = DSL_NODETR_NEW("record-bin");
         m_pRecordBin->SetGstObject(GST_OBJECT(m_pContext->recordbin));
