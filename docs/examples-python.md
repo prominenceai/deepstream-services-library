@@ -33,7 +33,7 @@ Note: Many of the examples use the NVIDIA® DeepStream [Python-bindings](https:/
   * Default colors
   * `nvidia_osd_sink_pad_buffer_probe` batch-meta-handler (bmh) callback added
 * Overlay Sink - render over main display (0)
-* RTSP Sink - H.254 RTSP Server
+* RTSP Sink - H.264 RTSP Server
 
 ### 1csi_live_pgie_ktl_tiller_redaction_osd_window
 * 1 Live CSI Camera Source
@@ -186,7 +186,7 @@ Note: Many of the examples use the NVIDIA® DeepStream [Python-bindings](https:/
   * `xwindow_key_event_handler` added to Pipeline
 * Image Sink
   * Outdir for jpeg image files set to current directory`./`
-  * Object Capture enabled for PERSON and VEHICAL classes, both with a capture limit of 50 images.
+  * Object Capture enabled for PERSON and VEHICLE classes, both with a capture limit of 50 images.
 * Other Callbacks
   * `eos_event_listener` added to Pipeline
   * `state_change_listener` added to Pipeline

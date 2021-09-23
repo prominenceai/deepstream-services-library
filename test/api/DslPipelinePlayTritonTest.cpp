@@ -57,18 +57,16 @@ static const std::wstring osd_name(L"on-screen-display");
 static const boolean text_enabled(true);
 static const boolean clock_enabled(false);
         
-static const std::wstring sink_name(L"overlay-sink");
-static const uint display_id(0);
-static const uint depth(0);
+static const std::wstring sink_name(L"window-sink");
 static const uint offset_x(100);
 static const uint offset_y(140);
 static const uint sink_width(1280);
 static const uint sink_height(720);
 
 
-SCENARIO( "A new Pipeline with a File Source, Primary TIS, Overlay Sink can play", "[triton-play]" )
+SCENARIO( "A new Pipeline with a File Source, Primary TIS, Window Sink can play", "[triton-play]" )
 {
-    GIVEN( "A Pipeline, File source, Primary TIS, Overlay Sink" ) 
+    GIVEN( "A Pipeline, File source, Primary TIS, Window Sink" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -78,10 +76,10 @@ SCENARIO( "A new Pipeline with a File Source, Primary TIS, Overlay Sink can play
         REQUIRE( dsl_infer_tis_primary_new(primary_tis_name.c_str(), ptis_infer_config_file.c_str(), 
             0) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(sink_name.c_str(), display_id, depth,
+        REQUIRE( dsl_sink_window_new(sink_name.c_str(),
             offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"file-source", L"primary-tis", L"overlay-sink", NULL};
+        const wchar_t* components[] = {L"file-source", L"primary-tis", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -102,9 +100,9 @@ SCENARIO( "A new Pipeline with a File Source, Primary TIS, Overlay Sink can play
     }
 }
 
-SCENARIO( "A new Pipeline with a File Source, Primary TIS, KTL Tracker, OSD, and Overlay Sink can play", "[triton-play]" )
+SCENARIO( "A new Pipeline with a File Source, Primary TIS, KTL Tracker, OSD, and Window Sink can play", "[triton-play]" )
 {
-    GIVEN( "A Pipeline, File source, Primary TIS, KTL Tracker, OSD, and Overlay Sink" ) 
+    GIVEN( "A Pipeline, File source, Primary TIS, KTL Tracker, OSD, and Window Sink" ) 
     {
         
         REQUIRE( dsl_component_list_size() == 0 );
@@ -120,11 +118,11 @@ SCENARIO( "A new Pipeline with a File Source, Primary TIS, KTL Tracker, OSD, and
 
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(sink_name.c_str(), display_id, depth,
+        REQUIRE( dsl_sink_window_new(sink_name.c_str(),
             offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"file-source", L"primary-tis", 
-            L"ktl-tracker", L"on-screen-display", L"overlay-sink", NULL};
+            L"ktl-tracker", L"on-screen-display", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -145,9 +143,10 @@ SCENARIO( "A new Pipeline with a File Source, Primary TIS, KTL Tracker, OSD, and
     }
 }
 
-SCENARIO( "A new Pipeline with a File Source, Primary TIS, KTL Tracker, Secondary TIS, OSD, and Overlay Sink can play", "[triton-play]" )
+SCENARIO( "A new Pipeline with a File Source, Primary TIS, KTL Tracker, \
+    Secondary TIS, OSD, and Window Sink can play", "[triton-play]" )
 {
-    GIVEN( "A Pipeline, File source, Primary TIS, KTL Tracker, Secondary TIS, OSD, and Overlay Sink" ) 
+    GIVEN( "A Pipeline, File source, Primary TIS, KTL Tracker, Secondary TIS, OSD, and Window Sink" ) 
     {
         
         REQUIRE( dsl_component_list_size() == 0 );
@@ -166,11 +165,11 @@ SCENARIO( "A new Pipeline with a File Source, Primary TIS, KTL Tracker, Secondar
 
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(sink_name.c_str(), display_id, depth,
+        REQUIRE( dsl_sink_window_new(sink_name.c_str(),
             offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"file-source", L"primary-tis", 
-            L"ktl-tracker", L"secondary-tis", L"on-screen-display", L"overlay-sink", NULL};
+            L"ktl-tracker", L"secondary-tis", L"on-screen-display", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {

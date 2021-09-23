@@ -50,11 +50,9 @@ SCENARIO( "All DisplayTypes can be displayed by and eODE Action", "[display-type
         uint width(1280);
         uint height(720);
         
-        std::wstring overlaySinkName(L"overlay-sink");
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(100);
-        uint offsetY(140);
+        std::wstring windowSinkName(L"window-sink");
+        uint offsetX(0);
+        uint offsetY(0);
         uint sinkW(1280);
         uint sinkH(720);
 
@@ -125,10 +123,10 @@ SCENARIO( "All DisplayTypes can be displayed by and eODE Action", "[display-type
         
         REQUIRE( dsl_osd_new(osdName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
+        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"overlay-sink", NULL};
+        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {

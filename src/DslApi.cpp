@@ -327,6 +327,61 @@ uint dsl_display_type_list_size()
     return DSL::Services::GetServices()->DisplayTypeListSize();
 }
 
+DslReturnType dsl_ode_action_format_bbox_new(const wchar_t* name, uint border_width, 
+    const wchar_t* border_color, boolean has_bg_color, const wchar_t* bg_color)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    std::string cstrBorderColor;
+    if (border_width)
+    {
+        RETURN_IF_PARAM_IS_NULL(border_color);
+        std::wstring wstrBorderColor(border_color);
+        cstrBorderColor.assign(wstrBorderColor.begin(), wstrBorderColor.end());
+    }
+    
+    std::string cstrBgColor;
+    if (has_bg_color)
+    {
+        RETURN_IF_PARAM_IS_NULL(bg_color);
+        std::wstring wstrBgColor(bg_color);
+        cstrBgColor.assign(wstrBgColor.begin(), wstrBgColor.end());
+    }
+    
+    return DSL::Services::GetServices()->OdeActionFormatBBoxNew(cstrName.c_str(), 
+        border_width, cstrBorderColor.c_str(), has_bg_color, cstrBgColor.c_str());
+}
+
+DslReturnType dsl_ode_action_format_label_new(const wchar_t* name, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    std::string cstrFont;
+    if (font != NULL)
+    {
+        std::wstring wstrFont(font);
+        cstrFont.assign(wstrFont.begin(), wstrFont.end());
+    }
+    
+    std::string cstrBgColor;
+    if (has_bg_color)
+    {
+        RETURN_IF_PARAM_IS_NULL(bg_color);
+        std::wstring wstrBgColor(bg_color);
+        cstrBgColor.assign(wstrBgColor.begin(), wstrBgColor.end());
+    }
+    
+    return DSL::Services::GetServices()->OdeActionFormatLabelNew(cstrName.c_str(), 
+        cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
+}
+    
 DslReturnType dsl_ode_action_custom_new(const wchar_t* name, 
     dsl_ode_handle_occurrence_cb client_hanlder, void* client_data)
 {
@@ -336,10 +391,12 @@ DslReturnType dsl_ode_action_custom_new(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeActionCustomNew(cstrName.c_str(), client_hanlder, client_data);
+    return DSL::Services::GetServices()->OdeActionCustomNew(cstrName.c_str(), 
+        client_hanlder, client_data);
 }
 
-DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, const wchar_t* outdir, boolean annotate)
+DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, 
+    const wchar_t* outdir, boolean annotate)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(outdir);
@@ -453,11 +510,52 @@ DslReturnType dsl_ode_action_capture_mailer_remove(const wchar_t* name,
     return DSL::Services::GetServices()->OdeActionCaptureMailerRemove(
         cstrName.c_str(), cstrMailer.c_str());
 }
-    
-DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offset_x, uint offset_y, 
-    boolean offset_y_with_classId, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
+
+DslReturnType dsl_ode_action_customize_label_new(const wchar_t* name,  
+    const uint* content_types, uint size)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(content_types);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionCustomizeLabelNew(
+        cstrName.c_str(), content_types, size);
+}    
+
+DslReturnType dsl_ode_action_customize_label_get(const wchar_t* name,  
+    uint* content_types, uint* size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(content_types);
+    RETURN_IF_PARAM_IS_NULL(size);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionCustomizeLabelGet(
+        cstrName.c_str(), content_types, size);
+}    
+    
+DslReturnType dsl_ode_action_customize_label_set(const wchar_t* name,  
+    const uint* content_types, uint size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionCustomizeLabelSet(
+        cstrName.c_str(), content_types, size);
+}    
+    
+DslReturnType dsl_ode_action_display_new(const wchar_t* name, 
+    const wchar_t* format_string, uint offset_x, uint offset_y, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(format_string);
     RETURN_IF_PARAM_IS_NULL(font);
 
     std::string cstrBgColor;
@@ -470,11 +568,14 @@ DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offset_x, uin
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFormatString(format_string);
+    std::string cstrFormatString(wstrFormatString.begin(), wstrFormatString.end());
     std::wstring wstrFont(font);
     std::string cstrFont(wstrFont.begin(), wstrFont.end());
 
     return DSL::Services::GetServices()->OdeActionDisplayNew(cstrName.c_str(),
-        offset_x, offset_y, offset_y_with_classId, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
+        cstrFormatString.c_str(), offset_x, offset_y, cstrFont.c_str(), 
+        has_bg_color, cstrBgColor.c_str());
 }
 
 DslReturnType dsl_ode_action_handler_disable_new(const wchar_t* name, const wchar_t* handler)
@@ -489,16 +590,6 @@ DslReturnType dsl_ode_action_handler_disable_new(const wchar_t* name, const wcha
 
     return DSL::Services::GetServices()->OdeActionHandlerDisableNew(cstrName.c_str(), 
         cstrHandler.c_str());
-}
-
-DslReturnType dsl_ode_action_hide_new(const wchar_t* name, boolean text, boolean border)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeActionHideNew(cstrName.c_str(), text, border);
 }
 
 DslReturnType dsl_ode_action_email_new(const wchar_t* name, 
@@ -547,20 +638,6 @@ DslReturnType dsl_ode_action_fill_frame_new(const wchar_t* name, const wchar_t* 
         cstrColor.c_str());
 }
 
-DslReturnType dsl_ode_action_fill_object_new(const wchar_t* name, const wchar_t* color)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(color);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrColor(color);
-    std::string cstrColor(wstrColor.begin(), wstrColor.end());
-
-    return DSL::Services::GetServices()->OdeActionFillObjectNew(cstrName.c_str(),
-        cstrColor.c_str());
-}
-
 DslReturnType dsl_ode_action_log_new(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -571,6 +648,7 @@ DslReturnType dsl_ode_action_log_new(const wchar_t* name)
     return DSL::Services::GetServices()->OdeActionLogNew(cstrName.c_str());
 }
 
+   
 DslReturnType dsl_ode_action_display_meta_add_new(const wchar_t* name, const wchar_t* display_type)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -598,7 +676,7 @@ DslReturnType dsl_ode_action_display_meta_add_many_new(const wchar_t* name, cons
     uint retval = DSL::Services::GetServices()->OdeActionDisplayMetaAddNew(cstrName.c_str(), 
         cstrType.c_str());
 
-    for (const wchar_t** display_type = display_types+1; *display_type; display_type++)
+    for (const wchar_t** display_type = display_types; *display_type; display_type++)
     {
         wstrType.assign(*display_type);
         cstrType.assign(wstrType.begin(), wstrType.end());
@@ -1353,8 +1431,8 @@ DslReturnType dsl_ode_trigger_distance_range_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerDistanceRangeGet(cstrName.c_str(), 
-        minimum, maximum);
+    return DSL::Services::GetServices()->OdeTriggerDistanceRangeGet(
+        cstrName.c_str(), minimum, maximum);
 }
     
 DslReturnType dsl_ode_trigger_distance_range_set(const wchar_t* name, 
@@ -1365,8 +1443,8 @@ DslReturnType dsl_ode_trigger_distance_range_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerDistanceRangeSet(cstrName.c_str(), 
-        minimum, maximum);
+    return DSL::Services::GetServices()->OdeTriggerDistanceRangeSet(
+        cstrName.c_str(), minimum, maximum);
 }
 
 DslReturnType dsl_ode_trigger_distance_test_params_get(const wchar_t* name, 
@@ -1377,8 +1455,8 @@ DslReturnType dsl_ode_trigger_distance_test_params_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerDistanceTestParamsGet(cstrName.c_str(), 
-        test_point, test_method);
+    return DSL::Services::GetServices()->OdeTriggerDistanceTestParamsGet(
+        cstrName.c_str(), test_point, test_method);
 }
 
 DslReturnType dsl_ode_trigger_distance_test_params_set(const wchar_t* name, 
@@ -1389,11 +1467,12 @@ DslReturnType dsl_ode_trigger_distance_test_params_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerDistanceTestParamsSet(cstrName.c_str(), 
-        test_point, test_method);
+    return DSL::Services::GetServices()->OdeTriggerDistanceTestParamsSet(
+        cstrName.c_str(), test_point, test_method);
 }
     
-DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit)
+DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -1406,10 +1485,12 @@ DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, const wchar_t* s
         std::wstring wstrSource(source);
         cstrSource.assign(wstrSource.begin(), wstrSource.end());
     }
-    return DSL::Services::GetServices()->OdeTriggerSmallestNew(cstrName.c_str(), cstrSource.c_str(), class_id, limit);
+    return DSL::Services::GetServices()->OdeTriggerSmallestNew(
+        cstrName.c_str(), cstrSource.c_str(), class_id, limit);
 }
 
-DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit)
+DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -1422,7 +1503,44 @@ DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, const wchar_t* so
         std::wstring wstrSource(source);
         cstrSource.assign(wstrSource.begin(), wstrSource.end());
     }
-    return DSL::Services::GetServices()->OdeTriggerLargestNew(cstrName.c_str(), cstrSource.c_str(), class_id, limit);
+    return DSL::Services::GetServices()->OdeTriggerLargestNew(
+        cstrName.c_str(), cstrSource.c_str(), class_id, limit);
+}
+
+DslReturnType dsl_ode_trigger_latest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrSource;
+    if (source)
+    {
+        std::wstring wstrSource(source);
+        cstrSource.assign(wstrSource.begin(), wstrSource.end());
+    }
+    return DSL::Services::GetServices()->OdeTriggerLatestNew(
+        cstrName.c_str(), cstrSource.c_str(), class_id, limit);
+}
+
+DslReturnType dsl_ode_trigger_earliest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrSource;
+    if (source)
+    {
+        std::wstring wstrSource(source);
+        cstrSource.assign(wstrSource.begin(), wstrSource.end());
+    }
+    return DSL::Services::GetServices()->OdeTriggerEarliestNew(
+        cstrName.c_str(), cstrSource.c_str(), class_id, limit);
 }
 
 DslReturnType dsl_ode_trigger_reset(const wchar_t* name)
@@ -1442,7 +1560,8 @@ DslReturnType dsl_ode_trigger_reset_timeout_get(const wchar_t* name, uint *timeo
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerResetTimeoutGet(cstrName.c_str(), timeout);
+    return DSL::Services::GetServices()->OdeTriggerResetTimeoutGet(
+        cstrName.c_str(), timeout);
 }
 
 DslReturnType dsl_ode_trigger_reset_timeout_set(const wchar_t* name, uint timeout)
@@ -1452,7 +1571,8 @@ DslReturnType dsl_ode_trigger_reset_timeout_set(const wchar_t* name, uint timeou
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerResetTimeoutSet(cstrName.c_str(), timeout);
+    return DSL::Services::GetServices()->OdeTriggerResetTimeoutSet(
+        cstrName.c_str(), timeout);
 }
 
 DslReturnType dsl_ode_trigger_enabled_get(const wchar_t* name, boolean* enabled)
@@ -3784,7 +3904,7 @@ DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkWindowForceAspectRationGet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SinkWindowForceAspectRatioGet(cstrName.c_str(), 
         force);
 }
     
@@ -3796,7 +3916,7 @@ DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkWindowForceAspectRationSet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SinkWindowForceAspectRatioSet(cstrName.c_str(), 
         force);
 }
 

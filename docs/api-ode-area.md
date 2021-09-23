@@ -6,7 +6,7 @@ There are three types of Areas:
 * **Exclusion Areas** - criteria is met when a specific point on an object's bounding box is NOT within the Polygon Area. 
 * **Line Areas** - criteria is met when a specific edge of an object's bounding box - left, right, top, bottom - intersects with the Line Area
 
-The relationship between Triggers and Areas is many-to-many as multiple Areas can be added to one Trigger and one Area can be added to multiple Triggers.  Once added to an Trigger, if a Areas's `display` setting is enabled, the Polygon's or Line's metadata will be added to each frame for a downstream On-Screen-Component to display.
+The relationship between Triggers and Areas is many-to-many as multiple Areas can be added to one Trigger and one Area can be added to multiple Triggers.  Once added to an Trigger, if a Area's `display` setting is enabled, the Polygon's or Line's metadata will be added to each frame for a downstream On-Screen-Component to display.
 
 If both Areas of Inclusion and Exclusion are added to an ODE Trigger, the order of addition determines the order of precedence. 
 

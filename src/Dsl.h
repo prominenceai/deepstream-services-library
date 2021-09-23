@@ -52,13 +52,14 @@ THE SOFTWARE.
 #include <ctime>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <regex>
 
 #include <deepstream_common.h>
 #include <deepstream_config.h>
 #include <deepstream_perf.h>
 #include <gstnvdsmeta.h>
 #include <gstnvdsinfer.h>
-
+#include <cuda_runtime_api.h>
 #include <geos_c.h>
 #include <curl/curl.h>
 

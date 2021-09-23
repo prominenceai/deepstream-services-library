@@ -3,22 +3,24 @@
 [![Documentation Status](https://readthedocs.org/projects/ansicolortags/badge/?version=latest)](https://github.com/canammex-tech/deepstream-services-library/blob/master/docs/overview.md)
 [![Ask Me Anything !](https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg)](https://discord.com/channels/750454524849684540/750457019260993636)
 
-# deepstream-services-library (DSL)
-
 ![](/Images/under-construction.png)
 
-DSL is best described as _"the NVIDIA DeepStream Reference Application — [deepstream-app](https://docs.nvidia.com/metropolis/deepstream/dev-guide/index.html#page/DeepStream_Development_Guide%2Fdeepstream_app_architecture.html) — reimagined as a shared library of DeepStream pipeline services"._
+## Intelligent Audio and Video Analytics (IAVA)
+A library of on-demand DeepStream Pipeline services. Written in C++ 17 with an `extern "C"` API, The DeepStream Services Library (DSL) can be called from both C/C++ and Python applications.
 
-Written in C++ 11 with an `extern "C"` API, DSL can be called from both C/C++ and Python applications.
+## Examples
 
-**C/C++**
+### C++
+
 ```C++
 #include <DslApi.h>
 
 // New CSI Live Camera Source
 uint retval = dsl_source_csi_new("csi-source", 1280, 720, 30, 1);
 ```
-**Python3**
+
+### Python3
+
 ```Python
 from dsl import *
 
@@ -26,18 +28,26 @@ from dsl import *
 retval = dsl_source_csi_new('csi-source', 1280, 720, 30, 1)
 ```
 
-DSL is built on the NVIDA® [DeepStream SDK](https://developer.nvidia.com/deepstream-sdk), _"A complete streaming analytics toolkit for AI-based video and image understanding, as well as multi-sensor processing."_, 
+DSL is built on the NVIDIA® [DeepStream SDK](https://developer.nvidia.com/deepstream-sdk), _"A complete streaming analytics toolkit for AI-based video and image understanding, as well as multi-sensor processing."_,
 
 The DeepStream SDK and DSL use the open source [GStreamer](https://gstreamer.freedesktop.org/),  _"An extremely powerful and versatile framework for creating streaming media applications"_.
 
 ## Contributing
-DSL is released under the [MIT License](LICENSE). Contributions are welcome and greatly appreciated. Contributor guidelines and code of conduct are still TBW. 
 
-## Instructional Videos
-Vist our YouTube channel for instructional videos on using DSL (and DMS) ... Note: this is still in a very early stage as the DSL/DMS APIs, and demonstartion application, are still in developement, but new content will be added weekly. There is no audio yet, but some might find the videos helpful in understatnd DSL. 
-<br>
+DSL is released under the [MIT License](LICENSE). Contributions are welcome and greatly appreciated. Please review our [code of conduct](/CODE_OF_CONDUCT.md).
 
-[<img src="/Images/youtube-link.png">](https://www.youtube.com/channel/UCxaJo95fbp2aFXopdquF96Q)
+## DSL Branching Workflow
+
+![DSL Git Branching Workflow](/Images/dsl-branching-workflow.png)
+
+1. `Master` is always the latest release and is only updated once per release.
+2. `Develop` is the next release currently in development. The branch will be named with the next release label.
+3. `Feature` all work is done on feature branches, named for the feature under development. 
+
+All pull requests should be made against the current `Develop` branch. 
+
+## Discord
+Come join us on [Discord](https://discord.gg/MJvY9jjpAK), an informal place to chat, ask questions, discuss ideas, etc.
 
 ## DSL Users Guide
 

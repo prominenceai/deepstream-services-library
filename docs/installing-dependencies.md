@@ -1,5 +1,5 @@
 # Installing DSL Dependencies
-The DeepStream Services Library (DSL) is built on the NVIDA® [DeepStream SDK](https://developer.nvidia.com/deepstream-sdk) and requires all SDK components to be installed and verified. The current Alpha version of DSL supports only the NVIDI® Jetson™ platform, and all development and testing to date has been done on the Jetson Nano™ 4GB Developer Kit. Testing will be scalled up to larger models before releasing v1.0.
+The DeepStream Services Library (DSL) is built on the NVIDA® [DeepStream SDK](https://developer.nvidia.com/deepstream-sdk) and requires all SDK components to be installed and verified. The current Alpha version of DSL supports only the NVIDI® Jetson™ platform, and all development and testing to date has been done on the Jetson Nano™ 4GB Developer Kit. Testing will be scaled up to larger models before releasing v1.0.
 
 Please consult the [NVIDIA DeepStream Quick Start Guide](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Quickstart.html) for complete Installation Instructions.
 

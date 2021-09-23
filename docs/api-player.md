@@ -11,7 +11,7 @@ There are three types of Players that can be created.
 Players are destructed by calling [dsl_player_delete](#dsl_player_delete) or [dsl_player_delete_all](#dsl_player_delete_all).
 
 #### Adding an Image Render Player to an ODE Capture Action
-Images Players can be added to either a Frame or Object Capture Action for auto-play on ODE occurence by calling [dsl_ode_action_capture_image_player_add](/docs/api-ode-action.md#dsl_ode_action_capture_image_player_add) and removed by calling [dsl_ode_action_capture_image_player_remove](/docs/api-ode-action.md#dsl_ode_action_capture_image_player_remove)
+Images Players can be added to either a Frame or Object Capture Action for auto-play on ODE occurrence by calling [dsl_ode_action_capture_image_player_add](/docs/api-ode-action.md#dsl_ode_action_capture_image_player_add) and removed by calling [dsl_ode_action_capture_image_player_remove](/docs/api-ode-action.md#dsl_ode_action_capture_image_player_remove)
 
 #### Adding a Video Render Player to a Smart Recording Tap or Sink
 Video Players can be added to Smart Recording Taps and Sinks for auto-play on recording complete by calling [dsl_tap_record_video_player_add](/docs/api-tap.md#dsl_tap_record_video_player_add) and [dsl_sink_record_video_player_add](/docs/api-sink.md#dsl_sink_record_video_player_add) respectively and removed by calling [dsl_tap_record_video_player_remove](/docs/api-tap.md#dsl_tap_record_video_player_remove) and [dsl_sink_record_video_player_remove](/docs/api-sink.md#dsl_sink_record_video_player_remove)
@@ -95,7 +95,10 @@ The following return codes are used by the Player API
 ```
 
 ## Constants
-The following symbolic constants are used by the ODE Trigger API
+The following symbolic constants are used by the ODE Trigger API.
+
+**Note: the Overlay Sink is only available on the Jetson Platform.**
+
 ```C++
 #define DSL_RENDER_TYPE_OVERLAY                                     0
 #define DSL_RENDER_TYPE_WINDOW                                      1
@@ -145,7 +148,8 @@ DslReturnType dsl_player_render_image_new(const wchar_t* name, const wchar_t* fi
     uint render_type, uint offset_x, uint offset_y, uint zoom, uint timeout)
 ```
 The constructor creates a uniquely named Player that creates and manages its own Image Source and Render Sink. Construction will fail
-if the name is currently in use.
+if the name is currently in use. **Note: the Overlay Sink is only available on the Jetson Platform.**
+
 
 **Parameters**
 * `name` - [in] unique name for the Player to create.
@@ -172,7 +176,7 @@ DslReturnType dsl_player_render_video_new(const wchar_t* name,  const wchar_t* 
    uint render_type, uint offset_x, uint offset_y, uint zoom, boolean repeat_enabled);
 ```
 The constructor creates a uniquely named Player that creates and manages its own Video File Source and Render Sink. Construction will fail
-if the name is currently in use.
+if the name is currently in use. **Note: the Overlay Sink is only available on the Jetson Platform.**
 
 **Parameters**
 * `name` - [in] unique name for the Player to create.

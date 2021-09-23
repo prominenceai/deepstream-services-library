@@ -36,6 +36,8 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_new_low_new](#dsl_ode_trigger_new_low_new)
 * [dsl_ode_trigger_smallest_new](#dsl_ode_trigger_smallest_new)
 * [dsl_ode_trigger_largest_new](#dsl_ode_trigger_largest_new)
+* [dsl_ode_trigger_earlest_new](#dsl_ode_trigger_earlist_new)
+* [dsl_ode_trigger_latest_new](#dsl_ode_trigger_latest_new)
 * [dsl_ode_trigger_custom_new](#dsl_ode_trigger_custom_new)
 
 **Destructors:**
@@ -561,7 +563,59 @@ This constructor creates a uniquely named Largest trigger that checks for the oc
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_largest_new('my-range-trigger', DSL_ODE_ANY_SOURCE, 
+retval = dsl_ode_trigger_largest_new('my-largest-trigger', DSL_ODE_ANY_SOURCE, 
+    DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE)
+```
+
+<br>
+
+### *dsl_ode_trigger_earliest_new*
+```C++
+DslReturnType dsl_ode_trigger_earliest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
+```
+This constructor creates a uniquely named Earliest Trigger that checks for the persistence of Objects tracked and will trigger on the Object with the greatest time of persistence (earliest) if at least one is found..
+
+**Parameters**
+* `name` - [in] unique name for the ODE Trigger to create.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter.
+* `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
+
+**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_earliest_new('my-earliest-trigger', 
+    DSL_ODE_ANY_SOURCE, DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE)
+```
+
+<br>
+
+### *dsl_ode_trigger_latest_new*
+```C++
+DslReturnType dsl_ode_trigger_latest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
+```
+This constructor creates a uniquely named Latest Trigger that checks for the persistence of Objects tracked and will trigger on the Object with the least time of persistence (latest) if at least one is found.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Trigger to create.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
+* `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
+
+**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_latest_new('my-latest-trigger', DSL_ODE_ANY_SOURCE, 
     DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE)
 ```
 

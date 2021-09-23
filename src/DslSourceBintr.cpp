@@ -192,6 +192,7 @@ namespace DSL
         guint width, guint height, guint fpsN, guint fpsD)
         : SourceBintr(name)
         , m_sensorId(0)
+        , m_cudaDeviceProp{0}
     {
         LOG_FUNC();
 
@@ -202,7 +203,15 @@ namespace DSL
         
         m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_CAMERA_V4L2, "usb_camera_elem");
         m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "src_caps_filter");
-        m_pVidConv1 = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "src_video_conv1");
+
+        // Get the Device properties
+        cudaGetDeviceProperties(&m_cudaDeviceProp, m_gpuId);
+
+        if (!m_cudaDeviceProp.integrated)
+        {
+            m_pVidConv1 = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "src_video_conv1");
+            AddChild(m_pVidConv1);
+        }
         m_pVidConv2 = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "src_video_conv2");
 
         GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
@@ -227,7 +236,6 @@ namespace DSL
 
         AddChild(m_pSourceElement);
         AddChild(m_pCapsFilter);
-        AddChild(m_pVidConv1);
         AddChild(m_pVidConv2);
         
         m_pCapsFilter->AddGhostPadToParent("src");
@@ -252,11 +260,24 @@ namespace DSL
             LOG_ERROR("UsbSourceBintr '" << GetName() << "' is already in a linked state");
             return false;
         }
-        if (!m_pSourceElement->LinkToSink(m_pVidConv1) or 
-            !m_pVidConv1->LinkToSink(m_pVidConv2) or
-            !m_pVidConv2->LinkToSink(m_pCapsFilter))
+        
+        // x86_64
+        if (!m_cudaDeviceProp.integrated)
         {
-            return false;
+            if (!m_pSourceElement->LinkToSink(m_pVidConv1) or 
+                !m_pVidConv1->LinkToSink(m_pVidConv2) or
+                !m_pVidConv2->LinkToSink(m_pCapsFilter))
+            {
+                return false;
+            }
+        }
+        else // aarch_64
+        {
+            if (!m_pSourceElement->LinkToSink(m_pVidConv2) or 
+                !m_pVidConv2->LinkToSink(m_pCapsFilter))
+            {
+                return false;
+            }
         }
         m_isLinked = true;
         
@@ -272,8 +293,13 @@ namespace DSL
             LOG_ERROR("UsbSourceBintr '" << GetName() << "' is not in a linked state");
             return;
         }
+        
+        // x86_64
+        if (!m_cudaDeviceProp.integrated)
+        {
+            m_pVidConv1->UnlinkFromSink();
+        }
         m_pVidConv2->UnlinkFromSink();
-        m_pVidConv1->UnlinkFromSink();
         m_pSourceElement->UnlinkFromSink();
         m_isLinked = false;
     }
@@ -1174,6 +1200,18 @@ namespace DSL
             return false;
         }
 
+        // Note: this is a workaround for an NVIDIA bug. We need to test the stream before
+        // we try and link any pads. Otherwise, unlinking a failed stream connection from 
+        // the Streammuxer will result in a deadlock. Try to open the URL with open CV first.
+        cv::VideoCapture capture(m_uri.c_str());
+
+        if (!capture.isOpened())
+        {
+            LOG_ERROR("RtspSourceBintr '" << GetName() << "' failed to open stream for URI = "
+                << m_uri.c_str());
+            return false;
+        }
+
         if (HasTapBintr())
         {
             if (!m_pTapBintr->LinkAll() or !m_pTapBintr->LinkToSourceTee(m_pPreDecodeTee) or
@@ -1512,9 +1550,14 @@ namespace DSL
         GstCaps* pCaps = gst_pad_query_caps(pPad, NULL);
         GstStructure* structure = gst_caps_get_structure(pCaps, 0);
         std::string name = gst_structure_get_name(structure);
-        
+        std::string media = gst_structure_get_string (structure, "media");
+        std::string encoding = gst_structure_get_string (structure, "encoding-name");
+
         LOG_INFO("Caps structs name " << name);
-        if (name.find("x-rtp") != std::string::npos)
+        LOG_INFO("Media = '" << media << "' for RtspSourceBitnr '" << GetName() << "'");
+        
+        if (name.find("x-rtp") != std::string::npos and 
+            media.find("video")!= std::string::npos)
         {
             m_pGstStaticSinkPad = gst_element_get_static_pad(m_pDepay->GetGstElement(), "sink");
             if (!m_pGstStaticSinkPad)
@@ -1525,11 +1568,11 @@ namespace DSL
             
             if (gst_pad_link(pPad, m_pGstStaticSinkPad) != GST_PAD_LINK_OK) 
             {
-                LOG_ERROR("Failed to link de-payload to pipeline");
+                LOG_ERROR("Failed to link source to de-payload");
                 throw;
             }
             
-            LOG_INFO("Video decode linked for URI source '" << GetName() << "'");
+            LOG_INFO("Video decode linked for RTSP source '" << GetName() << "'");
         }
     }
     

@@ -31,9 +31,7 @@ to use all 4 CPU cores for a much faster build time.
 ### Running the Test Application
 ***This step is optional unless contributing changes.***
 
-**Note: The Model Engine files, required to run the Tests, are not checked into this repository as they exceed GitHub's size restrictions.  The files will be setup for LFS tracking and added to the repo in the comming weeks.** 
-
-Note: The test application uses Nano versions of GIE Models and Config files, which will fail to load on other platforms. The tests require an internet connection for URI and RTSP Source testing as well. 
+#### *Note: The Model Engine files, and other assets required to run the Tests are not checked into this repository as they exceed GitHub's size restrictions. You will not be able to run the tests after building. We are working to remedy this in an upcoming release.*
 
 Once the test executable has been built, it can be run with the command below.
 

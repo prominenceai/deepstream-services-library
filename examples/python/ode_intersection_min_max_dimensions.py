@@ -96,10 +96,14 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create a new Fill Action that will fill the Object's rectangle with a shade of red to indicate 
+        # Create a new Format BBox Action that will fill the Object's rectangle with a shade of red to indicate 
         # intersection with one or more other Objects, i.e. ODE occurrence. The action will be used with both
         # the Person and Car class Ids.
-        retval = dsl_ode_action_fill_object_new('red-fill-action', 'opaque-red')
+        retval = dsl_ode_action_format_bbox_new('red-fill-action',
+            border_width = 0,
+            border_color = None,
+            has_bg_color = True,
+            bg_color = 'opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -108,8 +112,16 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Action to hide both the display text and border for each detected object
-        retval = dsl_ode_action_hide_new('hide-both-action', text=True, border=True)
+        # Create a Format Label Action to remove the Object Label from view
+        # Note: the label can be disabled with the OSD API as well. 
+        retval = dsl_ode_action_format_label_new('remove-label', 
+            font=None, has_bg_color=False, bg_color=None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Create a Format Bounding Box Action to remove the box border from view
+        retval = dsl_ode_action_format_bbox_new('remove-border', border_width=0,
+            border_color=None, has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -151,18 +163,19 @@ def main(args):
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Next, create the Occurrence Trigger to Hide each Object's Display Text
 
-        # New ODE occurrence Trigger to hide the Display Text and Border for all vehicles
+        # New ODE occurrence Trigger to remove the Display Text and Border for all vehicles
         retval = dsl_ode_trigger_occurrence_new('every-object', source=DSL_ODE_ANY_SOURCE,
             class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('every-object', action='hide-both-action')
+        retval = dsl_ode_trigger_action_add_many('every-object', 
+            actions=['remove-label', 'remove-border', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         
-        # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
+        # New ODE Handler to handle all ODE Triggers with their Areas and Actions
         retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break

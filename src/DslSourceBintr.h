@@ -254,7 +254,15 @@ namespace DSL
         bool SetGpuId(uint gpuId);
 
     private:
-    
+
+        /**
+         * @brief Device Properties, used for aarch64/x86_64 conditional logic
+         */
+        cudaDeviceProp m_cudaDeviceProp;
+
+        /**
+         * @brief Unique sensor ID for this USB Source
+         */
         uint m_sensorId;
         
         /**

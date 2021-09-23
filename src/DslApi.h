@@ -133,6 +133,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_PLAYER_REMOVE_FAILED                        0x00040013
 #define DSL_RESULT_SINK_MAILER_ADD_FAILED                           0x00040014
 #define DSL_RESULT_SINK_MAILER_REMOVE_FAILED                        0x00040015
+#define DSL_RESULT_SINK_OVERLAY_NOT_SUPPORTED                       0x00040016
 
 
 /**
@@ -460,6 +461,8 @@ THE SOFTWARE.
  */
 #define DSL_ODE_ANY_SOURCE                                          NULL
 #define DSL_ODE_ANY_CLASS                                           INT32_MAX
+#define DSL_ODE_TRIGGER_LIMIT_NONE                                  0
+#define DSL_ODE_TRIGGER_LIMIT_ONE                                   1
 
 /**
  * @brief Unique class relational identifiers for Class A/B testing
@@ -469,6 +472,7 @@ THE SOFTWARE.
 
 #define DSL_AREA_TYPE_INCLUSION                                     0
 #define DSL_AREA_TYPE_EXCLUSION                                     1
+#define DSL_AREA_TYPE_LINE                                          3                         
 
 // Must match NvOSD_Arrow_Head_Direction
 #define DSL_ARROW_START_HEAD                                        0
@@ -536,18 +540,40 @@ THE SOFTWARE.
 #define DSL_RECORDING_EVENT_END                                     1
 
 /**
- * @brief File Open/Write Mode Options when saving Event Data to file.
- */
-#define DSL_EVENT_FILE_MODE_APPEND                                  0
-#define DSL_EVENT_FILE_MODE_TRUNCATE                                1
-
-/**
  * @brief File Format Options when saving Event Data to file.
  */
 #define DSL_EVENT_FILE_FORMAT_TEXT                                  0
 #define DSL_EVENT_FILE_FORMAT_CSV                                   1
 
+/**
+ * @brief File Open/Write Mode Options when saving Event Data 
+ * to file, and when adding custom Object Label Content
+ * 
+ */
+#define DSL_WRITE_MODE_APPEND                                       0
+#define DSL_WRITE_MODE_TRUNCATE                                     1
 
+/**
+ * @brief Metric Content Options for Object Label customization
+ * and Display Action string formatting
+ */
+#define DSL_METRIC_OBJECT_CLASS                                     0
+#define DSL_METRIC_OBJECT_TRACKING_ID                               1
+#define DSL_METRIC_OBJECT_LOCATION                                  2
+#define DSL_METRIC_OBJECT_DIMENSIONS                                3
+#define DSL_METRIC_OBJECT_CONFIDENCE                                4
+#define DSL_METRIC_OBJECT_PERSISTENCE                               5
+
+/**
+ * @brief Metric Content Options for Trigger Output customization
+ * used by the the Display Action when reporting Frame level
+ * metrics. This constant provides meaningful information for the 
+ * Summation, Accumulation, New High, and New Low Triggers for 
+ * reporting the number of occurrences when post-processing each 
+ * frame. For most other Triggers, this value will always be 1.
+ * For the Absence Trigger, occurrences will always be 0. 
+ */
+#define DSL_METRIC_OBJECT_OCCURRENCES                               6
 EXTERN_C_BEGIN
 
 typedef uint DslReturnType;
@@ -882,9 +908,9 @@ DslReturnType dsl_display_type_rgba_font_new(const wchar_t* name,
  * @param[in] text text string to display
  * @param[in] x_offset starting x positional offset
  * @param[in] y_offset starting y positional offset
- * @param[in] font RGBA font to use for the display dext
- * @param[in] hasBgColor set to true to enable bacground color, false otherwise
- * @param[in] bgColor RGBA Color for the Text background if set
+ * @param[in] font RGBA font to use for the display text
+ * @param[in] has_bg_color set to true to enable background color, false otherwise
+ * @param[in] bg_color RGBA Color for the Text background if set
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_display_type_rgba_text_new(const wchar_t* name, 
@@ -1044,16 +1070,6 @@ DslReturnType dsl_display_type_delete_all();
 uint dsl_display_type_list_size();
 
 /**
- * @brief Creates a uniquely named ODE Custom Action
- * @param[in] name unique name for the ODE Custom Action 
- * @param[in] client_handler function to call on ODE occurrence
- * @param[in] client_data opaue pointer to client's user data, returned on callback
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_custom_new(const wchar_t* name, 
-    dsl_ode_handle_occurrence_cb client_handler, void* client_data);
-
-/**
  * @brief Creates a uniquely named Capture Frame ODE Action
  * @param[in] name unique name for the Capture Frame ODE Action 
  * @param[in] outdir absolute or relative path to image capture directory 
@@ -1132,22 +1148,64 @@ DslReturnType dsl_ode_action_capture_mailer_add(const wchar_t* name,
  */
 DslReturnType dsl_ode_action_capture_mailer_remove(const wchar_t* name, 
     const wchar_t* mailer);
+
+/**
+ * @brief Creates a uniquely named ODE Custom Action
+ * @param[in] name unique name for the ODE Custom Action 
+ * @param[in] client_handler function to call on ODE occurrence
+ * @param[in] client_data opaue pointer to client's user data, returned on callback
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_custom_new(const wchar_t* name, 
+    dsl_ode_handle_occurrence_cb client_handler, void* client_data);
+
+/**
+ * @brief Creates a uniquely named "Customize Object Label" ODE Action that updates 
+ * an Object's label to display specific content.
+ * @param[in] name unique name for the "Customize Object Label ODE Action. 
+ * @param[in] content_types an array of DSL_OBJECT_LABEL_<type> constants.
+ * @param[in] size of the content_types array 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_customize_label_new(const wchar_t* name,  
+    const uint* content_types, uint size);
+
+/**
+ * @brief Gets the current content_types, size and write mode settings for the 
+ * "Customize Object Label" ODE Action 
+ * @param[in] name unique name for the "Customize Object Label ODE Action to query. 
+ * @param[out] content_types an array of DSL_OBJECT_LABEL_<type> constants.
+ * @param[inout] size max size of the content_types array on call, actual size on return
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_customize_label_get(const wchar_t* name,  
+    uint* content_types, uint* size);
+    
+/**
+ * @brief Sets the content_types, size and write mode settings for the 
+ * "Customize Object Label" ODE Action,
+ * @param[in] name unique name for the "Customize Object Label ODE Action. 
+ * @param[in] content_types an array of DSL_OBJECT_LABEL_<type> constants.
+ * @param[in] size of the content_types array 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_customize_label_set(const wchar_t* name,  
+    const uint* content_types, uint size);
     
 /**
  * @brief Creates a uniquely named Display ODE Action
  * @param[in] name unique name for the ODE Display Action 
+ * @param[in] format_string string with format tokens for display
  * @param[in] offset_x offset in the X direction for the Display text
  * @param[in] offset_y offset in the Y direction for the Display text
- * @param[in] offset_y_with_classId adds an additional offset based on ODE class Id if set true
- * The setting allows multiple ODE Triggers with different class Ids to share the same Display action
  * @param[in] font RGBA Font type to use for the Display text
  * @param[in] has_bg_color if true, displays the background color for the Display Text
  * @param[in] bg_color color to use for the Display Text background color, if has_bg_color
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offset_x, uint offset_y, 
-    boolean offset_y_with_classId, const wchar_t* font, boolean has_bg_color, 
-    const wchar_t* bg_color);
+DslReturnType dsl_ode_action_display_new(const wchar_t* name, 
+    const wchar_t* format_string, uint offset_x, uint offset_y, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
 
 /**
  * @brief Creates a uniquely named Add Display Metadata ODE Action to add Display metadata
@@ -1210,15 +1268,6 @@ DslReturnType dsl_ode_action_file_new(const wchar_t* name,
 DslReturnType dsl_ode_action_fill_frame_new(const wchar_t* name, const wchar_t* color);
 
 /**
- * @brief Creates a uniquely named Fill Object ODE Action, that fills an object's
- * Background with RGBA color values
- * @param[in] name unique name for the Fill Object ODE Action
- * @param[in] color name of the RGBA Color to use for the fill action
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_fill_object_new(const wchar_t* name, const wchar_t* color);
-
-/**
  * @brief Creates a uniquely named Fill Surroundings ODE Action, that fills the entire
  * frame area surroudning an Object's rectangle
  * @param[in] name unique name for the Fill Frame ODE Action
@@ -1228,6 +1277,34 @@ DslReturnType dsl_ode_action_fill_object_new(const wchar_t* name, const wchar_t*
 DslReturnType dsl_ode_action_fill_surroundings_new(const wchar_t* name, const wchar_t* color);
 
 /**
+ * @brief Creates a uniquely named "Format Bounding Box" ODE Action that updates 
+ * an Object's RGBA bounding box line width and color. 
+ * Note: setting the line width to 0 will exclude/hide the object's bounding box from view.
+ * @param[in] name unique name for the "Format Bounding Box" ODE Action. 
+ * @param[in] border_width border line width for the object's bounding box. 
+ * Set to 0 to exclude/hide the border from view.
+ * @param[in] border_color RGBA Color for the bounding box.
+ * @param[in] has_bg_color set to true to enable background color, false otherwise
+ * @param[in] bg_color RGBA Color for the Text background if set
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_format_bbox_new(const wchar_t* name, uint border_width, 
+    const wchar_t* border_color, boolean has_bg_color, const wchar_t* bg_color);
+
+/**
+ * @brief Creates a uniquely named "Format Label" ODE Action that updates 
+ * an Object's RGBA Label Font
+ * @param[in] name unique name for the Format Label ODE Action 
+ * @param[in] font RGBA font to use for the object's label
+ * @param[in] has_bg_color set to true to enable background color, false otherwise
+ * @param[in] bg_color RGBA Color for the Text background if has_bg_color = true
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_format_label_new(const wchar_t* name, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+    
+
+/**
  * @brief Creates a uniquely named Disable Handler Action that disables
  * a namded Handler
  * @param[in] name unique name for the Fill Backtround ODE Action
@@ -1235,15 +1312,6 @@ DslReturnType dsl_ode_action_fill_surroundings_new(const wchar_t* name, const wc
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_handler_disable_new(const wchar_t* name, const wchar_t* handler);
-
-/**
- * @brief Creates a uniquely named Hide Object Display ODE Action
- * @param[in] name unique name for the ODE Hide Action 
- * @param[in] if true, hides the Object's Display Text on HandleOccurrence
- * @param[in] if true, hides the Object's Rectangle Border on HandleOccurrence
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_hide_new(const wchar_t* name, boolean text, boolean border);
 
 /**
  * @brief Creates a uniquely named Log ODE Action
@@ -1378,7 +1446,7 @@ DslReturnType dsl_ode_action_tap_record_stop_new(const wchar_t* name,
  */
 DslReturnType dsl_ode_action_area_add_new(const wchar_t* name,
     const wchar_t* trigger, const wchar_t* area);
-
+    
 /**
  * @brief Creates a uniquely named Remove Area ODE Action that removes
  * a named ODE Area from a named ODE Trigger on ODE occurrence
@@ -1696,9 +1764,9 @@ DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name,
     const wchar_t* source, uint class_id, uint limit);
 
 /**
- * @brief Persistence trigger that checks for the persistence of Objects tracked for a. 
- * specified source and object class_id. Each object tracked or ">= minimum and <= maximum time 
- * will trigger an ODE occurrence.
+ * @brief Persistence trigger that checks for the persistence of Objects tracked 
+ * for a specified source and object class_id. Each object tracked for ">= minimum 
+ * and <= maximum time will trigger an ODE occurrence.
  * @param[in] name unique name for the ODE Trigger
  * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] class_id class id filter for this ODE Trigger
@@ -1758,6 +1826,32 @@ DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
+
+/**
+ * @brief Latest Trigger that checks for the persistence of Objects tracked 
+ * and will trigger on the Object with the least time of persistence (latest)
+ * if at least one is found.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE.
+ * @param[in] class_id class id filter for this ODE Trigger.
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_latest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
+
+/**
+ * @brief Earliest Trigger that checks for the persistence of Objects tracked 
+ * and will trigger on the Object with the greatest time of persistence (earliest) 
+ * if at least one is found.
+ * @param[in] name unique name for the ODE Trigger.
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE.
+ * @param[in] class_id class id filter for this ODE Trigger.
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_earliest_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit);
 
 /**

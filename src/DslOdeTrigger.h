@@ -84,6 +84,14 @@ namespace DSL
     #define DSL_ODE_TRIGGER_LARGEST_NEW(name, source, classId, limit) \
         std::shared_ptr<LargestOdeTrigger>(new LargestOdeTrigger(name, source, classId, limit))
 
+    #define DSL_ODE_TRIGGER_LATEST_PTR std::shared_ptr<LatestOdeTrigger>
+    #define DSL_ODE_TRIGGER_LATEST_NEW(name, source, classId, limit) \
+        std::shared_ptr<LatestOdeTrigger>(new LatestOdeTrigger(name, source, classId, limit))
+
+    #define DSL_ODE_TRIGGER_EARLIEST_PTR std::shared_ptr<EarliestOdeTrigger>
+    #define DSL_ODE_TRIGGER_EARLIEST_NEW(name, source, classId, limit) \
+        std::shared_ptr<EarliestOdeTrigger>(new EarliestOdeTrigger(name, source, classId, limit))
+
     #define DSL_ODE_TRIGGER_NEW_LOW_PTR std::shared_ptr<NewLowOdeTrigger>
     #define DSL_ODE_TRIGGER_NEW_LOW_NEW(name, source, classId, limit, preset) \
         std::shared_ptr<NewLowOdeTrigger>(new NewLowOdeTrigger(name, source, classId, limit, preset))
@@ -387,16 +395,36 @@ namespace DSL
          * timeout value is set/enabled.
          */
         void IncrementAndCheckTriggerCount();
+
+        /**
+         * @brief Index variable to incremment/assign on ODE Area add.
+         */
+        uint m_nextAreaIndex;
         
         /**
-         * @brief Map of ODE Areas to use for minimum critera
+         * @brief Map of child ODE Areas to use for minimum critera
          */
         std::map <std::string, DSL_BASE_PTR> m_pOdeAreas;
         
         /**
-         * @brief Map of child ODE Actions to invoke on ODE occurrence
+         * @brief Map of child ODE Areas indexed by thier add-order for execution
+         */
+        std::map <uint, DSL_BASE_PTR> m_pOdeAreasIndexed;
+
+        /**
+         * @brief Index variable to incremment/assign on ODE Action add.
+         */
+        uint m_nextActionIndex;
+
+        /**
+         * @brief Map of child ODE Actions owned by this trigger
          */
         std::map <std::string, DSL_BASE_PTR> m_pOdeActions;
+        
+        /**
+         * @brief Map of child ODE Actions indexed by their add-order for execution
+         */
+        std::map <uint, DSL_BASE_PTR> m_pOdeActionsIndexed;
     
         /**
          * @brief Mutex to ensure mutual exlusion for propery get/sets
@@ -1098,6 +1126,112 @@ namespace DSL
          */ 
         std::vector<NvDsObjectMeta*> m_occurrenceMetaList;
     
+    };
+
+    class LatestOdeTrigger : public OdeTrigger
+    {
+    public:
+    
+        LatestOdeTrigger(const char* name, const char* source, uint classId, uint limit);
+        
+        ~LatestOdeTrigger();
+
+        /**
+         * @brief Overrides the base Reset in order to clear m_trackedObjectsPerSource
+         */
+        void Reset();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for Object occurrence
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame 
+         * Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame 
+         * that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to post process the frame and generate a Newest Object Event 
+         * if at least one object is found
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+		/**
+		 * @brief map of tracked objects per source - Key = source Id
+		 */
+		std::map <uint, std::shared_ptr<TrackedObjects>> m_trackedObjectsPerSource;
+        
+        /**
+         * @brief pointer to the Latest - least Persistent - object in the current frame
+         */
+        NvDsObjectMeta* m_pLatestObjectMeta;
+        
+        /**
+         * @brief Tracked time for the m_pLatestObjectMeta
+         */
+        double m_latestTrackedTimeMs;
+    };
+
+    class EarliestOdeTrigger : public OdeTrigger
+    {
+    public:
+    
+        EarliestOdeTrigger(const char* name, const char* source, uint classId, uint limit);
+        
+        ~EarliestOdeTrigger();
+
+        /**
+         * @brief Overrides the base Reset in order to clear m_trackedObjectsPerSource
+         */
+        void Reset();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for Object occurrence
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame 
+         * Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame 
+         * that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to post process the frame and generate a Oldest Object Event 
+         * if at least one object is found
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+		/**
+		 * @brief map of tracked objects per source - Key = source Id
+		 */
+		std::map <uint, std::shared_ptr<TrackedObjects>> m_trackedObjectsPerSource;
+    
+        /**
+         * @brief pointer to the Earliest - most Persistent - object in the current frame
+         */
+        NvDsObjectMeta* m_pEarliestObjectMeta;
+        
+        /**
+         * @brief Tracked time for the m_pOldestObjectMeta
+         */
+        double m_earliestTrackedTimeMs;
     };
     
     class NewLowOdeTrigger : public OdeTrigger
