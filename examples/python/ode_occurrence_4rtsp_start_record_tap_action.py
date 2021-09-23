@@ -177,7 +177,7 @@ def OnRecordingEvent(session_info_ptr, client_data):
         # we can set the tiler back to showing all tiles, otherwise
         # another source has started recording and taken precendence
         retval, current_source, timeout  = dsl_tiler_source_show_get('tiler')
-        if reval == DSL_RETURN_SUCCESS and current_source == components.source:
+        if retval == DSL_RETURN_SUCCESS and current_source == components.source:
             dsl_tiler_source_show_all('tiler')
 
         # re-enable the one-shot trigger for the next "New Instance" of a person
