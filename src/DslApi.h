@@ -540,6 +540,12 @@ THE SOFTWARE.
 #define DSL_RECORDING_EVENT_END                                     1
 
 /**
+ * @brief Maximum time to wait for a recording session to stop
+ * when the client is blocked on one of the session stop services
+ */
+#define DSL_RECORDING_STOP_WAIT_TIMEOUT_MS                          50
+
+/**
  * @brief File Format Options when saving Event Data to file.
  */
 #define DSL_EVENT_FILE_FORMAT_TEXT                                  0
@@ -2802,11 +2808,12 @@ DslReturnType dsl_tap_record_session_start(const wchar_t* name,
 
 /**
  * @brief stops a current recording in session
- * @param[in] name unique of the Record Tap to stop
- * @param[in] session unique id for the session to stop
+ * @param[in] name unique name of the Record Tap to stop
+ * @param[in] sync if set to true this call will block until the 
+ * stop operation has completed or timeout DSL_RECORDING_STOP_WAIT_TIMEOUT.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
  */
-DslReturnType dsl_tap_record_session_stop(const wchar_t* name);
+DslReturnType dsl_tap_record_session_stop(const wchar_t* name, boolean sync);
 
 /**
  * @brief returns the video recording output directory for the named Record Tap
@@ -3762,11 +3769,12 @@ DslReturnType dsl_sink_record_session_start(const wchar_t* name,
 
 /**
  * @brief stops a current recording in session
- * @param[in] name unique of the Record Sink to stop
- * should be less that the video cache size
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ * @param[in] name unique name of the Record Sink to stop
+ * @param[in] sync if set to true this call will block until the 
+ * stop operation has completed or timeout DSL_RECORDING_STOP_WAIT_TIMEOUT.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_record_session_stop(const wchar_t* name);
+DslReturnType dsl_sink_record_session_stop(const wchar_t* name, boolean sync);
 
 /**
  * @brief returns the current output directory in use by the named Sink

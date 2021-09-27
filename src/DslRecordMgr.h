@@ -124,10 +124,11 @@ namespace DSL
         
         /**
          * @brief Stop recording to file
-         * @param[in] session unique sission Id of the recording session to stop
-         * @return true on succesful start, false otherwise
+         * @param[in] sync if true the function will block until the asynchronous
+         * stop has completed or DSL_RECORDING_STOP_WAIT_TIMEOUT. 
+         * @return true on succesful stop, false otherwise
          */
-        bool StopSession();
+        bool StopSession(bool sync);
 
         /**
          * @brief Queries the Record Bin context to check the Key Frame
@@ -210,6 +211,18 @@ protected:
          * @brief current session id assigned on record start.
          */
         NvDsSRSessionId m_currentSessionId;
+        
+        /**
+         * @brief Mutex to protect Start and Stop Session services that can
+         * be called by multiple threads; Actions, Users, Callbacks, etc.
+         */
+        GMutex m_recordMgrMutex;
+        
+        /**
+         * @brief boolean flag to specify whether an async stop recording session 
+         * is in progress or not. 
+         */
+        bool m_stopSessionInProgress;
 
         /**
          * @brief client listener function to be called on session complete
@@ -234,7 +247,6 @@ protected:
     //******************************************************************************************
 
     static void* RecordCompleteCallback(NvDsSRRecordingInfo* pNvDsInfo, void* pRecordSinkBintr);
-
 }
 
 

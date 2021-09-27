@@ -118,7 +118,7 @@ class dsl_recording_info(Structure):
         ('session_id', c_uint),
         ('filename', c_wchar_p),
         ('dirpath', c_wchar_p),
-        ('duration', c_long),
+        ('duration', c_uint64),
         ('container_type', c_uint),
         ('width', c_uint),
         ('height', c_uint)]
@@ -2169,11 +2169,11 @@ def dsl_tap_record_session_start(name, start, duration, client_data):
 ##
 ## dsl_tap_record_session_stop()
 ##
-_dsl.dsl_tap_record_session_stop.argtypes = [c_wchar_p]
+_dsl.dsl_tap_record_session_stop.argtypes = [c_wchar_p, c_bool]
 _dsl.dsl_tap_record_session_stop.restype = c_uint
-def dsl_tap_record_session_stop(name):
+def dsl_tap_record_session_stop(name, sync):
     global _dsl
-    result = _dsl.dsl_tap_record_session_stop(name)
+    result = _dsl.dsl_tap_record_session_stop(name, sync)
     return int(result)
 
 ##

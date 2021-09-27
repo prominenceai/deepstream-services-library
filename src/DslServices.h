@@ -504,7 +504,7 @@ namespace DSL {
         DslReturnType TapRecordSessionStart(const char* name, 
             uint start, uint duration, void* clientData);
 
-        DslReturnType TapRecordSessionStop(const char* name);
+        DslReturnType TapRecordSessionStop(const char* name, boolean sync);
 
         DslReturnType TapRecordOutdirGet(const char* name, const char** outdir);
             
@@ -717,7 +717,7 @@ namespace DSL {
         DslReturnType SinkRecordSessionStart(const char* name, 
             uint start, uint duration, void* clientData);
 
-        DslReturnType SinkRecordSessionStop(const char* name);
+        DslReturnType SinkRecordSessionStop(const char* name, boolean sync);
 
         DslReturnType SinkRecordOutdirGet(const char* name, const char** outdir);
             
@@ -1022,7 +1022,6 @@ namespace DSL {
         GMainLoop* GetMainLoopHandle()
         {
             LOG_FUNC();
-            LOG_INFO("Returning Handle to MainLoop");
             
             return m_pMainLoop;
         }

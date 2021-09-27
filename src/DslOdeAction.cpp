@@ -2009,7 +2009,7 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            std::dynamic_pointer_cast<RecordSinkBintr>(m_pRecordSink)->StopSession();
+            std::dynamic_pointer_cast<RecordSinkBintr>(m_pRecordSink)->StopSession(false);
         }
     }
 
@@ -2067,7 +2067,7 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            std::dynamic_pointer_cast<RecordTapBintr>(m_pRecordTap)->StopSession();
+            std::dynamic_pointer_cast<RecordTapBintr>(m_pRecordTap)->StopSession(false);
         }
     }
     // ********************************************************************

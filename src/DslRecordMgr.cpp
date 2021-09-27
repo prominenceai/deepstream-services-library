@@ -24,6 +24,7 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
+#include "DslServices.h"
 #include "DslRecordMgr.h"
 #include "DslPlayerBintr.h"
 
@@ -41,6 +42,7 @@ namespace DSL
         , m_clientListener(clientListener)
         , m_clientData(0)
         , m_currentSessionId(UINT32_MAX)
+        , m_stopSessionInProgress(false)
     {
         LOG_FUNC();
 
@@ -70,6 +72,8 @@ namespace DSL
         
         m_initParams.defaultDuration = DSL_DEFAULT_VIDEO_RECORD_DURATION_IN_SEC;
         m_initParams.videoCacheSize = DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC;
+        
+        g_mutex_init(&m_recordMgrMutex);
     }
     
     RecordMgr::~RecordMgr()
@@ -81,6 +85,7 @@ namespace DSL
             LOG_INFO("Destroying context");
             DestroyContext();
         }
+        g_mutex_clear(&m_recordMgrMutex);
     }
     
     bool RecordMgr::CreateContext()
@@ -93,6 +98,7 @@ namespace DSL
             LOG_ERROR("Failed to create Smart Record Context for new RecordMgr '" << m_name << "'");
             return false;
         }
+        return true;
     }
 
     void RecordMgr::DestroyContext()
@@ -106,9 +112,14 @@ namespace DSL
         }
         if (IsOn())
         {
-            StopSession();
+            LOG_INFO("RecordMgr '" << m_name 
+                << "' is in session, stopping before destroying context");
+            StopSession(true);
         }
+        LOG_INFO("RecordMgr '" << m_name 
+            << "' destroying context " << m_pContext);
         NvDsSRDestroy(m_pContext);
+        LOG_INFO("after destroy context");
         m_pContext = NULL;
     }
 
@@ -220,6 +231,7 @@ namespace DSL
     bool RecordMgr::StartSession(uint start, uint duration, void* clientData)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_recordMgrMutex);
         
         if (!m_pContext)
         {
@@ -256,7 +268,7 @@ namespace DSL
         return true;
     }
     
-    bool RecordMgr::StopSession()
+    bool RecordMgr::StopSession(bool sync)
     {
         LOG_FUNC();
         
@@ -272,11 +284,46 @@ namespace DSL
                 << "' no session has been started");
             return false;
         }
-        LOG_INFO("Stoping record session for RecordMgre '" << m_name << "'");
-        bool retval = (NvDsSRStop(m_pContext, m_currentSessionId) == NVDSSR_STATUS_OK);
+        // The main-loop is required for the DLL to perform an async stop
+        // Log this event as info and return true in this case.
+        if (!g_main_loop_is_running(Services::GetServices()->GetMainLoopHandle()))
+        {
+            LOG_INFO("The main-loop is no longer running for RecordMgr '" << m_name << "'");
+            return true;
+        }
         
-        m_currentSessionId = UINT32_MAX;
-        return retval;
+        // important... we continue here even if a stop session is in progress. If sync 
+        // is true, we will wait on the current session until complete or timeout
+        
+        // create scope for our mutual exclusion before trying to stop
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_recordMgrMutex);
+            
+            if (!m_stopSessionInProgress)
+            {
+                LOG_INFO("Stoping record session for RecordMgr '" << m_name << "'");
+                if (NvDsSRStop(m_pContext, m_currentSessionId) != NVDSSR_STATUS_OK)
+                {
+                    m_currentSessionId = UINT32_MAX;
+                    return false;
+                }
+                m_stopSessionInProgress = true;
+            }
+            LOG_INFO("Stop session for RecordMgr '" << m_name 
+                << "' is in progress");
+        }
+        
+        if (sync)
+        {
+            int remainingTime(DSL_RECORDING_STOP_WAIT_TIMEOUT_MS);
+            while (m_stopSessionInProgress and remainingTime > 0)
+            {
+                g_usleep(10000);
+                remainingTime -= 10;
+            }
+            return (m_stopSessionInProgress == false);
+        }
+        return true;
     }
     
     bool RecordMgr::GotKeyFrame()
@@ -382,7 +429,11 @@ namespace DSL
     void* RecordMgr::HandleRecordComplete(NvDsSRRecordingInfo* pNvDsInfo)
     {
         LOG_FUNC();
-
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_recordMgrMutex);
+        
+        LOG_INFO("Recording Session " << pNvDsInfo->sessionId 
+            << " ended for Record Manager '" << m_name << "'");
+        
         // String and WString viersion of the filename and dirpath
         std::string cstrFilename(pNvDsInfo->filename);
         std::wstring wstrFilename(cstrFilename.begin(), cstrFilename.end());
@@ -457,7 +508,8 @@ namespace DSL
             dslInfo.container_type = DSL_CONTAINER_MKV;        
             break;
         default:
-            LOG_ERROR("Invalid container = '" << pNvDsInfo->containerType << "' received from NvDsSR for RecordMgr'" << m_name << "'");
+            LOG_ERROR("Invalid container = '" << pNvDsInfo->containerType 
+                << "' received from NvDsSR for RecordMgr'" << m_name << "'");
         }
         
         // copy the remaining data received from the nvidia lib
@@ -466,6 +518,11 @@ namespace DSL
         dslInfo.duration = pNvDsInfo->duration;
         dslInfo.width = pNvDsInfo->width;
         dslInfo.height = pNvDsInfo->height;
+
+        // In case this was an explicit stop vs. duration complete, 
+        // clear the InProgress flag, and it's time to clear the session flag.
+        m_stopSessionInProgress = false;
+        m_currentSessionId = UINT32_MAX;        
         
         try
         {
@@ -476,7 +533,6 @@ namespace DSL
             LOG_ERROR("Client Listener for RecordMgr '" << m_name << "' threw an exception");
             return NULL;
         }
-        
     }
 
     //******************************************************************************************
@@ -486,5 +542,4 @@ namespace DSL
         return static_cast<RecordMgr*>(pRecordMgr)->
             HandleRecordComplete(pNvDsInfo);        
     }
-    
 }
