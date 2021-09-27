@@ -321,7 +321,26 @@ namespace DSL
                 g_usleep(10000);
                 remainingTime -= 10;
             }
-            return (m_stopSessionInProgress == false);
+            if (m_stopSessionInProgress == true)
+            {
+                LOG_ERROR("Stop session exceeded timeout for RecordMgr '" << m_name << "'");
+                m_stopSessionInProgress = false;
+                return false;
+            }
+            LOG_INFO("Stop session completed with remaining time = " << remainingTime);
+            remainingTime = DSL_RECORDING_RESET_WAIT_TIMEOUT_MS;
+            while (!m_pContext->resetDone and remainingTime > 0)
+            {
+                g_usleep(10000);
+                remainingTime -= 10;
+            }
+            LOG_INFO("Reset done with remaining time = " << remainingTime);
+            if (m_pContext->resetDone == false)
+            {
+                LOG_ERROR("Waiting for reset-done exceeded timeout for RecordMgr'"
+                    << m_name << "'");
+                return false;
+            }
         }
         return true;
     }

@@ -543,7 +543,13 @@ THE SOFTWARE.
  * @brief Maximum time to wait for a recording session to stop
  * when the client is blocked on one of the session stop services
  */
-#define DSL_RECORDING_STOP_WAIT_TIMEOUT_MS                          50
+#define DSL_RECORDING_STOP_WAIT_TIMEOUT_MS                          1000
+
+/**
+ * @brief Maximum time to wait for the recording reset done flag
+ * when the client is blocked on one of the session stop services
+ */
+#define DSL_RECORDING_RESET_WAIT_TIMEOUT_MS                         100
 
 /**
  * @brief File Format Options when saving Event Data to file.
