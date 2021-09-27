@@ -1255,7 +1255,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::TapRecordSessionStop(const char* name)
+    DslReturnType Services::TapRecordSessionStop(const char* name, boolean sync)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1268,7 +1268,7 @@ namespace DSL
             DSL_RECORD_TAP_PTR pRecordTapBintr = 
                 std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
 
-            if (!pRecordTapBintr->StopSession())
+            if (!pRecordTapBintr->StopSession(sync))
             {
                 LOG_ERROR("Record Tap '" << name << "' failed to Stop Session");
                 return DSL_RESULT_TAP_SET_FAILED;

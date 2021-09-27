@@ -441,7 +441,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SinkRecordSessionStop(const char* name)
+    DslReturnType Services::SinkRecordSessionStop(const char* name, boolean sync)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -454,7 +454,7 @@ namespace DSL
             DSL_RECORD_SINK_PTR recordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
 
-            if (!recordSinkBintr->StopSession())
+            if (!recordSinkBintr->StopSession(sync))
             {
                 LOG_ERROR("Record Sink '" << name << "' failed to Stop Session");
                 return DSL_RESULT_SINK_SET_FAILED;

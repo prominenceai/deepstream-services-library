@@ -53,6 +53,8 @@ namespace DSL
 
         bool UnlinkFromSourceTee();
         
+        virtual void HandleEos() = 0;
+        
     protected:
     
         /**
@@ -67,7 +69,8 @@ namespace DSL
     {
     public: 
     
-        RecordTapBintr(const char* name, const char* outdir, uint container, dsl_record_client_listener_cb clientListener);
+        RecordTapBintr(const char* name, const char* outdir, 
+            uint container, dsl_record_client_listener_cb clientListener);
 
         ~RecordTapBintr();
   
@@ -82,6 +85,12 @@ namespace DSL
          * Calling UnlinkAll when in an unlinked state has no effect.
          */
         void UnlinkAll();
+        
+        /** 
+         * @brief called by the parent Source on EOS. The RecordTap will 
+         * attempt to stop a recording session if one is in progress
+         */
+        void HandleEos();
 
     private:
 

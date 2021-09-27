@@ -146,5 +146,17 @@ namespace DSL
         
         m_isLinked = false;
     }
+    
+    void RecordTapBintr::HandleEos()
+    {
+        LOG_FUNC();
+        
+        if (IsOn())
+        {
+            LOG_INFO("RecordTapBintr '" << GetName() 
+                << "' is in session, stopping to handle the EOS");
+            StopSession(true);
+        }
+    }
 
 }

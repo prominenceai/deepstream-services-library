@@ -1658,6 +1658,11 @@ namespace DSL
         }
         LOG_INFO("Buffer timeout of " << m_bufferTimeout << " seconds exceeded for source '" 
             << GetName() << "'");
+            
+        if (HasTapBintr())
+        {
+            m_pTapBintr->HandleEos();
+        }
         
         // Call the Reconnection Managter directly to start the reconnection cycle,
         if (!ReconnectionManager())
