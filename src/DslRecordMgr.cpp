@@ -33,10 +33,11 @@ namespace DSL
 
     //-------------------------------------------------------------------------
     
-    RecordMgr::RecordMgr(const char* name, const char* outdir, 
+    RecordMgr::RecordMgr(const char* name, const char* outdir, uint gpuId,
         uint container, dsl_record_client_listener_cb clientListener)
         : m_name(name)
         , m_outdir(outdir)
+        , m_parentGpuId(gpuId)
         , m_pContext(NULL)
         , m_initParams{0}
         , m_clientListener(clientListener)
@@ -116,10 +117,15 @@ namespace DSL
                 << "' is in session, stopping before destroying context");
             StopSession(true);
         }
-        LOG_INFO("RecordMgr '" << m_name 
-            << "' destroying context " << m_pContext);
-        NvDsSRDestroy(m_pContext);
-        LOG_INFO("after destroy context");
+        // NOTE: This conditional is required to avoid a potential lockup on the x86_64 platform
+        cudaDeviceProp deviceProp;
+        cudaGetDeviceProperties(&deviceProp, m_parentGpuId);
+        if (g_main_loop_is_running(Services::GetServices()->GetMainLoopHandle()) or 
+            !deviceProp.integrated)
+        {
+            NvDsSRDestroy(m_pContext);
+        }
+            
         m_pContext = NULL;
     }
 

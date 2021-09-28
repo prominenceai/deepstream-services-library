@@ -38,7 +38,7 @@ namespace DSL
     {
     public: 
     
-        RecordMgr(const char* name, const char* outdir, uint container, 
+        RecordMgr(const char* name, const char* outdir, uint gpuId, uint container, 
             dsl_record_client_listener_cb clientListener);
 
         ~RecordMgr();
@@ -196,6 +196,11 @@ protected:
          * @brief absolute or relative path 
          */
         std::string m_outdir;
+
+        /**
+         * @brief GPU_ID provided on construction
+         */
+        uint m_parentGpuId;
 
         /**
          * @brief SR context, once created, must be passed to 
