@@ -830,9 +830,10 @@ namespace DSL
     //-------------------------------------------------------------------------
     
     RecordSinkBintr::RecordSinkBintr(const char* name, const char* outdir, 
-        uint codec, uint container, uint bitRate, uint interval, dsl_record_client_listener_cb clientListener)
+        uint codec, uint container, uint bitRate, uint interval, 
+        dsl_record_client_listener_cb clientListener)
         : EncodeSinkBintr(name, codec, container, bitRate, interval)
-        , RecordMgr(name, outdir, container, clientListener)
+        , RecordMgr(name, outdir, m_gpuId, container, clientListener)
     {
         LOG_FUNC();
         

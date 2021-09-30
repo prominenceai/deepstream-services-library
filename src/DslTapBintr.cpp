@@ -77,7 +77,7 @@ namespace DSL
     RecordTapBintr::RecordTapBintr(const char* name, const char* outdir, 
         uint container, dsl_record_client_listener_cb clientListener)
         : TapBintr(name)
-        , RecordMgr(name, outdir, container, clientListener)
+        , RecordMgr(name, outdir, m_gpuId, container, clientListener)
     {
         LOG_FUNC();
     }
