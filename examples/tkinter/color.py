@@ -27,6 +27,24 @@
 import tkinter as tk
 
 ##
+# RGBA Color Paramaters Class
+##
+class ColorParams():
+    def __init__(self, red, green, blue, alpha):
+        self.red = red
+        self.green = green
+        self.blue = blue
+        self.alpha = alpha
+
+    def get_rgb_str(self):
+        return '{}, {}, {}, {}'.format(
+            int(self.red*255), int(self.green*255), int(self.blue*255), int(self.alpha*255))
+        
+    def get_unique_name(self):
+        return '{}-{}-{}-{}'.format(
+            int(self.red*255), int(self.green*255), int(self.blue*255), int(self.alpha*255))
+
+##
 # RGB Color Button Class
 ##
 class RgbColorButton(tk.Button):
@@ -87,3 +105,4 @@ class RgbColorButton(tk.Button):
     ##
     def get_rgb(self):
         return self.red, self.green, self.blue
+        

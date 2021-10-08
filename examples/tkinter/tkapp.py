@@ -33,36 +33,8 @@ import pyds
 import os
 import threading
 
-from tkapp_window import AppWindow
-
-# RTSP Source URI	
-rtsp_uri = 'rtsp://user:pwd@192.168.1.64:554/Streaming/Channels/101'	
-
-TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH	
-TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT	
-WINDOW_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH	
-WINDOW_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT	
-
-# Filespecs for the Primary GIE	
-primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'	
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'	
-
-##
-# MetaData class for creating a display type. A single Object
-# that will be accessed by multiple threads. Pipeline and TK APP
-##
-class MetaData():
-    def __init__(self):
-        self.mutex = threading.Lock()
-
-##
-# Thread to block on the DSL/GStreamer Main Loop
-##
-def thread_loop():
-    try:
-        dsl_main_loop_run()
-    except:
-        pass
+from tkapp_window import MetaData, AppWindow
+from config import *
 
 ##
 # tkinter app class
@@ -83,42 +55,24 @@ class App(tk.Tk):
         # we need a way to close the application in fullscreen mode
         self.bind('<Escape>', self.quit)
         
-        # if either the window width or height match the screen size, go to fullscreen
-        if WINDOW_WIDTH == self.winfo_screenwidth() or \
-            WINDOW_HEIGHT == self.winfo_screenheight():
-            self.attributes('-fullscreen', True)
-        
+        # go to fullscreen regardless of Window width and height
+        self.attributes('-fullscreen', True)
+
         # Create the App window to be shared with the Pipeline's Window Sink
-        self.window_frame = AppWindow(self, bg='black',
-            width=WINDOW_WIDTH, height=WINDOW_HEIGHT, bd=0)
-        self.window_frame.pack()
-        
-        # MetaData object for creating display-types.
-        self.meta_data = MetaData()
+        self.app_window_frame = AppWindow(self, bg='black',
+            width=self.winfo_screenwidth(), height=self.winfo_screenheight(), bd=0)
+        self.app_window_frame.pack()
         
         # Build the Pipeline using the path specs and sizes defined above.
         self.retval = self.build_pipeline()
         if self.retval != DSL_RETURN_SUCCESS:
             self.quit(None)
-        
-        # Once built, the Pipeline can now be played
-        self.retval = self.play_pipeline()
-        if self.retval != DSL_RETURN_SUCCESS:
-            self.quit(None)
-
-        self.dsl_main_loop = threading.Thread(target=thread_loop, daemon=True)
-        self.dsl_main_loop.start()
 
     ##
     # Dtor for this Tkinter Application
     ##
     def __del__(self):
         
-        # If the DSL/GST main-loop was started, then stop and join thread shutdown.
-        if self.dsl_main_loop:
-            dsl_main_loop_quit()
-            self.dsl_main_loop.join()
-            
         # Cleanup all DSL/GST resources
         dsl_delete_all()
         
@@ -127,9 +81,10 @@ class App(tk.Tk):
     ##
     def quit(self, event):
     
-        if tk.messagebox.askquestion(
-            message='Are you sure you want to exit?') == 'no':
-            return
+        if event is not None:
+            if tk.messagebox.askquestion(
+                message='Are you sure you want to exit?') == 'no':
+                return
     
         # Explicity call the destructor as tk.quit will stop the main-loop and exit.
         self.__del__()
@@ -137,7 +92,7 @@ class App(tk.Tk):
 
     def build_pipeline(self):
         # For each camera, create a new RTSP Source for the specific RTSP URI	
-        retval = dsl_source_rtsp_new('rtsp-source',
+        retval = dsl_source_rtsp_new(SOURCE_1,
             uri = rtsp_uri, 	
             protocol = DSL_RTP_ALL, 	
             cudadec_mem_type = DSL_CUDADEC_MEMTYPE_DEVICE, 	
@@ -149,58 +104,65 @@ class App(tk.Tk):
             return retval
 
         # New Primary GIE using the filespecs above, with interval and Id	
-        retval = dsl_infer_gie_primary_new('primary-gie', 
+        retval = dsl_infer_gie_primary_new(PGIE, 
             primary_infer_config_file, primary_model_engine_file, 2)	
         if retval != DSL_RETURN_SUCCESS:	
             return retval
 
         # New KTL Tracker, setting max width and height of input frame	
-        retval = dsl_tracker_ktl_new('ktl-tracker', 480, 272)	
+        retval = dsl_tracker_ktl_new(TRACKER, 480, 272)	
         if retval != DSL_RETURN_SUCCESS:	
             return retval
 
         # New Tiled Display, setting width and height, use default cols/rows set by source count	
-        retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)	
+        retval = dsl_tiler_new(TILER, TILER_WIDTH, TILER_HEIGHT)	
         if retval != DSL_RETURN_SUCCESS:	
             return retval
 
         # New OSD with clock and labels enabled... using default values.
-        retval = dsl_osd_new('on-screen-display', True, True)
+        retval = dsl_osd_new(OSD, True, True)
         if retval != DSL_RETURN_SUCCESS:	
             return retval
 
-        # New Custom Pad Probe Handler to call Nvidia's example callback for handling the Batched Meta Data
-        retval = dsl_pph_custom_new('custom-pph', 
-            client_handler=self.osd_sink_pad_buffer_probe, client_data=self.meta_data)
+        # New Custom Pad Probe Handler to draw the active display-type
+        retval = dsl_pph_custom_new(DISPLAY_TYPE_PPH, 
+            client_handler=self.overlay_display_type, client_data=self.app_window_frame.meta_data)
 
         # Add the custom PPH to the Sink pad of the OSD
-        retval = dsl_osd_pph_add('on-screen-display', handler='custom-pph', pad=DSL_PAD_SINK)
+        retval = dsl_osd_pph_add(OSD, handler=DISPLAY_TYPE_PPH, 
+            pad=DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             return retval
 
         # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display	
-        retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)	
+        retval = dsl_sink_window_new(WINDOW_SINK, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)	
         if retval != DSL_RETURN_SUCCESS:	
             return retval
             
-        # Fix the aspect ration for the Window sink
-        retval = dsl_sink_window_force_aspect_ratio_set('window-sink', force=True)
+        # Fix the aspect ratio for the Window sink
+        retval = dsl_sink_window_force_aspect_ratio_set(WINDOW_SINK, force=True)
         if retval != DSL_RETURN_SUCCESS:	
             return retval
 
         # Add all the components to our pipeline	
-        retval = dsl_pipeline_new_component_add_many('pipeline', 	
-            ['rtsp-source', 'primary-gie', 'ktl-tracker', 'on-screen-display', 'window-sink', None])
+        retval = dsl_pipeline_new_component_add_many(PIPELINE, 	
+            [SOURCE_1, PGIE, TRACKER, TILER, OSD, WINDOW_SINK, None])
         if retval != DSL_RETURN_SUCCESS:	
             return retval
             
-        # Setup the Pipeline's XWindow handle to use application window. 
-        return dsl_pipeline_xwindow_handle_set('pipeline', self.window_frame.winfo_id())
-
-    def play_pipeline(self):
-        return dsl_pipeline_play('pipeline')
+        # Set the Stream-muxer dimensions using config settings
+        retval = dsl_pipeline_streammux_dimensions_set(PIPELINE,
+            width=STREAMMUX_WIDTH, height=STREAMMUX_HEIGHT)
+        if retval != DSL_RETURN_SUCCESS:	
+            return retval
         
-    def osd_sink_pad_buffer_probe(self, gst_buffer, client_data):
+        # Setup the Pipeline's XWindow handle to use application's sink window frame. 
+        return dsl_pipeline_xwindow_handle_set(PIPELINE, 
+            self.app_window_frame.get_sink_window())
+        
+    ##
+    # Custom Pad Probe Handler to overlay the active display-type
+    def overlay_display_type(self, gst_buffer, client_data):
     
         # cast the C void* client_data back to a py_object pointer and deref
         meta_data = cast(client_data, POINTER(py_object)).contents.value
@@ -224,8 +186,31 @@ class App(tk.Tk):
             except StopIteration:
                 break
         
-                #pyds.nvds_add_display_meta_to_frame(frame_meta, display_meta)
+            if meta_data.active_display_type is not None:
+                display_meta=pyds.nvds_acquire_display_meta_from_pool(batch_meta)
 
+                display_meta.num_lines = 0
+                display_meta.num_rects = 0
+                
+                if 'Line' in meta_data.active_display_type:
+                    line = meta_data.active_display_type['Line']
+                    py_nvosd_line_params = display_meta.line_params[display_meta.num_lines]
+                    display_meta.num_lines +=1
+                    
+                    py_nvosd_line_params = line.copy(py_nvosd_line_params)
+
+                elif 'Polygon' in meta_data.active_display_type:
+                    
+                    lines = meta_data.active_display_type['Polygon']
+                    
+                    for line in lines:
+                        if line:
+                            py_nvosd_line_params = display_meta.line_params[display_meta.num_lines]
+                            display_meta.num_lines +=1
+                            
+                            py_nvosd_line_params = line.copy(py_nvosd_line_params)
+
+                pyds.nvds_add_display_meta_to_frame(frame_meta, display_meta)
         
             try:
                 l_frame=l_frame.next
