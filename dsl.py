@@ -1,6 +1,6 @@
 from ctypes import *
 
-_dsl = CDLL('./dsl-lib.so')
+_dsl = CDLL('./libdsl.so')
 
 DSL_RETURN_SUCCESS = 0
 
