@@ -26,6 +26,7 @@
 
 
 APP:= dsl-test-app
+LIB:= libdsl
 
 CXX = g++
 
@@ -131,14 +132,14 @@ $(APP): $(OBJS) Makefile
 	$(CXX) -o $(APP) $(OBJS) $(LIBS)
 
 lib:
-	ar rcs dsl-lib.a $(OBJS)
-	ar dv dsl-lib.a DslCatch.o $(TEST_OBJS)
-	$(CXX) -shared $(OBJS) -o dsl-lib.so $(LIBS)
-	cp dsl-lib.so examples/python/
+	ar rcs $(LIB).a $(OBJS)
+	ar dv $(LIB).a DslCatch.o $(TEST_OBJS)
+	$(CXX) -shared $(OBJS) -o $(LIB).so $(LIBS)
+	cp $(LIB).so examples/python/
 	
 so_lib:
-	$(CXX) -shared $(OBJS) -o dsl-lib.so $(LIBS) 
-	cp dsl-lib.so examples/python/
+	$(CXX) -shared $(OBJS) -o $(LIB).so $(LIBS) 
+	cp $(LIB).so examples/python/
 
 clean:
-	rm -rf $(OBJS) $(APP) dsl-lib.a dsl-lib.so $(PCH_OUT)
+	rm -rf $(OBJS) $(APP) $(LIB).a $(LIB).so $(PCH_OUT)
