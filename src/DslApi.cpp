@@ -4289,6 +4289,22 @@ DslReturnType dsl_sink_rtsp_encoder_settings_set(const wchar_t* name,
     return DSL::Services::GetServices()->SinkRtspEncoderSettingsSet(cstrName.c_str(), bitrate, interval);
 }
 
+// NOTE: the WebRTC Sink implementation requires DS 1.18.0 or later
+DslReturnType dsl_sink_webrtc_new(const wchar_t* name)
+{
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
+    return DSL_RESULT_API_NOT_IMPLEMENTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(name);
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkWebRtcNew(cstrName.c_str());
+#endif    
+}
+
 DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler)
 {
     RETURN_IF_PARAM_IS_NULL(name);

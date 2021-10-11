@@ -38,6 +38,7 @@ NVDS_VERSION:=5.1
 GS_VERSION:=1.0
 GLIB_VERSION:=2.0
 GSTREAMER_VERSION:=1.0
+GSTREAMER_SUB_VERSION:=18
 CUDA_VERSION:=10.2
 
 SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources
@@ -52,6 +53,10 @@ SRCS+= $(wildcard ./test/unit/*.cpp)
 INCS:= $(wildcard ./src/*.h)
 INCS+= $(wildcard ./test/*.hpp)
 
+ifeq ($(GSTREAMER_SUB_VERSION),18)
+    SRCS+= $(wildcard ./src/webrtc/*.cpp)
+    INCS+= $(wildcard ./src/webrtc/*.h)
+endif
 
 TEST_OBJS+= $(wildcard ./test/api/*.o)
 TEST_OBJS+= $(wildcard ./test/unit/*.o)
@@ -76,12 +81,12 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-I/usr/lib/$(TARGET_DEVICE)-linux-gnu/glib-$(GLIB_VERSION)/include \
 	-I/usr/local/cuda-$(CUDA_VERSION)/targets/$(TARGET_DEVICE)-linux/include \
 	-I./src \
+	-I./src/webrtc \
 	-I./test \
 	-I./test/api \
 	-DDSL_VERSION=$(DSL_VERSION) \
-    -DDS_VERSION_MINOR=0 \
-    -DDS_VERSION_MAJOR=4 \
     -DDSL_LOGGER_IMP='"DslLogGst.h"'\
+	-DGSTREAMER_SUB_VERSION=$(GSTREAMER_SUB_VERSION) \
 	-DNVDS_DCF_LIB='"$(LIB_INSTALL_DIR)/libnvds_nvdcf.so"' \
 	-DNVDS_KLT_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_klt.so"' \
 	-DNVDS_IOU_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_iou.so"' \

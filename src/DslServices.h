@@ -32,6 +32,12 @@ THE SOFTWARE.
 #include "DslOdeArea.h"
 #include "DslOdeTrigger.h"
 #include "DslPipelineBintr.h"
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION >= 18
+    #include "DslSinkWebRtcBintr.h"
+#endif
+
 
 namespace DSL {
     
@@ -765,6 +771,8 @@ namespace DSL {
         DslReturnType SinkRtspEncoderSettingsGet(const char* name, uint* bitrate, uint* interval);
 
         DslReturnType SinkRtspEncoderSettingsSet(const char* name, uint bitrate, uint interval);
+
+        DslReturnType SinkWebRtcNew(const char* name);
 
         DslReturnType SinkPphAdd(const char* name, const char* handler);
 

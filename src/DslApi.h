@@ -3989,6 +3989,14 @@ DslReturnType dsl_sink_rtsp_encoder_settings_set(const wchar_t* name,
     uint bitrate, uint interval);
 
 /**
+ * @brief creates a new, uniquely named WebRTC Sink component
+ * @param[in] name unique coomponent name for the new WebRTC Sink
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ * ** IMPORTANT: the WebRTC Sink implementation requires DS 1.18.0 or later
+ */
+DslReturnType dsl_sink_webrtc_new(const wchar_t* name);
+     
+/**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
  * One or more Pad Probe Handlers can be added to the SINK PAD only (single stream).
  * @param[in] name unique name of the Sink to update
