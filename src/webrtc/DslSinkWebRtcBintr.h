@@ -25,6 +25,14 @@ THE SOFTWARE.
 #ifndef _DSL_SINK_WEBRTC_BINTR_H
 #define _DSL_SINK_WEBRTC_BINTR_H
 
+#include "Dsl.h"
+#include <gst/sdp/sdp.h>
+#include <libsoup/soup.h>
+#include <json-glib/json-glib.h>
+
+#define GST_USE_UNSTABLE_API
+#include <gst/webrtc/webrtc.h>
+
 #include "DslSinkBintr.h"
 
 namespace DSL
@@ -53,7 +61,7 @@ namespace DSL
          * Calling UnlinkAll when in an unlinked state has no effect.
          */
         void UnlinkAll();
-        
+
         /**
          * @brief sets the current sync and async settings for the SinkBintr
          * @param[in] sync current sync setting, true if set, false otherwise.
@@ -62,15 +70,61 @@ namespace DSL
          */
         bool SetSyncSettings(bool sync, bool async);
 
+        /**
+         * @brief Handles the on-negotiation-needed by emitting a create-offer signal
+         */
+        void OnNegotiationNeeded();
+
+        /**
+         * @brief Handles the on-offer-created callback by
+         * @param[in] promise 
+         */
+        void OnOfferCreated(GstPromise* promise);
+
+        /**
+         * @brief Handles the on-ice-candidate callback by
+         * @param[in] mLineIndex 
+         * @param[in] candidate
+         */
+        void OnIceCandidate(guint mLineIndex, gchar* candidate);
+
+        /**
+         * @brief Handles the on-local-desc-set callback by
+         * @param[in] promise 
+         */
+        void OnLocalDescSet(GstPromise* promise);
+
     private:
 
-        boolean m_qos;
+        gchar* getStrFromJsonObj(JsonObject * object);
+
+        SoupWebsocketConnection* m_pConnection;
+
+        GstWebRTCDataChannel* m_pSendChannel;   
         
         /**
-         * @brief WebRtc Sink element for the Sink Bintr.
+         * @brief WebRtc bin element for this WebRtcSinkBintr.
          */
-        DSL_ELEMENT_PTR m_pWebRtcSink;
+        DSL_ELEMENT_PTR m_pWebRtcBin;
     };
+
+    static void on_pad_added_cb(GstElement * webrtcbin, GstPad* pad, gpointer pWebRtcSink);
+
+    static void on_pad_removed_cb(GstElement * webrtcbin, GstPad* pad, gpointer pWebRtcSink);
+
+    static void on_no_more_pads_cb(GstElement * webrtcbin, gpointer user_data);
+
+    static void on_negotiation_needed_cb(GstElement * webrtcbin, gpointer pWebRtcSink);
+
+    static void on_offer_created_cb(GstPromise* promise, gpointer pWebRtcSink);
+
+    static void on_local_desc_set_cb(GstPromise* promise, gpointer pWebRtcSink);
+
+    static void on_ice_candidate_cb(G_GNUC_UNUSED GstElement * webrtcbin, 
+        guint mline_index, gchar * candidate, gpointer pWebRtcSink);
+
+    static void on_new_transceiver_cb(GstElement * webrtcbin, 
+        GstWebRTCRTPTransceiver* transceiver, gpointer pWebRtcSink);
 
 }
 #endif //_DSL_SINK_BINTR_H

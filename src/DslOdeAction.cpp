@@ -72,8 +72,8 @@ namespace DSL
         struct tm currentTm;
         localtime_r(&secs, &currentTm);        
         
-        char dateTime[64] = {0};
-        char dateTimeUsec[64];
+        char dateTime[65] = {0};
+        char dateTimeUsec[85];
         strftime(dateTime, sizeof(dateTime), "%Y-%m-%d %H:%M:%S", &currentTm);
         snprintf(dateTimeUsec, sizeof(dateTimeUsec), "%s.%06ld", dateTime, usecs);
 
@@ -96,7 +96,6 @@ namespace DSL
     FormatBBoxOdeAction::~FormatBBoxOdeAction()
     {
         LOG_FUNC();
-
     }
 
     void FormatBBoxOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 

@@ -922,7 +922,7 @@ namespace DSL
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set Sync/Async Settings for FileSinkBintr '" << GetName() 
+            LOG_ERROR("Unable to set Sync/Async Settings for RecordSinkBintr '" << GetName() 
                 << "' as it's currently linked");
             return false;
         }

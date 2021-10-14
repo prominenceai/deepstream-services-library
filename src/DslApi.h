@@ -437,6 +437,12 @@ THE SOFTWARE.
 
 #define DSL_RTP_TCP                                                 0x04
 #define DSL_RTP_ALL                                                 0x07
+
+/**
+ * @brief HTTP Port number for the Soup Server Manager
+ */
+#define DSL_SOUP_HTTP_PORT                                          57778
+
 /**
  * @brief time to sleep after a failed reconnection before
  * starting a new re-connection cycle. In units of seconds

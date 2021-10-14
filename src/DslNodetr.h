@@ -620,6 +620,7 @@ namespace DSL
                 if (gst_element_get_state(GetGstElement(), NULL, NULL, GST_CLOCK_TIME_NONE) == GST_STATE_CHANGE_FAILURE)
                 {
                     LOG_ERROR("Bintr '" << GetName() << "' failed to set state to NULL");
+                    return false;
                 }
                 // drop through on success - DO NOT BREAK
 
@@ -636,7 +637,12 @@ namespace DSL
                 gst_object_unref(m_pGstStaticSrcPad);
                 gst_object_unref(m_pGstRequestedSinkPad);
                 return Nodetr::UnlinkFromSink();
+            default:
+                break;
             }
+            LOG_ERROR("Unknown state change for Bintr '" << GetName() << "'");
+            return false;
+
         }
         
         /**

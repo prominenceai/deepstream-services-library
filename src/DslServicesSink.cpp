@@ -430,9 +430,9 @@ namespace DSL
                 LOG_ERROR("Record Sink '" << name << "' failed to Start Session");
                 return DSL_RESULT_SINK_SET_FAILED;
             }
+            LOG_INFO("Session started successfully for Record Sink '" << name << "'");
             return DSL_RESULT_SUCCESS;
             
-            LOG_INFO("Session started successfully for Record Sink '" << name << "'");
         }
         catch(...)
         {
