@@ -134,7 +134,8 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_MAILER_ADD_FAILED                           0x00040014
 #define DSL_RESULT_SINK_MAILER_REMOVE_FAILED                        0x00040015
 #define DSL_RESULT_SINK_OVERLAY_NOT_SUPPORTED                       0x00040016
-
+#define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_ADD_FAILED           0x00040017
+#define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED        0x00040018
 
 /**
  * OSD API Return Values
@@ -440,8 +441,14 @@ THE SOFTWARE.
 
 /**
  * @brief HTTP Port number for the Soup Server Manager
+ * If set to 0, Manager will find an unused port to listen on.
  */
-#define DSL_SOUP_HTTP_PORT                                          57778
+#define DSL_SOUP_HTTP_PORT                                          60001
+
+#define DSL_SOCKET_CONNECTION_STATE_NONE                            0
+#define DSL_SOCKET_CONNECTION_STATE_INITIATED                       1
+#define DSL_SOCKET_CONNECTION_STATE_CLOSED                          2
+#define DSL_SOCKET_CONNECTION_STATE_FAILED                          3
 
 /**
  * @brief time to sleep after a failed reconnection before
@@ -739,6 +746,20 @@ typedef struct dsl_capture_info
 } dsl_capture_info;
 
 /**
+ * @struct dsl_webrtc_connection_data
+ * @brief a structure of Connection date for a given WebRTC Sink
+ */
+typedef struct _dsl_webrtc_connection_data
+{
+    /**
+     * @brief the current state of the WebRTC Sink's Websocket connection
+     * one of the DSL_SOCKET_CONNECTION_STATE* values
+     */ 
+    uint current_state; 
+
+} dsl_webrtc_connection_data;
+
+/**
  * @struct _dsl_coordinate
  * @brief defines a frame coordinate by it's x and y pixel position
  */
@@ -896,6 +917,14 @@ typedef void (*dsl_capture_complete_listener_cb)(dsl_capture_info* info, void* c
  * @param[in] client_data opaque pointer to client's user data
  */
 typedef void (*dsl_player_termination_event_listener_cb)(void* client_data);
+
+/**
+ * @brief callback typedef for a client to listen for WebRTC Sink connection events.
+ * @param[in] info pointer to connection info, see dsl_webrtc_connection_data struct.
+ * @param[in] client_data opaque pointer to client's user data
+ */
+typedef void (*dsl_sink_webrtc_client_listener_cb)(dsl_webrtc_connection_data* info, 
+    void* client_data);
 
 /**
  * @brief creates a uniquely named RGBA Display Color
@@ -3921,34 +3950,26 @@ DslReturnType dsl_sink_record_mailer_remove(const wchar_t* name,
     const wchar_t* mailer);
     
 /**
- * @brief gets the current codec and video media container formats
- * @param[in] name unique name of the Sink to query
- * @param[out] codec one of DSL_CODEC_H264, DSL_CODEC_H265, DSL_CODEC_MPEG4
- * @param[out] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
- */
-DslReturnType dsl_sink_encode_video_formats_get(const wchar_t* name,
-    uint* codec, uint* container);
-
-/**
- * @brief gets the current bit-rate and interval settings for the named File Sink
- * @param[in] name unique name of the File Sink to query
- * @param[out] bitrate current Encoder bit-rate in bits/sec for the named File Sink
- * @param[out] interval current Encoder iframe interval value
+ * @brief gets the current codec, bitrate, and interval settings for the named Encode Sink
+ * @param[in] name unique name of the Encode Sink to query
+ * @param[out] codec current Codec either DSL_CODEC_H264 DSL_CODEC_H265
+ * @param[out] bitrate current encoder bitrate in bits/sec for the named Encode Sink
+ * @param[out] interval current encoder frame interval value
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_encode_settings_get(const wchar_t* name,
-    uint* bitrate, uint* interval);
+    uint* codec, uint* bitrate, uint* interval);
 
 /**
- * @brief sets new bit_rate and interval settings for the named File Sink
- * @param[in] name unique name of the File Sink to update
- * @param[in] bitrate new Encoder bit-rate in bits/sec for the named File Sink
- * @param[in] interval new Encoder iframe interval value to use
+ * @brief sets new codec, bitrate, and interval settings for the named Encode Sink
+ * @param[in] name unique name of the Encode Sink to update
+ * @param[in] codec new codec either DSL_CODEC_H264 DSL_CODEC_H265
+ * @param[in] bitrate new encoder bitrate in bits/sec for the named Encode Sink
+ * @param[in] interval new encoder frame interval value to use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_encode_settings_set(const wchar_t* name,
-    uint bitrate, uint interval);
+DslReturnType dsl_sink_encode_settings_set(const wchar_t* name, 
+    uint codec, uint bitrate, uint interval);
 
 /**
  * @brief creates a new, uniquely named RTSP Sink component
@@ -3968,40 +3989,74 @@ DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host,
  * @brief gets the current codec and video media container formats
  * @param[in] name unique name of the Sink to query
  * @param[out] port UDP Port number to use
- * @param[out] codec one of DSL_CODEC_H264, DSL_CODEC_H265
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
-    uint* udpPort, uint* rtspPort, uint* codec);
-
-/**
- * @brief gets the current bit-rate and interval settings for the named RTSP Sink
- * @param[in] name unique name of the RTSP Sink to query
- * @param[out] bitrate current Encoder bit-rate in bits/sec for the named RTSP Sink
- * @param[out] interval current Encoder iframe interval value
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
- */
-DslReturnType dsl_sink_rtsp_encoder_settings_get(const wchar_t* name,
-    uint* bitrate, uint* interval);
-
-/**
- * @brief sets new bit_rate and interval settings for the named RTSP Sink
- * @param[in] name unique name of the RTSP Sink to update
- * @param[in] bitrate new Encoder bit-rate in bits/sec for the named RTSP Sink
- * @param[in] interval new Encoder iframe interval value to use
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
- */
-DslReturnType dsl_sink_rtsp_encoder_settings_set(const wchar_t* name,
-    uint bitrate, uint interval);
+    uint* udpPort, uint* rtspPort);
 
 /**
  * @brief creates a new, uniquely named WebRTC Sink component
- * @param[in] name unique coomponent name for the new WebRTC Sink
+ * @param[in] name unique component name for the new WebRTC Sink
+ * @param[in] stun_server STUN server to use of the form stun://hostname:port.
+ * Set to NULL to omit if using TURN server(s)
+ * @param[in] turn_server TURN server(s) to use of the form 
+ * turn(s)://username:password@host:port. Set to NULL to omit if using a STUN server
+ * @param[in] codec either DSL_CODEC_H264 DSL_CODEC_H265
+ * @param[in] bitrate in bits per second
+ * @param[in] interval frame interval to encode at
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  * ** IMPORTANT: the WebRTC Sink implementation requires DS 1.18.0 or later
  */
-DslReturnType dsl_sink_webrtc_new(const wchar_t* name);
+DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_server, 
+    const wchar_t* turn_server, uint codec, uint bitrate, uint interval);
+
+/**
+ * @brief Queries a uniquely named WebRTC Sink component for its current
+ * STUN and TURN servers in use.
+ * @param[in] name unique component name for the new WebRTC Sink
+ * @param[out] stun_server STUN server in use of the form stun://hostname:port
+ * @param[out] turn_server TURN server(s) in use of the form 
+ * turn(s)://username:password@host:port. "
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT on failure
+ * ** IMPORTANT: the WebRTC Sink implementation requires DS 1.18.0 or later
+ */
+DslReturnType dsl_sink_webrtc_servers_get(const wchar_t* name, 
+    const wchar_t** stun_server, const wchar_t** turn_server);
      
+/**
+ * @brief Updates a uniquely named WebRTC Sink component with new
+ * STUN and TURN servers to use
+ * @param[in] name unique name of the WebRTC Sink to update
+ * @param[in] stun_server STUN server to use of the form stun://hostname:port.
+ * Set to NULL to omit if using TURN server(s)
+ * @param[in] turn_server TURN server(s) to use of the form 
+ * turn(s)://username:password@host:port. Set to NULL to omit if using a STUN server
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT on failure
+ * ** IMPORTANT: the WebRTC Sink implementation requires DS 1.18.0 or later
+ */
+DslReturnType dsl_sink_webrtc_servers_set(const wchar_t* name, 
+    const wchar_t* stun_server, const wchar_t* turn_server);
+
+/**
+ * @brief Adds a callback to a named WebRTC Sink to be called on every change
+ * of Websocket connection state.
+ * @param[in] name name of the WebRTC Sink to add the callback to
+ * @param[in] listener pointer to the client's function to call on state change.
+ * @param[in] client_data opaque pointer to client data passed to the listener function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_webrtc_client_listener_add(const wchar_t* name, 
+    dsl_sink_webrtc_client_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a callback previously added with dsl_sink_webrtc_client_listener_add
+ * @param[in] name name of the WebRTC Sink to update
+ * @param[in] listener pointer to the client's listener function to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_webrtc_client_listener_remove(const wchar_t* name, 
+    dsl_sink_webrtc_client_listener_cb listener);
+
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
  * One or more Pad Probe Handlers can be added to the SINK PAD only (single stream).

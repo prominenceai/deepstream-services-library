@@ -799,10 +799,12 @@ SCENARIO( "The Components container is updated correctly on new File Sink", "[si
 
             THEN( "The list size is updated correctly" ) 
             {
-                uint retCodec(0), retContainer(0);
-                REQUIRE( dsl_sink_encode_video_formats_get(fileSinkName.c_str(), &retCodec, &retContainer) == DSL_RESULT_SUCCESS );
+                uint retCodec(0), retBitrate(0), retInterval(0);
+                REQUIRE( dsl_sink_encode_settings_get(fileSinkName.c_str(), &retCodec, 
+                    &retBitrate, &retInterval) == DSL_RESULT_SUCCESS );
                 REQUIRE( retCodec == codec );
-                REQUIRE( retContainer == container );
+                REQUIRE( retBitrate == bitrate );
+                REQUIRE( retInterval == interval );
                 REQUIRE( dsl_component_list_size() == 1 );
             }
         }
@@ -904,23 +906,30 @@ SCENARIO( "A File Sink's Encoder settings can be updated", "[sink-api]" )
         REQUIRE( dsl_sink_file_new(fileSinkName.c_str(), filePath.c_str(),
             codec, container, initBitrate, initInterval) == DSL_RESULT_SUCCESS );
             
+        uint currCodec(0);
         uint currBitrate(0);
         uint currInterval(0);
     
-        REQUIRE( dsl_sink_encode_settings_get(fileSinkName.c_str(), &currBitrate, &currInterval) == DSL_RESULT_SUCCESS);
+        REQUIRE( dsl_sink_encode_settings_get(fileSinkName.c_str(), 
+            &currCodec, &currBitrate, &currInterval) == DSL_RESULT_SUCCESS);
+        REQUIRE( currCodec == codec );
         REQUIRE( currBitrate == initBitrate );
         REQUIRE( currInterval == initInterval );
 
         WHEN( "The FileSinkBintr's Encoder settings are Set" )
         {
+            uint newCodec(DSL_CODEC_H264);
             uint newBitrate(2500000);
             uint newInterval(10);
             
-            REQUIRE( dsl_sink_encode_settings_set(fileSinkName.c_str(), newBitrate, newInterval) == DSL_RESULT_SUCCESS);
+            REQUIRE( dsl_sink_encode_settings_set(fileSinkName.c_str(), 
+                newCodec, newBitrate, newInterval) == DSL_RESULT_SUCCESS);
 
             THEN( "The FileSinkBintr's new Encoder settings are returned on Get")
             {
-                REQUIRE( dsl_sink_encode_settings_get(fileSinkName.c_str(), &currBitrate, &currInterval) == DSL_RESULT_SUCCESS);
+                REQUIRE( dsl_sink_encode_settings_get(fileSinkName.c_str(), 
+                    &currCodec, &currBitrate, &currInterval) == DSL_RESULT_SUCCESS);
+                REQUIRE( currCodec == newCodec );
                 REQUIRE( currBitrate == newBitrate );
                 REQUIRE( currInterval == newInterval );
 
@@ -937,9 +946,11 @@ SCENARIO( "An invalid File Sink is caught on Encoder settings Get and Set", "[si
     {
         std::wstring fakeSinkName(L"fake-sink");
             
+        uint currCodec(0);
         uint currBitrate(0);
         uint currInterval(0);
     
+        uint newCodec(1);
         uint newBitrate(2500000);
         uint newInterval(10);
 
@@ -950,10 +961,10 @@ SCENARIO( "An invalid File Sink is caught on Encoder settings Get and Set", "[si
 
             THEN( "The File Sink encoder settings APIs fail correctly")
             {
-                REQUIRE( dsl_sink_encode_settings_get(fakeSinkName.c_str(), &currBitrate, &currInterval) == 
-                    DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK);
-                REQUIRE( dsl_sink_encode_settings_set(fakeSinkName.c_str(), newBitrate, newInterval) == 
-                    DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK);
+                REQUIRE( dsl_sink_encode_settings_get(fakeSinkName.c_str(), &currCodec, &currBitrate, 
+                    &currInterval) == DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK);
+                REQUIRE( dsl_sink_encode_settings_set(fakeSinkName.c_str(), newCodec,
+                    newBitrate, newInterval) == DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK);
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
@@ -1144,11 +1155,10 @@ SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H264 R
 
             THEN( "The list size is updated correctly" ) 
             {
-                uint retUdpPort(0), retRtspPort(0), retCodec(0);
-                dsl_sink_rtsp_server_settings_get(rtspSinkName.c_str(), &retUdpPort, &retRtspPort, &retCodec);
+                uint retUdpPort(0), retRtspPort(0);
+                dsl_sink_rtsp_server_settings_get(rtspSinkName.c_str(), &retUdpPort, &retRtspPort);
                 REQUIRE( retUdpPort == udpPort );
                 REQUIRE( retRtspPort == rtspPort );
-                REQUIRE( retCodec == codec );
                 REQUIRE( dsl_component_list_size() == 1 );
             }
         }
@@ -1205,11 +1215,10 @@ SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H265 R
 
             THEN( "The list size is updated correctly" ) 
             {
-                uint retUdpPort(0), retRtspPort(0), retCodec(0);
-                dsl_sink_rtsp_server_settings_get(rtspSinkName.c_str(), &retUdpPort, &retRtspPort, &retCodec);
+                uint retUdpPort(0), retRtspPort(0);
+                dsl_sink_rtsp_server_settings_get(rtspSinkName.c_str(), &retUdpPort, &retRtspPort);
                 REQUIRE( retUdpPort == udpPort );
                 REQUIRE( retRtspPort == rtspPort );
-                REQUIRE( retCodec == codec );
                 REQUIRE( dsl_component_list_size() == 1 );
             }
         }
@@ -1259,23 +1268,30 @@ SCENARIO( "An RTSP Sink's Encoder settings can be updated", "[sink-api]" )
         REQUIRE( dsl_sink_rtsp_new(rtspSinkName.c_str(), host.c_str(),
             udpPort, rtspPort, codec, initBitrate, initInterval) == DSL_RESULT_SUCCESS );
             
+        uint currCodec(99);
         uint currBitrate(0);
         uint currInterval(0);
     
-        REQUIRE( dsl_sink_rtsp_encoder_settings_get(rtspSinkName.c_str(), &currBitrate, &currInterval) == DSL_RESULT_SUCCESS);
+        REQUIRE( dsl_sink_encode_settings_get(rtspSinkName.c_str(), 
+            &currCodec, &currBitrate, &currInterval) == DSL_RESULT_SUCCESS);
+        REQUIRE( currCodec == codec );
         REQUIRE( currBitrate == initBitrate );
         REQUIRE( currInterval == initInterval );
 
         WHEN( "The RTSP Sink's Encoder settings are Set" )
         {
+            uint newCodec(DSL_CODEC_H265);
             uint newBitrate(2500000);
             uint newInterval(10);
             
-            REQUIRE( dsl_sink_rtsp_encoder_settings_set(rtspSinkName.c_str(), newBitrate, newInterval) == DSL_RESULT_SUCCESS);
+            REQUIRE( dsl_sink_encode_settings_set(rtspSinkName.c_str(), 
+                newCodec, newBitrate, newInterval) == DSL_RESULT_SUCCESS);
 
             THEN( "The RTSP Sink's new Encoder settings are returned on Get")
             {
-                REQUIRE( dsl_sink_rtsp_encoder_settings_get(rtspSinkName.c_str(), &currBitrate, &currInterval) == DSL_RESULT_SUCCESS);
+                REQUIRE( dsl_sink_encode_settings_get(rtspSinkName.c_str(), 
+                    &currCodec, &currBitrate, &currInterval) == DSL_RESULT_SUCCESS);
+                REQUIRE( currCodec == newCodec);
                 REQUIRE( currBitrate == newBitrate );
                 REQUIRE( currInterval == newInterval );
 
@@ -1292,9 +1308,11 @@ SCENARIO( "An invalid RTSP Sink is caught on Encoder settings Get and Set", "[si
     {
         std::wstring fakeSinkName(L"fake-sink");
             
+        uint currCodec(DSL_CODEC_H264);
         uint currBitrate(0);
         uint currInterval(0);
     
+        uint newCodec(DSL_CODEC_H265);
         uint newBitrate(2500000);
         uint newInterval(10);
 
@@ -1304,10 +1322,10 @@ SCENARIO( "An invalid RTSP Sink is caught on Encoder settings Get and Set", "[si
 
             THEN( "The RTSP Sink encoder settings APIs fail correctly")
             {
-                REQUIRE( dsl_sink_rtsp_encoder_settings_get(fakeSinkName.c_str(), &currBitrate, &currInterval) == 
-                    DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
-                REQUIRE( dsl_sink_rtsp_encoder_settings_set(fakeSinkName.c_str(), newBitrate, newInterval) == 
-                    DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
+                REQUIRE( dsl_sink_encode_settings_get(fakeSinkName.c_str(), 
+                    &currCodec, &currBitrate, &currInterval) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
+                REQUIRE( dsl_sink_encode_settings_set(fakeSinkName.c_str(), 
+                    currCodec, newBitrate, newInterval) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
@@ -1551,16 +1569,12 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
                 REQUIRE( dsl_sink_record_mailer_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_record_mailer_remove(sinkName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_sink_encode_video_formats_get(NULL, &codec, &container) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_encode_settings_get(NULL, &bitrate, &interval) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_encode_settings_set(NULL, bitrate, interval) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_encode_settings_get(NULL, &codec, &bitrate, &interval) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_encode_settings_set(NULL, codec, bitrate, interval) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_sink_rtsp_new(NULL, NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_rtsp_new(sinkName.c_str(), NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_rtsp_encoder_settings_get(NULL, &bitrate, &interval ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_rtsp_encoder_settings_set(NULL, bitrate, interval ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_rtsp_encoder_settings_get(NULL, &bitrate, &interval ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_rtsp_server_settings_get(NULL, &udpPort, &rtspPort, &codec ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_server_settings_get(NULL, &udpPort, &rtspPort) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
                 REQUIRE( dsl_sink_pph_add(NULL, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_pph_add(sinkName.c_str(), NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );

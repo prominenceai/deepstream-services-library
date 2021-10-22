@@ -34,23 +34,24 @@ TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 
 CXX_VERSION:=c++17
 DSL_VERSION:='L"v0.21.alpha"'
-NVDS_VERSION:=6.0
+#NVDS_VERSION:=6.0
 GS_VERSION:=1.0
 GLIB_VERSION:=2.0
 GSTREAMER_VERSION:=1.0
 GSTREAMER_SUB_VERSION:=18
 GSTREAMER_SDP_VERSION:=1.0
 GSTREAMER_WEBRTC_VERSION:=1.0
-CUDA_VERSION:=11.2
+#CUDA_VERSION:=11.2
 LIBSOUP_VERSION:=2.4
 JSON_GLIB_VERSION:=1.0
 
-SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources
-INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources/includes
-LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/lib
+SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources
+INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources/includes
+LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/lib
 
 ifeq ($(GSTREAMER_SUB_VERSION),18)
-    SRCS+= $(wildcard ./src/webrtc/*.cpp)
+SRCS+= $(wildcard ./src/webrtc/*.cpp)
+SRCS+= $(wildcard ./test/webrtc/*.cpp)
 endif
 
 SRCS+= $(wildcard ./src/*.cpp)
@@ -62,11 +63,14 @@ INCS:= $(wildcard ./src/*.h)
 INCS+= $(wildcard ./test/*.hpp)
 
 ifeq ($(GSTREAMER_SUB_VERSION),18)
-    INCS+= $(wildcard ./src/webrtc/*.h)
+INCS+= $(wildcard ./src/webrtc/*.h)
 endif
 
 TEST_OBJS+= $(wildcard ./test/api/*.o)
 TEST_OBJS+= $(wildcard ./test/unit/*.o)
+ifeq ($(GSTREAMER_SUB_VERSION),18)
+TEST_OBJS+= $(wildcard ./test/webrtc/*.cpp)
+endif
 
 OBJS:= $(SRCS:.c=.o)
 OBJS:= $(OBJS:.cpp=.o)
@@ -80,7 +84,7 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-I/usr/include/glib-$(GLIB_VERSION) \
 	-I/usr/include/glib-$(GLIB_VERSION)/glib \
 	-I/usr/lib/$(TARGET_DEVICE)-linux-gnu/glib-$(GLIB_VERSION)/include \
-	-I/usr/local/cuda-$(CUDA_VERSION)/targets/$(TARGET_DEVICE)-linux/include \
+	-I/usr/local/cuda/targets/$(TARGET_DEVICE)-linux/include \
 	-I./src \
 	-I./test \
 	-I./test/api \
@@ -118,7 +122,7 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-lgstreamer-$(GSTREAMER_VERSION) \
 	-Lgstreamer-video-$(GSTREAMER_VERSION) \
 	-Lgstreamer-rtsp-server-$(GSTREAMER_VERSION) \
-	-L/usr/local/cuda-$(CUDA_VERSION)/lib64/ -lcudart \
+	-L/usr/local/cuda/lib64/ -lcudart \
 	-Wl,-rpath,$(LIB_INSTALL_DIR)
 
 ifeq ($(GSTREAMER_SUB_VERSION),18)

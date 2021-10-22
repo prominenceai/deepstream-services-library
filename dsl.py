@@ -143,6 +143,10 @@ class dsl_rtsp_connection_data(Structure):
         ('sleep', c_uint),
         ('timeout', c_uint)]
 
+class dsl_webrtc_connection_data(Structure):
+    _fields_ = [
+        ('is_connected', c_bool)]
+
 ##
 ## Pointer Typedefs
 ##
@@ -153,7 +157,7 @@ DSL_WCHAR_PP = POINTER(c_wchar_p)
 DSL_LONG_P = POINTER(c_long)
 DSL_DOUBLE_P = POINTER(c_double)
 DSL_FLOAT_P = POINTER(c_float)
-DSL_CONNECTION_DATA_P = POINTER(dsl_rtsp_connection_data)
+DSL_RTSP_CONNECTION_DATA_P = POINTER(dsl_rtsp_connection_data)
 
 ##
 ## Callback Typedefs
@@ -173,6 +177,7 @@ DSL_PPH_CUSTOM_CLIENT_HANDLER = CFUNCTYPE(c_uint, c_void_p, c_void_p)
 DSL_PPH_METER_CLIENT_HANDLER = CFUNCTYPE(c_bool, DSL_DOUBLE_P, DSL_DOUBLE_P, c_uint, c_void_p)
 DSL_PLAYER_TERMINATION_EVENT_LISTENER = CFUNCTYPE(None, c_void_p)
 DSL_CAPTURE_COMPLETE_LISTENER = CFUNCTYPE(None, POINTER(dsl_capture_info), c_void_p)
+DSL_WEBRTC_SINK_CLIENT_LISTENER = CFUNCTYPE(None, POINTER(dsl_webrtc_connection_data), c_void_p)
 
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
@@ -2032,12 +2037,12 @@ def dsl_source_rtsp_reconnection_params_set(name, sleep, timeout):
 ##
 ## dsl_source_rtsp_connection_data_get()
 ##
-_dsl.dsl_source_rtsp_connection_data_get.argtypes = [c_wchar_p, DSL_CONNECTION_DATA_P]
+_dsl.dsl_source_rtsp_connection_data_get.argtypes = [c_wchar_p, DSL_RTSP_CONNECTION_DATA_P]
 _dsl.dsl_source_rtsp_connection_data_get.restype = c_uint
 def dsl_source_rtsp_connection_data_get(name):
     global _dsl
     data = dsl_rtsp_connection_data()
-    result = _dsl.dsl_source_rtsp_connection_data_get(name, DSL_CONNECTION_DATA_P(data))
+    result = _dsl.dsl_source_rtsp_connection_data_get(name, DSL_RTSP_CONNECTION_DATA_P(data))
     return int(result), data
 
 ##
@@ -2171,9 +2176,9 @@ def dsl_tap_record_session_start(name, start, duration, client_data):
 ##
 _dsl.dsl_tap_record_session_stop.argtypes = [c_wchar_p, c_bool]
 _dsl.dsl_tap_record_session_stop.restype = c_uint
-def dsl_tap_record_session_stop(name, sync):
+def dsl_tap_record_session_stop(name, _sync):
     global _dsl
-    result = _dsl.dsl_tap_record_session_stop(name, sync)
+    result = _dsl.dsl_tap_record_session_stop(name, _sync)
     return int(result)
 
 ##
@@ -3256,37 +3261,26 @@ def dsl_sink_record_mailer_remove(name, player):
     return int(result)
 
 ##
-## dsl_sink_encode_video_formats_get()
-##
-_dsl.dsl_sink_encode_video_formats_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_sink_encode_video_formats_get.restype = c_uint
-def dsl_sink_encode_video_formats_get(name):
-    global _dsl
-    codec = c_uint(0)
-    container = c_uint(0)
-    result = _dsl.dsl_sink_encode_video_formats_get(name, DSL_UINT_P(codec), DSL_UINT_P(container))
-    return int(result), codec.value, container.value 
-
-##
 ## dsl_sink_encode_settings_get()
 ##
-_dsl.dsl_sink_encode_settings_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_sink_encode_settings_get.argtypes = [c_wchar_p, POINTER(c_uint),  POINTER(c_uint), POINTER(c_uint)]
 _dsl.dsl_sink_encode_settings_get.restype = c_uint
 def dsl_sink_encode_settings_get(name):
     global _dsl
+    codec = c_uint(0)
     bitrate = c_uint(0)
     interval = c_uint(0)
-    result = _dsl.dsl_sink_encode_settings_get(name, DSL_UINT_P(bitrate), DSL_UINT_P(interval))
-    return int(result), bitrate.value, interval.value 
+    result = _dsl.dsl_sink_encode_settings_get(name, DSL_UINT_P(codec), DSL_UINT_P(bitrate), DSL_UINT_P(interval))
+    return int(result), codec.value, bitrate.value, interval.value 
 
 ##
 ## dsl_sink_encode_settings_set()
 ##
-_dsl.dsl_sink_encode_settings_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_sink_encode_settings_set.argtypes = [c_wchar_p, c_uint, c_uint, c_uint]
 _dsl.dsl_sink_encode_settings_set.restype = c_uint
-def dsl_sink_encode_settings_set(name, bitrate, interval):
+def dsl_sink_encode_settings_set(name, codec, bitrate, interval):
     global _dsl
-    result = _dsl.dsl_sink_encode_settings_set(name, bitrate, interval)
+    result = _dsl.dsl_sink_encode_settings_set(name, codec, bitrate, interval)
     return int(result)
 
 ##
@@ -3302,37 +3296,53 @@ def dsl_sink_rtsp_new(name, host, udp_port, rtsp_port, codec, bitrate, interval)
 ##
 ## dsl_sink_rtsp_server_settings_get()
 ##
-_dsl.dsl_sink_rtsp_server_settings_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_sink_rtsp_server_settings_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
 _dsl.dsl_sink_rtsp_server_settings_get.restype = c_uint
 def dsl_sink_rtsp_server_settings_get(name):
     global _dsl
     udp_port = c_uint(0)
     rtsp_port = c_uint(0)
-    codec = c_uint(0)
-    result = _dsl.dsl_sink_rtsp_server_settings_get(name, DSL_UINT_P(udp_port), DSL_UINT_P(rtsp_port), DSL_UINT_P(codec))
-    return int(result), udp_port.value, rtsp_port.value, codec.value 
+    result = _dsl.dsl_sink_rtsp_server_settings_get(name, DSL_UINT_P(udp_port), DSL_UINT_P(rtsp_port))
+    return int(result), udp_port.value, rtsp_port.value
 
 ##
-## dsl_sink_rtsp_encoder_settings_get()
+## dsl_sink_webrtc_new()
 ##
-_dsl.dsl_sink_rtsp_encoder_settings_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_sink_rtsp_encoder_settings_get.restype = c_uint
-def dsl_sink_rtsp_encoder_settings_get(name):
+_dsl.dsl_sink_webrtc_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint]
+_dsl.dsl_sink_webrtc_new.restype = c_uint
+def dsl_sink_webrtc_new(name, stun_server, turn_server, codec, bitrate, interval):
     global _dsl
-    bitrate = c_uint(0)
-    interval = c_uint(0)
-    result = _dsl.dsl_sink_rtsp_encoder_settings_get(name, DSL_UINT_P(bitrate), DSL_UINT_P(interval))
-    return int(result), bitrate.value, interval.value 
-
-##
-## dsl_sink_rtsp_encoder_settings_set()
-##
-_dsl.dsl_sink_rtsp_encoder_settings_set.argtypes = [c_wchar_p, c_uint, c_uint]
-_dsl.dsl_sink_rtsp_encoder_settings_set.restype = c_uint
-def dsl_sink_rtsp_encoder_settings_set(name, bitrate, interval):
-    global _dsl
-    result = _dsl.dsl_sink_rtsp_encoder_settings_set(name, bitrate, interval)
+    result =_dsl.dsl_sink_webrtc_new(name, stun_server, turn_server, codec, bitrate, interval)
     return int(result)
+
+##
+## dsl_sink_webrtc_client_listener_add()
+##
+_dsl.dsl_sink_webrtc_client_listener_add.argtypes = [c_wchar_p, 
+    DSL_WEBRTC_SINK_CLIENT_LISTENER, c_void_p]
+_dsl.dsl_sink_webrtc_client_listener_add.restype = c_uint
+def dsl_sink_webrtc_client_listener_add(name, client_listener, client_data):
+    global _dsl
+    c_client_listener = DSL_WEBRTC_SINK_CLIENT_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_sink_webrtc_client_listener_add(name, 
+        c_client_listener, c_client_data)
+    return int(result)
+    
+##
+## dsl_sink_webrtc_client_listener_cb()
+##
+_dsl.dsl_sink_webrtc_client_listener_cb.argtypes = [c_wchar_p, 
+    DSL_WEBRTC_SINK_CLIENT_LISTENER]
+_dsl.dsl_sink_webrtc_client_listener_cb.restype = c_uint
+def dsl_sink_webrtc_client_listener_cb(name, client_listener):
+    global _dsl
+    c_client_listener = DSL_WEBRTC_SINK_CLIENT_LISTENER(client_listener)
+    result = _dsl.dsl_sink_webrtc_client_listener_cb(name, c_client_listener)
+    return int(result)
+
 
 ##
 ## dsl_sink_sync_settings_get()
@@ -3341,19 +3351,19 @@ _dsl.dsl_sink_sync_settings_get.argtypes = [c_wchar_p, POINTER(c_bool), POINTER(
 _dsl.dsl_sink_sync_settings_get.restype = c_uint
 def dsl_sink_sync_settings_get(name):
     global _dsl
-    sync = c_bool(0)
-    async = c_bool(0)
-    result = _dsl.dsl_sink_sync_settings_get(name, DSL_BOOL_P(sync), DSL_BOOL_P(async))
-    return int(result), sync.value, async.value 
+    _sync = c_bool(0)
+    _async = c_bool(0)
+    result = _dsl.dsl_sink_sync_settings_get(name, DSL_BOOL_P(_sync), DSL_BOOL_P(_async))
+    return int(result), _sync.value, _async.value 
 
 ##
 ## dsl_sink_sync_settings_set()
 ##
 _dsl.dsl_sink_sync_settings_set.argtypes = [c_wchar_p, c_bool, c_bool]
 _dsl.dsl_sink_sync_settings_set.restype = c_uint
-def dsl_sink_sync_settings_set(name, sync, async):
+def dsl_sink_sync_settings_set(name, _sync, _async):
     global _dsl
-    result = _dsl.dsl_sink_sync_settings_set(name, sync, async)
+    result = _dsl.dsl_sink_sync_settings_set(name, _sync, _async)
     return int(result)
 
 ##

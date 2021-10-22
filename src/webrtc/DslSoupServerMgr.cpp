@@ -26,9 +26,130 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    /**
+     * @brief Ctor for the SignalingTransceiver class
+     */
+    SignalingTransceiver::SignalingTransceiver()
+        : m_pConnection(NULL)
+        , m_connectionState(DSL_SOCKET_CONNECTION_STATE_NONE)
+        , m_pOffer(NULL)
+        , m_pSendChannel(NULL)
+        , m_pJsonParser(NULL)
+        , m_closedSignalHandlerId(0)
+        , m_messageSignalHandlerId(0)
+
+    {
+        LOG_FUNC();
+
+        // New JSON Parser to use for the life of the Transceiver
+        m_pJsonParser = json_parser_new();
+        if (!m_pJsonParser)
+        {
+            LOG_ERROR("Failed to create new JSON Parser");
+            throw;
+        }
+
+        g_mutex_init(&m_receiverMutex);
+    };
+
+    /**
+     * @brief Dtor for the SignalingTransceiver class
+     */
+    SignalingTransceiver::~SignalingTransceiver()
+    {
+        LOG_FUNC();
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_receiverMutex);
+            if (m_pJsonParser != NULL)
+            {
+                g_object_unref(G_OBJECT(m_pJsonParser));
+            }
+        }
+        g_mutex_clear(&m_receiverMutex);
+    }
+
+    const SoupWebsocketConnection* SignalingTransceiver::GetConnection()
+    {
+        LOG_FUNC();
+
+        return m_pConnection;
+    };
+
+    void SignalingTransceiver::SetConnection(SoupWebsocketConnection* pConnection)
+    {
+        LOG_FUNC();
+
+        m_pConnection = pConnection;
+
+        if (pConnection)
+        {
+            // Need to add a reference so the object won't be freed on return.
+            g_object_ref(G_OBJECT(pConnection));
+
+            // Update the connection state
+            m_connectionState = DSL_SOCKET_CONNECTION_STATE_INITIATED;
+
+            // connect common callbacks to Websocked "closed" and "message" signals
+            m_closedSignalHandlerId = g_signal_connect(G_OBJECT(m_pConnection), "closed", 
+                G_CALLBACK(on_soup_websocket_closed_cb), (gpointer)this);
+            m_messageSignalHandlerId = g_signal_connect(G_OBJECT(m_pConnection), "message", 
+                G_CALLBACK(on_soup_websocket_message_cb), (gpointer)this);
+        }
+    };
+
+    void SignalingTransceiver::ClearConnection()
+    {
+        LOG_FUNC();
+
+        if (m_closedSignalHandlerId)
+        {
+            g_signal_handler_disconnect(G_OBJECT(m_pConnection), m_closedSignalHandlerId);
+            m_closedSignalHandlerId = 0;
+        }
+        if (m_messageSignalHandlerId)
+        {
+            g_signal_handler_disconnect(G_OBJECT(m_pConnection), m_messageSignalHandlerId);
+            m_messageSignalHandlerId = 0;
+        }
+        m_pConnection = NULL;
+    }
 
 
-    // Initialize the SoupServer single instance pointer
+    void SignalingTransceiver::HandleClose(SoupWebsocketConnection* pConnection)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_receiverMutex);
+
+        // ClearConnection();
+        m_pConnection = NULL;
+    }
+
+    void SignalingTransceiver::HandleMessage(SoupWebsocketConnection* pConnection, 
+        SoupWebsocketDataType dataType, GBytes* message)
+    {        
+        // NOTE: virtual base implementation for testing purposes only    
+        LOG_ERROR("Derived class must implement Handle Message");
+    }
+
+
+    // ------------------------------------------------------------------------------
+    // Client Reciever Websocket callback functions
+
+    static void on_soup_websocket_closed_cb(SoupWebsocketConnection * pConnection, 
+        gpointer pSignalingTransceiver)
+    {
+        static_cast<SignalingTransceiver*>(pSignalingTransceiver)->HandleClose(pConnection);
+    }
+
+    static void on_soup_websocket_message_cb(SoupWebsocketConnection* pConnection, 
+        SoupWebsocketDataType dataType, GBytes* message, gpointer pSignalingTransceiver)
+    {
+        static_cast<SignalingTransceiver*>(pSignalingTransceiver)->HandleMessage(pConnection,
+            dataType, message);
+    }
+
+    // ------------------------------------------------------------------------------
+    // Soup Server Implementation - Initialize the SoupServer single instance pointer
     SoupServerMgr* SoupServerMgr::m_pInstance = NULL;
 
     SoupServerMgr* SoupServerMgr::GetMgr()
@@ -44,35 +165,34 @@ namespace DSL
         }
         return m_pInstance;
     }
-        
+
     SoupServerMgr::SoupServerMgr()
         : m_pSoupServer(NULL)
-        , m_pJsonParser(NULL)
 
     {
         LOG_FUNC();
 
-        m_pJsonParser = json_parser_new();
-        if (!m_pJsonParser)
-        {
-            LOG_ERROR("Failed to create new JSON Parser");
-            throw;
-        }
-
         m_pSoupServer = soup_server_new(SOUP_SERVER_SERVER_HEADER, "webrtc", NULL);
         if (!m_pSoupServer)
         {
-            LOG_ERROR("Failed to create new Soup Server");
+            LOG_ERROR("Soup Server Manager failed to create new Soup Server");
             throw;
         }
 
         soup_server_add_websocket_handler(m_pSoupServer, "/ws", NULL, NULL, 
-            on_soup_websocket_opened_cb, (gpointer)m_pInstance, NULL);
-        soup_server_listen_all(m_pSoupServer, DSL_SOUP_HTTP_PORT, 
-            (SoupServerListenOptions) 0, NULL);
+            websocket_handler_cb, (gpointer) this, NULL);
+
+        if (!soup_server_listen_all(m_pSoupServer, DSL_SOUP_HTTP_PORT, 
+            (SoupServerListenOptions) 0, NULL))
+        {
+            LOG_ERROR("Soup Server Manager failed to listen on HTTP port: " 
+                << DSL_SOUP_HTTP_PORT);
+            throw;
+        }
 
         // Get and log the list of URIs the server is listening on
         GSList* uris = soup_server_get_uris(m_pSoupServer);
+
         for(GSList* uri = uris; uri; uri = uri->next) 
         {
             char* uriStr = soup_uri_to_string((SoupURI*)uri->data, 0);
@@ -95,75 +215,65 @@ namespace DSL
             {
                 g_object_unref(G_OBJECT(m_pSoupServer));        
             }
-
-            if (m_pJsonParser != NULL)
-            {
-                g_object_unref(G_OBJECT(m_pJsonParser));
-            }
         }
         g_mutex_clear(&m_serverMutex);
 
     }
 
-    bool SoupServerMgr::AddClientBin(gpointer pClientBin)
+    bool SoupServerMgr::AddSignalingTransceiver(SignalingTransceiver* pSignalingTransceiver)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_serverMutex);
         
-        if (HasClientBin(pClientBin))
+        if (HasSignalingTransceiver(pSignalingTransceiver))
         {
-            LOG_ERROR("WebRTC client-bin " << std::to_string((uint64_t)pClientBin) 
-                << " is already a child of the Soup Server Manager");
+            LOG_ERROR("Client Reciever is already a child of the Soup Server Manager");
             return false;
         }
 
-        // Create a new ClientReceiver Object for the client webrtcbin
-        m_clientReceivers[pClientBin] = 
-            std::shared_ptr<ClientReceiver>(new ClientReceiver(pClientBin));
+        // Add the client receiver while initializing it's connection to NULL
+        m_signalingTransceivers[pSignalingTransceiver] = NULL;
                         
-        LOG_INFO("WebRTC client-bin "<< std::to_string((uint64_t)pClientBin) 
-            << " added to the Soup Server Manager successfully");
+        LOG_INFO("Client Reciever added to the Soup Server Manager successfully");
         
         return true;
     }
     
-    bool SoupServerMgr::RemoveClientBin(gpointer pClientBin)
+    bool SoupServerMgr::RemoveSignalingTransceiver(SignalingTransceiver* pSignalingTransceiver)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_serverMutex);
         
-        if (!HasClientBin(pClientBin))
+        if (!HasSignalingTransceiver(pSignalingTransceiver))
         {
-            LOG_ERROR("WebRTC client-bin " << std::to_string((uint64_t)pClientBin) 
-                << " was never added the Soup Server Manager");
+            LOG_ERROR("Client Reciever was never added to the Soup Server Manager");
             return false;
         }
 
         // TODO - close connection if open.
 
-        m_clientReceivers.erase(pClientBin);
+        m_signalingTransceivers.erase(pSignalingTransceiver);
                         
-        LOG_INFO("WebRTC client-bin "<< std::to_string((uint64_t)pClientBin) 
-            << " removed from the Soup Server Manager successfully");
+        LOG_INFO("Client Reciever removed from the Soup Server Manager successfully");
         
         return true;
     }
 
-    bool SoupServerMgr::HasClientBin(gpointer pClientBin)
+    bool SoupServerMgr::HasSignalingTransceiver(SignalingTransceiver* pSignalingTransceiver)
     {
         LOG_FUNC();
 
-        return (m_clientReceivers.find(pClientBin) != m_clientReceivers.end());
+        return (m_signalingTransceivers.find(pSignalingTransceiver) != m_signalingTransceivers.end());
     }
 
-    gpointer SoupServerMgr::GetClientBin(SoupWebsocketConnection* pConnection)
+    const SignalingTransceiver* SoupServerMgr::GetSignalingTransceiver(SoupWebsocketConnection* pConnection)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_serverMutex);
 
-        for (auto &imap: m_clientReceivers)
+        for (auto &imap: m_signalingTransceivers)
         {
-            if (imap.second->pConnection == pConnection)
+            if (imap.second == pConnection)
             {
                 return imap.first;
             }
@@ -180,249 +290,28 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_serverMutex);
 
-        // Look for first unconnected client webrtcbin
-        for (auto &imap: m_clientReceivers)
+        // Look for first unconnected transceiver
+        for (auto &imap: m_signalingTransceivers)
         {
-            if (imap.second->pConnection == NULL)
+            LOG_INFO("Signaling Transceiver found");
+            if (imap.second == NULL)
             {
-                // map the connection to the client
-                imap.second->pConnection = pConnection;
+                // map the connection to the transceiver
+                imap.first->SetConnection(pConnection);
+                imap.second = pConnection;
 
-                // connect common callbacks to Websocked "closed" and "message"
-                g_signal_connect(G_OBJECT(pConnection), "closed", 
-                    G_CALLBACK(on_soup_websocket_closed_cb), (gpointer)this);
-                g_signal_connect(G_OBJECT(pConnection), "message", 
-                    G_CALLBACK(on_soup_websocket_message_cb), (gpointer)this);
                 return;
             }
         }
-        LOG_ERROR("No available WebRTC client-bins available.");
-
+        LOG_ERROR("Soup Server Manger found no available Signaling Transceivers.");
     }
 
-    void SoupServerMgr::HandleClose(SoupWebsocketConnection* pConnection)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_serverMutex);
-
-        gpointer pClientBin = GetClientBin(pConnection);
-        if (!pClientBin)
-        {
-            LOG_ERROR("No WebRTC client-bin for connection " 
-                << std::to_string((uint64_t)pConnection));
-            return;
-        }
-        m_clientReceivers[pClientBin] = NULL;
-    }
-
-    void SoupServerMgr::HandleMessage(SoupWebsocketConnection* pConnection, 
-        SoupWebsocketDataType dataType, GBytes* message)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_serverMutex);
-
-        // Get the client webrtcbin based on the connection
-        gpointer pClientBin = GetClientBin(pConnection);
-        if (!pClientBin)
-        {
-            LOG_ERROR("No WebRTC client-bin for connection " << std::to_string((uint64_t)pConnection));
-            return;
-        }
-
-        switch (dataType)
-        {
-            case SOUP_WEBSOCKET_DATA_BINARY:
-                LOG_ERROR("Soup Server Manager received unknown binary message, ignoring");
-                g_bytes_unref(message);
-                return;
-
-            case SOUP_WEBSOCKET_DATA_TEXT:
-                break;
-
-            default:
-                LOG_ERROR("Soup Server Manager received unknown data type, ignoring");
-                g_bytes_unref(message);
-                return;
-        }
-
-        // Copy the message to a g-byte-array and unreference the message
-        gsize size;
-        gchar* data = (gchar*)g_bytes_unref_to_data(message, &size);
-
-        // Copy and convert to NULL-terminated string and free the byte-array 
-        gchar* dataString = g_strndup(data, size);
-        g_free(data);
-
-        // Load the message into the JSON parser
-        if (!json_parser_load_from_data(m_pJsonParser, dataString, -1, NULL))
-        {
-            LOG_ERROR("Soup Server Manager received unknown data type");
-            g_free(dataString);
-            return;
-        }
-
-        // data has been loaded into the parser, free the string now
-        g_free(dataString);
-
-        JsonNode* pRootJson = json_parser_get_root(m_pJsonParser);
-        if (!JSON_NODE_HOLDS_OBJECT(pRootJson))
-        {
-            LOG_ERROR("Soup Server Manager received a message a without a JSON Root");
-            return;
-        } 
-
-        JsonObject* pRootJsonObject = json_node_get_object(pRootJson);
-        if (!json_object_has_member(pRootJsonObject, "type")) 
-        {
-            LOG_ERROR("Soup Server Manager received a message without a type memeber");
-            return;
-        }
-
-        const gchar* typeString = json_object_get_string_member(pRootJsonObject, "type");
-        if (!json_object_has_member(pRootJsonObject, "data")) 
-        {
-            LOG_ERROR("Soup Server Manager received a message without data");
-            return;
-        }
-
-        JsonObject* pDataJsonObject = json_object_get_object_member(pRootJsonObject, "data");
-        if (g_strcmp0(typeString, "sdp") == 0) 
-        {
-            if (!json_object_has_member(pDataJsonObject, "type")) 
-            {
-                LOG_ERROR("Soup Server Manager received a SDP message without type field");
-                return;
-            }
-
-            const gchar* sdpTypeString = json_object_get_string_member(pDataJsonObject, "type");
-            if (g_strcmp0 (sdpTypeString, "answer") != 0) 
-            {
-                LOG_ERROR("Soup Server Manager expected SDP message without type 'answer' but received "
-                    << sdpTypeString << "");
-                return;
-            }
-
-            if (!json_object_has_member(pDataJsonObject, "sdp")) 
-            {
-                LOG_ERROR("Soup Server Manager received a SDP message without SDP string");
-                return;
-            }
-
-            const gchar* sdpString = json_object_get_string_member (pDataJsonObject, "sdp");
-
-            //gst_print ("Received SDP:\n%s\n", sdp_string);
-
-            GstSDPMessage *sdp;
-            if (gst_sdp_message_new(&sdp) != GST_SDP_OK)
-            {
-                LOG_ERROR("Soup Server Manager failed to create new SDP message");
-                return;
-            }
-
-            int ret = gst_sdp_message_parse_buffer((guint8 *)sdpString, strlen(sdpString), sdp);
-            if (ret != GST_SDP_OK) 
-            {
-                LOG_ERROR("Soup Server Manager failed to parse SDP message");
-                return;
-            }
-
-            GstWebRTCSessionDescription* answer = gst_webrtc_session_description_new(
-                    GST_WEBRTC_SDP_TYPE_ANSWER, sdp);
-            if (!answer)
-            {
-                LOG_ERROR("SoupServer failed to create new webrtc session answer");
-                return;
-            }
-
-            GstPromise* promise = gst_promise_new_with_change_func(on_remote_desc_set_cb, 
-                pClientBin, NULL);
-
-            g_signal_emit_by_name(G_OBJECT(pClientBin), "set-remote-description", answer, promise);    
-            gst_webrtc_session_description_free(answer);
-
-            // if(receiver_entry->send_channel == NULL)
-            // {
-            //     g_signal_emit_by_name (receiver_entry->webrtcbin, "create-data-channel", "channel", NULL, &receiver_entry->send_channel);
-            //     if (receiver_entry->send_channel) 
-            //     {
-            //         gst_print ("Created data channel\n");
-            //         connect_data_channel_signals((GObject*)receiver_entry->send_channel);
-            //     }
-            //     else 
-            //     {
-            //         gst_print ("Could not create data channel, is usrsctp available?\n");
-            //     }
-            // }
-        }
-        else if (g_strcmp0(typeString, "ice") == 0) 
-        {
-            if (!json_object_has_member(pDataJsonObject, "sdpMLineIndex")) 
-            {
-                LOG_ERROR("SoupServer received ICE message without mline index");
-                return;
-            }
-
-            if (!json_object_has_member(pDataJsonObject, "candidate")) 
-            {
-                LOG_ERROR("SoupServer received ICE message without ICE candidate string");
-                return;
-            }
-
-            const gchar* candidateString = json_object_get_string_member(pDataJsonObject, "candidate");
-            guint mlineIndex = json_object_get_int_member(pDataJsonObject, "sdpMLineIndex");
-
-            LOG_INFO("Received ICE candidate with mline index: " << std::to_string(mlineIndex)
-                << "; candidate: " << candidateString);
-
-            g_signal_emit_by_name(pClientBin, "add-ice-candidate", mlineIndex, candidateString);
-        }
-        else
-        {
-            LOG_ERROR("SoupServer received unknown message type " << typeString 
-                << ", returning");
-        }
-    }
-
-    void SoupServerMgr::OnRemoteDescSet(GstPromise* promise)
-    {
-        LOG_FUNC();
-
-        GstStructure const *reply = gst_promise_get_reply(promise);
-        if (reply != NULL)
-        {
-            gchar* replyStr = gst_structure_to_string(reply);
-            LOG_INFO("Soup Server Manager received reply for on-remote-desc-set is '" 
-                << replyStr << "'");
-            g_free(replyStr);
-        }
-        gst_promise_unref(promise);  
-    }
-
-
-
-    static void on_soup_websocket_opened_cb(G_GNUC_UNUSED SoupServer* pServer, 
+    static void websocket_handler_cb(G_GNUC_UNUSED SoupServer* pServer, 
         SoupWebsocketConnection* pConnection, G_GNUC_UNUSED const char *path,
         G_GNUC_UNUSED SoupClientContext* clientContext, gpointer pSoupServerMgr)
     {
+        LOG_INFO("Incomming connection.");
         static_cast<SoupServerMgr*>(pSoupServerMgr)->HandleOpen(pConnection);
-    }
-
-    static void on_soup_websocket_closed_cb(SoupWebsocketConnection * pConnection, 
-        gpointer pSoupServerMgr)
-    {
-        static_cast<SoupServerMgr*>(pSoupServerMgr)->HandleClose(pConnection);
-    }
-
-    static void on_soup_websocket_message_cb(SoupWebsocketConnection* pConnection, 
-        SoupWebsocketDataType dataType, GBytes* message, gpointer pSoupServerMgr)
-    {
-        static_cast<SoupServerMgr*>(pSoupServerMgr)->HandleMessage(pConnection,
-            dataType, message);
-    }
-
-    static void on_remote_desc_set_cb(GstPromise * promise, gpointer pSoupServerMgr)
-    {
-        static_cast<SoupServerMgr*>(pSoupServerMgr)->OnRemoteDescSet(promise);
     }
 
 }

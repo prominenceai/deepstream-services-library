@@ -25,51 +25,115 @@ THE SOFTWARE.
 #ifndef _DSL_SOUP_SERVER_H
 #define _DSL_SOUP_SERVER_H
 
-#include "Dsl.h"
 #include <gst/sdp/sdp.h>
 #include <libsoup/soup.h>
 #include <json-glib/json-glib.h>
 
+#include "Dsl.h"
+#include "DslApi.h"
+
 #define GST_USE_UNSTABLE_API
 #include <gst/webrtc/webrtc.h>
 
-#include "DslSinkBintr.h"
-
 namespace DSL
 {
-    struct ClientReceiver
+    class SignalingTransceiver
     {
+    public:
         /**
-         * @brief Ctor for the ClientReceiver
+         * @brief Ctor for the SignalingTransceiver class
          */
-        ClientReceiver(gpointer pBin)
-            : pBin(pBin)
-            , pConnection(NULL)
-            , pOffer(NULL)
-            , pSendChannel(NULL)
-        {};
+        SignalingTransceiver();
 
-        /** 
-         * @brief webrtcbin owned by this client
+        /**
+         * @brief Dtor for the SignalingTransceiver class
          */
-        gpointer pBin;
+        ~SignalingTransceiver();
+
+        /**
+         * @brief Gets the current connection for the SignalingTransceiver.
+         * @return pointer to Websocket Connection, NULL when not connected.
+         */
+        virtual const SoupWebsocketConnection* GetConnection();
+
+        /**
+         * @brief Sets the current connection for the SignalingTransceiver.
+         * @param[in] pConnection pointer to Websocket Connection object, 
+         */
+        virtual void SetConnection(SoupWebsocketConnection* pConnection);
+
+        /**
+         * @brief Clears the current connection for the SignalingTransceiver.
+         */
+        virtual void ClearConnection();
+
+        /**
+         * @brief Handles the closing of a Websocket Connection
+         * @param[in] pConnection unique connection to open 
+         */
+        virtual void HandleClose(SoupWebsocketConnection* pConnection);
+
+        /**
+         * @brief Handles a message from a Websocket Connection
+         * @param[in] pConnection unique connection for this message
+         */
+        virtual void HandleMessage(SoupWebsocketConnection* pConnection, 
+            SoupWebsocketDataType dataType, GBytes* message);
+
+
+    protected:
+
+        /**
+         * @brief mutex to protect mutual access to receiver data
+         */
+        GMutex m_receiverMutex;
 
         /** 
          * @brief Client's unique Websocket connection, NULL until connection established.
          */
-        SoupWebsocketConnection* pConnection;
+        SoupWebsocketConnection* m_pConnection;
+
+        /**
+         *@brief Current connection state, one of DSL_SOCKET_CONNECTION_STATE_*, 
+         * The state is set to DSL_SOCKET_CONNECTION_STATE_NONE on Transceiver creation
+         */
+        uint m_connectionState;
+
+        /** 
+         * @brief Handler Id for the Websocket closed Signal Handler, 0 when not set
+         */
+        gulong m_closedSignalHandlerId;
+
+        /** 
+         * @brief Handler Id for the Websocket message Signal Handler, 0 when not set
+         */
+        gulong m_messageSignalHandlerId;
 
         /** 
          * @brief .
          */
-        GstWebRTCSessionDescription* pOffer;
+        GstWebRTCSessionDescription* m_pOffer;
 
         /** 
          * @brief Client's send data channel for the Websocket connection, 
          * NULL until channel has been setup.
          */
-        GstWebRTCDataChannel* pSendChannel;
+        GstWebRTCDataChannel* m_pSendChannel;
+
+        /**
+         * @brief Client's JSON Parsor for parsing all messages.
+         */
+        JsonParser*  m_pJsonParser;
     };
+
+    static void on_soup_websocket_closed_cb(SoupWebsocketConnection * pConnection, 
+        gpointer pSignalingTransceiver);
+
+    static void on_soup_websocket_message_cb(SoupWebsocketConnection* pConnection, 
+        SoupWebsocketDataType dataType, GBytes* message, gpointer pSignalingTransceiver);
+
+    static void on_remote_desc_set_cb(GstPromise * promise, gpointer pSignalingTransceiver);
+
 
     class SoupServerMgr
     {
@@ -92,57 +156,39 @@ namespace DSL
         ~SoupServerMgr();
 
         /**
-         * @brief Adds a client webrtcbin to this server
-         * @param [in] pClientBin unique webrtcbin to add
+         * @brief Adds a Client Receiver to this server
+         * @param [in] pSignalingTransceiver unique webrtcbin to add
          * @return true on successful add, false otherwise
          */
-        bool AddClientBin(gpointer pClientBin);
+        bool AddSignalingTransceiver(SignalingTransceiver* signalingTransceiver);
 
         /**
-         * @brief Removes a client webrtcbin from this server
-         * @param [in] pClientBin unique webrtcbin to remove
+         * @brief Removes a Client Receiver from this server
+         * @param [in] pSignalingTransceiver unique webrtcbin to remove
          * @return true on successful remove, false otherwise
          */
-        bool RemoveClientBin(gpointer pClientBin);
+        bool RemoveSignalingTransceiver(SignalingTransceiver* signalingTransceiver);
 
         /**
-         * @brief Checks whether a client webrtcbin has been previously 
+         * @brief Checks whether a Client Receiver has been previously 
          * added to this Soup Server Manager
-         * @param [in] pClientBin unique webrtcbin to check for
+         * @param [in] pSignalingTransceiver unique webrtcbin to check for
          * @return true if found, false otherwise
          */
-        bool HasClientBin(gpointer pClientBin);
+        bool HasSignalingTransceiver(SignalingTransceiver* signalingTransceiver);
 
         /**
-         * @brief Gets the client webrtcbin for a specifed connection
-         * @return the client webrtcbin if connection found, NULL ohterwise.
+         * @brief Returns a Client Receiver with a specific connection
+         * @param [in] pConnection specific connection to check for
+         * @return pointer to a Client Receiver, NULL ohterwise. 
          */
-        gpointer GetClientBin(SoupWebsocketConnection* pConnection);
+        const SignalingTransceiver* GetSignalingTransceiver(SoupWebsocketConnection* pConnection);
 
         /**
          * @brief Handles a new Websocket Connection
          * @param[in] pConnection unique connection to open 
          */
         void HandleOpen(SoupWebsocketConnection* pConnection);
-
-        /**
-         * @brief Handles the closing of a Websocket Connection
-         * @param[in] pConnection unique connection to open 
-         */
-        void HandleClose(SoupWebsocketConnection* pConnection);
-
-        /**
-         * @brief Handles a message from a Websocket Connection
-         * @param[in] pConnection unique connection for this message
-         */
-        void HandleMessage(SoupWebsocketConnection* pConnection, 
-            SoupWebsocketDataType dataType, GBytes* message);
-
-        /**
-         * @brief Handles the on-reset-desc-set callback by
-         * @param[in] promise 
-         */
-        void OnRemoteDescSet(GstPromise* promise);
 
     private:
 
@@ -155,14 +201,9 @@ namespace DSL
          * @brief Soup Server instance used by this singlton.
          */
         SoupServer* m_pSoupServer;
-
-        /**
-         * @brief JSON object parser used by this singlton.
-         */
-        JsonParser* m_pJsonParser;
     
         /**
-         * @brief mutex to protect mutual access to queue data
+         * @brief mutex to protect mutual access to server data
          */
         GMutex m_serverMutex;
 
@@ -170,21 +211,13 @@ namespace DSL
          * @brief container of all client receivers mapped by their unique webrtcbin
          * connection, promise, and send-channel data.
          */
-        std::map<gpointer, std::shared_ptr<ClientReceiver>> m_clientReceivers;
+        std::map<SignalingTransceiver*, 
+            SoupWebsocketConnection*> m_signalingTransceivers;
     };
 
-    static void on_soup_websocket_opened_cb(G_GNUC_UNUSED SoupServer* pServer, 
+    static void websocket_handler_cb(G_GNUC_UNUSED SoupServer* pServer, 
         SoupWebsocketConnection* pConnection, G_GNUC_UNUSED const char *path,
         G_GNUC_UNUSED SoupClientContext* clientContext, gpointer pSoupServerMgr);
-
-    static void on_soup_websocket_closed_cb(SoupWebsocketConnection * pConnection, 
-        gpointer pSoupServerMgr);
-
-    static void on_soup_websocket_message_cb(SoupWebsocketConnection* pConnection, 
-        SoupWebsocketDataType dataType, GBytes* message, gpointer pSoupServerMgr);
-
-    static void on_remote_desc_set_cb(GstPromise * promise, gpointer pSoupServerMgr);
-
 
 } // DSL
 #endif // _DSL_SOUP_SERVER_H
