@@ -63,6 +63,37 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SinkWebRtcConnectionClose(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, WebRtcSinkBintr);
+
+            DSL_WEBRTC_SINK_PTR pWebRtcSinkBintr = 
+                std::dynamic_pointer_cast<WebRtcSinkBintr>(m_components[name]);
+
+            if (!pWebRtcSinkBintr->CloseConnection())
+            {
+                LOG_ERROR("WebRTC Sink '" << name 
+                    << "' failed to Close its Websocket connection");
+                return DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED;
+            }
+            LOG_INFO("Web RTC Sink '" << name 
+                << "' clossed its Websocket successfully successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("WebRTC Sink '" << name 
+                << "' threw an exception closing its Websocket connection");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::SinkWebRtcServersGet(const char* name,
         const char** stunServer, const char** turnServer)
     {

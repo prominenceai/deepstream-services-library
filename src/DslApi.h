@@ -136,6 +136,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_OVERLAY_NOT_SUPPORTED                       0x00040016
 #define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_ADD_FAILED           0x00040017
 #define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED        0x00040018
+#define DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED             0x00040019
 
 /**
  * OSD API Return Values
@@ -445,10 +446,13 @@ THE SOFTWARE.
  */
 #define DSL_SOUP_HTTP_PORT                                          60001
 
-#define DSL_SOCKET_CONNECTION_STATE_NONE                            0
+/**
+ * @brief WebRTC Websocket connection states, used by the 
+ * WebRTC to communicate current state to listening clients 
+ */
+#define DSL_SOCKET_CONNECTION_STATE_CLOSED                          0
 #define DSL_SOCKET_CONNECTION_STATE_INITIATED                       1
-#define DSL_SOCKET_CONNECTION_STATE_CLOSED                          2
-#define DSL_SOCKET_CONNECTION_STATE_FAILED                          3
+#define DSL_SOCKET_CONNECTION_STATE_FAILED                          2
 
 /**
  * @brief time to sleep after a failed reconnection before
@@ -4009,6 +4013,12 @@ DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
  */
 DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_server, 
     const wchar_t* turn_server, uint codec, uint bitrate, uint interval);
+
+/**
+ * @brief Closes a uniquely named WebRTC Sink component's Websocket connection
+ * if currently connected.
+ */
+DslReturnType dsl_sink_webrtc_connection_close(const wchar_t* name);
 
 /**
  * @brief Queries a uniquely named WebRTC Sink component for its current

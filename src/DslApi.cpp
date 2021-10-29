@@ -4287,6 +4287,20 @@ DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_serve
 #endif    
 }
 
+DslReturnType dsl_sink_webrtc_connection_close(const wchar_t* name)
+{
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
+    return DSL_RESULT_API_NOT_IMPLEMENTED;
+#else
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWebRtcConnectionClose(cstrName.c_str());
+#endif    
+}
+
 DslReturnType dsl_sink_webrtc_servers_get(const wchar_t* name, 
     const wchar_t** stun_server, const wchar_t** turn_server)
 {

@@ -287,13 +287,6 @@ namespace DSL
             return retval;
         }
         
-        bool SendEos()
-        {
-            LOG_FUNC();
-            
-            return gst_element_send_event(GetGstElement(), gst_event_new_eos());
-        }
-        
         /**
          * @brief Adds a Pad Probe Handler callback function to the Bintr
          * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC

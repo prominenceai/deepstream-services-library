@@ -68,25 +68,24 @@ namespace DSL
         virtual void ClearConnection();
 
         /**
-         * @brief Handles the closing of a Websocket Connection
-         * @param[in] pConnection unique connection to open 
+         * @brief Called when a Websocket is closed
+         * @param[in] pConnection unique connection that closed
          */
-        virtual void HandleClose(SoupWebsocketConnection* pConnection);
+        virtual void OnClosed(SoupWebsocketConnection* pConnection);
 
         /**
-         * @brief Handles a message from a Websocket Connection
+         * @brief Called on incomming message from a Websocket Connection
          * @param[in] pConnection unique connection for this message
          */
-        virtual void HandleMessage(SoupWebsocketConnection* pConnection, 
+        virtual void OnMessage(SoupWebsocketConnection* pConnection, 
             SoupWebsocketDataType dataType, GBytes* message);
-
 
     protected:
 
         /**
-         * @brief mutex to protect mutual access to receiver data
+         * @brief mutex to protect mutual access to transceiver data
          */
-        GMutex m_receiverMutex;
+        GMutex m_transceiverMutex;
 
         /** 
          * @brief Client's unique Websocket connection, NULL until connection established.
@@ -113,12 +112,6 @@ namespace DSL
          * @brief .
          */
         GstWebRTCSessionDescription* m_pOffer;
-
-        /** 
-         * @brief Client's send data channel for the Websocket connection, 
-         * NULL until channel has been setup.
-         */
-        GstWebRTCDataChannel* m_pSendChannel;
 
         /**
          * @brief Client's JSON Parsor for parsing all messages.

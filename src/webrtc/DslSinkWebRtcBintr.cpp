@@ -33,6 +33,7 @@ namespace DSL
         const char* turnServer, uint codec, uint bitrate, uint interval)
         : EncodeSinkBintr(name, codec, bitrate, interval)
         , SignalingTransceiver()
+        , m_pDataChannel(NULL)
         , m_stunServer(stunServer)
         , m_turnServer(turnServer)
     {
@@ -59,9 +60,38 @@ namespace DSL
         m_pWebRtcCapsFilter->SetAttribute("caps", pCaps);
         gst_caps_unref(pCaps);
 
+
+        AddChild(m_pPayloader);
+        AddChild(m_pWebRtcCapsFilter);
+
+        SoupServerMgr::GetMgr()->AddSignalingTransceiver(this);
+    }
+
+    WebRtcSinkBintr::~WebRtcSinkBintr()
+    {
+        LOG_FUNC();
+    
+        SoupServerMgr::GetMgr()->RemoveSignalingTransceiver(this);
+
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool WebRtcSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("WebRtcSinkBintr '" << GetName() << "' is already linked");
+        }
+
+        // We create a new webrtcbin with each new connection
         m_pWebRtcBin = DSL_ELEMENT_NEW("webrtcbin", "sink-bin-webrtc");
 
-        // Set the STUN or TURN server 
+        // Set the STUN and/or TURN server 
         if (m_stunServer.size())
         {
             m_pWebRtcBin->SetAttribute("stun-server", m_stunServer.c_str());
@@ -86,34 +116,8 @@ namespace DSL
         g_signal_connect(m_pWebRtcBin->GetGstObject(), "on-data-channel",
             G_CALLBACK(on_data_channel_cb), (gpointer)this);
 
-        SoupServerMgr::GetMgr()->AddSignalingTransceiver(this);
-        
-        AddChild(m_pPayloader);
-        AddChild(m_pWebRtcCapsFilter);
         AddChild(m_pWebRtcBin);
-    }
-    
-    WebRtcSinkBintr::~WebRtcSinkBintr()
-    {
-        LOG_FUNC();
-    
-        SoupServerMgr::GetMgr()->RemoveSignalingTransceiver(this);
 
-        if (IsLinked())
-        {    
-            UnlinkAll();
-        }
-    }
-
-    bool WebRtcSinkBintr::LinkAll()
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR("WebRtcSinkBintr '" << GetName() << "' is already linked");
-            return false;
-        }
         if (!m_pQueue->LinkToSink(m_pTransform) or
             !m_pTransform->LinkToSink(m_pCapsFilter) or
             !m_pCapsFilter->LinkToSink(m_pEncoder) or
@@ -144,6 +148,11 @@ namespace DSL
         m_pCapsFilter->UnlinkFromSink();
         m_pTransform->UnlinkFromSink();
         m_pQueue->UnlinkFromSink();
+
+        // remove and delete the webrtcbin to be recreated on next Linkall
+        RemoveChild(m_pWebRtcBin);
+        m_pWebRtcBin = nullptr;
+
         m_isLinked = false;
     }
 
@@ -280,6 +289,22 @@ namespace DSL
         return true;
     }
 
+    bool WebRtcSinkBintr::SetSyncSettings(bool sync, bool async)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Sync/Async Settings for WebRtcSinkBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_sync = sync;
+        m_async = async;
+
+        // Nothing to set for webrtcbin??
+        return true;
+    }
 
     void WebRtcSinkBintr::SetConnection(SoupWebsocketConnection* pConnection)
     {
@@ -309,179 +334,89 @@ namespace DSL
         GstState state;
         pParentBranchBintr->GetState(state, 0);
 
-        if (state == GST_STATE_PLAYING)
+        if (state != GST_STATE_PLAYING and m_clientListeners.empty())
         {
-            // add the this WebRtcSinkBintr now
+            LOG_ERROR("The WebRtcSinkBintr '" << GetName() << "' is currently stopped \\\
+                and without client liseners is unable to connect");
+            return;
+        }
+
+        if (!IsInUse())
+        {
+            // add "this" WebRtcSinkBintr now
             if (!pParentBranchBintr->AddSinkBintr(
                     std::dynamic_pointer_cast<SinkBintr>(shared_from_this())))
             {
                 LOG_ERROR("WebRtcSinkBintr '" << GetName() 
-                    << "' failed to add its self to the parent branch");
+                    << "' failed to add itself from the parent branch");
                 return;
             }
         }
-        else
-        {
-            LOG_ERROR("The WebRtcSinkBintr '" << GetName() 
-                << "' is not a child of any parent branch or pipeline");
-            return;
-        }
 
-        // If we have registered client listerns for the WebRtSinkBintr
-        if (m_clientListeners.size())
-        {
-            // setup the connection information data for the client listener(s)
-            dsl_webrtc_connection_data data{0};
+        // IMPORTANT: it is up to a client listener to start the pipeline
+        // If we're not currently in a state of playing. 
 
-            // single field for now
-            data.current_state = m_connectionState;
-
-            // iterate through the map of Termination event listeners calling each
-            for(auto const& imap: m_clientListeners)
-            {
-                try
-                {
-                    imap.first(&data, imap.second);
-                }
-                catch(...)
-                {
-                    LOG_ERROR("Exception calling Web RTC Sink Client Listener");
-                }
-            }
-        }
+        // notify all client listeners that a new Websocket connection
+        // has been initiated by a remote client. 
+        notifyClientListeners();
     }
 
-    bool WebRtcSinkBintr::SetSyncSettings(bool sync, bool async)
+    bool WebRtcSinkBintr::CloseConnection()
     {
         LOG_FUNC();
-        
-        if (IsLinked())
+
+        if (!m_pConnection)
         {
-            LOG_ERROR("Unable to set Sync/Async Settings for WebRtcSinkBintr '" 
-                << GetName() << "' as it's currently linked");
+            LOG_ERROR("WebRtcSinkBintr '" << GetName() 
+                << "' is not in a connected state");
             return false;
         }
-        m_sync = sync;
-        m_async = async;
-
-        // Nothing to set for webrtcbin??
+        gst_webrtc_data_channel_close(m_pDataChannel);
+        // Closing the connection with a close code of 0 and no data.
+        soup_websocket_connection_close(m_pConnection, 0, NULL);
+        ClearConnection();
         return true;
     }
 
-    void WebRtcSinkBintr::OnNegotiationNeeded()
+    void WebRtcSinkBintr::OnClosed(SoupWebsocketConnection* pConnection)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_transceiverMutex);
 
-        LOG_INFO("on-negotiation-needed called for WebRtcSinkBintr '" 
-            << GetName() << "'");
+        LOG_INFO("on-close called for WebRtcSinkBintr '" << GetName() <<"'");
 
-        GstPromise* promise = gst_promise_new_with_change_func(
-            on_offer_created_cb, (gpointer)this, NULL);
-        g_signal_emit_by_name(m_pWebRtcBin->GetGstObject(), 
-            "create-offer", NULL, promise);
-    }
-
-    void WebRtcSinkBintr::OnOfferCreated(GstPromise* promise)
-    {
-        LOG_FUNC();
-
-        LOG_INFO("on-offer-created called for WebRtcSinkBintr '" 
-            << GetName() << "'");
-
-        GstStructure const* reply = gst_promise_get_reply(promise);
-        GstWebRTCSessionDescription *offer = NULL;
-        gst_structure_get(reply, "offer", GST_TYPE_WEBRTC_SESSION_DESCRIPTION, &offer, NULL);
-        gst_promise_unref(promise);
-
-        GstPromise* localDescPromise = gst_promise_new_with_change_func(
-                on_local_desc_set_cb, (gpointer)this, NULL);
-        g_signal_emit_by_name(m_pWebRtcBin->GetGstObject(), 
-            "set-local-description", offer, localDescPromise);
-
-        gchar* sdpStr = gst_sdp_message_as_text(offer->sdp);
-
-        JsonObject* sdpJson = json_object_new();
-        json_object_set_string_member(sdpJson, "type", "sdp");
-
-        JsonObject* sdpDataJson = json_object_new();
-        json_object_set_string_member(sdpDataJson, "type", "offer");
-        json_object_set_string_member(sdpDataJson, "sdp", sdpStr);
-        json_object_set_object_member(sdpJson, "data", sdpDataJson);
-
-        gchar* jsonStr = getStrFromJsonObj(sdpJson);
-        json_object_unref(sdpJson);
-
-        soup_websocket_connection_send_text(m_pConnection, jsonStr);
-        g_free(jsonStr);
-        g_free(sdpStr);
-
-        gst_webrtc_session_description_free(offer);  
-    }
-
-    void WebRtcSinkBintr::OnIceCandidate(guint mLineIndex, gchar* candidate)
-    
-    {
-        LOG_FUNC();
-
-        LOG_INFO("on-ice-candidate '" << candidate << "' received for WebRtcSinkBintr '" 
-            << GetName() << "'");
-
-        JsonObject* ice_json = json_object_new();
-        json_object_set_string_member(ice_json, "type", "ice");
-
-        JsonObject* ice_data_json = json_object_new();
-        json_object_set_int_member(ice_data_json, "sdpMLineIndex", mLineIndex);
-        json_object_set_string_member(ice_data_json, "candidate", candidate);
-        json_object_set_object_member(ice_json, "data", ice_data_json);
-
-        gchar* jsonStr = getStrFromJsonObj(ice_json);
-        json_object_unref(ice_json);
-
-        soup_websocket_connection_send_text(m_pConnection, jsonStr);
-        g_free(jsonStr);
-    }
-
-    void WebRtcSinkBintr::OnLocalDescSet(GstPromise* promise)
-    {
-        LOG_FUNC();
-
-        LOG_INFO("on-local-desc-set called for WebRtcSinkBintr '" 
-            << GetName() << "'");
-
-        GstStructure const *reply = gst_promise_get_reply(promise);
-        if (reply != NULL)
+        // Need to close the WebRTC data channel if open.
+        if (m_pDataChannel)
         {
-            gchar* replyStr = gst_structure_to_string(reply);
-            LOG_INFO("Reply for on-local-desc-set is '" << replyStr
-                << "' for WebRtcSinkBintr '" << GetName());
-            g_free(replyStr);
+//            gst_webrtc_data_channel_close(m_pDataChannel);
         }
-        gst_promise_unref(promise);  
-    }
+        m_pDataChannel = NULL;
 
-    void WebRtcSinkBintr::OnRemoteDescSet(GstPromise* promise)
-    {
-        LOG_FUNC();
+        // Call the base/super class to clear the connection
+        SignalingTransceiver::OnClosed(pConnection);
 
-        LOG_INFO("on-remote-desc-set called for WebRtcSinkBintr '" 
-            << GetName() << "'");
+        // cast the parent pointer to a branch pointer
+        DSL_BRANCH_PTR pParentBranchBintr = 
+            std::dynamic_pointer_cast<BranchBintr>(m_pParentBintr);
 
-        GstStructure const *reply = gst_promise_get_reply(promise);
-        if (reply != NULL)
+        // remove "this" WebRtcSinkBintr, to be added back in on next connection. 
+        if (!pParentBranchBintr->RemoveSinkBintr(
+            std::dynamic_pointer_cast<SinkBintr>(shared_from_this())))
         {
-            gchar* replyStr = gst_structure_to_string(reply);
-            LOG_INFO("Reply for on-remote-desc-set is '" << replyStr
-                << "' for WebRtcSinkBintr '" << GetName());
-            g_free(replyStr);
+            LOG_ERROR("WebRtcSinkBintr '" << GetName() 
+                << "' failed to remove itself to the parent branch");
+            return;
         }
-        gst_promise_unref(promise);  
+        // notify all client listeners that the Websocket has now closed
+        notifyClientListeners();
     }
 
-    void WebRtcSinkBintr::HandleMessage(SoupWebsocketConnection* pConnection, 
+
+    void WebRtcSinkBintr::OnMessage(SoupWebsocketConnection* pConnection, 
         SoupWebsocketDataType dataType, GBytes* message)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_receiverMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_transceiverMutex);
 
         // Get the client webrtcbin based on the connection
 
@@ -517,7 +452,7 @@ namespace DSL
         // Load the message into the JSON parser
         if (!json_parser_load_from_data(m_pJsonParser, dataString, -1, NULL))
         {
-            LOG_ERROR("Soup Server Manager received unknown data type");
+            LOG_ERROR("WebRtcSinkBintr received unknown data type");
             g_free(dataString);
             return;
         }
@@ -551,6 +486,7 @@ namespace DSL
 
         JsonObject* pDataJsonObject = json_object_get_object_member(
                 pRootJsonObject, "data");
+
         if (g_strcmp0(typeString, "sdp") == 0) 
         {
             if (!json_object_has_member(pDataJsonObject, "type")) 
@@ -608,26 +544,28 @@ namespace DSL
                 return;
             }
 
-            GstPromise* promise = gst_promise_new_with_change_func(on_remote_desc_set_cb, 
+            GstPromise* pPromise = gst_promise_new_with_change_func(on_remote_desc_set_cb, 
                 m_pWebRtcBin->GetGstObject(), NULL);
 
             g_signal_emit_by_name(G_OBJECT(m_pWebRtcBin->GetGObject()), 
-                "set-remote-description", answer, promise);    
+                "set-remote-description", answer, pPromise);    
             gst_webrtc_session_description_free(answer);
 
-            // if(receiver_entry->send_channel == NULL)
-            // {
-            //     g_signal_emit_by_name (receiver_entry->webrtcbin, "create-data-channel", "channel", NULL, &receiver_entry->send_channel);
-            //     if (receiver_entry->send_channel) 
-            //     {
-            //         gst_print ("Created data channel\n");
-            //         connect_data_channel_signals((GObject*)receiver_entry->send_channel);
-            //     }
-            //     else 
-            //     {
-            //         gst_print ("Could not create data channel, is usrsctp available?\n");
-            //     }
-            // }
+            // emit signal to create data channel on first pass only
+            if(m_pDataChannel == NULL)
+            {
+                g_signal_emit_by_name(m_pWebRtcBin->GetGObject(), "create-data-channel", 
+                    "channel", NULL, &m_pDataChannel);
+                if (!m_pDataChannel)
+                {
+                    LOG_ERROR("WebRtcSinkBintr '" << GetName() 
+                        << "' failed to create data channel - returning");
+                    return;
+                }
+
+                // With the data channel now setup, time to connect the signal handlers
+                ConnectDataChannelSignals((GObject*)m_pDataChannel);
+            }
         }
         else if (g_strcmp0(typeString, "ice") == 0) 
         {
@@ -663,6 +601,213 @@ namespace DSL
         }
     }
 
+    void WebRtcSinkBintr::OnNegotiationNeeded()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_transceiverMutex);
+
+        LOG_INFO("on-negotiation-needed called for WebRtcSinkBintr '" 
+            << GetName() << "'");
+
+        GstPromise* pPromise = gst_promise_new_with_change_func(
+            on_offer_created_cb, (gpointer)this, NULL);
+        g_signal_emit_by_name(m_pWebRtcBin->GetGstObject(), 
+            "create-offer", NULL, pPromise);
+    }
+
+    void WebRtcSinkBintr::OnOfferCreated(GstPromise* pPromise)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_transceiverMutex);
+
+        LOG_INFO("on-offer-created called for WebRtcSinkBintr '" 
+            << GetName() << "'");
+
+        GstStructure const* pReply = gst_promise_get_reply(pPromise);
+        GstWebRTCSessionDescription *pOffer = NULL;
+        gst_structure_get(pReply, "offer", GST_TYPE_WEBRTC_SESSION_DESCRIPTION, &pOffer, NULL);
+        gst_promise_unref(pPromise);
+
+        GstPromise* localDescPromise = gst_promise_new_with_change_func(
+                on_local_desc_set_cb, (gpointer)this, NULL);
+        g_signal_emit_by_name(m_pWebRtcBin->GetGstObject(), 
+            "set-local-description", pOffer, localDescPromise);
+
+        gchar* sdpStr = gst_sdp_message_as_text(pOffer->sdp);
+
+        JsonObject* sdpJson = json_object_new();
+        json_object_set_string_member(sdpJson, "type", "sdp");
+
+        JsonObject* sdpDataJson = json_object_new();
+        json_object_set_string_member(sdpDataJson, "type", "offer");
+        json_object_set_string_member(sdpDataJson, "sdp", sdpStr);
+        json_object_set_object_member(sdpJson, "data", sdpDataJson);
+
+        gchar* jsonStr = getStrFromJsonObj(sdpJson);
+        json_object_unref(sdpJson);
+
+        soup_websocket_connection_send_text(m_pConnection, jsonStr);
+        g_free(jsonStr);
+        g_free(sdpStr);
+
+        gst_webrtc_session_description_free(pOffer);  
+    }
+
+    void WebRtcSinkBintr::OnIceCandidate(guint mLineIndex, gchar* candidate)
+    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_transceiverMutex);
+
+        LOG_INFO("on-ice-candidate '" << candidate << "' received for WebRtcSinkBintr '" 
+            << GetName() << "'");
+
+        JsonObject* iceJson = json_object_new();
+        json_object_set_string_member(iceJson, "type", "ice");
+
+        JsonObject* iceDataJson = json_object_new();
+        json_object_set_int_member(iceDataJson, "sdpMLineIndex", mLineIndex);
+        json_object_set_string_member(iceDataJson, "candidate", candidate);
+        json_object_set_object_member(iceJson, "data", iceDataJson);
+
+        gchar* jsonStr = getStrFromJsonObj(iceJson);
+        json_object_unref(iceJson);
+
+        soup_websocket_connection_send_text(m_pConnection, jsonStr);
+        g_free(jsonStr);
+    }
+
+    void WebRtcSinkBintr::OnLocalDescSet(GstPromise* pPromise)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_transceiverMutex);
+
+        LOG_INFO("on-local-desc-set called for WebRtcSinkBintr '" 
+            << GetName() << "'");
+
+        GstStructure const *pReply = gst_promise_get_reply(pPromise);
+        if (pReply != NULL)
+        {
+            gchar* replyStr = gst_structure_to_string(pReply);
+            LOG_INFO("Reply for on-local-desc-set is '" << replyStr
+                << "' for WebRtcSinkBintr '" << GetName());
+            g_free(replyStr);
+        }
+        gst_promise_unref(pPromise);  
+    }
+
+    void WebRtcSinkBintr::OnRemoteDescSet(GstPromise* pPromise)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_transceiverMutex);
+
+        LOG_INFO("on-remote-desc-set called for WebRtcSinkBintr '");
+
+        GstStructure const *pReply = gst_promise_get_reply(pPromise);
+        if (pReply != NULL)
+        {
+            gchar* replyStr = gst_structure_to_string(pReply);
+            LOG_INFO("Reply for on-remote-desc-set is '" << replyStr
+                << "' for WebRtcSinkBintr '" << GetName());
+            g_free(replyStr);
+        }
+        gst_promise_unref(pPromise);  
+    }
+
+    void WebRtcSinkBintr::ConnectDataChannelSignals(GObject* dataChannel)
+    {
+        LOG_FUNC();
+
+        LOG_INFO("Connecting data channel signals for WebRtcSinkBintr '" 
+            << GetName() << "'");
+
+        // Setup the RTP data channel signal handlers
+        m_dataChannelOnErrorSignalHandlerId = g_signal_connect(dataChannel, "on-error", 
+            G_CALLBACK(data_channel_on_error_cb), this);
+        m_dataChannelOnOpenSignalHandlerId = g_signal_connect(dataChannel, "on-open", 
+            G_CALLBACK(data_channel_on_open_cb), this);
+        m_dataChannelOnCloseSignalHandlerId = g_signal_connect(dataChannel, "on-close", 
+            G_CALLBACK(data_channel_on_close_cb), this);
+        m_dataChannelOnMessageSignalHandlerId = g_signal_connect(dataChannel, "on-message-string", 
+            G_CALLBACK(data_channel_on_message_string_cb), this);
+    }
+
+    void WebRtcSinkBintr::DataChannelOnOpen(GObject* pDataChannel)
+    {
+        LOG_FUNC();
+
+        LOG_INFO("data-channel-on-open called for WebRtcSinkBintr '" << GetName() << "'");
+
+        GstWebRTCDataChannel* pQualifedDataChannel = (GstWebRTCDataChannel*)pDataChannel;
+
+        std::string confirmation("Data channel for WebRTC Sink '" 
+            + GetName() + "' opened successfully");
+
+        GBytes *bytes = g_bytes_new("data", strlen("data"));
+        g_signal_emit_by_name(pQualifedDataChannel, "send-string", confirmation.c_str());
+        g_signal_emit_by_name(pQualifedDataChannel, "send-data", bytes);
+        g_bytes_unref(bytes);
+    }
+
+    void WebRtcSinkBintr::DataChannelOnClose(GObject* pDataChannel)
+    {
+        LOG_FUNC();
+
+        LOG_INFO("data-channel-on-close called for WebRtcSinkBintr '" << GetName() << "'");
+
+        if (m_dataChannelOnErrorSignalHandlerId)
+        {
+            g_signal_handler_disconnect(G_OBJECT(pDataChannel), m_dataChannelOnErrorSignalHandlerId);
+            m_dataChannelOnErrorSignalHandlerId = 0;
+        }
+        if (m_dataChannelOnOpenSignalHandlerId)
+        {
+            g_signal_handler_disconnect(G_OBJECT(pDataChannel), m_dataChannelOnOpenSignalHandlerId);
+            m_dataChannelOnOpenSignalHandlerId = 0;
+        }
+        if (m_dataChannelOnCloseSignalHandlerId)
+        {
+            g_signal_handler_disconnect(G_OBJECT(pDataChannel), m_dataChannelOnCloseSignalHandlerId);
+            m_dataChannelOnCloseSignalHandlerId = 0;
+        }
+        if (m_dataChannelOnMessageSignalHandlerId)
+        {
+            g_signal_handler_disconnect(G_OBJECT(pDataChannel), m_dataChannelOnMessageSignalHandlerId);
+            m_dataChannelOnOpenSignalHandlerId = 0;
+        }
+    }
+
+    // ------------------------------------------------------------------------------
+    // Private Member Functions
+
+    void WebRtcSinkBintr::notifyClientListeners()
+    {
+        LOG_FUNC();
+
+        // If we have registered client listeners for the WebRtSinkBintr
+        if (m_clientListeners.size())
+        {
+            // setup the connection information data for the client listener(s)
+            dsl_webrtc_connection_data data{0};
+
+            // single field for now
+            data.current_state = m_connectionState;
+
+            // iterate through the map of client listeners calling each
+            for(auto const& imap: m_clientListeners)
+            {
+                try
+                {
+                    imap.first(&data, imap.second);
+                }
+                catch(...)
+                {
+                    LOG_ERROR("Exception calling Web RTC Sink Client Listener");
+                }
+            }
+        }
+    }
+
     gchar* WebRtcSinkBintr::getStrFromJsonObj(JsonObject * object)
     {
         LOG_FUNC();
@@ -682,97 +827,88 @@ namespace DSL
     // -------------------------------------------------------------------------------
     // Signal Callback Functions
 
-    static void on_pad_added_cb(GstElement * webrtcbin, GstPad* pad, gpointer pWebRtcSink)
+    static void on_pad_added_cb(GstElement* pWebrtcbin, GstPad* pad, gpointer pWebRtcSink)
     {
         LOG_INFO("on-pad-added called for WebRtcSinkBintr '"
             << static_cast<WebRtcSinkBintr*>(pWebRtcSink)->GetName() << "'");
     }
 
-    static void on_pad_removed_cb(GstElement * webrtcbin, GstPad* pad, gpointer pWebRtcSink)
+    static void on_pad_removed_cb(GstElement* pWebrtcbin, GstPad* pad, gpointer pWebRtcSink)
     {
         LOG_INFO("on-pad-removed called for WebRtcSinkBintr '" 
             << static_cast<WebRtcSinkBintr*>(pWebRtcSink)->GetName() << "'");
     }
  
-    static void on_no_more_pads_cb(GstElement * webrtcbin, gpointer pWebRtcSink)
+    static void on_no_more_pads_cb(GstElement* pWebrtcbin, gpointer pWebRtcSink)
     {
         LOG_WARN("on-no-more-pads called for WebRtcSinkBintr '" 
             << static_cast<WebRtcSinkBintr*>(pWebRtcSink)->GetName() << "'");
     }
 
-    static void on_negotiation_needed_cb(GstElement* webrtcbin, gpointer pWebRtcSink)
-    {
-        static_cast<WebRtcSinkBintr*>(pWebRtcSink)->OnNegotiationNeeded();
-    }
-
-    static void on_offer_created_cb(GstPromise* promise, gpointer pWebRtcSink)
-    {
-        static_cast<WebRtcSinkBintr*>(pWebRtcSink)->OnOfferCreated(promise);
-    }
-
-    static void on_local_desc_set_cb(GstPromise* promise, gpointer pWebRtcSink)
-    {
-        static_cast<WebRtcSinkBintr*>(pWebRtcSink)->OnLocalDescSet(promise);
-    }
-
-    static void on_remote_desc_set_cb(GstPromise* promise, gpointer pWebRtcSink)
-    {
-        static_cast<WebRtcSinkBintr*>(pWebRtcSink)->OnRemoteDescSet(promise);
-    }
-
-    static void on_ice_candidate_cb(G_GNUC_UNUSED GstElement * webrtcbin, 
-        guint mline_index, gchar * candidate, gpointer pWebRtcSink)
-    {
-        static_cast<WebRtcSinkBintr*>(pWebRtcSink)->
-            OnIceCandidate(mline_index, candidate);
-    }
-
-    static void on_new_transceiver_cb(GstElement* webrtcbin, 
-        GstWebRTCRTPTransceiver* transceiver, gpointer pWebRtcSink)
+    static void on_new_transceiver_cb(G_GNUC_UNUSED GstElement* pWebrtcbin, 
+        GstWebRTCRTPTransceiver* pTransceiver, gpointer pWebRtcSink)
     {
         LOG_INFO("on-new-transceiver called for WebRtcSinkBintr '" 
             << static_cast<WebRtcSinkBintr*>(pWebRtcSink)->GetName() << "'");
     }
 
-    static void on_data_channel_cb(GstElement* webrtc, GObject* data_channel, gpointer pWebRtcSink)
+    static void on_negotiation_needed_cb(GstElement* pWebrtcbin, gpointer pWebRtcSink)
     {
-        gst_print("webrtcbin::on_data_channel\n");  
-
-        g_signal_connect(data_channel, "on-error", G_CALLBACK(data_channel_on_error_cb), pWebRtcSink);
-        g_signal_connect(data_channel, "on-open", G_CALLBACK(data_channel_on_open_cb), pWebRtcSink);
-        g_signal_connect(data_channel, "on-close", G_CALLBACK(data_channel_on_close_cb), pWebRtcSink);
-        g_signal_connect(data_channel, "on-message-string", G_CALLBACK(data_channel_on_message_string_cb), pWebRtcSink);
+        static_cast<WebRtcSinkBintr*>(pWebRtcSink)->OnNegotiationNeeded();
     }
 
-    static void data_channel_on_error_cb(GObject* dc, gpointer pWebRtcSink)
+    static void on_offer_created_cb(GstPromise* pPromise, gpointer pWebRtcSink)
     {
-        gst_print("webrtcbin::data_channel_on_error\n");  
-        //cleanup_and_quit_loop("Data channel error", 0);
+        static_cast<WebRtcSinkBintr*>(pWebRtcSink)->OnOfferCreated(pPromise);
     }
 
-    static void data_channel_on_open_cb(GObject* dc, gpointer pWebRtcSink)
+    static void on_local_desc_set_cb(GstPromise* pPromise, gpointer pWebRtcSink)
     {
-        GstWebRTCDataChannel* dataChannel = (GstWebRTCDataChannel*)dc;
-        gst_print("webrtcbin::data_channel_on_open: %s (%d)\n", dataChannel->label, dataChannel->ready_state);  
-
-        GBytes *bytes = g_bytes_new("data", strlen ("data"));
-        g_signal_emit_by_name(dc, "send-string", "Equature AI Ready");
-        g_signal_emit_by_name(dc, "send-data", bytes);
-        g_bytes_unref(bytes);
+        static_cast<WebRtcSinkBintr*>(pWebRtcSink)->OnLocalDescSet(pPromise);
     }
 
-    static void data_channel_on_close_cb(GObject* dc, gpointer user_data)
+    static void on_remote_desc_set_cb(GstPromise* pPromise, gpointer pWebRtcSink)
     {
-        gst_print("webrtcbin::data_channel_on_close\n");  
-
-        //cleanup_and_quit_loop ("Data channel closed", 0);
+        static_cast<WebRtcSinkBintr*>(pWebRtcSink)->OnRemoteDescSet(pPromise);
     }
 
-    static void data_channel_on_message_string_cb(GObject* dc, gchar* str, gpointer user_data)
+    static void on_ice_candidate_cb(G_GNUC_UNUSED GstElement* pWebrtcbin, 
+        guint mlineIndex, gchar * candidateStr, gpointer pWebRtcSink)
     {
-        gst_print("webrtcbin::data_channel_on_message_string\n");  
+        static_cast<WebRtcSinkBintr*>(pWebRtcSink)->
+            OnIceCandidate(mlineIndex, candidateStr);
+    }
 
-        gst_print ("Received data channel message: %s\n", str);
+    static void on_data_channel_cb(G_GNUC_UNUSED GstElement* pWebrtcbin, 
+        GObject* pDataChannel, gpointer pWebRtcSink)
+    {
+        static_cast<WebRtcSinkBintr*>(pWebRtcSink)->ConnectDataChannelSignals(pDataChannel);
+    }
+
+    static void data_channel_on_error_cb(GObject* pDataChannel, gpointer pWebRtcSink)
+    {
+        LOG_ERROR("on-data-channel-errror called for WebRtcSinkBintr '" 
+            << static_cast<WebRtcSinkBintr*>(pWebRtcSink)->GetName() << "'");
+
+        // TODO: define and implement proper behavior
+    }
+
+    static void data_channel_on_open_cb(GObject* pDataChannel, gpointer pWebRtcSink)
+    {
+        static_cast<WebRtcSinkBintr*>(pWebRtcSink)->DataChannelOnOpen(pDataChannel);
+    }
+
+    static void data_channel_on_close_cb(GObject* pDataChannel, gpointer pWebRtcSink)
+    {
+        static_cast<WebRtcSinkBintr*>(pWebRtcSink)->DataChannelOnClose(pDataChannel);
+    }
+
+    static void data_channel_on_message_string_cb(GObject* pDataChannel, 
+        gchar* messageStr, gpointer pWebRtcSink)
+    {
+        LOG_INFO("data-channel-on-message-string called for WebRtcSinkBintr '" 
+            << static_cast<WebRtcSinkBintr*>(pWebRtcSink)->GetName() << "'");
+        LOG_INFO("recieved message '" << messageStr << "'");
     }
 
 

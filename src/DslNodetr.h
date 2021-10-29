@@ -132,7 +132,18 @@ namespace DSL
             
             return true;
         }
-        
+
+        /**
+         * @brief returns the currently linked to Sink Nodetr
+         * @return shared pointer to Sink Nodetr, nullptr if Unlinked to sink
+         */
+        DSL_NODETR_PTR GetSource()
+        {
+            LOG_FUNC();
+            
+            return m_pSrc;
+        }
+
         /**
          * @brief Unlinks this Sink Nodetr from its Source Nodetr
          */
@@ -182,17 +193,6 @@ namespace DSL
             LOG_FUNC();
             
             return m_pSink;
-        }
-        
-        /**
-         * @brief returns the currently linked to Sink Nodetr
-         * @return shared pointer to Sink Nodetr, nullptr if Unlinked to sink
-         */
-        DSL_NODETR_PTR GetSource()
-        {
-            LOG_FUNC();
-            
-            return m_pSrc;
         }
         
         GstObject* GetGstObject()
@@ -265,6 +265,9 @@ namespace DSL
         DSL_NODETR_PTR m_pSink;
     };
 
+    static GstPadProbeReturn complete_unlink_from_source_tee_cb(GstPad* pad, 
+        GstPadProbeInfo *info, gpointer pNoder);
+
    /**
      * @class GstNodetr
      * @brief Overrides the Base Class Virtual functions, adding the actuall GstObject* management
@@ -289,6 +292,9 @@ namespace DSL
             LOG_FUNC();
 
             LOG_DEBUG("New GstNodetr '" << GetName() << "' created");
+
+            g_mutex_init(&m_asyncCommMutex);
+            g_cond_init(&m_asyncCondition);
         }
 
         /**
@@ -305,7 +311,7 @@ namespace DSL
             else
             {
                 // Set the State to NULL to free up all resource before removing childern
-                LOG_DEBUG("Setting GstElement for GstNodetr '" << GetName() << "' to GST_STATE_NULL");
+                LOG_INFO("Setting GstElement for GstNodetr '" << GetName() << "' to GST_STATE_NULL");
                 gst_element_set_state(GetGstElement(), GST_STATE_NULL);
 
                 // Remove all child references 
@@ -317,6 +323,9 @@ namespace DSL
                     gst_object_unref(m_pGstObj);
                 }
             }
+            g_mutex_clear(&m_asyncCommMutex);
+            g_cond_clear(&m_asyncCondition);
+
             LOG_DEBUG("Nodetr '" << GetName() << "' deleted");
         }
 
@@ -398,20 +407,19 @@ namespace DSL
         
         /**
          * @brief Creates a new Ghost Sink pad for this Gst Element
-         * @param[in] name unique name for the Ghost Pad
-         * and adds it to the parent Gst Bin.
+         * @param[in] padname which pad to add to, either "sink" or "src"
          * @throws a general exception on failure
          */
-        void AddGhostPadToParent(const char* name)
+        void AddGhostPadToParent(const char* padname)
         {
             LOG_FUNC();
 
             // create a new ghost pad with the static Sink pad retrieved from this Elementr's 
             // pGstObj and adds it to the the Elementr's Parent Bintr's pGstObj.
             if (!gst_element_add_pad(GST_ELEMENT(GetParentGstObject()), 
-                gst_ghost_pad_new(name, gst_element_get_static_pad(GetGstElement(), name))))
+                gst_ghost_pad_new(padname, gst_element_get_static_pad(GetGstElement(), padname))))
             {
-                LOG_ERROR("Failed to add Pad '" << name << "' for element'" << GetName() << "'");
+                LOG_ERROR("Failed to add Pad '" << padname << "' for element'" << GetName() << "'");
                 throw;
             }
         }
@@ -453,7 +461,6 @@ namespace DSL
                 return false;
             }
             gst_element_unlink(GetGstElement(), m_pSink->GetGstElement());
-            
             return Nodetr::UnlinkFromSink();
         }
 
@@ -475,6 +482,17 @@ namespace DSL
                 return false;
             }
             return true;
+        }
+
+        /**
+         * @brief returns the currently linked to Sink Nodetr
+         * @return shared pointer to Sink Nodetr, nullptr if Unlinked to sink
+         */
+        DSL_GSTNODETR_PTR GetGstSource()
+        {
+            LOG_FUNC();
+            
+            return std::dynamic_pointer_cast<GstNodetr>(m_pSrc);
         }
 
         /**
@@ -545,18 +563,46 @@ namespace DSL
             {
                 return false;
             }
-            LOG_INFO("Unlinking and releasing requested Src Pad '" << m_pGstRequestedSrcPad << "' for Bintr '" << GetName() << "'");
-            gst_pad_send_event(m_pGstStaticSinkPad, gst_event_new_eos());
+            GstState state;
+            gst_element_get_state(GetGstElement(), &state, NULL, 100);
+            if (state == GST_STATE_PLAYING)
+            {
+                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+
+                gst_pad_add_probe (m_pGstRequestedSrcPad, GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM,
+                    (GstPadProbeCallback)complete_unlink_from_source_tee_cb, this, NULL);
+
+                g_cond_wait(&m_asyncCondition, &m_asyncCommMutex);
+            }
+            else
+            {
+                CompleteUnlinkFromSourceTee();
+            }
+            return Nodetr::UnlinkFromSource();
+
+        }
+
+        void CompleteUnlinkFromSourceTee()
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+
+            LOG_INFO("Unlinking and releasing requested Src Pad '" 
+                << m_pGstRequestedSrcPad << "' for Bintr '" << GetName() << "'");
+
+            gst_element_set_state(GetGstElement(), GST_STATE_NULL);
             if (!gst_pad_unlink(m_pGstRequestedSrcPad, m_pGstStaticSinkPad))
             {
                 LOG_ERROR("Bintr '" << GetName() << "' failed to unlink from Source Tee");
-                Nodetr::UnlinkFromSource();
-                return false;
+                return;
             }
+            // gst_pad_send_event(m_pGstStaticSinkPad, gst_event_new_eos());
+            // g_usleep(500000);
             gst_element_release_request_pad(GetSource()->GetGstElement(), m_pGstRequestedSrcPad);
             gst_object_unref(m_pGstStaticSinkPad);
             gst_object_unref(m_pGstRequestedSrcPad);
-            return Nodetr::UnlinkFromSource();
+            m_pGstStaticSinkPad = m_pGstRequestedSrcPad = NULL;
+
+            g_cond_signal(&m_asyncCondition);
         }
 
         /**
@@ -668,6 +714,13 @@ namespace DSL
             return currentState;
         }
 
+        bool SendEos()
+        {
+            LOG_FUNC();
+            
+            return gst_element_send_event(GetGstElement(), gst_event_new_eos());
+        }
+
     protected:
 
         /**
@@ -689,7 +742,31 @@ namespace DSL
          * @brief requested Sink Pad when linking to Muxer used.
          */
         GstPad* m_pGstRequestedSinkPad;
+
+    private:
+
+        /**
+         * @brief Mutex to protect the async GCond used to synchronize
+         * the Application thread with the mainloop context on
+         * asynchronous change of pipeline state.
+         */
+        GMutex m_asyncCommMutex;
+        
+        /**
+         * @brief Condition used to block the application context while waiting
+         * for a Pipeline change of state to be completed in the mainloop context
+         */
+        GCond m_asyncCondition;
+
     };
+
+    static GstPadProbeReturn complete_unlink_from_source_tee_cb(GstPad* pad, 
+        GstPadProbeInfo *info, gpointer pNoder)
+    {
+        static_cast<GstNodetr*>(pNoder)->CompleteUnlinkFromSourceTee();
+
+        return GST_PAD_PROBE_REMOVE;
+    }
 
 } // DSL namespace    
 

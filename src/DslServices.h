@@ -772,6 +772,8 @@ namespace DSL {
         DslReturnType SinkWebRtcNew(const char* name, const char* stunServer, 
             const char* turnServer, uint codec, uint bitrate, uint interval);
 
+        DslReturnType SinkWebRtcConnectionClose(const char* name);
+        
         DslReturnType SinkWebRtcServersGet(const char* name, const char** stunServer, 
             const char** turnServer);
 

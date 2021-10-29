@@ -31,6 +31,7 @@ namespace DSL
 
     MultiComponentsBintr::MultiComponentsBintr(const char* name, const char* teeType)
         : Bintr(name)
+        , m_demuxChildId(0)
     {
         LOG_FUNC();
         
@@ -56,7 +57,6 @@ namespace DSL
             UnlinkAll();
         }
     }
-    
 
     bool MultiComponentsBintr::AddChild(DSL_BASE_PTR pChildElement)
     {
@@ -90,11 +90,29 @@ namespace DSL
         // linkAll Elementrs now and Link to with the Stream
         if (IsLinked())
         {
-            if (!pChildComponent->LinkAll() or !pChildComponent->LinkToSource(m_pTee))
+            // Must set the Unique Id first, then Link all of the ChildComponent's Elementrs, then 
+            pChildComponent->SetId(m_demuxChildId);
+
+            // NOTE: important to use the correct request pad name based on the element type
+            // Cast the base DSL_BASE_PTR to DSL_ELEMENTR_PTR so we can query the factory type 
+            DSL_ELEMENT_PTR pTeeElementr = 
+                std::dynamic_pointer_cast<Elementr>(m_pTee);
+
+             std::string srcPadName = (pTeeElementr->IsFactoryName("nvstreamdemux"))
+                ? "src_" + std::to_string(m_demuxChildId)
+                : "src_%u";
+                
+            // link back upstream to the Tee, the src for this Child Component 
+            if (!pChildComponent->LinkAll() or !pChildComponent->LinkToSourceTee(m_pTee, srcPadName.c_str()))
             {
+                LOG_ERROR("MultiComponentsBintr '" << GetName() 
+                    << "' failed to Link Child Component '" << pChildComponent->GetName() << "'");
                 return false;
             }
-            // Component up with the parent state
+            // New child successfully added
+            m_demuxChildId++;
+
+            // Sync component up with the parent state
             return gst_element_sync_state_with_parent(pChildComponent->GetGstElement());
         }
         return true;
@@ -126,8 +144,7 @@ namespace DSL
         }
         if (pChildComponent->IsLinkedToSource())
         {
-            // unlink the sink from the Tee
-            pChildComponent->UnlinkFromSource();
+            pChildComponent->UnlinkFromSourceTee();
             pChildComponent->UnlinkAll();
         }
         
@@ -150,11 +167,11 @@ namespace DSL
         }
         m_pQueue->LinkToSink(m_pTee);
 
-        uint id(0);
+        m_demuxChildId = 0;
         for (auto const& imap: m_pChildComponents)
         {
             // Must set the Unique Id first, then Link all of the ChildComponent's Elementrs, then 
-            imap.second->SetId(id);
+            imap.second->SetId(m_demuxChildId);
 
             // NOTE: important to use the correct request pad name based on the element type
             // Cast the base DSL_BASE_PTR to DSL_ELEMENTR_PTR so we can query the factory type 
@@ -162,7 +179,7 @@ namespace DSL
                 std::dynamic_pointer_cast<Elementr>(m_pTee);
 
              std::string srcPadName = (pTeeElementr->IsFactoryName("nvstreamdemux"))
-                ? "src_" + std::to_string(id)
+                ? "src_" + std::to_string(m_demuxChildId)
                 : "src_%u";
                 
             // link back upstream to the Tee, the src for this Child Component 
@@ -172,7 +189,7 @@ namespace DSL
                     << "' failed to Link Child Component '" << imap.second->GetName() << "'");
                 return false;
             }
-            id++;
+            m_demuxChildId++;
         }
         m_isLinked = true;
         return true;
@@ -263,5 +280,5 @@ namespace DSL
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             AddSplitterBintr(shared_from_this());
     }
-   
+
 }

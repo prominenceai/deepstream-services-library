@@ -106,6 +106,9 @@ DSL_METRIC_OBJECT_PERSISTENCE = 5
 
 DSL_METRIC_OBJECT_OCCURRENCES = 6
 
+DSL_SOCKET_CONNECTION_STATE_CLOSED    = 0
+DSL_SOCKET_CONNECTION_STATE_INITIATED = 1
+DSL_SOCKET_CONNECTION_STATE_FAILED    = 2
 
 class dsl_coordinate(Structure):
     _fields_ = [
@@ -145,7 +148,7 @@ class dsl_rtsp_connection_data(Structure):
 
 class dsl_webrtc_connection_data(Structure):
     _fields_ = [
-        ('is_connected', c_bool)]
+        ('current_state', c_uint)]
 
 ##
 ## Pointer Typedefs
@@ -3255,7 +3258,7 @@ def dsl_sink_record_mailer_add(name, mailer, subject):
 ##
 _dsl.dsl_sink_record_mailer_remove.argtypes = [c_wchar_p, c_wchar_p]
 _dsl.dsl_sink_record_mailer_remove.restype = c_uint
-def dsl_sink_record_mailer_remove(name, player):
+def dsl_sink_record_mailer_remove(name, mailer):
     global _dsl
     result = _dsl.dsl_sink_record_mailer_remove(name, mailer)
     return int(result)
@@ -3316,6 +3319,16 @@ def dsl_sink_webrtc_new(name, stun_server, turn_server, codec, bitrate, interval
     return int(result)
 
 ##
+## dsl_sink_webrtc_connection_close()
+##
+_dsl.dsl_sink_webrtc_connection_close.argtypes = [c_wchar_p]
+_dsl.dsl_sink_webrtc_connection_close.restype = c_uint
+def dsl_sink_webrtc_connection_close(name):
+    global _dsl
+    result =_dsl.dsl_sink_webrtc_connection_close(name)
+    return int(result)
+
+##
 ## dsl_sink_webrtc_client_listener_add()
 ##
 _dsl.dsl_sink_webrtc_client_listener_add.argtypes = [c_wchar_p, 
@@ -3332,15 +3345,15 @@ def dsl_sink_webrtc_client_listener_add(name, client_listener, client_data):
     return int(result)
     
 ##
-## dsl_sink_webrtc_client_listener_cb()
+## dsl_sink_webrtc_client_listener_remove()
 ##
-_dsl.dsl_sink_webrtc_client_listener_cb.argtypes = [c_wchar_p, 
+_dsl.dsl_sink_webrtc_client_listener_remove.argtypes = [c_wchar_p, 
     DSL_WEBRTC_SINK_CLIENT_LISTENER]
-_dsl.dsl_sink_webrtc_client_listener_cb.restype = c_uint
-def dsl_sink_webrtc_client_listener_cb(name, client_listener):
+_dsl.dsl_sink_webrtc_client_listener_remove.restype = c_uint
+def dsl_sink_webrtc_client_listener_remove(name, client_listener):
     global _dsl
     c_client_listener = DSL_WEBRTC_SINK_CLIENT_LISTENER(client_listener)
-    result = _dsl.dsl_sink_webrtc_client_listener_cb(name, c_client_listener)
+    result = _dsl.dsl_sink_webrtc_client_listener_add(name, c_client_listener)
     return int(result)
 
 
@@ -3469,9 +3482,9 @@ def dsl_component_gpuid_get(name):
 ##
 _dsl.dsl_component_gpuid_set.argtypes = [c_wchar_p, c_uint]
 _dsl.dsl_component_gpuid_set.restype = c_uint
-def dsl_component_gpuid_set(name):
+def dsl_component_gpuid_set(name, gpuid):
     global _dsl
-    result =_dsl.dsl_component_gpuid_set(gpuid)
+    result =_dsl.dsl_component_gpuid_set(name, gpuid)
     return int(result)
 
 ##
@@ -3809,7 +3822,7 @@ def dsl_pipeline_xwindow_offsets_get(name):
     x_offset = c_uint(0)
     y_offset = c_uint(0)
     result = _dsl.dsl_pipeline_xwindow_offsets_get(name, DSL_UINT_P(x_offset), DSL_UINT_P(y_offset))
-    return int(result), int(width.value), int(height.value) 
+    return int(result), int(x_offset.value), int(y_offset.value) 
 
 ##
 ## dsl_pipeline_xwindow_fullscreen_enabled_get()
@@ -4099,7 +4112,7 @@ def dsl_player_render_file_path_get(name):
     global _dsl
     file_path = c_wchar_p(0)
     result = _dsl.dsl_player_render_file_path_get(name, DSL_WCHAR_PP(file_path))
-    return int(result), uri.value 
+    return int(result), file_path.value 
 
 ##
 ## dsl_player_render_file_path_set()
@@ -4238,10 +4251,10 @@ def dsl_player_termination_event_listener_add(name, client_listener, client_data
 _dsl.dsl_player_termination_event_listener_remove.argtypes = [c_wchar_p, 
     DSL_PLAYER_TERMINATION_EVENT_LISTENER]
 _dsl.dsl_player_termination_event_listener_remove.restype = c_uint
-def dsl_player_termination_event_listener_remove(name, client_handler):
+def dsl_player_termination_event_listener_remove(name, client_listener):
     global _dsl
     c_client_listener = DSL_PLAYER_TERMINATION_EVENT_LISTENER(client_listener)
-    result = _dsl.dsl_player_termination_event_listener_remove(name, c_client_handler)
+    result = _dsl.dsl_player_termination_event_listener_remove(name, c_client_listener)
     return int(result)
 
 ##
@@ -4438,9 +4451,10 @@ _dsl.dsl_mailer_address_from_get.argtypes = [c_wchar_p, POINTER(c_wchar_p), POIN
 _dsl.dsl_mailer_address_from_get.restype = c_uint
 def dsl_mailer_address_from_get(name):
     global _dsl
-    name = c_wchar_p(0)
+    display_name = c_wchar_p(0)
     address = c_wchar_p(0)
-    result = _dsl.dsl_mailer_address_from_get(DSL_WCHAR_PP(display_name), DSL_WCHAR_PP(address))
+    result = _dsl.dsl_mailer_address_from_get(name, 
+        DSL_WCHAR_PP(display_name), DSL_WCHAR_PP(address))
     return int(result), display_name.value, address.value
 
 ##

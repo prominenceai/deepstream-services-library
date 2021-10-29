@@ -31,9 +31,8 @@ namespace DSL
      */
     SignalingTransceiver::SignalingTransceiver()
         : m_pConnection(NULL)
-        , m_connectionState(DSL_SOCKET_CONNECTION_STATE_NONE)
+        , m_connectionState(DSL_SOCKET_CONNECTION_STATE_CLOSED)
         , m_pOffer(NULL)
-        , m_pSendChannel(NULL)
         , m_pJsonParser(NULL)
         , m_closedSignalHandlerId(0)
         , m_messageSignalHandlerId(0)
@@ -49,7 +48,7 @@ namespace DSL
             throw;
         }
 
-        g_mutex_init(&m_receiverMutex);
+        g_mutex_init(&m_transceiverMutex);
     };
 
     /**
@@ -59,13 +58,13 @@ namespace DSL
     {
         LOG_FUNC();
         {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_receiverMutex);
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_transceiverMutex);
             if (m_pJsonParser != NULL)
             {
                 g_object_unref(G_OBJECT(m_pJsonParser));
             }
         }
-        g_mutex_clear(&m_receiverMutex);
+        g_mutex_clear(&m_transceiverMutex);
     }
 
     const SoupWebsocketConnection* SignalingTransceiver::GetConnection()
@@ -112,23 +111,21 @@ namespace DSL
             m_messageSignalHandlerId = 0;
         }
         m_pConnection = NULL;
+        m_connectionState = DSL_SOCKET_CONNECTION_STATE_CLOSED;
     }
 
-
-    void SignalingTransceiver::HandleClose(SoupWebsocketConnection* pConnection)
+    void SignalingTransceiver::OnClosed(SoupWebsocketConnection* pConnection)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_receiverMutex);
 
-        // ClearConnection();
-        m_pConnection = NULL;
+        ClearConnection();
     }
 
-    void SignalingTransceiver::HandleMessage(SoupWebsocketConnection* pConnection, 
+    void SignalingTransceiver::OnMessage(SoupWebsocketConnection* pConnection, 
         SoupWebsocketDataType dataType, GBytes* message)
     {        
         // NOTE: virtual base implementation for testing purposes only    
-        LOG_ERROR("Derived class must implement Handle Message");
+        LOG_ERROR("Derived class must implement On Message");
     }
 
 
@@ -138,13 +135,13 @@ namespace DSL
     static void on_soup_websocket_closed_cb(SoupWebsocketConnection * pConnection, 
         gpointer pSignalingTransceiver)
     {
-        static_cast<SignalingTransceiver*>(pSignalingTransceiver)->HandleClose(pConnection);
+        static_cast<SignalingTransceiver*>(pSignalingTransceiver)->OnClosed(pConnection);
     }
 
     static void on_soup_websocket_message_cb(SoupWebsocketConnection* pConnection, 
         SoupWebsocketDataType dataType, GBytes* message, gpointer pSignalingTransceiver)
     {
-        static_cast<SignalingTransceiver*>(pSignalingTransceiver)->HandleMessage(pConnection,
+        static_cast<SignalingTransceiver*>(pSignalingTransceiver)->OnMessage(pConnection,
             dataType, message);
     }
 
@@ -293,9 +290,10 @@ namespace DSL
         // Look for first unconnected transceiver
         for (auto &imap: m_signalingTransceivers)
         {
-            LOG_INFO("Signaling Transceiver found");
             if (imap.second == NULL)
             {
+                LOG_INFO("Unused Signaling Transceiver found");
+
                 // map the connection to the transceiver
                 imap.first->SetConnection(pConnection);
                 imap.second = pConnection;

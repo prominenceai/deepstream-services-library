@@ -91,6 +91,8 @@ namespace DSL
          */
         bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
 
+        bool CloseConnection();
+
         /**
          * @brief sets the current sync and async settings for the WebRtcSinkBintr
          * @param[in] sync current sync setting, true if set, false otherwise.
@@ -131,13 +133,27 @@ namespace DSL
          */
         bool RemoveClientListener(dsl_sink_webrtc_client_listener_cb listener);
 
-
         /**
          * @brief Sets the current connection for this SignalingTransceiver.
          * @param[in] pConnection pointer to Websocket Connection struction, 
          * set to NULL to reset.
          */
         void SetConnection(SoupWebsocketConnection* pConnection);
+
+        /**
+         * @brief Called when the Websocket is closed
+         * @param[in] pConnection unique connection that closed 
+         */
+        void OnClosed(SoupWebsocketConnection* pConnection);
+
+        /**
+         * @brief Handles an incoming Websocket message
+         * @param[in] pConnection pointer to the Websocket connection object.
+         * @param[in] dataType type of the message received.
+         * @param[in] message incoming message to handle.
+         */
+        void OnMessage(SoupWebsocketConnection* pConnection, 
+            SoupWebsocketDataType dataType, GBytes* message);
 
         /**
          * @brief Handles the on-negotiation-needed by emitting a create-offer signal
@@ -149,7 +165,7 @@ namespace DSL
          * signal and replying to he remote client
          * @param[in] promise 
          */
-        void OnOfferCreated(GstPromise* promise);
+        void OnOfferCreated(GstPromise* pPromise);
 
         /**
          * @brief Handles the on-ice-candidate callback by
@@ -163,25 +179,76 @@ namespace DSL
          * as INFO
          * @param[in] promise the promise from the initial offer.
          */
-        void OnLocalDescSet(GstPromise* promise);
+        void OnLocalDescSet(GstPromise* pPromise);
 
         /**
          * @brief Handles the on-remote-desc-set callback by logging the reply
          * as INFO
-         * @param[in] promise the promise from the initial offer.
+         * @param[in] pPromise the promise from the initial offer.
          */
-        void OnRemoteDescSet(GstPromise* promise);
+        void OnRemoteDescSet(GstPromise* pPromise);
 
         /**
-         * @brief Handles an incoming Websocket message
-         * @param[in] pConnection pointer to the Websocket connection object.
-         * @param[in] dataType type of the message received.
-         * @param[in] message incoming message to handle.
+         * @brief Common function to connect the Data Channel Signals
+         * of channel setup
          */
-        void HandleMessage(SoupWebsocketConnection* pConnection, 
-            SoupWebsocketDataType dataType, GBytes* message);
+        void ConnectDataChannelSignals(GObject* pDataChannel);
+
+        /**
+         * @brief Handles the data-channel-on-open signal by emitting a
+         * signals to inform the remote client that the channel is ready. 
+         */
+        void DataChannelOnOpen(GObject* pDataChannel);
+
+        /**
+         * @brief Handles the data-channel-on-close signal by disconnecting
+         * all data channel signal handlers. 
+         */
+        void DataChannelOnClose(GObject* pDataChannel);
 
     private:
+
+        /** 
+         * @brief WebRTC data channel for this WebRtcSinkBintr, 
+         * NULL until channel has been setup.
+         */
+        GstWebRTCDataChannel* m_pDataChannel;
+
+        /**
+         * @brief Private function to iterate through the map of client listners
+         * notifying each of the new/current state on change of state. 
+         */
+        void notifyClientListeners();
+
+        /**
+         * @brief Helper function to convert a json object to string
+         * @return json string.
+         */
+        gchar* getStrFromJsonObj(JsonObject * object);
+
+        /** 
+         * @brief Handler Id for the RTP data chanel on-error signal handler,
+         * 0 when not set
+         */
+        gulong m_dataChannelOnErrorSignalHandlerId;
+
+        /** 
+         * @brief Handler Id for the RTP data chanel on-open signal handler,
+         * 0 when not set
+         */
+        gulong m_dataChannelOnOpenSignalHandlerId;
+
+        /** 
+         * @brief Handler Id for the RTP data chanel on-close signal handler,
+         * 0 when not set
+         */
+        gulong m_dataChannelOnCloseSignalHandlerId;
+
+        /** 
+         * @brief Handler Id for the RTP data chanel on-message signal handler,
+         * 0 when not set
+         */
+        gulong m_dataChannelOnMessageSignalHandlerId;
 
         /**
          * @brief Client provided STUN server for this WebRtcSinkBintr 
@@ -194,14 +261,6 @@ namespace DSL
          * of the form turn(s)://username:password@host:port. 
          */
         std::string m_turnServer;
-
-        gchar* getStrFromJsonObj(JsonObject * object);
-
-
-        /**
-         * @brief Pointer to the WebRtcSinks' channel for sending data, NULL until connected.
-         */
-        GstWebRTCDataChannel* m_pSendChannel;
 
         /**
          * @brief shared pointer to parent BranchBintr or PipelineBintr. nullptr if none.
@@ -234,7 +293,6 @@ namespace DSL
          * callback functions mapped with the user provided data
          */
         std::map<dsl_sink_webrtc_client_listener_cb, void*>m_clientListeners;
-
     };
 
     /**
@@ -261,28 +319,90 @@ namespace DSL
      */
     static void on_no_more_pads_cb(GstElement* webrtcbin, gpointer user_data);
 
-    static void on_negotiation_needed_cb(GstElement* webrtcbin, gpointer pWebRtcSink);
+    /**
+     * @brief Callback function called on new WebRTC RTP Transciever.
+     * @param[in] pWebrtcbin pointer to the webrtcbin element connected to the Transciever.
+     * @param[in] pTransceiver pointer to the new RTP Transciever.
+     * @param[in] pWebRtcSink pointer to the WebRtcSinkBintr that owns the webrtcbin.
+     */
+    static void on_new_transceiver_cb(G_GNUC_UNUSED GstElement* pWebrtcbin, 
+        GstWebRTCRTPTransceiver* pTransceiver, gpointer pWebRtcSink);
 
-    static void on_offer_created_cb(GstPromise* promise, gpointer pWebRtcSink);
+    /**
+     * @brief Callback function called on negotion needed.
+     * @param[in] pWebrtcbin pointer to the webrtcbin element connected to the Transciever.
+     * @param[in] pWebRtcSink pointer to the WebRtcSinkBintr that owns the webrtcbin.
+     */
+    static void on_negotiation_needed_cb(GstElement* pWebrtcbin, gpointer pWebRtcSink);
 
-    static void on_local_desc_set_cb(GstPromise* promise, gpointer pWebRtcSink);
+    /**
+     * @brief Callback function called on offer created 
+     * @param[in] pPromise pointer to the promise ??
+     * @param[in] pWebRtcSink pointer to the WebRtcSinkBintr that owns the webrtcbin.
+     */
+    static void on_offer_created_cb(GstPromise* pPromise, gpointer pWebRtcSink);
 
-    static void on_remote_desc_set_cb(GstPromise* promise, gpointer pWebRtcSink);
+    /**
+     * @brief Callback function called on local description set
+     * @param[in] pPromise pointer to the promise ??.
+     * @param[in] pWebRtcSink pointer to the WebRtcSinkBintr that owns the webrtcbin.
+     */
+    static void on_local_desc_set_cb(GstPromise* pPromise, gpointer pWebRtcSink);
 
-    static void on_ice_candidate_cb(G_GNUC_UNUSED GstElement* webrtcbin, 
-        guint mline_index, gchar* candidate, gpointer pWebRtcSink);
+    /**
+     * @brief Callback function called on remote description set
+     * @param[in] pPromise pointer to the promise with the reply to the offer created??
+     * @param[in] pWebRtcSink pointer to the WebRtcSinkBintr that owns the webrtcbin.
+     */
+    static void on_remote_desc_set_cb(GstPromise* pPromise, gpointer pWebRtcSink);
 
-    static void on_new_transceiver_cb(GstElement* webrtcbin, 
-        GstWebRTCRTPTransceiver* transceiver, gpointer pWebRtcSink);
+    /**
+     * @brief Callback function called on ICE candidate recieved
+     * @param[in] pWebrtcbin pointer to the webrtcbin element connected to the RTP Transciever.
+     * @param[in] mlineIndex line index for the candidate string.
+     * @param[in] candidateStr the ICE candidate info string.
+     * @param[in] pWebRtcSink pointer to the WebRtcSinkBintr that owns the webrtcbin.
+     */
+    static void on_ice_candidate_cb(G_GNUC_UNUSED GstElement* pWebrtcbin, 
+        guint mlineIndex, gchar * candidateStr, gpointer pWebRtcSink);
 
-    static void on_data_channel_cb(GstElement* webrtc, GObject* data_channel, gpointer pWebRtcSink);
+    /**
+     * @brief Callback function called on new data channel.
+     * @param[in] pWebrtcbin pointer to the webrtcbin element connected to the data channel.
+     * @param[in] pDataChannel pointer to the data channel created.
+     * @param[in] pWebRtcSink pointer to the WebRtcSinkBintr that owns the webrtcbin.
+     */
+    static void on_data_channel_cb(G_GNUC_UNUSED GstElement* pWebrtcbin, 
+        GObject* pDataChannel, gpointer pWebRtcSink);
 
-    static void data_channel_on_open_cb(GObject* dc, gpointer pWebRtcSink);
+    /**
+     * @brief Callback function called on data channel error.
+     * @param[in] pDataChannel pointer to the data channel in error.
+     * @param[in] pWebRtcSink pointer to the WebRtcSinkBintr that owns the data channel.
+     */
+    static void data_channel_on_error_cb(GObject* pDataChannel, gpointer pWebRtcSink);
 
-    static void data_channel_on_error_cb(GObject* dc, gpointer pWebRtcSink);
+    /**
+     * @brief Callback function called on data channel opened.
+     * @param[in] pDataChannel pointer to the data channel that closed.
+     * @param[in] pWebRtcSink pointer to the WebRtcSinkBintr that owns the data channel.
+     */
+    static void data_channel_on_open_cb(GObject* pDataChannel, gpointer pWebRtcSink);
 
-    static void data_channel_on_close_cb(GObject* dc, gpointer pWebRtcSink);
+    /**
+     * @brief Callback function called on data channel closed.
+     * @param[in] pDataChannel pointer to the data channel that closed.
+     * @param[in] pWebRtcSink pointer to the WebRtcSinkBintr that owns the data channel.
+     */
+    static void data_channel_on_close_cb(GObject* pDataChannel, gpointer pWebRtcSink);
 
-    static void data_channel_on_message_string_cb(GObject* dc, gchar* str, gpointer pWebRtcSink);
+    /**
+     * @brief Callback function called on new incomming message string.
+     * @param[in] pDataChannel pointer to the data channel the message was received on.
+     * @param[in] messageStr the recieved message string.
+     * @param[in] pWebRtcSink pointer to the WebRtcSinkBintr that owns the data channel.
+     */
+    static void data_channel_on_message_string_cb(GObject* dataChannel, 
+        gchar* messageStr, gpointer pWebRtcSink);
 }
 #endif //_DSL_SINK_BINTR_H
