@@ -358,6 +358,11 @@ namespace DSL
         {
             imap.second->DisableEosConsumer();
         }
+        // If at lease one RTSP Source was added and the EOS Consumer
+        // needs to be removed. 
+        if (m_pEosConsumer)
+        {
+            m_pSrcPadProbe->RemovePadProbeHandler(m_pEosConsumer);
+        }
     }
-    
 }

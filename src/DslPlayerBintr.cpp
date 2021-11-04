@@ -317,7 +317,7 @@ namespace DSL
         return true;
     }
 
-    bool PlayerBintr::InitiateStop()
+    void PlayerBintr::InitiateStop()
     {
         LOG_FUNC();
 

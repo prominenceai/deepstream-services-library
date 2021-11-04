@@ -1893,7 +1893,7 @@ namespace DSL
     static boolean RtspSourceSelectStreamCB(GstElement *pBin, uint num, GstCaps *caps,
         gpointer pSource)
     {
-        static_cast<RtspSourceBintr*>(pSource)->HandleSelectStream(pBin, num, caps);
+        return static_cast<RtspSourceBintr*>(pSource)->HandleSelectStream(pBin, num, caps);
     }
         
     static void RtspSourceElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource)

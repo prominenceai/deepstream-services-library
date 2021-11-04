@@ -63,7 +63,7 @@ namespace DSL
         }
         
         /**
-         * @brief Allows a client to determined derived type from base pointer
+         * @brief Allows a client to determined derived type from base pointer 
          * @param[in] typeInfo to compare against
          * @return true if this DSL Object is of typeInfo, false otherwise
          */

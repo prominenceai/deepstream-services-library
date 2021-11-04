@@ -185,9 +185,11 @@ SCENARIO( "A Primary GIE, once removed from a Pipeline, can be deleted", "[infer
 
 static boolean pad_probe_handler_cb1(void* buffer, void* user_data)
 {
+    return true;
 }
 static boolean pad_probe_handler_cb2(void* buffer, void* user_data)
 {
+    return true;
 }
     
 SCENARIO( "A Sink Pad Probe Handler can be added and removed from a Primary GIE", "[infer-api]" )

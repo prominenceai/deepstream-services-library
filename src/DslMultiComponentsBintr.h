@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslBintr.h"
-    
+#include "DslPadProbeHandler.h"
    
 namespace DSL 
 {
@@ -122,10 +122,10 @@ namespace DSL
         DSL_ELEMENT_PTR m_pTee;
         
         /**
-         * @brief Unique streamId of Parent SourceBintr if added to Source vs. Pipeline
-         * The id is used when getting a request Pad for Src Demuxer
+         * @brief Unique childId of Branch or Sink connected to thisMultiComponentsBintr
+         * The id is used when getting a request Pad for Src Demuxer (not used by Tee)
          */
-        int m_streamId;
+        uint m_demuxChildId;
     
         std::map<std::string, DSL_BINTR_PTR> m_pChildComponents;
 
