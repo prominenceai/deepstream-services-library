@@ -564,12 +564,12 @@ namespace DSL
                 return false;
             }
             GstState state;
-            gst_element_get_state(GetGstElement(), &state, NULL, 100);
+            GetState(state, 100);
             if (state == GST_STATE_PLAYING)
             {
                 LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
 
-                gst_pad_add_probe (m_pGstRequestedSrcPad, GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM,
+                gst_pad_add_probe(m_pGstRequestedSrcPad, GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM,
                     (GstPadProbeCallback)complete_unlink_from_source_tee_cb, this, NULL);
 
                 g_cond_wait(&m_asyncCondition, &m_asyncCommMutex);
@@ -589,14 +589,17 @@ namespace DSL
             LOG_INFO("Unlinking and releasing requested Src Pad '" 
                 << m_pGstRequestedSrcPad << "' for Bintr '" << GetName() << "'");
 
-            gst_element_set_state(GetGstElement(), GST_STATE_NULL);
+            GstState state;
+            GetState(state, 100);
+            if (state == GST_STATE_PLAYING)
+            {
+                SetState(GST_STATE_READY, 100);
+            }
             if (!gst_pad_unlink(m_pGstRequestedSrcPad, m_pGstStaticSinkPad))
             {
                 LOG_ERROR("Bintr '" << GetName() << "' failed to unlink from Source Tee");
                 return;
             }
-            // gst_pad_send_event(m_pGstStaticSinkPad, gst_event_new_eos());
-            // g_usleep(500000);
             gst_element_release_request_pad(GetSource()->GetGstElement(), m_pGstRequestedSrcPad);
             gst_object_unref(m_pGstStaticSinkPad);
             gst_object_unref(m_pGstRequestedSrcPad);
@@ -720,6 +723,84 @@ namespace DSL
             
             return gst_element_send_event(GetGstElement(), gst_event_new_eos());
         }
+
+        uint GetState(GstState& state, GstClockTime timeout)
+        {
+            LOG_FUNC();
+
+            uint retval = gst_element_get_state(GetGstElement(), &state, NULL, timeout);
+            LOG_DEBUG("Get state returned '" << gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
+            
+            return retval;
+        }
+        
+        /**
+         * @brief Attempts to set the state of this Bintr's GST Element
+         * @return true if successful transition, false on failure
+         */
+        bool SetState(GstState state, GstClockTime timeout)
+        {
+            LOG_FUNC();
+            LOG_INFO("Changing state to '" << gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
+
+            GstStateChangeReturn returnVal = gst_element_set_state(GetGstElement(), state);
+            switch (returnVal) 
+            {
+                case GST_STATE_CHANGE_SUCCESS:
+                    LOG_INFO("State change completed synchronously for Bintr'" << GetName() << "'");
+                    return true;
+                case GST_STATE_CHANGE_FAILURE:
+                    LOG_ERROR("FAILURE occured when trying to change state to '" << 
+                        gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
+                    return false;
+                case GST_STATE_CHANGE_NO_PREROLL:
+                    LOG_INFO("Set state for Bintr '" << GetName() << "' returned GST_STATE_CHANGE_NO_PREROLL");
+                    return true;
+                case GST_STATE_CHANGE_ASYNC:
+                    LOG_INFO("State change will complete asynchronously for Bintr '" << GetName() << "'");
+                    break;
+                default:
+                    break;
+            }
+            
+            // Wait until state change or failure, no timeout.
+            if (gst_element_get_state(GetGstElement(), NULL, NULL, timeout) == GST_STATE_CHANGE_FAILURE)
+            {
+                LOG_ERROR("FAILURE occured waiting for state to change to '" << gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
+                return false;
+            }
+            LOG_INFO("State change completed asynchronously for Bintr'" << GetName() << "'");
+            return true;
+        }
+
+        uint SyncStateWithParent(GstState& parentState, GstClockTime timeout)
+        {
+            LOG_FUNC();
+            
+            uint returnVal = gst_element_sync_state_with_parent(GetGstElement());
+
+            switch (returnVal) 
+            {
+                case GST_STATE_CHANGE_SUCCESS:
+                    LOG_INFO("State change completed synchronously for Bintr'" << GetName() << "'");
+                    return returnVal;
+                case GST_STATE_CHANGE_FAILURE:
+                    LOG_ERROR("FAILURE occured when trying to sync state with Parent for Bintr '" << GetName() << "'");
+                    return returnVal;
+                case GST_STATE_CHANGE_NO_PREROLL:
+                    LOG_INFO("Set state for Bintr '" << GetName() << "' return GST_STATE_CHANGE_NO_PREROLL");
+                    return returnVal;
+                case GST_STATE_CHANGE_ASYNC:
+                    LOG_INFO("State change will complete asynchronously for Bintr '" << GetName() << "'");
+                    break;
+                default:
+                    break;
+            }
+            uint retval = gst_element_get_state(GST_ELEMENT_PARENT(GetGstElement()), &parentState, NULL, timeout);
+            LOG_INFO("Get state returned '" << gst_element_state_get_name(parentState) << "' for Parent of Bintr '" << GetName() << "'");
+            return retval;
+        }
+        
 
     protected:
 

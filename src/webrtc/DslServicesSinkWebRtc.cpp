@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include "DslServices.h"
 #include "DslServicesValidate.h"
 #include "DslSinkWebRtcBintr.h"
+#include "DslSoupServerMgr.h"
 
 namespace DSL
 {
@@ -167,7 +168,7 @@ namespace DSL
             if (!pWebRtcSinkBintr->AddClientListener(listener, clientData))
             {
                 LOG_ERROR("WebRTC Sink '" << name 
-                    << "' failed to add Client Listener");
+                    << "' failed to add a Client Listener");
                 return DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_ADD_FAILED;
             }
             LOG_INFO("Web RTC Sink '" << name 
@@ -178,7 +179,7 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("WebRTC Sink '" << name 
-                << "' threw an exception adding Client Event Listner");
+                << "' threw an exception adding a Client Event Listner");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -200,7 +201,7 @@ namespace DSL
             if (!pWebRtcSinkBintr->RemoveClientListener(listener))
             {
                 LOG_ERROR("WebRTC Sink '" << name 
-                    << "' failed to remove client Listener");
+                    << "' failed to remove a client Listener");
                 return DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED;
             }
             LOG_INFO("WebRtc Sink '" << name 
@@ -211,8 +212,150 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("WebRTC Sink '" << name 
-                << "' threw an exception removing Client Listner");
+                << "' threw an exception removing a Client Listner");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::WebsocketServerPathAdd(const char* path)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            if (!SoupServerMgr::GetMgr()->AddPath(path))
+            {
+                LOG_ERROR("The Websocket Server failed to add the Path '"
+                    << path << "'");
+                return DSL_RESULT_WEBSOCKET_SERVER_SET_FAILED;
+            }
+            LOG_INFO("The Websocket Server added the Path '"
+                << path << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("The Websocket Server threw an exception adding a URI");
+            return DSL_RESULT_WEBSOCKET_SERVER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::WebsocketServerListeningStart(uint portNumber)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            if (!SoupServerMgr::GetMgr()->StartListening(portNumber))
+            {
+                LOG_ERROR("The Websocket Server failed to start listening on port number "
+                    << portNumber);
+                return DSL_RESULT_WEBSOCKET_SERVER_SET_FAILED;
+            }
+            LOG_INFO("The Websocket Server started listening on port "
+                << portNumber << " successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("The Websocket Server threw an exception on listening start");
+            return DSL_RESULT_WEBSOCKET_SERVER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::WebsocketServerListeningStop()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            if (!SoupServerMgr::GetMgr()->StopListening())
+            {
+                LOG_ERROR("The Websocket Server failed to stop listening");
+                return DSL_RESULT_WEBSOCKET_SERVER_SET_FAILED;
+            }
+            LOG_INFO("The Websocket Server stoped listening successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("The Websocket Server threw an exception on listening stop");
+            return DSL_RESULT_WEBSOCKET_SERVER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::WebsocketServerListeningStateGet(
+        boolean* isListening, uint* portNumber)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            *isListening = SoupServerMgr::GetMgr()->GetListeningState(portNumber);
+            LOG_INFO("The Websocket Server returned is-listening = " << *isListening 
+                << " on port number = " << portNumber);
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("The Websocket Server threw an exception on get listening state");
+            return DSL_RESULT_WEBSOCKET_SERVER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::WebsocketServerClientListenerAdd(
+        dsl_websocket_server_client_listener_cb listener, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            if (!SoupServerMgr::GetMgr()->AddClientListener(listener, clientData))
+            {
+                LOG_ERROR("The Websocket Server failed to a add Client Listener");
+                return DSL_RESULT_WEBSOCKET_SERVER_CLIENT_LISTENER_ADD_FAILED;
+            }
+            LOG_INFO("The Websocket Server added a Client Listener successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("The Websocket Server threw an exception adding a Client Listner");
+            return DSL_RESULT_WEBSOCKET_SERVER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::WebsocketServerClientListenerRemove(
+        dsl_websocket_server_client_listener_cb listener)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            if (!SoupServerMgr::GetMgr()->RemoveClientListener(listener))
+            {
+                LOG_ERROR("The Websocket Server failed to remove a client Listener");
+                return DSL_RESULT_WEBSOCKET_SERVER_CLIENT_LISTENER_REMOVE_FAILED;
+            }
+            LOG_INFO("The Websocket Server removed a Client Listener successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("The Websocket Server threw an exception removing Client Listner");
+            return DSL_RESULT_WEBSOCKET_SERVER_THREW_EXCEPTION;
         }
     }
 

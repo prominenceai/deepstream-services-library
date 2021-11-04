@@ -146,6 +146,8 @@ namespace DSL
          */
         void OnClosed(SoupWebsocketConnection* pConnection);
 
+        int CompleteOnClosed();
+
         /**
          * @brief Handles an incoming Websocket message
          * @param[in] pConnection pointer to the Websocket connection object.
@@ -213,6 +215,12 @@ namespace DSL
          * NULL until channel has been setup.
          */
         GstWebRTCDataChannel* m_pDataChannel;
+
+        /**
+         * @brief gnome timer Id for the RTSP reconnection manager
+         */
+        uint m_completeClosedTimerId;
+
 
         /**
          * @brief Private function to iterate through the map of client listners
@@ -292,7 +300,7 @@ namespace DSL
          * @brief map of all currently registered client listeners
          * callback functions mapped with the user provided data
          */
-        std::map<dsl_sink_webrtc_client_listener_cb, void*>m_clientListeners;
+        std::map<dsl_sink_webrtc_client_listener_cb, void*> m_clientListeners;
     };
 
     /**
@@ -404,5 +412,8 @@ namespace DSL
      */
     static void data_channel_on_message_string_cb(GObject* dataChannel, 
         gchar* messageStr, gpointer pWebRtcSink);
+
+    static int complete_on_closed_cb(gpointer pWebRtcSink);
+
 }
 #endif //_DSL_SINK_BINTR_H

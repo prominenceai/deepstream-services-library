@@ -110,6 +110,8 @@ DSL_SOCKET_CONNECTION_STATE_CLOSED    = 0
 DSL_SOCKET_CONNECTION_STATE_INITIATED = 1
 DSL_SOCKET_CONNECTION_STATE_FAILED    = 2
 
+DSL_WEBSOCKET_SERVER_DEFAULT_HTTP_PORT = 60001
+
 class dsl_coordinate(Structure):
     _fields_ = [
         ('x', c_uint),
@@ -180,6 +182,7 @@ DSL_PPH_CUSTOM_CLIENT_HANDLER = CFUNCTYPE(c_uint, c_void_p, c_void_p)
 DSL_PPH_METER_CLIENT_HANDLER = CFUNCTYPE(c_bool, DSL_DOUBLE_P, DSL_DOUBLE_P, c_uint, c_void_p)
 DSL_PLAYER_TERMINATION_EVENT_LISTENER = CFUNCTYPE(None, c_void_p)
 DSL_CAPTURE_COMPLETE_LISTENER = CFUNCTYPE(None, POINTER(dsl_capture_info), c_void_p)
+DSL_WEBSOCKET_SERVER_CLIENT_LISTENER = CFUNCTYPE(None, c_wchar_p, c_void_p)
 DSL_WEBRTC_SINK_CLIENT_LISTENER = CFUNCTYPE(None, POINTER(dsl_webrtc_connection_data), c_void_p)
 
 ##
@@ -3353,9 +3356,8 @@ _dsl.dsl_sink_webrtc_client_listener_remove.restype = c_uint
 def dsl_sink_webrtc_client_listener_remove(name, client_listener):
     global _dsl
     c_client_listener = DSL_WEBRTC_SINK_CLIENT_LISTENER(client_listener)
-    result = _dsl.dsl_sink_webrtc_client_listener_add(name, c_client_listener)
+    result = _dsl.dsl_sink_webrtc_client_listener_remove(name, c_client_listener)
     return int(result)
-
 
 ##
 ## dsl_sink_sync_settings_get()
@@ -3424,7 +3426,54 @@ _dsl.dsl_sink_num_in_use_max_set.argtypes = [c_uint]
 def dsl_sink_num_in_use_max_set(max):
     global _dsl
     result = _dsl.dsl_sink_num_in_use_max_set(max)
-dsl_sink_num_in_use_max_set(20)
+
+##
+## dsl_websocket_server_listening_start()
+##
+_dsl.dsl_websocket_server_listening_start.argtypes = [c_uint]
+_dsl.dsl_websocket_server_listening_start.restype = c_uint
+def dsl_websocket_server_listening_start(port_number):
+    global _dsl
+    result = _dsl.dsl_websocket_server_listening_start(port_number)
+    return int(result)
+
+##
+## dsl_websocket_server_listening_stop()
+##
+_dsl.dsl_websocket_server_listening_stop.argtypes = []
+_dsl.dsl_websocket_server_listening_stop.restype = c_uint
+def dsl_websocket_server_listening_stop(port_number):
+    global _dsl
+    result = _dsl.dsl_websocket_server_listening_stop()
+    return int(result)
+
+##
+## dsl_websocket_server_client_listener_add()
+##
+_dsl.dsl_websocket_server_client_listener_add.argtypes = [ 
+    DSL_WEBSOCKET_SERVER_CLIENT_LISTENER, c_void_p]
+_dsl.dsl_websocket_server_client_listener_add.restype = c_uint
+def dsl_websocket_server_client_listener_add(client_listener, client_data):
+    global _dsl
+    c_client_listener = DSL_WEBSOCKET_SERVER_CLIENT_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_websocket_server_client_listener_add(
+        c_client_listener, c_client_data)
+    return int(result)
+    
+##
+## dsl_websocket_server_client_listener_remove()
+##
+_dsl.dsl_websocket_server_client_listener_remove.argtypes = [
+    DSL_WEBSOCKET_SERVER_CLIENT_LISTENER]
+_dsl.dsl_websocket_server_client_listener_remove.restype = c_uint
+def dsl_websocket_server_client_listener_remove(client_listener):
+    global _dsl
+    c_client_listener = DSL_WEBSOCKET_SERVER_CLIENT_LISTENER(client_listener)
+    result = _dsl.dsl_websocket_server_client_listener_remove(c_client_listener)
+    return int(result)
 
 ##
 ## dsl_component_delete()

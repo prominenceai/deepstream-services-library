@@ -408,6 +408,15 @@ THE SOFTWARE.
 #define DSL_RESULT_SEGVISUAL_HANDLER_REMOVE_FAILED                  0x00600008
 
 /**
+ * Websocket Server Manger API Return Values
+ */
+#define DSL_RESULT_WEBSOCKET_SERVER_RESULT                          0x00700000
+#define DSL_RESULT_WEBSOCKET_SERVER_THREW_EXCEPTION                 0x00700001
+#define DSL_RESULT_WEBSOCKET_SERVER_SET_FAILED                      0x00700002
+#define DSL_RESULT_WEBSOCKET_SERVER_CLIENT_LISTENER_ADD_FAILED      0x00700003
+#define DSL_RESULT_WEBSOCKET_SERVER_CLIENT_LISTENER_REMOVE_FAILED   0x00700004
+
+/**
  *
  */
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
@@ -441,10 +450,10 @@ THE SOFTWARE.
 #define DSL_RTP_ALL                                                 0x07
 
 /**
- * @brief HTTP Port number for the Soup Server Manager
+ * @brief Websocket Port number for the Soup Server Manager
  * If set to 0, Manager will find an unused port to listen on.
  */
-#define DSL_SOUP_HTTP_PORT                                          60001
+#define DSL_WEBSOCKET_SERVER_DEFAULT_WEBSOCKET_PORT                 60001
 
 /**
  * @brief WebRTC Websocket connection states, used by the 
@@ -922,6 +931,17 @@ typedef void (*dsl_capture_complete_listener_cb)(dsl_capture_info* info, void* c
  */
 typedef void (*dsl_player_termination_event_listener_cb)(void* client_data);
 
+/**
+ * @brief callback typedef for a client to listen for incoming Websocket connection events.
+ * Important Note: Clients will be notified of the incoming connection prior to checking
+ * for any available WebRTC Signaling Transceivers (WebRTC Sinks). This allows Client 
+ * listeners to create and add a new WebRTC sink "on demand" - before returning. 
+ * @param[in] path path for the incoming connection.
+ * @param[in] client_data opaque pointer to client's user data
+ */
+typedef void (*dsl_websocket_server_client_listener_cb)(const wchar_t* path, 
+    void* client_data);
+    
 /**
  * @brief callback typedef for a client to listen for WebRTC Sink connection events.
  * @param[in] info pointer to connection info, see dsl_webrtc_connection_data struct.
@@ -4066,6 +4086,55 @@ DslReturnType dsl_sink_webrtc_client_listener_add(const wchar_t* name,
  */
 DslReturnType dsl_sink_webrtc_client_listener_remove(const wchar_t* name, 
     dsl_sink_webrtc_client_listener_cb listener);
+
+/**
+ * @brief Adds a new Websocket Path to be handled by the Websocket Server
+ * Note: the server is created with one default Path = "/ws". paths must be added when
+ * the Server is in a non-listing state. 
+ * @param[in] path the new path to add to the Websocket Server
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_WEBSOCKET_SERVER_RESULT otherwise.
+ */
+DslReturnType dsl_websocket_server_path_add(const wchar_t* path);
+
+/**
+ * @brief Starts the Websocket Server listening on a specified Websocket port number
+ * @param[in] port_number the Websocket port number to start listing on
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_WEBSOCKET_SERVER_RESULT otherwise.
+ */
+DslReturnType dsl_websocket_server_listening_start(uint port_number);
+
+/**
+ * @brief Stops the Websocket Server from listening on its current Websocket port number
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_WEBSOCKET_SERVER_RESULT otherwise.
+ */
+DslReturnType dsl_websocket_server_listening_stop();
+
+/**
+ * @brief Gets the current listening state for the Websocket Server
+ * @param[out] is_listening true if the Server is listening on a Websocket Port
+ * @param[out] port_number the Websocket port number the Server is listening on, or 0
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_WEBSOCKET_SERVER_RESULT otherwise.
+ */
+DslReturnType dsl_websocket_server_listening_state_get(boolean* is_listening,
+    uint* port_number);
+
+/**
+ * @brief Adds a callback to the Websocket Server Manager (singleton) to be called 
+ * on every incoming Websocket opened event.
+ * @param[in] listener pointer to the client's function to call on state change.
+ * @param[in] client_data opaque pointer to client data passed to the listener function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_WEBSOCKET_SERVER_RESULT otherwise.
+ */
+DslReturnType dsl_websocket_server_client_listener_add( 
+    dsl_websocket_server_client_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a callback previously added with dsl_websocket_server_client_listener_add
+ * @param[in] listener pointer to the client's listener function to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_WEBSOCKET_SERVER_RESULT otherwise.
+ */
+DslReturnType dsl_websocket_server_client_listener_remove(
+    dsl_websocket_server_client_listener_cb listener);
 
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.

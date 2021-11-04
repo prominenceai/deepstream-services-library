@@ -62,6 +62,8 @@ namespace DSL
          */
         virtual void SetConnection(SoupWebsocketConnection* pConnection);
 
+        virtual bool IsConnected();
+
         /**
          * @brief Clears the current connection for the SignalingTransceiver.
          */
@@ -148,32 +150,60 @@ namespace DSL
          */
         ~SoupServerMgr();
 
+
         /**
-         * @brief Adds a Client Receiver to this server
-         * @param [in] pSignalingTransceiver unique webrtcbin to add
+         * @brief Adds a new Winsocket path to handle.
+         * @param[in] path new path to handle
+         * @return true on successful add, false otherwise
+         */
+        bool AddPath(const char* path);
+
+        /**
+         * @brief Starts the Soup Server Manager listening on the specified.
+         * @param[in] portNumber HTTP port number to start listening on
+         * @return true on successful start, false otherwise
+         */
+        bool StartListening(uint portNumber);
+
+        /**
+         * @brief Stops the Soup Server Manager from listening on its current port.
+         * @return true on successful stop, false otherwise
+         */
+        bool StopListening();
+
+        /**
+         * @brief Get the current listening state of the Soup Server Manager.
+         * @param [out] portNumber HTTP port number to start listening on
+         * @return true if currently listening, false otherwise.
+         */
+        bool GetListeningState(uint* portNumber);
+
+        /**
+         * @brief Adds a Signaling Transceiver to this server
+         * @param [in] pSignalingTransceiver unique Signaling Transceiver to add
          * @return true on successful add, false otherwise
          */
         bool AddSignalingTransceiver(SignalingTransceiver* signalingTransceiver);
 
         /**
-         * @brief Removes a Client Receiver from this server
-         * @param [in] pSignalingTransceiver unique webrtcbin to remove
+         * @brief Removes a Signaling Transceiver from this server
+         * @param [in] pSignalingTransceiver unique Signaling Transceiver to remove
          * @return true on successful remove, false otherwise
          */
         bool RemoveSignalingTransceiver(SignalingTransceiver* signalingTransceiver);
 
         /**
-         * @brief Checks whether a Client Receiver has been previously 
+         * @brief Checks whether a Signaling Transceiver has been previously 
          * added to this Soup Server Manager
-         * @param [in] pSignalingTransceiver unique webrtcbin to check for
+         * @param [in] pSignalingTransceiver unique Signaling Transceiver to check for
          * @return true if found, false otherwise
          */
         bool HasSignalingTransceiver(SignalingTransceiver* signalingTransceiver);
 
         /**
-         * @brief Returns a Client Receiver with a specific connection
+         * @brief Returns a Signaling Transceiver with a specific connection
          * @param [in] pConnection specific connection to check for
-         * @return pointer to a Client Receiver, NULL ohterwise. 
+         * @return pointer to a Signaling Transceiver, NULL ohterwise. 
          */
         const SignalingTransceiver* GetSignalingTransceiver(SoupWebsocketConnection* pConnection);
 
@@ -181,7 +211,23 @@ namespace DSL
          * @brief Handles a new Websocket Connection
          * @param[in] pConnection unique connection to open 
          */
-        void HandleOpen(SoupWebsocketConnection* pConnection);
+        void HandleOpen(SoupWebsocketConnection* pConnection, const char* path);
+
+        /**
+         * @brief adds a callback to be notified on incomming connection event
+         * @param[in] listener pointer to the client's function to call on connection event
+         * @param[in] clientData opaque pointer to client data passed into the listener function.
+         * @return true on successful add, false otherwise
+         */
+        bool AddClientListener(dsl_websocket_server_client_listener_cb listener, 
+            void* clientData);
+
+        /**
+         * @brief removes a previously added callback
+         * @param[in] listener pointer to the client's function to remove
+         * @return true on successful remove, false otherwise
+         */
+        bool RemoveClientListener(dsl_websocket_server_client_listener_cb listener);
 
     private:
 
@@ -201,15 +247,31 @@ namespace DSL
         GMutex m_serverMutex;
 
         /**
-         * @brief container of all client receivers mapped by their unique webrtcbin
-         * connection, promise, and send-channel data.
+         * @brief true if the Soup Server Manager is listening on one or more 
+         * ports, false otherwise.
          */
-        std::map<SignalingTransceiver*, 
-            SoupWebsocketConnection*> m_signalingTransceivers;
+        uint m_isListening;
+
+        /**
+         * @brief Port number to listen on for incomming connections.
+         */
+        uint m_portNumber;
+
+        /**
+         * @brief container of all Signaling Transceivers mapped by their unique name
+         */
+        std::vector<SignalingTransceiver*> m_signalingTransceivers;
+
+        /**
+         * @brief map of all currently registered client listeners
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_websocket_server_client_listener_cb, void*> m_clientListeners;
+
     };
 
     static void websocket_handler_cb(G_GNUC_UNUSED SoupServer* pServer, 
-        SoupWebsocketConnection* pConnection, G_GNUC_UNUSED const char *path,
+        SoupWebsocketConnection* pConnection, const char *path,
         G_GNUC_UNUSED SoupClientContext* clientContext, gpointer pSoupServerMgr);
 
 } // DSL

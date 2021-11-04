@@ -36,6 +36,7 @@ namespace DSL
         , m_pDataChannel(NULL)
         , m_stunServer(stunServer)
         , m_turnServer(turnServer)
+        , m_completeClosedTimerId(0)
     {
         LOG_FUNC();
 
@@ -59,7 +60,6 @@ namespace DSL
         GstCaps* pCaps = gst_caps_from_string("application/x-rtp,media=video,encoding-name=H264,payload=96");
         m_pWebRtcCapsFilter->SetAttribute("caps", pCaps);
         gst_caps_unref(pCaps);
-
 
         AddChild(m_pPayloader);
         AddChild(m_pWebRtcCapsFilter);
@@ -88,7 +88,6 @@ namespace DSL
             LOG_ERROR("WebRtcSinkBintr '" << GetName() << "' is already linked");
         }
 
-        // We create a new webrtcbin with each new connection
         m_pWebRtcBin = DSL_ELEMENT_NEW("webrtcbin", "sink-bin-webrtc");
 
         // Set the STUN and/or TURN server 
@@ -178,10 +177,10 @@ namespace DSL
             << pParentBranchBintr->GetName() << "' successfully");
 
         // get the current state of the branch and add the WebRTC Sink if playing or paused
-        GstState state;
-        pParentBranchBintr->GetState(state, 0);
-        if (state == GST_STATE_PLAYING)
-        {
+        // GstState state;
+        // pParentBranchBintr->GetState(state, 0);
+        // if (state == GST_STATE_PLAYING)
+        // {
             // add the this WebRtcSinkBintr now
             if (!pParentBranchBintr->AddSinkBintr(
                     std::dynamic_pointer_cast<SinkBintr>(shared_from_this())))
@@ -190,8 +189,8 @@ namespace DSL
                     << "' failed to add its FakeSinkBintr to the parent branch");
                 return false;
             }
-        }
-        // Setup the current the Parent Pipeline/Branch pointer
+        // }
+        // Setup the current Parent Pipeline/Branch pointer
         m_pParentBintr = pParentBintr;
         return true;
 
@@ -392,8 +391,16 @@ namespace DSL
         }
         m_pDataChannel = NULL;
 
+        m_completeClosedTimerId = g_timeout_add(1, complete_on_closed_cb, this);
+    }
+
+    int WebRtcSinkBintr::CompleteOnClosed()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_transceiverMutex);
+
         // Call the base/super class to clear the connection
-        SignalingTransceiver::OnClosed(pConnection);
+        SignalingTransceiver::OnClosed(m_pConnection);
 
         // cast the parent pointer to a branch pointer
         DSL_BRANCH_PTR pParentBranchBintr = 
@@ -405,10 +412,15 @@ namespace DSL
         {
             LOG_ERROR("WebRtcSinkBintr '" << GetName() 
                 << "' failed to remove itself to the parent branch");
-            return;
+            return false;
         }
         // notify all client listeners that the Websocket has now closed
         notifyClientListeners();
+
+        m_completeClosedTimerId = 0;
+
+        // return false to destroy/unref the timer.
+        return false;
     }
 
 
@@ -911,5 +923,9 @@ namespace DSL
         LOG_INFO("recieved message '" << messageStr << "'");
     }
 
+    static int complete_on_closed_cb(gpointer pWebRtcSink)
+    {
+        return static_cast<WebRtcSinkBintr*>(pWebRtcSink)->CompleteOnClosed();
+    }
 
 } // DSL

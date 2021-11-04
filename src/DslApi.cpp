@@ -4404,6 +4404,90 @@ DslReturnType dsl_sink_webrtc_client_listener_remove(const wchar_t* name,
 #endif    
 }
 
+DslReturnType dsl_websocket_server_path_add(const wchar_t* path)
+{
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
+    return DSL_RESULT_API_NOT_IMPLEMENTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(path);
+
+    std::wstring wstrPath(path);
+    std::string cstrPath(wstrPath.begin(), wstrPath.end());
+
+    return DSL::Services::GetServices()->
+        WebsocketServerPathAdd(cstrPath.c_str());
+#endif    
+}
+
+DslReturnType dsl_websocket_server_listening_start(uint port_number)
+{
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
+    return DSL_RESULT_API_NOT_IMPLEMENTED;
+#else
+    return DSL::Services::GetServices()->
+        WebsocketServerListeningStart(port_number);
+#endif    
+}
+
+DslReturnType dsl_websocket_server_listening_stop()
+{
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
+    return DSL_RESULT_API_NOT_IMPLEMENTED;
+#else
+    return DSL::Services::GetServices()->
+        WebsocketServerListeningStop();
+#endif    
+}
+
+DslReturnType dsl_websocket_server_listening_state_get(boolean* is_listening,
+    uint* port_number)
+{
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
+    return DSL_RESULT_API_NOT_IMPLEMENTED;
+#else
+    return DSL::Services::GetServices()->
+        WebsocketServerListeningStateGet(is_listening, port_number);
+#endif    
+}
+
+DslReturnType dsl_websocket_server_client_listener_add( 
+    dsl_websocket_server_client_listener_cb listener, void* client_data)
+{
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
+    return DSL_RESULT_API_NOT_IMPLEMENTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    return DSL::Services::GetServices()->
+        WebsocketServerClientListenerAdd(listener, client_data);
+#endif    
+}
+
+DslReturnType dsl_websocket_server_client_listener_remove( 
+    dsl_websocket_server_client_listener_cb listener)
+{
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
+    return DSL_RESULT_API_NOT_IMPLEMENTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    return DSL::Services::GetServices()->
+        WebsocketServerClientListenerRemove(listener);
+#endif    
+}
+
 DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler)
 {
     RETURN_IF_PARAM_IS_NULL(name);

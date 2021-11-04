@@ -29,6 +29,7 @@ sys.path.insert(0, "../../")
 import time
 
 from dsl import *
+from waiting import wait
 
 #-------------------------------------------------------------------------------------------
 #
@@ -43,19 +44,31 @@ stun_server = "stun://stun.l.google.com:19302"
 sink_width = 640
 sink_height = 360
 
+
+def is_socket_open(socket_open):
+    if socket_open:
+        print('Pipeline is playing')
+        return True
+    return False
+
+socket_open = False
+
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
 def xwindow_key_event_handler(key_string, client_data):
+    global socket_open
     print('key released = ', key_string)
     if key_string.upper() == 'C':
         print('closing connection')
-        dsl_sink_webrtc_connection_close('webrtc-sink')
-    if key_string.upper() == 'P':
+    elif key_string.upper() == 'O':
+        socket_open = True
+    elif key_string.upper() == 'P':
         dsl_pipeline_pause('pipeline')
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
  
 ## 
@@ -63,6 +76,7 @@ def xwindow_key_event_handler(key_string, client_data):
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 # Function to be called on End-of-Stream (EOS) event
@@ -82,6 +96,8 @@ def state_change_listener(old_state, new_state, client_data):
 # Function to be called on every change of Websocket connection state
 ## 
 def webrtc_sink_client_listener(connection_data_ptr, client_data):
+    
+    global socket_open
 
     connection_data = connection_data_ptr.contents
 
@@ -94,20 +110,23 @@ def webrtc_sink_client_listener(connection_data_ptr, client_data):
         # time to play the pipeline
         print( 'Play pipeline returned', dsl_pipeline_play('pipeline'))
 
+        socket_open = True
+
     elif connection_data.current_state == DSL_SOCKET_CONNECTION_STATE_CLOSED:
-        # Remote client has initiated a Websocket connection
-        # time to play the pipeline
-#        print( 'Stop pipeline returned', dsl_pipeline_stop('pipeline'))
+        # Remote client has closed the Websocket connection
+        print( 'Stop pipeline returned', dsl_pipeline_stop('pipeline'))
         dsl_main_loop_quit()
 
 
 def main(args):
 
+    global socket_open
+
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
         # New File Source using the file path specified above, repeat enabled.
-        retval = dsl_source_file_new('file-source', file_path, True)
+        retval = dsl_source_file_new('source', file_path, True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -132,7 +151,7 @@ def main(args):
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline',
-            ['file-source', 'window-sink', 'webrtc-sink', None])
+            ['source', 'window-sink', 'webrtc-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -152,11 +171,15 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Start the Websocket Server listening on the default port number
+        retval = dsl_websocket_server_listening_start(DSL_WEBSOCKET_SERVER_DEFAULT_HTTP_PORT)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # NOTE: The pipeline is started in the WebRTC Client listener callback
         # when the remote client initiates a connection.
         print('Waiting for remote client to initiate a connection')
 
-        # Join with main loop until released - blocking call
         dsl_main_loop_run()
         break
 

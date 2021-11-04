@@ -26,7 +26,6 @@
 
 import sys
 sys.path.insert(0, "../../")
-import time
 
 from dsl import *
 
@@ -43,11 +42,13 @@ stun_server = "stun://stun.l.google.com:19302"
 sink_width = 640
 sink_height = 360
 
+CUR_SINK_NUMBER = 0
+MAX_SINK_NUMBER = 4
+
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
 def xwindow_key_event_handler(key_string, client_data):
-    print('key released = ', key_string)
     print('key released = ', key_string)
     if key_string.upper() == 'C':
         print('closing connection')
@@ -57,6 +58,7 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
  
 ## 
@@ -64,6 +66,7 @@ def xwindow_key_event_handler(key_string, client_data):
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 # Function to be called on End-of-Stream (EOS) event
@@ -71,13 +74,14 @@ def eos_event_listener(client_data):
     print('Pipeline EOS event')
     # dsl_main_loop_quit()
 
-## 
+##
 # Function to be called on every change of Pipeline state
-## 
+##
 def state_change_listener(old_state, new_state, client_data):
     print('previous state = ', old_state, ', new state = ', new_state)
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
+
 
 def webrtc_sink_client_listener(connection_data_ptr, client_data):
 
@@ -86,6 +90,43 @@ def webrtc_sink_client_listener(connection_data_ptr, client_data):
     print('Current connection state for the WebRTC Sink is =', 
         connection_data.current_state)
 
+##
+# Function to be called on every socket connection event
+##
+def websocket_server_client_listener_cb(path, client_data):
+
+    global CUR_SINK_NUMBER, MAX_SINK_NUMBER
+    print("Incoming Websocket connection event with path =", path)
+
+    if CUR_SINK_NUMBER == MAX_SINK_NUMBER:
+        print('maximum number of WebRTC Sinks have been created')
+        return
+    CUR_SINK_NUMBER += 1
+
+    sink_name = 'webrtc-sink-{}'.format(CUR_SINK_NUMBER)
+    print(sink_name)
+    # New WebRTC Sink with .
+    retval = dsl_sink_webrtc_new(sink_name,
+        stun_server = stun_server,
+        turn_server = None,
+        codec = DSL_CODEC_H264,
+        bitrate = 4000000,
+        interval = 0)
+    if retval != DSL_RETURN_SUCCESS:
+        print('failed to create new WebRTC Sink')
+        return
+
+    # Add the client listener callback function to the WebRTC Sink
+    retval = dsl_sink_webrtc_client_listener_add(sink_name,
+        webrtc_sink_client_listener, None)
+    if retval != DSL_RETURN_SUCCESS:
+        print('failed to add client listner to sink')
+        return
+
+    retval = dsl_pipeline_component_add('pipeline', sink_name)
+    if retval != DSL_RETURN_SUCCESS:
+        print('failed to add new WebRTC Sink to Pipeline')
+        return
 
 def main(args):
 
@@ -93,60 +134,35 @@ def main(args):
     while True:
 
         # New File Source using the file path specified above, repeat enabled.
-        retval = dsl_source_file_new('file-source', file_path, True)
+        # # retval = dsl_source_file_new('file-source', file_path, True)
+        # if retval != DSL_RETURN_SUCCESS:
+        #     break
+
+        # First new URI File Source
+        # retval = dsl_source_rtsp_new('source', 	
+        #     uri = rtsp_uri, 	
+        #     protocol = DSL_RTP_ALL, 	
+        #     cudadec_mem_type = DSL_CUDADEC_MEMTYPE_DEVICE, 	
+        #     intra_decode = False, 	
+        #     drop_frame_interval = 0, 	
+        #     latency = 100,
+        #     timeout = 5)	
+        # if (retval != DSL_RETURN_SUCCESS):
+        #     break
+
+        # New File Source using the file path specified above, repeat enabled.
+        retval = dsl_source_file_new('source', file_path, True)
         if retval != DSL_RETURN_SUCCESS:
             break
-
-        # New WebRTC Sink with .
-        retval = dsl_sink_webrtc_new('webrtc-sink-1', 
-            stun_server = stun_server, 
-            turn_server = None,
-            codec = DSL_CODEC_H264,
-            bitrate = 4000000,
-            interval = 0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New WebRTC Sink with .
-        retval = dsl_sink_webrtc_new('webrtc-sink-2', 
-            stun_server = stun_server, 
-            turn_server = None,
-            codec = DSL_CODEC_H264,
-            bitrate = 4000000,
-            interval = 0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New WebRTC Sink with .
-        retval = dsl_sink_webrtc_new('webrtc-sink-3', 
-            stun_server = stun_server, 
-            turn_server = None,
-            codec = DSL_CODEC_H264,
-            bitrate = 4000000,
-            interval = 0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Add the client listener callback function to the WebRTC Sink
-        retval = dsl_sink_webrtc_client_listener_add('webrtc-sink-1',
-            webrtc_sink_client_listener, None)
-
-        # Add the client listener callback function to the WebRTC Sink
-        retval = dsl_sink_webrtc_client_listener_add('webrtc-sink-2',
-            webrtc_sink_client_listener, None)
-
-        # Add the client listener callback function to the WebRTC Sink
-        retval = dsl_sink_webrtc_client_listener_add('webrtc-sink-3',
-            webrtc_sink_client_listener, None)
 
         # New Window Sink, 0 x/y offsets and dimensions 
         retval = dsl_sink_window_new('window-sink', 0, 0, sink_width, sink_height)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to a new pipeline
-        retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['file-source', 'window-sink', 'webrtc-sink-1', 'webrtc-sink-2', 'webrtc-sink-3', None])
+        # Add the window sink to a new pipeline
+        retval = dsl_pipeline_new_component_add_many('pipeline',
+            ['source', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -168,6 +184,14 @@ def main(args):
 
         # Play the pipeline
         retval = dsl_pipeline_play('pipeline')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the client listener to the Websocket Server to listen for socket connections
+        retval = dsl_websocket_server_client_listener_add(websocket_server_client_listener_cb, None)
+
+        # Start the Websocket Server listening on the default port number
+        retval = dsl_websocket_server_listening_start(DSL_WEBSOCKET_SERVER_DEFAULT_HTTP_PORT)
         if retval != DSL_RETURN_SUCCESS:
             break
 

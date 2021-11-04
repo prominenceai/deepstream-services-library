@@ -773,7 +773,7 @@ namespace DSL {
             const char* turnServer, uint codec, uint bitrate, uint interval);
 
         DslReturnType SinkWebRtcConnectionClose(const char* name);
-        
+
         DslReturnType SinkWebRtcServersGet(const char* name, const char** stunServer, 
             const char** turnServer);
 
@@ -795,6 +795,20 @@ namespace DSL {
 
         DslReturnType SinkSyncSettingsSet(const char* name,  
             boolean sync, boolean async);
+
+        DslReturnType WebsocketServerPathAdd(const char* path);
+        
+        DslReturnType WebsocketServerListeningStart(uint portNumber);
+
+        DslReturnType WebsocketServerListeningStop();
+
+        DslReturnType WebsocketServerListeningStateGet(boolean* isListening, uint* portNumber);
+
+        DslReturnType WebsocketServerClientListenerAdd(
+            dsl_websocket_server_client_listener_cb listener, void* clientData);
+
+        DslReturnType WebsocketServerClientListenerRemove(
+            dsl_websocket_server_client_listener_cb listener);
 
         uint SinkNumInUseGet();
         
