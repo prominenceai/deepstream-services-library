@@ -268,20 +268,6 @@ namespace DSL
     static GstPadProbeReturn complete_unlink_from_source_tee_cb(GstPad* pad, 
         GstPadProbeInfo *info, gpointer pNoder);
 
-    /**
-     * @brief Mutex to protect the async GCond used to synchronize
-     * the Application thread with the mainloop context on
-     * asynchronous change of pipeline state.
-     */
-    static GMutex g_asyncCommMutex;
-    
-    /**
-     * @brief Condition used to block the application context while waiting
-     * for a Pipeline change of state to be completed in the mainloop context
-     */
-    static GCond g_asyncCondition;
-
-
    /**
      * @class GstNodetr
      * @brief Overrides the Base Class Virtual functions, adding the actuall GstObject* management
@@ -302,9 +288,11 @@ namespace DSL
             , m_pGstStaticSrcPad(NULL)
             , m_pGstRequestedSinkPad(NULL)
             , m_pGstRequestedSrcPad(NULL)
+            , m_pAsyncUnlinkCond(NULL)
         {
             LOG_FUNC();
 
+            g_mutex_init(&m_asyncUnlinkMutex);
             LOG_DEBUG("New GstNodetr '" << GetName() << "' created");
         }
 
@@ -334,6 +322,7 @@ namespace DSL
                     gst_object_unref(m_pGstObj);
                 }
             }
+            g_mutex_clear(&m_asyncUnlinkMutex);
             LOG_DEBUG("Nodetr '" << GetName() << "' deleted");
         }
 
@@ -575,12 +564,18 @@ namespace DSL
             GetState(state, 100);
             if (state == GST_STATE_PLAYING)
             {
-                LOCK_MUTEX_FOR_CURRENT_SCOPE(&g_asyncCommMutex);
+                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncUnlinkMutex);
+
+                m_pAsyncUnlinkCond = g_new(GCond, 1);
+                g_cond_init(m_pAsyncUnlinkCond);
 
                 gst_pad_add_probe(m_pGstRequestedSrcPad, GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM,
                     (GstPadProbeCallback)complete_unlink_from_source_tee_cb, this, NULL);
 
-                g_cond_wait(&g_asyncCondition, &g_asyncCommMutex);
+                g_cond_wait(m_pAsyncUnlinkCond, &m_asyncUnlinkMutex);
+                g_cond_clear(m_pAsyncUnlinkCond);
+                g_free(m_pAsyncUnlinkCond);
+                m_pAsyncUnlinkCond = NULL;
             }
             else
             {
@@ -592,28 +587,31 @@ namespace DSL
 
         void CompleteUnlinkFromSourceTee()
         {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&g_asyncCommMutex);
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncUnlinkMutex);
 
             LOG_INFO("Unlinking and releasing requested Src Pad '" 
                 << m_pGstRequestedSrcPad << "' for Bintr '" << GetName() << "'");
 
-            GstState state;
-            GetState(state, 100);
-            if (state == GST_STATE_PLAYING)
-            {
-                SetState(GST_STATE_READY, 100);
-            }
             if (!gst_pad_unlink(m_pGstRequestedSrcPad, m_pGstStaticSinkPad))
             {
                 LOG_ERROR("Bintr '" << GetName() << "' failed to unlink from Source Tee");
                 return;
+            }
+            GstState state;
+            GetState(state, 100);
+            if (state == GST_STATE_PLAYING)
+            {
+                SetState(GST_STATE_NULL, 100);
             }
             gst_element_release_request_pad(GetSource()->GetGstElement(), m_pGstRequestedSrcPad);
             gst_object_unref(m_pGstStaticSinkPad);
             gst_object_unref(m_pGstRequestedSrcPad);
             m_pGstStaticSinkPad = m_pGstRequestedSrcPad = NULL;
 
-            g_cond_signal(&g_asyncCondition);
+            if (m_pAsyncUnlinkCond)
+            {
+                g_cond_signal(m_pAsyncUnlinkCond);
+            }
         }
 
         /**
@@ -832,6 +830,18 @@ namespace DSL
          */
         GstPad* m_pGstRequestedSinkPad;
 
+        /**
+         * @brief Mutex to protect the async GCond used to synchronize
+         * the Application thread with the mainloop context on
+         * asynchronous change of pipeline state.
+         */
+        GMutex m_asyncUnlinkMutex;
+        
+        /**
+         * @brief Condition used to block the application context while waiting
+         * for a Pipeline change of state to be completed in the mainloop context
+         */
+        GCond* m_pAsyncUnlinkCond;
     };
 
     static GstPadProbeReturn complete_unlink_from_source_tee_cb(GstPad* pad, 
