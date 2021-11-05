@@ -133,11 +133,6 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # New File Source using the file path specified above, repeat enabled.
-        # # retval = dsl_source_file_new('file-source', file_path, True)
-        # if retval != DSL_RETURN_SUCCESS:
-        #     break
-
         # First new URI File Source
         # retval = dsl_source_rtsp_new('source', 	
         #     uri = rtsp_uri, 	

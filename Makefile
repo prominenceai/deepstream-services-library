@@ -34,14 +34,11 @@ TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 
 CXX_VERSION:=c++17
 DSL_VERSION:='L"v0.21.alpha"'
-#NVDS_VERSION:=6.0
-GS_VERSION:=1.0
 GLIB_VERSION:=2.0
 GSTREAMER_VERSION:=1.0
 GSTREAMER_SUB_VERSION:=14
 GSTREAMER_SDP_VERSION:=1.0
 GSTREAMER_WEBRTC_VERSION:=1.0
-#CUDA_VERSION:=11.2
 LIBSOUP_VERSION:=2.4
 JSON_GLIB_VERSION:=1.0
 
@@ -69,7 +66,7 @@ endif
 TEST_OBJS+= $(wildcard ./test/api/*.o)
 TEST_OBJS+= $(wildcard ./test/unit/*.o)
 ifeq ($(GSTREAMER_SUB_VERSION),18)
-TEST_OBJS+= $(wildcard ./test/webrtc/*.cpp)
+TEST_OBJS+= $(wildcard ./test/webrtc/*.o)
 endif
 
 OBJS:= $(SRCS:.c=.o)
@@ -80,7 +77,7 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
     -I$(SRC_INSTALL_DIR)/apps/apps-common/includes \
     -I/opt/include \
 	-I/usr/include \
-	-I/usr/include/gstreamer-$(GS_VERSION) \
+	-I/usr/include/gstreamer-$(GSTREAMER_VERSION) \
 	-I/usr/include/glib-$(GLIB_VERSION) \
 	-I/usr/include/glib-$(GLIB_VERSION)/glib \
 	-I/usr/lib/$(TARGET_DEVICE)-linux-gnu/glib-$(GLIB_VERSION)/include \
