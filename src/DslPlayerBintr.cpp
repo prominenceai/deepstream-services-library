@@ -89,6 +89,7 @@ namespace DSL
         gst_caps_unref(pCaps);
 
         g_mutex_init(&m_asyncCommMutex);
+        g_cond_init(&m_asyncCondition);
 
         AddChild(m_pQueue);
         AddChild(m_pConverter);
@@ -109,6 +110,7 @@ namespace DSL
         }
         RemoveXWindowDeleteEventHandler(PlayerTerminate);
         g_mutex_clear(&m_asyncCommMutex);
+        g_cond_clear(&m_asyncCondition);
     }
 
     bool PlayerBintr::LinkAll()
