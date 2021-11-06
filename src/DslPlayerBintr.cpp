@@ -334,6 +334,9 @@ namespace DSL
         pSourceBintr->DisableEosConsumer();
 
         SendEos();
+        
+        // TODO use an EOS listener to synchronize the stop
+        g_usleep(100000);
     }
     
     void PlayerBintr::HandleStop()

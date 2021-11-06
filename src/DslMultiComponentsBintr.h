@@ -122,13 +122,17 @@ namespace DSL
         DSL_ELEMENT_PTR m_pTee;
         
         /**
-         * @brief Unique childId of Branch or Sink connected to thisMultiComponentsBintr
-         * The id is used when getting a request Pad for Src Demuxer (not used by Tee)
+         * @brief container of all child sources mapped by their unique names
          */
-        uint m_demuxChildId;
-    
         std::map<std::string, DSL_BINTR_PTR> m_pChildComponents;
 
+        /**
+         * @brief Each source is assigned a unique stream id when linked
+         * the vector is used on dynamic add/remove to find the next available
+         * stream id.
+         */
+        std::vector<bool> m_usedStreamIds;
+    
         /**
          * @brief A dynamic collection of requested Source Pads for this Bintr
          */

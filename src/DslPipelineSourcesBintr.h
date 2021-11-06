@@ -183,34 +183,46 @@ namespace DSL
 
         DSL_ELEMENT_PTR m_pStreamMux;
         
+        /**
+         * @brief container of all child sources mapped by their unique names
+         */
         std::map<std::string, DSL_SOURCE_PTR> m_pChildSources;
         
         /**
-         @brief
+         * @brief Each source is assigned a unique stream id when linked
+         * the vector is used on dynamic add/remove to find the next available
+         * stream id.
+         */
+        std::vector<bool> m_usedStreamIds;
+
+        /**
+         * @brief true if all sources are live, false if all sources are non-live
          */
         bool m_areSourcesLive;
 
         /**
-         @brief
+         * @brief Stream-muxer batch timeout used when waiting for all sources
+         * to produce a frame when batching together
          */
         gint m_batchTimeout;
+        
         /**
-         @brief
+         * @brief Stream-muxer batched frame output width in pixels
          */
         gint m_streamMuxWidth;
 
         /**
-         @brief
+         * @brief Stream-muxer batched frame output height in pixels
          */
         gint m_streamMuxHeight;
 
         /**
-         @brief
+         * @brief true if frame padding is enabled, false otherwise
          */
         bool m_isPaddingEnabled;
         
         /**
-         @brief Number of surfaces-per-frame stream-muxer setting
+         * @brief Number of surfaces-per-frame stream-muxer setting
          */
         int m_numSurfacesPerFrame;
     };

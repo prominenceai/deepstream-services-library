@@ -80,7 +80,8 @@ namespace DSL
         // Ensure source uniqueness
         if (IsChild(pChildSource))
         {
-            LOG_ERROR("Source '" << pChildSource->GetName() << "' is already a child of '" << GetName() << "'");
+            LOG_ERROR("Source '" << pChildSource->GetName() 
+                << "' is already a child of '" << GetName() << "'");
             return false;
         }
         
@@ -91,16 +92,21 @@ namespace DSL
         }
         else if (pChildSource->IsLive() != StreamMuxPlayTypeIsLiveGet())
         {
-            LOG_ERROR("Can't add Source '" << pChildSource->GetName() << "' with IsLive=" << pChildSource->IsLive()  << 
-                " to streamuxer  '" << GetName() << "' with IsLive=" << StreamMuxPlayTypeIsLiveGet());
+            LOG_ERROR("Can't add Source '" << pChildSource->GetName() 
+                << "' with IsLive=" << pChildSource->IsLive()  << " to streamuxer '" 
+                << GetName() << "' with IsLive=" << StreamMuxPlayTypeIsLiveGet());
             return false;
         }
-        // If we're adding an RTSP Source, determine if EOS consumer should be added to Streammuxer
-        if (pChildSource->IsType(typeid(RtspSourceBintr)) and m_pEosConsumer == nullptr)
+        // If we're adding an RTSP Source, determine if EOS consumer 
+        // should be added to Streammuxer
+        if (pChildSource->IsType(typeid(RtspSourceBintr)) 
+            and m_pEosConsumer == nullptr)
         {
-            DSL_RTSP_SOURCE_PTR pRtspSource = std::dynamic_pointer_cast<RtspSourceBintr>(pChildSource);
+            DSL_RTSP_SOURCE_PTR pRtspSource = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(pChildSource);
             
-            // If stream management is enabled for at least one RTSP source, add the EOS Consumer
+            // If stream management is enabled for at least one RTSP source, 
+            // add the EOS Consumer
             if (pRtspSource->GetBufferTimeout())
             {
                 LOG_INFO("Adding EOS Consumer to Streammuxer 'src' pad on first RTSP Source");
@@ -113,7 +119,8 @@ namespace DSL
                 m_pEosConsumer = DSL_PPEH_EOS_CONSUMER_NEW(eventHandlerName.c_str());
 
                 std::string padProbeName = GetName() + "-src-pad-probe";
-                m_pSrcPadProbe = DSL_PAD_EVENT_DOWNSTREAM_PROBE_NEW(padProbeName.c_str(), "src", m_pStreamMux);
+                m_pSrcPadProbe = DSL_PAD_EVENT_DOWNSTREAM_PROBE_NEW(padProbeName.c_str(), 
+                    "src", m_pStreamMux);
                 m_pSrcPadProbe->AddPadProbeHandler(m_pEosConsumer);
             }
         }
@@ -123,19 +130,52 @@ namespace DSL
         
         if (!Bintr::AddChild(pChildSource))
         {
-            LOG_ERROR("Faild to add Source '" << pChildSource->GetName() << "' as a child to '" << GetName() << "'");
+            LOG_ERROR("Faild to add Source '" << pChildSource->GetName() 
+                << "' as a child to '" << GetName() << "'");
             return false;
         }
         
-        // If the Pipeline is currently in a linked state, Set child source Id to the next available,
-        // linkAll Elementrs now and Link to with the Stream
+        // If the Pipeline is currently in a linked state, Set child source 
+        // Id to the next available, linkAll Elementrs now and Link to the Stream-muxwwer
         if (IsLinked())
         {
-            pChildSource->SetId(GetNumChildren() - 1);
-            if (!pChildSource->LinkAll() or !pChildSource->LinkToSink(m_pStreamMux))
+            uint streamId(0);
+            
+            // find the next available unused stream-id
+            auto ivec = find(m_usedStreamIds.begin(), m_usedStreamIds.end(), false);
+            if (ivec != m_usedStreamIds.end())
             {
+                streamId = ivec - m_usedStreamIds.begin();
+                m_usedStreamIds[streamId] = true;
+            }
+            else
+            {
+                streamId = m_usedStreamIds.size();
+                m_usedStreamIds.push_back(true);
+            }
+            
+            // Must set the Unique Id first, then Link all of the ChildSources's Elementrs, then 
+            // link back downstream to the StreamMux, the sink for this Child Souce 
+            pChildSource->SetId(streamId);
+            
+            // Set the name value for the current Source Id.
+            if (Services::GetServices()->_sourceNameSet(streamId, 
+                pChildSource->GetCStrName()) != DSL_RESULT_SUCCESS)
+            {
+                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                    << "' failed to Set Source name for  '" << pChildSource->GetName() << "'");
+                return false;
+            }   
+            std::string sinkPadName = "sink_" + std::to_string(streamId);
+            
+            if (!pChildSource->LinkAll() or 
+                !pChildSource->LinkToSinkMuxer(m_pStreamMux, sinkPadName.c_str()))
+            {
+                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                    << "' failed to Link Child Source '" << pChildSource->GetName() << "'");
                 return false;
             }
+            
             // Sink up with the parent state
             return gst_element_sync_state_with_parent(pChildSource->GetGstElement());
         }
@@ -165,15 +205,31 @@ namespace DSL
         // Check for the relationship first
         if (!IsChild(pChildSource))
         {
-            LOG_ERROR("Source '" << pChildSource->GetName() << "' is not a child of '" << GetName() << "'");
+            LOG_ERROR("Source '" << pChildSource->GetName() 
+                << "' is not a child of '" << GetName() << "'");
             return false;
         }
 
-        if (pChildSource->IsLinkedToSink())
+        if (IsLinked())
         {
+            LOG_INFO("Unlinking " << m_pStreamMux->GetName() << " from " 
+                << pChildSource->GetName());
+                
             // unlink the source from the Streammuxer
-            pChildSource->UnlinkFromSink();
+            if (!pChildSource->UnlinkFromSinkMuxer())
+            {   
+                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                    << "' failed to Unlink Child Source '" << pChildSource->GetName() << "'");
+                return false;
+            }
+            // unink all of the ChildSource's Elementrs remove its name from
+            // the global collection of linked source
             pChildSource->UnlinkAll();
+            Services::GetServices()->_sourceNameErase(pChildSource->GetId());
+            
+            // set the used-stream id as available for reuse
+            m_usedStreamIds[pChildSource->GetId()] = false;
+            pChildSource->SetId(-1);
         }
         
         // unreference and remove from the collection of source
@@ -192,29 +248,33 @@ namespace DSL
             LOG_ERROR("PipelineSourcesBintr '" << GetName() << "' is already linked");
             return false;
         }
-        uint id(0);
+        uint streamId(0);
         for (auto const& imap: m_pChildSources)
         {
             // Must set the Unique Id first, then Link all of the ChildSources's Elementrs, then 
-            // link back downstream to the StreamMux, the sink for this Child Souce 
-            imap.second->SetId(id);
+            // link to the  Stream-muxer, the sink for this Child Souce. 
+            imap.second->SetId(streamId);
             
             // Set the name value for the current Source Id.
-            if (Services::GetServices()->_sourceNameSet(id, imap.second->GetCStrName()) != DSL_RESULT_SUCCESS)
+            if (Services::GetServices()->_sourceNameSet(streamId, 
+                imap.second->GetCStrName()) != DSL_RESULT_SUCCESS)
             {
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
                     << "' failed to Set Source name for  '" << imap.second->GetName() << "'");
                 return false;
             }   
-            std::string sinkPadName = "sink_" + std::to_string(id);
+            std::string sinkPadName = "sink_" + std::to_string(streamId);
             
-            if (!imap.second->LinkAll() or !imap.second->LinkToSinkMuxer(m_pStreamMux, sinkPadName.c_str()))
+            if (!imap.second->LinkAll() or !imap.second->LinkToSinkMuxer(m_pStreamMux,
+                sinkPadName.c_str()))
             {
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
                     << "' failed to Link Child Source '" << imap.second->GetName() << "'");
                 return false;
             }
-            id++;
+            // add the new stream id to the vector of currently connected (used) 
+            m_usedStreamIds.push_back(true);
+            streamId++;
         }
         if (!m_batchSize)
         {
@@ -237,20 +297,25 @@ namespace DSL
         }
         for (auto const& imap: m_pChildSources)
         {
-            // unlink from the Tee Element
-            LOG_INFO("Unlinking " << m_pStreamMux->GetName() << " from " << imap.second->GetName());
+            // unlink from the Streammuxer
+            LOG_INFO("Unlinking " << m_pStreamMux->GetName() 
+                << " from " << imap.second->GetName());
             if (!imap.second->UnlinkFromSinkMuxer())
             {   
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
                     << "' failed to Unlink Child Source '" << imap.second->GetName() << "'");
                 return;
             }
-            // unink all of the ChildSource's Elementrs and reset the unique Id
+            // unink all of the ChildSource's Elementrs remove its name from
+            // the global collection of linked source
             imap.second->UnlinkAll();
             Services::GetServices()->_sourceNameErase(imap.second->GetId());
+            
+            // reset the source unique stream id
             imap.second->SetId(-1);
 
         }
+        m_usedStreamIds.clear();
         m_isLinked = false;
     }
     
@@ -267,11 +332,13 @@ namespace DSL
         
         m_areSourcesLive = isLive;
         
-        LOG_INFO("'live-source' attrubute set to '" << m_areSourcesLive << "' for Streammuxer '" << GetName() << "'");
+        LOG_INFO("'live-source' attrubute set to '" << m_areSourcesLive 
+            << "' for Streammuxer '" << GetName() << "'");
         m_pStreamMux->SetAttribute("live-source", m_areSourcesLive);
     }
 
-    void PipelineSourcesBintr::GetStreamMuxBatchProperties(guint* batchSize, guint* batchTimeout)
+    void PipelineSourcesBintr::GetStreamMuxBatchProperties(guint* batchSize, 
+        guint* batchTimeout)
     {
         LOG_FUNC();
 
@@ -279,7 +346,8 @@ namespace DSL
         *batchTimeout = m_batchTimeout;
     }
 
-    void PipelineSourcesBintr::SetStreamMuxBatchProperties(uint batchSize, uint batchTimeout)
+    void PipelineSourcesBintr::SetStreamMuxBatchProperties(uint batchSize, 
+        uint batchTimeout)
     {
         LOG_FUNC();
 
@@ -328,7 +396,8 @@ namespace DSL
         
         m_isPaddingEnabled = enabled;
         
-        LOG_INFO("Setting StreamMux attribute: enable-padding = " << m_isPaddingEnabled); 
+        LOG_INFO("Setting StreamMux attribute: enable-padding = " 
+            << m_isPaddingEnabled); 
         
         m_pStreamMux->SetAttribute("enable-padding", m_isPaddingEnabled);
     }
@@ -347,7 +416,8 @@ namespace DSL
         
         m_numSurfacesPerFrame = num;
         
-        LOG_INFO("Setting StreamMux attribute: num-surfaces-per-frame = " << m_numSurfacesPerFrame); 
+        LOG_INFO("Setting StreamMux attribute: num-surfaces-per-frame = " 
+            << m_numSurfacesPerFrame); 
         
         m_pStreamMux->SetAttribute("num-surfaces-per-frame", m_numSurfacesPerFrame);
     }

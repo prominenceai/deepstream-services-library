@@ -288,11 +288,11 @@ namespace DSL
             , m_pGstStaticSrcPad(NULL)
             , m_pGstRequestedSinkPad(NULL)
             , m_pGstRequestedSrcPad(NULL)
+            , m_pAsyncUnlinkMutex(NULL)
             , m_pAsyncUnlinkCond(NULL)
         {
             LOG_FUNC();
 
-            g_mutex_init(&m_asyncUnlinkMutex);
             LOG_DEBUG("New GstNodetr '" << GetName() << "' created");
         }
 
@@ -322,7 +322,6 @@ namespace DSL
                     gst_object_unref(m_pGstObj);
                 }
             }
-            g_mutex_clear(&m_asyncUnlinkMutex);
             LOG_DEBUG("Nodetr '" << GetName() << "' deleted");
         }
 
@@ -564,7 +563,9 @@ namespace DSL
             GetState(state, 100);
             if (state == GST_STATE_PLAYING)
             {
-                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncUnlinkMutex);
+                m_pAsyncUnlinkMutex = g_new(GMutex, 1);
+                g_mutex_init(m_pAsyncUnlinkMutex);
+                g_mutex_lock(m_pAsyncUnlinkMutex);
 
                 m_pAsyncUnlinkCond = g_new(GCond, 1);
                 g_cond_init(m_pAsyncUnlinkCond);
@@ -572,10 +573,14 @@ namespace DSL
                 gst_pad_add_probe(m_pGstRequestedSrcPad, GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM,
                     (GstPadProbeCallback)complete_unlink_from_source_tee_cb, this, NULL);
 
-                g_cond_wait(m_pAsyncUnlinkCond, &m_asyncUnlinkMutex);
+                g_cond_wait(m_pAsyncUnlinkCond, m_pAsyncUnlinkMutex);
                 g_cond_clear(m_pAsyncUnlinkCond);
                 g_free(m_pAsyncUnlinkCond);
                 m_pAsyncUnlinkCond = NULL;
+                g_mutex_unlock(m_pAsyncUnlinkMutex);
+                g_mutex_clear(m_pAsyncUnlinkMutex);
+                g_free(m_pAsyncUnlinkMutex);
+                m_pAsyncUnlinkMutex == NULL;
             }
             else
             {
@@ -587,7 +592,10 @@ namespace DSL
 
         void CompleteUnlinkFromSourceTee()
         {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncUnlinkMutex);
+            if (m_pAsyncUnlinkMutex and m_pAsyncUnlinkCond)
+            {
+                g_mutex_lock(m_pAsyncUnlinkMutex);
+            }
 
             LOG_INFO("Unlinking and releasing requested Src Pad '" 
                 << m_pGstRequestedSrcPad << "' for Bintr '" << GetName() << "'");
@@ -608,9 +616,10 @@ namespace DSL
             gst_object_unref(m_pGstRequestedSrcPad);
             m_pGstStaticSinkPad = m_pGstRequestedSrcPad = NULL;
 
-            if (m_pAsyncUnlinkCond)
+            if (m_pAsyncUnlinkMutex and m_pAsyncUnlinkCond)
             {
                 g_cond_signal(m_pAsyncUnlinkCond);
+                g_mutex_unlock(m_pAsyncUnlinkMutex);
             }
         }
 
@@ -831,15 +840,14 @@ namespace DSL
         GstPad* m_pGstRequestedSinkPad;
 
         /**
-         * @brief Mutex to protect the async GCond used to synchronize
-         * the Application thread with the mainloop context on
-         * asynchronous change of pipeline state.
+         * @brief Mutex to syncronize the dynamic unlink process
+         * when the Nodetr in a playing state
          */
-        GMutex m_asyncUnlinkMutex;
+        GMutex* m_pAsyncUnlinkMutex;
         
         /**
-         * @brief Condition used to block the application context while waiting
-         * for a Pipeline change of state to be completed in the mainloop context
+         * @brief Condition to syncronize the dynamic unlink process
+         * when the Nodetr in a playing state
          */
         GCond* m_pAsyncUnlinkCond;
     };
