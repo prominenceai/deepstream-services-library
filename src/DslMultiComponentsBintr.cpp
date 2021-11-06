@@ -31,7 +31,6 @@ namespace DSL
 
     MultiComponentsBintr::MultiComponentsBintr(const char* name, const char* teeType)
         : Bintr(name)
-        , m_demuxChildId(0)
     {
         LOG_FUNC();
         
@@ -92,8 +91,22 @@ namespace DSL
         // linkAll Elementrs now and Link to with the Stream
         if (IsLinked())
         {
+            uint streamId(0);
+            
+            // find the next available unused stream-id
+            auto ivec = find(m_usedStreamIds.begin(), m_usedStreamIds.end(), false);
+            if (ivec != m_usedStreamIds.end())
+            {
+                streamId = ivec - m_usedStreamIds.begin();
+                m_usedStreamIds[streamId] = true;
+            }
+            else
+            {
+                streamId = m_usedStreamIds.size();
+                m_usedStreamIds.push_back(true);
+            }
             // Must set the Unique Id first, then Link all of the ChildComponent's Elementrs, then 
-            pChildComponent->SetId(m_demuxChildId);
+            pChildComponent->SetId(streamId);
 
             // NOTE: important to use the correct request pad name based on the element type
             // Cast the base DSL_BASE_PTR to DSL_ELEMENTR_PTR so we can query the factory type 
@@ -101,7 +114,7 @@ namespace DSL
                 std::dynamic_pointer_cast<Elementr>(m_pTee);
 
              std::string srcPadName = (pTeeElementr->IsFactoryName("nvstreamdemux"))
-                ? "src_" + std::to_string(m_demuxChildId)
+                ? "src_" + std::to_string(streamId)
                 : "src_%u";
                 
             // link back upstream to the Tee, the src for this Child Component 
@@ -111,8 +124,6 @@ namespace DSL
                     << "' failed to Link Child Component '" << pChildComponent->GetName() << "'");
                 return false;
             }
-            // New child successfully added
-            m_demuxChildId++;
 
             // Sync component up with the parent state
             return gst_element_sync_state_with_parent(pChildComponent->GetGstElement());
@@ -148,6 +159,9 @@ namespace DSL
         {
             pChildComponent->UnlinkFromSourceTee();
             pChildComponent->UnlinkAll();
+            
+            // set the used-stream id as available for reuse
+            m_usedStreamIds[pChildComponent->GetId()] = false;
         }
         
         // unreference and remove from the collection of sinks
@@ -169,11 +183,11 @@ namespace DSL
         }
         m_pQueue->LinkToSink(m_pTee);
 
-        m_demuxChildId = 0;
+        uint streamId(0);
         for (auto const& imap: m_pChildComponents)
         {
             // Must set the Unique Id first, then Link all of the ChildComponent's Elementrs, then 
-            imap.second->SetId(m_demuxChildId);
+            imap.second->SetId(streamId);
 
             // NOTE: important to use the correct request pad name based on the element type
             // Cast the base DSL_BASE_PTR to DSL_ELEMENTR_PTR so we can query the factory type 
@@ -181,7 +195,7 @@ namespace DSL
                 std::dynamic_pointer_cast<Elementr>(m_pTee);
 
              std::string srcPadName = (pTeeElementr->IsFactoryName("nvstreamdemux"))
-                ? "src_" + std::to_string(m_demuxChildId)
+                ? "src_" + std::to_string(streamId)
                 : "src_%u";
                 
             // link back upstream to the Tee, the src for this Child Component 
@@ -191,7 +205,9 @@ namespace DSL
                     << "' failed to Link Child Component '" << imap.second->GetName() << "'");
                 return false;
             }
-            m_demuxChildId++;
+            // add the new stream id to the vector of currently connected (used) 
+            m_usedStreamIds.push_back(true);
+            streamId++;
         }
         m_isLinked = true;
         return true;
@@ -220,6 +236,7 @@ namespace DSL
             imap.second->UnlinkAll();
             imap.second->SetId(-1);
         }
+        m_usedStreamIds.clear();
         m_pQueue->UnlinkFromSink();
         m_isLinked = false;
     }
