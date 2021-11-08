@@ -382,3 +382,4 @@ retval = dsl_infer_primary_pph_remove('my-primary-gie', 'my-pph-handler', `DSL_P
 * [branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
 * [Mailer](/docs/api-mailer.md)
+* [WebSocket Server](/docs/api-ws-server.md)
