@@ -1139,3 +1139,5 @@ Except for the prefix, this method performs the identical service as
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
 * [Mailer](/docs/api-mailer.md)
+* [WebSocket Server](/docs/api-ws-server.md)
+
