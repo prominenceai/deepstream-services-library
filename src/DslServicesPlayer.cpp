@@ -147,6 +147,7 @@ namespace DSL
                     offsetX, offsetY, zoom, timeout));
                     
             LOG_INFO("New Render Image Player '" << name << "' created successfully");
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {

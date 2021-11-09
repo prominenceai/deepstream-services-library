@@ -697,8 +697,8 @@ namespace DSL
                     RemovePadProbeHandler(pPadProbeHandler);
                 }
             }
-            return GST_PAD_PROBE_OK;
         }
+        return GST_PAD_PROBE_OK;
     }
     
     //----------------------------------------------------------------------------------------------
@@ -746,8 +746,8 @@ namespace DSL
                     RemovePadProbeHandler(pPadProbeHandler);
                 }
             }
-            return GST_PAD_PROBE_OK;
         }
+        return GST_PAD_PROBE_OK;        
     }
 
     //----------------------------------------------------------------------------------------------

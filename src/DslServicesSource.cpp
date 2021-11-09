@@ -1099,6 +1099,7 @@ namespace DSL
             boolean isLive = std::dynamic_pointer_cast<SourceBintr>(m_components[name])->IsLive();
 
             LOG_INFO("Source '" << name << "' returned Is-Live = " << isLive );
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {

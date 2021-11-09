@@ -154,9 +154,8 @@ namespace DSL
         /**
          * @brief Function to initiate the stop process by removing the TerminationEventListener,
          * disabling the source's EOS handler, and then sending an EOS event.
-         * @return 
          */
-        bool InitiateStop();
+        void InitiateStop();
         
         /**
          * @brief Asynchronous comm flag for the Termination handler to communication

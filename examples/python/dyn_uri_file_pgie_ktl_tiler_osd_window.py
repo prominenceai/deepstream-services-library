@@ -65,15 +65,15 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string == '+': 
         if cur_source_count < MAX_SOURCE_COUNT:
             cur_source_count += 1
-            source_name = 'uri-source-' + str(cur_source_count)
+            source_name = 'source-' + str(cur_source_count)
             print('adding source ', source_name)
-            dsl_source_uri_new(source_name, "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 1)
+            dsl_source_file_new(source_name, "../../test/streams/sample_1080p_h264.mp4", True)
             dsl_pipeline_component_add('pipeline', source_name)
 
     # Remove the last source added
     elif key_string == '-': 
         if cur_source_count > 1:
-            source_name = 'uri-source-' + str(cur_source_count)
+            source_name = 'source-' + str(cur_source_count)
             print('removing source ', source_name)
             dsl_pipeline_component_remove('pipeline', source_name)
             dsl_component_delete(source_name)
@@ -88,7 +88,7 @@ def main(args):
     while True:
 
         # First new URI File Source
-        retval = dsl_source_uri_new('uri-source-1', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 1)
+        retval = dsl_source_file_new('source-1', "../../test/streams/sample_1080p_h264.mp4", True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -119,14 +119,14 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source-1' , 'primary-gie', 'ktl-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
+            ['source-1' , 'primary-gie', 'ktl-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
         cur_source_count = 1
 
         ### IMPORTANT: we need to explicitely set the stream-muxer Batch properties, otherwise the Pipeline
         # will use the current number of Sources when set to Playing, which would be 1 and too small
-        retval = dsl_pipeline_streammux_batch_properties_set('pipeline', MAX_SOURCE_COUNT, 4000000)
+        retval = dsl_pipeline_streammux_batch_properties_set('pipeline', MAX_SOURCE_COUNT, 40000)
         if retval != DSL_RETURN_SUCCESS:
             break
         

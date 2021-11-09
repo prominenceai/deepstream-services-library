@@ -677,10 +677,11 @@ SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr is created correctly",  "[FileSink
             
             THEN( "The correct attribute values are returned" )
             {
-                uint retCodec(0), retContainer(0);
-                pSinkBintr->GetVideoFormats(&retCodec, &retContainer);
+                uint retCodec(0), retBitrate(0), retInterval(0);
+                pSinkBintr->GetEncoderSettings(&retCodec, &retBitrate, &retInterval);
                 REQUIRE( retCodec == codec );
-                REQUIRE( retContainer == container);
+                REQUIRE( retBitrate == bitrate);
+                REQUIRE( retInterval == interval);
             }
         }
     }
@@ -761,10 +762,11 @@ SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr is created correctly",  "[FileSink
             
             THEN( "The correct attribute values are returned" )
             {
-                uint retCodec(0), retContainer(0);
-                pSinkBintr->GetVideoFormats(&retCodec, &retContainer);
+                uint retCodec(0), retBitrate(0), retInterval(0);
+                pSinkBintr->GetEncoderSettings(&retCodec, &retBitrate, &retInterval);
                 REQUIRE( retCodec == codec );
-                REQUIRE( retContainer == container);
+                REQUIRE( retBitrate == bitrate );
+                REQUIRE( retInterval == interval );
             }
         }
     }
@@ -841,23 +843,27 @@ SCENARIO( "A FileSinkBintr's Encoder settings can be updated", "[FileSinkBintr]"
         DSL_FILE_SINK_PTR pSinkBintr = 
             DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, container, initBitrate, initInterval);
             
+        uint currCodec(99);
         uint currBitrate(0);
         uint currInterval(0);
     
-        pSinkBintr->GetEncoderSettings(&currBitrate, &currInterval);
+        pSinkBintr->GetEncoderSettings(&currCodec, &currBitrate, &currInterval);
+        REQUIRE( currCodec == codec );
         REQUIRE( currBitrate == initBitrate );
         REQUIRE( currInterval == initInterval );
 
         WHEN( "The FileSinkBintr's Encoder settings are Set" )
         {
+            uint newCodec(DSL_CODEC_H264);
             uint newBitrate(3000000);
             uint newInterval(5);
             
-            pSinkBintr->SetEncoderSettings(newBitrate, newInterval);
+            pSinkBintr->SetEncoderSettings(newCodec, newBitrate, newInterval);
 
             THEN( "The FileSinkBintr's new Encoder settings are returned on Get")
             {
-                pSinkBintr->GetEncoderSettings(&currBitrate, &currInterval);
+                pSinkBintr->GetEncoderSettings(&newCodec, &currBitrate, &currInterval);
+                REQUIRE( currCodec == newCodec );
                 REQUIRE( currBitrate == newBitrate );
                 REQUIRE( currInterval == newInterval );
             }
@@ -1121,7 +1127,7 @@ SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[RtspSink
             THEN( "The correct attribute values are returned" )
             {
                 uint retUdpPort(0), retRtspPort(0), retCodec(0);
-                pSinkBintr->GetServerSettings(&retUdpPort, &retRtspPort, &retCodec);
+                pSinkBintr->GetServerSettings(&retUdpPort, &retRtspPort);
                 REQUIRE( retUdpPort == udpPort );
                 REQUIRE( retRtspPort == rtspPort );
                 REQUIRE( retCodec == codec );
@@ -1212,11 +1218,10 @@ SCENARIO( "A new DSL_CODEC_H265 RtspSinkBintr is created correctly",  "[RtspSink
             
             THEN( "The correct attribute values are returned" )
             {
-                uint retUdpPort(0), retRtspPort(0), retCodec(0);
-                pSinkBintr->GetServerSettings(&retUdpPort, &retRtspPort, &retCodec);
+                uint retUdpPort(0), retRtspPort(0);
+                pSinkBintr->GetServerSettings(&retUdpPort, &retRtspPort);
                 REQUIRE( retUdpPort == udpPort);
                 REQUIRE( retRtspPort == rtspPort);
-                REQUIRE( retCodec == codec );
                 bool sync(false), async(false);
                 pSinkBintr->GetSyncSettings(&sync, &async);
                 REQUIRE( sync == false );

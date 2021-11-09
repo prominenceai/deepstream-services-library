@@ -32,6 +32,12 @@ THE SOFTWARE.
 #include "DslOdeArea.h"
 #include "DslOdeTrigger.h"
 #include "DslPipelineBintr.h"
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION >= 18
+    #include "DslSinkWebRtcBintr.h"
+#endif
+
 
 namespace DSL {
     
@@ -751,28 +757,58 @@ namespace DSL {
         DslReturnType SinkRecordMailerRemove(const char* name,
             const char* mailer);
 
-        DslReturnType SinkEncodeVideoFormatsGet(const char* name, uint* codec, uint* container);
+        DslReturnType SinkEncodeSettingsGet(const char* name, 
+            uint* codec, uint* bitrate, uint* interval);
 
-        DslReturnType SinkEncodeSettingsGet(const char* name, uint* bitrate, uint* interval);
-
-        DslReturnType SinkEncodeSettingsSet(const char* name, uint bitrate, uint interval);
+        DslReturnType SinkEncodeSettingsSet(const char* name, 
+            uint codec, uint bitrate, uint interval);
 
         DslReturnType SinkRtspNew(const char* name, const char* host, 
-            uint updPort, uint rtspPort, uint codec, uint bit_rate, uint interval);
+            uint updPort, uint rtspPort, uint codec, uint bitrate, uint interval);
             
-        DslReturnType SinkRtspServerSettingsGet(const char* name, uint* updPort, uint* rtspPort, uint* codec);
+        DslReturnType SinkRtspServerSettingsGet(const char* name, 
+            uint* updPort, uint* rtspPort);
 
-        DslReturnType SinkRtspEncoderSettingsGet(const char* name, uint* bitrate, uint* interval);
+        DslReturnType SinkWebRtcNew(const char* name, const char* stunServer, 
+            const char* turnServer, uint codec, uint bitrate, uint interval);
 
-        DslReturnType SinkRtspEncoderSettingsSet(const char* name, uint bitrate, uint interval);
+        DslReturnType SinkWebRtcConnectionClose(const char* name);
+
+        DslReturnType SinkWebRtcServersGet(const char* name, const char** stunServer, 
+            const char** turnServer);
+
+        DslReturnType SinkWebRtcServersSet(const char* name, const char* stunServer, 
+            const char* turnServer);
+
+        DslReturnType SinkWebRtcClientListenerAdd(const char* name,
+            dsl_sink_webrtc_client_listener_cb listener, void* clientData);
+
+        DslReturnType SinkWebRtcClientListenerRemove(const char* name,
+            dsl_sink_webrtc_client_listener_cb listener);
 
         DslReturnType SinkPphAdd(const char* name, const char* handler);
 
         DslReturnType SinkPphRemove(const char* name, const char* handler);
 
-        DslReturnType SinkSyncSettingsGet(const char* name,  boolean* sync, boolean* async);
+        DslReturnType SinkSyncSettingsGet(const char* name,  
+            boolean* sync, boolean* async);
 
-        DslReturnType SinkSyncSettingsSet(const char* name,  boolean sync, boolean async);
+        DslReturnType SinkSyncSettingsSet(const char* name,  
+            boolean sync, boolean async);
+
+        DslReturnType WebsocketServerPathAdd(const char* path);
+        
+        DslReturnType WebsocketServerListeningStart(uint portNumber);
+
+        DslReturnType WebsocketServerListeningStop();
+
+        DslReturnType WebsocketServerListeningStateGet(boolean* isListening, uint* portNumber);
+
+        DslReturnType WebsocketServerClientListenerAdd(
+            dsl_websocket_server_client_listener_cb listener, void* clientData);
+
+        DslReturnType WebsocketServerClientListenerRemove(
+            dsl_websocket_server_client_listener_cb listener);
 
         uint SinkNumInUseGet();
         

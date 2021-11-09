@@ -386,7 +386,7 @@ namespace DSL
                 return DSL_RESULT_SINK_FILE_PATH_NOT_FOUND;
             }
 
-            if (codec > DSL_CODEC_MPEG4)
+            if (codec > DSL_CODEC_H265)
             {   
                 LOG_ERROR("Invalid Codec value = " << codec << " for Record Sink '" << name << "'");
                 return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
@@ -430,9 +430,9 @@ namespace DSL
                 LOG_ERROR("Record Sink '" << name << "' failed to Start Session");
                 return DSL_RESULT_SINK_SET_FAILED;
             }
+            LOG_INFO("Session started successfully for Record Sink '" << name << "'");
             return DSL_RESULT_SUCCESS;
             
-            LOG_INFO("Session started successfully for Record Sink '" << name << "'");
         }
         catch(...)
         {
@@ -895,7 +895,8 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::SinkEncodeVideoFormatsGet(const char* name, uint* codec, uint* container)
+    DslReturnType Services::SinkEncodeSettingsGet(const char* name, 
+        uint* codec, uint* bitrate, uint* interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -908,34 +909,7 @@ namespace DSL
             DSL_ENCODE_SINK_PTR encodeSinkBintr = 
                 std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
 
-            encodeSinkBintr->GetVideoFormats(codec, container);
-
-            LOG_INFO("Encode Sink '" << name << "' returned Codec = " 
-                << *codec << " and Container = " << *container << " successfully");
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("File Sink '" << name << "' threw an exception getting Video formats");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SinkEncodeSettingsGet(const char* name, uint* bitrate, uint* interval)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
-
-            DSL_ENCODE_SINK_PTR encodeSinkBintr = 
-                std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
-
-            encodeSinkBintr->GetEncoderSettings(bitrate, interval);
+            encodeSinkBintr->GetEncoderSettings(codec, bitrate, interval);
             
             LOG_INFO("Encode Sink '" << name << "' returned Bitrate = " 
                 << *bitrate << " and Interval = " << *interval << " successfully");
@@ -949,7 +923,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SinkEncodeSettingsSet(const char* name, uint bitrate, uint interval)
+    DslReturnType Services::SinkEncodeSettingsSet(const char* name, 
+        uint codec, uint bitrate, uint interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -959,17 +934,17 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
 
-            if (m_components[name]->IsLinked())
-            {
-                LOG_ERROR("Unable to set Encoder settings for File Sink '" << name 
-                    << "' as it's currently linked");
-                return DSL_RESULT_SINK_IS_IN_USE;
-            }
 
             DSL_ENCODE_SINK_PTR encodeSinkBintr = 
                 std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
 
-            if (!encodeSinkBintr->SetEncoderSettings(bitrate, interval))
+            if (codec > DSL_CODEC_H265)
+            {   
+                LOG_ERROR("Invalid Codec value = " << codec << " for Encode Sink '" << name << "'");
+                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+            }
+
+            if (!encodeSinkBintr->SetEncoderSettings(bitrate, codec, interval))
             {
                 LOG_ERROR("Encode Sink '" << name << "' failed to set Encoder settings");
                 return DSL_RESULT_SINK_SET_FAILED;
@@ -1018,7 +993,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SinkRtspServerSettingsGet(const char* name, uint* udpPort, uint* rtspPort, uint* codec)
+    DslReturnType Services::SinkRtspServerSettingsGet(const char* name, uint* udpPort, uint* rtspPort)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1031,11 +1006,10 @@ namespace DSL
             DSL_RTSP_SINK_PTR rtspSinkBintr = 
                 std::dynamic_pointer_cast<RtspSinkBintr>(m_components[name]);
 
-            rtspSinkBintr->GetServerSettings(udpPort, rtspPort, codec);
+            rtspSinkBintr->GetServerSettings(udpPort, rtspPort);
 
             LOG_INFO("RTSP Sink '" << name << "' returned UDP Port = " 
-                << *udpPort << ", RTSP Port = " << *rtspPort 
-                << ", and Code = " << *codec << " successfully");
+                << *udpPort << ", RTSP Port = " << *rtspPort << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -1046,69 +1020,6 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SinkRtspEncoderSettingsGet(const char* name, uint* bitrate, uint* interval)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSinkBintr);
-
-            DSL_RTSP_SINK_PTR rtspSinkBintr = 
-                std::dynamic_pointer_cast<RtspSinkBintr>(m_components[name]);
-
-            rtspSinkBintr->GetEncoderSettings(bitrate, interval);
-
-            LOG_INFO("RTSP Sink '" << name << "' returned Bitrate = " 
-                << *bitrate << " and Interval = " << *interval << " successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("RTSP Sink '" << name << "' threw an exception getting Encoder settings");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SinkRtspEncoderSettingsSet(const char* name, uint bitrate, uint interval)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSinkBintr);
-
-            DSL_RTSP_SINK_PTR rtspSinkBintr = 
-                std::dynamic_pointer_cast<RtspSinkBintr>(m_components[name]);
-
-            if (m_components[name]->IsInUse())
-            {
-                LOG_ERROR("Unable to set Encoder settings for RTSP Sink '" << name 
-                    << "' as it's currently in use");
-                return DSL_RESULT_SINK_IS_IN_USE;
-            }
-
-            if (!rtspSinkBintr->SetEncoderSettings(bitrate, interval))
-            {
-                LOG_ERROR("RTSP Sink '" << name << "' failed to set Encoder settings");
-                return DSL_RESULT_SINK_SET_FAILED;
-            }
-            LOG_INFO("Encode Sink '" << name << "' set Bitrate = " 
-                << bitrate << " and Interval = " << interval << " successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("RTSP Sink '" << name << "' threw an exception setting Encoder settings");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
 
     DslReturnType Services::SinkPphAdd(const char* name, const char* handler)
     {

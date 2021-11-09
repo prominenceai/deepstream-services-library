@@ -193,15 +193,32 @@ THE SOFTWARE.
 }while(0); 
 
 
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(components, name) do \
 { \
     if (!components[name]->IsType(typeid(FileSinkBintr)) and  \
-        !components[name]->IsType(typeid(RecordSinkBintr))) \
+        !components[name]->IsType(typeid(RecordSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspSinkBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
         return DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK; \
     } \
 }while(0); 
+#else
+#define DSL_RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(FileSinkBintr)) and  \
+        !components[name]->IsType(typeid(RecordSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspSinkBintr)) and \
+        !components[name]->IsType(typeid(WebRtcSinkBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
+        return DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK; \
+    } \
+}while(0);
+#endif
 
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_GIE(components, name) do \
 { \
@@ -274,6 +291,9 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(components, name) do \
 { \
     if (!components[name]->IsType(typeid(FakeSinkBintr)) and  \
@@ -286,7 +306,23 @@ THE SOFTWARE.
         LOG_ERROR("Component '" << name << "' is not a Sink"); \
         return DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK; \
     } \
-}while(0); 
+}while(0);
+#else
+#define DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(FakeSinkBintr)) and  \
+        !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
+        !components[name]->IsType(typeid(WindowSinkBintr)) and  \
+        !components[name]->IsType(typeid(FileSinkBintr)) and  \
+        !components[name]->IsType(typeid(RecordSinkBintr)) and  \
+        !components[name]->IsType(typeid(RtspSinkBintr)) and \
+        !components[name]->IsType(typeid(WebRtcSinkBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a Sink"); \
+        return DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK; \
+    } \
+}while(0);
+#endif
 
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_TAP(components, name) do \
 { \

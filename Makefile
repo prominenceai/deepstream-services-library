@@ -34,15 +34,22 @@ TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 
 CXX_VERSION:=c++17
 DSL_VERSION:='L"v0.21.alpha"'
-NVDS_VERSION:=5.1
-GS_VERSION:=1.0
 GLIB_VERSION:=2.0
 GSTREAMER_VERSION:=1.0
-CUDA_VERSION:=10.2
+GSTREAMER_SUB_VERSION:=14
+GSTREAMER_SDP_VERSION:=1.0
+GSTREAMER_WEBRTC_VERSION:=1.0
+LIBSOUP_VERSION:=2.4
+JSON_GLIB_VERSION:=1.0
 
-SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources
-INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources/includes
-LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/lib
+SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources
+INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources/includes
+LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/lib
+
+ifeq ($(GSTREAMER_SUB_VERSION),18)
+SRCS+= $(wildcard ./src/webrtc/*.cpp)
+SRCS+= $(wildcard ./test/webrtc/*.cpp)
+endif
 
 SRCS+= $(wildcard ./src/*.cpp)
 SRCS+= $(wildcard ./test/*.cpp)
@@ -52,15 +59,15 @@ SRCS+= $(wildcard ./test/unit/*.cpp)
 INCS:= $(wildcard ./src/*.h)
 INCS+= $(wildcard ./test/*.hpp)
 
+ifeq ($(GSTREAMER_SUB_VERSION),18)
+INCS+= $(wildcard ./src/webrtc/*.h)
+endif
 
 TEST_OBJS+= $(wildcard ./test/api/*.o)
 TEST_OBJS+= $(wildcard ./test/unit/*.o)
-
-PKGS:= gstreamer-$(GSTREAMER_VERSION) \
-	gstreamer-video-$(GSTREAMER_VERSION) \
-	gstreamer-rtsp-server-$(GSTREAMER_VERSION) \
-	x11 \
-	opencv4
+ifeq ($(GSTREAMER_SUB_VERSION),18)
+TEST_OBJS+= $(wildcard ./test/webrtc/*.o)
+endif
 
 OBJS:= $(SRCS:.c=.o)
 OBJS:= $(OBJS:.cpp=.o)
@@ -70,23 +77,28 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
     -I$(SRC_INSTALL_DIR)/apps/apps-common/includes \
     -I/opt/include \
 	-I/usr/include \
-	-I/usr/include/gstreamer-$(GS_VERSION) \
+	-I/usr/include/gstreamer-$(GSTREAMER_VERSION) \
 	-I/usr/include/glib-$(GLIB_VERSION) \
 	-I/usr/include/glib-$(GLIB_VERSION)/glib \
 	-I/usr/lib/$(TARGET_DEVICE)-linux-gnu/glib-$(GLIB_VERSION)/include \
-	-I/usr/local/cuda-$(CUDA_VERSION)/targets/$(TARGET_DEVICE)-linux/include \
+	-I/usr/local/cuda/targets/$(TARGET_DEVICE)-linux/include \
 	-I./src \
 	-I./test \
 	-I./test/api \
 	-DDSL_VERSION=$(DSL_VERSION) \
-    -DDS_VERSION_MINOR=0 \
-    -DDS_VERSION_MAJOR=4 \
     -DDSL_LOGGER_IMP='"DslLogGst.h"'\
+	-DGSTREAMER_SUB_VERSION=$(GSTREAMER_SUB_VERSION) \
 	-DNVDS_DCF_LIB='"$(LIB_INSTALL_DIR)/libnvds_nvdcf.so"' \
 	-DNVDS_KLT_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_klt.so"' \
 	-DNVDS_IOU_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_iou.so"' \
     -fPIC 
-	
+
+ifeq ($(GSTREAMER_SUB_VERSION),18)
+CFLAGS+= -I/usr/include/libsoup-$(LIBSOUP_VERSION) \
+	-I/usr/include/json-glib-$(JSON_GLIB_VERSION) \
+	-I./src/webrtc
+endif	
+
 CFLAGS += `geos-config --cflags`	
 
 LIBS+= -L$(LIB_INSTALL_DIR) \
@@ -107,9 +119,29 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-lgstreamer-$(GSTREAMER_VERSION) \
 	-Lgstreamer-video-$(GSTREAMER_VERSION) \
 	-Lgstreamer-rtsp-server-$(GSTREAMER_VERSION) \
-	-L/usr/local/cuda-$(CUDA_VERSION)/lib64/ -lcudart \
+	-L/usr/local/cuda/lib64/ -lcudart \
 	-Wl,-rpath,$(LIB_INSTALL_DIR)
-	
+
+ifeq ($(GSTREAMER_SUB_VERSION),18)
+LIBS+= -Lgstreamer-sdp-$(GSTREAMER_SDP_VERSION) \
+	-Lgstreamer-webrtc-$(GSTREAMER_WEBRTC_VERSION) \
+	-Llibsoup-$(LIBSOUP_VERSION) \
+	-Ljson-glib-$(JSON_GLIB_VERSION)	
+endif
+
+PKGS:= gstreamer-$(GSTREAMER_VERSION) \
+	gstreamer-video-$(GSTREAMER_VERSION) \
+	gstreamer-rtsp-server-$(GSTREAMER_VERSION) \
+	x11 \
+	opencv4
+
+ifeq ($(GSTREAMER_SUB_VERSION),18)
+PKGS+= gstreamer-sdp-$(GSTREAMER_SDP_VERSION) \
+	gstreamer-webrtc-$(GSTREAMER_WEBRTC_VERSION) \
+	libsoup-$(LIBSOUP_VERSION) \
+	json-glib-$(JSON_GLIB_VERSION)
+endif
+
 CFLAGS+= `pkg-config --cflags $(PKGS)`
 
 LIBS+= `pkg-config --libs $(PKGS)`

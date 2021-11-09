@@ -226,6 +226,7 @@ SCENARIO( "A Segmentation Visualizer can Set and Get all properties", "[segvisua
 
 static boolean pad_probe_handler_cb1(void* buffer, void* user_data)
 {
+    return true;
 }
 
 SCENARIO( "A Source Pad Probe Handler can be added and removed froma a Segmentation Visualizer", "[segvisual-api]" )
