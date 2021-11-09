@@ -1,5 +1,7 @@
 # WebSocket Server API Reference
-Providing basic WebSocket services, the WebSocket Server connects Signaling Transceivers -- the WebRTC Sink for example -- with incoming WebSocket connections.  The Server is a singleton object initialized on any first method call. Signaling Transceivers are automatically added and removed from the WebSocket Server when they are added and removed from a parent Pipeline or Branch.
+Providing basic WebSocket services, the WebSocket Server connects Signaling Transceivers -- the WebRTC Sink for example -- with incoming WebSocket connections.  The Server is a singleton object initialized on any first method call. Signaling Transceivers are automatically added and removed from the WebSocket Server when added and removed from a parent Pipeline or Branch. 
+
+**IMPORTANT: The WebSocket Server and WebRTC Sink require GStreamer 1.18 or later.**
 
 Client Applications use the WebSocket Server to listen on a specified port for incoming WebSocket connections. When handling the connection, the WebSocket server iterates over its collection of Signaling Transceivers looking for the first available Transceiver to connect with.   Clients can add a listener callback function(s) to be called with the specific WebSocket path when the WebSocket is first opened (see use case 1. below). 
 
