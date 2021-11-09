@@ -193,3 +193,4 @@ retval = dsl_component_gpuid_set_many(['my-uri-source', 'my-primary-gie', 'my-os
 * [Branch](/docs/api-branch.md)
 * **Component**
 * [Mailer](/docs/api-mailer.md)
+* [WebSocket Server](/docs/api-ws-server.md)
