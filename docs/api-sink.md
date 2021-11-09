@@ -211,7 +211,7 @@ typedef void (*dsl_sink_webrtc_client_listener_cb)(dsl_webrtc_connection_data* d
 ```
 Callback typedef for a client to listen for WebRTC Sink connection events.
 
-**IMPORTANT:** the WebRTC Sink implementation requires DS 1.18.0 or later.
+**IMPORTANT:** the WebRTC Sink implementation requires GStreamer 1.18 or later.
 
 **Parameters**
 * `info` [in] opaque pointer to the session info, see [dsl_webrtc_connection_data](#dsl_webrtc_connection_data).
@@ -364,7 +364,7 @@ DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_serve
 ```
 The constructor creates a uniquely named WebRTC Sink. Construction will fail if the name is currently in use. There are two Codec formats - `H.264` and `H.265`. The WebRTC Sink Implements a Signaling Transceiver which is automatically added and removed from the WebSocket Server when added and removed from a Pipeline or Branch. Refer to the [WebSocket Server API Reference](/docs/api-ws-server.md) for more information.
 
- **IMPORTANT:** the WebRTC Sink implementation requires DS 1.18.0 or later.
+ **IMPORTANT:** the WebRTC Sink implementation requires GStreamer 1.18 or later.
 
 **Parameters**
 * `stun_server` - [in] STUN server to use of the form stun://hostname:port. Set to NULL to omit if using TURN server(s).
@@ -898,7 +898,7 @@ DslReturnType dsl_sink_webrtc_connection_close(const wchar_t* name);
 ```
 This service closes a currently open WebSocket connection for the named WebRTC Sink.
 
- **IMPORTANT:** the WebRTC Sink implementation requires DS 1.18.0 or later.
+ **IMPORTANT:** the WebRTC Sink implementation requires GStreamer 1.18 or later.
 
 **Parameters**
 * `name` [in] unique name of the WebRTC Sink to update.
@@ -942,7 +942,7 @@ DslReturnType dsl_sink_webrtc_servers_set(const wchar_t* name,
 ```
 This service updates a named WebRTC Sink component with either a new STUN or TURN server(s) to use.
 
- **IMPORTANT:** the WebRTC Sink implementation requires DS 1.18.0 or later.
+ **IMPORTANT:** the WebRTC Sink implementation requires GStreamer 1.18 or later.
 
 **Parameters**
 * `name` [in] unique name of the WebRTC Sink to query.
@@ -965,7 +965,7 @@ DslReturnType dsl_sink_webrtc_client_listener_add(const wchar_t* name,
 ```
 This service adds a callback function of type [dsl_sink_webrtc_client_listener_cb](#dsl_sink_webrtc_client_listener_cb) to the WebRTC Sink. The function will be called on all changes of WebSocket connection state. Multiple callback functions can be added to the WebRTC Sink.
 
- **IMPORTANT:** the WebRTC Sink implementation requires DS 1.18.0 or later.
+ **IMPORTANT:** the WebRTC Sink implementation requires GStreamer 1.18 or later.
 
 **Parameters**
 * `name` [in] unique name of the WebRTC Sink to update.
@@ -988,7 +988,7 @@ DslReturnType dsl_sink_webrtc_client_listener_remove(const wchar_t* name,
 ```
 This service removes a callback function of type [dsl_sink_webrtc_client_listener_cb](#dsl_sink_webrtc_client_listener_cb) from the WebRTC Sink.
 
- **IMPORTANT:** the WebRTC Sink implementation requires DS 1.18.0 or later.
+ **IMPORTANT:** the WebRTC Sink implementation requires GStreamer 1.18 or later.
 
 **Parameters**
 * `name` [in] unique name of the WebRTC Sink to update.
