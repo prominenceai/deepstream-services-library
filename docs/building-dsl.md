@@ -98,3 +98,4 @@ if retval != DSL_RETURN_SUCCESS:
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
 * [Mailer](/docs/api-mailer.md)
+* [WebSocket Server](/docs/api-ws-server.md)

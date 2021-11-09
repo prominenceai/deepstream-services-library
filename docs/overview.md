@@ -185,7 +185,8 @@ Clients can add/remove one or more [Pad Probe Handlers](#pad-probe-handlers) to 
 3. File Sink
 4. Record Sink
 5. RTSP Sink
-6. Fake Sink
+6. WebRTC Sink - Requires GStreamer 1.18 or later
+7. Fake Sink
 
 Overlay and Window Sinks have settable dimensions: width and height in pixels, and X and Y directional offsets that can be updated after creation. 
 
@@ -1133,6 +1134,7 @@ if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
 * [Mailer](/docs/api-mailer.md)
+* [WebSocket Server](/docs/api-ws-server.md)
 
 --- 
 * <b id="f1">1</b> Quote from GStreamer documentation [here](https://gstreamer.freedesktop.org/documentation/?gi-language=c). [↩](#a1)

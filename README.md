@@ -75,6 +75,7 @@ Come join us on [Discord](https://discord.gg/MJvY9jjpAK), an informal place to c
   * [Branch](/docs/api-branch.md)
   * [Component](/docs/api-component.md)
   * [Mailer](/docs/api-mailer.md)
+  * [WebSocket Server](/docs/api-ws-server.md)
 * [Examples](/docs/examples.md)
   * [C/C++](/docs/examples-cpp.md)
   * [Python](/docs/examples-python.md)

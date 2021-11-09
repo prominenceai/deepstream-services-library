@@ -86,4 +86,4 @@ $ sudo apt-get install doxygen
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
 * [Mailer](/docs/api-mailer.md)
-
+* [WebSocket Server](/docs/api-ws-server.md)
