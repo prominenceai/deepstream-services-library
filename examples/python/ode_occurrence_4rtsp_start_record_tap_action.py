@@ -203,7 +203,7 @@ def CreatePerSourceComponents(pipeline, source, rtsp_uri, ode_handler):
     retval = dsl_source_rtsp_new(source, 	
         uri = rtsp_uri, 	
         protocol = DSL_RTP_ALL, 	
-        cudadec_mem_type = DSL_CUDADEC_MEMTYPE_DEVICE, 	
+        cudadec_mem_type = DSL_NVBUF_MEM_DEVICE, 	
         intra_decode = False, 	
         drop_frame_interval = 0, 	
         latency = 100,

@@ -36,7 +36,7 @@ static const std::wstring pipeline_name(L"test-pipeline");
 static const std::wstring source_name1(L"uri-source-1");
 static const std::wstring source_name2(L"uri-source-2");
 static const std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
-static const uint cudadec_mem_type(DSL_CUDADEC_MEMTYPE_DEVICE);
+static const uint cudadec_mem_type(DSL_NVBUF_MEM_DEVICE);
 static const uint intr_decode(false);
 static const uint drop_frame_interval(0); 
 
@@ -1101,7 +1101,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 //    {
 //        std::wstring source_name1(L"uri-source-1");
 //        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
-//        uint cudadec_mem_type(DSL_CUDADEC_MEMTYPE_DEVICE);
+//        uint cudadec_mem_type(DSL_NVBUF_MEM_DEVICE);
 //        uint intr_decode(false);
 //        uint drop_frame_interval(0);
 //
@@ -1159,7 +1159,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 //    {
 //        std::wstring source_name1(L"uri-source-1");
 //        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
-//        uint cudadec_mem_type(DSL_CUDADEC_MEMTYPE_DEVICE);
+//        uint cudadec_mem_type(DSL_NVBUF_MEM_DEVICE);
 //        uint intr_decode(false);
 //        uint drop_frame_interval(0);
 //

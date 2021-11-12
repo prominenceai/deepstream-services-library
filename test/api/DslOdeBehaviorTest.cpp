@@ -31,7 +31,7 @@ THE SOFTWARE.
 
 static const std::wstring source_name(L"uri-source");
 static const std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
-static const uint cudadec_mem_type(DSL_CUDADEC_MEMTYPE_DEVICE);
+static const uint cudadec_mem_type(DSL_NVBUF_MEM_DEVICE);
 static const uint intr_decode(false);
 static const uint drop_frame_interval(0);
 

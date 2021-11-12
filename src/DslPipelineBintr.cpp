@@ -37,6 +37,9 @@ namespace DSL
     {
         LOG_FUNC();
 
+        m_pPipelineSourcesBintr = DSL_PIPELINE_SOURCES_NEW("sources-bin");
+        AddChild(m_pPipelineSourcesBintr);
+
         g_mutex_init(&m_asyncCommMutex);
     }
 
@@ -57,13 +60,6 @@ namespace DSL
     bool PipelineBintr::AddSourceBintr(DSL_BASE_PTR pSourceBintr)
     {
         LOG_FUNC();
-        
-        // Create the shared sources bintr if it doesn't exist
-        if (!m_pPipelineSourcesBintr)
-        {
-            m_pPipelineSourcesBintr = DSL_PIPELINE_SOURCES_NEW("sources-bin");
-            AddChild(m_pPipelineSourcesBintr);
-        }
 
         if (!m_pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)))
         {
@@ -92,6 +88,27 @@ namespace DSL
         return m_pPipelineSourcesBintr->RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
     }
 
+    uint PipelineBintr::GetStreamMuxNvbufMemType()
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->GetStreamMuxNvbufMemType();
+    }
+
+    bool PipelineBintr::SetStreamMuxNvbufMemType(uint type)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' is currently Linked - cudadec memory type can not be updated");
+            return false;
+            
+        }
+        m_pPipelineSourcesBintr->SetStreamMuxNvbufMemType(type);
+        
+        return true;
+    }
 
     void PipelineBintr::GetStreamMuxBatchProperties(guint* batchSize, uint* batchTimeout)
     {
@@ -105,19 +122,15 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_batchSize = batchSize;
-        m_batchTimeout = batchTimeout;
-
         if (IsLinked())
         {
             LOG_ERROR("Pipeline '" << GetName() << "' is currently Linked - batch properties can not be updated");
             return false;
             
         }
-        if (m_pPipelineSourcesBintr)
-        {
-            m_pPipelineSourcesBintr->SetStreamMuxBatchProperties(m_batchSize, m_batchTimeout);
-        }
+        m_batchSize = batchSize;
+        m_batchTimeout = batchTimeout;
+        m_pPipelineSourcesBintr->SetStreamMuxBatchProperties(m_batchSize, m_batchTimeout);
         
         return true;
     }

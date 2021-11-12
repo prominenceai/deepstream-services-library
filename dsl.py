@@ -14,9 +14,13 @@ DSL_PAD_SRC = 1
 DSL_RTP_TCP = 4
 DSL_RTP_ALL = 7
 
-DSL_CUDADEC_MEMTYPE_DEVICE = 0
-DSL_CUDADEC_MEMTYPE_PINNED = 1
-DSL_CUDADEC_MEMTYPE_UNIFIED = 2
+DSL_GPU_TYPE_INTEGRATED = 0
+DSL_GPU_TYPE_DISCRETE   = 1
+
+DSL_NVBUF_MEM_DEFAULT = 0
+DSL_NVBUF_MEM_PINNED  = 1
+DSL_NVBUF_MEM_DEVICE  = 2
+DSL_NVBUF_MEM_UNIFIED = 3
 
 DSL_SOURCE_CODEC_PARSER_H264 = 0
 DSL_SOURCE_CODEC_PARSER_H265 = 1
@@ -3744,6 +3748,28 @@ def dsl_pipeline_component_remove_many(pipeline, components):
     return int(result)
 
 ##
+## dsl_pipeline_streammux_nvbuf_mem_type_get()
+##
+_dsl.dsl_pipeline_streammux_nvbuf_mem_type_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_pipeline_streammux_nvbuf_mem_type_get.restype = c_uint
+def dsl_pipeline_streammux_nvbuf_mem_type_get(name):
+    global _dsl
+    type = c_uint(0)
+    result = _dsl.dsl_pipeline_streammux_nvbuf_mem_type_get(name, DSL_UINT_P(type))
+    return int(result), type.value
+
+##
+## dsl_pipeline_streammux_nvbuf_mem_type_set()
+##
+_dsl.dsl_pipeline_streammux_nvbuf_mem_type_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_pipeline_streammux_nvbuf_mem_type_set.restype = c_uint
+def dsl_pipeline_streammux_nvbuf_mem_type_set(name, type):
+    global _dsl
+    result = _dsl.dsl_pipeline_streammux_nvbuf_mem_type_set(name, type)
+    return int(result)
+
+
+##
 ## dsl_pipeline_streammux_batch_properties_get()
 ##
 _dsl.dsl_pipeline_streammux_batch_properties_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
@@ -4680,3 +4706,13 @@ _dsl.dsl_stdout_restore.restype = c_bool
 def dsl_stdout_restore():
     global _dsl
     return _dsl.dsl_stdout_restore()
+    
+##
+## dsl_gpu_type_get()
+##
+_dsl.dsl_gpu_type_get.argtypes = [c_uint]
+_dsl.dsl_gpu_type_get.restype = c_uint
+def dsl_gpu_type_get(gpu_id):
+    global _dsl
+    result = _dsl.dsl_gpu_type_get(gpu_id)
+    return int(result)

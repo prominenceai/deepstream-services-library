@@ -52,12 +52,24 @@ from_address = 'my.smtps.server'
 to_name = 'Joe Bloe'
 to_address = 'joe.blow@gmail.com'
 
-file_path = "../../test/streams/sample_1080p_h264.mp4"
+uri_file = "../../test/streams/sample_1080p_h264.mp4"
 
-# Filespecs for the Primary GIE and IOU Trcaker
-primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
-tracker_config_file = '../../test/configs/iou_config.txt'
+# -------------------------------------------------------------------------------------
+# This example is designed to be portable between an Integrated Nano Jetson device
+# and a disrete GPU x86_84 system
+gpu_type = dsl_gpu_type_get(0)
+
+# Platform conditional NVIDIA buffer memory type and filespecs for the Primary GIE and IOU Trcaker
+if gpu_type == DSL_GPU_TYPE_INTEGRATED:
+    MEM_TYPE = DSL_NVBUF_MEM_DEVICE
+    primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
+    primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+    tracker_config_file = '../../test/configs/iou_config.txt'
+else:
+    MEM_TYPE = DSL_NVBUF_MEM_UNIFIED
+    primary_infer_config_file = '/opt/nvidia/deepstream/deepstream-6.0/samples/configs/deepstream-app/config_infer_primary.txt'
+    primary_model_engine_file = '/opt/nvidia/deepstream/deepstream-6.0/samples/models/Primary_Detector/resnet10.caffemodel'
+    tracker_config_file = '/opt/nvidia/deepstream/deepstream-6.0/samples/configs/deepstream-app/iou_config.txt'
 
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
@@ -301,9 +313,13 @@ def main(args):
         # Create the remaining Pipeline components
         
         # New File Source using the file path defined at the top of the file
-        retval = dsl_source_file_new('file-source', 
-            file_path = file_path, 
-            repeat_enabled = True)
+        # New URI File Source using the filespec defined above
+        retval = dsl_source_uri_new('uri-source',
+            uri = uri_file,
+            is_live = False,
+            cudadec_mem_type = MEM_TYPE,
+            intra_decode = False,
+            drop_frame_interval = 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -340,10 +356,14 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['file-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
+            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
-            
+
+        # IMPORT need to set the NVIDIA buffer memory type for the Streammuxer
+        retval = dsl_pipeline_streammux_nvbuf_mem_type_set('pipeline', MEM_TYPE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
         # Set the XWindow into full-screen mode for a kiosk look
         retval = dsl_pipeline_xwindow_fullscreen_enabled_set('pipeline', True)
         if retval != DSL_RETURN_SUCCESS:
