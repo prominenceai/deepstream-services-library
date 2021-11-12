@@ -35,6 +35,7 @@ namespace DSL
 {
     SourceBintr::SourceBintr(const char* name)
         : Bintr(name)
+        , m_cudaDeviceProp{0}
         , m_isLive(TRUE)
         , m_width(0)
         , m_height(0)
@@ -45,6 +46,9 @@ namespace DSL
         , m_numExtraSurfaces(N_EXTRA_SURFACES)
     {
         LOG_FUNC();
+
+            // Get the Device properties
+        cudaGetDeviceProperties(&m_cudaDeviceProp, m_gpuId);
     }
     
     SourceBintr::~SourceBintr()
@@ -119,12 +123,13 @@ namespace DSL
         m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_CAMERA_CSI, "csi_camera_elem");
         m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "src_caps_filter");
 
-        m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
-        m_pSourceElement->SetAttribute("bufapi-version", TRUE);
+        // aarch64
+        if (m_cudaDeviceProp.integrated)
+        {
+            m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
+            m_pSourceElement->SetAttribute("bufapi-version", TRUE);
+        }
         
-        // Note: not present in Deepstream 5.0
-        // m_pSourceElement->SetAttribute("maxperf", TRUE);
-
         GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
             "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
             "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
@@ -192,7 +197,6 @@ namespace DSL
         guint width, guint height, guint fpsN, guint fpsD)
         : SourceBintr(name)
         , m_sensorId(0)
-        , m_cudaDeviceProp{0}
     {
         LOG_FUNC();
 
@@ -203,9 +207,6 @@ namespace DSL
         
         m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_CAMERA_V4L2, "usb_camera_elem");
         m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "src_caps_filter");
-
-        // Get the Device properties
-        cudaGetDeviceProperties(&m_cudaDeviceProp, m_gpuId);
 
         if (!m_cudaDeviceProp.integrated)
         {
@@ -483,7 +484,11 @@ namespace DSL
             {
                 g_object_set(pObject, "skip-frames", 2, NULL);
             }
-            g_object_set(pObject, "enable-max-performance", TRUE, NULL);
+            // aarch64 only
+            if (m_cudaDeviceProp.integrated)
+            {
+                g_object_set(pObject, "enable-max-performance", TRUE, NULL);
+            }
             g_object_set(pObject, "drop-frame-interval", m_dropFrameInterval, NULL);
             g_object_set(pObject, "num-extra-surfaces", m_numExtraSurfaces, NULL);
 
@@ -851,7 +856,7 @@ namespace DSL
     FileSourceBintr::FileSourceBintr(const char* name, 
         const char* uri, bool repeatEnabled)
         : UriSourceBintr(name, uri, false, 
-            DSL_CUDADEC_MEMTYPE_DEVICE, false, 0)
+            DSL_NVBUF_MEM_DEVICE, false, 0)
     {
         LOG_FUNC();
         

@@ -36,7 +36,7 @@ SCENARIO( "The Batch Size for a Pipeline with multiple-sources can be updated", 
         std::wstring sourceName2 = L"test-uri-source-2";
         std::wstring sourceName3 = L"test-uri-source-3";
         std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint cudadecMemType(DSL_NVBUF_MEM_DEVICE);
         uint intrDecode(false);
         uint dropFrameInterval(0);
 
@@ -103,6 +103,57 @@ SCENARIO( "The Batch Size for a Pipeline with multiple-sources can be updated", 
                 REQUIRE( dsl_pipeline_list_size() == 0 );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "The NVIDIA buffer memory type for a Pipeline's Streammuxer can be read and updated", "[pipeline-streammux]" )
+{
+    GIVEN( "A new Pipeline with its built-in streammuxer" ) 
+    {
+        std::wstring pipelineName  = L"test-pipeline";
+
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        uint nvbuf_mem_type(99);
+        
+        REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_get(pipelineName.c_str(), 
+            &nvbuf_mem_type)  == DSL_RESULT_SUCCESS );
+        REQUIRE( nvbuf_mem_type == DSL_NVBUF_MEM_DEFAULT );
+        
+        WHEN( "The Pipeline's Streammuxer's NVIDIA buffer memory type is updated" ) 
+        {
+            uint new_nvbuf_mem_type(DSL_NVBUF_MEM_PINNED);
+
+            REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_set(pipelineName.c_str(), 
+                new_nvbuf_mem_type) == DSL_RESULT_SUCCESS );
+
+            THEN( "The updated Streammuxer NVIDIA buffer memory type  is returned" )
+            {
+                REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_get(pipelineName.c_str(), 
+                    &nvbuf_mem_type) == DSL_RESULT_SUCCESS );
+                REQUIRE( nvbuf_mem_type == new_nvbuf_mem_type );
+                
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+            }
+        }
+        WHEN( "An invalid NVIDIA buffer memory type is used on set" ) 
+        {
+            uint new_nvbuf_mem_type(99);
+
+            REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_set(pipelineName.c_str(), 
+                new_nvbuf_mem_type) == DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED );
+
+            THEN( "The Streammuxer NVIDIA buffer memory type is unchanged" )
+            {
+                REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_get(pipelineName.c_str(), 
+                    &nvbuf_mem_type) == DSL_RESULT_SUCCESS );
+                REQUIRE( nvbuf_mem_type == DSL_NVBUF_MEM_DEFAULT );
+                
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
             }
         }
     }

@@ -92,13 +92,25 @@ namespace DSL
          * @brief Gets the current Streammuxer "play-type-is-live" setting
          * @return true if play-type is live, false otherwise
          */
-        bool StreamMuxPlayTypeIsLiveGet();        
+        bool StreamMuxPlayTypeIsLiveGet();
 
         /**
          * @brief Sets the current Streammuxer play type based on the first source added
          * @param isLive set to true if all sources are to be Live, and therefore live only.
          */
-        void StreamMuxPlayTypeIsLiveSet(bool isLive);        
+        void StreamMuxPlayTypeIsLiveSet(bool isLive);
+
+        /**
+         * @brief Gets the current Streammuxer NVIDIA buffer memory type
+         * @return one of the DSL_NVBUF_MEM_TYPE constant values
+         */
+        uint GetStreamMuxNvbufMemType();
+
+        /**
+         * @brief Sets the Streammuxer's NVIDIA buffer memory type
+         * @param[in] type one of the DSL_NVBUF_MEM_TYPE constant values.
+         */
+        void SetStreamMuxNvbufMemType(uint type);
         
         /**
          * @brief Gets the current batch settings for the SourcesBintr's Stream Muxer
@@ -199,6 +211,12 @@ namespace DSL
          * @brief true if all sources are live, false if all sources are non-live
          */
         bool m_areSourcesLive;
+
+        /**
+         * @brief current NVIDIA buffer memory type in use by the Streammuxer
+         * set to DLS_NVBUF_MEM_DEFAULT on creation.
+         */
+        uint m_nvbufMemType;
 
         /**
          * @brief Stream-muxer batch timeout used when waiting for all sources

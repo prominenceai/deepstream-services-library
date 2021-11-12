@@ -135,7 +135,12 @@ namespace DSL
         virtual bool IsLinkable(){return true;};
 
     public:
-    
+
+            /**
+         * @brief Device Properties, used for aarch64/x86_64 conditional logic
+         */
+        cudaDeviceProp m_cudaDeviceProp;
+
         /**
          * @brief True if the source is live and cannot be paused without losing data, False otherwise.
          */
@@ -254,11 +259,6 @@ namespace DSL
         bool SetGpuId(uint gpuId);
 
     private:
-
-        /**
-         * @brief Device Properties, used for aarch64/x86_64 conditional logic
-         */
-        cudaDeviceProp m_cudaDeviceProp;
 
         /**
          * @brief Unique sensor ID for this USB Source

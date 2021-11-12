@@ -417,11 +417,18 @@ THE SOFTWARE.
 #define DSL_RESULT_WEBSOCKET_SERVER_CLIENT_LISTENER_REMOVE_FAILED   0x00700004
 
 /**
- *
+ * GPU Types
  */
-#define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
-#define DSL_CUDADEC_MEMTYPE_PINNED                                  1
-#define DSL_CUDADEC_MEMTYPE_UNIFIED                                 2
+#define DSL_GPU_TYPE_INTEGRATED                                     0
+#define DSL_GPU_TYPE_DISCRETE                                       1
+
+/**
+ * NVIDIA Buffer Memory Types
+ */
+#define DSL_NVBUF_MEM_DEFAULT                                       0
+#define DSL_NVBUF_MEM_PINNED                                        1
+#define DSL_NVBUF_MEM_DEVICE                                        2
+#define DSL_NVBUF_MEM_UNIFIED                                       3
 
 #define DSL_SOURCE_CODEC_PARSER_H264                                0
 #define DSL_SOURCE_CODEC_PARSER_H265                                1
@@ -2525,7 +2532,7 @@ DslReturnType dsl_source_usb_new(const wchar_t* name,
  * @param[in] name unique name for the new URI Source
  * @param[in] uri Unique Resource Identifier (file or live)
  * @param[in] is_live true if source is live false if file
- * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
+ * @param[in] cudadec_mem_type, one of the DSL_NVBUF_MEM_<type> constant values.
  * @param[in] intra_decode set to True to enable, false to disable
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
@@ -2626,10 +2633,10 @@ DslReturnType dsl_source_image_timeout_set(const wchar_t* name, uint timeout);
  * @brief creates a new, uniquely named RTSP Source component
  * @param[in] name Unique Resource Identifier (file or live)
  * @param[in] protocol one of the constant protocol values [ DSL_RTP_TCP | DSL_RTP_ALL ]
- * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
- * @param[in] intra_decode set to True to enable, false to disable
+ * @param[in] cudadec_mem_type, one of the DSL_NVBUF_MEM_<type> constant values.
+ * @param[in] intra_decode set to True to enable, false to disable.
  * @param[in] drop_frame_interval, set to 0 to decode every frame.
- * @param[in] latency in milliseconds
+ * @param[in] latency in milliseconds.
  * @param[in] timeout time to wait between successive frames before determining the 
  * connection is lost. Set to 0 to disable timeout.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
@@ -4399,8 +4406,28 @@ DslReturnType dsl_pipeline_component_remove_many(const wchar_t* pipeline,
     const wchar_t** components);
 
 /**
- * @brief 
+ * @brief Queries a Pipeline's stream-muxer for its current NVIDIA buffer memory type.
+ * @param[in] pipeline name of the pipeline to query.
+ * @param[out] type one of the DSL_NVBUF_MEM constant values.
+ * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_get(const wchar_t* pipeline, 
+    uint* type);
+
+/**
+ * @brief Updates a Pipeline's stream-muxer with a new NVIDIA memory type to use
+ * @param[in] pipeline name of the pipeline to update.
+ * @param[in] type one of the DSL_NVBUF_MEM constant values.
+ * @return DSL_RESULT_SUCCESS on successful update, one of DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* pipeline, 
+    uint type);
+    
+/**
+ * @brief Queryies the Pipeline's stream-muxer for its current batch properties
  * @param[in] pipeline name of the pipeline to query
+ * @param[out] batchSize the current batch size in use
+ * @param[out] batchTimeout the current batch timeout in use
  * @return DSL_RESULT_SUCCESS on success, 
  */
 DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* pipeline, 
@@ -5209,6 +5236,12 @@ DslReturnType dsl_stdout_redirect(const wchar_t* file_path);
  */
 void dsl_stdout_restore();
 
+/**
+ * @brief Gets the GPU type for a specified GPU Id.
+ * @param[in] gpu_id id of the GPU to query.
+ * @return one of the DSL_GPU_TYPE constant values
+ */ 
+uint dsl_gpu_type_get(uint gpu_id);
 
 EXTERN_C_END
 

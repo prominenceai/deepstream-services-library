@@ -43,7 +43,7 @@ int main(int argc, char** argv)
     while(true){	
 
         // # For each camera, create a new RTSP Source for the specific RTSP URI	
-        retval = dsl_source_rtsp_new(L"rtsp-source", rtsp_uri_1.c_str(), DSL_RTP_ALL, DSL_CUDADEC_MEMTYPE_DEVICE, 	
+        retval = dsl_source_rtsp_new(L"rtsp-source", rtsp_uri_1.c_str(), DSL_RTP_ALL, DSL_NVBUF_MEM_DEVICE, 	
                                     false, 0, 100, 2);
         if (retval != DSL_RESULT_SUCCESS)	
             return retval;

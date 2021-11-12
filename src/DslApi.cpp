@@ -4915,6 +4915,31 @@ DslReturnType dsl_pipeline_component_remove_many(const wchar_t* pipeline,
     return DSL_RESULT_SUCCESS;
 }
 
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_get(const wchar_t* pipeline, 
+    uint* type)
+{
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(type);
+
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->PipelineStreamMuxNvbufMemTypeGet(cstrPipeline.c_str(),
+        type);
+}
+
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* pipeline, 
+    uint type)
+{
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->PipelineStreamMuxNvbufMemTypeSet(cstrPipeline.c_str(),
+        type);
+}
+
 DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* pipeline, 
     uint* batchSize, uint* batchTimeout)
 {
@@ -5995,3 +6020,14 @@ void dsl_stdout_restore()
     DSL::Services::GetServices()->StdOutRestore();
 }
 
+uint dsl_gpu_type_get(uint gpu_id)
+{
+        // Get the Device properties
+        cudaDeviceProp deviceProp;
+        cudaGetDeviceProperties(&deviceProp, gpu_id);
+
+        // if aarch64 build, set memorytype to default
+        return (deviceProp.integrated) 
+            ? DSL_GPU_TYPE_INTEGRATED
+            : DSL_GPU_TYPE_DISCRETE;
+}

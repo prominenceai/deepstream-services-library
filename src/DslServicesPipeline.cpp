@@ -195,8 +195,68 @@ namespace DSL
                 << "' threw an exception removing component");
             return DSL_RESULT_PIPELINE_COMPONENT_REMOVE_FAILED;
         }
-}
+    }
     
+    DslReturnType Services::PipelineStreamMuxNvbufMemTypeGet(const char* name, 
+        uint* type)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            *type = m_pipelines[name]->GetStreamMuxNvbufMemType();
+            
+            LOG_INFO("Pipeline '" << name << "' returned nvbuf memory type = " 
+                << *type << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception getting the Stream Muxer nvbuf memory type");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PipelineStreamMuxNvbufMemTypeSet(const char* name, 
+        uint type)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            if (type > DSL_NVBUF_MEM_UNIFIED)
+            {
+                LOG_INFO("Invalid nvbuf memory type " << type <<
+                    " for Pipeline '" << name <<"'");
+                return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
+            }
+            if (!m_pipelines[name]->SetStreamMuxNvbufMemType(type))
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to Set the Stream Muxer nvbuf memory type");
+                return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
+            }
+            LOG_INFO("Pipeline '" << name << "' set nvbuf memeory type = " 
+                << type << "  successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception setting the Stream Muxer nvbuf memory type");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::PipelineStreamMuxBatchPropertiesGet(const char* name,
         uint* batchSize, uint* batchTimeout)    
     {

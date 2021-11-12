@@ -362,7 +362,11 @@ namespace DSL
         {
             return;
         }
-        
+
+        NvBufSurfaceMemType memType = (dsl_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+            ? NVBUF_MEM_CUDA_DEVICE
+            : NVBUF_MEM_CUDA_UNIFIED;
+
         // surface index is derived from the batch_id for the frame that triggered the event
         int surfaceIndex = pFrameMeta->batch_id;
         
@@ -376,7 +380,7 @@ namespace DSL
         // Transforming only one frame in the batch, so create a copy of the single 
         // surface ... becoming our new source surface. This creates a new mono (non-batched) 
         // surface copied from the "batched frames" using the batch id as the index
-        DslMonoSurface srcSurface(mapInfo, pFrameMeta->batch_id);
+        DslMonoSurface srcSurface(mapInfo, pFrameMeta->batch_id, memType);
 
         // capturing full frame or object only?
         if (m_captureType == DSL_CAPTURE_TYPE_FRAME)
@@ -391,10 +395,11 @@ namespace DSL
             width = pObjectMeta->rect_params.width; 
             height = pObjectMeta->rect_params.height;
         }
-        
+
         // New "create params" for our destination surface. we only need one surface so set 
         // memory allocation (for the array of surfaces) size to 0
-        DslSurfaceCreateParams surfaceCreateParams(srcSurface.gpuId, width, height, 0);
+        DslSurfaceCreateParams surfaceCreateParams(srcSurface.gpuId, 
+            width, height, 0, memType);
         
         // New Destination surface with a batch size of 1 for transforming the single surface 
         DslBufferSurface dstSurface(1, surfaceCreateParams);
@@ -425,19 +430,22 @@ namespace DSL
                 << GetName() << "'");
             return;
         }
-        
+
         // Map the tranformed surface for read
         if (!dstSurface.Map())
         {
             LOG_ERROR("Destination surface failed to map for Action '" << GetName() << "'");
             return;
         }
-        
-        // Sync the surface for CPU access
-        if (!dstSurface.SyncForCpu())
+
+        if (memType != NVBUF_MEM_CUDA_UNIFIED)
         {
-            LOG_ERROR("Destination surface failed to Sync for '" << GetName() << "'");
-            return;
+            // Sync the surface for CPU access
+            if (!dstSurface.SyncForCpu())
+            {
+                LOG_ERROR("Destination surface failed to Sync for '" << GetName() << "'");
+                return;
+            }
         }
 
         // New background Mat for our image

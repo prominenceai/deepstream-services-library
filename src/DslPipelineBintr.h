@@ -129,7 +129,20 @@ namespace DSL
         bool RemoveSourceBintr(DSL_BASE_PTR pSourceBintr);
 
         /**
-         * @brief Gets the current batch settings for the Pipeline's Stream Muxer
+         * @brief Gets the current nvbuf memory type in use by the Stream-Muxer
+         * @return one of DSL_NVBUF_MEM_TYPE constant values
+         */
+        uint GetStreamMuxNvbufMemType();
+
+        /**
+         * @brief Sets the nvbuf memory type for the Stream-Muxer to use
+         * @param[in] type one of DSL_NVBUF_MEM_TYPE constant values
+         * @return true if the memory type could be set, false otherwise
+         */
+        bool SetStreamMuxNvbufMemType(uint type);
+
+        /**
+         * @brief Gets the current batch settings for the Pipeline's Stream-Muxer
          * @param[out] batchSize current batchSize, default == the number of source
          * @param[out] batchTimeout current batch timeout
          * @return true if the batch properties could be read, false otherwise
@@ -137,7 +150,7 @@ namespace DSL
         void GetStreamMuxBatchProperties(uint* batchSize, uint* batchTimeout);
 
         /**
-         * @brief Sets the current batch settings for the Pipeline's Stream Muxer
+         * @brief Sets the current batch settings for the Pipeline's Stream-Muxer
          * @param[in] batchSize new batchSize to set, default == the number of sources
          * @param[in] batchTimeout timeout value to set in ms
          * @return true if the batch properties could be set, false otherwise

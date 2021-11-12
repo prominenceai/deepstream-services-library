@@ -32,6 +32,9 @@ THE SOFTWARE.
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
+
+#include <gst-nvdssr.h>
+
 namespace DSL
 {
     /**
@@ -150,20 +153,29 @@ namespace DSL
          * @param mapInfo mapped buffer info as source surface buffer
          * @param index index into the batched surface list
          */
-        DslMonoSurface(DslMapInfo& mapInfo, int index)
+        DslMonoSurface(DslMapInfo& mapInfo, int index, NvBufSurfaceMemType memType)
             : NvBufSurface{0}
             , width(0)
             , height(0)
         {   
             LOG_FUNC();
+
+            // TODO update to support gpuId > 0
             
             // copy the shared surface properties
             (NvBufSurface)*this = *(NvBufSurface*)mapInfo.data;
             
+            // NVIDIA buffer memory 
+            memType = memType;
+
             // set the buffer surface as a mono surface
             numFilled = 1;
             batchSize = 1;
-            
+
+            // Get the Device properties
+            cudaDeviceProp deviceProp;
+            cudaGetDeviceProperties(&deviceProp, gpuId);
+
             // copy the single indexed surface to the new surfaceList of one
             surfaceList = &(((NvBufSurface*)mapInfo.data)->surfaceList[index]);
             
@@ -267,9 +279,10 @@ namespace DSL
          * @param size of memory to create, width and height are ignored if set
          * set size to 0 for no addition memory allocated when batch size = 1
          */
-        DslSurfaceCreateParams(uint32_t gpuId, uint32_t width, uint32_t height, uint32_t size)
+        DslSurfaceCreateParams(uint32_t gpuId, 
+            uint32_t width, uint32_t height, uint32_t size, NvBufSurfaceMemType memType)
             : NvBufSurfaceCreateParams{gpuId, width, height, size, false, 
-                NVBUF_COLOR_FORMAT_RGBA, NVBUF_LAYOUT_PITCH, NVBUF_MEM_DEFAULT}
+                NVBUF_COLOR_FORMAT_RGBA, NVBUF_LAYOUT_PITCH, memType}
         {
             LOG_FUNC();
         }
@@ -342,7 +355,8 @@ namespace DSL
     
         /**
          * @brief ctor for the DslBufferSurface class
-         * @param gpuId GPU ID valid for multi GPU systems
+         * @param[in] batchSize batch size to use for the new surface
+         * @param[in] surfaceCreateParams create parameters to use for the new surface
          */
         DslBufferSurface(uint32_t batchSize, DslSurfaceCreateParams& surfaceCreateParams)
             : m_pBufSurface(NULL)
@@ -444,15 +458,15 @@ namespace DSL
     private:    
 
         /**
-         * @brief pointer to a batched surface buffer
+         * @brief pointer to a batched surface buffer.
          */
         NvBufSurface* m_pBufSurface;
         
         /**
-         * @brief set to true once mapped so that the buffer can be unmapped before destruction
+         * @brief set to true once mapped so that the buffer can be unmapped before destruction.
          */
         bool m_isMapped;
-        
+
     };
 
 }

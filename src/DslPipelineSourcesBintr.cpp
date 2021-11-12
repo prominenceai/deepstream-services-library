@@ -37,6 +37,7 @@ namespace DSL
         , m_streamMuxHeight(0)
         , m_isPaddingEnabled(false)
         , m_areSourcesLive(false)
+        , m_nvbufMemType(DSL_NVBUF_MEM_DEFAULT)
         , m_numSurfacesPerFrame(DSL_DEFAULT_STREAMMUX_MAX_NUM_SERFACES_PER_FRAME)
     {
         LOG_FUNC();
@@ -335,6 +336,21 @@ namespace DSL
         LOG_INFO("'live-source' attrubute set to '" << m_areSourcesLive 
             << "' for Streammuxer '" << GetName() << "'");
         m_pStreamMux->SetAttribute("live-source", m_areSourcesLive);
+    }
+
+    uint PipelineSourcesBintr::GetStreamMuxNvbufMemType()
+    {
+        LOG_FUNC();
+
+        return m_nvbufMemType;
+    }
+
+    void PipelineSourcesBintr::SetStreamMuxNvbufMemType(uint type)
+    {
+        LOG_FUNC();
+
+        m_nvbufMemType = type;
+        m_pStreamMux->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
     }
 
     void PipelineSourcesBintr::GetStreamMuxBatchProperties(guint* batchSize, 
