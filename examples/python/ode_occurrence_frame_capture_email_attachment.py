@@ -61,7 +61,7 @@ gpu_type = dsl_gpu_type_get(0)
 
 # Platform conditional NVIDIA buffer memory type and filespecs for the Primary GIE and IOU Trcaker
 if gpu_type == DSL_GPU_TYPE_INTEGRATED:
-    MEM_TYPE = DSL_NVBUF_MEM_TYPE_DEVICE
+    MEM_TYPE = DSL_NVBUF_MEM_TYPE_DEFAULT
     primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
     primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
     tracker_config_file = '../../test/configs/iou_config.txt'
