@@ -522,7 +522,7 @@ THE SOFTWARE.
 #define DSL_DEFAULT_SOURCE_IN_USE_MAX                               8
 #define DSL_DEFAULT_SINK_IN_USE_MAX                                 8
 
-#define DSL_DEFAULT_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE             DSL_NVBUF_MEM_TYPE_DEVICE
+#define DSL_DEFAULT_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE             DSL_NVBUF_MEM_TYPE_DEFAULT
 #define DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT                         40000
 #define DSL_DEFAULT_STREAMMUX_WIDTH                                 1920
 #define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080

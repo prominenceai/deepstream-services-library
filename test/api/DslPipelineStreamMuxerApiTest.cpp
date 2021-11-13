@@ -36,7 +36,7 @@ SCENARIO( "The Batch Size for a Pipeline with multiple-sources can be updated", 
         std::wstring sourceName2 = L"test-uri-source-2";
         std::wstring sourceName3 = L"test-uri-source-3";
         std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
-        uint cudadecMemType(DSL_NVBUF_MEM_TYPE_DEVICE);
+        uint cudadecMemType(DSL_NVBUF_MEM_TYPE_DEFAULT);
         uint intrDecode(false);
         uint dropFrameInterval(0);
 
@@ -120,7 +120,7 @@ SCENARIO( "The NVIDIA buffer memory type for a Pipeline's Streammuxer can be rea
         
         REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_get(pipelineName.c_str(), 
             &nvbuf_mem_type)  == DSL_RESULT_SUCCESS );
-        REQUIRE( nvbuf_mem_type == DSL_NVBUF_MEM_TYPE_DEVICE );
+        REQUIRE( nvbuf_mem_type == DSL_NVBUF_MEM_TYPE_DEFAULT );
         
         WHEN( "The Pipeline's Streammuxer's NVIDIA buffer memory type is updated" ) 
         {
@@ -150,7 +150,7 @@ SCENARIO( "The NVIDIA buffer memory type for a Pipeline's Streammuxer can be rea
             {
                 REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_get(pipelineName.c_str(), 
                     &nvbuf_mem_type) == DSL_RESULT_SUCCESS );
-                REQUIRE( nvbuf_mem_type == DSL_NVBUF_MEM_TYPE_DEVICE );
+                REQUIRE( nvbuf_mem_type == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_list_size() == 0 );

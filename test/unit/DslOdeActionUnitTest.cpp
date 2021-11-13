@@ -319,7 +319,7 @@ SCENARIO( "A new CaptureFrameOdeAction is created correctly", "[OdeAction]" )
         {
             DSL_ODE_ACTION_CAPTURE_FRAME_PTR pAction = 
                 DSL_ODE_ACTION_CAPTURE_FRAME_NEW(actionName.c_str(), 
-                    DSL_NVBUF_MEM_TYPE_DEVICE, outdir.c_str(), annotate);
+                    DSL_NVBUF_MEM_TYPE_DEFAULT, outdir.c_str(), annotate);
 
             THEN( "The Action's members are setup and returned correctly" )
             {
@@ -341,7 +341,7 @@ SCENARIO( "A new CaptureOjbectOdeAction is created correctly", "[OdeAction]" )
         {
             DSL_ODE_ACTION_CAPTURE_OBJECT_PTR pAction = 
                 DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(actionName.c_str(), 
-                    DSL_NVBUF_MEM_TYPE_DEVICE, outdir.c_str());
+                    DSL_NVBUF_MEM_TYPE_DEFAULT, outdir.c_str());
 
             THEN( "The Action's members are setup and returned correctly" )
             {
@@ -373,7 +373,7 @@ SCENARIO( "An CaptureOdeAction can add and remove Capture Complete Listeners",  
 
         DSL_ODE_ACTION_CAPTURE_OBJECT_PTR pAction = 
             DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(actionName.c_str(), 
-                DSL_NVBUF_MEM_TYPE_DEVICE, outdir.c_str());
+                DSL_NVBUF_MEM_TYPE_DEFAULT, outdir.c_str());
         
         WHEN( "Client Listeners are added" )
         {
@@ -415,7 +415,7 @@ SCENARIO( "An CaptureOdeAction calls all Listeners on Capture Complete", "[OdeAc
 
         DSL_ODE_ACTION_CAPTURE_OBJECT_PTR pAction = 
             DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(actionName.c_str(), 
-                DSL_NVBUF_MEM_TYPE_DEVICE, outdir.c_str());
+                DSL_NVBUF_MEM_TYPE_DEFAULT, outdir.c_str());
         
         REQUIRE( pAction->AddCaptureCompleteListener(capture_complete_listener_cb1, &userData1) == true );
         REQUIRE( pAction->AddCaptureCompleteListener(capture_complete_listener_cb2, &userData2) == true );

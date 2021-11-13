@@ -856,7 +856,7 @@ namespace DSL
     FileSourceBintr::FileSourceBintr(const char* name, 
         const char* uri, bool repeatEnabled)
         : UriSourceBintr(name, uri, false, 
-            DSL_NVBUF_MEM_TYPE_DEVICE, false, 0)
+            DSL_NVBUF_MEM_TYPE_DEFAULT, false, 0)
     {
         LOG_FUNC();
         

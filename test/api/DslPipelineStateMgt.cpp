@@ -32,7 +32,7 @@ SCENARIO( "A new Pipeline with minimal components can Play", "[PipelineStateMgt]
     {
         std::wstring sourceName = L"test-uri-source";
         std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
-        uint cudadecMemType(DSL_NVBUF_MEM_TYPE_DEVICE);
+        uint cudadecMemType(DSL_NVBUF_MEM_TYPE_DEFAULT);
         uint intrDecode(false);
         uint dropFrameInterval(2);
 

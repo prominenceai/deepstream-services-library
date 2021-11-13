@@ -521,7 +521,7 @@ SCENARIO( "A Dewarper can be added to and removed from a Decode Source Component
     {
         std::wstring sourceName = L"uri-source";
         std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
-        uint cudadecMemType(DSL_NVBUF_MEM_TYPE_DEVICE);
+        uint cudadecMemType(DSL_NVBUF_MEM_TYPE_DEFAULT);
         uint intrDecode(false);
         uint dropFrameInterval(0);
 
@@ -561,7 +561,7 @@ SCENARIO( "Adding an invalid Dewarper to a Decode Source Component fails", "[sou
     {
         std::wstring sourceName = L"uri-source";
         std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
-        uint cudadecMemType(DSL_NVBUF_MEM_TYPE_DEVICE);
+        uint cudadecMemType(DSL_NVBUF_MEM_TYPE_DEFAULT);
         uint intrDecode(false);
         uint dropFrameInterval(0);
 
@@ -593,7 +593,7 @@ SCENARIO( "An RTSP Source's Timeout can be updated correctly", "[source-api]" )
         std::wstring rtspSourceName(L"rtsp-SOURCE");
         std::wstring uri(L"rtsp://username:password@192.168.0.14:554");
         uint protocol(DSL_RTP_ALL);
-        uint memtype(DSL_NVBUF_MEM_TYPE_DEVICE);
+        uint memtype(DSL_NVBUF_MEM_TYPE_DEFAULT);
         uint intra_decode(false);
         uint interval;
         uint latency(100);
@@ -630,7 +630,7 @@ SCENARIO( "An RTSP Source's Reconnect Stats can gotten and cleared", "[source-ap
         std::wstring rtspSourceName(L"rtsp-SOURCE");
         std::wstring uri(L"rtsp://username:password@192.168.0.14:554");
         uint protocol(DSL_RTP_ALL);
-        uint memtype(DSL_NVBUF_MEM_TYPE_DEVICE);
+        uint memtype(DSL_NVBUF_MEM_TYPE_DEFAULT);
         uint intra_decode(false);
         uint interval;
         uint latency(100);
@@ -680,7 +680,7 @@ SCENARIO( "An RTSP state-change-listener can be added and removed", "[source-api
         std::wstring rtspSourceName(L"rtsp-source");
         std::wstring uri(L"rtsp://username:password@192.168.0.14:554");
         uint protocol(DSL_RTP_ALL);
-        uint memtype(DSL_NVBUF_MEM_TYPE_DEVICE);
+        uint memtype(DSL_NVBUF_MEM_TYPE_DEFAULT);
         uint intra_decode(false);
         uint interval;
         uint latency(100);
