@@ -17,10 +17,10 @@ DSL_RTP_ALL = 7
 DSL_GPU_TYPE_INTEGRATED = 0
 DSL_GPU_TYPE_DISCRETE   = 1
 
-DSL_NVBUF_MEM_DEFAULT = 0
+DSL_NVBUF_MEM_TYPE_DEVICE = 0
 DSL_NVBUF_MEM_PINNED  = 1
-DSL_NVBUF_MEM_DEVICE  = 2
-DSL_NVBUF_MEM_UNIFIED = 3
+DSL_NVBUF_MEM_TYPE_DEVICE  = 2
+DSL_NVBUF_MEM_TYPE_UNIFIED = 3
 
 DSL_SOURCE_CODEC_PARSER_H264 = 0
 DSL_SOURCE_CODEC_PARSER_H265 = 1
@@ -380,21 +380,21 @@ def dsl_ode_action_custom_new(name, client_handler, client_data):
 ##
 ## dsl_ode_action_capture_frame_new()
 ##
-_dsl.dsl_ode_action_capture_frame_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
+_dsl.dsl_ode_action_capture_frame_new.argtypes = [c_wchar_p, c_uint, c_wchar_p, c_bool]
 _dsl.dsl_ode_action_capture_frame_new.restype = c_uint
-def dsl_ode_action_capture_frame_new(name, outdir, annotate):
+def dsl_ode_action_capture_frame_new(name, nvbuf_mem_type, outdir, annotate):
     global _dsl
-    result =_dsl.dsl_ode_action_capture_frame_new(name, outdir, annotate)
+    result =_dsl.dsl_ode_action_capture_frame_new(name, nvbuf_mem_type, outdir, annotate)
     return int(result)
 
 ##
 ## dsl_ode_action_capture_object_new()
 ##
-_dsl.dsl_ode_action_capture_object_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_capture_object_new.argtypes = [c_wchar_p, c_uint, c_wchar_p]
 _dsl.dsl_ode_action_capture_object_new.restype = c_uint
-def dsl_ode_action_capture_object_new(name, outdir):
+def dsl_ode_action_capture_object_new(name, nvbuf_mem_type, outdir):
     global _dsl
-    result =_dsl.dsl_ode_action_capture_object_new(name, outdir)
+    result =_dsl.dsl_ode_action_capture_object_new(name, nvbuf_mem_type, outdir)
     return int(result)
 
 ##

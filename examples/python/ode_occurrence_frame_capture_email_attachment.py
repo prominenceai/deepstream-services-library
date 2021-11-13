@@ -61,12 +61,12 @@ gpu_type = dsl_gpu_type_get(0)
 
 # Platform conditional NVIDIA buffer memory type and filespecs for the Primary GIE and IOU Trcaker
 if gpu_type == DSL_GPU_TYPE_INTEGRATED:
-    MEM_TYPE = DSL_NVBUF_MEM_DEVICE
+    MEM_TYPE = DSL_NVBUF_MEM_TYPE_DEVICE
     primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
     primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
     tracker_config_file = '../../test/configs/iou_config.txt'
 else:
-    MEM_TYPE = DSL_NVBUF_MEM_UNIFIED
+    MEM_TYPE = DSL_NVBUF_MEM_TYPE_UNIFIED
     primary_infer_config_file = '/opt/nvidia/deepstream/deepstream-6.0/samples/configs/deepstream-app/config_infer_primary.txt'
     primary_model_engine_file = '/opt/nvidia/deepstream/deepstream-6.0/samples/models/Primary_Detector/resnet10.caffemodel'
     tracker_config_file = '/opt/nvidia/deepstream/deepstream-6.0/samples/configs/deepstream-app/iou_config.txt'
@@ -269,9 +269,10 @@ def main(args):
             break
 
         # Create a new Capture Action to capture the Frame to jpeg image, and save to file. 
-        retval = dsl_ode_action_capture_frame_new('person-capture-action', 
-            annotate = False,
-            outdir = "./")
+        retval = dsl_ode_action_capture_frame_new('person-capture-action',
+            nvbuf_mem_type = MEM_TYPE,
+            outdir = "./",
+            annotate = False)
         if retval != DSL_RETURN_SUCCESS:
             break
             

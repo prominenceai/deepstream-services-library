@@ -226,7 +226,7 @@ DslReturnType CreatePerSourceComponents(const wchar_t* pipeline,
     
     // For each camera, create a new RTSP Source for the specific RTSP URI	
     retval = dsl_source_rtsp_new(clientdata->source.c_str(), clientdata->url.c_str(), 
-        DSL_RTP_ALL, DSL_NVBUF_MEM_DEVICE, false, 0, 100, 2);	
+        DSL_RTP_ALL, DSL_NVBUF_MEM_TYPE_DEVICE, false, 0, 100, 2);	
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
     // New record tap created with our common RecordComplete callback function defined above	    

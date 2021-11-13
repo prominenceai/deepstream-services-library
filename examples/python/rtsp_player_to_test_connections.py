@@ -59,7 +59,7 @@ def main(args):
         retval = dsl_source_rtsp_new('rtsp-source', 	
             uri = amcrest_rtsp_uri, 	
             protocol = DSL_RTP_ALL, 	
-            cudadec_mem_type = DSL_NVBUF_MEM_DEVICE, 	
+            cudadec_mem_type = DSL_NVBUF_MEM_TYPE_DEVICE, 	
             intra_decode = False, 	
             drop_frame_interval = 0, 	
             latency=100,

@@ -36,7 +36,7 @@ THE SOFTWARE.
 //        std::wstring sourceName2 = L"test-uri-source-2";
 //        std::wstring sourceName3 = L"test-uri-source-3";
 //        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
-//        uint cudadecMemType(DSL_NVBUF_MEM_DEVICE);
+//        uint cudadecMemType(DSL_NVBUF_MEM_TYPE_DEVICE);
 //        uint intrDecode(false);
 //        uint dropFrameInterval(0);
 //

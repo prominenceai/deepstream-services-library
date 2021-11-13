@@ -386,11 +386,11 @@ SCENARIO( "The Pipeline Streammuxer's nvbuf-memory-type can be read and updated"
         DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
             DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
 
-        REQUIRE( pPipelineSourcesBintr->GetStreamMuxNvbufMemType() == DSL_NVBUF_MEM_DEFAULT );
+        REQUIRE( pPipelineSourcesBintr->GetStreamMuxNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEVICE );
             
         WHEN( "The Stream Muxer's num-surfaces-per-frame is set to a new value " )
         {
-            uint newNvbufMemType = DSL_NVBUF_MEM_UNIFIED;
+            uint newNvbufMemType = DSL_NVBUF_MEM_TYPE_UNIFIED;
         
             pPipelineSourcesBintr->SetStreamMuxNvbufMemType(newNvbufMemType);
              

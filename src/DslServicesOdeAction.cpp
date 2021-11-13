@@ -31,7 +31,7 @@ THE SOFTWARE.
 namespace DSL
 {
     DslReturnType Services::OdeActionCaptureFrameNew(const char* name,
-        const char* outdir, boolean annotate)
+        uint nvbufMemType, const char* outdir, boolean annotate)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -44,15 +44,25 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
+
+            // check for valid memory type
+            if (nvbufMemType > DSL_NVBUF_MEM_TYPE_UNIFIED)
+            {
+                LOG_ERROR("Invalid NVIDIA buffer memory type " << 
+                    nvbufMemType << " for Capture Action '" << name << "'");
+                return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
+            }
             
             // ensure outdir exists
             struct stat info;
             if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
             {
-                LOG_ERROR("Unable to access outdir '" << outdir << "' for Capture Action '" << name << "'");
+                LOG_ERROR("Unable to access outdir '" << outdir 
+                    << "' for Capture Action '" << name << "'");
                 return DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, outdir, annotate);
+            m_odeActions[name] = DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, 
+                nvbufMemType, outdir, annotate);
 
             LOG_INFO("New Capture Frame ODE Action '" << name << "' created successfully");
 
@@ -60,13 +70,14 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("New Capture Frame ODE Action '" << name << "' threw exception on create");
+            LOG_ERROR("New Capture Frame ODE Action '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
     
     DslReturnType Services::OdeActionCaptureObjectNew(const char* name,
-        const char* outdir)
+        uint nvbufMemType, const char* outdir)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -80,16 +91,27 @@ namespace DSL
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
             
+            // check for valid memory type
+            if (nvbufMemType > DSL_NVBUF_MEM_TYPE_UNIFIED)
+            {
+                LOG_ERROR("Invalid NVIDIA buffer memory type " << 
+                    nvbufMemType << " for Capture Action '" << name << "'");
+                return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
+            }
+            
             // ensure outdir exists
             struct stat info;
             if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
             {
-                LOG_ERROR("Unable to access outdir '" << outdir << "' for Capture Action '" << name << "'");
+                LOG_ERROR("Unable to access outdir '" << outdir 
+                    << "' for Capture Action '" << name << "'");
                 return DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(name, outdir);
+            m_odeActions[name] = DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(name, 
+                nvbufMemType, outdir);
 
-            LOG_INFO("New Capture Object ODE Action '" << name << "' created successfully");
+            LOG_INFO("New Capture Object ODE Action '" 
+                << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }

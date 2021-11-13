@@ -425,10 +425,10 @@ THE SOFTWARE.
 /**
  * NVIDIA Buffer Memory Types
  */
-#define DSL_NVBUF_MEM_DEFAULT                                       0
-#define DSL_NVBUF_MEM_PINNED                                        1
-#define DSL_NVBUF_MEM_DEVICE                                        2
-#define DSL_NVBUF_MEM_UNIFIED                                       3
+#define DSL_NVBUF_MEM_TYPE_DEFAULT                                  0
+#define DSL_NVBUF_MEM_TYPE_PINNED                                   1
+#define DSL_NVBUF_MEM_TYPE_DEVICE                                   2
+#define DSL_NVBUF_MEM_TYPE_UNIFIED                                  3
 
 #define DSL_SOURCE_CODEC_PARSER_H264                                0
 #define DSL_SOURCE_CODEC_PARSER_H265                                1
@@ -522,6 +522,7 @@ THE SOFTWARE.
 #define DSL_DEFAULT_SOURCE_IN_USE_MAX                               8
 #define DSL_DEFAULT_SINK_IN_USE_MAX                                 8
 
+#define DSL_DEFAULT_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE             DSL_NVBUF_MEM_TYPE_DEVICE
 #define DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT                         40000
 #define DSL_DEFAULT_STREAMMUX_WIDTH                                 1920
 #define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
@@ -1149,22 +1150,24 @@ uint dsl_display_type_list_size();
 
 /**
  * @brief Creates a uniquely named Capture Frame ODE Action
- * @param[in] name unique name for the Capture Frame ODE Action 
+ * @param[in] name unique name for the Capture Frame ODE Action
+ * @param[in] nvbuf_mem_type one of the DSL_NVBUF_MEM_TYPE constant values 
  * @param[in] outdir absolute or relative path to image capture directory 
  * @param[in] annotate if true, bounding boxes and labes will be added to the image.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, 
-    const wchar_t* outdir, boolean annotate);
+    uint nvbuf_mem_type, const wchar_t* outdir, boolean annotate);
 
 /**
  * @brief Creates a uniquely named Capture Object ODE Action
  * @param[in] name unique name for the Capture Object ODE Action 
+ * @param[in] nvbuf_mem_type one of the DSL_NVBUF_MEM_TYPE constant values 
  * @param[in] outdir absolute or relative path to image capture directory 
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name, 
-    const wchar_t* outdir);
+    uint nvbuf_mem_type, const wchar_t* outdir);
 
 /**
  * @brief Adds a callback to be notified on Image Capture complete.

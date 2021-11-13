@@ -172,10 +172,6 @@ namespace DSL
             numFilled = 1;
             batchSize = 1;
 
-            // Get the Device properties
-            cudaDeviceProp deviceProp;
-            cudaGetDeviceProperties(&deviceProp, gpuId);
-
             // copy the single indexed surface to the new surfaceList of one
             surfaceList = &(((NvBufSurface*)mapInfo.data)->surfaceList[index]);
             

@@ -34,7 +34,7 @@ SCENARIO( "All DisplayTypes can be displayed by and eODE Action", "[display-type
     {
         std::wstring sourceName1(L"uri-source");
         std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
-        uint cudadecMemType(DSL_NVBUF_MEM_DEVICE);
+        uint cudadecMemType(DSL_NVBUF_MEM_TYPE_DEVICE);
         uint intrDecode(false);
         uint dropFrameInterval(0);
 

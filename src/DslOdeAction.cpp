@@ -162,9 +162,10 @@ namespace DSL
     uint64_t CaptureOdeAction::s_captureId = 0;
 
     CaptureOdeAction::CaptureOdeAction(const char* name, 
-        uint captureType, const char* outdir, bool annotate)
+        uint captureType, uint nvbufMemtype, const char* outdir, bool annotate)
         : OdeAction(name)
         , m_captureType(captureType)
+        , m_nvbufMemType((NvBufSurfaceMemType)nvbufMemtype)
         , m_outdir(outdir)
         , m_annotate(annotate)
         , m_captureCompleteTimerId(0)
@@ -363,10 +364,6 @@ namespace DSL
             return;
         }
 
-        NvBufSurfaceMemType memType = (dsl_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-            ? NVBUF_MEM_CUDA_DEVICE
-            : NVBUF_MEM_CUDA_UNIFIED;
-
         // surface index is derived from the batch_id for the frame that triggered the event
         int surfaceIndex = pFrameMeta->batch_id;
         
@@ -380,7 +377,7 @@ namespace DSL
         // Transforming only one frame in the batch, so create a copy of the single 
         // surface ... becoming our new source surface. This creates a new mono (non-batched) 
         // surface copied from the "batched frames" using the batch id as the index
-        DslMonoSurface srcSurface(mapInfo, pFrameMeta->batch_id, memType);
+        DslMonoSurface srcSurface(mapInfo, pFrameMeta->batch_id, m_nvbufMemType);
 
         // capturing full frame or object only?
         if (m_captureType == DSL_CAPTURE_TYPE_FRAME)
@@ -399,7 +396,7 @@ namespace DSL
         // New "create params" for our destination surface. we only need one surface so set 
         // memory allocation (for the array of surfaces) size to 0
         DslSurfaceCreateParams surfaceCreateParams(srcSurface.gpuId, 
-            width, height, 0, memType);
+            width, height, 0, m_nvbufMemType);
         
         // New Destination surface with a batch size of 1 for transforming the single surface 
         DslBufferSurface dstSurface(1, surfaceCreateParams);
@@ -438,7 +435,7 @@ namespace DSL
             return;
         }
 
-        if (memType != NVBUF_MEM_CUDA_UNIFIED)
+        if (m_nvbufMemType != NVBUF_MEM_CUDA_UNIFIED)
         {
             // Sync the surface for CPU access
             if (!dstSurface.SyncForCpu())
