@@ -31,7 +31,7 @@ THE SOFTWARE.
 
 static const std::wstring source_name(L"uri-source");
 static const std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
-static const uint cudadec_mem_type(DSL_NVBUF_MEM_DEVICE);
+static const uint cudadec_mem_type(DSL_NVBUF_MEM_TYPE_DEVICE);
 static const uint intr_decode(false);
 static const uint drop_frame_interval(0);
 
@@ -325,7 +325,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers shari
             NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_ONE) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_action_capture_object_new(captureActionName.c_str(), 
-            outdir.c_str()) == DSL_RESULT_SUCCESS );
+            DSL_NVBUF_MEM_TYPE_DEVICE, outdir.c_str()) == DSL_RESULT_SUCCESS );
         
         // Add the same capture Action to both ODE Triggers
         REQUIRE( dsl_ode_trigger_action_add(first_vehicle_occurrence_name.c_str(), 

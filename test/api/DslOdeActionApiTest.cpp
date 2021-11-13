@@ -376,7 +376,8 @@ SCENARIO( "A new Frame Capture ODE Action can be created and deleted", "[ode-act
 
         WHEN( "A new Frame Capture Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), outdir.c_str(), annotate) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), 
+                DSL_NVBUF_MEM_TYPE_DEVICE, outdir.c_str(), annotate) == DSL_RESULT_SUCCESS );
             
             THEN( "The Frame Capture Action can be deleted" ) 
             {
@@ -386,11 +387,12 @@ SCENARIO( "A new Frame Capture ODE Action can be created and deleted", "[ode-act
         }
         WHEN( "A new Frame Capture Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), outdir.c_str(), annotate) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), 
+                DSL_NVBUF_MEM_TYPE_DEVICE, outdir.c_str(), annotate) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Frame Capture Action of the same names fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), 
+                REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), DSL_NVBUF_MEM_TYPE_DEVICE, 
                     outdir.c_str(), annotate) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
@@ -402,7 +404,7 @@ SCENARIO( "A new Frame Capture ODE Action can be created and deleted", "[ode-act
             
             THEN( "A new Frame Capture Action fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), 
+                REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), DSL_NVBUF_MEM_TYPE_DEVICE,
                     invalidOutDir.c_str(), annotate) == DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
@@ -420,7 +422,7 @@ SCENARIO( "A new Object Capture ODE Action can be created and deleted", "[ode-ac
         WHEN( "A new Object Capture Action is created" ) 
         {
             REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), 
-                outdir.c_str()) == DSL_RESULT_SUCCESS );
+                DSL_NVBUF_MEM_TYPE_DEVICE, outdir.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The Object Capture Action can be deleted" ) 
             {
@@ -431,13 +433,24 @@ SCENARIO( "A new Object Capture ODE Action can be created and deleted", "[ode-ac
         WHEN( "A new Object Capture Action is created" ) 
         {
             REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), 
-                outdir.c_str()) == DSL_RESULT_SUCCESS );
+                DSL_NVBUF_MEM_TYPE_DEVICE, outdir.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Object Capture Action of the same names fails to create" ) 
             {
                 REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), 
-                    outdir.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                    DSL_NVBUF_MEM_TYPE_DEVICE, outdir.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+        WHEN( "An invalid buffer memory type is specified" ) 
+        {
+            
+            THEN( "A new Object Capture Action fails to create" ) 
+            {
+                REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), 
+                    DSL_NVBUF_MEM_TYPE_UNIFIED+1, outdir.c_str()) == DSL_RESULT_ODE_ACTION_PARAMETER_INVALID );
+                REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
@@ -448,7 +461,7 @@ SCENARIO( "A new Object Capture ODE Action can be created and deleted", "[ode-ac
             THEN( "A new Object Capture Action fails to create" ) 
             {
                 REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), 
-                    invalidOutDir.c_str()) == DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND );
+                    DSL_NVBUF_MEM_TYPE_DEVICE, invalidOutDir.c_str()) == DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND );
                 REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
@@ -468,7 +481,7 @@ SCENARIO( "A Capture Complete Listener can be added and removed", "[ode-action-a
         std::wstring outdir(L"./");
         
         REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), 
-            outdir.c_str()) == DSL_RESULT_SUCCESS );
+            DSL_NVBUF_MEM_TYPE_DEVICE, outdir.c_str()) == DSL_RESULT_SUCCESS );
 
         WHEN( "A capture-complete-listner is added" )
         {
@@ -506,7 +519,7 @@ SCENARIO( "A Player can be added and removed from a Capture Action", "[ode-actio
         std::wstring file_path(L"./test/streams/first-person-occurrence-438.jpeg");
         
         REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), 
-            outdir.c_str()) == DSL_RESULT_SUCCESS );
+            DSL_NVBUF_MEM_TYPE_DEVICE, outdir.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_player_render_image_new(player_name.c_str(),file_path.c_str(), 
             DSL_RENDER_TYPE_OVERLAY, 10, 10, 75, 0) == DSL_RESULT_SUCCESS );
@@ -549,7 +562,7 @@ SCENARIO( "A Mailer can be added and removed from a Capture Action", "[ode-actio
         std::wstring subject(L"Subject line");
         
         REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), 
-            outdir.c_str()) == DSL_RESULT_SUCCESS );
+            DSL_NVBUF_MEM_TYPE_DEVICE, outdir.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_mailer_new(mailer_name.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -1757,11 +1770,15 @@ SCENARIO( "The ODE Action API checks for NULL input parameters", "[ode-action-ap
                 REQUIRE( dsl_ode_action_custom_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_custom_new(action_name.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_capture_frame_new(NULL, NULL, true) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), NULL, true) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_capture_frame_new(NULL, DSL_NVBUF_MEM_TYPE_DEVICE, NULL, true) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), DSL_NVBUF_MEM_TYPE_DEVICE, NULL, true) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_capture_object_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_capture_object_new(NULL, DSL_NVBUF_MEM_TYPE_DEVICE, NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), DSL_NVBUF_MEM_TYPE_DEVICE, NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_customize_label_new(NULL,
                     NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );

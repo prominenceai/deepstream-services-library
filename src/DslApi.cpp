@@ -396,7 +396,7 @@ DslReturnType dsl_ode_action_custom_new(const wchar_t* name,
 }
 
 DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, 
-    const wchar_t* outdir, boolean annotate)
+    uint nvbuf_mem_type, const wchar_t* outdir, boolean annotate)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(outdir);
@@ -406,10 +406,12 @@ DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name,
     std::wstring wstrOutdir(outdir);
     std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
 
-    return DSL::Services::GetServices()->OdeActionCaptureFrameNew(cstrName.c_str(), cstrOutdir.c_str(), annotate);
+    return DSL::Services::GetServices()->OdeActionCaptureFrameNew(cstrName.c_str(), 
+        nvbuf_mem_type, cstrOutdir.c_str(), annotate);
 }
 
-DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name, const wchar_t* outdir)
+DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name,
+    uint nvbuf_mem_type, const wchar_t* outdir)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(outdir);
@@ -419,7 +421,8 @@ DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name, const wchar
     std::wstring wstrOutdir(outdir);
     std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
 
-    return DSL::Services::GetServices()->OdeActionCaptureObjectNew(cstrName.c_str(), cstrOutdir.c_str());
+    return DSL::Services::GetServices()->OdeActionCaptureObjectNew(cstrName.c_str(), 
+        nvbuf_mem_type, cstrOutdir.c_str());
 }
 
 DslReturnType dsl_ode_action_capture_complete_listener_add(const wchar_t* name, 

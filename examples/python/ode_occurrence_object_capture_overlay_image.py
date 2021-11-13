@@ -206,7 +206,8 @@ def main(args):
             break
 
         # Create a new Capture Action to capture the object to jpeg image, and save to file. 
-        retval = dsl_ode_action_capture_object_new('person-capture-action', outdir="./")
+        retval = dsl_ode_action_capture_object_new('person-capture-action', 
+            DSL_NVBUF_MEM_TYPE_DEVICE, outdir="./")
         if retval != DSL_RETURN_SUCCESS:
             break
         

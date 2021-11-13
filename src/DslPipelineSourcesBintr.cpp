@@ -32,13 +32,8 @@ namespace DSL
 {
     PipelineSourcesBintr::PipelineSourcesBintr(const char* name)
         : Bintr(name)
-        , m_batchTimeout(0)
-        , m_streamMuxWidth(0)
-        , m_streamMuxHeight(0)
         , m_isPaddingEnabled(false)
         , m_areSourcesLive(false)
-        , m_nvbufMemType(DSL_NVBUF_MEM_DEFAULT)
-        , m_numSurfacesPerFrame(DSL_DEFAULT_STREAMMUX_MAX_NUM_SERFACES_PER_FRAME)
     {
         LOG_FUNC();
 
@@ -46,10 +41,11 @@ namespace DSL
   
         // Single Stream Muxer element for all Sources 
         m_pStreamMux = DSL_ELEMENT_NEW(NVDS_ELEM_STREAM_MUX, "stream_muxer");
-        
+
+        // Setup all default properties
+        SetStreamMuxNvbufMemType(DSL_DEFAULT_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE);
         SetStreamMuxDimensions(DSL_DEFAULT_STREAMMUX_WIDTH, DSL_DEFAULT_STREAMMUX_HEIGHT);
-		
-        m_pStreamMux->SetAttribute("num-surfaces-per-frame", m_numSurfacesPerFrame);
+        SetStreamMuxNumSurfacesPerFrame(DSL_DEFAULT_STREAMMUX_MAX_NUM_SERFACES_PER_FRAME);
 
         AddChild(m_pStreamMux);
 
