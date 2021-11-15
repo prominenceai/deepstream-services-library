@@ -1151,23 +1151,21 @@ uint dsl_display_type_list_size();
 /**
  * @brief Creates a uniquely named Capture Frame ODE Action
  * @param[in] name unique name for the Capture Frame ODE Action
- * @param[in] nvbuf_mem_type one of the DSL_NVBUF_MEM_TYPE constant values 
  * @param[in] outdir absolute or relative path to image capture directory 
  * @param[in] annotate if true, bounding boxes and labes will be added to the image.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, 
-    uint nvbuf_mem_type, const wchar_t* outdir, boolean annotate);
+    const wchar_t* outdir, boolean annotate);
 
 /**
  * @brief Creates a uniquely named Capture Object ODE Action
  * @param[in] name unique name for the Capture Object ODE Action 
- * @param[in] nvbuf_mem_type one of the DSL_NVBUF_MEM_TYPE constant values 
  * @param[in] outdir absolute or relative path to image capture directory 
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name, 
-    uint nvbuf_mem_type, const wchar_t* outdir);
+    const wchar_t* outdir);
 
 /**
  * @brief Adds a callback to be notified on Image Capture complete.

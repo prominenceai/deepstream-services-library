@@ -61,12 +61,10 @@ gpu_type = dsl_gpu_type_get(0)
 
 # Platform conditional NVIDIA buffer memory type and filespecs for the Primary GIE and IOU Trcaker
 if gpu_type == DSL_GPU_TYPE_INTEGRATED:
-    MEM_TYPE = DSL_NVBUF_MEM_TYPE_DEFAULT
     primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
     primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
     tracker_config_file = '../../test/configs/iou_config.txt'
 else:
-    MEM_TYPE = DSL_NVBUF_MEM_TYPE_UNIFIED
     primary_infer_config_file = '/opt/nvidia/deepstream/deepstream-6.0/samples/configs/deepstream-app/config_infer_primary.txt'
     primary_model_engine_file = '/opt/nvidia/deepstream/deepstream-6.0/samples/models/Primary_Detector/resnet10.caffemodel'
     tracker_config_file = '/opt/nvidia/deepstream/deepstream-6.0/samples/configs/deepstream-app/iou_config.txt'
@@ -270,7 +268,6 @@ def main(args):
 
         # Create a new Capture Action to capture the Frame to jpeg image, and save to file. 
         retval = dsl_ode_action_capture_frame_new('person-capture-action',
-            nvbuf_mem_type = MEM_TYPE,
             outdir = "./",
             annotate = False)
         if retval != DSL_RETURN_SUCCESS:
@@ -318,7 +315,7 @@ def main(args):
         retval = dsl_source_uri_new('uri-source',
             uri = uri_file,
             is_live = False,
-            cudadec_mem_type = MEM_TYPE,
+            cudadec_mem_type = DSL_NVBUF_MEM_TYPE_DEFAULT,
             intra_decode = False,
             drop_frame_interval = 0)
         if retval != DSL_RETURN_SUCCESS:
@@ -326,7 +323,7 @@ def main(args):
 
         # New Primary GIE using the filespecs above with interval = 0
         retval = dsl_infer_gie_primary_new('primary-gie', 
-            primary_infer_config_file, primary_model_engine_file, 1)
+            primary_infer_config_file, None, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -361,10 +358,6 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # IMPORT need to set the NVIDIA buffer memory type for the Streammuxer
-        retval = dsl_pipeline_streammux_nvbuf_mem_type_set('pipeline', MEM_TYPE)
-        if retval != DSL_RETURN_SUCCESS:
-            break
         # Set the XWindow into full-screen mode for a kiosk look
         retval = dsl_pipeline_xwindow_fullscreen_enabled_set('pipeline', True)
         if retval != DSL_RETURN_SUCCESS:
