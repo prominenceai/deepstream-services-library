@@ -90,18 +90,18 @@ namespace DSL
 
     // ---------------------------------------------------------------------------------------------------------------
     /**
-     * @struct DslMapInfo
+     * @struct DslMappedBuffer
      * @brief Info map to access the buffer of batched surfaces
      */
-    struct DslMapInfo : public GstMapInfo
+    struct DslMappedBuffer : public GstMapInfo
     {
     public:
     
         /**
-         * @brief ctor for the DslMapInfo structure
+         * @brief ctor for the DslMappedBuffer structure
          * @param pBuffer buffer to map
          */
-        DslMapInfo(GstBuffer* pBuffer)
+        DslMappedBuffer(GstBuffer* pBuffer)
             : GstMapInfo GST_MAP_INFO_INIT
             , m_pBuffer(NULL)
         {
@@ -114,12 +114,14 @@ namespace DSL
             }
             // set only when successful
             m_pBuffer = pBuffer;
+
+            pSurface = (NvBufSurface*)data;
         }
 
         /**
-         * @brief dtor for the DslMapInfo structure
+         * @brief dtor for the DslMappedBuffer structure
          */
-        ~DslMapInfo()
+        ~DslMappedBuffer()
         {
             LOG_FUNC();
             
@@ -129,6 +131,31 @@ namespace DSL
                 gst_buffer_unmap(m_pBuffer, this);
             }
         }
+
+        /**
+         * @brief Gets the width for a specifc surface in the list
+         */
+        uint32_t GetWidth(uint32_t index)
+        {
+
+            return pSurface->surfaceList[index].width;
+        }
+
+        /**
+         * @brief Gets the height for a specifc surface in the list
+         */
+        uint32_t GetHeight(uint32_t index)
+        {
+
+            return pSurface->surfaceList[index].height;
+        }
+
+        /**
+         * @brief accessor for the mapped buffer's surface data
+         */
+        NvBufSurface* pSurface;
+
+
         
     private:
 
@@ -153,7 +180,7 @@ namespace DSL
          * @param mapInfo mapped buffer info as source surface buffer
          * @param index index into the batched surface list
          */
-        DslMonoSurface(DslMapInfo& mapInfo, int index, NvBufSurfaceMemType memType)
+        DslMonoSurface(NvBufSurface* pBatchedSurface, int index)
             : NvBufSurface{0}
             , width(0)
             , height(0)
@@ -163,17 +190,18 @@ namespace DSL
             // TODO update to support gpuId > 0
             
             // copy the shared surface properties
-            (NvBufSurface)*this = *(NvBufSurface*)mapInfo.data;
+            (NvBufSurface)*this = *pBatchedSurface;
             
             // NVIDIA buffer memory 
-            memType = memType;
+//            memType = mapInfo.memType;
 
             // set the buffer surface as a mono surface
             numFilled = 1;
             batchSize = 1;
 
             // copy the single indexed surface to the new surfaceList of one
-            surfaceList = &(((NvBufSurface*)mapInfo.data)->surfaceList[index]);
+//            surfaceList = &(((NvBufSurface*)mapInfo.data)->surfaceList[index]);
+            surfaceList = &(pBatchedSurface->surfaceList[index]);
             
             // new width and height properties for the mono surface, since there's only one.
             width = surfaceList[0].width;
@@ -403,15 +431,8 @@ namespace DSL
          */
         bool TransformMonoSurface(DslMonoSurface& srcSurface, uint32_t index, DslTransformParams& transformParams)
         {
-            LOG_FUNC();
-
-            NvBufSurfTransform_Error error = NvBufSurfTransform(&srcSurface, &m_pBufSurface[index], &transformParams);
-            if (error != NvBufSurfTransformError_Success)
-            {
-                LOG_ERROR("NvBufSurfTransform failed with error '" << error << "'");
-                return false;
-            }
-            return true;
+            return (NvBufSurfTransform(&srcSurface, &m_pBufSurface[index], &transformParams)
+                == NvBufSurfTransformError_Success);
         }
         
         /**
@@ -420,11 +441,8 @@ namespace DSL
          */
         bool Map()
         {
-            LOG_FUNC();
-
             if (NvBufSurfaceMap(m_pBufSurface, -1, -1, NVBUF_MAP_READ) != NvBufSurfTransformError_Success)
             {
-                LOG_ERROR("NvBufSurfaceMap failed");
                 return false;
             }
             
@@ -440,14 +458,16 @@ namespace DSL
          */
         bool SyncForCpu()
         {
+            return (NvBufSurfaceSyncForCpu(m_pBufSurface, -1, -1)
+                == NvBufSurfTransformError_Success);
+        }
+
+        bool Copy(DslBufferSurface& srcSurface)
+        {
             LOG_FUNC();
 
-            if (NvBufSurfaceSyncForCpu(m_pBufSurface, -1, -1) != NvBufSurfTransformError_Success)
-            {
-                LOG_ERROR("NvBufSurfaceSyncForCpu failed");
-                return false;
-            }
-            return true;
+            return (NvBufSurfaceCopy(&srcSurface, m_pBufSurface)
+                == NvBufSurfTransformError_Success);
         }
         
         

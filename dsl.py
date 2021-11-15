@@ -380,21 +380,21 @@ def dsl_ode_action_custom_new(name, client_handler, client_data):
 ##
 ## dsl_ode_action_capture_frame_new()
 ##
-_dsl.dsl_ode_action_capture_frame_new.argtypes = [c_wchar_p, c_uint, c_wchar_p, c_bool]
+_dsl.dsl_ode_action_capture_frame_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
 _dsl.dsl_ode_action_capture_frame_new.restype = c_uint
-def dsl_ode_action_capture_frame_new(name, nvbuf_mem_type, outdir, annotate):
+def dsl_ode_action_capture_frame_new(name, outdir, annotate):
     global _dsl
-    result =_dsl.dsl_ode_action_capture_frame_new(name, nvbuf_mem_type, outdir, annotate)
+    result =_dsl.dsl_ode_action_capture_frame_new(name, outdir, annotate)
     return int(result)
 
 ##
 ## dsl_ode_action_capture_object_new()
 ##
-_dsl.dsl_ode_action_capture_object_new.argtypes = [c_wchar_p, c_uint, c_wchar_p]
+_dsl.dsl_ode_action_capture_object_new.argtypes = [c_wchar_p, c_wchar_p]
 _dsl.dsl_ode_action_capture_object_new.restype = c_uint
-def dsl_ode_action_capture_object_new(name, nvbuf_mem_type, outdir):
+def dsl_ode_action_capture_object_new(name, outdir):
     global _dsl
-    result =_dsl.dsl_ode_action_capture_object_new(name, nvbuf_mem_type, outdir)
+    result =_dsl.dsl_ode_action_capture_object_new(name, outdir)
     return int(result)
 
 ##

@@ -325,7 +325,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers shari
             NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_ONE) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_action_capture_object_new(captureActionName.c_str(), 
-            DSL_NVBUF_MEM_TYPE_DEFAULT, outdir.c_str()) == DSL_RESULT_SUCCESS );
+            outdir.c_str()) == DSL_RESULT_SUCCESS );
         
         // Add the same capture Action to both ODE Triggers
         REQUIRE( dsl_ode_trigger_action_add(first_vehicle_occurrence_name.c_str(), 

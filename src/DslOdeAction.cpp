@@ -162,10 +162,9 @@ namespace DSL
     uint64_t CaptureOdeAction::s_captureId = 0;
 
     CaptureOdeAction::CaptureOdeAction(const char* name, 
-        uint captureType, uint nvbufMemtype, const char* outdir, bool annotate)
+        uint captureType, const char* outdir, bool annotate)
         : OdeAction(name)
         , m_captureType(captureType)
-        , m_nvbufMemType((NvBufSurfaceMemType)nvbufMemtype)
         , m_outdir(outdir)
         , m_annotate(annotate)
         , m_captureCompleteTimerId(0)
@@ -364,26 +363,28 @@ namespace DSL
             return;
         }
 
-        // surface index is derived from the batch_id for the frame that triggered the event
-        int surfaceIndex = pFrameMeta->batch_id;
-        
+        // Map the current buffer
+        std::unique_ptr<DslMappedBuffer> pMappedBuffer = 
+            std::unique_ptr<DslMappedBuffer>(new DslMappedBuffer(pBuffer));
+
+        NvBufSurfaceMemType transformMemType = pMappedBuffer->pSurface->memType;
+
+        LOG_INFO("Creating new mono-surface with memory type " << transformMemType);
+
+        // Transforming only one frame in the batch, so create a copy of the single 
+        // surface ... becoming our new source surface. This creates a new mono (non-batched) 
+        // surface copied from the "batched frames" using the batch id as the index
+        DslMonoSurface monoSurface(pMappedBuffer->pSurface, pFrameMeta->batch_id);
+
         // Coordinates and dimensions for our destination surface for RGBA to 
         // BGR conversion required for JPEG
         uint32_t left(0), top(0), width(0), height(0);
 
-        // MapInfo for the current buffer
-        DslMapInfo mapInfo(pBuffer);
-        
-        // Transforming only one frame in the batch, so create a copy of the single 
-        // surface ... becoming our new source surface. This creates a new mono (non-batched) 
-        // surface copied from the "batched frames" using the batch id as the index
-        DslMonoSurface srcSurface(mapInfo, pFrameMeta->batch_id, m_nvbufMemType);
-
         // capturing full frame or object only?
         if (m_captureType == DSL_CAPTURE_TYPE_FRAME)
         {
-            width = srcSurface.width;
-            height = srcSurface.height;
+            width = pMappedBuffer->GetWidth(pFrameMeta->batch_id);
+            height = pMappedBuffer->GetHeight(pFrameMeta->batch_id);
         }
         else
         {
@@ -395,8 +396,8 @@ namespace DSL
 
         // New "create params" for our destination surface. we only need one surface so set 
         // memory allocation (for the array of surfaces) size to 0
-        DslSurfaceCreateParams surfaceCreateParams(srcSurface.gpuId, 
-            width, height, 0, m_nvbufMemType);
+        DslSurfaceCreateParams surfaceCreateParams(monoSurface.gpuId, 
+            width, height, 0, transformMemType);
         
         // New Destination surface with a batch size of 1 for transforming the single surface 
         DslBufferSurface dstSurface(1, surfaceCreateParams);
@@ -405,10 +406,10 @@ namespace DSL
         DslTransformParams transformParams(left, top, width, height);
         
         // New "Cuda stream" for the surface transform
-        DslCudaStream dslCudaStream(srcSurface.gpuId);
+        DslCudaStream dslCudaStream(monoSurface.gpuId);
         
         // New "Transform Session" config params using the new Cuda stream
-        DslSurfaceTransformSessionParams dslTransformSessionParams(srcSurface.gpuId, 
+        DslSurfaceTransformSessionParams dslTransformSessionParams(monoSurface.gpuId, 
             dslCudaStream);
         
         // Set the "Transform Params" for the current tranform session
@@ -421,7 +422,7 @@ namespace DSL
         
         // We can now transform our Mono Source surface to the first (and only) 
         // surface in the batched buffer.
-        if (!dstSurface.TransformMonoSurface(srcSurface, 0, transformParams))
+        if (!dstSurface.TransformMonoSurface(monoSurface, 0, transformParams))
         {
             LOG_ERROR("Destination surface failed to transform for Action '" 
                 << GetName() << "'");
@@ -435,7 +436,7 @@ namespace DSL
             return;
         }
 
-        if (m_nvbufMemType != NVBUF_MEM_CUDA_UNIFIED)
+        if (transformMemType != NVBUF_MEM_CUDA_UNIFIED)
         {
             // Sync the surface for CPU access
             if (!dstSurface.SyncForCpu())

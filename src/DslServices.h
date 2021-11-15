@@ -109,10 +109,10 @@ namespace DSL {
             dsl_ode_handle_occurrence_cb clientHandler, void* clientData);
             
         DslReturnType OdeActionCaptureFrameNew(const char* name, 
-            uint nvbufMemType, const char* outdir, boolean annotate);
+            const char* outdir, boolean annotate);
         
         DslReturnType OdeActionCaptureObjectNew(const char* name, 
-            uint nvbufMemType, const char* outdir);
+            const char* outdir);
 
         DslReturnType OdeActionCaptureCompleteListenerAdd(const char* name, 
             dsl_capture_complete_listener_cb listener, void* clientData);

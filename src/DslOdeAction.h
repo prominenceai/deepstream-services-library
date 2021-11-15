@@ -62,14 +62,14 @@ namespace DSL
     #define DSL_ODE_ACTION_CATPURE_PTR std::shared_ptr<CaptureOdeAction>
     
     #define DSL_ODE_ACTION_CAPTURE_FRAME_PTR std::shared_ptr<CaptureFrameOdeAction>
-    #define DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, nvbufMemtype, outdir, annotate) \
+    #define DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, outdir, annotate) \
         std::shared_ptr<CaptureFrameOdeAction>(new CaptureFrameOdeAction( \
-            name, nvbufMemtype, outdir, annotate))
+            name, outdir, annotate))
         
     #define DSL_ODE_ACTION_CAPTURE_OBJECT_PTR std::shared_ptr<CaptureObjectOdeAction>
-    #define DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(name, nvbufMemtype, outdir) \
+    #define DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(name, outdir) \
         std::shared_ptr<CaptureObjectOdeAction>(new CaptureObjectOdeAction( \
-            name, nvbufMemtype, outdir))
+            name, outdir))
 
     #define DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR std::shared_ptr<CustomizeLabelOdeAction>
     #define DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(name, contentTypes) \
@@ -390,11 +390,10 @@ namespace DSL
          * @brief ctor for the Capture ODE Action class
          * @param[in] name unique name for the ODE Action
          * @param[in] captureType DSL_CAPTURE_TYPE_OBJECT or DSL_CAPTURE_TYPE_FRAME.
-         * @param[in] nvbufMemType one of the DSL_NVBUF_MEM_TYPE constant values.
          * @param[in] outdir output directory to write captured image files.
          */
-        CaptureOdeAction(const char* name, uint captureType,
-            uint nvbufMemtype, const char* outdir, bool annotate);
+        CaptureOdeAction(const char* name, 
+            uint captureType, const char* outdir, bool annotate);
         
         /**
          * @brief dtor for the Capture ODE Action class
@@ -480,7 +479,7 @@ namespace DSL
         int CompleteCapture();
         
     protected:
-    
+
         /**
          * @brief static, unique capture id shared by all Capture actions
          */
@@ -491,11 +490,6 @@ namespace DSL
          */
         uint m_captureType;
 
-        /**
-         * The capture algorithm needs the current NVIDIA buffer memory type
-         */
-        NvBufSurfaceMemType m_nvbufMemType;
-        
         /**
          * @brief relative or absolute path to output directory
          */ 
@@ -559,13 +553,12 @@ namespace DSL
         /**
          * @brief ctor for the Capture Frame ODE Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] nvbufMemtype one of the DLS_NVBUF_MEM_<type>
          * @param[in] outdir output directory to write captured image files
          * @param[in] annotate adds bbox and label to one or all objects in the frame.
          * One object in the case of valid pObjectMeta on call to HandleOccurrence
          */
-        CaptureFrameOdeAction(const char* name, uint nvbufMemtype, const char* outdir, bool annotate)
-            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_FRAME, nvbufMemtype, outdir, annotate)
+        CaptureFrameOdeAction(const char* name, const char* outdir, bool annotate)
+            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_FRAME, outdir, annotate)
         {};
 
     };
@@ -581,11 +574,10 @@ namespace DSL
         /**
          * @brief ctor for the Capture Frame ODE Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] nvbufMemtype one of the DLS_NVBUF_MEM_<type>
          * @param[in] outdir output directory to write captured image files
          */
-        CaptureObjectOdeAction(const char* name, uint nvbufMemtype, const char* outdir)
-            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_OBJECT, nvbufMemtype, outdir, false)
+        CaptureObjectOdeAction(const char* name, const char* outdir)
+            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_OBJECT, outdir, false)
         {};
 
     };
