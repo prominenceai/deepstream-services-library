@@ -56,6 +56,7 @@ THE SOFTWARE.
 #define DSL_RESULT_COMPONENT_NOT_USED_BY_BRANCH                     0x00010007
 #define DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE                   0x00010008
 #define DSL_RESULT_COMPONENT_SET_GPUID_FAILED                       0x00010009
+#define DSL_RESULT_COMPONENT_SET_NVBUF_MEM_TYPE_FAILED              0x0001000A
 
 /**
  * Source API Return Values
@@ -4256,6 +4257,33 @@ DslReturnType dsl_component_gpuid_set(const wchar_t* name, uint gpuid);
  */
 DslReturnType dsl_component_gpuid_set_many(const wchar_t** names, uint gpuid);
 
+/**
+ * @brief Queries a Component for its current NVIDIA buffer memory type.
+ * @param[in] name name of the Component to query.
+ * @param[out] type one of the DSL_NVBUF_MEM constant values.
+ * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_COMPONENT_RESULT on failure. 
+ */
+DslReturnType dsl_component_nvbuf_mem_type_get(const wchar_t* name, 
+    uint* type);
+
+/**
+ * @brief Updates a Component with a new NVIDIA memory type to use.
+ * @param[in] name name of the Component to update.
+ * @param[in] type one of the DSL_NVBUF_MEM constant values.
+ * @return DSL_RESULT_SUCCESS on successful update, one of DSL_RESULT_COMPONENT_RESULT on failure. 
+ */
+DslReturnType dsl_component_nvbuf_mem_type_set(const wchar_t* name, 
+    uint type);
+
+/**
+ * @brief Updates a list of Components with a new NVIDIA memory type to use.
+ * @param[in] names a null terminated list of component names to update.
+ * @param[in] type one of the DSL_NVBUF_MEM constant values.
+ * @return DSL_RESULT_SUCCESS on successful update, one of DSL_RESULT_COMPONENT_RESULT on failure. 
+ */
+DslReturnType dsl_component_nvbuf_mem_type_set_many(const wchar_t** names, 
+    uint type);
+    
 /**
  * @brief creates a new, uniquely named Branch
  * @param[in] name unique name for the new Branch

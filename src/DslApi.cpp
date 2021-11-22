@@ -4618,7 +4618,46 @@ DslReturnType dsl_component_gpuid_set_many(const wchar_t** names, uint gpuid)
     {
         std::wstring wstrName(*name);
         std::string cstrName(wstrName.begin(), wstrName.end());
-        DslReturnType retval = DSL::Services::GetServices()->ComponentGpuIdSet(cstrName.c_str(), gpuid);
+        DslReturnType retval = DSL::Services::GetServices()->ComponentGpuIdSet(
+                cstrName.c_str(), gpuid);
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_component_nvbuf_mem_type_get(const wchar_t* name, uint* type)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->ComponentNvbufMemTypeGet(cstrName.c_str(), type);
+}
+
+DslReturnType dsl_component_nvbuf_mem_type_set(const wchar_t* name, uint type)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->ComponentNvbufMemTypeSet(cstrName.c_str(), type);
+}
+
+DslReturnType dsl_component_nvbuf_mem_type_set_many(const wchar_t** names, uint type)
+{
+    RETURN_IF_PARAM_IS_NULL(names);
+
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->ComponentNvbufMemTypeSet(
+            cstrName.c_str(), type);
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;

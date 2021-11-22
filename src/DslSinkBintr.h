@@ -398,6 +398,20 @@ namespace DSL
          */
         bool SetForceAspectRatio(bool force);
 
+        /**
+         * @brief Sets the GPU ID for all Elementrs - x86_64 builds only.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetGpuId(uint gpuId);
+
+        /**
+         * @brief Sets the NVIDIA buffer memory type - x86_64 builds only.
+         * @brief nvbufMemType new memory type to use, one of the 
+         * DSL_NVBUF_MEM_TYPE constant values.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetNvbufMemType(uint nvbufMemType);
+
     private:
 
         boolean m_qos;

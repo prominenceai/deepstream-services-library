@@ -62,35 +62,47 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
         std::wstring sourceName  = L"csi-source";
         std::wstring windowSinkName = L"window-sink";
         std::wstring tilerName = L"tiler";
+        std::wstring pgieName = L"pgie";
+        std::wstring osdName = L"osd";
+     
+        static const std::wstring infer_config_file(L"./test/configs/config_infer_primary_nano.txt");
+
         uint GPUID0(0);
         uint GPUID1(1);
         uint retGpuId(0);
 
+        uint retNvbufMem(99);
+
         REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_infer_gie_primary_new(pgieName.c_str(), infer_config_file.c_str(), NULL, 0) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osdName.c_str(), true, true) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 0, 0, 1280, 720) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_tiler_new(tilerName.c_str(), 1280, 720) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_component_gpuid_get(sourceName.c_str(), &retGpuId) == DSL_RESULT_SUCCESS );
-        REQUIRE( retGpuId == GPUID0);
-        REQUIRE( dsl_component_gpuid_get(windowSinkName.c_str(), &retGpuId) == DSL_RESULT_SUCCESS );
-        REQUIRE( retGpuId == GPUID0);
-        REQUIRE( dsl_component_gpuid_get(tilerName.c_str(), &retGpuId) == DSL_RESULT_SUCCESS );
-        REQUIRE( retGpuId == GPUID0);
+        REQUIRE( dsl_component_nvbuf_mem_type_get(sourceName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
+        REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
+        REQUIRE( dsl_component_nvbuf_mem_type_get(pgieName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
+        REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
+        REQUIRE( dsl_component_nvbuf_mem_type_get(windowSinkName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
+        REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
+        REQUIRE( dsl_component_nvbuf_mem_type_get(tilerName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
+        REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
 
         WHEN( "Several new components are called to Set their GPU ID" ) 
         {
+            uint newNvbufMemType(DSL_NVBUF_MEM_TYPE_UNIFIED);
 
             const wchar_t* components[] = {L"csi-source", L"tiler", L"window-sink", NULL};
-            REQUIRE( dsl_component_gpuid_set_many(components, GPUID1) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_component_nvbuf_mem_type_set_many(components, newNvbufMemType) == DSL_RESULT_SUCCESS );
 
             THEN( "All components return the correct GPU ID of get" ) 
             {
-                REQUIRE( dsl_component_gpuid_get(sourceName.c_str(), &retGpuId) == DSL_RESULT_SUCCESS );
-                REQUIRE( retGpuId == GPUID1 );
-                REQUIRE( dsl_component_gpuid_get(windowSinkName.c_str(), &retGpuId) == DSL_RESULT_SUCCESS );
-                REQUIRE( retGpuId == GPUID1 );
-                REQUIRE( dsl_component_gpuid_get(tilerName.c_str(), &retGpuId) == DSL_RESULT_SUCCESS );
-                REQUIRE( retGpuId == GPUID1 );
+                REQUIRE( dsl_component_nvbuf_mem_type_get(sourceName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
+                REQUIRE( retNvbufMem == newNvbufMemType );
+                REQUIRE( dsl_component_nvbuf_mem_type_get(windowSinkName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
+                REQUIRE( retNvbufMem == newNvbufMemType );
+                REQUIRE( dsl_component_nvbuf_mem_type_get(tilerName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
+                REQUIRE( retNvbufMem == newNvbufMemType );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
@@ -105,6 +117,7 @@ SCENARIO( "The Component API checks for NULL input parameters", "[component-api]
     {
         std::wstring componentName  = L"test-component";
         uint gpuId(0);
+        uint nvbufMemType(DSL_NVBUF_MEM_TYPE_DEFAULT);
         
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -116,6 +129,10 @@ SCENARIO( "The Component API checks for NULL input parameters", "[component-api]
                 REQUIRE( dsl_component_delete_many(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_component_gpuid_get(NULL, &gpuId) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_component_gpuid_set(NULL, gpuId) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_component_gpuid_set_many(NULL, gpuId) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_component_nvbuf_mem_type_get(NULL, &nvbufMemType) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_component_nvbuf_mem_type_set(NULL, nvbufMemType) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_component_nvbuf_mem_type_set_many(NULL, nvbufMemType) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
                 REQUIRE( dsl_component_list_size() == 0 );
             }
