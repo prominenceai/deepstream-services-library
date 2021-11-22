@@ -306,6 +306,14 @@ namespace DSL
          */
         void UnlinkAll();
 
+        /**
+         * @brief Sets the NVIDIA buffer memory type.
+         * @brief nvbufMemType new memory type to use, on of the 
+         * DSL_NVBUF_MEM_TYPE constant values.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetNvbufMemType(uint nvbufMemType);
+
     protected:
 
         /**

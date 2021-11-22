@@ -56,7 +56,7 @@ namespace DSL
             , m_isLinked(false)
             , m_batchSize(0)
             , m_gpuId(0)
-            , m_nvbufMemoryType(0)
+            , m_nvbufMemType(0)
             , m_pGstStaticSinkPad(NULL)
             , m_pGstStaticSourcePad(NULL)
         { 
@@ -269,13 +269,45 @@ namespace DSL
         {
             LOG_FUNC();
             
-            if (IsInUse())
+            if (IsLinked())
             {
                 LOG_ERROR("Unable to set GPU ID for Bintr '" << GetName() 
-                    << "' as it's currently in use");
+                    << "' as it's currently linked");
                 return false;
             }
             m_gpuId = gpuId;
+            return true;
+        }
+
+        /**
+         * @brief Gets the current NVIDIA buffer memory type used by this Bintr
+         * @return one of the DSL_NVBUF_MEM_TYPE constant values.
+         */
+        uint GetNvbufMemType()
+        {
+            LOG_FUNC();
+
+            LOG_DEBUG("Returning NVIDIA buffer memory type of " << m_nvbufMemType 
+                <<"' for Bintr '" << GetName() << "'");
+            return m_nvbufMemType;
+        }
+
+        /**
+         * @brief Bintr type specific implementation to set the memory type.
+         * @brief nvbufMemType new memory type to use
+         * @return true if successfully set, false otherwise.
+         */
+        virtual bool SetNvbufMemType(uint nvbufMemType)
+        {
+            LOG_FUNC();
+            
+            if (IsInUse())
+            {
+                LOG_ERROR("Unable to set NVIDIA buffer memory type for Bintr '" << GetName() 
+                    << "' as it's currently linked");
+                return false;
+            }
+            m_nvbufMemType = nvbufMemType;
             return true;
         }
 
@@ -305,7 +337,7 @@ namespace DSL
         /**
          * @brief current Memory Type used by this Bintr
          */
-        guint m_nvbufMemoryType;
+        guint m_nvbufMemType;
 
         /**
          * @brief Static Pad object for the Sink Elementr within this Bintr

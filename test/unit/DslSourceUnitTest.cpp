@@ -49,7 +49,7 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[CsiSourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
-                REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
+                REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
@@ -288,7 +288,7 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[UriSourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
-                REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
+                REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
@@ -621,7 +621,7 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[RtspSourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
-                REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
+                REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
@@ -959,7 +959,7 @@ SCENARIO( "A new FileSourceBintr is created correctly",  "[FileSourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
-                REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
+                REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
@@ -1039,7 +1039,7 @@ SCENARIO( "A new ImageSourceBintr is created correctly",  "[ImageSourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
-                REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
+                REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );

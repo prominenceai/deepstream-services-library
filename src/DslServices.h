@@ -819,17 +819,21 @@ namespace DSL {
         boolean SinkNumInUseMaxSet(uint max);
 
         // TODO        
-        // boolean ComponentIsInUse(const char* component);
+        // boolean ComponentIsInUse(const char* name);
         
-        DslReturnType ComponentDelete(const char* component);
+        DslReturnType ComponentDelete(const char* name);
 
         DslReturnType ComponentDeleteAll();
         
         uint ComponentListSize();
 
-        DslReturnType ComponentGpuIdGet(const char* component, uint* gpuid);
+        DslReturnType ComponentGpuIdGet(const char* name, uint* gpuid);
         
-        DslReturnType ComponentGpuIdSet(const char* component, uint gpuid);
+        DslReturnType ComponentGpuIdSet(const char* name, uint gpuid);
+        
+        DslReturnType ComponentNvbufMemTypeGet(const char* name, uint* type);
+        
+        DslReturnType ComponentNvbufMemTypeSet(const char* name, uint type);
         
         DslReturnType BranchNew(const char* name);
         

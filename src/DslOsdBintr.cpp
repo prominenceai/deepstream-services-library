@@ -50,7 +50,7 @@ namespace DSL
         m_pOsd = DSL_ELEMENT_NEW(NVDS_ELEM_OSD, "nvosd0");
 
         m_pVidPreConv->SetAttribute("gpu-id", m_gpuId);
-        m_pVidPreConv->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
+        m_pVidPreConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
 
         m_pOsd->SetAttribute("gpu-id", m_gpuId);
         m_pOsd->SetAttribute("display-text", m_textEnabled);
@@ -331,15 +331,14 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsInUse())
+        if (m_isLinked)
         {
             LOG_ERROR("Unable to set GPU ID for OsdBintr '" << GetName() 
-                << "' as it's currently in use");
+                << "' as it's currently linked");
             return false;
         }
 
         m_gpuId = gpuId;
-        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for OsdBintr '" << m_name << "'");
 
         m_pVidPreConv->SetAttribute("gpu-id", m_gpuId);
         m_pOsd->SetAttribute("gpu-id", m_gpuId);
@@ -347,4 +346,19 @@ namespace DSL
         return true;
     }
 
+    bool OsdBintr::SetNvbufMemType(uint nvbufMemType)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Unable to set NVIDIA buffer memory type for OsdBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_nvbufMemType = nvbufMemType;
+        m_pVidPreConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+
+        return true;
+    }
 }    

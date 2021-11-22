@@ -418,7 +418,7 @@ namespace DSL
             gst_caps_unref(pCaps);        
             
             m_pTransform->SetAttribute("gpu-id", m_gpuId);
-            m_pTransform->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
+            m_pTransform->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
             
             AddChild(m_pCapsFilter);
         
@@ -607,7 +607,55 @@ namespace DSL
         m_pEglGles->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
         return true;
     }
-    
+
+    bool WindowSinkBintr::SetGpuId(uint gpuId)
+    {
+        LOG_FUNC();
+        
+        // aarch_64
+        if (m_cudaDeviceProp.integrated)
+        {
+            LOG_ERROR("Unable to set GPU ID for WindowSinkBintr '" 
+                << GetName() << "' - property is not supported on aarch_64");
+            return false;
+        }
+        if (m_isLinked)
+        {
+            LOG_ERROR("Unable to set GPU ID for WindowSinkBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+
+        m_gpuId = gpuId;
+
+        m_pTransform->SetAttribute("gpu-id", m_gpuId);
+        
+        return true;
+    }
+
+    bool WindowSinkBintr::SetNvbufMemType(uint nvbufMemType)
+    {
+        LOG_FUNC();
+        
+        // aarch_64
+        if (m_cudaDeviceProp.integrated)
+        {
+            LOG_ERROR("Unable to set NVIDIA buffer memory type for WindowSinkBintr '" 
+                << GetName() << "' - property is not supported on aarch_64");
+            return false;
+        }
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Unable to set NVIDIA buffer memory type for WindowSinkBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_nvbufMemType = nvbufMemType;
+        m_pTransform->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+
+        return true;
+    }    
     //-------------------------------------------------------------------------
     
     EncodeSinkBintr::EncodeSinkBintr(const char* name,
