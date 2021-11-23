@@ -184,6 +184,7 @@
 * [dsl_infer_gie_secondary_new](/docs/api-gie.md#dsl_infer_gie_secondary_new)
 * [dsl_infer_tis_primary_new](/docs/api-gie.md#dsl_infer_tis_primary_new)
 * [dsl_infer_tis_secondary_new](/docs/api-gie.md#dsl_infer_tis_secondary_new)
+* [dsl_infer_unique_id_get](/docs/api-gie.md#dsl_infer_unique_id_get)
 * [dsl_infer_gie_model_engine_file_get](/docs/api-gie.md#dsl_infer_gie_model_engine_file_get)
 * [dsl_infer_gie_model_engine_file_set](/docs/api-gie.md#dsl_infer_gie_model_engine_file_set)
 * [dsl_infer_config_file_get](/docs/api-gie.md#dsl_infer_config_file_get)
@@ -478,6 +479,9 @@
 * [dsl_component_gpuid_get](/docs/api-component.md#dsl_component_gpuid_get)
 * [dsl_component_gpuid_set](/docs/api-component.md#dsl_component_gpuid_set)
 * [dsl_component_gpuid_set_many](/docs/api-component.md#dsl_component_gpuid_set_many)
+* [dsl_component_nvbuf_mem_type_get](/docs/api-component.md#dsl_component_nvbuf_mem_type_get)
+* [dsl_component_nvbuf_mem_type_set](/docs/api-component.md#dsl_component_nvbuf_mem_type_set)
+* [dsl_component_nvbuf_mem_type_set_many](/docs/api-component.md#dsl_component_nvbuf_mem_type_set_many)
 * [dsl_component_is_in_use](/docs/api-component.md#dsl_component_is_in_use)
 
 ### Mailer API:
