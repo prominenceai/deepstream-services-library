@@ -2383,6 +2383,17 @@ def dsl_infer_tis_secondary_new(name, infer_config_file, infer_on_tis, interval)
     return int(result)
 
 ##
+## dsl_infer_unique_id_get()
+##
+_dsl.dsl_infer_unique_id_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_infer_unique_id_get.restype = c_uint
+def dsl_infer_unique_id_get(name):
+    global _dsl
+    id = c_uint(0)
+    result = _dsl.dsl_gie_model_interval_get(name, DSL_UINT_P(id))
+    return int(result), id.value 
+
+##
 ## dsl_infer_primary_pph_add()
 ##
 _dsl.dsl_infer_primary_pph_add.argtypes = [c_wchar_p, c_wchar_p, c_uint]

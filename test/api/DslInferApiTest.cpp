@@ -404,38 +404,33 @@ SCENARIO( "A Secondary GIE can Set and Get its Infer Config and Model Engine Fil
     }
 }
 
-SCENARIO( "A Primary GIE can Get and Set its Interval",  "[infer-api]" )
+SCENARIO( "A Primary GIE returns its unique id correctly",  "[infer-api]" )
 {
     GIVEN( "A new Primary GIE in memory" ) 
     {
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
-        std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         uint interval(1);
-
-        REQUIRE( dsl_infer_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
-
-        uint retInterval(0);
-        REQUIRE( dsl_infer_interval_get(primaryGieName.c_str(), &retInterval) == DSL_RESULT_SUCCESS );
-        REQUIRE( retInterval == interval );
         
-        WHEN( "The Primary GIE's Interval is set" )
+        WHEN( "When a new The Primary GIE is created" )
         {
-            uint newInterval(5);
-            REQUIRE( dsl_infer_interval_set(primaryGieName.c_str(), newInterval) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_infer_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
+                NULL, interval) == DSL_RESULT_SUCCESS );
 
-            THEN( "The correct Interval is returned on get" )
+
+            THEN( "The correct unique id is returned" )
             {
-                REQUIRE( dsl_infer_interval_get(primaryGieName.c_str(), &retInterval) == DSL_RESULT_SUCCESS );
-                REQUIRE( retInterval == newInterval );
+                uint retId(0);
+                REQUIRE( dsl_infer_unique_id_get(primaryGieName.c_str(), &retId) == DSL_RESULT_SUCCESS );
+
+                // Id is derived from unique GIE Name
+                REQUIRE( retId == 1557520627 );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
 }
-
 
 SCENARIO( "The GIE API checks for NULL input parameters", "[infer-api]" )
 {
@@ -445,6 +440,7 @@ SCENARIO( "The GIE API checks for NULL input parameters", "[infer-api]" )
         std::wstring infer_config_file  = L"config-file";
         std::wstring model_engine_file  = L"model-engine-file";
         uint interval(0);
+        uint retId(0);
         
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -484,7 +480,9 @@ SCENARIO( "The GIE API checks for NULL input parameters", "[infer-api]" )
                 REQUIRE( dsl_gie_model_engine_file_set(gieName.c_str(), NULL) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );                
                 REQUIRE( dsl_infer_interval_get(NULL, &interval) == DSL_RESULT_INVALID_INPUT_PARAM );                
-                REQUIRE( dsl_infer_interval_set(NULL, interval) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_interval_set(NULL, interval) == DSL_RESULT_INVALID_INPUT_PARAM );    
+
+                REQUIRE( dsl_infer_unique_id_get(NULL, &retId) == DSL_RESULT_INVALID_INPUT_PARAM );                
 
                 REQUIRE( dsl_component_list_size() == 0 );
             }
