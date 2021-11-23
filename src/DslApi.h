@@ -3116,6 +3116,14 @@ DslReturnType dsl_infer_tis_secondary_new(const wchar_t* name, const wchar_t* in
     const wchar_t* infer_on_tis, uint interval);
 
 /**
+ * @brief Queries a GIE or TIS for its unique Id 
+ * @param[in] name unique name of the GIE or TIS to query.
+ * @param[out] id unique id for the named GIE or TIS.
+ * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_INFER_RESULT on failure. 
+ */
+DslReturnType dsl_infer_unique_id_get(const wchar_t* name, uint* id);
+
+/**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
  * A Primary GIE can have multiple Sink and Source pad-probe-handlers
  * @param[in] name unique name of the Primary GIE to update

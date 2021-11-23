@@ -3044,6 +3044,16 @@ DslReturnType dsl_infer_tis_secondary_new(const wchar_t* name, const wchar_t* in
         cstrInferOnTis.c_str(), interval);
 }
 
+DslReturnType dsl_infer_unique_id_get(const wchar_t* name, uint* id)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->InferUniqueIdGet(cstrName.c_str(), id);
+}
+
 DslReturnType dsl_infer_primary_pph_add(const wchar_t* name, 
     const wchar_t* handler, uint pad)
 {

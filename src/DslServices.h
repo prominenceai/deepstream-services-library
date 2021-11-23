@@ -568,6 +568,8 @@ namespace DSL {
         DslReturnType SecondaryTisNew(const char* name, const char* inferConfigFile,
             const char* inferOnGieName, uint interval);
 
+        DslReturnType InferUniqueIdGet(const char* name, uint* id);
+
         DslReturnType PrimaryInferPphAdd(const char* name, const char* handler, uint pad);
 
         DslReturnType PrimaryInferPphRemove(const char* name, const char* handler, uint pad);
