@@ -29,20 +29,20 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    DslReturnType Services::ComponentDelete(const char* component)
+    DslReturnType Services::ComponentDelete(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
-        if (m_components[component]->IsInUse())
+        if (m_components[name]->IsInUse())
         {
-            LOG_INFO("Component '" << component << "' is in use");
+            LOG_INFO("Component '" << name << "' is in use");
             return DSL_RESULT_COMPONENT_IN_USE;
         }
-        m_components.erase(component);
+        m_components.erase(name);
 
-        LOG_INFO("Component '" << component << "' deleted successfully");
+        LOG_INFO("Component '" << name << "' deleted successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -92,53 +92,116 @@ namespace DSL
         return m_components.size();
     }
 
-    DslReturnType Services::ComponentGpuIdGet(const char* component, uint* gpuid)
+    DslReturnType Services::ComponentGpuIdGet(const char* name, uint* gpuid)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         try
         {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             
-            if (m_components[component]->IsInUse())
-            {
-                LOG_INFO("Component '" << component << "' is in use");
-                return DSL_RESULT_COMPONENT_IN_USE;
-            }
-            *gpuid = m_components[component]->GetGpuId();
+            *gpuid = m_components[name]->GetGpuId();
 
-            LOG_INFO("Current GPU ID = " << *gpuid << " for component '" << component << "'");
+            LOG_INFO("Current GPU ID = " << *gpuid 
+                << " for component '" << name << "'");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Component '" << component << "' threw exception on Get GPU ID");
+            LOG_ERROR("Component '" << name 
+                << "' threw exception getting GPU Id");
             return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::ComponentGpuIdSet(const char* component, uint gpuid)
+    DslReturnType Services::ComponentGpuIdSet(const char* name, uint gpuid)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            
+            if (!m_components[name]->SetGpuId(gpuid))
+            {
+                LOG_INFO("Component '" << name 
+                    << "' faild to set GPU Id = " << gpuid);
+                return DSL_RESULT_COMPONENT_SET_GPUID_FAILED;
+            }
+
+            LOG_INFO("New GPU ID = " << gpuid 
+                << " for component '" << name << "'");
+
+            return DSL_RESULT_SUCCESS;
+            }
+        catch(...)
+        {
+            LOG_ERROR("Component '" << name 
+                << "' threw exception setting GPU Id");
+            return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
+        }
+}
+
+DslReturnType Services::ComponentNvbufMemTypeGet(const char* name, uint* type)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        if (m_components[component]->IsInUse())
+        try
         {
-            LOG_INFO("Component '" << component << "' is in use");
-            return DSL_RESULT_COMPONENT_IN_USE;
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            
+            *type = m_components[name]->GetNvbufMemType();
+
+            LOG_INFO("Current NVIDIA buffer memory type = " << *type 
+                << " for component '" << name << "'");
+
+            return DSL_RESULT_SUCCESS;
         }
-        if (!m_components[component]->SetGpuId(gpuid))
+        catch(...)
         {
-            LOG_INFO("Component '" << component << "' faild to set GPU ID = " << gpuid);
-            return DSL_RESULT_COMPONENT_SET_GPUID_FAILED;
+            LOG_ERROR("Component '" << name 
+                << "' threw exception getting NVIDIA buffer memory type");
+            return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
         }
-
-        LOG_INFO("New GPU ID = " << gpuid << " for component '" << component << "'");
-
-        return DSL_RESULT_SUCCESS;
     }
+    
+    DslReturnType Services::ComponentNvbufMemTypeSet(const char* name, uint type)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+
+            if (type > DSL_NVBUF_MEM_TYPE_UNIFIED)
+            {
+                LOG_ERROR("Invalid NVIDIA buffer memory type = " << type 
+                    << " for component '"  << name << "'");
+                return DSL_RESULT_COMPONENT_SET_NVBUF_MEM_TYPE_FAILED;
+            }
+            
+            if (!m_components[name]->SetNvbufMemType(type))
+            {
+                LOG_INFO("Component '" << name 
+                    << "' faild to set NVIDIA buffer memory type = " << type);
+                return DSL_RESULT_COMPONENT_SET_NVBUF_MEM_TYPE_FAILED;
+            }
+
+            LOG_INFO("NVIDIA buffer memorytype = " << type 
+                << " set for component '" << name << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Component '" << name 
+                << "' threw exception setting NVIDIA buffer memory type");
+            return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
+        }
+    }
 }

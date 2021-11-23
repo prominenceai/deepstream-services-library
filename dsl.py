@@ -2383,6 +2383,17 @@ def dsl_infer_tis_secondary_new(name, infer_config_file, infer_on_tis, interval)
     return int(result)
 
 ##
+## dsl_infer_unique_id_get()
+##
+_dsl.dsl_infer_unique_id_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_infer_unique_id_get.restype = c_uint
+def dsl_infer_unique_id_get(name):
+    global _dsl
+    id = c_uint(0)
+    result = _dsl.dsl_gie_model_interval_get(name, DSL_UINT_P(id))
+    return int(result), id.value 
+
+##
 ## dsl_infer_primary_pph_add()
 ##
 _dsl.dsl_infer_primary_pph_add.argtypes = [c_wchar_p, c_wchar_p, c_uint]
@@ -3550,6 +3561,39 @@ def dsl_component_gpuid_set_many(components, gpuid):
     arr = (c_wchar_p * len(components))()
     arr[:] = components
     result =_dsl.dsl_component_gpuid_set_many(arr, gpuid)
+    return int(result)
+
+##
+## dsl_component_nvbuf_mem_type_get()
+##
+_dsl.dsl_component_nvbuf_mem_type_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_component_nvbuf_mem_type_get.restype = c_uint
+def dsl_component_nvbuf_mem_type_get(name):
+    global _dsl
+    type = c_uint(0)
+    result = _dsl.dsl_component_nvbuf_mem_type_get(name, DSL_UINT_P(type))
+    return int(result), type.value
+
+##
+## dsl_component_nvbuf_mem_type_set()
+##
+_dsl.dsl_component_nvbuf_mem_type_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_component_nvbuf_mem_type_set.restype = c_uint
+def dsl_component_nvbuf_mem_type_set(name, type):
+    global _dsl
+    result =_dsl.dsl_component_nvbuf_mem_type_set(name, type)
+    return int(result)
+
+##
+## dsl_component_nvbuf_mem_type_set_many()
+##
+#_dsl.dsl_component_nvbuf_mem_type_set_many.argtypes = [Array]
+_dsl.dsl_component_nvbuf_mem_type_set_many.restype = c_uint
+def dsl_component_nvbuf_mem_type_set_many(components, type):
+    global _dsl
+    arr = (c_wchar_p * len(components))()
+    arr[:] = components
+    result =_dsl.dsl_component_nvbuf_mem_type_set_many(arr, type)
     return int(result)
 
 ##

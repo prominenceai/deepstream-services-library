@@ -233,7 +233,7 @@ namespace DSL
         gst_caps_unref(pCaps);        
         
         m_pVidConv2->SetAttribute("gpu-id", m_gpuId);
-        m_pVidConv2->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
+        m_pVidConv2->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
 
         AddChild(m_pSourceElement);
         AddChild(m_pCapsFilter);

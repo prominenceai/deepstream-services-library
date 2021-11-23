@@ -50,7 +50,7 @@ namespace DSL
         m_pTiler->SetAttribute("width", m_width);
         m_pTiler->SetAttribute("height", m_height);
         m_pTiler->SetAttribute("gpu-id", m_gpuId);
-        m_pTiler->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
+        m_pTiler->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
 
         AddChild(m_pQueue);
         AddChild(m_pTiler);
@@ -323,6 +323,22 @@ namespace DSL
 
         m_pTiler->SetAttribute("gpu-id", m_gpuId);
         
+        return true;
+    }
+
+    bool TilerBintr::SetNvbufMemType(uint nvbufMemType)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Unable to set NVIDIA buffer memory type for TilerBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_nvbufMemType = nvbufMemType;
+        m_pTiler->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+
         return true;
     }
 

@@ -312,7 +312,7 @@ namespace DSL
         m_pVidConv = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "primary-gie-conv");
 
         m_pVidConv->SetAttribute("gpu-id", m_gpuId);
-        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
+        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
         
         // update the InferEngine interval setting
         SetInterval(interval);
@@ -395,6 +395,22 @@ namespace DSL
         // remove 'this' PrimaryInfrBintr from the Parent Branch
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             RemovePrimaryInferBintr(shared_from_this());
+    }
+
+    bool PrimaryInferBintr::SetNvbufMemType(uint nvbufMemType)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Unable to set NVIDIA buffer memory type for PrimaryInferBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_nvbufMemType = nvbufMemType;
+        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+
+        return true;
     }
 
     // ***********************************************************************
