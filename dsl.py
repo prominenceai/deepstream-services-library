@@ -2390,7 +2390,7 @@ _dsl.dsl_infer_unique_id_get.restype = c_uint
 def dsl_infer_unique_id_get(name):
     global _dsl
     id = c_uint(0)
-    result = _dsl.dsl_gie_model_interval_get(name, DSL_UINT_P(id))
+    result = _dsl.dsl_infer_unique_id_get(name, DSL_UINT_P(id))
     return int(result), id.value 
 
 ##
