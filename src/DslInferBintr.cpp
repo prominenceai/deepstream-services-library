@@ -34,7 +34,7 @@ namespace DSL
         : Bintr(name)
         , m_inferType(inferType)
         , m_processMode(processMode)
-        , m_interval(0)
+        , m_interval(interval)
         , m_uniqueId(CreateUniqueIdFromName(name))
         , m_inferConfigFile(inferConfigFile)
         , m_modelEngineFile(modelEngineFile)
@@ -73,6 +73,9 @@ namespace DSL
         m_pInferEngine->SetAttribute("config-file-path", inferConfigFile);
         m_pInferEngine->SetAttribute("process-mode", m_processMode);
         m_pInferEngine->SetAttribute("unique-id", m_uniqueId);
+
+        // update the InferEngine interval setting
+        SetInterval(m_interval);
         
 //        g_object_set (m_pInferEngine->GetGstObject(),
 //            "raw-output-generated-callback", OnRawOutputGeneratedCB,
@@ -313,9 +316,6 @@ namespace DSL
 
         m_pVidConv->SetAttribute("gpu-id", m_gpuId);
         m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
-        
-        // update the InferEngine interval setting
-        SetInterval(interval);
 
         AddChild(m_pQueue);
         AddChild(m_pVidConv);
@@ -481,7 +481,6 @@ namespace DSL
         
         // update the InferEngine interval setting
         SetInferOnName(inferOn);
-        SetInterval(interval);
         
         // create the unique sink-name from the SGIE name
         std::string fakeSinkName = "secondary-infer-fake-sink-" + GetName();
@@ -492,7 +491,7 @@ namespace DSL
         m_pFakeSink->SetAttribute("enable-last-sample", false);
         
         // Note: the Elementrs created/owned by this SecondaryInferBintr are added as 
-        // children to the parent PipelineSInferBintr, and not to this Bintr's GST BIN
+        // children to the parent InferBintr, and not to this Bintr's GST BIN
         // In this way, all SecondaryInferBintrs Infer on the same buffer of data, regardless
         // of the depth of secondary Inference. Ghost Pads are not required for this bin
     }    
@@ -523,8 +522,11 @@ namespace DSL
                 << "' is already linked");
             return false;
         }
+
         if (!m_pQueue->LinkToSink(m_pInferEngine) or 
-            !m_pInferEngine->LinkToSink(m_pFakeSink))
+            !m_pInferEngine->LinkToSink(m_pTee) or
+            !m_pFakeSinkQueue->LinkToSourceTee(m_pTee, "src_%u") or
+            !m_pFakeSinkQueue->LinkToSink(m_pFakeSink))
         {
             LOG_ERROR("SecondaryInferBintr '" << GetName() 
                 << "' failed to link");
@@ -546,8 +548,10 @@ namespace DSL
                 << "' is not linked");
             return;
         }
-        m_pInferEngine->UnlinkFromSink();
         m_pQueue->UnlinkFromSink();
+        m_pInferEngine->UnlinkFromSink();
+        m_pFakeSinkQueue->UnlinkFromSourceTee();
+        m_pFakeSinkQueue->UnlinkFromSink();
 
         m_isLinked = false;
     }
