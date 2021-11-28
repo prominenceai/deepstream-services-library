@@ -253,19 +253,18 @@ namespace DSL
         {
             if (imap.second->GetInferOnUniqueId() != m_primaryInferUniqueId)
             {
-
-                // batch size is set to that of the Primary GIE
-                if (!imap.second->SetBatchSize(m_batchSize))
-                {
-                    return false;
-                }
-
                 if (m_pChildSInfers.find(imap.second->GetInferOnName()) == m_pChildSInfers.end())
                 {
                     LOG_ERROR("PipelineSInfersBintr '" << GetName() 
                         << "' failed to Link Child SecondaryInferBintr '" << imap.second->GetName() 
                         << "'. The Infer-on name '" << imap.second->GetInferOnName() 
                         << "' was not found.");
+                    return false;
+                }
+
+                // batch size is set to that of the Primary GIE
+                if (!imap.second->SetBatchSize(m_batchSize))
+                {
                     return false;
                 }
 

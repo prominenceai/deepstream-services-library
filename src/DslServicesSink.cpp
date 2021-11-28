@@ -436,7 +436,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Record Sink'" << name << "' threw an exception setting Encoder settings");
+            LOG_ERROR("Record Sink'" << name << "' threw an exception on Session Start");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -546,7 +546,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Record Sink '" << name << "' threw an exception getting Cache Size");
+            LOG_ERROR("Record Sink '" << name 
+                << "' threw an exception getting the Container type");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -944,7 +945,7 @@ namespace DSL
                 return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
             }
 
-            if (!encodeSinkBintr->SetEncoderSettings(bitrate, codec, interval))
+            if (!encodeSinkBintr->SetEncoderSettings(codec, bitrate, interval))
             {
                 LOG_ERROR("Encode Sink '" << name << "' failed to set Encoder settings");
                 return DSL_RESULT_SINK_SET_FAILED;

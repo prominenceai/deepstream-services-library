@@ -472,18 +472,19 @@ namespace DSL
             modelEngineFile, interval, inferType)
     {
         LOG_FUNC();
-        
-        // create the unique queue-name from the SGIE name
-        std::string queueName = "secondary-infer-queue-" + GetName();
 
-        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueName.c_str());
-
-        
         // update the InferEngine interval setting
         SetInferOnName(inferOn);
         
-        // create the unique sink-name from the SGIE name
+        // create the unique element-names from the SGIE name
+        std::string queueName = "secondary-infer-queue-" + GetName();
+        std::string teeName = "secondary-infer-tee-" + GetName();
+        std::string fakeSinkQueueName = "secondary-infer-fake-sink-queue-" + GetName();
         std::string fakeSinkName = "secondary-infer-fake-sink-" + GetName();
+
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueName.c_str());
+        m_pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, teeName.c_str());
+        m_pFakeSinkQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, fakeSinkQueueName.c_str());
         
         m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, fakeSinkName.c_str());
         m_pFakeSink->SetAttribute("async", false);

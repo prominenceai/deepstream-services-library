@@ -34,6 +34,7 @@ namespace DSL
         : Bintr(name)
         , m_isPaddingEnabled(false)
         , m_areSourcesLive(false)
+        , m_nvbufMemType(DSL_DEFAULT_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE)
     {
         LOG_FUNC();
 
@@ -43,7 +44,7 @@ namespace DSL
         m_pStreamMux = DSL_ELEMENT_NEW(NVDS_ELEM_STREAM_MUX, "stream_muxer");
 
         // Setup all default properties
-        // SetStreamMuxNvbufMemType(DSL_DEFAULT_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE);
+        //SetStreamMuxNvbufMemType(DSL_DEFAULT_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE);
         SetStreamMuxDimensions(DSL_DEFAULT_STREAMMUX_WIDTH, DSL_DEFAULT_STREAMMUX_HEIGHT);
         SetStreamMuxNumSurfacesPerFrame(DSL_DEFAULT_STREAMMUX_MAX_NUM_SERFACES_PER_FRAME);
 

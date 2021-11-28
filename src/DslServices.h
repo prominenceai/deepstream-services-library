@@ -719,7 +719,7 @@ namespace DSL {
         DslReturnType SinkRenderReset(const char* name);
 
         DslReturnType SinkFileNew(const char* name, const char* filepath, 
-            uint codec, uint muxer, uint bit_rate, uint interval);
+            uint codec, uint container, uint bit_rate, uint interval);
             
         DslReturnType SinkRecordNew(const char* name, const char* outdir, 
             uint codec, uint container, uint bitrate, uint interval, dsl_record_client_listener_cb clientListener);
