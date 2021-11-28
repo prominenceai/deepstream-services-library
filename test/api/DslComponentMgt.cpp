@@ -79,30 +79,46 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
         REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 0, 0, 1280, 720) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_tiler_new(tilerName.c_str(), 1280, 720) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_component_nvbuf_mem_type_get(sourceName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
-        REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
+        retNvbufMem = 99;
+        retNvbufMem = 99;
         REQUIRE( dsl_component_nvbuf_mem_type_get(pgieName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
         REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
-        REQUIRE( dsl_component_nvbuf_mem_type_get(windowSinkName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
-        REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
+        retNvbufMem = 99;
         REQUIRE( dsl_component_nvbuf_mem_type_get(tilerName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
         REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
+        retNvbufMem = 99;
+        REQUIRE( dsl_component_nvbuf_mem_type_get(osdName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
+        REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
+
+//        // Note:  WindowSink mem type supported on x86_64 Only
+//        REQUIRE( dsl_component_nvbuf_mem_type_get(windowSinkName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
+//        REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
 
         WHEN( "Several new components are called to Set their GPU ID" ) 
         {
             uint newNvbufMemType(DSL_NVBUF_MEM_TYPE_UNIFIED);
 
-            const wchar_t* components[] = {L"csi-source", L"tiler", L"window-sink", NULL};
+//            const wchar_t* components[] = {L"csi-source", L"pgie", L"tiler", L"osd", L"window-sink", NULL};
+//            REQUIRE( dsl_component_nvbuf_mem_type_set_many(components, newNvbufMemType) == DSL_RESULT_SUCCESS );
+            const wchar_t* components[] = {L"csi-source", L"pgie", L"tiler", L"osd", NULL};
             REQUIRE( dsl_component_nvbuf_mem_type_set_many(components, newNvbufMemType) == DSL_RESULT_SUCCESS );
 
             THEN( "All components return the correct GPU ID of get" ) 
             {
+                retNvbufMem = 99;
                 REQUIRE( dsl_component_nvbuf_mem_type_get(sourceName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
                 REQUIRE( retNvbufMem == newNvbufMemType );
-                REQUIRE( dsl_component_nvbuf_mem_type_get(windowSinkName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
+                retNvbufMem = 99;
+                REQUIRE( dsl_component_nvbuf_mem_type_get(pgieName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
                 REQUIRE( retNvbufMem == newNvbufMemType );
+                retNvbufMem = 99;
                 REQUIRE( dsl_component_nvbuf_mem_type_get(tilerName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
                 REQUIRE( retNvbufMem == newNvbufMemType );
+                retNvbufMem = 99;
+                REQUIRE( dsl_component_nvbuf_mem_type_get(osdName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
+                REQUIRE( retNvbufMem == newNvbufMemType );
+//                REQUIRE( dsl_component_nvbuf_mem_type_get(windowSinkName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
+//                REQUIRE( retNvbufMem == newNvbufMemType );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );

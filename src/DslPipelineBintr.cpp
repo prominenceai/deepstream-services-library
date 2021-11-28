@@ -223,7 +223,7 @@ namespace DSL
             LOG_INFO("Components for Pipeline '" << GetName() << "' are already assembled");
             return false;
         }
-        if (!m_pPipelineSourcesBintr)
+        if (!m_pPipelineSourcesBintr->GetNumChildren())
         {
             LOG_ERROR("Pipline '" << GetName() << "' has no required Source component - and is unable to link");
             return false;

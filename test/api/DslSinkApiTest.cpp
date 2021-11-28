@@ -997,9 +997,11 @@ SCENARIO( "The Components container is updated correctly on new Record Sink", "[
             {
                 uint ret_cache_size(0);
                 uint ret_width(0), ret_height(0);
-                REQUIRE( dsl_sink_record_cache_size_get(recordSinkName.c_str(), &ret_cache_size) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_sink_record_cache_size_get(recordSinkName.c_str(), 
+                    &ret_cache_size) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_cache_size == DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC );
-                REQUIRE( dsl_sink_record_dimensions_get(recordSinkName.c_str(), &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_sink_record_dimensions_get(recordSinkName.c_str(), 
+                    &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_width == 0 );
                 REQUIRE( ret_height == 0 );
                 REQUIRE( dsl_component_list_size() == 1 );
@@ -1323,9 +1325,9 @@ SCENARIO( "An invalid RTSP Sink is caught on Encoder settings Get and Set", "[si
             THEN( "The RTSP Sink encoder settings APIs fail correctly")
             {
                 REQUIRE( dsl_sink_encode_settings_get(fakeSinkName.c_str(), 
-                    &currCodec, &currBitrate, &currInterval) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
+                    &currCodec, &currBitrate, &currInterval) == DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK);
                 REQUIRE( dsl_sink_encode_settings_set(fakeSinkName.c_str(), 
-                    currCodec, newBitrate, newInterval) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
+                    currCodec, newBitrate, newInterval) == DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK);
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );

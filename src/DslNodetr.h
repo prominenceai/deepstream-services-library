@@ -310,7 +310,7 @@ namespace DSL
             else
             {
                 // Set the State to NULL to free up all resource before removing childern
-                LOG_INFO("Setting GstElement for GstNodetr '" << GetName() << "' to GST_STATE_NULL");
+                LOG_DEBUG("Setting GstElement for GstNodetr '" << GetName() << "' to GST_STATE_NULL");
                 gst_element_set_state(GetGstElement(), GST_STATE_NULL);
 
                 // Remove all child references 

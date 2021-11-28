@@ -38,8 +38,6 @@ namespace DSL
         m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "sink_bin_queue");
         m_pTee = DSL_ELEMENT_NEW(teeType, "sink_bin_tee");
 
-        m_pTee->SetAttribute("allow-not-linked", true);
-        
         AddChild(m_pQueue);
         AddChild(m_pTee);
 
