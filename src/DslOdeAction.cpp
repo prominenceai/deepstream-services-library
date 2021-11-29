@@ -147,7 +147,7 @@ namespace DSL
         {
             DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pBase);
             m_clientHandler(pTrigger->s_eventCount, pTrigger->m_wName.c_str(), pBuffer,
-                pFrameMeta, pObjectMeta, m_clientData);
+                pDisplayMeta, pFrameMeta, pObjectMeta, m_clientData);
         }
         catch(...)
         {

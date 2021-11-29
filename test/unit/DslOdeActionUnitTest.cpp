@@ -31,7 +31,7 @@ THE SOFTWARE.
 using namespace DSL;
 
 static void ode_occurrence_handler_cb(uint64_t event_id, const wchar_t* name,
-    void* buffer, void* frame_meta, void* object_meta, void* client_data)
+    void* buffer, void* display_meta, void* frame_meta, void* object_meta, void* client_data)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());

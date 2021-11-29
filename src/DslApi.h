@@ -798,18 +798,21 @@ typedef struct _dsl_coordinate
 
 /**
  *
- * @brief callback typedef for a client ODE occurrence handler function. Once 
- * registered, the function will be called on ODE occurrence
- * @param[in] event_id unique ODE occurrence ID, numerically ordered by occurrence
- * @param[in] trigger unique name of the ODE Event Trigger that trigger the occurrence
- * @param[in] pointer to a frame_meta structure that triggered the ODE event
- * @param[in] pointer to a object_meta structure that triggered the ODE event
- * This parameter will be set to NULL for ODE occurrences detected in Post process frame. 
+ * @brief callback typedef for a client ODE occurrence handler function. 
+ * Once registered by calling dsl_ode_action_custom_new, the function will 
+ * be called on ODE occurrence. 
+ * @param[in] event_id unique ODE occurrence ID, numerically ordered by occurrence.
+ * @param[in] trigger unique name of the ODE Event Trigger that triggered the occurrence.
+ * @param[in] buffer pointer to the frame buffer of type GstBuffer.
+ * @param[in] display_meta pointer to a NvDsDisplayMeta structure.
+ * @param[in] frame_meta pointer to the NvDsFrameMeta structure that triggered the ODE event.
+ * @param[in] object_meta pointer to the NvDsObjectMeta structure that triggered the ODE event.
+ * Note: This parameter will be set to NULL for ODE occurrences detected in Post process frame. 
  * Absence and Submation ODE's
  * @param[in] client_data opaque pointer to client's user data
  */
 typedef void (*dsl_ode_handle_occurrence_cb)(uint64_t event_id, const wchar_t* trigger,
-    void* buffer, void* frame_meta, void* object_meta, void* client_data);
+    void* buffer, void* display_meta, void* frame_meta, void* object_meta, void* client_data);
 
 /**
  * @brief callback typedef for a client ODE Custom Trigger check-for-occurrence function. Once 
