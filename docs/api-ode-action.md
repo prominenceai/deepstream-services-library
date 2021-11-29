@@ -186,8 +186,7 @@ Callback typedef for a clients to listen for the notification that an Image or O
 typedef void (*dsl_ode_handle_occurrence_cb)(uint64_t event_id, const wchar_t* trigger,
     void* buffer, void* display_meta, void* frame_meta, void* object_meta, void* client_data);
 ```
-Callback typedef for a client ODE occurrence handler function. Once registered, by calling dsl_ode_action_custom_new, the function will 
- * be called on ODE occurrence. 
+Callback typedef for a client ODE occurrence handler function. Once registered, by calling dsl_ode_action_custom_new, the function will be called on ODE occurrence. 
 
 **Parameters**
 * `event_id` [in] unique event identification.
