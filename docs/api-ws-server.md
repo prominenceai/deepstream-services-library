@@ -1,24 +1,25 @@
 # WebSocket Server API Reference
-Providing basic WebSocket services, the WebSocket Server connects Signaling Transceivers -- the WebRTC Sink for example -- with incoming WebSocket connections.  The Server is a singleton object initialized on any first method call. Signaling Transceivers are automatically added and removed from the WebSocket Server when added and removed from a parent Pipeline or Branch. 
+The WebSocket Server connects remote clients with DSL Signaling Transceivers. The [WebRTC Sink](/docs/api-sink.md) is the only Signaling Transceiver at this time. The WebSocket Server is a singleton object initialized on any first use. Signaling Transceivers are automatically added to the WebSocket Server when the client application adds the Signaling Transceiver to a parent Pipeline or Branch. 
 
-**IMPORTANT: The WebSocket Server and WebRTC Sink require GStreamer 1.18 or later.**
+**IMPORTANT: The WebSocket Server and WebRTC Sink require GStreamer 1.18 or later - only available for ubuntu 20.04 or later**
 
-Client Applications use the WebSocket Server to listen on a specified port for incoming WebSocket connections. When handling the connection, the WebSocket server iterates over its collection of Signaling Transceivers looking for the first available Transceiver to connect with.   Clients can add a listener callback function(s) to be called with the specific WebSocket path when the WebSocket is first opened (see use case 1. below). 
+Client Applications use the WebSocket Server to listen on a specified port for incoming WebSocket connections opened by remote HTML clients. When handling the connection, the WebSocket server iterates over its collection of Signaling Transceivers looking for the first available Transceiver to connect with. Clients can add a listener callback function to be called with the specific WebSocket path when the WebSocket is first opened (see use case 1. below). 
 
 **Import notes:** 
-* The listener is called by the WebSocket Server prior to checking for the first available Signaling Transceiver allowing the client to create and add the new Transceiver based on the provided path.
-* Client Applications can add client lister callback functions to each Signaling Transceiver to be notified on change of connection state.
+* The WebSocket Server calls all client listeners functions prior to checking for the first available Signaling Transceiver. This allows the client to create and add the new Transceiver to a specific Pipeline based on the WebSocket path used by the remote HTML client.
+* Client Applications can add client listener callback functions to each Signaling Transceiver to be notified on change of connection state.
 
 ### Adding Signal Transceivers
-**Use case 1.** The Pipeline(s) is created and set to a playing state prior to listening for incoming WebSocket connections. New WebRTC Sinks (Signaling Transceivers) are created and added to the running Pipeline(s) on new incoming connection.
+**Use case 1.** One or more Pipelines are created and set to a playing state prior to listening for incoming WebSocket connections. New WebRTC Sinks (Signaling Transceivers) are created and added to a running Pipeline when a remote HTML client opens a new connection.
 ![](/Images/websocket-server-calling-sequence-1.png)
 
-**Use case 2.** The Pipeline and WebRTC Sink are created prior to listening for an incoming WebSocket connection. The Pipeline is then set to a playing state on remote client demand. The client application can then top the Pipeline when the WebRTC Sink calls its client listner(s) on connection close. 
+**Use case 2.** The client application creates the Pipeline and WebRTC Sink prior to starting the WebSocket Server. The Pipeline is then set to a playing state when the remote client opens the WebSocket connection. The Pipeline is stopped when the WebRTC Sink calls its client listener in response to the remote client closing the WebSocket connection. 
 
 ![](/Images/websocket-server-calling-sequence-2.png)
 
 
 ## Relevant Examples
+* [webrtc.html](/examples/webtrc-html/webrtc.html) - remote WebRTC Client
 * [1file_webrtc_connect_post_play.py](/examples/python/1file_webrtc_connect_post_play.py)
 * [1file_webrtc_connect_pre_play.py](/examples/python/1file_webrtc_connect_pre_play.py)
 
