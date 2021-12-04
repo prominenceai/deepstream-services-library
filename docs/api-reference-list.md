@@ -2,6 +2,7 @@
 
 ### Services API:
 * [dsl_version_get](/docs/overview.md#dsl-version)
+* [dsl_gpu_type_get](/docs/overview.md#dsl_gpu_type_get)
 * [dsl_main_loop_run](/docs/overview.md#main-loop-context)
 * [dsl_main_loop_quit](/docs/overview.md#main-loop-context)
 * [dsl_return_value_to_string](/docs/overview.md#service-return-codes)
