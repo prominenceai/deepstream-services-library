@@ -2,6 +2,7 @@
 
 ### Services API:
 * [dsl_version_get](/docs/overview.md#dsl-version)
+* [dsl_gpu_type_get](/docs/overview.md#dsl_gpu_type_get)
 * [dsl_main_loop_run](/docs/overview.md#main-loop-context)
 * [dsl_main_loop_quit](/docs/overview.md#main-loop-context)
 * [dsl_return_value_to_string](/docs/overview.md#service-return-codes)
@@ -21,6 +22,8 @@
 * [dsl_xwindow_delete_event_handler_cb](/docs/api-pipeline.md#dsl_xwindow_delete_event_handler_cb)
 * [dsl_capture_complete_listener_cb](/docs/api-ode-trigger.md#dsl_capture_complete_listener_cb)
 * [dsl_player_termination_event_listener_cb](/docs/api-player.md#dsl_player_termination_event_listener_cb)
+* [dsl_sink_webrtc_client_listener_cb](/docs/api-sink.md#dsl_sink_webrtc_client_listener_cb)
+* [dsl_websocket_server_client_listener_cb](/docs/api-ws-server.md#dsl_websocket_server_client_listener_cb)
 
 ### Pipeline API:
 * [Overview](/docs/api-pipeline.md)
