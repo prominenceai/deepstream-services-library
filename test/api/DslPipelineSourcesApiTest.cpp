@@ -36,7 +36,6 @@ static const std::wstring sourceName2(L"test-uri-source-2");
 static const std::wstring sourceName3(L"test-uri-source-3");
 static const std::wstring sourceName4(L"test-uri-source-4");
 static const std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
-static const uint cudadecMemType(DSL_NVBUF_MEM_TYPE_DEFAULT);
 static const uint intrDecode(false);
 static const uint dropFrameInterval(0);
 
@@ -58,13 +57,13 @@ SCENARIO( "A new Pipeline with four URI Sources can Play", "[PipelineSources]" )
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), 
             intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), cudadecMemType, 
+        REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), 
             intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), cudadecMemType, 
+        REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), 
             intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_uri_new(sourceName4.c_str(), uri.c_str(), cudadecMemType, 
+        REQUIRE( dsl_source_uri_new(sourceName4.c_str(), uri.c_str(), 
             intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
@@ -104,13 +103,13 @@ SCENARIO( "A new Pipeline with four URI Sources can Pause and Play", "[PipelineS
         
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), 
             intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), cudadecMemType, 
+        REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), 
             intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), cudadecMemType, 
+        REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), 
             intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_uri_new(sourceName4.c_str(), uri.c_str(), cudadecMemType, 
+        REQUIRE( dsl_source_uri_new(sourceName4.c_str(), uri.c_str(), 
             intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
@@ -153,13 +152,13 @@ SCENARIO( "A new Pipeline with four URI Sources can Pause and Play", "[PipelineS
 //    {
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
-//        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+//        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), 
 //            intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
-//        REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), cudadecMemType, 
+//        REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), 
 //            intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
-//        REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), cudadecMemType, 
+//        REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), 
 //            intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
-//        REQUIRE( dsl_source_uri_new(sourceName4.c_str(), uri.c_str(), cudadecMemType, 
+//        REQUIRE( dsl_source_uri_new(sourceName4.c_str(), uri.c_str(), 
 //            intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
@@ -204,13 +203,13 @@ SCENARIO( "A single Source of a multi-source Pipeline can Pause and Resume", "[P
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), 
             intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), cudadecMemType, 
+        REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), 
             intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), cudadecMemType, 
+        REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), 
             intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_uri_new(sourceName4.c_str(), uri.c_str(), cudadecMemType, 
+        REQUIRE( dsl_source_uri_new(sourceName4.c_str(), uri.c_str(), 
             intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );

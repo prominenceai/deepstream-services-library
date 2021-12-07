@@ -315,7 +315,6 @@ def main(args):
         retval = dsl_source_uri_new('uri-source',
             uri = uri_file,
             is_live = False,
-            cudadec_mem_type = DSL_NVBUF_MEM_TYPE_DEFAULT,
             intra_decode = False,
             drop_frame_interval = 0)
         if retval != DSL_RETURN_SUCCESS:

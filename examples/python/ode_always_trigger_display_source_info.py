@@ -153,12 +153,12 @@ def main(args):
         #
         # Create the remaining Pipeline components
         # Four New URI File Sources
-        retval = dsl_source_uri_new('North Camera', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
+        retval = dsl_source_uri_new('North Camera', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        dsl_source_uri_new('South Camera', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
-        dsl_source_uri_new('East Camera', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
-        dsl_source_uri_new('West Camera', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
+        dsl_source_uri_new('South Camera', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
+        dsl_source_uri_new('East Camera', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
+        dsl_source_uri_new('West Camera', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
 
         # New Primary GIE using the filespecs above, with interval and Id
         retval = dsl_infer_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 4)

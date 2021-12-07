@@ -87,7 +87,7 @@ def main(args):
     while True:
 
         # New File Source using the file path specified above, repeat diabled.
-        retval = dsl_source_file_new('uri-source', file_path, False)
+        retval = dsl_source_file_new('file-source', file_path, False)
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -113,7 +113,7 @@ def main(args):
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-tis', 'ktl-tracker', 'on-screen-display', 'window-sink', None])
+            ['file-source', 'primary-tis', 'ktl-tracker', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

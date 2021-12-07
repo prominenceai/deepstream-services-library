@@ -54,10 +54,10 @@ def main(args):
     while True:
 
         # Two URI File Sources - using the same file.
-        retval = dsl_source_uri_new('source-1', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 2)
+        retval = dsl_source_uri_new('source-1', "../../test/streams/sample_1080p_h264.mp4", False, 0, 2)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_source_uri_new('source-2', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 2)
+        retval = dsl_source_uri_new('source-2', "../../test/streams/sample_1080p_h264.mp4", False, 0, 2)
         if retval != DSL_RETURN_SUCCESS:
             break
 

@@ -31,7 +31,6 @@ THE SOFTWARE.
 
 static const std::wstring source_name(L"uri-source");
 static const std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
-static const uint cudadec_mem_type(DSL_NVBUF_MEM_TYPE_DEFAULT);
 static const uint intr_decode(false);
 static const uint drop_frame_interval(0);
 
@@ -118,7 +117,7 @@ SCENARIO( "A new Pipeline with an ODE Handler without any child ODE Triggers can
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), cudadec_mem_type, 
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
@@ -170,7 +169,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Print
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), cudadec_mem_type, 
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
@@ -230,7 +229,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers, each
         
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), cudadec_mem_type, 
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
@@ -301,7 +300,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers shari
 
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), cudadec_mem_type, 
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
@@ -378,7 +377,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, an Occurrence ODE Trigger, with a
         
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), cudadec_mem_type, 
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
@@ -455,7 +454,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Triggers, eac
         
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), cudadec_mem_type, 
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
@@ -566,7 +565,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four ODE Accumulation Triggers wi
         
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), cudadec_mem_type, 
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
@@ -704,7 +703,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
 
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), cudadec_mem_type, 
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
@@ -847,7 +846,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
         
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), cudadec_mem_type, 
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
@@ -944,7 +943,7 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Line Area 
 
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), cudadec_mem_type, 
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
@@ -1044,7 +1043,7 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Inclussion
 
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), cudadec_mem_type, 
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
@@ -1145,7 +1144,7 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Exclusion 
 
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), cudadec_mem_type, 
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
@@ -1245,7 +1244,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Forma
         REQUIRE( dsl_display_type_rgba_color_new(bg_color_name.c_str(), 
             0.78, 0.56, 0.34, 0.43) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), cudadec_mem_type, 
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
@@ -1338,7 +1337,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Forma
             font_name.c_str(), has_bg_color, font_bg_color_name.c_str()) 
                 == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), cudadec_mem_type, 
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
@@ -1412,7 +1411,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Custo
             label_types, size) 
                 == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), cudadec_mem_type, 
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 

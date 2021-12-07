@@ -54,16 +54,16 @@ def main(args):
     while True:
 
         # Create 4 new Live URI Sources
-        retval = dsl_source_uri_new('uri-source1', source_uri1, True, 0, 0, 1)
+        retval = dsl_source_uri_new('uri-source1', source_uri1, True, False, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_source_uri_new('uri-source2', source_uri2, True, 0, 0, 1)
+        retval = dsl_source_uri_new('uri-source2', source_uri2, True, False, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_source_uri_new('uri-source3', source_uri3, True, 0, 0, 1)
+        retval = dsl_source_uri_new('uri-source3', source_uri3, True, False, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_source_uri_new('uri-source4', source_uri4, True, 0, 0, 1)
+        retval = dsl_source_uri_new('uri-source4', source_uri4, True, False, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
             

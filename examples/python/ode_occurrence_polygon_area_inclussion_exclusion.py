@@ -184,7 +184,7 @@ def main(args):
         # Create the remaining Pipeline components
         
         # New URI File Source using the filespec defined above
-        retval = dsl_source_uri_new('uri-source', uri_file, False, 0, 0, 0)
+        retval = dsl_source_uri_new('uri-source', uri_file, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
