@@ -63,7 +63,7 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_rtsp_reconnection_params_get](#dsl_source_rtsp_reconnection_params_get)
 * [dsl_source_rtsp_reconnection_params_set](#dsl_source_rtsp_reconnection_params_set)
 * [dsl_source_rtsp_connection_data_get](#dsl_source_rtsp_connection_data_get)
-* [dsl_source_rtsp_reconnection_stats_clear](#dsl_source_rtsp_reconnection_stats_clear)
+* [dsl_source_rtsp_connection_stats_clear](#dsl_source_rtsp_connection_stats_clear)
 * [dsl_source_rtsp_state_change_listener_add](#dsl_source_rtsp_state_change_listener_add)
 * [dsl_source_rtsp_state_change_listener_remove](#dsl_source_rtsp_state_change_listener_remove)
 * [dsl_source_rtsp_tap_add](#dsl_source_rtsp_tap_add)
@@ -671,9 +671,9 @@ retval, connection_data = dsl_source_rtsp_connection_data_get('my-rtsp-source')
 ```
 <br>
 
-### *dsl_source_rtsp_reconnection_stats_clear*
+### *dsl_source_rtsp_connection_stats_clear*
 ```C
-DslReturnType dsl_source_rtsp_reconnection_stats_clear(const wchar_t* name); 
+DslReturnType dsl_source_rtsp_connection_stats_clear(const wchar_t* name); 
 ```
 This service clears the current reconnection stats for the named RTSP Source. 
 
@@ -687,7 +687,7 @@ This service clears the current reconnection stats for the named RTSP Source.
 
 **Python Example**
 ```Python
-retval = dsl_source_rtsp_reconnection_stats_clear('my-rtsp-source')
+retval = dsl_source_rtsp_connection_stats_clear('my-rtsp-source')
 ```
 <br>
 
