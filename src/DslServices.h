@@ -423,7 +423,7 @@ namespace DSL {
             uint width, uint height, uint fpsN, uint fpsD);
         
         DslReturnType SourceUriNew(const char* name, const char* uri, 
-            boolean isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+            boolean isLive, uint intraDecode, uint dropFrameInterval);
             
         DslReturnType SourceFileNew(const char* name, const char* filePath, 
             boolean repeatEnabled);
@@ -448,7 +448,7 @@ namespace DSL {
         DslReturnType SourceImageTimeoutSet(const char* name, uint timeout);
             
         DslReturnType SourceRtspNew(const char* name, const char* uri, uint protocol, 
-            uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency, uint timeout);
+            uint intraDecode, uint dropFrameInterval, uint latency, uint timeout);
             
         DslReturnType SourceDimensionsGet(const char* name, uint* width, uint* height);
         

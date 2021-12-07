@@ -145,16 +145,16 @@ def main(args):
         # Create the remaining Pipeline components
         # ... starting with eight URI File Sources
         
-        retval = dsl_source_uri_new('Camera 1', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
+        retval = dsl_source_uri_new('Camera 1', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        dsl_source_uri_new('Camera 2', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
-        dsl_source_uri_new('Camera 3', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
-        dsl_source_uri_new('Camera 4', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
-        dsl_source_uri_new('Camera 5', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
-        dsl_source_uri_new('Camera 6', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
-        dsl_source_uri_new('Camera 7', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
-        dsl_source_uri_new('Camera 8', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
+        dsl_source_uri_new('Camera 2', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
+        dsl_source_uri_new('Camera 3', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
+        dsl_source_uri_new('Camera 4', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
+        dsl_source_uri_new('Camera 5', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
+        dsl_source_uri_new('Camera 6', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
+        dsl_source_uri_new('Camera 7', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
+        dsl_source_uri_new('Camera 8', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
 
         # New Primary GIE using the filespecs above, with interval and Id
         retval = dsl_infer_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, interval=4)

@@ -74,7 +74,7 @@ def main(args):
     while True:
 
         ## First new URI File Source
-        retval = dsl_source_uri_new('uri-source', source_uri, False, 0, 0, 0)
+        retval = dsl_source_uri_new('uri-source', source_uri, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
             

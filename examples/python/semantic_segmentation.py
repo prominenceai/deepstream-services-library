@@ -76,7 +76,6 @@ def main(args):
         retval = dsl_source_uri_new('image-source', 
             uri = file_path, 
             is_live = False,
-            cudadec_mem_type = 0, 
             intra_decode = False,
             drop_frame_interval = False)
         if retval != DSL_RETURN_SUCCESS:

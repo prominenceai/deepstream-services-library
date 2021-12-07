@@ -34,7 +34,6 @@ SCENARIO( "All DisplayTypes can be displayed by and eODE Action", "[display-type
     {
         std::wstring sourceName1(L"uri-source");
         std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
-        uint cudadecMemType(DSL_NVBUF_MEM_TYPE_DEFAULT);
         uint intrDecode(false);
         uint dropFrameInterval(0);
 
@@ -84,7 +83,7 @@ SCENARIO( "All DisplayTypes can be displayed by and eODE Action", "[display-type
         
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(),
             false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 

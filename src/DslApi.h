@@ -2544,12 +2544,11 @@ DslReturnType dsl_source_usb_new(const wchar_t* name,
  * @param[in] name unique name for the new URI Source
  * @param[in] uri Unique Resource Identifier (file or live)
  * @param[in] is_live true if source is live false if file
- * @param[in] cudadec_mem_type, one of the DSL_NVBUF_MEM_<type> constant values.
  * @param[in] intra_decode set to True to enable, false to disable
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, boolean is_live,
-    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval);
+DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, 
+    boolean is_live, uint intra_decode, uint drop_frame_interval);
 
 /**
  * @brief creates a new, uniquely named File Source component
@@ -2645,7 +2644,6 @@ DslReturnType dsl_source_image_timeout_set(const wchar_t* name, uint timeout);
  * @brief creates a new, uniquely named RTSP Source component
  * @param[in] name Unique Resource Identifier (file or live)
  * @param[in] protocol one of the constant protocol values [ DSL_RTP_TCP | DSL_RTP_ALL ]
- * @param[in] cudadec_mem_type, one of the DSL_NVBUF_MEM_<type> constant values.
  * @param[in] intra_decode set to True to enable, false to disable.
  * @param[in] drop_frame_interval, set to 0 to decode every frame.
  * @param[in] latency in milliseconds.
@@ -2654,7 +2652,7 @@ DslReturnType dsl_source_image_timeout_set(const wchar_t* name, uint timeout);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol,
-    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval, uint latency, uint timeout);
+    uint intra_decode, uint drop_frame_interval, uint latency, uint timeout);
 
 /**
  * @brief returns the frame rate of the name source as a fraction

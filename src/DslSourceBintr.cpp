@@ -329,9 +329,9 @@ namespace DSL
 
     DecodeSourceBintr::DecodeSourceBintr(const char* name, 
         const char* factoryName, const char* uri,
-        bool isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
+        bool isLive, uint intraDecode, uint dropFrameInterval)
         : ResourceSourceBintr(name, uri)
-        , m_cudadecMemtype(cudadecMemType)
+        , m_cudadecMemtype(DSL_NVBUF_MEM_TYPE_DEFAULT)
         , m_intraDecode(intraDecode)
         , m_dropFrameInterval(dropFrameInterval)
         , m_accumulatedBase(0)
@@ -637,9 +637,9 @@ namespace DSL
     //*********************************************************************************
 
     UriSourceBintr::UriSourceBintr(const char* name, const char* uri, bool isLive,
-        uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
-        : DecodeSourceBintr(name, NVDS_ELEM_SRC_URI, uri, isLive, 
-            cudadecMemType, intraDecode, dropFrameInterval)
+        uint intraDecode, uint dropFrameInterval)
+        : DecodeSourceBintr(name, NVDS_ELEM_SRC_URI, uri, 
+            isLive, intraDecode, dropFrameInterval)
     {
         LOG_FUNC();
         
@@ -855,8 +855,7 @@ namespace DSL
 
     FileSourceBintr::FileSourceBintr(const char* name, 
         const char* uri, bool repeatEnabled)
-        : UriSourceBintr(name, uri, false, 
-            DSL_NVBUF_MEM_TYPE_DEFAULT, false, 0)
+        : UriSourceBintr(name, uri, false, false, 0)
     {
         LOG_FUNC();
         
@@ -1101,11 +1100,10 @@ namespace DSL
     
     //*********************************************************************************
     
-    RtspSourceBintr::RtspSourceBintr(const char* name, const char* uri, uint protocol,
-        uint cudadecMemType, uint intraDecode, uint dropFrameInterval, 
+    RtspSourceBintr::RtspSourceBintr(const char* name, const char* uri, 
+        uint protocol, uint intraDecode, uint dropFrameInterval, 
         uint latency, uint timeout)
-        : DecodeSourceBintr(name, 
-            "rtspsrc", uri, true, cudadecMemType, intraDecode, dropFrameInterval)
+        : DecodeSourceBintr(name, "rtspsrc", uri, true, intraDecode, dropFrameInterval)
         , m_rtpProtocols(protocol)
         , m_bufferTimeout(timeout)
         , m_streamManagerTimerId(0)
