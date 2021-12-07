@@ -62,8 +62,8 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_rtsp_timeout_set](#dsl_source_rtsp_timeout_set)
 * [dsl_source_rtsp_reconnection_params_get](#dsl_source_rtsp_reconnection_params_get)
 * [dsl_source_rtsp_reconnection_params_set](#dsl_source_rtsp_reconnection_params_set)
-* [dsl_source_rtsp_reconnection_stats_get](#dsl_source_rtsp_reconnection_stats_get)
-* [dsl_source_rtsp_reconnection_stats_clear](#dsl_source_rtsp_reconnection_stats_clear)
+* [dsl_source_rtsp_connection_data_get](#dsl_source_rtsp_connection_data_get)
+* [dsl_source_rtsp_connection_stats_clear](#dsl_source_rtsp_connection_stats_clear)
 * [dsl_source_rtsp_state_change_listener_add](#dsl_source_rtsp_state_change_listener_add)
 * [dsl_source_rtsp_state_change_listener_remove](#dsl_source_rtsp_state_change_listener_remove)
 * [dsl_source_rtsp_tap_add](#dsl_source_rtsp_tap_add)
@@ -244,8 +244,8 @@ retval = dsl_source_usb_new('my-csi-source', 1280, 720, 30, 1)
 
 ### *dsl_source_uri_new*
 ```C
-DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, boolean is_live,
-    uint cudadec_mem_type, boolean intra_decode, uint drop_frame_interval);
+DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, 
+    boolean is_live, boolean intra_decode, uint drop_frame_interval);
 ```
 This service creates a new, uniquely named URI Source component.
 
@@ -253,7 +253,6 @@ This service creates a new, uniquely named URI Source component.
 * `name` - [in] unique name for the new Source
 * `uri` - [in] fully qualified URI prefixed with `http://`, `https://`,  or `file://` 
 * `is_live` [in] `true` if the URI is a live source, `false` otherwise. File URI's will used a fixed value of `false`
-* `cudadec_mem_type` - [in] one of the [Cuda Decode Memory Types](#cuda-decode-memory-types) defined below
 * `intra_decode` - [in] set to true for M-JPEG codec format
 * `drop_frame_interval` [in] nunber of frames to drop between each decoded frame. 0 = decode all frames
 
@@ -263,7 +262,7 @@ This service creates a new, uniquely named URI Source component.
 **Python Example**
 ```Python
 retval = dsl_source_uri_new('my-uri-source', '../../test/streams/sample_1080p_h264.mp4',
-    False, DSL_CUDADEC_MEMTYPE_DEVICE, 0)
+    False, 0)
 ```
 
 <br>
@@ -271,7 +270,7 @@ retval = dsl_source_uri_new('my-uri-source', '../../test/streams/sample_1080p_h2
 ### *dsl_source_rtsp_new*
 ```C
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol,
-    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval, uint latency, uint timeout);
+    uint intra_decode, uint drop_frame_interval, uint latency, uint timeout);
 ```
 
 This service creates a new, uniquely named RTSP Source component
@@ -280,7 +279,6 @@ This service creates a new, uniquely named RTSP Source component
 * `name` - [in] unique name for the new Source
 * `uri` - [in] fully qualified URI prefixed with `rtsp://`
 * `protocol` - [in] one of the [RTP Protocols](#rtp-protocols) define above
-* `cudadec_mem_type` - [in] one of the [Cuda Decode Memory Types](#cuda-decode-memory-types) defined above
 * `drop_frame_interval` - [in] interval to drop frames at. 0 = decode all frames
 * `latency` - [in] source latency setting in milliseconds
 * `timeout` - [in] maximum time between successive frame buffers in units of seconds before initiating a "reconnection-cycle". Set to 0 to disable the timeout.
@@ -290,8 +288,8 @@ This service creates a new, uniquely named RTSP Source component
 
 **Python Example**
 ```Python
-retval = dsl_source_rtsp_new('dsl_source_uri_new', 'rtsp://username:password@192.168.0.17:554/rtsp-camera-1',
-    True, DSL_CUDADEC_MEMTYPE_DEVICE, 200, 2)
+retval = dsl_source_rtsp_new('dsl_source_uri_new', 
+    'rtsp://username:password@192.168.0.17:554/rtsp-camera-1', True, 200, 2)
 ```
 
 <br>
@@ -673,9 +671,9 @@ retval, connection_data = dsl_source_rtsp_connection_data_get('my-rtsp-source')
 ```
 <br>
 
-### *dsl_source_rtsp_reconnection_stats_clear*
+### *dsl_source_rtsp_connection_stats_clear*
 ```C
-DslReturnType dsl_source_rtsp_reconnection_stats_clear(const wchar_t* name); 
+DslReturnType dsl_source_rtsp_connection_stats_clear(const wchar_t* name); 
 ```
 This service clears the current reconnection stats for the named RTSP Source. 
 
@@ -689,7 +687,7 @@ This service clears the current reconnection stats for the named RTSP Source.
 
 **Python Example**
 ```Python
-retval = dsl_source_rtsp_reconnection_stats_clear('my-rtsp-source')
+retval = dsl_source_rtsp_connection_stats_clear('my-rtsp-source')
 ```
 <br>
 
