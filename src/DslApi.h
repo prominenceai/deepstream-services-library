@@ -559,6 +559,18 @@ THE SOFTWARE.
 #define DSL_DISTANCE_METHOD_PERCENT_HEIGHT_A                        3
 #define DSL_DISTANCE_METHOD_PERCENT_HEIGHT_B                        4
 
+/**
+ * @brief the maximum number of coordinates when defining a Polygon
+ */
+#define DSL_MAX_POLYGON_COORDINATES                                 16
+
+/**
+ * @brief the maximum number of messages that can be queued up
+ * by all Mailers running in the main-loop context before
+ * new messages are dropped. Messages are pulled from the queue
+ * in a low priority background thread which may get starved
+ * out if the Tracker and OSD are consuming the CPU
+ */
 #define DSL_SMTP_MAX_PENDING_MESSAGES                               10
 
 /**
@@ -790,11 +802,6 @@ typedef struct _dsl_coordinate
     uint x;
     uint y;
 } dsl_coordinate;
-
-/**
- * @brief the maximum number of coordinates when defining a Polygon
- */
-#define DSL_MAX_POLYGON_COORDINATES 8
 
 /**
  *
