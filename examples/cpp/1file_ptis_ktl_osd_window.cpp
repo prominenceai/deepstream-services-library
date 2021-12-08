@@ -1,34 +1,50 @@
 
+/*
+The MIT License
+
+Copyright (c) 2021, Prominence AI, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in-
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+
 #include <iostream>
-
-#include <opencv2/core/mat.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-
-#include <gtkmm.h>
 #include <gst/gst.h>
 
 #include "DslApi.h"
 
-
-
-// # File path for the single File Source
+// File path for the single File Source
 static const std::wstring file_path(L"/opt/nvidia/deepstream/deepstream-6.0/samples/streams/sample_qHD.mp4");
 
-
-// # Filespecs for the Primary Triton Inference Server (PTIS)
-static const std::wstring primary_infer_config_file = L"/opt/nvidia/deepstream/deepstream-6.0/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt";
+// Filespecs for the Primary Triton Inference Server (PTIS)
+static const std::wstring primary_infer_config_file = 
+    L"/opt/nvidia/deepstream/deepstream-6.0/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt";
 
 // File name for .dot file output
 static const std::wstring dot_file = L"state-playing";
 
-// # Window Sink Dimensions
+// Window Sink Dimensions
 int sink_width = 1280;
 int sink_height = 720;
 
-// ## 
-// # Function to be called on XWindow KeyRelease event
-// ## 
+//
+// Function to be called on XWindow KeyRelease event
+//
 void xwindow_key_event_handler(const wchar_t* in_key, void* client_data)
 {   
     std::wstring wkey(in_key); 
@@ -61,52 +77,14 @@ void eos_event_listener(void* client_data)
     dsl_main_loop_quit();
 }
     
-// Function to convert state enum to state string
-std::string get_state_name(int state)
-{
-    // Must match GST_STATE enum values
-    // DSL_STATE_NULL                                              1
-    // DSL_STATE_READY                                             2
-    // DSL_STATE_PAUSED                                            3
-    // DSL_STATE_PLAYING                                           4
-    // DSL_STATE_CHANGE_ASYNC                                      5
-    // DSL_STATE_UNKNOWN                                           UINT32_MAX
 
-    std::string state_str = "UNKNOWN";
-    switch(state)
-    {
-        case DSL_STATE_NULL:
-            state_str = "NULL";
-        break;
-        case DSL_STATE_READY:
-            state_str = "READY";
-        break;
-        case DSL_STATE_PAUSED:
-            state_str = "PAUSED";
-        break;
-        case DSL_STATE_PLAYING:
-            state_str = "PLAYING";
-        break;
-        case DSL_STATE_CHANGE_ASYNC:
-            state_str = "CHANGE_ASYNC";
-        break;
-        case DSL_STATE_UNKNOWN:
-            state_str = "UNKNOWN";
-        break;
-    }
-
-    return state_str;
-}
-
-// ## 
-// # Function to be called on every change of Pipeline state
-// ## 
+// 
+// Function to be called on every change of Pipeline state
+// 
 void state_change_listener(uint old_state, uint new_state, void* client_data)
 {
-    std::cout<<"previous state = " << get_state_name(old_state) << ", new state = " << get_state_name(new_state) << std::endl;
-    if(new_state == DSL_STATE_PLAYING){        
-        dsl_pipeline_dump_to_dot(L"pipeline",L"state-playing");
-    }
+    std::cout<<"previous state = " << dsl_state_value_to_string(old_state) 
+        << ", new state = " << dsl_state_value_to_string(new_state) << std::endl;
 }
 
 
