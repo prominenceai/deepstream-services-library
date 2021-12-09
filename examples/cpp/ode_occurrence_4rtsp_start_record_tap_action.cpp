@@ -1,4 +1,29 @@
+/*
+The MIT License
+
+Copyright (c) 2021, Prominence AI, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in-
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+
 #include <iostream>
+#include <gst/gst.h>
 
 #include "DslApi.h"
 
@@ -27,12 +52,11 @@ int PGIE_CLASS_ID_BICYCLE = 1;
 int PGIE_CLASS_ID_PERSON = 2;	
 int PGIE_CLASS_ID_ROADSIGN = 3;
 
-
-// ## 	
-// # Objects of this class will be used as "client_data" for all callback notifications.	
-// # defines a class of all component names associated with a single RTSP Source. 	
-// # The names are derived from the unique Source name	
-// ##	
+// 	
+// Objects of this class will be used as "client_data" for all callback notifications.	
+// defines a class of all component names associated with a single RTSP Source. 	
+// The names are derived from the unique Source name	
+//	
 
 struct ClientData
 {
@@ -55,9 +79,9 @@ struct ClientData
     std::wstring url;
 };
 
-// ## 
-// # Function to be called on XWindow KeyRelease event
-// ## 
+// 
+// Function to be called on XWindow KeyRelease event
+// 
 void xwindow_key_event_handler(const wchar_t* in_key, void* client_data)
 {   
     std::wstring wkey(in_key); 
@@ -74,9 +98,9 @@ void xwindow_key_event_handler(const wchar_t* in_key, void* client_data)
     }
 }
 
-// ## 
-// # Function to be called on XWindow Delete event
-// ##
+// 
+// Function to be called on XWindow Delete event
+//
 void xwindow_delete_event_handler(void* client_data)
 {
     std::cout<<"delete window event"<<std::endl;
@@ -84,31 +108,33 @@ void xwindow_delete_event_handler(void* client_data)
 }
     
 
-// # Function to be called on End-of-Stream (EOS) event
+// 
+// Function to be called on End-of-Stream (EOS) event
+// 
 void eos_event_listener(void* client_data)
 {
     std::cout<<"Pipeline EOS event"<<std::endl;
     dsl_main_loop_quit();
 }	
 
-// ## 
-// # Function to be called on every change of Pipeline state
-// ## 
+// 
+// Function to be called on every change of Pipeline state
+// 
 void state_change_listener(uint old_state, uint new_state, void* client_data)
 {
     std::cout<<"previous state = " << dsl_state_value_to_string(old_state) 
         << ", new state = " << dsl_state_value_to_string(new_state) << std::endl;
 }
 
-// ## 	
-// # Function to create all Display Types used in this example	
-// ## 	
+// 	
+// Function to create all Display Types used in this example	
+// 	
 DslReturnType create_display_types()
 {
     DslReturnType retval;
 
-    // # ````````````````````````````````````````````````````````````````````````````````````````````````````````	
-    // # Create new RGBA color types	
+    // ````````````````````````````````````````````````````````````````````````````````````````````````````````	
+    // Create new RGBA color types	
     retval = dsl_display_type_rgba_color_new(L"full-red", 1.0f, 0.0f, 0.0f, 1.0f);	
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
@@ -121,11 +147,11 @@ DslReturnType create_display_types()
     retval = dsl_display_type_rgba_font_new(L"impact-20-white", L"impact", 20, L"full-white");	
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
-    // # Create a new Text type object that will be used to show the recording in progress	
+    // Create a new Text type object that will be used to show the recording in progress	
     retval = dsl_display_type_rgba_text_new(L"rec-text", L"REC    ", 10, 30, L"impact-20-white", true, L"opaque-black");
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
-    // # A new RGBA Circle to be used to simulate a red LED light for the recording in progress.	
+    // A new RGBA Circle to be used to simulate a red LED light for the recording in progress.	
     return dsl_display_type_rgba_circle_new(L"red-led", 94, 52, 8, L"full-red", true, L"full-red");
 
 }
@@ -135,8 +161,8 @@ DslReturnType create_display_types()
 //	
 void* OnRecordingEvent(dsl_recording_info* session_info, void* client_data)
 {
-    // # session_info is obtained using the NVIDIA python bindings	
-    // # cast the C void* client_data back to a py_object pointer and deref
+    // session_info is obtained using the NVIDIA python bindings	
+    // cast the C void* client_data back to a py_object pointer and deref
     ClientData* camera = reinterpret_cast<ClientData*>(client_data);
 
     DslReturnType retval;
@@ -289,13 +315,13 @@ int main(int argc, char** argv)
 {  
     DslReturnType retval = DSL_RESULT_FAILURE;
 
-    // # Since we're not using args, we can Let DSL initialize GST on first call	
+    // Since we're not using args, we can Let DSL initialize GST on first call	
     while(true) // this construct allows us to use "break" to exit bracketed region below (better than "goto")
     {	
 
-        // # ````````````````````````````````````````````````````````````````````````````````````````````````````````	
-        // # This example is used to demonstrate the use of First Occurrence Triggers and Start Record Actions	
-        // # to control Record Taps with a multi camera setup	
+        // ````````````````````````````````````````````````````````````````````````````````````````````````````````	
+        // This example is used to demonstrate the use of First Occurrence Triggers and Start Record Actions	
+        // to control Record Taps with a multi camera setup	
 
         retval = create_display_types();
         if (retval != DSL_RESULT_SUCCESS) break;
@@ -315,31 +341,31 @@ int main(int argc, char** argv)
             primary_model_engine_file.c_str(), 4);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // # New KTL Tracker, setting max width and height of input frame	
+        // New KTL Tracker, setting max width and height of input frame	
         retval = dsl_tracker_iou_new(L"iou-tracker", tracker_config_file.c_str(), 480, 272);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // # New Tiled Display, setting width and height, use default cols/rows set by source count	
+        // New Tiled Display, setting width and height, use default cols/rows set by source count	
         retval = dsl_tiler_new(L"tiler", TILER_WIDTH, TILER_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // # Object Detection Event (ODE) Pad Probe Handler (PPH) to manage our ODE Triggers with their ODE Actions	
+        // Object Detection Event (ODE) Pad Probe Handler (PPH) to manage our ODE Triggers with their ODE Actions	
         retval = dsl_pph_ode_new(L"ode-handler");
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // # Add the ODE Pad Probe Handler to the Sink Pad of the Tiler	
+        // Add the ODE Pad Probe Handler to the Sink Pad of the Tiler	
         retval = dsl_tiler_pph_add(L"tiler", L"ode-handler", DSL_PAD_SINK);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // # New OSD with clock and text enabled... using default values.
+        // New OSD with clock and text enabled... using default values.
         retval = dsl_osd_new(L"on-screen-display", true, true);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display	
+        // New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display	
         retval = dsl_sink_window_new(L"window-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // # Add all the components to our pipeline	
+        // Add all the components to our pipeline	
         const wchar_t* cmpts[] = {L"primary-gie", L"iou-tracker", L"tiler", L"on-screen-display", L"window-sink", nullptr};
         retval = dsl_pipeline_new_component_add_many(L"pipeline", cmpts);	
         if (retval != DSL_RESULT_SUCCESS) break;
@@ -362,21 +388,21 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
 
-        // # Add the XWindow event handler functions defined above	
+        // Add the XWindow event handler functions defined above	
         retval = dsl_pipeline_xwindow_key_event_handler_add(L"pipeline", xwindow_key_event_handler, nullptr);	
         if (retval != DSL_RESULT_SUCCESS) break;
 
         retval = dsl_pipeline_xwindow_delete_event_handler_add(L"pipeline", xwindow_delete_event_handler, nullptr);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // ## Add the listener callback functions defined above
+        // Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add(L"pipeline", state_change_listener, nullptr);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         retval = dsl_pipeline_eos_listener_add(L"pipeline", eos_event_listener, nullptr);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // # Play the pipeline	
+        // Play the pipeline	
         retval = dsl_pipeline_play(L"pipeline");
         if (retval != DSL_RESULT_SUCCESS) break;
 
@@ -385,10 +411,10 @@ int main(int argc, char** argv)
         break;	        
     }
 
-    // # Print out the final result
+    // Print out the final result
     std::cout << "DSL Return: " <<  dsl_return_value_to_string(retval) << std::endl;
 
-    // # Cleanup all DSL/GST resources
+    // Cleanup all DSL/GST resources
     dsl_delete_all();
 
     std::cout<<"Goodbye!"<<std::endl;  

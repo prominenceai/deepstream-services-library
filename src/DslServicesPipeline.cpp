@@ -552,7 +552,7 @@ namespace DSL
                 LOG_ERROR("Pipeline '" << name << "' failed to clear its XWindow");
                 return DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED;
             }
-            LOG_ERROR("Pipeline '" << name << "' successfully cleared its XWindow");
+            LOG_INFO("Pipeline '" << name << "' successfully cleared its XWindow");
             
             return DSL_RESULT_SUCCESS;
         }
@@ -756,7 +756,7 @@ namespace DSL
             }
 
             LOG_INFO("Pipeline '" << name 
-                << "' transitioned to a state of PLAYING successfully");
+                << "' transitioned to a state of NULL successfully");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
