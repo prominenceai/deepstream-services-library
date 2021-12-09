@@ -25,7 +25,6 @@ THE SOFTWARE.
 #include <iostream> 
 #include <gst/gst.h>
 
-#include "catch.hpp"
 #include "DslApi.h"
 
 // File path for the single File Source
@@ -35,27 +34,15 @@ static const std::wstring file_path(L"/opt/nvidia/deepstream/deepstream-6.0/samp
 static const std::wstring dot_file = L"state-playing";
 
 // Window Sink Dimensions
-int sink_width = 1280;
-int sink_height = 720;
+uint sink_width = 1280;
+uint sink_height = 720;
 
 GMutex mutex;
 GCond cond;
 
 GThread* main_loop_thread(NULL);
 
-//
-// Thread function to start and wait on the main-loop
-//
-void* main_loop_thread_func(void *data)
-{
-    // Blocking call - until dsl_main_loop_quit() is called.
-    dsl_main_loop_run();
-
-    // Signal the waiting thread that the main-loop has quit
-    g_cond_signal(&cond);
-
-    return NULL;
-}
+uint g_num_active_pipelines = 0;
 
 // 	
 // Objects of this class will be used as "client_data" for all callback notifications.
@@ -83,6 +70,43 @@ struct ClientData
 DslReturnType create_pipeline(ClientData* client_data);
 DslReturnType delete_pipeline(ClientData* client_data);
 
+//
+// Thread function to start and wait on the main-loop
+//
+void* main_loop_thread_func(void *data)
+{
+    // Blocking call - until dsl_main_loop_quit() is called.
+    dsl_main_loop_run();
+
+    // Signal the waiting thread that the main-loop has quit
+    g_cond_signal(&cond);
+
+    return NULL;
+}
+
+//
+// Timer callback function to create a new Pipeline in the main-loop context
+//
+int create_handler(gpointer client_data)
+{
+    create_pipeline((ClientData*)client_data);
+
+    // one-shot timer callback - return 0 to stop.
+    return 0;
+}
+
+//
+// Timer callback function to delete a Pipeline in the main-loop context
+//
+int delete_handler(gpointer client_data)
+{
+    // now safe to stop and delete the Pipeline in the timer cb context.
+    delete_pipeline((ClientData*)client_data);
+
+    // one-shot timer callback - return 0 to stop.
+    return 0;
+}
+
 // 
 // Function to be called on XWindow KeyRelease event
 // 
@@ -100,8 +124,10 @@ void xwindow_key_event_handler(const wchar_t* in_key, void* client_data)
     } else if (key == "R"){
         dsl_pipeline_play(c_data->pipeline.c_str());
     } else if (key == "Q"){
-        std::cout << "Main Loop Quit" << std::endl;
-        delete_pipeline(c_data);
+        std::cout << "Pipeline Quit" << std::endl;
+
+        // schedule deletion of the Pipeline calling this cb
+        g_timeout_add(1, delete_handler, client_data);
     }
 }
 
@@ -114,7 +140,8 @@ void xwindow_delete_event_handler(void* client_data)
     std::cout << "delete window event for Pipeline " 
         << c_data->pipeline.c_str() << std::endl;
 
-    delete_pipeline((ClientData*)client_data);
+    // schedule deletion of the Pipeline calling this cb
+    g_timeout_add(1, delete_handler, client_data);
 }
 
 // 
@@ -124,7 +151,8 @@ void eos_event_listener(void* client_data)
 {
     std::cout << "Pipeline EOS event" << std::endl;
 
-    delete_pipeline((ClientData*)client_data);
+    // schedule deletion of the Pipeline calling this cb
+    g_timeout_add(1, delete_handler, client_data);
 }	
 
 // 
@@ -177,6 +205,8 @@ DslReturnType create_pipeline(ClientData* client_data)
     retval = dsl_pipeline_play(client_data->pipeline.c_str());
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
+    g_num_active_pipelines++;
+
     return retval;    
 }
 
@@ -187,8 +217,6 @@ DslReturnType delete_pipeline(ClientData* client_data)
     // Stop the pipeline
     retval = dsl_pipeline_stop(client_data->pipeline.c_str());
     if (retval != DSL_RESULT_SUCCESS) return retval;
-
-    retval = dsl_pipeline_xwindow_clear(client_data->pipeline.c_str());
 
     // Delete the Pipeline first, then the components. 
     retval = dsl_pipeline_delete(client_data->pipeline.c_str());
@@ -201,10 +229,18 @@ DslReturnType delete_pipeline(ClientData* client_data)
     retval = dsl_component_delete_many(component_names);
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
+    g_num_active_pipelines--;
+
+    if (!g_num_active_pipelines)
+    {
+        dsl_main_loop_quit();
+    }
+
     return retval;    
 }
 
-int main(int argc, char** argv)
+//int main(int argc, char** argv)
+int test()
 {  
     g_mutex_init(&mutex);
 	g_cond_init(&cond);
@@ -214,31 +250,32 @@ int main(int argc, char** argv)
     // # Since we're not using args, we can Let DSL initialize GST on first call
     while(true)
     {
-        // We can start the main loop in a seperate thread first
-        main_loop_thread = g_thread_new("main-loop", main_loop_thread_func, NULL);
-
         // Client data for 3 Pipelines
         ClientData client_data_1(1);
         ClientData client_data_2(2);
         ClientData client_data_3(3);
 
+        // Start the main loop in a seperate thread (first in this example)
+        // Note: we could wait until after creating all Pipelines.
+        main_loop_thread = g_thread_new("main-loop", main_loop_thread_func, NULL);
+
+        // Create the first Pipeline and sleep for a second to seperate 
+        // the start time with the next Pipeline.
         retval = create_pipeline(&client_data_1);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        g_usleep(2000000);
+        g_usleep(1000000);
 
+        // Create the second Pipeline. 
         retval = create_pipeline(&client_data_2);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        g_usleep(2000000);
+        // Use a timer callback to simulate an external event
+        // to start the 3rd Pipeline after we've joined the main-loop
+        g_timeout_add(2000, create_handler, &client_data_3);
 
-        dsl_main_loop_quit();
-
-        // Lock the mutex and wait for the main-loop to exit
-	    g_mutex_lock(&mutex);
-        g_cond_wait(&cond, &mutex);
-        g_mutex_unlock(&mutex);
-
+        // Nothing more to do in this context so join the main-loop
+        g_thread_join(main_loop_thread);
         break;
     }
 

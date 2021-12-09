@@ -68,7 +68,9 @@ namespace DSL
             XCloseDisplay(m_pXDisplay);
             // Setting the display handle to NULL will terminate the XWindow Event Thread.
             m_pXDisplay = NULL;
+            g_thread_join(m_pXWindowEventThread);
         }
+
         g_mutex_clear(&m_displayMutex);
         g_mutex_clear(&m_busSyncMutex);
     }
@@ -267,21 +269,16 @@ namespace DSL
         }
         return GST_BUS_PASS;
     }
-    
 
-    void PipelineXWinMgr::PrepareXWindow(GstMessage* pMessage)
-    {
-    }
-    
-    
     void PipelineXWinMgr::HandleXWindowEvents()
     {
         while (m_pXDisplay)
         {
             {
-                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
                 while (m_pXDisplay and XPending(m_pXDisplay)) 
                 {
+                    LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
+
                     XEvent xEvent;
                     XNextEvent(m_pXDisplay, &xEvent);
                     XButtonEvent buttonEvent = xEvent.xbutton;
