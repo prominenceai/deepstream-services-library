@@ -79,5 +79,7 @@ Come join us on [Discord](https://discord.gg/MJvY9jjpAK), an informal place to c
 * [Examples](/docs/examples.md)
   * [C/C++](/docs/examples-cpp.md)
   * [Python](/docs/examples-python.md)
+  * [Tkinter Reference App](/docs/examples-tkinter.md)
+  * [HTML WebRTC Client](/docs/examples-webrtc-html.md)
 * [Using VS Code](/docs/vscode.md)
 * [Logging and Debugging](/docs/debugging-dsl.md)
