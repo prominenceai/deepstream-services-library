@@ -4275,7 +4275,8 @@ DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_serve
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
 #elif GSTREAMER_SUB_VERSION < 18
-    return DSL_RESULT_API_NOT_IMPLEMENTED;
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -4305,7 +4306,8 @@ DslReturnType dsl_sink_webrtc_connection_close(const wchar_t* name)
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
 #elif GSTREAMER_SUB_VERSION < 18
-    return DSL_RESULT_API_NOT_IMPLEMENTED;
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -4320,7 +4322,8 @@ DslReturnType dsl_sink_webrtc_servers_get(const wchar_t* name,
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
 #elif GSTREAMER_SUB_VERSION < 18
-    return DSL_RESULT_API_NOT_IMPLEMENTED;
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -4354,7 +4357,8 @@ DslReturnType dsl_sink_webrtc_servers_set(const wchar_t* name,
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
 #elif GSTREAMER_SUB_VERSION < 18
-    return DSL_RESULT_API_NOT_IMPLEMENTED;
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -4385,7 +4389,8 @@ DslReturnType dsl_sink_webrtc_client_listener_add(const wchar_t* name,
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
 #elif GSTREAMER_SUB_VERSION < 18
-    return DSL_RESULT_API_NOT_IMPLEMENTED;
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(listener);
@@ -4404,7 +4409,8 @@ DslReturnType dsl_sink_webrtc_client_listener_remove(const wchar_t* name,
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
 #elif GSTREAMER_SUB_VERSION < 18
-    return DSL_RESULT_API_NOT_IMPLEMENTED;
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(listener);
@@ -4422,7 +4428,8 @@ DslReturnType dsl_websocket_server_path_add(const wchar_t* path)
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
 #elif GSTREAMER_SUB_VERSION < 18
-    return DSL_RESULT_API_NOT_IMPLEMENTED;
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(path);
 
@@ -4439,7 +4446,8 @@ DslReturnType dsl_websocket_server_listening_start(uint port_number)
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
 #elif GSTREAMER_SUB_VERSION < 18
-    return DSL_RESULT_API_NOT_IMPLEMENTED;
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     return DSL::Services::GetServices()->
         WebsocketServerListeningStart(port_number);
@@ -4451,7 +4459,8 @@ DslReturnType dsl_websocket_server_listening_stop()
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
 #elif GSTREAMER_SUB_VERSION < 18
-    return DSL_RESULT_API_NOT_IMPLEMENTED;
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     return DSL::Services::GetServices()->
         WebsocketServerListeningStop();
@@ -4464,7 +4473,8 @@ DslReturnType dsl_websocket_server_listening_state_get(boolean* is_listening,
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
 #elif GSTREAMER_SUB_VERSION < 18
-    return DSL_RESULT_API_NOT_IMPLEMENTED;
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     return DSL::Services::GetServices()->
         WebsocketServerListeningStateGet(is_listening, port_number);
@@ -4477,7 +4487,8 @@ DslReturnType dsl_websocket_server_client_listener_add(
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
 #elif GSTREAMER_SUB_VERSION < 18
-    return DSL_RESULT_API_NOT_IMPLEMENTED;
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(listener);
 
@@ -4492,7 +4503,8 @@ DslReturnType dsl_websocket_server_client_listener_remove(
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
 #elif GSTREAMER_SUB_VERSION < 18
-    return DSL_RESULT_API_NOT_IMPLEMENTED;
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(listener);
 

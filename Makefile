@@ -46,11 +46,6 @@ SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources
 INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources/includes
 LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/lib
 
-ifeq ($(GSTREAMER_SUB_VERSION),18)
-SRCS+= $(wildcard ./src/webrtc/*.cpp)
-SRCS+= $(wildcard ./test/webrtc/*.cpp)
-endif
-
 SRCS+= $(wildcard ./src/*.cpp)
 SRCS+= $(wildcard ./test/*.cpp)
 SRCS+= $(wildcard ./test/api/*.cpp)
@@ -60,6 +55,8 @@ INCS:= $(wildcard ./src/*.h)
 INCS+= $(wildcard ./test/*.hpp)
 
 ifeq ($(GSTREAMER_SUB_VERSION),18)
+SRCS+= $(wildcard ./src/webrtc/*.cpp)
+SRCS+= $(wildcard ./test/webrtc/*.cpp)
 INCS+= $(wildcard ./src/webrtc/*.h)
 endif
 

@@ -30,7 +30,7 @@ using namespace DSL;
 static const std::string primaryGieName = "primary-gie";
 static const std::string secondaryGieName = "secondary-gie";
 static const std::string inferConfigFile(
-    "/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_secondary_plan_engine_carcolor.txt");
+    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-trtis/config_infer_secondary_plan_engine_carcolor.txt");
 
 SCENARIO( "A new SecondaryTisBintr is created correctly",  "[SecondaryTisBintr]" )
 {

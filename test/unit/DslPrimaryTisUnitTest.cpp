@@ -29,7 +29,7 @@ using namespace DSL;
 
 static const std::string primaryTisName("primary-tis");
 static const std::string inferConfigFile(
-    "/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt");
+    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt");
     
 SCENARIO( "A new PrimaryTisBintr is created correctly",  "[PrimaryTisBintr]" )
 {
@@ -60,7 +60,7 @@ SCENARIO( "A new PrimaryTisBintr with its Batch Size set can LinkAll Child Eleme
     {
         std::string primaryTisName("primary-tis");
         std::string inferConfigFile(
-            "/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt");
+            "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt");
         uint interval(1);
 
         DSL_PRIMARY_TIS_PTR pPrimaryTisBintr = 

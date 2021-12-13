@@ -36,7 +36,7 @@ from waiting import wait
 # This script demonstrates the use of a WebRtc Sink
 
 # File path for the single File Source
-file_path = '/opt/nvidia/deepstream/deepstream-6.0/samples/streams/sample_qHD.mp4'
+file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4'
 
 stun_server = "stun://stun.l.google.com:19302"
 
