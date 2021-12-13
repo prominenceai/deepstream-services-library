@@ -39,8 +39,9 @@ THE SOFTWARE.
 #define DSL_RESULT_SUCCESS                                          0x00000000
 #define DSL_RESULT_FAILURE                                          0x00000001
 #define DSL_RESULT_API_NOT_IMPLEMENTED                              0x00000002
-#define DSL_RESULT_INVALID_INPUT_PARAM                              0x00000003
-#define DSL_RESULT_THREW_EXCEPTION                                  0x00000004
+#define DSL_RESULT_API_NOT_SUPPORTED                                0x00000003
+#define DSL_RESULT_INVALID_INPUT_PARAM                              0x00000004
+#define DSL_RESULT_THREW_EXCEPTION                                  0x00000005
 #define DSL_RESULT_INVALID_RESULT_CODE                              UINT32_MAX
 
 /**

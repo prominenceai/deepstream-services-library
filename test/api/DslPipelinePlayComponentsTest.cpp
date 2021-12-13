@@ -50,15 +50,15 @@ static const std::wstring model_engine_file(L"./test/models/Primary_Detector_Nan
 // Note: Creating segmantation model engine file with the below config files builds the
 // engine under the trtis_model_repo, even though we are not using the triton inference server
 static const std::wstring sem_seg_infer_config_file(
-    L"/opt/nvidia/deepstream/deepstream-5.1/sources/apps/sample_apps/deepstream-segmentation-test/dstest_segmentation_config_semantic.txt");
+    L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-segmentation-test/dstest_segmentation_config_semantic.txt");
 static const std::wstring sem_seg_model_engine_file(
-    L"/opt/nvidia/deepstream/deepstream-5.1/samples/trtis_model_repo/Segmentation_Semantic/1/unetres18_v4_pruned0.65_800_data.uff_b1_gpu0_fp32.engine");
+    L"/opt/nvidia/deepstream/deepstream/samples/trtis_model_repo/Segmentation_Semantic/1/unetres18_v4_pruned0.65_800_data.uff_b1_gpu0_fp32.engine");
 
-static const std::wstring image_path2(L"/opt/nvidia/deepstream/deepstream-5.1/samples/streams/sample_industrial.jpg");
+static const std::wstring image_path2(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_industrial.jpg");
 static const std::wstring ind_seg_infer_config_file(
-    L"/opt/nvidia/deepstream/deepstream-5.1/sources/apps/sample_apps/deepstream-segmentation-test/dstest_segmentation_config_industrial.txt");
+    L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-segmentation-test/dstest_segmentation_config_industrial.txt");
 static const std::wstring ind_seg_model_engine_file(
-    L"/opt/nvidia/deepstream/deepstream-5.1/samples/trtis_model_repo/Segmentation_Industrial/1/unet_output_graph.uff_b1_gpu0_fp32.engine");
+    L"/opt/nvidia/deepstream/deepstream/samples/trtis_model_repo/Segmentation_Industrial/1/unet_output_graph.uff_b1_gpu0_fp32.engine");
 
 static const std::wstring seg_visual_name(L"segvisual");
 static const uint seg_visual_width(512);

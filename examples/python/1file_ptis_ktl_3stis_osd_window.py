@@ -41,19 +41,19 @@ from dsl import *
 # On-Screen-Display (OSD), and Window Sink with 1280x720 dimensions.
 
 # File path for the single File Source
-file_path = '/opt/nvidia/deepstream/deepstream-5.1/samples/streams/sample_qHD.mp4'
+file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4'
 
 # Filespecs for the Primary Triton Inference Server (PTIS)
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt'
 
 # Filespecs for the Three Secondary Triton Inference Servers (STIS)
 secondary_infer_config_file1 = \
-    '/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_secondary_plan_engine_carcolor.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-trtis/config_infer_secondary_plan_engine_carcolor.txt'
 secondary_infer_config_file2 = \
-    '/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_secondary_plan_engine_carmake.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-trtis/config_infer_secondary_plan_engine_carmake.txt'
 secondary_infer_config_file3 = \
-    '/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_secondary_plan_engine_vehicletypes.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-trtis/config_infer_secondary_plan_engine_vehicletypes.txt'
 
 # Window Sink Dimensions
 sink_width = 1280

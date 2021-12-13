@@ -33,11 +33,11 @@ THE SOFTWARE.
 
 static const std::wstring primary_tis_name(L"primary-tis");
 static const std::wstring ptis_infer_config_file(
-    L"/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt");
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt");
 
 static const std::wstring secondary_tis_name(L"secondary-tis");
 static const std::wstring stis_infer_config_file(
-    L"/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_secondary_plan_engine_carcolor.txt");
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-trtis/config_infer_secondary_plan_engine_carcolor.txt");
 
 static const std::wstring file_path(L"./test/streams/sample_1080p_h264.mp4");
 
