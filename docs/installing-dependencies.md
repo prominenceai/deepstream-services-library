@@ -1,9 +1,9 @@
 # Installing DSL Dependencies
-The DeepStream Services Library (DSL) is built on the NVIDA® [DeepStream SDK](https://developer.nvidia.com/deepstream-sdk) and requires all SDK components to be installed and verified. The current Alpha version of DSL supports only the NVIDI® Jetson™ platform, and all development and testing to date has been done on the Jetson Nano™ 4GB Developer Kit. Testing will be scaled up to larger models before releasing v1.0.
+The DeepStream Services Library (DSL) is built on the NVIDA® [DeepStream SDK](https://developer.nvidia.com/deepstream-sdk) and requires all SDK components to be installed and verified. 
 
 Please consult the [NVIDIA DeepStream Quick Start Guide](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Quickstart.html) for complete Installation Instructions.
 
-DSL is built on [Deepstream 5.1](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Quickstart.html) and [JetPack 4.5.1 GA (corresponding to L4T 32.5.1 release)](https://developer.nvidia.com/embedded/jetpack)
+The latest version of DSL has been verifed with DeepStream Versions 5.1 and 6.0
 
 ## GStreamer RTSP Server
 The RTSP Server lib is required by the RTSP Sink Component
@@ -37,6 +37,19 @@ libcurl provides Secure Socket Layer (SSL) protocol services.
 ```
 sudo apt update
 sudo apt install libcurl4-openssl-dev
+```
+
+## GLib JSON - GStreamer 1.18
+libjson-glib is required if building with GStreamer 1.18 on Ubunto 20.24. The lib provides JSON serialization/deserialization services for the WebRTC Sink. **Note: the WebRTC requires GStream 1.18 or later - only available on Ubuntu 20.04**
+```
+sudo apt-get install libjson-glib-1.0-0
+```
+
+## Lib Soup - GStreamer 1.18
+libsoup is required if building with GStreamer 1.18 on Ubunto 20.24. The lib provides services required for the WebSocket Server and WebRTC Sink API. **Note: the WebRTC requires GStream 1.18 or later - only available on Ubuntu 20.04**
+```
+sudo apt update
+sudo apt install libsoup-gnome2.4-dev
 ```
 
 ## Optional Documentation and Debug Dependencies
