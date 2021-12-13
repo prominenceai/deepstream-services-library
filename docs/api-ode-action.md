@@ -35,7 +35,7 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 
 **Callback Types:**
 * [dsl_capture_complete_listener_cb](#dsl_capture_complete_listener_cb)
-* [dsl_ode_handle_occurrence_cb](dsl_ode_handle_occurrence_cb)
+* [dsl_ode_handle_occurrence_cb](#dsl_ode_handle_occurrence_cb)
 
 **Constructors:**
 * [dsl_ode_action_action_disable_new](#dsl_ode_action_action_disable_new)
