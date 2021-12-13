@@ -54,14 +54,15 @@ retval += dsl_source_csi_new('my-source', width=1280, height=720, fps_n=30, fps_
 # create more Source Components as needed
 # ...
 
-# new Primary Inference Engine - path to model engine and config file, interval=0 - infer on every frame
-retval += dsl_infer_gie_primary_new('my-pgie', path_to_engine_file, path_to_config_file, interval=0)
+# new Primary Inference Engine - path to config file and model engine, interval=0 - infer on every frame
+retval += dsl_infer_gie_primary_new('my-pgie', path_to_config_file, path_to_model_engine, interval=0)
 
 # new Multi-Source Tiler with dimensions of width and height 
 retval += dsl_tiler_new('my-tiler', width=1280, height=720)
 
-# new On-Screen Display for inference visualization - bounding boxes and labels - with clock enabled
-retval += dsl_osd_new('my-osd', clock_enabled=True)
+# new On-Screen Display for inference visualization - bounding boxes and labels - 
+# with both labels and clock enabled
+retval += dsl_osd_new('my-osd', text_enabled=True, clock_enabled=True)
 
 # new X11/EGL Window Sink for video rendering - Pipeline will create a new XWindow if one is not provided
 retval += dsl_sink_window_new('my-window-sink', width=1280, height=720)
@@ -273,7 +274,6 @@ Last, create the two RTMP Decode Sources, Primary GIE, and Tracker. Then add the
 retval = dsl_source_rtsp_new('src-1', 
     url = rtsp_uri_1, 
     protocol = DSL_RTP_ALL, 
-    cudadec_mem_type = DSL_CUDADEC_MEMTYPE_DEVICE, 
     intra_decode = Fale, 
     drop_frame_interval = 0, 
     latency=100)
@@ -281,7 +281,6 @@ retval = dsl_source_rtsp_new('src-1',
 retval = dsl_source_rtsp_new('src-2', 
     url = rtsp_uri_2, 
     protocol = DSL_RTP_ALL, 
-    cudadec_mem_type = DSL_CUDADEC_MEMTYPE_DEVICE, 
     intra_decode = Fale, 
     drop_frame_interval = 0, 
     latency=100)
@@ -326,7 +325,6 @@ retval = dsl_tee_splitter_new_branch_add_many('splitter', branches=['branch-1, '
 retval = dsl_source_rtsp_new('src-1', 
     url = rtsp_uri_1, 
     protocol = DSL_RTP_ALL, 
-    cudadec_mem_type = DSL_CUDADEC_MEMTYPE_DEVICE, 
     intra_decode = Fale, 
     drop_frame_interval = 0, 
     latency=100)
@@ -334,7 +332,6 @@ retval = dsl_source_rtsp_new('src-1',
 retval = dsl_source_rtsp_new('src-2', 
     url = rtsp_uri_2, 
     protocol = DSL_RTP_ALL, 
-    cudadec_mem_type = DSL_CUDADEC_MEMTYPE_DEVICE, 
     intra_decode = Fale, 
     drop_frame_interval = 0, 
     latency=100)
@@ -450,7 +447,7 @@ retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, green=0.0, blue=
 retval = dsl_ode_action_fill_object_new('fill-action', color='opaque-red')
 
 # create a list of X,Y coordinates defining the points of the Polygon.
-# Polygons can have a minimum of 3, maximum of 8 points (sides)
+# Polygons can have a minimum of 3, maximum of 16 points (sides)
 coordinates = [dsl_coordinate(365,600), dsl_coordinate(580,620), 
     dsl_coordinate(600, 770), dsl_coordinate(180,750)]
 
