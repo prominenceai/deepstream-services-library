@@ -92,13 +92,25 @@ namespace DSL
          * @brief Gets the current Streammuxer "play-type-is-live" setting
          * @return true if play-type is live, false otherwise
          */
-        bool StreamMuxPlayTypeIsLiveGet();        
+        bool StreamMuxPlayTypeIsLiveGet();
 
         /**
          * @brief Sets the current Streammuxer play type based on the first source added
          * @param isLive set to true if all sources are to be Live, and therefore live only.
          */
-        void StreamMuxPlayTypeIsLiveSet(bool isLive);        
+        void StreamMuxPlayTypeIsLiveSet(bool isLive);
+
+        /**
+         * @brief Gets the current Streammuxer NVIDIA buffer memory type
+         * @return one of the DSL_NVBUF_MEM_TYPE constant values
+         */
+        uint GetStreamMuxNvbufMemType();
+
+        /**
+         * @brief Sets the Streammuxer's NVIDIA buffer memory type
+         * @param[in] type one of the DSL_NVBUF_MEM_TYPE constant values.
+         */
+        void SetStreamMuxNvbufMemType(uint type);
         
         /**
          * @brief Gets the current batch settings for the SourcesBintr's Stream Muxer
@@ -183,34 +195,52 @@ namespace DSL
 
         DSL_ELEMENT_PTR m_pStreamMux;
         
+        /**
+         * @brief container of all child sources mapped by their unique names
+         */
         std::map<std::string, DSL_SOURCE_PTR> m_pChildSources;
         
         /**
-         @brief
+         * @brief Each source is assigned a unique stream id when linked
+         * the vector is used on dynamic add/remove to find the next available
+         * stream id.
+         */
+        std::vector<bool> m_usedStreamIds;
+
+        /**
+         * @brief true if all sources are live, false if all sources are non-live
          */
         bool m_areSourcesLive;
 
         /**
-         @brief
+         * @brief current NVIDIA buffer memory type in use by the Streammuxer
+         * set to DLS_NVBUF_MEM_DEFAULT on creation.
+         */
+        uint m_nvbufMemType;
+
+        /**
+         * @brief Stream-muxer batch timeout used when waiting for all sources
+         * to produce a frame when batching together
          */
         gint m_batchTimeout;
+        
         /**
-         @brief
+         * @brief Stream-muxer batched frame output width in pixels
          */
         gint m_streamMuxWidth;
 
         /**
-         @brief
+         * @brief Stream-muxer batched frame output height in pixels
          */
         gint m_streamMuxHeight;
 
         /**
-         @brief
+         * @brief true if frame padding is enabled, false otherwise
          */
         bool m_isPaddingEnabled;
         
         /**
-         @brief Number of surfaces-per-frame stream-muxer setting
+         * @brief Number of surfaces-per-frame stream-muxer setting
          */
         int m_numSurfacesPerFrame;
     };

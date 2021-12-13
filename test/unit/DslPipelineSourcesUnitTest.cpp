@@ -335,7 +335,7 @@ SCENARIO( "All GST Resources are released on PipelineSourcesBintr destruction", 
     }
 }
 
-SCENARIO( "The Pipeline Stream Muxer's num-surfaces-per-frame can be read and updaed",  "[PipelineSourcesBintr]" )
+SCENARIO( "The Pipeline Streammuxer's num-surfaces-per-frame can be read and updaed",  "[PipelineSourcesBintr]" )
 {
     GIVEN( "A new PipelineSourcesBintr with single SourceBintr" ) 
     {
@@ -362,7 +362,7 @@ SCENARIO( "The Pipeline Stream Muxer's num-surfaces-per-frame can be read and up
         pPipelineSourcesBintr->GetStreamMuxNumSurfacesPerFrame(&num);
         REQUIRE( num == 1 );
             
-        WHEN( "The Stream Muxer's num-surfaces-per-frame is set t a new value " )
+        WHEN( "The Stream Muxer's num-surfaces-per-frame is set to a new value " )
         {
             pPipelineSourcesBintr->SetStreamMuxNumSurfacesPerFrame(2);
              
@@ -372,6 +372,31 @@ SCENARIO( "The Pipeline Stream Muxer's num-surfaces-per-frame can be read and up
                 
                 pPipelineSourcesBintr->GetStreamMuxNumSurfacesPerFrame(&num);
                 REQUIRE( num == 2 );
+            }
+        }
+    }
+}
+
+SCENARIO( "The Pipeline Streammuxer's nvbuf-memory-type can be read and updated",  "[PipelineSourcesBintr]" )
+{
+    GIVEN( "A new PipelineSourcesBintr" ) 
+    {
+        std::string pipelineSourcesName = "pipeline-sources";
+
+        DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
+
+        REQUIRE( pPipelineSourcesBintr->GetStreamMuxNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
+            
+        WHEN( "The Stream Muxer's num-surfaces-per-frame is set to a new value " )
+        {
+            uint newNvbufMemType = DSL_NVBUF_MEM_TYPE_UNIFIED;
+        
+            pPipelineSourcesBintr->SetStreamMuxNvbufMemType(newNvbufMemType);
+             
+            THEN( "The correct value is returned on get" )
+            {
+                REQUIRE( pPipelineSourcesBintr->GetStreamMuxNvbufMemType() == newNvbufMemType );
             }
         }
     }

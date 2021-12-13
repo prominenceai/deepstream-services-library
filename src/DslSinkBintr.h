@@ -63,19 +63,19 @@ namespace DSL
     #define DSL_ENCODE_SINK_PTR std::shared_ptr<EncodeSinkBintr>
         
     #define DSL_FILE_SINK_PTR std::shared_ptr<FileSinkBintr>
-    #define DSL_FILE_SINK_NEW(name, filepath, codec, container, bitRate, interval) \
+    #define DSL_FILE_SINK_NEW(name, filepath, codec, container, bitrate, interval) \
         std::shared_ptr<FileSinkBintr>( \
-        new FileSinkBintr(name, filepath, codec, container, bitRate, interval))
+        new FileSinkBintr(name, filepath, codec, container, bitrate, interval))
         
     #define DSL_RECORD_SINK_PTR std::shared_ptr<RecordSinkBintr>
-    #define DSL_RECORD_SINK_NEW(name, outdir, codec, container, bitRate, interval, clientListener) \
+    #define DSL_RECORD_SINK_NEW(name, outdir, codec, container, bitrate, interval, clientListener) \
         std::shared_ptr<RecordSinkBintr>( \
-        new RecordSinkBintr(name, outdir, codec, container, bitRate, interval, clientListener))
+        new RecordSinkBintr(name, outdir, codec, container, bitrate, interval, clientListener))
         
     #define DSL_RTSP_SINK_PTR std::shared_ptr<RtspSinkBintr>
-    #define DSL_RTSP_SINK_NEW(name, host, udpPort, rtspPort, codec, bitRate, interval) \
+    #define DSL_RTSP_SINK_NEW(name, host, udpPort, rtspPort, codec, bitrate, interval) \
         std::shared_ptr<RtspSinkBintr>( \
-        new RtspSinkBintr(name, host, udpPort, rtspPort, codec, bitRate, interval))
+        new RtspSinkBintr(name, host, udpPort, rtspPort, codec, bitrate, interval))
         
         
     class SinkBintr : public Bintr
@@ -86,10 +86,24 @@ namespace DSL
 
         ~SinkBintr();
   
+        /**
+         * @brief adds this SinkBintr to a parent Branch/Pipeline bintr
+         * @param[in] pParentBintr parent bintr to add this sink to
+         * @return true on successful add, false otherwise
+         */
         bool AddToParent(DSL_BASE_PTR pParentBintr);
 
+        /**
+         * @brief checks if a Bintr is the a parent Branch/Pipeline bintr of this sink
+         * @param[in] pParentBintr parent bintr to check
+         */
         bool IsParent(DSL_BASE_PTR pParentBintr);
         
+        /**
+         * @brief removes this SinkBintr from a parent Branch/Pipeline bintr
+         * @param[in] pParentBintr parent bintr to remove this sink from
+         * @return true on successful remove, false otherwise
+         */
         bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
         
         /**
@@ -384,6 +398,20 @@ namespace DSL
          */
         bool SetForceAspectRatio(bool force);
 
+        /**
+         * @brief Sets the GPU ID for all Elementrs - x86_64 builds only.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetGpuId(uint gpuId);
+
+        /**
+         * @brief Sets the NVIDIA buffer memory type - x86_64 builds only.
+         * @brief nvbufMemType new memory type to use, one of the 
+         * DSL_NVBUF_MEM_TYPE constant values.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetNvbufMemType(uint nvbufMemType);
+
     private:
 
         boolean m_qos;
@@ -411,30 +439,25 @@ namespace DSL
     {
     public: 
     
-        EncodeSinkBintr(const char* name, 
-            uint codec, uint container, uint bitRate, uint interval);
-
-        /**
-         * @brief Gets the current codec and media container formats for FileSinkBintr
-         * @param[out] codec the current codec format in use [MPEG, H.264, H.265]
-         * @param[out] container the current media container format [MPEG, MK4]
-         */ 
-        void GetVideoFormats(uint* codec, uint* container);
+        EncodeSinkBintr(const char* name,
+            uint codec, uint bitrate, uint interval);
 
         /**
          * @brief Gets the current bit-rate and interval settings for the Encoder in use
-         * @param[out] bitRate the current bit-rate setting for the encoder in use
+         * @param[out] code the currect codec in used
+         * @param[out] bitrate the current bit-rate setting for the encoder in use
          * @param[out] interval the current iframe interval for the encoder in use
          */ 
-        void GetEncoderSettings(uint* bitRate, uint* interval);
+        void GetEncoderSettings(uint* codec, uint* bitrate, uint* interval);
 
         /**
          * @brief Sets the current bit-rate and interval settings for the Encoder in use
-         * @param[in] bitRate the new bit-rate setting in uints of bits/sec
+         * @param[in] codec the new code to use, either DSL_CODEC_H264 or DSL_CODE_H265
+         * @param[in] bitrate the new bit-rate setting in uints of bits/sec
          * @param[in] interval the new iframe-interval setting
          * @return false if the FileSink is currently in Use. True otherwise
          */ 
-        bool SetEncoderSettings(uint bitRate, uint interval);
+        bool SetEncoderSettings(uint codec, uint bitrate, uint interval);
 
         /**
          * @brief Sets the GPU ID for all Elementrs
@@ -445,15 +468,13 @@ namespace DSL
     protected:
 
         uint m_codec;
-        uint m_container;
-        uint m_bitRate;
+        uint m_bitrate;
         uint m_interval;
  
         DSL_ELEMENT_PTR m_pTransform;
         DSL_ELEMENT_PTR m_pCapsFilter;
         DSL_ELEMENT_PTR m_pEncoder;
         DSL_ELEMENT_PTR m_pParser;
-        DSL_ELEMENT_PTR m_pContainer;       
     };
 
     //-------------------------------------------------------------------------
@@ -463,7 +484,7 @@ namespace DSL
     public: 
     
         FileSinkBintr(const char* name, const char* filepath, 
-            uint codec, uint container, uint bitRate, uint interval);
+            uint codec, uint container, uint bitrate, uint interval);
 
         ~FileSinkBintr();
   
@@ -490,7 +511,11 @@ namespace DSL
         
     private:
 
+        uint m_container;
+
         DSL_ELEMENT_PTR m_pFileSink;
+
+        DSL_ELEMENT_PTR m_pContainer;       
     };
 
     //-------------------------------------------------------------------------
@@ -500,7 +525,7 @@ namespace DSL
     public: 
     
         RecordSinkBintr(const char* name, const char* outdir, uint codec, uint container, 
-            uint bitRate, uint interval, dsl_record_client_listener_cb clientListener);
+            uint bitrate, uint interval, dsl_record_client_listener_cb clientListener);
 
         ~RecordSinkBintr();
   
@@ -530,17 +555,18 @@ namespace DSL
          * @brief Node to wrap NVIDIA's Record Bin
          */
         DSL_NODETR_PTR m_pRecordBin;
+
     };
 
 
     //-------------------------------------------------------------------------
 
-    class RtspSinkBintr : public SinkBintr
+    class RtspSinkBintr : public EncodeSinkBintr
     {
     public: 
     
         RtspSinkBintr(const char* name, const char* host, uint udpPort, uint rtspPort,
-         uint codec, uint bitRate, uint interval);
+         uint codec, uint bitrate, uint interval);
 
         ~RtspSinkBintr();
   
@@ -560,24 +586,8 @@ namespace DSL
          * @brief Gets the current codec and media container formats for RtspSinkBintr
          * @param[out] port the current UDP port number for the RTSP Server
          * @param[out] port the current RTSP port number for the RTSP Server
-         * @param[out] codec the current codec format in use [H.264, H.265]
          */ 
-        void GetServerSettings(uint* udpPort, uint* rtspPort, uint* codec);
-
-        /**
-         * @brief Gets the current bit-rate and interval settings for the Encoder in use
-         * @param[out] bitRate the current bit-rate setting for the Encoder in use
-         * @param[out] interval the current iframe interval to write to file
-         */ 
-        void GetEncoderSettings(uint* bitRate, uint* interval);
-
-        /**
-         * @brief Sets the current bit-rate and interval settings for the Encoder in use
-         * @param[in] bitRate the new bit-rate setting in uints of bits/sec
-         * @param[in] interval the new iframe-interval setting
-         * @return false if the FileSink is currently in Use. True otherwise
-         */ 
-        bool SetEncoderSettings(uint bitRate, uint interval);
+        void GetServerSettings(uint* udpPort, uint* rtspPort);
 
         /**
          * @brief sets the current sync and async settings for the SinkBintr
@@ -593,20 +603,13 @@ namespace DSL
         std::string m_host;
         uint m_udpPort;
         uint m_rtspPort;
-        uint m_codec;
-        uint m_bitRate;
-        uint m_interval;
         
         GstRTSPServer* m_pServer;
         uint m_pServerSrcId;
         GstRTSPMediaFactory* m_pFactory;
  
+        DSL_ELEMENT_PTR m_pPayloader;
         DSL_ELEMENT_PTR m_pUdpSink;
-        DSL_ELEMENT_PTR m_pTransform;
-        DSL_ELEMENT_PTR m_pCapsFilter;
-        DSL_ELEMENT_PTR m_pEncoder;
-        DSL_ELEMENT_PTR m_pParser;
-        DSL_ELEMENT_PTR m_pPayloader;  
     };
     
 }

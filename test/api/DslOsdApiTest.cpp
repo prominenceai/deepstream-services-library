@@ -303,9 +303,11 @@ SCENARIO( "An OSD's Clock Font can be updated", "[osd-api]" )
 
 static boolean pad_probe_handler_cb1(void* buffer, void* user_data)
 {
+    return true;
 }
 static boolean pad_probe_handler_cb2(void* buffer, void* user_data)
 {
+    return true;
 }
     
 SCENARIO( "A Sink Pad Probe Handler can be added and removed from a OSD", "[osd-api]" )

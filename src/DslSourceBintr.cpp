@@ -35,6 +35,7 @@ namespace DSL
 {
     SourceBintr::SourceBintr(const char* name)
         : Bintr(name)
+        , m_cudaDeviceProp{0}
         , m_isLive(TRUE)
         , m_width(0)
         , m_height(0)
@@ -45,6 +46,9 @@ namespace DSL
         , m_numExtraSurfaces(N_EXTRA_SURFACES)
     {
         LOG_FUNC();
+
+            // Get the Device properties
+        cudaGetDeviceProperties(&m_cudaDeviceProp, m_gpuId);
     }
     
     SourceBintr::~SourceBintr()
@@ -119,12 +123,13 @@ namespace DSL
         m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_CAMERA_CSI, "csi_camera_elem");
         m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "src_caps_filter");
 
-        m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
-        m_pSourceElement->SetAttribute("bufapi-version", TRUE);
+        // aarch64
+        if (m_cudaDeviceProp.integrated)
+        {
+            m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
+            m_pSourceElement->SetAttribute("bufapi-version", TRUE);
+        }
         
-        // Note: not present in Deepstream 5.0
-        // m_pSourceElement->SetAttribute("maxperf", TRUE);
-
         GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
             "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
             "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
@@ -192,7 +197,6 @@ namespace DSL
         guint width, guint height, guint fpsN, guint fpsD)
         : SourceBintr(name)
         , m_sensorId(0)
-        , m_cudaDeviceProp{0}
     {
         LOG_FUNC();
 
@@ -203,9 +207,6 @@ namespace DSL
         
         m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_CAMERA_V4L2, "usb_camera_elem");
         m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "src_caps_filter");
-
-        // Get the Device properties
-        cudaGetDeviceProperties(&m_cudaDeviceProp, m_gpuId);
 
         if (!m_cudaDeviceProp.integrated)
         {
@@ -232,7 +233,7 @@ namespace DSL
         gst_caps_unref(pCaps);        
         
         m_pVidConv2->SetAttribute("gpu-id", m_gpuId);
-        m_pVidConv2->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
+        m_pVidConv2->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
 
         AddChild(m_pSourceElement);
         AddChild(m_pCapsFilter);
@@ -328,9 +329,9 @@ namespace DSL
 
     DecodeSourceBintr::DecodeSourceBintr(const char* name, 
         const char* factoryName, const char* uri,
-        bool isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
+        bool isLive, uint intraDecode, uint dropFrameInterval)
         : ResourceSourceBintr(name, uri)
-        , m_cudadecMemtype(cudadecMemType)
+        , m_cudadecMemtype(DSL_NVBUF_MEM_TYPE_DEFAULT)
         , m_intraDecode(intraDecode)
         , m_dropFrameInterval(dropFrameInterval)
         , m_accumulatedBase(0)
@@ -483,7 +484,11 @@ namespace DSL
             {
                 g_object_set(pObject, "skip-frames", 2, NULL);
             }
-            g_object_set(pObject, "enable-max-performance", TRUE, NULL);
+            // aarch64 only
+            if (m_cudaDeviceProp.integrated)
+            {
+                g_object_set(pObject, "enable-max-performance", TRUE, NULL);
+            }
             g_object_set(pObject, "drop-frame-interval", m_dropFrameInterval, NULL);
             g_object_set(pObject, "num-extra-surfaces", m_numExtraSurfaces, NULL);
 
@@ -632,9 +637,9 @@ namespace DSL
     //*********************************************************************************
 
     UriSourceBintr::UriSourceBintr(const char* name, const char* uri, bool isLive,
-        uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
-        : DecodeSourceBintr(name, NVDS_ELEM_SRC_URI, uri, isLive, 
-            cudadecMemType, intraDecode, dropFrameInterval)
+        uint intraDecode, uint dropFrameInterval)
+        : DecodeSourceBintr(name, NVDS_ELEM_SRC_URI, uri, 
+            isLive, intraDecode, dropFrameInterval)
     {
         LOG_FUNC();
         
@@ -850,8 +855,7 @@ namespace DSL
 
     FileSourceBintr::FileSourceBintr(const char* name, 
         const char* uri, bool repeatEnabled)
-        : UriSourceBintr(name, uri, false, 
-            DSL_CUDADEC_MEMTYPE_DEVICE, false, 0)
+        : UriSourceBintr(name, uri, false, false, 0)
     {
         LOG_FUNC();
         
@@ -1096,11 +1100,10 @@ namespace DSL
     
     //*********************************************************************************
     
-    RtspSourceBintr::RtspSourceBintr(const char* name, const char* uri, uint protocol,
-        uint cudadecMemType, uint intraDecode, uint dropFrameInterval, 
+    RtspSourceBintr::RtspSourceBintr(const char* name, const char* uri, 
+        uint protocol, uint intraDecode, uint dropFrameInterval, 
         uint latency, uint timeout)
-        : DecodeSourceBintr(name, 
-            "rtspsrc", uri, true, cudadecMemType, intraDecode, dropFrameInterval)
+        : DecodeSourceBintr(name, "rtspsrc", uri, true, intraDecode, dropFrameInterval)
         , m_rtpProtocols(protocol)
         , m_bufferTimeout(timeout)
         , m_streamManagerTimerId(0)
@@ -1658,6 +1661,11 @@ namespace DSL
         }
         LOG_INFO("Buffer timeout of " << m_bufferTimeout << " seconds exceeded for source '" 
             << GetName() << "'");
+            
+        if (HasTapBintr())
+        {
+            m_pTapBintr->HandleEos();
+        }
         
         // Call the Reconnection Managter directly to start the reconnection cycle,
         if (!ReconnectionManager())
@@ -1888,7 +1896,7 @@ namespace DSL
     static boolean RtspSourceSelectStreamCB(GstElement *pBin, uint num, GstCaps *caps,
         gpointer pSource)
     {
-        static_cast<RtspSourceBintr*>(pSource)->HandleSelectStream(pBin, num, caps);
+        return static_cast<RtspSourceBintr*>(pSource)->HandleSelectStream(pBin, num, caps);
     }
         
     static void RtspSourceElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource)

@@ -39,8 +39,9 @@ THE SOFTWARE.
 #define DSL_RESULT_SUCCESS                                          0x00000000
 #define DSL_RESULT_FAILURE                                          0x00000001
 #define DSL_RESULT_API_NOT_IMPLEMENTED                              0x00000002
-#define DSL_RESULT_INVALID_INPUT_PARAM                              0x00000003
-#define DSL_RESULT_THREW_EXCEPTION                                  0x00000004
+#define DSL_RESULT_API_NOT_SUPPORTED                                0x00000003
+#define DSL_RESULT_INVALID_INPUT_PARAM                              0x00000004
+#define DSL_RESULT_THREW_EXCEPTION                                  0x00000005
 #define DSL_RESULT_INVALID_RESULT_CODE                              UINT32_MAX
 
 /**
@@ -56,6 +57,7 @@ THE SOFTWARE.
 #define DSL_RESULT_COMPONENT_NOT_USED_BY_BRANCH                     0x00010007
 #define DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE                   0x00010008
 #define DSL_RESULT_COMPONENT_SET_GPUID_FAILED                       0x00010009
+#define DSL_RESULT_COMPONENT_SET_NVBUF_MEM_TYPE_FAILED              0x0001000A
 
 /**
  * Source API Return Values
@@ -134,7 +136,9 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_MAILER_ADD_FAILED                           0x00040014
 #define DSL_RESULT_SINK_MAILER_REMOVE_FAILED                        0x00040015
 #define DSL_RESULT_SINK_OVERLAY_NOT_SUPPORTED                       0x00040016
-
+#define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_ADD_FAILED           0x00040017
+#define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED        0x00040018
+#define DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED             0x00040019
 
 /**
  * OSD API Return Values
@@ -406,11 +410,27 @@ THE SOFTWARE.
 #define DSL_RESULT_SEGVISUAL_HANDLER_REMOVE_FAILED                  0x00600008
 
 /**
- *
+ * Websocket Server Manger API Return Values
  */
-#define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
-#define DSL_CUDADEC_MEMTYPE_PINNED                                  1
-#define DSL_CUDADEC_MEMTYPE_UNIFIED                                 2
+#define DSL_RESULT_WEBSOCKET_SERVER_RESULT                          0x00700000
+#define DSL_RESULT_WEBSOCKET_SERVER_THREW_EXCEPTION                 0x00700001
+#define DSL_RESULT_WEBSOCKET_SERVER_SET_FAILED                      0x00700002
+#define DSL_RESULT_WEBSOCKET_SERVER_CLIENT_LISTENER_ADD_FAILED      0x00700003
+#define DSL_RESULT_WEBSOCKET_SERVER_CLIENT_LISTENER_REMOVE_FAILED   0x00700004
+
+/**
+ * GPU Types
+ */
+#define DSL_GPU_TYPE_INTEGRATED                                     0
+#define DSL_GPU_TYPE_DISCRETE                                       1
+
+/**
+ * NVIDIA Buffer Memory Types
+ */
+#define DSL_NVBUF_MEM_TYPE_DEFAULT                                  0
+#define DSL_NVBUF_MEM_TYPE_PINNED                                   1
+#define DSL_NVBUF_MEM_TYPE_DEVICE                                   2
+#define DSL_NVBUF_MEM_TYPE_UNIFIED                                  3
 
 #define DSL_SOURCE_CODEC_PARSER_H264                                0
 #define DSL_SOURCE_CODEC_PARSER_H265                                1
@@ -437,6 +457,21 @@ THE SOFTWARE.
 
 #define DSL_RTP_TCP                                                 0x04
 #define DSL_RTP_ALL                                                 0x07
+
+/**
+ * @brief Websocket Port number for the Soup Server Manager
+ * If set to 0, Manager will find an unused port to listen on.
+ */
+#define DSL_WEBSOCKET_SERVER_DEFAULT_WEBSOCKET_PORT                 60001
+
+/**
+ * @brief WebRTC Websocket connection states, used by the 
+ * WebRTC to communicate current state to listening clients 
+ */
+#define DSL_SOCKET_CONNECTION_STATE_CLOSED                          0
+#define DSL_SOCKET_CONNECTION_STATE_INITIATED                       1
+#define DSL_SOCKET_CONNECTION_STATE_FAILED                          2
+
 /**
  * @brief time to sleep after a failed reconnection before
  * starting a new re-connection cycle. In units of seconds
@@ -489,6 +524,7 @@ THE SOFTWARE.
 #define DSL_DEFAULT_SOURCE_IN_USE_MAX                               8
 #define DSL_DEFAULT_SINK_IN_USE_MAX                                 8
 
+#define DSL_DEFAULT_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE             DSL_NVBUF_MEM_TYPE_DEFAULT
 #define DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT                         40000
 #define DSL_DEFAULT_STREAMMUX_WIDTH                                 1920
 #define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
@@ -524,6 +560,18 @@ THE SOFTWARE.
 #define DSL_DISTANCE_METHOD_PERCENT_HEIGHT_A                        3
 #define DSL_DISTANCE_METHOD_PERCENT_HEIGHT_B                        4
 
+/**
+ * @brief the maximum number of coordinates when defining a Polygon
+ */
+#define DSL_MAX_POLYGON_COORDINATES                                 16
+
+/**
+ * @brief the maximum number of messages that can be queued up
+ * by all Mailers running in the main-loop context before
+ * new messages are dropped. Messages are pulled from the queue
+ * in a low priority background thread which may get starved
+ * out if the Tracker and OSD are consuming the CPU
+ */
 #define DSL_SMTP_MAX_PENDING_MESSAGES                               10
 
 /**
@@ -538,6 +586,18 @@ THE SOFTWARE.
  */
 #define DSL_RECORDING_EVENT_START                                   0
 #define DSL_RECORDING_EVENT_END                                     1
+
+/**
+ * @brief Maximum time to wait for a recording session to stop
+ * when the client is blocked on one of the session stop services
+ */
+#define DSL_RECORDING_STOP_WAIT_TIMEOUT_MS                          1000
+
+/**
+ * @brief Maximum time to wait for the recording reset done flag
+ * when the client is blocked on one of the session stop services
+ */
+#define DSL_RECORDING_RESET_WAIT_TIMEOUT_MS                         100
 
 /**
  * @brief File Format Options when saving Event Data to file.
@@ -721,6 +781,20 @@ typedef struct dsl_capture_info
 } dsl_capture_info;
 
 /**
+ * @struct dsl_webrtc_connection_data
+ * @brief a structure of Connection date for a given WebRTC Sink
+ */
+typedef struct _dsl_webrtc_connection_data
+{
+    /**
+     * @brief the current state of the WebRTC Sink's Websocket connection
+     * one of the DSL_SOCKET_CONNECTION_STATE* values
+     */ 
+    uint current_state; 
+
+} dsl_webrtc_connection_data;
+
+/**
  * @struct _dsl_coordinate
  * @brief defines a frame coordinate by it's x and y pixel position
  */
@@ -731,24 +805,22 @@ typedef struct _dsl_coordinate
 } dsl_coordinate;
 
 /**
- * @brief the maximum number of coordinates when defining a Polygon
- */
-#define DSL_MAX_POLYGON_COORDINATES 8
-
-/**
  *
- * @brief callback typedef for a client ODE occurrence handler function. Once 
- * registered, the function will be called on ODE occurrence
- * @param[in] event_id unique ODE occurrence ID, numerically ordered by occurrence
- * @param[in] trigger unique name of the ODE Event Trigger that trigger the occurrence
- * @param[in] pointer to a frame_meta structure that triggered the ODE event
- * @param[in] pointer to a object_meta structure that triggered the ODE event
- * This parameter will be set to NULL for ODE occurrences detected in Post process frame. 
+ * @brief callback typedef for a client ODE occurrence handler function. 
+ * Once registered by calling dsl_ode_action_custom_new, the function will 
+ * be called on ODE occurrence. 
+ * @param[in] event_id unique ODE occurrence ID, numerically ordered by occurrence.
+ * @param[in] trigger unique name of the ODE Event Trigger that triggered the occurrence.
+ * @param[in] buffer pointer to the frame buffer of type GstBuffer.
+ * @param[in] display_meta pointer to a NvDsDisplayMeta structure.
+ * @param[in] frame_meta pointer to the NvDsFrameMeta structure that triggered the ODE event.
+ * @param[in] object_meta pointer to the NvDsObjectMeta structure that triggered the ODE event.
+ * Note: This parameter will be set to NULL for ODE occurrences detected in Post process frame. 
  * Absence and Submation ODE's
  * @param[in] client_data opaque pointer to client's user data
  */
 typedef void (*dsl_ode_handle_occurrence_cb)(uint64_t event_id, const wchar_t* trigger,
-    void* buffer, void* frame_meta, void* object_meta, void* client_data);
+    void* buffer, void* display_meta, void* frame_meta, void* object_meta, void* client_data);
 
 /**
  * @brief callback typedef for a client ODE Custom Trigger check-for-occurrence function. Once 
@@ -878,6 +950,25 @@ typedef void (*dsl_capture_complete_listener_cb)(dsl_capture_info* info, void* c
  * @param[in] client_data opaque pointer to client's user data
  */
 typedef void (*dsl_player_termination_event_listener_cb)(void* client_data);
+
+/**
+ * @brief callback typedef for a client to listen for incoming Websocket connection events.
+ * Important Note: Clients will be notified of the incoming connection prior to checking
+ * for any available WebRTC Signaling Transceivers (WebRTC Sinks). This allows Client 
+ * listeners to create and add a new WebRTC sink "on demand" - before returning. 
+ * @param[in] path path for the incoming connection.
+ * @param[in] client_data opaque pointer to client's user data
+ */
+typedef void (*dsl_websocket_server_client_listener_cb)(const wchar_t* path, 
+    void* client_data);
+    
+/**
+ * @brief callback typedef for a client to listen for WebRTC Sink connection events.
+ * @param[in] info pointer to connection info, see dsl_webrtc_connection_data struct.
+ * @param[in] client_data opaque pointer to client's user data
+ */
+typedef void (*dsl_sink_webrtc_client_listener_cb)(dsl_webrtc_connection_data* info, 
+    void* client_data);
 
 /**
  * @brief creates a uniquely named RGBA Display Color
@@ -1071,7 +1162,7 @@ uint dsl_display_type_list_size();
 
 /**
  * @brief Creates a uniquely named Capture Frame ODE Action
- * @param[in] name unique name for the Capture Frame ODE Action 
+ * @param[in] name unique name for the Capture Frame ODE Action
  * @param[in] outdir absolute or relative path to image capture directory 
  * @param[in] annotate if true, bounding boxes and labes will be added to the image.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
@@ -2454,12 +2545,11 @@ DslReturnType dsl_source_usb_new(const wchar_t* name,
  * @param[in] name unique name for the new URI Source
  * @param[in] uri Unique Resource Identifier (file or live)
  * @param[in] is_live true if source is live false if file
- * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
  * @param[in] intra_decode set to True to enable, false to disable
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, boolean is_live,
-    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval);
+DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, 
+    boolean is_live, uint intra_decode, uint drop_frame_interval);
 
 /**
  * @brief creates a new, uniquely named File Source component
@@ -2555,16 +2645,15 @@ DslReturnType dsl_source_image_timeout_set(const wchar_t* name, uint timeout);
  * @brief creates a new, uniquely named RTSP Source component
  * @param[in] name Unique Resource Identifier (file or live)
  * @param[in] protocol one of the constant protocol values [ DSL_RTP_TCP | DSL_RTP_ALL ]
- * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
- * @param[in] intra_decode set to True to enable, false to disable
+ * @param[in] intra_decode set to True to enable, false to disable.
  * @param[in] drop_frame_interval, set to 0 to decode every frame.
- * @param[in] latency in milliseconds
+ * @param[in] latency in milliseconds.
  * @param[in] timeout time to wait between successive frames before determining the 
  * connection is lost. Set to 0 to disable timeout.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol,
-    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval, uint latency, uint timeout);
+    uint intra_decode, uint drop_frame_interval, uint latency, uint timeout);
 
 /**
  * @brief returns the frame rate of the name source as a fraction
@@ -2802,11 +2891,12 @@ DslReturnType dsl_tap_record_session_start(const wchar_t* name,
 
 /**
  * @brief stops a current recording in session
- * @param[in] name unique of the Record Tap to stop
- * @param[in] session unique id for the session to stop
+ * @param[in] name unique name of the Record Tap to stop
+ * @param[in] sync if set to true this call will block until the 
+ * stop operation has completed or timeout DSL_RECORDING_STOP_WAIT_TIMEOUT.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
  */
-DslReturnType dsl_tap_record_session_stop(const wchar_t* name);
+DslReturnType dsl_tap_record_session_stop(const wchar_t* name, boolean sync);
 
 /**
  * @brief returns the video recording output directory for the named Record Tap
@@ -3033,6 +3123,14 @@ DslReturnType dsl_infer_gie_secondary_new(const wchar_t* name, const wchar_t* in
  */
 DslReturnType dsl_infer_tis_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
     const wchar_t* infer_on_tis, uint interval);
+
+/**
+ * @brief Queries a GIE or TIS for its unique Id 
+ * @param[in] name unique name of the GIE or TIS to query.
+ * @param[out] id unique id for the named GIE or TIS.
+ * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_INFER_RESULT on failure. 
+ */
+DslReturnType dsl_infer_unique_id_get(const wchar_t* name, uint* id);
 
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
@@ -3762,11 +3860,12 @@ DslReturnType dsl_sink_record_session_start(const wchar_t* name,
 
 /**
  * @brief stops a current recording in session
- * @param[in] name unique of the Record Sink to stop
- * should be less that the video cache size
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ * @param[in] name unique name of the Record Sink to stop
+ * @param[in] sync if set to true this call will block until the 
+ * stop operation has completed or timeout DSL_RECORDING_STOP_WAIT_TIMEOUT.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_record_session_stop(const wchar_t* name);
+DslReturnType dsl_sink_record_session_stop(const wchar_t* name, boolean sync);
 
 /**
  * @brief returns the current output directory in use by the named Sink
@@ -3901,34 +4000,26 @@ DslReturnType dsl_sink_record_mailer_remove(const wchar_t* name,
     const wchar_t* mailer);
     
 /**
- * @brief gets the current codec and video media container formats
- * @param[in] name unique name of the Sink to query
- * @param[out] codec one of DSL_CODEC_H264, DSL_CODEC_H265, DSL_CODEC_MPEG4
- * @param[out] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
- */
-DslReturnType dsl_sink_encode_video_formats_get(const wchar_t* name,
-    uint* codec, uint* container);
-
-/**
- * @brief gets the current bit-rate and interval settings for the named File Sink
- * @param[in] name unique name of the File Sink to query
- * @param[out] bitrate current Encoder bit-rate in bits/sec for the named File Sink
- * @param[out] interval current Encoder iframe interval value
+ * @brief gets the current codec, bitrate, and interval settings for the named Encode Sink
+ * @param[in] name unique name of the Encode Sink to query
+ * @param[out] codec current Codec either DSL_CODEC_H264 DSL_CODEC_H265
+ * @param[out] bitrate current encoder bitrate in bits/sec for the named Encode Sink
+ * @param[out] interval current encoder frame interval value
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_encode_settings_get(const wchar_t* name,
-    uint* bitrate, uint* interval);
+    uint* codec, uint* bitrate, uint* interval);
 
 /**
- * @brief sets new bit_rate and interval settings for the named File Sink
- * @param[in] name unique name of the File Sink to update
- * @param[in] bitrate new Encoder bit-rate in bits/sec for the named File Sink
- * @param[in] interval new Encoder iframe interval value to use
+ * @brief sets new codec, bitrate, and interval settings for the named Encode Sink
+ * @param[in] name unique name of the Encode Sink to update
+ * @param[in] codec new codec either DSL_CODEC_H264 DSL_CODEC_H265
+ * @param[in] bitrate new encoder bitrate in bits/sec for the named Encode Sink
+ * @param[in] interval new encoder frame interval value to use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_encode_settings_set(const wchar_t* name,
-    uint bitrate, uint interval);
+DslReturnType dsl_sink_encode_settings_set(const wchar_t* name, 
+    uint codec, uint bitrate, uint interval);
 
 /**
  * @brief creates a new, uniquely named RTSP Sink component
@@ -3948,31 +4039,128 @@ DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host,
  * @brief gets the current codec and video media container formats
  * @param[in] name unique name of the Sink to query
  * @param[out] port UDP Port number to use
- * @param[out] codec one of DSL_CODEC_H264, DSL_CODEC_H265
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
-    uint* udpPort, uint* rtspPort, uint* codec);
+    uint* udpPort, uint* rtspPort);
 
 /**
- * @brief gets the current bit-rate and interval settings for the named RTSP Sink
- * @param[in] name unique name of the RTSP Sink to query
- * @param[out] bitrate current Encoder bit-rate in bits/sec for the named RTSP Sink
- * @param[out] interval current Encoder iframe interval value
+ * @brief creates a new, uniquely named WebRTC Sink component
+ * @param[in] name unique component name for the new WebRTC Sink
+ * @param[in] stun_server STUN server to use of the form stun://hostname:port.
+ * Set to NULL to omit if using TURN server(s)
+ * @param[in] turn_server TURN server(s) to use of the form 
+ * turn(s)://username:password@host:port. Set to NULL to omit if using a STUN server
+ * @param[in] codec either DSL_CODEC_H264 DSL_CODEC_H265
+ * @param[in] bitrate in bits per second
+ * @param[in] interval frame interval to encode at
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ * ** IMPORTANT: the WebRTC Sink implementation requires DS 1.18.0 or later
  */
-DslReturnType dsl_sink_rtsp_encoder_settings_get(const wchar_t* name,
-    uint* bitrate, uint* interval);
+DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_server, 
+    const wchar_t* turn_server, uint codec, uint bitrate, uint interval);
 
 /**
- * @brief sets new bit_rate and interval settings for the named RTSP Sink
- * @param[in] name unique name of the RTSP Sink to update
- * @param[in] bitrate new Encoder bit-rate in bits/sec for the named RTSP Sink
- * @param[in] interval new Encoder iframe interval value to use
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ * @brief Closes a uniquely named WebRTC Sink component's Websocket connection
+ * if currently connected.
  */
-DslReturnType dsl_sink_rtsp_encoder_settings_set(const wchar_t* name,
-    uint bitrate, uint interval);
+DslReturnType dsl_sink_webrtc_connection_close(const wchar_t* name);
+
+/**
+ * @brief Queries a uniquely named WebRTC Sink component for its current
+ * STUN and TURN servers in use.
+ * @param[in] name unique component name for the new WebRTC Sink
+ * @param[out] stun_server STUN server in use of the form stun://hostname:port
+ * @param[out] turn_server TURN server(s) in use of the form 
+ * turn(s)://username:password@host:port. "
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT on failure
+ * ** IMPORTANT: the WebRTC Sink implementation requires DS 1.18.0 or later
+ */
+DslReturnType dsl_sink_webrtc_servers_get(const wchar_t* name, 
+    const wchar_t** stun_server, const wchar_t** turn_server);
+     
+/**
+ * @brief Updates a uniquely named WebRTC Sink component with new
+ * STUN and TURN servers to use
+ * @param[in] name unique name of the WebRTC Sink to update
+ * @param[in] stun_server STUN server to use of the form stun://hostname:port.
+ * Set to NULL to omit if using TURN server(s)
+ * @param[in] turn_server TURN server(s) to use of the form 
+ * turn(s)://username:password@host:port. Set to NULL to omit if using a STUN server
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT on failure
+ * ** IMPORTANT: the WebRTC Sink implementation requires DS 1.18.0 or later
+ */
+DslReturnType dsl_sink_webrtc_servers_set(const wchar_t* name, 
+    const wchar_t* stun_server, const wchar_t* turn_server);
+
+/**
+ * @brief Adds a callback to a named WebRTC Sink to be called on every change
+ * of Websocket connection state.
+ * @param[in] name name of the WebRTC Sink to add the callback to
+ * @param[in] listener pointer to the client's function to call on state change.
+ * @param[in] client_data opaque pointer to client data passed to the listener function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_webrtc_client_listener_add(const wchar_t* name, 
+    dsl_sink_webrtc_client_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a callback previously added with dsl_sink_webrtc_client_listener_add
+ * @param[in] name name of the WebRTC Sink to update
+ * @param[in] listener pointer to the client's listener function to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_webrtc_client_listener_remove(const wchar_t* name, 
+    dsl_sink_webrtc_client_listener_cb listener);
+
+/**
+ * @brief Adds a new Websocket Path to be handled by the Websocket Server
+ * Note: the server is created with one default Path = "/ws". paths must be added when
+ * the Server is in a non-listing state. 
+ * @param[in] path the new path to add to the Websocket Server
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_WEBSOCKET_SERVER_RESULT otherwise.
+ */
+DslReturnType dsl_websocket_server_path_add(const wchar_t* path);
+
+/**
+ * @brief Starts the Websocket Server listening on a specified Websocket port number
+ * @param[in] port_number the Websocket port number to start listing on
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_WEBSOCKET_SERVER_RESULT otherwise.
+ */
+DslReturnType dsl_websocket_server_listening_start(uint port_number);
+
+/**
+ * @brief Stops the Websocket Server from listening on its current Websocket port number
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_WEBSOCKET_SERVER_RESULT otherwise.
+ */
+DslReturnType dsl_websocket_server_listening_stop();
+
+/**
+ * @brief Gets the current listening state for the Websocket Server
+ * @param[out] is_listening true if the Server is listening on a Websocket Port
+ * @param[out] port_number the Websocket port number the Server is listening on, or 0
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_WEBSOCKET_SERVER_RESULT otherwise.
+ */
+DslReturnType dsl_websocket_server_listening_state_get(boolean* is_listening,
+    uint* port_number);
+
+/**
+ * @brief Adds a callback to the Websocket Server Manager (singleton) to be called 
+ * on every incoming Websocket opened event.
+ * @param[in] listener pointer to the client's function to call on state change.
+ * @param[in] client_data opaque pointer to client data passed to the listener function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_WEBSOCKET_SERVER_RESULT otherwise.
+ */
+DslReturnType dsl_websocket_server_client_listener_add( 
+    dsl_websocket_server_client_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a callback previously added with dsl_websocket_server_client_listener_add
+ * @param[in] listener pointer to the client's listener function to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_WEBSOCKET_SERVER_RESULT otherwise.
+ */
+DslReturnType dsl_websocket_server_client_listener_remove(
+    dsl_websocket_server_client_listener_cb listener);
 
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
@@ -4086,6 +4274,33 @@ DslReturnType dsl_component_gpuid_set(const wchar_t* name, uint gpuid);
  */
 DslReturnType dsl_component_gpuid_set_many(const wchar_t** names, uint gpuid);
 
+/**
+ * @brief Queries a Component for its current NVIDIA buffer memory type.
+ * @param[in] name name of the Component to query.
+ * @param[out] type one of the DSL_NVBUF_MEM constant values.
+ * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_COMPONENT_RESULT on failure. 
+ */
+DslReturnType dsl_component_nvbuf_mem_type_get(const wchar_t* name, 
+    uint* type);
+
+/**
+ * @brief Updates a Component with a new NVIDIA memory type to use.
+ * @param[in] name name of the Component to update.
+ * @param[in] type one of the DSL_NVBUF_MEM constant values.
+ * @return DSL_RESULT_SUCCESS on successful update, one of DSL_RESULT_COMPONENT_RESULT on failure. 
+ */
+DslReturnType dsl_component_nvbuf_mem_type_set(const wchar_t* name, 
+    uint type);
+
+/**
+ * @brief Updates a list of Components with a new NVIDIA memory type to use.
+ * @param[in] names a null terminated list of component names to update.
+ * @param[in] type one of the DSL_NVBUF_MEM constant values.
+ * @return DSL_RESULT_SUCCESS on successful update, one of DSL_RESULT_COMPONENT_RESULT on failure. 
+ */
+DslReturnType dsl_component_nvbuf_mem_type_set_many(const wchar_t** names, 
+    uint type);
+    
 /**
  * @brief creates a new, uniquely named Branch
  * @param[in] name unique name for the new Branch
@@ -4237,8 +4452,28 @@ DslReturnType dsl_pipeline_component_remove_many(const wchar_t* pipeline,
     const wchar_t** components);
 
 /**
- * @brief 
+ * @brief Queries a Pipeline's stream-muxer for its current NVIDIA buffer memory type.
+ * @param[in] pipeline name of the pipeline to query.
+ * @param[out] type one of the DSL_NVBUF_MEM constant values.
+ * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_get(const wchar_t* pipeline, 
+    uint* type);
+
+/**
+ * @brief Updates a Pipeline's stream-muxer with a new NVIDIA memory type to use
+ * @param[in] pipeline name of the pipeline to update.
+ * @param[in] type one of the DSL_NVBUF_MEM constant values.
+ * @return DSL_RESULT_SUCCESS on successful update, one of DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* pipeline, 
+    uint type);
+    
+/**
+ * @brief Queryies the Pipeline's stream-muxer for its current batch properties
  * @param[in] pipeline name of the pipeline to query
+ * @param[out] batchSize the current batch size in use
+ * @param[out] batchTimeout the current batch timeout in use
  * @return DSL_RESULT_SUCCESS on success, 
  */
 DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* pipeline, 
@@ -5047,6 +5282,12 @@ DslReturnType dsl_stdout_redirect(const wchar_t* file_path);
  */
 void dsl_stdout_restore();
 
+/**
+ * @brief Gets the GPU type for a specified GPU Id.
+ * @param[in] gpu_id id of the GPU to query.
+ * @return one of the DSL_GPU_TYPE constant values
+ */ 
+uint dsl_gpu_type_get(uint gpu_id);
 
 EXTERN_C_END
 

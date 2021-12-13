@@ -30,11 +30,11 @@ import time
 from dsl import *
 import pyds
 
-file_path = '/opt/nvidia/deepstream/deepstream-5.1/samples/streams/sample_industrial.jpg'
+file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_industrial.jpg'
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream-5.1/sources/apps/sample_apps/deepstream-segmentation-test/dstest_segmentation_config_industrial.txt'
+    '/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-segmentation-test/dstest_segmentation_config_industrial.txt'
 
 # Segmentation Visualizer output dimensions should (typically) match the
 # inference dimensions defined in segvisual_config_industrial.txt (512x512)
@@ -96,7 +96,6 @@ def main(args):
         retval = dsl_source_uri_new('image-source', 
             uri = file_path, 
             is_live = False,
-            cudadec_mem_type = 0, 
             intra_decode = False,
             drop_frame_interval = False)
         if retval != DSL_RETURN_SUCCESS:

@@ -29,7 +29,7 @@ static const std::wstring primaryTisName(L"primary-tis");
 static const std::wstring primaryTisName2(L"primary-tis-2");
 
 static const std::wstring inferConfigFile(
-    L"/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt");
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt");
 
 static const std::wstring pipelineName(L"test-pipeline");
         
@@ -171,9 +171,11 @@ SCENARIO( "A Primary TIS, once removed from a Pipeline, can be deleted", "[tis-a
 
 static boolean pad_probe_handler_cb1(void* buffer, void* user_data)
 {
+    return true;
 }
 static boolean pad_probe_handler_cb2(void* buffer, void* user_data)
 {
+    return true;
 }
     
 SCENARIO( "A Sink Pad Probe Handler can be added and removed from a Primary TIS", "[tis-api]" )

@@ -376,7 +376,8 @@ SCENARIO( "A new Frame Capture ODE Action can be created and deleted", "[ode-act
 
         WHEN( "A new Frame Capture Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), outdir.c_str(), annotate) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), 
+                outdir.c_str(), annotate) == DSL_RESULT_SUCCESS );
             
             THEN( "The Frame Capture Action can be deleted" ) 
             {
@@ -386,7 +387,8 @@ SCENARIO( "A new Frame Capture ODE Action can be created and deleted", "[ode-act
         }
         WHEN( "A new Frame Capture Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), outdir.c_str(), annotate) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), 
+                outdir.c_str(), annotate) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Frame Capture Action of the same names fails to create" ) 
             {
@@ -402,7 +404,7 @@ SCENARIO( "A new Frame Capture ODE Action can be created and deleted", "[ode-act
             
             THEN( "A new Frame Capture Action fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), 
+                REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(),
                     invalidOutDir.c_str(), annotate) == DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
@@ -1757,11 +1759,15 @@ SCENARIO( "The ODE Action API checks for NULL input parameters", "[ode-action-ap
                 REQUIRE( dsl_ode_action_custom_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_custom_new(action_name.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_capture_frame_new(NULL, NULL, true) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), NULL, true) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_capture_frame_new(NULL, NULL, true) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), NULL, true) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_capture_object_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_capture_object_new(NULL, NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_customize_label_new(NULL,
                     NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );

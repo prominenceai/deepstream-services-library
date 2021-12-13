@@ -56,7 +56,7 @@ namespace DSL
             , m_isLinked(false)
             , m_batchSize(0)
             , m_gpuId(0)
-            , m_nvbufMemoryType(0)
+            , m_nvbufMemType(0)
             , m_pGstStaticSinkPad(NULL)
             , m_pGstStaticSourcePad(NULL)
         { 
@@ -206,95 +206,6 @@ namespace DSL
         bool SetInterval(uint interval, uint timeout);
 
         /**
-         * @brief gets the current state of the Bintr
-         * @param[out] state current state of the Bintr
-         * @return one of GST_STATE_CHANGE values.
-         */
-        uint GetState(GstState& state, GstClockTime timeout)
-        {
-            LOG_FUNC();
-
-            uint retval = gst_element_get_state(GetGstElement(), &state, NULL, timeout);
-            LOG_DEBUG("Get state returned '" << gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
-            
-            return retval;
-        }
-        
-        /**
-         * @brief Attempts to set the state of this Bintr's GST Element
-         * @return true if successful transition, false on failure
-         */
-        bool SetState(GstState state, GstClockTime timeout)
-        {
-            LOG_FUNC();
-            LOG_INFO("Changing state to '" << gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
-
-            GstStateChangeReturn returnVal = gst_element_set_state(GetGstElement(), state);
-            switch (returnVal) 
-            {
-                case GST_STATE_CHANGE_SUCCESS:
-                    LOG_INFO("State change completed synchronously for Bintr'" << GetName() << "'");
-                    return true;
-                case GST_STATE_CHANGE_FAILURE:
-                    LOG_ERROR("FAILURE occured when trying to change state to '" << 
-                        gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
-                    return false;
-                case GST_STATE_CHANGE_NO_PREROLL:
-                    LOG_INFO("Set state for Bintr '" << GetName() << "' return GST_STATE_CHANGE_NO_PREROLL");
-                    return true;
-                case GST_STATE_CHANGE_ASYNC:
-                    LOG_INFO("State change will complete asynchronously for Bintr '" << GetName() << "'");
-                    break;
-                default:
-                    break;
-            }
-            
-            // Wait until state change or failure, no timeout.
-            if (gst_element_get_state(GetGstElement(), NULL, NULL, timeout) == GST_STATE_CHANGE_FAILURE)
-            {
-                LOG_ERROR("FAILURE occured waiting for state to change to '" << gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
-                return false;
-            }
-            LOG_INFO("State change completed asynchronously for Bintr'" << GetName() << "'");
-            return true;
-        }
-
-        uint SyncStateWithParent(GstState& parentState, GstClockTime timeout)
-        {
-            LOG_FUNC();
-            
-            uint returnVal = gst_element_sync_state_with_parent(GetGstElement());
-
-            switch (returnVal) 
-            {
-                case GST_STATE_CHANGE_SUCCESS:
-                    LOG_INFO("State change completed synchronously for Bintr'" << GetName() << "'");
-                    return returnVal;
-                case GST_STATE_CHANGE_FAILURE:
-                    LOG_ERROR("FAILURE occured when trying to sync state with Parent for Bintr '" << GetName() << "'");
-                    return returnVal;
-                case GST_STATE_CHANGE_NO_PREROLL:
-                    LOG_INFO("Set state for Bintr '" << GetName() << "' return GST_STATE_CHANGE_NO_PREROLL");
-                    return returnVal;
-                case GST_STATE_CHANGE_ASYNC:
-                    LOG_INFO("State change will complete asynchronously for Bintr '" << GetName() << "'");
-                    break;
-                default:
-                    break;
-            }
-            uint retval = gst_element_get_state(GST_ELEMENT_PARENT(GetGstElement()), &parentState, NULL, timeout);
-            LOG_INFO("Get state returned '" << gst_element_state_get_name(parentState) << "' for Parent of Bintr '" << GetName() << "'");
-            return retval;
-        }
-        
-        bool SendEos()
-        {
-            LOG_FUNC();
-            
-            return gst_element_send_event(GetGstElement(), gst_event_new_eos());
-        }
-        
-        /**
          * @brief Adds a Pad Probe Handler callback function to the Bintr
          * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
          * @param[in] pPadProbeHandler shared pointer to the PPH to add
@@ -358,13 +269,45 @@ namespace DSL
         {
             LOG_FUNC();
             
-            if (IsInUse())
+            if (IsLinked())
             {
                 LOG_ERROR("Unable to set GPU ID for Bintr '" << GetName() 
-                    << "' as it's currently in use");
+                    << "' as it's currently linked");
                 return false;
             }
             m_gpuId = gpuId;
+            return true;
+        }
+
+        /**
+         * @brief Gets the current NVIDIA buffer memory type used by this Bintr
+         * @return one of the DSL_NVBUF_MEM_TYPE constant values.
+         */
+        uint GetNvbufMemType()
+        {
+            LOG_FUNC();
+
+            LOG_DEBUG("Returning NVIDIA buffer memory type of " << m_nvbufMemType 
+                <<"' for Bintr '" << GetName() << "'");
+            return m_nvbufMemType;
+        }
+
+        /**
+         * @brief Bintr type specific implementation to set the memory type.
+         * @brief nvbufMemType new memory type to use
+         * @return true if successfully set, false otherwise.
+         */
+        virtual bool SetNvbufMemType(uint nvbufMemType)
+        {
+            LOG_FUNC();
+            
+            if (IsInUse())
+            {
+                LOG_ERROR("Unable to set NVIDIA buffer memory type for Bintr '" << GetName() 
+                    << "' as it's currently linked");
+                return false;
+            }
+            m_nvbufMemType = nvbufMemType;
             return true;
         }
 
@@ -394,7 +337,7 @@ namespace DSL
         /**
          * @brief current Memory Type used by this Bintr
          */
-        guint m_nvbufMemoryType;
+        guint m_nvbufMemType;
 
         /**
          * @brief Static Pad object for the Sink Elementr within this Bintr

@@ -373,9 +373,9 @@ SCENARIO( "A new RGBA Polygon can be created and deleted", "[display-types-api]"
         }
         WHEN( "An invalid 'num_coordinates' value is used to create an RGBA Polygon" ) 
         {
-            num_coordinates = 9; 
+            num_coordinates = DSL_MAX_POLYGON_COORDINATES+1; 
             
-            THEN( "A second RGBA Polygon of the same name fails to create" ) 
+            THEN( "A RGBA Polygon fails to create" ) 
             {
                 REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), coordinates, num_coordinates, 
                     border_width, colorName.c_str())== DSL_RESULT_DISPLAY_PARAMETER_INVALID );

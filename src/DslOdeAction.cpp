@@ -72,8 +72,8 @@ namespace DSL
         struct tm currentTm;
         localtime_r(&secs, &currentTm);        
         
-        char dateTime[64] = {0};
-        char dateTimeUsec[64];
+        char dateTime[65] = {0};
+        char dateTimeUsec[85];
         strftime(dateTime, sizeof(dateTime), "%Y-%m-%d %H:%M:%S", &currentTm);
         snprintf(dateTimeUsec, sizeof(dateTimeUsec), "%s.%06ld", dateTime, usecs);
 
@@ -96,7 +96,6 @@ namespace DSL
     FormatBBoxOdeAction::~FormatBBoxOdeAction()
     {
         LOG_FUNC();
-
     }
 
     void FormatBBoxOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
@@ -148,7 +147,7 @@ namespace DSL
         {
             DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pBase);
             m_clientHandler(pTrigger->s_eventCount, pTrigger->m_wName.c_str(), pBuffer,
-                pFrameMeta, pObjectMeta, m_clientData);
+                pDisplayMeta, pFrameMeta, pObjectMeta, m_clientData);
         }
         catch(...)
         {
@@ -363,27 +362,29 @@ namespace DSL
         {
             return;
         }
-        
-        // surface index is derived from the batch_id for the frame that triggered the event
-        int surfaceIndex = pFrameMeta->batch_id;
-        
+
+        // Map the current buffer
+        std::unique_ptr<DslMappedBuffer> pMappedBuffer = 
+            std::unique_ptr<DslMappedBuffer>(new DslMappedBuffer(pBuffer));
+
+        NvBufSurfaceMemType transformMemType = pMappedBuffer->pSurface->memType;
+
+        LOG_INFO("Creating new mono-surface with memory type " << transformMemType);
+
+        // Transforming only one frame in the batch, so create a copy of the single 
+        // surface ... becoming our new source surface. This creates a new mono (non-batched) 
+        // surface copied from the "batched frames" using the batch id as the index
+        DslMonoSurface monoSurface(pMappedBuffer->pSurface, pFrameMeta->batch_id);
+
         // Coordinates and dimensions for our destination surface for RGBA to 
         // BGR conversion required for JPEG
         uint32_t left(0), top(0), width(0), height(0);
 
-        // MapInfo for the current buffer
-        DslMapInfo mapInfo(pBuffer);
-        
-        // Transforming only one frame in the batch, so create a copy of the single 
-        // surface ... becoming our new source surface. This creates a new mono (non-batched) 
-        // surface copied from the "batched frames" using the batch id as the index
-        DslMonoSurface srcSurface(mapInfo, pFrameMeta->batch_id);
-
         // capturing full frame or object only?
         if (m_captureType == DSL_CAPTURE_TYPE_FRAME)
         {
-            width = srcSurface.width;
-            height = srcSurface.height;
+            width = pMappedBuffer->GetWidth(pFrameMeta->batch_id);
+            height = pMappedBuffer->GetHeight(pFrameMeta->batch_id);
         }
         else
         {
@@ -392,10 +393,11 @@ namespace DSL
             width = pObjectMeta->rect_params.width; 
             height = pObjectMeta->rect_params.height;
         }
-        
+
         // New "create params" for our destination surface. we only need one surface so set 
         // memory allocation (for the array of surfaces) size to 0
-        DslSurfaceCreateParams surfaceCreateParams(srcSurface.gpuId, width, height, 0);
+        DslSurfaceCreateParams surfaceCreateParams(monoSurface.gpuId, 
+            width, height, 0, transformMemType);
         
         // New Destination surface with a batch size of 1 for transforming the single surface 
         DslBufferSurface dstSurface(1, surfaceCreateParams);
@@ -404,10 +406,10 @@ namespace DSL
         DslTransformParams transformParams(left, top, width, height);
         
         // New "Cuda stream" for the surface transform
-        DslCudaStream dslCudaStream(srcSurface.gpuId);
+        DslCudaStream dslCudaStream(monoSurface.gpuId);
         
         // New "Transform Session" config params using the new Cuda stream
-        DslSurfaceTransformSessionParams dslTransformSessionParams(srcSurface.gpuId, 
+        DslSurfaceTransformSessionParams dslTransformSessionParams(monoSurface.gpuId, 
             dslCudaStream);
         
         // Set the "Transform Params" for the current tranform session
@@ -420,25 +422,28 @@ namespace DSL
         
         // We can now transform our Mono Source surface to the first (and only) 
         // surface in the batched buffer.
-        if (!dstSurface.TransformMonoSurface(srcSurface, 0, transformParams))
+        if (!dstSurface.TransformMonoSurface(monoSurface, 0, transformParams))
         {
             LOG_ERROR("Destination surface failed to transform for Action '" 
                 << GetName() << "'");
             return;
         }
-        
+
         // Map the tranformed surface for read
         if (!dstSurface.Map())
         {
             LOG_ERROR("Destination surface failed to map for Action '" << GetName() << "'");
             return;
         }
-        
-        // Sync the surface for CPU access
-        if (!dstSurface.SyncForCpu())
+
+        if (transformMemType != NVBUF_MEM_CUDA_UNIFIED)
         {
-            LOG_ERROR("Destination surface failed to Sync for '" << GetName() << "'");
-            return;
+            // Sync the surface for CPU access
+            if (!dstSurface.SyncForCpu())
+            {
+                LOG_ERROR("Destination surface failed to Sync for '" << GetName() << "'");
+                return;
+            }
         }
 
         // New background Mat for our image
@@ -2009,7 +2014,7 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            std::dynamic_pointer_cast<RecordSinkBintr>(m_pRecordSink)->StopSession();
+            std::dynamic_pointer_cast<RecordSinkBintr>(m_pRecordSink)->StopSession(false);
         }
     }
 
@@ -2067,7 +2072,7 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            std::dynamic_pointer_cast<RecordTapBintr>(m_pRecordTap)->StopSession();
+            std::dynamic_pointer_cast<RecordTapBintr>(m_pRecordTap)->StopSession(false);
         }
     }
     // ********************************************************************

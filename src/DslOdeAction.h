@@ -389,10 +389,11 @@ namespace DSL
         /**
          * @brief ctor for the Capture ODE Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] captureType DSL_CAPTURE_TYPE_OBJECT or DSL_CAPTURE_TYPE_FRAME
-         * @param[in] outdir output directory to write captured image files
+         * @param[in] captureType DSL_CAPTURE_TYPE_OBJECT or DSL_CAPTURE_TYPE_FRAME.
+         * @param[in] outdir output directory to write captured image files.
          */
-        CaptureOdeAction(const char* name, uint captureType, const char* outdir, bool annotate);
+        CaptureOdeAction(const char* name, 
+            uint captureType, const char* outdir, bool annotate);
         
         /**
          * @brief dtor for the Capture ODE Action class
@@ -478,7 +479,7 @@ namespace DSL
         int CompleteCapture();
         
     protected:
-    
+
         /**
          * @brief static, unique capture id shared by all Capture actions
          */
@@ -488,7 +489,7 @@ namespace DSL
          * @brief either DSL_CAPTURE_TYPE_OBJECT or DSL_CAPTURE_TYPE_FRAME
          */
         uint m_captureType;
-        
+
         /**
          * @brief relative or absolute path to output directory
          */ 

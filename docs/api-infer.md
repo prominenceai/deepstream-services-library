@@ -5,7 +5,9 @@ Pipelines can have at most one Primary GIE or TIS with any number of correspondi
 
 Primary GIEs and TISs are constructed by calling [dsl_infer_gie_primary_new](#dsl_infer_gie_primary_new) and [dsl_infer_tis_primary_new](#dsl_infer_tis_primary_new) respectively. Secondary GIEs and TISs are created by calling [dsl_infer_gie_secondary_new](#dsl_gie_secondary_new) and [dsl_infer_tis_secondary_new](#dsl_infer_tis_secondary_new) respectively. As with all components, Primary and Secondary GIEs/TISs must be uniquely named from all other components created.
 
-The interval for inferencing -- or the number of frames to skip between inferencing -- is set as an unsigned integer with `0 = everyframe`, `1 = every other frame`, `2 = every 3rd frame`, etc., when created.  The current interval in-use by any GIE/TIS can querried by calling [dsl_infer_interval_get](#dsl_infer_interval_get), and changed by calling [dsl_infer_interval_set](#dsl_infer_interval_set).
+The unique component id derived from the components unique name can be queried by calling [dsl_infer_unique_id_get](#dsl_infer_unique_id_get). All Object metadata structures created by the named GIE/TIE will include a `unique_component_id` field assigned with this id.
+
+The interval for inferencing -- or the number of frames to skip between inferencing -- is set as an unsigned integer with `0 = everyframe`, `1 = every other frame`, `2 = every 3rd frame`, etc., when created.  The current interval in-use by any GIE/TIS can be querried by calling [dsl_infer_interval_get](#dsl_infer_interval_get), and changed by calling [dsl_infer_interval_set](#dsl_infer_interval_set).
 
 Both GIEs and TIE's require a Primary or Secondary **Inference Configuration File**. Once created, clients can query both Primary and Secondary GIEs/TIEs for their Config File in-use by calling [dsl_infer_config_file_get](#dsl_infer_config_file_get) or change the GIE/TIS's configuration by calling [dsl_infer_config_file_set](#dsl_infer_config_file_set).
 
@@ -29,6 +31,7 @@ Primary and Secondary GIEs/TISs are deleted by calling [dsl_component_delete](/d
 * [dsl_infer_tis_secondary_new](#dsl_infer_tis_secondary_new)
 
 **Methods**
+* [dsl_infer_unique_id_get](#dsl_infer_unique_id_get)
 * [dsl_infer_gie_model_engine_file_get](#dsl_infer_gie_model_engine_file_get)
 * [dsl_infer_gie_model_engine_file_set](#dsl_infer_gie_model_engine_file_set)
 * [dsl_infer_config_file_get](#dsl_infer_config_file_get)
@@ -186,8 +189,29 @@ retval = dsl_infer_tis_seondary_new('my-stis', stis_config_file, 0, 'my-ptis')
 
 <br>
 
+---
 
 ## Methods
+### *dsl_infer_unique_id_get*
+```C++
+DslReturnType dsl_infer_unique_id_get(const wchar_t* name, uint* id);
+```
+This services queries the named Primary or Secondary GIE or TIS for its unique id derived from its unique name.
+
+**Parameters**
+* `name` - [in] unique name of the Primary or Secondary GIE or TIS to query.
+* `id` - [out] returns the unique id for the named GIE or TIS
+
+**Returns**
+`DSL_RESULT_SUCCESS` on success. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, id = dsl_infer_unique_id_get('my-pgie')
+```
+
+<br>
+
 ### *dsl_infer_config_file_get*
 ```C++
 DslReturnType dsl_infer_config_file_get(const wchar_t* name, const wchar_t** infer_config_file);
@@ -382,3 +406,4 @@ retval = dsl_infer_primary_pph_remove('my-primary-gie', 'my-pph-handler', `DSL_P
 * [branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
 * [Mailer](/docs/api-mailer.md)
+* [WebSocket Server](/docs/api-ws-server.md)

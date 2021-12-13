@@ -204,6 +204,33 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::InferUniqueIdGet(const char* name, uint* id)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
+            
+            DSL_INFER_PTR pInferBintr = 
+                std::dynamic_pointer_cast<InferBintr>(m_components[name]);
+
+            *id = pInferBintr->GetUniqueId();
+
+            LOG_INFO("Infer '" << name << "' returned Unique Id = "
+                << *id << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("GIE '" << name << "' threw an exception getting unique Id");
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::PrimaryInferPphAdd(const char* name, const char* handler, uint pad)
     {
         LOG_FUNC();
@@ -383,7 +410,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("GIE '" << name << "' threw exception on Infer Config file get");
+            LOG_ERROR("GIE '" << name << "' threw exception on Model Engine File get");
             return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
@@ -403,7 +430,7 @@ namespace DSL
 
             if (!pGieBintr->SetModelEngineFile(modelEngineFile))
             {
-                LOG_ERROR("GIE '" << name << "' failed to set the Infer Config file");
+                LOG_ERROR("GIE '" << name << "' failed to set the Model Engine file");
                 return DSL_RESULT_INFER_SET_FAILED;
             }
             LOG_INFO("GIE Infer '" << name << "' set Model Engine File = '"
@@ -413,7 +440,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("GIE '" << name << "' threw exception on Infer Config file get");
+            LOG_ERROR("GIE '" << name << "' threw exception on Model Engine file get");
             return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
@@ -440,7 +467,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("GIE '" << name << "' threw an exception adding Batch Meta Handler");
+            LOG_ERROR("GIE '" << name << "' threw an exception in Interval get");
             return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }

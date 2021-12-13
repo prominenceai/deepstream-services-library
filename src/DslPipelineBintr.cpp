@@ -37,6 +37,9 @@ namespace DSL
     {
         LOG_FUNC();
 
+        m_pPipelineSourcesBintr = DSL_PIPELINE_SOURCES_NEW("sources-bin");
+        AddChild(m_pPipelineSourcesBintr);
+
         g_mutex_init(&m_asyncCommMutex);
     }
 
@@ -57,13 +60,6 @@ namespace DSL
     bool PipelineBintr::AddSourceBintr(DSL_BASE_PTR pSourceBintr)
     {
         LOG_FUNC();
-        
-        // Create the shared sources bintr if it doesn't exist
-        if (!m_pPipelineSourcesBintr)
-        {
-            m_pPipelineSourcesBintr = DSL_PIPELINE_SOURCES_NEW("sources-bin");
-            AddChild(m_pPipelineSourcesBintr);
-        }
 
         if (!m_pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)))
         {
@@ -92,6 +88,27 @@ namespace DSL
         return m_pPipelineSourcesBintr->RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
     }
 
+    uint PipelineBintr::GetStreamMuxNvbufMemType()
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->GetStreamMuxNvbufMemType();
+    }
+
+    bool PipelineBintr::SetStreamMuxNvbufMemType(uint type)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' is currently Linked - cudadec memory type can not be updated");
+            return false;
+            
+        }
+        m_pPipelineSourcesBintr->SetStreamMuxNvbufMemType(type);
+        
+        return true;
+    }
 
     void PipelineBintr::GetStreamMuxBatchProperties(guint* batchSize, uint* batchTimeout)
     {
@@ -105,19 +122,15 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_batchSize = batchSize;
-        m_batchTimeout = batchTimeout;
-
         if (IsLinked())
         {
             LOG_ERROR("Pipeline '" << GetName() << "' is currently Linked - batch properties can not be updated");
             return false;
             
         }
-        if (m_pPipelineSourcesBintr)
-        {
-            m_pPipelineSourcesBintr->SetStreamMuxBatchProperties(m_batchSize, m_batchTimeout);
-        }
+        m_batchSize = batchSize;
+        m_batchTimeout = batchTimeout;
+        m_pPipelineSourcesBintr->SetStreamMuxBatchProperties(m_batchSize, m_batchTimeout);
         
         return true;
     }
@@ -210,7 +223,7 @@ namespace DSL
             LOG_INFO("Components for Pipeline '" << GetName() << "' are already assembled");
             return false;
         }
-        if (!m_pPipelineSourcesBintr)
+        if (!m_pPipelineSourcesBintr->GetNumChildren())
         {
             LOG_ERROR("Pipline '" << GetName() << "' has no required Source component - and is unable to link");
             return false;
@@ -321,17 +334,17 @@ namespace DSL
         }
         // If the main loop is running -- normal case -- then we can't change the 
         // state of the Pipeline in the Application's context. 
-        if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
-        {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
-            g_timeout_add(1, PipelineStop, this);
-            g_cond_wait(&m_asyncCondition, &m_asyncCommMutex);
-        }
+        // if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
+        // {
+            // LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+            // g_timeout_add(1, PipelineStop, this);
+            // g_cond_wait(&m_asyncCondition, &m_asyncCommMutex);
+        // }
         // Else, we are running under test without the mainloop
-        else
-        {
+        // else
+        // {
             HandleStop();
-        }
+        // }
         return true;
     }
 
@@ -343,10 +356,10 @@ namespace DSL
         // Call on all sources to disable their EOS consumers, before send EOS
         m_pPipelineSourcesBintr->DisableEosConsumers();
         
-        SendEos();
-        sleep(1);
+        // SendEos();
+        // sleep(1);
 
-        if (!SetState(GST_STATE_READY, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
+        if (!SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
         {
             LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
         }

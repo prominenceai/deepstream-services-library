@@ -418,7 +418,7 @@ namespace DSL
             gst_caps_unref(pCaps);        
             
             m_pTransform->SetAttribute("gpu-id", m_gpuId);
-            m_pTransform->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
+            m_pTransform->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
             
             AddChild(m_pCapsFilter);
         
@@ -607,16 +607,63 @@ namespace DSL
         m_pEglGles->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
         return true;
     }
-    
+
+    bool WindowSinkBintr::SetGpuId(uint gpuId)
+    {
+        LOG_FUNC();
+        
+        // aarch_64
+        if (m_cudaDeviceProp.integrated)
+        {
+            LOG_ERROR("Unable to set GPU ID for WindowSinkBintr '" 
+                << GetName() << "' - property is not supported on aarch_64");
+            return false;
+        }
+        if (m_isLinked)
+        {
+            LOG_ERROR("Unable to set GPU ID for WindowSinkBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+
+        m_gpuId = gpuId;
+
+        m_pTransform->SetAttribute("gpu-id", m_gpuId);
+        
+        return true;
+    }
+
+    bool WindowSinkBintr::SetNvbufMemType(uint nvbufMemType)
+    {
+        LOG_FUNC();
+        
+        // aarch_64
+        if (m_cudaDeviceProp.integrated)
+        {
+            LOG_ERROR("Unable to set NVIDIA buffer memory type for WindowSinkBintr '" 
+                << GetName() << "' - property is not supported on aarch_64");
+            return false;
+        }
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Unable to set NVIDIA buffer memory type for WindowSinkBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_nvbufMemType = nvbufMemType;
+        m_pTransform->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+
+        return true;
+    }    
     //-------------------------------------------------------------------------
     
     EncodeSinkBintr::EncodeSinkBintr(const char* name,
-        uint codec, uint container, uint bitRate, uint interval)
+        uint codec, uint bitrate, uint interval)
         : SinkBintr(name, true, false)
         , m_codec(codec)
-        , m_bitRate(bitRate)
+        , m_bitrate(bitrate)
         , m_interval(interval)
-        , m_container(container)
     {
         LOG_FUNC();
         
@@ -624,12 +671,11 @@ namespace DSL
         m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "encode-sink-bin-caps-filter");
         m_pTransform->SetAttribute("gpu-id", m_gpuId);
 
-        GstCaps* pCaps(NULL);
         switch (codec)
         {
         case DSL_CODEC_H264 :
             m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H264_HW, "encode-sink-bin-encoder");
-            m_pEncoder->SetAttribute("bitrate", m_bitRate);
+            m_pEncoder->SetAttribute("bitrate", m_bitrate);
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
             // aarch_64
             if (m_cudaDeviceProp.integrated)
@@ -637,11 +683,10 @@ namespace DSL
                 m_pEncoder->SetAttribute("bufapi-version", true);
             }                
             m_pParser = DSL_ELEMENT_NEW("h264parse", "encode-sink-bin-parser");
-            pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
             break;
         case DSL_CODEC_H265 :
             m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H265_HW, "encode-sink-bin-encoder");
-            m_pEncoder->SetAttribute("bitrate", m_bitRate);
+            m_pEncoder->SetAttribute("bitrate", m_bitrate);
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
             // aarch_64
             if (m_cudaDeviceProp.integrated)
@@ -649,18 +694,14 @@ namespace DSL
                 m_pEncoder->SetAttribute("bufapi-version", true);
             }      
             m_pParser = DSL_ELEMENT_NEW("h265parse", "encode-sink-bin-parser");
-            pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
-            break;
-        case DSL_CODEC_MPEG4 :
-            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_MPEG4, "encode-sink-bin-encoder");
-            m_pParser = DSL_ELEMENT_NEW("mpeg4videoparse", "encode-sink-bin-parser");
-            pCaps = gst_caps_from_string("video/x-raw, format=I420");
             break;
         default:
             LOG_ERROR("Invalid codec = '" << codec << "' for new Sink '" << name << "'");
             throw;
         }
 
+        GstCaps* pCaps(NULL);
+        pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
         m_pCapsFilter->SetAttribute("caps", pCaps);
         gst_caps_unref(pCaps);
 
@@ -670,23 +711,16 @@ namespace DSL
         AddChild(m_pParser);
     }
 
-    void  EncodeSinkBintr::GetVideoFormats(uint* codec, uint* container)
+    void  EncodeSinkBintr::GetEncoderSettings(uint* codec, uint* bitrate, uint* interval)
     {
         LOG_FUNC();
         
         *codec = m_codec;
-        *container = m_container;
-    }
-    
-    void  EncodeSinkBintr::GetEncoderSettings(uint* bitRate, uint* interval)
-    {
-        LOG_FUNC();
-        
-        *bitRate = m_bitRate;
+        *bitrate = m_bitrate;
         *interval = m_interval;
     }
     
-    bool EncodeSinkBintr::SetEncoderSettings(uint bitRate, uint interval)
+    bool EncodeSinkBintr::SetEncoderSettings(uint codec, uint bitrate, uint interval)
     {
         LOG_FUNC();
         
@@ -697,12 +731,13 @@ namespace DSL
             return false;
         }
 
-        m_bitRate = bitRate;
+        m_codec = codec;
+        m_bitrate = bitrate;
         m_interval = interval;
 
         if (m_codec == DSL_CODEC_H264 or m_codec == DSL_CODEC_H265)
         {
-            m_pEncoder->SetAttribute("bitrate", m_bitRate);
+            m_pEncoder->SetAttribute("bitrate", m_bitrate);
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
         }
         return true;
@@ -730,8 +765,9 @@ namespace DSL
     //-------------------------------------------------------------------------
     
     FileSinkBintr::FileSinkBintr(const char* name, const char* filepath, 
-        uint codec, uint container, uint bitRate, uint interval)
-        : EncodeSinkBintr(name, codec, container, bitRate, interval)
+        uint codec, uint container, uint bitrate, uint interval)
+        : EncodeSinkBintr(name, codec, bitrate, interval)
+        , m_container(container)
     {
         LOG_FUNC();
         
@@ -830,9 +866,10 @@ namespace DSL
     //-------------------------------------------------------------------------
     
     RecordSinkBintr::RecordSinkBintr(const char* name, const char* outdir, 
-        uint codec, uint container, uint bitRate, uint interval, dsl_record_client_listener_cb clientListener)
-        : EncodeSinkBintr(name, codec, container, bitRate, interval)
-        , RecordMgr(name, outdir, container, clientListener)
+        uint codec, uint container, uint bitrate, uint interval, 
+        dsl_record_client_listener_cb clientListener)
+        : EncodeSinkBintr(name, codec, bitrate, interval)
+        , RecordMgr(name, outdir, m_gpuId, container, clientListener)
     {
         LOG_FUNC();
         
@@ -858,7 +895,10 @@ namespace DSL
             return false;
         }
 
-        CreateContext();
+        if (!CreateContext())
+        {
+            return false;
+        }
         
         m_pRecordBin = DSL_NODETR_NEW("record-bin");
         m_pRecordBin->SetGstObject(GST_OBJECT(m_pContext->recordbin));
@@ -918,7 +958,7 @@ namespace DSL
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set Sync/Async Settings for FileSinkBintr '" << GetName() 
+            LOG_ERROR("Unable to set Sync/Async Settings for RecordSinkBintr '" << GetName() 
                 << "' as it's currently linked");
             return false;
         }
@@ -932,44 +972,24 @@ namespace DSL
     //******************************************************************************************
     
     RtspSinkBintr::RtspSinkBintr(const char* name, const char* host, uint udpPort, uint rtspPort,
-         uint codec, uint bitRate, uint interval)
-        : SinkBintr(name, false, false)
+         uint codec, uint bitrate, uint interval)
+        : EncodeSinkBintr(name, codec, bitrate, interval)
         , m_host(host)
         , m_udpPort(udpPort)
         , m_rtspPort(rtspPort)
-        , m_codec(codec)
-        , m_bitRate(bitRate)
-        , m_interval(interval)
         , m_pServer(NULL)
         , m_pFactory(NULL)
     {
         LOG_FUNC();
-        
-        m_pUdpSink = DSL_ELEMENT_NEW("udpsink", "rtsp-sink-bin");
-        m_pTransform = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "rtsp-sink-bin-transform");
-        m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "rtsp-sink-bin-caps-filter");
 
-        m_pUdpSink->SetAttribute("host", m_host.c_str());
-        m_pUdpSink->SetAttribute("port", m_udpPort);
-        m_pUdpSink->SetAttribute("sync", m_sync);
-        m_pUdpSink->SetAttribute("async", m_async);
-
-        GstCaps* pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
-        m_pCapsFilter->SetAttribute("caps", pCaps);
-        gst_caps_unref(pCaps);
-        
         std::string codecString;
         switch (codec)
         {
         case DSL_CODEC_H264 :
-            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H264_HW, "rtsp-sink-bin-h264-encoder");
-            m_pParser = DSL_ELEMENT_NEW("h264parse", "rtsp-sink-bin-h264-parser");
             m_pPayloader = DSL_ELEMENT_NEW("rtph264pay", "rtsp-sink-bin-h264-payloader");
             codecString.assign("H264");
             break;
         case DSL_CODEC_H265 :
-            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H265_HW, "rtsp-sink-bin-h265-encoder");
-            m_pParser = DSL_ELEMENT_NEW("h265parse", "rtsp-sink-bin-h265-parser");
             m_pPayloader = DSL_ELEMENT_NEW("rtph265pay", "rtsp-sink-bin-h265-payloader");
             codecString.assign("H265");
             break;
@@ -978,8 +998,12 @@ namespace DSL
             throw;
         }
 
-        m_pEncoder->SetAttribute("bitrate", m_bitRate);
-        m_pEncoder->SetAttribute("iframeinterval", m_interval);
+        m_pUdpSink = DSL_ELEMENT_NEW("udpsink", "rtsp-sink-bin");
+
+        m_pUdpSink->SetAttribute("host", m_host.c_str());
+        m_pUdpSink->SetAttribute("port", m_udpPort);
+        m_pUdpSink->SetAttribute("sync", m_sync);
+        m_pUdpSink->SetAttribute("async", m_async);
 
         // aarch_64
         if (m_cudaDeviceProp.integrated)
@@ -1015,12 +1039,8 @@ namespace DSL
         gst_rtsp_mount_points_add_factory(pMounts, uniquePath.c_str(), m_pFactory);
         g_object_unref(pMounts);
 
-        AddChild(m_pUdpSink);
-        AddChild(m_pTransform);
-        AddChild(m_pCapsFilter);
-        AddChild(m_pEncoder);
-        AddChild(m_pParser);
         AddChild(m_pPayloader);
+        AddChild(m_pUdpSink);
     }
     
     RtspSinkBintr::~RtspSinkBintr()
@@ -1086,43 +1106,12 @@ namespace DSL
         m_isLinked = false;
     }
     
-    void RtspSinkBintr::GetServerSettings(uint* udpPort, uint* rtspPort, uint* codec)
+    void RtspSinkBintr::GetServerSettings(uint* udpPort, uint* rtspPort)
     {
         LOG_FUNC();
         
         *udpPort = m_udpPort;
         *rtspPort = m_rtspPort;
-        *codec = m_codec;
-    }
-    
-    void  RtspSinkBintr::GetEncoderSettings(uint* bitRate, uint* interval)
-    {
-        LOG_FUNC();
-        
-        *bitRate = m_bitRate;
-        *interval = m_interval;
-    }
-    
-    bool RtspSinkBintr::SetEncoderSettings(uint bitRate, uint interval)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set Encoder Settings for FileSinkBintr '" << GetName() 
-                << "' as it's currently linked");
-            return false;
-        }
-
-        m_bitRate = bitRate;
-        m_interval = interval;
-
-        if (m_codec == DSL_CODEC_H264 or m_codec == DSL_CODEC_H265)
-        {
-            m_pEncoder->SetAttribute("bitrate", m_bitRate);
-            m_pEncoder->SetAttribute("iframeinterval", m_interval);
-        }
-        return true;
     }
     
     bool RtspSinkBintr::SetSyncSettings(bool sync, bool async)

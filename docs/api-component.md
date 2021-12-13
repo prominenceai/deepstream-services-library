@@ -1,5 +1,5 @@
 # Component API Reference
-The Pipeline Component API provides the common services that apply to all Pipeline Component types.
+The Pipeline Component API provides the common services that apply to multiple Pipeline Component types.
 * [Sources](/docs/api-source.md)
 * [Taps](/docs/api-tap.md)
 * [Inference Engines and Servers](/docs/api-infer.md)
@@ -22,20 +22,37 @@ The Pipeline Component API provides the common services that apply to all Pipeli
 * [dsl_component_gpuid_get](#dsl_component_gpuid_get)
 * [dsl_component_gpuid_set](#dsl_component_gpuid_set)
 * [dsl_component_gpuid_set_many](#dsl_component_gpuid_set_many)
+* [dsl_component_nvbuf_mem_type_get](#dsl_component_nvbuf_mem_type_get)
+* [dsl_component_nvbuf_mem_type_set](#dsl_component_nvbuf_mem_type_set)
+* [dsl_component_nvbuf_mem_type_set_many](#dsl_component_nvbuf_mem_type_set_many)
 
 ## Return Values
 The following return codes are used by the Component API
 ```C++
 #define DSL_RESULT_SUCCESS                                          0x00000000
 
+#define DSL_RESULT_COMPONENT_RESULT                                 0x00010000
 #define DSL_RESULT_COMPONENT_NAME_NOT_UNIQUE                        0x00010001
 #define DSL_RESULT_COMPONENT_NAME_NOT_FOUND                         0x00010002
 #define DSL_RESULT_COMPONENT_NAME_BAD_FORMAT                        0x00010003
-#define DSL_RESULT_COMPONENT_IN_USE                                 0x00010004
-#define DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE                   0x00010005
-#define DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE                   0x00010006
-#define DSL_RESULT_COMPONENT_SET_GPUID_FAILED                       0x00010007
+#define DSL_RESULT_COMPONENT_THREW_EXCEPTION                        0x00010004
+#define DSL_RESULT_COMPONENT_IN_USE                                 0x00010005
+#define DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE                   0x00010006
+#define DSL_RESULT_COMPONENT_NOT_USED_BY_BRANCH                     0x00010007
+#define DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE                   0x00010008
+#define DSL_RESULT_COMPONENT_SET_GPUID_FAILED                       0x00010009
+#define DSL_RESULT_COMPONENT_SET_NVBUF_MEM_TYPE_FAILED              0x0001000A
 ```
+
+## NVIDIA Buffer Memory Types
+```C
+#define DSL_NVBUF_MEM_TYPE_DEFAULT                                  0
+#define DSL_NVBUF_MEM_TYPE_PINNED                                   1
+#define DSL_NVBUF_MEM_TYPE_DEVICE                                   2
+#define DSL_NVBUF_MEM_TYPE_UNIFIED                                  3
+```
+
+---
 
 ## Destructors
 ### *dsl_component_delete*
@@ -92,6 +109,8 @@ retval = dsl_component_all()
 
 <br>
 
+---
+
 ## Methods
 ### *dsl_component_list_size*
 ```c++
@@ -133,7 +152,7 @@ retval, gpuid = dsl_component_gpuid_get('my-primary-gie')
 ```c++
 DslReturnType dsl_component_gpuid_set(const wchar_t* component, uint gpuid);
 ```
-This service sets the current GPU ID for the named Component to use. The call will fail if the Component is currently `in-use` by a Pipline.
+This service sets the current GPU ID for the named Component to use. The call will fail if the Component is currently linked.
 
 **Parameters**
 * `component` - [in] unique name of the Component to query.
@@ -153,10 +172,10 @@ retval = dsl_component_gpuid_set('my-primary-gie', 1)
 ```c++
 DslReturnType dsl_component_gpuid_set_many(const wchar_t** component, uint gpuid);
 ```
-This service sets the GPU ID for a Null terminated list of named components. The call will fail if any Component is currently `in-use` by a Pipeline, on first exception.
+This service sets the GPU ID for a Null terminated list of named components. The call will fail if any Component is currently linked, on first exception.
 
 **Parameters**
-* `components` - [in] Null terminated list of unique Component names to delete.
+* `components` - [in] Null terminated list of unique Component names to update.
 * `gpuid` - [in] new GPU ID to use by all named Components.
 
 **Returns**
@@ -165,6 +184,76 @@ This service sets the GPU ID for a Null terminated list of named components. The
 **Python Example**
 ```Python
 retval = dsl_component_gpuid_set_many(['my-uri-source', 'my-primary-gie', 'my-osd', 'my-window-sink', None], 1)
+```
+
+<br>
+
+### *dsl_component_nvbuf_mem_type_get*
+```c++
+DslReturnType dsl_component_nvbuf_mem_type_get(const wchar_t* name, 
+    uint* type);
+```
+This service returns the current NVIDIA buffer memory type for the named Component. The default setting for all components that support this propery is  = `DSL_NVBUF_MEM_TYPE_DEFAULT`. Refer to the [NVIDIA Reference](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_FAQ.html#what-are-different-memory-types-supported-on-jetson-and-dgpu) for more information on the memory types supported on Jetson and dGPU.
+
+**Note:** Only Sources, Primary GIEs/TIEs, OSDs, and Window Sinks (on x86_64) support the NVIDIA buffer memory type setting.
+
+**Parameters**
+* `component` - [in] unique name of the Component to query.
+* `type` - [out] one of the [NVIDIA buffer memory types](nvidia_buffer_memory_types) defined above.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval, type = dsl_component_nvbuf_mem_type_get('my-primary-gie')
+```
+
+<br>
+
+### *dsl_component_nvbuf_mem_type_set*
+```c++
+DslReturnType dsl_component_nvbuf_mem_type_set(const wchar_t* name, 
+    uint type);
+```
+This service sets the current NVIDIA buffer memory type for the named Component to use. The call will fail if the Component is currently linked. Refer to the [NVIDIA Reference](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_FAQ.html#what-are-different-memory-types-supported-on-jetson-and-dgpu) for more information on the memory types supported on Jetson and dGPU.
+
+**Note:** Only Sources, Primary GIEs/TIEs, OSDs, and Window Sinks (on x86_64) support the NVIDIA buffer memory type setting.
+
+**Parameters**
+* `component` - [in] unique name of the Component to update.
+* `type` - [in] one of the [NVIDIA buffer memory types](nvidia_buffer_memory_types) defined above.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval = dsl_component_nvbuf_mem_type_set('my-primary-gie', DSL_NVBUF_MEM_TYPE_DEVICE)
+```
+
+<br>
+
+### *dsl_component_nvbuf_mem_type_set_many*
+```c++
+DslReturnType dsl_component_nvbuf_mem_type_set_many(const wchar_t** names, 
+    uint type);
+```
+This service sets the NVIDIA buffer memory type for a Null terminated list of named components. The call will fail if any Component is currently linked, on first exception. Refer to the [NVIDIA Reference](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_FAQ.html#what-are-different-memory-types-supported-on-jetson-and-dgpu) for more information on the memory types supported on Jetson and dGPU.
+
+**Note:** Only Sources, Primary GIEs/TIEs, OSDs, and Window Sinks (on x86_64) support the NVIDIA buffer memory type setting.
+
+**Parameters**
+* `components` - [in] Null terminated list of unique Component names to update.
+* `type` - [in] one of the [NVIDIA buffer memory types](nvidia_buffer_memory_types) defined above.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_component_nvbuf_mem_type_set_many(
+  ['my-uri-source', 'my-primary-gie', 'my-osd', 'my-window-sink', None], DSL_NVBUF_MEM_TYPE_DEVICE)
 ```
 
 <br>
@@ -193,3 +282,4 @@ retval = dsl_component_gpuid_set_many(['my-uri-source', 'my-primary-gie', 'my-os
 * [Branch](/docs/api-branch.md)
 * **Component**
 * [Mailer](/docs/api-mailer.md)
+* [WebSocket Server](/docs/api-ws-server.md)

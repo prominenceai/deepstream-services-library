@@ -1,0 +1,124 @@
+  <html> 
+    <head> 
+      <script type="text/javascript" src="https://webrtc.github.io/adapter/adapter-latest.js"></script> 
+      <script type="text/javascript"> 
+ 
+        var html5VideoElement; 
+        var websocketConnection; 
+        var webrtcPeerConnection; 
+        var webrtcConfiguration; 
+        var reportError; 
+   
+   
+        function onLocalDescription(desc) { 
+          console.log("Local description: " + JSON.stringify(desc)); 
+          webrtcPeerConnection.setLocalDescription(desc).then(function() { 
+            websocketConnection.send(JSON.stringify({ type: "sdp", "data": webrtcPeerConnection.localDescription })); 
+          }).catch(reportError); 
+        } 
+   
+   
+        function onIncomingSDP(sdp) { 
+          console.log("Incoming SDP: " + JSON.stringify(sdp)); 
+          webrtcPeerConnection.setRemoteDescription(sdp).catch(reportError); 
+          webrtcPeerConnection.createAnswer().then(onLocalDescription).catch(reportError); 
+        } 
+   
+   
+        function onIncomingICE(ice) { 
+          var candidate = new RTCIceCandidate(ice); 
+          console.log("Incoming ICE: " + JSON.stringify(ice)); 
+          webrtcPeerConnection.addIceCandidate(candidate).catch(reportError); 
+        } 
+   
+   
+        function onTrack(event) { 
+          html5VideoElement.srcObject = event.streams[0]; 
+        } 
+          function onDataChannelMessage(event) { 
+          if(typeof event.data === 'string') { 
+            console.log("Incoming message: " + event.data); 
+          } 
+        }
+   
+        function onIceCandidate(event) { 
+          if (event.candidate == null) 
+            return; 
+   
+          console.log("Sending ICE candidate out: " + JSON.stringify(event.candidate)); 
+          websocketConnection.send(JSON.stringify({ "type": "ice", "data": event.candidate })); 
+        } 
+        
+        function onDataChannel(event) { 
+   
+           console.log("Data channel opened"); 
+           event.channel.onmessage = onDataChannelMessage; 
+          } 
+   
+   
+        function onServerMessage(event) { 
+          var msg; 
+   
+          try { 
+            msg = JSON.parse(event.data); 
+          } catch (e) { 
+            return; 
+          } 
+   
+          if (!webrtcPeerConnection) { 
+            webrtcPeerConnection = new RTCPeerConnection(webrtcConfiguration); 
+            webrtcPeerConnection.ontrack = onTrack; 
+            webrtcPeerConnection.onicecandidate = onIceCandidate; 
+            webrtcPeerConnection.ondatachannel = onDataChannel; 
+          } 
+   
+          switch (msg.type) { 
+            case "sdp": onIncomingSDP(msg.data); break; 
+            case "ice": onIncomingICE(msg.data); break; 
+            default: break; 
+          } 
+        } 
+   
+   
+        function playStream(videoElement, hostname, port, path, configuration, reportErrorCB) { 
+          var l = window.location;
+          // var wsHost = (hostname != undefined) ? hostname : l.hostname; 
+          var wsHost = "localhost"; 
+          var wsPort = 60001; 
+          var wsPath = "ws"; 
+          if (wsPort) 
+           wsPort = ":" + wsPort; 
+          var wsUrl = "ws://" + wsHost + wsPort + "/" + wsPath; 
+   
+          html5VideoElement = videoElement; 
+          webrtcConfiguration = configuration; 
+          reportError = (reportErrorCB != undefined) ? reportErrorCB : function(text) {}; 
+   
+          websocketConnection = new WebSocket(wsUrl); 
+          websocketConnection.addEventListener("message", onServerMessage); 
+          websocketConnection.addEventListener("onopen" , (event) =>
+          {
+             websocketConnection.send("test"); 
+          });
+        } 
+   
+        window.onload = function() { 
+          var vidstream = document.getElementById('str'); 
+          var config = { 'iceServers': [{ 'urls': 'stun:stun.l.google.com:19302'}] };
+          playStream(vidstream, null, null, null, config, function (errmsg) { console.error(errmsg); }); 
+        }; 
+
+        window.onbeforeunload = function() {
+          websocket.onclose = function () {}; // disable onclose handler first
+          websocket.close();
+        };
+      </script> 
+    </head> 
+   
+    <body> 
+      <div> 
+        <video id="str" autoplay playsinline muted>Your browser does not support video</video> 
+      </div> 
+    </body> 
+  </html> 
+  

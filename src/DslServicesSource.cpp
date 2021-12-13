@@ -86,7 +86,7 @@ namespace DSL
     }
     
     DslReturnType Services::SourceUriNew(const char* name, const char* uri, 
-        boolean isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
+        boolean isLive, uint intraDecode, uint dropFrameInterval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -115,7 +115,7 @@ namespace DSL
                 }
             }
             m_components[name] = DSL_URI_SOURCE_NEW(
-                name, uri, isLive, cudadecMemType, intraDecode, dropFrameInterval);
+                name, uri, isLive, intraDecode, dropFrameInterval);
 
             LOG_INFO("New URI Source '" << name << "' created successfully");
 
@@ -443,7 +443,7 @@ namespace DSL
     }
 
     DslReturnType Services::SourceRtspNew(const char* name, const char* uri,  uint protocol, 
-       uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency, uint timeout)
+       uint intraDecode, uint dropFrameInterval, uint latency, uint timeout)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -457,7 +457,7 @@ namespace DSL
                 return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
             }
             m_components[name] = DSL_RTSP_SOURCE_NEW(
-                name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval, latency, timeout);
+                name, uri, protocol, intraDecode, dropFrameInterval, latency, timeout);
 
             LOG_INFO("New RTSP Source '" << name << "' created successfully");
 
@@ -1099,6 +1099,7 @@ namespace DSL
             boolean isLive = std::dynamic_pointer_cast<SourceBintr>(m_components[name])->IsLive();
 
             LOG_INFO("Source '" << name << "' returned Is-Live = " << isLive );
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -1255,7 +1256,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::TapRecordSessionStop(const char* name)
+    DslReturnType Services::TapRecordSessionStop(const char* name, boolean sync)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1268,7 +1269,7 @@ namespace DSL
             DSL_RECORD_TAP_PTR pRecordTapBintr = 
                 std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
 
-            if (!pRecordTapBintr->StopSession())
+            if (!pRecordTapBintr->StopSession(sync))
             {
                 LOG_ERROR("Record Tap '" << name << "' failed to Stop Session");
                 return DSL_RESULT_TAP_SET_FAILED;

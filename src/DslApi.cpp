@@ -406,10 +406,12 @@ DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name,
     std::wstring wstrOutdir(outdir);
     std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
 
-    return DSL::Services::GetServices()->OdeActionCaptureFrameNew(cstrName.c_str(), cstrOutdir.c_str(), annotate);
+    return DSL::Services::GetServices()->OdeActionCaptureFrameNew(cstrName.c_str(), 
+        cstrOutdir.c_str(), annotate);
 }
 
-DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name, const wchar_t* outdir)
+DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name,
+    const wchar_t* outdir)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(outdir);
@@ -419,7 +421,8 @@ DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name, const wchar
     std::wstring wstrOutdir(outdir);
     std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
 
-    return DSL::Services::GetServices()->OdeActionCaptureObjectNew(cstrName.c_str(), cstrOutdir.c_str());
+    return DSL::Services::GetServices()->OdeActionCaptureObjectNew(cstrName.c_str(), 
+        cstrOutdir.c_str());
 }
 
 DslReturnType dsl_ode_action_capture_complete_listener_add(const wchar_t* name, 
@@ -2242,7 +2245,7 @@ DslReturnType dsl_source_usb_new(const wchar_t* name,
 }
 
 DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, 
-    boolean is_live, uint cudadec_mem_type, uint intra_decode, uint dropFrameInterval)
+    boolean is_live, uint intra_decode, uint dropFrameInterval)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(uri);
@@ -2253,7 +2256,7 @@ DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri,
     std::string cstrUri(wstrUri.begin(), wstrUri.end());
 
     return DSL::Services::GetServices()->SourceUriNew(cstrName.c_str(), cstrUri.c_str(), 
-        is_live, cudadec_mem_type, intra_decode, dropFrameInterval);
+        is_live, intra_decode, dropFrameInterval);
 }
 
 DslReturnType dsl_source_file_new(const wchar_t* name, 
@@ -2413,7 +2416,7 @@ DslReturnType dsl_source_image_timeout_set(const wchar_t* name, uint timeout)
 }
 
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol, 
-    uint cudadec_mem_type, uint intra_decode, uint dropFrameInterval, uint latency, uint timeout)
+    uint intra_decode, uint dropFrameInterval, uint latency, uint timeout)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(uri);
@@ -2424,7 +2427,7 @@ DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint 
     std::string cstrUri(wstrUri.begin(), wstrUri.end());
 
     return DSL::Services::GetServices()->SourceRtspNew(cstrName.c_str(), cstrUri.c_str(), 
-        protocol, cudadec_mem_type, intra_decode, dropFrameInterval, latency, timeout);
+        protocol, intra_decode, dropFrameInterval, latency, timeout);
 }
 
 DslReturnType dsl_source_dimensions_get(const wchar_t* name, uint* width, uint* height)
@@ -2718,14 +2721,15 @@ DslReturnType dsl_tap_record_session_start(const wchar_t* name,
         start, duration, client_data);
 }     
 
-DslReturnType dsl_tap_record_session_stop(const wchar_t* name)
+DslReturnType dsl_tap_record_session_stop(const wchar_t* name, 
+    boolean sync)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TapRecordSessionStop(cstrName.c_str());
+    return DSL::Services::GetServices()->TapRecordSessionStop(cstrName.c_str(), sync);
 }
 
 DslReturnType dsl_tap_record_outdir_get(const wchar_t* name, const wchar_t** outdir)
@@ -3038,6 +3042,16 @@ DslReturnType dsl_infer_tis_secondary_new(const wchar_t* name, const wchar_t* in
 
     return DSL::Services::GetServices()->SecondaryTisNew(cstrName.c_str(), cstrConfig.c_str(),
         cstrInferOnTis.c_str(), interval);
+}
+
+DslReturnType dsl_infer_unique_id_get(const wchar_t* name, uint* id)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->InferUniqueIdGet(cstrName.c_str(), id);
 }
 
 DslReturnType dsl_infer_primary_pph_add(const wchar_t* name, 
@@ -3985,20 +3999,8 @@ DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* file_path,
         cstrPath.c_str(), codec, container, bitrate, interval);
 }     
 
-DslReturnType dsl_sink_encode_video_formats_get(const wchar_t* name,
-    uint* codec, uint* container)
-{    
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    return DSL::Services::GetServices()->SinkEncodeVideoFormatsGet(cstrName.c_str(), 
-        codec, container);
-}
-
 DslReturnType dsl_sink_encode_settings_get(const wchar_t* name,
-    uint* bitrate, uint* interval)
+    uint* codec, uint* bitrate, uint* interval)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -4006,11 +4008,11 @@ DslReturnType dsl_sink_encode_settings_get(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
     
     return DSL::Services::GetServices()->SinkEncodeSettingsGet(cstrName.c_str(), 
-        bitrate, interval);
+        codec, bitrate, interval);
 }    
 
 DslReturnType dsl_sink_encode_settings_set(const wchar_t* name,
-    uint bitrate, uint interval)
+    uint codec, uint bitrate, uint interval)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -4018,7 +4020,7 @@ DslReturnType dsl_sink_encode_settings_set(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
     
     return DSL::Services::GetServices()->SinkEncodeSettingsSet(cstrName.c_str(), 
-        bitrate, interval);
+        codec, bitrate, interval);
 }
 
 DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, 
@@ -4050,14 +4052,15 @@ DslReturnType dsl_sink_record_session_start(const wchar_t* name,
         start, duration, client_data);
 }     
 
-DslReturnType dsl_sink_record_session_stop(const wchar_t* name)
+DslReturnType dsl_sink_record_session_stop(const wchar_t* name, 
+    boolean sync)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkRecordSessionStop(cstrName.c_str());
+    return DSL::Services::GetServices()->SinkRecordSessionStop(cstrName.c_str(), sync);
 }
 
 DslReturnType dsl_sink_record_outdir_get(const wchar_t* name, const wchar_t** outdir)
@@ -4254,7 +4257,7 @@ DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host,
 }     
 
 DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
-    uint* udpPort, uint* rtspPort, uint* codec)
+    uint* udpPort, uint* rtspPort)
 {    
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -4262,29 +4265,252 @@ DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
     
     return DSL::Services::GetServices()->SinkRtspServerSettingsGet(cstrName.c_str(), 
-        udpPort, rtspPort, codec);
+        udpPort, rtspPort);
 }    
 
-DslReturnType dsl_sink_rtsp_encoder_settings_get(const wchar_t* name,
-    uint* bitrate, uint* interval)
+// NOTE: the WebRTC Sink implementation requires DS 1.18.0 or later
+DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_server,
+    const wchar_t* turn_server, uint codec, uint bitrate, uint interval)
 {
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    return DSL::Services::GetServices()->SinkRtspEncoderSettingsGet(cstrName.c_str(), bitrate, interval);
-}    
 
-DslReturnType dsl_sink_rtsp_encoder_settings_set(const wchar_t* name,
-    uint bitrate, uint interval)
+    std::string cstrStunServer;
+	std::string cstrTurnServer;
+	if (stun_server != NULL)
+	{
+		std::wstring wstrStunServer(stun_server);
+		cstrStunServer.assign(wstrStunServer.begin(), wstrStunServer.end());
+    }
+	if (turn_server != NULL)
+	{
+		std::wstring wstrTurnServer(turn_server);
+		cstrTurnServer.assign(wstrTurnServer.begin(), wstrTurnServer.end());
+    }
+
+    return DSL::Services::GetServices()->SinkWebRtcNew(cstrName.c_str(),
+        cstrStunServer.c_str(), cstrTurnServer.c_str(), codec, bitrate, interval);
+#endif    
+}
+
+DslReturnType dsl_sink_webrtc_connection_close(const wchar_t* name)
 {
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWebRtcConnectionClose(cstrName.c_str());
+#endif    
+}
+
+DslReturnType dsl_sink_webrtc_servers_get(const wchar_t* name, 
+    const wchar_t** stun_server, const wchar_t** turn_server)
+{
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cStunServer;
+    static std::string cstrStunServer;
+    static std::wstring wcstrStunServer;
+    const char* cTurnServer;
+    static std::string cstrTurnServer;
+    static std::wstring wcstrTurnServer;
+    
+    uint retval = DSL::Services::GetServices()->SinkWebRtcServersGet(cstrName.c_str(), 
+        &cStunServer, &cTurnServer);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrStunServer.assign(cStunServer);
+        wcstrStunServer.assign(cstrStunServer.begin(), cstrStunServer.end());
+        *stun_server = wcstrStunServer.c_str();
+        cstrTurnServer.assign(cTurnServer);
+        wcstrTurnServer.assign(cstrTurnServer.begin(), cstrTurnServer.end());
+        *turn_server = wcstrTurnServer.c_str();
+    }
+    return retval;
+
+#endif    
+}
+
+DslReturnType dsl_sink_webrtc_servers_set(const wchar_t* name, 
+    const wchar_t* stun_server, const wchar_t* turn_server)
+{
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    return DSL::Services::GetServices()->SinkRtspEncoderSettingsSet(cstrName.c_str(), bitrate, interval);
+
+    std::string cstrStunServer;
+	std::string cstrTurnServer;
+	if (stun_server != NULL)
+	{
+		std::wstring wstrStunServer(stun_server);
+		cstrStunServer.assign(wstrStunServer.begin(), wstrStunServer.end());
+    }
+	if (turn_server != NULL)
+	{
+		std::wstring wstrTurnServer(turn_server);
+		cstrTurnServer.assign(wstrTurnServer.begin(), wstrTurnServer.end());
+    }
+
+    return DSL::Services::GetServices()->SinkWebRtcServersSet(cstrName.c_str(),
+        cstrStunServer.c_str(), cstrTurnServer.c_str());
+#endif    
+}
+
+DslReturnType dsl_sink_webrtc_client_listener_add(const wchar_t* name, 
+    dsl_sink_webrtc_client_listener_cb listener, void* client_data)
+{
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->
+        SinkWebRtcClientListenerAdd(cstrName.c_str(), listener, client_data);
+#endif    
+}
+
+DslReturnType dsl_sink_webrtc_client_listener_remove(const wchar_t* name, 
+    dsl_sink_webrtc_client_listener_cb listener)
+{
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->
+        SinkWebRtcClientListenerRemove(cstrName.c_str(), listener);
+#endif    
+}
+
+DslReturnType dsl_websocket_server_path_add(const wchar_t* path)
+{
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(path);
+
+    std::wstring wstrPath(path);
+    std::string cstrPath(wstrPath.begin(), wstrPath.end());
+
+    return DSL::Services::GetServices()->
+        WebsocketServerPathAdd(cstrPath.c_str());
+#endif    
+}
+
+DslReturnType dsl_websocket_server_listening_start(uint port_number)
+{
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    return DSL::Services::GetServices()->
+        WebsocketServerListeningStart(port_number);
+#endif    
+}
+
+DslReturnType dsl_websocket_server_listening_stop()
+{
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    return DSL::Services::GetServices()->
+        WebsocketServerListeningStop();
+#endif    
+}
+
+DslReturnType dsl_websocket_server_listening_state_get(boolean* is_listening,
+    uint* port_number)
+{
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    return DSL::Services::GetServices()->
+        WebsocketServerListeningStateGet(is_listening, port_number);
+#endif    
+}
+
+DslReturnType dsl_websocket_server_client_listener_add( 
+    dsl_websocket_server_client_listener_cb listener, void* client_data)
+{
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    return DSL::Services::GetServices()->
+        WebsocketServerClientListenerAdd(listener, client_data);
+#endif    
+}
+
+DslReturnType dsl_websocket_server_client_listener_remove( 
+    dsl_websocket_server_client_listener_cb listener)
+{
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION < 18
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    return DSL::Services::GetServices()->
+        WebsocketServerClientListenerRemove(listener);
+#endif    
 }
 
 DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler)
@@ -4414,7 +4640,46 @@ DslReturnType dsl_component_gpuid_set_many(const wchar_t** names, uint gpuid)
     {
         std::wstring wstrName(*name);
         std::string cstrName(wstrName.begin(), wstrName.end());
-        DslReturnType retval = DSL::Services::GetServices()->ComponentGpuIdSet(cstrName.c_str(), gpuid);
+        DslReturnType retval = DSL::Services::GetServices()->ComponentGpuIdSet(
+                cstrName.c_str(), gpuid);
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_component_nvbuf_mem_type_get(const wchar_t* name, uint* type)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->ComponentNvbufMemTypeGet(cstrName.c_str(), type);
+}
+
+DslReturnType dsl_component_nvbuf_mem_type_set(const wchar_t* name, uint type)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->ComponentNvbufMemTypeSet(cstrName.c_str(), type);
+}
+
+DslReturnType dsl_component_nvbuf_mem_type_set_many(const wchar_t** names, uint type)
+{
+    RETURN_IF_PARAM_IS_NULL(names);
+
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->ComponentNvbufMemTypeSet(
+            cstrName.c_str(), type);
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -4712,6 +4977,31 @@ DslReturnType dsl_pipeline_component_remove_many(const wchar_t* pipeline,
         }
     }
     return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_get(const wchar_t* pipeline, 
+    uint* type)
+{
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(type);
+
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->PipelineStreamMuxNvbufMemTypeGet(cstrPipeline.c_str(),
+        type);
+}
+
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* pipeline, 
+    uint type)
+{
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->PipelineStreamMuxNvbufMemTypeSet(cstrPipeline.c_str(),
+        type);
 }
 
 DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* pipeline, 
@@ -5794,3 +6084,14 @@ void dsl_stdout_restore()
     DSL::Services::GetServices()->StdOutRestore();
 }
 
+uint dsl_gpu_type_get(uint gpu_id)
+{
+        // Get the Device properties
+        cudaDeviceProp deviceProp;
+        cudaGetDeviceProperties(&deviceProp, gpu_id);
+
+        // if aarch64 build, set memorytype to default
+        return (deviceProp.integrated) 
+            ? DSL_GPU_TYPE_INTEGRATED
+            : DSL_GPU_TYPE_DISCRETE;
+}

@@ -766,4 +766,5 @@ player_count = dsl_player_list_size()
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
 * [Mailer](/docs/api-mailer.md)
+* [WebSocket Server](/docs/api-ws-server.md)
 

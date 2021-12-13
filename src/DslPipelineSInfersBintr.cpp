@@ -72,10 +72,8 @@ namespace DSL
         gst_object_unref(m_pGstStaticSinkPad);
         gst_object_unref(m_pGstStaticSourcePad);
         
-        // Float the Queue sink pad as a Ghost Pad for this PipelineSInfersBintr
         m_pTee->AddGhostPadToParent("sink");
         m_pQueue->AddGhostPadToParent("src");
-
         
         g_mutex_init(&m_sinkPadProbeMutex);
         g_mutex_init(&m_srcPadProbeMutex);
@@ -124,6 +122,8 @@ namespace DSL
         //add the SecondaryInfer's Elements as children of this Bintr
         if (!Bintr::AddChild(pChildSecondaryInfer->GetQueueElementr()) or
             !Bintr::AddChild(pChildSecondaryInfer->GetInferEngineElementr()) or
+            !Bintr::AddChild(pChildSecondaryInfer->GetTeeElementr()) or
+            !Bintr::AddChild(pChildSecondaryInfer->GetFakeSinkQueueElementr()) or
             !Bintr::AddChild(pChildSecondaryInfer->GetFakeSinkElementr()))
         {
             LOG_ERROR("Failed to add the elementrs from SecondaryInfer' " << 
@@ -166,12 +166,13 @@ namespace DSL
             pChildSecondaryInfer->UnlinkFromSource();
         }
         // remove the SecondaryInfer's Elements as children of this Bintr
-        // remove the SecondaryInfer's Elements as children of this Bintr
         if (!Bintr::RemoveChild(pChildSecondaryInfer->GetQueueElementr()) or
             !Bintr::RemoveChild(pChildSecondaryInfer->GetInferEngineElementr()) or
+            !Bintr::RemoveChild(pChildSecondaryInfer->GetTeeElementr()) or
+            !Bintr::RemoveChild(pChildSecondaryInfer->GetFakeSinkQueueElementr()) or
             !Bintr::RemoveChild(pChildSecondaryInfer->GetFakeSinkElementr()))
         {
-            LOG_ERROR("Failed to add the elementrs from SecondaryInfer' " << 
+            LOG_ERROR("Failed to remove the elementrs for SecondaryInfer' " << 
                 pChildSecondaryInfer->GetName() << "' as childern of '" << GetName() << "'");
             return false;
         }
@@ -202,13 +203,13 @@ namespace DSL
             LOG_ERROR("Unable to link PipelineSInfersBintr '" << GetName() << "' - batch size Not Set");
             return false;
         }
-        // Get a dynamic "src" pad for the Tee to link to the static "sink" pad of the shared-buffer-Queue
-        GstPad* pGstRequestedSourcePad = gst_element_get_request_pad(m_pTee->GetGstElement(), "src_%u");
-        if (!pGstRequestedSourcePad)
-        {
-            LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<"'");
-            return false;
-        }
+        // // Get a dynamic "src" pad for the Tee to link to the static "sink" pad of the shared-buffer-Queue
+        // GstPad* pGstRequestedSourcePad = gst_element_get_request_pad(m_pTee->GetGstElement(), "src_%u");
+        // if (!pGstRequestedSourcePad)
+        // {
+        //     LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<"'");
+        //     return false;
+        // }
         // Get the static "sink" pad for the Queue to link back with the dynamic "src" pad of the Tee
         m_pGstStaticSinkPad = gst_element_get_static_pad(m_pQueue->GetGstElement(), "sink");
         if (!m_pGstStaticSinkPad)
@@ -222,28 +223,67 @@ namespace DSL
         {
             return false;
         }
-        // TODO - recursively handle multiple levels of Secondary Inference
+        // Link in all secondary infers that are set to infer on the Primary
         for (auto const& imap: m_pChildSInfers)
         {
             if (imap.second->GetInferOnUniqueId() == m_primaryInferUniqueId)
             {
-                // batch size and infer-on-gie are set to that of the Primary GIE
+                // batch size is set to that of the Primary GIE
                 if (!imap.second->SetBatchSize(m_batchSize))
                 {
                     return false;
                 }
                 
-                LOG_INFO("Linking " << m_pTee->GetName() << " from " << imap.second->GetName());
+                LOG_INFO("Linking '" << imap.second->GetName() << "' back to src tee'" 
+                    << m_pTee->GetName() << "'");
                 
                 // Link all SGIE Elementrs and Link back with the Primary Tee
                 if (!imap.second->LinkAll() or !imap.second->LinkToSource(m_pTee))
                 {
                     LOG_ERROR("PipelineSInfersBintr '" << GetName() 
-                        << "' failed to Link Child SecondaryInfer '" << imap.second->GetName() << "'");
+                        << "' failed to Link Child SecondaryInferBintr '" 
+                        << imap.second->GetName() << "'");
                     return false;
                 }
             }
         }
+        // One more pass through looking for remaining, unlinked child infers
+        // to link them in as a third level of inference. 
+        for (auto const& imap: m_pChildSInfers)
+        {
+            if (imap.second->GetInferOnUniqueId() != m_primaryInferUniqueId)
+            {
+                if (m_pChildSInfers.find(imap.second->GetInferOnName()) == m_pChildSInfers.end())
+                {
+                    LOG_ERROR("PipelineSInfersBintr '" << GetName() 
+                        << "' failed to Link Child SecondaryInferBintr '" << imap.second->GetName() 
+                        << "'. The Infer-on name '" << imap.second->GetInferOnName() 
+                        << "' was not found.");
+                    return false;
+                }
+
+                // batch size is set to that of the Primary GIE
+                if (!imap.second->SetBatchSize(m_batchSize))
+                {
+                    return false;
+                }
+
+                // Get the Tee from the secondary to Infer-on to link to.
+
+                DSL_ELEMENT_PTR pTee = m_pChildSInfers[imap.second->GetInferOnName()]->GetTeeElementr();
+                
+                LOG_INFO("Linking " << pTee->GetName() << " from " << imap.second->GetName());
+                
+                // Link all SGIE Elementrs and Link back with the Primary Tee
+                if (!imap.second->LinkAll() or !imap.second->LinkToSource(pTee))
+                {
+                    LOG_ERROR("PipelineSInfersBintr '" << GetName() 
+                        << "' failed to Link Child SecondaryInferBintr '" << imap.second->GetName() << "'");
+                    return false;
+                }
+            }
+        }
+
         m_isLinked = true;
         return true;
     }

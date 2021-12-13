@@ -49,7 +49,7 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[CsiSourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
-                REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
+                REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
@@ -272,7 +272,6 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[UriSourceBintr]" )
     {
         std::string sourceName = "test-uri-source";
         std::string uri = "./test/streams/sample_1080p_h264.mp4";
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(true);
         uint dropFrameInterval(2);
         
@@ -283,12 +282,12 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[UriSourceBintr]" )
         WHEN( "The UriSourceBintr is created " )
         {
             DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-                sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
+                sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
-                REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
+                REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
@@ -317,12 +316,11 @@ SCENARIO( "A UriSourceBintr can LinkAll child Elementrs correctly",  "[UriSource
     {
         std::string sourceName("test-file-source");
         std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(true);
         uint dropFrameInterval(2);
 
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
+            sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
         WHEN( "The UriSourceBintr is called to LinkAll" )
         {
@@ -342,12 +340,11 @@ SCENARIO( "A UriSourceBintr can UnlinkAll all child Elementrs correctly",  "[Uri
     {
         std::string sourceName("test-file-source");
         std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(true);
         uint dropFrameInterval(2);
 
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
+            sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
         REQUIRE( pSourceBintr->LinkAll() == true );
         REQUIRE( pSourceBintr->IsLinked() == true );
@@ -370,7 +367,6 @@ SCENARIO( "A UriSourceBintr can Add a Child DewarperBintr",  "[DecodeSourceBintr
     {
         std::string sourceName("test-file-source");
         std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(true);
         uint dropFrameInterval(2);
 
@@ -378,7 +374,7 @@ SCENARIO( "A UriSourceBintr can Add a Child DewarperBintr",  "[DecodeSourceBintr
         std::string defConfigFile("./test/configs/config_dewarper.txt");
 
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
+            sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
         DSL_DEWARPER_PTR pDewarperBintr = 
             DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
@@ -401,7 +397,6 @@ SCENARIO( "A UriSourceBintr can Remove a Child DewarperBintr",  "[DecodeSourceBi
     {
         std::string sourceName("test-file-source");
         std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(true);
         uint dropFrameInterval(2);
 
@@ -409,7 +404,7 @@ SCENARIO( "A UriSourceBintr can Remove a Child DewarperBintr",  "[DecodeSourceBi
         std::string defConfigFile("./test/configs/config_dewarper.txt");
 
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
+            sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
         DSL_DEWARPER_PTR pDewarperBintr = 
             DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
@@ -434,7 +429,6 @@ SCENARIO( "A UriSourceBintr can ensure a single Child DewarperBintr",  "[DecodeS
     {
         std::string sourceName("test-file-source");
         std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(true);
         uint dropFrameInterval(2);
 
@@ -444,7 +438,7 @@ SCENARIO( "A UriSourceBintr can ensure a single Child DewarperBintr",  "[DecodeS
         std::string dewarperName2("dewarper2");
 
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
+            sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
         DSL_DEWARPER_PTR pDewarperBintr1 = 
             DSL_DEWARPER_NEW(dewarperName1.c_str(), defConfigFile.c_str());
@@ -476,7 +470,6 @@ SCENARIO( "A UriSourceBintr with a child DewarperBintr can LinkAll child Element
     {
         std::string sourceName("test-file-source");
         std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(true);
         uint dropFrameInterval(2);
 
@@ -484,7 +477,7 @@ SCENARIO( "A UriSourceBintr with a child DewarperBintr can LinkAll child Element
         std::string defConfigFile("./test/configs/config_dewarper.txt");
 
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
+            sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
         DSL_DEWARPER_PTR pDewarperBintr = 
             DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
@@ -509,7 +502,6 @@ SCENARIO( "A Linked UriSourceBintr with a child DewarperBintr can UnlinkAll chil
     {
         std::string sourceName("test-file-source");
         std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(true);
         uint dropFrameInterval(2);
 
@@ -517,7 +509,7 @@ SCENARIO( "A Linked UriSourceBintr with a child DewarperBintr can UnlinkAll chil
         std::string defConfigFile("./test/configs/config_dewarper.txt");
 
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
+            sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
         DSL_DEWARPER_PTR pDewarperBintr = 
             DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
@@ -544,7 +536,7 @@ SCENARIO( "A UriSourceBintr can Set and Get its URI",  "[UriSourceBintr]" )
     {
         std::string sourceName = "test-uri-source";
         std::string uri = "./test/streams/sample_1080p_h264.mp4";
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint cudadecMemType(DSL_NVBUF_MEM_TYPE_DEFAULT);
         uint intrDecode(true);
         uint dropFrameInterval(2);
         
@@ -553,7 +545,7 @@ SCENARIO( "A UriSourceBintr can Set and Get its URI",  "[UriSourceBintr]" )
         fullUriPath.insert(0, "file:");
 
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
+            sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
         std::string returnedUri = pSourceBintr->GetUri();
         REQUIRE( returnedUri == fullUriPath );
@@ -577,12 +569,11 @@ SCENARIO( "A UriSourceBintr can Get and Set its GPU ID",  "[UriSourceBintr]" )
     {
         std::string sourceName("test-file-source");
         std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(true);
         uint dropFrameInterval(2);
         
         DSL_URI_SOURCE_PTR pUriSourceBintr = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
+            sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
         uint GPUID0(0);
         uint GPUID1(1);
@@ -607,7 +598,6 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[RtspSourceBintr]" )
     {
         std::string sourceName("rtsp-source");
         std::string uri("rtsp://208.72.70.171:80/mjpg/video.mjpg");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
         uint dropFrameInterval(0);
         uint latency(100);
@@ -616,12 +606,12 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[RtspSourceBintr]" )
         WHEN( "The RtspSourceBintr is created " )
         {
             DSL_RTSP_SOURCE_PTR pSourceBintr = DSL_RTSP_SOURCE_NEW(sourceName.c_str(), 
-                uri.c_str(), DSL_RTP_ALL, cudadecMemType, intrDecode, dropFrameInterval, latency, timeout);
+                uri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
 
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
-                REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
+                REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
@@ -668,14 +658,13 @@ SCENARIO( "A new RtspSourceBintr's attributes can be set/get ",  "[RtspSourceBin
     {
         std::string sourceName("rtsp-source");
         std::string uri("rtsp://208.72.70.171:80/mjpg/video.mjpg");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
         uint dropFrameInterval(0);
         uint latency(100);
         uint timeout(20);
 
         DSL_RTSP_SOURCE_PTR pSourceBintr = DSL_RTSP_SOURCE_NEW(sourceName.c_str(), 
-            uri.c_str(), DSL_RTP_ALL, cudadecMemType, intrDecode, dropFrameInterval, latency, timeout);
+            uri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
 
         WHEN( "The RtspSourceBintr's timeout set " )
         {
@@ -733,14 +722,13 @@ SCENARIO( "An RtspSourceBintr can add and remove State Change Listeners",  "[Rts
     {
         std::string sourceName("rtsp-source");
         std::string uri("rtsp://208.72.70.171:80/mjpg/video.mjpg");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
         uint dropFrameInterval(0);
         uint latency(100);
         uint timeout(20);
 
         DSL_RTSP_SOURCE_PTR pRtspSourceBintr = DSL_RTSP_SOURCE_NEW(sourceName.c_str(), 
-            uri.c_str(), DSL_RTP_ALL, cudadecMemType, intrDecode, dropFrameInterval, latency, timeout);
+            uri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
         
         WHEN( "Client Listeners are added" )
         {
@@ -777,7 +765,6 @@ SCENARIO( "An RtspSourceBintr calls all State Change Listeners on change of stat
     {
         std::string sourceName("rtsp-source");
         std::string uri("rtsp://208.72.70.171:80/mjpg/video.mjpg");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
         uint dropFrameInterval(0);
         uint latency(100);
@@ -785,7 +772,7 @@ SCENARIO( "An RtspSourceBintr calls all State Change Listeners on change of stat
         uint userData1(0), userData2(0);
 
         DSL_RTSP_SOURCE_PTR pRtspSourceBintr = DSL_RTSP_SOURCE_NEW(sourceName.c_str(), 
-            uri.c_str(), DSL_RTP_ALL, cudadecMemType, intrDecode, dropFrameInterval, latency, timeout);
+            uri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
 
         REQUIRE( pRtspSourceBintr->AddStateChangeListener(source_state_change_listener_cb1, &userData1) == true );
         REQUIRE( pRtspSourceBintr->AddStateChangeListener(source_state_change_listener_cb2, &userData2) == true );
@@ -814,7 +801,6 @@ SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "
     {
         std::string sourceName("rtsp-source");
         std::string uri("rtsp://208.72.70.171:80/mjpg/video.mjpg");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
         uint dropFrameInterval(0);
         uint latency(100);
@@ -822,7 +808,7 @@ SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "
         uint userData1(0), userData2(0);
 
         DSL_RTSP_SOURCE_PTR pRtspSourceBintr = DSL_RTSP_SOURCE_NEW(sourceName.c_str(), 
-            uri.c_str(), DSL_RTP_ALL, cudadecMemType, intrDecode, dropFrameInterval, latency, timeout);
+            uri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
 
         REQUIRE( pRtspSourceBintr->AddStateChangeListener(source_state_change_listener_cb1, &userData1) == true );
         REQUIRE( pRtspSourceBintr->AddStateChangeListener(source_state_change_listener_cb2, &userData2) == true );
@@ -914,14 +900,13 @@ SCENARIO( "A RtspSourceBintr can Get and Set its GPU ID",  "[RtspSourceBintr]" )
     {
         std::string sourceName("test-rtsp-source");
         std::string uri("rtsp://hddn01.skylinewebcams.com/live.m3u8?a=e8inqgf08vq4rp43gvmkj9ilv0");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(true);
         uint dropFrameInterval(2);
         uint latency(100);
         uint timeout(20);
         
         DSL_RTSP_SOURCE_PTR pRtspSourceBintr = DSL_RTSP_SOURCE_NEW(sourceName.c_str(),
-            uri.c_str(), DSL_RTP_ALL, cudadecMemType, intrDecode, dropFrameInterval, latency, timeout);
+            uri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
 
         uint GPUID0(0);
         uint GPUID1(1);
@@ -959,7 +944,7 @@ SCENARIO( "A new FileSourceBintr is created correctly",  "[FileSourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
-                REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
+                REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
@@ -1039,7 +1024,7 @@ SCENARIO( "A new ImageSourceBintr is created correctly",  "[ImageSourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
-                REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
+                REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );

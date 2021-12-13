@@ -41,11 +41,11 @@ from dsl import *
 # On-Screen-Display (OSD), and Window Sink with 1280x720 dimensions.
 
 # File path for the single File Source
-file_path = '/opt/nvidia/deepstream/deepstream-5.1/samples/streams/sample_720p.jpg'
+file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg'
 
 # Filespecs for the Primary Triton Inference Server (PTIS)
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt'
 
 # Window Sink Dimensions
 sink_width = 1280
@@ -94,9 +94,8 @@ def main(args):
         retval = dsl_source_uri_new('image-source', 
             uri = file_path, 
             is_live = False,
-            cudadec_mem_type = 0, 
             intra_decode = False,
-            drop_frame_interval = False)
+            drop_frame_interval = 0)
         if retval != DSL_RETURN_SUCCESS:
             break
             

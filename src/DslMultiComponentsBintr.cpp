@@ -37,7 +37,7 @@ namespace DSL
         // Single Queue and Tee element for all Components
         m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "sink_bin_queue");
         m_pTee = DSL_ELEMENT_NEW(teeType, "sink_bin_tee");
-        
+
         AddChild(m_pQueue);
         AddChild(m_pTee);
 
@@ -56,7 +56,6 @@ namespace DSL
             UnlinkAll();
         }
     }
-    
 
     bool MultiComponentsBintr::AddChild(DSL_BASE_PTR pChildElement)
     {
@@ -90,11 +89,41 @@ namespace DSL
         // linkAll Elementrs now and Link to with the Stream
         if (IsLinked())
         {
-            if (!pChildComponent->LinkAll() or !pChildComponent->LinkToSource(m_pTee))
+            uint streamId(0);
+            
+            // find the next available unused stream-id
+            auto ivec = find(m_usedStreamIds.begin(), m_usedStreamIds.end(), false);
+            if (ivec != m_usedStreamIds.end())
             {
+                streamId = ivec - m_usedStreamIds.begin();
+                m_usedStreamIds[streamId] = true;
+            }
+            else
+            {
+                streamId = m_usedStreamIds.size();
+                m_usedStreamIds.push_back(true);
+            }
+            // Must set the Unique Id first, then Link all of the ChildComponent's Elementrs, then 
+            pChildComponent->SetId(streamId);
+
+            // NOTE: important to use the correct request pad name based on the element type
+            // Cast the base DSL_BASE_PTR to DSL_ELEMENTR_PTR so we can query the factory type 
+            DSL_ELEMENT_PTR pTeeElementr = 
+                std::dynamic_pointer_cast<Elementr>(m_pTee);
+
+             std::string srcPadName = (pTeeElementr->IsFactoryName("nvstreamdemux"))
+                ? "src_" + std::to_string(streamId)
+                : "src_%u";
+                
+            // link back upstream to the Tee, the src for this Child Component 
+            if (!pChildComponent->LinkAll() or !pChildComponent->LinkToSourceTee(m_pTee, srcPadName.c_str()))
+            {
+                LOG_ERROR("MultiComponentsBintr '" << GetName() 
+                    << "' failed to Link Child Component '" << pChildComponent->GetName() << "'");
                 return false;
             }
-            // Component up with the parent state
+
+            // Sync component up with the parent state
             return gst_element_sync_state_with_parent(pChildComponent->GetGstElement());
         }
         return true;
@@ -126,9 +155,11 @@ namespace DSL
         }
         if (pChildComponent->IsLinkedToSource())
         {
-            // unlink the sink from the Tee
-            pChildComponent->UnlinkFromSource();
+            pChildComponent->UnlinkFromSourceTee();
             pChildComponent->UnlinkAll();
+            
+            // set the used-stream id as available for reuse
+            m_usedStreamIds[pChildComponent->GetId()] = false;
         }
         
         // unreference and remove from the collection of sinks
@@ -150,11 +181,11 @@ namespace DSL
         }
         m_pQueue->LinkToSink(m_pTee);
 
-        uint id(0);
+        uint streamId(0);
         for (auto const& imap: m_pChildComponents)
         {
             // Must set the Unique Id first, then Link all of the ChildComponent's Elementrs, then 
-            imap.second->SetId(id);
+            imap.second->SetId(streamId);
 
             // NOTE: important to use the correct request pad name based on the element type
             // Cast the base DSL_BASE_PTR to DSL_ELEMENTR_PTR so we can query the factory type 
@@ -162,7 +193,7 @@ namespace DSL
                 std::dynamic_pointer_cast<Elementr>(m_pTee);
 
              std::string srcPadName = (pTeeElementr->IsFactoryName("nvstreamdemux"))
-                ? "src_" + std::to_string(id)
+                ? "src_" + std::to_string(streamId)
                 : "src_%u";
                 
             // link back upstream to the Tee, the src for this Child Component 
@@ -172,7 +203,9 @@ namespace DSL
                     << "' failed to Link Child Component '" << imap.second->GetName() << "'");
                 return false;
             }
-            id++;
+            // add the new stream id to the vector of currently connected (used) 
+            m_usedStreamIds.push_back(true);
+            streamId++;
         }
         m_isLinked = true;
         return true;
@@ -201,6 +234,7 @@ namespace DSL
             imap.second->UnlinkAll();
             imap.second->SetId(-1);
         }
+        m_usedStreamIds.clear();
         m_pQueue->UnlinkFromSink();
         m_isLinked = false;
     }
@@ -263,5 +297,5 @@ namespace DSL
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             AddSplitterBintr(shared_from_this());
     }
-   
+
 }

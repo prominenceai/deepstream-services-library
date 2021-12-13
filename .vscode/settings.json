@@ -12,5 +12,8 @@
         "120",
         "--ignore",
         "E402"
-    ]
+    ],
+    "files.associations": {
+        "ostream": "cpp"
+    }
 }

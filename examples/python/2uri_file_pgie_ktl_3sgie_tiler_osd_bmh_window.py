@@ -84,11 +84,11 @@ def main(args):
     while True:
 
         # 2 New URI File Sourcea using the filespeca defined above
-        retval = dsl_source_uri_new('uri-h264', uri_h264, False, 0, 0, 0)
+        retval = dsl_source_uri_new('uri-h264', uri_h264, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_source_uri_new('uri-h265', uri_h265, False, 0, 0, 0)
+        retval = dsl_source_uri_new('uri-h265', uri_h265, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 

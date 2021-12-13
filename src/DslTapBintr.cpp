@@ -77,7 +77,7 @@ namespace DSL
     RecordTapBintr::RecordTapBintr(const char* name, const char* outdir, 
         uint container, dsl_record_client_listener_cb clientListener)
         : TapBintr(name)
-        , RecordMgr(name, outdir, container, clientListener)
+        , RecordMgr(name, outdir, m_gpuId, container, clientListener)
     {
         LOG_FUNC();
     }
@@ -102,7 +102,10 @@ namespace DSL
             return false;
         }
 
-        CreateContext();
+        if (!CreateContext())
+        {
+            return false;
+        }
         
         m_pRecordBin = DSL_NODETR_NEW("record-bin");
         m_pRecordBin->SetGstObject(GST_OBJECT(m_pContext->recordbin));
@@ -142,6 +145,18 @@ namespace DSL
         m_pRecordBin = nullptr;
         
         m_isLinked = false;
+    }
+    
+    void RecordTapBintr::HandleEos()
+    {
+        LOG_FUNC();
+        
+        if (IsOn())
+        {
+            LOG_INFO("RecordTapBintr '" << GetName() 
+                << "' is in session, stopping to handle the EOS");
+            StopSession(true);
+        }
     }
 
 }

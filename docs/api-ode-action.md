@@ -35,6 +35,7 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 
 **Callback Types:**
 * [dsl_capture_complete_listener_cb](#dsl_capture_complete_listener_cb)
+* [dsl_ode_handle_occurrence_cb](dsl_ode_handle_occurrence_cb)
 
 **Constructors:**
 * [dsl_ode_action_action_disable_new](#dsl_ode_action_action_disable_new)
@@ -177,6 +178,24 @@ Callback typedef for a clients to listen for the notification that an Image or O
 **Parameters**
 * `info` [in] opaque pointer to the capture info of type [dsl_capture_info](#dsl_capture_info)
 * `user_data` [in] user_data opaque pointer to client's user data, provided by the client  
+
+<br>
+
+### *dsl_ode_handle_occurrence_cb*
+```C++
+typedef void (*dsl_ode_handle_occurrence_cb)(uint64_t event_id, const wchar_t* trigger,
+    void* buffer, void* display_meta, void* frame_meta, void* object_meta, void* client_data);
+```
+Callback typedef for a client ODE occurrence handler function. Once registered, by calling dsl_ode_action_custom_new, the function will be called on ODE occurrence. 
+
+**Parameters**
+* `event_id` [in] unique event identification.
+* `trigger` [in] unique name of the ODE Event Trigger that triggered the occurrence.
+* `buffer` [in] pointer to the frame buffer of type GstBuffer.
+* `display_meta` [in] pointer to a NvDsDisplayMeta structure.
+* `frame_meta` [in] pointer to the NvDsFrameMeta structure that triggered the ODE event.
+* `object_meta` [in] pointer to the NvDsObjectMeta structure that triggered the ODE event. Note: This parameter will be set to NULL for ODE occurrences detected in Post process frame. Absence and Count ODE's as examples.
+* `user_data` [in] user_data opaque pointer to client's user data, provided by the client.  
 
 ---
 
@@ -341,7 +360,7 @@ The constructor creates a uniquely named **Custom** ODE Action. When invoked, th
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
-* `client_handler` - [in] Function of type `dsl_ode_occurrence_handler_cb` to be called on Action Invocation.
+* `client_handler` - [in] Function of type [dsl_ode_occurrence_handler_cb](#dsl_ode_handle_occurrence_cb) to be called on Action Invocation.
 * `client_data` - [in] Opaque pointer to client data returned on callback.
 
 **Returns**
@@ -1243,3 +1262,4 @@ size = dsl_ode_action_list_size()
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
 * [Mailer](/docs/api-mailer.md)
+* [WebSocket Server](/docs/api-ws-server.md)

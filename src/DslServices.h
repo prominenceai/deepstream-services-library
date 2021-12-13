@@ -32,6 +32,12 @@ THE SOFTWARE.
 #include "DslOdeArea.h"
 #include "DslOdeTrigger.h"
 #include "DslPipelineBintr.h"
+#if !defined(GSTREAMER_SUB_VERSION)
+    #error "GSTREAMER_SUB_VERSION must be defined"
+#elif GSTREAMER_SUB_VERSION >= 18
+    #include "DslSinkWebRtcBintr.h"
+#endif
+
 
 namespace DSL {
     
@@ -102,9 +108,11 @@ namespace DSL {
         DslReturnType OdeActionCustomNew(const char* name,
             dsl_ode_handle_occurrence_cb clientHandler, void* clientData);
             
-        DslReturnType OdeActionCaptureFrameNew(const char* name, const char* outdir, boolean annotate);
+        DslReturnType OdeActionCaptureFrameNew(const char* name, 
+            const char* outdir, boolean annotate);
         
-        DslReturnType OdeActionCaptureObjectNew(const char* name, const char* outdir);
+        DslReturnType OdeActionCaptureObjectNew(const char* name, 
+            const char* outdir);
 
         DslReturnType OdeActionCaptureCompleteListenerAdd(const char* name, 
             dsl_capture_complete_listener_cb listener, void* clientData);
@@ -415,7 +423,7 @@ namespace DSL {
             uint width, uint height, uint fpsN, uint fpsD);
         
         DslReturnType SourceUriNew(const char* name, const char* uri, 
-            boolean isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+            boolean isLive, uint intraDecode, uint dropFrameInterval);
             
         DslReturnType SourceFileNew(const char* name, const char* filePath, 
             boolean repeatEnabled);
@@ -440,7 +448,7 @@ namespace DSL {
         DslReturnType SourceImageTimeoutSet(const char* name, uint timeout);
             
         DslReturnType SourceRtspNew(const char* name, const char* uri, uint protocol, 
-            uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency, uint timeout);
+            uint intraDecode, uint dropFrameInterval, uint latency, uint timeout);
             
         DslReturnType SourceDimensionsGet(const char* name, uint* width, uint* height);
         
@@ -504,7 +512,7 @@ namespace DSL {
         DslReturnType TapRecordSessionStart(const char* name, 
             uint start, uint duration, void* clientData);
 
-        DslReturnType TapRecordSessionStop(const char* name);
+        DslReturnType TapRecordSessionStop(const char* name, boolean sync);
 
         DslReturnType TapRecordOutdirGet(const char* name, const char** outdir);
             
@@ -559,6 +567,8 @@ namespace DSL {
 
         DslReturnType SecondaryTisNew(const char* name, const char* inferConfigFile,
             const char* inferOnGieName, uint interval);
+
+        DslReturnType InferUniqueIdGet(const char* name, uint* id);
 
         DslReturnType PrimaryInferPphAdd(const char* name, const char* handler, uint pad);
 
@@ -709,7 +719,7 @@ namespace DSL {
         DslReturnType SinkRenderReset(const char* name);
 
         DslReturnType SinkFileNew(const char* name, const char* filepath, 
-            uint codec, uint muxer, uint bit_rate, uint interval);
+            uint codec, uint container, uint bit_rate, uint interval);
             
         DslReturnType SinkRecordNew(const char* name, const char* outdir, 
             uint codec, uint container, uint bitrate, uint interval, dsl_record_client_listener_cb clientListener);
@@ -717,7 +727,7 @@ namespace DSL {
         DslReturnType SinkRecordSessionStart(const char* name, 
             uint start, uint duration, void* clientData);
 
-        DslReturnType SinkRecordSessionStop(const char* name);
+        DslReturnType SinkRecordSessionStop(const char* name, boolean sync);
 
         DslReturnType SinkRecordOutdirGet(const char* name, const char** outdir);
             
@@ -751,28 +761,58 @@ namespace DSL {
         DslReturnType SinkRecordMailerRemove(const char* name,
             const char* mailer);
 
-        DslReturnType SinkEncodeVideoFormatsGet(const char* name, uint* codec, uint* container);
+        DslReturnType SinkEncodeSettingsGet(const char* name, 
+            uint* codec, uint* bitrate, uint* interval);
 
-        DslReturnType SinkEncodeSettingsGet(const char* name, uint* bitrate, uint* interval);
-
-        DslReturnType SinkEncodeSettingsSet(const char* name, uint bitrate, uint interval);
+        DslReturnType SinkEncodeSettingsSet(const char* name, 
+            uint codec, uint bitrate, uint interval);
 
         DslReturnType SinkRtspNew(const char* name, const char* host, 
-            uint updPort, uint rtspPort, uint codec, uint bit_rate, uint interval);
+            uint updPort, uint rtspPort, uint codec, uint bitrate, uint interval);
             
-        DslReturnType SinkRtspServerSettingsGet(const char* name, uint* updPort, uint* rtspPort, uint* codec);
+        DslReturnType SinkRtspServerSettingsGet(const char* name, 
+            uint* updPort, uint* rtspPort);
 
-        DslReturnType SinkRtspEncoderSettingsGet(const char* name, uint* bitrate, uint* interval);
+        DslReturnType SinkWebRtcNew(const char* name, const char* stunServer, 
+            const char* turnServer, uint codec, uint bitrate, uint interval);
 
-        DslReturnType SinkRtspEncoderSettingsSet(const char* name, uint bitrate, uint interval);
+        DslReturnType SinkWebRtcConnectionClose(const char* name);
+
+        DslReturnType SinkWebRtcServersGet(const char* name, const char** stunServer, 
+            const char** turnServer);
+
+        DslReturnType SinkWebRtcServersSet(const char* name, const char* stunServer, 
+            const char* turnServer);
+
+        DslReturnType SinkWebRtcClientListenerAdd(const char* name,
+            dsl_sink_webrtc_client_listener_cb listener, void* clientData);
+
+        DslReturnType SinkWebRtcClientListenerRemove(const char* name,
+            dsl_sink_webrtc_client_listener_cb listener);
 
         DslReturnType SinkPphAdd(const char* name, const char* handler);
 
         DslReturnType SinkPphRemove(const char* name, const char* handler);
 
-        DslReturnType SinkSyncSettingsGet(const char* name,  boolean* sync, boolean* async);
+        DslReturnType SinkSyncSettingsGet(const char* name,  
+            boolean* sync, boolean* async);
 
-        DslReturnType SinkSyncSettingsSet(const char* name,  boolean sync, boolean async);
+        DslReturnType SinkSyncSettingsSet(const char* name,  
+            boolean sync, boolean async);
+
+        DslReturnType WebsocketServerPathAdd(const char* path);
+        
+        DslReturnType WebsocketServerListeningStart(uint portNumber);
+
+        DslReturnType WebsocketServerListeningStop();
+
+        DslReturnType WebsocketServerListeningStateGet(boolean* isListening, uint* portNumber);
+
+        DslReturnType WebsocketServerClientListenerAdd(
+            dsl_websocket_server_client_listener_cb listener, void* clientData);
+
+        DslReturnType WebsocketServerClientListenerRemove(
+            dsl_websocket_server_client_listener_cb listener);
 
         uint SinkNumInUseGet();
         
@@ -781,17 +821,21 @@ namespace DSL {
         boolean SinkNumInUseMaxSet(uint max);
 
         // TODO        
-        // boolean ComponentIsInUse(const char* component);
+        // boolean ComponentIsInUse(const char* name);
         
-        DslReturnType ComponentDelete(const char* component);
+        DslReturnType ComponentDelete(const char* name);
 
         DslReturnType ComponentDeleteAll();
         
         uint ComponentListSize();
 
-        DslReturnType ComponentGpuIdGet(const char* component, uint* gpuid);
+        DslReturnType ComponentGpuIdGet(const char* name, uint* gpuid);
         
-        DslReturnType ComponentGpuIdSet(const char* component, uint gpuid);
+        DslReturnType ComponentGpuIdSet(const char* name, uint gpuid);
+        
+        DslReturnType ComponentNvbufMemTypeGet(const char* name, uint* type);
+        
+        DslReturnType ComponentNvbufMemTypeSet(const char* name, uint type);
         
         DslReturnType BranchNew(const char* name);
         
@@ -799,107 +843,113 @@ namespace DSL {
 
         DslReturnType BranchComponentRemove(const char* branch, const char* component);
 
-        DslReturnType PipelineNew(const char* pipeline);
+        DslReturnType PipelineNew(const char* name);
         
-        DslReturnType PipelineDelete(const char* pipeline);
+        DslReturnType PipelineDelete(const char* name);
         
         DslReturnType PipelineDeleteAll();
 
         uint PipelineListSize();
         
-        DslReturnType PipelineComponentAdd(const char* pipeline, const char* component);
+        DslReturnType PipelineComponentAdd(const char* name, const char* component);
 
-        DslReturnType PipelineComponentRemove(const char* pipeline, const char* component);
+        DslReturnType PipelineComponentRemove(const char* name, const char* component);
 
-        DslReturnType PipelineStreamMuxBatchPropertiesGet(const char* pipeline,
+        DslReturnType PipelineStreamMuxNvbufMemTypeGet(const char* name, 
+            uint* type);
+
+        DslReturnType PipelineStreamMuxNvbufMemTypeSet(const char* name, 
+            uint type);
+
+        DslReturnType PipelineStreamMuxBatchPropertiesGet(const char* name,
             uint* batchSize, uint* batchTimeout);
 
-        DslReturnType PipelineStreamMuxBatchPropertiesSet(const char* pipeline,
+        DslReturnType PipelineStreamMuxBatchPropertiesSet(const char* name,
             uint batchSize, uint batchTimeout);
 
-        DslReturnType PipelineStreamMuxDimensionsGet(const char* pipeline,
+        DslReturnType PipelineStreamMuxDimensionsGet(const char* name,
             uint* width, uint* height);
 
-        DslReturnType PipelineStreamMuxDimensionsSet(const char* pipeline,
+        DslReturnType PipelineStreamMuxDimensionsSet(const char* name,
             uint width, uint height);
             
-        DslReturnType PipelineStreamMuxPaddingGet(const char* pipeline, boolean* enabled);
+        DslReturnType PipelineStreamMuxPaddingGet(const char* name, boolean* enabled);
 
-        DslReturnType PipelineStreamMuxPaddingSet(const char* pipeline, boolean enabled);
+        DslReturnType PipelineStreamMuxPaddingSet(const char* name, boolean enabled);
 
-        DslReturnType PipelineStreamMuxNumSurfacesPerFrameGet(const char* pipeline, uint* num);
+        DslReturnType PipelineStreamMuxNumSurfacesPerFrameGet(const char* name, uint* num);
 
-        DslReturnType PipelineStreamMuxNumSurfacesPerFrameSet(const char* pipeline, uint num);
+        DslReturnType PipelineStreamMuxNumSurfacesPerFrameSet(const char* name, uint num);
 
-        DslReturnType PipelineXWindowHandleGet(const char* pipeline, uint64_t* xwindow);
+        DslReturnType PipelineXWindowHandleGet(const char* name, uint64_t* xwindow);
 
-        DslReturnType PipelineXWindowHandleSet(const char* pipeline, uint64_t xwindow);
+        DslReturnType PipelineXWindowHandleSet(const char* name, uint64_t xwindow);
 		
-        DslReturnType PipelineXWindowClear(const char* pipeline);
+        DslReturnType PipelineXWindowClear(const char* name);
         
-        DslReturnType PipelineXWindowDestroy(const char* pipeline);
+        DslReturnType PipelineXWindowDestroy(const char* name);
         
-        DslReturnType PipelineXWindowOffsetsGet(const char* pipeline,
+        DslReturnType PipelineXWindowOffsetsGet(const char* name,
             uint* xOffset, uint* yOffset);
             
-        DslReturnType PipelineXWindowDimensionsGet(const char* pipeline,
+        DslReturnType PipelineXWindowDimensionsGet(const char* name,
             uint* width, uint* height);
             
-        DslReturnType PipelineXWindowFullScreenEnabledGet(const char* pipeline, boolean* enabled);
+        DslReturnType PipelineXWindowFullScreenEnabledGet(const char* name, boolean* enabled);
         
-        DslReturnType PipelineXWindowFullScreenEnabledSet(const char* pipeline, boolean enabled);
+        DslReturnType PipelineXWindowFullScreenEnabledSet(const char* name, boolean enabled);
         
-        DslReturnType PipelinePause(const char* pipeline);
+        DslReturnType PipelinePause(const char* name);
         
-        DslReturnType PipelinePlay(const char* pipeline);
+        DslReturnType PipelinePlay(const char* name);
         
-        DslReturnType PipelineStop(const char* pipeline);
+        DslReturnType PipelineStop(const char* name);
         
-        DslReturnType PipelineStateGet(const char* pipeline, uint* state);
+        DslReturnType PipelineStateGet(const char* name, uint* state);
         
-        DslReturnType PipelineIsLive(const char* pipeline, boolean* isLive);
+        DslReturnType PipelineIsLive(const char* name, boolean* isLive);
         
-        DslReturnType PipelineDumpToDot(const char* pipeline, char* filename);
+        DslReturnType PipelineDumpToDot(const char* name, char* filename);
         
-        DslReturnType PipelineDumpToDotWithTs(const char* pipeline, char* filename);
+        DslReturnType PipelineDumpToDotWithTs(const char* name, char* filename);
         
-        DslReturnType PipelineStateChangeListenerAdd(const char* pipeline, 
+        DslReturnType PipelineStateChangeListenerAdd(const char* name, 
             dsl_state_change_listener_cb listener, void* clientData);
         
-        DslReturnType PipelineStateChangeListenerRemove(const char* pipeline, 
+        DslReturnType PipelineStateChangeListenerRemove(const char* name, 
             dsl_state_change_listener_cb listener);
                         
-        DslReturnType PipelineEosListenerAdd(const char* pipeline, 
+        DslReturnType PipelineEosListenerAdd(const char* name, 
             dsl_eos_listener_cb listener, void* clientData);
         
-        DslReturnType PipelineEosListenerRemove(const char* pipeline, 
+        DslReturnType PipelineEosListenerRemove(const char* name, 
             dsl_eos_listener_cb listener);
 
-        DslReturnType PipelineErrorMessageHandlerAdd(const char* pipeline, 
+        DslReturnType PipelineErrorMessageHandlerAdd(const char* name, 
             dsl_error_message_handler_cb handler, void* clientData);
 
-        DslReturnType PipelineErrorMessageHandlerRemove(const char* pipeline, 
+        DslReturnType PipelineErrorMessageHandlerRemove(const char* name, 
             dsl_error_message_handler_cb handler);
             
-        DslReturnType PipelineErrorMessageLastGet(const char* pipeline,
+        DslReturnType PipelineErrorMessageLastGet(const char* name,
             std::wstring& source, std::wstring& message);
                         
-        DslReturnType PipelineXWindowKeyEventHandlerAdd(const char* pipeline, 
+        DslReturnType PipelineXWindowKeyEventHandlerAdd(const char* name, 
             dsl_xwindow_key_event_handler_cb handler, void* clientData);
 
-        DslReturnType PipelineXWindowKeyEventHandlerRemove(const char* pipeline, 
+        DslReturnType PipelineXWindowKeyEventHandlerRemove(const char* name, 
             dsl_xwindow_key_event_handler_cb handler);
 
-        DslReturnType PipelineXWindowButtonEventHandlerAdd(const char* pipeline, 
+        DslReturnType PipelineXWindowButtonEventHandlerAdd(const char* name, 
             dsl_xwindow_button_event_handler_cb handler, void* clientData);
 
-        DslReturnType PipelineXWindowButtonEventHandlerRemove(const char* pipeline, 
+        DslReturnType PipelineXWindowButtonEventHandlerRemove(const char* name, 
             dsl_xwindow_button_event_handler_cb handler);
         
-        DslReturnType PipelineXWindowDeleteEventHandlerAdd(const char* pipeline, 
+        DslReturnType PipelineXWindowDeleteEventHandlerAdd(const char* name, 
             dsl_xwindow_delete_event_handler_cb handler, void* clientData);
 
-        DslReturnType PipelineXWindowDeleteEventHandlerRemove(const char* pipeline, 
+        DslReturnType PipelineXWindowDeleteEventHandlerRemove(const char* name, 
             dsl_xwindow_delete_event_handler_cb handler);
 
         DslReturnType PlayerNew(const char* name, const char* source, const char* sink);
@@ -1022,7 +1072,6 @@ namespace DSL {
         GMainLoop* GetMainLoopHandle()
         {
             LOG_FUNC();
-            LOG_INFO("Returning Handle to MainLoop");
             
             return m_pMainLoop;
         }

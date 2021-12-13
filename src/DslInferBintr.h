@@ -245,11 +245,6 @@ namespace DSL
          */
         DSL_ELEMENT_PTR  m_pInferEngine;
 
-        /**
-         * @brief Fake sink used by InferBintr
-         */
-        DSL_ELEMENT_PTR  m_pFakeSink;
-
     };
 
     static void OnRawOutputGeneratedCB(GstBuffer* pBuffer, NvDsInferNetworkInfo* pNetworkInfo, 
@@ -305,6 +300,14 @@ namespace DSL
          * Calling UnlinkAll when in an unlinked state has no effect.
          */
         void UnlinkAll();
+
+        /**
+         * @brief Sets the NVIDIA buffer memory type.
+         * @brief nvbufMemType new memory type to use, on of the 
+         * DSL_NVBUF_MEM_TYPE constant values.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetNvbufMemType(uint nvbufMemType);
 
     protected:
 
@@ -482,9 +485,31 @@ namespace DSL
             
             return m_pInferEngine;
         }
-        
+
         /**
-         * @brief returns the Fake Sink Elementr to the Parent Bintr of the SecondaryInferBintr
+         * @brief returns the Tee Elementr to the Parent Bintr of this SecondaryInferBintr
+         * @return shared ponter to the Fake Sink Elementr
+         */
+        DSL_ELEMENT_PTR GetTeeElementr()
+        {
+            LOG_FUNC();
+            
+            return m_pTee;
+        }
+
+        /**
+         * @brief returns the Queue Elementr to the Parent Bintr of the SecondaryInferBintr
+         * @return shared ponter to the Queue Elementr
+         */
+        DSL_ELEMENT_PTR GetFakeSinkQueueElementr()
+        {
+            LOG_FUNC();
+            
+            return m_pFakeSinkQueue;
+        }
+
+        /**
+         * @brief returns the Fake Sink Elementr to the Parent Bintr of this SecondaryInferBintr
          * @return shared ponter to the Fake Sink Elementr
          */
         DSL_ELEMENT_PTR GetFakeSinkElementr()
@@ -506,6 +531,21 @@ namespace DSL
          */
         int m_inferOnUniqueId;
         
+        /**
+         * @brief Tee Elementr for this SecondaryInferBintr
+         */
+        DSL_ELEMENT_PTR  m_pTee;
+
+        /**
+         * @brief Queue Elementr between Tee and FakeSink for this SecondaryInferBintr
+         */
+        DSL_ELEMENT_PTR  m_pFakeSinkQueue;
+
+        /**
+         * @brief Fake sink used by InferBintr
+         */
+        DSL_ELEMENT_PTR  m_pFakeSink;
+
     };
 
     // ***********************************************************************

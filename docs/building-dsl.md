@@ -14,6 +14,8 @@ Clone the repository to pull all source and test scenarios to build the dsl test
 $ git clone https://github.com/canammex-tech/deepstream-services-library
 ```
 
+***Import Note: When building with GStreamer v1.18 on Ubuntu 20.04, you will need to set the GStreamer sub version in the Makefile to 18 in order for the WebRTC Sink and WebSocket source code to be included in the build.***
+
 ### Make (all)
 The current default `make`, prior to releasing v1.0, builds DSL into a command line test-executable for running all API and Unit level test cases. The DSL source-only object files, built for the test application, can then be re-linked into the `dsl.so` shared library, see below.
 
@@ -98,3 +100,4 @@ if retval != DSL_RETURN_SUCCESS:
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
 * [Mailer](/docs/api-mailer.md)
+* [WebSocket Server](/docs/api-ws-server.md)

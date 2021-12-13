@@ -39,15 +39,15 @@ from dsl import *
 # On-Screen-Display (OSD), and Window Sink with 1280x720 dimensions.
 
 # File path for the single File Source
-file_path = '/opt/nvidia/deepstream/deepstream-5.1/samples/streams/sample_qHD.mp4'
+file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4'
 
 # Filespec for the Primary Triton Inference Server (PTIS) config file
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt'
 
 # Filespec for the NvDCF Tracker config file
 dcf_tracker_config_file = \
-    '/opt/nvidia/deepstream/deepstream-5.1/samples/configs/deepstream-app/tracker_config.yml'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/tracker_config.yml'
 
 # Window Sink Dimensions
 sink_width = 1280
@@ -91,7 +91,7 @@ def main(args):
     while True:
 
         # New File Source using the file path specified above, repeat diabled.
-        retval = dsl_source_file_new('uri-source', file_path, False)
+        retval = dsl_source_file_new('file-source', file_path, False)
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -125,7 +125,7 @@ def main(args):
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-tis', 'dcf-tracker', 'on-screen-display', 'window-sink', None])
+            ['file-source', 'primary-tis', 'dcf-tracker', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

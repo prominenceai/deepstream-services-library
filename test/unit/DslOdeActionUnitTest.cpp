@@ -31,7 +31,7 @@ THE SOFTWARE.
 using namespace DSL;
 
 static void ode_occurrence_handler_cb(uint64_t event_id, const wchar_t* name,
-    void* buffer, void* frame_meta, void* object_meta, void* client_data)
+    void* buffer, void* display_meta, void* frame_meta, void* object_meta, void* client_data)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -318,7 +318,8 @@ SCENARIO( "A new CaptureFrameOdeAction is created correctly", "[OdeAction]" )
         WHEN( "A new CaptureFrameOdeAction is created" )
         {
             DSL_ODE_ACTION_CAPTURE_FRAME_PTR pAction = 
-                DSL_ODE_ACTION_CAPTURE_FRAME_NEW(actionName.c_str(), outdir.c_str(), annotate);
+                DSL_ODE_ACTION_CAPTURE_FRAME_NEW(actionName.c_str(), 
+                    outdir.c_str(), annotate);
 
             THEN( "The Action's members are setup and returned correctly" )
             {
@@ -339,7 +340,8 @@ SCENARIO( "A new CaptureOjbectOdeAction is created correctly", "[OdeAction]" )
         WHEN( "A new CaptureObjectOdeAction is created" )
         {
             DSL_ODE_ACTION_CAPTURE_OBJECT_PTR pAction = 
-                DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(actionName.c_str(), outdir.c_str());
+                DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(actionName.c_str(), 
+                    outdir.c_str());
 
             THEN( "The Action's members are setup and returned correctly" )
             {
@@ -370,7 +372,8 @@ SCENARIO( "An CaptureOdeAction can add and remove Capture Complete Listeners",  
         std::string outdir("./");
 
         DSL_ODE_ACTION_CAPTURE_OBJECT_PTR pAction = 
-            DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(actionName.c_str(), outdir.c_str());
+            DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(actionName.c_str(), 
+                outdir.c_str());
         
         WHEN( "Client Listeners are added" )
         {
@@ -411,7 +414,8 @@ SCENARIO( "An CaptureOdeAction calls all Listeners on Capture Complete", "[OdeAc
         uint width(1280), height(720);
 
         DSL_ODE_ACTION_CAPTURE_OBJECT_PTR pAction = 
-            DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(actionName.c_str(), outdir.c_str());
+            DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(actionName.c_str(), 
+                outdir.c_str());
         
         REQUIRE( pAction->AddCaptureCompleteListener(capture_complete_listener_cb1, &userData1) == true );
         REQUIRE( pAction->AddCaptureCompleteListener(capture_complete_listener_cb2, &userData2) == true );

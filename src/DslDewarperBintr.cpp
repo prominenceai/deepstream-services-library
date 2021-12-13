@@ -53,7 +53,7 @@ namespace DSL
         m_pSrcQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "dewarper-src-queue");
 
         m_pVidConv->SetAttribute("gpu-id", m_gpuId);
-        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
+        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
 
         // Set Capabilities filter for Video Converter 
         GstCaps* caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGBA", NULL);
@@ -183,6 +183,22 @@ namespace DSL
 
         m_pVidConv->SetAttribute("gpu-id", m_gpuId);
         m_pDewarper->SetAttribute("gpu-id", m_gpuId);
+        return true;
+    }
+
+    bool DewarperBintr::SetNvbufMemType(uint nvbufMemType)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Unable to set NVIDIA buffer memory type for DewarperBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_nvbufMemType = nvbufMemType;
+        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+
         return true;
     }
 

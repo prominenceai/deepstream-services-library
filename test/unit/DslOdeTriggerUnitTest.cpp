@@ -43,7 +43,7 @@ static boolean ode_post_process_frame_cb(void* buffer,
 }
 
 static void ode_occurrence_handler_cb_1(uint64_t event_id, const wchar_t* name,
-    void* buffer, void* frame_meta, void* object_meta, void* client_data)
+    void* buffer, void* display_meta, void* frame_meta, void* object_meta, void* client_data)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -52,7 +52,7 @@ static void ode_occurrence_handler_cb_1(uint64_t event_id, const wchar_t* name,
 }    
 
 static void ode_occurrence_handler_cb_2(uint64_t event_id, const wchar_t* name,
-    void* buffer, void* frame_meta, void* object_meta, void* client_data)
+    void* buffer, void* display_meta, void* frame_meta, void* object_meta, void* client_data)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -60,7 +60,7 @@ static void ode_occurrence_handler_cb_2(uint64_t event_id, const wchar_t* name,
     std::cout << "Custom Action Calback 2. called\n";
 }    
 static void ode_occurrence_handler_cb_3(uint64_t event_id, const wchar_t* name,
-    void* buffer, void* frame_meta, void* object_meta, void* client_data)
+    void* buffer, void* display_meta, void* frame_meta, void* object_meta, void* client_data)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());

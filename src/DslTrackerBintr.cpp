@@ -140,6 +140,7 @@ namespace DSL
             return false;
         }
         m_pTracker->SetAttribute("ll-config-file", configFile);
+        return true;
     }
     
     void TrackerBintr::GetDimensions(uint* width, uint* height)

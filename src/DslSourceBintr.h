@@ -56,9 +56,9 @@ namespace DSL
     #define DSL_DECODE_SOURCE_PTR std::shared_ptr<DecodeSourceBintr>
         
     #define DSL_URI_SOURCE_PTR std::shared_ptr<UriSourceBintr>
-    #define DSL_URI_SOURCE_NEW(name, uri, isLive, cudadecMemType, intraDecode, dropFrameInterval) \
+    #define DSL_URI_SOURCE_NEW(name, uri, isLive, intraDecode, dropFrameInterval) \
         std::shared_ptr<UriSourceBintr>(new UriSourceBintr(name, \
-            uri, isLive, cudadecMemType, intraDecode, dropFrameInterval))
+            uri, isLive, intraDecode, dropFrameInterval))
         
     #define DSL_FILE_SOURCE_PTR std::shared_ptr<FileSourceBintr>
     #define DSL_FILE_SOURCE_NEW(name, uri, repeatEnabled) \
@@ -70,10 +70,10 @@ namespace DSL
             filePath, isLive, fpsN, fpsD, timeout))
 
     #define DSL_RTSP_SOURCE_PTR std::shared_ptr<RtspSourceBintr>
-    #define DSL_RTSP_SOURCE_NEW(name, uri, protocol, cudadecMemType, \
+    #define DSL_RTSP_SOURCE_NEW(name, uri, protocol, \
         intraDecode, dropFrameInterval, latency, timeout) \
         std::shared_ptr<RtspSourceBintr>(new RtspSourceBintr(name, uri, protocol, \
-            cudadecMemType, intraDecode, dropFrameInterval, latency, timeout))
+            intraDecode, dropFrameInterval, latency, timeout))
 
     /**
      * @class SourceBintr
@@ -135,7 +135,12 @@ namespace DSL
         virtual bool IsLinkable(){return true;};
 
     public:
-    
+
+            /**
+         * @brief Device Properties, used for aarch64/x86_64 conditional logic
+         */
+        cudaDeviceProp m_cudaDeviceProp;
+
         /**
          * @brief True if the source is live and cannot be paused without losing data, False otherwise.
          */
@@ -256,11 +261,6 @@ namespace DSL
     private:
 
         /**
-         * @brief Device Properties, used for aarch64/x86_64 conditional logic
-         */
-        cudaDeviceProp m_cudaDeviceProp;
-
-        /**
          * @brief Unique sensor ID for this USB Source
          */
         uint m_sensorId;
@@ -338,7 +338,7 @@ namespace DSL
     public: 
     
         DecodeSourceBintr(const char* name, const char* factoryName, const char* uri, 
-            bool isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+            bool isLive, uint intraDecode, uint dropFrameInterval);
             
         ~DecodeSourceBintr();
 
@@ -496,7 +496,7 @@ namespace DSL
     public: 
     
         UriSourceBintr(const char* name, const char* uri, bool isLive,
-            uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+            uint intraDecode, uint dropFrameInterval);
 
         ~UriSourceBintr();
 
@@ -654,7 +654,7 @@ namespace DSL
     public: 
     
         RtspSourceBintr(const char* name, const char* uri, uint protocol, 
-            uint cudadecMemType, uint intraDecode, uint dropFrameInterval, 
+            uint intraDecode, uint dropFrameInterval, 
             uint latency, uint timeout);
 
         ~RtspSourceBintr();

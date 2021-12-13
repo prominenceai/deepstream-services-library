@@ -2,6 +2,7 @@
 
 ### Services API:
 * [dsl_version_get](/docs/overview.md#dsl-version)
+* [dsl_gpu_type_get](/docs/overview.md#dsl_gpu_type_get)
 * [dsl_main_loop_run](/docs/overview.md#main-loop-context)
 * [dsl_main_loop_quit](/docs/overview.md#main-loop-context)
 * [dsl_return_value_to_string](/docs/overview.md#service-return-codes)
@@ -21,6 +22,8 @@
 * [dsl_xwindow_delete_event_handler_cb](/docs/api-pipeline.md#dsl_xwindow_delete_event_handler_cb)
 * [dsl_capture_complete_listener_cb](/docs/api-ode-trigger.md#dsl_capture_complete_listener_cb)
 * [dsl_player_termination_event_listener_cb](/docs/api-player.md#dsl_player_termination_event_listener_cb)
+* [dsl_sink_webrtc_client_listener_cb](/docs/api-sink.md#dsl_sink_webrtc_client_listener_cb)
+* [dsl_websocket_server_client_listener_cb](/docs/api-ws-server.md#dsl_websocket_server_client_listener_cb)
 
 ### Pipeline API:
 * [Overview](/docs/api-pipeline.md)
@@ -134,8 +137,8 @@
 * [dsl_source_rtsp_timeout_set](/docs/api-source.md#dsl_source_rtsp_timeout_set)
 * [dsl_source_rtsp_reconnection_params_get](/docs/api-source.md#dsl_source_rtsp_reconnection_params_get)
 * [dsl_source_rtsp_reconnection_params_set](/docs/api-source.md#dsl_source_rtsp_reconnection_params_set)
-* [dsl_source_rtsp_reconnection_data_get](/docs/api-source.md#dsl_source_rtsp_reconnection_data_get)
-* [dsl_source_rtsp_reconnection_data_clear](/docs/api-source.md#dsl_source_rtsp_reconnection_data_clear)
+* [dsl_source_rtsp_connection_data_get](/docs/api-source.md#dsl_source_rtsp_connection_data_get)
+* [dsl_source_rtsp_connection_stats_clear](/docs/api-source.md#dsl_source_rtsp_connection_stats_clear)
 * [dsl_source_rtsp_state_change_listener_add](/docs/api-source.md#dsl_source_rtsp_state_change_listener_add)
 * [dsl_source_rtsp_state_change_listener_remove](/docs/api-source.md#dsl_source_rtsp_state_change_listener_remove)
 * [dsl_source_rtsp_tap_add](/docs/api-source.md#dsl_source_rtsp_tap_add)
@@ -184,6 +187,7 @@
 * [dsl_infer_gie_secondary_new](/docs/api-gie.md#dsl_infer_gie_secondary_new)
 * [dsl_infer_tis_primary_new](/docs/api-gie.md#dsl_infer_tis_primary_new)
 * [dsl_infer_tis_secondary_new](/docs/api-gie.md#dsl_infer_tis_secondary_new)
+* [dsl_infer_unique_id_get](/docs/api-gie.md#dsl_infer_unique_id_get)
 * [dsl_infer_gie_model_engine_file_get](/docs/api-gie.md#dsl_infer_gie_model_engine_file_get)
 * [dsl_infer_gie_model_engine_file_set](/docs/api-gie.md#dsl_infer_gie_model_engine_file_set)
 * [dsl_infer_config_file_get](/docs/api-gie.md#dsl_infer_config_file_get)
@@ -294,12 +298,14 @@
 * [dsl_sink_record_video_player_remove](/docs/api-sink.md#dsl_sink_record_video_player_remove)
 * [dsl_sink_record_mailer_add](/docs/api-sink.md#dsl_sink_record_mailer_add)
 * [dsl_sink_record_mailer_remove](/docs/api-sink.md#dsl_sink_record_mailer_remove)
-* [dsl_sink_encode_video_formats_get](/docs/api-sink.md#dsl_sink_encode_video_formats_get)
+* [dsl_sink_rtsp_server_settings_get](/docs/api-sink.md#dsl_sink_rtsp_server_settings_get)
+* [dsl_sink_webrtc_connection_close](/docs/api-sink.md#dsl_sink_webrtc_connection_close)
+* [dsl_sink_webrtc_servers_get](/docs/api-sink.md#dsl_sink_webrtc_servers_get)
+* [dsl_sink_webrtc_servers_set](/docs/api-sink.md#dsl_sink_webrtc_servers_set)
+* [dsl_sink_webrtc_client_listener_add](/docs/api-sink.md#dsl_sink_webrtc_client_listener_add)
+* [dsl_sink_webrtc_client_listener_remove](/docs/api-sink.md#dsl_sink_webrtc_client_listener_remove)
 * [dsl_sink_encode_settings_get](/docs/api-sink.md#dsl_sink_encode_settings_get)
 * [dsl_sink_encode_settings_set](/docs/api-sink.md#dsl_sink_encode_settings_set)
-* [dsl_sink_rtsp_server_settings_get](/docs/api-sink.md#dsl_sink_rtsp_server_settings_get)
-* [dsl_sink_rtsp_encoder_settings_get](/docs/api-sink.md#dsl_sink_rtsp_encoder_settings_get)
-* [dsl_sink_rtsp_encoder_settings_set](/docs/api-sink.md#dsl_sink_rtsp_encoder_settings_set)
 * [dsl_sink_pph_add](/docs/api-sink.md#dsl_sink_pph_add)
 * [dsl_sink_pph_remove](/docs/api-sink.md#dsl_sink_pph_remove)
 * [dsl_sink_num_in_use_get](/docs/api-sink.md#dsl_sink_num_in_use_get)
@@ -476,6 +482,9 @@
 * [dsl_component_gpuid_get](/docs/api-component.md#dsl_component_gpuid_get)
 * [dsl_component_gpuid_set](/docs/api-component.md#dsl_component_gpuid_set)
 * [dsl_component_gpuid_set_many](/docs/api-component.md#dsl_component_gpuid_set_many)
+* [dsl_component_nvbuf_mem_type_get](/docs/api-component.md#dsl_component_nvbuf_mem_type_get)
+* [dsl_component_nvbuf_mem_type_set](/docs/api-component.md#dsl_component_nvbuf_mem_type_set)
+* [dsl_component_nvbuf_mem_type_set_many](/docs/api-component.md#dsl_component_nvbuf_mem_type_set_many)
 * [dsl_component_is_in_use](/docs/api-component.md#dsl_component_is_in_use)
 
 ### Mailer API:
@@ -499,3 +508,12 @@
 * [dsl_mailer_test_message_send](/docs/api-mailer.md#dsl_mailer_test_message_send)
 * [dsl_mailer_exists](/docs/api-mailer.md#dsl_mailer_exists)
 * [dsl_mailer_list_size](/docs/api-mailer.md#dsl_mailer_list_size)
+
+### WebSocket Server API:
+* [Overview](/docs/api-ws-server.md)
+* [dsl_websocket_server_path_add](/docs/api-ws-server.md#dsl_websocket_server_path_add)
+* [dsl_websocket_server_listening_start](/docs/api-ws-server.md#dsl_websocket_server_listening_start)
+* [dsl_websocket_server_listening_stop](/docs/api-ws-server.md#dsl_websocket_server_listening_stop)
+* [dsl_websocket_server_listening_state_get](/docs/api-ws-server.md#dsl_websocket_server_listening_state_get)
+* [dsl_websocket_server_client_listener_add](/docs/api-ws-server.md#dsl_websocket_server_client_listener_add)
+* [dsl_websocket_server_client_listener_remove](/docs/api-ws-server.md#dsl_websocket_server_client_listener_remove)

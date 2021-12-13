@@ -53,6 +53,7 @@ In the case that the Pipeline creates the XWindow, Clients can be notified of XW
 * [dsl_pipeline_component_remove_many](#dsl_pipeline_component_remove_many)
 * [dsl_pipeline_component_remove_all](#dsl_pipeline_component_remove_all)
 * [dsl_pipeline_streammux_batch_properties_get](#dsl_pipeline_streammux_batch_properties_get)
+* [dsl_pipeline_streammux_batch_properties_set](#dsl_pipeline_streammux_batch_properties_set)
 * [dsl_pipeline_streammux_dimensions_get](#dsl_pipeline_streammux_dimensions_get)
 * [dsl_pipeline_streammux_dimensions_set](#dsl_pipeline_streammux_dimensions_set)
 * [dsl_pipeline_xwindow_handle_get](/docs/api-pipeline.md#dsl_pipeline_xwindow_handle_get)
@@ -471,12 +472,14 @@ retval, source = dsl_pipeline_source_name_get('my-source', 3)
 DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* pipeline, 
     uint* batch_size, uint* batch_timeout);
 ```
-This service returns the current `batch_size` and `batch_timeout` for the named Pipeline
+This service returns the current `batch_size` and `batch_timeout` for the named Pipeline.
+
+**Note:** the Pipeline will set the `batch_size` to the current number of added Sources and the `batch_timeout` to `DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT` if not explicitly set.
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to query.
-* `batch_size` - [out] the current batch size, set by the Pipeline according to the current number of child Source components.
-* `batch_timeout` - [out] timeout in milliseconds before a batch meta push is forced. The property is set by the Pipeline relative to the child Source component with the minimum frame-rate.
+* `batch_size` - [out] the current batch size, set by the Pipeline according to the current number of child Source components by default.
+* `batch_timeout` - [out] timeout in milliseconds before a batch meta push is forced. Set to `DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT`.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on success. One of the [Return Values](#return-values) defined above on failure
@@ -485,6 +488,32 @@ This service returns the current `batch_size` and `batch_timeout` for the named 
 ```Python
 retval, batch_size, batch_timeout = dsl_pipeline_streammux_batch_properties_get('my-pipeline')
 ```
+
+<br>
+
+### *dsl_pipeline_streammux_batch_properties_set*
+```C++
+DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* pipeline, 
+    uint batch_size, uint batch_timeout);
+```
+This service sets the `batch_size` and `batch_timeout` for the named Pipeline to use. 
+
+**Note:** the Pipeline will set the `batch_size` to the current number of added Sources and the `batch_timeout` to `DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT` if not explicitly set.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `batch_size` - [in] the new batch size to use
+* `batch_timeout` - [in] the new timeout in milliseconds before a batch meta push is forced. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on success. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_streammux_batch_properties_set('my-pipeline',
+    batch_size, batch_timeout)
+```
+
 <br>
 
 ### *dsl_pipeline_streammux_dimensions_get*
@@ -1139,3 +1168,5 @@ Except for the prefix, this method performs the identical service as
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
 * [Mailer](/docs/api-mailer.md)
+* [WebSocket Server](/docs/api-ws-server.md)
+
