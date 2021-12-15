@@ -927,7 +927,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting source id");
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting source name");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -953,7 +954,62 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting class id");
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception setting source name");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerInferGet(const char* name, const char** infer)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            *infer = pOdeTrigger->GetInfer();
+            
+            LOG_INFO("Trigger '" << name << "' returned inference component name = " 
+                << *infer << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting inference component name");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerInferSet(const char* name, const char* infer)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->SetInfer(infer);
+            
+            LOG_INFO("Trigger '" << name << "' set inference component name = " 
+                << infer << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting inference component name");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                

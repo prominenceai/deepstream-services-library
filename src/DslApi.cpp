@@ -1665,6 +1665,7 @@ DslReturnType dsl_ode_trigger_limit_set(const wchar_t* name, uint limit)
 DslReturnType dsl_ode_trigger_source_get(const wchar_t* name, const wchar_t** source)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(source);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -1702,6 +1703,49 @@ DslReturnType dsl_ode_trigger_source_set(const wchar_t* name, const wchar_t* sou
         cstrSource.assign(wstrSource.begin(), wstrSource.end());
     }
     return DSL::Services::GetServices()->OdeTriggerSourceSet(cstrName.c_str(), cstrSource.c_str());
+}
+
+DslReturnType dsl_ode_trigger_infer_get(const wchar_t* name, const wchar_t** infer)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(infer);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cInfer(NULL);
+    static std::string cstrInfer;
+    static std::wstring wcstrInfer;
+    
+    uint retval = DSL::Services::GetServices()->OdeTriggerInferGet(cstrName.c_str(), &cInfer);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        *infer = NULL;
+        if (cInfer)
+        {
+            cstrInfer.assign(cInfer);
+            wcstrInfer.assign(cstrInfer.begin(), cstrInfer.end());
+            *infer = wcstrInfer.c_str();
+        }
+    }
+    return retval;
+
+}
+
+DslReturnType dsl_ode_trigger_infer_set(const wchar_t* name, const wchar_t* infer)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrInfer;
+    if (infer)
+    {
+        std::wstring wstrInfer(infer);
+        cstrInfer.assign(wstrInfer.begin(), wstrInfer.end());
+    }
+    return DSL::Services::GetServices()->OdeTriggerInferSet(cstrName.c_str(), cstrInfer.c_str());
 }
 
 DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, float* min_confidence)

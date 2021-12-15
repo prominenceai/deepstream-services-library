@@ -1295,7 +1295,7 @@ def dsl_ode_trigger_enabled_set(name, enabled):
 ##
 _dsl.dsl_ode_trigger_source_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
 _dsl.dsl_ode_trigger_source_get.restype = c_uint
-def dsl_ode_trigger_source_id_get(name):
+def dsl_ode_trigger_source_get(name):
     global _dsl
     source = c_wchar_p(0)
     result =_dsl.dsl_ode_trigger_source_get(name, DSL_WCHAR_P(source))
@@ -1309,6 +1309,27 @@ _dsl.dsl_ode_trigger_source_set.restype = c_uint
 def dsl_ode_trigger_source_set(name, source):
     global _dsl
     result =_dsl.dsl_ode_trigger_source_set(name, source)
+    return int(result)
+
+##
+## dsl_ode_trigger_infer_get()
+##
+_dsl.dsl_ode_trigger_infer_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_ode_trigger_infer_get.restype = c_uint
+def dsl_ode_trigger_infer_get(name):
+    global _dsl
+    infer = c_wchar_p(0)
+    result =_dsl.dsl_ode_trigger_infer_get(name, DSL_WCHAR_P(infer))
+    return int(result), infer.value
+
+##
+## dsl_ode_trigger_infer_set()
+##
+_dsl.dsl_ode_trigger_infer_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_trigger_infer_set.restype = c_uint
+def dsl_ode_trigger_infer_set(name, infer):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_infer_set(name, infer)
     return int(result)
 
 ##

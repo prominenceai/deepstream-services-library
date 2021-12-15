@@ -148,6 +148,37 @@ SCENARIO( "An ODE Trigger's Auto-Reset Timeout setting can be set/get", "[ode-tr
     }
 }    
 
+SCENARIO( "An ODE Trigger's Inference Name can be set/get", "[ode-trigger-api]" )
+{
+    GIVEN( "An ODE Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"occurrence");
+        
+        uint class_id(9);
+        uint limit(0);
+
+        REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName.c_str(), NULL, class_id, limit) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* ret_infer; 
+        REQUIRE( dsl_ode_trigger_infer_get(odeTriggerName.c_str(), &ret_infer) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_infer == NULL );
+
+        WHEN( "When the Trigger's classId is updated" )         
+        {
+            std::wstring new_infer(L"pgie");
+            REQUIRE( dsl_ode_trigger_infer_set(odeTriggerName.c_str(), new_infer.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_ode_trigger_infer_get(odeTriggerName.c_str(), &ret_infer) == DSL_RESULT_SUCCESS );
+                std::wstring ret_infer_str(ret_infer);
+                REQUIRE( ret_infer_str == new_infer );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
 SCENARIO( "An ODE Trigger's classId can be set/get", "[ode-trigger-api]" )
 {
     GIVEN( "An ODE Trigger" ) 
@@ -1125,7 +1156,8 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
         
         uint class_id(0);
         const wchar_t* source(NULL);
-        boolean enabled(0), infer(0);
+        const wchar_t* infer(NULL);
+        boolean enabled(0), infer_done(0);
         float confidence(0), min_height(0), min_width(0), max_height(0), max_width(0);
         uint minimum(0), maximum(0), 
             test_point(DSL_BBOX_POINT_CENTER), test_method(DSL_DISTANCE_METHOD_PERCENT_HEIGHT_A);
@@ -1176,15 +1208,19 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
                 REQUIRE( dsl_ode_trigger_class_id_ab_get(NULL, &class_id, &class_id) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_class_id_ab_set(NULL, class_id, class_id) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_source_get(NULL, &source) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_source_get(triggerName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_source_set(NULL, source) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_infer_get(NULL, &infer) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_infer_get(triggerName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_infer_set(NULL, infer) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_confidence_min_get(NULL, &confidence) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_confidence_min_set(NULL, confidence) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_dimensions_min_get(NULL, &min_width, &min_height) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_dimensions_min_set(NULL, min_width, min_height) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_dimensions_max_get(NULL, &max_width, &max_height) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_dimensions_max_set(NULL, max_width, max_height) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_infer_done_only_get(NULL, &infer) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_infer_done_only_set(NULL, infer) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_infer_done_only_get(NULL, &infer_done) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_infer_done_only_set(NULL, infer_done) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_trigger_action_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_action_add(triggerName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
