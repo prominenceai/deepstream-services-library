@@ -502,6 +502,60 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::InferNameGet(int inferId, const char** name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        if (m_inferNames.find(inferId) != m_inferNames.end())
+        {
+            *name = m_inferNames[inferId].c_str();
+            return DSL_RESULT_SUCCESS;
+        }
+        *name = NULL;
+        return DSL_RESULT_INFER_NAME_NOT_FOUND;
+    }
+
+    DslReturnType Services::InferIdGet(const char* name, int* inferId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        if (m_inferIds.find(name) != m_inferIds.end())
+        {
+            *inferId = m_inferIds[name];
+            return DSL_RESULT_SUCCESS;
+        }
+        *inferId = -1;
+        return DSL_RESULT_INFER_ID_NOT_FOUND;
+    }
+
+    DslReturnType Services::_inferNameSet(uint inferId, const char* name)
+    {
+        LOG_FUNC();
+        
+        // called internally, do not lock mutex
+        
+        m_inferNames[inferId] = name;
+        m_inferIds[name] = inferId;
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::_inferNameErase(uint inferId)
+    {
+        LOG_FUNC();
+
+        // called internally, do not lock mutex
+        
+        if (m_inferNames.find(inferId) != m_inferNames.end())
+        {
+            m_inferIds.erase(m_inferNames[inferId]);
+            m_inferNames.erase(inferId);
+            return DSL_RESULT_SUCCESS;
+        }
+        return DSL_RESULT_SOURCE_NOT_FOUND;
+    }
+
     DslReturnType Services::SegVisualNew(const char* name, 
         uint width, uint height)
     {
@@ -654,7 +708,7 @@ namespace DSL
         }
     }
 
-DslReturnType Services::OfvNew(const char* name)
+    DslReturnType Services::OfvNew(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);

@@ -411,7 +411,7 @@ SCENARIO( "An ODE Occurrence Trigger checks its minimum confidence correctly", "
     }
 }
 
-SCENARIO( "A OdeOccurrenceTrigger checks for Source Name correctly", "[OdeTrigger]" )
+SCENARIO( "An OdeOccurrenceTrigger checks for Source Name correctly", "[OdeTrigger]" )
 {
     GIVEN( "A new OdeTrigger with default criteria" ) 
     {
@@ -483,7 +483,80 @@ SCENARIO( "A OdeOccurrenceTrigger checks for Source Name correctly", "[OdeTrigge
     }
 }
 
-SCENARIO( "A OdeOccurrenceTrigger checks for Minimum Dimensions correctly", "[OdeTrigger]" )
+SCENARIO( "An OdeOccurrenceTrigger checks for Infer Name/Id correctly", "[OdeTrigger]" )
+{
+    GIVEN( "A new OdeTrigger with default criteria" ) 
+    {
+        std::string odeTriggerName("occurence");
+        uint classId(1);
+        uint limit(0);
+        uint inferId(12345);
+        
+        std::string inferName("infer-1");
+        
+        Services::GetServices()->_inferNameSet(inferId, inferName.c_str());
+
+        std::string odeActionName("event-action");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), "", classId, limit);
+            
+        REQUIRE( pOdeTrigger->GetInfer() == NULL );
+        
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match ODE Trigger's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.rect_params.left = 10;
+        objectMeta.rect_params.top = 10;
+        objectMeta.rect_params.width = 200;
+        objectMeta.rect_params.height = 100;
+        
+        objectMeta.confidence = 0.9999; 
+        
+        WHEN( "The the Source ID filter is disabled" )
+        {
+            objectMeta.unique_component_id = 1;
+            pOdeTrigger->SetInfer("");
+            
+            THEN( "The ODE is triggered" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The Source ID matches the filter" )
+        {
+            objectMeta.unique_component_id = inferId;
+            pOdeTrigger->SetInfer(inferName.c_str());
+            
+            THEN( "The ODE is triggered" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The Source ID does not match the filter" )
+        {
+            objectMeta.unique_component_id = 1;
+            pOdeTrigger->SetInfer(inferName.c_str());
+            
+            THEN( "The ODE is NOT triggered" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "An OdeOccurrenceTrigger checks for Minimum Dimensions correctly", "[OdeTrigger]" )
 {
     GIVEN( "A new OdeOccurrenceTrigger with minimum criteria" ) 
     {
@@ -556,7 +629,7 @@ SCENARIO( "A OdeOccurrenceTrigger checks for Minimum Dimensions correctly", "[Od
     }
 }
 
-SCENARIO( "A OdeOccurrenceTrigger checks for Maximum Dimensions correctly", "[OdeTrigger]" )
+SCENARIO( "An OdeOccurrenceTrigger checks for Maximum Dimensions correctly", "[OdeTrigger]" )
 {
     GIVEN( "A new OdeOccurrenceTrigger with maximum criteria" ) 
     {
@@ -769,7 +842,7 @@ SCENARIO( "An OdeOccurrenceTrigger checks its interval setting ", "[OdeTrigger]"
     }
 }
 
-SCENARIO( "A OdeOccurrenceTrigger checks for Area overlap correctly", "[OdeTrigger]" )
+SCENARIO( "An OdeOccurrenceTrigger checks for Area overlap correctly", "[OdeTrigger]" )
 {
     GIVEN( "A new OdeOccurenceTrigger with criteria" ) 
     {
@@ -986,7 +1059,7 @@ SCENARIO( "A OdeOccurrenceTrigger checks for Area overlap correctly", "[OdeTrigg
     }
 }
 
-SCENARIO( "A OdeOccurrenceTrigger checks its Areas in the correct order", "[OdeTrigger]" )
+SCENARIO( "An OdeOccurrenceTrigger checks its Areas in the correct order", "[OdeTrigger]" )
 {
     GIVEN( "A new OdeOccurenceTrigger with criteria" ) 
     {
@@ -1069,7 +1142,7 @@ SCENARIO( "A OdeOccurrenceTrigger checks its Areas in the correct order", "[OdeT
     }
 }
 
-SCENARIO( "A OdeAbsenceTrigger checks for Source Name correctly", "[OdeTrigger]" )
+SCENARIO( "An OdeAbsenceTrigger checks for Source Name correctly", "[OdeTrigger]" )
 {
     GIVEN( "A new OdeAbsenceTrigger with default criteria" ) 
     {

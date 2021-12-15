@@ -334,6 +334,10 @@ namespace DSL {
         
         DslReturnType OdeTriggerSourceSet(const char* name, const char* source);
         
+        DslReturnType OdeTriggerInferGet(const char* name, const char** infer);
+        
+        DslReturnType OdeTriggerInferSet(const char* name, const char* infer);
+        
         DslReturnType OdeTriggerClassIdGet(const char* name, uint* classId);
         
         DslReturnType OdeTriggerClassIdSet(const char* name, uint classId);
@@ -588,6 +592,14 @@ namespace DSL {
         DslReturnType InferIntervalGet(const char* name, uint* interval);
 
         DslReturnType InferIntervalSet(const char* name, uint interval);
+        
+        DslReturnType InferNameGet(int inferId, const char** name);
+
+        DslReturnType InferIdGet(const char* name, int* inferId);
+    
+        DslReturnType _inferNameSet(uint inferId, const char* name);
+    
+        DslReturnType _inferNameErase(uint inferId);
 
         DslReturnType TrackerDcfNew(const char* name, 
             const char* configFile, uint width, uint height,
@@ -1233,6 +1245,16 @@ namespace DSL {
          * @brief map of all source names to source ids
          */
         std::map <std::string, uint> m_sourceIds;
+        
+        /**
+         * @brief map of all infer ids to infer names
+         */
+        std::map <uint, std::string> m_inferNames;
+
+        /**
+         * @brief map of all infer names to infer ids
+         */
+        std::map <std::string, uint> m_inferIds;
         
         /**
          * @brief DSL Comms object for libcurl services

@@ -190,6 +190,7 @@ THE SOFTWARE.
 #define DSL_RESULT_INFER_PAD_TYPE_INVALID                           0x0006000B
 #define DSL_RESULT_INFER_COMPONENT_IS_NOT_INFER                     0x0006000C
 #define DSL_RESULT_INFER_OUTPUT_DIR_DOES_NOT_EXIST                  0x0006000D
+#define DSL_RESULT_INFER_ID_NOT_FOUND                               0x0006000E
 
 /**
  * Demuxer API Return Values
@@ -2098,8 +2099,8 @@ DslReturnType dsl_ode_trigger_enabled_get(const wchar_t* name, boolean* enabled)
 DslReturnType dsl_ode_trigger_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
- * @brief Gets the current source_id filter for the ODE Trigger
- * A value of 0 indicates filter disabled
+ * @brief Gets the current source name filter for the ODE Trigger
+ * A value of NULL indicates filter disabled
  * @param[in] name unique name of the ODE Trigger to query
  * @param[out] source returns the current source name in use
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
@@ -2107,12 +2108,29 @@ DslReturnType dsl_ode_trigger_enabled_set(const wchar_t* name, boolean enabled);
 DslReturnType dsl_ode_trigger_source_get(const wchar_t* name, const wchar_t** source);
 
 /**
- * @brief Sets the source_id for the ODE Trigger to filter on
+ * @brief Sets the source name for the ODE Trigger to filter on
  * @param[in] name unique name of the ODE Trigger to update
- * @param[in] source new source name to filter on
+ * @param[in] source new source name to filter on. Set to NULL to disaple filter.
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_source_set(const wchar_t* name, const wchar_t* source);
+
+/**
+ * @brief Gets the current infer component name filter for the ODE Trigger
+ * A value of NULL indicates filter disabled (default)
+ * @param[in] name unique name of the ODE Trigger to query
+ * @param[out] infer returns the current infer component name in use
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_infer_get(const wchar_t* name, const wchar_t** infer);
+
+/**
+ * @brief Sets the infer component name for the ODE Trigger to filter on
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] infer new infer component name to filter on. Set to NULL to disaple filter.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_infer_set(const wchar_t* name, const wchar_t* infer);
 
 /**
  * @brief Gets the current class_id filter for the ODE Trigger

@@ -41,6 +41,7 @@ namespace DSL
         , m_enabled(true)
         , m_source(source)
         , m_sourceId(-1)
+        , m_inferId(-1)
         , m_classId(classId)
         , m_triggered(0)
         , m_limit(limit)
@@ -357,6 +358,32 @@ namespace DSL
         m_sourceId = id;
     }
     
+    const char* OdeTrigger::GetInfer()
+    {
+        LOG_FUNC();
+        
+        if (m_infer.size())
+        {
+            return m_infer.c_str();
+        }
+        return NULL;
+    }
+    
+    void OdeTrigger::SetInfer(const char* infer)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_infer.assign(infer);
+    }
+
+    void OdeTrigger::_setInferId(int id)
+    {
+        LOG_FUNC();
+        
+        m_inferId = id;
+    }
+    
     float OdeTrigger::GetMinConfidence()
     {
         LOG_FUNC();
@@ -461,13 +488,32 @@ namespace DSL
         // Filter on Source id if set
         if (m_source.size())
         {
-            // a "one-time-get" of the source Id from the source name as the 
-            // source id is not assigned until the pipeline is played
+            // a "one-time-get" of the source Id from the source name
             if (m_sourceId == -1)
             {
                 Services::GetServices()->SourceIdGet(m_source.c_str(), &m_sourceId);
             }
             if (m_sourceId != sourceId)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool OdeTrigger::CheckForInferId(int inferId)
+    {
+        LOG_FUNC();
+
+        // Filter on Source id if set
+        if (m_infer.size())
+        {
+            // a "one-time-get" of the inference component Id from the name
+            if (m_inferId == -1)
+            {
+                Services::GetServices()->InferIdGet(m_infer.c_str(), &m_inferId);
+            }
+            if (m_inferId != inferId)
             {
                 return false;
             }
@@ -522,22 +568,16 @@ namespace DSL
         {
             return false;
         }
+        // Filter on unique source-id and unique-inference-component-id
+        if (!CheckForSourceId(pFrameMeta->source_id) or 
+            !CheckForInferId(pObjectMeta->unique_component_id))
+        {
+            return false;
+        }
         // Filter on Class id if set
         if ((m_classId != DSL_ODE_ANY_CLASS) and (m_classId != pObjectMeta->class_id))
         {
             return false;
-        }
-        // Filter on Source id if set
-        if (m_source.size())
-        {
-            if (m_sourceId == -1)
-            {
-                Services::GetServices()->SourceIdGet(m_source.c_str(), &m_sourceId);
-            }
-            if (m_sourceId != pFrameMeta->source_id)
-            {
-                return false;
-            }
         }
         // Ensure that the minimum confidence has been reached
         if (pObjectMeta->confidence > 0 and pObjectMeta->confidence < m_minConfidence)
