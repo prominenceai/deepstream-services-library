@@ -334,17 +334,17 @@ namespace DSL
         }
         // If the main loop is running -- normal case -- then we can't change the 
         // state of the Pipeline in the Application's context. 
-        // if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
-        // {
-            // LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
-            // g_timeout_add(1, PipelineStop, this);
-            // g_cond_wait(&m_asyncCondition, &m_asyncCommMutex);
-        // }
+        if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+            g_timeout_add(1, PipelineStop, this);
+            g_cond_wait(&m_asyncCondition, &m_asyncCommMutex);
+        }
         // Else, we are running under test without the mainloop
-        // else
-        // {
+        else
+        {
             HandleStop();
-        // }
+        }
         return true;
     }
 
@@ -356,8 +356,8 @@ namespace DSL
         // Call on all sources to disable their EOS consumers, before send EOS
         m_pPipelineSourcesBintr->DisableEosConsumers();
         
-        // SendEos();
-        // sleep(1);
+        SendEos();
+        sleep(1);
 
         if (!SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
         {
