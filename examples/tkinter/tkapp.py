@@ -118,9 +118,10 @@ class App(tk.Tk):
         if retval != DSL_RETURN_SUCCESS:	
             return retval
 
-        # New OSD with clock and labels enabled... using default values.
-        retval = dsl_osd_new(OSD, True, True)
-        if retval != DSL_RETURN_SUCCESS:	
+        # New OSD with text, clock and bbox display all enabled. 
+        retval = dsl_osd_new('on-screen-display', 
+            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+        if retval != DSL_RETURN_SUCCESS:
             return retval
 
         # New Custom Pad Probe Handler to draw the active display-type

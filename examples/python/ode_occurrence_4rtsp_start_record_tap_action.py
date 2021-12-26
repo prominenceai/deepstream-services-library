@@ -323,10 +323,11 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:	
             break	
 
-        # New OSD with clock and text enabled... using default values.
-        retval = dsl_osd_new('on-screen-display', True, True)
-        if retval != DSL_RETURN_SUCCESS:	
-            break	
+        # New OSD with text, clock and bbox display all enabled. 
+        retval = dsl_osd_new('on-screen-display', 
+            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display	
         retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)	

@@ -31,7 +31,8 @@ THE SOFTWARE.
 namespace DSL
 {
     DslReturnType Services::OsdNew(const char* name, 
-        boolean textEnabled, boolean clockEnabled)
+        boolean textEnabled, boolean clockEnabled,
+        boolean bboxEnabled, boolean maskEnabled)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -45,7 +46,7 @@ namespace DSL
                 return DSL_RESULT_OSD_NAME_NOT_UNIQUE;
             }
             m_components[name] = std::shared_ptr<Bintr>(new OsdBintr(
-                name, textEnabled, clockEnabled));
+                name, textEnabled, clockEnabled, bboxEnabled, maskEnabled));
                     
             LOG_INFO("New OSD '" << name << "' created successfully");
 
@@ -68,19 +69,20 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
-            DSL_OSD_PTR osdBintr = 
+            DSL_OSD_PTR pOsdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
-            osdBintr->GetTextEnabled(enabled);
+            pOsdBintr->GetTextEnabled(enabled);
 
-            LOG_INFO("OSD '" << name << "' returned Text Enabeld = "
+            LOG_INFO("OSD '" << name << "' returned text displah enabled = "
                 << *enabled << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("OSD '" << name << "' threw an exception getting Text Enabled");
+            LOG_ERROR("OSD '" << name 
+                << "' threw an exception getting test display enabled");
             return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
     }
@@ -96,23 +98,25 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
 
-            DSL_OSD_PTR osdBintr = 
+            DSL_OSD_PTR pOsdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
             // TODO verify args before calling
-            if (!osdBintr->SetTextEnabled(enabled))
+            if (!pOsdBintr->SetTextEnabled(enabled))
             {
-                LOG_ERROR("OSD '" << name << "' failed to set Text Enabled");
+                LOG_ERROR("OSD '" << name 
+                    << "' failed to set text display enabled");
                 return DSL_RESULT_OSD_SET_FAILED;
             }
-            LOG_INFO("OSD '" << name << "' set Text Enabeld = " 
+            LOG_INFO("OSD '" << name << "' set text diplay enabled = " 
                 << enabled << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("OSD '" << name << "' threw an exception setting Text Enabled");
+            LOG_ERROR("OSD '" << name 
+                << "' threw an exception setting text display enabled");
             return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
     }
@@ -127,19 +131,20 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
-            DSL_OSD_PTR osdBintr = 
+            DSL_OSD_PTR pOsdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
-            osdBintr->GetClockEnabled(enabled);
+            pOsdBintr->GetClockEnabled(enabled);
 
-            LOG_INFO("OSD '" << name << "' returned Clock Enabeld = "
+            LOG_INFO("OSD '" << name << "' returned clock display enabeld = "
                 << *enabled << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("OSD '" << name << "' threw an exception getting Clock Enabled");
+            LOG_ERROR("OSD '" << name 
+                << "' threw an exception getting clock display enabled");
             return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
     }
@@ -154,23 +159,24 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
-            DSL_OSD_PTR osdBintr = 
+            DSL_OSD_PTR pOsdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
             // TODO verify args before calling
-            if (!osdBintr->SetClockEnabled(enabled))
+            if (!pOsdBintr->SetClockEnabled(enabled))
             {
-                LOG_ERROR("OSD '" << name << "' failed to set Clock Enabled");
+                LOG_ERROR("OSD '" << name << "' failed to set clock display enabled");
                 return DSL_RESULT_OSD_SET_FAILED;
             }
-            LOG_INFO("OSD '" << name << "' set Clock Enabeld = "
+            LOG_INFO("OSD '" << name << "' set clock diplay enabled = "
                 << enabled << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("OSD '" << name << "' threw an exception setting Clock Enabled");
+            LOG_ERROR("OSD '" << name 
+                << "' threw an exception setting clock display enabled");
             return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
     }
@@ -185,13 +191,13 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
-            DSL_OSD_PTR osdBintr = 
+            DSL_OSD_PTR pOsdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
-            osdBintr->GetClockOffsets(offsetX, offsetY);
+            pOsdBintr->GetClockOffsets(offsetX, offsetY);
 
-            LOG_INFO("OSE '" << name << "' returned Offset X = " 
-                << *offsetX << " and Offset Y = " << *offsetY << "' successfully");
+            LOG_INFO("OSE '" << name << "' returned offeset X = " 
+                << *offsetX << " and offeset Y = " << *offsetY << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -212,17 +218,17 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
-            DSL_OSD_PTR osdBintr = 
+            DSL_OSD_PTR pOsdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
             // TODO verify args before calling
-            if (!osdBintr->SetClockOffsets(offsetX, offsetY))
+            if (!pOsdBintr->SetClockOffsets(offsetX, offsetY))
             {
                 LOG_ERROR("OSD '" << name << "' failed to set Clock offsets");
                 return DSL_RESULT_OSD_SET_FAILED;
             }
-            LOG_INFO("OSE '" << name << "' set Offset X = " 
-                << offsetX << " and Offset Y = " << offsetY << "' successfully");
+            LOG_INFO("OSE '" << name << "' set offeset X = " 
+                << offsetX << " and offeset Y = " << offsetY << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -243,10 +249,10 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
-            DSL_OSD_PTR osdBintr = 
+            DSL_OSD_PTR pOsdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
-            osdBintr->GetClockFont(font, size);
+            pOsdBintr->GetClockFont(font, size);
             
             LOG_INFO("OSE '" << name << "' returned Clock Font = " 
                 << *font << " and Size = " << *size << "' successfully");
@@ -270,10 +276,10 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
-            DSL_OSD_PTR osdBintr = 
+            DSL_OSD_PTR pOsdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
-            if (!osdBintr->SetClockFont(font, size))
+            if (!pOsdBintr->SetClockFont(font, size))
             {
                 LOG_ERROR("OSD '" << name << "' failed to set Clock font");
                 return DSL_RESULT_OSD_SET_FAILED;
@@ -300,10 +306,10 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
-            DSL_OSD_PTR osdBintr = 
+            DSL_OSD_PTR pOsdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
-            osdBintr->GetClockColor(red, green, blue, alpha);
+            pOsdBintr->GetClockColor(red, green, blue, alpha);
 
             LOG_INFO("OSE '" << name << "' returned Color Red = " 
                 << *red << ", Green = " << *green << ", Blue = " << *blue 
@@ -328,10 +334,10 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
-            DSL_OSD_PTR osdBintr = 
+            DSL_OSD_PTR pOsdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
-            if (!osdBintr->SetClockColor(red, green, blue, alpha))
+            if (!pOsdBintr->SetClockColor(red, green, blue, alpha))
             {
                 LOG_ERROR("OSD '" << name << "' failed to set Clock RGB colors");
                 return DSL_RESULT_OSD_SET_FAILED;
@@ -347,7 +353,130 @@ namespace DSL
             return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
     }
-    
+
+    DslReturnType Services::OsdBboxEnabledGet(const char* name, boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            DSL_OSD_PTR pOsdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            pOsdBintr->GetBboxEnabled(enabled);
+
+            LOG_INFO("OSD '" << name << "' returned bounding-box display enabled = "
+                << *enabled << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name 
+                << "' threw an exception getting bounding-box display enabled");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OsdBboxEnabledSet(const char* name, boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+
+            DSL_OSD_PTR pOsdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            if (!pOsdBintr->SetBboxEnabled(enabled))
+            {
+                LOG_ERROR("OSD '" << name 
+                    << "' failed to set bounding-box display enabled");
+                return DSL_RESULT_OSD_SET_FAILED;
+            }
+            LOG_INFO("OSD '" << name << "' set bounding-box display enabled = " 
+                << enabled << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name 
+                << "' threw an exception setting bounding-box display enabled");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OsdMaskEnabledGet(const char* name, boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            DSL_OSD_PTR pOsdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            pOsdBintr->GetMaskEnabled(enabled);
+
+            LOG_INFO("OSD '" << name << "' returned mask display enabled = "
+                << *enabled << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name 
+                << "' threw an exception getting mask display enabled");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OsdMaskEnabledSet(const char* name, boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+
+            DSL_OSD_PTR pOsdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!pOsdBintr->SetMaskEnabled(enabled))
+            {
+                LOG_ERROR("OSD '" << name << "' failed to set mask display enabled");
+                return DSL_RESULT_OSD_SET_FAILED;
+            }
+            LOG_INFO("OSD '" << name << "' set mask display enabled = " 
+                << enabled << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name 
+                << "' threw an exception setting mask display enabled");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+    }
+
+   
     DslReturnType Services::OsdPphAdd(const char* name, const char* handler, uint pad)
     {
         LOG_FUNC();

@@ -49,6 +49,8 @@ static const uint height(720);
 static const std::wstring osd_name(L"osd");
 static const boolean text_enabled(true);
 static const boolean clock_enabled(false);
+static const boolean bbox_enabled(true);
+static const boolean mask_enabled(false);
         
 static const std::wstring ode_pph_name(L"ode-handler");
 
@@ -257,7 +259,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers, each
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), vehicle_occurrence_name.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), person_occurrence_name.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
@@ -510,7 +513,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Triggers, eac
         
         REQUIRE( dsl_pph_ode_trigger_add_many(ode_pph_name.c_str(), odeTypes) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
@@ -622,8 +626,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four ODE Accumulation Triggers wi
         REQUIRE( dsl_pph_ode_trigger_add_many(ode_pph_name.c_str(), 
             odeTypes) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, 
-            clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
@@ -784,8 +788,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
 
         REQUIRE( dsl_pph_ode_trigger_add_many(ode_pph_name.c_str(), odeTypes) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(osd_name.c_str(), 
-            text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_osd_pph_add(osd_name.c_str(), 
             ode_pph_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
         
@@ -858,8 +862,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
         REQUIRE( dsl_tiler_new(tiler_name.c_str(), 
             width, height) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_osd_new(osd_name.c_str(), 
-            text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
@@ -984,8 +988,8 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Line Area 
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(),
             person_occurrence_name.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_osd_new(osd_name.c_str(), 
-            text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
@@ -1085,7 +1089,8 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Inclussion
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
             person_occurrence_name.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
@@ -1186,7 +1191,8 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Exclusion 
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
             person_occurrence_name.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
@@ -1270,7 +1276,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Forma
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
             ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
@@ -1360,7 +1367,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Forma
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
             ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
@@ -1434,7 +1442,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Custo
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
             ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );

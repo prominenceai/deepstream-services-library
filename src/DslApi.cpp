@@ -3427,7 +3427,8 @@ DslReturnType dsl_ofv_new(const wchar_t* name)
 }
 
 DslReturnType dsl_osd_new(const wchar_t* name, 
-    boolean text_enabled, boolean clock_enabled)
+    boolean text_enabled, boolean clock_enabled, 
+    boolean bbox_enabled, boolean mask_enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -3435,7 +3436,7 @@ DslReturnType dsl_osd_new(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->OsdNew(cstrName.c_str(), 
-        text_enabled, clock_enabled);
+        text_enabled, clock_enabled, bbox_enabled, mask_enabled);
 }
 
 DslReturnType dsl_osd_text_enabled_get(const wchar_t* name, boolean* enabled)
@@ -3551,6 +3552,46 @@ DslReturnType dsl_osd_clock_color_set(const wchar_t* name, double red, double gr
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->OsdClockColorSet(cstrName.c_str(), red, green, blue, alpha);
+}
+
+DslReturnType dsl_osd_bbox_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdBboxEnabledGet(cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_osd_bbox_enabled_set(const wchar_t* name, boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdBboxEnabledSet(cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_osd_mask_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdMaskEnabledGet(cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_osd_mask_enabled_set(const wchar_t* name, boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdMaskEnabledSet(cstrName.c_str(), enabled);
 }
 
 DslReturnType dsl_osd_pph_add(const wchar_t* name,

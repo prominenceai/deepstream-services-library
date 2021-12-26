@@ -2626,11 +2626,13 @@ def dsl_tracker_pph_remove(name, handler, pad):
 ##
 ## dsl_osd_new()
 ##
-_dsl.dsl_osd_new.argtypes = [c_wchar_p, c_bool, c_bool]
+_dsl.dsl_osd_new.argtypes = [c_wchar_p, c_bool, c_bool, c_bool, c_bool]
 _dsl.dsl_osd_new.restype = c_uint
-def dsl_osd_new(name, text_enabled, clock_enabled):
+def dsl_osd_new(name, text_enabled, clock_enabled, 
+    bbox_enabled, mask_enabled):
     global _dsl
-    result =_dsl.dsl_osd_new(name, text_enabled, clock_enabled)
+    result =_dsl.dsl_osd_new(name, text_enabled, clock_enabled,
+        bbox_enabled, mask_enabled)
     return int(result)
 
 ##

@@ -680,7 +680,9 @@ namespace DSL {
 
         DslReturnType OfvNew(const char* name);
 
-        DslReturnType OsdNew(const char* name, boolean textEnabled, boolean clockEnabled);
+        DslReturnType OsdNew(const char* name, 
+            boolean textEnabled, boolean clockEnabled,
+            boolean bboxEnabled, boolean maskEnabled);
         
         DslReturnType OsdTextEnabledGet(const char* name, boolean* enabled);
 
@@ -698,9 +700,19 @@ namespace DSL {
 
         DslReturnType OsdClockFontSet(const char* name, const char* font, uint size);
 
-        DslReturnType OsdClockColorGet(const char* name, double* red, double* green, double* blue, double* alpha);
+        DslReturnType OsdClockColorGet(const char* name, 
+            double* red, double* green, double* blue, double* alpha);
 
-        DslReturnType OsdClockColorSet(const char* name, double red, double green, double blue, double alpha);
+        DslReturnType OsdClockColorSet(const char* name, 
+            double red, double green, double blue, double alpha);
+
+        DslReturnType OsdBboxEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType OsdBboxEnabledSet(const char* name, boolean enabled);
+
+        DslReturnType OsdMaskEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType OsdMaskEnabledSet(const char* name, boolean enabled);
 
         DslReturnType OsdPphAdd(const char* name, const char* handler, uint pad);
 
