@@ -61,7 +61,8 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (!m_pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)))
+        if (!m_pPipelineSourcesBintr->
+            AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)))
         {
             return false;
         }
@@ -77,7 +78,8 @@ namespace DSL
             LOG_INFO("Pipeline '" << GetName() << "' has no Sources");
             return false;
         }
-        return (m_pPipelineSourcesBintr->IsChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)));
+        return (m_pPipelineSourcesBintr->
+            IsChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)));
     }
 
     bool PipelineBintr::RemoveSourceBintr(DSL_BASE_PTR pSourceBintr)
@@ -85,7 +87,8 @@ namespace DSL
         LOG_FUNC();
 
         // Must cast to SourceBintr first so that correct Instance of RemoveChild is called
-        return m_pPipelineSourcesBintr->RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
+        return m_pPipelineSourcesBintr->
+            RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
     }
 
     uint PipelineBintr::GetStreamMuxNvbufMemType()
@@ -101,7 +104,8 @@ namespace DSL
 
         if (IsLinked())
         {
-            LOG_ERROR("Pipeline '" << GetName() << "' is currently Linked - cudadec memory type can not be updated");
+            LOG_ERROR("Pipeline '" << GetName() 
+                << "' is currently Linked - cudadec memory type can not be updated");
             return false;
             
         }
@@ -110,12 +114,13 @@ namespace DSL
         return true;
     }
 
-    void PipelineBintr::GetStreamMuxBatchProperties(guint* batchSize, uint* batchTimeout)
+    void PipelineBintr::GetStreamMuxBatchProperties(guint* batchSize, 
+        uint* batchTimeout)
     {
         LOG_FUNC();
 
-        *batchSize = m_batchSize;
-        *batchTimeout = m_batchTimeout;
+        m_pPipelineSourcesBintr->
+            GetStreamMuxBatchProperties(batchSize, batchTimeout);
     }
 
     bool PipelineBintr::SetStreamMuxBatchProperties(uint batchSize, uint batchTimeout)
@@ -124,13 +129,13 @@ namespace DSL
 
         if (IsLinked())
         {
-            LOG_ERROR("Pipeline '" << GetName() << "' is currently Linked - batch properties can not be updated");
+            LOG_ERROR("Pipeline '" << GetName() 
+                << "' is currently Linked - batch properties can not be updated");
             return false;
             
         }
-        m_batchSize = batchSize;
-        m_batchTimeout = batchTimeout;
-        m_pPipelineSourcesBintr->SetStreamMuxBatchProperties(m_batchSize, m_batchTimeout);
+        m_pPipelineSourcesBintr->
+            SetStreamMuxBatchProperties(batchSize, batchTimeout);
         
         return true;
     }
@@ -229,11 +234,6 @@ namespace DSL
             return false;
         }
 
-        // If the batch size has not been explicitely set, use the number of sources.
-        if (m_batchSize < m_pPipelineSourcesBintr->GetNumChildren())
-        {
-            SetStreamMuxBatchProperties(m_pPipelineSourcesBintr->GetNumChildren(), m_batchTimeout);
-        }
         
         // Start with an empty list of linked components
         m_linkedComponents.clear();
@@ -248,6 +248,9 @@ namespace DSL
         
         LOG_INFO("Pipeline '" << GetName() << "' Linked up all Source '" << 
             m_pPipelineSourcesBintr->GetName() << "' successfully");
+
+        uint batchTimeout(0);
+        GetStreamMuxBatchProperties(&m_batchSize, &batchTimeout);
 
         // call the base class to Link all remaining components.
         return BranchBintr::LinkAll();

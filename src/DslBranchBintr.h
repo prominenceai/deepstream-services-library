@@ -199,8 +199,6 @@ namespace DSL
 
     protected:
         
-        uint m_batchTimeout;
-
         std::vector<DSL_BINTR_PTR> m_linkedComponents;
         
         /**
