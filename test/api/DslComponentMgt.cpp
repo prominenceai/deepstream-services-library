@@ -75,7 +75,7 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
 
         REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_infer_gie_primary_new(pgieName.c_str(), infer_config_file.c_str(), NULL, 0) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_osd_new(osdName.c_str(), true, true) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osdName.c_str(), true, true, true, false) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 0, 0, 1280, 720) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_tiler_new(tilerName.c_str(), 1280, 720) == DSL_RESULT_SUCCESS );
         

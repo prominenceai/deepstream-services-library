@@ -92,6 +92,8 @@ static const std::wstring branch_name2(L"branch-2");
 static const std::wstring osd_name(L"on-screen-display");
 static const boolean text_enabled(false);
 static const boolean clock_enabled(false);
+static const boolean bbox_enabled(true);
+static const boolean mask_enabled(false);
 
 static const std::wstring fake_sink_name(L"fake-sink");
 static const std::wstring overlay_sink_name1(L"overlay-sink-1");
@@ -426,7 +428,8 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Window Si
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
         
@@ -701,7 +704,8 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, \
         REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name1.c_str(), sgie_infer_config_file1.c_str(), 
             sgie_model_engine_file1.c_str(), primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -759,7 +763,8 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, 
         REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name3.c_str(), sgie_infer_config_file3.c_str(), 
             sgie_model_engine_file3.c_str(), primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -971,7 +976,8 @@ SCENARIO( "A new Pipeline with two URI File Sources, PGIE, Demuxer two Overlay S
             REQUIRE( dsl_source_uri_new(source_name2.c_str(), uri.c_str(), 
                 false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-            REQUIRE( dsl_osd_new(osd_name.c_str(), false, false) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+                bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_sink_overlay_new(overlay_sink_name1.c_str(), display_id, depth,
                 offest_x1, offest_y1, sink_width1, sink_height1) == DSL_RESULT_SUCCESS );
@@ -1049,7 +1055,8 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
             REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_tiler_new(tiler_name2.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
 
-            REQUIRE( dsl_osd_new(osd_name.c_str(), true, false) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+                bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_sink_overlay_new(overlay_sink_name1.c_str(), display_id, depth,
                 offest_x1, offest_y1, sink_width1, sink_height1) == DSL_RESULT_SUCCESS );
@@ -1367,7 +1374,8 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Industrial Segmentatio
 
         REQUIRE( dsl_segvisual_new(seg_visual_name.c_str(), seg_visual_width, seg_visual_height) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );

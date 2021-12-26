@@ -460,6 +460,16 @@ THE SOFTWARE.
 #define DSL_RTP_ALL                                                 0x07
 
 /**
+ * @brief Default On-Screen Display (OSD) property values
+ */
+#define DSL_DEFAULT_OSD_PROCESS_MODE                                0
+#define DSL_DEFAULT_OSD_CLOCK_FONT_TYPE                             "Serif"
+#define DSL_DEFAULT_OSD_CLOCK_FONT_SIZE                             12
+#define DSL_DEFAULT_OSD_CLOCK_OFFSET_X                              20
+#define DSL_DEFAULT_OSD_CLOCK_OFFSET_Y                              20
+#define DSL_DEFAULT_OSD_CLOCK_COLOR                                 {}
+
+/**
  * @brief Websocket Port number for the Soup Server Manager
  * If set to 0, Manager will find an unused port to listen on.
  */
@@ -635,6 +645,7 @@ THE SOFTWARE.
  * For the Absence Trigger, occurrences will always be 0. 
  */
 #define DSL_METRIC_OBJECT_OCCURRENCES                               6
+
 EXTERN_C_BEGIN
 
 typedef uint DslReturnType;
@@ -3375,43 +3386,46 @@ DslReturnType dsl_ofv_new(const wchar_t* name);
 
 
 /**
- * @brief creates a new, uniquely named OSD obj
+ * @brief creates a new, uniquely named On-Screen Display (OSD) component
  * @param[in] name unique name for the new OSD
- * @param[in] text_enabled set to true to enable display of bbox labels
+ * @param[in] text_enabled set to true to enable object labels display
  * @param[in] clock_enabled set to true to enable clock display
+ * @param[in] bbox_enabled set to true to enable bounding box display
+ * @param[in] mask_enabled set to true to enable mask display
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_new(const wchar_t* name, 
-    boolean text_enabled, boolean clock_enabled);
+    boolean text_enabled, boolean clock_enabled, 
+    boolean bbox_enabled, boolean mask_enabled);
 
 /**
- * @brief returns the current clock enabled setting for the named On-Screen Display
- * @param[in] name name of the Display to query
- * @param[out] enabled current setting for OSD clock in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ * @brief returns the current text enabled setting for the named On-Screen Display.
+ * @param[in] name name of the OSD to query.
+ * @param[out] enabled true if text display is enabled, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise.
  */
 DslReturnType dsl_osd_text_enabled_get(const wchar_t* name, boolean* enabled);
 
 /**
- * @brief sets the the clock enabled setting for On-Screen-Display
- * @param[in] name name of the OSD to update
- * @param[in] enabled new enabled setting for the OSD clock
+ * @brief sets the text enabled setting for On-Screen-Display
+ * @param[in] name name of the OSD to update.
+ * @param[in] enabled set to true to enable text display, false otherwise.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_text_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
- * @brief returns the current clock enabled setting for the named On-Screen Display
- * @param[in] name name of the Display to query
- * @param[out] enabled current setting for OSD clock in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ * @brief returns the current clock enabled setting for the named On-Screen Display.
+ * @param[in] name name of the OSD to query.
+ * @param[out] enabled true if clock display is enabled, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise.
  */
 DslReturnType dsl_osd_clock_enabled_get(const wchar_t* name, boolean* enabled);
 
 /**
- * @brief sets the the clock enabled setting for On-Screen-Display
- * @param[in] name name of the OSD to update
- * @param[in] enabled new enabled setting for the OSD clock
+ * @brief sets the clock enabled setting for On-Screen-Display
+ * @param[in] name name of the OSD to update.
+ * @param[in] enabled set to true to enable clock display, false otherwise.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_clock_enabled_set(const wchar_t* name, boolean enabled);
@@ -3423,7 +3437,8 @@ DslReturnType dsl_osd_clock_enabled_set(const wchar_t* name, boolean enabled);
  * @param[out] offset_y current offset in the Y direction for the OSD clock in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, uint* offset_x, uint* offset_y);
+DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, 
+    uint* offset_x, uint* offset_y);
 
 /**
  * @brief sets the X and Y offsets for the On-Screen-Display clock
@@ -3432,7 +3447,8 @@ DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, uint* offset_x, uin
  * @param[in] offset_y new offset for the OSD clock in the X direction in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offset_x, uint offset_y);
+DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, 
+    uint offset_x, uint offset_y);
 
 /**
  * @brief returns the font name and size for On-Screen-Display clock
@@ -3441,7 +3457,8 @@ DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offset_x, uint
  * @param[out] size current font size for the OSD clock
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, uint* size);
+DslReturnType dsl_osd_clock_font_get(const wchar_t* name, 
+    const wchar_t** font, uint* size);
 
 /**
  * @brief sets the font name and size for the On-Screen-Display clock
@@ -3450,7 +3467,8 @@ DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, 
  * @param[in] size new size string to use for the OSD clock
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_clock_font_set(const wchar_t* name, const wchar_t* font, uint size);
+DslReturnType dsl_osd_clock_font_set(const wchar_t* name, 
+    const wchar_t* font, uint size);
 
 /**
  * @brief returns the font name and size for On-Screen-Display clock
@@ -3461,7 +3479,8 @@ DslReturnType dsl_osd_clock_font_set(const wchar_t* name, const wchar_t* font, u
  * @param[out] alpha current alpha color value for the OSD clock
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_clock_color_get(const wchar_t* name, double* red, double* green, double* blue, double* alpha);
+DslReturnType dsl_osd_clock_color_get(const wchar_t* name, 
+    double* red, double* green, double* blue, double* alpha);
 
 /**
  * @brief sets the font name and size for the On-Screen-Display clock
@@ -3472,29 +3491,56 @@ DslReturnType dsl_osd_clock_color_get(const wchar_t* name, double* red, double* 
  * @param[out] alpha current alpha color value for the OSD clock
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_clock_color_set(const wchar_t* name, double red, double green, double blue, double alpha);
+DslReturnType dsl_osd_clock_color_set(const wchar_t* name, 
+    double red, double green, double blue, double alpha);
 
 /**
- * @brief gets the current crop settings for the named On-Screen-Display
- * @param[in] name name of the OSD to query
- * @param[out] left number of pixels to crop from the left
- * @param[out] top number of pixels to crop from the top
- * @param[out] width width of the cropped image in pixels
- * @param[out] height height of the cropped image in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ * @brief returns the current bbox enabled setting for the named On-Screen Display.
+ * @param[in] name name of the OSD to query.
+ * @param[out] enabled true if bbox display is enabled, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise.
  */
-DslReturnType dsl_osd_crop_settings_get(const wchar_t* name, uint* left, uint* top, uint* width, uint* height);
+DslReturnType dsl_osd_bbox_enabled_get(const wchar_t* name, boolean* enabled);
 
 /**
- * @brief Sets the current crop settings for the named On-Screen-Display
- * @param[in] name name of the OSD to query
- * @param[in] left number of pixels to crop from the left
- * @param[in] top number of pixels to crop from the top
- * @param[in] width width of the cropped image in pixels
- * @param[in] height height of the cropped image in pixels
+ * @brief sets the bbox enabled setting for On-Screen-Display
+ * @param[in] name name of the OSD to update.
+ * @param[in] enabled set to true to enable bbox display, false otherwise.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_crop_settings_set(const wchar_t* name, uint left, uint top, uint width, uint height);
+DslReturnType dsl_osd_bbox_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief returns the current mask enabled setting for the named On-Screen Display.
+ * @param[in] name name of the OSD to query.
+ * @param[out] enabled true if mask display is enabled, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise.
+ */
+DslReturnType dsl_osd_mask_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief sets the mask enabled setting for On-Screen-Display
+ * @param[in] name name of the OSD to update.
+ * @param[in] enabled set to true to enable mask display, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ */
+DslReturnType dsl_osd_mask_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief returns the current process mode setting for the named On-Screen Display.
+ * @param[in] name name of the OSD to query.
+ * @param[out] mode one of 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise.
+ */
+DslReturnType dsl_osd_text_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief sets the text enabled setting for On-Screen-Display
+ * @param[in] name name of the OSD to update.
+ * @param[in] enabled set to true to enable text display, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ */
+DslReturnType dsl_osd_text_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
@@ -3504,7 +3550,8 @@ DslReturnType dsl_osd_crop_settings_set(const wchar_t* name, uint left, uint top
  * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
+DslReturnType dsl_osd_pph_add(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
 
 /**
  * @brief Removes a pad-probe-handler from the OSD
@@ -3513,7 +3560,8 @@ DslReturnType dsl_osd_pph_add(const wchar_t* name, const wchar_t* handler, uint 
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
+DslReturnType dsl_osd_pph_remove(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
 
 /**
  * @brief Creates a new, uniquely named Stream Demuxer Tee component

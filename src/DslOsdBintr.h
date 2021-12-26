@@ -38,8 +38,9 @@ namespace DSL
      * @brief convenience macros for shared pointer abstraction
      */
     #define DSL_OSD_PTR std::shared_ptr<OsdBintr>
-    #define DSL_OSD_NEW(name, textEnabled, clockEnabled) \
-        std::shared_ptr<OsdBintr>(new OsdBintr(name, textEnabled, clockEnabled))
+    #define DSL_OSD_NEW(name, textEnabled, clockEnabled, bboxEnabled, maskEnabled) \
+        std::shared_ptr<OsdBintr>(new OsdBintr(name, \
+            textEnabled, clockEnabled, bboxEnabled, maskEnabled))
 
     /**
      * @class OsdBintr
@@ -52,10 +53,13 @@ namespace DSL
         /**
          * @brief ctor for the OsdBintr class
          * @param[in] name name to give the new OsdBintr
-         * @param[in] TextEnabled true if clock is to be displayed
-         * @param[in] ClockEnabled true if clock is to be displayed
+         * @param[in] textEnabled true if object labels are to be displayed
+         * @param[in] clockEnabled true if clock is to be displayed
+         * @param[in] bboxEnabled true if bounding boxes are to be displayed
+         * @param[in] maskEnabled true if segmentation mask is to be displayed
          */
-        OsdBintr(const char* name, boolean textEnabled, boolean clockEnabled);
+        OsdBintr(const char* name, boolean textEnabled, boolean clockEnabled,
+            boolean bboxEnabled, boolean maskEnabled);
 
         /**
          * @brief dtor for the OsdBintr class
@@ -112,26 +116,26 @@ namespace DSL
         bool UnlinkFromSource();
 
         /**
-         * @brief Gets the current state of the On-screen clock
-         * @param[out] enabled true if bbox labels are currently enabled, false otherwise
+         * @brief Gets the current display text enabled state for this OsdBintr.
+         * @param[out] enabled true if text display is currently enabled, false otherwise.
          */
         void GetTextEnabled(boolean* enabled);
 
         /**
-         * @brief Sets the current state of the bblox labels display
-         * @param[in] enabled true if bbox labels are to be enabled, false otherwise
+         * @brief Sets the display text enabled state for this OsdBintr.
+         * @param[in] enabled set to true to enable text display, false otherwise.
          */
         bool SetTextEnabled(boolean enabled);
         
         /**
-         * @brief Gets the current state of the bbox labels display
-         * @param[out] enabled true if the OSD clock is current enabled, false otherwise
+         * @brief Gets the current display clock enabled state for this OsdBintr.
+         * @param[out] enabled true if clock display is currently enabled, false otherwise.
          */
         void GetClockEnabled(boolean* enabled);
 
         /**
-         * @brief Sets the current state of the On-screen clock
-         * @param[in] enabled true if the OSD clock is to be enabled, false otherwise
+         * @brief Sets the display clock enabled state for this OsdBintr.
+         * @param[in] enabled set to true to enable clock display, false otherwise.
          */
         bool SetClockEnabled(boolean enabled);
         
@@ -184,14 +188,28 @@ namespace DSL
         bool SetClockColor(double red, double green, double blue, double alpha);
 
         /**
-         * @brief Gets the current crop settings
-         * @param[out] left pixels to crop from the left
-         * @param[out] top pixels to crop from the top
-         * @param[out] width width of the cropped stream in pixels
-         * @param[out] height height of the cropped stream in pixels
+         * @brief Gets the current display bbox enabled state for this OsdBintr.
+         * @param[out] enabled true if bbox display is currently enabled, false otherwise.
          */
-        void GetCropSettings(uint* left, uint* top, uint* width, uint* height);
-        
+        void GetBboxEnabled(boolean* enabled);
+
+        /**
+         * @brief Sets the display bbox enabled state for this OsdBintr.
+         * @param[in] enabled set to true to enable bbox display, false otherwise.
+         */
+        bool SetBboxEnabled(boolean enabled);
+        /**
+         * @brief Gets the current display segmentation mask enabled state for this OsdBintr.
+         * @param[out] enabled true if mask display is currently enabled, false otherwise.
+         */
+        void GetMaskEnabled(boolean* enabled);
+
+        /**
+         * @brief Sets the display segmentation mask enabled state for this OsdBintr.
+         * @param[in] enabled set to true to enable mask display, false otherwise.
+         */
+        bool SetMaskEnabled(boolean enabled);
+
         /**
          * @brief Sets the GPU ID for all Elementrs
          * @return true if successfully set, false otherwise.
@@ -207,8 +225,9 @@ namespace DSL
         bool SetNvbufMemType(uint nvbufMemType);
 
     private:
+    
         /**
-         * @brief specifies whether bounding-box labels are displayed or not.
+         * @brief specifies whether object labels are displayed or not.
          */
         boolean m_textEnabled;
 
@@ -228,6 +247,16 @@ namespace DSL
          @brief
          */
         guint m_processMode;
+
+        /**
+         * @brief specifies whether bounding-boxs are displayed or not.
+         */
+        boolean m_bboxEnabled;
+
+        /**
+         * @brief specifies whether the segmentation mask will be displayed or note.
+         */
+        boolean m_maskEnabled;
 
         /**
          * @brief Unique streamId of Parent SourceBintr if added to Source vs. Pipeline

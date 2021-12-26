@@ -107,8 +107,8 @@ int main(int argc, char** argv)
         retval = dsl_tracker_ktl_new(L"ktl-tracker", 480, 272);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // # New OSD with clock and text enabled... using default values.
-        retval = dsl_osd_new(L"on-screen-display", true, true);
+        // # New OSD with text, clock, bboxs enabled, mask display disabled
+        retval = dsl_osd_new(L"on-screen-display", true, true, true, false);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // # New Window Sink, 0 x/y offsets and dimensions 
@@ -116,20 +116,25 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // # Add all the components to a new pipeline
-        const wchar_t* components[] = { L"uri-source",L"primary-tis",L"ktl-tracker",L"on-screen-display",L"window-sind",nullptr};
+        const wchar_t* components[] = { L"uri-source",L"primary-tis",
+            L"ktl-tracker",L"on-screen-display",L"window-sind",nullptr};
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);            
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // # Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add(L"pipeline", xwindow_key_event_handler, nullptr);
+        retval = dsl_pipeline_xwindow_key_event_handler_add(L"pipeline", 
+            xwindow_key_event_handler, nullptr);
         if (retval != DSL_RESULT_SUCCESS) break;
-        retval = dsl_pipeline_xwindow_delete_event_handler_add(L"pipeline", xwindow_delete_event_handler, nullptr);
+        retval = dsl_pipeline_xwindow_delete_event_handler_add(L"pipeline", 
+            xwindow_delete_event_handler, nullptr);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // # Add the listener callback functions defined above
-        retval = dsl_pipeline_state_change_listener_add(L"pipeline", state_change_listener, nullptr);
+        retval = dsl_pipeline_state_change_listener_add(L"pipeline", 
+            state_change_listener, nullptr);
         if (retval != DSL_RESULT_SUCCESS) break;
-        retval = dsl_pipeline_eos_listener_add(L"pipeline", eos_event_listener, nullptr);
+        retval = dsl_pipeline_eos_listener_add(L"pipeline", 
+            eos_event_listener, nullptr);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // # Play the pipeline

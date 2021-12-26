@@ -30,16 +30,20 @@ THE SOFTWARE.
 namespace DSL
 {
 
-    OsdBintr::OsdBintr(const char* name, boolean textEnabled, boolean clockEnabled)
+    OsdBintr::OsdBintr(const char* name, 
+        boolean textEnabled, boolean clockEnabled,
+        boolean bboxEnabled, boolean maskEnabled)
         : Bintr(name)
         , m_textEnabled(textEnabled)
         , m_clockEnabled(clockEnabled)
-        , m_processMode(0)
-        , m_clockFont("Serif")
-        , m_clockFontSize(12)
-        , m_clockOffsetX(0)
-        , m_clockOffsetY(0)
-        , m_clockColor({})
+        , m_bboxEnabled(bboxEnabled)
+        , m_maskEnabled(maskEnabled)
+        , m_processMode(DSL_DEFAULT_OSD_PROCESS_MODE)
+        , m_clockFont(DSL_DEFAULT_OSD_CLOCK_FONT_TYPE)
+        , m_clockFontSize(DSL_DEFAULT_OSD_CLOCK_FONT_SIZE)
+        , m_clockOffsetX(DSL_DEFAULT_OSD_CLOCK_OFFSET_X)
+        , m_clockOffsetY(DSL_DEFAULT_OSD_CLOCK_OFFSET_Y)
+        , m_clockColor(DSL_DEFAULT_OSD_CLOCK_COLOR)
         , m_streamId(-1)
     {
         LOG_FUNC();
@@ -60,6 +64,8 @@ namespace DSL
         m_pOsd->SetAttribute("y-clock-offset", m_clockOffsetY);
         m_pOsd->SetAttribute("clock-font-size", m_clockFontSize);
         m_pOsd->SetAttribute("process-mode", m_processMode);
+        m_pOsd->SetAttribute("display-bbox", m_bboxEnabled);
+        m_pOsd->SetAttribute("display-mask", m_maskEnabled);
         
         AddChild(m_pQueue);
         AddChild(m_pVidPreConv);
@@ -199,12 +205,12 @@ namespace DSL
     {
         LOG_FUNC();
         
-//        if (IsInUse())
-//        {
-//            LOG_ERROR("Unable to Set the Text Enabled attribute for OsdBintr '" << GetName() 
-//                << "' as it's currently in use");
-//            return false;
-//        }
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set the display text enabled setting for OsdBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
         m_textEnabled = enabled;
         m_pOsd->SetAttribute("display-text", m_textEnabled);
         
@@ -222,12 +228,12 @@ namespace DSL
     {
         LOG_FUNC();
         
-//        if (IsInUse())
-//        {
-//            LOG_ERROR("Unable to Set the Clock Enabled attribute for OsdBintr '" << GetName() 
-//                << "' as it's currently in use");
-//            return false;
-//        }
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set the clock display enabled attribute for OsdBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
         m_clockEnabled = enabled;
         m_pOsd->SetAttribute("display-clock", m_clockEnabled);
         
@@ -246,12 +252,12 @@ namespace DSL
     {
         LOG_FUNC();
         
-//        if (IsInUse())
-//        {
-//            LOG_ERROR("Unable to set Clock Offsets for OsdBintr '" << GetName() 
-//                << "' as it's currently in use");
-//            return false;
-//        }
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set clock offsets for OsdBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
 
         m_clockOffsetX = offsetX;
         m_clockOffsetY = offsetY;
@@ -274,12 +280,12 @@ namespace DSL
     {
         LOG_FUNC();
         
-//        if (IsInUse())
-//        {
-//            LOG_ERROR("Unable to set Clock Font for OsdBintr '" << GetName() 
-//                << "' as it's currently in use");
-//            return false;
-//        }
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set clock font for OsdBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
 
         m_clockFont.assign(name);
         m_clockFontSize = size;
@@ -304,12 +310,12 @@ namespace DSL
     {
         LOG_FUNC();
         
-//        if (IsInUse())
-//        {
-//            LOG_ERROR("Unable to set Clock Color for OsdBintr '" << GetName() 
-//                << "' as it's currently in use");
-//            return false;
-//        }
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set clock color for OsdBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
 
         m_clockColor.red = red;
         m_clockColor.green = green;
@@ -324,6 +330,52 @@ namespace DSL
 
         m_pOsd->SetAttribute("clock-color", clkRgbaColor);
 
+        return true;
+    }
+
+    void OsdBintr::GetBboxEnabled(boolean* enabled)
+    {
+        LOG_FUNC();
+        
+        *enabled = m_bboxEnabled;
+    }
+    
+    bool OsdBintr::SetBboxEnabled(boolean enabled)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set the display bbox enabled setting for OsdBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_bboxEnabled = enabled;
+        m_pOsd->SetAttribute("display-bbox", m_bboxEnabled);
+        
+        return true;
+    }
+
+    void OsdBintr::GetMaskEnabled(boolean* enabled)
+    {
+        LOG_FUNC();
+        
+        *enabled = m_maskEnabled;
+    }
+    
+    bool OsdBintr::SetMaskEnabled(boolean enabled)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set the display mask enabled setting for OsdBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_maskEnabled = enabled;
+        m_pOsd->SetAttribute("display-mask", m_maskEnabled);
+        
         return true;
     }
 
