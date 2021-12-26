@@ -1,17 +1,17 @@
 # On-Screen Display Reference
-The On-Screen Display (OSD) component provides visualization of object detection, clasification, and tracking. OSDs display bounding boxes and labels for objects detected in the video stream. Bounding boxes and labels are defined using meta-data added to each frame by the Inference and Tracker components. All [RGBA Display Types](/docs/api-display-type.md) added upstream from the OSD will be displayed as well.
+The On-Screen Display (OSD) component provides visualization of object detection, classification, and tracking. OSDs display bounding boxes and labels for objects detected in the video stream. Bounding boxes and labels are defined using meta-data added to each frame by the Inference and Tracker components. All [RGBA Display Types](/docs/api-display-type.md) added upstream from the OSD will be displayed as well.
 
-As with all components, OSDs must be uniquely named from all other components created. 
+As with all components, OSDs must be uniquely named from all other components created.
 
 #### OSD Construction and Destruction
-The constructor [dsl_osd_new](#dsl_osd_new) is used to create an OSD with boolean imputs for enabling display of text, clock, bounding boxes, and segmentation mask. Once created, the OSD's clock parameters -- fonts, color and offsets -- can be modified from their [default values](#default-values). OSDs are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
+The constructor [dsl_osd_new](#dsl_osd_new) is used to create an OSD with boolean inputs for enabling display of text, clock, bounding boxes, and segmentation mask. Once created, the OSD's clock parameters -- fonts, color and offsets -- can be modified from their [default values](#default-values). OSDs are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
 
-#### Adding and Removing 
-A single OSD can be added to Pipeline trunk or individual branch. An OSD is added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all). 
+#### Adding and Removing
+A single OSD can be added to Pipeline trunk or individual branch. An OSD is added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
 
-A similar set of Services are used when adding/removing an OSD to/from a branch: [dsl_branch_component_add](api-branch.md#dsl_branch_component_add), [dsl_branch_component_add_many](/docs/api-branch.md#dsl_branch_component_add_many), [dsl_branch_component_remove](/docs/api-branch.md#dsl_branch_component_remove), [dsl_branch_component_remove_many](/docs/api-branch.md#dsl_branch_component_remove_many), and [dsl_branch_component_remove_all](/docs/api-branch.md#dsl_branch_component_remove_all). 
+A similar set of Services are used when adding/removing an OSD to/from a branch: [dsl_branch_component_add](api-branch.md#dsl_branch_component_add), [dsl_branch_component_add_many](/docs/api-branch.md#dsl_branch_component_add_many), [dsl_branch_component_remove](/docs/api-branch.md#dsl_branch_component_remove), [dsl_branch_component_remove_many](/docs/api-branch.md#dsl_branch_component_remove_many), and [dsl_branch_component_remove_all](/docs/api-branch.md#dsl_branch_component_remove_all).
 
-Once added to a Pipeline or Branch, an OSD must be removed before it can be used with another. 
+Once added to a Pipeline or Branch, an OSD must be removed before it can be used with another.
 
 ---
 ## On-Screen API
@@ -69,11 +69,11 @@ The following default property values are used by the On-Screen Display API
 ## Constructors
 ### *dsl_osd_new*
 ```c++
-DslReturnType dsl_osd_new(const wchar_t* name, 
-    boolean text_enabled, boolean clock_enabled, 
+DslReturnType dsl_osd_new(const wchar_t* name,
+    boolean text_enabled, boolean clock_enabled,
     boolean bbox_enabled, boolean mask_enabled);
 ```
-The constructor creates a uniquely named On-Screen Display. Construction will fail if the name is currently in use. 
+The constructor creates a uniquely named On-Screen Display. Construction will fail if the name is currently in use.
 
 **Parameters**
 * `name` - [in] unique name for the On-Screen Display to create.
@@ -92,7 +92,7 @@ retval = dsl_osd_new('my-on-screen-display', True, True, True, False)
 
 <br>
 
---- 
+---
 
 ## Methods
 ### *dsl_osd_text_enabled_get*
@@ -262,7 +262,7 @@ retval = dsl_osd_clock_font_set('my-on-screen-display', 'arial', 12)
 
 ### *dsl_osd_clock_color_get*
 ```c++
-DslReturnType dsl_osd_clock_color_get(const wchar_t* name, 
+DslReturnType dsl_osd_clock_color_get(const wchar_t* name,
     double* red, double* green, double* blue, double alpha);
 ```
 This service gets the current clock color for the named On-Screen Display. The color is represented in RGBA format, each with weights between 0.0 and 1.0.
@@ -289,7 +289,7 @@ retval, red, green, blue, alpha = dsl_osd_clock_color_get('my-on-screen-display'
 ```c++
 DslReturnType dsl_osd_clock_color_set(const wchar_t* name, double red, uint double, uint blue);
 ```
-This service gets the current clock color for the named On-Screen Display. The color is  The color is specified in RGBA format.
+This service gets the current clock color for the named On-Screen Display. The color is specified in RGBA format.
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to query.
