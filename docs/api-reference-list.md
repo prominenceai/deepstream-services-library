@@ -249,6 +249,10 @@
 * [dsl_osd_clock_font_set](/docs/api-osd.md#dsl_osd_clock_font_set)
 * [dsl_osd_clock_color_get](/docs/api-osd.md#dsl_osd_clock_color_get)
 * [dsl_osd_clock_color_set](/docs/api-osd.md#dsl_osd_clock_color_set)
+* [dsl_osd_bbox_enabled_get](/docs/api-osd.md#dsl_osd_bbox_enabled_get)
+* [dsl_osd_bbox_enabled_set](/docs/api-osd.md#dsl_osd_bbox_enabled_set)
+* [dsl_osd_mask_enabled_get](/docs/api-osd.md#dsl_osd_mask_enabled_get)
+* [dsl_osd_mask_enabled_set](/docs/api-osd.md#dsl_osd_mask_enabled_set)
 * [dsl_osd_pph_add](/docs/api-osd.md##dsl_osd_pph_add)
 * [dsl_osd_pph_remove](/docs/api-osd.md##dsl_osd_pph_remove)
 
