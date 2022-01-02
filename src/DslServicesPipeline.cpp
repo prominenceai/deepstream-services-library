@@ -1212,5 +1212,119 @@ namespace DSL
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
+
+    DslReturnType Services::PipelineMainLoopNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+
+            if (!m_pipelines[name]->NewMainLoop())
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to create a new Main-Loop");
+                return DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED;
+            }
+            LOG_INFO("Pipeline '" << name 
+                << "' created its own Main-Loop successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception creating Main-Loop");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::PipelineMainLoopRun(const char* name)
+    {
+        LOG_FUNC();
+        
+        // Note: do not lock mutex - blocking call
+        
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+
+            if (!m_pipelines[name]->RunMainLoop())
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to run its own Main-Loop");
+                return DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED;
+            }
+            LOG_INFO("Pipeline '" << name 
+                << "' returned from running its own Main-Loop successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception running its own Main-Loop");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PipelineMainLoopQuit(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+
+            if (!m_pipelines[name]->QuitMainLoop())
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to quit running its own Main-Loop");
+                return DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED;
+            }
+            LOG_INFO("Pipeline '" << name 
+                << "' quit running its own Main-Loop successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception quiting its own Main-Loop");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
+
+    DslReturnType Services::PipelineMainLoopDelete(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+
+            if (!m_pipelines[name]->DeleteMainLoop())
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to delete its own Main-Loop");
+                return DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED;
+            }
+            LOG_INFO("Pipeline '" << name 
+                << "' deleted its own Main-Loop successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception deleting its own Main-Loop");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
     
 }

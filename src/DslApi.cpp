@@ -5273,6 +5273,7 @@ DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_set(const wchar_t* pipelin
     return DSL::Services::GetServices()->PipelineXWindowFullScreenEnabledSet(cstrPipeline.c_str(), enabled);
 }
 
+
 DslReturnType dsl_pipeline_pause(const wchar_t* pipeline)
 {
     RETURN_IF_PARAM_IS_NULL(pipeline);
@@ -5530,6 +5531,50 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
 
     return DSL::Services::GetServices()->
         PipelineXWindowDeleteEventHandlerRemove(cstrPipeline.c_str(), handler);
+}
+
+DslReturnType dsl_pipeline_main_loop_new(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->
+        PipelineMainLoopNew(cstrName.c_str());
+}
+
+DslReturnType dsl_pipeline_main_loop_run(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->
+        PipelineMainLoopRun(cstrName.c_str());
+}
+
+DslReturnType dsl_pipeline_main_loop_quit(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->
+        PipelineMainLoopQuit(cstrName.c_str());
+}
+
+DslReturnType dsl_pipeline_main_loop_delete(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->
+        PipelineMainLoopDelete(cstrName.c_str());
 }
 
 DslReturnType dsl_player_new(const wchar_t* name,

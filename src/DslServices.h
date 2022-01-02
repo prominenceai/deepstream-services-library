@@ -975,6 +975,14 @@ namespace DSL {
 
         DslReturnType PipelineXWindowDeleteEventHandlerRemove(const char* name, 
             dsl_xwindow_delete_event_handler_cb handler);
+            
+        DslReturnType PipelineMainLoopNew(const char* name);
+
+        DslReturnType PipelineMainLoopRun(const char* name);
+
+        DslReturnType PipelineMainLoopQuit(const char* name);
+
+        DslReturnType PipelineMainLoopDelete(const char* name);
 
         DslReturnType PlayerNew(const char* name, const char* source, const char* sink);
 

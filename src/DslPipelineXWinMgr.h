@@ -182,7 +182,14 @@ namespace DSL
          * @return [GST_BUS_PASS|GST_BUS_FAIL]
          */
         GstBusSyncReply HandleBusSyncMessage(GstMessage* pMessage);
-        
+
+    protected:
+
+        /**
+         * @brief mutex for display thread
+        */
+        GMutex m_displayMutex;
+    
     private:
 
         /**
@@ -234,11 +241,6 @@ namespace DSL
         */
         Display* m_pXDisplay;
 
-        /**
-         * @brief mutex for display thread
-        */
-        GMutex m_displayMutex;
-                
         /**
          * @brief handle to X Window
          */
