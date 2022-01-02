@@ -4040,6 +4040,46 @@ def dsl_pipeline_is_live(name):
     return int(result), is_live.value
 
 ##
+## dsl_pipeline_main_loop_new()
+##
+_dsl.dsl_pipeline_main_loop_new.argtypes = [c_wchar_p]
+_dsl.dsl_pipeline_main_loop_new.restype = c_uint
+def dsl_pipeline_main_loop_new(name):
+    global _dsl
+    result =_dsl.dsl_pipeline_main_loop_new(name)
+    return int(result)
+
+##
+## dsl_pipeline_main_loop_run()
+##
+_dsl.dsl_pipeline_main_loop_run.argtypes = [c_wchar_p]
+_dsl.dsl_pipeline_main_loop_run.restype = c_uint
+def dsl_pipeline_main_loop_run(name):
+    global _dsl
+    result =_dsl.dsl_pipeline_main_loop_run(name)
+    return int(result)
+
+##
+## dsl_pipeline_main_loop_quit()
+##
+_dsl.dsl_pipeline_main_loop_quit.argtypes = [c_wchar_p]
+_dsl.dsl_pipeline_main_loop_quit.restype = c_uint
+def dsl_pipeline_main_loop_quit(name):
+    global _dsl
+    result =_dsl.dsl_pipeline_main_loop_quit(name)
+    return int(result)
+
+##
+## dsl_pipeline_main_loop_delete()
+##
+_dsl.dsl_pipeline_main_loop_delete.argtypes = [c_wchar_p]
+_dsl.dsl_pipeline_main_loop_delete.restype = c_uint
+def dsl_pipeline_main_loop_delete(name):
+    global _dsl
+    result =_dsl.dsl_pipeline_main_loop_delete(name)
+    return int(result)
+
+##
 ## dsl_pipeline_dump_to_dot()
 ##
 _dsl.dsl_pipeline_dump_to_dot.argtypes = [c_wchar_p, c_wchar_p]

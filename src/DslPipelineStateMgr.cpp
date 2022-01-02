@@ -28,9 +28,11 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    PipelineStateMgr::PipelineStateMgr(const GstObject* pGstPipeline)
+    PipelineStateMgr::PipelineStateMgr(GstObject* pGstPipeline)
         : m_pGstPipeline(pGstPipeline)
-        , m_gstBusWatch(0)
+        , m_pMainContext(NULL)
+        , m_pMainLoop(NULL)
+        , m_pBusWatch(NULL)
         , m_errorNotificationTimerId(0)
     {
         LOG_FUNC();
@@ -40,19 +42,144 @@ namespace DSL
         g_mutex_init(&m_busWatchMutex);
         g_mutex_init(&m_lastErrorMutex);
         
-        GstBus* pGstBus = gst_pipeline_get_bus(GST_PIPELINE(m_pGstPipeline));
+        m_pGstBus = gst_pipeline_get_bus(GST_PIPELINE(m_pGstPipeline));
 
-        // install the watch function for the message bus
-        m_gstBusWatch = gst_bus_add_watch(pGstBus, bus_watch, this);
-        gst_object_unref(pGstBus);
+        // Add the bus-watch and callback function to the default main context
+        m_busWatchId = gst_bus_add_watch(m_pGstBus, bus_watch, this);
     }
 
     PipelineStateMgr::~PipelineStateMgr()
     {
         LOG_FUNC();
         
+        if (m_pMainLoop)
+        {
+            DeleteMainLoop();
+        }
+        gst_bus_remove_watch(m_pGstBus);
+        gst_object_unref(m_pGstBus);
+
         g_mutex_clear(&m_busWatchMutex);
         g_mutex_clear(&m_lastErrorMutex);
+    }
+
+    bool PipelineStateMgr::NewMainLoop()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busWatchMutex);
+
+        if (m_pMainLoop)
+        {
+            LOG_ERROR("A main-loop has already been created for Pipeline '"
+                << gst_object_get_name(m_pGstPipeline) << "'");
+            return false;
+        }
+
+        // We need remove the current bus watch added to the default main-context
+        gst_bus_remove_watch(m_pGstBus);
+        m_busWatchId = 0;
+        
+        // Create own main-context for the Pipeline first
+        m_pMainContext = g_main_context_new();
+        if (!m_pMainContext)
+        {
+            LOG_ERROR("Pipeline '" << gst_object_get_name(m_pGstPipeline) 
+                << "' failed to create own main-context");
+            return false;
+        }
+
+        // Create the main-loop for the Pipeline to run in its own main-context
+        m_pMainLoop = g_main_loop_new(m_pMainContext, FALSE);
+        if (!m_pMainLoop)
+        {
+            LOG_ERROR("Pipeline '" << gst_object_get_name(m_pGstPipeline)
+                << "' failed to create main-loop");
+            return false;
+        }
+        
+        // Create a new bus-watch 
+        m_pBusWatch = gst_bus_create_watch(m_pGstBus);
+
+        // Setup our bus-watch callback and then attach the bus-watch to 
+        // the Pipeline's own main-context created above.
+        g_source_set_callback(m_pBusWatch, (GSourceFunc)bus_watch, this, NULL);
+        g_source_attach(m_pBusWatch, m_pMainContext);
+        
+        return true;
+    }
+    
+    bool PipelineStateMgr::RunMainLoop()
+    {
+        LOG_FUNC();
+        
+        if (!m_pMainLoop)
+        {
+            LOG_ERROR("A Main-Loop has NOT been created for Pipeline '"
+                << gst_object_get_name(m_pGstPipeline) << "'");
+            return false;
+        }
+        if (g_main_loop_is_running(m_pMainLoop))
+        {
+            LOG_ERROR("A Main-Loop is already running for Pipeline '"
+                << gst_object_get_name(m_pGstPipeline) << "'");
+            return false;
+        }
+        // Acquire context and set it as the thread-default context for the current thread.
+        g_main_context_push_thread_default(m_pMainContext);
+        
+        // call will block until QuitMainLoop is called from another thread.
+        g_main_loop_run(m_pMainLoop);
+        
+        // Pop context off the thread-default context stack and signal client
+        g_main_context_pop_thread_default(m_pMainContext);
+        
+        return true;
+    }
+    
+    
+    bool PipelineStateMgr::QuitMainLoop()
+    {
+        LOG_FUNC();
+
+        if (!m_pMainLoop)
+        {
+            LOG_ERROR("A Main-Loop has NOT been created for Pipeline '"
+                << gst_object_get_name(m_pGstPipeline) << "'");
+            return false;
+        }
+        if (!g_main_loop_is_running(m_pMainLoop))
+        {
+            LOG_ERROR("Main-loop for Pipeline '"
+                << gst_object_get_name(m_pGstPipeline) << "' is not running");
+            return false;
+        }
+        g_main_loop_quit(m_pMainLoop);
+        
+        return true;
+    }
+    
+    bool PipelineStateMgr::DeleteMainLoop()
+    {
+        LOG_FUNC();
+        
+        if (!m_pMainLoop)
+        {
+            LOG_ERROR("A Main-Loop has NOT been created for Pipeline '"
+                << gst_object_get_name(m_pGstPipeline) << "'");
+            return false;
+        }
+        g_source_destroy(m_pBusWatch);
+        g_main_loop_unref(m_pMainLoop);
+        g_main_context_unref(m_pMainContext);
+        m_pBusWatch = NULL;
+        m_pMainLoop = NULL;
+        m_pMainContext = NULL;
+
+        // re-install the watch function for the message bus with the default 
+        // main-context - setting it back to its default state.
+        m_busWatchId = gst_bus_add_watch(m_pGstBus, bus_watch, this);
+        
+        return true;
     }
 
     bool PipelineStateMgr::AddStateChangeListener(dsl_state_change_listener_cb listener, void* clientData)

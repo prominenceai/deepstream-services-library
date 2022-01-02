@@ -58,7 +58,7 @@ namespace DSL
          */
         PipelineBintr(const char* pipeline);
         ~PipelineBintr();
-
+        
         /**
          * @brief Links all Child Bintrs owned by this Pipeline Bintr
          * @return True success, false otherwise

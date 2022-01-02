@@ -246,6 +246,7 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x00080011
 #define DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED               0x00080012
 #define DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED                 0x00080013
+#define DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED                0x00080014
 
 #define DSL_RESULT_BRANCH_RESULT                                    0x000B0000
 #define DSL_RESULT_BRANCH_NAME_NOT_UNIQUE                           0x000B0001
@@ -4862,6 +4863,34 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* pipel
 DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pipeline, 
     dsl_xwindow_delete_event_handler_cb handler);
 
+/**
+ * @brief Creates a new main-context and main-loop for a named Pipeline. This service
+ * must be called prior to calling dsl_pipeline_play and dsl_pipeline_main_loop_run.
+ * @param name name of the pipeline to update. 
+ */
+DslReturnType dsl_pipeline_main_loop_new(const wchar_t* name);
+    
+/**
+ * @brief Runs and joins a Pipeline's main-loop that was previously created 
+ * with a call to dsl_pipeline_main_loop_new.
+ * Note: this call will block until dsl_pipeline_main_loop_quit is called.
+ * @param name name of the Pipeline to update.
+ */
+DslReturnType dsl_pipeline_main_loop_run(const wchar_t* name);
+
+/**
+ * @brief Quits a Pipeline's running main-loop allowing the thread blocked
+ * on the call to dsl_pipeline_main_loop_run to return.
+ * @param name name of the Pipeline to update.
+ */
+DslReturnType dsl_pipeline_main_loop_quit(const wchar_t* name);
+
+/**
+ * @brief Deletes a Pipeline's main-context and main-loop previously created
+ * by calling dsl_pipeline_main_loop_new. 
+ * @param name name of the Pipeline to update. 
+ */
+DslReturnType dsl_pipeline_main_loop_delete(const wchar_t* name);
 /**
  * @brief Creates a new, uniquely named Player
  * @param[in] name unique name for the new Player
