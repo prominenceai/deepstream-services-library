@@ -845,6 +845,35 @@ def dsl_ode_action_enabled_set(name, enabled):
     return int(result)
 
 ##
+## dsl_ode_action_enabled_state_change_listener_add()
+##
+_dsl.dsl_ode_action_enabled_state_change_listener_add.argtypes = [ 
+    DSL_ODE_ENABLED_STATE_CHANGE_LISTENER, c_void_p]
+_dsl.dsl_ode_action_enabled_state_change_listener_add.restype = c_uint
+def dsl_ode_action_enabled_state_change_listener_add(client_listener, client_data):
+    global _dsl
+    c_client_listener = DSL_ODE_ENABLED_STATE_CHANGE_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_ode_action_enabled_state_change_listener_add(
+        c_client_listener, c_client_data)
+    return int(result)
+    
+##
+## dsl_ode_action_enabled_state_change_listener_remove()
+##
+_dsl.dsl_ode_action_enabled_state_change_listener_remove.argtypes = [
+    DSL_ODE_ENABLED_STATE_CHANGE_LISTENER]
+_dsl.dsl_ode_action_enabled_state_change_listener_remove.restype = c_uint
+def dsl_ode_action_enabled_state_change_listener_remove(client_listener):
+    global _dsl
+    c_client_listener = DSL_ODE_ENABLED_STATE_CHANGE_LISTENER(client_listener)
+    result = _dsl.dsl_ode_action_enabled_state_change_listener_remove(c_client_listener)
+    return int(result)
+
+
+##
 ## dsl_ode_action_delete()
 ##
 _dsl.dsl_ode_action_delete.argtypes = [c_wchar_p]
@@ -1272,6 +1301,34 @@ def dsl_ode_trigger_reset_timeout_set(name, timeout):
     return int(result)
 
 ##
+## dsl_ode_trigger_limit_state_change_listener_add()
+##
+_dsl.dsl_ode_trigger_limit_state_change_listener_add.argtypes = [ 
+    DSL_ODE_TRIGGER_LIMIT_STATE_CHANGE_LISTENER, c_void_p]
+_dsl.dsl_ode_trigger_limit_state_change_listener_add.restype = c_uint
+def dsl_ode_trigger_limit_state_change_listener_add(client_listener, client_data):
+    global _dsl
+    c_client_listener = DSL_ODE_TRIGGER_LIMIT_STATE_CHANGE_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_ode_trigger_limit_state_change_listener_add(
+        c_client_listener, c_client_data)
+    return int(result)
+    
+##
+## dsl_ode_trigger_limit_state_change_listener_remove()
+##
+_dsl.dsl_ode_trigger_limit_state_change_listener_remove.argtypes = [
+    DSL_ODE_TRIGGER_LIMIT_STATE_CHANGE_LISTENER]
+_dsl.dsl_ode_trigger_limit_state_change_listener_remove.restype = c_uint
+def dsl_ode_trigger_limit_state_change_listener_remove(client_listener):
+    global _dsl
+    c_client_listener = DSL_ODE_TRIGGER_LIMIT_STATE_CHANGE_LISTENER(client_listener)
+    result = _dsl.dsl_ode_trigger_limit_state_change_listener_remove(c_client_listener)
+    return int(result)
+
+##
 ## dsl_ode_trigger_enabled_get()
 ##
 _dsl.dsl_ode_trigger_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
@@ -1290,6 +1347,34 @@ _dsl.dsl_ode_trigger_enabled_set.restype = c_uint
 def dsl_ode_trigger_enabled_set(name, enabled):
     global _dsl
     result =_dsl.dsl_ode_trigger_enabled_set(name, enabled)
+    return int(result)
+
+##
+## dsl_ode_trigger_enabled_state_change_listener_add()
+##
+_dsl.dsl_ode_trigger_enabled_state_change_listener_add.argtypes = [ 
+    DSL_ODE_ENABLED_STATE_CHANGE_LISTENER, c_void_p]
+_dsl.dsl_ode_trigger_enabled_state_change_listener_add.restype = c_uint
+def dsl_ode_trigger_enabled_state_change_listener_add(client_listener, client_data):
+    global _dsl
+    c_client_listener = DSL_ODE_ENABLED_STATE_CHANGE_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_ode_trigger_enabled_state_change_listener_add(
+        c_client_listener, c_client_data)
+    return int(result)
+    
+##
+## dsl_ode_trigger_enabled_state_change_listener_remove()
+##
+_dsl.dsl_ode_trigger_enabled_state_change_listener_remove.argtypes = [
+    DSL_ODE_ENABLED_STATE_CHANGE_LISTENER]
+_dsl.dsl_ode_trigger_enabled_state_change_listener_remove.restype = c_uint
+def dsl_ode_trigger_enabled_state_change_listener_remove(client_listener):
+    global _dsl
+    c_client_listener = DSL_ODE_ENABLED_STATE_CHANGE_LISTENER(client_listener)
+    result = _dsl.dsl_ode_trigger_enabled_state_change_listener_remove(c_client_listener)
     return int(result)
 
 ##
