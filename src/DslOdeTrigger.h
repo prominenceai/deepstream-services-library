@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
-#include "DslBase.h"
+#include "DslOdeBase.h"
 
 namespace DSL
 {
@@ -117,7 +117,7 @@ namespace DSL
 
 
 
-    class OdeTrigger : public Base
+    class OdeTrigger : public OdeBase
     {
     public: 
     
@@ -230,16 +230,20 @@ namespace DSL
         bool IsResetTimerRunning();
         
         /**
-         * @brief Gets the current Enabled setting, default = true
-         * @return the current Enabled setting
+         * @brief Adds a "limit state change listener" function to be notified
+         * on Trigger limit reached and count reset.
+         * @return ture if the listener function was successfully added, false otherwise.
          */
-        bool GetEnabled();
-        
+        bool AddLimitStateChangeListener(
+            dsl_ode_trigger_limit_state_change_listener_cb listener, void* clientData);
+
         /**
-         * @brief Sets the Enabled setting for ODE type
-         * @param[in] the new value to use
+         * @brief Removes a "limit state change listener" function previously added
+         * with a call to AddLimitStateChangeListener.
+         * @return ture if the listener function was successfully removed, false otherwise.
          */
-        void SetEnabled(bool enabled);
+        bool RemoveLimitStateChangeListener(
+            dsl_ode_trigger_limit_state_change_listener_cb listener);
         
         /**
          * @brief Gets the ClassId filter used for Object detection 
@@ -479,6 +483,13 @@ namespace DSL
          * @brief Mutex for timer reset logic
          */
         GMutex m_resetTimerMutex;
+
+        /**
+         * @brief map of all currently registered limit-state-change-listeners
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_ode_trigger_limit_state_change_listener_cb, 
+            void*>m_limitStateChangeListeners;
         
         /**
          * @brief process interval, default = 0
@@ -504,11 +515,6 @@ namespace DSL
          */
         std::wstring m_wName;
         
-        /**
-         * @brief enabled flag.
-         */
-        bool m_enabled;
-
         /**
          * @brief trigger count, incremented on every event occurrence
          */

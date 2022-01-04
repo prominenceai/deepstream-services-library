@@ -253,14 +253,9 @@ namespace DSL
             if (m_odeTriggers.find(name) != m_odeTriggers.end())
             {   
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID;
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
             
-            if (!client_checker)
-            {
-                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID;
-            }
             m_odeTriggers[name] = DSL_ODE_TRIGGER_CUSTOM_NEW(name, source,
                 classId, limit, client_checker, client_post_processor, client_data);
             
@@ -858,6 +853,70 @@ namespace DSL
         }
     }                
 
+    DslReturnType Services::OdeTriggerLimitStateChangeListenerAdd(const char* name,
+        dsl_ode_trigger_limit_state_change_listener_cb listener, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            if (!pOdeTrigger->AddLimitStateChangeListener(listener, clientData))
+            {
+                LOG_ERROR("ODE Trigger '" << name 
+                    << "' failed to add a Limit State Change Listener");
+                return DSL_RESULT_ODE_TRIGGER_CALLBACK_ADD_FAILED;
+            }
+            LOG_INFO("ODE Trigger '" << name 
+                << "' successfully added a Limit State Change Listener");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception adding a Limit State Change Listener");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeTriggerLimitStateChangeListenerRemove(const char* name,
+        dsl_ode_trigger_limit_state_change_listener_cb listener)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            if (!pOdeTrigger->RemoveLimitStateChangeListener(listener))
+            {
+                LOG_ERROR("ODE Trigger '" << name 
+                    << "' failed to remove a Limit State Change Listener");
+                return DSL_RESULT_ODE_TRIGGER_CALLBACK_REMOVE_FAILED;
+            }
+            LOG_INFO("ODE Trigger '" << name 
+                << "' successfully removed a Limit State Change Listener");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception removing a Limit State Change Listener");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::OdeTriggerEnabledGet(const char* name, boolean* enabled)
     {
         LOG_FUNC();
@@ -906,6 +965,70 @@ namespace DSL
         }
     }                
 
+    DslReturnType Services::OdeTriggerEnabledStateChangeListenerAdd(const char* name,
+        dsl_ode_enabled_state_change_listener_cb listener, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            if (!pOdeTrigger->AddEnabledStateChangeListener(listener, clientData))
+            {
+                LOG_ERROR("ODE Trigger '" << name 
+                    << "' failed to add an Enabled State Change Listener");
+                return DSL_RESULT_ODE_TRIGGER_CALLBACK_ADD_FAILED;
+            }
+            LOG_INFO("ODE Trigger '" << name 
+                << "' successfully added an Enabled State Change Listener");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception adding an Enabled State Change Listener");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeTriggerEnabledStateChangeListenerRemove(const char* name,
+        dsl_ode_enabled_state_change_listener_cb listener)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            if (!pOdeTrigger->RemoveEnabledStateChangeListener(listener))
+            {
+                LOG_ERROR("ODE Trigger '" << name 
+                    << "' failed to remove an Enabled State Change Listener");
+                return DSL_RESULT_ODE_TRIGGER_CALLBACK_REMOVE_FAILED;
+            }
+            LOG_INFO("ODE Trigger '" << name 
+                << "' successfully removed an Enabled State Change Listener");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception removing an Enabled State Change Listener");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::OdeTriggerSourceGet(const char* name, const char** source)
     {
         LOG_FUNC();

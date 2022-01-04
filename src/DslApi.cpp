@@ -1019,6 +1019,32 @@ DslReturnType dsl_ode_action_enabled_set(const wchar_t* name, boolean enabled)
     return DSL::Services::GetServices()->OdeActionEnabledSet(cstrName.c_str(), enabled);
 }
 
+DslReturnType dsl_ode_action_enabled_state_change_listener_add(const wchar_t* name,
+    dsl_ode_enabled_state_change_listener_cb listener, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionEnabledStateChangeListenerAdd(
+        cstrName.c_str(), listener, client_data);
+}
+
+DslReturnType dsl_ode_action_enabled_state_change_listener_remove(const wchar_t* name,
+    dsl_ode_enabled_state_change_listener_cb listener)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionEnabledStateChangeListenerRemove(
+        cstrName.c_str(), listener);
+}
+    
 DslReturnType dsl_ode_action_delete(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -1578,6 +1604,30 @@ DslReturnType dsl_ode_trigger_reset_timeout_set(const wchar_t* name, uint timeou
         cstrName.c_str(), timeout);
 }
 
+DslReturnType dsl_ode_trigger_limit_state_change_listener_add(const wchar_t* name,
+    dsl_ode_trigger_limit_state_change_listener_cb listener, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerLimitStateChangeListenerAdd(
+        cstrName.c_str(), listener, client_data);
+}
+
+DslReturnType dsl_ode_trigger_limit_state_change_listener_remove(const wchar_t* name,
+    dsl_ode_trigger_limit_state_change_listener_cb listener)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerLimitStateChangeListenerRemove(
+        cstrName.c_str(), listener);
+}
+    
 DslReturnType dsl_ode_trigger_enabled_get(const wchar_t* name, boolean* enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -1598,6 +1648,32 @@ DslReturnType dsl_ode_trigger_enabled_set(const wchar_t* name, boolean enabled)
     return DSL::Services::GetServices()->OdeTriggerEnabledSet(cstrName.c_str(), enabled);
 }
 
+DslReturnType dsl_ode_trigger_enabled_state_change_listener_add(const wchar_t* name,
+    dsl_ode_enabled_state_change_listener_cb listener, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerEnabledStateChangeListenerAdd(
+        cstrName.c_str(), listener, client_data);
+}
+
+DslReturnType dsl_ode_trigger_enabled_state_change_listener_remove(const wchar_t* name,
+    dsl_ode_enabled_state_change_listener_cb listener)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerEnabledStateChangeListenerRemove(
+        cstrName.c_str(), listener);
+}
+    
 DslReturnType dsl_ode_trigger_class_id_get(const wchar_t* name, uint* class_id)
 {
     RETURN_IF_PARAM_IS_NULL(name);

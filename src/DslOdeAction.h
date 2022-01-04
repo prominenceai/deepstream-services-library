@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
-#include "DslBase.h"
+#include "DslOdeBase.h"
 #include "DslSurfaceTransform.h"
 #include "DslDisplayTypes.h"
 #include "DslPlayerBintr.h"
@@ -211,7 +211,7 @@ namespace DSL
         
     // ********************************************************************
 
-    class OdeAction : public Base
+    class OdeAction : public OdeBase
     {
     public: 
     
@@ -223,18 +223,6 @@ namespace DSL
 
         ~OdeAction();
 
-        /**
-         * @brief Gets the current Enabled setting, default = true
-         * @return the current Enabled setting
-         */
-        bool GetEnabled();
-        
-        /**
-         * @brief Sets the Enabled setting for ODE Action
-         * @param[in] the new value to use
-         */
-        void SetEnabled(bool enabled);
-        
         /**
          * @brief Virtual function to handle the occurrence of an ODE by taking
          * a specific Action as implemented by the derived class
@@ -250,17 +238,8 @@ namespace DSL
         
     protected:
 
-        /**
-         * @brief enabled flag.
-         */
-        bool m_enabled;
-        
         std::string Ntp2Str(uint64_t ntp);
 
-        /**
-         * @brief Mutex to ensure mutual exlusion for propery get/sets
-         */
-        GMutex m_propertyMutex;
     };
 
     // ********************************************************************

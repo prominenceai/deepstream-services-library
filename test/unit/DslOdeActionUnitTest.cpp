@@ -2039,3 +2039,56 @@ SCENARIO( "A TilerShowSourceOdeAction handles an ODE Occurence correctly", "[Ode
         }
     }
 }
+
+static void enabled_state_change_listener_1(boolean enabled, void* client_data)
+{
+    std::cout 
+        << "Enabled State Change listener 1 callback called with enabled = " 
+        << enabled << "\n";
+}
+
+static void enabled_state_change_listener_2(boolean enabled, void* client_data)
+{
+    std::cout 
+        << "Enabled State Change listener 2 callback called with enabled = " 
+        << enabled << "\n";
+}
+
+SCENARIO( "An OdeAction calls all enabled-state-change-listners on SetEnabled", "[OdeAction]" )
+{
+    GIVEN( "A new CaptureObjectOdeAction" ) 
+    {
+        std::string actionName("ode-action");
+        std::string outdir("./");
+        uint userData1(0), userData2(0);
+        uint width(1280), height(720);
+
+        DSL_ODE_ACTION_CAPTURE_OBJECT_PTR pAction = 
+            DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(actionName.c_str(), 
+                outdir.c_str());
+        
+        REQUIRE( pAction->AddEnabledStateChangeListener(
+            enabled_state_change_listener_1, NULL) == true );
+        REQUIRE( pAction->AddEnabledStateChangeListener(
+            enabled_state_change_listener_2, NULL) == true );
+        
+        WHEN( "The ODE Action is disabled" )
+        {
+            pAction->SetEnabled(false);
+            
+            THEN( "All client callback functions are called" )
+            {
+                // requires manual/visual verification at this time.
+            }
+        }
+        WHEN( "The ODE Trigger is enabled" )
+        {
+            pAction->SetEnabled(true);
+            
+            THEN( "All client callback functions are called" )
+            {
+                // requires manual/visual verification at this time.
+            }
+        }
+    }
+}

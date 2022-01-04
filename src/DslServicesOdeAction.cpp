@@ -1484,6 +1484,70 @@ namespace DSL
         }
     }                
 
+    DslReturnType Services::OdeActionEnabledStateChangeListenerAdd(const char* name,
+        dsl_ode_enabled_state_change_listener_cb listener, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            
+            DSL_ODE_ACTION_PTR pOdeAction = 
+                std::dynamic_pointer_cast<OdeAction>(m_odeActions[name]);
+         
+            if (!pOdeAction->AddEnabledStateChangeListener(listener, clientData))
+            {
+                LOG_ERROR("ODE Action '" << name 
+                    << "' failed to add an Enabled State Change Listener");
+                return DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED;
+            }
+            LOG_INFO("ODE Action '" << name 
+                << "' successfully added an Enabled State Change Listener");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Action '" << name 
+                << "' threw exception adding an Enabled State Change Listener");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeActionEnabledStateChangeListenerRemove(const char* name,
+        dsl_ode_enabled_state_change_listener_cb listener)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            
+            DSL_ODE_ACTION_PTR pOdeAction = 
+                std::dynamic_pointer_cast<OdeAction>(m_odeActions[name]);
+         
+            if (!pOdeAction->RemoveEnabledStateChangeListener(listener))
+            {
+                LOG_ERROR("ODE Action '" << name 
+                    << "' failed to remove an Enabled State Change Listener");
+                return DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED;
+            }
+            LOG_INFO("ODE Action '" << name 
+                << "' successfully removed an Enabled State Change Listener");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Action '" << name 
+                << "' threw exception removing an Enabled State Change Listener");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::OdeActionDelete(const char* name)
     {
         LOG_FUNC();

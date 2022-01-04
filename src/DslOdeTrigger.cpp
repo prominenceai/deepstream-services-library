@@ -36,9 +36,8 @@ namespace DSL
 
     OdeTrigger::OdeTrigger(const char* name, const char* source, 
         uint classId, uint limit)
-        : Base(name)
+        : OdeBase(name)
         , m_wName(m_name.begin(), m_name.end())
-        , m_enabled(true)
         , m_source(source)
         , m_sourceId(-1)
         , m_inferId(-1)
@@ -204,6 +203,19 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         m_triggered = 0;
+
+        // iterate through the map of limit-state-change-listeners calling each
+        for(auto const& imap: m_limitStateChangeListeners)
+        {
+            try
+            {
+                imap.first(DSL_ODE_TRIGGER_LIMIT_STATE_COUNT_RESET, imap.second);
+            }
+            catch(...)
+            {
+                LOG_ERROR("Exception calling Client Limit-State-Change-Lister");
+            }
+        }
     }
     
     void OdeTrigger::IncrementAndCheckTriggerCount()
@@ -213,10 +225,25 @@ namespace DSL
         
         m_triggered++;
         
-        if (m_triggered >= m_limit and m_resetTimeout)
+        if (m_triggered >= m_limit)
         {
-            m_resetTimerId = g_timeout_add(1000*m_resetTimeout, 
-                TriggerResetTimeoutHandler, this);            
+            // iterate through the map of limit-state-change-listeners calling each
+            for(auto const& imap: m_limitStateChangeListeners)
+            {
+                try
+                {
+                    imap.first(DSL_ODE_TRIGGER_LIMIT_STATE_LIMIT_REACHED, imap.second);
+                }
+                catch(...)
+                {
+                    LOG_ERROR("Exception calling Client Limit-State-Change-Lister");
+                }
+            }
+            if (m_resetTimeout)
+            {
+                m_resetTimerId = g_timeout_add(1000*m_resetTimeout, 
+                    TriggerResetTimeoutHandler, this);            
+            }
         }
     }
 
@@ -285,22 +312,40 @@ namespace DSL
         return m_resetTimerId;
     }
     
-        
-    bool OdeTrigger::GetEnabled()
-    {
-        LOG_FUNC();
-        
-        return m_enabled;
-    }
-    
-    void OdeTrigger::SetEnabled(bool enabled)
+    bool OdeTrigger::AddLimitStateChangeListener(
+        dsl_ode_trigger_limit_state_change_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_enabled = enabled;
-    }
 
+        if (m_limitStateChangeListeners.find(listener) != 
+            m_limitStateChangeListeners.end())
+        {   
+            LOG_ERROR("Limit state change listener is not unique");
+            return false;
+        }
+        m_limitStateChangeListeners[listener] = clientData;
+
+        return true;
+    }
+    
+    bool OdeTrigger::RemoveLimitStateChangeListener(
+        dsl_ode_trigger_limit_state_change_listener_cb listener)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_limitStateChangeListeners.find(listener) == 
+            m_limitStateChangeListeners.end())
+        {   
+            LOG_ERROR("Limit state change listener was not found");
+            return false;
+        }
+        m_limitStateChangeListeners.erase(listener);
+
+        return true;
+    }        
+        
     uint OdeTrigger::GetClassId()
     {
         LOG_FUNC();
@@ -785,11 +830,14 @@ namespace DSL
     void AccumulationOdeTrigger::Reset()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_triggered = 0;
-        m_accumulativeOccurrences = 0;
-        m_instances.clear();
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            m_accumulativeOccurrences = 0;
+            m_instances.clear();
+        }        
+        // call the base class to complete the Reset
+        OdeTrigger::Reset();
     }
     
     bool AccumulationOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
@@ -873,10 +921,13 @@ namespace DSL
     void InstanceOdeTrigger::Reset()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_triggered = 0;
-        m_instances.clear();
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            m_instances.clear();
+        }
+        // call the base class to complete the Reset
+        OdeTrigger::Reset();
     }
     
     bool InstanceOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
@@ -1097,10 +1148,13 @@ namespace DSL
     void PersistenceOdeTrigger::Reset()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_triggered = 0;
-        m_trackedObjectsPerSource.clear();
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            m_trackedObjectsPerSource.clear();
+        }        
+        // call the base class to complete the Reset
+        OdeTrigger::Reset();
     }
 
     void PersistenceOdeTrigger::GetRange(uint* minimum, uint* maximum)
@@ -1486,10 +1540,13 @@ namespace DSL
     void LatestOdeTrigger::Reset()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_triggered = 0;
-        m_trackedObjectsPerSource.clear();
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            m_trackedObjectsPerSource.clear();
+        }        
+        // call the base class to complete the Reset
+        OdeTrigger::Reset();
     }
     
     bool LatestOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
@@ -1649,10 +1706,13 @@ namespace DSL
     void EarliestOdeTrigger::Reset()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_triggered = 0;
-        m_trackedObjectsPerSource.clear();
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            m_trackedObjectsPerSource.clear();
+        }        
+        // call the base class to complete the Reset
+        OdeTrigger::Reset();
     }
     
     bool EarliestOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
@@ -1813,10 +1873,13 @@ namespace DSL
     void NewLowOdeTrigger::Reset()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_triggered = 0;
-        m_currentLow = m_preset;
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            m_currentLow = m_preset;
+        }        
+        // call the base class to complete the Reset
+        OdeTrigger::Reset();
     }
     
     bool NewLowOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
@@ -1882,10 +1945,13 @@ namespace DSL
     void NewHighOdeTrigger::Reset()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_triggered = 0;
-        m_currentHigh = m_preset;
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            m_currentHigh = m_preset;
+        }        
+        // call the base class to complete the Reset
+        OdeTrigger::Reset();
     }
     
     bool NewHighOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 

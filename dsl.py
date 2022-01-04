@@ -188,6 +188,8 @@ DSL_PLAYER_TERMINATION_EVENT_LISTENER = CFUNCTYPE(None, c_void_p)
 DSL_CAPTURE_COMPLETE_LISTENER = CFUNCTYPE(None, POINTER(dsl_capture_info), c_void_p)
 DSL_WEBSOCKET_SERVER_CLIENT_LISTENER = CFUNCTYPE(None, c_wchar_p, c_void_p)
 DSL_WEBRTC_SINK_CLIENT_LISTENER = CFUNCTYPE(None, POINTER(dsl_webrtc_connection_data), c_void_p)
+DSL_ODE_TRIGGER_LIMIT_STATE_CHANGE_LISTENER = CFUNCTYPE(None, c_uint, c_void_p)
+DSL_ODE_ENABLED_STATE_CHANGE_LISTENER = CFUNCTYPE(None, c_bool, c_void_p)
 
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
