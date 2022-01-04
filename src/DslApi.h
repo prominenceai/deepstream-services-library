@@ -515,8 +515,9 @@ THE SOFTWARE.
 /**
  * @brief ODE Trigger limit state values - for Triggers with limits
  */
-#define DSL_ODE_TRIGGER_LIMIT_STATE_LIMIT_REACHED                   0
-#define DSL_ODE_TRIGGER_LIMIT_STATE_COUNT_RESET                     1
+#define DSL_ODE_TRIGGER_LIMIT_EVENT_LIMIT_REACHED                   0
+#define DSL_ODE_TRIGGER_LIMIT_EVENT_LIMIT_CHANGED                   1
+#define DSL_ODE_TRIGGER_LIMIT_EVENT_COUNT_RESET                     2
 
 /**
  * @brief Unique class relational identifiers for Class A/B testing
@@ -882,17 +883,18 @@ typedef boolean (*dsl_ode_post_process_frame_cb)(void* buffer,
 
 /**
  * @brief Callback typedef for a client listener function. Once added to an
- * ODE Trigger, this function will be called on change of Trigger Limit state;
- * when the Trigger count reaches its limit, and when its count is reset to 0. 
- * @param[in] new_state one of the DSL_ODE_TRIGGER_LIMIT_STATE constants.
+ * ODE Trigger, this function will be called on every Trigger Limit event;
+ * LIMIT_REACHED, LIMIT_CHANGED, and COUNT_RESET
+ * @param[in] event one of the DSL_ODE_TRIGGER_LIMIT_EVENT constants.
+ * @param[in] limit the current, or new limit for the Trigger.
  * @param[in] client_data opaque pointer to client's user data.
  */
- typedef void (*dsl_ode_trigger_limit_state_change_listener_cb)
-    (uint new_state, void* client_data);
+ typedef void (*dsl_ode_trigger_limit_event_listener_cb)
+    (uint event, uint limit, void* client_data);
 
 /**
- * @brief callback typedef for a client to hanlde new Pipeline performance data
- * ,calcaulated by the Meter Pad Probe Handler, at an intervel specified by the client.
+ * @brief callback typedef for a client to handle new Pipeline performance data
+ * calcaulated by the Meter Pad Probe Handler, at an intervel specified by the client.
  * @param[in] session_fps_averages array of frames-per-second measurements, 
  * one per source, specified by list_size 
  * @param[in] interval_fps_averages array of average frames-per-second measurements, 
@@ -2143,25 +2145,25 @@ DslReturnType dsl_ode_trigger_reset_timeout_get(const wchar_t* name, uint *timeo
 DslReturnType dsl_ode_trigger_reset_timeout_set(const wchar_t* name, uint timeout);
 
 /**
- * @brief Adds a callback to be notified on change of ODE Trigger limit state;
- * when the Trigger count reaches its limit, and when the Trigger count is reset.
+ * @brief Adds a callback to be notified on every ODE Trigger limit event;
+ * LIMIT_REACED, LIMIT_CHANGED, and COUNT_REST
  * @param[in] name name of the ODE Trigger to update
- * @param[in] listener pointer to the client's function to call on state change
+ * @param[in] listener pointer to the client's function to call on trigger limit event
  * @param[in] client_data opaque pointer to client data passed into the listener function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_limit_state_change_listener_add(const wchar_t* name,
-    dsl_ode_trigger_limit_state_change_listener_cb listener, void* client_data);
+DslReturnType dsl_ode_trigger_limit_event_listener_add(const wchar_t* name,
+    dsl_ode_trigger_limit_event_listener_cb listener, void* client_data);
 
 /**
  * @brief Removes a callback previously added with a call to
- * dsl_ode_trigger_limit_state_change_listener_add.
+ * dsl_ode_trigger_limit_event_listener_add.
  * @param[in] name name of the ODE Trigger to update.
  * @param[in] listener pointer to the client's function to remove.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_limit_state_change_listener_remove(const wchar_t* name,
-    dsl_ode_trigger_limit_state_change_listener_cb listener);
+DslReturnType dsl_ode_trigger_limit_event_listener_remove(const wchar_t* name,
+    dsl_ode_trigger_limit_event_listener_cb listener);
 
 /**
  * @brief Gets the current enabled setting for the ODE Trigger.

@@ -59,18 +59,18 @@ static void ode_occurrence_handler_cb_3(uint64_t event_id, const wchar_t* name,
     std::cout << "Custom Action callback 3. called\n";
 }    
 
-static void limit_state_change_listener_1(uint new_state, void* client_data)
+static void limit_event_listener_1(uint event, uint limit, void* client_data)
 {
     std::cout 
-        << "Limit State Change listener 1 callback called with new_state = " 
-        << new_state << "\n";
+        << "Limit event listener 1 callback called, event = " 
+        << event << ", limit = " << limit << "\n";
 }
 
-static void limit_state_change_listener_2(uint new_state, void* client_data)
+static void limit_event_listener_2(uint event, uint limit, void* client_data)
 {
     std::cout 
-        << "Limit State Change listener 2 callback called with new_state = " 
-        << new_state << "\n";
+        << "Limit event listener 2 callback called, event = " 
+        << event << ", limit = " << limit << "\n";
 }
 
 static void enabled_state_change_listener_1(boolean enabled, void* client_data)
@@ -464,11 +464,11 @@ SCENARIO( "An OdeOccurrenceTrigger notifies its limit-state-listeners", "[OdeTri
         objectMeta.rect_params.width = 200;
         objectMeta.rect_params.height = 100;
 
-        REQUIRE( pOdeTrigger->AddLimitStateChangeListener(
-            limit_state_change_listener_1, NULL) == true );
+        REQUIRE( pOdeTrigger->AddLimitEventListener(
+            limit_event_listener_1, NULL) == true );
 
-        REQUIRE( pOdeTrigger->AddLimitStateChangeListener(
-            limit_state_change_listener_2, NULL) == true );
+        REQUIRE( pOdeTrigger->AddLimitEventListener(
+            limit_event_listener_2, NULL) == true );
         
         WHEN( "When an ODE occures and the Trigger reaches its limit" )
         {
@@ -482,11 +482,11 @@ SCENARIO( "An OdeOccurrenceTrigger notifies its limit-state-listeners", "[OdeTri
                 
                 pOdeTrigger->Reset();
                 
-                REQUIRE( pOdeTrigger->RemoveLimitStateChangeListener(
-                    limit_state_change_listener_1) == true );
+                REQUIRE( pOdeTrigger->RemoveLimitEventListener(
+                    limit_event_listener_1) == true );
 
-                REQUIRE( pOdeTrigger->RemoveLimitStateChangeListener(
-                    limit_state_change_listener_2) == true );
+                REQUIRE( pOdeTrigger->RemoveLimitEventListener(
+                    limit_event_listener_2) == true );
             }
         }
     }

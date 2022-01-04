@@ -1147,7 +1147,7 @@ SCENARIO( "An ODE Distance Trigger's test parameters can be set/get", "[ode-trig
     }
 }
 
-static void limit_state_change_listener(uint new_state, void* client_data)
+static void limit_event_listener(uint event, uint limit, void* client_data)
 {
     
 }
@@ -1167,22 +1167,22 @@ SCENARIO( "An ODE Trigger can add/remove a limit-state-change-listener", "[ode-t
 
         WHEN( "When a limit-state-change-listener is added" )         
         {
-            REQUIRE( dsl_ode_trigger_limit_state_change_listener_add(odeTriggerName.c_str(),
-                limit_state_change_listener, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_trigger_limit_event_listener_add(odeTriggerName.c_str(),
+                limit_event_listener, NULL) == DSL_RESULT_SUCCESS );
 
             // second call must fail
-            REQUIRE( dsl_ode_trigger_limit_state_change_listener_add(odeTriggerName.c_str(),
-                limit_state_change_listener, NULL) == 
+            REQUIRE( dsl_ode_trigger_limit_event_listener_add(odeTriggerName.c_str(),
+                limit_event_listener, NULL) == 
                 DSL_RESULT_ODE_TRIGGER_CALLBACK_ADD_FAILED );
             
             THEN( "The same listener function can be removed" ) 
             {
-                REQUIRE( dsl_ode_trigger_limit_state_change_listener_remove(odeTriggerName.c_str(),
-                    limit_state_change_listener) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_limit_event_listener_remove(odeTriggerName.c_str(),
+                    limit_event_listener) == DSL_RESULT_SUCCESS );
 
                 // second call fail
-                REQUIRE( dsl_ode_trigger_limit_state_change_listener_remove(odeTriggerName.c_str(),
-                    limit_state_change_listener) == DSL_RESULT_ODE_TRIGGER_CALLBACK_REMOVE_FAILED );
+                REQUIRE( dsl_ode_trigger_limit_event_listener_remove(odeTriggerName.c_str(),
+                    limit_event_listener) == DSL_RESULT_ODE_TRIGGER_CALLBACK_REMOVE_FAILED );
                     
                 REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -1223,7 +1223,7 @@ SCENARIO( "An ODE Trigger can add/remove an enabled-state-change-listener", "[od
                     enabled_state_change_listener) == DSL_RESULT_SUCCESS );
 
                 // second call must fail
-                REQUIRE( dsl_ode_trigger_limit_state_change_listener_remove(odeTriggerName.c_str(),
+                REQUIRE( dsl_ode_trigger_enabled_state_change_listener_remove(odeTriggerName.c_str(),
                     enabled_state_change_listener) == DSL_RESULT_ODE_TRIGGER_CALLBACK_REMOVE_FAILED );
                     
                 REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
@@ -1287,8 +1287,8 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
                 REQUIRE( dsl_ode_trigger_new_high_new(NULL, NULL, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_trigger_reset(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_limit_state_change_listener_add(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_limit_state_change_listener_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_limit_event_listener_add(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_limit_event_listener_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
                 REQUIRE( dsl_ode_trigger_enabled_get(NULL, &enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_enabled_set(NULL, enabled) == DSL_RESULT_INVALID_INPUT_PARAM );

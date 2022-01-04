@@ -188,7 +188,7 @@ DSL_PLAYER_TERMINATION_EVENT_LISTENER = CFUNCTYPE(None, c_void_p)
 DSL_CAPTURE_COMPLETE_LISTENER = CFUNCTYPE(None, POINTER(dsl_capture_info), c_void_p)
 DSL_WEBSOCKET_SERVER_CLIENT_LISTENER = CFUNCTYPE(None, c_wchar_p, c_void_p)
 DSL_WEBRTC_SINK_CLIENT_LISTENER = CFUNCTYPE(None, POINTER(dsl_webrtc_connection_data), c_void_p)
-DSL_ODE_TRIGGER_LIMIT_STATE_CHANGE_LISTENER = CFUNCTYPE(None, c_uint, c_void_p)
+DSL_ODE_TRIGGER_LIMIT_EVENT_LISTENER = CFUNCTYPE(None, c_uint, c_uint, c_void_p)
 DSL_ODE_ENABLED_STATE_CHANGE_LISTENER = CFUNCTYPE(None, c_bool, c_void_p)
 
 ##
@@ -1301,31 +1301,31 @@ def dsl_ode_trigger_reset_timeout_set(name, timeout):
     return int(result)
 
 ##
-## dsl_ode_trigger_limit_state_change_listener_add()
+## dsl_ode_trigger_limit_event_listener_add()
 ##
-_dsl.dsl_ode_trigger_limit_state_change_listener_add.argtypes = [ 
-    DSL_ODE_TRIGGER_LIMIT_STATE_CHANGE_LISTENER, c_void_p]
-_dsl.dsl_ode_trigger_limit_state_change_listener_add.restype = c_uint
-def dsl_ode_trigger_limit_state_change_listener_add(client_listener, client_data):
+_dsl.dsl_ode_trigger_limit_event_listener_add.argtypes = [ 
+    DSL_ODE_TRIGGER_LIMIT_EVENT_LISTENER, c_void_p]
+_dsl.dsl_ode_trigger_limit_event_listener_add.restype = c_uint
+def dsl_ode_trigger_limit_event_listener_add(client_listener, client_data):
     global _dsl
-    c_client_listener = DSL_ODE_TRIGGER_LIMIT_STATE_CHANGE_LISTENER(client_listener)
+    c_client_listener = DSL_ODE_TRIGGER_LIMIT_EVENT_LISTENER(client_listener)
     callbacks.append(c_client_listener)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
-    result = _dsl.dsl_ode_trigger_limit_state_change_listener_add(
+    result = _dsl.dsl_ode_trigger_limit_event_listener_add(
         c_client_listener, c_client_data)
     return int(result)
     
 ##
-## dsl_ode_trigger_limit_state_change_listener_remove()
+## dsl_ode_trigger_limit_event_listener_remove()
 ##
-_dsl.dsl_ode_trigger_limit_state_change_listener_remove.argtypes = [
-    DSL_ODE_TRIGGER_LIMIT_STATE_CHANGE_LISTENER]
-_dsl.dsl_ode_trigger_limit_state_change_listener_remove.restype = c_uint
-def dsl_ode_trigger_limit_state_change_listener_remove(client_listener):
+_dsl.dsl_ode_trigger_limit_event_listener_remove.argtypes = [
+    DSL_ODE_TRIGGER_LIMIT_EVENT_LISTENER]
+_dsl.dsl_ode_trigger_limit_event_listener_remove.restype = c_uint
+def dsl_ode_trigger_limit_event_listener_remove(client_listener):
     global _dsl
-    c_client_listener = DSL_ODE_TRIGGER_LIMIT_STATE_CHANGE_LISTENER(client_listener)
-    result = _dsl.dsl_ode_trigger_limit_state_change_listener_remove(c_client_listener)
+    c_client_listener = DSL_ODE_TRIGGER_LIMIT_EVENT_LISTENER(client_listener)
+    result = _dsl.dsl_ode_trigger_limit_event_listener_remove(c_client_listener)
     return int(result)
 
 ##

@@ -853,8 +853,8 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::OdeTriggerLimitStateChangeListenerAdd(const char* name,
-        dsl_ode_trigger_limit_state_change_listener_cb listener, void* clientData)
+    DslReturnType Services::OdeTriggerLimitEventListenerAdd(const char* name,
+        dsl_ode_trigger_limit_event_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -866,27 +866,27 @@ namespace DSL
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
          
-            if (!pOdeTrigger->AddLimitStateChangeListener(listener, clientData))
+            if (!pOdeTrigger->AddLimitEventListener(listener, clientData))
             {
                 LOG_ERROR("ODE Trigger '" << name 
-                    << "' failed to add a Limit State Change Listener");
+                    << "' failed to add a Limit Event Listener");
                 return DSL_RESULT_ODE_TRIGGER_CALLBACK_ADD_FAILED;
             }
             LOG_INFO("ODE Trigger '" << name 
-                << "' successfully added a Limit State Change Listener");
+                << "' successfully added a Limit Event Listener");
                 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("ODE Trigger '" << name 
-                << "' threw exception adding a Limit State Change Listener");
+                << "' threw exception adding a Limit Event Listener");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::OdeTriggerLimitStateChangeListenerRemove(const char* name,
-        dsl_ode_trigger_limit_state_change_listener_cb listener)
+    DslReturnType Services::OdeTriggerLimitEventListenerRemove(const char* name,
+        dsl_ode_trigger_limit_event_listener_cb listener)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -898,14 +898,14 @@ namespace DSL
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
          
-            if (!pOdeTrigger->RemoveLimitStateChangeListener(listener))
+            if (!pOdeTrigger->RemoveLimitEventListener(listener))
             {
                 LOG_ERROR("ODE Trigger '" << name 
-                    << "' failed to remove a Limit State Change Listener");
+                    << "' failed to remove a Limit Event Listener");
                 return DSL_RESULT_ODE_TRIGGER_CALLBACK_REMOVE_FAILED;
             }
             LOG_INFO("ODE Trigger '" << name 
-                << "' successfully removed a Limit State Change Listener");
+                << "' successfully removed a Limit Event Listener");
 
             return DSL_RESULT_SUCCESS;
         }

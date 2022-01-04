@@ -332,11 +332,11 @@ namespace DSL {
 
         DslReturnType OdeTriggerResetTimeoutSet(const char* name, uint timeout);
         
-        DslReturnType OdeTriggerLimitStateChangeListenerAdd(const char* name,
-            dsl_ode_trigger_limit_state_change_listener_cb listener, void* clientData);
+        DslReturnType OdeTriggerLimitEventListenerAdd(const char* name,
+            dsl_ode_trigger_limit_event_listener_cb listener, void* clientData);
 
-        DslReturnType OdeTriggerLimitStateChangeListenerRemove(const char* name,
-            dsl_ode_trigger_limit_state_change_listener_cb listener);
+        DslReturnType OdeTriggerLimitEventListenerRemove(const char* name,
+            dsl_ode_trigger_limit_event_listener_cb listener);
 
         DslReturnType OdeTriggerEnabledGet(const char* name, boolean* enabled);
 

@@ -230,20 +230,20 @@ namespace DSL
         bool IsResetTimerRunning();
         
         /**
-         * @brief Adds a "limit state change listener" function to be notified
-         * on Trigger limit reached and count reset.
+         * @brief Adds a "limit event listener" function to be notified
+         * on Trigger LIMIT_REACHED, LIMIT_CHANGED, and COUNT_RESET.
          * @return ture if the listener function was successfully added, false otherwise.
          */
-        bool AddLimitStateChangeListener(
-            dsl_ode_trigger_limit_state_change_listener_cb listener, void* clientData);
+        bool AddLimitEventListener(
+            dsl_ode_trigger_limit_event_listener_cb listener, void* clientData);
 
         /**
-         * @brief Removes a "limit state change listener" function previously added
-         * with a call to AddLimitStateChangeListener.
-         * @return ture if the listener function was successfully removed, false otherwise.
+         * @brief Removes a "limit event listener" function previously added
+         * with a call to AddLimitEventListener.
+         * @return true if the listener function was successfully removed, false otherwise.
          */
-        bool RemoveLimitStateChangeListener(
-            dsl_ode_trigger_limit_state_change_listener_cb listener);
+        bool RemoveLimitEventListener(
+            dsl_ode_trigger_limit_event_listener_cb listener);
         
         /**
          * @brief Gets the ClassId filter used for Object detection 
@@ -488,8 +488,8 @@ namespace DSL
          * @brief map of all currently registered limit-state-change-listeners
          * callback functions mapped with the user provided data
          */
-        std::map<dsl_ode_trigger_limit_state_change_listener_cb, 
-            void*>m_limitStateChangeListeners;
+        std::map<dsl_ode_trigger_limit_event_listener_cb, 
+            void*>m_limitEventListeners;
         
         /**
          * @brief process interval, default = 0

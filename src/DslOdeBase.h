@@ -108,7 +108,7 @@ namespace DSL
          * @return ture if the listener function was successfully added, false otherwise.
          */
         bool AddEnabledStateChangeListener(
-            dsl_ode_trigger_limit_state_change_listener_cb listener, void* clientData)
+            dsl_ode_enabled_state_change_listener_cb listener, void* clientData)
         {
             LOG_FUNC();
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -130,7 +130,7 @@ namespace DSL
          * @return ture if the listener function was successfully removed, false otherwise.
          */
         bool RemoveEnabledStateChangeListener(
-            dsl_ode_trigger_limit_state_change_listener_cb listener)
+            dsl_ode_enabled_state_change_listener_cb listener)
         {
             LOG_FUNC();
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);

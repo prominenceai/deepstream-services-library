@@ -204,12 +204,13 @@ namespace DSL
         
         m_triggered = 0;
 
-        // iterate through the map of limit-state-change-listeners calling each
-        for(auto const& imap: m_limitStateChangeListeners)
+        // iterate through the map of limit-event-listeners calling each
+        for(auto const& imap: m_limitEventListeners)
         {
             try
             {
-                imap.first(DSL_ODE_TRIGGER_LIMIT_STATE_COUNT_RESET, imap.second);
+                imap.first(DSL_ODE_TRIGGER_LIMIT_EVENT_COUNT_RESET, 
+                    m_limit, imap.second);
             }
             catch(...)
             {
@@ -227,16 +228,17 @@ namespace DSL
         
         if (m_triggered >= m_limit)
         {
-            // iterate through the map of limit-state-change-listeners calling each
-            for(auto const& imap: m_limitStateChangeListeners)
+            // iterate through the map of limit-event-listeners calling each
+            for(auto const& imap: m_limitEventListeners)
             {
                 try
                 {
-                    imap.first(DSL_ODE_TRIGGER_LIMIT_STATE_LIMIT_REACHED, imap.second);
+                    imap.first(DSL_ODE_TRIGGER_LIMIT_EVENT_LIMIT_REACHED, 
+                        m_limit, imap.second);
                 }
                 catch(...)
                 {
-                    LOG_ERROR("Exception calling Client Limit-State-Change-Lister");
+                    LOG_ERROR("Exception calling Client Limit-Event-Lister");
                 }
             }
             if (m_resetTimeout)
@@ -312,36 +314,36 @@ namespace DSL
         return m_resetTimerId;
     }
     
-    bool OdeTrigger::AddLimitStateChangeListener(
-        dsl_ode_trigger_limit_state_change_listener_cb listener, void* clientData)
+    bool OdeTrigger::AddLimitEventListener(
+        dsl_ode_trigger_limit_event_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
-        if (m_limitStateChangeListeners.find(listener) != 
-            m_limitStateChangeListeners.end())
+        if (m_limitEventListeners.find(listener) != 
+            m_limitEventListeners.end())
         {   
             LOG_ERROR("Limit state change listener is not unique");
             return false;
         }
-        m_limitStateChangeListeners[listener] = clientData;
+        m_limitEventListeners[listener] = clientData;
 
         return true;
     }
     
-    bool OdeTrigger::RemoveLimitStateChangeListener(
-        dsl_ode_trigger_limit_state_change_listener_cb listener)
+    bool OdeTrigger::RemoveLimitEventListener(
+        dsl_ode_trigger_limit_event_listener_cb listener)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
-        if (m_limitStateChangeListeners.find(listener) == 
-            m_limitStateChangeListeners.end())
+        if (m_limitEventListeners.find(listener) == 
+            m_limitEventListeners.end())
         {   
             LOG_ERROR("Limit state change listener was not found");
             return false;
         }
-        m_limitStateChangeListeners.erase(listener);
+        m_limitEventListeners.erase(listener);
 
         return true;
     }        
@@ -375,6 +377,20 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         m_limit = limit;
+        
+        // iterate through the map of limit-event-listeners calling each
+        for(auto const& imap: m_limitEventListeners)
+        {
+            try
+            {
+                imap.first(DSL_ODE_TRIGGER_LIMIT_EVENT_LIMIT_CHANGED, 
+                    m_limit, imap.second);
+            }
+            catch(...)
+            {
+                LOG_ERROR("Exception calling Client Limit-State-Change-Lister");
+            }
+        }
     }
 
     const char* OdeTrigger::GetSource()
