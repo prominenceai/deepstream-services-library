@@ -20,7 +20,14 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * Be careful when creating No-Limit ODE Triggers with Actions that save data to file as these operations can consume all available diskspace.
 * To use GIE Confidence as criteria, see the following NVIDIA [page](https://forums.developer.nvidia.com/t/nvinfer-is-not-populating-confidence-field-in-nvdsobjectmeta-ds-4-0/79319/20) for the required DS 4.02 patch instructions to populate the confidence values in the object's meta data structure.
 
-### ODE Trigger API
+---
+
+## ODE Trigger API
+**Callback Typedefs:**
+* [dsl_ode_check_for_occurrence_cb](#dsl_ode_check_for_occurrence_cb)
+* [dsl_ode_enabled_state_change_listener_cb](#dsl_ode_enabled_state_change_listener_cb)
+* [dsl_ode_trigger_limit_event_listener_cb](#dsl_ode_trigger_limit_event_listener_cb)
+
 **Constructors:**
 * [dsl_ode_trigger_always_new](#dsl_ode_trigger_always_new)
 * [dsl_ode_trigger_absence_new](#dsl_ode_trigger_absence_new)
@@ -36,7 +43,7 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_new_low_new](#dsl_ode_trigger_new_low_new)
 * [dsl_ode_trigger_smallest_new](#dsl_ode_trigger_smallest_new)
 * [dsl_ode_trigger_largest_new](#dsl_ode_trigger_largest_new)
-* [dsl_ode_trigger_earlest_new](#dsl_ode_trigger_earlist_new)
+* [dsl_ode_trigger_earliest_new](#dsl_ode_trigger_earliest_new)
 * [dsl_ode_trigger_latest_new](#dsl_ode_trigger_latest_new)
 * [dsl_ode_trigger_custom_new](#dsl_ode_trigger_custom_new)
 
@@ -59,6 +66,8 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_reset_timeout_set](#dsl_ode_trigger_reset_timeout_set)
 * [dsl_ode_trigger_enabled_get](#dsl_ode_trigger_enabled_get)
 * [dsl_ode_trigger_enabled_set](#dsl_ode_trigger_enabled_set)
+* [dsl_ode_trigger_enabled_state_change_listener_add](#dsl_ode_trigger_enabled_state_change_listener_add)
+* [dsl_ode_trigger_enabled_state_change_listener_remove](#dsl_ode_trigger_enabled_state_change_listener_remove)
 * [dsl_ode_trigger_source_get](#dsl_ode_trigger_source_get)
 * [dsl_ode_trigger_source_set](#dsl_ode_trigger_source_set)
 * [dsl_ode_trigger_class_id_get](#dsl_ode_trigger_class_id_get)
@@ -67,6 +76,8 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_class_id_ab_set](#dsl_ode_trigger_class_id_ab_set)
 * [dsl_ode_trigger_limit_get](#dsl_ode_trigger_limit_get)
 * [dsl_ode_trigger_limit_set](#dsl_ode_trigger_limit_set)
+* [dsl_ode_trigger_limit_event_listener_add](#dsl_ode_trigger_limit_event_listener_add)
+* [dsl_ode_trigger_limit_event_listener_remove](#dsl_ode_trigger_limit_event_listener_remove)
 * [dsl_ode_trigger_confidence_min_get](#dsl_ode_trigger_confidence_min_get)
 * [dsl_ode_trigger_confidence_min_set](#dsl_ode_trigger_confidence_min_set)
 * [dsl_ode_trigger_dimensions_min_get](#dsl_ode_trigger_dimensions_min_get)
@@ -110,17 +121,27 @@ The following return codes are used by the ODE Trigger API
 ```
 
 ---
+
 ## Constants
 The following symbolic constants are used by the ODE Trigger API
+
+#### Source and Class Trigger filter constants for no-filter
 ```C++
 #define DSL_ODE_ANY_SOURCE                                          INT32_MAX
 #define DSL_ODE_ANY_CLASS                                           INT32_MAX
 #define DSL_ODE_TRIGGER_LIMIT_NONE                                  0
 #define DSL_ODE_TRIGGER_LIMIT_ONE                                   1
+```
 
-/**
- * @brief Speicifes a set of defined points along a BBox border. 
- */
+ #### ODE Trigger limit state values - for Triggers with limits
+```C
+#define DSL_ODE_TRIGGER_LIMIT_EVENT_LIMIT_REACHED                   0
+#define DSL_ODE_TRIGGER_LIMIT_EVENT_LIMIT_CHANGED                   1
+#define DSL_ODE_TRIGGER_LIMIT_EVENT_COUNT_RESET                     2
+```
+
+#### Constants speicifying a set of defined points along a BBox border. 
+```C
 #define DSL_BBOX_POINT_CENTER                                       0
 #define DSL_BBOX_POINT_NORTH_WEST                                   1
 #define DSL_BBOX_POINT_NORTH                                        2
@@ -131,10 +152,10 @@ The following symbolic constants are used by the ODE Trigger API
 #define DSL_BBOX_POINT_SOUTH_WEST                                   7
 #define DSL_BBOX_POINT_WEST                                         8
 #define DSL_BBOX_POINT_ANY                                          9
+```
 
-/**
- * @brief Methods of calculating distance between object BBoxes
- */
+#### Methods of calculating distance between object BBoxes
+```C
 #define DSL_DISTANCE_METHOD_FIXED_PIXELS                            0
 #define DSL_DISTANCE_METHOD_PERCENT_WIDTH_A                         1
 #define DSL_DISTANCE_METHOD_PERCENT_WIDTH_B                         2
@@ -158,6 +179,33 @@ Defines a Callback typedef for a Custom ODE Trigger. Once registered, the functi
 * `frame_meta` - [in] opaque pointer to a frame_meta structure that triggered the ODE event.
 * `object_meta` - [in] opaque pointer to an object_meta structure that triggered the ODE event.
 * `client_data` - [in] opque point to client user data provided by the client on callback registration
+
+<br>
+
+### *dsl_ode_enabled_state_change_listener_cb*
+```C++
+ typedef void (*dsl_ode_enabled_state_change_listener_cb)
+    (boolean enabled, void* client_data)
+```
+Defines a Callback typedef for a client listener function. Once added to an ODE Trigger, this function will be called on every change of the Trigger's enabled state.
+
+**Parameters**
+* `enabled` - [in] true if the Trigger has been enabled, false if disabled.
+* `client_data` - [in] opque point to client user data provided by the client on callback registration.
+
+<br>
+
+### *dsl_ode_trigger_limit_event_listener_cb*
+```C++
+ typedef void (*dsl_ode_trigger_limit_event_listener_cb)
+    (uint event, uint limit, void* client_data);
+```
+Defines a Callback typedef for a client listener function. Once added to an ODE Trigger, this function will be called on every trigger limit event; `LIMIT_REACHED`, `LIMIT_CHANGED`, `COUNT_RESET`;
+
+**Parameters**
+* `event` - [in] one of the [DSL_ODE_TRIGGER_LIMIT_EVENT](constants) constants.
+* `limit` - [in] the current limit value assigned to the ODE Trigger.
+* `client_data` - [in] opque point to client user data provided by the client on callback registration.
 
 <br>
 
@@ -994,6 +1042,54 @@ retval = dsl_ode_trigger_enabled_set('my-trigger', False)
 
 <br>
 
+### *dsl_ode_trigger_enabled_state_change_listener_add*
+```C++
+DslReturnType dsl_ode_trigger_enabled_state_change_listener_add(const wchar_t* name,
+    dsl_ode_enabled_state_change_listener_cb listener, void* client_data);
+```
+This service adds a callback function of type [dsl_ode_enabled_state_change_listener_cb](#dsl_ode_enabled_state_change_listener_cb) to an ODE Trigger identified by it's unique name. The function will be called on every change of the Trigger's enabled state. Multiple callback functions can be registered with one Trigger, and one callback function can be registered with multiple Triggers.
+
+**Parameters**
+* `name` - [in] unique name of the Trigger to update.
+* `listener` - [in] the enabled-state-change-listener callback function to add.
+* `client_data` - [in] opaque pointer to user data returned to the listener is called back
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful addition. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+def enabled_state_change_listener(enabled, client_data):
+    print('enabled = ', enabled)
+   
+retval = dsl_ode_trigger_enabled_state_change_listener_add('my-occurrence-trigger', 
+    enabled_state_change_listener, None)
+```
+
+<br>
+
+### *dsl_ode_trigger_enabled_state_change_listener_remove*
+```C++
+DslReturnType dsl_ode_trigger_enabled_state_change_listener_remove(const wchar_t* name,
+    dsl_ode_enabled_state_change_listener_cb listener);
+```
+This service removes a callback function of type [dsl_ode_enabled_state_change_listener_cb](#dsl_ode_enabled_state_change_listener_cb) from a
+ODE Trigger identified by it's unique name.
+
+**Parameters**
+* `name` - [in] unique name of the Trigger to update.
+* `listener` - [in] the enabled-state-change-listener callback function to remove.
+
+**Returns**  
+* `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_limit_event_listener_remove('my-occurrence-trigger', 
+    enabled_state_change_listener)
+```
+
+<br>
 
 ### *dsl_ode_trigger_source_get*
 ```c++
@@ -1164,6 +1260,55 @@ This service sets the current limit setting for the named ODE Trigger. Setting t
 **Python Example**
 ```Python
 retval = dsl_ode_trigger_limit_set('my-trigger', 0)
+```
+
+<br>
+
+### *dsl_ode_trigger_limit_event_listener_add*
+```C++
+DslReturnType dsl_ode_trigger_limit_event_listener_add(const wchar_t* name,
+    dsl_ode_trigger_limit_event_listener_cb listener, void* client_data);
+```
+This service adds a callback function of type [dsl_ode_trigger_limit_event_listener_cb](#dsl_ode_trigger_limit_event_listener_cb) to an ODE Trigger identified by it's unique name. The function will be called on every limit-event -- `LIMIT_REACHED`, `LIMIT_CHANGED`, and `COUNT_RESET` -- that occurrs. Multiple callback functions can be registered with one Trigger, and one callback function can be registered with multiple Triggers.
+
+**Parameters**
+* `name` - [in] unique name of the Trigger to update.
+* `listener` - [in] trigger limit event listener callback function to add.
+* `client_data` - [in] opaque pointer to user data returned to the listener is called back
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful addition. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+def limit_event_listener(event, client_data):
+    print('event = ', event)
+   
+retval = dsl_ode_trigger_limit_event_listener_add('my-occurrence-trigger', 
+    limit_event_listener, None)
+```
+
+<br>
+
+### *dsl_ode_trigger_limit_event_listener_remove*
+```C++
+DslReturnType dsl_ode_trigger_limit_event_listener_remove(const wchar_t* name,
+    dsl_ode_trigger_limit_event_listener_cb listener, void* client_data);
+```
+This service removes a callback function of type [dsl_ode_trigger_limit_event_listener_cb](#dsl_ode_trigger_limit_event_listener_cb) from a
+ODE Trigger identified by it's unique name.
+
+**Parameters**
+* `name` - [in] unique name of the Trigger to update.
+* `listener` - [in] trigger limit event listener callback function to remove.
+
+**Returns**  
+* `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_limit_event_listener_remove('my-occurrence-trigger', 
+    limit_event_listener)
 ```
 
 <br>
