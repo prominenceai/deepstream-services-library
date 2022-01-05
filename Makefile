@@ -33,7 +33,7 @@ CXX = g++
 TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 
 CXX_VERSION:=c++17
-DSL_VERSION:='L"v0.22.alpha"'
+DSL_VERSION:='L"v0.23.alpha"'
 GLIB_VERSION:=2.0
 GSTREAMER_VERSION:=1.0
 GSTREAMER_SUB_VERSION:=14
