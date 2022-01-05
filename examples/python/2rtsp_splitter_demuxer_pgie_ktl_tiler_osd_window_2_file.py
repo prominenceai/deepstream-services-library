@@ -77,11 +77,7 @@ def main(args):
             break
 
         # New Tiler with dimensions for two tiles - for the two sources
-        retval = dsl_tiler_new('tiler2', 1440, 360)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_tiler_new('tiler2', 1440, 360)
+        retval = dsl_tiler_new('tiler1', 1440, 360)
         if retval != DSL_RETURN_SUCCESS:
             break
 

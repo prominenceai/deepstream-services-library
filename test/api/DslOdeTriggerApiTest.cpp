@@ -1149,7 +1149,8 @@ SCENARIO( "An ODE Distance Trigger's test parameters can be set/get", "[ode-trig
 
 static void limit_event_listener(uint event, uint limit, void* client_data)
 {
-    
+    std::cout << "limit event listner called with event = " 
+        << event << ", and limit = " << limit << std::endl;
 }
 
 
@@ -1190,9 +1191,39 @@ SCENARIO( "An ODE Trigger can add/remove a limit-state-change-listener", "[ode-t
     }
 }    
 
+SCENARIO( "An ODE Trigger notifies its limit-event-listener on limit change", "[ode-trigger-api]" )
+{
+    GIVEN( "An ODE Trigger with a limit-event-listener" ) 
+    {
+        std::wstring odeTriggerName(L"occurrence");
+        
+        uint class_id(9);
+        uint limit(0);
+
+        REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName.c_str(), 
+            NULL, class_id, limit) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_limit_event_listener_add(odeTriggerName.c_str(),
+            limit_event_listener, NULL) == DSL_RESULT_SUCCESS );
+
+        WHEN( "When the trigger limit is updated" )         
+        {
+            // second call must fail
+            REQUIRE( dsl_ode_trigger_limit_set(odeTriggerName.c_str(),
+                DSL_ODE_TRIGGER_LIMIT_ONE) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The limit-event-listener is notified" ) 
+            {
+                // requires manual/visual verification at this time.
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
 static void enabled_state_change_listener(boolean enabled, void* client_data)
 {
-    
+    std::cout << "enabled state change listner called with enabled = " << enabled << std::endl;
 }
 
 SCENARIO( "An ODE Trigger can add/remove an enabled-state-change-listener", "[ode-trigger-api]" )
@@ -1232,6 +1263,33 @@ SCENARIO( "An ODE Trigger can add/remove an enabled-state-change-listener", "[od
     }
 }    
 
+SCENARIO( "An ODE Trigger notifies its enabled-state-change-listener on change", "[ode-trigger-api]" )
+{
+    GIVEN( "An ODE Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"occurrence");
+        
+        uint class_id(9);
+        uint limit(0);
+
+        REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName.c_str(), 
+            NULL, class_id, limit) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_enabled_state_change_listener_add(odeTriggerName.c_str(),
+            enabled_state_change_listener, NULL) == DSL_RESULT_SUCCESS );
+
+        WHEN( "The Trigger's enabled state is changed" )         
+        {
+            REQUIRE( dsl_ode_trigger_enabled_set(odeTriggerName.c_str(), false) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The client listener function is called" ) 
+            {
+                // requires manual/visual verification at this time.
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
 
 SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-api]" )
 {
