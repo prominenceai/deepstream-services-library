@@ -357,8 +357,8 @@ int main(int argc, char** argv)
         retval = dsl_tiler_pph_add(L"tiler", L"ode-handler", DSL_PAD_SINK);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // New OSD with clock and text enabled... using default values.
-        retval = dsl_osd_new(L"on-screen-display", true, true);
+        // # New OSD with text, clock, bboxs enabled, mask display disabled
+        retval = dsl_osd_new(L"on-screen-display", true, true, true, false);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display	

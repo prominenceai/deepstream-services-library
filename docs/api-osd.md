@@ -1,17 +1,17 @@
-# On-Screen Display Refernce
-The On-Screen Display (OSD) component provides visualization of object categorization and tracking. OSDs display bounding boxes and labels for objects detected in the video stream. Bounding boxes and labels are defined using meta-data added to stream by the Inference and Tracker components. All [RGBA Display Types](/docs/api-display-type.md) added upstream from the OSD will be displayed as well
+# On-Screen Display Reference
+The On-Screen Display (OSD) component provides visualization of object detection, classification, and tracking. OSDs display bounding boxes and labels for objects detected in the video stream. Bounding boxes and labels are defined using meta-data added to each frame by the Inference and Tracker components. All [RGBA Display Types](/docs/api-display-type.md) added upstream from the OSD will be displayed as well.
 
-As with all components, OSDs must be uniquely named from all other components created. 
+As with all components, OSDs must be uniquely named from all other components created.
 
 #### OSD Construction and Destruction
-The constructor [dsl_osd_new](#dsl_osd_new) is used to create an OSD with two boolean imputs for enabling object labels and the on-screen clock. Once created, the OSD's clock parameters -- fonts, color and offsets -- can be modified from their default values. OSDs are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
+The constructor [dsl_osd_new](#dsl_osd_new) is used to create an OSD with boolean inputs for enabling display of text, clock, bounding boxes, and segmentation mask. Once created, the OSD's clock parameters -- fonts, color and offsets -- can be modified from their [default values](#default-values). OSDs are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
 
-#### Adding and Removing 
-A single OSD can be added to Pipeline trunk or individual branch. OSD are added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all). 
+#### Adding and Removing
+A single OSD can be added to Pipeline trunk or individual branch. An OSD is added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
 
-A similar set of Services are used when adding/removing an OSD to/from a branch: [dsl_branch_component_add](api-branch.md#dsl_branch_component_add), [dsl_branch_component_add_many](/docs/api-branch.md#dsl_branch_component_add_many), [dsl_branch_component_remove](/docs/api-branch.md#dsl_branch_component_remove), [dsl_branch_component_remove_many](/docs/api-branch.md#dsl_branch_component_remove_many), and [dsl_branch_component_remove_all](/docs/api-branch.md#dsl_branch_component_remove_all). 
+A similar set of Services are used when adding/removing an OSD to/from a branch: [dsl_branch_component_add](api-branch.md#dsl_branch_component_add), [dsl_branch_component_add_many](/docs/api-branch.md#dsl_branch_component_add_many), [dsl_branch_component_remove](/docs/api-branch.md#dsl_branch_component_remove), [dsl_branch_component_remove_many](/docs/api-branch.md#dsl_branch_component_remove_many), and [dsl_branch_component_remove_all](/docs/api-branch.md#dsl_branch_component_remove_all).
 
-Once added to a Pipeline or Branch, an OSD must be removed before it can be used with another. 
+Once added to a Pipeline or Branch, an OSD must be removed before it can be used with another.
 
 ---
 ## On-Screen API
@@ -29,6 +29,10 @@ Once added to a Pipeline or Branch, an OSD must be removed before it can be used
 * [dsl_osd_clock_font_set](#dsl_osd_clock_font_set)
 * [dsl_osd_clock_color_get](#dsl_osd_clock_color_get)
 * [dsl_osd_clock_color_set](#dsl_osd_clock_color_set)
+* [dsl_osd_bbox_enabled_get](#dsl_osd_bbox_enabled_get)
+* [dsl_osd_bbox_enabled_set](#dsl_osd_bbox_enabled_set)
+* [dsl_osd_mask_enabled_get](#dsl_osd_mask_enabled_get)
+* [dsl_osd_mask_enabled_set](#dsl_osd_mask_enabled_set)
 * [dsl_osd_pph_add](#dsl_osd_pph_add)
 * [dsl_osd_pph_remove](#dsl_osd_pph_remove)
 
@@ -49,39 +53,57 @@ The following return codes are used by the On-Screen Display API
 #define DSL_RESULT_OSD_COLOR_PARAM_INVALID                          0x0005000C
 ```
 
+## Default Values
+The following default property values are used by the On-Screen Display API
+```C
+#define DSL_DEFAULT_OSD_PROCESS_MODE                                0
+#define DSL_DEFAULT_OSD_CLOCK_FONT_TYPE                             "Serif"
+#define DSL_DEFAULT_OSD_CLOCK_FONT_SIZE                             12
+#define DSL_DEFAULT_OSD_CLOCK_OFFSET_X                              20
+#define DSL_DEFAULT_OSD_CLOCK_OFFSET_Y                              20
+#define DSL_DEFAULT_OSD_CLOCK_COLOR                                 {}
+```
+
+---
+
 ## Constructors
 ### *dsl_osd_new*
 ```c++
-DslReturnType dsl_osd_new(const wchar_t* name, 
-    boolean text_enabled, boolean clock_enabled);
+DslReturnType dsl_osd_new(const wchar_t* name,
+    boolean text_enabled, boolean clock_enabled,
+    boolean bbox_enabled, boolean mask_enabled);
 ```
-The constructor creates a uniquely named On-Screen Display with an optional clock. Construction will fail if the name is currently in use. 
+The constructor creates a uniquely named On-Screen Display. Construction will fail if the name is currently in use.
 
 **Parameters**
 * `name` - [in] unique name for the On-Screen Display to create.
-* `text_enable` - [in] set to true to enable On-Screen object text - class label and tracking number -  false otherwise
-* `clock_enable` - [in] set to true to enable On-Screen clock, false otherwise
+* `text_enable` - [in] set to true to enable object text display, false otherwise.
+* `clock_enable` - [in] set to true to enable clock display, false otherwise.
+* `bbox_enable` - [in] set to true to enable bounding box display, false otherwise.
+* `mask_enable` - [in] set to true to enable segmentation mask display, false otherwise.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_osd_new('my-on-screen-display', True, True)
+retval = dsl_osd_new('my-on-screen-display', True, True, True, False)
 ```
 
 <br>
+
+---
 
 ## Methods
 ### *dsl_osd_text_enabled_get*
 ```c++
 DslReturnType dsl_osd_text_enabled_get(const wchar_t* name, boolean* enabled);
 ```
-This service returns the current object text enabled setting for the named On-Screen Display
+This service returns the current text display enabled setting for the named On-Screen Display
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to query.
-* `enabled` - [out] true if the On-Screen object text - class label and tracking number -  is currently enabled, false otherwise
+* `enabled` - [out] true if text display is currently enabled, false otherwise
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
@@ -97,11 +119,11 @@ retval, enabled = dsl_osd_text_enabled_get('my-on-screen-display')
 ```c++
 DslReturnType dsl_osd_text_enabled_set(const wchar_t* name, boolean enabled);
 ```
-This service sets the current clock enabled setting for the named On-Screen Display
+This service sets the current text display enabled setting for the named On-Screen Display
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to query.
-* `enable` - [in] set to true to enable On-Screen object text - class label and tracking number -  false otherwise
+* `enable` - [in] set to true to enable text display, false otherwise
 
 
 **Returns**
@@ -118,7 +140,7 @@ retval = dsl_osd_text_enabled_set('my-on-screen-display', False)
 ```c++
 DslReturnType dsl_osd_clock_enabled_get(const wchar_t* name, boolean* enabled);
 ```
-This service returns the current clock enabled setting for the named On-Screen Display
+This service returns the current clock display enabled setting for the named On-Screen Display
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to query.
@@ -138,7 +160,7 @@ retval, enabled = dsl_osd_clock_enabled_get('my-on-screen-display')
 ```c++
 DslReturnType dsl_osd_clock_enabled_set(const wchar_t* name, boolean enabled);
 ```
-This service sets the current clock enabled setting for the named On-Screen Display
+This service sets the current clock display enabled setting for the named On-Screen Display
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to query.
@@ -240,7 +262,7 @@ retval = dsl_osd_clock_font_set('my-on-screen-display', 'arial', 12)
 
 ### *dsl_osd_clock_color_get*
 ```c++
-DslReturnType dsl_osd_clock_color_get(const wchar_t* name, 
+DslReturnType dsl_osd_clock_color_get(const wchar_t* name,
     double* red, double* green, double* blue, double alpha);
 ```
 This service gets the current clock color for the named On-Screen Display. The color is represented in RGBA format, each with weights between 0.0 and 1.0.
@@ -267,7 +289,7 @@ retval, red, green, blue, alpha = dsl_osd_clock_color_get('my-on-screen-display'
 ```c++
 DslReturnType dsl_osd_clock_color_set(const wchar_t* name, double red, uint double, uint blue);
 ```
-This service gets the current clock color for the named On-Screen Display. The color is  The color is specified in RGBA format.
+This service gets the current clock color for the named On-Screen Display. The color is specified in RGBA format.
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to query.
@@ -285,6 +307,89 @@ retval = dsl_osd_clock_color_set('my-on-screen-display', 0.6, 0.0, 0.6, 1.0)
 ```
 
 <br>
+
+### *dsl_osd_bbox_enabled_get*
+```c++
+DslReturnType dsl_osd_bbox_enabled_get(const wchar_t* name, boolean* enabled);
+```
+This service returns the current bounding box display enabled setting for the named On-Screen Display
+
+**Parameters**
+* `name` - [in] unique name of the On-Screen Display to query.
+* `enabled` - [out] true if bounding box display is currently enabled, false otherwise
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, enabled = dsl_osd_bbox_enabled_get('my-on-screen-display')
+```
+
+<br>
+
+### *dsl_osd_bbox_enabled_set*
+```c++
+DslReturnType dsl_osd_bbox_enabled_set(const wchar_t* name, boolean enabled);
+```
+This service sets the current bounding box display enabled setting for the named On-Screen Display
+
+**Parameters**
+* `name` - [in] unique name of the On-Screen Display to query.
+* `enable` - [in] set to true to enable bounding box display, false otherwise
+
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_osd_bbox_enabled_set('my-on-screen-display', False)
+```
+
+<br>
+
+### *dsl_osd_mask_enabled_get*
+```c++
+DslReturnType dsl_osd_mask_enabled_get(const wchar_t* name, boolean* enabled);
+```
+This service returns the current segmentation mask display enabled setting for the named On-Screen Display
+
+**Parameters**
+* `name` - [in] unique name of the On-Screen Display to query.
+* `enabled` - [out] true if segmentation mask display is currently enabled, false otherwise
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, enabled = dsl_osd_mask_enabled_get('my-on-screen-display')
+```
+
+<br>
+
+### *dsl_osd_mask_enabled_set*
+```c++
+DslReturnType dsl_osd_mask_enabled_set(const wchar_t* name, boolean enabled);
+```
+This service sets the current segmentation mask display enabled setting for the named On-Screen Display
+
+**Parameters**
+* `name` - [in] unique name of the On-Screen Display to query.
+* `enable` - [in] set to true to enable segmentation mask display, false otherwise
+
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_osd_mask_enabled_set('my-on-screen-display', False)
+```
+
+<br>
+
 
 ### *dsl_osd_pph_add*
 ```C++

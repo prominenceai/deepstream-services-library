@@ -66,6 +66,8 @@ SCENARIO( "All DisplayTypes can be displayed by and eODE Action", "[display-type
         std::wstring osdName(L"osd");
         boolean textEnabled(false);
         boolean clockEnabled(false);
+        boolean bboxEnabled(false);
+        boolean maskEnabled(false);
 
         std::wstring odePphName(L"ode-handler");
         
@@ -120,7 +122,8 @@ SCENARIO( "All DisplayTypes can be displayed by and eODE Action", "[display-type
         
         REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), odeAlwaysTriggerName.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_osd_new(osdName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osdName.c_str(), 
+            textEnabled, clockEnabled, bboxEnabled, maskEnabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(windowSinkName.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );

@@ -38,12 +38,37 @@ namespace DSL
     {
     public: 
     
-        PipelineStateMgr(const GstObject* pGstPipeline);
+        PipelineStateMgr(GstObject* pGstPipeline);
 
         ~PipelineStateMgr();
 
         /**
-         * @brief adds a callback to be notified on change of Pipeline state
+         * @brief Creates a new g_main_context and g_main_loop for the Pipeline. 
+         * @return true on successful creation, false otherwise.
+         */
+        bool NewMainLoop();
+        
+        /**
+         * @brief Runs and joins with the Pipeline's main-loop. 
+         * @return true on successful return from the main-loop, false otherwise.
+         * Note: the service will block on success, but return immediately on failure.
+         */
+        bool RunMainLoop();
+        
+        /**
+         * @brief Quits the Pipeline's mainloop causing RunMainLoop() to return.
+         * @return true on successful quit, false otherwise.
+         */
+        bool QuitMainLoop();
+        
+        /**
+         * @brief Deletes the Pipeline's own g_main_loop and g_main_context.
+         * @return true on successful delete, false otherwise.
+         */
+        bool DeleteMainLoop();
+
+        /**
+         * @brief Adds a callback to be notified on change of Pipeline state
          * @param[in] listener pointer to the client's function to call on state change
          * @param[in] clientData opaque pointer to client data passed into the listner function.
          * @return true on successful listener add, false otherwise.
@@ -122,20 +147,71 @@ namespace DSL
          * @return false always to destroy the one-shot timer calling this callback. 
          */
         int NotifyErrorMessageHandlers();
+
+    protected:
+
+        /**
+         * @brief Mutex to prevent bus-watch callback re-entry
+         */
+        GMutex m_busWatchMutex;
+
+        /**
+         * @brief Pointer to the Pipelines own g_main_context if one has 
+         * been created, NULL otherwise.
+         */
+        GMainContext* m_pMainContext;
+        
+        /**
+         * @brief Pointer to the Pipeline's own g_main_loop if one has 
+         * been created, NULL otherwise.
+         */
+        GMainLoop* m_pMainLoop;
     
     private:
+
+        /**
+         * @brief Private helper function to handle a Pipeline state-change message.
+         * @param[in] pointer to the state-change message
+         */
+        bool HandleStateChanged(GstMessage* pMessage);
+        
+        /**
+         * @brief private helper function to handle a Pipeline end-of-stream (EOS) message.
+         * @param[in] pointer to the state-change message
+         */
+        void HandleEosMessage(GstMessage* pMessage);
+        
+        /**
+         * @brief private helper function to handle a Pipeline error message.
+         * @param[in] pointer to the state-change message
+         */
+        void HandleErrorMessage(GstMessage* pMessage);
     
         /**
          * GST Pipeline Object, provided on construction by the derived parent Pipeline
          */
-        const GstObject* m_pGstPipeline;
+        GstObject* m_pGstPipeline;
         
-        bool HandleStateChanged(GstMessage* pMessage);
+        /**
+         * pointer to the Pipelines GST Bus
+         */
+        GstBus* m_pGstBus;
+
+        /**
+         * @brief unique id of the installed Bus Watch function. This handle is
+         * used by default, until if/when the client calls on the Pipeline
+         * to create its own main-context and main-loop. At that point the
+         * default bus-watch will be removed and a new bus-watch created as a 
+         * GSource to be attached to the new Pipeline's main-loop.
+         */
+        guint m_busWatchId;
         
-        void HandleEosMessage(GstMessage* pMessage);
-        
-        void HandleErrorMessage(GstMessage* pMessage);
-    
+        /**
+         * @brief point to a bus-watch created as a GSource to be attached
+         * to the Pipelines main-loop if one is created.
+         */
+        GSource* m_pBusWatch;
+
         /**
          * @brief map of all currently registered state-change-listeners
          * callback functions mapped with the user provided data
@@ -154,16 +230,6 @@ namespace DSL
          */
         std::map<dsl_error_message_handler_cb, void*>m_errorMessageHandlers;
 
-        /**
-         * @brief mutex to prevent callback reentry
-         */
-        GMutex m_busWatchMutex;
-
-        /**
-         * @brief handle to the installed Bus Watch function.
-         */
-        guint m_gstBusWatch;
-        
         /**
          * @brief mutex to protect multiple threads from accessing/updating last error message information
          */

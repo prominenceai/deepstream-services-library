@@ -77,16 +77,13 @@ def main(args):
             break
 
         # New Tiler with dimensions for two tiles - for the two sources
-        retval = dsl_tiler_new('tiler2', 1440, 360)
+        retval = dsl_tiler_new('tiler1', 1440, 360)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_tiler_new('tiler2', 1440, 360)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New OSD for Branch1 with clock and text enabled... using default values.
-        retval = dsl_osd_new('on-screen-display', True, True)
+        # New OSD with text, clock and bbox display all enabled. 
+        retval = dsl_osd_new('on-screen-display', 
+            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 

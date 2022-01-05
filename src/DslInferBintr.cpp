@@ -23,6 +23,7 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
+#include "DslServices.h"
 #include "DslInferBintr.h"
 #include "DslBranchBintr.h"
 
@@ -51,8 +52,17 @@ namespace DSL
         }        
         // generate a unique Id for the GIE based on its unique name
         std::string inferBintrName = "infer-" + GetName();
+
+        LOG_INFO("Creating Inference Component  '" << inferBintrName << "' with unique Id = " << m_uniqueId);
         
-        LOG_INFO("Creating GIE  '" << inferBintrName << "' with unique Id = " << m_uniqueId);
+        // Set the name value for the current unique inference component Id.
+        if (Services::GetServices()->_inferNameSet(m_uniqueId, 
+            GetCStrName()) != DSL_RESULT_SUCCESS)
+        {
+            LOG_ERROR("Inference Component '" << GetName() 
+                << "' failed to Set name for its unique Id");
+            throw;
+        }   
         
         // create and setup unique Inference Element, GIE or TIS
         if (m_inferType == DSL_INFER_TYPE_TIS)
@@ -86,6 +96,8 @@ namespace DSL
     InferBintr::~InferBintr()
     {
         LOG_FUNC();
+        
+        Services::GetServices()->_inferNameErase(m_uniqueId);
     }
 
     uint InferBintr::GetInferType()

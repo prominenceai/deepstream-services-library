@@ -31,13 +31,16 @@ SCENARIO( "A new OsdBintr is created correctly", "[OsdBintr]" )
 {
     GIVEN( "Attributes for a new OsdBintr" ) 
     {
-        std::string osdName = "osd";
+        std::string osdName("osd");
         boolean clockEnabled(false);
         boolean textEnabled(false);
+        boolean bboxEnabled(false);
+        boolean maskEnabled(false);
 
         WHEN( "A new Osd is created" )
         {
-            DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), textEnabled, clockEnabled);
+            DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), 
+                textEnabled, clockEnabled, bboxEnabled, maskEnabled);
 
             THEN( "The OsdBintr's memebers are setup and returned correctly" )
             {
@@ -53,11 +56,14 @@ SCENARIO( "A new OsdBintr can LinkAll Child Elementrs", "[OsdBintr]" )
 {
     GIVEN( "A new OsdBintr in an Unlinked state" ) 
     {
-        std::string osdName = "osd";
+        std::string osdName("osd");
         boolean clockEnabled(false);
         boolean textEnabled(false);
+        boolean bboxEnabled(false);
+        boolean maskEnabled(false);
 
-        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), textEnabled, clockEnabled);
+        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), 
+            textEnabled, clockEnabled, bboxEnabled, maskEnabled);
 
         WHEN( "A new OsdBintr is Linked" )
         {
@@ -75,11 +81,14 @@ SCENARIO( "A Linked OsdBintr can UnlinkAll Child Elementrs", "[OsdBintr]" )
 {
     GIVEN( "A OsdBintr in a linked state" ) 
     {
-        std::string osdName = "osd";
+        std::string osdName("osd");
         boolean clockEnabled(false);
         boolean textEnabled(false);
+        boolean bboxEnabled(false);
+        boolean maskEnabled(false);
 
-        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), textEnabled, clockEnabled);
+        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), 
+            textEnabled, clockEnabled, bboxEnabled, maskEnabled);
 
         REQUIRE( pOsdBintr->LinkAll() == true );
 
@@ -99,11 +108,14 @@ SCENARIO( "An OsdBintr's display-text property can be enabled", "[OsdBintr]" )
 {
     GIVEN( "An OsdBintr in memory with its display-text property disabled" ) 
     {
-        std::string osdName = "osd";
+        std::string osdName("osd");
         boolean clockEnabled(false);
         boolean textEnabled(false);
+        boolean bboxEnabled(false);
+        boolean maskEnabled(false);
 
-        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), textEnabled, clockEnabled);
+        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), 
+            textEnabled, clockEnabled, bboxEnabled, maskEnabled);
 
         WHEN( "The OsdBintr's display-text property is enabled" )
         {
@@ -122,11 +134,14 @@ SCENARIO( "An OsdBintr's clock can be enabled", "[OsdBintr]" )
 {
     GIVEN( "An OsdBintr in memory with its clock disabled" ) 
     {
-        std::string osdName = "osd";
+        std::string osdName("osd");
         boolean clockEnabled(false);
         boolean textEnabled(false);
+        boolean bboxEnabled(false);
+        boolean maskEnabled(false);
 
-        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), textEnabled, clockEnabled);
+        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), 
+            textEnabled, clockEnabled, bboxEnabled, maskEnabled);
 
         WHEN( "The OsdBintr's clock is enabled" )
         {
@@ -145,11 +160,14 @@ SCENARIO( "An OsdBintr can get and set the clock's X and Y Offsets", "[OsdBintr]
 {
     GIVEN( "An OsdBintr in memory with its clock enabled" ) 
     {
-        std::string osdName = "osd";
+        std::string osdName("osd");
         boolean clockEnabled(true);
         boolean textEnabled(false);
+        boolean bboxEnabled(false);
+        boolean maskEnabled(false);
 
-        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), textEnabled, clockEnabled);
+        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), 
+            textEnabled, clockEnabled, bboxEnabled, maskEnabled);
 
         WHEN( "The clock's offsets are set" )
         {
@@ -171,12 +189,15 @@ SCENARIO( "An OsdBintr can get and set the clock's font", "[OsdBintr]" )
 {
     GIVEN( "An OsdBintr in memory with its clock enabled" ) 
     {
-        std::string osdName = "osd";
+        std::string osdName("osd");
         boolean clockEnabled(true);
         boolean textEnabled(false);
+        boolean bboxEnabled(false);
+        boolean maskEnabled(false);
         std::string newName("ariel");
 
-        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), textEnabled, clockEnabled);
+        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), 
+            textEnabled, clockEnabled, bboxEnabled, maskEnabled);
 
         WHEN( "The clock font name and size is " )
         {
@@ -199,11 +220,14 @@ SCENARIO( "An OsdBintr can get and set the clock's RGB colors", "[OsdBintr]" )
 {
     GIVEN( "An OsdBintr in memory with its clock enabled" ) 
     {
-        std::string osdName = "osd";
+        std::string osdName("osd");
         boolean clockEnabled(true);
         boolean textEnabled(false);
+        boolean bboxEnabled(false);
+        boolean maskEnabled(false);
 
-        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), textEnabled, clockEnabled);
+        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), 
+            textEnabled, clockEnabled, bboxEnabled, maskEnabled);
 
         WHEN( "The clock's RGB colors are set  " )
         {
@@ -227,14 +251,17 @@ SCENARIO( "A OsdBintr can Get and Set its GPU ID",  "[OsdBintr]" )
 {
     GIVEN( "A new OsdBintr in memory" ) 
     {
-        std::string osdName = "osd";
+        std::string osdName("osd");
         boolean clockEnabled(true);
         boolean textEnabled(false);
+        boolean bboxEnabled(false);
+        boolean maskEnabled(false);
 
         uint GPUID0(0);
         uint GPUID1(1);
 
-        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), textEnabled, clockEnabled);
+        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), 
+            textEnabled, clockEnabled, bboxEnabled, maskEnabled);
 
         REQUIRE( pOsdBintr->GetGpuId() == GPUID0 );
         
@@ -245,6 +272,64 @@ SCENARIO( "A OsdBintr can Get and Set its GPU ID",  "[OsdBintr]" )
             THEN( "The correct GPU ID is returned on get" )
             {
                 REQUIRE( pOsdBintr->GetGpuId() == GPUID1 );
+            }
+        }
+    }
+}
+            
+SCENARIO( "An OsdBintr's display-bbox property can be enabled", "[OsdBintr]" )
+{
+    GIVEN( "An OsdBintr in memory with its display-bbox property disabled" ) 
+    {
+        std::string osdName("osd");
+        boolean clockEnabled(false);
+        boolean textEnabled(false);
+        boolean bboxEnabled(false);
+        boolean maskEnabled(false);
+
+        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), 
+            textEnabled, clockEnabled, bboxEnabled, maskEnabled);
+
+        pOsdBintr->GetBboxEnabled(&bboxEnabled);
+        REQUIRE( bboxEnabled == false );
+
+        WHEN( "The OsdBintr's display-text property is enabled" )
+        {
+            REQUIRE( pOsdBintr->SetBboxEnabled(true) == true);
+            
+            THEN( "The OsdBintr is updated correctly" )
+            {
+                pOsdBintr->GetBboxEnabled(&bboxEnabled);
+                REQUIRE( bboxEnabled == true );
+            }
+        }
+    }
+}
+            
+SCENARIO( "An OsdBintr's display-mask property can be enabled", "[OsdBintr]" )
+{
+    GIVEN( "An OsdBintr in memory with its display-mask property disabled" ) 
+    {
+        std::string osdName("osd");
+        boolean clockEnabled(false);
+        boolean textEnabled(false);
+        boolean bboxEnabled(false);
+        boolean maskEnabled(false);
+
+        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), 
+            textEnabled, clockEnabled, bboxEnabled, maskEnabled);
+
+        pOsdBintr->GetMaskEnabled(&maskEnabled);
+        REQUIRE( maskEnabled == false );
+
+        WHEN( "The OsdBintr's display-text property is enabled" )
+        {
+            REQUIRE( pOsdBintr->SetMaskEnabled(true) == true);
+            
+            THEN( "The OsdBintr is updated correctly" )
+            {
+                pOsdBintr->GetMaskEnabled(&maskEnabled);
+                REQUIRE( maskEnabled == true );
             }
         }
     }

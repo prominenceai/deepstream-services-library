@@ -63,6 +63,8 @@ static const uint tiler_height(720);
 static const std::wstring osd_name(L"on-screen-display");
 static const boolean text_enabled(true);
 static const boolean clock_enabled(false);
+static const boolean bbox_enabled(true);
+static const boolean mask_enabled(false);
         
 static const std::wstring sink_name(L"window-sink");
 static const uint offset_x(100);
@@ -101,7 +103,8 @@ SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker with its Batch Process
 
         REQUIRE( dsl_tiler_new(tiler_name.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(sink_name.c_str(),
             offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -150,7 +153,8 @@ SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker with its Batch Process
             batch_processing_enabled, past_frame_reporting_enabled) 
             == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(sink_name.c_str(),
             offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -206,7 +210,8 @@ SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker and optional config fi
 
         REQUIRE( dsl_tiler_new(tiler_name.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(sink_name.c_str(),
             offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );

@@ -222,6 +222,12 @@ namespace DSL {
 
         DslReturnType OdeActionEnabledSet(const char* name, boolean enabled);
 
+        DslReturnType OdeActionEnabledStateChangeListenerAdd(const char* name,
+            dsl_ode_enabled_state_change_listener_cb listener, void* clientData);
+
+        DslReturnType OdeActionEnabledStateChangeListenerRemove(const char* name,
+            dsl_ode_enabled_state_change_listener_cb listener);
+
         DslReturnType OdeActionDelete(const char* name);
         
         DslReturnType OdeActionDeleteAll();
@@ -325,14 +331,30 @@ namespace DSL {
         DslReturnType OdeTriggerResetTimeoutGet(const char* name, uint* timeout);
 
         DslReturnType OdeTriggerResetTimeoutSet(const char* name, uint timeout);
+        
+        DslReturnType OdeTriggerLimitEventListenerAdd(const char* name,
+            dsl_ode_trigger_limit_event_listener_cb listener, void* clientData);
+
+        DslReturnType OdeTriggerLimitEventListenerRemove(const char* name,
+            dsl_ode_trigger_limit_event_listener_cb listener);
 
         DslReturnType OdeTriggerEnabledGet(const char* name, boolean* enabled);
 
         DslReturnType OdeTriggerEnabledSet(const char* name, boolean enabled);
 
+        DslReturnType OdeTriggerEnabledStateChangeListenerAdd(const char* name,
+            dsl_ode_enabled_state_change_listener_cb listener, void* clientData);
+
+        DslReturnType OdeTriggerEnabledStateChangeListenerRemove(const char* name,
+            dsl_ode_enabled_state_change_listener_cb listener);
+
         DslReturnType OdeTriggerSourceGet(const char* name, const char** source);
         
         DslReturnType OdeTriggerSourceSet(const char* name, const char* source);
+        
+        DslReturnType OdeTriggerInferGet(const char* name, const char** infer);
+        
+        DslReturnType OdeTriggerInferSet(const char* name, const char* infer);
         
         DslReturnType OdeTriggerClassIdGet(const char* name, uint* classId);
         
@@ -588,6 +610,14 @@ namespace DSL {
         DslReturnType InferIntervalGet(const char* name, uint* interval);
 
         DslReturnType InferIntervalSet(const char* name, uint interval);
+        
+        DslReturnType InferNameGet(int inferId, const char** name);
+
+        DslReturnType InferIdGet(const char* name, int* inferId);
+    
+        DslReturnType _inferNameSet(uint inferId, const char* name);
+    
+        DslReturnType _inferNameErase(uint inferId);
 
         DslReturnType TrackerDcfNew(const char* name, 
             const char* configFile, uint width, uint height,
@@ -668,7 +698,9 @@ namespace DSL {
 
         DslReturnType OfvNew(const char* name);
 
-        DslReturnType OsdNew(const char* name, boolean textEnabled, boolean clockEnabled);
+        DslReturnType OsdNew(const char* name, 
+            boolean textEnabled, boolean clockEnabled,
+            boolean bboxEnabled, boolean maskEnabled);
         
         DslReturnType OsdTextEnabledGet(const char* name, boolean* enabled);
 
@@ -686,9 +718,19 @@ namespace DSL {
 
         DslReturnType OsdClockFontSet(const char* name, const char* font, uint size);
 
-        DslReturnType OsdClockColorGet(const char* name, double* red, double* green, double* blue, double* alpha);
+        DslReturnType OsdClockColorGet(const char* name, 
+            double* red, double* green, double* blue, double* alpha);
 
-        DslReturnType OsdClockColorSet(const char* name, double red, double green, double blue, double alpha);
+        DslReturnType OsdClockColorSet(const char* name, 
+            double red, double green, double blue, double alpha);
+
+        DslReturnType OsdBboxEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType OsdBboxEnabledSet(const char* name, boolean enabled);
+
+        DslReturnType OsdMaskEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType OsdMaskEnabledSet(const char* name, boolean enabled);
 
         DslReturnType OsdPphAdd(const char* name, const char* handler, uint pad);
 
@@ -951,6 +993,14 @@ namespace DSL {
 
         DslReturnType PipelineXWindowDeleteEventHandlerRemove(const char* name, 
             dsl_xwindow_delete_event_handler_cb handler);
+            
+        DslReturnType PipelineMainLoopNew(const char* name);
+
+        DslReturnType PipelineMainLoopRun(const char* name);
+
+        DslReturnType PipelineMainLoopQuit(const char* name);
+
+        DslReturnType PipelineMainLoopDelete(const char* name);
 
         DslReturnType PlayerNew(const char* name, const char* source, const char* sink);
 
@@ -1233,6 +1283,16 @@ namespace DSL {
          * @brief map of all source names to source ids
          */
         std::map <std::string, uint> m_sourceIds;
+        
+        /**
+         * @brief map of all infer ids to infer names
+         */
+        std::map <uint, std::string> m_inferNames;
+
+        /**
+         * @brief map of all infer names to infer ids
+         */
+        std::map <std::string, uint> m_inferIds;
         
         /**
          * @brief DSL Comms object for libcurl services

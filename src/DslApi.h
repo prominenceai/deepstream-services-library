@@ -190,6 +190,7 @@ THE SOFTWARE.
 #define DSL_RESULT_INFER_PAD_TYPE_INVALID                           0x0006000B
 #define DSL_RESULT_INFER_COMPONENT_IS_NOT_INFER                     0x0006000C
 #define DSL_RESULT_INFER_OUTPUT_DIR_DOES_NOT_EXIST                  0x0006000D
+#define DSL_RESULT_INFER_ID_NOT_FOUND                               0x0006000E
 
 /**
  * Demuxer API Return Values
@@ -245,6 +246,7 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x00080011
 #define DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED               0x00080012
 #define DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED                 0x00080013
+#define DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED                0x00080014
 
 #define DSL_RESULT_BRANCH_RESULT                                    0x000B0000
 #define DSL_RESULT_BRANCH_NAME_NOT_UNIQUE                           0x000B0001
@@ -288,8 +290,9 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_TRIGGER_AREA_ADD_FAILED                      0x000E000A
 #define DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED                   0x000E000B
 #define DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE                      0x000E000C
-#define DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID              0x000E000D
-#define DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID                    0x000E000E
+#define DSL_RESULT_ODE_TRIGGER_CALLBACK_ADD_FAILED                  0x000F000D
+#define DSL_RESULT_ODE_TRIGGER_CALLBACK_REMOVE_FAILED               0x000F000E
+#define DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID                    0x000E000F
 #define DSL_RESULT_ODE_TRIGGER_IS_NOT_AB_TYPE                       0x000E0010
 /**
  * ODE Action API Return Values
@@ -459,6 +462,16 @@ THE SOFTWARE.
 #define DSL_RTP_ALL                                                 0x07
 
 /**
+ * @brief Default On-Screen Display (OSD) property values
+ */
+#define DSL_DEFAULT_OSD_PROCESS_MODE                                0
+#define DSL_DEFAULT_OSD_CLOCK_FONT_TYPE                             "Serif"
+#define DSL_DEFAULT_OSD_CLOCK_FONT_SIZE                             12
+#define DSL_DEFAULT_OSD_CLOCK_OFFSET_X                              20
+#define DSL_DEFAULT_OSD_CLOCK_OFFSET_Y                              20
+#define DSL_DEFAULT_OSD_CLOCK_COLOR                                 {}
+
+/**
  * @brief Websocket Port number for the Soup Server Manager
  * If set to 0, Manager will find an unused port to listen on.
  */
@@ -498,6 +511,13 @@ THE SOFTWARE.
 #define DSL_ODE_ANY_CLASS                                           INT32_MAX
 #define DSL_ODE_TRIGGER_LIMIT_NONE                                  0
 #define DSL_ODE_TRIGGER_LIMIT_ONE                                   1
+
+/**
+ * @brief ODE Trigger limit state values - for Triggers with limits
+ */
+#define DSL_ODE_TRIGGER_LIMIT_EVENT_LIMIT_REACHED                   0
+#define DSL_ODE_TRIGGER_LIMIT_EVENT_LIMIT_CHANGED                   1
+#define DSL_ODE_TRIGGER_LIMIT_EVENT_COUNT_RESET                     2
 
 /**
  * @brief Unique class relational identifiers for Class A/B testing
@@ -634,6 +654,7 @@ THE SOFTWARE.
  * For the Absence Trigger, occurrences will always be 0. 
  */
 #define DSL_METRIC_OBJECT_OCCURRENCES                               6
+
 EXTERN_C_BEGIN
 
 typedef uint DslReturnType;
@@ -806,7 +827,7 @@ typedef struct _dsl_coordinate
 
 /**
  *
- * @brief callback typedef for a client ODE occurrence handler function. 
+ * @brief Callback typedef for a client ODE occurrence handler function. 
  * Once registered by calling dsl_ode_action_custom_new, the function will 
  * be called on ODE occurrence. 
  * @param[in] event_id unique ODE occurrence ID, numerically ordered by occurrence.
@@ -823,7 +844,7 @@ typedef void (*dsl_ode_handle_occurrence_cb)(uint64_t event_id, const wchar_t* t
     void* buffer, void* display_meta, void* frame_meta, void* object_meta, void* client_data);
 
 /**
- * @brief callback typedef for a client ODE Custom Trigger check-for-occurrence function. Once 
+ * @brief Callback typedef for a client ODE Custom Trigger check-for-occurrence function. Once 
  * registered, the function will be called on every object detected that meets the minimum
  * criteria for the Custom Trigger. The client, determining that criteria is met for ODE occurrence,
  * returns true to invoke all ODE acctions owned by the Custom Trigger
@@ -837,7 +858,7 @@ typedef boolean (*dsl_ode_check_for_occurrence_cb)(void* buffer,
     void* frame_meta, void* object_meta, void* client_data);
 
 /**
- * @brief callback typedef for a client ODE Custom Trigger post-process-frame function. Once 
+ * @brief Callback typedef for a client ODE Custom Trigger post-process-frame function. Once 
  * registered, the function will be called on every frame AFTER all Check-For-Occurrence calls 
  * have been handles The client, determining that criteria is met for ODE occurrence,  
  * returns true to invoke all ODE acctions owned by the Custom Trigger
@@ -849,10 +870,31 @@ typedef boolean (*dsl_ode_check_for_occurrence_cb)(void* buffer,
  */
 typedef boolean (*dsl_ode_post_process_frame_cb)(void* buffer,
     void* frame_meta, void* client_data);
+    
+/**
+ * @brief Callback typedef for a client listener function. Once added to an
+ * ODE Trigger or ODE Action, this function will be called on change 
+ * of the enabled state.
+ * @param[in] enabled true if the ODE Object was enabled, false if disalbed.
+ * @param[in] client_data opaque pointer to client's user data.
+ */
+ typedef void (*dsl_ode_enabled_state_change_listener_cb)
+    (boolean enabled, void* client_data);
 
 /**
- * @brief callback typedef for a client to hanlde new Pipeline performance data
- * ,calcaulated by the Meter Pad Probe Handler, at an intervel specified by the client.
+ * @brief Callback typedef for a client listener function. Once added to an
+ * ODE Trigger, this function will be called on every Trigger Limit event;
+ * LIMIT_REACHED, LIMIT_CHANGED, and COUNT_RESET
+ * @param[in] event one of the DSL_ODE_TRIGGER_LIMIT_EVENT constants.
+ * @param[in] limit the current, or new limit for the Trigger.
+ * @param[in] client_data opaque pointer to client's user data.
+ */
+ typedef void (*dsl_ode_trigger_limit_event_listener_cb)
+    (uint event, uint limit, void* client_data);
+
+/**
+ * @brief callback typedef for a client to handle new Pipeline performance data
+ * calcaulated by the Meter Pad Probe Handler, at an intervel specified by the client.
  * @param[in] session_fps_averages array of frames-per-second measurements, 
  * one per source, specified by list_size 
  * @param[in] interval_fps_averages array of average frames-per-second measurements, 
@@ -862,7 +904,7 @@ typedef boolean (*dsl_ode_post_process_frame_cb)(void* buffer,
  * @param[in] client_data opaque pointer to client's user data provide on end-of-session
  */
 typedef boolean (*dsl_pph_meter_client_handler_cb)(double* session_fps_averages, 
-    double* interval_fps_averages,    uint source_count, void* client_data);
+    double* interval_fps_averages, uint source_count, void* client_data);
     
 /**
  * @brief callback typedef for a client pad probe handler function. Once added to a Component, 
@@ -1623,6 +1665,27 @@ DslReturnType dsl_ode_action_enabled_get(const wchar_t* name, boolean* enabled);
 DslReturnType dsl_ode_action_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
+ * @brief Adds a callback to be notified on change of enabled state for a named
+ * ODE Action. 
+ * @param[in] name name of the ODE Action to update.
+ * @param[in] listener pointer to the client's function to call on state change
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_enabled_state_change_listener_add(const wchar_t* name,
+    dsl_ode_enabled_state_change_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a callback previously added with a call to
+ * dsl_ode_action_enabled_state_change_listener_add.
+ * @param[in] name name of the ODE Action to update.
+ * @param[in] listener pointer to the client's function to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_enabled_state_change_listener_remove(const wchar_t* name,
+    dsl_ode_enabled_state_change_listener_cb listener);
+    
+/**
  * @brief Deletes an ODE Action of any type
  * This service will fail with DSL_RESULT_ODE_ACTION_IN_USE if the Action is currently
  * owned by a ODE Trigger.
@@ -2082,37 +2145,96 @@ DslReturnType dsl_ode_trigger_reset_timeout_get(const wchar_t* name, uint *timeo
 DslReturnType dsl_ode_trigger_reset_timeout_set(const wchar_t* name, uint timeout);
 
 /**
- * @brief Gets the current enabled setting for the ODE Trigger
- * @param[in] name unique name of the ODE Trigger to query
- * @param[out] enabled true if the ODE Trigger is currently enabled, false otherwise
+ * @brief Adds a callback to be notified on every ODE Trigger limit event;
+ * LIMIT_REACED, LIMIT_CHANGED, and COUNT_REST
+ * @param[in] name name of the ODE Trigger to update
+ * @param[in] listener pointer to the client's function to call on trigger limit event
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_limit_event_listener_add(const wchar_t* name,
+    dsl_ode_trigger_limit_event_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a callback previously added with a call to
+ * dsl_ode_trigger_limit_event_listener_add.
+ * @param[in] name name of the ODE Trigger to update.
+ * @param[in] listener pointer to the client's function to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_limit_event_listener_remove(const wchar_t* name,
+    dsl_ode_trigger_limit_event_listener_cb listener);
+
+/**
+ * @brief Gets the current enabled setting for the ODE Trigger.
+ * @param[in] name unique name of the ODE Trigger to query.
+ * @param[out] enabled true if the ODE Trigger is currently enabled, false otherwise.
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_enabled_get(const wchar_t* name, boolean* enabled);
 
 /**
- * @brief Sets the enabled setting for the ODE Trigger
- * @param[in] name unique name of the ODE Trigger to update
- * @param[in] enabled true if the ODE Trigger is currently enabled, false otherwise
+ * @brief Sets the enabled setting for the ODE Trigger.
+ * @param[in] name unique name of the ODE Trigger to update.
+ * @param[in] enabled true if the ODE Trigger is currently enabled, false otherwise.
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
- * @brief Gets the current source_id filter for the ODE Trigger
- * A value of 0 indicates filter disabled
- * @param[in] name unique name of the ODE Trigger to query
- * @param[out] source returns the current source name in use
+ * @brief Adds a callback to be notified on change of enabled state for a named
+ * ODE Trigger. 
+ * @param[in] name name of the ODE Trigger to update.
+ * @param[in] listener pointer to the client's function to call on state change
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_enabled_state_change_listener_add(const wchar_t* name,
+    dsl_ode_enabled_state_change_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a callback previously added with a call to
+ * dsl_ode_trigger_enabled_state_change_listener_add.
+ * @param[in] name name of the ODE Trigger to update.
+ * @param[in] listener pointer to the client's function to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_enabled_state_change_listener_remove(const wchar_t* name,
+    dsl_ode_enabled_state_change_listener_cb listener);
+
+/**
+ * @brief Gets the current source name filter for the ODE Trigger
+ * A value of NULL indicates filter disabled.
+ * @param[in] name unique name of the ODE Trigger to query.
+ * @param[out] source returns the current source name in use.
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_source_get(const wchar_t* name, const wchar_t** source);
 
 /**
- * @brief Sets the source_id for the ODE Trigger to filter on
+ * @brief Sets the source name for the ODE Trigger to filter on
  * @param[in] name unique name of the ODE Trigger to update
- * @param[in] source new source name to filter on
+ * @param[in] source new source name to filter on. Set to NULL to disaple filter.
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_source_set(const wchar_t* name, const wchar_t* source);
+
+/**
+ * @brief Gets the current infer component name filter for the ODE Trigger
+ * A value of NULL indicates filter disabled (default)
+ * @param[in] name unique name of the ODE Trigger to query
+ * @param[out] infer returns the current infer component name in use
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_infer_get(const wchar_t* name, const wchar_t** infer);
+
+/**
+ * @brief Sets the infer component name for the ODE Trigger to filter on
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] infer new infer component name to filter on. Set to NULL to disaple filter.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_infer_set(const wchar_t* name, const wchar_t* infer);
 
 /**
  * @brief Gets the current class_id filter for the ODE Trigger
@@ -3357,43 +3479,46 @@ DslReturnType dsl_ofv_new(const wchar_t* name);
 
 
 /**
- * @brief creates a new, uniquely named OSD obj
+ * @brief creates a new, uniquely named On-Screen Display (OSD) component
  * @param[in] name unique name for the new OSD
- * @param[in] text_enabled set to true to enable display of bbox labels
+ * @param[in] text_enabled set to true to enable object labels display
  * @param[in] clock_enabled set to true to enable clock display
+ * @param[in] bbox_enabled set to true to enable bounding box display
+ * @param[in] mask_enabled set to true to enable mask display
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_new(const wchar_t* name, 
-    boolean text_enabled, boolean clock_enabled);
+    boolean text_enabled, boolean clock_enabled, 
+    boolean bbox_enabled, boolean mask_enabled);
 
 /**
- * @brief returns the current clock enabled setting for the named On-Screen Display
- * @param[in] name name of the Display to query
- * @param[out] enabled current setting for OSD clock in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ * @brief returns the current text enabled setting for the named On-Screen Display.
+ * @param[in] name name of the OSD to query.
+ * @param[out] enabled true if text display is enabled, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise.
  */
 DslReturnType dsl_osd_text_enabled_get(const wchar_t* name, boolean* enabled);
 
 /**
- * @brief sets the the clock enabled setting for On-Screen-Display
- * @param[in] name name of the OSD to update
- * @param[in] enabled new enabled setting for the OSD clock
+ * @brief sets the text enabled setting for On-Screen-Display
+ * @param[in] name name of the OSD to update.
+ * @param[in] enabled set to true to enable text display, false otherwise.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_text_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
- * @brief returns the current clock enabled setting for the named On-Screen Display
- * @param[in] name name of the Display to query
- * @param[out] enabled current setting for OSD clock in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ * @brief returns the current clock enabled setting for the named On-Screen Display.
+ * @param[in] name name of the OSD to query.
+ * @param[out] enabled true if clock display is enabled, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise.
  */
 DslReturnType dsl_osd_clock_enabled_get(const wchar_t* name, boolean* enabled);
 
 /**
- * @brief sets the the clock enabled setting for On-Screen-Display
- * @param[in] name name of the OSD to update
- * @param[in] enabled new enabled setting for the OSD clock
+ * @brief sets the clock enabled setting for On-Screen-Display
+ * @param[in] name name of the OSD to update.
+ * @param[in] enabled set to true to enable clock display, false otherwise.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_clock_enabled_set(const wchar_t* name, boolean enabled);
@@ -3405,7 +3530,8 @@ DslReturnType dsl_osd_clock_enabled_set(const wchar_t* name, boolean enabled);
  * @param[out] offset_y current offset in the Y direction for the OSD clock in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, uint* offset_x, uint* offset_y);
+DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, 
+    uint* offset_x, uint* offset_y);
 
 /**
  * @brief sets the X and Y offsets for the On-Screen-Display clock
@@ -3414,7 +3540,8 @@ DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, uint* offset_x, uin
  * @param[in] offset_y new offset for the OSD clock in the X direction in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offset_x, uint offset_y);
+DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, 
+    uint offset_x, uint offset_y);
 
 /**
  * @brief returns the font name and size for On-Screen-Display clock
@@ -3423,7 +3550,8 @@ DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offset_x, uint
  * @param[out] size current font size for the OSD clock
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, uint* size);
+DslReturnType dsl_osd_clock_font_get(const wchar_t* name, 
+    const wchar_t** font, uint* size);
 
 /**
  * @brief sets the font name and size for the On-Screen-Display clock
@@ -3432,7 +3560,8 @@ DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, 
  * @param[in] size new size string to use for the OSD clock
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_clock_font_set(const wchar_t* name, const wchar_t* font, uint size);
+DslReturnType dsl_osd_clock_font_set(const wchar_t* name, 
+    const wchar_t* font, uint size);
 
 /**
  * @brief returns the font name and size for On-Screen-Display clock
@@ -3443,7 +3572,8 @@ DslReturnType dsl_osd_clock_font_set(const wchar_t* name, const wchar_t* font, u
  * @param[out] alpha current alpha color value for the OSD clock
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_clock_color_get(const wchar_t* name, double* red, double* green, double* blue, double* alpha);
+DslReturnType dsl_osd_clock_color_get(const wchar_t* name, 
+    double* red, double* green, double* blue, double* alpha);
 
 /**
  * @brief sets the font name and size for the On-Screen-Display clock
@@ -3454,29 +3584,56 @@ DslReturnType dsl_osd_clock_color_get(const wchar_t* name, double* red, double* 
  * @param[out] alpha current alpha color value for the OSD clock
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_clock_color_set(const wchar_t* name, double red, double green, double blue, double alpha);
+DslReturnType dsl_osd_clock_color_set(const wchar_t* name, 
+    double red, double green, double blue, double alpha);
 
 /**
- * @brief gets the current crop settings for the named On-Screen-Display
- * @param[in] name name of the OSD to query
- * @param[out] left number of pixels to crop from the left
- * @param[out] top number of pixels to crop from the top
- * @param[out] width width of the cropped image in pixels
- * @param[out] height height of the cropped image in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ * @brief returns the current bbox enabled setting for the named On-Screen Display.
+ * @param[in] name name of the OSD to query.
+ * @param[out] enabled true if bbox display is enabled, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise.
  */
-DslReturnType dsl_osd_crop_settings_get(const wchar_t* name, uint* left, uint* top, uint* width, uint* height);
+DslReturnType dsl_osd_bbox_enabled_get(const wchar_t* name, boolean* enabled);
 
 /**
- * @brief Sets the current crop settings for the named On-Screen-Display
- * @param[in] name name of the OSD to query
- * @param[in] left number of pixels to crop from the left
- * @param[in] top number of pixels to crop from the top
- * @param[in] width width of the cropped image in pixels
- * @param[in] height height of the cropped image in pixels
+ * @brief sets the bbox enabled setting for On-Screen-Display
+ * @param[in] name name of the OSD to update.
+ * @param[in] enabled set to true to enable bbox display, false otherwise.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_crop_settings_set(const wchar_t* name, uint left, uint top, uint width, uint height);
+DslReturnType dsl_osd_bbox_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief returns the current mask enabled setting for the named On-Screen Display.
+ * @param[in] name name of the OSD to query.
+ * @param[out] enabled true if mask display is enabled, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise.
+ */
+DslReturnType dsl_osd_mask_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief sets the mask enabled setting for On-Screen-Display
+ * @param[in] name name of the OSD to update.
+ * @param[in] enabled set to true to enable mask display, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ */
+DslReturnType dsl_osd_mask_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief returns the current process mode setting for the named On-Screen Display.
+ * @param[in] name name of the OSD to query.
+ * @param[out] mode one of 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise.
+ */
+DslReturnType dsl_osd_text_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief sets the text enabled setting for On-Screen-Display
+ * @param[in] name name of the OSD to update.
+ * @param[in] enabled set to true to enable text display, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ */
+DslReturnType dsl_osd_text_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
@@ -3486,7 +3643,8 @@ DslReturnType dsl_osd_crop_settings_set(const wchar_t* name, uint left, uint top
  * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
+DslReturnType dsl_osd_pph_add(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
 
 /**
  * @brief Removes a pad-probe-handler from the OSD
@@ -3495,7 +3653,8 @@ DslReturnType dsl_osd_pph_add(const wchar_t* name, const wchar_t* handler, uint 
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
+DslReturnType dsl_osd_pph_remove(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
 
 /**
  * @brief Creates a new, uniquely named Stream Demuxer Tee component
@@ -4796,6 +4955,34 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* pipel
 DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pipeline, 
     dsl_xwindow_delete_event_handler_cb handler);
 
+/**
+ * @brief Creates a new main-context and main-loop for a named Pipeline. This service
+ * must be called prior to calling dsl_pipeline_play and dsl_pipeline_main_loop_run.
+ * @param name name of the pipeline to update. 
+ */
+DslReturnType dsl_pipeline_main_loop_new(const wchar_t* name);
+    
+/**
+ * @brief Runs and joins a Pipeline's main-loop that was previously created 
+ * with a call to dsl_pipeline_main_loop_new.
+ * Note: this call will block until dsl_pipeline_main_loop_quit is called.
+ * @param name name of the Pipeline to update.
+ */
+DslReturnType dsl_pipeline_main_loop_run(const wchar_t* name);
+
+/**
+ * @brief Quits a Pipeline's running main-loop allowing the thread blocked
+ * on the call to dsl_pipeline_main_loop_run to return.
+ * @param name name of the Pipeline to update.
+ */
+DslReturnType dsl_pipeline_main_loop_quit(const wchar_t* name);
+
+/**
+ * @brief Deletes a Pipeline's main-context and main-loop previously created
+ * by calling dsl_pipeline_main_loop_new. 
+ * @param name name of the Pipeline to update. 
+ */
+DslReturnType dsl_pipeline_main_loop_delete(const wchar_t* name);
 /**
  * @brief Creates a new, uniquely named Player
  * @param[in] name unique name for the new Player

@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
-#include "DslBase.h"
+#include "DslOdeBase.h"
 
 namespace DSL
 {
@@ -117,7 +117,7 @@ namespace DSL
 
 
 
-    class OdeTrigger : public Base
+    class OdeTrigger : public OdeBase
     {
     public: 
     
@@ -230,16 +230,20 @@ namespace DSL
         bool IsResetTimerRunning();
         
         /**
-         * @brief Gets the current Enabled setting, default = true
-         * @return the current Enabled setting
+         * @brief Adds a "limit event listener" function to be notified
+         * on Trigger LIMIT_REACHED, LIMIT_CHANGED, and COUNT_RESET.
+         * @return ture if the listener function was successfully added, false otherwise.
          */
-        bool GetEnabled();
-        
+        bool AddLimitEventListener(
+            dsl_ode_trigger_limit_event_listener_cb listener, void* clientData);
+
         /**
-         * @brief Sets the Enabled setting for ODE type
-         * @param[in] the new value to use
+         * @brief Removes a "limit event listener" function previously added
+         * with a call to AddLimitEventListener.
+         * @return true if the listener function was successfully removed, false otherwise.
          */
-        void SetEnabled(bool enabled);
+        bool RemoveLimitEventListener(
+            dsl_ode_trigger_limit_event_listener_cb listener);
         
         /**
          * @brief Gets the ClassId filter used for Object detection 
@@ -266,14 +270,14 @@ namespace DSL
         void SetLimit(uint limit);
         
         /**
-         * @brief Get the Source filter used for Object detection
+         * @brief Gets the source filter used for Object detection
          * A value of NULL indicates no filter.
          * @return the current Source filter value
          */
         const char* GetSource();
         
         /**
-         * @brief sets the Source filter for Object detection
+         * @brief Sets the source filter for Object detection
          * @param[in] source new source name as filter value to use
          */
         void SetSource(const char* source);
@@ -285,6 +289,27 @@ namespace DSL
          * @param id Source Id to use for test scenario
          */
         void _setSourceId(int id);
+
+        /**
+         * @brief Gets the inference component name filter used for Object detection
+         * A value of NULL indicates no filter.
+         * @return the current inference component name filter value
+         */
+        const char* GetInfer();
+        
+        /**
+         * @brief sets the inference component name filter for Object detection
+         * @param[in] infer new inference component name as filter value to use
+         */
+        void SetInfer(const char* infer);
+        
+        /**
+         * @brief Note: this service is for testing purposes only. It is
+         * used to set the Infer Id filter, which is normally queried 
+         * and set at runtime by the trigger. 
+         * @param id Infer Id to use for test scenario
+         */
+        void _setInferId(int id);
         
         /**
          * @brief Gets the Minimuum Inference Confidence to trigger the event
@@ -374,20 +399,33 @@ namespace DSL
     
         /**
          * @brief Common function to check if an Object's meta data meets the 
-         * min criteria for ODE 
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame 
-         * that holds the Object Meta
-         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to test for min criteria
+         * min criteria for ODE occurrence.
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - 
+         * the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to test 
+         * for min criteria
          * @return true if Min Criteria is met, false otherwise
          */
-        bool CheckForMinCriteria(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        bool CheckForMinCriteria(NvDsFrameMeta* pFrameMeta, 
+            NvDsObjectMeta* pObjectMeta);
         
         /**
-         * @brief Common function to check if a Frame's source id meets the criteria for ODE
-         * @param sourceId a Frame's Source Id to check against the trigger's source filter if set.
+         * @brief Common function to check if a Frame's source id meets the 
+         * criteria for ODE occurrence.
+         * @param sourceId a Frame's Source Id to check against the trigger's 
+         * source filter if set.
          * @return true if Source Id criteria is met, false otherwise
          */
         bool CheckForSourceId(int sourceId);
+        
+        /**
+         * @brief Common function to check if an Objects's infer component id 
+         * meets the criteria for ODE occurrence.
+         * @param inferId an object's inference component Id to check against 
+         * the trigger's infer filter if set.
+         * @return true if Source Id criteria is met, false otherwise
+         */
+        bool CheckForInferId(int inferId);
         
         /**
          * @brief Increments the Trigger Occurrence counter and checks to see
@@ -445,6 +483,13 @@ namespace DSL
          * @brief Mutex for timer reset logic
          */
         GMutex m_resetTimerMutex;
+
+        /**
+         * @brief map of all currently registered limit-state-change-listeners
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_ode_trigger_limit_event_listener_cb, 
+            void*>m_limitEventListeners;
         
         /**
          * @brief process interval, default = 0
@@ -470,11 +515,6 @@ namespace DSL
          */
         std::wstring m_wName;
         
-        /**
-         * @brief enabled flag.
-         */
-        bool m_enabled;
-
         /**
          * @brief trigger count, incremented on every event occurrence
          */
@@ -502,6 +542,18 @@ namespace DSL
          * -1 indicates not set ... updated on first use.
          */
         int m_sourceId;
+        
+        /**
+         * @brief unique inference component name filter for this event
+         * NULL indicates filter is disabled
+         */
+        std::string m_infer;
+        
+        /**
+         * @brief unique inference component id filter for this event
+         * -1 indicates not set ... updated on first use.
+         */
+        int m_inferId;
         
         /**
          * @brief GIE Class Id filter for this event

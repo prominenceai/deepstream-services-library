@@ -56,6 +56,8 @@ static const uint tiler_height(720);
 static const std::wstring osd_name(L"on-screen-display");
 static const boolean text_enabled(true);
 static const boolean clock_enabled(false);
+static const boolean bbox_enabled(true);
+static const boolean mask_enabled(false);
         
 static const std::wstring sink_name(L"window-sink");
 static const uint offset_x(100);
@@ -116,7 +118,8 @@ SCENARIO( "A new Pipeline with a File Source, Primary TIS, KTL Tracker, OSD, and
         REQUIRE( dsl_tracker_ktl_new(ktl_tracker_name.c_str(), tracker_width, tracker_height) 
             == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(sink_name.c_str(),
             offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -163,7 +166,8 @@ SCENARIO( "A new Pipeline with a File Source, Primary TIS, KTL Tracker, \
         REQUIRE( dsl_infer_tis_secondary_new(secondary_tis_name.c_str(), stis_infer_config_file.c_str(), 
             primary_tis_name.c_str(), 0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(sink_name.c_str(),
             offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );

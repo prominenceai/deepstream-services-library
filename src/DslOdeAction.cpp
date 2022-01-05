@@ -32,34 +32,14 @@ THE SOFTWARE.
 namespace DSL
 {
     OdeAction::OdeAction(const char* name)
-        : Base(name)
-        , m_enabled(true)
+        : OdeBase(name)
     {
         LOG_FUNC();
-
-        g_mutex_init(&m_propertyMutex);
     }
 
     OdeAction::~OdeAction()
     {
         LOG_FUNC();
-
-        g_mutex_clear(&m_propertyMutex);
-    }
-
-    bool OdeAction::GetEnabled()
-    {
-        LOG_FUNC();
-        
-        return m_enabled;
-    }
-    
-    void OdeAction::SetEnabled(bool enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_enabled = enabled;
     }
     
     std::string OdeAction::Ntp2Str(uint64_t ntp)
@@ -888,11 +868,11 @@ namespace DSL
             {
                 body.push_back(std::string("    Inference   : No<br>"));
             }
-            body.push_back(std::string("    SourceId    : " 
+            body.push_back(std::string("    Source Id   : " 
                 +  std::to_string(pFrameMeta->source_id) + "<br>"));
-            body.push_back(std::string("    BatchId     : " 
+            body.push_back(std::string("    Batch Id    : " 
                 +  std::to_string(pFrameMeta->batch_id) + "<br>"));
-            body.push_back(std::string("    PadIndex    : " 
+            body.push_back(std::string("    Pad Index   : " 
                 +  std::to_string(pFrameMeta->pad_index) + "<br>"));
             body.push_back(std::string("    Frame       : " 
                 +  std::to_string(pFrameMeta->frame_num) + "<br>"));
@@ -1108,9 +1088,9 @@ namespace DSL
             {
                 m_ostream << "    Inference   : No\n";
             }
-            m_ostream << "    SourceId    : " << pFrameMeta->source_id << "\n";
-            m_ostream << "    BatchId     : " << pFrameMeta->batch_id << "\n";
-            m_ostream << "    PadIndex    : " << pFrameMeta->pad_index << "\n";
+            m_ostream << "    Source Id   : " << pFrameMeta->source_id << "\n";
+            m_ostream << "    Batch Id    : " << pFrameMeta->batch_id << "\n";
+            m_ostream << "    Pad Index   : " << pFrameMeta->pad_index << "\n";
             m_ostream << "    Frame       : " << pFrameMeta->frame_num << "\n";
             m_ostream << "    Width       : " << pFrameMeta->source_frame_width << "\n";
             m_ostream << "    Heigh       : " << pFrameMeta->source_frame_height << "\n";
@@ -1120,6 +1100,7 @@ namespace DSL
             if (pObjectMeta)
             {
                 m_ostream << "    Obj ClassId : " << pObjectMeta->class_id << "\n";
+                m_ostream << "    Infer Id    : " << pObjectMeta->unique_component_id << "\n";
                 m_ostream << "    Tracking Id : " << pObjectMeta->object_id << "\n";
                 m_ostream << "    Label       : " << pObjectMeta->obj_label << "\n";
                 m_ostream << "    Persistence : " << pObjectMeta->
@@ -1174,6 +1155,7 @@ namespace DSL
             if (pObjectMeta)
             {
                 m_ostream << pObjectMeta->class_id << ",";
+                m_ostream << pObjectMeta->unique_component_id << ",";
                 m_ostream << pObjectMeta->object_id << ",";
                 m_ostream << pObjectMeta->obj_label << ",";
                 m_ostream << pObjectMeta->confidence << ",";
@@ -1186,7 +1168,7 @@ namespace DSL
             }
             else
             {
-                m_ostream << "0,0,0,0,0,0,0,0";
+                m_ostream << "0,0,0,0,0,0,0,0,0,0";
             }
 
             m_ostream << pTrigger->m_classId << ",";
@@ -1365,9 +1347,9 @@ namespace DSL
             {
                 LOG_INFO("    Inference   : No");
             }
-            LOG_INFO("    SourceId    : " << pFrameMeta->source_id);
-            LOG_INFO("    BatchId     : " << pFrameMeta->batch_id);
-            LOG_INFO("    PadIndex    : " << pFrameMeta->pad_index);
+            LOG_INFO("    Source Id   : " << pFrameMeta->source_id);
+            LOG_INFO("    Batch Id    : " << pFrameMeta->batch_id);
+            LOG_INFO("    Pad Index   : " << pFrameMeta->pad_index);
             LOG_INFO("    Frame       : " << pFrameMeta->frame_num);
             LOG_INFO("    Width       : " << pFrameMeta->source_frame_width);
             LOG_INFO("    Heigh       : " << pFrameMeta->source_frame_height );
@@ -1377,6 +1359,7 @@ namespace DSL
             if (pObjectMeta)
             {
                 LOG_INFO("    Obj ClassId : " << pObjectMeta->class_id);
+                LOG_INFO("    Infer Id    : " << pObjectMeta->unique_component_id);
                 LOG_INFO("    Tracking Id : " << pObjectMeta->object_id);
                 LOG_INFO("    Label       : " << pObjectMeta->obj_label);
                 LOG_INFO("    Confidence  : " << pObjectMeta->confidence);
@@ -1389,6 +1372,7 @@ namespace DSL
             }
             LOG_INFO("  Criteria      : ------------------------");
             LOG_INFO("    Class Id    : " << pTrigger->m_classId );
+            LOG_INFO("    Infer Id    : " << pTrigger->m_inferId );
             LOG_INFO("    Confidence  : " << pTrigger->m_minConfidence);
             LOG_INFO("    Frame Count : " << pTrigger->m_minFrameCountN
                 << " out of " << pTrigger->m_minFrameCountD);
@@ -1558,9 +1542,9 @@ namespace DSL
         {
             std::cout << "    Inference   : No\n";
         }
-        std::cout << "    SourceId    : " << pFrameMeta->source_id << "\n";
-        std::cout << "    BatchId     : " << pFrameMeta->batch_id << "\n";
-        std::cout << "    PadIndex    : " << pFrameMeta->pad_index << "\n";
+        std::cout << "    Source Id   : " << pFrameMeta->source_id << "\n";
+        std::cout << "    Batch Id    : " << pFrameMeta->batch_id << "\n";
+        std::cout << "    Pad Index   : " << pFrameMeta->pad_index << "\n";
         std::cout << "    Frame       : " << pFrameMeta->frame_num << "\n";
         std::cout << "    Width       : " << pFrameMeta->source_frame_width << "\n";
         std::cout << "    Heigh       : " << pFrameMeta->source_frame_height << "\n";
@@ -1570,6 +1554,7 @@ namespace DSL
         if (pObjectMeta)
         {
             std::cout << "    Obj ClassId : " << pObjectMeta->class_id << "\n";
+            std::cout << "    Infer Id    : " << pObjectMeta->unique_component_id << "\n";
             std::cout << "    Tracking Id : " << pObjectMeta->object_id << "\n";
             std::cout << "    Label       : " << pObjectMeta->obj_label << "\n";
             std::cout << "    Confidence  : " << pObjectMeta->confidence << "\n";

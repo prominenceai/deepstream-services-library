@@ -35,6 +35,7 @@ namespace DSL
         , m_isPaddingEnabled(false)
         , m_areSourcesLive(false)
         , m_nvbufMemType(DSL_DEFAULT_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE)
+        , m_batchTimeout(DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT)
     {
         LOG_FUNC();
 
@@ -274,10 +275,12 @@ namespace DSL
             m_usedStreamIds.push_back(true);
             streamId++;
         }
+        // Set the Batch size to the nuber of sources owned if not already set
         if (!m_batchSize)
         {
-            // Set the Batch size to the nuber of sources owned if not already set
-            SetStreamMuxBatchProperties(m_pChildSources.size(), DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT);
+            m_batchSize = m_pChildSources.size();
+            m_pStreamMux->SetAttribute("batch-size", m_batchSize);
+            m_pStreamMux->SetAttribute("batched-push-timeout", m_batchTimeout);
         }
         m_isLinked = true;
         
