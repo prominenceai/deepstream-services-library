@@ -45,28 +45,47 @@ static boolean ode_post_process_frame_cb(void* buffer,
 static void ode_occurrence_handler_cb_1(uint64_t event_id, const wchar_t* name,
     void* buffer, void* display_meta, void* frame_meta, void* object_meta, void* client_data)
 {
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    std::cout << "Custom Action Calback 1. called\n";
+    std::cout << "Custom Action callback 1. called\n";
 }    
 
 static void ode_occurrence_handler_cb_2(uint64_t event_id, const wchar_t* name,
     void* buffer, void* display_meta, void* frame_meta, void* object_meta, void* client_data)
 {
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    std::cout << "Custom Action Calback 2. called\n";
+    std::cout << "Custom Action callback 2. called\n";
 }    
 static void ode_occurrence_handler_cb_3(uint64_t event_id, const wchar_t* name,
     void* buffer, void* display_meta, void* frame_meta, void* object_meta, void* client_data)
 {
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    std::cout << "Custom Action Calback 3. called\n";
+    std::cout << "Custom Action callback 3. called\n";
 }    
+
+static void limit_event_listener_1(uint event, uint limit, void* client_data)
+{
+    std::cout 
+        << "Limit event listener 1 callback called, event = " 
+        << event << ", limit = " << limit << "\n";
+}
+
+static void limit_event_listener_2(uint event, uint limit, void* client_data)
+{
+    std::cout 
+        << "Limit event listener 2 callback called, event = " 
+        << event << ", limit = " << limit << "\n";
+}
+
+static void enabled_state_change_listener_1(boolean enabled, void* client_data)
+{
+    std::cout 
+        << "Enabled State Change listener 1 callback called with enabled = " 
+        << enabled << "\n";
+}
+
+static void enabled_state_change_listener_2(boolean enabled, void* client_data)
+{
+    std::cout 
+        << "Enabled State Change listener 2 callback called with enabled = " 
+        << enabled << "\n";
+}
 
 SCENARIO( "A new OdeOccurreceTrigger is created correctly", "[OdeTrigger]" )
 {
@@ -165,6 +184,70 @@ SCENARIO( "An OdeOccurrenceTrigger checks its enabled setting ", "[OdeTrigger]" 
         }
     }
 }
+
+SCENARIO( "An OdeOccurrenceTrigger calls all enabled-state-change-listeners on state change", "[OdeTrigger]" )
+{
+    GIVEN( "A new OdeTrigger with default criteria" ) 
+    {
+        std::string odeTriggerName("occurence");
+        uint classId(1);
+        uint limit(0); // not limit
+
+        std::string source;
+
+        std::string odeActionName("print-action");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        // Frame Meta test data
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  
+        frameMeta.frame_num = 1;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        // Object Meta test data
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match ODE Trigger's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.rect_params.left = 10;
+        objectMeta.rect_params.top = 10;
+        objectMeta.rect_params.width = 200;
+        objectMeta.rect_params.height = 100;
+
+        REQUIRE( pOdeTrigger->AddEnabledStateChangeListener(
+            enabled_state_change_listener_1, NULL) == true );
+
+        REQUIRE( pOdeTrigger->AddEnabledStateChangeListener(
+            enabled_state_change_listener_2, NULL) == true );
+        
+        WHEN( "The ODE Trigger is disabled" )
+        {
+            pOdeTrigger->SetEnabled(false);
+            
+            THEN( "All client callback functions are called" )
+            {
+                // requires manual/visual verification at this time.
+            }
+        }
+        WHEN( "The ODE Trigger is enabled" )
+        {
+            pOdeTrigger->SetEnabled(true);
+            
+            THEN( "All client callback functions are called" )
+            {
+                // requires manual/visual verification at this time.
+            }
+        }
+    }
+}
+
 
 SCENARIO( "An OdeOccurrenceTrigger executes its ODE Actions in the correct order ", "[OdeTrigger]" )
 {
@@ -339,6 +422,71 @@ SCENARIO( "An OdeOccurrenceTrigger handles a timed reset correctly", "[OdeTrigge
             {
                 REQUIRE( pOdeTrigger->GetResetTimeout() == new_reset_timeout );
                 REQUIRE( pOdeTrigger->IsResetTimerRunning() == false);
+            }
+        }
+    }
+}
+
+SCENARIO( "An OdeOccurrenceTrigger notifies its limit-state-listeners", "[OdeTrigger]" )
+{
+    GIVEN( "A new OdeTrigger with default criteria" ) 
+    {
+        std::string odeTriggerName("occurence");
+        uint classId(1);
+        uint limit(1); // one-shot tirgger
+        uint reset_timeout(1);
+
+        std::string source;
+
+        std::string odeActionName("print-action");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        // Frame Meta test data
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  
+        frameMeta.frame_num = 1;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        // Object Meta test data
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match ODE Trigger's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.rect_params.left = 10;
+        objectMeta.rect_params.top = 10;
+        objectMeta.rect_params.width = 200;
+        objectMeta.rect_params.height = 100;
+
+        REQUIRE( pOdeTrigger->AddLimitEventListener(
+            limit_event_listener_1, NULL) == true );
+
+        REQUIRE( pOdeTrigger->AddLimitEventListener(
+            limit_event_listener_2, NULL) == true );
+        
+        WHEN( "When an ODE occures and the Trigger reaches its limit" )
+        {
+            // First occurrence will reach the Trigger's limit of one
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                NULL, &frameMeta, &objectMeta) == true );
+
+            THEN( "All client listeners are notified" )
+            {
+                // NOTE requires manual confirmation at this time.
+                
+                pOdeTrigger->Reset();
+                
+                REQUIRE( pOdeTrigger->RemoveLimitEventListener(
+                    limit_event_listener_1) == true );
+
+                REQUIRE( pOdeTrigger->RemoveLimitEventListener(
+                    limit_event_listener_2) == true );
             }
         }
     }

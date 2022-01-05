@@ -222,6 +222,12 @@ namespace DSL {
 
         DslReturnType OdeActionEnabledSet(const char* name, boolean enabled);
 
+        DslReturnType OdeActionEnabledStateChangeListenerAdd(const char* name,
+            dsl_ode_enabled_state_change_listener_cb listener, void* clientData);
+
+        DslReturnType OdeActionEnabledStateChangeListenerRemove(const char* name,
+            dsl_ode_enabled_state_change_listener_cb listener);
+
         DslReturnType OdeActionDelete(const char* name);
         
         DslReturnType OdeActionDeleteAll();
@@ -325,10 +331,22 @@ namespace DSL {
         DslReturnType OdeTriggerResetTimeoutGet(const char* name, uint* timeout);
 
         DslReturnType OdeTriggerResetTimeoutSet(const char* name, uint timeout);
+        
+        DslReturnType OdeTriggerLimitEventListenerAdd(const char* name,
+            dsl_ode_trigger_limit_event_listener_cb listener, void* clientData);
+
+        DslReturnType OdeTriggerLimitEventListenerRemove(const char* name,
+            dsl_ode_trigger_limit_event_listener_cb listener);
 
         DslReturnType OdeTriggerEnabledGet(const char* name, boolean* enabled);
 
         DslReturnType OdeTriggerEnabledSet(const char* name, boolean enabled);
+
+        DslReturnType OdeTriggerEnabledStateChangeListenerAdd(const char* name,
+            dsl_ode_enabled_state_change_listener_cb listener, void* clientData);
+
+        DslReturnType OdeTriggerEnabledStateChangeListenerRemove(const char* name,
+            dsl_ode_enabled_state_change_listener_cb listener);
 
         DslReturnType OdeTriggerSourceGet(const char* name, const char** source);
         

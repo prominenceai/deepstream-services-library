@@ -290,8 +290,9 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_TRIGGER_AREA_ADD_FAILED                      0x000E000A
 #define DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED                   0x000E000B
 #define DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE                      0x000E000C
-#define DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID              0x000E000D
-#define DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID                    0x000E000E
+#define DSL_RESULT_ODE_TRIGGER_CALLBACK_ADD_FAILED                  0x000F000D
+#define DSL_RESULT_ODE_TRIGGER_CALLBACK_REMOVE_FAILED               0x000F000E
+#define DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID                    0x000E000F
 #define DSL_RESULT_ODE_TRIGGER_IS_NOT_AB_TYPE                       0x000E0010
 /**
  * ODE Action API Return Values
@@ -510,6 +511,13 @@ THE SOFTWARE.
 #define DSL_ODE_ANY_CLASS                                           INT32_MAX
 #define DSL_ODE_TRIGGER_LIMIT_NONE                                  0
 #define DSL_ODE_TRIGGER_LIMIT_ONE                                   1
+
+/**
+ * @brief ODE Trigger limit state values - for Triggers with limits
+ */
+#define DSL_ODE_TRIGGER_LIMIT_EVENT_LIMIT_REACHED                   0
+#define DSL_ODE_TRIGGER_LIMIT_EVENT_LIMIT_CHANGED                   1
+#define DSL_ODE_TRIGGER_LIMIT_EVENT_COUNT_RESET                     2
 
 /**
  * @brief Unique class relational identifiers for Class A/B testing
@@ -819,7 +827,7 @@ typedef struct _dsl_coordinate
 
 /**
  *
- * @brief callback typedef for a client ODE occurrence handler function. 
+ * @brief Callback typedef for a client ODE occurrence handler function. 
  * Once registered by calling dsl_ode_action_custom_new, the function will 
  * be called on ODE occurrence. 
  * @param[in] event_id unique ODE occurrence ID, numerically ordered by occurrence.
@@ -836,7 +844,7 @@ typedef void (*dsl_ode_handle_occurrence_cb)(uint64_t event_id, const wchar_t* t
     void* buffer, void* display_meta, void* frame_meta, void* object_meta, void* client_data);
 
 /**
- * @brief callback typedef for a client ODE Custom Trigger check-for-occurrence function. Once 
+ * @brief Callback typedef for a client ODE Custom Trigger check-for-occurrence function. Once 
  * registered, the function will be called on every object detected that meets the minimum
  * criteria for the Custom Trigger. The client, determining that criteria is met for ODE occurrence,
  * returns true to invoke all ODE acctions owned by the Custom Trigger
@@ -850,7 +858,7 @@ typedef boolean (*dsl_ode_check_for_occurrence_cb)(void* buffer,
     void* frame_meta, void* object_meta, void* client_data);
 
 /**
- * @brief callback typedef for a client ODE Custom Trigger post-process-frame function. Once 
+ * @brief Callback typedef for a client ODE Custom Trigger post-process-frame function. Once 
  * registered, the function will be called on every frame AFTER all Check-For-Occurrence calls 
  * have been handles The client, determining that criteria is met for ODE occurrence,  
  * returns true to invoke all ODE acctions owned by the Custom Trigger
@@ -862,10 +870,31 @@ typedef boolean (*dsl_ode_check_for_occurrence_cb)(void* buffer,
  */
 typedef boolean (*dsl_ode_post_process_frame_cb)(void* buffer,
     void* frame_meta, void* client_data);
+    
+/**
+ * @brief Callback typedef for a client listener function. Once added to an
+ * ODE Trigger or ODE Action, this function will be called on change 
+ * of the enabled state.
+ * @param[in] enabled true if the ODE Object was enabled, false if disalbed.
+ * @param[in] client_data opaque pointer to client's user data.
+ */
+ typedef void (*dsl_ode_enabled_state_change_listener_cb)
+    (boolean enabled, void* client_data);
 
 /**
- * @brief callback typedef for a client to hanlde new Pipeline performance data
- * ,calcaulated by the Meter Pad Probe Handler, at an intervel specified by the client.
+ * @brief Callback typedef for a client listener function. Once added to an
+ * ODE Trigger, this function will be called on every Trigger Limit event;
+ * LIMIT_REACHED, LIMIT_CHANGED, and COUNT_RESET
+ * @param[in] event one of the DSL_ODE_TRIGGER_LIMIT_EVENT constants.
+ * @param[in] limit the current, or new limit for the Trigger.
+ * @param[in] client_data opaque pointer to client's user data.
+ */
+ typedef void (*dsl_ode_trigger_limit_event_listener_cb)
+    (uint event, uint limit, void* client_data);
+
+/**
+ * @brief callback typedef for a client to handle new Pipeline performance data
+ * calcaulated by the Meter Pad Probe Handler, at an intervel specified by the client.
  * @param[in] session_fps_averages array of frames-per-second measurements, 
  * one per source, specified by list_size 
  * @param[in] interval_fps_averages array of average frames-per-second measurements, 
@@ -875,7 +904,7 @@ typedef boolean (*dsl_ode_post_process_frame_cb)(void* buffer,
  * @param[in] client_data opaque pointer to client's user data provide on end-of-session
  */
 typedef boolean (*dsl_pph_meter_client_handler_cb)(double* session_fps_averages, 
-    double* interval_fps_averages,    uint source_count, void* client_data);
+    double* interval_fps_averages, uint source_count, void* client_data);
     
 /**
  * @brief callback typedef for a client pad probe handler function. Once added to a Component, 
@@ -1636,6 +1665,27 @@ DslReturnType dsl_ode_action_enabled_get(const wchar_t* name, boolean* enabled);
 DslReturnType dsl_ode_action_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
+ * @brief Adds a callback to be notified on change of enabled state for a named
+ * ODE Action. 
+ * @param[in] name name of the ODE Action to update.
+ * @param[in] listener pointer to the client's function to call on state change
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_enabled_state_change_listener_add(const wchar_t* name,
+    dsl_ode_enabled_state_change_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a callback previously added with a call to
+ * dsl_ode_action_enabled_state_change_listener_add.
+ * @param[in] name name of the ODE Action to update.
+ * @param[in] listener pointer to the client's function to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_enabled_state_change_listener_remove(const wchar_t* name,
+    dsl_ode_enabled_state_change_listener_cb listener);
+    
+/**
  * @brief Deletes an ODE Action of any type
  * This service will fail with DSL_RESULT_ODE_ACTION_IN_USE if the Action is currently
  * owned by a ODE Trigger.
@@ -2095,26 +2145,68 @@ DslReturnType dsl_ode_trigger_reset_timeout_get(const wchar_t* name, uint *timeo
 DslReturnType dsl_ode_trigger_reset_timeout_set(const wchar_t* name, uint timeout);
 
 /**
- * @brief Gets the current enabled setting for the ODE Trigger
- * @param[in] name unique name of the ODE Trigger to query
- * @param[out] enabled true if the ODE Trigger is currently enabled, false otherwise
+ * @brief Adds a callback to be notified on every ODE Trigger limit event;
+ * LIMIT_REACED, LIMIT_CHANGED, and COUNT_REST
+ * @param[in] name name of the ODE Trigger to update
+ * @param[in] listener pointer to the client's function to call on trigger limit event
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_limit_event_listener_add(const wchar_t* name,
+    dsl_ode_trigger_limit_event_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a callback previously added with a call to
+ * dsl_ode_trigger_limit_event_listener_add.
+ * @param[in] name name of the ODE Trigger to update.
+ * @param[in] listener pointer to the client's function to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_limit_event_listener_remove(const wchar_t* name,
+    dsl_ode_trigger_limit_event_listener_cb listener);
+
+/**
+ * @brief Gets the current enabled setting for the ODE Trigger.
+ * @param[in] name unique name of the ODE Trigger to query.
+ * @param[out] enabled true if the ODE Trigger is currently enabled, false otherwise.
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_enabled_get(const wchar_t* name, boolean* enabled);
 
 /**
- * @brief Sets the enabled setting for the ODE Trigger
- * @param[in] name unique name of the ODE Trigger to update
- * @param[in] enabled true if the ODE Trigger is currently enabled, false otherwise
+ * @brief Sets the enabled setting for the ODE Trigger.
+ * @param[in] name unique name of the ODE Trigger to update.
+ * @param[in] enabled true if the ODE Trigger is currently enabled, false otherwise.
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
+ * @brief Adds a callback to be notified on change of enabled state for a named
+ * ODE Trigger. 
+ * @param[in] name name of the ODE Trigger to update.
+ * @param[in] listener pointer to the client's function to call on state change
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_enabled_state_change_listener_add(const wchar_t* name,
+    dsl_ode_enabled_state_change_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a callback previously added with a call to
+ * dsl_ode_trigger_enabled_state_change_listener_add.
+ * @param[in] name name of the ODE Trigger to update.
+ * @param[in] listener pointer to the client's function to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_enabled_state_change_listener_remove(const wchar_t* name,
+    dsl_ode_enabled_state_change_listener_cb listener);
+
+/**
  * @brief Gets the current source name filter for the ODE Trigger
- * A value of NULL indicates filter disabled
- * @param[in] name unique name of the ODE Trigger to query
- * @param[out] source returns the current source name in use
+ * A value of NULL indicates filter disabled.
+ * @param[in] name unique name of the ODE Trigger to query.
+ * @param[out] source returns the current source name in use.
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_source_get(const wchar_t* name, const wchar_t** source);

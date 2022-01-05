@@ -32,34 +32,14 @@ THE SOFTWARE.
 namespace DSL
 {
     OdeAction::OdeAction(const char* name)
-        : Base(name)
-        , m_enabled(true)
+        : OdeBase(name)
     {
         LOG_FUNC();
-
-        g_mutex_init(&m_propertyMutex);
     }
 
     OdeAction::~OdeAction()
     {
         LOG_FUNC();
-
-        g_mutex_clear(&m_propertyMutex);
-    }
-
-    bool OdeAction::GetEnabled()
-    {
-        LOG_FUNC();
-        
-        return m_enabled;
-    }
-    
-    void OdeAction::SetEnabled(bool enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_enabled = enabled;
     }
     
     std::string OdeAction::Ntp2Str(uint64_t ntp)

@@ -8,13 +8,13 @@ Several ODE Actions can be created to update the Frame and object Metadata to be
 There are two actions that start a new recording session, one for the [Record-Sink](/docs/api-sink.md) created with [dsl_ode_action_sink_record_start_new](#dsl_ode_action_sink_record_start_new) and the other for the [Record-Tap](/docs/api-tap.md) created with [dsl_ode_action_tap_record_start_new](#dsl_ode_action_tap_record_start_new)
 
 #### Actions on Actions
-Actions can be created to Disable other Actions on invocation. See [dsl_ode_action_action_disable_new](#dsl_ode_action_action_disable_new) and [dsl_ode_action_action_enable_new](#dsl_ode_action_action_enable_new). 
+Actions can be created to Disable other Actions on invocation. See [dsl_ode_action_action_disable_new](#dsl_ode_action_action_disable_new) and [dsl_ode_action_action_enable_new](#dsl_ode_action_action_enable_new).
 
 #### Actions with ODE Occurrence Data
 Actions performed with the ODE occurrence data include  [dsl_ode_action_callback_new](#dsl_ode_action_callback_new), [dsl_ode_action_display_new](#dsl_ode_action_display_new), [dsl_ode_action_log_new](#dsl_ode_action_log_new), [dsl_ode_action_email_new](dsl_ode_action_email_new), and [dsl_ode_action_print_new](#dsl_ode_action_print_new)
 
 #### Actions on Areas
-Actions can be used to Add and Remove Areas to/from a Trigger on invocation. See [dsl_ode_action_area_add_new](#dsl_ode_action_area_add_new) and [dsl_ode_action_area_remove_new](#dsl_ode_action_area_remove_new). 
+Actions can be used to Add and Remove Areas to/from a Trigger on invocation. See [dsl_ode_action_area_add_new](#dsl_ode_action_area_add_new) and [dsl_ode_action_area_remove_new](#dsl_ode_action_area_remove_new).
 
 #### Actions on Triggers
 Actions can be created to Disable, Enable or Reset a Trigger on invocation. See [dsl_ode_action_trigger_reset_new](#dsl_ode_action_trigger_reset_new), [dsl_ode_action_trigger_disable_new](#dsl_ode_action_trigger_disable_new), and [dsl_ode_action_trigger_enable_new](#dsl_ode_action_trigger_enable_new).
@@ -35,7 +35,8 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 
 **Callback Types:**
 * [dsl_capture_complete_listener_cb](#dsl_capture_complete_listener_cb)
-* [dsl_ode_handle_occurrence_cb](dsl_ode_handle_occurrence_cb)
+* [dsl_ode_handle_occurrence_cb](#dsl_ode_handle_occurrence_cb)
+* [dsl_ode_enabled_state_change_listener_cb](#dsl_ode_enabled_state_change_listener_cb)
 
 **Constructors:**
 * [dsl_ode_action_action_disable_new](#dsl_ode_action_action_disable_new)
@@ -87,12 +88,14 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 * [dsl_ode_action_customize_label_set](#dsl_ode_action_customize_label_set)
 * [dsl_ode_action_enabled_get](#dsl_ode_action_enabled_get)
 * [dsl_ode_action_enabled_set](#dsl_ode_action_enabled_set)
+* [dsl_ode_action_enabled_state_change_listener_add](#dsl_ode_action_enabled_state_change_listener_add)
+* [dsl_ode_action_enabled_state_change_listener_remove](#dsl_ode_action_enabled_state_change_listener_remove)
 * [dsl_ode_action_list_size](#dsl_ode_action_list_size)
 
 ---
 
 ## Constants
-The following symbolic constants are used by the OSD Action API
+The following symbolic constants are used by the ODE Action API
 ```C
 #define DSL_EVENT_FILE_FORMAT_TEXT                                  0
 #define DSL_EVENT_FILE_FORMAT_CSV                                   1
@@ -111,7 +114,7 @@ The following symbolic constants are used by the OSD Action API
 ```
 
 ## Return Values
-The following return codes are used by the OSD Action API
+The following return codes are used by the ODE Action API
 ```C
 #define DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE                       0x000F0001
 #define DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND                        0x000F0002
@@ -147,19 +150,19 @@ Structure typedef used to provide Image Capture information to a Client [dsl_rec
 
 **Fields**
 * `captureId` - the unique capture id assigned on file save.
-* `filename` - filename generated for the captured image. 
+* `filename` - filename generated for the captured image.
 * `dirpath` - directory path for the captured image
 * `width` - width of the image in pixels.
 * `height` - height of the image in pixels.
 
 **Python Example**
 ```Python
-## 
+##
 # Function to be called on Object Capture (and file-save) complete
-## 
+##
 def capture_complete_listener(capture_info_ptr, client_data):
     print(' ***  Object Capture Complete  *** ')
-    
+   
     capture_info = capture_info_ptr.contents
     print('capture_id: ', capture_info.capture_id)
     print('filename:   ', capture_info.filename)
@@ -173,7 +176,7 @@ def capture_complete_listener(capture_info_ptr, client_data):
 ```C++
 typedef void (*dsl_capture_complete_listener_cb)(dsl_capture_info* info, void* client_data);
 ```
-Callback typedef for a clients to listen for the notification that an Image or Object Capture has been completed and saved to file.
+Callback typedef for a client to listen for the notification that an Image or Object Capture has been completed and saved to file.
 
 **Parameters**
 * `info` [in] opaque pointer to the capture info of type [dsl_capture_info](#dsl_capture_info)
@@ -186,7 +189,7 @@ Callback typedef for a clients to listen for the notification that an Image or O
 typedef void (*dsl_ode_handle_occurrence_cb)(uint64_t event_id, const wchar_t* trigger,
     void* buffer, void* display_meta, void* frame_meta, void* object_meta, void* client_data);
 ```
-Callback typedef for a client ODE occurrence handler function. Once registered, by calling dsl_ode_action_custom_new, the function will be called on ODE occurrence. 
+Callback typedef for a client ODE occurrence handler function. Once registered, by calling dsl_ode_action_custom_new, the function will be called on ODE occurrence.
 
 **Parameters**
 * `event_id` [in] unique event identification.
@@ -197,12 +200,27 @@ Callback typedef for a client ODE occurrence handler function. Once registered, 
 * `object_meta` [in] pointer to the NvDsObjectMeta structure that triggered the ODE event. Note: This parameter will be set to NULL for ODE occurrences detected in Post process frame. Absence and Count ODE's as examples.
 * `user_data` [in] user_data opaque pointer to client's user data, provided by the client.  
 
+<br>
+
+### *dsl_ode_enabled_state_change_listener_cb*
+```C++
+ typedef void (*dsl_ode_enabled_state_change_listener_cb)
+    (boolean enabled, void* client_data)
+```
+Defines a Callback typedef for a client listener function. Once added to an ODE Action, this function will be called on every change of the Action's enabled state.
+
+**Parameters**
+* `enabled` - [in] true if the Action has been enabled, false if disabled.
+* `client_data` - [in] opque point to client user data provided by the client on callback add.
+
+<br>
+
 ---
 
 ## Constructors
 ### *dsl_ode_action_action_add_new*
 ```C++
-DslReturnType dsl_ode_action_action_add_new(const wchar_t* name, 
+DslReturnType dsl_ode_action_action_add_new(const wchar_t* name,
     const wchar_t* trigger, const wchar_t* action);
 ```
 The constructor creates a uniquely named **Add Action** ODE Action. When invoked, this Action will attempt to add a named ODE Action to a named ODE Trigger. The Action will produce an error log message if either the Trigger or Action do not exist.
@@ -264,7 +282,7 @@ retval = dsl_ode_action_action_enable_new('my-enable-action-action', 'my-other-a
 
 ### *dsl_ode_action_area_add_new*
 ```C++
-DslReturnType dsl_ode_action_area_add_new(const wchar_t* name, 
+DslReturnType dsl_ode_action_area_add_new(const wchar_t* name,
     const wchar_t* trigger, const wchar_t* area);
 ```
 The constructor creates a uniquely named **Add Area** ODE Action. When invoked, this Action will attempt to add a named ODE Area to a named ODE Trigger. The Action will produce an error message if either the Trigger or Area do not exist at the time of invocation.
@@ -286,10 +304,10 @@ retval = dsl_ode_action_area_add_new('my-add-area-action', 'my-trigger', 'my-are
 
 ### *dsl_ode_action_area_remove_new*
 ```C++
-DslReturnType dsl_ode_action_area_remove_new(const wchar_t* name, 
+DslReturnType dsl_ode_action_area_remove_new(const wchar_t* name,
     const wchar_t* trigger, const wchar_t* area);
 ```
-The constructor creates a uniquely named **Remove Area** ODE Action. When invoked, this Action will attempt to remove a named ODE Area from a named ODE Trigger. The Action will produce an error log message if either the Trigger or Area do not exist at the time of invocation. 
+The constructor creates a uniquely named **Remove Area** ODE Action. When invoked, this Action will attempt to remove a named ODE Area from a named ODE Trigger. The Action will produce an error log message if either the Trigger or Area do not exist at the time of invocation.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
@@ -353,10 +371,10 @@ retval = dsl_ode_action_capture_object_new('my-object-action', './images/frames'
 
 ### *dsl_ode_action_custom_new*
 ```C++
-DslReturnType dsl_ode_action_custom_new(const wchar_t* name, 
+DslReturnType dsl_ode_action_custom_new(const wchar_t* name,
     dsl_ode_occurrence_handler_cb client_handler, void* client_data);
 ```
-The constructor creates a uniquely named **Custom** ODE Action. When invoked, this Action will call the Client provided callback function with the Frame Meta and Object Meta that triggered the ODE occurrence. 
+The constructor creates a uniquely named **Custom** ODE Action. When invoked, this Action will call the Client provided callback function with the Frame Meta and Object Meta that triggered the ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
@@ -390,7 +408,7 @@ The constructor creates a uniquely named **Customize Label** ODE Action. When in
 
 **Python Example**
 ```Python    
-retval = dsl_ode_action_display_new('my-customize-label-action', 
+retval = dsl_ode_action_display_new('my-customize-label-action',
     [DSL_OBJECT_LABEL_TRACKING_ID, DSL_OBJECT_LABEL_PERSISTENCE], 2)
 ```
 
@@ -398,11 +416,11 @@ retval = dsl_ode_action_display_new('my-customize-label-action',
 
 ### *dsl_ode_action_display_new*
 ```C++
-DslReturnType dsl_ode_action_display_new(const wchar_t* name, 
-    const wchar_t* format_string, uint offset_x, uint offset_y, 
+DslReturnType dsl_ode_action_display_new(const wchar_t* name,
+    const wchar_t* format_string, uint offset_x, uint offset_y,
     const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
 ```
-The constructor creates a uniquely named **Display Data** ODE Action. When invoked, this Action adds the `format_string` with replaced metrics as metadata to the current Frame for display by a downstream On-Screen-Display (OSD) component. 
+The constructor creates a uniquely named **Display Data** ODE Action. When invoked, this Action adds the `format_string` with replaced metrics as metadata to the current Frame for display by a downstream On-Screen-Display (OSD) component.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
@@ -465,7 +483,7 @@ The constructor creates a uniquely named **Add Many Display Meta** ODE Action. W
 
 **Python Example**
 ```Python
-retval = dsl_ode_action_display_meta_add_new('my-add-display-meta-action', 
+retval = dsl_ode_action_display_meta_add_new('my-add-display-meta-action',
     ['my-circle', 'my-rectangle', 'my-source-name', None])
 ```
 
@@ -475,7 +493,7 @@ retval = dsl_ode_action_display_meta_add_new('my-add-display-meta-action',
 ```C++
 DslReturnType dsl_ode_action_email_new(const wchar_t* name, const wchar_t* subject);
 ```
-The constructor creates a uniquely named **Email** ODE Action. When invoked, this Action will send an Email message to all `To` and `Cc` addresses previously setup using the [SMTP Services API](/docs/api-smtp.md). The body of the email will contain all Fram/Object and Trigger Criteria information for the ODE occurence that triggered the event.
+The constructor creates a uniquely named **Email** ODE Action. When invoked, this Action will send an Email message to all `To` and `Cc` addresses previously setup using the [SMTP Services API](/docs/api-smtp.md). The body of the email will contain all Fram/Object and Trigger Criteria information for the ODE occurrence that triggered the event.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
@@ -486,19 +504,19 @@ The constructor creates a uniquely named **Email** ODE Action. When invoked, thi
 
 **Python Example**
 ```Python
-retval = dsl_ode_action_email_new('my-email-action', 'Bicycle has entered Inclussion Area')
+retval = dsl_ode_action_email_new('my-email-action', 'Bicycle has entered Inclusion Area')
 ```
 
 <br>
 
 ### *dsl_ode_action_file_new*
 ```C++
-DslReturnType dsl_ode_action_file_new(const wchar_t* name, 
+DslReturnType dsl_ode_action_file_new(const wchar_t* name,
     const wchar_t* file_path, uint mode, uint format, boolean force_flush);
 ```
-The constructor creates a uniquely named **File** ODE Action. When invoked, this Action will write the Frame/Object and Trigger Criteria information for the ODE occurence that triggered the event to a specified file. The file will be created if one does exists. Existing file can be opened in either append or truncate modes.
+The constructor creates a uniquely named **File** ODE Action. When invoked, this Action will write the Frame/Object and Trigger Criteria information for the ODE occurrence that triggered the event to a specified file. The file will be created if one does exist. Existing file can be opened in either append or truncate modes.
 
-Event data can be saved in one of two formats; formated text or comma seperated values (CSV). Click on the image below to view the CSV column headers and example data.
+Event data can be saved in one of two formats; formatted text or comma separated values (CSV). Click on the image below to view the CSV column headers and example data.
 
 ![CSV Event File Format](/Images/csv-file.png)
 
@@ -516,7 +534,7 @@ NOTE: although the flush event occurs in the lowest priority background (idle) t
 
 **Python Example**
 ```Python
-retval = dsl_ode_action_file_new('my-file-action', './event_files/my-events.csv', 
+retval = dsl_ode_action_file_new('my-file-action', './event_files/my-events.csv',
     DSL_WRITE_MODE_APPEND, DSL_EVENT_FILE_FORMAT_CSV, false)
 ```
 
@@ -566,7 +584,7 @@ retval = dsl_ode_action_fill_surroundings_new('my-fill-object-action', 'opaque-g
 
 ### *dsl_ode_action_format_bbox_new*
 ```C++
-DslReturnType dsl_ode_action_format_bbox_new(const wchar_t* name, uint border_width, 
+DslReturnType dsl_ode_action_format_bbox_new(const wchar_t* name, uint border_width,
     const wchar_t* border_color, boolean has_bg_color, const wchar_t* bg_color);
 ```
 The constructor creates a uniquely named **Format Bounding Box** ODE Action. When invoked, this Action updates an Object's RGBA bounding-box line width and color for display by a downstream On-Screen-Display (OSD) component. This action can be used to hide the Object's bounding-box from view.
@@ -575,7 +593,7 @@ The constructor creates a uniquely named **Format Bounding Box** ODE Action. Whe
 * `name` - [in] unique name for the ODE Action to create.
 * `border_width` - [in] border_width border line-width for the object's bounding box. Use 0 to remove the border from view.
 * `border_color` - [in] unique name of the RGBA Color to use for the bounding box border. Use NULL for no-color when setting `border_width` = 0.
-* `has_bg_color` - [in] set to true to fill the bounding box background color, false otherwise. 
+* `has_bg_color` - [in] set to true to fill the bounding box background color, false otherwise.
 * `bg_color` - [in] unique name of the RGBA Color to use for the background. Use NULL for no-color when `has_bg_color` = false.
 
 **Returns**
@@ -583,7 +601,7 @@ The constructor creates a uniquely named **Format Bounding Box** ODE Action. Whe
 
 **Python Example**
 ```Python
-retval = dsl_ode_action_format_bbox_new('my-format-bbox-action', 
+retval = dsl_ode_action_format_bbox_new('my-format-bbox-action',
     4, 'my-custom-color, true, 'my-custom-bg-color')
 ```
 
@@ -591,7 +609,7 @@ retval = dsl_ode_action_format_bbox_new('my-format-bbox-action',
 
 ### *dsl_ode_action_format_label_new*
 ```C++
-DslReturnType dsl_ode_action_format_label_new(const wchar_t* name, 
+DslReturnType dsl_ode_action_format_label_new(const wchar_t* name,
     const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
 ```
 The constructor creates a uniquely named **Format Label** ODE Action. When invoked, this Action updates an Object's label font and color for display by a downstream On-Screen-Display (OSD) component. This action can be used to hide the Object's label from view.
@@ -599,7 +617,7 @@ The constructor creates a uniquely named **Format Label** ODE Action. When invok
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
 * `font` - [in] unique name of the RGBA Font to use for the bounding box border. Use NULL to remove the Object's label from view.
-* `has_bg_color` - [in] set to true to fill the bounding box background color, false otherwise. 
+* `has_bg_color` - [in] set to true to fill the bounding box background color, false otherwise.
 * `bg_color` - [in] unique name of the RGBA Color to use for the background. Use NULL for no-color when `has_bg_color` = false.
 
 **Returns**
@@ -607,7 +625,7 @@ The constructor creates a uniquely named **Format Label** ODE Action. When invok
 
 **Python Example**
 ```Python
-retval = dsl_ode_action_format_label_new('my-format-label-action', 
+retval = dsl_ode_action_format_label_new('my-format-label-action',
     'my-custom-font, true, 'my-custom-bg-color')
 ```
 
@@ -641,7 +659,7 @@ DslReturnType dsl_ode_action_log_new(const wchar_t* name);
 ```
 The constructor creates a uniquely named **GStreamer Log** ODE Action. When invoked, this Action will log ODE information from the Frame and Object metadata to the GStreamer logging service at a level of INFO using the DSL token. The GST_DEBUG level must be set to 4 or higher for the information to be logged. The following console example sets the default GStreamer level to ERROR=1 and DSL to INFO=4.
 ```
-$ export GST_DEBUG=1,DSL:4 
+$ export GST_DEBUG=1,DSL:4
 ```
 
 **Parameters**
@@ -690,7 +708,7 @@ The constructor creates a uniquely named **Print** ODE Action. When invoked, thi
 * `name` - [in] unique name for the ODE Action to create.
 * `force_flush` - [in] if set, the action will schedule a flush buffer operation to be performed by the idle thread.  
 
-NOTE: although the flush event occurrs in the lowest priority background (idle) thread, flushing is still a CPU intensive operation and should be used sparingly -- when tailing the file for runtime debugging as an example. Set to 0 to disable forced flushing, and to allow the operating system to more effectively handle the process.
+NOTE: although the flush event occurs in the lowest priority background (idle) thread, flushing is still a CPU intensive operation and should be used sparingly -- when tailing the file for runtime debugging as an example. Set to 0 to disable forced flushing, and to allow the operating system to more effectively handle the process.
 
 
 **Returns**
@@ -707,11 +725,11 @@ retval = dsl_ode_action_print_new('my-print-action', false)
 ```C++
 DslReturnType dsl_ode_action_redact_new(const wchar_t* name);
 ```
-The constructor creates a uniquely named **Redact Object** ODE Action. When invoked, this Action will update an Object's metadata by 
-* filling in the the rectangle with a black background color with an alpha level of 1.0. 
+The constructor creates a uniquely named **Redact Object** ODE Action. When invoked, this Action will update an Object's metadata by
+* filling in the the rectangle with a black background color with an alpha level of 1.0.
 * hiding both the display text and rectangle boarder
 
-The action will Redact any detected object based on the GIE model and class Id in use... Face, License, etc,
+The action will Redact any detected object based on the GIE model and class Id in use... Face, License, etc.,
 
 Note: Adding a Redact ODE Action to an Absence or Summation Trigger is meaningless and will result in a Non-Action.
 
@@ -730,7 +748,7 @@ retval = dsl_ode_action_redact_new('my-redact-action')
 
 ### *dsl_ode_action_sink_add_new*
 ```C++
-DslReturnType dsl_ode_action_sink_add_new(const wchar_t* name, 
+DslReturnType dsl_ode_action_sink_add_new(const wchar_t* name,
   const wchar_t* pipeline, const wchar_t* sink);
 ```
 The constructor creates a uniquely named **Add Sink** ODE Action. When invoked, this Action will attempt to add a named Sink to a named Pipeline. The action will produce an error log message if either the Pipeline or Sink do not exist at the time of invocation.
@@ -751,7 +769,7 @@ retval = dsl_ode_action_sink_add_new('my-add-sink-action', 'my-pipeline', 'my-si
 
 ### *dsl_ode_action_sink_remove_new*
 ```C++
-DslReturnType dsl_ode_action_sink_remove_new(const wchar_t* name, 
+DslReturnType dsl_ode_action_sink_remove_new(const wchar_t* name,
   const wchar_t* pipeline, const wchar_t* sink);
 ```
 The constructor creates a uniquely named **Remove Sink** ODE Action. When invoked, this Action will remove a named Sink from a named Pipeline. The action will produce an error log message if either the Pipeline or Sink do not exist at the time of invocation.
@@ -797,7 +815,7 @@ retval = dsl_ode_action_sink_record_start_new('my-start-record-sink-action', 'my
 
 ### *dsl_ode_action_source_add_new*
 ```C++
-DslReturnType dsl_ode_action_source_add_new(const wchar_t* name, 
+DslReturnType dsl_ode_action_source_add_new(const wchar_t* name,
   const wchar_t* pipeline, const wchar_t* source);
 ```
 The constructor creates a uniquely named **Add Source** ODE Action. When invoked, this Action will attempt to add a named Sink to a named Pipeline. The action will produce an error log message if either the Pipeline or Sink do not exist at the time of invocation.
@@ -818,7 +836,7 @@ retval = dsl_ode_action_source_add_new('my-add-source-action', 'my-pipeline', 'm
 
 ### *dsl_ode_action_source_remove_new*
 ```C++
-DslReturnType dsl_ode_action_source_remove_new(const wchar_t* name, 
+DslReturnType dsl_ode_action_source_remove_new(const wchar_t* name,
   const wchar_t* pipeline, const wchar_t* source);
 ```
 The constructor creates a uniquely named **Remove Source** ODE Action. When invoked, this Action will attempt to remove a named Source from a named Pipeline. The action will produce an error log message if either the Pipeline or Source do not exist at the time of invocation.
@@ -843,7 +861,7 @@ retval = dsl_ode_action_source_remove_new('my-remove-source-action', 'my-pipelin
 DslReturnType dsl_ode_action_tap_record_start_new(const wchar_t* name,
     const wchar_t* record_sink, uint start, uint duration, void* client_data);
 ```
-The constructor creates a uniquely named **Start Record Tap** ODE Action. When invoked, this Action will a Record session for the named Tap. The action will produce an error log message if the Tap does not exist at the time of invocation.
+The constructor creates a uniquely named **Start Record Tap** ODE Action. When invoked, this Action will start a Record session for the named Tap. The action will produce an error log message if the Tap does not exist at the time of invocation.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
@@ -864,7 +882,7 @@ retval = dsl_ode_action_tap_record_start_new('my-start-record-tap-action', 'my-r
 
 ### *dsl_ode_action_tiler_source_show_new*
 ```C++
-DslReturnType dsl_ode_action_tiler_source_show_new(const wchar_t* name, 
+DslReturnType dsl_ode_action_tiler_source_show_new(const wchar_t* name,
     const wchar_t* tiler, uint timeout, boolean has_precedence);
 ```
 The constructor creates a uniquely named **Tiler Show Source** ODE Action. When invoked, this Action will call the named [Tiler](/docs/api-tiler.md) to show just the source (see [dsl_tiler_source_show_set](/docs/api-tiler.md#dsl_tiler_source_show_set) identified in the Frame's metadata that Triggered the ODE occurrence. The action will produce an error log message if the Tiler does not exist at the time of invocation.
@@ -872,10 +890,10 @@ The constructor creates a uniquely named **Tiler Show Source** ODE Action. When 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
 * `tiler` - [in] the unique name of the Tiler to call on.
-* `timeout` - [in] time to show the single source before switching back to "all sources" i.e. the tiled view. 
+* `timeout` - [in] time to show the single source before switching back to "all sources" i.e. the tiled view.
 * `has_precedence` - [in] if true, will inform the Tiler that this source has precedence, even if another single source is being shown.
 
-Note: setting `has_precedence` to true when using the action with a Trigger that has the `source_id` filter set to `DSL_ODE_ANY_SOURCE` (default) can lead to excessive switching. 
+Note: setting `has_precedence` to true when using the action with a Trigger that has the `source_id` filter set to `DSL_ODE_ANY_SOURCE` (default) can lead to excessive switching.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -992,7 +1010,7 @@ retval = dsl_ode_action_delete_many(['my-action-a', 'my-action-b', 'my-action-c'
 ```C++
 DslReturnType dsl_ode_action_delete_all();
 ```
-This destructor deletes all ODE Actions currently in memory. The destructor will fail if any one of the Actions is currently `in-use` by one or more ODE Triggers. 
+This destructor deletes all ODE Actions currently in memory. The destructor will fail if any one of the Actions is currently `in-use` by one or more ODE Triggers.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
@@ -1009,10 +1027,10 @@ retval = dsl_ode_action_delete_all()
 ## Methods
 ### *dsl_ode_action_capture_complete_listener_add*
 ```C++
-DslReturnType dsl_ode_action_capture_complete_listener_add(const wchar_t* name, 
+DslReturnType dsl_ode_action_capture_complete_listener_add(const wchar_t* name,
     dsl_capture_complete_listener_cb listener, void* client_data);
 ```
-This service adds a callback function of type [dsl_capture_complete_listener_cb](#dsl_capture_complete_listener_cb) to a Capture Action identified by it's unique name. The function will be called on Image Capture completion with a [dsl_capture_info](#dsl_capture_info) structure and the client provided `client_data`. Multiple callback functions can be registered with one Actions, and one callback function can be registered with multiple Actions. 
+This service adds a callback function of type [dsl_capture_complete_listener_cb](#dsl_capture_complete_listener_cb) to a Capture Action identified by its unique name. The function will be called on Image Capture completion with a [dsl_capture_info](#dsl_capture_info) structure and the client provided `client_data`. Multiple callback functions can be registered with one Actions, and one callback function can be registered with multiple Actions.
 
 **Parameters**
 * `name` - [in] unique name of the Action to update.
@@ -1031,11 +1049,11 @@ retval = dsl_ode_action_capture_complete_listener_add('frame-capture-action', ca
 
 ### *dsl_ode_action_capture_complete_listener_remove*
 ```C++
-DslReturnType dsl_ode_action_capture_complete_listener_remove(const wchar_t* name, 
+DslReturnType dsl_ode_action_capture_complete_listener_remove(const wchar_t* name,
     dsl_capture_complete_listener_cb listener);
 ```
 This service removes a callback function of type [dsl_capture_complete_listener_cb](#dsl_capture_complete_listener_cb) from a
-pipeline identified by it's unique name, previously added with [dsl_ode_action_capture_complete_listener_add](#dsl_ode_action_capture_complete_listener_add)
+pipeline identified by its unique name, previously added with [dsl_ode_action_capture_complete_listener_add](#dsl_ode_action_capture_complete_listener_add)
 
 **Parameters**
 * `name` - [in] unique name of the Capture Action to update.
@@ -1053,10 +1071,10 @@ retval = dsl_ode_action_capture_complete_listener_remove('frame-capture-action',
 
 ### *dsl_ode_action_capture_image_player_add*
 ```C++
-DslReturnType dsl_ode_action_capture_image_player_add(const wchar_t* name, 
+DslReturnType dsl_ode_action_capture_image_player_add(const wchar_t* name,
     const wchar_t* player);
 ```
-This service adds an [Image Player](/docs/api-player.md) to a named Capture Action. Once added, each captured image's file_path will be added (or queued) with the Image Player to be played according to the Players settings. 
+This service adds an [Image Player](/docs/api-player.md) to a named Capture Action. Once added, each captured image's file_path will be added (or queued) with the Image Player to be played according to the Players settings.
 
 **Parameters**
 * `name` - [in] unique name of the Action to update.
@@ -1074,10 +1092,10 @@ retval = dsl_ode_action_capture_image_player_add('frame-capture-action', 'image-
 
 ### *dsl_ode_action_capture_image_player_remove*
 ```C++
-DslReturnType dsl_ode_action_capture_image_player_remove(const wchar_t* name, 
+DslReturnType dsl_ode_action_capture_image_player_remove(const wchar_t* name,
     const wchar_t* player);
 ```
-This service removes an  [Image Player](/docs/api-player.md) from a named Capture Action previously added with [dsl_ode_action_capture_image_player_add](#dsl_ode_action_capture_image_player_add). 
+This service removes an  [Image Player](/docs/api-player.md) from a named Capture Action previously added with [dsl_ode_action_capture_image_player_add](#dsl_ode_action_capture_image_player_add).
 
 **Parameters**
 * `name` - [in] unique name of the Action to update.
@@ -1095,7 +1113,7 @@ retval = dsl_ode_action_capture_image_player_remove('frame-capture-action', 'ima
 
 ### *dsl_ode_action_capture_mailer_add*
 ```C++
-DslReturnType dsl_ode_action_capture_mailer_add(const wchar_t* name, 
+DslReturnType dsl_ode_action_capture_mailer_add(const wchar_t* name,
     const wchar_t* mailer, const wchar_t* subject, boolean attach);
 ```
 This service adds a [SMTP Mailer](/docs/api-mailer.md) to a named Capture Action. Once added, each captured image's file_path and details will be sent out according to the Mailer's settings. The image file can be attached to the email as an option.
@@ -1111,7 +1129,7 @@ This service adds a [SMTP Mailer](/docs/api-mailer.md) to a named Capture Action
 
 **Python Example**
 ```Python
-retval = dsl_ode_action_capture_mailer_add('frame-capture-action', 
+retval = dsl_ode_action_capture_mailer_add('frame-capture-action',
     'mailer', 'Person has entered area', True)
 ```
 
@@ -1119,10 +1137,10 @@ retval = dsl_ode_action_capture_mailer_add('frame-capture-action',
 
 ### *dsl_ode_action_capture_mailer_remove*
 ```C++
-DslReturnType dsl_ode_action_capture_mailer_remove(const wchar_t* name, 
+DslReturnType dsl_ode_action_capture_mailer_remove(const wchar_t* name,
     const wchar_t* mailer);
 ```
-This service removes a [SMTP Mailer](/docs/api-mailer.md) from a named Capture Action previously added with [dsl_ode_action_capture_mailer_add](#dsl_ode_action_capture_mailer_add). 
+This service removes a [SMTP Mailer](/docs/api-mailer.md) from a named Capture Action previously added with [dsl_ode_action_capture_mailer_add](#dsl_ode_action_capture_mailer_add).
 
 **Parameters**
 * `name` - [in] unique name of the Action to update.
@@ -1177,7 +1195,7 @@ The service updates a uniquely named **Customize Label** ODE Action with new lab
 
 **Python Example**
 ```Python    
-retval = dsl_ode_action_display_set('my-customize-label-action', 
+retval = dsl_ode_action_display_set('my-customize-label-action',
     [DSL_OBJECT_LABEL_TRACKING_ID, DSL_OBJECT_LABEL_PERSISTENCE], 2)
 ```
 
@@ -1223,11 +1241,61 @@ retval = dsl_ode_action_enabled_set('my-action', False)
 
 <br>
 
+### *dsl_ode_action_enabled_state_change_listener_add*
+```C++
+DslReturnType dsl_ode_action_enabled_state_change_listener_add(const wchar_t* name,
+    dsl_ode_enabled_state_change_listener_cb listener, void* client_data);
+```
+
+This service adds a callback function of type [dsl_ode_enabled_state_change_listener_cb](#dsl_ode_enabled_state_change_listener_cb) to an ODE Action identified by its unique name. The function will be called on every change of the Action's enabled state. Multiple callback functions can be registered with one Action, and one callback function can be registered with multiple Actions.
+
+**Parameters**
+* `name` - [in] unique name of the Action to update.
+* `listener` - [in] the enabled-state-change-listener callback function to add.
+* `client_data` - [in] opaque pointer to user data returned to the listener is called back
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful addition. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+def enabled_state_change_listener(enabled, client_data):
+    print('enabled = ', enabled)
+   
+retval = dsl_ode_action_enabled_state_change_listener_add('my-capture-action',
+    enabled_state_change_listener, None)
+```
+
+<br>
+
+### *dsl_ode_action_enabled_state_change_listener_remove*
+```C++
+DslReturnType dsl_ode_action_enabled_state_change_listener_remove(const wchar_t* name,
+    dsl_ode_enabled_state_change_listener_cb listener);
+```
+This service removes a callback function of type [dsl_ode_enabled_state_change_listener_cb](#dsl_ode_enabled_state_change_listener_cb) from a
+ODE Action identified by its unique name.
+
+**Parameters**
+* `name` - [in] unique name of the Action to update.
+* `listener` - [in] the enabled-state-change-listener callback function to remove.
+
+**Returns**  
+* `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_enabled_state_change_listener_remove('my-capture-action',
+    enabled_state_change_listener)
+```
+
+<br>
+
 ### *dsl_ode_action_list_size*
 ```c++
 uint dsl_ode_action_list_size();
 ```
-This service returns the size of the ODE Action container, i.e. the number of Actions currently in memory. 
+This service returns the size of the ODE Action container, i.e. the number of Actions currently in memory.
 
 **Returns**
 * The size of the ODE Action container

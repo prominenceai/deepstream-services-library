@@ -1740,6 +1740,46 @@ SCENARIO( "A new Tiler Show Source ODE Action can be created and deleted", "[ode
     }
 }
 
+static void enabled_state_change_listener(boolean enabled, void* client_data)
+{
+    
+}
+
+SCENARIO( "An ODE Action can add/remove an enabled-state-change-listener", "[ode-action-api]" )
+{
+    GIVEN( "A new Capture Action and client listener callback" )
+    {
+        std::wstring action_name(L"capture-action");
+        std::wstring outdir(L"./");
+        
+        REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), 
+            outdir.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "When an enabled-state-change-listener is added" )         
+        {
+            REQUIRE( dsl_ode_action_enabled_state_change_listener_add(action_name.c_str(),
+                enabled_state_change_listener, NULL) == DSL_RESULT_SUCCESS );
+
+            // second call must fail
+            REQUIRE( dsl_ode_action_enabled_state_change_listener_add(action_name.c_str(),
+                enabled_state_change_listener, NULL) == 
+                DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED );
+            
+            THEN( "The same listener function can be removed" ) 
+            {
+                REQUIRE( dsl_ode_action_enabled_state_change_listener_remove(action_name.c_str(),
+                    enabled_state_change_listener) == DSL_RESULT_SUCCESS );
+
+                // second call must fail
+                REQUIRE( dsl_ode_action_enabled_state_change_listener_remove(action_name.c_str(),
+                    enabled_state_change_listener) == DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED );
+                    
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
 SCENARIO( "The ODE Action API checks for NULL input parameters", "[ode-action-api]" )
 {
     GIVEN( "An empty list of Components" ) 
