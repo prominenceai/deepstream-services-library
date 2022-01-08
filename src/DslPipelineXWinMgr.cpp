@@ -57,17 +57,21 @@ namespace DSL
         LOG_FUNC();
         
         // cleanup all resources
-        if (m_pXWindow and m_pXWindowCreated)
-        {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
-            XDestroyWindow(m_pXDisplay, m_pXWindow);
-        }
         if (m_pXDisplay)
         {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
-            XCloseDisplay(m_pXDisplay);
-            // Setting the display handle to NULL will terminate the XWindow Event Thread.
-            m_pXDisplay = NULL;
+            // create scope for the mutex
+            {
+                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
+
+                if (m_pXWindow and m_pXWindowCreated)
+                {
+                    XDestroyWindow(m_pXDisplay, m_pXWindow);
+                }
+                
+                XCloseDisplay(m_pXDisplay);
+                // Setting the display handle to NULL will terminate the XWindow Event Thread.
+                m_pXDisplay = NULL;
+            }
             g_thread_join(m_pXWindowEventThread);
         }
 
@@ -275,9 +279,9 @@ namespace DSL
         while (m_pXDisplay)
         {
             {
+                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
                 while (m_pXDisplay and XPending(m_pXDisplay)) 
                 {
-                    LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
 
                     XEvent xEvent;
                     XNextEvent(m_pXDisplay, &xEvent);

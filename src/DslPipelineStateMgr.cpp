@@ -303,6 +303,9 @@ namespace DSL
         case GST_MESSAGE_STATE_CHANGED:
             HandleStateChanged(pMessage);
             break;
+        case GST_MESSAGE_APPLICATION:
+            HandleStop();
+            break;
         default:
             LOG_INFO("Unhandled message type:: " 
                 << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));

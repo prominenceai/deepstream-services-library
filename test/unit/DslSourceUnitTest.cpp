@@ -30,7 +30,7 @@ THE SOFTWARE.
 
 using namespace DSL;
 
-SCENARIO( "A new CsiSourceBintr is created correctly",  "[CsiSourceBintr]" )
+SCENARIO( "A new CsiSourceBintr is created correctly",  "[SourceBintr]" )
 {
     GIVEN( "A name for a new CsiSourceBintr" ) 
     {
@@ -51,7 +51,7 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[CsiSourceBintr]" )
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
                 REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == -1 );
+                REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == true );
                 
@@ -67,33 +67,7 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[CsiSourceBintr]" )
     }
 }
 
-SCENARIO( "Set Sensor Id updates SourceBintr correctly",  "[CsiSourceBintr]" )
-{
-    GIVEN( "A new CsiSourceBintr in memory" ) 
-    {
-        uint width(1280);
-        uint height(720);
-        uint fps_n(30);
-        uint fps_d(1);
-        std::string sourceName("test-csi-source");
-        int sensorId(1);
-
-        DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
-            sourceName.c_str(), width, height, fps_n, fps_d);
-
-        WHEN( "The Sensor Id is set " )
-        {
-            pSourceBintr->SetId(sensorId);
-
-            THEN( "The returned Sensor Id is correct" )
-            {
-                REQUIRE( pSourceBintr->GetId() == sensorId );
-            }
-        }
-    }
-}
-
-SCENARIO( "A CsiSourceBintr can LinkAll child Elementrs correctly",  "[CsiSourceBintr]" )
+SCENARIO( "A CsiSourceBintr can LinkAll child Elementrs correctly",  "[SourceBintr]" )
 {
     GIVEN( "A new CsiSourceBintr in memory" ) 
     {
@@ -119,7 +93,7 @@ SCENARIO( "A CsiSourceBintr can LinkAll child Elementrs correctly",  "[CsiSource
     }
 }
 
-SCENARIO( "A CsiSourceBintr can UnlinkAll all child Elementrs correctly",  "[CsiSourceBintr]" )
+SCENARIO( "A CsiSourceBintr can UnlinkAll all child Elementrs correctly",  "[SourceBintr]" )
 {
     GIVEN( "A new, linked CsiSourceBintr " ) 
     {
@@ -128,7 +102,6 @@ SCENARIO( "A CsiSourceBintr can UnlinkAll all child Elementrs correctly",  "[Csi
         uint fps_n(30);
         uint fps_d(1);
         std::string sourceName("test-csi-source");
-        int sensorId = 1;
 
         DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
             sourceName.c_str(), width, height, fps_n, fps_d);
@@ -148,7 +121,7 @@ SCENARIO( "A CsiSourceBintr can UnlinkAll all child Elementrs correctly",  "[Csi
     }
 }
 
-SCENARIO( "A new UsbSourceBintr is created correctly",  "[UsbSourceBintr]" )
+SCENARIO( "A new UsbSourceBintr is created correctly",  "[SourceBintr]" )
 {
     GIVEN( "A name for a new UsbSourceBintr" ) 
     {
@@ -167,7 +140,7 @@ SCENARIO( "A new UsbSourceBintr is created correctly",  "[UsbSourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == -1 );
+                REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == true );
                 
@@ -183,7 +156,7 @@ SCENARIO( "A new UsbSourceBintr is created correctly",  "[UsbSourceBintr]" )
     }
 }
 
-SCENARIO( "A UsbSourceBintr can LinkAll child Elementrs correctly",  "[UsbSourceBintr]" )
+SCENARIO( "A UsbSourceBintr can LinkAll child Elementrs correctly",  "[SourceBintr]" )
 {
     GIVEN( "A new UsbSourceBintr in memory" ) 
     {
@@ -208,7 +181,7 @@ SCENARIO( "A UsbSourceBintr can LinkAll child Elementrs correctly",  "[UsbSource
     }
 }
 
-SCENARIO( "A UsbSourceBintr can UnlinkAll all child Elementrs correctly",  "[UsbSourceBintr]" )
+SCENARIO( "A UsbSourceBintr can UnlinkAll all child Elementrs correctly",  "[SourceBintr]" )
 {
     GIVEN( "A new, linked UsbSourceBintr " ) 
     {
@@ -236,7 +209,7 @@ SCENARIO( "A UsbSourceBintr can UnlinkAll all child Elementrs correctly",  "[Usb
     }
 }
 
-SCENARIO( "A UsbSourceBintr can Get and Set its GPU ID",  "[UsbSourceBintr]" )
+SCENARIO( "A UsbSourceBintr can Get and Set its GPU ID",  "[SourceBintr]" )
 {
     GIVEN( "A new UsbSourceBintr in memory" ) 
     {
@@ -266,7 +239,7 @@ SCENARIO( "A UsbSourceBintr can Get and Set its GPU ID",  "[UsbSourceBintr]" )
     }
 }
 
-SCENARIO( "A new UriSourceBintr is created correctly",  "[UriSourceBintr]" )
+SCENARIO( "A new UriSourceBintr is created correctly",  "[SourceBintr]" )
 {
     GIVEN( "A name for a new UriSourceBintr" ) 
     {
@@ -289,7 +262,7 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[UriSourceBintr]" )
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
                 REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == -1 );
+                REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
@@ -310,7 +283,7 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[UriSourceBintr]" )
     }
 }
 
-SCENARIO( "A UriSourceBintr can LinkAll child Elementrs correctly",  "[UriSourceBintr]" )
+SCENARIO( "A UriSourceBintr can LinkAll child Elementrs correctly",  "[SourceBintr]" )
 {
     GIVEN( "A new UriSourceBintr in memory" ) 
     {
@@ -334,7 +307,7 @@ SCENARIO( "A UriSourceBintr can LinkAll child Elementrs correctly",  "[UriSource
     }
 }
 
-SCENARIO( "A UriSourceBintr can UnlinkAll all child Elementrs correctly",  "[UriSourceBintr]" )
+SCENARIO( "A UriSourceBintr can UnlinkAll all child Elementrs correctly",  "[SourceBintr]" )
 {
     GIVEN( "A new, linked UriSourceBintr " ) 
     {
@@ -361,7 +334,7 @@ SCENARIO( "A UriSourceBintr can UnlinkAll all child Elementrs correctly",  "[Uri
     }
 }
 
-SCENARIO( "A UriSourceBintr can Add a Child DewarperBintr",  "[DecodeSourceBintr]" )
+SCENARIO( "A UriSourceBintr can Add a Child DewarperBintr",  "[SourceBintr]" )
 {
     GIVEN( "A new UriSourceBintr and DewarperBintr in memory" ) 
     {
@@ -391,7 +364,7 @@ SCENARIO( "A UriSourceBintr can Add a Child DewarperBintr",  "[DecodeSourceBintr
     }
 }
 
-SCENARIO( "A UriSourceBintr can Remove a Child DewarperBintr",  "[DecodeSourceBintr]" )
+SCENARIO( "A UriSourceBintr can Remove a Child DewarperBintr",  "[SourceBintr]" )
 {
     GIVEN( "A new UriSourceBintr with a child DewarperBintr" ) 
     {
@@ -423,7 +396,7 @@ SCENARIO( "A UriSourceBintr can Remove a Child DewarperBintr",  "[DecodeSourceBi
     }
 }
 
-SCENARIO( "A UriSourceBintr can ensure a single Child DewarperBintr",  "[DecodeSourceBintr]" )
+SCENARIO( "A UriSourceBintr can ensure a single Child DewarperBintr",  "[SourceBintr]" )
 {
     GIVEN( "A new UriSourceBintr with a child DewarperBintr" ) 
     {
@@ -464,7 +437,7 @@ SCENARIO( "A UriSourceBintr can ensure a single Child DewarperBintr",  "[DecodeS
     }
 }
 
-SCENARIO( "A UriSourceBintr with a child DewarperBintr can LinkAll child Elementrs correctly",  "[DecodeSourceBintr]" )
+SCENARIO( "A UriSourceBintr with a child DewarperBintr can LinkAll child Elementrs correctly",  "[SourceBintr]" )
 {
     GIVEN( "A new UriSourceBintr with a child DewarperBintr" ) 
     {
@@ -496,7 +469,7 @@ SCENARIO( "A UriSourceBintr with a child DewarperBintr can LinkAll child Element
     }
 }
 
-SCENARIO( "A Linked UriSourceBintr with a child DewarperBintr can UnlinkAll child Elementrs correctly",  "[DecodeSourceBintr]" )
+SCENARIO( "A Linked UriSourceBintr with a child DewarperBintr can UnlinkAll child Elementrs correctly",  "[SourceBintr]" )
 {
     GIVEN( "A new UriSourceBintr with a child DewarperBintr" ) 
     {
@@ -530,7 +503,7 @@ SCENARIO( "A Linked UriSourceBintr with a child DewarperBintr can UnlinkAll chil
     }
 }
 
-SCENARIO( "A UriSourceBintr can Set and Get its URI",  "[UriSourceBintr]" )
+SCENARIO( "A UriSourceBintr can Set and Get its URI",  "[SourceBintr]" )
 {
     GIVEN( "A new UriSourceBintr in memory" ) 
     {
@@ -563,7 +536,7 @@ SCENARIO( "A UriSourceBintr can Set and Get its URI",  "[UriSourceBintr]" )
     }
 }
 
-SCENARIO( "A UriSourceBintr can Get and Set its GPU ID",  "[UriSourceBintr]" )
+SCENARIO( "A UriSourceBintr can Get and Set its GPU ID",  "[SourceBintr]" )
 {
     GIVEN( "A new UriSourceBintr in memory" ) 
     {
@@ -592,7 +565,7 @@ SCENARIO( "A UriSourceBintr can Get and Set its GPU ID",  "[UriSourceBintr]" )
     }
 }
 
-SCENARIO( "A new RtspSourceBintr is created correctly",  "[RtspSourceBintr]" )
+SCENARIO( "A new RtspSourceBintr is created correctly",  "[SourceBintr]" )
 {
     GIVEN( "A name for a new RtspSourceBintr" ) 
     {
@@ -613,7 +586,7 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[RtspSourceBintr]" )
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
                 REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == -1 );
+                REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->GetBufferTimeout() == timeout );
                 REQUIRE( pSourceBintr->GetCurrentState() == GST_STATE_NULL );
@@ -652,7 +625,7 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[RtspSourceBintr]" )
     }
 }
 
-SCENARIO( "A new RtspSourceBintr's attributes can be set/get ",  "[RtspSourceBintr]" )
+SCENARIO( "A new RtspSourceBintr's attributes can be set/get ",  "[SourceBintr]" )
 {
     GIVEN( "A new RtspSourceBintr with a timeout" ) 
     {
@@ -716,7 +689,7 @@ static void source_state_change_listener_cb2(uint prev_state, uint curr_state, v
     *(int*)user_data = 222;
 }
 
-SCENARIO( "An RtspSourceBintr can add and remove State Change Listeners",  "[RtspSourceBintr]" )
+SCENARIO( "An RtspSourceBintr can add and remove State Change Listeners",  "[SourceBintr]" )
 {
     GIVEN( "A new RtspSourceBintr with a timeout" ) 
     {
@@ -759,7 +732,7 @@ SCENARIO( "An RtspSourceBintr can add and remove State Change Listeners",  "[Rts
     }
 }
             
-SCENARIO( "An RtspSourceBintr calls all State Change Listeners on change of state", "[RtspSourceBintr]" )
+SCENARIO( "An RtspSourceBintr calls all State Change Listeners on change of state", "[SourceBintr]" )
 {
     GIVEN( "A new RtspSourceBintr with a timeout" ) 
     {
@@ -795,7 +768,7 @@ SCENARIO( "An RtspSourceBintr calls all State Change Listeners on change of stat
     }
 }
 
-SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "[RtspSourceBintr]" )
+SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "[SourceBintr]" )
 {
     GIVEN( "A new RtspSourceBintr with a timeout" ) 
     {
@@ -894,7 +867,7 @@ SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "
     }
 }
 
-SCENARIO( "A RtspSourceBintr can Get and Set its GPU ID",  "[RtspSourceBintr]" )
+SCENARIO( "A RtspSourceBintr can Get and Set its GPU ID",  "[SourceBintr]" )
 {
     GIVEN( "A new RtspSourceBintr in memory" ) 
     {
@@ -925,7 +898,7 @@ SCENARIO( "A RtspSourceBintr can Get and Set its GPU ID",  "[RtspSourceBintr]" )
     }
 }
 
-SCENARIO( "A new FileSourceBintr is created correctly",  "[FileSourceBintr]" )
+SCENARIO( "A new FileSourceBintr is created correctly",  "[SourceBintr]" )
 {
     GIVEN( "A name for a new FileSourceBintr" ) 
     {
@@ -946,7 +919,7 @@ SCENARIO( "A new FileSourceBintr is created correctly",  "[FileSourceBintr]" )
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
                 REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == -1 );
+                REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
@@ -959,7 +932,7 @@ SCENARIO( "A new FileSourceBintr is created correctly",  "[FileSourceBintr]" )
     }
 }
 
-SCENARIO( "A FileSourceBintr can LinkAll child Elementrs correctly",  "[FileSourceBintr]" )
+SCENARIO( "A FileSourceBintr can LinkAll child Elementrs correctly",  "[SourceBintr]" )
 {
     GIVEN( "A new FileSourceBintr in memory" ) 
     {
@@ -981,7 +954,7 @@ SCENARIO( "A FileSourceBintr can LinkAll child Elementrs correctly",  "[FileSour
     }
 }
 
-SCENARIO( "A FileSourceBintr can UnlinkAll all child Elementrs correctly",  "[FileSourceBintr]" )
+SCENARIO( "A FileSourceBintr can UnlinkAll all child Elementrs correctly",  "[SourceBintr]" )
 {
     GIVEN( "A new, linked FileSourceBintr " ) 
     {
@@ -1006,7 +979,7 @@ SCENARIO( "A FileSourceBintr can UnlinkAll all child Elementrs correctly",  "[Fi
     }
 }
 
-SCENARIO( "A new ImageSourceBintr is created correctly",  "[ImageSourceBintr]" )
+SCENARIO( "A new ImageSourceBintr is created correctly",  "[SourceBintr]" )
 {
     GIVEN( "Attributes for a new ImageSourceBintr" ) 
     {
@@ -1026,7 +999,7 @@ SCENARIO( "A new ImageSourceBintr is created correctly",  "[ImageSourceBintr]" )
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
                 REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == -1 );
+                REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
@@ -1041,7 +1014,7 @@ SCENARIO( "A new ImageSourceBintr is created correctly",  "[ImageSourceBintr]" )
     }
 }
 
-SCENARIO( "An ImageSourceBintr can LinkAll child Elementrs correctly",  "[ImageSourceBintr]" )
+SCENARIO( "An ImageSourceBintr can LinkAll child Elementrs correctly",  "[SourceBintr]" )
 {
     GIVEN( "A new ImageSourceBintr in memory" ) 
     {
@@ -1063,7 +1036,7 @@ SCENARIO( "An ImageSourceBintr can LinkAll child Elementrs correctly",  "[ImageS
     }
 }
 
-SCENARIO( "An ImageSourceBintr can UnlinkAll all child Elementrs correctly",  "[ImageSourceBintr]" )
+SCENARIO( "An ImageSourceBintr can UnlinkAll all child Elementrs correctly",  "[SourceBintr]" )
 {
     GIVEN( "A new, linked ImageSourceBintr " ) 
     {

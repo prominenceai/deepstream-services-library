@@ -51,9 +51,10 @@ namespace DSL
         GetState(state, 0);
         if (state == GST_STATE_PLAYING or state == GST_STATE_PAUSED)
         {
+            LOG_WARN("Calling stop");
             Stop();
         }
-        SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
+//        SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
         g_mutex_clear(&m_asyncCommMutex);
     }
 
@@ -344,9 +345,10 @@ namespace DSL
         
         if (!IsLinked())
         {
-            return false;
+            LOG_WARN("Pipeline '" << GetName() 
+                << "' is not linked");
+            return true;
         }
-
         // Need to check the context to see if we're running from the XWindow
         // thread - i.e. when stopping due to mouse-click or key-press.
         if (!g_mutex_trylock(&m_displayMutex))
@@ -357,16 +359,18 @@ namespace DSL
             HandleStop();
             return True;
         }
+        
         // If the main loop is running -- normal case -- then we can't change the 
         // state of the Pipeline in the Application's context. 
         if ((m_pMainLoop and g_main_loop_is_running(m_pMainLoop)) or
             (!m_pMainLoop and g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle())))
         {
-            LOG_INFO("Pipeline is starting timeout callback thread to handle Stop");
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
-            g_timeout_add(1, PipelineStop, this);
-            g_cond_wait(&m_asyncCondition, &m_asyncCommMutex);
-        }
+            LOG_INFO("Sending application message to stop the pipeline");
+            
+            gst_element_post_message(GetGstElement(),
+                gst_message_new_application(GetGstObject(),
+                    gst_structure_new_empty("stop-pipline")));
+        }            
         // Else, we are running under test without the mainloop
         else
         {
@@ -379,22 +383,17 @@ namespace DSL
     void PipelineBintr::HandleStop()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
 
-        // Call on all sources to disable their EOS consumers, before sendING EOS
+        // Call on all sources to disable their EOS consumers, before sending EOS
         m_pPipelineSourcesBintr->DisableEosConsumers();
-        
-        SendEos();
-        g_usleep(500000);
+        m_pPipelineSourcesBintr->EosAll();
+        g_usleep(1000000);
 
         if (!SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
         {
             LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
         }
         UnlinkAll();
-        
-        // Signal to release the application thread if blocked/waiting.
-        g_cond_signal(&m_asyncCondition);
     }
 
     bool PipelineBintr::IsLive()

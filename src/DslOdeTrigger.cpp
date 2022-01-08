@@ -552,6 +552,7 @@ namespace DSL
             // a "one-time-get" of the source Id from the source name
             if (m_sourceId == -1)
             {
+                
                 Services::GetServices()->SourceIdGet(m_source.c_str(), &m_sourceId);
             }
             if (m_sourceId != sourceId)

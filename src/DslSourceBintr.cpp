@@ -23,6 +23,7 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
+#include "DslServices.h"
 #include "DslSourceBintr.h"
 #include "DslPipelineBintr.h"
 #include "DslSurfaceTransform.h"
@@ -47,6 +48,9 @@ namespace DSL
     {
         LOG_FUNC();
 
+        // Set the stream-id of the unique Source name
+        SetId(Services::GetServices()->_sourceNameSet(name));
+
             // Get the Device properties
         cudaGetDeviceProperties(&m_cudaDeviceProp, m_gpuId);
     }
@@ -54,6 +58,8 @@ namespace DSL
     SourceBintr::~SourceBintr()
     {
         LOG_FUNC();
+        
+        Services::GetServices()->_sourceNameErase(GetCStrName());
     }
     
     bool SourceBintr::AddToParent(DSL_BASE_PTR pParentBintr)

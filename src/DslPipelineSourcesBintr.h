@@ -88,6 +88,8 @@ namespace DSL
          */
         void UnlinkAll();
 
+        void EosAll();
+
         /**
          * @brief Gets the current Streammuxer "play-type-is-live" setting
          * @return true if play-type is live, false otherwise
@@ -199,14 +201,14 @@ namespace DSL
          * @brief container of all child sources mapped by their unique names
          */
         std::map<std::string, DSL_SOURCE_PTR> m_pChildSources;
-        
-        /**
-         * @brief Each source is assigned a unique stream id when linked
-         * the vector is used on dynamic add/remove to find the next available
-         * stream id.
-         */
-        std::vector<bool> m_usedStreamIds;
 
+        /**
+         * @brief Each source is assigned a unique streamux pad id when linked
+         * the vector is used on dynamic add/remove to find the next available
+         * pad id.
+         */
+        std::vector<bool> m_usedPadIds;
+        
         /**
          * @brief true if all sources are live, false if all sources are non-live
          */

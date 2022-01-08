@@ -538,7 +538,7 @@ namespace DSL
         }
 
         m_isLinked = false;
-        //Reset();
+        Reset();
     }
     
     bool WindowSinkBintr::SetOffsets(uint offsetX, uint offsetY)
@@ -1120,7 +1120,7 @@ namespace DSL
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set Sync/Async Settings for FileSinkBintr '" << GetName() 
+            LOG_ERROR("Unable to set Sync/Async Settings for RtspSinkBintr '" << GetName() 
                 << "' as it's currently linked");
             return false;
         }
@@ -1132,5 +1132,5 @@ namespace DSL
 
         return true;
     }
-    
+
 }    

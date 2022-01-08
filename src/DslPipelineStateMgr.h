@@ -66,6 +66,8 @@ namespace DSL
          * @return true on successful delete, false otherwise.
          */
         bool DeleteMainLoop();
+        
+        virtual void HandleStop() = 0;
 
         /**
          * @brief Adds a callback to be notified on change of Pipeline state

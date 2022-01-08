@@ -176,6 +176,8 @@ def delete_pipeline(client_data):
     if (retval != DSL_RETURN_SUCCESS):	
         return retval	
 
+    print('deleting Pipeline', client_data.pipeline)
+
     # Delete the Pipeline first, then the components. 
     retval = dsl_pipeline_delete(client_data.pipeline);
     if (retval != DSL_RETURN_SUCCESS):	
