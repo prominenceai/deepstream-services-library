@@ -33,6 +33,7 @@ namespace DSL
         , m_pMainContext(NULL)
         , m_pMainLoop(NULL)
         , m_pBusWatch(NULL)
+        , m_eosFlag(false)
         , m_errorNotificationTimerId(0)
     {
         LOG_FUNC();
@@ -344,6 +345,8 @@ namespace DSL
     {
         LOG_INFO("EOS message recieved");
         
+        m_eosFlag = true;
+        
         // iterate through the map of EOS-listeners calling each
         for(auto const& imap: m_eosListeners)
         {
@@ -441,9 +444,9 @@ namespace DSL
         m_mapPipelineStates[GST_STATE_NULL] = "GST_STATE_NULL";
     }
     
-    static gboolean bus_watch(GstBus* bus, GstMessage* pMessage, gpointer pData)
+    static gboolean bus_watch(GstBus* bus, GstMessage* pMessage, gpointer pPipeline)
     {
-        return static_cast<PipelineStateMgr*>(pData)->HandleBusWatchMessage(pMessage);
+        return static_cast<PipelineStateMgr*>(pPipeline)->HandleBusWatchMessage(pMessage);
     }    
     
     static int ErrorMessageHandlersNotificationHandler(gpointer pPipeline)

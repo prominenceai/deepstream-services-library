@@ -153,9 +153,20 @@ namespace DSL
     protected:
 
         /**
+         * pointer to the Pipelines GST Bus
+         */
+        GstBus* m_pGstBus;
+
+        /**
          * @brief Mutex to prevent bus-watch callback re-entry
          */
         GMutex m_busWatchMutex;
+
+        /**
+         * @brief set to true by the bus-watch function on EOS
+         * and cleared by the Pipeline on transition to NULL state.
+         */
+        bool m_eosFlag;
 
         /**
          * @brief Pointer to the Pipelines own g_main_context if one has 
@@ -194,11 +205,6 @@ namespace DSL
          */
         GstObject* m_pGstPipeline;
         
-        /**
-         * pointer to the Pipelines GST Bus
-         */
-        GstBus* m_pGstBus;
-
         /**
          * @brief unique id of the installed Bus Watch function. This handle is
          * used by default, until if/when the client calls on the Pipeline
@@ -269,11 +275,11 @@ namespace DSL
      * @brief callback function to watch a pipeline's bus for messages
      * @param[in] bus instance pointer
      * @param[in] message incoming message packet to process
-     * @param[in] pData pipeline instance pointer
+     * @param[in] pPipeline pipeline instance pointer
      * @return true if the message was handled correctly 
      */
     static gboolean bus_watch(
-        GstBus* bus, GstMessage* pMessage, gpointer pData);
+        GstBus* bus, GstMessage* pMessage, gpointer pPipeline);
 
     /**
      * @brief Timer thread Notification Handler to invoke a Pipelines 
