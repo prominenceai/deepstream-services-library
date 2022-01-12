@@ -169,6 +169,7 @@ namespace DSL
                 << gst_object_get_name(m_pGstPipeline) << "'");
             return false;
         }
+        gst_bus_remove_watch(m_pGstBus);
         g_source_destroy(m_pBusWatch);
         g_main_loop_unref(m_pMainLoop);
         g_main_context_unref(m_pMainContext);
@@ -305,7 +306,7 @@ namespace DSL
             HandleStateChanged(pMessage);
             break;
         case GST_MESSAGE_APPLICATION:
-            HandleStop();
+            HandleApplicationMessage(pMessage);
             break;
         default:
             LOG_INFO("Unhandled message type:: " 
@@ -358,6 +359,24 @@ namespace DSL
             {
                 LOG_ERROR("Exception calling Client EOS-Lister");
             }
+        }
+    }
+    
+    void PipelineStateMgr::HandleApplicationMessage(GstMessage* pMessage)
+    {
+        LOG_FUNC();
+        
+        const GstStructure* msgPayload = gst_message_get_structure(pMessage);
+
+        // only one application message at this time. 
+        if(gst_structure_has_name(msgPayload, "stop-pipline"))
+        {
+            HandleStop();
+        }
+        else
+        {
+            LOG_ERROR("Unknown Application message received by Pipeline '"
+                << gst_object_get_name(m_pGstPipeline) << "'");
         }
     }
     

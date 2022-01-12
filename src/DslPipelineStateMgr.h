@@ -184,24 +184,30 @@ namespace DSL
 
         /**
          * @brief Private helper function to handle a Pipeline state-change message.
-         * @param[in] pointer to the state-change message
+         * @param[in] pointer to the state-change message.
          */
         bool HandleStateChanged(GstMessage* pMessage);
         
         /**
          * @brief private helper function to handle a Pipeline end-of-stream (EOS) message.
-         * @param[in] pointer to the state-change message
+         * @param[in] pointer to the eos message to handle.
          */
         void HandleEosMessage(GstMessage* pMessage);
         
         /**
          * @brief private helper function to handle a Pipeline error message.
-         * @param[in] pointer to the state-change message
+         * @param[in] pointer to the error message to handle.
          */
         void HandleErrorMessage(GstMessage* pMessage);
+        
+        /**
+         * @brief private helper function to handle an Application message
+         * @param[in] pointer to the Application message to handle.
+         */
+        void HandleApplicationMessage(GstMessage* pMessage);
     
         /**
-         * GST Pipeline Object, provided on construction by the derived parent Pipeline
+         * GST Pipeline Object, provided on construction by the derived parent Pipeline.
          */
         GstObject* m_pGstPipeline;
         
