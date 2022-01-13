@@ -106,6 +106,10 @@ namespace DSL
         g_source_set_callback(m_pBusWatch, (GSourceFunc)bus_watch, this, NULL);
         g_source_attach(m_pBusWatch, m_pMainContext);
         
+        // Initialize the mutex and condition for the two main-loop run and quit thread.
+        g_mutex_init(&m_mainLoopMutex);
+        g_cond_init(&m_mainLoopCond);
+        
         return true;
     }
     
@@ -131,8 +135,12 @@ namespace DSL
         // call will block until QuitMainLoop is called from another thread.
         g_main_loop_run(m_pMainLoop);
         
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_mainLoopMutex);
+        
         // Pop context off the thread-default context stack and signal client
         g_main_context_pop_thread_default(m_pMainContext);
+        
+        g_cond_signal(&m_mainLoopCond);
         
         return true;
     }
@@ -154,7 +162,9 @@ namespace DSL
                 << gst_object_get_name(m_pGstPipeline) << "' is not running");
             return false;
         }
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_mainLoopMutex);
         g_main_loop_quit(m_pMainLoop);
+        g_cond_wait(&m_mainLoopCond, &m_mainLoopMutex);
         
         return true;
     }
@@ -169,13 +179,16 @@ namespace DSL
                 << gst_object_get_name(m_pGstPipeline) << "'");
             return false;
         }
-        gst_bus_remove_watch(m_pGstBus);
+        // destroy the bus-watch - which unattaches the bus-watch from the main-context
         g_source_destroy(m_pBusWatch);
+        
         g_main_loop_unref(m_pMainLoop);
         g_main_context_unref(m_pMainContext);
         m_pBusWatch = NULL;
         m_pMainLoop = NULL;
         m_pMainContext = NULL;
+        g_mutex_init(&m_mainLoopMutex);
+        g_cond_init(&m_mainLoopCond);
 
         // re-install the watch function for the message bus with the default 
         // main-context - setting it back to its default state.

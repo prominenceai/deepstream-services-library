@@ -404,7 +404,7 @@ namespace DSL
 
             if (!msg or GST_MESSAGE_TYPE(msg) != GST_MESSAGE_EOS)
             {
-                LOG_ERROR("Pipeline '" << GetName() 
+                LOG_WARN("Pipeline '" << GetName() 
                     << "' failed to receive final EOS message on dsl_pipeline_stop");
             }
         }

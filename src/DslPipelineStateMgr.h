@@ -178,9 +178,21 @@ namespace DSL
          * @brief Pointer to the Pipeline's own g_main_loop if one has 
          * been created, NULL otherwise.
          */
-        GMainLoop* m_pMainLoop;
+        GMainLoop* m_pMainLoop; 
     
     private:
+    
+        /**
+         * @brief mutex used to synchronize the threads calling dsl_pipeline_main_loop_run
+         * and dsl_pipeline_main_loop_quit
+         */
+        GMutex m_mainLoopMutex;
+        
+        /**
+         * @brief conding used to synchronize the threads calling dsl_pipeline_main_loop_run
+         * and dsl_pipeline_main_loop_quit
+         */
+        GCond m_mainLoopCond;
 
         /**
          * @brief Private helper function to handle a Pipeline state-change message.
