@@ -566,11 +566,10 @@ SCENARIO( "An OdeOccurrenceTrigger checks for Source Name correctly", "[OdeTrigg
         std::string odeTriggerName("occurence");
         uint classId(1);
         uint limit(0);
-        uint sourceId(1);
         
         std::string source("source-1");
         
-        Services::GetServices()->_sourceNameSet(sourceId, source.c_str());
+        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
 
         std::string odeActionName("event-action");
 
@@ -602,30 +601,33 @@ SCENARIO( "An OdeOccurrenceTrigger checks for Source Name correctly", "[OdeTrigg
         
         WHEN( "The the Source ID filter is disabled" )
         {
-            frameMeta.source_id = 1;
+            frameMeta.source_id = sourceId;
             pOdeTrigger->SetSource("");
             
             THEN( "The ODE is triggered" )
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
+                Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }
         WHEN( "The Source ID matches the filter" )
         {
-            frameMeta.source_id = 1;
+            frameMeta.source_id = sourceId;
             
             THEN( "The ODE is triggered" )
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
+                Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }
         WHEN( "The Source ID does not match the filter" )
         {
-            frameMeta.source_id = 2;
+            frameMeta.source_id = 99;
             
             THEN( "The ODE is NOT triggered" )
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == false );
+                Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }
     }
@@ -1297,11 +1299,10 @@ SCENARIO( "An OdeAbsenceTrigger checks for Source Name correctly", "[OdeTrigger]
         std::string odeTriggerName("absence");
         uint classId(1);
         uint limit(0);
-        uint sourceId(1);
         
         std::string source("source-1");
         
-        Services::GetServices()->_sourceNameSet(sourceId, source.c_str());
+        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
 
         std::string odeActionName("event-action");
 
@@ -1333,33 +1334,36 @@ SCENARIO( "An OdeAbsenceTrigger checks for Source Name correctly", "[OdeTrigger]
         
         WHEN( "The the Source ID filter is disabled" )
         {
-            frameMeta.source_id = 1;
+            frameMeta.source_id = sourceId;
             pOdeTrigger->SetSource("");
             
             THEN( "The ODE is not triggered" )
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+                Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }
         WHEN( "The Source ID matches the filter" )
         {
-            frameMeta.source_id = 1;
+            frameMeta.source_id = sourceId;
             
             THEN( "The ODE is triggered" )
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+                Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }
         WHEN( "The Source ID does not match the filter" )
         {
-            frameMeta.source_id = 2;
+            frameMeta.source_id = 99;
             
             THEN( "The ODE is NOT triggered" )
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == false );
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+                Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }
     }
@@ -1371,13 +1375,12 @@ SCENARIO( "An AccumulationOdeTrigger handles ODE Occurrences correctly", "[OdeTr
     {
         std::string odeTriggerName("accumulation");
         std::string source("source-1");
-        uint sourceId(1);
         uint classId(1);
         uint limit(0);
 
         std::string odeActionName("event-action");
 
-        Services::GetServices()->_sourceNameSet(sourceId, source.c_str());
+        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
 
         DSL_ODE_TRIGGER_ACCUMULATION_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_ACCUMULATION_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
@@ -1412,6 +1415,7 @@ SCENARIO( "An AccumulationOdeTrigger handles ODE Occurrences correctly", "[OdeTr
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == false );
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == false );
+                Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }
         WHEN( "Three objects have different object Id's" )
@@ -1425,6 +1429,7 @@ SCENARIO( "An AccumulationOdeTrigger handles ODE Occurrences correctly", "[OdeTr
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+                Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }
         WHEN( "Two objects have the same object Id and a third object is difference" )
@@ -1438,6 +1443,7 @@ SCENARIO( "An AccumulationOdeTrigger handles ODE Occurrences correctly", "[OdeTr
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == false );
+                Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }
     }
@@ -1449,13 +1455,12 @@ SCENARIO( "An AccumulationOdeTrigger accumulates ODE Occurrences correctly", "[O
     {
         std::string odeTriggerName("accumulation");
         std::string source("source-1");
-        uint sourceId(1);
         uint classId(1);
         uint limit(0);
 
         std::string odeActionName("event-action");
 
-        Services::GetServices()->_sourceNameSet(sourceId, source.c_str());
+        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
 
         DSL_ODE_TRIGGER_ACCUMULATION_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_ACCUMULATION_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
@@ -1499,6 +1504,7 @@ SCENARIO( "An AccumulationOdeTrigger accumulates ODE Occurrences correctly", "[O
             THEN( "The accumulation count is unchanged" )
             {
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 3 );
+                Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }
         WHEN( "Only 1 object is new in the next frame" )
@@ -1513,6 +1519,7 @@ SCENARIO( "An AccumulationOdeTrigger accumulates ODE Occurrences correctly", "[O
             THEN( "The accumulation count is updated correctly" )
             {
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 4 );
+                Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }
         WHEN( "All 3 objects in the next frame are new" )
@@ -1529,6 +1536,7 @@ SCENARIO( "An AccumulationOdeTrigger accumulates ODE Occurrences correctly", "[O
             THEN( "The accumulation count is updated correctly" )
             {
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 6 );
+                Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }
     }
@@ -1540,13 +1548,12 @@ SCENARIO( "An AccumulationOdeTrigger clears its count on Reset", "[OdeTrigger]" 
     {
         std::string odeTriggerName("accumulation");
         std::string source("source-1");
-        uint sourceId(1);
         uint classId(1);
         uint limit(0);
 
         std::string odeActionName("event-action");
 
-        Services::GetServices()->_sourceNameSet(sourceId, source.c_str());
+        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
 
         DSL_ODE_TRIGGER_ACCUMULATION_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_ACCUMULATION_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
@@ -1592,6 +1599,7 @@ SCENARIO( "An AccumulationOdeTrigger clears its count on Reset", "[OdeTrigger]" 
             THEN( "The accumulation count has restarted from 0" )
             {
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 3 );
+                Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }
     }
@@ -1603,13 +1611,12 @@ SCENARIO( "An InstanceOdeTrigger handles ODE Occurrences correctly", "[OdeTrigge
     {
         std::string odeTriggerName("instance");
         std::string source("source-1");
-        uint sourceId(1);
         uint classId(1);
         uint limit(0);
 
         std::string odeActionName("event-action");
 
-        Services::GetServices()->_sourceNameSet(sourceId, source.c_str());
+        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
 
         DSL_ODE_TRIGGER_INSTANCE_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_INSTANCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
@@ -1644,6 +1651,7 @@ SCENARIO( "An InstanceOdeTrigger handles ODE Occurrences correctly", "[OdeTrigge
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == false );
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == false );
+                Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }
         WHEN( "Three objects have different object Id's" )
@@ -1657,6 +1665,7 @@ SCENARIO( "An InstanceOdeTrigger handles ODE Occurrences correctly", "[OdeTrigge
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+                Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }
         WHEN( "Two objects have the same object Id and a third object is difference" )
@@ -1670,6 +1679,7 @@ SCENARIO( "An InstanceOdeTrigger handles ODE Occurrences correctly", "[OdeTrigge
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == false );
+                Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }
     }
@@ -2690,14 +2700,13 @@ SCENARIO( "An NewLowOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]
     {
         std::string odeTriggerName("new-low");
         std::string source("source-1");
-        uint sourceId(1);
         uint classId(1);
         uint limit(0);
         uint preset(2);
 
         std::string odeActionName("event-action");
 
-        Services::GetServices()->_sourceNameSet(sourceId, source.c_str());
+        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
 
         DSL_ODE_TRIGGER_NEW_LOW_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_NEW_LOW_NEW(odeTriggerName.c_str(), 
@@ -2731,6 +2740,7 @@ SCENARIO( "An NewLowOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]
             THEN( "PostProcessFrame returns 0 occurrences of new high" )
             {
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+                Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }
         WHEN( "When two objects - i.e. equal to the current high count - are checked" )
@@ -2741,6 +2751,7 @@ SCENARIO( "An NewLowOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]
             THEN( "PostProcessFrame returns 0 occurrences of new low" )
             {
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+                Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }
         WHEN( "When one object - i.e. less than the current low count - is added" )
@@ -2755,6 +2766,7 @@ SCENARIO( "An NewLowOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]
                 pOdeTrigger->PreProcessFrame(NULL, NULL, &frameMeta);
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+                Services::GetServices()->_sourceNameErase(source.c_str());
            }
         }
     }
@@ -2766,14 +2778,13 @@ SCENARIO( "An NewHighOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger
     {
         std::string odeTriggerName("new-high");
         std::string source("source-1");
-        uint sourceId(1);
         uint classId(1);
         uint limit(0);
         uint preset(2);
 
         std::string odeActionName("event-action");
 
-        Services::GetServices()->_sourceNameSet(sourceId, source.c_str());
+        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
 
         DSL_ODE_TRIGGER_NEW_HIGH_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_NEW_HIGH_NEW(odeTriggerName.c_str(), 
@@ -2805,6 +2816,7 @@ SCENARIO( "An NewHighOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger
             THEN( "PostProcessFrame returns 0 occurrences of new high" )
             {
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+                Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }
         WHEN( "When two objects - i.e. equal to the current high count - are checked" )
@@ -2815,6 +2827,7 @@ SCENARIO( "An NewHighOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger
             THEN( "PostProcessFrame returns 0 occurrences of new high" )
             {
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+                Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }
         WHEN( "When three objects - i.e. greater than the current high count - are checked" )
@@ -2833,6 +2846,7 @@ SCENARIO( "An NewHighOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+                Services::GetServices()->_sourceNameErase(source.c_str());
            }
         }
     }

@@ -68,8 +68,6 @@ SCENARIO( "Adding a single Source to a PipelineSourcesBintr is managed correctly
         DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
             sourceName.c_str(), width, height, fps_n, fps_d);
             
-        REQUIRE( pSourceBintr->GetId() == -1 );
-            
         WHEN( "The Source is added to the Pipeline Sources Bintr" )
         {
             pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
@@ -79,7 +77,6 @@ SCENARIO( "Adding a single Source to a PipelineSourcesBintr is managed correctly
                 REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 1 );
                 REQUIRE( pPipelineSourcesBintr->IsChild(pSourceBintr) == true );
                 REQUIRE( pSourceBintr->IsInUse() == true );
-                REQUIRE( pSourceBintr->GetId() == -1 );
             }
         }
     }
@@ -99,8 +96,6 @@ SCENARIO( "Removing a single Source from a PipelineSourcesBintr is managed corre
             std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
             sourceName.c_str(), 1280, 720, 30, 1));
             
-        REQUIRE( pSourceBintr->GetId() == -1 );
-
         pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
         REQUIRE( pSourceBintr->IsInUse() == true );
             
@@ -112,7 +107,6 @@ SCENARIO( "Removing a single Source from a PipelineSourcesBintr is managed corre
             {
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 0 );
-                REQUIRE( pSourceBintr->GetId() == -1 );
             }
         }
     }
@@ -136,7 +130,6 @@ SCENARIO( "Linking a single Source to a Pipeline StreamMux is managed correctly"
 
         DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
             sourceName.c_str(), width, height, fps_n, fps_d);
-        REQUIRE( pSourceBintr->GetId() == -1 );
 
         REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)) == true );
             
@@ -148,7 +141,6 @@ SCENARIO( "Linking a single Source to a Pipeline StreamMux is managed correctly"
             {
                 REQUIRE( pSourceBintr->IsInUse() == true );
                 REQUIRE( pSourceBintr->IsLinkedToSink() == true );
-                REQUIRE( pSourceBintr->GetId() == 0 );
             }
         }
     }
@@ -170,17 +162,17 @@ SCENARIO( "Linking multiple Sources to a StreamMux is managed correctly", "[Pipe
         std::shared_ptr<DSL::CsiSourceBintr> pSourceBintr0 = 
             std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
             sourceName0.c_str(), 1280, 720, 30, 1));
-        REQUIRE( pSourceBintr0->GetId() == -1 );
+        REQUIRE( pSourceBintr0->GetId() == 0 );
 
         std::shared_ptr<DSL::CsiSourceBintr> pSourceBintr1 = 
             std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
             sourceName1.c_str(), 1280, 720, 30, 1));
-        REQUIRE( pSourceBintr1->GetId() == -1 );
+        REQUIRE( pSourceBintr1->GetId() == 1 );
 
         std::shared_ptr<DSL::CsiSourceBintr> pSourceBintr2 = 
             std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
             sourceName2.c_str(), 1280, 720, 30, 1));
-        REQUIRE( pSourceBintr2->GetId() == -1 );
+        REQUIRE( pSourceBintr2->GetId() == 2 );
 
         REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0)) == true );
         REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr1)) == true );
@@ -245,11 +237,8 @@ SCENARIO( "Unlinking multiple Sources from a StreamMux is managed correctly", "[
             THEN( "The Pipeline Sources Bintr and Source are updated correctly" )
             {
                 REQUIRE( pSourceBintr0->IsLinkedToSink() == false );
-                REQUIRE( pSourceBintr0->GetId() == -1 );
                 REQUIRE( pSourceBintr1->IsLinkedToSink() == false );
-                REQUIRE( pSourceBintr1->GetId() == -1 );
                 REQUIRE( pSourceBintr2->IsLinkedToSink() == false );
-                REQUIRE( pSourceBintr2->GetId() == -1 );
             }
         }
     }

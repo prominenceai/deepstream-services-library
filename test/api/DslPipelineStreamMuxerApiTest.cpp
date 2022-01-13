@@ -159,7 +159,8 @@ SCENARIO( "The Batch Size for a Pipeline can be set less than sources", "[pipeli
         WHEN( "The Pipeline's Stream Muxer Batch Size is set to more than the number of sources" ) 
         {
             uint new_batch_size(1), new_batch_timeout(50000);
-            REQUIRE( dsl_pipeline_streammux_batch_properties_set(pipelineName.c_str(), new_batch_size, new_batch_timeout) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_streammux_batch_properties_set(pipelineName.c_str(), 
+                new_batch_size, new_batch_timeout) == DSL_RESULT_SUCCESS );
             dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), &batch_size, &batch_timeout);
             REQUIRE( batch_size == new_batch_size );
             REQUIRE( batch_timeout == new_batch_timeout );

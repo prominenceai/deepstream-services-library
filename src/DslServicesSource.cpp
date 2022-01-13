@@ -955,9 +955,9 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        if (m_sourceNames.find(sourceId) != m_sourceNames.end())
+        if (m_sourceNamesById.find(sourceId) != m_sourceNamesById.end())
         {
-            *name = m_sourceNames[sourceId].c_str();
+            *name = m_sourceNamesById[sourceId].c_str();
             return DSL_RESULT_SUCCESS;
         }
         *name = NULL;
@@ -969,39 +969,57 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        if (m_sourceIds.find(name) != m_sourceIds.end())
+        if (m_sourceIdsByName.find(name) != m_sourceIdsByName.end())
         {
-            *sourceId = m_sourceIds[name];
+            *sourceId = m_sourceIdsByName[name];
             return DSL_RESULT_SUCCESS;
         }
         *sourceId = -1;
         return DSL_RESULT_SOURCE_NOT_FOUND;
     }
 
-    DslReturnType Services::_sourceNameSet(uint sourceId, const char* name)
+    uint Services::_sourceNameSet(const char* name)
     {
         LOG_FUNC();
         
-        // called internally, do not lock mutex
         
-        m_sourceNames[sourceId] = name;
-        m_sourceIds[name] = sourceId;
-        return DSL_RESULT_SUCCESS;
+       uint sourceId(0);
+        
+        // find the next available unused source-id
+        auto ivec = find(m_usedSourceIds.begin(), m_usedSourceIds.end(), false);
+        if (ivec != m_usedSourceIds.end())
+        {
+            sourceId = ivec - m_usedSourceIds.begin();
+            m_usedSourceIds[sourceId] = true;
+        }
+        else
+        {
+            sourceId = m_usedSourceIds.size();
+            m_usedSourceIds.push_back(true);
+        }            
+        
+        m_sourceNamesById[sourceId] = name;
+        m_sourceIdsByName[name] = sourceId;
+        
+        return sourceId;
     }
 
-    DslReturnType Services::_sourceNameErase(uint sourceId)
+    bool Services::_sourceNameErase(const char* name)
     {
         LOG_FUNC();
 
         // called internally, do not lock mutex
         
-        if (m_sourceNames.find(sourceId) != m_sourceNames.end())
+        if (m_sourceIdsByName.find(name) == m_sourceIdsByName.end())
         {
-            m_sourceIds.erase(m_sourceNames[sourceId]);
-            m_sourceNames.erase(sourceId);
-            return DSL_RESULT_SUCCESS;
+            LOG_ERROR("Source '" << name << "' not found ");
+            return false;
         }
-        return DSL_RESULT_SOURCE_NOT_FOUND;
+        
+        m_usedSourceIds[m_sourceIdsByName[name]] = false;
+        m_sourceNamesById.erase(m_sourceIdsByName[name]);
+        m_sourceIdsByName.erase(name);
+        return true;
     }
 
     DslReturnType Services::SourcePause(const char* name)

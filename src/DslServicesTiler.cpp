@@ -198,13 +198,13 @@ namespace DSL
                 *source = NULL;
                 return DSL_RESULT_SUCCESS;
             }
-            if (m_sourceNames.find(sourceId) == m_sourceNames.end())
+            if (m_sourceNamesById.find(sourceId) == m_sourceNamesById.end())
             {
                 *source = NULL;
                 LOG_ERROR("Tiler '" << name << "' failed to get Source name from Id");
                 return DSL_RESULT_SOURCE_NAME_NOT_FOUND;
             }
-            *source = m_sourceNames[sourceId].c_str();
+            *source = m_sourceNamesById[sourceId].c_str();
             
             LOG_INFO("Source = " << *source 
                 << " returned successfully for Tiler '" << name << "'");

@@ -529,11 +529,6 @@ namespace DSL
         // iterate through the list of Linked Components, unlinking each
         for (auto const& ivector: m_linkedComponents)
         {
-            ivector->SendEos();
-            if (ivector->SetState(GST_STATE_NULL, 0) != GST_STATE_CHANGE_SUCCESS)
-            {
-                LOG_ERROR("Failed to set Component '" << ivector->GetName() << "' to GST_STATE_NULL");
-            }
             // all but the tail m_pMultiSinksBintr will be Linked to Sink
             if (ivector->IsLinkedToSink())
             {

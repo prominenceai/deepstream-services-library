@@ -49,11 +49,10 @@ namespace DSL
         
         GstState state;
         GetState(state, 0);
-        if (state == GST_STATE_PLAYING or state == GST_STATE_PAUSED)
+        if (m_isLinked)
         {
             Stop();
         }
-        SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
         g_mutex_clear(&m_asyncCommMutex);
     }
 
@@ -295,47 +294,14 @@ namespace DSL
             LOG_WARN("Pipeline '" << GetName() << "' is not in a state of Playing");
             return false;
         }
-        // Need to check the context to see if we're running from the XWindow
-        // thread - i.e. when stopping due to mouse-click or key-press.
-        if (!g_mutex_trylock(&m_displayMutex))
-        {
-            // lock-failed which means we are already in the XWindow thread context.
-            // safe to stop in this context. Cannot block in this context as well.
-            LOG_INFO("Pipeline Pause called from XWindow display thread context");
-            HandlePause();
-            return True;
-        }
-        // If the main loop is running -- normal case -- then we can't change the 
-        // state of the Pipeline in the Application's context. 
-        if ((m_pMainLoop and g_main_loop_is_running(m_pMainLoop)) or
-            (!m_pMainLoop and g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle())))
-        {
-            LOG_INFO("Pipeline is starting timeout callback thread to handle Pause");
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
-            g_timeout_add(1, PipelinePause, this);
-            g_cond_wait(&m_asyncCondition, &m_asyncCommMutex);
-        }
-        else
-        {
-            HandlePause();
-        }
-        g_mutex_unlock(&m_displayMutex);
-        return true;
-    }
-
-    void PipelineBintr::HandlePause()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
         
-        // Call the base class to Pause
+        // Call the base class to Pause the Pipeline - can be called from any context.
         if (!SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
         {
             LOG_ERROR("Failed to Pause Pipeline '" << GetName() << "'");
+            return false;
         }
-        
-        // Signal to release the application thread if blocked/waiting.
-        g_cond_signal(&m_asyncCondition);
+        return true;
     }
 
     bool PipelineBintr::Stop()
@@ -344,57 +310,109 @@ namespace DSL
         
         if (!IsLinked())
         {
-            return false;
+            LOG_WARN("Pipeline '" << GetName() << "' is not linked");
+            return true;
+            // return false;
         }
-
-        // Need to check the context to see if we're running from the XWindow
-        // thread - i.e. when stopping due to mouse-click or key-press.
+        GstState state;
+        GetState(state, 0);
+        if (state == GST_STATE_PAUSED)
+        {
+            LOG_INFO("Setting Pipeline '" << GetName() 
+                << "' to PLAYING before setting to NULL");
+            // Call the base class to Pause the Pipeline - can be called from any context.
+            if (!SetState(GST_STATE_PLAYING, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
+            {
+                LOG_ERROR("Failed to set Pipeline '" << GetName() 
+                    << "' to PLAYING before setting to NULL");
+                return false;
+            }
+        }
+        
+        // Need to check the context to see if we're running from either
+        // the XDisplay thread or the bus-watch fucntion
+        
+        // Try and lock the Display mutex first
         if (!g_mutex_trylock(&m_displayMutex))
         {
-            // lock-failed which means we are already in the XWindow thread context.
-            // safe to stop in this context. Cannot block in this context as well.
-            LOG_INFO("Pipeline Stop called from XWindow display thread context");
+            // lock-failed which means we are already in the XWindow thread context
+            // calling on a client handler function for Key release or xWindow delete. 
+            // Safe to stop the Pipeline in this context.
+            LOG_INFO("dsl_pipeline_stop called from XWindow display thread context");
             HandleStop();
-            return True;
+            return true;
         }
+        // Try the bus-watch mutex next
+        if (!g_mutex_trylock(&m_busWatchMutex))
+        {
+            // lock-failed which means we're in the bus-watch function context
+            // calling on a client listener or handler function. Safe to stop 
+            // the Pipeline in this context. 
+            LOG_INFO("dsl_pipeline_stop called from bus-watch-function thread context");
+            HandleStop();
+            g_mutex_unlock(&m_displayMutex);
+            return true;
+        }
+        
         // If the main loop is running -- normal case -- then we can't change the 
         // state of the Pipeline in the Application's context. 
         if ((m_pMainLoop and g_main_loop_is_running(m_pMainLoop)) or
-            (!m_pMainLoop and g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle())))
+            (!m_pMainLoop and g_main_loop_is_running(
+                DSL::Services::GetServices()->GetMainLoopHandle())))
         {
-            LOG_INFO("Pipeline is starting timeout callback thread to handle Stop");
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
-            g_timeout_add(1, PipelineStop, this);
-            g_cond_wait(&m_asyncCondition, &m_asyncCommMutex);
-        }
-        // Else, we are running under test without the mainloop
+            LOG_INFO("Sending application message to stop the pipeline");
+            
+            gst_element_post_message(GetGstElement(),
+                gst_message_new_application(GetGstObject(),
+                    gst_structure_new_empty("stop-pipline")));
+        }            
+        // Else, client has stopped the main-loop or we are running under test 
+        // without the mainloop running - can't send a message so handle stop now.
         else
         {
             HandleStop();
         }
         g_mutex_unlock(&m_displayMutex);
+        g_mutex_unlock(&m_busWatchMutex);
         return true;
     }
 
     void PipelineBintr::HandleStop()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
-
-        // Call on all sources to disable their EOS consumers, before sendING EOS
+        
+        // Call on all sources to disable their EOS consumers, before sending EOS
         m_pPipelineSourcesBintr->DisableEosConsumers();
         
-        SendEos();
-        g_usleep(500000);
+        // If the client is not stoping due to EOS, we must EOS the Pipeline 
+        // to gracefully stop any recording in progress before changing the 
+        // Pipeline's state to NULL, 
+        if (!m_eosFlag)
+        {
+            // Send an EOS event to the Pipline bin. 
+            SendEos();
+            
+            // once the EOS event has been received on all sink pads of all
+            // elements, an EOS message will be posted on the bus. We need to
+            // discard all bus messages while waiting for the EOS message.
+            GstMessage* msg = gst_bus_timed_pop_filtered(m_pGstBus, 
+                DSL_DEFAULT_WAIT_FOR_EOS_TIMEOUT_IN_SEC * GST_SECOND,
+                    (GstMessageType)(GST_MESSAGE_ERROR | GST_MESSAGE_EOS));
+
+            if (!msg or GST_MESSAGE_TYPE(msg) != GST_MESSAGE_EOS)
+            {
+                LOG_WARN("Pipeline '" << GetName() 
+                    << "' failed to receive final EOS message on dsl_pipeline_stop");
+            }
+        }
 
         if (!SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
         {
             LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
         }
-        UnlinkAll();
         
-        // Signal to release the application thread if blocked/waiting.
-        g_cond_signal(&m_asyncCondition);
+        m_eosFlag = false;
+        UnlinkAll();
     }
 
     bool PipelineBintr::IsLive()
@@ -425,14 +443,6 @@ namespace DSL
             GST_DEBUG_GRAPH_SHOW_ALL, filename);
     }
 
-    static int PipelinePause(gpointer pPipeline)
-    {
-        static_cast<PipelineBintr*>(pPipeline)->HandlePause();
-        
-        // Return false to self destroy timer - one shot.
-        return false;
-    }
-    
     static int PipelineStop(gpointer pPipeline)
     {
         static_cast<PipelineBintr*>(pPipeline)->HandleStop();

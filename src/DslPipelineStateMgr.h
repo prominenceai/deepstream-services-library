@@ -66,6 +66,8 @@ namespace DSL
          * @return true on successful delete, false otherwise.
          */
         bool DeleteMainLoop();
+        
+        virtual void HandleStop() = 0;
 
         /**
          * @brief Adds a callback to be notified on change of Pipeline state
@@ -151,9 +153,20 @@ namespace DSL
     protected:
 
         /**
+         * pointer to the Pipelines GST Bus
+         */
+        GstBus* m_pGstBus;
+
+        /**
          * @brief Mutex to prevent bus-watch callback re-entry
          */
         GMutex m_busWatchMutex;
+
+        /**
+         * @brief set to true by the bus-watch function on EOS
+         * and cleared by the Pipeline on transition to NULL state.
+         */
+        bool m_eosFlag;
 
         /**
          * @brief Pointer to the Pipelines own g_main_context if one has 
@@ -165,38 +178,51 @@ namespace DSL
          * @brief Pointer to the Pipeline's own g_main_loop if one has 
          * been created, NULL otherwise.
          */
-        GMainLoop* m_pMainLoop;
+        GMainLoop* m_pMainLoop; 
     
     private:
+    
+        /**
+         * @brief mutex used to synchronize the threads calling dsl_pipeline_main_loop_run
+         * and dsl_pipeline_main_loop_quit
+         */
+        GMutex m_mainLoopMutex;
+        
+        /**
+         * @brief conding used to synchronize the threads calling dsl_pipeline_main_loop_run
+         * and dsl_pipeline_main_loop_quit
+         */
+        GCond m_mainLoopCond;
 
         /**
          * @brief Private helper function to handle a Pipeline state-change message.
-         * @param[in] pointer to the state-change message
+         * @param[in] pointer to the state-change message.
          */
         bool HandleStateChanged(GstMessage* pMessage);
         
         /**
          * @brief private helper function to handle a Pipeline end-of-stream (EOS) message.
-         * @param[in] pointer to the state-change message
+         * @param[in] pointer to the eos message to handle.
          */
         void HandleEosMessage(GstMessage* pMessage);
         
         /**
          * @brief private helper function to handle a Pipeline error message.
-         * @param[in] pointer to the state-change message
+         * @param[in] pointer to the error message to handle.
          */
         void HandleErrorMessage(GstMessage* pMessage);
+        
+        /**
+         * @brief private helper function to handle an Application message
+         * @param[in] pointer to the Application message to handle.
+         */
+        void HandleApplicationMessage(GstMessage* pMessage);
     
         /**
-         * GST Pipeline Object, provided on construction by the derived parent Pipeline
+         * GST Pipeline Object, provided on construction by the derived parent Pipeline.
          */
         GstObject* m_pGstPipeline;
         
-        /**
-         * pointer to the Pipelines GST Bus
-         */
-        GstBus* m_pGstBus;
-
         /**
          * @brief unique id of the installed Bus Watch function. This handle is
          * used by default, until if/when the client calls on the Pipeline
@@ -267,11 +293,11 @@ namespace DSL
      * @brief callback function to watch a pipeline's bus for messages
      * @param[in] bus instance pointer
      * @param[in] message incoming message packet to process
-     * @param[in] pData pipeline instance pointer
+     * @param[in] pPipeline pipeline instance pointer
      * @return true if the message was handled correctly 
      */
     static gboolean bus_watch(
-        GstBus* bus, GstMessage* pMessage, gpointer pData);
+        GstBus* bus, GstMessage* pMessage, gpointer pPipeline);
 
     /**
      * @brief Timer thread Notification Handler to invoke a Pipelines 

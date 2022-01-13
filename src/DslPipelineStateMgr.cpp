@@ -33,6 +33,7 @@ namespace DSL
         , m_pMainContext(NULL)
         , m_pMainLoop(NULL)
         , m_pBusWatch(NULL)
+        , m_eosFlag(false)
         , m_errorNotificationTimerId(0)
     {
         LOG_FUNC();
@@ -105,6 +106,10 @@ namespace DSL
         g_source_set_callback(m_pBusWatch, (GSourceFunc)bus_watch, this, NULL);
         g_source_attach(m_pBusWatch, m_pMainContext);
         
+        // Initialize the mutex and condition for the two main-loop run and quit thread.
+        g_mutex_init(&m_mainLoopMutex);
+        g_cond_init(&m_mainLoopCond);
+        
         return true;
     }
     
@@ -130,8 +135,12 @@ namespace DSL
         // call will block until QuitMainLoop is called from another thread.
         g_main_loop_run(m_pMainLoop);
         
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_mainLoopMutex);
+        
         // Pop context off the thread-default context stack and signal client
         g_main_context_pop_thread_default(m_pMainContext);
+        
+        g_cond_signal(&m_mainLoopCond);
         
         return true;
     }
@@ -153,7 +162,9 @@ namespace DSL
                 << gst_object_get_name(m_pGstPipeline) << "' is not running");
             return false;
         }
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_mainLoopMutex);
         g_main_loop_quit(m_pMainLoop);
+        g_cond_wait(&m_mainLoopCond, &m_mainLoopMutex);
         
         return true;
     }
@@ -168,12 +179,16 @@ namespace DSL
                 << gst_object_get_name(m_pGstPipeline) << "'");
             return false;
         }
+        // destroy the bus-watch - which unattaches the bus-watch from the main-context
         g_source_destroy(m_pBusWatch);
+        
         g_main_loop_unref(m_pMainLoop);
         g_main_context_unref(m_pMainContext);
         m_pBusWatch = NULL;
         m_pMainLoop = NULL;
         m_pMainContext = NULL;
+        g_mutex_init(&m_mainLoopMutex);
+        g_cond_init(&m_mainLoopCond);
 
         // re-install the watch function for the message bus with the default 
         // main-context - setting it back to its default state.
@@ -303,6 +318,9 @@ namespace DSL
         case GST_MESSAGE_STATE_CHANGED:
             HandleStateChanged(pMessage);
             break;
+        case GST_MESSAGE_APPLICATION:
+            HandleApplicationMessage(pMessage);
+            break;
         default:
             LOG_INFO("Unhandled message type:: " 
                 << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
@@ -341,6 +359,8 @@ namespace DSL
     {
         LOG_INFO("EOS message recieved");
         
+        m_eosFlag = true;
+        
         // iterate through the map of EOS-listeners calling each
         for(auto const& imap: m_eosListeners)
         {
@@ -352,6 +372,24 @@ namespace DSL
             {
                 LOG_ERROR("Exception calling Client EOS-Lister");
             }
+        }
+    }
+    
+    void PipelineStateMgr::HandleApplicationMessage(GstMessage* pMessage)
+    {
+        LOG_FUNC();
+        
+        const GstStructure* msgPayload = gst_message_get_structure(pMessage);
+
+        // only one application message at this time. 
+        if(gst_structure_has_name(msgPayload, "stop-pipline"))
+        {
+            HandleStop();
+        }
+        else
+        {
+            LOG_ERROR("Unknown Application message received by Pipeline '"
+                << gst_object_get_name(m_pGstPipeline) << "'");
         }
     }
     
@@ -438,9 +476,9 @@ namespace DSL
         m_mapPipelineStates[GST_STATE_NULL] = "GST_STATE_NULL";
     }
     
-    static gboolean bus_watch(GstBus* bus, GstMessage* pMessage, gpointer pData)
+    static gboolean bus_watch(GstBus* bus, GstMessage* pMessage, gpointer pPipeline)
     {
-        return static_cast<PipelineStateMgr*>(pData)->HandleBusWatchMessage(pMessage);
+        return static_cast<PipelineStateMgr*>(pPipeline)->HandleBusWatchMessage(pMessage);
     }    
     
     static int ErrorMessageHandlersNotificationHandler(gpointer pPipeline)

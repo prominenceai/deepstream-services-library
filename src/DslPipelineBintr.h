@@ -246,14 +246,6 @@ namespace DSL
     }; // Pipeline
     
     /**
-     * @brief Timer callback function to Pause a Pipeline in the mainloop context.  
-     * @param pPipeline shared pointer to the Pipeline that started the timer to 
-     * schedule the pause
-     * @return false always to self destroy the on-shot timer.
-     */
-    static int PipelinePause(gpointer pPipeline);
-    
-    /**
      * @brief Timer callback function to Stop a Pipeline in the mainloop context.  
      * @param pPipeline shared pointer to the Pipeline that started the timer to 
      * schedule the stop

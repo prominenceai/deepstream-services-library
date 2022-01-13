@@ -510,9 +510,9 @@ namespace DSL {
 
         DslReturnType SourceIdGet(const char* name, int* sourceId);
     
-        DslReturnType _sourceNameSet(uint sourceId, const char* name);
+        uint _sourceNameSet(const char* name);
     
-        DslReturnType _sourceNameErase(uint sourceId);
+        bool _sourceNameErase(const char* name);
     
         DslReturnType SourcePause(const char* name);
 
@@ -1275,14 +1275,20 @@ namespace DSL {
         std::map <std::string, std::shared_ptr<Bintr>> m_components;
         
         /**
-         * @brief map of all source ids to source names
+         * @brief Each source is assigned a unique id for the life of the source.
+         * Each source is given the first/lowest available id when created.
          */
-        std::map <uint, std::string> m_sourceNames;
-
+        std::vector<bool> m_usedSourceIds;
+        
         /**
-         * @brief map of all source names to source ids
+         * @brief container of all unique source Ids mapped by their unique name.
          */
-        std::map <std::string, uint> m_sourceIds;
+        std::map <std::string, uint> m_sourceIdsByName;
+        
+        /**
+         * @brief container of all unique source names mapped by their unique Id.
+         */
+        std::map <uint, std::string> m_sourceNamesById;
         
         /**
          * @brief map of all infer ids to infer names
