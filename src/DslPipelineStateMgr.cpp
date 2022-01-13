@@ -45,8 +45,12 @@ namespace DSL
         
         m_pGstBus = gst_pipeline_get_bus(GST_PIPELINE(m_pGstPipeline));
 
-        // Add the bus-watch and callback function to the default main context
-        m_busWatchId = gst_bus_add_watch(m_pGstBus, bus_watch, this);
+        // Create a new bus-watch 
+        m_pBusWatch = gst_bus_create_watch(m_pGstBus);
+
+        // Setup our bus-watch callback and then attach the bus-watch to 
+        // the default main context.
+        g_source_set_callback(m_pBusWatch, (GSourceFunc)bus_watch, this, NULL);
     }
 
     PipelineStateMgr::~PipelineStateMgr()
@@ -57,8 +61,7 @@ namespace DSL
         {
             DeleteMainLoop();
         }
-        gst_bus_remove_watch(m_pGstBus);
-        gst_object_unref(m_pGstBus);
+        g_source_destroy(m_pBusWatch);
 
         g_mutex_clear(&m_busWatchMutex);
         g_mutex_clear(&m_lastErrorMutex);
@@ -76,10 +79,6 @@ namespace DSL
             return false;
         }
 
-        // We need remove the current bus watch added to the default main-context
-        gst_bus_remove_watch(m_pGstBus);
-        m_busWatchId = 0;
-        
         // Create own main-context for the Pipeline first
         m_pMainContext = g_main_context_new();
         if (!m_pMainContext)
@@ -97,13 +96,16 @@ namespace DSL
                 << "' failed to create main-loop");
             return false;
         }
+
+        // destroy the existing bus-watch attached to the default main-context
+//        g_source_destroy(m_pBusWatch);
         
         // Create a new bus-watch 
-        m_pBusWatch = gst_bus_create_watch(m_pGstBus);
+//        m_pBusWatch = gst_bus_create_watch(m_pGstBus);
 
         // Setup our bus-watch callback and then attach the bus-watch to 
-        // the Pipeline's own main-context created above.
-        g_source_set_callback(m_pBusWatch, (GSourceFunc)bus_watch, this, NULL);
+        // the Pipelines new main-context
+//        g_source_set_callback(m_pBusWatch, (GSourceFunc)bus_watch, this, NULL);
         g_source_attach(m_pBusWatch, m_pMainContext);
         
         // Initialize the mutex and condition for the two main-loop run and quit thread.
@@ -179,20 +181,13 @@ namespace DSL
                 << gst_object_get_name(m_pGstPipeline) << "'");
             return false;
         }
-        // destroy the bus-watch - which unattaches the bus-watch from the main-context
-        g_source_destroy(m_pBusWatch);
-        
+  
         g_main_loop_unref(m_pMainLoop);
         g_main_context_unref(m_pMainContext);
-        m_pBusWatch = NULL;
         m_pMainLoop = NULL;
         m_pMainContext = NULL;
-        g_mutex_init(&m_mainLoopMutex);
-        g_cond_init(&m_mainLoopCond);
-
-        // re-install the watch function for the message bus with the default 
-        // main-context - setting it back to its default state.
-        m_busWatchId = gst_bus_add_watch(m_pGstBus, bus_watch, this);
+        g_mutex_clear(&m_mainLoopMutex);
+        g_cond_clear(&m_mainLoopCond);
         
         return true;
     }
