@@ -50,12 +50,9 @@ namespace DSL
         GstState state;
         GetState(state, 0);
         if (m_isLinked)
-//        if (state == GST_STATE_PLAYING or state == GST_STATE_PAUSED)
         {
-            LOG_WARN("Calling stop");
             Stop();
         }
-//        SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
         g_mutex_clear(&m_asyncCommMutex);
     }
 
