@@ -241,7 +241,7 @@ DslReturnType delete_pipeline(ClientData* client_data)
 //
 // Thread function to start and wait on the main-loop
 //
-void* main_loop_thread_func(void *data)
+void* main_loop_thread_func_1(void *data)
 {
     ClientData* client_data = (ClientData*)data;
 
@@ -259,7 +259,7 @@ void* main_loop_thread_func(void *data)
     return NULL;
 }
 
-SCENARIO( "Multiple Pipelines can be created, played, stopped, and deleted", "[multi-pipeline]" )
+SCENARIO( "Multiple Pipelines can be created, played, stopped, and deleted #1", "[multi-pipeline]" )
 {
     GIVEN( "Client-data to create three Pipelines." ) 
     {
@@ -281,21 +281,20 @@ SCENARIO( "Multiple Pipelines can be created, played, stopped, and deleted", "[m
             // Start the Pipeline with its own main-context and main-loop in a 
             // seperate thread. 
             main_loop_thread_1 = g_thread_new("main-loop-1", 
-                main_loop_thread_func, &client_data_1);
-
+                main_loop_thread_func_1, &client_data_1);
             g_usleep(1000000);
 
             // Create and start the second Pipeline. 
             REQUIRE( create_pipeline(&client_data_2) == DSL_RESULT_SUCCESS );
             main_loop_thread_2 = g_thread_new("main-loop-2", 
-                main_loop_thread_func, &client_data_2);
+                main_loop_thread_func_1, &client_data_2);
 
             g_usleep(1000000);
 
             // Create and start the third Pipeline.
             REQUIRE( create_pipeline(&client_data_3) == DSL_RESULT_SUCCESS );
             main_loop_thread_3 = g_thread_new("main-loop-3", 
-                main_loop_thread_func, &client_data_3);
+                main_loop_thread_func_1, &client_data_3);
 
             THEN( "All pipelines can be stopped in turn" )
             {
@@ -309,6 +308,85 @@ SCENARIO( "Multiple Pipelines can be created, played, stopped, and deleted", "[m
 
                 g_usleep(1000000);
                 dsl_pipeline_main_loop_quit(client_data_3.pipeline.c_str());
+                g_thread_join(main_loop_thread_3);
+            }
+        }
+    }
+}
+
+//
+// Thread function to start and wait on the main-loop
+//
+void* main_loop_thread_func_2(void *data)
+{
+    ClientData* client_data = (ClientData*)data;
+
+    // Play the pipeline
+    DslReturnType retval = dsl_pipeline_play(client_data->pipeline.c_str());
+    if (retval != DSL_RESULT_SUCCESS) return NULL;
+
+    g_num_active_pipelines++;
+
+    // blocking call
+    dsl_pipeline_main_loop_run(client_data->pipeline.c_str());
+
+    return NULL;
+}
+
+
+SCENARIO( "Multiple Pipelines can be created, played, stopped, and deleted #2", "[multi-pipeline]" )
+{
+    GIVEN( "Client-data to create three Pipelines." ) 
+    {
+        REQUIRE( dsl_component_list_size() == 0 );
+        
+        DslReturnType retval(DSL_RESULT_SUCCESS);
+        
+        // Client data for 3 Pipelines
+        ClientData client_data_1(1);
+        ClientData client_data_2(2);
+        ClientData client_data_3(3);
+
+        WHEN( "When there Pipelines are created and played with their own main loops" ) 
+        {
+            // Create the first Pipeline and sleep for a second to seperate 
+            // the start time with the next Pipeline.
+            REQUIRE( create_pipeline(&client_data_1) == DSL_RESULT_SUCCESS );
+
+            // Start the Pipeline with its own main-context and main-loop in a 
+            // seperate thread. 
+            main_loop_thread_1 = g_thread_new("main-loop-1", 
+                main_loop_thread_func_2, &client_data_1);
+
+            g_usleep(1000000);
+
+            // Create and start the second Pipeline. 
+            REQUIRE( create_pipeline(&client_data_2) == DSL_RESULT_SUCCESS );
+            main_loop_thread_2 = g_thread_new("main-loop-2", 
+                main_loop_thread_func_2, &client_data_2);
+
+            g_usleep(1000000);
+
+            // Create and start the third Pipeline.
+            REQUIRE( create_pipeline(&client_data_3) == DSL_RESULT_SUCCESS );
+            main_loop_thread_3 = g_thread_new("main-loop-3", 
+                main_loop_thread_func_2, &client_data_3);
+
+            THEN( "All pipelines can be stopped in turn" )
+            {
+                g_usleep(1000000);
+                dsl_pipeline_main_loop_quit(client_data_1.pipeline.c_str());
+                delete_pipeline(&client_data_1);
+                g_thread_join(main_loop_thread_1);
+
+                g_usleep(1000000);
+                dsl_pipeline_main_loop_quit(client_data_2.pipeline.c_str());
+                delete_pipeline(&client_data_2);
+                g_thread_join(main_loop_thread_2);
+
+                g_usleep(1000000);
+                dsl_pipeline_main_loop_quit(client_data_3.pipeline.c_str());
+                delete_pipeline(&client_data_3);
                 g_thread_join(main_loop_thread_3);
             }
         }
