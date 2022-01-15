@@ -37,6 +37,13 @@ namespace DSL
         , m_height(height)
     {
         LOG_FUNC();
+        
+        // Get the Device properties
+        if (NVDS_VERSION_MAJOR == 6)
+        {
+            m_llLibFile = NVDS_MOT_LIB;
+        }
+        
         m_pTracker = DSL_ELEMENT_NEW(NVDS_ELEM_TRACKER, "tracker-tracker");
 
         m_pTracker->SetAttribute("tracker-width", m_width);
