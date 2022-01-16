@@ -38,7 +38,8 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // Get the Device properties
+        // DS Version 6.0 has deprecated the separate low-level Libs
+        // for a consolidated lib that supports all three tracker types.
         if (NVDS_VERSION_MAJOR == 6)
         {
             m_llLibFile = NVDS_MOT_LIB;
