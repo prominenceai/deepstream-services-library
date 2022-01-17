@@ -50,7 +50,7 @@ namespace DSL
         m_pTracker->SetAttribute("tracker-width", m_width);
         m_pTracker->SetAttribute("tracker-height", m_height);
         m_pTracker->SetAttribute("gpu-id", m_gpuId);
-        m_pTracker->SetAttribute("ll-lib-file", llLibFile);
+        m_pTracker->SetAttribute("ll-lib-file", m_llLibFile.c_str());
 
         // set the low-level configuration file property if provided.
         if (m_llConfigFile.size())
