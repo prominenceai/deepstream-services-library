@@ -57,6 +57,7 @@ THE SOFTWARE.
 #include <deepstream_common.h>
 #include <deepstream_config.h>
 #include <deepstream_perf.h>
+#include <nvds_version.h>
 #include <gstnvdsmeta.h>
 #include <gstnvdsinfer.h>
 #include <gst-nvdssr.h>

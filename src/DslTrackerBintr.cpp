@@ -37,12 +37,20 @@ namespace DSL
         , m_height(height)
     {
         LOG_FUNC();
+        
+        // DS Version 6.0 has deprecated the separate low-level Libs
+        // for a consolidated lib that supports all three tracker types.
+        if (NVDS_VERSION_MAJOR == 6)
+        {
+            m_llLibFile = NVDS_MOT_LIB;
+        }
+        
         m_pTracker = DSL_ELEMENT_NEW(NVDS_ELEM_TRACKER, "tracker-tracker");
 
         m_pTracker->SetAttribute("tracker-width", m_width);
         m_pTracker->SetAttribute("tracker-height", m_height);
         m_pTracker->SetAttribute("gpu-id", m_gpuId);
-        m_pTracker->SetAttribute("ll-lib-file", llLibFile);
+        m_pTracker->SetAttribute("ll-lib-file", m_llLibFile.c_str());
 
         // set the low-level configuration file property if provided.
         if (m_llConfigFile.size())
