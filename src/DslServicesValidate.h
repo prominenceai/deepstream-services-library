@@ -324,6 +324,15 @@ THE SOFTWARE.
 }while(0);
 #endif
 
+#define DSL_RETURN_IF_COMPONENT_IS_NOT_MESSAGE_SINK(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(AzureMsgSinkBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a Message Sink"); \
+        return DSL_RESULT_SINK_COMPONENT_IS_NOT_MESSAGE_SINK; \
+    } \
+}while(0); 
+
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_TAP(components, name) do \
 { \
     if (!components[name]->IsType(typeid(RecordTapBintr))) \

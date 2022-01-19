@@ -323,7 +323,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Window Sink, and Tiled Display
 }
 
 
-SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Overlay Sink, and Tiled Display can play", "[pipeline-play]" )
+SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Window Sink, and Tiled Display can play", "[pipeline-play]" )
 {
     GIVEN( "A Pipeline, URI source, Primary GIE, Window Sink, and Tiled Display" ) 
     {
@@ -350,8 +350,6 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Overlay Sink, and Tile
 
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
-                bool currIsClockEnabled(false);
-                
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
