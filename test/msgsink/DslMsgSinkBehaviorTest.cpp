@@ -67,15 +67,19 @@ static const std::wstring message_sink_name(L"message-sink");
 static const std::wstring converter_config_file(L"./test/configs/dstest4_msgconv_config.txt");
 static const uint payload_type(DSL_MSG_PAYLOAD_DEEPSTREAM);
 static const std::wstring broker_config_file(L"./test/configs/cfg_azure.txt");
-//static std::string connectionString(L"HostName=<my-hub>.azure-devices.net;DeviceId=<device_id>;SharedAccessKey=<my-policy-key>"); 
 static std::wstring connection_string(
-    L"HostName=my-hub.azure-devices.net;DeviceId=1234;SharedAccessKey=abcd"); 
+    L""); 
 static std::wstring topic(L"DSL_MESSAGE_TOP");
- 
+
+static const std::wstring ode_handler_name(L"ode-handler");
+static const std::wstring occurrence_trigger_name(L"occurrence-trigger");
+static const std::wstring message_action_name(L"message-action") ;
+
+// ---------------------------------------------------------------------------
 
 SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Tiled Display, Window Sink, and Message Sink can play", "[message-sink-play]" )
 {
-    GIVEN( "A Pipeline, URI source, Primary GIE, Window Sink, and Tiled Display" ) 
+    GIVEN( "A Pipeline, URI source, Primary GIE, Tiled Display, Window Sink, Message Sink" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -93,6 +97,22 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Tiled Display, Window 
         REQUIRE( dsl_sink_message_azure_new(message_sink_name.c_str(), converter_config_file.c_str(),
             payload_type, broker_config_file.c_str(), connection_string.c_str(),
             topic.c_str()) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_ode_action_message_new(message_action_name.c_str()) == 
+            DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_ode_trigger_occurrence_new(occurrence_trigger_name.c_str(),
+            DSL_ODE_ANY_SOURCE, DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_ONE) ==
+            DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(occurrence_trigger_name.c_str(), 
+            message_action_name.c_str()) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_pph_ode_new(ode_handler_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_trigger_add(ode_handler_name.c_str(), 
+            occurrence_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_tiler_pph_add(tiler_name1.c_str(), ode_handler_name.c_str(), 
+            DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
         
         const wchar_t* components[] = {L"uri-source",L"primary-gie", L"tiler", 
             L"window-sink", L"message-sink", NULL};
@@ -109,10 +129,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Tiled Display, Window 
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_list_size() == 0 );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_list_size() == 0 );
+                dsl_delete_all();
             }
         }
     }

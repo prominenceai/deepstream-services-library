@@ -153,6 +153,8 @@ namespace DSL {
         
         DslReturnType OdeActionLogNew(const char* name);
 
+        DslReturnType OdeActionMessageNew(const char* name);
+
         DslReturnType OdeActionEmailNew(const char* name, 
             const char* mailer, const char* subject);
         

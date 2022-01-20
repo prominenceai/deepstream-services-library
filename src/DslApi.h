@@ -1466,6 +1466,14 @@ DslReturnType dsl_ode_action_handler_disable_new(const wchar_t* name, const wcha
 DslReturnType dsl_ode_action_log_new(const wchar_t* name);
 
 /**
+ * @brief Creates a uniquely named Message ODE Action that attaches NvDsEventMsgMeta
+ * to the NvDsFrameMeta on ODE occurrence.
+ * @param[in] name unique name for the Message ODE Action 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_message_new(const wchar_t* name);
+
+/**
  * @brief Creates a uniquely named Pause ODE Action
  * @param[in] name unique name for the Pause ODE Action 
  * @param[in] pipeline unique name of the Pipeline to Pause on ODE occurrence
@@ -4384,7 +4392,7 @@ DslReturnType dsl_sink_message_broker_settings_get(const wchar_t* name,
     const wchar_t** topic);
 
 /**
- * @brief Sets the message broker settings for the MsgSinBintr.
+ * @brief Sets the message broker settings for the named Message Sink.
  * @param[in] broker_config_file absolute or relative file-path to 
  * a new message broker config file to use.
  * @param[in] connection_string new connection string in use.

@@ -1394,6 +1394,100 @@ namespace DSL
 
     // ********************************************************************
 
+    static gpointer message_action_meta_copy(gpointer data, gpointer user_data)
+    {
+        NvDsUserMeta* pUserMeta = (NvDsUserMeta*)data;
+        NvDsEventMsgMeta *pSrcMeta = (NvDsEventMsgMeta*)pUserMeta->user_meta_data;
+        NvDsEventMsgMeta *pDstMeta = NULL;
+
+        pDstMeta = (NvDsEventMsgMeta*)g_memdup(pSrcMeta, sizeof(NvDsEventMsgMeta));
+
+        pDstMeta->ts = g_strdup(pSrcMeta->ts);
+        pDstMeta->sensorStr = g_strdup(pSrcMeta->sensorStr);
+        pDstMeta->objectId = g_strdup(pSrcMeta->objectId);
+
+        return pDstMeta;
+    }
+
+    static void message_action_meta_free(gpointer data, gpointer user_data)
+    {
+        NvDsUserMeta *pUserMeta = (NvDsUserMeta *) data;
+        NvDsEventMsgMeta *pSrcMeta = (NvDsEventMsgMeta *) pUserMeta->user_meta_data;
+
+        g_free(pSrcMeta->ts);
+        g_free(pSrcMeta->sensorStr);
+        g_free(pSrcMeta->objectId);
+
+        g_free(pUserMeta->user_meta_data);
+        pUserMeta->user_meta_data = NULL;
+    }
+
+    MessageOdeAction::MessageOdeAction(const char* name)
+        : OdeAction(name)
+    {
+        LOG_FUNC();
+    }
+
+    MessageOdeAction::~MessageOdeAction()
+    {
+        LOG_FUNC();
+    }
+
+    void MessageOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled)
+        {
+            NvDsEventMsgMeta* pMsgMeta = 
+                (NvDsEventMsgMeta*)g_malloc0(sizeof(NvDsEventMsgMeta));
+         
+            pMsgMeta->sensorId = pFrameMeta->source_id;
+            const char* sourceName;
+            Services::GetServices()->SourceNameGet(pFrameMeta->source_id, &sourceName);
+            pMsgMeta->sensorStr = g_strdup(sourceName);
+            pMsgMeta->frameId = pFrameMeta->frame_num;
+            pMsgMeta->ts = g_strdup(Ntp2Str(pFrameMeta->ntp_timestamp).c_str());
+
+            if (pObjectMeta)
+            {
+                pMsgMeta->objectId = g_strdup(pObjectMeta->obj_label);
+                pMsgMeta->confidence = pObjectMeta->confidence;
+                pMsgMeta->trackingId = pObjectMeta->object_id;
+                pMsgMeta->bbox.left = pObjectMeta->rect_params.left;
+                pMsgMeta->bbox.top = pObjectMeta->rect_params.top;
+                pMsgMeta->bbox.width = pObjectMeta->rect_params.width;
+                pMsgMeta->bbox.height = pObjectMeta->rect_params.height;
+            }
+
+            NvDsBatchMeta *pBatchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
+            if (!pBatchMeta) 
+            { 
+                LOG_ERROR("Error occurred getting batch meta for ODE Action '" 
+                    << GetName() << "'");
+                return;
+            }
+            NvDsUserMeta *pUserMeta = nvds_acquire_user_meta_from_pool(pBatchMeta);
+            if (!pUserMeta) 
+            { 
+                LOG_ERROR("Error occurred acquiring user meta for ODE Action '" 
+                    << GetName() << "'");
+                return;
+            }
+            pUserMeta->user_meta_data = (void *)pMsgMeta;
+            pUserMeta->base_meta.meta_type = NVDS_EVENT_MSG_META;
+            pUserMeta->base_meta.copy_func = 
+                (NvDsMetaCopyFunc)message_action_meta_copy;
+            pUserMeta->base_meta.release_func = 
+                (NvDsMetaReleaseFunc)message_action_meta_free;
+            nvds_add_user_meta_to_frame(pFrameMeta, pUserMeta);
+        }
+    }
+
+    // ********************************************************************
+
     FormatLabelOdeAction::FormatLabelOdeAction(const char* name, 
         DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
         : OdeAction(name)

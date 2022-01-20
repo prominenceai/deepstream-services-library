@@ -123,6 +123,10 @@ namespace DSL
     #define DSL_ODE_ACTION_LOG_NEW(name) \
         std::shared_ptr<LogOdeAction>(new LogOdeAction(name))
 
+    #define DSL_ODE_ACTION_MESSAGE_PTR std::shared_ptr<MessageOdeAction>
+    #define DSL_ODE_ACTION_MESSAGE_NEW(name) \
+        std::shared_ptr<MessageOdeAction>(new MessageOdeAction(name))
+
     #define DSL_ODE_ACTION_PAUSE_PTR std::shared_ptr<PauseOdeAction>
     #define DSL_ODE_ACTION_PAUSE_NEW(name, pipeline) \
         std::shared_ptr<PauseOdeAction>(new PauseOdeAction(name, pipeline))
@@ -813,10 +817,10 @@ namespace DSL
         
         /**
          * @brief Handles the ODE occurrence by adding/calling LOG_INFO 
-         * with the ODE occurrence data data
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * with the ODE occurrence data.data
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event.
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event.
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event.
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
@@ -828,7 +832,44 @@ namespace DSL
     
     };
         
+    // ********************************************************************
 
+    /**
+     * @class MessageOdeAction
+     * @brief Message ODE Action class
+     */
+    class MessageOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Message ODE Action class.
+         * @param[in] name unique name for the ODE Action.
+         */
+        MessageOdeAction(const char* name);
+        
+        /**
+         * @brief dtor for the Log ODE Action class
+         */
+        ~MessageOdeAction();
+        
+        /**
+         * @brief Handles the ODE occurrence by adding NvDsEventMsgMeta with
+         * the ODE occurrence data.
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event.
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event.
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event.
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+    private:
+    
+    };
+        
     // ********************************************************************
 
     /**

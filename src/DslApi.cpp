@@ -651,6 +651,15 @@ DslReturnType dsl_ode_action_log_new(const wchar_t* name)
     return DSL::Services::GetServices()->OdeActionLogNew(cstrName.c_str());
 }
 
+DslReturnType dsl_ode_action_message_new(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionMessageNew(cstrName.c_str());
+}
    
 DslReturnType dsl_ode_action_display_meta_add_new(const wchar_t* name, const wchar_t* display_type)
 {
