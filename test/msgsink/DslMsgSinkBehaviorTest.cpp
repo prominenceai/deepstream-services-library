@@ -67,13 +67,15 @@ static const std::wstring message_sink_name(L"message-sink");
 static const std::wstring converter_config_file(L"./test/configs/dstest4_msgconv_config.txt");
 static const uint payload_type(DSL_MSG_PAYLOAD_DEEPSTREAM);
 static const std::wstring broker_config_file(L"./test/configs/cfg_azure.txt");
-static std::wstring connection_string(
-    L""); 
-static std::wstring topic(L"DSL_MESSAGE_TOP");
+
+// SET CONNECTION STRING
+static std::wstring connection_string(L""); 
+static std::wstring topic(L"DSL_MESSAGE_TOPIC");
 
 static const std::wstring ode_handler_name(L"ode-handler");
 static const std::wstring occurrence_trigger_name(L"occurrence-trigger");
-static const std::wstring message_action_name(L"message-action") ;
+static const std::wstring message_action_name(L"message-action");
+static const std::wstring print_action_name(L"print-action");
 
 // ---------------------------------------------------------------------------
 
@@ -98,12 +100,16 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Tiled Display, Window 
             payload_type, broker_config_file.c_str(), connection_string.c_str(),
             topic.c_str()) == DSL_RESULT_SUCCESS );
             
+        REQUIRE( dsl_ode_action_print_new(print_action_name.c_str(), false)  == 
+            DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_action_message_new(message_action_name.c_str()) == 
             DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_ode_trigger_occurrence_new(occurrence_trigger_name.c_str(),
             DSL_ODE_ANY_SOURCE, DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_ONE) ==
             DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(occurrence_trigger_name.c_str(), 
+            print_action_name.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(occurrence_trigger_name.c_str(), 
             message_action_name.c_str()) == DSL_RESULT_SUCCESS );
             
