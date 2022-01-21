@@ -153,6 +153,8 @@ namespace DSL {
         
         DslReturnType OdeActionLogNew(const char* name);
 
+        DslReturnType OdeActionMessageNew(const char* name);
+
         DslReturnType OdeActionEmailNew(const char* name, 
             const char* mailer, const char* subject);
         
@@ -832,6 +834,11 @@ namespace DSL {
         DslReturnType SinkWebRtcClientListenerRemove(const char* name,
             dsl_sink_webrtc_client_listener_cb listener);
 
+        DslReturnType SinkMsgAzureNew(const char* name, 
+            const char* converterConfigFile, uint payloadType, 
+            const char* brokerConfigFile, const char* connectionString, 
+            const char* topic);
+
         DslReturnType SinkPphAdd(const char* name, const char* handler);
 
         DslReturnType SinkPphRemove(const char* name, const char* handler);
@@ -856,6 +863,25 @@ namespace DSL {
         DslReturnType WebsocketServerClientListenerRemove(
             dsl_websocket_server_client_listener_cb listener);
 
+        DslReturnType SinkMsgNew(const char* name, 
+            const char* converterConfigFile, uint payloadType, 
+            const char* brokerConfigFile, const char* connectionString, 
+            const char* protocolLib, const char* topic);
+            
+        DslReturnType SinkMsgConverterSettingsGet(const char* name, 
+            const char** converterConfigFile, uint* payloadType);
+            
+        DslReturnType SinkMsgConverterSettingsSet(const char* name, 
+            const char* converterConfigFile, uint payloadType);
+            
+        DslReturnType SinkMsgBrokerSettingsGet(const char* name, 
+            const char** brokerConfigFile, const char** connectionString, 
+            const char** topic);
+
+        DslReturnType SinkMsgBrokerSettingsSet(const char* name, 
+            const char* brokerConfigFile, const char* connectionString, 
+            const char* topic);
+        
         uint SinkNumInUseGet();
         
         uint SinkNumInUseMaxGet();

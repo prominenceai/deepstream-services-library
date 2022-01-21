@@ -40,8 +40,9 @@ THE SOFTWARE.
 #define DSL_RESULT_FAILURE                                          0x00000001
 #define DSL_RESULT_API_NOT_IMPLEMENTED                              0x00000002
 #define DSL_RESULT_API_NOT_SUPPORTED                                0x00000003
-#define DSL_RESULT_INVALID_INPUT_PARAM                              0x00000004
-#define DSL_RESULT_THREW_EXCEPTION                                  0x00000005
+#define DSL_RESULT_API_NOT_ENABLED                                  0x00000004
+#define DSL_RESULT_INVALID_INPUT_PARAM                              0x00000005
+#define DSL_RESULT_THREW_EXCEPTION                                  0x00000006
 #define DSL_RESULT_INVALID_RESULT_CODE                              UINT32_MAX
 
 /**
@@ -139,6 +140,8 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_ADD_FAILED           0x00040017
 #define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED        0x00040018
 #define DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED             0x00040019
+#define DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND               0x00040020
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_MESSAGE_SINK               0x00040021
 
 /**
  * OSD API Return Values
@@ -655,6 +658,14 @@ THE SOFTWARE.
  * For the Absence Trigger, occurrences will always be 0. 
  */
 #define DSL_METRIC_OBJECT_OCCURRENCES                               6
+
+/**
+ * @brief Message converter payload schema types used by all Message Sinks.
+ */
+#define DSL_MSG_PAYLOAD_DEEPSTREAM                                  0
+#define DSL_MSG_PAYLOAD_DEEPSTREAM_MINIMAL                          1
+#define DSL_MSG_PAYLOAD_CUSTOM                                      257
+
 
 EXTERN_C_BEGIN
 
@@ -1453,6 +1464,14 @@ DslReturnType dsl_ode_action_handler_disable_new(const wchar_t* name, const wcha
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_log_new(const wchar_t* name);
+
+/**
+ * @brief Creates a uniquely named Message ODE Action that attaches NvDsEventMsgMeta
+ * to the NvDsFrameMeta on ODE occurrence.
+ * @param[in] name unique name for the Message ODE Action 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_message_new(const wchar_t* name);
 
 /**
  * @brief Creates a uniquely named Pause ODE Action
@@ -4322,6 +4341,68 @@ DslReturnType dsl_websocket_server_client_listener_add(
 DslReturnType dsl_websocket_server_client_listener_remove(
     dsl_websocket_server_client_listener_cb listener);
 
+/**
+ * @brief Creates a new, uniquely named MQTT Azure protocol adapted Message Sink.
+ * @param[in] name unique component name for the new Azure Message Sink.
+ * @param[in] converter_config_file absolute or relate path to a message-converter
+ * configuration file  of type text or csv.
+ * @param[in] payload_type one of the DSL_MSG_PAYLOAD constants.
+ * @param[in] broker_config_file absolute or relate path to a message-broker 
+ * configuration file required by nvds_msgapi_* interface.
+ * @param[in] connection_string end point for communication with server of
+ * the format <name>;<port>;<specifier>
+ * @param[in] topic (optional) message topic name.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_message_azure_new(const wchar_t* name, 
+    const wchar_t* converter_config_file, uint payload_type, 
+    const wchar_t* broker_config_file, const wchar_t* connection_string, 
+    const wchar_t* topic);
+
+/**
+ * @brief Gets the current message converter settings for the named Message Sink.
+ * @param[out] converter_config_file absolute file-path to the current
+ * message converter config file in use.
+ * @param[out] payload_type current payload type, one of the DSL_MSG_PAYLOAD constants.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_message_converter_settings_get(const wchar_t* name, 
+    const wchar_t** converter_config_file, uint* payload_type);
+    
+/**
+ * @brief Sets the current message converter settings for the named Message Sink.
+ * @param[in] converter_config_file absolute or relate file-path to a new
+ * message converter config file to use.
+ * @param[in] payload_type new payload type to use, one of the DSL_MSG_PAYLOAD constants.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_message_converter_settings_set(const wchar_t* name, 
+    const wchar_t* converter_config_file, uint payload_type);
+
+/**
+ * @brief Gets the current message broker settings for the named Message Sink.
+ * @param[out] broker_config_file absolute file-path to the current message
+ * broker config file in use.
+ * @param[out] connection_string current connection string in use.
+ * @param[out] topic (optional) message topic current in use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_message_broker_settings_get(const wchar_t* name, 
+    const wchar_t** broker_config_file, const wchar_t** connection_string, 
+    const wchar_t** topic);
+
+/**
+ * @brief Sets the message broker settings for the named Message Sink.
+ * @param[in] broker_config_file absolute or relative file-path to 
+ * a new message broker config file to use.
+ * @param[in] connection_string new connection string in use.
+ * @param[in] topic (optional) new message topic to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_message_broker_settings_set(const wchar_t* name, 
+    const wchar_t* broker_config_file, const wchar_t* connection_string, 
+    const wchar_t* topic);
+    
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
  * One or more Pad Probe Handlers can be added to the SINK PAD only (single stream).

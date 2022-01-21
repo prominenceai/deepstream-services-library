@@ -831,6 +831,32 @@ namespace DSL
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
+
+    DslReturnType Services::OdeActionMessageNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_MESSAGE_NEW(name);
+
+            LOG_INFO("New ODE Message Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Message Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
     
     DslReturnType Services::OdeActionDisplayMetaAddNew(const char* name, const char* displayType)
     {
