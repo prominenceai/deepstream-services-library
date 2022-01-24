@@ -1021,6 +1021,276 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SinkMessageNew(const char* name, 
+        const char* converterConfigFile, uint payloadType, 
+        const char* brokerConfigFile, const char* protocolLib,
+        const char* connectionString, const char* topic)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+
+            LOG_INFO("Message Converter config file: " << converterConfigFile);
+
+            std::ifstream configFile(converterConfigFile);
+            if (!configFile.good())
+            {
+                LOG_ERROR("Message Converter config file not found");
+                return DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND;
+            }
+            std::string testPath(brokerConfigFile);
+            if (testPath.size())
+            {
+                LOG_INFO("Message Broker config file: " << brokerConfigFile);
+                
+                std::ifstream configFile(brokerConfigFile);
+                if (!configFile.good())
+                {
+                    LOG_ERROR("Message Broker config file not found");
+                    return DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND;
+                }
+            }
+
+            m_components[name] = DSL_MESSAGE_SINK_NEW(name,
+                converterConfigFile, payloadType, brokerConfigFile, 
+                protocolLib, connectionString, topic);
+
+            LOG_INFO("New Message Sink '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Message Sink '" << name << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkMessageMetaTypeGet(const char* name,
+        uint* metaType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, MessageSinkBintr);
+
+            DSL_MESSAGE_SINK_PTR pMessageSinkBintr = 
+                std::dynamic_pointer_cast<MessageSinkBintr>(m_components[name]);
+
+            *metaType = pMessageSinkBintr->GetMetaType();
+            
+            LOG_INFO("Message Sink '" << name 
+                << "' returned meta_type =" << *metaType << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Message Sink'" << name 
+                << "' threw an exception getting Message Converter Settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+                
+    DslReturnType Services::SinkMessageMetaTypeSet(const char* name,
+        uint metaType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, MessageSinkBintr);
+
+            DSL_MESSAGE_SINK_PTR pMessageSinkBintr = 
+                std::dynamic_pointer_cast<MessageSinkBintr>(m_components[name]);
+
+            if (metaType < NVDS_START_USER_META and
+                metaType != NVDS_EVENT_MSG_META)
+            {
+                LOG_ERROR("meta_type = " << metaType 
+                    << "' is invalid for Message Sink '" << name << "'");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            if (!pMessageSinkBintr->SetMetaType(metaType))
+            {
+                LOG_ERROR("Message Sink '" << name 
+                    << "' failed to set meta_type = " << metaType);
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Message Sink'" << name 
+                << "' threw an exception getting Message Converter Settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::SinkMessageConverterSettingsGet(const char* name, 
+        const char** converterConfigFile, uint* payloadType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, MessageSinkBintr);
+
+            DSL_MESSAGE_SINK_PTR pMessageSinkBintr = 
+                std::dynamic_pointer_cast<MessageSinkBintr>(m_components[name]);
+
+            pMessageSinkBintr->GetConverterSettings(converterConfigFile,
+                payloadType);
+
+            LOG_INFO("Message Sink '" << name 
+                << "' returned Message Converter Settings successfully");
+            LOG_INFO("Converter config file = '" << *converterConfigFile
+                << "' Payload schema type = '" << *payloadType << "'");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Message Sink'" << name 
+                << "' threw an exception getting Message Converter Settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+            
+    DslReturnType Services::SinkMessageConverterSettingsSet(const char* name, 
+        const char* converterConfigFile, uint payloadType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, MessageSinkBintr);
+
+            LOG_INFO("Message Converter config file: " << converterConfigFile);
+
+            std::ifstream configFile(converterConfigFile);
+            if (!configFile.good())
+            {
+                LOG_ERROR("Message Converter config file not found");
+                return DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND;
+            }
+            DSL_MESSAGE_SINK_PTR pMessageSinkBintr = 
+                std::dynamic_pointer_cast<MessageSinkBintr>(m_components[name]);
+
+            if (!pMessageSinkBintr->SetConverterSettings(converterConfigFile,
+                payloadType))
+            {
+                LOG_ERROR("Message Sink '" << name 
+                    << "' failed to Set Message Converter Settings");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Message Sink '" << name 
+                << "' set Message Converter Settings successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Message Sink'" << name 
+                << "' threw an exception setting Message Converter Settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkMessageBrokerSettingsGet(const char* name, 
+        const char** brokerConfigFile, const char** protocolLib, 
+        const char** connectionString, const char** topic)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, MessageSinkBintr);
+
+            DSL_MESSAGE_SINK_PTR pMessageSinkBintr = 
+                std::dynamic_pointer_cast<MessageSinkBintr>(m_components[name]);
+
+            pMessageSinkBintr->GetBrokerSettings(brokerConfigFile,
+                protocolLib, connectionString, topic);
+            LOG_INFO("Message Sink '" << name 
+                << "' returned Message Broker Settings successfully");
+            LOG_INFO("Broker config file = '" << *brokerConfigFile  
+                << "' Connection string = '" << *connectionString 
+                << "' Topic = '" << *topic);
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Message Sink'" << name 
+                << "' threw an exception setting Message Broker Settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+            
+    DslReturnType Services::SinkMessageBrokerSettingsSet(const char* name, 
+        const char* brokerConfigFile, const char* protocolLib,
+        const char* connectionString, const char* topic)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, MessageSinkBintr);
+
+            LOG_INFO("Message Broker config file: " << brokerConfigFile);
+
+            std::ifstream configFile(brokerConfigFile);
+            if (!configFile.good())
+            {
+                LOG_ERROR("Message Broker config file not found");
+                return DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND;
+            }
+            DSL_MESSAGE_SINK_PTR pMessageSinkBintr = 
+                std::dynamic_pointer_cast<MessageSinkBintr>(m_components[name]);
+
+            if (!pMessageSinkBintr->SetBrokerSettings(brokerConfigFile,
+                protocolLib, connectionString, topic))
+            {
+                LOG_ERROR("Message Sink '" << name 
+                    << "' failed to Set Message Broker Settings");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Message Sink '" << name 
+                << "' set Message Broker Settings successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Message Sink'" << name 
+                << "' threw an exception setting Message Broker Settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
 
     DslReturnType Services::SinkPphAdd(const char* name, const char* handler)
     {

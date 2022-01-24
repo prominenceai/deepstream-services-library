@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 #include "catch.hpp"
 #include "Dsl.h"
-#include "msgsink/DslMsgSinkBintr.h"
+#include "DslSinkBintr.h"
 
 using namespace DSL;
 
@@ -45,10 +45,10 @@ SCENARIO( "A new MsgSinkBintr is created correctly",  "[MsgSinkBintr]" )
     {
         WHEN( "The MsgSinkBintr is created " )
         {
-            DSL_AZURE_MSG_SINK_PTR pSinkBintr = 
-                DSL_AZURE_MSG_SINK_NEW(sinkName.c_str(), conversionConfigFile.c_str(), 
-                    payloadType, brokerConfigFile.c_str(), connectionString.c_str(), 
-                    topic.c_str());
+            DSL_MESSAGE_SINK_PTR pSinkBintr = 
+                DSL_MESSAGE_SINK_NEW(sinkName.c_str(), conversionConfigFile.c_str(), 
+                    payloadType, brokerConfigFile.c_str(), protocolLib.c_str(),
+                    connectionString.c_str(), topic.c_str());
             
             THEN( "The correct attribute values are returned" )
             {
@@ -57,6 +57,7 @@ SCENARIO( "A new MsgSinkBintr is created correctly",  "[MsgSinkBintr]" )
                 REQUIRE( sync == true );
                 REQUIRE( async == false );
                 
+                REQUIRE( pSinkBintr->GetMetaType() == NVDS_EVENT_MSG_META);
                 const char* cRetConversionConfigFile;
                 uint retPayloadType;
                 pSinkBintr->GetConverterSettings(&cRetConversionConfigFile, &retPayloadType);
@@ -66,16 +67,19 @@ SCENARIO( "A new MsgSinkBintr is created correctly",  "[MsgSinkBintr]" )
                 REQUIRE( retPayloadType == payloadType );
 
                 const char* cRetBrokerConfigFile;
+                const char* cRetProtocolLib;
                 const char* cRetConnectionString;
                 const char* cRetTopic;
                 pSinkBintr->GetBrokerSettings(&cRetBrokerConfigFile,
-                    &cRetConnectionString, &cRetTopic);
+                    &cRetProtocolLib, &cRetConnectionString, &cRetTopic);
 
                 std::string retBrokerConfigFile(cRetBrokerConfigFile);
+                std::string retProtocolLib(cRetProtocolLib);
                 std::string retConnectionString(cRetConnectionString);
                 std::string retTopic(cRetTopic);
                 
                 REQUIRE (retBrokerConfigFile == brokerConfigFile);
+                REQUIRE (retProtocolLib == protocolLib);
                 REQUIRE (retConnectionString == connectionString);
                 REQUIRE (retTopic == topic );
             }
@@ -89,10 +93,10 @@ SCENARIO( "A new MsgSinkBintr can LinkAll Child Elementrs", "[MsgSinkBintr]" )
     {
         std::string sinkName("msg-sink");
 
-            DSL_MSG_SINK_PTR pSinkBintr = 
-                DSL_AZURE_MSG_SINK_NEW(sinkName.c_str(), conversionConfigFile.c_str(), 
-                    payloadType, brokerConfigFile.c_str(), connectionString.c_str(), 
-                    topic.c_str());
+            DSL_MESSAGE_SINK_PTR pSinkBintr = 
+                DSL_MESSAGE_SINK_NEW(sinkName.c_str(), conversionConfigFile.c_str(), 
+                    payloadType, brokerConfigFile.c_str(), protocolLib.c_str(),
+                    connectionString.c_str(), topic.c_str());
 
         REQUIRE( pSinkBintr->IsLinked() == false );
 

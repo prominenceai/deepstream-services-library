@@ -1466,12 +1466,32 @@ DslReturnType dsl_ode_action_handler_disable_new(const wchar_t* name, const wcha
 DslReturnType dsl_ode_action_log_new(const wchar_t* name);
 
 /**
- * @brief Creates a uniquely named Message ODE Action that attaches NvDsEventMsgMeta
+ * @brief Creates a uniquely named Message Meta Add ODE Action that attaches NvDsEventMsgMeta
  * to the NvDsFrameMeta on ODE occurrence.
  * @param[in] name unique name for the Message ODE Action 
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_message_new(const wchar_t* name);
+DslReturnType dsl_ode_action_message_meta_add_new(const wchar_t* name);
+
+///**
+// * @brief Gets the current meta-type identifier in use by the named Message Sink.
+// * @param[in] name unique name of the Message ODE Action to query.
+// * @param[out] meta_type the current meta-type in use, default = NVDS_EVENT_MSG_META.
+// * @return DSL_RESULT_SUCCESS on successful query, one of the 
+// * DSL_RESULT_ODE_ACTION_RESULT values otherwise.
+// */
+//DslReturnType dsl_ode_action_message_meta_type_get(const wchar_t* name,
+//    uint* meta_type);
+//
+///**
+// * @brief Sets the meta-type identifier for the named Message Sink to use
+// * @param[in] name unique name of the Message ODE Action to update
+// * @param[in] meta_type the new meta-type to use, must > or = NVDS_START_USER_META.
+// * @return DSL_RESULT_SUCCESS on successful update, one of the 
+// * DSL_RESULT_ODE_ACTION_RESULT values otherwise.
+// */
+//DslReturnType dsl_ode_action_message_meta_type_set(const wchar_t* name,
+//    uint meta_type);
 
 /**
  * @brief Creates a uniquely named Pause ODE Action
@@ -4342,22 +4362,46 @@ DslReturnType dsl_websocket_server_client_listener_remove(
     dsl_websocket_server_client_listener_cb listener);
 
 /**
- * @brief Creates a new, uniquely named MQTT Azure protocol adapted Message Sink.
- * @param[in] name unique component name for the new Azure Message Sink.
+ * @brief Creates a new, uniquely named Message Sink.
+ * @param[in] name unique component name for the new Message Sink.
  * @param[in] converter_config_file absolute or relate path to a message-converter
- * configuration file  of type text or csv.
+ * configuration file of type text or csv.
  * @param[in] payload_type one of the DSL_MSG_PAYLOAD constants.
  * @param[in] broker_config_file absolute or relate path to a message-broker 
  * configuration file required by nvds_msgapi_* interface.
+ * @param[in] protocol_lib absolute or relative path to the protocol adapter
+ * that implements the nvds_msgapi_* interface.
  * @param[in] connection_string end point for communication with server of
  * the format <name>;<port>;<specifier>
  * @param[in] topic (optional) message topic name.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_message_azure_new(const wchar_t* name, 
+DslReturnType dsl_sink_message_new(const wchar_t* name, 
     const wchar_t* converter_config_file, uint payload_type, 
-    const wchar_t* broker_config_file, const wchar_t* connection_string, 
-    const wchar_t* topic);
+    const wchar_t* broker_config_file, const wchar_t* protocol_lib, 
+    const wchar_t* connection_string, const wchar_t* topic);
+
+///**
+// * @brief Gets the current message meta-type filter in use by the named Message Sink.
+// * @param name unique name of the Message Sink to query.
+// * @param[out] meta_type the current meta-type filter in use, 
+// * default = NVDS_EVENT_MSG_META.
+// * @return DSL_RESULT_SUCCESS on successful query,  on of DSL_RESULT_SINK_RESULT 
+// * on failure.
+// */
+//DslReturnType dsl_sink_message_meta_type_get(const wchar_t* name,
+//    uint* meta_type);
+//    
+///**
+// * @brief Sets the current message meta-type filter for the named Message Sink to use.
+// * @param name unique name of the Message Sink to update.
+// * @param[in] meta_type the new meta-type filter to use, must be equal to or
+// * greater than NVDS_START_USER_META.
+// * @return DSL_RESULT_SUCCESS on successful update,  on of DSL_RESULT_SINK_RESULT 
+// * on failure.
+// */
+//DslReturnType dsl_sink_message_meta_type_set(const wchar_t* name,
+//    uint meta_type);
 
 /**
  * @brief Gets the current message converter settings for the named Message Sink.
@@ -4383,26 +4427,30 @@ DslReturnType dsl_sink_message_converter_settings_set(const wchar_t* name,
  * @brief Gets the current message broker settings for the named Message Sink.
  * @param[out] broker_config_file absolute file-path to the current message
  * broker config file in use.
+ * @param[out] protocol_lib absolute file-path to the current protocol adapter
+ * library in use.
  * @param[out] connection_string current connection string in use.
  * @param[out] topic (optional) message topic current in use.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_message_broker_settings_get(const wchar_t* name, 
-    const wchar_t** broker_config_file, const wchar_t** connection_string, 
-    const wchar_t** topic);
+    const wchar_t** broker_config_file, const wchar_t** protocol_lib,
+    const wchar_t** connection_string, const wchar_t** topic);
 
 /**
  * @brief Sets the message broker settings for the named Message Sink.
  * @param[in] broker_config_file absolute or relative file-path to 
  * a new message broker config file to use.
+ * @param[out] protocol_lib absolute file-path to a new protocol adapter
+ * library to use.
  * @param[in] connection_string new connection string in use.
  * @param[in] topic (optional) new message topic to use.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_message_broker_settings_set(const wchar_t* name, 
-    const wchar_t* broker_config_file, const wchar_t* connection_string, 
-    const wchar_t* topic);
-    
+    const wchar_t* broker_config_file, const wchar_t* protocol_lib,
+    const wchar_t* connection_string, const wchar_t* topic);
+
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
  * One or more Pad Probe Handlers can be added to the SINK PAD only (single stream).

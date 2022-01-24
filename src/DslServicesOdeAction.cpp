@@ -614,20 +614,23 @@ namespace DSL
             }
             
             DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
-            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, 
+                color, RgbaColor);
 
             DSL_RGBA_COLOR_PTR pColor = 
                 std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
                 
             m_odeActions[name] = DSL_ODE_ACTION_FILL_SURROUNDINGS_NEW(name, pColor);
 
-            LOG_INFO("New ODE Fill Surroundings Action '" << name << "' created successfully");
+            LOG_INFO("New ODE Fill Surroundings Action '" 
+                << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New ODE Fill Surroundings Action '" << name << "' threw exception on create");
+            LOG_ERROR("New ODE Fill Surroundings Action '" 
+                << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
@@ -654,13 +657,15 @@ namespace DSL
                 
             m_odeActions[name] = DSL_ODE_ACTION_FILL_FRAME_NEW(name, pColor);
 
-            LOG_INFO("New ODE Fill Frame Action '" << name << "' created successfully");
+            LOG_INFO("New ODE Fill Frame Action '" 
+                << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New ODE Fill Frame Action '" << name << "' threw exception on create");
+            LOG_ERROR("New ODE Fill Frame Action '" 
+                << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
@@ -685,7 +690,8 @@ namespace DSL
             if (borderWidth)
             {
                 DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, borderColor);
-                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, borderColor, RgbaColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, 
+                    borderColor, RgbaColor);
 
                 pBorderColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[borderColor]);
             }
@@ -699,7 +705,8 @@ namespace DSL
             if (hasBgColor)
             {
                 DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, 
+                    bgColor, RgbaColor);
 
                 pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
             }
@@ -711,13 +718,15 @@ namespace DSL
             m_odeActions[name] = DSL_ODE_ACTION_FORMAT_BBOX_NEW(name, 
                 borderWidth, pBorderColor, hasBgColor, pBgColor);
                 
-            LOG_INFO("New Format Bounding Box ODE Action '" << name << "' created successfully");
+            LOG_INFO("New Format Bounding Box ODE Action '" 
+                << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Format Bounding Box ODE Action '" << name << "' threw exception on create");
+            LOG_ERROR("New Format Bounding Box ODE Action '" 
+                << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
@@ -743,7 +752,8 @@ namespace DSL
             if (fontString.size())
             {
                 DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
-                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, 
+                    font, RgbaFont);
 
                 pFont = std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
             }
@@ -757,7 +767,8 @@ namespace DSL
             if (hasBgColor)
             {
                 DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, 
+                    bgColor, RgbaColor);
 
                 pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
             }
@@ -775,7 +786,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("New Format Bounding Box ODE Action '" << name << "' threw exception on create");
+            LOG_ERROR("New Format Bounding Box ODE Action '" 
+                << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
@@ -801,7 +813,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("New ODE Disable Handler Action '" << name << "' threw exception on create");
+            LOG_ERROR("New ODE Disable Handler Action '" 
+                << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
@@ -832,7 +845,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeActionMessageNew(const char* name)
+    DslReturnType Services::OdeActionMessageMetaAddNew(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -845,20 +858,89 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_MESSAGE_NEW(name);
+            m_odeActions[name] = DSL_ODE_ACTION_MESSAGE_META_ADD_NEW(name);
 
-            LOG_INFO("New ODE Message Action '" << name << "' created successfully");
+            LOG_INFO("New ODE Message Meta Add Action '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New ODE Message Action '" << name << "' threw exception on create");
+            LOG_ERROR("New ODE Message Meta Add Action '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
-    
-    DslReturnType Services::OdeActionDisplayMetaAddNew(const char* name, const char* displayType)
+
+    DslReturnType Services::OdeActionMessageMetaTypeGet(const char* name,
+        uint* metaType) 
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            DSL_RETURN_IF_ODE_ACTION_IS_NOT_CORRECT_TYPE(m_odeActions, 
+                name, MessageMetaAddOdeAction);
+
+            DSL_ODE_ACTION_MESSAGE_META_ADD_PTR pAction = 
+                std::dynamic_pointer_cast<MessageMetaAddOdeAction>(m_odeActions[name]);
+
+            *metaType = pAction->GetMetaType();
+            
+            LOG_INFO("ODE Message Meta Add Action '" << name 
+                << "' returned meta_type = " << *metaType << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Message Meta Add Action '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeActionMessageMetaTypeSet(const char* name,
+        uint metaType)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            DSL_RETURN_IF_ODE_ACTION_IS_NOT_CORRECT_TYPE(m_odeActions, 
+                name, MessageMetaAddOdeAction);
+
+            DSL_ODE_ACTION_MESSAGE_META_ADD_PTR pAction = 
+                std::dynamic_pointer_cast<MessageMetaAddOdeAction>(m_odeActions[name]);
+
+            if (metaType < NVDS_START_USER_META and
+                metaType != NVDS_EVENT_MSG_META)
+            {
+                LOG_ERROR("meta_type = " << metaType 
+                    << "' is invalid for ODE Add Message Meta Action '" << name << "'");
+                return DSL_RESULT_ODE_ACTION_SET_FAILED;
+            }
+            pAction->SetMetaType(metaType);
+            
+            LOG_INFO("ODE Message Meta Add Action '" << name << "' set meta_type = "
+                << metaType << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Message Meta Add Action '" 
+                << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeActionDisplayMetaAddNew(const char* name, 
+        const char* displayType)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
