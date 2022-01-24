@@ -1422,18 +1422,19 @@ namespace DSL
         pUserMeta->user_meta_data = NULL;
     }
 
-    MessageOdeAction::MessageOdeAction(const char* name)
+    MessageMetaAddOdeAction::MessageMetaAddOdeAction(const char* name)
         : OdeAction(name)
+        , m_metaType(NVDS_EVENT_MSG_META)
     {
         LOG_FUNC();
     }
 
-    MessageOdeAction::~MessageOdeAction()
+    MessageMetaAddOdeAction::~MessageMetaAddOdeAction()
     {
         LOG_FUNC();
     }
 
-    void MessageOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+    void MessageMetaAddOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
         GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
@@ -1477,7 +1478,7 @@ namespace DSL
                 return;
             }
             pUserMeta->user_meta_data = (void *)pMsgMeta;
-            pUserMeta->base_meta.meta_type = NVDS_EVENT_MSG_META;
+            pUserMeta->base_meta.meta_type = (NvDsMetaType)m_metaType;
             pUserMeta->base_meta.copy_func = 
                 (NvDsMetaCopyFunc)message_action_meta_copy;
             pUserMeta->base_meta.release_func = 
@@ -1485,7 +1486,21 @@ namespace DSL
             nvds_add_user_meta_to_frame(pFrameMeta, pUserMeta);
         }
     }
+    
+    uint MessageMetaAddOdeAction::GetMetaType()
+    {
+        LOG_FUNC();
+        
+        return m_metaType;
+    }
 
+    void MessageMetaAddOdeAction::SetMetaType(uint metaType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_metaType = metaType;
+    }
     // ********************************************************************
 
     FormatLabelOdeAction::FormatLabelOdeAction(const char* name, 

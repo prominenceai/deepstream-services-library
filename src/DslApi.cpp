@@ -651,14 +651,38 @@ DslReturnType dsl_ode_action_log_new(const wchar_t* name)
     return DSL::Services::GetServices()->OdeActionLogNew(cstrName.c_str());
 }
 
-DslReturnType dsl_ode_action_message_new(const wchar_t* name)
+DslReturnType dsl_ode_action_message_meta_add_new(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeActionMessageNew(cstrName.c_str());
+    return DSL::Services::GetServices()->OdeActionMessageMetaAddNew(cstrName.c_str());
+}
+
+DslReturnType dsl_ode_action_message_meta_type_get(const wchar_t* name,
+    uint* meta_type)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionMessageMetaTypeGet(
+        cstrName.c_str(), meta_type);
+}
+    
+DslReturnType dsl_ode_action_message_meta_type_set(const wchar_t* name,
+    uint meta_type)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionMessageMetaTypeSet(
+        cstrName.c_str(), meta_type);
 }
    
 DslReturnType dsl_ode_action_display_meta_add_new(const wchar_t* name, const wchar_t* display_type)
@@ -4683,29 +4707,24 @@ DslReturnType dsl_websocket_server_client_listener_remove(
 #endif    
 }
 
-DslReturnType dsl_sink_message_azure_new(const wchar_t* name, 
+DslReturnType dsl_sink_message_new(const wchar_t* name, 
     const wchar_t* converter_config_file, uint payload_type, 
-    const wchar_t* broker_config_file, const wchar_t* connection_string, 
-    const wchar_t* topic)
+    const wchar_t* broker_config_file, const wchar_t* protocol_lib, 
+    const wchar_t* connection_string, const wchar_t* topic)
 {
-#if !BUILD_MESSAGE_SINK
-    LOG_ERROR("The conditional BUILD_MESSAGE_SINK flag in the MakeFile is set to false");
-    return DSL_RESULT_API_NOT_ENABLED;
-#else
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(converter_config_file);
+    RETURN_IF_PARAM_IS_NULL(broker_config_file);
+    RETURN_IF_PARAM_IS_NULL(protocol_lib);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrConvConfig(converter_config_file);
     std::string cstrConvConfig(wstrConvConfig.begin(), wstrConvConfig.end());
-
-    std::string cstrBrokerConfig;
-	if (broker_config_file != NULL)
-	{
-		std::wstring wstrBrokerConfig(broker_config_file);
-		cstrBrokerConfig.assign(wstrBrokerConfig.begin(), wstrBrokerConfig.end());
-    }
+    std::wstring wstrBrokerConfig(broker_config_file);
+    std::string cstrBrokerConfig(wstrBrokerConfig.begin(), wstrBrokerConfig.end());
+    std::wstring wstrProtocolLib(protocol_lib);
+    std::string cstrProtocolLib(wstrProtocolLib.begin(), wstrProtocolLib.end());
     
     std::string cstrConn;
 	if (connection_string != NULL)
@@ -4721,19 +4740,38 @@ DslReturnType dsl_sink_message_azure_new(const wchar_t* name,
 		cstrTopic.assign(wstrTopic.begin(), wstrTopic.end());
     }
 
-    return DSL::Services::GetServices()->SinkMsgAzureNew(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SinkMessageNew(cstrName.c_str(), 
         cstrConvConfig.c_str(), payload_type, cstrBrokerConfig.c_str(), 
-        cstrConn.c_str(), cstrTopic.c_str());
-#endif    
+        cstrProtocolLib.c_str(), cstrConn.c_str(), cstrTopic.c_str());
 }
 
+DslReturnType dsl_sink_message_meta_type_get(const wchar_t* name,
+    uint* meta_type)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkMessageMetaTypeGet(cstrName.c_str(), 
+        meta_type);
+}
+    
+DslReturnType dsl_sink_message_meta_type_set(const wchar_t* name,
+    uint meta_type)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkMessageMetaTypeSet(cstrName.c_str(), 
+        meta_type);
+}
+    
 DslReturnType dsl_sink_message_converter_settings_get(const wchar_t* name, 
     const wchar_t** converter_config_file, uint* payload_type)
 {
-#if !BUILD_MESSAGE_SINK
-    LOG_ERROR("The conditional BUILD_MESSAGE_SINK flag in the MakeFile is set to false");
-    return DSL_RESULT_API_NOT_ENABLED;
-#else
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(converter_config_file);
 
@@ -4744,7 +4782,7 @@ DslReturnType dsl_sink_message_converter_settings_get(const wchar_t* name,
     static std::string cstrConfigFile;
     static std::wstring wcstrConfigFile;
     
-    uint retval = DSL::Services::GetServices()->SinkMsgConverterSettingsGet(
+    uint retval = DSL::Services::GetServices()->SinkMessageConverterSettingsGet(
         cstrName.c_str(), &cConfigFile, payload_type);
     if (retval ==  DSL_RESULT_SUCCESS)
     {
@@ -4753,16 +4791,11 @@ DslReturnType dsl_sink_message_converter_settings_get(const wchar_t* name,
         *converter_config_file = wcstrConfigFile.c_str();
     }
     return retval;
-#endif    
 }
     
 DslReturnType dsl_sink_message_converter_settings_set(const wchar_t* name, 
     const wchar_t* converter_config_file, uint payload_type)
 {
-#if !BUILD_MESSAGE_SINK
-    LOG_ERROR("The conditional BUILD_MESSAGE_SINK flag in the MakeFile is set to false");
-    return DSL_RESULT_API_NOT_ENABLED;
-#else
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(converter_config_file);
 
@@ -4771,21 +4804,17 @@ DslReturnType dsl_sink_message_converter_settings_set(const wchar_t* name,
     std::wstring wstrConvConfig(converter_config_file);
     std::string cstrConvConfig(wstrConvConfig.begin(), wstrConvConfig.end());
 
-    return DSL::Services::GetServices()->SinkMsgConverterSettingsSet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SinkMessageConverterSettingsSet(cstrName.c_str(), 
         cstrConvConfig.c_str(), payload_type);
-#endif    
 }
 
 DslReturnType dsl_sink_message_broker_settings_get(const wchar_t* name, 
-    const wchar_t** broker_config_file, const wchar_t** connection_string, 
-    const wchar_t** topic)
+    const wchar_t** broker_config_file, const wchar_t**  protocol_lib,
+    const wchar_t** connection_string, const wchar_t** topic)
 {
-#if !BUILD_MESSAGE_SINK
-    LOG_ERROR("The conditional BUILD_MESSAGE_SINK flag in the MakeFile is set to false");
-    return DSL_RESULT_API_NOT_ENABLED;
-#else
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(broker_config_file);
+    RETURN_IF_PARAM_IS_NULL(protocol_lib);
     RETURN_IF_PARAM_IS_NULL(connection_string);
     RETURN_IF_PARAM_IS_NULL(topic);
 
@@ -4795,6 +4824,9 @@ DslReturnType dsl_sink_message_broker_settings_get(const wchar_t* name,
     const char* cConfigFile;
     static std::string cstrConfigFile;
     static std::wstring wcstrConfigFile;
+    const char* cProtocolLib;
+    static std::string cstrProtocolLib;
+    static std::wstring wcstrProtocolLib;
     const char* cConnStr;
     static std::string cstrConnStr;
     static std::wstring wcstrConnStr;
@@ -4802,13 +4834,16 @@ DslReturnType dsl_sink_message_broker_settings_get(const wchar_t* name,
     static std::string cstrTopic;
     static std::wstring wcstrTopic;
     
-    uint retval = DSL::Services::GetServices()->SinkMsgBrokerSettingsGet(
-        cstrName.c_str(), &cConfigFile, &cConnStr, &cTopic);
+    uint retval = DSL::Services::GetServices()->SinkMessageBrokerSettingsGet(
+        cstrName.c_str(), &cConfigFile, &cProtocolLib, &cConnStr, &cTopic);
     if (retval ==  DSL_RESULT_SUCCESS)
     {
         cstrConfigFile.assign(cConfigFile);
         wcstrConfigFile.assign(cstrConfigFile.begin(), cstrConfigFile.end());
         *broker_config_file = wcstrConfigFile.c_str();
+        cstrProtocolLib.assign(cProtocolLib);
+        wcstrProtocolLib.assign(cstrProtocolLib.begin(), cstrProtocolLib.end());
+        *protocol_lib = wcstrProtocolLib.c_str();
         cstrConnStr.assign(cConnStr);
         wcstrConnStr.assign(cstrConnStr.begin(), cstrConnStr.end());
         *connection_string = wcstrConnStr.c_str();
@@ -4817,30 +4852,24 @@ DslReturnType dsl_sink_message_broker_settings_get(const wchar_t* name,
         *topic = wcstrTopic.c_str();
     }
     return retval;
-#endif    
 } 
 
 DslReturnType dsl_sink_message_broker_settings_set(const wchar_t* name, 
-    const wchar_t* broker_config_file, const wchar_t* connection_string, 
-    const wchar_t* topic)
+    const wchar_t* broker_config_file, const wchar_t* protocol_lib,
+    const wchar_t* connection_string, const wchar_t* topic)
 {
-#if !BUILD_MESSAGE_SINK
-    LOG_ERROR("The conditional BUILD_MESSAGE_SINK flag in the MakeFile is set to false");
-    return DSL_RESULT_API_NOT_ENABLED;
-#else
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(broker_config_file);
+    RETURN_IF_PARAM_IS_NULL(protocol_lib);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-
-    std::string cstrBrokerConfig;
-	if (broker_config_file != NULL)
-	{
-		std::wstring wstrBrokerConfig(broker_config_file);
-		cstrBrokerConfig.assign(wstrBrokerConfig.begin(), wstrBrokerConfig.end());
-    }
+    std::wstring wstrBrokerConfig(broker_config_file);
+    std::string cstrBrokerConfig(wstrBrokerConfig.begin(), wstrBrokerConfig.end());
+    std::wstring wstrProtocolLib(protocol_lib);
+    std::string cstrProtocolLib(wstrProtocolLib.begin(), wstrProtocolLib.end());
     
+
     std::string cstrConn;
 	if (connection_string != NULL)
 	{
@@ -4855,9 +4884,9 @@ DslReturnType dsl_sink_message_broker_settings_set(const wchar_t* name,
 		cstrTopic.assign(wstrTopic.begin(), wstrTopic.end());
     }
 
-    return DSL::Services::GetServices()->SinkMsgBrokerSettingsSet(cstrName.c_str(), 
-        cstrBrokerConfig.c_str(), cstrConn.c_str(), cstrTopic.c_str());
-#endif    
+    return DSL::Services::GetServices()->SinkMessageBrokerSettingsSet(cstrName.c_str(), 
+        cstrBrokerConfig.c_str(), cstrProtocolLib.c_str(), 
+        cstrConn.c_str(), cstrTopic.c_str());
 }
     
     

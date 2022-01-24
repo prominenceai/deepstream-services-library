@@ -41,17 +41,10 @@ GSTREAMER_SDP_VERSION:=1.0
 GSTREAMER_WEBRTC_VERSION:=1.0
 LIBSOUP_VERSION:=2.4
 JSON_GLIB_VERSION:=1.0
-BUILD_MESSAGE_SINK:=false
 
 SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources
 INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources/includes
 LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/lib
-
-ifeq ($(BUILD_MESSAGE_SINK),true)
-SRCS+= $(wildcard ./src/msgsink/*.cpp)
-SRCS+= $(wildcard ./test/msgsink/*.cpp)
-INCS+= $(wildcard ./src/msgsink/*.h)
-endif
 
 SRCS+= $(wildcard ./src/*.cpp)
 SRCS+= $(wildcard ./test/*.cpp)
@@ -71,10 +64,6 @@ TEST_OBJS+= $(wildcard ./test/api/*.o)
 TEST_OBJS+= $(wildcard ./test/unit/*.o)
 ifeq ($(GSTREAMER_SUB_VERSION),18)
 TEST_OBJS+= $(wildcard ./test/webrtc/*.o)
-endif
-
-ifeq ($(BUILD_MESSAGE_SINK),true)
-TEST_OBJS+= $(wildcard ./test/msgsink/*.o)
 endif
 
 OBJS:= $(SRCS:.c=.o)
@@ -101,8 +90,8 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-DNVDS_KLT_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_klt.so"' \
 	-DNVDS_IOU_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_iou.so"' \
 	-DNVDS_MOT_LIB='"$(LIB_INSTALL_DIR)/libnvds_nvmultiobjecttracker.so"' \
-	-DNVDS_AZURE_PROTO_LIB='"$(LIB_INSTALL_DIR)/libnvds_azure_proto.so"' \
-	-DNVDS_AZURE_EDGE_PROTO_LIB='"$(LIB_INSTALL_DIR)/libnvds_azure_edge_proto"' \
+	-DNVDS_AZURE_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_azure_proto.so"' \
+	-DNVDS_AZURE_EDGE_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_azure_edge_proto"' \
     -fPIC 
 
 ifeq ($(GSTREAMER_SUB_VERSION),18)
@@ -110,10 +99,6 @@ CFLAGS+= -I/usr/include/libsoup-$(LIBSOUP_VERSION) \
 	-I/usr/include/json-glib-$(JSON_GLIB_VERSION) \
 	-I./src/webrtc
 endif	
-
-ifeq ($(BUILD_MESSAGE_SINK),true)
-CFLAGS+= -I./src/webrtc
-endif
 
 CFLAGS += `geos-config --cflags`	
 

@@ -123,9 +123,9 @@ namespace DSL
     #define DSL_ODE_ACTION_LOG_NEW(name) \
         std::shared_ptr<LogOdeAction>(new LogOdeAction(name))
 
-    #define DSL_ODE_ACTION_MESSAGE_PTR std::shared_ptr<MessageOdeAction>
-    #define DSL_ODE_ACTION_MESSAGE_NEW(name) \
-        std::shared_ptr<MessageOdeAction>(new MessageOdeAction(name))
+    #define DSL_ODE_ACTION_MESSAGE_META_ADD_PTR std::shared_ptr<MessageMetaAddOdeAction>
+    #define DSL_ODE_ACTION_MESSAGE_META_ADD_NEW(name) \
+        std::shared_ptr<MessageMetaAddOdeAction>(new MessageMetaAddOdeAction(name))
 
     #define DSL_ODE_ACTION_PAUSE_PTR std::shared_ptr<PauseOdeAction>
     #define DSL_ODE_ACTION_PAUSE_NEW(name, pipeline) \
@@ -835,10 +835,10 @@ namespace DSL
     // ********************************************************************
 
     /**
-     * @class MessageOdeAction
+     * @class MessageMetaAddOdeAction
      * @brief Message ODE Action class
      */
-    class MessageOdeAction : public OdeAction
+    class MessageMetaAddOdeAction : public OdeAction
     {
     public:
     
@@ -846,12 +846,12 @@ namespace DSL
          * @brief ctor for the Message ODE Action class.
          * @param[in] name unique name for the ODE Action.
          */
-        MessageOdeAction(const char* name);
+        MessageMetaAddOdeAction(const char* name);
         
         /**
          * @brief dtor for the Log ODE Action class
          */
-        ~MessageOdeAction();
+        ~MessageMetaAddOdeAction();
         
         /**
          * @brief Handles the ODE occurrence by adding NvDsEventMsgMeta with
@@ -865,8 +865,31 @@ namespace DSL
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
             GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+            
+        /**
+         * @brief Gets the current base_meta.meta_type identifier in use by 
+         * the MessageMetaAddOdeAction.
+         * @return the current meta-type id in use, default = NVDS_EVENT_MSG_META
+         */
+        uint GetMetaType();
+        
+        /**
+         * @brief Sets the base_meta.meta_type identifier to use by 
+         * the MessageMetaAddOdeAction.
+         * @param[in] metaType new meta-type id to use, must be >= NVDS_START_USER_META
+         * or = NVDS_EVENT_MSG_META.
+         */
+        void SetMetaType(uint metaType);
 
     private:
+    
+        /**
+         * @brief defines the base_meta.meta_type id to use for
+         * all message meta created. Default = NVDS_EVENT_MSG_META
+         * Custom values must be greater than NVDS_START_USER_META
+         * Both constants are defined in nvdsmeta.h 
+         */
+        uint m_metaType;
     
     };
         
