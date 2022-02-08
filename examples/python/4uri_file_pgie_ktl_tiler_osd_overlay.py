@@ -30,13 +30,19 @@ import time
 
 from dsl import *
 
+uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+
 # Filespecs for the Primary GIE
-inferConfigFile = '../../test/configs/config_infer_primary_nano.txt'
-modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+primary_infer_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+
 
 # Function to be called on End-of-Stream (EOS) event
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
+    dsk_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 def main(args):
@@ -45,15 +51,16 @@ def main(args):
     while True:
 
         # New URI File Source
-        retval = dsl_source_uri_new('uri-source-1', "../../test/streams/sample_1080p_h264.mp4", False, False, 1)
+        retval = dsl_source_uri_new('uri-source-1', uri_h265, False, False, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
-        dsl_source_uri_new('uri-source-2', "../../test/streams/sample_1080p_h264.mp4", False, False, 1)
-        dsl_source_uri_new('uri-source-3', "../../test/streams/sample_1080p_h264.mp4", False, False, 1)
-        dsl_source_uri_new('uri-source-4', "../../test/streams/sample_1080p_h264.mp4", False, False, 1)
+        dsl_source_uri_new('uri-source-2', uri_h265, False, False, 1)
+        dsl_source_uri_new('uri-source-3', uri_h265, False, False, 1)
+        dsl_source_uri_new('uri-source-4', uri_h265, False, False, 1)
 
         # New Primary GIE using the filespecs above, with interval and Id
-        retval = dsl_infer_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 1)
+        retval = dsl_infer_gie_primary_new('primary-gie', 
+            primary_infer_config_file, primary_model_engine_file, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -79,25 +86,25 @@ def main(args):
             break
 
         # Add all the components to our pipeline
-        retval = dsl_pipeline_new_component_add_many('simple-pipeline', 
+        retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['uri-source-1', 'uri-source-2', 'uri-source-3', 'uri-source-4', 
             'primary-gie', 'ktl-tracker', 'tiler', 'on-screen-display', 'overlay-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Pipeline to use with the above components
-        retval = dsl_pipeline_eos_listener_add('simple-pipeline', eos_event_listener, None)
+        retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
 
         # Play the pipeline
-        retval = dsl_pipeline_play('simple-pipeline')
+        retval = dsl_pipeline_play('pipeline')
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Once playing, we can dump the pipeline graph to dot file, which can be converted to an image file for viewing/debugging
-        dsl_pipeline_dump_to_dot('simple-pipeline', 'state-playing')
+        dsl_pipeline_dump_to_dot('pipeline', 'state-playing')
 
         dsl_main_loop_run()
         break

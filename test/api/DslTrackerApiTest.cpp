@@ -184,7 +184,8 @@ SCENARIO( "The Components container is updated correctly on new IOU Tracker", "[
     GIVEN( "An empty list of Components" ) 
     {
         std::wstring tracker_name(L"iou-tracker");
-        std::wstring configFile(L"./test/configs/iou_config.txt");
+        std::wstring configFile(
+            L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
         uint width(480);
         uint height(272);
 
@@ -208,8 +209,9 @@ SCENARIO( "The Components container is updated correctly on IOU Tracker delete",
 {
     GIVEN( "A new IOU Tracker in memory" ) 
     {
-        std::wstring tracker_name(L"ktl-tracker");
-        std::wstring configFile(L"./test/configs/iou_config.txt");
+        std::wstring tracker_name(L"iou-tracker");
+        std::wstring configFile(
+            L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
         uint width(480);
         uint height(272);
 
@@ -491,7 +493,6 @@ SCENARIO( "The Tracker API checks for NULL input parameters", "[tracker-api]" )
         std::wstring otherName  = L"other";
         
         uint width(0), height(0);
-        boolean is_on(0), reset_done(0), sync(0), async(0);
         boolean enabled;
         
         REQUIRE( dsl_component_list_size() == 0 );

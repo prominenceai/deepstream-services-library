@@ -65,8 +65,8 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
         std::wstring pgieName = L"pgie";
         std::wstring osdName = L"osd";
      
-        static const std::wstring infer_config_file(L"./test/configs/config_infer_primary_nano.txt");
-
+        std::wstring infer_config_file(
+            L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
         uint GPUID0(0);
         uint GPUID1(1);
         uint retGpuId(0);

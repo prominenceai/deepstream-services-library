@@ -45,7 +45,7 @@ file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg'
 
 # Filespecs for the Primary Triton Inference Server (PTIS)
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_plan_engine_primary.txt'
 
 # Window Sink Dimensions
 sink_width = 1280
@@ -61,6 +61,7 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
  
 ## 
@@ -68,13 +69,14 @@ def xwindow_key_event_handler(key_string, client_data):
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 # Function to be called on End-of-Stream (EOS) event
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
-    
-    ## do not quite to contiue displaying in sink
+    dsl_pipeline_stop('pipeline')
+    dsl_main_loop_quit()
 
 ## 
 # Function to be called on every change of Pipeline state

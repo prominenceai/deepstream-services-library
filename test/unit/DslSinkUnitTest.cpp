@@ -28,7 +28,7 @@ THE SOFTWARE.
 
 using namespace DSL;
 
-SCENARIO( "A new FakeSinkBintr is created correctly",  "[FakeSinkBintr]" )
+SCENARIO( "A new FakeSinkBintr is created correctly",  "[SinkBintr]" )
 {
     GIVEN( "Attributes for a new Fake Sink" ) 
     {
@@ -50,7 +50,7 @@ SCENARIO( "A new FakeSinkBintr is created correctly",  "[FakeSinkBintr]" )
     }
 }
 
-SCENARIO( "A new FakeSinkBintr can LinkAll Child Elementrs", "[FakeSinkBintr]" )
+SCENARIO( "A new FakeSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A new FakeSinkBintr in an Unlinked state" ) 
     {
@@ -73,7 +73,7 @@ SCENARIO( "A new FakeSinkBintr can LinkAll Child Elementrs", "[FakeSinkBintr]" )
     }
 }
 
-SCENARIO( "A new OverlaySinkBintr is created correctly",  "[OverlaySinkBintr]" )
+SCENARIO( "A new OverlaySinkBintr is created correctly",  "[SinkBintr]" )
 {
     GIVEN( "Attributes for a new Overlay Sink" ) 
     {
@@ -102,7 +102,7 @@ SCENARIO( "A new OverlaySinkBintr is created correctly",  "[OverlaySinkBintr]" )
     }
 }
 
-SCENARIO( "A new OverlaySinkBintr can LinkAll Child Elementrs", "[OverlaySinkBintr]" )
+SCENARIO( "A new OverlaySinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A new OverlaySinkBintr in an Unlinked state" ) 
     {
@@ -131,7 +131,7 @@ SCENARIO( "A new OverlaySinkBintr can LinkAll Child Elementrs", "[OverlaySinkBin
     }
 }
 
-SCENARIO( "A Linked OverlaySinkBintr can UnlinkAll Child Elementrs", "[OverlaySinkBintr]" )
+SCENARIO( "A Linked OverlaySinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A OverlaySinkBintr in a linked state" ) 
     {
@@ -160,7 +160,7 @@ SCENARIO( "A Linked OverlaySinkBintr can UnlinkAll Child Elementrs", "[OverlaySi
     }
 }
 
-SCENARIO( "A Linked OverlaySinkBintr can Reset, LinkAll and UnlinkAll Child Elementrs", "[OverlaySinkBintr]" )
+SCENARIO( "A Linked OverlaySinkBintr can Reset, LinkAll and UnlinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A newOverlaySinkBintr" ) 
     {
@@ -189,7 +189,7 @@ SCENARIO( "A Linked OverlaySinkBintr can Reset, LinkAll and UnlinkAll Child Elem
     }
 }
 
-SCENARIO( "An OverlaySinkBintr's Display Id can be updated",  "[OverlaySinkBintr]" )
+SCENARIO( "An OverlaySinkBintr's Display Id can be updated",  "[SinkBintr]" )
 {
     GIVEN( "A new OverlaySinkBintr in memory" ) 
     {
@@ -219,7 +219,7 @@ SCENARIO( "An OverlaySinkBintr's Display Id can be updated",  "[OverlaySinkBintr
     }
 }
 
-SCENARIO( "An OverlaySinkBintr's Offsets can be updated", "[OverlaySinkBintr]" )
+SCENARIO( "An OverlaySinkBintr's Offsets can be updated", "[SinkBintr]" )
 {
     GIVEN( "A new OverlaySinkBintr in memory" ) 
     {
@@ -258,7 +258,8 @@ SCENARIO( "An OverlaySinkBintr's Offsets can be updated", "[OverlaySinkBintr]" )
     }
 }
 
-SCENARIO( "An OverlaySinkBintr's Dimensions can be updated", "[OverlaySinkBintr]" )
+
+SCENARIO( "An OverlaySinkBintr's Dimensions can be updated", "[SinkBintr]" )
 {
     GIVEN( "A new OverlaySinkBintr in memory" ) 
     {
@@ -298,7 +299,7 @@ SCENARIO( "An OverlaySinkBintr's Dimensions can be updated", "[OverlaySinkBintr]
     }
 }
 
-SCENARIO( "A OverlaySinkBintr can Get and Set its GPU ID",  "[OverlaySinkBintr]" )
+SCENARIO( "A OverlaySinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
 {
     GIVEN( "A new OverlaySinkBintr in memory" ) 
     {
@@ -331,7 +332,7 @@ SCENARIO( "A OverlaySinkBintr can Get and Set its GPU ID",  "[OverlaySinkBintr]"
 }
 
 
-SCENARIO( "A new WindowSinkBintr is created correctly",  "[WindowSinkBintr]" )
+SCENARIO( "A new WindowSinkBintr is created correctly",  "[SinkBintr]" )
 {
     GIVEN( "Attributes for a new Window Sink" ) 
     {
@@ -358,7 +359,7 @@ SCENARIO( "A new WindowSinkBintr is created correctly",  "[WindowSinkBintr]" )
     }
 }
 
-SCENARIO( "A new WindowSinkBintr can LinkAll Child Elementrs", "[WindowSinkBintr]" )
+SCENARIO( "A new WindowSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A new WindowSinkBintr in an Unlinked state" ) 
     {
@@ -385,7 +386,7 @@ SCENARIO( "A new WindowSinkBintr can LinkAll Child Elementrs", "[WindowSinkBintr
     }
 }
 
-SCENARIO( "A Linked WindowSinkBintr can UnlinkAll Child Elementrs", "[WindowSinkBintr]" )
+SCENARIO( "A Linked WindowSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A WindowSinkBintr in a linked state" ) 
     {
@@ -412,7 +413,7 @@ SCENARIO( "A Linked WindowSinkBintr can UnlinkAll Child Elementrs", "[WindowSink
     }
 }
 
-SCENARIO( "A WindowSinkBintr can Reset, LinkAll and UnlinkAll Child Elementrs", "[WindowSinkBintr]" )
+SCENARIO( "A WindowSinkBintr can Reset, LinkAll and UnlinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A new WindowSinkBintr" ) 
     {
@@ -440,7 +441,7 @@ SCENARIO( "A WindowSinkBintr can Reset, LinkAll and UnlinkAll Child Elementrs", 
 }
 
 
-SCENARIO( "A WindowSinkBintr's Offsets can be updated", "[WindowSinkBintr]" )
+SCENARIO( "A WindowSinkBintr's Offsets can be updated", "[SinkBintr]" )
 {
     GIVEN( "A new WindowSinkBintr in memory" ) 
     {
@@ -477,7 +478,7 @@ SCENARIO( "A WindowSinkBintr's Offsets can be updated", "[WindowSinkBintr]" )
     }
 }
 
-SCENARIO( "An WindowSinkBintr's Dimensions can be updated", "[WindowSinkBintr]" )
+SCENARIO( "An WindowSinkBintr's Dimensions can be updated", "[SinkBintr]" )
 {
     GIVEN( "A new WindowSinkBintr in memory" ) 
     {
@@ -515,7 +516,7 @@ SCENARIO( "An WindowSinkBintr's Dimensions can be updated", "[WindowSinkBintr]" 
 }
 
 // x86_64 build only
-//SCENARIO( "A WindowSinkBintr can Get and Set its GPU ID",  "[WindowSinkBintr]" )
+//SCENARIO( "A WindowSinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
 //{
 //    GIVEN( "A new WindowSinkBintr in memory" ) 
 //    {
@@ -545,7 +546,7 @@ SCENARIO( "An WindowSinkBintr's Dimensions can be updated", "[WindowSinkBintr]" 
 //    }
 //}
 
-SCENARIO( "An WindowSinkBintr's force-aspect-ration setting can be updated", "[WindowSinkBintr]" )
+SCENARIO( "An WindowSinkBintr's force-aspect-ration setting can be updated", "[SinkBintr]" )
 {
     GIVEN( "A new WindowSinkBintr in memory" ) 
     {
@@ -572,7 +573,7 @@ SCENARIO( "An WindowSinkBintr's force-aspect-ration setting can be updated", "[W
     }
 }
 
-//SCENARIO( "A new DSL_CODEC_MPEG4 FileSinkBintr is created correctly",  "[FileSinkBintr]" )
+//SCENARIO( "A new DSL_CODEC_MPEG4 FileSinkBintr is created correctly",  "[SinkBintr]" )
 //{
 //    GIVEN( "Attributes for a new DSL_CODEC_MPEG4 File Sink" ) 
 //    {
@@ -603,7 +604,7 @@ SCENARIO( "An WindowSinkBintr's force-aspect-ration setting can be updated", "[W
 //    }
 //}
 //
-//SCENARIO( "A new DSL_CODEC_MPEG4 FileSinkBintr can LinkAll Child Elementrs", "[FileSinkBintr]" )
+//SCENARIO( "A new DSL_CODEC_MPEG4 FileSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
 //{
 //    GIVEN( "A new DSL_CODEC_MPEG4 FileSinkBintr in an Unlinked state" ) 
 //    {
@@ -631,7 +632,7 @@ SCENARIO( "An WindowSinkBintr's force-aspect-ration setting can be updated", "[W
 //    }
 //}
 //
-//SCENARIO( "A Linked DSL_CODEC_MPEG4 FileSinkBintr can UnlinkAll Child Elementrs", "[FileSinkBintr]" )
+//SCENARIO( "A Linked DSL_CODEC_MPEG4 FileSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
 //{
 //    GIVEN( "A DSL_CODEC_MPEG4 FileSinkBintr in a linked state" ) 
 //    {
@@ -660,7 +661,7 @@ SCENARIO( "An WindowSinkBintr's force-aspect-ration setting can be updated", "[W
 //    }
 //}
 
-SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr is created correctly",  "[FileSinkBintr]" )
+SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr is created correctly",  "[SinkBintr]" )
 {
     GIVEN( "Attributes for a new DSL_CODEC_H264 File Sink" ) 
     {
@@ -688,7 +689,7 @@ SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr is created correctly",  "[FileSink
     }
 }
 
-SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr can LinkAll Child Elementrs", "[FileSinkBintr]" )
+SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A new DSL_CODEC_H264 FileSinkBintr in an Unlinked state" ) 
     {
@@ -716,7 +717,7 @@ SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr can LinkAll Child Elementrs", "[Fi
     }
 }
 
-SCENARIO( "A Linked DSL_CODEC_H264 FileSinkBintr can UnlinkAll Child Elementrs", "[FileSinkBintr]" )
+SCENARIO( "A Linked DSL_CODEC_H264 FileSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A DSL_CODEC_H264 FileSinkBintr in a linked state" ) 
     {
@@ -745,7 +746,7 @@ SCENARIO( "A Linked DSL_CODEC_H264 FileSinkBintr can UnlinkAll Child Elementrs",
     }
 }
 
-SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr is created correctly",  "[FileSinkBintr]" )
+SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr is created correctly",  "[SinkBintr]" )
 {
     GIVEN( "Attributes for a new DSL_CODEC_H265 File Sink" ) 
     {
@@ -773,7 +774,7 @@ SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr is created correctly",  "[FileSink
     }
 }
 
-SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr can LinkAll Child Elementrs", "[FileSinkBintr]" )
+SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A new DSL_CODEC_H265 FileSinkBintr in an Unlinked state" ) 
     {
@@ -801,7 +802,7 @@ SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr can LinkAll Child Elementrs", "[Fi
     }
 }
 
-SCENARIO( "A Linked DSL_CODEC_H265 FileSinkBintr can UnlinkAll Child Elementrs", "[FileSinkBintr]" )
+SCENARIO( "A Linked DSL_CODEC_H265 FileSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A DSL_CODEC_H265 FileSinkBintr in a linked state" ) 
     {
@@ -830,7 +831,7 @@ SCENARIO( "A Linked DSL_CODEC_H265 FileSinkBintr can UnlinkAll Child Elementrs",
     }
 }
 
-SCENARIO( "A FileSinkBintr's Encoder settings can be updated", "[FileSinkBintr]" )
+SCENARIO( "A FileSinkBintr's Encoder settings can be updated", "[SinkBintr]" )
 {
     GIVEN( "A new FileSinkBintr in memory" ) 
     {
@@ -872,7 +873,7 @@ SCENARIO( "A FileSinkBintr's Encoder settings can be updated", "[FileSinkBintr]"
     }
 }
 
-SCENARIO( "A FileSinkBintr can Get and Set its GPU ID",  "[FileSinkBintr]" )
+SCENARIO( "A FileSinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
 {
     GIVEN( "A new FileSinkBintr in memory" ) 
     {
@@ -903,7 +904,7 @@ SCENARIO( "A FileSinkBintr can Get and Set its GPU ID",  "[FileSinkBintr]" )
     }
 }
 
-SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr is created correctly",  "[RecordSinkBintr]" )
+SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr is created correctly",  "[SinkBintr]" )
 {
     GIVEN( "Attributes for a new DSL_CODEC_MPEG4 RecordSinkBintr" ) 
     {
@@ -943,7 +944,7 @@ SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr is created correctly",  "[Rec
     }
 }
 
-SCENARIO( "A RecordSinkBintr's Init Parameters can be Set/Get ",  "[RecordSinkBintr]" )
+SCENARIO( "A RecordSinkBintr's Init Parameters can be Set/Get ",  "[SinkBintr]" )
 {
     GIVEN( "A new DSL_CODEC_MPEG4 RecordSinkBintr" ) 
     {
@@ -1002,7 +1003,7 @@ static void* record_complete_cb(dsl_recording_info* info, void* client_data)
     return (void*)0x12345678;
 }
 
-SCENARIO( "A RecordSinkBintr handles a Record Complete Notification correctly",  "[RecordSinkBintr]" )
+SCENARIO( "A RecordSinkBintr handles a Record Complete Notification correctly",  "[SinkBintr]" )
 {
     GIVEN( "A new DSL_CODEC_MPEG4 RecordSinkBintr" ) 
     {
@@ -1040,7 +1041,7 @@ SCENARIO( "A RecordSinkBintr handles a Record Complete Notification correctly", 
     }
 }
 
-SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr can LinkAll Child Elementrs", "[RecordSinkBintr]" )
+SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A new DSL_CONTAINER_MP4 RecordSinkBintr in an Unlinked state" ) 
     {
@@ -1077,7 +1078,7 @@ SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr can LinkAll Child Elementrs",
     }
 }
 
-SCENARIO( "A Linked DSL_CONTAINER_MP4 RecordSinkBintr can UnlinkAll Child Elementrs", "[RecordSinkBintr]" )
+SCENARIO( "A Linked DSL_CONTAINER_MP4 RecordSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A DSL_CONTAINER_MP4 RecordSinkBintr in a linked state" ) 
     {
@@ -1108,7 +1109,7 @@ SCENARIO( "A Linked DSL_CONTAINER_MP4 RecordSinkBintr can UnlinkAll Child Elemen
     }
 }
 
-SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[RtspSinkBintr]" )
+SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[SinkBintr]" )
 {
     GIVEN( "Attributes for a new DSL_CODEC_H264 File Sink" ) 
     {
@@ -1141,7 +1142,7 @@ SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[RtspSink
     }
 }
 
-SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr can LinkAll Child Elementrs", "[RtspSinkBintr]" )
+SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A new DSL_CODEC_H264 RtspSinkBintr in an Unlinked state" ) 
     {
@@ -1170,7 +1171,7 @@ SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr can LinkAll Child Elementrs", "[Rt
     }
 }
 
-SCENARIO( "A Linked DSL_CODEC_H264 RtspSinkBintr can UnlinkAll Child Elementrs", "[RtspSinkBintr]" )
+SCENARIO( "A Linked DSL_CODEC_H264 RtspSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A DSL_CODEC_H264 RtspSinkBintr in a linked state" ) 
     {
@@ -1200,7 +1201,7 @@ SCENARIO( "A Linked DSL_CODEC_H264 RtspSinkBintr can UnlinkAll Child Elementrs",
     }
 }
 
-SCENARIO( "A new DSL_CODEC_H265 RtspSinkBintr is created correctly",  "[RtspSinkBintr]" )
+SCENARIO( "A new DSL_CODEC_H265 RtspSinkBintr is created correctly",  "[SinkBintr]" )
 {
     GIVEN( "Attributes for a new DSL_CODEC_H265 File Sink" ) 
     {
@@ -1232,7 +1233,7 @@ SCENARIO( "A new DSL_CODEC_H265 RtspSinkBintr is created correctly",  "[RtspSink
     }
 }
 
-SCENARIO( "A new DSL_CODEC_H265 RtspSinkBintr can LinkAll Child Elementrs", "[RtspSinkBintr]" )
+SCENARIO( "A new DSL_CODEC_H265 RtspSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A new DSL_CODEC_H265 RtspSinkBintr in an Unlinked state" ) 
     {
@@ -1261,7 +1262,7 @@ SCENARIO( "A new DSL_CODEC_H265 RtspSinkBintr can LinkAll Child Elementrs", "[Rt
     }
 }
 
-SCENARIO( "A Linked DSL_CODEC_H265 RtspSinkBintr can UnlinkAll Child Elementrs", "[RtspSinkBintr]" )
+SCENARIO( "A Linked DSL_CODEC_H265 RtspSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A DSL_CODEC_H265 RtspSinkBintr in a linked state" ) 
     {
@@ -1291,7 +1292,7 @@ SCENARIO( "A Linked DSL_CODEC_H265 RtspSinkBintr can UnlinkAll Child Elementrs",
     }
 }
 
-SCENARIO( "A RtspSinkBintr can Get and Set its GPU ID",  "[RtspSinkBintr]" )
+SCENARIO( "A RtspSinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
 {
     GIVEN( "A new RtspSinkBintr in memory" ) 
     {

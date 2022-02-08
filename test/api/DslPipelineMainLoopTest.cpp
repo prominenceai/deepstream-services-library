@@ -44,19 +44,19 @@ GThread* main_loop_thread_3(NULL);
 
 uint g_num_active_pipelines = 0;
 
-// 	
+//     
 // Objects of this class will be used as "client_data" for all callback notifications.
-// Defines a class of all component names associated with a single Pipeline. 	
-// The names are derived from the provided unique id 	
-//	
+// Defines a class of all component names associated with a single Pipeline.     
+// The names are derived from the provided unique id     
+//    
 struct ClientData
 {
     ClientData(uint id){
         pipeline = L"pipeline-" + std::to_wstring(id);
-        source = L"source-" + std::to_wstring(id);	
-        pgie = L"pgie-" + std::to_wstring(id);	
-        osd = L"osd-" + std::to_wstring(id);	
-        window_sink = L"window-sink-" + std::to_wstring(id);	
+        source = L"source-" + std::to_wstring(id);    
+        pgie = L"pgie-" + std::to_wstring(id);    
+        osd = L"osd-" + std::to_wstring(id);    
+        window_sink = L"window-sink-" + std::to_wstring(id);    
     }
 
     std::wstring pipeline;
@@ -147,7 +147,7 @@ static void eos_event_listener(void* client_data)
     // quiting the main loop will allow the pipeline thread to 
     // stop and delete the pipeline and its components
     dsl_pipeline_main_loop_quit(c_data->pipeline.c_str());
-}	
+}    
 
 // 
 // Function to be called on every change of Pipeline state

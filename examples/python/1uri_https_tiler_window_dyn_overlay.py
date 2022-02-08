@@ -31,10 +31,13 @@ import time
 from dsl import *
 
 # Filespecs for the Primary GIE
-primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+# Filespecs for the Primary GIE and IOU Trcaker
+primary_infer_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
-source_uri = 'https://www.radiantmediaplayer.com/media/bbb-360p.mp4'
+source_uri = 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
 
 MAX_OVERLAY_COUNT = 4
 cur_overlay_count = 0
@@ -50,6 +53,7 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
 
     # Add a new overlay sink
@@ -75,11 +79,13 @@ def xwindow_key_event_handler(key_string, client_data):
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 # Function to be called on End-of-Stream (EOS) event
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 

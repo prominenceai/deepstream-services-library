@@ -26,21 +26,49 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "Dsl.h"
 
+static std::wstring pipeline_name(L"test-pipeline");
+static std::wstring pipeline_name2(L"test-pipeline2");
+static std::wstring pipeline_name3(L"test-pipeline3");
+
+static std::wstring source_name(L"source");
+static std::wstring source_name2(L"source2");
+static std::wstring source_name3(L"source3");
+
+static uint width(1280);
+static uint height(720);
+static uint fps_n(30);
+static uint fps_d(1);
+
+static uint intra_decode(false);
+static uint drop_frame_interval(0);
+
+static std::wstring dewarper_name(L"dewarper");
+static std::wstring defConfigFile(
+    L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/config_dewarper.txt");
+
+static std::wstring uri(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
+static std::wstring image_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg");
+
+static uint protocol(DSL_RTP_ALL);
+static uint latency(100);
+static uint timeout(0);
+static uint retTimeout(123);
+
+static uint interval(0);
+
+static std::wstring rtsp_uri(L"rtsp://username:password@192.168.0.14:554");
+
+static boolean is_live(false);
+
 SCENARIO( "The Components container is updated correctly on new source", "[source-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
-        std::wstring sourceName(L"csi-source");
-        uint width(1280);
-        uint height(720);
-        uint fps_n(30);
-        uint fps_d(1);
-
         REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "A new Source is created" ) 
         {
-            REQUIRE( dsl_source_csi_new(sourceName.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
@@ -56,21 +84,14 @@ SCENARIO( "The Components container is updated correctly on Source Delete", "[so
 {
     GIVEN( "One Source im memory" ) 
     {
-        std::wstring sourceName(L"csi-source");
-        uint width(1280);
-        uint height(720);
-        uint fps_n(30);
-        uint fps_d(1);
-
         REQUIRE( dsl_component_list_size() == 0 );
 
-
-        REQUIRE( dsl_source_csi_new(sourceName.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
         
         WHEN( "The Source is deleted" )
         {
-            REQUIRE( dsl_component_delete(sourceName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_component_delete(source_name.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The list and contents are updated correctly" )
             {
@@ -84,26 +105,20 @@ SCENARIO( "A Source in use can't be deleted", "[source-api]" )
 {
     GIVEN( "A new Source and new pPipeline" ) 
     {
-        std::wstring pipelineName(L"test-pipeline");
-        std::wstring sourceName(L"csi-source");
-        uint width(1280);
-        uint height(720);
-        uint fps_n(30);
-        uint fps_d(1);
 
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_csi_new(sourceName.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
         WHEN( "The Source is added to the Pipeline" ) 
         {
-            REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-                sourceName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
+                source_name.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The Source can't be deleted" ) 
             {
-                REQUIRE( dsl_component_delete(sourceName.c_str()) == DSL_RESULT_COMPONENT_IN_USE );
+                REQUIRE( dsl_component_delete(source_name.c_str()) == DSL_RESULT_COMPONENT_IN_USE );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -118,29 +133,22 @@ SCENARIO( "A Source, once removed from a Pipeline, can be deleted", "[source-api
 {
     GIVEN( "A new Pipeline with a Child CSI Source" ) 
     {
-        std::wstring pipelineName(L"test-pipeline");
-        std::wstring sourceName(L"csi-source");
-        uint width(1280);
-        uint height(720);
-        uint fps_n(30);
-        uint fps_d(1);
-
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_csi_new(sourceName.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-            sourceName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
+            source_name.c_str()) == DSL_RESULT_SUCCESS );
             
         WHEN( "The Source is removed from the Pipeline" ) 
         {
-            REQUIRE( dsl_pipeline_component_remove(pipelineName.c_str(),
-                sourceName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_remove(pipeline_name.c_str(),
+                source_name.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The Source can be deleted successfully" ) 
             {
-                REQUIRE( dsl_component_delete(sourceName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete(source_name.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_list_size() == 0 );
@@ -154,28 +162,22 @@ SCENARIO( "A new CSI Camera Source returns the correct attribute values", "[sour
 {
     GIVEN( "An empty list of Components" ) 
     {
-        std::wstring sourceName(L"csi-source");
-        uint width(1280);
-        uint height(720);
-        uint fps_n(30);
-        uint fps_d(1);
-
         REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "A new Source is created" ) 
         {
-            REQUIRE( dsl_source_csi_new(sourceName.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
                 uint ret_width(0), ret_height(0), ret_fps_n(0), ret_fps_d(0);
-                REQUIRE( dsl_source_dimensions_get(sourceName.c_str(), &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_source_frame_rate_get(sourceName.c_str(), &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_dimensions_get(source_name.c_str(), &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_width == width );
                 REQUIRE( ret_height == height );
                 REQUIRE( ret_fps_n == fps_n );
                 REQUIRE( ret_fps_d == fps_d );
-                REQUIRE( dsl_source_is_live(sourceName.c_str()) == 0 );
+                REQUIRE( dsl_source_is_live(source_name.c_str()) == 0 );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -187,28 +189,22 @@ SCENARIO( "A new USB Camera Source returns the correct attribute values", "[sour
 {
     GIVEN( "An empty list of Components" ) 
     {
-        std::wstring sourceName(L"usb-source");
-        uint width(1280);
-        uint height(720);
-        uint fps_n(30);
-        uint fps_d(1);
-
         REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "A new USB Source is created" ) 
         {
-            REQUIRE( dsl_source_usb_new(sourceName.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_usb_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
                 uint ret_width(0), ret_height(0), ret_fps_n(0), ret_fps_d(0);
-                REQUIRE( dsl_source_dimensions_get(sourceName.c_str(), &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_source_frame_rate_get(sourceName.c_str(), &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_dimensions_get(source_name.c_str(), &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_width == width );
                 REQUIRE( ret_height == height );
                 REQUIRE( ret_fps_n == fps_n );
                 REQUIRE( ret_fps_d == fps_d );
-                REQUIRE( dsl_source_is_live(sourceName.c_str()) == 0 );
+                REQUIRE( dsl_source_is_live(source_name.c_str()) == 0 );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -243,23 +239,16 @@ SCENARIO( "A Source added to a Pipeline updates the in-use number", "[source-api
 {
     GIVEN( "A new Source and new Pipeline" )
     {
-        std::wstring pipelineName(L"test-pipeline");
-        std::wstring sourceName(L"csi-source");
-        uint width(1280);
-        uint height(720);
-        uint fps_n(30);
-        uint fps_d(1);
-
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_csi_new(sourceName.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_num_in_use_get() == 0 );
 
         WHEN( "The Source is added to the Pipeline" ) 
         {
-            REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-                sourceName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
+                source_name.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct in-use number is returned to the client" )
             {
@@ -276,27 +265,20 @@ SCENARIO( "A Source removed from a Pipeline updates the in-use number", "[source
 {
     GIVEN( "A new Pipeline with a Source" ) 
     {
-        std::wstring pipelineName(L"test-pipeline");
-        std::wstring sourceName(L"csi-source");
-        uint width(1280);
-        uint height(720);
-        uint fps_n(30);
-        uint fps_d(1);
-
         REQUIRE( dsl_component_list_size() == 0 );
 
         
-        REQUIRE( dsl_source_csi_new(sourceName.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-            sourceName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
+            source_name.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_num_in_use_get() == 1 );
 
         WHEN( "The Source is removed from, the Pipeline" ) 
         {
-            REQUIRE( dsl_pipeline_component_remove(pipelineName.c_str(),
-                sourceName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_remove(pipeline_name.c_str(),
+                source_name.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct in-use number is returned to the client" )
             {
@@ -311,34 +293,29 @@ SCENARIO( "A Source removed from a Pipeline updates the in-use number", "[source
 
 SCENARIO( "Adding multiple Sources to a Pipelines updates the in-use number", "[source-api]" )
 {
-    std::wstring sourceName1  = L"csi-source1";
-    std::wstring pipelineName1  = L"test-pipeline1";
-    std::wstring sourceName2  = L"csi-source2";
-    std::wstring pipelineName2  = L"test-pipeline2";
-
     GIVEN( "Two new Sources and two new Pipeline" )
     {
-        REQUIRE( dsl_source_csi_new(sourceName1.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_new(pipelineName1.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_csi_new(sourceName2.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_new(pipelineName2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_csi_new(source_name.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_csi_new(source_name2.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipeline_name2.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_num_in_use_get() == 0 );
 
         WHEN( "Each Sources is added to a different Pipeline" ) 
         {
-            REQUIRE( dsl_pipeline_component_add(pipelineName1.c_str(), 
-                sourceName1.c_str()) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_pipeline_component_add(pipelineName2.c_str(), 
-                sourceName2.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
+                source_name.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add(pipeline_name2.c_str(), 
+                source_name2.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct in-use number is returned to the client" )
             {
                 REQUIRE( dsl_source_num_in_use_get() == 2 );
 
-                REQUIRE( dsl_pipeline_component_remove(pipelineName1.c_str(), 
-                    sourceName1.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_component_remove(pipelineName2.c_str(), 
-                    sourceName2.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_component_remove(pipeline_name.c_str(), 
+                    source_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_component_remove(pipeline_name2.c_str(), 
+                    source_name2.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -350,21 +327,14 @@ SCENARIO( "Adding multiple Sources to a Pipelines updates the in-use number", "[
 
 SCENARIO( "Adding greater than max Sources to all Pipelines fails", "[source-api]" )
 {
-    std::wstring sourceName1  = L"csi-source1";
-    std::wstring pipelineName1  = L"test-pipeline1";
-    std::wstring sourceName2  = L"csi-source2";
-    std::wstring pipelineName2  = L"test-pipeline2";
-    std::wstring sourceName3  = L"csi-source3";
-    std::wstring pipelineName3  = L"test-pipeline3";
-
     GIVEN( "Two new Sources and two new Pipeline" )
     {
-        REQUIRE( dsl_source_csi_new(sourceName1.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_new(pipelineName1.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_csi_new(sourceName2.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_new(pipelineName2.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_csi_new(sourceName3.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_new(pipelineName3.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_csi_new(source_name.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_csi_new(source_name2.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipeline_name2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_csi_new(source_name3.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipeline_name3.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_num_in_use_get() == 0 );
 
         // Reduce the max to less than 3
@@ -372,15 +342,15 @@ SCENARIO( "Adding greater than max Sources to all Pipelines fails", "[source-api
 
         WHEN( "The max number of sources are added to Pipelines" ) 
         {
-            REQUIRE( dsl_pipeline_component_add(pipelineName1.c_str(), 
-                sourceName1.c_str()) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_pipeline_component_add(pipelineName2.c_str(), 
-                sourceName2.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
+                source_name.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add(pipeline_name2.c_str(), 
+                source_name2.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "Adding an additional Source to a Pipeline will fail" )
             {
-                REQUIRE( dsl_pipeline_component_add(pipelineName3.c_str(), 
-                    sourceName3.c_str()) == DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED );
+                REQUIRE( dsl_pipeline_component_add(pipeline_name3.c_str(), 
+                    source_name3.c_str()) == DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -398,32 +368,26 @@ SCENARIO( "A Source not-in-use can not be Paused or Resumed", "[source-api]" )
 {
     GIVEN( "A new Source not in use by a Pipeline" ) 
     {
-        std::wstring sourceName(L"csi-source");
-        uint width(1280);
-        uint height(720);
-        uint fps_n(30);
-        uint fps_d(1);
-
         REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "A new Source is not in use by a Pipeline" )
         {
-            REQUIRE( dsl_source_csi_new(sourceName.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
             THEN( "The Source can not be Paused as it's not in use" ) 
             {
-                REQUIRE( dsl_source_pause(sourceName.c_str())  == DSL_RESULT_SOURCE_NOT_IN_USE );
+                REQUIRE( dsl_source_pause(source_name.c_str())  == DSL_RESULT_SOURCE_NOT_IN_USE );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
             }
         }
         WHEN( "A new Source is not in use by a Pipeline" )
         {
-            REQUIRE( dsl_source_csi_new(sourceName.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
     
             THEN( "The Source can not be Resumed as it's not in use" ) 
             {
-                REQUIRE( dsl_source_resume(sourceName.c_str())  == DSL_RESULT_SOURCE_NOT_IN_USE );
+                REQUIRE( dsl_source_resume(source_name.c_str())  == DSL_RESULT_SOURCE_NOT_IN_USE );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
             }
@@ -435,27 +399,19 @@ SCENARIO( "A Source in-use but in a null-state can not be Paused or Resumed", "[
 {
     GIVEN( "A new Source not in use by a Pipeline" ) 
     {
-        std::wstring pipelineName  = L"test-pipeline";
-
-        std::wstring sourceName  = L"csi-source";
-        uint width(1280);
-        uint height(720);
-        uint fps_n(30);
-        uint fps_d(1);
-
         REQUIRE( dsl_component_list_size() == 0 );
 
 
         WHEN( "A new Source is in-use by a new Pipeline in a null-state" )
         {
-            REQUIRE( dsl_source_csi_new(sourceName.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-                sourceName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
+                source_name.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The Source can not be Paused as it's in a null-state" ) 
             {
-                REQUIRE( dsl_source_pause(sourceName.c_str())  == DSL_RESULT_SOURCE_NOT_IN_PLAY );
+                REQUIRE( dsl_source_pause(source_name.c_str())  == DSL_RESULT_SOURCE_NOT_IN_PLAY );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_list_size() == 0 );
@@ -464,14 +420,14 @@ SCENARIO( "A Source in-use but in a null-state can not be Paused or Resumed", "[
         }
         WHEN( "A new Source is in-use by a new Pipeline in a null-state" )
         {
-            REQUIRE( dsl_source_csi_new(sourceName.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-                sourceName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
+                source_name.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The Source can not be Resumed as it's not in use" ) 
             {
-                REQUIRE( dsl_source_resume(sourceName.c_str())  == DSL_RESULT_SOURCE_NOT_IN_PAUSE );
+                REQUIRE( dsl_source_resume(source_name.c_str())  == DSL_RESULT_SOURCE_NOT_IN_PAUSE );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_list_size() == 0 );
@@ -519,34 +475,26 @@ SCENARIO( "A Dewarper can be added to and removed from a Decode Source Component
 {
     GIVEN( "A new Source and new Dewarper" )
     {
-        std::wstring sourceName = L"uri-source";
-        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
-        uint intrDecode(false);
-        uint dropFrameInterval(0);
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(),
+            false, intra_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        std::wstring dewarperName(L"dewarper");
-        std::wstring defConfigFile(L"./test/configs/config_dewarper.txt");
-
-        REQUIRE( dsl_source_uri_new(sourceName.c_str(), uri.c_str(),
-            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_dewarper_new(dewarperName.c_str(), defConfigFile.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_dewarper_new(dewarper_name.c_str(), defConfigFile.c_str()) == DSL_RESULT_SUCCESS );
 
         WHEN( "The Dewarper is added to the Source" ) 
         {
-            REQUIRE( dsl_source_decode_dewarper_add(sourceName.c_str(), 
-                dewarperName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_decode_dewarper_add(source_name.c_str(), 
+                dewarper_name.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The Dewarper can be removed" )
             {
                 // A second call must fail
-                REQUIRE( dsl_source_decode_dewarper_add(sourceName.c_str(), 
-                    dewarperName.c_str()) == DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED );
+                REQUIRE( dsl_source_decode_dewarper_add(source_name.c_str(), 
+                    dewarper_name.c_str()) == DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED );
 
-                REQUIRE( dsl_source_decode_dewarper_remove(sourceName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_decode_dewarper_remove(source_name.c_str()) == DSL_RESULT_SUCCESS );
 
                 // A second time must fail
-                REQUIRE( dsl_source_decode_dewarper_remove(sourceName.c_str()) == DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED );
+                REQUIRE( dsl_source_decode_dewarper_remove(source_name.c_str()) == DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED );
                     
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -558,15 +506,10 @@ SCENARIO( "Adding an invalid Dewarper to a Decode Source Component fails", "[sou
 {
     GIVEN( "A new Source and a Fake Sink as invalid Dewarper" )
     {
-        std::wstring sourceName = L"uri-source";
-        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
-        uint intrDecode(false);
-        uint dropFrameInterval(0);
-
         std::wstring fakeSinkName(L"fake-sink");
 
-        REQUIRE( dsl_source_uri_new(sourceName.c_str(), uri.c_str(),
-            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(),
+            false, intra_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         WHEN( "A Fake Sink is used as Dewarper" ) 
         {
@@ -574,7 +517,7 @@ SCENARIO( "Adding an invalid Dewarper to a Decode Source Component fails", "[sou
 
             THEN( "Adding the Fake Sink as a Dewarper will fail" )
             {
-                REQUIRE( dsl_source_decode_dewarper_add(sourceName.c_str(), 
+                REQUIRE( dsl_source_decode_dewarper_add(source_name.c_str(), 
                     fakeSinkName.c_str()) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
                     
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
@@ -588,30 +531,21 @@ SCENARIO( "An RTSP Source's Timeout can be updated correctly", "[source-api]" )
 {
     GIVEN( "A new RTSP Source with a 0 timeout" )
     {
-        std::wstring rtspSourceName(L"rtsp-SOURCE");
-        std::wstring uri(L"rtsp://username:password@192.168.0.14:554");
-        uint protocol(DSL_RTP_ALL);
-        uint intra_decode(false);
-        uint interval;
-        uint latency(100);
-        uint timeout(0);
-        uint retTimeout(123);
-        
-        REQUIRE( dsl_source_rtsp_new(rtspSourceName.c_str(), uri.c_str(), protocol,
+        REQUIRE( dsl_source_rtsp_new(source_name.c_str(), rtsp_uri.c_str(), protocol,
             intra_decode, interval, latency, timeout) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_source_rtsp_timeout_get(rtspSourceName.c_str(), &retTimeout) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_rtsp_timeout_get(source_name.c_str(), &retTimeout) == DSL_RESULT_SUCCESS );
         REQUIRE( retTimeout == timeout );
 
         WHEN( "The RTSP Source's buffer timeout is updated" ) 
         {
             uint timeout(321);
             uint retTimeout(0);
-            REQUIRE( dsl_source_rtsp_timeout_set(rtspSourceName.c_str(), timeout) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_rtsp_timeout_set(source_name.c_str(), timeout) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct value is returned after update" )
             {
-                REQUIRE( dsl_source_rtsp_timeout_get(rtspSourceName.c_str(), &retTimeout) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_rtsp_timeout_get(source_name.c_str(), &retTimeout) == DSL_RESULT_SUCCESS );
                 REQUIRE( retTimeout == timeout );
                     
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -624,16 +558,7 @@ SCENARIO( "An RTSP Source's Reconnect Stats can gotten and cleared", "[source-ap
 {
     GIVEN( "A new RTSP Source with a 0 timeout" )
     {
-        std::wstring rtspSourceName(L"rtsp-SOURCE");
-        std::wstring uri(L"rtsp://username:password@192.168.0.14:554");
-        uint protocol(DSL_RTP_ALL);
-        uint intra_decode(false);
-        uint interval;
-        uint latency(100);
-        uint timeout(0);
-        uint retTimeout(0);
-        
-        REQUIRE( dsl_source_rtsp_new(rtspSourceName.c_str(), uri.c_str(), protocol,
+        REQUIRE( dsl_source_rtsp_new(source_name.c_str(), rtsp_uri.c_str(), protocol,
             intra_decode, interval, latency, timeout) == DSL_RESULT_SUCCESS );
             
         WHEN( "A client gets an RTSP Source's connection data" ) 
@@ -645,7 +570,7 @@ SCENARIO( "An RTSP Source's Reconnect Stats can gotten and cleared", "[source-ap
             data.count = 654;
             data.is_in_reconnect = true;
             data.retries = 444;
-            REQUIRE( dsl_source_rtsp_connection_data_get(rtspSourceName.c_str(), 
+            REQUIRE( dsl_source_rtsp_connection_data_get(source_name.c_str(), 
                 &data) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct value is returned after update" )
@@ -657,7 +582,7 @@ SCENARIO( "An RTSP Source's Reconnect Stats can gotten and cleared", "[source-ap
                 REQUIRE( data.is_in_reconnect == 0 );
                 REQUIRE( data.retries == 0 );
 
-                REQUIRE( dsl_source_rtsp_connection_stats_clear(rtspSourceName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_rtsp_connection_stats_clear(source_name.c_str()) == DSL_RESULT_SUCCESS );
                     
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -673,34 +598,25 @@ SCENARIO( "An RTSP state-change-listener can be added and removed", "[source-api
 {
     GIVEN( "A new RTSP Source and client listener callback" )
     {
-        std::wstring rtspSourceName(L"rtsp-source");
-        std::wstring uri(L"rtsp://username:password@192.168.0.14:554");
-        uint protocol(DSL_RTP_ALL);
-        uint intra_decode(false);
-        uint interval;
-        uint latency(100);
-        uint timeout(0);
-        uint retTimeout(123);
-        
-        REQUIRE( dsl_source_rtsp_new(rtspSourceName.c_str(), uri.c_str(), protocol,
+        REQUIRE( dsl_source_rtsp_new(source_name.c_str(), rtsp_uri.c_str(), protocol,
             intra_decode, interval, latency, timeout) == DSL_RESULT_SUCCESS );
 
         WHEN( "A state-change-listner is added" )
         {
-            REQUIRE( dsl_source_rtsp_state_change_listener_add(rtspSourceName.c_str(),
+            REQUIRE( dsl_source_rtsp_state_change_listener_add(source_name.c_str(),
                 source_state_change_listener_cb1, NULL) == DSL_RESULT_SUCCESS );
 
             // ensure the same listener twice fails
-            REQUIRE( dsl_source_rtsp_state_change_listener_add(rtspSourceName.c_str(),
+            REQUIRE( dsl_source_rtsp_state_change_listener_add(source_name.c_str(),
                 source_state_change_listener_cb1, NULL) == DSL_RESULT_SOURCE_CALLBACK_ADD_FAILED );
 
             THEN( "The same listner can be remove" ) 
             {
-                REQUIRE( dsl_source_rtsp_state_change_listener_remove(rtspSourceName.c_str(),
+                REQUIRE( dsl_source_rtsp_state_change_listener_remove(source_name.c_str(),
                     source_state_change_listener_cb1) == DSL_RESULT_SUCCESS );
 
                 // calling a second time must faile
-                REQUIRE( dsl_source_rtsp_state_change_listener_remove(rtspSourceName.c_str(),
+                REQUIRE( dsl_source_rtsp_state_change_listener_remove(source_name.c_str(),
                     source_state_change_listener_cb1) == DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED );
                     
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -713,8 +629,7 @@ SCENARIO( "A new File Source returns the correct attribute values", "[source-api
 {
     GIVEN( "Attributes for a new File Source" ) 
     {
-        std::wstring source_name(L"file-source");
-        std::wstring w_file_path(L"./test/streams/sample_1080p_h264.mp4");
+        std::wstring w_file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
         std::string file_path(w_file_path.begin(), w_file_path.end());
         
         char absolutePath[PATH_MAX+1];
@@ -779,25 +694,22 @@ SCENARIO( "A File Source Component can Set/Get its Repeat Enabled setting", "[so
 {
     GIVEN( "A new File Source" )
     {
-        std::wstring sourceName = L"file-source";
-        std::wstring file_path = L"./test/streams/sample_1080p_h264.mp4";
-
-        REQUIRE( dsl_source_file_new(sourceName.c_str(), 
-            file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(source_name.c_str(), 
+            uri.c_str(), false) == DSL_RESULT_SUCCESS );
 
         boolean retRepeatEnabled(true);
-        REQUIRE( dsl_source_file_repeat_enabled_get(sourceName.c_str(), 
+        REQUIRE( dsl_source_file_repeat_enabled_get(source_name.c_str(), 
             &retRepeatEnabled) == DSL_RESULT_SUCCESS );
         REQUIRE( retRepeatEnabled == false );
 
         WHEN( "The Source's Repeat Enabled setting is set" ) 
         {
-            REQUIRE( dsl_source_file_repeat_enabled_set(sourceName.c_str(), 
+            REQUIRE( dsl_source_file_repeat_enabled_set(source_name.c_str(), 
                 true) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct value is returned on get" )
             {
-                REQUIRE( dsl_source_file_repeat_enabled_get(sourceName.c_str(), 
+                REQUIRE( dsl_source_file_repeat_enabled_get(source_name.c_str(), 
                     &retRepeatEnabled) == DSL_RESULT_SUCCESS );
                 REQUIRE( retRepeatEnabled == true );
                     
@@ -812,14 +724,8 @@ SCENARIO( "A new Image Source returns the correct attribute values", "[source-ap
 {
     GIVEN( "Attributes for a new Image Source" ) 
     {
-        std::wstring source_name(L"image-source");
-        std::wstring image_path(L"./test/streams/first-person-occurrence-438.jpeg");
-        boolean is_live(false);
-        uint fps_n(30);
-        uint fps_d(1);
-        uint timeout(123);
-        uint actual_width(136);
-        uint actual_height(391);
+        uint actual_width(1280);
+        uint actual_height(720);
 
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -851,13 +757,6 @@ SCENARIO( "A Image Source Component can Set/Get its Display Timeout setting", "[
 {
     GIVEN( "A new File Source" )
     {
-        std::wstring source_name(L"image-source");
-        std::wstring image_path(L"./test/streams/first-person-occurrence-438.jpeg");
-        boolean is_live(false);
-        uint fps_n(30);
-        uint fps_d(1);
-        uint timeout(123);
-
         REQUIRE( dsl_source_image_new(source_name.c_str(), image_path.c_str(),
             is_live, fps_n, fps_d, timeout) == DSL_RESULT_SUCCESS );
 
@@ -888,11 +787,6 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
-        std::wstring sourceName  = L"test-source";
-        std::wstring otherName  = L"other";
-        
-        uint cache_size(0), width(0), height(0), fps_n(0), fps_d(0), bitrate(0), interval(0), udpPort(0), rtspPort(0);
-        
         REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "When NULL pointers are used as input" ) 
@@ -902,9 +796,9 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_csi_new( NULL, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_usb_new( NULL, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_uri_new( NULL, NULL, false, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_uri_new( sourceName.c_str(), NULL, false, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_uri_new( source_name.c_str(), NULL, false, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_rtsp_new( NULL, NULL, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_rtsp_new( sourceName.c_str(), NULL, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_new( source_name.c_str(), NULL, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_image_new( NULL, NULL, false, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_file_new( NULL, NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
                 // Note NULL file_path is valid for File and Image Sources
@@ -913,16 +807,16 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_frame_rate_get( NULL, &fps_n, &fps_d ) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_source_decode_uri_get( NULL, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_decode_uri_get( sourceName.c_str(), NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_decode_uri_get( source_name.c_str(), NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_decode_uri_set( NULL, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_decode_uri_set( sourceName.c_str(), NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_decode_uri_set( source_name.c_str(), NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_source_decode_dewarper_add( NULL, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_decode_dewarper_add( sourceName.c_str(), NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_decode_dewarper_add( source_name.c_str(), NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_decode_dewarper_remove( NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_source_rtsp_tap_add( NULL, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_rtsp_tap_add( sourceName.c_str(), NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_tap_add( source_name.c_str(), NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_rtsp_tap_remove( NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_source_pause( NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );

@@ -35,17 +35,19 @@ static const std::wstring pipeline_name(L"test-pipeline");
 
 static const std::wstring source_name1(L"uri-source-1");
 static const std::wstring source_name2(L"uri-source-2");
-static const std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
+static const std::wstring uri(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 static const uint intr_decode(false);
 static const uint drop_frame_interval(0); 
 
 static const std::wstring image_source(L"image-source");
-static const std::wstring image_path1(L"./test/streams/sample_720p.jpg");
+static const std::wstring image_path1(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg");
 static const uint fps_n(15), fps_d(1);
 
 static const std::wstring primary_gie_name(L"primary-gie");
-static const std::wstring infer_config_file(L"./test/configs/config_infer_primary_nano.txt");
-static const std::wstring model_engine_file(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+static std::wstring infer_config_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
+static std::wstring model_engine_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
 
 // Note: Creating segmantation model engine file with the below config files builds the
 // engine under the trtis_model_repo, even though we are not using the triton inference server
@@ -58,7 +60,7 @@ static const std::wstring image_path2(L"/opt/nvidia/deepstream/deepstream/sample
 static const std::wstring ind_seg_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-segmentation-test/dstest_segmentation_config_industrial.txt");
 static const std::wstring ind_seg_model_engine_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/trtis_model_repo/Segmentation_Industrial/1/unet_output_graph.uff_b1_gpu0_fp32.engine");
+    L"/opt/nvidia/deepstream/deepstream/samples/triton_model_repo/Segmentation_Industrial/1/unet_output_graph.uff_b1_gpu0_fp32.engine");
 
 static const std::wstring seg_visual_name(L"segvisual");
 static const uint seg_visual_width(512);
@@ -69,16 +71,22 @@ static const uint tracker_width(480);
 static const uint tracker_height(272);
 
 static const std::wstring secondary_gie_name1(L"secondary-gie-1");
-static const std::wstring sgie_infer_config_file1(L"./test/configs/config_infer_secondary_carcolor_nano.txt");
-static const std::wstring sgie_model_engine_file1(L"./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine");
+static const std::wstring sgie_infer_config_file1(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carcolor.txt");
+static const std::wstring sgie_model_engine_file1(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine");
         
 static const std::wstring secondary_gie_name2(L"secondary-gie-2");
-static const std::wstring sgie_infer_config_file2(L"./test/configs/config_infer_secondary_carmake_nano.txt");
-static const std::wstring sgie_model_engine_file2(L"./test/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_fp16.engine");
+static const std::wstring sgie_infer_config_file2(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carmake.txt");
+static const std::wstring sgie_model_engine_file2(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_fp16.engine");
         
 static const std::wstring secondary_gie_name3(L"secondary-gie-3");
-static const std::wstring sgie_infer_config_file3(L"./test/configs/config_infer_secondary_vehicletypes_nano.txt");
-static const std::wstring sgie_model_engine_file3(L"./test/models/Secondary_VehicleTypes/resnet18.caffemodel_b8_gpu0_fp16.engine");
+static const std::wstring sgie_infer_config_file3(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt");
+static const std::wstring sgie_model_engine_file3(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18.caffemodel_b8_gpu0_fp16.engine");
 
 static const std::wstring tiler_name1(L"tiler-1");
 static const std::wstring tiler_name2(L"tiler-2");
@@ -777,6 +785,8 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, 
             REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
         
             REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), components) == DSL_RESULT_SUCCESS );
+            
+            dsl_pipeline_streammux_batch_properties_set(pipeline_name.c_str(), 8, 40000 );
 
             THEN( "Pipeline is Able to LinkAll and Play" )
             {

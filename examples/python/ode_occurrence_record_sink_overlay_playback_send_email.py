@@ -138,7 +138,7 @@ def recording_event_listener(session_info_ptr, client_data):
             print('Disable always trigger failed with error: ', dsl_return_value_to_string(retval))
     
         # re-enable the one-shot trigger for the next "New Instance" of a person
-        retval = dsl_ode_trigger_reset('bicycle-instance-trigger')	
+        retval = dsl_ode_trigger_reset('bicycle-instance-trigger')    
         if (retval != DSL_RETURN_SUCCESS):
             print('Failed to reset instance trigger with error:', dsl_return_value_to_string(retval))
     

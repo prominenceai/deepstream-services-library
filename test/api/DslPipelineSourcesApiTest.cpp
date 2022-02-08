@@ -35,7 +35,7 @@ static const std::wstring sourceName1(L"test-uri-source-1");
 static const std::wstring sourceName2(L"test-uri-source-2");
 static const std::wstring sourceName3(L"test-uri-source-3");
 static const std::wstring sourceName4(L"test-uri-source-4");
-static const std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
+static const std::wstring uri(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 static const uint intrDecode(false);
 static const uint dropFrameInterval(0);
 

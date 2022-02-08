@@ -29,7 +29,7 @@ static const std::wstring primaryTisName(L"primary-tis");
 static const std::wstring primaryTisName2(L"primary-tis-2");
 
 static const std::wstring inferConfigFile(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt");
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_plan_engine_primary.txt");
 
 static const std::wstring pipelineName(L"test-pipeline");
         

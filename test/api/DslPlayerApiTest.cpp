@@ -28,25 +28,30 @@ THE SOFTWARE.
 
 #define TIME_TO_SLEEP_FOR std::chrono::milliseconds(1000)
 
+static std::wstring player_name(L"player");
+
+static std::wstring source_name(L"file-source");
+static std::wstring file_path(
+    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
+
+static std::wstring image_path1(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg");
+static std::wstring image_path2(L"/opt/nvidia/deepstream/deepstream/samples/streams/yoga.jpg");
+
+static std::wstring sink_name(L"window-sink");
+static uint offsetX(0);
+static uint offsetY(0);
+static uint sinkW(1280);
+static uint sinkH(720);
+
+
 SCENARIO( "A single Player is created and deleted correctly", "[player-api]" )
 {
     GIVEN( "An empty list of Players" ) 
     {
-        std::wstring player_name  = L"player";
-
-        std::wstring source_name = L"file-source";
-        std::wstring file_path = L"./test/streams/sample_1080p_h264.mp4";
-
-        std::wstring sinkName = L"window-sink";
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(1280);
-        uint sinkH(720);
-
         REQUIRE( dsl_source_file_new(source_name.c_str(), file_path.c_str(), 
             false) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_sink_window_new(sinkName.c_str(),
+        REQUIRE( dsl_sink_window_new(sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_player_list_size() == 0 );
@@ -54,7 +59,7 @@ SCENARIO( "A single Player is created and deleted correctly", "[player-api]" )
         WHEN( "A new Player is created" ) 
         {
             REQUIRE( dsl_player_new(player_name.c_str(),
-                source_name.c_str(), sinkName.c_str()) == DSL_RESULT_SUCCESS );
+                source_name.c_str(), sink_name.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
@@ -71,21 +76,10 @@ SCENARIO( "A single Player can Play, Pause, and Stop", "[player-api]" )
 {
     GIVEN( "An empty list of Players" ) 
     {
-        std::wstring player_name  = L"player";
-
-        std::wstring source_name = L"file-source";
-        std::wstring file_path = L"./test/streams/sample_1080p_h264.mp4";
-
-        std::wstring sinkName = L"window-sink";
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(1280);
-        uint sinkH(720);
-
         REQUIRE( dsl_source_file_new(source_name.c_str(), file_path.c_str(), 
             false) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_sink_window_new(sinkName.c_str(),
+        REQUIRE( dsl_sink_window_new(sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_player_list_size() == 0 );
@@ -93,7 +87,7 @@ SCENARIO( "A single Player can Play, Pause, and Stop", "[player-api]" )
         WHEN( "A new Player is created" ) 
         {
             REQUIRE( dsl_player_new(player_name.c_str(),
-                source_name.c_str(), sinkName.c_str()) == DSL_RESULT_SUCCESS );
+                source_name.c_str(), sink_name.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
@@ -101,6 +95,10 @@ SCENARIO( "A single Player can Play, Pause, and Stop", "[player-api]" )
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_player_pause(player_name.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_player_stop(player_name.c_str()) == DSL_RESULT_SUCCESS );
+
                 REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_player_stop(player_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -116,13 +114,6 @@ SCENARIO( "A File Render Player can Play, Pause, and Stop", "[player-api]" )
 {
     GIVEN( "An empty list of Players" ) 
     {
-        std::wstring player_name  = L"player";
-
-        std::wstring file_path = L"./test/streams/sample_1080p_h264.mp4";
-
-        uint offsetX(0);
-        uint offsetY(0);
-        
         REQUIRE( dsl_player_list_size() == 0 );
 
         WHEN( "A new Player is created" ) 
@@ -151,14 +142,11 @@ SCENARIO( "An Image Render Player can Play, Pause, and Stop", "[player-api]" )
 {
     GIVEN( "An empty list of Players" ) 
     {
-        std::wstring player_name  = L"player";
-        std::wstring file_path = L"./test/streams/first-person-occurrence-438.jpeg";
-
         REQUIRE( dsl_player_list_size() == 0 );
 
         WHEN( "A new Player is created" ) 
         {
-            REQUIRE( dsl_player_render_image_new(player_name.c_str(),file_path.c_str(), 
+            REQUIRE( dsl_player_render_image_new(player_name.c_str(),image_path1.c_str(), 
                 DSL_RENDER_TYPE_WINDOW, 10, 10, 75, 0) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
@@ -182,10 +170,6 @@ SCENARIO( "An Image Render Player's Attributes are updated correctly'", "[player
 {
     GIVEN( "A new Image Render Player with Window Sink" ) 
     {
-        std::wstring player_name  = L"player";
-
-        std::wstring file_path = L"./test/streams/first-person-occurrence-438.jpeg";
-
         uint offsetX(123);
         uint offsetY(123);
         uint retOffsetX(0);
@@ -195,7 +179,7 @@ SCENARIO( "An Image Render Player's Attributes are updated correctly'", "[player
         uint timeout(0),  retTimeout(444);
         
         REQUIRE( dsl_player_list_size() == 0 );
-        REQUIRE( dsl_player_render_image_new(player_name.c_str(), file_path.c_str(), 
+        REQUIRE( dsl_player_render_image_new(player_name.c_str(), image_path1.c_str(), 
             DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, timeout) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_player_render_offsets_get(player_name.c_str(), 
@@ -251,10 +235,6 @@ SCENARIO( "An Video Render Player's Attributes are updated correctly'", "[mmm]" 
 {
     GIVEN( "A new Video Render Player with Window Sink" ) 
     {
-        std::wstring player_name  = L"player";
-
-        std::wstring file_path = L"./test/streams/sample_1080p_h264.mp4";
-
         uint offsetX(123);
         uint offsetY(123);
         uint retOffsetX(0);
@@ -282,9 +262,8 @@ SCENARIO( "An Video Render Player's Attributes are updated correctly'", "[mmm]" 
 
         WHEN( "A the Player's Attributes are Set" ) 
         {
-            std::wstring new_file_path = L"./test/streams/sample_1080p_h265.mp4";
             REQUIRE( dsl_player_render_file_path_set(player_name.c_str(),
-                new_file_path.c_str()) == DSL_RESULT_SUCCESS );
+                image_path2.c_str()) == DSL_RESULT_SUCCESS );
             
             uint newOffsetX(321), newOffsetY(321);
             REQUIRE( dsl_player_render_offsets_set(player_name.c_str(),
@@ -323,13 +302,7 @@ SCENARIO( "A Players's XWindow Handle can be Set/Get", "[player-api]" )
 {
     GIVEN( "A new Player" ) 
     {
-        std::wstring player_name  = L"player";
-
-        std::wstring file_path = L"./test/streams/sample_1080p_h264.mp4";
-
-        uint offsetX(123);
-        uint offsetY(123);
-        uint zoom(75);		
+        uint zoom(75);        
         boolean repeatEnabled(false);
         
         uint64_t handle(0);
@@ -345,15 +318,15 @@ SCENARIO( "A Players's XWindow Handle can be Set/Get", "[player-api]" )
 
         WHEN( "When the Player's XWindow Handle is updated" ) 
         {
-			handle = 0x1234567812345678;
+            handle = 0x1234567812345678;
             REQUIRE( dsl_player_xwindow_handle_set(player_name.c_str(), 
                 handle) == DSL_RESULT_SUCCESS );
                 
             THEN( "The new handle value is returned on get" )
             {
-				uint64_t newHandle(0);
-				REQUIRE( dsl_player_xwindow_handle_get(player_name.c_str(), 
-					&newHandle) == DSL_RESULT_SUCCESS );
+                uint64_t newHandle(0);
+                REQUIRE( dsl_player_xwindow_handle_get(player_name.c_str(), 
+                    &newHandle) == DSL_RESULT_SUCCESS );
                 REQUIRE( handle == newHandle );
 
                 REQUIRE( dsl_player_delete(player_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -367,16 +340,6 @@ SCENARIO( "The Player API checks for NULL input parameters", "[player-api]" )
 {
     GIVEN( "An empty list of Players" ) 
     {
-        std::wstring player_name(L"player");
-
-        std::wstring source_name(L"file-source");
-        std::wstring file_path(L"./test/streams/sample_1080p_h264.mp4");
-
-        std::wstring sink_name(L"window-sink");
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(1280);
-        uint sinkH(720);
         uint timeout(0);
         uint zoom(100);
         boolean repeat_enabled(0);

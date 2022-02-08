@@ -1058,7 +1058,7 @@ SCENARIO( "A Player can be added to and removed from a Record Sink", "[sink-api]
             codec, container, bitrate, interval, client_listener) == DSL_RESULT_SUCCESS );
 
         std::wstring player_name(L"player");
-        std::wstring file_path = L"./test/streams/sample_1080p_h264.mp4";
+        std::wstring file_path = L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4";
         
         REQUIRE( dsl_player_render_video_new(player_name.c_str(),file_path.c_str(), 
             DSL_RENDER_TYPE_OVERLAY, 10, 10, 75, 0) == DSL_RESULT_SUCCESS );

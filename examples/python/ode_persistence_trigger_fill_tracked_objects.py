@@ -86,12 +86,12 @@ def main(args):
     
         # This example demonstrates the use of three ODE Persistence Triggers to trigger on
         # all tracked Objects - as identified by an IOU Tracker - that persist accross consecutive
-		# frames for a specifid period of time. Each trigger specifies a range of minimum and
-		# maximum times of persistence. 
-		#   Trigger 1: 0 - 3 seconds - action = fill object with opaque green color
-		#   Trigger 2: 3 - 6 seconds - action = fill object with opaque yellow color
-		#   Trigger 3: 6 - 0 seconds - action = fill object with opaque red color
-		# This will have the effect of coloring an object by its time in view
+        # frames for a specifid period of time. Each trigger specifies a range of minimum and
+        # maximum times of persistence. 
+        #   Trigger 1: 0 - 3 seconds - action = fill object with opaque green color
+        #   Trigger 2: 3 - 6 seconds - action = fill object with opaque yellow color
+        #   Trigger 3: 6 - 0 seconds - action = fill object with opaque red color
+        # This will have the effect of coloring an object by its time in view
         
         #```````````````````````````````````````````````````````````````````````````````````
         # Create a Format Label Action to remove the Object Label from view
@@ -157,13 +157,13 @@ def main(args):
 
         #```````````````````````````````````````````````````````````````````````````````````
         # Create the three persistence triggers for the PERSON class, each with their unique range
-		# Set the minimum hight critera - we only care about people that are near the Camera
+        # Set the minimum hight critera - we only care about people that are near the Camera
         retval = dsl_ode_trigger_persistence_new('minimum-persitence-trigger', source='uri-source-1',
             class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE, minimum=0, maximum=2)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_dimensions_min_set('minimum-persitence-trigger', 
-			min_width=0, min_height=100)
+            min_width=0, min_height=100)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_persistence_new('medium-persitence-trigger', source='uri-source-1',
@@ -171,7 +171,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_dimensions_min_set('medium-persitence-trigger', 
-			min_width=0, min_height=100)
+            min_width=0, min_height=100)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_persistence_new('maximum-persitence-trigger', source='uri-source-1',
@@ -179,7 +179,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_dimensions_min_set('maximum-persitence-trigger', 
-			min_width=0, min_height=100)
+            min_width=0, min_height=100)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -201,11 +201,11 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
-			'every-occurrence-trigger', 
-			'minimum-persitence-trigger', 
+            'every-occurrence-trigger', 
+            'minimum-persitence-trigger', 
             'medium-persitence-trigger', 
-			'maximum-persitence-trigger',
-			None])
+            'maximum-persitence-trigger',
+            None])
         if retval != DSL_RETURN_SUCCESS:
             break
         
