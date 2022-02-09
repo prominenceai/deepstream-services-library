@@ -30,11 +30,13 @@ import time
 
 from dsl import *
 
-# Filespecs for the Primary GIE
-primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
-source_uri = '../../test/streams/sample_1080p_h264.mp4'
+# Filespecs for the Primary GIE and IOU Trcaker
+primary_infer_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -46,6 +48,7 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
  
 ## 
@@ -53,11 +56,13 @@ def xwindow_key_event_handler(key_string, client_data):
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 # Function to be called on End-of-Stream (EOS) event
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -74,7 +79,7 @@ def main(args):
     while True:
 
         # First new URI File Source
-        retval = dsl_source_uri_new('uri-source', source_uri, False, False, 0)
+        retval = dsl_source_uri_new('uri-source', uri_file, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
             

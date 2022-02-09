@@ -505,7 +505,7 @@ SCENARIO( "A Player can be added and removed from a Capture Action", "[ode-actio
         std::wstring outdir(L"./");
 
         std::wstring player_name(L"player");
-        std::wstring file_path(L"./test/streams/first-person-occurrence-438.jpeg");
+        std::wstring file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/yoga.jpg");
         
         REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), 
             outdir.c_str()) == DSL_RESULT_SUCCESS );

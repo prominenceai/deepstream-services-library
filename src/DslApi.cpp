@@ -1423,7 +1423,7 @@ DslReturnType dsl_ode_trigger_persistence_range_set(const wchar_t* name,
     return DSL::Services::GetServices()->OdeTriggerPersistenceRangeSet(cstrName.c_str(), 
         minimum, maximum);
 }
-	
+    
 DslReturnType dsl_ode_trigger_count_new(const wchar_t* name, const wchar_t* source, 
     uint class_id, uint limit, uint minimum, uint maximum)
 {
@@ -3129,12 +3129,12 @@ DslReturnType dsl_infer_gie_primary_new(const wchar_t* name, const wchar_t* infe
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrConfig(infer_config_file);
     std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
-	
-	std::string cstrEngine;
-	if (model_engine_file != NULL)
-	{
-		std::wstring wstrEngine(model_engine_file);
-		cstrEngine.assign(wstrEngine.begin(), wstrEngine.end());
+    
+    std::string cstrEngine;
+    if (model_engine_file != NULL)
+    {
+        std::wstring wstrEngine(model_engine_file);
+        cstrEngine.assign(wstrEngine.begin(), wstrEngine.end());
     }
     return DSL::Services::GetServices()->PrimaryGieNew(cstrName.c_str(), cstrConfig.c_str(),
         cstrEngine.c_str(), interval);
@@ -3150,7 +3150,7 @@ DslReturnType dsl_infer_tis_primary_new(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrConfig(infer_config_file);
     std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
-	
+    
     return DSL::Services::GetServices()->PrimaryTisNew(cstrName.c_str(), 
         cstrConfig.c_str(), interval);
 }
@@ -3169,11 +3169,11 @@ DslReturnType dsl_infer_gie_secondary_new(const wchar_t* name, const wchar_t* in
     std::wstring wstrInferOnGie(infer_on_gie);
     std::string cstrInferOnGie(wstrInferOnGie.begin(), wstrInferOnGie.end());
 
-	std::string cstrEngine;
-	if (model_engine_file != NULL)
-	{
-		std::wstring wstrEngine(model_engine_file);
-		cstrEngine.assign(wstrEngine.begin(), wstrEngine.end());
+    std::string cstrEngine;
+    if (model_engine_file != NULL)
+    {
+        std::wstring wstrEngine(model_engine_file);
+        cstrEngine.assign(wstrEngine.begin(), wstrEngine.end());
     }
     return DSL::Services::GetServices()->SecondaryGieNew(cstrName.c_str(), cstrConfig.c_str(),
         cstrEngine.c_str(), cstrInferOnGie.c_str(), interval);
@@ -3350,11 +3350,11 @@ DslReturnType dsl_tracker_dcf_new(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-	std::string cstrCfgFile;
-	if (config_file != NULL)
-	{
-		std::wstring wstrCfgFile(config_file);
-		cstrCfgFile.assign(wstrCfgFile.begin(), wstrCfgFile.end());
+    std::string cstrCfgFile;
+    if (config_file != NULL)
+    {
+        std::wstring wstrCfgFile(config_file);
+        cstrCfgFile.assign(wstrCfgFile.begin(), wstrCfgFile.end());
     }
 
     return DSL::Services::GetServices()->TrackerDcfNew(cstrName.c_str(), 
@@ -3381,11 +3381,11 @@ DslReturnType dsl_tracker_iou_new(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-	std::string cstrCfgFile;
-	if (config_file != NULL)
-	{
-		std::wstring wstrCfgFile(config_file);
-		cstrCfgFile.assign(wstrCfgFile.begin(), wstrCfgFile.end());
+    std::string cstrCfgFile;
+    if (config_file != NULL)
+    {
+        std::wstring wstrCfgFile(config_file);
+        cstrCfgFile.assign(wstrCfgFile.begin(), wstrCfgFile.end());
     }
 
     return DSL::Services::GetServices()->TrackerIouNew(cstrName.c_str(), 
@@ -4478,16 +4478,16 @@ DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_serve
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     std::string cstrStunServer;
-	std::string cstrTurnServer;
-	if (stun_server != NULL)
-	{
-		std::wstring wstrStunServer(stun_server);
-		cstrStunServer.assign(wstrStunServer.begin(), wstrStunServer.end());
+    std::string cstrTurnServer;
+    if (stun_server != NULL)
+    {
+        std::wstring wstrStunServer(stun_server);
+        cstrStunServer.assign(wstrStunServer.begin(), wstrStunServer.end());
     }
-	if (turn_server != NULL)
-	{
-		std::wstring wstrTurnServer(turn_server);
-		cstrTurnServer.assign(wstrTurnServer.begin(), wstrTurnServer.end());
+    if (turn_server != NULL)
+    {
+        std::wstring wstrTurnServer(turn_server);
+        cstrTurnServer.assign(wstrTurnServer.begin(), wstrTurnServer.end());
     }
 
     return DSL::Services::GetServices()->SinkWebRtcNew(cstrName.c_str(),
@@ -4560,16 +4560,16 @@ DslReturnType dsl_sink_webrtc_servers_set(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     std::string cstrStunServer;
-	std::string cstrTurnServer;
-	if (stun_server != NULL)
-	{
-		std::wstring wstrStunServer(stun_server);
-		cstrStunServer.assign(wstrStunServer.begin(), wstrStunServer.end());
+    std::string cstrTurnServer;
+    if (stun_server != NULL)
+    {
+        std::wstring wstrStunServer(stun_server);
+        cstrStunServer.assign(wstrStunServer.begin(), wstrStunServer.end());
     }
-	if (turn_server != NULL)
-	{
-		std::wstring wstrTurnServer(turn_server);
-		cstrTurnServer.assign(wstrTurnServer.begin(), wstrTurnServer.end());
+    if (turn_server != NULL)
+    {
+        std::wstring wstrTurnServer(turn_server);
+        cstrTurnServer.assign(wstrTurnServer.begin(), wstrTurnServer.end());
     }
 
     return DSL::Services::GetServices()->SinkWebRtcServersSet(cstrName.c_str(),
@@ -4727,17 +4727,17 @@ DslReturnType dsl_sink_message_new(const wchar_t* name,
     std::string cstrProtocolLib(wstrProtocolLib.begin(), wstrProtocolLib.end());
     
     std::string cstrConn;
-	if (connection_string != NULL)
-	{
-		std::wstring wstrConn(connection_string);
-		cstrConn.assign(wstrConn.begin(), wstrConn.end());
+    if (connection_string != NULL)
+    {
+        std::wstring wstrConn(connection_string);
+        cstrConn.assign(wstrConn.begin(), wstrConn.end());
     }
     
     std::string cstrTopic;
-	if (topic != NULL)
-	{
-		std::wstring wstrTopic(topic);
-		cstrTopic.assign(wstrTopic.begin(), wstrTopic.end());
+    if (topic != NULL)
+    {
+        std::wstring wstrTopic(topic);
+        cstrTopic.assign(wstrTopic.begin(), wstrTopic.end());
     }
 
     return DSL::Services::GetServices()->SinkMessageNew(cstrName.c_str(), 
@@ -4871,17 +4871,17 @@ DslReturnType dsl_sink_message_broker_settings_set(const wchar_t* name,
     
 
     std::string cstrConn;
-	if (connection_string != NULL)
-	{
-		std::wstring wstrConn(connection_string);
-		cstrConn.assign(wstrConn.begin(), wstrConn.end());
+    if (connection_string != NULL)
+    {
+        std::wstring wstrConn(connection_string);
+        cstrConn.assign(wstrConn.begin(), wstrConn.end());
     }
     
     std::string cstrTopic;
-	if (topic != NULL)
-	{
-		std::wstring wstrTopic(topic);
-		cstrTopic.assign(wstrTopic.begin(), wstrTopic.end());
+    if (topic != NULL)
+    {
+        std::wstring wstrTopic(topic);
+        cstrTopic.assign(wstrTopic.begin(), wstrTopic.end());
     }
 
     return DSL::Services::GetServices()->SinkMessageBrokerSettingsSet(cstrName.c_str(), 

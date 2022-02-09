@@ -33,8 +33,10 @@ source_width = 1920
 source_height = 1080
 
 # Filespecs for the Primary GIE
-primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+primary_infer_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
 ## 
 # Function to be called on XWindow KeyRelease event

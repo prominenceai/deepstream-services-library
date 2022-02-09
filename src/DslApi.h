@@ -551,7 +551,7 @@ THE SOFTWARE.
 #define DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT                         40000
 #define DSL_DEFAULT_STREAMMUX_WIDTH                                 1920
 #define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
-#define DSL_DEFAULT_STREAMMUX_MAX_NUM_SERFACES_PER_FRAME			1
+#define DSL_DEFAULT_STREAMMUX_MAX_NUM_SERFACES_PER_FRAME            1
 
 #define DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC                     10
 #define DSL_DEFAULT_WAIT_FOR_EOS_TIMEOUT_IN_SEC                     2
@@ -1997,7 +1997,7 @@ DslReturnType dsl_ode_trigger_persistence_range_get(const wchar_t* name,
  */
 DslReturnType dsl_ode_trigger_persistence_range_set(const wchar_t* name, 
     uint minimum, uint maximum);
-	
+    
 /**
  * @brief Smallest trigger that checks for the occurrence of Objects within a frame
  * and if at least one is found, Triggers on the Object with smallest rectangle area.

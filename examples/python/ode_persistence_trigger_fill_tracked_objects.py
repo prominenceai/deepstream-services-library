@@ -28,12 +28,14 @@ import sys
 sys.path.insert(0, "../../")
 from dsl import *
 
-uri_file = "../../test/streams/sample_1080p_h264.mp4"
+uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
-# Filespecs for the Primary GIE and IOU Trcaker
-primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
-tracker_config_file = '../../test/configs/iou_config.txt'
+# Filespecs for the Primary GIE
+primary_infer_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+tracker_config_file = '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
@@ -55,6 +57,7 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
  
 ## 
@@ -62,6 +65,7 @@ def xwindow_key_event_handler(key_string, client_data):
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -69,6 +73,7 @@ def xwindow_delete_event_handler(client_data):
 ## 
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -86,12 +91,12 @@ def main(args):
     
         # This example demonstrates the use of three ODE Persistence Triggers to trigger on
         # all tracked Objects - as identified by an IOU Tracker - that persist accross consecutive
-		# frames for a specifid period of time. Each trigger specifies a range of minimum and
-		# maximum times of persistence. 
-		#   Trigger 1: 0 - 3 seconds - action = fill object with opaque green color
-		#   Trigger 2: 3 - 6 seconds - action = fill object with opaque yellow color
-		#   Trigger 3: 6 - 0 seconds - action = fill object with opaque red color
-		# This will have the effect of coloring an object by its time in view
+        # frames for a specifid period of time. Each trigger specifies a range of minimum and
+        # maximum times of persistence. 
+        #   Trigger 1: 0 - 3 seconds - action = fill object with opaque green color
+        #   Trigger 2: 3 - 6 seconds - action = fill object with opaque yellow color
+        #   Trigger 3: 6 - 0 seconds - action = fill object with opaque red color
+        # This will have the effect of coloring an object by its time in view
         
         #```````````````````````````````````````````````````````````````````````````````````
         # Create a Format Label Action to remove the Object Label from view
@@ -157,13 +162,13 @@ def main(args):
 
         #```````````````````````````````````````````````````````````````````````````````````
         # Create the three persistence triggers for the PERSON class, each with their unique range
-		# Set the minimum hight critera - we only care about people that are near the Camera
+        # Set the minimum hight critera - we only care about people that are near the Camera
         retval = dsl_ode_trigger_persistence_new('minimum-persitence-trigger', source='uri-source-1',
             class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE, minimum=0, maximum=2)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_dimensions_min_set('minimum-persitence-trigger', 
-			min_width=0, min_height=100)
+            min_width=0, min_height=100)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_persistence_new('medium-persitence-trigger', source='uri-source-1',
@@ -171,7 +176,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_dimensions_min_set('medium-persitence-trigger', 
-			min_width=0, min_height=100)
+            min_width=0, min_height=100)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_persistence_new('maximum-persitence-trigger', source='uri-source-1',
@@ -179,7 +184,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_dimensions_min_set('maximum-persitence-trigger', 
-			min_width=0, min_height=100)
+            min_width=0, min_height=100)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -201,11 +206,11 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
-			'every-occurrence-trigger', 
-			'minimum-persitence-trigger', 
+            'every-occurrence-trigger', 
+            'minimum-persitence-trigger', 
             'medium-persitence-trigger', 
-			'maximum-persitence-trigger',
-			None])
+            'maximum-persitence-trigger',
+            None])
         if retval != DSL_RETURN_SUCCESS:
             break
         
@@ -214,7 +219,7 @@ def main(args):
         # Create the remaining Pipeline components
         
         # New URI File Source using the filespec defined above
-        retval = dsl_source_uri_new('uri-source-1', uri_file, False, False, 0)
+        retval = dsl_source_uri_new('uri-source-1', uri_h265, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 

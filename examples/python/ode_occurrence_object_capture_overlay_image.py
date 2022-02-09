@@ -28,12 +28,14 @@ import sys
 sys.path.insert(0, "../../")
 from dsl import *
 
-file_path = "../../test/streams/sample_1080p_h264.mp4"
+uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
-# Filespecs for the Primary GIE and IOU Trcaker
-primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
-tracker_config_file = '../../test/configs/iou_config.txt'
+# Filespecs for the Primary GIE
+primary_infer_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+tracker_config_file = '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
@@ -58,6 +60,7 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
  
 ## 
@@ -65,6 +68,7 @@ def xwindow_key_event_handler(key_string, client_data):
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -72,6 +76,7 @@ def xwindow_delete_event_handler(client_data):
 ## 
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -206,8 +211,7 @@ def main(args):
             break
 
         # Create a new Capture Action to capture the object to jpeg image, and save to file. 
-        retval = dsl_ode_action_capture_object_new('person-capture-action', 
-            DSL_NVBUF_MEM_TYPE_DEFAULT, outdir="./")
+        retval = dsl_ode_action_capture_object_new('person-capture-action', outdir="./")
         if retval != DSL_RETURN_SUCCESS:
             break
         
@@ -265,7 +269,7 @@ def main(args):
         
         # New File Source using the file path defined at the top of the file
         retval = dsl_source_file_new('file-source', 
-            file_path = file_path, 
+            file_path = uri_h265, 
             repeat_enabled = True)
         if retval != DSL_RETURN_SUCCESS:
             break

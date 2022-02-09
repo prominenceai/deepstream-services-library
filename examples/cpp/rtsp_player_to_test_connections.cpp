@@ -41,9 +41,9 @@ std::wstring rtsp_uri_2 = L"rtsp://admin:Password1!@10.0.0.37:554/cam/realmonito
 int WINDOW_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH;
 int WINDOW_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT;
 
-// ## 	
-// # Function to be called on XWindow KeyRelease event	
-// ## 	
+// ##     
+// # Function to be called on XWindow KeyRelease event    
+// ##     
 void xwindow_key_event_handler(const wchar_t* in_key, void* client_data)
 {   
     std::wstring wkey(in_key); 
@@ -63,27 +63,27 @@ int main(int argc, char** argv)
 {  
     DslReturnType retval;
 
-    // # Since we're not using args, we can Let DSL initialize GST on first call	
-    while(true){	
+    // # Since we're not using args, we can Let DSL initialize GST on first call    
+    while(true){    
 
-        // # For each camera, create a new RTSP Source for the specific RTSP URI	
-        retval = dsl_source_rtsp_new(L"rtsp-source", rtsp_uri_1.c_str(), DSL_RTP_ALL, DSL_NVBUF_MEM_TYPE_DEFAULT, 	
+        // # For each camera, create a new RTSP Source for the specific RTSP URI    
+        retval = dsl_source_rtsp_new(L"rtsp-source", rtsp_uri_1.c_str(), DSL_RTP_ALL, DSL_NVBUF_MEM_TYPE_DEFAULT,     
                                     false, 0, 100, 2);
-        if (retval != DSL_RESULT_SUCCESS)	
+        if (retval != DSL_RESULT_SUCCESS)    
             return retval;
 
-        // # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display	
+        // # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display    
         retval = dsl_sink_window_new(L"window-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         retval = dsl_player_new(L"player", L"rtsp-source", L"window-sink");
         if (retval != DSL_RESULT_SUCCESS) break;
             
-        // # Add the XWindow event handler functions defined above	
-        retval = dsl_player_xwindow_key_event_handler_add(L"player", xwindow_key_event_handler, nullptr);	
-        if (retval != DSL_RESULT_SUCCESS) break;	
+        // # Add the XWindow event handler functions defined above    
+        retval = dsl_player_xwindow_key_event_handler_add(L"player", xwindow_key_event_handler, nullptr);    
+        if (retval != DSL_RESULT_SUCCESS) break;    
         
-        // # Play the player	
+        // # Play the player    
         retval = dsl_player_play(L"player");
         if (retval != DSL_RESULT_SUCCESS) break;
 

@@ -28,18 +28,20 @@ THE SOFTWARE.
 
 #define TIME_TO_SLEEP_FOR std::chrono::milliseconds(2000)
 
-SCENARIO( "All DisplayTypes can be displayed by and eODE Action", "[display-types-behavior]" )
+SCENARIO( "All DisplayTypes can be displayed by an ODE Action", "[display-types-behavior]" )
 {
     GIVEN( "A Pipeline, ODE Handler, Always ODE Trigger, and Display Meta Action" ) 
     {
         std::wstring sourceName1(L"uri-source");
-        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
+        std::wstring uri(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
         uint intrDecode(false);
         uint dropFrameInterval(0);
 
         std::wstring primaryGieName(L"primary-gie");
-        std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+        std::wstring inferConfigFile(
+            L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
+        std::wstring modelEngineFile(
+            L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);

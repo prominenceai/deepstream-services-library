@@ -959,7 +959,7 @@ namespace DSL {
         DslReturnType PipelineXWindowHandleGet(const char* name, uint64_t* xwindow);
 
         DslReturnType PipelineXWindowHandleSet(const char* name, uint64_t xwindow);
-		
+        
         DslReturnType PipelineXWindowClear(const char* name);
         
         DslReturnType PipelineXWindowDestroy(const char* name);

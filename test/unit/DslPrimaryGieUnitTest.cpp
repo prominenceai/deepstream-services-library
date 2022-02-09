@@ -25,18 +25,21 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslInferBintr.h"
 
+static std::string primaryGieName("primary-gie");
+static std::string inferConfigFile(
+    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
+static std::string modelEngineFile(
+    "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+
+static uint interval(1);
+
 using namespace DSL;
 
 SCENARIO( "A new PrimaryGieBintr is created correctly",  "[PrimaryGieBintr]" )
 {
     GIVEN( "Attributes for a new PrimaryGieBintr" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         
-        uint interval(1);
-
         WHEN( "A new PrimaryGieBintr is created" )
         {
             
@@ -64,12 +67,6 @@ SCENARIO( "A new PrimaryGieBintr can not LinkAll without setting the Batch Size 
 {
     GIVEN( "A new PrimaryGieBintr in an Unlinked state" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        
-        uint interval(1);
-
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
             DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
@@ -90,12 +87,6 @@ SCENARIO( "A new PrimaryGieBintr with its Batch Size set can LinkAll Child Eleme
 {
     GIVEN( "A new PrimaryGieBintr in an Unlinked state" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        
-        uint interval(1);
-
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
             DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
@@ -118,12 +109,6 @@ SCENARIO( "A Linked PrimaryGieBintr can UnlinkAll Child Elementrs",  "[PrimaryGi
 {
     GIVEN( "A Linked PrimaryGieBintr" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        
-        uint interval(1);
-
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
             DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
@@ -147,12 +132,6 @@ SCENARIO( "A Linked PrimaryGieBintr can not be linked again", "[PrimaryGieBintr]
 {
     GIVEN( "A new PrimaryGieBintr in an Unlinked state" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        
-        uint interval(1);
-
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
             DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
@@ -174,11 +153,6 @@ SCENARIO( "A PrimaryGieBintr can Get and Set its GPU ID",  "[PrimaryGieBintr]" )
 {
     GIVEN( "A new PrimaryGieBintr in memory" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        uint interval(1);
-        
         uint GPUID0(0);
         uint GPUID1(1);
 
@@ -204,11 +178,6 @@ SCENARIO( "A PrimaryGieBintr can Enable and Disable raw layer info output",  "[P
 {
     GIVEN( "A new PrimaryGieBintr in memory" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        uint interval(1);
-
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
             DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
@@ -229,11 +198,6 @@ SCENARIO( "A PrimaryGieBintr fails to Enable raw layer info output given a bad p
 {
     GIVEN( "A new PrimaryGieBintr in memory" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        uint interval(1);
-
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
             DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
@@ -254,11 +218,6 @@ SCENARIO( "A PrimaryGieBintr can Get and Set its Interval",  "[PrimaryGieBintr]"
 {
     GIVEN( "A new PrimaryGieBintr in memory" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        uint interval(1);
-
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
             DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
@@ -282,11 +241,6 @@ SCENARIO( "A PrimaryGieBintr in a Linked state fails to Set its Interval",  "[Pr
 {
     GIVEN( "A new PrimaryGieBintr in memory" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        uint interval(1);
-
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
             DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);

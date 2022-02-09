@@ -30,13 +30,15 @@ THE SOFTWARE.
 // Shared Test Inputs 
 
 static const std::wstring source_name(L"uri-source");
-static const std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
+static const std::wstring uri(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 static const uint intr_decode(false);
 static const uint drop_frame_interval(0);
 
 static const std::wstring primary_gie_name(L"primary-gie");
-static const std::wstring infer_config_file(L"./test/configs/config_infer_primary_nano.txt");
-static const std::wstring model_engine_file(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+static std::wstring infer_config_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
+static std::wstring model_engine_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
         
 static const std::wstring tracker_name(L"ktl-tracker");
 static const uint tracker_width(480);
@@ -729,9 +731,9 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
             fillActionName.c_str()) == DSL_RESULT_SUCCESS );
         
         // Create a new ODE Area for criteria
-		REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), 
             coordinates, num_coordinates, 
-			border_width, light_white.c_str())== DSL_RESULT_SUCCESS );
+            border_width, light_white.c_str())== DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_area_inclusion_new(areaName.c_str(), 
             polygonName.c_str(), true, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );

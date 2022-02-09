@@ -56,13 +56,13 @@ sink_height = 720
 
 g_num_active_pipelines = 0
 
-## 	
-# Objects of this class will be used as "client_data" for all callback notifications.	
-# defines a class of all component names associated with a single Pipeline. 	
+##     
+# Objects of this class will be used as "client_data" for all callback notifications.    
+# defines a class of all component names associated with a single Pipeline.     
 # The names are derived from the unique Pipeline Id
-##	
-class ComponentNames:	
-    def __init__(self, id):	
+##    
+class ComponentNames:    
+    def __init__(self, id):    
         self.pipeline = 'pipeline-' + str(id)
         self.source = 'source-' + str(id)
         self.ptis = 'ptis-' + str(id)
@@ -125,39 +125,39 @@ def create_pipeline(client_data):
     # New File Source using the same URI for all Piplines
     retval = dsl_source_file_new(client_data.source,
         file_path, False);
-    if (retval != DSL_RETURN_SUCCESS):	
-        return retval	
+    if (retval != DSL_RETURN_SUCCESS):    
+        return retval    
 
     # New Window Sink using the global dimensions
     retval = dsl_sink_window_new(client_data.sink,
         0, 0, sink_width, sink_height)
-    if (retval != DSL_RETURN_SUCCESS):	
-        return retval	
+    if (retval != DSL_RETURN_SUCCESS):    
+        return retval    
 
     retval = dsl_pipeline_new_component_add_many(client_data.pipeline,
         components=[client_data.source, client_data.sink, None]);
-    if (retval != DSL_RETURN_SUCCESS):	
-        return retval	
+    if (retval != DSL_RETURN_SUCCESS):    
+        return retval    
 
     # Add the XWindow event handler functions defined above
     retval = dsl_pipeline_xwindow_key_event_handler_add(client_data.pipeline, 
         xwindow_key_event_handler, client_data)
-    if (retval != DSL_RETURN_SUCCESS):	
-        return retval	
+    if (retval != DSL_RETURN_SUCCESS):    
+        return retval    
     retval = dsl_pipeline_xwindow_delete_event_handler_add(client_data.pipeline, 
         xwindow_delete_event_handler, client_data);
-    if (retval != DSL_RETURN_SUCCESS):	
-        return retval	
+    if (retval != DSL_RETURN_SUCCESS):    
+        return retval    
 
     # Add the listener callback functions defined above
     retval = dsl_pipeline_state_change_listener_add(client_data.pipeline, 
         state_change_listener, client_data)
-    if (retval != DSL_RETURN_SUCCESS):	
-        return retval	
+    if (retval != DSL_RETURN_SUCCESS):    
+        return retval    
     retval = dsl_pipeline_eos_listener_add(client_data.pipeline, 
         eos_event_listener, client_data)
-    if (retval != DSL_RETURN_SUCCESS):	
-        return retval	
+    if (retval != DSL_RETURN_SUCCESS):    
+        return retval    
     
     # Call on the Pipeline to create its own main-context and main-loop that
     # will be set as the default main-context for the main_loop_thread_func
@@ -173,21 +173,21 @@ def delete_pipeline(client_data):
         
     # Stop the pipeline
     retval = dsl_pipeline_stop(client_data.pipeline)
-    if (retval != DSL_RETURN_SUCCESS):	
-        return retval	
+    if (retval != DSL_RETURN_SUCCESS):    
+        return retval    
 
     print('deleting Pipeline', client_data.pipeline)
 
     # Delete the Pipeline first, then the components. 
     retval = dsl_pipeline_delete(client_data.pipeline);
-    if (retval != DSL_RETURN_SUCCESS):	
-        return retval	
+    if (retval != DSL_RETURN_SUCCESS):    
+        return retval    
 
     # Now safe to delete all components for this Pipeline
     retval = dsl_component_delete_many(
         components=[client_data.source, client_data.sink, None])
-    if (retval != DSL_RETURN_SUCCESS):	
-        return retval	
+    if (retval != DSL_RETURN_SUCCESS):    
+        return retval    
         
     g_num_active_pipelines -= 1;
     
@@ -215,10 +215,10 @@ def main_loop_thread_func(client_data):
     delete_pipeline(client_data)
 
 
-def main(args):	
+def main(args):    
 
-    # Since we're not using args, we can Let DSL initialize GST on first call	
-    while True:	
+    # Since we're not using args, we can Let DSL initialize GST on first call    
+    while True:    
     
         components_1 = ComponentNames(1)
         components_2 = ComponentNames(2)
@@ -227,8 +227,8 @@ def main(args):
         # Create the first Pipeline and sleep for a second to seperate 
         # the start time with the next Pipeline.
         retval = create_pipeline(components_1)
-        if (retval != DSL_RETURN_SUCCESS):	
-            break	
+        if (retval != DSL_RETURN_SUCCESS):    
+            break    
 
         # Start the Pipeline with its own main-context and main-loop in a 
         # seperate thread. 
@@ -241,8 +241,8 @@ def main(args):
         # Create the second Pipeline and sleep for a second to seperate 
         # the start time with the next Pipeline.
         retval = create_pipeline(components_2)
-        if (retval != DSL_RETURN_SUCCESS):	
-            break	
+        if (retval != DSL_RETURN_SUCCESS):    
+            break    
 
         # Start the second Pipeline with its own main-context and main-loop in a 
         # seperate thread. 
@@ -256,7 +256,7 @@ def main(args):
         # the start time with the next Pipeline.
         retval = create_pipeline(components_3)
         if (retval != DSL_RETURN_SUCCESS):
-            break	
+            break    
 
         # Start the third Pipeline with its own main-context and main-loop in a 
         # seperate thread. 

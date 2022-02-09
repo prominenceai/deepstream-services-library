@@ -26,6 +26,8 @@ THE SOFTWARE.
 #include "DslServices.h"
 #include "DslMailer.h"
 
+static std::string filePath("/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg");
+
 using namespace DSL;
 
 SCENARIO( "A new Email Address is created correctly", "[Mailer]" )
@@ -238,7 +240,6 @@ SCENARIO( "A Mailer Object can Queue an SMTP Email with specific content", "[Mai
         std::string bodyLine3("this is unique content for line 3 \r\n");
         std::vector<std::string> body{bodyLine1, bodyLine2, bodyLine3};
 
-        std::string filePath("./test/streams/first-person-occurrence-438.jpeg");
         char absolutePath[PATH_MAX+1];
         std::string fullFilePath = realpath(filePath.c_str(), absolutePath);
         

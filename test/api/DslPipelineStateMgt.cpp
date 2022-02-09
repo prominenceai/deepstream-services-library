@@ -31,7 +31,7 @@ SCENARIO( "A new Pipeline with minimal components can Play", "[PipelineStateMgt]
     GIVEN( "A Pipeline with minimal components" ) 
     {
         std::wstring sourceName = L"test-uri-source";
-        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
+        std::wstring uri = L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4";
         uint intrDecode(false);
         uint dropFrameInterval(2);
 
@@ -79,6 +79,12 @@ SCENARIO( "A new Pipeline with minimal components can Play", "[PipelineStateMgt]
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(std::chrono::milliseconds(500));
             
+                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }

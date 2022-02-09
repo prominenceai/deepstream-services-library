@@ -46,8 +46,8 @@ SCENARIO( "The ODE Areas container is updated correctly on multiple new ODE Area
         REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
             1.0, 1.0, 1.0, 0.25) == DSL_RESULT_SUCCESS );
 
-		REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), coordinates, num_coordinates, 
-			border_width, colorName.c_str())== DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), coordinates, num_coordinates, 
+            border_width, colorName.c_str())== DSL_RESULT_SUCCESS );
 
         WHEN( "Several new Actions are created" ) 
         {
@@ -90,15 +90,15 @@ SCENARIO( "The ODE Areas container is updated correctly on Delete ODE Area", "[o
         REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
             1.0, 1.0, 1.0, 0.25) == DSL_RESULT_SUCCESS );
 
-		REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), coordinates, num_coordinates, 
-			border_width, colorName.c_str())== DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), coordinates, num_coordinates, 
+            border_width, colorName.c_str())== DSL_RESULT_SUCCESS );
 
-		REQUIRE( dsl_ode_area_inclusion_new(areaName1.c_str(), 
-			polygonName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
-		REQUIRE( dsl_ode_area_inclusion_new(areaName2.c_str(), 
-			polygonName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
-		REQUIRE( dsl_ode_area_inclusion_new(areaName3.c_str(), 
-			polygonName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_area_inclusion_new(areaName1.c_str(), 
+            polygonName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_area_inclusion_new(areaName2.c_str(), 
+            polygonName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_area_inclusion_new(areaName3.c_str(), 
+            polygonName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
 
         WHEN( "A single Area is deleted" ) 
         {

@@ -29,7 +29,7 @@ using namespace DSL;
 
 static const std::string primaryTisName("primary-tis");
 static const std::string inferConfigFile(
-    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt");
+    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_plan_engine_primary.txt");
     
 SCENARIO( "A new PrimaryTisBintr is created correctly",  "[PrimaryTisBintr]" )
 {

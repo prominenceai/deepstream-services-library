@@ -134,14 +134,14 @@ def main(args):
     while True:
 
         # First new URI File Source
-        # retval = dsl_source_rtsp_new('source', 	
-        #     uri = rtsp_uri, 	
-        #     protocol = DSL_RTP_ALL, 	
-        #     cudadec_mem_type = DSL_NVBUF_MEM_TYPE_DEFAULT, 	
-        #     intra_decode = False, 	
-        #     drop_frame_interval = 0, 	
+        # retval = dsl_source_rtsp_new('source',     
+        #     uri = rtsp_uri,     
+        #     protocol = DSL_RTP_ALL,     
+        #     cudadec_mem_type = DSL_NVBUF_MEM_TYPE_DEFAULT,     
+        #     intra_decode = False,     
+        #     drop_frame_interval = 0,     
         #     latency = 100,
-        #     timeout = 5)	
+        #     timeout = 5)    
         # if (retval != DSL_RETURN_SUCCESS):
         #     break
 

@@ -35,7 +35,7 @@ SCENARIO( "The Batch Size for a Pipeline can be set greater than sources", "[pip
         std::wstring sourceName1 = L"test-uri-source-1";
         std::wstring sourceName2 = L"test-uri-source-2";
         std::wstring sourceName3 = L"test-uri-source-3";
-        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
+        std::wstring uri = L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4";
         uint intrDecode(false);
         uint dropFrameInterval(0);
 
@@ -114,7 +114,7 @@ SCENARIO( "The Batch Size for a Pipeline can be set less than sources", "[pipeli
         std::wstring sourceName1 = L"test-uri-source-1";
         std::wstring sourceName2 = L"test-uri-source-2";
         std::wstring sourceName3 = L"test-uri-source-3";
-        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
+        std::wstring uri = L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4";
         uint intrDecode(false);
         uint dropFrameInterval(0);
 

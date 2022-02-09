@@ -30,9 +30,13 @@ import time
 
 from dsl import *
 
+uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+
 # Filespecs for the Primary GIE
-inferConfigFile = '../../test/configs/config_infer_primary_nano.txt'
-modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+inferConfigFile = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+modelEngineFile = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
 MAX_SOURCE_COUNT = 4
 cur_source_count = 0
@@ -67,7 +71,7 @@ def xwindow_key_event_handler(key_string, client_data):
             cur_source_count += 1
             source_name = 'source-' + str(cur_source_count)
             print('adding source ', source_name)
-            dsl_source_file_new(source_name, "../../test/streams/sample_1080p_h264.mp4", True)
+            dsl_source_file_new(source_name, uri_h265, True)
             dsl_pipeline_component_add('pipeline', source_name)
 
     # Remove the last source added
@@ -88,7 +92,7 @@ def main(args):
     while True:
 
         # First new URI File Source
-        retval = dsl_source_file_new('source-1', "../../test/streams/sample_1080p_h264.mp4", True)
+        retval = dsl_source_file_new('source-1', uri_h265, True)
         if retval != DSL_RETURN_SUCCESS:
             break
 

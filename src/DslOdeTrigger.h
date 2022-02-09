@@ -69,7 +69,7 @@ namespace DSL
     #define DSL_ODE_TRIGGER_PERSISTENCE_PTR std::shared_ptr<PersistenceOdeTrigger>
     #define DSL_ODE_TRIGGER_PERSISTENCE_NEW(name, source, classId, limit, minimum, maximum) \
         std::shared_ptr<PersistenceOdeTrigger> \
-			(new PersistenceOdeTrigger(name, source, classId, limit, minimum, maximum))
+            (new PersistenceOdeTrigger(name, source, classId, limit, minimum, maximum))
 
     #define DSL_ODE_TRIGGER_COUNT_PTR std::shared_ptr<CountOdeTrigger>
     #define DSL_ODE_TRIGGER_COUNT_NEW(name, source, classId, limit, minimum, maximum) \
@@ -930,48 +930,48 @@ namespace DSL
          * @brief maximum object count before for ODE occurrence
          */
         uint m_maximum;
-		
+        
     };
 
-	struct TrackedObject
-	{
+    struct TrackedObject
+    {
 
-		TrackedObject(uint64_t trackingId, uint64_t frameNumber)
-			: m_trackingId(trackingId)
-			, m_frameNumber(frameNumber)
-		{
-			timeval creationTime;
-			gettimeofday(&creationTime, NULL);
-			m_creationTimeMs = creationTime.tv_sec*1000.0 + creationTime.tv_usec/1000.0;
-		}
-		
-		/**
-		 * @brief unique id for the tracked object
-		 */
-		uint64_t m_trackingId;
-		
-		/**
-		 * @brief frame number for the tracked object, updated on detection within a new frame
-		 */
-		uint64_t m_frameNumber;
-		
-		/**
-		 * @brief time of creation for this Tracked Object, used to test for object persistence
-		 */
-		double m_creationTimeMs;
-	};
-	
-	/**
-	 * @brief map of tracked objects - unique Tracking Id as key
-	 */
-	typedef std::map <uint64_t, std::shared_ptr<TrackedObject>> TrackedObjects;
+        TrackedObject(uint64_t trackingId, uint64_t frameNumber)
+            : m_trackingId(trackingId)
+            , m_frameNumber(frameNumber)
+        {
+            timeval creationTime;
+            gettimeofday(&creationTime, NULL);
+            m_creationTimeMs = creationTime.tv_sec*1000.0 + creationTime.tv_usec/1000.0;
+        }
+        
+        /**
+         * @brief unique id for the tracked object
+         */
+        uint64_t m_trackingId;
+        
+        /**
+         * @brief frame number for the tracked object, updated on detection within a new frame
+         */
+        uint64_t m_frameNumber;
+        
+        /**
+         * @brief time of creation for this Tracked Object, used to test for object persistence
+         */
+        double m_creationTimeMs;
+    };
+    
+    /**
+     * @brief map of tracked objects - unique Tracking Id as key
+     */
+    typedef std::map <uint64_t, std::shared_ptr<TrackedObject>> TrackedObjects;
 
     class PersistenceOdeTrigger : public OdeTrigger
     {
     public:
     
         PersistenceOdeTrigger(const char* name, 
-			const char* source, uint classId, uint limit, uint minimum, uint maximum);
+            const char* source, uint classId, uint limit, uint minimum, uint maximum);
         
         ~PersistenceOdeTrigger();
 
@@ -1010,8 +1010,8 @@ namespace DSL
 
         /**
          * @brief Function to post process the frame and generate a Persistence ODE occurrence 
-		 * if any unique object has been tracked for a period of time within the Trigger's 
-		 * minimum and maximum duration value
+         * if any unique object has been tracked for a period of time within the Trigger's 
+         * minimum and maximum duration value
          * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
@@ -1031,10 +1031,10 @@ namespace DSL
          */
         double m_maximumMs;
     
-		/**
-		 * @brief map of tracked objects per source - Key = source Id
-		 */
-		std::map <uint, std::shared_ptr<TrackedObjects>> m_trackedObjectsPerSource;
+        /**
+         * @brief map of tracked objects per source - Key = source Id
+         */
+        std::map <uint, std::shared_ptr<TrackedObjects>> m_trackedObjectsPerSource;
     };
 
     class CountOdeTrigger : public OdeTrigger
@@ -1042,7 +1042,7 @@ namespace DSL
     public:
     
         CountOdeTrigger(const char* name, 
-			const char* source, uint classId, uint limit, uint minimum, uint maximum);
+            const char* source, uint classId, uint limit, uint minimum, uint maximum);
         
         ~CountOdeTrigger();
 
@@ -1217,10 +1217,10 @@ namespace DSL
 
     private:
     
-		/**
-		 * @brief map of tracked objects per source - Key = source Id
-		 */
-		std::map <uint, std::shared_ptr<TrackedObjects>> m_trackedObjectsPerSource;
+        /**
+         * @brief map of tracked objects per source - Key = source Id
+         */
+        std::map <uint, std::shared_ptr<TrackedObjects>> m_trackedObjectsPerSource;
         
         /**
          * @brief pointer to the Latest - least Persistent - object in the current frame
@@ -1270,10 +1270,10 @@ namespace DSL
 
     private:
     
-		/**
-		 * @brief map of tracked objects per source - Key = source Id
-		 */
-		std::map <uint, std::shared_ptr<TrackedObjects>> m_trackedObjectsPerSource;
+        /**
+         * @brief map of tracked objects per source - Key = source Id
+         */
+        std::map <uint, std::shared_ptr<TrackedObjects>> m_trackedObjectsPerSource;
     
         /**
          * @brief pointer to the Earliest - most Persistent - object in the current frame
