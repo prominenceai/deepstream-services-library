@@ -30,7 +30,7 @@ from dsl import *
 import time
 import os
 
-dir_path = "../../test/streams"
+dir_path = "/opt/nvidia/deepstream/deepstream/samples/streams"
 
 ## 
 # Function to be called on Player termination event

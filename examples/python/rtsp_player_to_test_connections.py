@@ -48,6 +48,7 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'R':    
         dsl_player_play('player')    
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':    
+        dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
        
 def main(args):    

@@ -52,22 +52,15 @@ from_address = 'my.smtps.server'
 to_name = 'Joe Bloe'
 to_address = 'joe.blow@gmail.com'
 
-uri_file = "../../test/streams/sample_1080p_h264.mp4"
+uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
-# -------------------------------------------------------------------------------------
-# This example is designed to be portable between an Integrated Nano Jetson device
-# and a disrete GPU x86_84 system
-gpu_type = dsl_gpu_type_get(0)
+# Filespecs for the Primary GIE
+primary_infer_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+tracker_config_file = '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
-# Platform conditional NVIDIA buffer memory type and filespecs for the Primary GIE and IOU Trcaker
-if gpu_type == DSL_GPU_TYPE_INTEGRATED:
-    primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-    primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
-    tracker_config_file = '../../test/configs/iou_config.txt'
-else:
-    primary_infer_config_file = '/opt/nvidia/deepstream/deepstream-6.0/samples/configs/deepstream-app/config_infer_primary.txt'
-    primary_model_engine_file = '/opt/nvidia/deepstream/deepstream-6.0/samples/models/Primary_Detector/resnet10.caffemodel'
-    tracker_config_file = '/opt/nvidia/deepstream/deepstream-6.0/samples/configs/deepstream-app/iou_config.txt'
 
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
@@ -92,6 +85,7 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
  
 ## 
@@ -99,6 +93,7 @@ def xwindow_key_event_handler(key_string, client_data):
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -106,6 +101,7 @@ def xwindow_delete_event_handler(client_data):
 ## 
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -115,12 +111,6 @@ def state_change_listener(old_state, new_state, client_data):
     print('previous state = ', old_state, ', new state = ', new_state)
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
-
-## 
-# Function to be called on Player termination event
-## 
-def player_termination_event_listener(client_data):
-    print(' ***  Display Image Complete  *** ')
 
 ## 
 # Function to be called on Object Capture (and file-save) complete
@@ -313,7 +303,7 @@ def main(args):
         # New File Source using the file path defined at the top of the file
         # New URI File Source using the filespec defined above
         retval = dsl_source_uri_new('uri-source',
-            uri = uri_file,
+            uri = uri_h265,
             is_live = False,
             intra_decode = False,
             drop_frame_interval = 0)
