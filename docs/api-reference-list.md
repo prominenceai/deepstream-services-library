@@ -318,8 +318,6 @@
 * [dsl_sink_webrtc_client_listener_remove](/docs/api-sink.md#dsl_sink_webrtc_client_listener_remove)
 * [dsl_sink_encode_settings_get](/docs/api-sink.md#dsl_sink_encode_settings_get)
 * [dsl_sink_encode_settings_set](/docs/api-sink.md#dsl_sink_encode_settings_set)
-* [dsl_sink_message_meta_type_get](/docs/api-sink.md#dsl_sink_message_meta_type_get)
-* [dsl_sink_message_meta_type_set](/docs/api-sink.md#dsl_sink_message_meta_type_set)
 * [dsl_sink_message_converter_settings_get](/docs/api-sink.md#dsl_sink_message_converter_settings_get)
 * [dsl_sink_message_converter_settings_set](/docs/api-sink.md#dsl_sink_message_converter_settings_set)
 * [dsl_sink_message_broker_settings_get](/docs/api-sink.md#dsl_sink_message_broker_settings_get)
