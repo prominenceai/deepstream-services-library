@@ -70,9 +70,9 @@ OBJS:= $(SRCS:.c=.o)
 OBJS:= $(OBJS:.cpp=.o)
 
 CFLAGS+= -I$(INC_INSTALL_DIR) \
-    -std=$(CXX_VERSION) \
-    -I$(SRC_INSTALL_DIR)/apps/apps-common/includes \
-    -I/opt/include \
+	-std=$(CXX_VERSION) \
+	-I$(SRC_INSTALL_DIR)/apps/apps-common/includes \
+	-I/opt/include \
 	-I/usr/include \
 	-I/usr/include/gstreamer-$(GSTREAMER_VERSION) \
 	-I/usr/include/glib-$(GLIB_VERSION) \
@@ -83,15 +83,18 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-I./test \
 	-I./test/api \
 	-DDSL_VERSION=$(DSL_VERSION) \
-    -DDSL_LOGGER_IMP='"DslLogGst.h"'\
+	-DDSL_LOGGER_IMP='"DslLogGst.h"'\
 	-DGSTREAMER_SUB_VERSION=$(GSTREAMER_SUB_VERSION) \
 	-DBUILD_MESSAGE_SINK=$(BUILD_MESSAGE_SINK) \
 	-DNVDS_DCF_LIB='"$(LIB_INSTALL_DIR)/libnvds_nvdcf.so"' \
 	-DNVDS_KLT_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_klt.so"' \
 	-DNVDS_IOU_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_iou.so"' \
 	-DNVDS_MOT_LIB='"$(LIB_INSTALL_DIR)/libnvds_nvmultiobjecttracker.so"' \
+	-DNVDS_AMQP_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_amqp_proto.so"' \
 	-DNVDS_AZURE_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_azure_proto.so"' \
 	-DNVDS_AZURE_EDGE_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_azure_edge_proto"' \
+	-DNVDS_KAFKA_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_kafka_proto.so"' \
+	-DNVDS_REDIS_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_redis_proto.so"' \
     -fPIC 
 
 ifeq ($(GSTREAMER_SUB_VERSION),18)
