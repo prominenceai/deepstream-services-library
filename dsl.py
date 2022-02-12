@@ -116,6 +116,9 @@ DSL_SOCKET_CONNECTION_STATE_FAILED    = 2
 
 DSL_WEBSOCKET_SERVER_DEFAULT_HTTP_PORT = 60001
 
+DSL_MSG_PAYLOAD_DEEPSTREAM         = 0
+DSL_MSG_PAYLOAD_DEEPSTREAM_MINIMAL = 1
+
 class dsl_coordinate(Structure):
     _fields_ = [
         ('x', c_uint),
@@ -605,6 +608,16 @@ _dsl.dsl_ode_action_log_new.restype = c_uint
 def dsl_ode_action_log_new(name):
     global _dsl
     result =_dsl.dsl_ode_action_log_new(name)
+    return int(result)
+
+##
+## dsl_ode_action_message_meta_add_new()
+##
+_dsl.dsl_ode_action_message_meta_add_new.argtypes = [c_wchar_p]
+_dsl.dsl_ode_action_message_meta_add_new.restype = c_uint
+def dsl_ode_action_message_meta_add_new(name):
+    global _dsl
+    result =_dsl.dsl_ode_action_message_meta_add_new(name)
     return int(result)
 
 ##
@@ -3484,6 +3497,19 @@ def dsl_sink_webrtc_client_listener_remove(name, client_listener):
     result = _dsl.dsl_sink_webrtc_client_listener_remove(name, c_client_listener)
     return int(result)
 
+##
+## dsl_sink_message_new()
+##
+_dsl.dsl_sink_message_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_wchar_p, 
+    c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_message_new.restype = c_uint
+def dsl_sink_message_new(name, converter_config_file, payload_type, 
+    broker_config_file, protocol_lib, connection_string, topic):
+    global _dsl
+    result =_dsl.dsl_sink_message_new(name, converter_config_file, payload_type, 
+        broker_config_file, protocol_lib, connection_string, topic)
+    return int(result)
+    
 ##
 ## dsl_sink_sync_settings_get()
 ##
