@@ -6,9 +6,10 @@ Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must ha
 * Record Sink - similar to the File sink but with Start/Stop/Duration control and a cache for pre-start buffering.
 * RTSP Sink - streams encoded video on a specified port
 * WebRTC Sink - streams encoded video to a web browser or mobile application. **(Requires GStreamer 1.18 or later)**
+* Message Sink - converts Object Detection Event (ODE) metadata into a message payload and sends it to the server using a specified communication protocol.
 * Fake Sink - consumes/drops all data.
 
-Sinks are created by calling one of the seven type-specific constructors. As with all components, Sinks must be uniquely named from all other components created.
+Sinks are created by calling one of the eight type-specific constructors. As with all components, Sinks must be uniquely named from all other components created.
 
 Sinks are added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](api-pipeline.md#dsl_pipeline_component_remove_all).
 
@@ -33,6 +34,7 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_record_new](#dsl_sink_record_new)
 * [dsl_sink_rtsp_new](#dsl_sink_rtsp_new)
 * [dsl_sink_webrtc_new](#dsl_sink_webrtc_new)
+* [dsl_sink_message_new](#dsl_sink_message_new)
 * [dsl_sink_fake_new](#dsl_sink_fake_new)
 
 **Methods**
@@ -66,6 +68,10 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_webrtc_client_listener_remove](#dsl_sink_webrtc_client_listener_remove)
 * [dsl_sink_encode_settings_get](#dsl_sink_encode_settings_get)
 * [dsl_sink_encode_settings_set](#dsl_sink_encode_settings_set)
+* [dsl_sink_message_converter_settings_get](#dsl_sink_message_converter_settings_get)
+* [dsl_sink_message_converter_settings_set](#dsl_sink_message_converter_settings_set)
+* [dsl_sink_message_broker_settings_get](#dsl_sink_message_broker_settings_get)
+* [dsl_sink_message_broker_settings_set](#dsl_sink_message_broker_settings_set)
 * [dsl_sink_pph_add](#dsl_sink_pph_add)
 * [dsl_sink_pph_remove](#dsl_sink_pph_remove)
 * [dsl_sink_num_in_use_get](#dsl_sink_num_in_use_get)
@@ -100,7 +106,8 @@ The following return codes are used by the Sink API
 #define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_ADD_FAILED           0x00040017
 #define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED        0x00040018
 #define DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED             0x00040019
-#define DSL_RESULT_SINK_WEBRTC_NOT_SUPPORTED                        0x00040020
+#define DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND               0x00040020
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_MESSAGE_SINK               0x00040021
 ```
 
 ## Codec Types
@@ -123,6 +130,23 @@ Used by the WebRTC Sink to communicate its current state to listening clients
 #define DSL_SOCKET_CONNECTION_STATE_OPENED                          2
 #define DSL_SOCKET_CONNECTION_STATE_FAILED                          3
 ```
+
+## Message Converter Payload Schema Types
+Defines the Payload schema types that can be used with the Message Sink
+```C
+#define DSL_MSG_PAYLOAD_DEEPSTREAM                                  0
+#define DSL_MSG_PAYLOAD_DEEPSTREAM_MINIMAL                          1
+```
+
+## NVIDIA Installed Protocol Adapter Paths
+The following -D flags are defined in the DSL Makefile
+```C
+-DNVDS_AZURE_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_azure_proto.so"' \
+-DNVDS_AZURE_EDGE_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_azure_edge_proto.so \
+-DNVDS_AMQP_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_amqp_proto.so \
+-DNVDS_KAFKA_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_kafka_proto.so \
+-DNVDS_REDIS_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_redis_edge_proto.so
+ ```
 
 <br>
 
@@ -206,7 +230,7 @@ Callback typedef for clients to listen for a notification that a Recording Sessi
 
 ### *dsl_sink_webrtc_client_listener_cb*
 ```C++
-typedef void (*dsl_sink_webrtc_client_listener_cb)(dsl_webrtc_connection_data* data, 
+typedef void (*dsl_sink_webrtc_client_listener_cb)(dsl_webrtc_connection_data* data,
     void* client_data);
 ```
 Callback typedef for a client to listen for WebRTC Sink connection events.
@@ -313,7 +337,7 @@ Note: the Sink name is used as the filename prefix, followed by session id and N
 * `container` - [in] one of the [Video Container Types](#video-container-types) defined above.
 * `bitrate` - [in] bitrate at which to encode the video.
 * `interval` - [in] frame interval at which to encode the video. Set to 0 to code every frame.
-* `client_listener` - [in] client callback funtion of type [dsl_record_client_listener_cb ](#dsl_record_client_listener_cb)to be called when the recording is complete or stoped.
+* `client_listener` - [in] client callback function of type [dsl_record_client_listener_cb ](#dsl_record_client_listener_cb)to be called when the recording is complete or stopped.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -367,6 +391,7 @@ The constructor creates a uniquely named WebRTC Sink. Construction will fail if 
  **IMPORTANT:** the WebRTC Sink implementation requires GStreamer 1.18 or later.
 
 **Parameters**
+* `name` - [in] unique name for the WebRTC Sink to create.
 * `stun_server` - [in] STUN server to use of the form stun://hostname:port. Set to NULL to omit if using TURN server(s).
 * `turn_server` - [in] TURN server(s) to use of the form turn(s)://username:password@host:port. Set to NULL to omit if using a STUN server.
 * `codec` - [in] one of the [Codec Types](#codec-types) defined above.
@@ -380,6 +405,38 @@ The constructor creates a uniquely named WebRTC Sink. Construction will fail if 
 ```Python
 STUN_SERVER = "stun://stun.l.google.com:19302"
 retval = dsl_sink_webrtc_new('my-webrtc-sink', STUN_SERVER, DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
+```
+
+<br>
+
+### *dsl_sink_message_new*
+```C++
+DslReturnType dsl_sink_message_new(const wchar_t* name,
+    const wchar_t* converter_config_file, uint payload_type,
+    const wchar_t* broker_config_file, const wchar_t* protocol_lib,
+    const wchar_t* connection_string, const wchar_t* topic);
+```
+The constructor creates a uniquely named Message Sink. Construction will fail if the name is currently in use. The Message Sink converts ODE metadata -- generated by an [Add Message Meta ODE Action](/docs/api-ode-action.md#dsl_ode_action_message_meta_add_new) -- into a message payload and sends it to the server using a specified communication protocol.
+
+**Important** refer to the DeepStream Plugin Guide for information on the [Message Converter](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvmsgconv.html#gst-nvmsgconv) and [Message Broker](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvmsgbroker.html), and for information on configuration and use of the different Protocol Adapters.  
+
+**Parameters**
+* `name` - [in] unique name for the Message Sink to create.
+* `converter_config_file` - [in] absolute or relate path to a message-converter configuration file of type text or csv.
+* `payload_type` - [in]  one of the [Message Converter payload schema type constants](#message-converter-payload-schema-types) defined above.
+* `broker_config_file` - [in] broker_config_file absolute or relate path to a message-broker configuration file required by nvds_msgapi_* interface.
+* `protocol_lib` - [in] absolute or relative path to the protocol adapter that implements the nvds_msgapi_* interface. See the [NVIDIA Installed Protocol Adapter Paths](nvidia-installed-protocol-adapter-paths) defined above.
+* `connection_string` - [in] end point for communication with server of the format `<name>;<port>;<specifier>`
+* `topic` - [in] (optional) message topic for each message sent to the server.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+CONNECTION_STRING = 'HostName=my-hub.azure-devices.net;DeviceId=nano-1;SharedAccessKey=abcd1234EFGH5678ijkl'
+retval = dsl_sink_message_new('my-message-sink', converter_config_file, DSL_MSG_PAYLOAD_DEEPSTREAM,
+    broker_config_file, NVDS_AZURE_PROTO_LIB, CONNECTION_STRING, '/ode/data')
 ```
 
 <br>
@@ -872,7 +929,7 @@ retval = dsl_sink_record_mailer_remove('my-record-sink', 'my-mailer')
 <br>
 
 ### *dsl_sink_rtsp_server_settings_get*
-This service returns the current RTSP video codec and Port settings for the uniquely named RTSP Sink.
+This service returns the current RTSP video codec and Port settings for the named RTSP Sink.
 ```C++
 DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
     uint* udp_port, uint* rtsp_port);
@@ -1009,7 +1066,7 @@ retval = dsl_sink_webrtc_client_listener_remove('my-webrtc-sink', client_listene
 DslReturnType dsl_sink_encode_settings_get(const wchar_t* name,
     uint* codec, uint* bitrate, uint* interval);
 ```
-This service returns the current bitrate and interval settings for the uniquely named Encode Sink; File, Record, RTSP OR WebRTC.
+This service returns the current bitrate and interval settings for the named Encode Sink; File, Record, RTSP OR WebRTC.
 
 **Parameters**
 * `name` - [in] unique name of the Encode Sink to query.
@@ -1032,7 +1089,7 @@ retval, bitrate, interval = dsl_sink_encode_settings_get('my-file-sink')
 DslReturnType dsl_sink_encode_settings_set(const wchar_t* name,
     uint codec, uint bitrate, uint interval);
 ```
-This service sets the bitrate and interval settings for the uniquely Encode Sink; File, Record, RTSP OR WebRTC. The service will fail if the Encode Sink is currently linked.
+This service sets the bitrate and interval settings for the named Encode Sink; File, Record, RTSP OR WebRTC. The service will fail if the Encode Sink is currently linked.
 
 **Parameters**
 * `name` - [in] unique name of the Encode Sink to update.
@@ -1046,6 +1103,112 @@ This service sets the bitrate and interval settings for the uniquely Encode Sink
 **Python Example**
 ```Python
 retval = dsl_sink_encode_settings_set('my-file-sink', 2000000, 1)
+```
+
+<br>
+
+### *dsl_sink_message_converter_settings_get*
+```C++
+DslReturnType dsl_sink_message_converter_settings_get(const wchar_t* name,
+    const wchar_t** converter_config_file, uint* payload_type);
+```
+This service gets the current Message Converter settings in use by the named Message Sink.
+
+**Important** refer to the Deepstream Plugin Guide for information on the [Message Converter](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvmsgconv.html#gst-nvmsgconv) configuration file settings.
+
+**Parameters**
+* `name` - [in] unique name of the Encode Sink to update.
+* `converter_config_file` - [out] absolute file-path to the current Message Converter config file in use.
+* `payload_type` - [out] the current payload schema type in use, one of the [Message Converter payload schema type constants](#message-converter-payload-schema-types) defined above.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, converter_config_file, payload_type = dsl_sink_message_converter_settings_get('my-message-sink')
+```
+
+<br>
+
+### *dsl_sink_message_converter_settings_set*
+```C++
+DslReturnType dsl_sink_message_converter_settings_set(const wchar_t* name,
+    const wchar_t* converter_config_file, uint payload_type);
+```
+This service sets the Message Converter settings to be used by the named Message Sink.
+
+**Important** refer to the DeepStream Plugin Guide for information on the [Message Converter](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvmsgconv.html#gst-nvmsgconv) configuration file settings.
+
+**Parameters**
+* `name` - [in] unique name of the Encode Sink to update.
+* `converter_config_file` - [in] relative or absolute file-path to a Message Converter config file to use.
+* `payload_type` - [in] the current payload schema type in use, one of the [Message Converter payload schema type constants](#message-converter-payload-schema-types) defined above.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_message_converter_settings_get('my-message-sink',
+    converter_config_file, DSL_MSG_PAYLOAD_DEEPSTREAM)
+```
+
+<br>
+
+### *dsl_sink_message_broker_settings_get*
+```C++
+DslReturnType dsl_sink_message_broker_settings_get(const wchar_t* name,
+    const wchar_t** broker_config_file, const wchar_t** protocol_lib,
+    const wchar_t** connection_string, const wchar_t** topic);
+```
+This service gets the current Message Broker settings in use by the named Message Sink.
+
+**Important** refer to the DeepStream Plugin Guide for information on the [Message Broker](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvmsgbroker.html) configuration file and connection string, and for information on configuration and use of the different Protocol Adapters.  
+
+**Parameters**
+* `name` - [in] unique name of the Encode Sink to update.
+* `broker_config_file` - [out] absolute file-path to the current Message Broker config file in use.
+* `protocol_lib` - [out] absolute file-path to the current protocol adapter library in use.
+* `connection_string` - [out] current connection string in use.
+* `topic` - [out] (optional) current message topic in use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, broker_config_file, protocol_lib, connection_string, topic =
+        dsl_sink_message_broker_settings_get('my-message-sink')
+```
+
+<br>
+
+### *dsl_sink_message_broker_settings_set*
+```C++
+DslReturnType dsl_sink_message_broker_settings_set(const wchar_t* name,
+    const wchar_t* broker_config_file, const wchar_t* protocol_lib,
+    const wchar_t* connection_string, const wchar_t* topic);
+```
+This service sets the Message Broker settings to be used by the named Message Sink.
+
+**Important** refer to the DeepStream Plugin Guide for information on the [Message Broker](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvmsgbroker.html) configuration file and connection string, and for information on configuration and use of the different Protocol Adapters.  
+
+
+**Parameters**
+* `name` - [in] unique name of the Encode Sink to update.
+* `broker_config_file` - [in] absolute or relative file-path to a new Message Broker config file tp use.
+* `protocol_lib` - [in] absolute or relative file-path to a new protocol adapter library to use.
+* `connection_string` - [in] new connection string to use.
+* `topic` - [in] (optional) new message topic to use for all messages sent.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_message_broker_settings_get('my-message-sink',
+    broker_config_file, protocol_lib, connection_string, new_topic)
 ```
 
 <br>
