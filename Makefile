@@ -119,6 +119,7 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-lnvbufsurface \
 	-lnvbufsurftransform \
 	-lnvdsgst_smartrecord \
+	-lnvds_msgbroker \
 	-lglib-$(GLIB_VERSION) \
 	-lgstreamer-$(GSTREAMER_VERSION) \
 	-Lgstreamer-video-$(GSTREAMER_VERSION) \

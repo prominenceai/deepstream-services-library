@@ -383,6 +383,14 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define DSL_RETURN_IF_BROKER_NAME_NOT_FOUND(brokers, name) do \
+{ \
+    if (brokers.find(name) == brokers.end()) \
+    { \
+        LOG_ERROR("Message Broker name '" << name << "' was not found"); \
+        return DSL_RESULT_BROKER_NAME_NOT_FOUND; \
+    } \
+}while(0); 
 
 #endif // _DSL_SERVICES_VALIDATE_H
 

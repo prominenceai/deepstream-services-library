@@ -425,6 +425,32 @@ THE SOFTWARE.
 #define DSL_RESULT_WEBSOCKET_SERVER_CLIENT_LISTENER_REMOVE_FAILED   0x00700004
 
 /**
+ * Message Broker API Return Values
+ */
+#define DSL_RESULT_BROKER_RESULT                                    0x00800000
+#define DSL_RESULT_BROKER_NAME_NOT_UNIQUE                           0x00800001
+#define DSL_RESULT_BROKER_NAME_NOT_FOUND                            0x00800002
+#define DSL_RESULT_BROKER_THREW_EXCEPTION                           0x00800003
+#define DSL_RESULT_BROKER_IN_USE                                    0x00800004
+#define DSL_RESULT_BROKER_SET_FAILED                                0x00800005
+#define DSL_RESULT_BROKER_PARAMETER_INVALID                         0x00800006
+#define DSL_RESULT_BROKER_SUBSCRIBER_ADD_FAILED                     0x00800007
+#define DSL_RESULT_BROKER_SUBSCRIBER_REMOVE_FAILED                  0x00800008
+#define DSL_RESULT_BROKER_HANDLER_ADD_FAILED                        0x00800009
+#define DSL_RESULT_BROKER_HANDLER_REMOVE_FAILED                     0x0080000A
+#define DSL_RESULT_BROKER_CONFIG_FILE_NOT_FOUND                     0x0080000B
+#define DSL_RESULT_BROKER_PROTOCOL_LIB_NOT_FOUND                    0x0080000C
+#define DSL_RESULT_BROKER_CONNECT_FAILED                            0x0080000D
+#define DSL_RESULT_BROKER_DISCONNECT_FAILED                         0x0080000E
+#define DSL_RESULT_BROKER_MESSAGE_SEND_FAILED                       0x0080000F
+
+#define DSL_STATUS_BROKER_STATUS                                    0x00900000
+#define DSL_STATUS_BROKER_OK                                        0x00900001
+#define DSL_STATUS_BROKER_ERROR                                     0x00900002
+#define DSL_STATUS_BROKER_RECONNECTING                              0x00900003
+#define DSL_STATUS_BROKER_NOT_SUPPORTED                             0x00900004
+
+/**
  * GPU Types
  */
 #define DSL_GPU_TYPE_INTEGRATED                                     0
@@ -1023,6 +1049,33 @@ typedef void (*dsl_websocket_server_client_listener_cb)(const wchar_t* path,
  */
 typedef void (*dsl_sink_webrtc_client_listener_cb)(dsl_webrtc_connection_data* info, 
     void* client_data);
+
+/**
+ * @brief callback typedef for a client to receive incoming messages
+ * filtered by topic. 
+ * @param[in] status status of the received messages, one of DSL_STATUS_BROKER
+ * @param[in] message pointer to the message received.
+ * @param[in] length length of the message received in bytes.
+ * @param[in] client_data opaque pointer to client's user data.
+ */
+typedef void (*dsl_message_subscriber_cb)(uint status, void *message, 
+    uint length, const wchar_t* topic, void* client_data);
+    
+/**
+ * @brief callback typedef for a client to receive and handle
+ * incoming message processing errors. 
+ * @param[in] error unique error code returned by the Message Broker
+ * @param[in] client_data opaque pointer to client's user data.
+ */
+typedef void (*dsl_message_error_handler_cb)(uint error, void* client_data);
+
+/**
+ * @brief callback typedef for a client to receive an asynchronus result
+ * from calling dsl_message_broker_message_send.
+ * @param[in] result one of the DSL_MESSAGE_SEND_RESULT constants.
+ * @param[in] client_data opaque pointer to client's user data.
+ */
+typedef void (*dsl_message_send_result_cb)(void* client_data, uint result);
 
 /**
  * @brief creates a uniquely named RGBA Display Color
@@ -5548,6 +5601,152 @@ boolean dsl_mailer_exists(const wchar_t* name);
  * @return size of the list of Mailers
  */
 uint dsl_mailer_list_size();
+
+/**
+ * @brief Creates a uniquely name Message Broker.
+ * @param name unique name for the new Message Broker
+ * @param[in] broker_config_file absolute or relate path to a message-broker 
+ * configuration file required by nvds_msgapi_* interface.
+ * @param[in] protocol_lib absolute or relative path to the protocol adapter
+ * that implements the nvds_msgapi_* interface.
+ * @param[in] connection_string end point for communication with server of
+ * the format <name>;<port>;<specifier>
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_new(const wchar_t* name, 
+    const wchar_t* broker_config_file, const wchar_t* protocol_lib, 
+    const wchar_t* connection_string);
+
+/**
+ * @brief Gets the current broker settings for the named Message Broker.
+ * @param[out] broker_config_file absolute file-path to the current message
+ * broker config file in use.
+ * @param[out] protocol_lib absolute file-path to the current protocol adapter
+ * library in use.
+ * @param[out] connection_string current connection string in use.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_settings_get(const wchar_t* name, 
+    const wchar_t** broker_config_file, const wchar_t** protocol_lib,
+    const wchar_t** connection_string);
+
+/**
+ * @brief Sets the broker settings for the named Message Broker.
+ * @param[in] broker_config_file absolute or relative file-path to 
+ * a new message broker config file to use.
+ * @param[out] protocol_lib absolute file-path to a new protocol adapter
+ * library to use.
+ * @param[in] connection_string new connection string in use.
+ * @param[in] topic (optional) new message topic to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_message_broker_settings_set(const wchar_t* name, 
+    const wchar_t* broker_config_file, const wchar_t* protocol_lib,
+    const wchar_t* connection_string);
+
+/**
+ * @brief Connects a uniquely name Iot Message Broker with an IoT hub.
+ * @param[in] name unique name of the Message Broker to connect.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_connect(const wchar_t* name);
+
+/**
+ * @brief Disconnects a uniquely named Message Broker from an IoT hub.
+ * @param[in] name unique name of the Message Broker to disconnect.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_disconnect(const wchar_t* name);
+
+/**
+ * @brief Returns the current connected state for the named Message Broker.
+ * @param[in] name unique name of the Message Broker to query.
+ * @param[out] connected true if connected, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_is_connected(const wchar_t* name, boolean* connected);
+
+/**
+ * @brief Sends an asynchronous message to a connected end-point.
+ * @param name name of the Message Broker to send the message.
+ * @param topic topic for the message to send.
+ * @param message payload of the message to send
+ * @param size of the message payload in bytes.
+ * @param result callback to be invoked to provide an asynchronous result
+ * of the send operation.
+ * @param[in] client_data opaque pointer to client data to be passed backed to 
+ * the hanlder function when called.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_message_send_async(const wchar_t* name,
+    const wchar_t* topic, void* message, size_t size, 
+    dsl_message_send_result_cb result, void* user_data);
+
+/**
+ * @brief Adds a client subscriber callback function to a named Message Broker.
+ * Once added, the client will be called with each message received for a given
+ * set of topics.
+ * @param[in] name unique name of the Message Broker to update.
+ * @param[in] subscriber subscriber function to add to the named Message Broker.
+ * @param[in] topics topics for the subscriber to register. 
+ * @param[in] client_data opaque pointer to client data to be passed backed to 
+ * the hanlder function when called.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_subscriber_add(const wchar_t* name,
+    dsl_message_subscriber_cb subscriber, const wchar_t** topics,
+    void* client_data);
+    
+/**
+ * @brief Removes a client handler previously added with a call to
+ * dsl_message_broker_subscriber_add.
+ * @param[in] name unique name of the Message Broker to update.
+ * @param[in] subscriber subscriber function to remove from the named Message Broker.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_subscriber_remove(const wchar_t* name,
+    dsl_message_subscriber_cb subscriber);
+
+/**
+ * @brief Adds a client handler callback function to a named Message Broker.
+ * Once added, the client will be called on each messaging error that occurs.
+ * @param[in] name unique name of the Message Broker to update.
+ * @param[in] handler error handler function to add to the named Message Broker.
+ * @param[in] client_data opaque pointer to client data to be passed backed to 
+ * the handler function when called.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_error_handler_add(const wchar_t* name,
+    dsl_message_error_handler_cb handler, void* client_data);
+        
+/**
+ * @brief Removes a client handler previously added with a call to
+ * dsl_message_broker_error_handler_add.
+ * @param[in] name unique name of the Message Broker to update.
+ * @param[in] handler handler function to remove from the named Message Broker.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_error_handler_remove(const wchar_t* name,
+    dsl_message_error_handler_cb handler);
+
+/**
+ * @brief deletes a uniquely named Message Broker.
+ * @param[in] name unique name of the Message Broker to delete.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_delete(const wchar_t* name);
+
+/**
+ * @brief Deletes all Message Brokers.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_delete_all();
+
+/**
+ * @brief Returns the size of the list of Message Brokers
+ * @return the number of Display Types in the list
+ */
+uint dsl_message_broker_list_size();
 
 /**
  * @brief entry point to the GST Main Loop
