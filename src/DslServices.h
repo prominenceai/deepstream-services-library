@@ -1171,17 +1171,17 @@ namespace DSL {
             dsl_message_send_result_cb result, void* clientData);
         
         DslReturnType MessageBrokerSubscriberAdd(const char* name,
-            dsl_message_subscriber_cb subscriber, const char** topics,
+            dsl_message_broker_subscriber_cb subscriber, const char** topics,
             uint numTopics, void* userData);
         
         DslReturnType MessageBrokerSubscriberRemove(const char* name,
-            dsl_message_subscriber_cb subscriber);
+            dsl_message_broker_subscriber_cb subscriber);
         
-        DslReturnType MessageBrokerErrorHandlerAdd(const char* name,
-            dsl_message_error_handler_cb handler, void* userData);
+        DslReturnType MessageBrokerConnectionListenerAdd(const char* name,
+            dsl_message_broker_connection_listener_cb handler, void* userData);
         
-        DslReturnType MessageBrokerErrorHandlerRemove(const char* name,
-            dsl_message_error_handler_cb handler);
+        DslReturnType MessageBrokerConnectionListenerRemove(const char* name,
+            dsl_message_broker_connection_listener_cb handler);
         
         DslReturnType MessageBrokerDelete(const char* name);
         

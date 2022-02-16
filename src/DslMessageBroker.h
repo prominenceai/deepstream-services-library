@@ -99,6 +99,29 @@ namespace DSL {
          * @return true if connected, false otherwise. 
          */
         bool IsConnected();
+
+        /**
+         * @brief adds a callback to be notified on incoming message errors.
+         * @param[in] handler pointer to the client's function to call on error.
+         * @param[in] clientData opaque pointer to client data passed back to the handler.
+         * @return true if successful, false otherwise.
+         */
+        bool AddConnectionListener(dsl_message_broker_connection_listener_cb handler, 
+            void* clientData);
+
+        /**
+         * @brief removes a previously added error handler callback
+         * @param[in] handler handler function to remove.
+         * @return true if successful, false otherwise.
+         */
+        bool RemoveConnectionListener(dsl_message_broker_connection_listener_cb handler);
+        
+        /**
+         * @brief handles a connection event received by the MessageBroker
+         * @param[in] status event status, one of 
+         * @return true if successful, false otherwise.
+         */
+        void HandleConnectionEvent(NvMsgBrokerErrorType status);
         
         /**
          * @brief Sends a message synchronously with a specific topic
@@ -128,7 +151,7 @@ namespace DSL {
          * @param[in] clientData opaque pointer to client data passed back to the subscriber.
          * @return true if successful, false otherwise.
          */
-        bool AddSubscriber(dsl_message_subscriber_cb subscriber, 
+        bool AddSubscriber(dsl_message_broker_subscriber_cb subscriber, 
             const char** topics, uint numTopics, void* clientData);
 
         /**
@@ -136,7 +159,7 @@ namespace DSL {
          * @param[in] subscriber function function to remove
          * @return true if successful, false otherwise.
          */
-        bool RemoveSubscriber(dsl_message_subscriber_cb subscriber);
+        bool RemoveSubscriber(dsl_message_broker_subscriber_cb subscriber);
         
         /**
          * @brief handles an incoming message by directing it to the correct
@@ -148,22 +171,16 @@ namespace DSL {
          */
         void HandleIncomingMessage(NvMsgBrokerErrorType status, 
             void* message, int length, char* topic);
-
+        
         /**
-         * @brief adds a callback to be notified on incoming message errors.
-         * @param[in] handler pointer to the client's function to call on error.
-         * @param[in] clientData opaque pointer to client data passed back to the handler.
-         * @return true if successful, false otherwise.
+         * @brief typedef to map all MessageBrokers by their connection handle
          */
-        bool AddErrorHandler(dsl_message_error_handler_cb handler, 
-            void* clientData);
-
+        typedef std::map<NvMsgBrokerClientHandle, MessageBroker*> MessageBrokerMap;
+        
         /**
-         * @brief removes a previously added error handler callback
-         * @param[in] handler handler function to remove.
-         * @return true if successful, false otherwise.
+         * @brief global static map shared by all active MessageBrokers
          */
-        bool RemoveErrorHandler(dsl_message_error_handler_cb handler);
+        static MessageBrokerMap g_messageBrokers;
 
     private:
 
@@ -201,20 +218,20 @@ namespace DSL {
          * @brief map of all currently subscribed to message topics mapped
          * by client callback function. Single subscriber per topic only.
          */
-        std::map<std::shared_ptr<std::string>, dsl_message_subscriber_cb> m_messageTopics;
+        std::map<std::shared_ptr<std::string>, dsl_message_broker_subscriber_cb> m_messageTopics;
 
         /**
          * @brief map of all currently registered IoT Message Handler
          * callback functions mapped with the user provided data.
          */
-        std::map<dsl_message_subscriber_cb, void*> m_messageSubscribers;
+        std::map<dsl_message_broker_subscriber_cb, void*> m_messageSubscribers;
 
         /**
-         * @brief map of all currently registered IoT Message Error Handlers
+         * @brief map of all currently registered IoT Connection Listener
          * callback functions mapped with the user provided data.
          */
-        std::map<dsl_message_error_handler_cb, void*> m_errorHandlers;
-
+        std::map<dsl_message_broker_connection_listener_cb, void*> m_connectionListeners;
+        
     };
     
     /**

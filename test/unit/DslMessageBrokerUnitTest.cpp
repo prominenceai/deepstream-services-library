@@ -91,25 +91,43 @@ SCENARIO( "A new MessageBroker can connect and disconnect correctly", "[MessageB
     }
 }
 
-void message_subscriber_cb_1(uint status, void *message, 
+static void message_subscriber_cb_1(uint status, void *message, 
     uint length, const wchar_t* topic, void* client_data)
 {    
     std::wcout << L"subscriber-1 called with topic = '" <<
         topic << L"\n";
 }
     
-void message_subscriber_cb_2(uint status, void *message, 
+static void message_subscriber_cb_2(uint status, void *message, 
     uint length, const wchar_t* topic, void* client_data)
 {    
     std::wcout << L"subscriber-2 called with topic = '" <<
         topic << L"\n";
 }
     
-void message_subscriber_cb_3(uint status, void *message, 
+static void message_subscriber_cb_3(uint status, void *message, 
     uint length, const wchar_t* topic, void* client_data)
 {    
     std::wcout << L"subscriber-3 called with topic = '" <<
         topic << L"\n";
+}
+    
+static void connection_listener_cb_1(void* client_data, uint status)
+{    
+    std::wcout << L"connection-listener-1 called with status = '" <<
+        status << L"\n";
+}
+
+static void connection_listener_cb_2(void* client_data, uint status)
+{    
+    std::wcout << L"connection-listener-2 called with status = '" <<
+        status << L"\n";
+}
+    
+static void connection_listener_cb_3(void* client_data, uint status)
+{    
+    std::wcout << L"connection-listener-3 called with status = '" <<
+        status << L"\n";
 }
     
     
@@ -226,6 +244,44 @@ SCENARIO( "A MessageBroker routes message to three subscribers correctly", "[Mes
     }
 }
 
+SCENARIO( "A MessageBroker routes messages for multiple topics to a single Subscriber", "[MessageBroker]" )
+{
+    GIVEN( "A new MessageBroker" )
+    {
+        DSL_MESSAGE_BROKER_PTR pMessageBroker = 
+            DSL_MESSAGE_BROKER_NEW(brokerName.c_str(), brokerConfigFile.c_str(), 
+                protocolLib.c_str(), connectionString.c_str());
+
+        REQUIRE( pMessageBroker->Connect() == true );
+
+        const char* topics[] = {topic1.c_str(), topic2.c_str(), topic3.c_str(), NULL};
+
+        REQUIRE( pMessageBroker->AddSubscriber(message_subscriber_cb_1,
+            topics, 3, NULL) == true );
+
+        WHEN( "When the broker receives three messages from the server" )
+        {
+            
+            pMessageBroker->HandleIncomingMessage(NV_MSGBROKER_API_OK, (void*)0x1234567812345678,
+                123, const_cast<char*>(topic1.c_str()));
+                
+            pMessageBroker->HandleIncomingMessage(NV_MSGBROKER_API_OK, (void*)0x1234567812345678,
+                123, const_cast<char*>(topic2.c_str()));
+                
+            pMessageBroker->HandleIncomingMessage(NV_MSGBROKER_API_OK, (void*)0x1234567812345678,
+                123, const_cast<char*>(topic3.c_str()));
+                
+            THEN( "the single Subscriber is called for all" )
+            {
+                // NOTE: requires manual/visual verification
+                
+                REQUIRE( pMessageBroker->RemoveSubscriber(message_subscriber_cb_1) == true );
+
+            }
+        }
+    }
+}
+
 void async_response(void *user_ptr,  uint status)
 {
     std::cout << "response callback called \n";
@@ -257,3 +313,40 @@ SCENARIO( "A connected MessageBroker can send a message asynchronously", "[Messa
         
     }
 }
+
+SCENARIO( "A MessageBroker calls all Connection Listeners correctly", "[MessageBroker]" )
+{
+    GIVEN( "A new MessageBroker" )
+    {
+        DSL_MESSAGE_BROKER_PTR pMessageBroker = 
+            DSL_MESSAGE_BROKER_NEW(brokerName.c_str(), brokerConfigFile.c_str(), 
+                protocolLib.c_str(), connectionString.c_str());
+
+        REQUIRE( pMessageBroker->Connect() == true );
+
+        WHEN( "When the broker receives three messages from the server" )
+        {
+            REQUIRE( pMessageBroker->AddConnectionListener(connection_listener_cb_1,
+                NULL) == true );
+
+            REQUIRE( pMessageBroker->AddConnectionListener(connection_listener_cb_2,
+                NULL) == true );
+            
+            REQUIRE( pMessageBroker->AddConnectionListener(connection_listener_cb_3,
+                NULL) == true );
+            
+            pMessageBroker->HandleConnectionEvent(NV_MSGBROKER_API_OK);
+                
+            THEN( "Each listener is called in turn" )
+            {
+                // NOTE: requires manual/visual verification
+                
+                REQUIRE( pMessageBroker->RemoveConnectionListener(connection_listener_cb_1) == true );
+                REQUIRE( pMessageBroker->RemoveConnectionListener(connection_listener_cb_2) == true );
+                REQUIRE( pMessageBroker->RemoveConnectionListener(connection_listener_cb_3) == true );
+
+            }
+        }
+    }
+}
+

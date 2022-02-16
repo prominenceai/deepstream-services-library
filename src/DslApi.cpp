@@ -6633,7 +6633,7 @@ DslReturnType dsl_message_broker_message_send_async(const wchar_t* name,
 }
     
 DslReturnType dsl_message_broker_subscriber_add(const wchar_t* name,
-    dsl_message_subscriber_cb subscriber, const wchar_t** topics,
+    dsl_message_broker_subscriber_cb subscriber, const wchar_t** topics,
     void* user_data)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -6650,7 +6650,7 @@ DslReturnType dsl_message_broker_subscriber_add(const wchar_t* name,
 }
 
 DslReturnType dsl_message_broker_subscriber_remove(const wchar_t* name,
-    dsl_message_subscriber_cb subscriber)
+    dsl_message_broker_subscriber_cb subscriber)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(subscriber);
@@ -6662,8 +6662,8 @@ DslReturnType dsl_message_broker_subscriber_remove(const wchar_t* name,
         cstrName.c_str(), subscriber);
 }
 
-DslReturnType dsl_message_broker_error_handler_add(const wchar_t* name,
-    dsl_message_error_handler_cb handler, void* user_data)
+DslReturnType dsl_message_broker_connection_listener_add(const wchar_t* name,
+    dsl_message_broker_connection_listener_cb handler, void* user_data)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(handler);
@@ -6671,12 +6671,12 @@ DslReturnType dsl_message_broker_error_handler_add(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->MessageBrokerErrorHandlerAdd(
+    return DSL::Services::GetServices()->MessageBrokerConnectionListenerAdd(
         cstrName.c_str(), handler, user_data);
 }
 
-DslReturnType dsl_message_broker_error_handler_remove(const wchar_t* name,
-    dsl_message_error_handler_cb handler)
+DslReturnType dsl_message_broker_connection_listener_remove(const wchar_t* name,
+    dsl_message_broker_connection_listener_cb handler)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(handler);
@@ -6684,7 +6684,7 @@ DslReturnType dsl_message_broker_error_handler_remove(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->MessageBrokerErrorHandlerRemove(
+    return DSL::Services::GetServices()->MessageBrokerConnectionListenerRemove(
         cstrName.c_str(), handler);
 }
 

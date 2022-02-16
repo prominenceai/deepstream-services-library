@@ -29,6 +29,8 @@ THE SOFTWARE.
 namespace DSL
 {
  
+    MessageBroker::MessageBrokerMap MessageBroker::g_messageBrokers;
+    
     MessageBroker::MessageBroker(const char* name,
         const char* brokerConfigFile, const char* protocolLib, 
         const char* connectionString)
@@ -104,6 +106,8 @@ namespace DSL
             << "' connected successfully - handle = " 
             << std::to_string(((uint64_t)m_connectionHandle)));
             
+        // Map this MessageBroker to the connection handle.    
+        g_messageBrokers[m_connectionHandle] = this;
         m_isConnected = true;
         return true;
     }
@@ -127,7 +131,9 @@ namespace DSL
         LOG_INFO("MessageBroker '" << GetName() 
             << "' disconnected successfully - handle = " 
             << std::to_string(((uint64_t)m_connectionHandle)));
-            
+
+        // unmap the connection handle and reset flags.
+        g_messageBrokers.erase(m_connectionHandle);
         m_connectionHandle = NULL;
         m_isConnected = false;
         return true;
@@ -167,7 +173,7 @@ namespace DSL
         return true;
     }
         
-    bool MessageBroker::AddSubscriber(dsl_message_subscriber_cb subscriber, 
+    bool MessageBroker::AddSubscriber(dsl_message_broker_subscriber_cb subscriber, 
         const char** topics, uint numTopics, void* clientData)
     {
         LOG_FUNC();
@@ -198,7 +204,7 @@ namespace DSL
         return true;
     }
             
-    bool MessageBroker::RemoveSubscriber(dsl_message_subscriber_cb subscriber)
+    bool MessageBroker::RemoveSubscriber(dsl_message_broker_subscriber_cb subscriber)
     {
         LOG_FUNC();
         
@@ -241,7 +247,7 @@ namespace DSL
                     }
                     catch(...)
                     {
-                        LOG_ERROR("MessageBroker '" << GetName() 
+                        LOG_ERROR("Exceptions occurred for MessageBroker '" << GetName() 
                             << "' calling Subscriber with an incoming message");
                     }
                     return;
@@ -253,41 +259,69 @@ namespace DSL
             }
     }
             
-    bool MessageBroker::AddErrorHandler(dsl_message_error_handler_cb handler, 
+    bool MessageBroker::AddConnectionListener(
+        dsl_message_broker_connection_listener_cb handler, 
         void* clientData)
     {
         LOG_FUNC();
         
-        if (m_errorHandlers.find(handler) != m_errorHandlers.end())
+        if (m_connectionListeners.find(handler) != m_connectionListeners.end())
         {   
             LOG_ERROR("MessageBroker  '" << GetName() 
-                << "' - Error Handler is not unique");
+                << "' - Connection Listener is not unique");
             return false;
         }
-        m_errorHandlers[handler] = clientData;
+        m_connectionListeners[handler] = clientData;
         
         return true;
     }
             
-    bool MessageBroker::RemoveErrorHandler(dsl_message_error_handler_cb handler)
+    bool MessageBroker::RemoveConnectionListener(
+        dsl_message_broker_connection_listener_cb handler)
     {
         LOG_FUNC();
         
-        if (m_errorHandlers.find(handler) == m_errorHandlers.end())
+        if (m_connectionListeners.find(handler) == m_connectionListeners.end())
         {   
             LOG_ERROR("MessageBroker  '" << GetName() 
-                << "' - Error Handler was not found");
+                << "' - Connection Listener was not found");
             return false;
         }
-        m_errorHandlers.erase(handler);
+        m_connectionListeners.erase(handler);
         
         return true;
+    }
+
+    void MessageBroker::HandleConnectionEvent(NvMsgBrokerErrorType status)
+    {
+        LOG_FUNC();
+        
+        for (auto const& imap: m_connectionListeners)
+        {
+            
+            try
+            {
+                imap.first(imap.second, status);
+            }
+            catch(...)
+            {
+                LOG_ERROR("Exception occurred for MessageBroker '" << GetName() 
+                    << "' calling Connection Listener");
+            }
+        }
     }
             
     static void broker_connection_listener_cb(NvMsgBrokerClientHandle h_ptr, 
         NvMsgBrokerErrorType status)
     {
-
+        if (MessageBroker::g_messageBrokers.find(h_ptr) == 
+            MessageBroker::g_messageBrokers.end())
+        {
+            LOG_ERROR("Invalid MessageBroker connection handle received");
+            return;
+        }
+        static_cast<MessageBroker*>(MessageBroker::g_messageBrokers[h_ptr])
+            ->HandleConnectionEvent(status);
     }
     
     static void broker_message_subscriber_cb(NvMsgBrokerErrorType status, 

@@ -27,12 +27,14 @@ THE SOFTWARE.
 #include "DslApi.h"
 
 static std::wstring broker_name(L"message-brocker");
-static std::wstring broker_config_file(L"./test/configs/cfg_azure.txt");
+static std::wstring broker_config_file(
+    L"/opt/nvidia/deepstream/deepstream/sources/libs/azure_protocol_adaptor/device_client/cfg_azure.txt");
 static std::wstring protocol_lib(NVDS_AZURE_PROTO_LIB);
 
-//static std::string connectionString(L"HostName=<my-hub>.azure-devices.net;DeviceId=<device_id>;SharedAccessKey=<my-policy-key>"); 
 static std::wstring connection_string(
-    L"HostName=prominenceai-hub.azure-devices.net;DeviceId=nano-1;SharedAccessKey=KBSMofZOA9VpWcCKwXaVbcHRdW5hXyiUnf5tr1MZSik="); 
+    L"HostName=<my-hub>.azure-devices.net;DeviceId=<device_id>;SharedAccessKey=<my-policy-key>"); 
+//static std::wstring connection_string(
+//    L"HostName=prominenceai-hub.azure-devices.net;DeviceId=nano-1;SharedAccessKey=KBSMofZOA9VpWcCKwXaVbcHRdW5hXyiUnf5tr1MZSik="); 
     
 static std::wstring topic(L"DSL_MESSAGE_TOPIC");
 
@@ -144,7 +146,8 @@ SCENARIO( "A Message Broker's settings can be updated", "[message-broker-api]" )
         
         WHEN( "When new Message Broker settings are set" ) 
         {
-            std::wstring new_broker_config_file(L"./test/configs/cfg_kafka.txt");
+            std::wstring new_broker_config_file(
+                L"/opt/nvidia/deepstream/deepstream/sources/libs/kafka_protocol_adaptor/cfg_kafka.txt");
             std::wstring new_protocol_lib(L"/opt/nvidia/deepstream/deepstream/lib/libnvds_kafka_proto.so");
             std::wstring new_connection_string(
                 L"HostName=my-hub.azure-devices.net;DeviceId=6789;SharedAccessKey=efghi");
@@ -246,3 +249,81 @@ SCENARIO( "The Message Broker API checks for null pointers", "[message-broker-ap
         }
     }
 } 
+
+static void connection_listener_cb(void* client_data, uint status)
+{    
+}
+
+SCENARIO( "A Connection Listener can be added to and removed from a Message Brocker", "[message-broker-api]" )
+{
+    GIVEN( "A new Message Broker" )
+    {
+        REQUIRE( dsl_message_broker_new(broker_name.c_str(), broker_config_file.c_str(), 
+            protocol_lib.c_str(), connection_string.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Connection Listener is added" )
+        {
+            REQUIRE( dsl_message_broker_connection_listener_add(broker_name.c_str(),
+                connection_listener_cb, NULL) == DSL_RESULT_SUCCESS );
+
+            // ensure the same listener twice fails
+            REQUIRE( dsl_message_broker_connection_listener_add(broker_name.c_str(),
+                connection_listener_cb, NULL) == DSL_RESULT_BROKER_LISTENER_ADD_FAILED );
+
+            THEN( "The same Connection Listener can be removed" ) 
+            {
+                REQUIRE( dsl_message_broker_connection_listener_remove(
+                    broker_name.c_str(), connection_listener_cb) == DSL_RESULT_SUCCESS );
+
+                // calling a second time must fail
+                REQUIRE( dsl_message_broker_connection_listener_remove(
+                    broker_name.c_str(), connection_listener_cb) == 
+                        DSL_RESULT_BROKER_LISTENER_REMOVE_FAILED );
+                    
+                REQUIRE( dsl_message_broker_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+static void message_subscriber_cb(uint status, void *message, 
+    uint length, const wchar_t* topic, void* client_data)
+{    
+}
+
+SCENARIO( "A Message Subscriber can be added to and removed from a Message Brocker", "[message-broker-api]" )
+{
+    GIVEN( "A new Message Broker" )
+    {
+        const wchar_t* topics[] = {topic.c_str(), NULL};
+
+        REQUIRE( dsl_message_broker_new(broker_name.c_str(), broker_config_file.c_str(), 
+            protocol_lib.c_str(), connection_string.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_message_broker_connect(broker_name.c_str()) 
+            == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Image Player is added" )
+        {
+            REQUIRE( dsl_message_broker_subscriber_add(broker_name.c_str(),
+                message_subscriber_cb, topics, NULL) == DSL_RESULT_SUCCESS );
+
+            // ensure the same listener twice fails
+            REQUIRE( dsl_message_broker_subscriber_add(broker_name.c_str(),
+                message_subscriber_cb, topics, NULL) == DSL_RESULT_BROKER_SUBSCRIBER_ADD_FAILED );
+
+            THEN( "The same Image Player can be remove" ) 
+            {
+                REQUIRE( dsl_message_broker_subscriber_remove(
+                    broker_name.c_str(), message_subscriber_cb) == DSL_RESULT_SUCCESS );
+
+                // calling a second time must fail
+                REQUIRE( dsl_message_broker_subscriber_remove(
+                    broker_name.c_str(), message_subscriber_cb) == 
+                        DSL_RESULT_BROKER_SUBSCRIBER_REMOVE_FAILED );
+                    
+                REQUIRE( dsl_message_broker_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    

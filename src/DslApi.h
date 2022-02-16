@@ -436,8 +436,8 @@ THE SOFTWARE.
 #define DSL_RESULT_BROKER_PARAMETER_INVALID                         0x00800006
 #define DSL_RESULT_BROKER_SUBSCRIBER_ADD_FAILED                     0x00800007
 #define DSL_RESULT_BROKER_SUBSCRIBER_REMOVE_FAILED                  0x00800008
-#define DSL_RESULT_BROKER_HANDLER_ADD_FAILED                        0x00800009
-#define DSL_RESULT_BROKER_HANDLER_REMOVE_FAILED                     0x0080000A
+#define DSL_RESULT_BROKER_LISTENER_ADD_FAILED                       0x00800009
+#define DSL_RESULT_BROKER_LISTENER_REMOVE_FAILED                    0x0080000A
 #define DSL_RESULT_BROKER_CONFIG_FILE_NOT_FOUND                     0x0080000B
 #define DSL_RESULT_BROKER_PROTOCOL_LIB_NOT_FOUND                    0x0080000C
 #define DSL_RESULT_BROKER_CONNECT_FAILED                            0x0080000D
@@ -1058,7 +1058,7 @@ typedef void (*dsl_sink_webrtc_client_listener_cb)(dsl_webrtc_connection_data* i
  * @param[in] length length of the message received in bytes.
  * @param[in] client_data opaque pointer to client's user data.
  */
-typedef void (*dsl_message_subscriber_cb)(uint status, void *message, 
+typedef void (*dsl_message_broker_subscriber_cb)(uint status, void *message, 
     uint length, const wchar_t* topic, void* client_data);
     
 /**
@@ -1067,7 +1067,7 @@ typedef void (*dsl_message_subscriber_cb)(uint status, void *message,
  * @param[in] error unique error code returned by the Message Broker
  * @param[in] client_data opaque pointer to client's user data.
  */
-typedef void (*dsl_message_error_handler_cb)(uint error, void* client_data);
+typedef void (*dsl_message_broker_connection_listener_cb)(void* client_data, uint status);
 
 /**
  * @brief callback typedef for a client to receive an asynchronus result
@@ -5694,7 +5694,7 @@ DslReturnType dsl_message_broker_message_send_async(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
  */
 DslReturnType dsl_message_broker_subscriber_add(const wchar_t* name,
-    dsl_message_subscriber_cb subscriber, const wchar_t** topics,
+    dsl_message_broker_subscriber_cb subscriber, const wchar_t** topics,
     void* client_data);
     
 /**
@@ -5705,7 +5705,7 @@ DslReturnType dsl_message_broker_subscriber_add(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
  */
 DslReturnType dsl_message_broker_subscriber_remove(const wchar_t* name,
-    dsl_message_subscriber_cb subscriber);
+    dsl_message_broker_subscriber_cb subscriber);
 
 /**
  * @brief Adds a client handler callback function to a named Message Broker.
@@ -5716,18 +5716,18 @@ DslReturnType dsl_message_broker_subscriber_remove(const wchar_t* name,
  * the handler function when called.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
  */
-DslReturnType dsl_message_broker_error_handler_add(const wchar_t* name,
-    dsl_message_error_handler_cb handler, void* client_data);
+DslReturnType dsl_message_broker_connection_listener_add(const wchar_t* name,
+    dsl_message_broker_connection_listener_cb handler, void* client_data);
         
 /**
  * @brief Removes a client handler previously added with a call to
- * dsl_message_broker_error_handler_add.
+ * dsl_message_broker_connection_listener_add.
  * @param[in] name unique name of the Message Broker to update.
  * @param[in] handler handler function to remove from the named Message Broker.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
  */
-DslReturnType dsl_message_broker_error_handler_remove(const wchar_t* name,
-    dsl_message_error_handler_cb handler);
+DslReturnType dsl_message_broker_connection_listener_remove(const wchar_t* name,
+    dsl_message_broker_connection_listener_cb handler);
 
 /**
  * @brief deletes a uniquely named Message Broker.

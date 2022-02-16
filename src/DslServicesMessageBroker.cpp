@@ -267,7 +267,7 @@ namespace DSL
     }
 
     DslReturnType Services::MessageBrokerSubscriberAdd(const char* name,
-        dsl_message_subscriber_cb subscriber, const char** topics,
+        dsl_message_broker_subscriber_cb subscriber, const char** topics,
         uint numTopics, void* userData)
     {
         LOG_FUNC();
@@ -297,7 +297,7 @@ namespace DSL
     }
     
     DslReturnType Services::MessageBrokerSubscriberRemove(const char* name,
-        dsl_message_subscriber_cb subscriber)
+        dsl_message_broker_subscriber_cb subscriber)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -325,8 +325,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::MessageBrokerErrorHandlerAdd(const char* name,
-        dsl_message_error_handler_cb handler, void* userData)
+    DslReturnType Services::MessageBrokerConnectionListenerAdd(const char* name,
+        dsl_message_broker_connection_listener_cb handler, void* userData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -335,28 +335,28 @@ namespace DSL
         {
             DSL_RETURN_IF_BROKER_NAME_NOT_FOUND(m_messageBrokers, name);
 
-            if (!m_messageBrokers[name]->AddErrorHandler(handler, userData))
+            if (!m_messageBrokers[name]->AddConnectionListener(handler, userData))
             {
                 LOG_ERROR("MessageBroker '" << name 
                     << "' failed to add Error Handler");
-                return DSL_RESULT_BROKER_HANDLER_ADD_FAILED;
+                return DSL_RESULT_BROKER_LISTENER_ADD_FAILED;
             }
 
             LOG_INFO("MessageBroker '" << name 
-                << "' added Error Handler successfully");
+                << "' added a Connection Listener successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("MessageBroker '" << name 
-                << "' threw an exception adding Error Handler");
+                << "' threw an exception adding a Connection Listener");
             return DSL_RESULT_BROKER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::MessageBrokerErrorHandlerRemove(const char* name,
-        dsl_message_error_handler_cb handler)
+    DslReturnType Services::MessageBrokerConnectionListenerRemove(const char* name,
+        dsl_message_broker_connection_listener_cb handler)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -365,22 +365,22 @@ namespace DSL
         {
             DSL_RETURN_IF_BROKER_NAME_NOT_FOUND(m_messageBrokers, name);
 
-            if (!m_messageBrokers[name]->RemoveErrorHandler(handler))
+            if (!m_messageBrokers[name]->RemoveConnectionListener(handler))
             {
                 LOG_ERROR("MessageBroker '" << name 
-                    << "' failed to remove Error Handler");
-                return DSL_RESULT_BROKER_HANDLER_REMOVE_FAILED;
+                    << "' failed to remove a Connection Listener");
+                return DSL_RESULT_BROKER_LISTENER_REMOVE_FAILED;
             }
 
             LOG_INFO("MessageBroker '" << name 
-                << "' removed Error Handler successfully");
+                << "' removed a Connection Listener successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("MessageBroker '" << name 
-                << "' threw an exception adding Error Handler");
+                << "' threw an exception removing a Connection Listener");
             return DSL_RESULT_BROKER_THREW_EXCEPTION;
         }
     }
