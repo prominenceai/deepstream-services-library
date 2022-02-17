@@ -46,8 +46,10 @@ protocol_lib = \
     '/opt/nvidia/deepstream/deepstream/lib/libnvds_azure_edge_proto.so'
 broker_config_file = \
     '/opt/nvidia/deepstream/deepstream/sources/libs/azure_protocol_adaptor/device_client/cfg_azure.txt'
+#connection_string = \
+#    'HostName=my-hub.azure-devices.net;DeviceId=nano-1;SharedAccessKey=ABCDEFG12345678abcdefg'
 connection_string = \
-    'HostName=my-hub.azure-devices.net;DeviceId=nano-1;SharedAccessKey=ABCDEFG12345678abcdefg'
+	'HostName=prominenceai-hub.azure-devices.net;DeviceId=nano1;SharedAccessKey=eDGhtHJE2SXYfxZWlgXlWEAaZ77BlQXuRG36caUYNrk='
 
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
