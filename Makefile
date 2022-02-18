@@ -172,7 +172,7 @@ lib:
 	ar rcs $(LIB).a $(OBJS)
 	ar dv $(LIB).a DslCatch.o $(TEST_OBJS)
 	$(CXX) -shared $(OBJS) -o $(LIB).so $(LIBS)
-	cp $(LIB).so examples/python/
+	sudo cp -f $(LIB).so /usr/local/lib
 	
 so_lib:
 	$(CXX) -shared $(OBJS) -o $(LIB).so $(LIBS) 
