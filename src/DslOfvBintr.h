@@ -83,9 +83,9 @@ namespace DSL
          @brief
          */
         
-        DSL_ELEMENT_PTR m_pSinkQueue;
-        DSL_ELEMENT_PTR m_pOptFlow;
         DSL_ELEMENT_PTR m_pOptFlowQueue;
+        DSL_ELEMENT_PTR m_pOptFlow;
+        DSL_ELEMENT_PTR m_pOptFlowVisualQueue;
         DSL_ELEMENT_PTR m_pOptFlowVisual;
     };
 }

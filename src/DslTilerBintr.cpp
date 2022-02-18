@@ -43,8 +43,8 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pQueue = DSL_ELEMENT_NEW("queue", "tiler-queue");
-        m_pTiler = DSL_ELEMENT_NEW("nvmultistreamtiler", "tiler-tiler");	
+        m_pQueue = DSL_ELEMENT_NEW("queue", name);
+        m_pTiler = DSL_ELEMENT_NEW("nvmultistreamtiler", name);	
 
         // Don't overwrite the default "best-fit" columns and rows on construction
         m_pTiler->SetAttribute("width", m_width);

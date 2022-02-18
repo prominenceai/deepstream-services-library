@@ -323,8 +323,8 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pQueue = DSL_ELEMENT_NEW("queue", "primary-gie-queue");
-        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", "primary-gie-conv");
+        m_pQueue = DSL_ELEMENT_NEW("queue", name);
+        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
 
         m_pVidConv->SetAttribute("gpu-id", m_gpuId);
         m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
@@ -488,17 +488,11 @@ namespace DSL
         // update the InferEngine interval setting
         SetInferOnName(inferOn);
         
-        // create the unique element-names from the SGIE name
-        std::string queueName = "secondary-infer-queue-" + GetName();
-        std::string teeName = "secondary-infer-tee-" + GetName();
-        std::string fakeSinkQueueName = "secondary-infer-fake-sink-queue-" + GetName();
-        std::string fakeSinkName = "secondary-infer-fake-sink-" + GetName();
-
-        m_pQueue = DSL_ELEMENT_NEW("queue", queueName.c_str());
-        m_pTee = DSL_ELEMENT_NEW("tee", teeName.c_str());
-        m_pFakeSinkQueue = DSL_ELEMENT_NEW("queue", fakeSinkQueueName.c_str());
+        m_pQueue = DSL_ELEMENT_EXT_NEW("queue", name, "tee");
+        m_pTee = DSL_ELEMENT_NEW("tee", name);
+        m_pFakeSinkQueue = DSL_ELEMENT_EXT_NEW("queue", name, "fakesink");
         
-        m_pFakeSink = DSL_ELEMENT_NEW("fakesink", fakeSinkName.c_str());
+        m_pFakeSink = DSL_ELEMENT_NEW("fakesink", name);
         m_pFakeSink->SetAttribute("async", false);
         m_pFakeSink->SetAttribute("sync", false);
         m_pFakeSink->SetAttribute("enable-last-sample", false);

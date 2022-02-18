@@ -42,9 +42,9 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pQueue = DSL_ELEMENT_NEW("queue", "queue");
-        m_pConverter = DSL_ELEMENT_NEW("nvvideoconvert", "video-converter");
-        m_pConverterCapsFilter = DSL_ELEMENT_NEW("capsfilter", "converter-caps-filter");
+        m_pQueue = DSL_ELEMENT_NEW("queue", name);
+        m_pConverter = DSL_ELEMENT_NEW("nvvideoconvert", name);
+        m_pConverterCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
 
         GstCaps* pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=NV12");
         m_pConverterCapsFilter->SetAttribute("caps", pCaps);
@@ -80,9 +80,9 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pQueue = DSL_ELEMENT_NEW("queue", "queue");
-        m_pConverter = DSL_ELEMENT_NEW("nvvideoconvert", "video-converter");
-        m_pConverterCapsFilter = DSL_ELEMENT_NEW("capsfilter", "converter-caps-filter");
+        m_pQueue = DSL_ELEMENT_NEW("queue", name);
+        m_pConverter = DSL_ELEMENT_NEW("nvvideoconvert", name);
+        m_pConverterCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
 
         GstCaps* pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=NV12");
         m_pConverterCapsFilter->SetAttribute("caps", pCaps);

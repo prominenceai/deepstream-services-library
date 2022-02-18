@@ -126,8 +126,8 @@ namespace DSL
         m_fpsN = fpsN;
         m_fpsD = fpsD;
         
-        m_pSourceElement = DSL_ELEMENT_NEW("nvarguscamerasrc", "csi_camera_elem");
-        m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", "src_caps_filter");
+        m_pSourceElement = DSL_ELEMENT_NEW("nvarguscamerasrc", name);
+        m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
 
         // aarch64
         if (m_cudaDeviceProp.integrated)
@@ -211,15 +211,15 @@ namespace DSL
         m_fpsN = fpsN;
         m_fpsD = fpsD;
         
-        m_pSourceElement = DSL_ELEMENT_NEW("v4l2src", "usb_camera_elem");
-        m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", "src_caps_filter");
+        m_pSourceElement = DSL_ELEMENT_NEW("v4l2src", name);
+        m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
 
         if (!m_cudaDeviceProp.integrated)
         {
-            m_pVidConv1 = DSL_ELEMENT_NEW("nvvideoconvert", "src_video_conv1");
+            m_pVidConv1 = DSL_ELEMENT_EXT_NEW("nvvideoconvert", name, "1");
             AddChild(m_pVidConv1);
         }
-        m_pVidConv2 = DSL_ELEMENT_NEW("nvvideoconvert", "src_video_conv2");
+        m_pVidConv2 = DSL_ELEMENT_EXT_NEW("nvvideoconvert", name, "1");
 
         GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
             "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
@@ -353,7 +353,7 @@ namespace DSL
         // Initialize the mutex regardless of IsLive or not
         g_mutex_init(&m_repeatEnabledMutex);
 
-        m_pSourceElement = DSL_ELEMENT_NEW(factoryName, GetName().c_str());
+        m_pSourceElement = DSL_ELEMENT_NEW(factoryName, name);
         
         // if it's a file source, 
         if ((m_uri.find("http") == std::string::npos) and (m_uri.find("rtsp") == std::string::npos))
@@ -650,10 +650,10 @@ namespace DSL
         LOG_FUNC();
         
         // New Elementrs for this Source
-        m_pSourceQueue = DSL_ELEMENT_NEW("queue", "src-queue");
-        m_pTee = DSL_ELEMENT_NEW("tee", "tee");
-        m_pFakeSinkQueue = DSL_ELEMENT_NEW("queue", "fake-sink-queue");
-        m_pFakeSink = DSL_ELEMENT_NEW("fakesink", "fake-sink");
+        m_pSourceQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src");
+        m_pTee = DSL_ELEMENT_NEW("tee", name);
+        m_pFakeSinkQueue = DSL_ELEMENT_EXT_NEW("queue", name, "fakesink");
+        m_pFakeSink = DSL_ELEMENT_NEW("fakesink", name);
 
         // Connect UIR Source Setup Callbacks
         g_signal_connect(m_pSourceElement->GetGObject(), "pad-added", 
@@ -933,9 +933,9 @@ namespace DSL
         m_fpsN = fpsN;
         m_fpsD = fpsD;
 
-        m_pSourceElement = DSL_ELEMENT_NEW("videotestsrc", "image-source");
-        m_pSourceCapsFilter = DSL_ELEMENT_NEW("capsfilter", "source-caps-filter");
-        m_pImageOverlay = DSL_ELEMENT_NEW("gdkpixbufoverlay", "image-overlay"); 
+        m_pSourceElement = DSL_ELEMENT_NEW("videotestsrc", name);
+        m_pSourceCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
+        m_pImageOverlay = DSL_ELEMENT_NEW("gdkpixbufoverlay", name); 
 
         if (!SetUri(uri))
         {
@@ -1128,10 +1128,10 @@ namespace DSL
         m_latency = latency;
 
         // New RTSP Specific Elementrs for this Source
-        m_pPreDecodeTee = DSL_ELEMENT_NEW("tee", "pre-decode-tee");
-        m_pPreDecodeQueue = DSL_ELEMENT_NEW("queue", "pre-decode-queue");
-        m_pDecodeBin = DSL_ELEMENT_NEW("decodebin", "decode-bin");
-        m_pSourceQueue = DSL_ELEMENT_NEW("queue", "src-queue");
+        m_pPreDecodeTee = DSL_ELEMENT_NEW("tee", name);
+        m_pPreDecodeQueue = DSL_ELEMENT_EXT_NEW("queue", name, "decodebin");
+        m_pDecodeBin = DSL_ELEMENT_NEW("decodebin", name);
+        m_pSourceQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src");
 
         m_pSourceElement->SetAttribute("latency", m_latency);
         m_pSourceElement->SetAttribute("drop-on-latency", true);
@@ -1507,13 +1507,13 @@ namespace DSL
             }
             if (encoding.find("H264") != std::string::npos)
             {
-                m_pParser = DSL_ELEMENT_NEW("h264parse", "src-parse");
-                m_pDepay = DSL_ELEMENT_NEW("rtph264depay", "src-depay");
+                m_pParser = DSL_ELEMENT_NEW("h264parse", GetCStrName());
+                m_pDepay = DSL_ELEMENT_NEW("rtph264depay", GetCStrName());
             }
             else if (encoding.find("H265") != std::string::npos)
             {
-                m_pParser = DSL_ELEMENT_NEW("h265parse", "src-parse");
-                m_pDepay = DSL_ELEMENT_NEW("rtph265depay", "src-depayload");
+                m_pParser = DSL_ELEMENT_NEW("h265parse", GetCStrName());
+                m_pDepay = DSL_ELEMENT_NEW("rtph265depay", GetCStrName());
             }
             else
             {

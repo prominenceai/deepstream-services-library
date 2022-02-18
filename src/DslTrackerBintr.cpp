@@ -45,7 +45,7 @@ namespace DSL
             m_llLibFile = NVDS_MOT_LIB;
         }
         
-        m_pTracker = DSL_ELEMENT_NEW("nvtracker", "tracker-tracker");
+        m_pTracker = DSL_ELEMENT_NEW("nvtracker", name);
 
         m_pTracker->SetAttribute("tracker-width", m_width);
         m_pTracker->SetAttribute("tracker-height", m_height);

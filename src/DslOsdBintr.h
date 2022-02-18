@@ -264,9 +264,9 @@ namespace DSL
          */
         int m_streamId;
         
-        DSL_ELEMENT_PTR m_pQueue;
-        DSL_ELEMENT_PTR m_pVidPreConv;
-        DSL_ELEMENT_PTR m_pConvQueue;
+        DSL_ELEMENT_PTR m_pVidConvQueue;
+        DSL_ELEMENT_PTR m_pVidConv;
+        DSL_ELEMENT_PTR m_pOsdQueue;
         DSL_ELEMENT_PTR m_pOsd;
     
     };

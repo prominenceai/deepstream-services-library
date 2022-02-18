@@ -36,8 +36,8 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pQueue = DSL_ELEMENT_NEW("queue", "segvisual-queue");
-        m_pSegVisual = DSL_ELEMENT_NEW("nvsegvisual", "segvisual");
+        m_pQueue = DSL_ELEMENT_NEW("queue", name);
+        m_pSegVisual = DSL_ELEMENT_NEW("nvsegvisual", name);
         
         m_pSegVisual->SetAttribute("width", m_width);
         m_pSegVisual->SetAttribute("height", m_height);

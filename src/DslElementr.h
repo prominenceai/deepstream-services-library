@@ -36,8 +36,11 @@ namespace DSL
      * @brief convenience macros for shared pointer abstraction
      */
     #define DSL_ELEMENT_PTR std::shared_ptr<Elementr>
-    #define DSL_ELEMENT_NEW(type, name) \
-        std::shared_ptr<Elementr>(new Elementr(type, name))   
+    #define DSL_ELEMENT_NEW(factoryName, name) \
+        std::shared_ptr<Elementr>(new Elementr(factoryName, name))   
+
+    #define DSL_ELEMENT_EXT_NEW(factoryName, name, suffix) \
+        std::shared_ptr<Elementr>(new Elementr(factoryName, name, suffix))
 
     /**
      * @class Elementr
@@ -50,15 +53,41 @@ namespace DSL
         /**
          * @brief ctor for the container class
          * @brief[in] factoryname unique GST factory name to create from
-         * @brief[in] name unique name for the Element
+         * @brief[in] name unique name for the Elementr
          */
         Elementr(const char* factoryName, const char* name)
             : GstNodetr(name)
             , m_factoryName(factoryName)
         { 
             LOG_FUNC(); 
+
+			// Create a unique name by appending the plugin name
+			AppendSuffix(factoryName);
             
-            m_pGstObj = GST_OBJECT(gst_element_factory_make(factoryName, name));
+            m_pGstObj = GST_OBJECT(gst_element_factory_make(factoryName, GetCStrName()));
+            if (!m_pGstObj)
+            {
+                LOG_ERROR("Failed to create new Element '" << name << "'");
+                throw;  
+            }
+        };
+        
+        /**
+         * @brief ctor for the container class
+         * @brief[in] factoryname unique GST factory name to create from
+         * @brief[in] name unique name for the Elementr
+         */
+        Elementr(const char* factoryName, const char* name, const char* suffix)
+            : GstNodetr(name)
+            , m_factoryName(factoryName)
+        { 
+            LOG_FUNC(); 
+
+			// Create a unique name by appending the plugin name and additional suffix
+			AppendSuffix(factoryName);
+			AppendSuffix(suffix);
+            
+            m_pGstObj = GST_OBJECT(gst_element_factory_make(factoryName, GetCStrName()));
             if (!m_pGstObj)
             {
                 LOG_ERROR("Failed to create new Element '" << name << "'");

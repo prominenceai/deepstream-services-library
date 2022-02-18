@@ -45,12 +45,12 @@ namespace DSL
             throw;
         }
         
-        m_pSinkQueue = DSL_ELEMENT_NEW("queue", "dewarper-sink-queue");
-        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", "dewarper-vid-conv");
-        m_pVidCaps = DSL_ELEMENT_NEW("capsfilter", "dewarper-vid-caps");
-        m_pDewarper = DSL_ELEMENT_NEW("nvdewarper", "dewarper");
-        m_pDewarperCaps = DSL_ELEMENT_NEW("capsfilter", "dewarper-caps");
-        m_pSrcQueue = DSL_ELEMENT_NEW("queue", "dewarper-src-queue");
+        m_pSinkQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvvideoconvert");
+        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
+        m_pVidCaps = DSL_ELEMENT_EXT_NEW("capsfilter", name, "nvdewarper");
+        m_pDewarper = DSL_ELEMENT_NEW("nvdewarper", name);
+        m_pDewarperCaps = DSL_ELEMENT_NEW("capsfilter", "queue");
+        m_pSrcQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src");
 
         m_pVidConv->SetAttribute("gpu-id", m_gpuId);
         m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);

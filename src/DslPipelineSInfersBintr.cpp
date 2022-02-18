@@ -38,8 +38,8 @@ namespace DSL
         LOG_FUNC();
 
         // Single Queue and Tee element for all Secondary GIES
-        m_pTee = DSL_ELEMENT_NEW("tee", "sgies_bin_tee");
-        m_pQueue = DSL_ELEMENT_NEW("queue", "sgies_bin_queue");
+        m_pTee = DSL_ELEMENT_NEW("tee", name);
+        m_pQueue = DSL_ELEMENT_NEW("queue", name);
 
         AddChild(m_pQueue);
         AddChild(m_pTee);
