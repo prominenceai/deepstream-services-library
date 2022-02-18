@@ -36,6 +36,8 @@ The DeepStream SDK and DSL use the open source [GStreamer](https://gstreamer.fre
 
 DSL is released under the [MIT License](LICENSE). Contributions are welcome and greatly appreciated. Please review our [code of conduct](/CODE_OF_CONDUCT.md).
 
+***Please report issues!***
+
 ## DSL Branching Workflow
 
 ![DSL Git Branching Workflow](/Images/dsl-branching-workflow.png)
@@ -44,7 +46,10 @@ DSL is released under the [MIT License](LICENSE). Contributions are welcome and 
 2. `Develop` is the next release currently in development. The branch will be named with the next release label.
 3. `Feature` all work is done on feature branches, named for the feature under development. 
 
-All pull requests should be made against the current `Develop` branch. 
+All pull requests should be made against the current `Develop` branch.
+
+## Docker
+The [deepstream-services-library-docker](https://github.com/prominenceai/deepstream-services-library-docker) repo contain a `Dockerfile`, utility scripts, and instructions to create and run a DSL-DeepStream container, built with the [nvcr.io/nvidia/deepstream-l4t:6.0-triton](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_docker_containers.html#id2) base image (Jetson).
 
 ## Discord
 Come join us on [Discord](https://discord.gg/MJvY9jjpAK), an informal place to chat, ask questions, discuss ideas, etc.
@@ -76,6 +81,7 @@ Come join us on [Discord](https://discord.gg/MJvY9jjpAK), an informal place to c
   * [Component](/docs/api-component.md)
   * [Mailer](/docs/api-mailer.md)
   * [WebSocket Server](/docs/api-ws-server.md)
+  * [Message Broker](/docs/api-broker.md)
 * [Examples](/docs/examples.md)
   * [C/C++](/docs/examples-cpp.md)
   * [Python](/docs/examples-python.md)
