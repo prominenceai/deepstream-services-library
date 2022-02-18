@@ -55,7 +55,7 @@ namespace DSL
             LOG_ERROR("Invalid codec = '" << codec << "' for new WebRtcSinkBintr '" << name << "'");
             throw;
         }
-        m_pWebRtcCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "webrtc-sink-bin-caps-filter");
+        m_pWebRtcCapsFilter = DSL_ELEMENT_NEW("capsfilter", "webrtc-sink-bin-caps-filter");
         
         GstCaps* pCaps = gst_caps_from_string("application/x-rtp,media=video,encoding-name=H264,payload=96");
         m_pWebRtcCapsFilter->SetAttribute("caps", pCaps);

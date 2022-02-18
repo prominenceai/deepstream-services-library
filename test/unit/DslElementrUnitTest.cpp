@@ -35,7 +35,7 @@ SCENARIO( "An Elementr is constructed correctly", "[Elementr]" )
 
         WHEN( "A child Elmentr is created" )
         {
-            DSL_ELEMENT_PTR pElementr = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, elementName.c_str());
+            DSL_ELEMENT_PTR pElementr = DSL_ELEMENT_NEW("queue", elementName.c_str());
             
             THEN( "Its member variables are initialized correctly" )
             {
@@ -53,8 +53,8 @@ SCENARIO( "Two Elementrs are linked correctly", "[Elementr]" )
         std::string queueElementName  = "test-queue";
         std::string teeElementName = "test-tee";
         
-        DSL_ELEMENT_PTR pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueElementName.c_str());
-        DSL_ELEMENT_PTR pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, teeElementName.c_str());
+        DSL_ELEMENT_PTR pQueue = DSL_ELEMENT_NEW("queue", queueElementName.c_str());
+        DSL_ELEMENT_PTR pTee = DSL_ELEMENT_NEW("tee", teeElementName.c_str());
             
         WHEN( "The Queue is linked downstream to the Tee" )
         {

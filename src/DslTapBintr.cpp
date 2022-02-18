@@ -39,7 +39,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "tap-bin-queue");
+        m_pQueue = DSL_ELEMENT_NEW("queue", "tap-bin-queue");
         AddChild(m_pQueue);
         m_pQueue->AddGhostPadToParent("sink");
     }

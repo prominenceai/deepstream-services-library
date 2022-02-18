@@ -42,7 +42,7 @@ namespace DSL
         g_object_set(m_pGstObj, "message-forward", TRUE, NULL);
   
         // Single Stream Muxer element for all Sources 
-        m_pStreamMux = DSL_ELEMENT_NEW(NVDS_ELEM_STREAM_MUX, "stream_muxer");
+        m_pStreamMux = DSL_ELEMENT_NEW("nvstreammux", "stream_muxer");
 
         // Setup all default properties
         //SetStreamMuxNvbufMemType(DSL_DEFAULT_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE);

@@ -48,10 +48,10 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "osd_queue");
-        m_pVidPreConv = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "osd_vid_pre_conv");
-        m_pConvQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "osd_conv_queue");
-        m_pOsd = DSL_ELEMENT_NEW(NVDS_ELEM_OSD, "nvosd0");
+        m_pQueue = DSL_ELEMENT_NEW("queue", "osd_queue");
+        m_pVidPreConv = DSL_ELEMENT_NEW("nvvideoconvert", "osd_vid_pre_conv");
+        m_pConvQueue = DSL_ELEMENT_NEW("queue", "osd_conv_queue");
+        m_pOsd = DSL_ELEMENT_NEW("nvdsosd", "nvosd0");
 
         m_pVidPreConv->SetAttribute("gpu-id", m_gpuId);
         m_pVidPreConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);

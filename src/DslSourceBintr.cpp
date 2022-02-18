@@ -126,8 +126,8 @@ namespace DSL
         m_fpsN = fpsN;
         m_fpsD = fpsD;
         
-        m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_CAMERA_CSI, "csi_camera_elem");
-        m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "src_caps_filter");
+        m_pSourceElement = DSL_ELEMENT_NEW("nvarguscamerasrc", "csi_camera_elem");
+        m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", "src_caps_filter");
 
         // aarch64
         if (m_cudaDeviceProp.integrated)
@@ -211,15 +211,15 @@ namespace DSL
         m_fpsN = fpsN;
         m_fpsD = fpsD;
         
-        m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_CAMERA_V4L2, "usb_camera_elem");
-        m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "src_caps_filter");
+        m_pSourceElement = DSL_ELEMENT_NEW("v4l2src", "usb_camera_elem");
+        m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", "src_caps_filter");
 
         if (!m_cudaDeviceProp.integrated)
         {
-            m_pVidConv1 = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "src_video_conv1");
+            m_pVidConv1 = DSL_ELEMENT_NEW("nvvideoconvert", "src_video_conv1");
             AddChild(m_pVidConv1);
         }
-        m_pVidConv2 = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "src_video_conv2");
+        m_pVidConv2 = DSL_ELEMENT_NEW("nvvideoconvert", "src_video_conv2");
 
         GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
             "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
@@ -644,16 +644,16 @@ namespace DSL
 
     UriSourceBintr::UriSourceBintr(const char* name, const char* uri, bool isLive,
         uint intraDecode, uint dropFrameInterval)
-        : DecodeSourceBintr(name, NVDS_ELEM_SRC_URI, uri, 
+        : DecodeSourceBintr(name, "uridecodebin", uri, 
             isLive, intraDecode, dropFrameInterval)
     {
         LOG_FUNC();
         
         // New Elementrs for this Source
-        m_pSourceQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "src-queue");
-        m_pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, "tee");
-        m_pFakeSinkQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "fake-sink-queue");
-        m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, "fake-sink");
+        m_pSourceQueue = DSL_ELEMENT_NEW("queue", "src-queue");
+        m_pTee = DSL_ELEMENT_NEW("tee", "tee");
+        m_pFakeSinkQueue = DSL_ELEMENT_NEW("queue", "fake-sink-queue");
+        m_pFakeSink = DSL_ELEMENT_NEW("fakesink", "fake-sink");
 
         // Connect UIR Source Setup Callbacks
         g_signal_connect(m_pSourceElement->GetGObject(), "pad-added", 
@@ -934,7 +934,7 @@ namespace DSL
         m_fpsD = fpsD;
 
         m_pSourceElement = DSL_ELEMENT_NEW("videotestsrc", "image-source");
-        m_pSourceCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "source-caps-filter");
+        m_pSourceCapsFilter = DSL_ELEMENT_NEW("capsfilter", "source-caps-filter");
         m_pImageOverlay = DSL_ELEMENT_NEW("gdkpixbufoverlay", "image-overlay"); 
 
         if (!SetUri(uri))
@@ -1128,10 +1128,10 @@ namespace DSL
         m_latency = latency;
 
         // New RTSP Specific Elementrs for this Source
-        m_pPreDecodeTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, "pre-decode-tee");
-        m_pPreDecodeQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "pre-decode-queue");
+        m_pPreDecodeTee = DSL_ELEMENT_NEW("tee", "pre-decode-tee");
+        m_pPreDecodeQueue = DSL_ELEMENT_NEW("queue", "pre-decode-queue");
         m_pDecodeBin = DSL_ELEMENT_NEW("decodebin", "decode-bin");
-        m_pSourceQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "src-queue");
+        m_pSourceQueue = DSL_ELEMENT_NEW("queue", "src-queue");
 
         m_pSourceElement->SetAttribute("latency", m_latency);
         m_pSourceElement->SetAttribute("drop-on-latency", true);

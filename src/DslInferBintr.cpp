@@ -67,11 +67,11 @@ namespace DSL
         // create and setup unique Inference Element, GIE or TIS
         if (m_inferType == DSL_INFER_TYPE_TIS)
         {
-            m_pInferEngine = DSL_ELEMENT_NEW(NVDS_ELEM_INFER_SERVER, inferBintrName.c_str());
+            m_pInferEngine = DSL_ELEMENT_NEW("nvinferserver", inferBintrName.c_str());
         }
         else
         {
-            m_pInferEngine = DSL_ELEMENT_NEW(NVDS_ELEM_NVINFER, inferBintrName.c_str());
+            m_pInferEngine = DSL_ELEMENT_NEW("nvinfer", inferBintrName.c_str());
             m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
             
             // If a model engine file is provided (non-server only)
@@ -323,8 +323,8 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "primary-gie-queue");
-        m_pVidConv = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "primary-gie-conv");
+        m_pQueue = DSL_ELEMENT_NEW("queue", "primary-gie-queue");
+        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", "primary-gie-conv");
 
         m_pVidConv->SetAttribute("gpu-id", m_gpuId);
         m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
@@ -494,11 +494,11 @@ namespace DSL
         std::string fakeSinkQueueName = "secondary-infer-fake-sink-queue-" + GetName();
         std::string fakeSinkName = "secondary-infer-fake-sink-" + GetName();
 
-        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueName.c_str());
-        m_pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, teeName.c_str());
-        m_pFakeSinkQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, fakeSinkQueueName.c_str());
+        m_pQueue = DSL_ELEMENT_NEW("queue", queueName.c_str());
+        m_pTee = DSL_ELEMENT_NEW("tee", teeName.c_str());
+        m_pFakeSinkQueue = DSL_ELEMENT_NEW("queue", fakeSinkQueueName.c_str());
         
-        m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, fakeSinkName.c_str());
+        m_pFakeSink = DSL_ELEMENT_NEW("fakesink", fakeSinkName.c_str());
         m_pFakeSink->SetAttribute("async", false);
         m_pFakeSink->SetAttribute("sync", false);
         m_pFakeSink->SetAttribute("enable-last-sample", false);
