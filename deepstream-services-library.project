@@ -295,5 +295,6 @@
   </Settings>
   <VirtualDirectory Name="root">
     <File Name="Makefile"/>
+    <File Name="make_caffemodel_engine_files.py"/>
   </VirtualDirectory>
 </CodeLite_Project>
