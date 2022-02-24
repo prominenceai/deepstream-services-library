@@ -29,12 +29,12 @@ THE SOFTWARE.
 using namespace DSL;
 
 static std::string brokerName("iot-message-broker");
-static std::string protocolLib("/opt/nvidia/deepstream/deepstream/lib/libnvds_redis_proto.so");
-//static std::string protocolLib("/opt/nvidia/deepstream/deepstream/lib/libnvds_azure_edge_proto.so");
+static std::string protocolLib("/opt/nvidia/deepstream/deepstream/lib/libnvds_azure_proto.so");
 
 //static std::string connectionString("HostName=<my-hub>.azure-devices.net;DeviceId=<device_id>;SharedAccessKey=<my-policy-key>"); 
-static std::string connectionString(""); 
-static std::string brokerConfigFile("./test/configs/cfg_redis.txt");
+static std::string connectionString;
+static std::string brokerConfigFile(
+	"/opt/nvidia/deepstream/deepstream-6.0/sources/libs/azure_protocol_adaptor/device_client/cfg_azure.txt");
 static std::string topic1("subscribed/topic/1");
 static std::string topic2("subscribed/topic/2");
 static std::string topic3("subscribed/topic/3");
@@ -87,7 +87,6 @@ SCENARIO( "A new MessageBroker can connect and disconnect correctly", "[MessageB
                 REQUIRE( pMessageBroker->Disconnect() == true );
             }
         }
-        
     }
 }
 
@@ -180,6 +179,8 @@ SCENARIO( "A connected MessageBroker can add and remove a subscriber", "[Message
 
                 // second call must fail
                 REQUIRE( pMessageBroker->RemoveSubscriber(message_subscriber_cb_1) == false );
+				
+                REQUIRE( pMessageBroker->Disconnect() == true );
             }
         }
         
@@ -208,7 +209,7 @@ SCENARIO( "A MessageBroker routes message to three subscribers correctly", "[Mes
             THEN( "the MessageBroker logs the correct warning response" )
             {
                 // NOTE: requires manual/visual verification
-
+                REQUIRE( pMessageBroker->Disconnect() == true );
             }
         }
         WHEN( "When the broker receives three messages from the server" )
@@ -239,6 +240,7 @@ SCENARIO( "A MessageBroker routes message to three subscribers correctly", "[Mes
                 REQUIRE( pMessageBroker->RemoveSubscriber(message_subscriber_cb_2) == true );
                 REQUIRE( pMessageBroker->RemoveSubscriber(message_subscriber_cb_3) == true );
 
+                REQUIRE( pMessageBroker->Disconnect() == true );
             }
         }
     }
@@ -277,6 +279,7 @@ SCENARIO( "A MessageBroker routes messages for multiple topics to a single Subsc
                 
                 REQUIRE( pMessageBroker->RemoveSubscriber(message_subscriber_cb_1) == true );
 
+                REQUIRE( pMessageBroker->Disconnect() == true );
             }
         }
     }
@@ -308,6 +311,7 @@ SCENARIO( "A connected MessageBroker can send a message asynchronously", "[Messa
             THEN( "the asynchronous response callback is called" )
             {
                 // NOTE: requires manual/visual verification
+                REQUIRE( pMessageBroker->Disconnect() == true );
             }
         }
         
@@ -345,6 +349,7 @@ SCENARIO( "A MessageBroker calls all Connection Listeners correctly", "[MessageB
                 REQUIRE( pMessageBroker->RemoveConnectionListener(connection_listener_cb_2) == true );
                 REQUIRE( pMessageBroker->RemoveConnectionListener(connection_listener_cb_3) == true );
 
+                REQUIRE( pMessageBroker->Disconnect() == true );
             }
         }
     }
