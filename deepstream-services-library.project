@@ -193,7 +193,7 @@
       <File Name="test/api/DslPipelineStateMgt.cpp"/>
       <File Name="test/api/DslPipelineCbApiTest.cpp"/>
       <File Name="test/api/DslMessageBrokerApiTest.cpp"/>
-      <File Name="test/api/DslMsgSinkBehaviorTest.cpp"/>
+      <File Name="test/api/DslMessageSinkBehaviorTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="webrtc">
       <File Name="test/webrtc/DslSinkWebRtcApiTest.cpp"/>
@@ -296,5 +296,6 @@
   <VirtualDirectory Name="root">
     <File Name="Makefile"/>
     <File Name="make_caffemodel_engine_files.py"/>
+    <File Name="dsl.py"/>
   </VirtualDirectory>
 </CodeLite_Project>

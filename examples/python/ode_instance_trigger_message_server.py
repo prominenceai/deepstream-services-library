@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2021, Prominence AI, Inc.
+# Copyright (c) 2022, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -43,13 +43,13 @@ tracker_config_file = '/opt/nvidia/deepstream/deepstream/samples/configs/deepstr
 converter_config_file = \
     '/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-test4/dstest4_msgconv_config.txt'
 protocol_lib = \
-    '/opt/nvidia/deepstream/deepstream/lib/libnvds_azure_edge_proto.so'
+    '/opt/nvidia/deepstream/deepstream/lib/libnvds_azure_proto.so'
 broker_config_file = \
     '/opt/nvidia/deepstream/deepstream/sources/libs/azure_protocol_adaptor/device_client/cfg_azure.txt'
-#connection_string = \
-#    'HostName=my-hub.azure-devices.net;DeviceId=nano-1;SharedAccessKey=ABCDEFG12345678abcdefg'
+
+# Update the connection_string with your Azure account information.
 connection_string = \
-	'HostName=prominenceai-hub.azure-devices.net;DeviceId=nano1;SharedAccessKey=eDGhtHJE2SXYfxZWlgXlWEAaZ77BlQXuRG36caUYNrk='
+    'HostName=my-hub.azure-devices.net;DeviceId=nano-1;SharedAccessKey=ABCDEFG12345678abcdefg'
 
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
