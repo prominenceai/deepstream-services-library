@@ -34,7 +34,7 @@ static std::string protocolLib("/opt/nvidia/deepstream/deepstream/lib/libnvds_az
 //static std::string connectionString("HostName=<my-hub>.azure-devices.net;DeviceId=<device_id>;SharedAccessKey=<my-policy-key>"); 
 static std::string connectionString;
 static std::string brokerConfigFile(
-	"/opt/nvidia/deepstream/deepstream-6.0/sources/libs/azure_protocol_adaptor/device_client/cfg_azure.txt");
+    "/opt/nvidia/deepstream/deepstream-6.0/sources/libs/azure_protocol_adaptor/device_client/cfg_azure.txt");
 static std::string topic1("subscribed/topic/1");
 static std::string topic2("subscribed/topic/2");
 static std::string topic3("subscribed/topic/3");
@@ -179,7 +179,7 @@ SCENARIO( "A connected MessageBroker can add and remove a subscriber", "[Message
 
                 // second call must fail
                 REQUIRE( pMessageBroker->RemoveSubscriber(message_subscriber_cb_1) == false );
-				
+                
                 REQUIRE( pMessageBroker->Disconnect() == true );
             }
         }

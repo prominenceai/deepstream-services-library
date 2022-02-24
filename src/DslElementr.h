@@ -61,8 +61,8 @@ namespace DSL
         { 
             LOG_FUNC(); 
 
-			// Create a unique name by appending the plugin name
-			AppendSuffix(factoryName);
+            // Create a unique name by appending the plugin name
+            AppendSuffix(factoryName);
             
             m_pGstObj = GST_OBJECT(gst_element_factory_make(factoryName, GetCStrName()));
             if (!m_pGstObj)
@@ -83,9 +83,9 @@ namespace DSL
         { 
             LOG_FUNC(); 
 
-			// Create a unique name by appending the plugin name and additional suffix
-			AppendSuffix(factoryName);
-			AppendSuffix(suffix);
+            // Create a unique name by appending the plugin name and additional suffix
+            AppendSuffix(factoryName);
+            AppendSuffix(suffix);
             
             m_pGstObj = GST_OBJECT(gst_element_factory_make(factoryName, GetCStrName()));
             if (!m_pGstObj)

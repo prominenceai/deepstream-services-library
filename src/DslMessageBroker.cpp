@@ -49,6 +49,10 @@ namespace DSL
     {
         LOG_FUNC();
         
+        if (IsConnected())
+        {
+            Disconnect();
+        }
     }
     
     void MessageBroker::GetSettings(const char** brokerConfigFile,

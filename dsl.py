@@ -4888,6 +4888,27 @@ def dsl_mailer_delete_all():
     return int(result)
 
 ##
+## dsl_message_broker_new()
+##
+_dsl.dsl_message_broker_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_message_broker_new.restype = c_uint
+def dsl_message_broker_new(name, broker_config_file, protocol_lib, connection_string):
+    global _dsl
+    result =_dsl.dsl_message_broker_new(name, 
+        broker_config_file, protocol_lib, connection_string)
+    return int(result)
+
+##
+## dsl_message_broker_connect()
+##
+_dsl.dsl_message_broker_connect.argtypes = [c_wchar_p]
+_dsl.dsl_message_broker_connect.restype = c_uint
+def dsl_message_broker_connect(name):
+    global _dsl
+    result =_dsl.dsl_message_broker_connect(name)
+    return int(result)
+
+##
 ## dsl_main_loop_run()
 ##
 def dsl_main_loop_run():

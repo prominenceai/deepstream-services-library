@@ -86,7 +86,7 @@ def main(args):
         dsl_source_uri_new('Camera 8', uri, False, False, 0)
 
         # New Primary GIE using the filespecs above, with interval and Id. Setting the
-		# model_engine_files parameter to None allows for model generation if not found.
+        # model_engine_files parameter to None allows for model generation if not found.
         retval = dsl_infer_gie_primary_new('primary-gie', inferConfigFile, None, interval=10)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -128,8 +128,8 @@ def main(args):
         # Note: *** change 'iou-tracker' to 'ktl-tracker' to try both. KTL => higher CPU load 
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['Camera 1', 'Camera 2', 'Camera 3', 'Camera 4', 'Camera 5', 'Camera 6',  
-			'Camera 7', 'Camera 8', 'primary-gie', 'ktl-tracker', 'carcolor-sgie', 
-			'carmake-sgie', 'vehicletype-sgie', 'tiler', 'fake-sink', None])
+            'Camera 7', 'Camera 8', 'primary-gie', 'ktl-tracker', 'carcolor-sgie', 
+            'carmake-sgie', 'vehicletype-sgie', 'tiler', 'fake-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -141,9 +141,9 @@ def main(args):
         retval = dsl_pipeline_play('pipeline')
         if retval != DSL_RETURN_SUCCESS:
             break
-			
-		# Once the pipeline is playing, the model engine files will have been saved. 
-		# Safe to stop the pipline and quit now.
+
+        # Once the pipeline is playing, the model engine files will have been saved. 
+        # Safe to stop the pipline and quit now.
         retval = dsl_pipeline_stop('pipeline')
         break
 

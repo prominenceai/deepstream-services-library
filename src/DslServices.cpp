@@ -225,6 +225,7 @@ namespace DSL
         OdeActionDeleteAll();
         DisplayTypeDeleteAll();
         MailerDeleteAll();
+        MessageBrokerDeleteAll();
     }
 
     DslReturnType Services::StdOutRedirect(const char* filepath)

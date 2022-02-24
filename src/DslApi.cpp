@@ -6502,10 +6502,10 @@ DslReturnType dsl_message_broker_new(const wchar_t* name,
     std::string cstrProtocolLib(wstrProtocolLib.begin(), wstrProtocolLib.end());
     
     std::string cstrConn;
-	if (connection_string != NULL)
-	{
-		std::wstring wstrConn(connection_string);
-		cstrConn.assign(wstrConn.begin(), wstrConn.end());
+    if (connection_string != NULL)
+    {
+        std::wstring wstrConn(connection_string);
+        cstrConn.assign(wstrConn.begin(), wstrConn.end());
     }
     
     return DSL::Services::GetServices()->MessageBrokerNew(cstrName.c_str(), 
@@ -6568,10 +6568,10 @@ DslReturnType dsl_message_broker_settings_set(const wchar_t* name,
     
 
     std::string cstrConn;
-	if (connection_string != NULL)
-	{
-		std::wstring wstrConn(connection_string);
-		cstrConn.assign(wstrConn.begin(), wstrConn.end());
+    if (connection_string != NULL)
+    {
+        std::wstring wstrConn(connection_string);
+        cstrConn.assign(wstrConn.begin(), wstrConn.end());
     }
     
     return DSL::Services::GetServices()->MessageBrokerSettingsSet(cstrName.c_str(), 
@@ -6622,10 +6622,10 @@ DslReturnType dsl_message_broker_message_send_async(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     std::string cstrTopic;
-	if (topic != NULL)
-	{
-		std::wstring wstrTopic(topic);
-		cstrTopic.assign(wstrTopic.begin(), wstrTopic.end());
+    if (topic != NULL)
+    {
+        std::wstring wstrTopic(topic);
+        cstrTopic.assign(wstrTopic.begin(), wstrTopic.end());
     }
 
     return DSL::Services::GetServices()->MessageBrokerMessageSendAsync(
