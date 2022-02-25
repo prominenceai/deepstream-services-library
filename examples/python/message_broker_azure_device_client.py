@@ -52,6 +52,9 @@ def message_broker_connection_listener(client_data, status):
 def message_broker_send_result_listener(client_data, status):
     print('Result listener called with status:', status)
 
+## 
+# Thread loop function to periodically send a pre-canned message
+## 
 def thread_function(name):
 
     # Simple message to send to the server
@@ -88,7 +91,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Add a connection listener to be notified on connection events.
+        # Add a connection listener to be notified on connection failure.
         retval = dsl_message_broker_connection_listener_add('message-broker',
             message_broker_connection_listener, None)    
 
