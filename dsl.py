@@ -145,6 +145,14 @@ DSL_WEBSOCKET_SERVER_DEFAULT_HTTP_PORT = 60001
 DSL_MSG_PAYLOAD_DEEPSTREAM         = 0
 DSL_MSG_PAYLOAD_DEEPSTREAM_MINIMAL = 1
 
+DSL_MSG_PAYLOAD_DEEPSTREAM         = 0
+DSL_MSG_PAYLOAD_DEEPSTREAM_MINIMAL = 1
+
+DSL_STATUS_BROKER_OK            = 0
+DSL_STATUS_BROKER_ERROR         = 1
+DSL_STATUS_BROKER_RECONNECTING  = 2
+DSL_STATUS_BROKER_NOT_SUPPORTED = 3
+
 class dsl_coordinate(Structure):
     _fields_ = [
         ('x', c_uint),
@@ -219,6 +227,8 @@ DSL_WEBSOCKET_SERVER_CLIENT_LISTENER = CFUNCTYPE(None, c_wchar_p, c_void_p)
 DSL_WEBRTC_SINK_CLIENT_LISTENER = CFUNCTYPE(None, POINTER(dsl_webrtc_connection_data), c_void_p)
 DSL_ODE_TRIGGER_LIMIT_EVENT_LISTENER = CFUNCTYPE(None, c_uint, c_uint, c_void_p)
 DSL_ODE_ENABLED_STATE_CHANGE_LISTENER = CFUNCTYPE(None, c_bool, c_void_p)
+DSL_MESSAGE_BROKER_CONNECTION_LISTENER = CFUNCTYPE(None, c_void_p, c_uint)
+DSL_MESSAGE_BROKER_SEND_RESULT_LISTENER = CFUNCTYPE(None, c_void_p, c_uint)
 
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
@@ -4899,6 +4909,34 @@ def dsl_message_broker_new(name, broker_config_file, protocol_lib, connection_st
     return int(result)
 
 ##
+## dsl_message_broker_connection_listener_add()
+##
+_dsl.dsl_message_broker_connection_listener_add.argtypes = [c_wchar_p, 
+    DSL_MESSAGE_BROKER_CONNECTION_LISTENER, c_void_p]
+_dsl.dsl_message_broker_connection_listener_add.restype = c_uint
+def dsl_message_broker_connection_listener_add(name, client_listener, client_data):
+    global _dsl
+    c_client_listener = DSL_MESSAGE_BROKER_CONNECTION_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_message_broker_connection_listener_add(name, 
+        c_client_listener, c_client_data)
+    return int(result)
+    
+##
+## dsl_message_broker_connection_listener_remove()
+##
+_dsl.dsl_message_broker_connection_listener_remove.argtypes = [c_wchar_p, 
+    DSL_MESSAGE_BROKER_CONNECTION_LISTENER]
+_dsl.dsl_message_broker_connection_listener_remove.restype = c_uint
+def dsl_message_broker_connection_listener_remove(name, client_listener):
+    global _dsl
+    c_client_listener = DSL_MESSAGE_BROKER_CONNECTION_LISTENER(client_listener)
+    result = _dsl.dsl_message_broker_connection_listener_remove(name, c_client_listener)
+    return int(result)
+
+##
 ## dsl_message_broker_connect()
 ##
 _dsl.dsl_message_broker_connect.argtypes = [c_wchar_p]
@@ -4906,6 +4944,33 @@ _dsl.dsl_message_broker_connect.restype = c_uint
 def dsl_message_broker_connect(name):
     global _dsl
     result =_dsl.dsl_message_broker_connect(name)
+    return int(result)
+
+##
+## dsl_message_broker_connect()
+##
+_dsl.dsl_message_broker_disconnect.argtypes = [c_wchar_p]
+_dsl.dsl_message_broker_disconnect.restype = c_uint
+def dsl_message_broker_disconnect(name):
+    global _dsl
+    result =_dsl.dsl_message_broker_disconnect(name)
+    return int(result)
+    
+##
+## dsl_message_broker_message_send_async()
+##
+_dsl.dsl_message_broker_message_send_async.argtypes = [c_wchar_p, c_wchar_p, c_void_p,
+    c_uint, DSL_MESSAGE_BROKER_SEND_RESULT_LISTENER, c_void_p]
+_dsl.dsl_message_broker_message_send_async.restype = c_uint
+def dsl_message_broker_message_send_async(name, topic, message, 
+    size, response_listener, client_data):
+    global _dsl
+    c_result_listener = DSL_MESSAGE_BROKER_SEND_RESULT_LISTENER(response_listener)
+    callbacks.append(c_result_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_message_broker_message_send_async(name, 
+        topic, message, size, c_result_listener, c_client_data)
     return int(result)
 
 ##

@@ -444,11 +444,6 @@ THE SOFTWARE.
 #define DSL_RESULT_BROKER_DISCONNECT_FAILED                         0x0080000E
 #define DSL_RESULT_BROKER_MESSAGE_SEND_FAILED                       0x0080000F
 
-#define DSL_STATUS_BROKER_STATUS                                    0x00900000
-#define DSL_STATUS_BROKER_OK                                        0x00900001
-#define DSL_STATUS_BROKER_ERROR                                     0x00900002
-#define DSL_STATUS_BROKER_RECONNECTING                              0x00900003
-#define DSL_STATUS_BROKER_NOT_SUPPORTED                             0x00900004
 
 /**
  * GPU Types
@@ -691,6 +686,14 @@ THE SOFTWARE.
 #define DSL_MSG_PAYLOAD_DEEPSTREAM                                  0
 #define DSL_MSG_PAYLOAD_DEEPSTREAM_MINIMAL                          1
 #define DSL_MSG_PAYLOAD_CUSTOM                                      257
+
+/**
+ * @brief Message Broker Status/Result codes
+ */
+#define DSL_STATUS_BROKER_OK                                        0
+#define DSL_STATUS_BROKER_ERROR                                     1
+#define DSL_STATUS_BROKER_RECONNECTING                              2
+#define DSL_STATUS_BROKER_NOT_SUPPORTED                             3
 
 
 EXTERN_C_BEGIN
@@ -1064,18 +1067,18 @@ typedef void (*dsl_message_broker_subscriber_cb)(uint status, void *message,
 /**
  * @brief callback typedef for a client to receive and handle
  * incoming message processing errors. 
- * @param[in] error unique error code returned by the Message Broker
  * @param[in] client_data opaque pointer to client's user data.
+ * @param[in] status status code returned by the Message Broker
  */
 typedef void (*dsl_message_broker_connection_listener_cb)(void* client_data, uint status);
 
 /**
  * @brief callback typedef for a client to receive an asynchronus result
  * from calling dsl_message_broker_message_send.
- * @param[in] result one of the DSL_MESSAGE_SEND_RESULT constants.
  * @param[in] client_data opaque pointer to client's user data.
+ * @param[in] status status code returned by the Message Broker
  */
-typedef void (*dsl_message_send_result_cb)(void* client_data, uint result);
+typedef void (*dsl_message_broker_send_result_listener_cb)(void* client_data, uint status);
 
 /**
  * @brief creates a uniquely named RGBA Display Color
@@ -5680,7 +5683,7 @@ DslReturnType dsl_message_broker_is_connected(const wchar_t* name, boolean* conn
  */
 DslReturnType dsl_message_broker_message_send_async(const wchar_t* name,
     const wchar_t* topic, void* message, size_t size, 
-    dsl_message_send_result_cb result, void* user_data);
+    dsl_message_broker_send_result_listener_cb result_listener, void* user_data);
 
 /**
  * @brief Adds a client subscriber callback function to a named Message Broker.

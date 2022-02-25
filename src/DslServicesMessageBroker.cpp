@@ -236,7 +236,7 @@ namespace DSL
 
     DslReturnType Services::MessageBrokerMessageSendAsync(const char* name,
         const char* topic, void* message, size_t size, 
-        dsl_message_send_result_cb result, void* clientData)
+        dsl_message_broker_send_result_listener_cb result_listener, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -246,7 +246,7 @@ namespace DSL
             DSL_RETURN_IF_BROKER_NAME_NOT_FOUND(m_messageBrokers, name);
 
             if (!m_messageBrokers[name]->SendMessageAsync(topic, message, 
-                size, result, clientData))
+                size, result_listener, clientData))
             {
                 LOG_ERROR("MessageBroker '" << name 
                     << "' failed to send a Message asynchoronously");
@@ -254,7 +254,7 @@ namespace DSL
             }
 
             LOG_INFO("MessageBroker '" << name 
-                << "' queued the Message to be send asynchronously successfully");
+                << "' queued the Message to be sent asynchronously successfully");
 
             return DSL_RESULT_SUCCESS;
         }

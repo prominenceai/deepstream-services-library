@@ -31,12 +31,9 @@ static std::wstring broker_config_file(
     L"/opt/nvidia/deepstream/deepstream/sources/libs/azure_protocol_adaptor/device_client/cfg_azure.txt");
 static std::wstring protocol_lib(NVDS_AZURE_PROTO_LIB);
 
-static std::wstring connection_string(
-    L"HostName=<my-hub>.azure-devices.net;DeviceId=<device_id>;SharedAccessKey=<my-policy-key>"); 
-//static std::wstring connection_string(
-//    L"HostName=prominenceai-hub.azure-devices.net;DeviceId=nano-1;SharedAccessKey=KBSMofZOA9VpWcCKwXaVbcHRdW5hXyiUnf5tr1MZSik="); 
-    
 static std::wstring topic(L"DSL_MESSAGE_TOPIC");
+
+static std::string message("Hello remote server - edge device calling");
 
 
 SCENARIO( "The Message Brokers container is updated correctly on new Message Broker", "[message-broker-api]" )
@@ -48,7 +45,7 @@ SCENARIO( "The Message Brokers container is updated correctly on new Message Bro
         WHEN( "A new Message Broker is created" ) 
         {
             REQUIRE( dsl_message_broker_new(broker_name.c_str(), broker_config_file.c_str(), 
-                protocol_lib.c_str(), connection_string.c_str()) == DSL_RESULT_SUCCESS );
+                protocol_lib.c_str(), NULL) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
             {
@@ -67,7 +64,7 @@ SCENARIO( "The Message Brokers container is updated correctly on Message Broker 
         REQUIRE( dsl_message_broker_list_size() == 0 );
         
         REQUIRE( dsl_message_broker_new(broker_name.c_str(), broker_config_file.c_str(), 
-            protocol_lib.c_str(), connection_string.c_str()) == DSL_RESULT_SUCCESS );
+            protocol_lib.c_str(), NULL) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_message_broker_list_size() == 1 );
 
@@ -95,7 +92,7 @@ SCENARIO( "The Message Broker Constructor verifies all input file pathspecs corr
             
             REQUIRE( dsl_message_broker_new(broker_name.c_str(), 
                 invalid_broker_config_file.c_str(), protocol_lib.c_str(),
-                connection_string.c_str()) == DSL_RESULT_BROKER_CONFIG_FILE_NOT_FOUND );
+                NULL) == DSL_RESULT_BROKER_CONFIG_FILE_NOT_FOUND );
             
             THEN( "The list size remains unchanged" )
             {
@@ -108,7 +105,7 @@ SCENARIO( "The Message Broker Constructor verifies all input file pathspecs corr
             
             REQUIRE( dsl_message_broker_new(broker_name.c_str(), 
                 broker_config_file.c_str(), invalid_protocol_lib.c_str(),
-                connection_string.c_str()) == DSL_RESULT_BROKER_PROTOCOL_LIB_NOT_FOUND );
+                NULL) == DSL_RESULT_BROKER_PROTOCOL_LIB_NOT_FOUND );
             
             THEN( "The list size remains unchanged" )
             {
@@ -125,7 +122,7 @@ SCENARIO( "A Message Broker's settings can be updated", "[message-broker-api]" )
         REQUIRE( dsl_message_broker_list_size() == 0 );
         
         REQUIRE( dsl_message_broker_new(broker_name.c_str(), broker_config_file.c_str(), 
-            protocol_lib.c_str(), connection_string.c_str()) == DSL_RESULT_SUCCESS );
+            protocol_lib.c_str(), NULL) == DSL_RESULT_SUCCESS );
 
         const wchar_t* c_ret_broker_config_file;
         const wchar_t* c_ret_protocol_lib;
@@ -139,10 +136,12 @@ SCENARIO( "A Message Broker's settings can be updated", "[message-broker-api]" )
         std::wstring ret_broker_config_file(c_ret_broker_config_file);
         std::wstring ret_protocol_lib(c_ret_protocol_lib);
         std::wstring ret_connection_string(c_ret_connection_string);
+        
+        std::wstring null_connection_string;
 
         REQUIRE( ret_broker_config_file == broker_config_file );
         REQUIRE( ret_protocol_lib == protocol_lib );
-        REQUIRE( ret_connection_string == connection_string );
+        REQUIRE( ret_connection_string == null_connection_string );
         
         WHEN( "When new Message Broker settings are set" ) 
         {
@@ -185,7 +184,7 @@ SCENARIO( "The Message Broker can connect and disconnect", "[message-broker-api]
         boolean retConnected(true);
         
         REQUIRE( dsl_message_broker_new(broker_name.c_str(), broker_config_file.c_str(), 
-            protocol_lib.c_str(), connection_string.c_str()) == DSL_RESULT_SUCCESS );
+            protocol_lib.c_str(), NULL) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_message_broker_is_connected(broker_name.c_str(),
             &retConnected) == DSL_RESULT_SUCCESS );
@@ -200,7 +199,7 @@ SCENARIO( "The Message Broker can connect and disconnect", "[message-broker-api]
                 &retConnected) == DSL_RESULT_SUCCESS );
             REQUIRE( retConnected == true );
 
-            THEN( "The Message Broker than be disconnected" ) 
+            THEN( "The Message Broker then be disconnected" ) 
             {
                 REQUIRE( dsl_message_broker_disconnect(broker_name.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -221,7 +220,7 @@ SCENARIO( "The Message Broker API checks for null pointers", "[message-broker-ap
         boolean retConnected(true);
         
         REQUIRE( dsl_message_broker_new(broker_name.c_str(), broker_config_file.c_str(), 
-            protocol_lib.c_str(), connection_string.c_str()) == DSL_RESULT_SUCCESS );
+            protocol_lib.c_str(), NULL) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_message_broker_is_connected(broker_name.c_str(),
             &retConnected) == DSL_RESULT_SUCCESS );
@@ -259,7 +258,7 @@ SCENARIO( "A Connection Listener can be added to and removed from a Message Broc
     GIVEN( "A new Message Broker" )
     {
         REQUIRE( dsl_message_broker_new(broker_name.c_str(), broker_config_file.c_str(), 
-            protocol_lib.c_str(), connection_string.c_str()) == DSL_RESULT_SUCCESS );
+            protocol_lib.c_str(), NULL) == DSL_RESULT_SUCCESS );
 
         WHEN( "A Connection Listener is added" )
         {
@@ -298,7 +297,7 @@ SCENARIO( "A Message Subscriber can be added to and removed from a Message Brock
         const wchar_t* topics[] = {topic.c_str(), NULL};
 
         REQUIRE( dsl_message_broker_new(broker_name.c_str(), broker_config_file.c_str(), 
-            protocol_lib.c_str(), connection_string.c_str()) == DSL_RESULT_SUCCESS );
+            protocol_lib.c_str(), NULL) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_message_broker_connect(broker_name.c_str()) 
             == DSL_RESULT_SUCCESS );
@@ -322,6 +321,48 @@ SCENARIO( "A Message Subscriber can be added to and removed from a Message Brock
                     broker_name.c_str(), message_subscriber_cb) == 
                         DSL_RESULT_BROKER_SUBSCRIBER_REMOVE_FAILED );
                     
+                REQUIRE( dsl_message_broker_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+static void send_message_result_listener_cb(void* client_data, uint status)
+{  
+    std::cout << "result listener called with status = " << status;
+}
+
+SCENARIO( "The Message Broker can send an async message", "[new]" )
+{
+    GIVEN( "A new Message Broker in a connected state" ) 
+    {
+        boolean retConnected(true);
+        
+        REQUIRE( dsl_message_broker_new(broker_name.c_str(), broker_config_file.c_str(), 
+            protocol_lib.c_str(), NULL) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_message_broker_connect(broker_name.c_str()) 
+            == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_message_broker_is_connected(broker_name.c_str(),
+            &retConnected) == DSL_RESULT_SUCCESS );
+        REQUIRE( retConnected == true );
+            
+        WHEN( "A message is sent asynchronously " ) 
+        {
+            REQUIRE( dsl_message_broker_message_send_async(broker_name.c_str(), 
+                topic.c_str(), const_cast<char*>(message.c_str()), message.size(), 
+                send_message_result_listener_cb, NULL) == DSL_RESULT_SUCCESS );
+
+            THEN( "The client result_listener_cb is called" ) 
+            {
+                // requires manual/visual verification
+                REQUIRE( dsl_message_broker_disconnect(broker_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_message_broker_is_connected(broker_name.c_str(),
+                    &retConnected) == DSL_RESULT_SUCCESS );
+                REQUIRE( retConnected == false );
+                
                 REQUIRE( dsl_message_broker_delete_all() == DSL_RESULT_SUCCESS );
             }
         }

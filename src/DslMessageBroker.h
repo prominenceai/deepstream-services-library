@@ -136,12 +136,13 @@ namespace DSL {
          * @param topic topic for the message
          * @param message message buffer to send
          * @param size size of the message buffer.
-         * @param result asynchronous result callback
+         * @param result_listener asynchronous send result callback
          * @param clientData client-data to return on callback.
          * @return true on success, false otherwise.
          */
         bool SendMessageAsync(const char* topic, void* message, 
-            size_t size, dsl_message_send_result_cb result, void* clientData);
+            size_t size, dsl_message_broker_send_result_listener_cb result_listener, 
+            void* clientData);
 
         /**
          * @brief adds a callback to be notified on incoming messages filtered by topic.

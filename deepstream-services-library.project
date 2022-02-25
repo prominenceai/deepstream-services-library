@@ -58,6 +58,7 @@
       <File Name="examples/python/player_play_all_mp4_files_found.py"/>
       <File Name="examples/python/rtsp_player_to_test_connections.py"/>
       <File Name="examples/python/semantic_segmentation.py"/>
+      <File Name="examples/python/message_broker_azure_device_client.py"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="src">

@@ -1168,7 +1168,7 @@ namespace DSL {
 
         DslReturnType MessageBrokerMessageSendAsync(const char* name,
             const char* topic, void* message, size_t size, 
-            dsl_message_send_result_cb result, void* clientData);
+            dsl_message_broker_send_result_listener_cb result_listener, void* clientData);
         
         DslReturnType MessageBrokerSubscriberAdd(const char* name,
             dsl_message_broker_subscriber_cb subscriber, const char** topics,

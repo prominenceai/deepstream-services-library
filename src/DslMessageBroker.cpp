@@ -151,7 +151,8 @@ namespace DSL
     }
 
     bool MessageBroker::SendMessageAsync(const char* topic, void* message, 
-        size_t size, dsl_message_send_result_cb result, void* clientData)
+        size_t size, dsl_message_broker_send_result_listener_cb result_listener, 
+        void* clientData)
     {
         LOG_FUNC();
         
@@ -165,7 +166,7 @@ namespace DSL
         NvMsgBrokerClientMsg messagePacket = {const_cast<char*>(topic), message, size};
         
         NvMsgBrokerErrorType retcode = nv_msgbroker_send_async(m_connectionHandle,
-            messagePacket, (nv_msgbroker_send_cb_t)result, 
+            messagePacket, (nv_msgbroker_send_cb_t)result_listener, 
             clientData);
             
         if (retcode != NV_MSGBROKER_API_OK)

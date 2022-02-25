@@ -6612,11 +6612,11 @@ DslReturnType dsl_message_broker_is_connected(const wchar_t* name,
 }
 
 DslReturnType dsl_message_broker_message_send_async(const wchar_t* name,
-    const wchar_t* topic, uint8_t* message, size_t size, 
-    dsl_message_send_result_cb result, void* user_data)
+    const wchar_t* topic, void* message, size_t size, 
+    dsl_message_broker_send_result_listener_cb result_listener, void* user_data)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(result);
+    RETURN_IF_PARAM_IS_NULL(result_listener);
     
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -6629,7 +6629,7 @@ DslReturnType dsl_message_broker_message_send_async(const wchar_t* name,
     }
 
     return DSL::Services::GetServices()->MessageBrokerMessageSendAsync(
-        cstrName.c_str(), cstrTopic.c_str(), message, size, result, user_data);
+        cstrName.c_str(), cstrTopic.c_str(), message, size, result_listener, user_data);
 }
     
 DslReturnType dsl_message_broker_subscriber_add(const wchar_t* name,
