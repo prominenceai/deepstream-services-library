@@ -239,4 +239,3 @@ retval = dsl_branch_component_remove_all('my-branch')
 * [Mailer](/docs/api-mailer.md)
 * [WebSocket Server](/docs/api-ws-server.md)
 * [Message Broker](/docs/api-msg-broker.md)
-* 
