@@ -26,7 +26,10 @@
 * [dsl_player_termination_event_listener_cb](/docs/api-player.md#dsl_player_termination_event_listener_cb)
 * [dsl_sink_webrtc_client_listener_cb](/docs/api-sink.md#dsl_sink_webrtc_client_listener_cb)
 * [dsl_websocket_server_client_listener_cb](/docs/api-ws-server.md#dsl_websocket_server_client_listener_cb)
-
+* [dsl_message_broker_connection_listener_cb](/docs/api-msg-broker.md#dsl_message_broker_connection_listener_cb)
+* [dsl_message_broker_send_result_listener_cb](/docs/api-msg-broker.md#dsl_message_broker_send_result_listener_cb)
+* [dsl_message_broker_subscriber_cb](api-msg-broker.md#dsl_message_broker_subscriber_cb)
+* 
 ### Pipeline API:
 * [Overview](/docs/api-pipeline.md)
 * [dsl_pipeline_new](/docs/api-pipeline.md#dsl_pipeline_new)
@@ -538,3 +541,21 @@
 * [dsl_websocket_server_listening_state_get](/docs/api-ws-server.md#dsl_websocket_server_listening_state_get)
 * [dsl_websocket_server_client_listener_add](/docs/api-ws-server.md#dsl_websocket_server_client_listener_add)
 * [dsl_websocket_server_client_listener_remove](/docs/api-ws-server.md#dsl_websocket_server_client_listener_remove)
+
+### Message Broker API:
+* [Overview](/docs/api-msg-broker.md)
+* [dsl_message_broker_new](/docs/api-msg-broker.md#dsl_message_broker_new)
+* [dsl_message_broker_delete](/docs/api-msg-broker.md#dsl_message_broker_delete)
+* [dsl_message_broker_delete_all](/docs/api-msg-broker.md#dsl_message_broker_delete_all)
+* [dsl_message_broker_connect](/docs/api-msg-broker.md#dsl_message_broker_connect)
+* [dsl_message_broker_disconnect](/docs/api-msg-broker.md#dsl_message_broker_disconnect)
+* [dsl_message_broker_is_connected](/docs/api-msg-broker.md#dsl_message_broker_is_connected)
+* [dsl_message_broker_connection_listener_add](/docs/api-msg-broker.md#dsl_message_broker_connection_listener_add)
+* [dsl_message_broker_connection_listener_remove](/docs/api-msg-broker.md#dsl_message_broker_connection_listener_remove)
+* [dsl_message_broker_message_send_async](/docs/api-msg-broker.md#dsl_message_broker_message_send_async)
+* [dsl_message_broker_subscriber_add](/docs/api-msg-broker.md#dsl_message_broker_subscriber_add)
+* [dsl_message_broker_subscriber_remove](/docs/api-msg-broker.md#dsl_message_broker_subscriber_remove)
+* [dsl_message_broker_settings_get](/docs/api-msg-broker.md#dsl_message_broker_settings_get)
+* [dsl_message_broker_settings_set](/docs/api-msg-broker.md#dsl_message_broker_settings_set)
+* [dsl_message_broker_list_size](/docs/api-msg-broker.md#dsl_message_broker_list_size)
+
