@@ -32,17 +32,15 @@ import threading
 import time
 
 ################################################################################
-# This example demonstrates the use of the Device Client Azure protocol to
-# to send messages to an Azure IoT Hub. 
+# This example demonstrates the use of the Module Client Azure protocol for
+# bi-directional messaging - CAUTION: this script is a work in progress (WIP).
 ################################################################################
-
 protocol_lib = \
-    '/opt/nvidia/deepstream/deepstream/lib/libnvds_azure_proto.so'
+    '/opt/nvidia/deepstream/deepstream/lib/libnvds_azure_edge_proto.so'
 broker_config_file = \
-    '/opt/nvidia/deepstream/deepstream/sources/libs/azure_protocol_adaptor/device_client/cfg_azure.txt'
+    '/opt/nvidia/deepstream/deepstream/sources/libs/azure_protocol_adaptor/module_client/cfg_azure.txt'
 
-# Make sure to add your connection string to the cfg_azure.txt, or provide 
-# the complete connection string here to override. 
+# Connection string must be defined in /etc/iotedge/config.yaml
 connection_string = None
 
 ## 

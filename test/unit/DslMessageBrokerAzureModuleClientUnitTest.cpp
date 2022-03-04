@@ -31,19 +31,19 @@ using namespace DSL;
 static std::string brokerName("iot-message-broker");
 static std::string protocolLib("/opt/nvidia/deepstream/deepstream/lib/libnvds_azure_proto.so");
 
-//static std::string connectionString("HostName=<my-hub>.azure-devices.net;DeviceId=<device_id>;SharedAccessKey=<my-policy-key>"); 
 static std::string connectionString;
 static std::string brokerConfigFile(
-    "/opt/nvidia/deepstream/deepstream-6.0/sources/libs/azure_protocol_adaptor/device_client/cfg_azure.txt");
+    "/opt/nvidia/deepstream/deepstream-6.0/sources/libs/azure_protocol_adaptor/module_client/cfg_azure.txt");
 static std::string topic1("subscribed/topic/1");
 static std::string topic2("subscribed/topic/2");
 static std::string topic3("subscribed/topic/3");
 
-SCENARIO( "A new MessageBroker is created correctly", "[MessageBroker]" )
+SCENARIO( "A new MessageBrokerModuleClient is created correctly", 
+	"[MessageBrokerModuleClient]" )
 {
-    GIVEN( "Attributes for a new MessageBroker" )
+    GIVEN( "Attributes for a new MessageBrokerModuleClient" )
     {
-        WHEN( "When the MessageBroker is created" )
+        WHEN( "When the MessageBrokerModuleClient is created" )
         {
             DSL_MESSAGE_BROKER_PTR pMessageBroker = 
                 DSL_MESSAGE_BROKER_NEW(brokerName.c_str(), brokerConfigFile.c_str(), 
@@ -70,19 +70,20 @@ SCENARIO( "A new MessageBroker is created correctly", "[MessageBroker]" )
     }
 }
 
-SCENARIO( "A new MessageBroker can connect and disconnect correctly", "[MessageBroker]" )
+SCENARIO( "A new MessageBrokerModuleClient can connect and disconnect correctly", 
+	"[MessageBrokerModuleClient]" )
 {
-    GIVEN( "A new MessageBroker" )
+    GIVEN( "A new MessageBrokerModuleClient" )
     {
         DSL_MESSAGE_BROKER_PTR pMessageBroker = 
             DSL_MESSAGE_BROKER_NEW(brokerName.c_str(), brokerConfigFile.c_str(), 
                 protocolLib.c_str(), connectionString.c_str());
 
-        WHEN( "When the MessageBroker is connected" )
+        WHEN( "When the MessageBrokerModuleClient is connected" )
         {
             REQUIRE( pMessageBroker->Connect() == true );
             
-            THEN( "the MessageBroker can then be disconnected" )
+            THEN( "the MessageBrokerModuleClient can then be disconnected" )
             {
                 REQUIRE( pMessageBroker->Disconnect() == true );
             }
@@ -130,9 +131,10 @@ static void connection_listener_cb_3(void* client_data, uint status)
 }
     
     
-SCENARIO( "An unconnected MessageBroker fails subscriber add", "[MessageBroker]" )
+SCENARIO( "An unconnected MessageBrokerModuleClient fails subscriber add", 
+	"[MessageBrokerModuleClient]" )
 {
-    GIVEN( "A new MessageBroker" )
+    GIVEN( "A new MessageBrokerModuleClient" )
     {
         DSL_MESSAGE_BROKER_PTR pMessageBroker = 
             DSL_MESSAGE_BROKER_NEW(brokerName.c_str(), brokerConfigFile.c_str(), 
@@ -142,7 +144,7 @@ SCENARIO( "An unconnected MessageBroker fails subscriber add", "[MessageBroker]"
         {
             const char* topics[] = {topic1.c_str(), NULL};
             
-            THEN( "the MessageBroker fails to add a Subscriber" )
+            THEN( "the MessageBrokerModuleClient fails to add a Subscriber" )
             {
                 REQUIRE( pMessageBroker->AddSubscriber(message_subscriber_cb_1,
                     topics, 1, NULL) == false );
@@ -152,9 +154,10 @@ SCENARIO( "An unconnected MessageBroker fails subscriber add", "[MessageBroker]"
     }
 }
 
-SCENARIO( "A connected MessageBroker can add and remove a subscriber", "[MessageBroker]" )
+SCENARIO( "A connected MessageBrokerModuleClient can add and remove a subscriber", 
+	"[MessageBrokerModuleClient]" )
 {
-    GIVEN( "A new MessageBroker" )
+    GIVEN( "A new MessageBrokerModuleClient" )
     {
         DSL_MESSAGE_BROKER_PTR pMessageBroker = 
             DSL_MESSAGE_BROKER_NEW(brokerName.c_str(), brokerConfigFile.c_str(), 
@@ -173,7 +176,7 @@ SCENARIO( "A connected MessageBroker can add and remove a subscriber", "[Message
             REQUIRE( pMessageBroker->AddSubscriber(message_subscriber_cb_1,
                 topics, 1, NULL) == false );
             
-            THEN( "the MessageBroker can then be disconnected" )
+            THEN( "the MessageBrokerModuleClient can then be disconnected" )
             {
                 REQUIRE( pMessageBroker->RemoveSubscriber(message_subscriber_cb_1) == true );
 
@@ -187,9 +190,10 @@ SCENARIO( "A connected MessageBroker can add and remove a subscriber", "[Message
     }
 }
 
-SCENARIO( "A MessageBroker routes message to three subscribers correctly", "[MessageBroker]" )
+SCENARIO( "A MessageBrokerModuleClient routes message to three subscribers correctly", 
+	"[MessageBrokerModuleClient]" )
 {
-    GIVEN( "A new MessageBroker" )
+    GIVEN( "A new MessageBrokerModuleClient" )
     {
         DSL_MESSAGE_BROKER_PTR pMessageBroker = 
             DSL_MESSAGE_BROKER_NEW(brokerName.c_str(), brokerConfigFile.c_str(), 
@@ -206,7 +210,7 @@ SCENARIO( "A MessageBroker routes message to three subscribers correctly", "[Mes
             pMessageBroker->HandleIncomingMessage(NV_MSGBROKER_API_OK, (void*)0x1234567812345678,
                 123, const_cast<char*>(topic2.c_str()));
                 
-            THEN( "the MessageBroker logs the correct warning response" )
+            THEN( "the MessageBrokerModuleClient logs the correct warning response" )
             {
                 // NOTE: requires manual/visual verification
                 REQUIRE( pMessageBroker->Disconnect() == true );
@@ -223,14 +227,14 @@ SCENARIO( "A MessageBroker routes message to three subscribers correctly", "[Mes
             REQUIRE( pMessageBroker->AddSubscriber(message_subscriber_cb_3,
                 topics3, 1, NULL) == true );
             
-            pMessageBroker->HandleIncomingMessage(NV_MSGBROKER_API_OK, (void*)0x1234567812345678,
-                123, const_cast<char*>(topic1.c_str()));
+            pMessageBroker->HandleIncomingMessage(NV_MSGBROKER_API_OK, 
+				(void*)0x1234567812345678, 123, const_cast<char*>(topic1.c_str()));
                 
-            pMessageBroker->HandleIncomingMessage(NV_MSGBROKER_API_OK, (void*)0x1234567812345678,
-                123, const_cast<char*>(topic2.c_str()));
+            pMessageBroker->HandleIncomingMessage(NV_MSGBROKER_API_OK, 
+				(void*)0x1234567812345678, 123, const_cast<char*>(topic2.c_str()));
                 
-            pMessageBroker->HandleIncomingMessage(NV_MSGBROKER_API_OK, (void*)0x1234567812345678,
-                123, const_cast<char*>(topic3.c_str()));
+            pMessageBroker->HandleIncomingMessage(NV_MSGBROKER_API_OK, 
+				(void*)0x1234567812345678, 123, const_cast<char*>(topic3.c_str()));
                 
             THEN( "the correct Subscriber is called for each" )
             {
@@ -246,9 +250,10 @@ SCENARIO( "A MessageBroker routes message to three subscribers correctly", "[Mes
     }
 }
 
-SCENARIO( "A MessageBroker routes messages for multiple topics to a single Subscriber", "[MessageBroker]" )
+SCENARIO( "A MessageBrokerModuleClient routes messages for multiple topics to a single Subscriber", 
+	"[MessageBrokerModuleClient]" )
 {
-    GIVEN( "A new MessageBroker" )
+    GIVEN( "A new MessageBrokerModuleClient" )
     {
         DSL_MESSAGE_BROKER_PTR pMessageBroker = 
             DSL_MESSAGE_BROKER_NEW(brokerName.c_str(), brokerConfigFile.c_str(), 
@@ -264,13 +269,16 @@ SCENARIO( "A MessageBroker routes messages for multiple topics to a single Subsc
         WHEN( "When the broker receives three messages from the server" )
         {
             
-            pMessageBroker->HandleIncomingMessage(NV_MSGBROKER_API_OK, (void*)0x1234567812345678,
+            pMessageBroker->HandleIncomingMessage(NV_MSGBROKER_API_OK, 
+				(void*)0x1234567812345678,
                 123, const_cast<char*>(topic1.c_str()));
                 
-            pMessageBroker->HandleIncomingMessage(NV_MSGBROKER_API_OK, (void*)0x1234567812345678,
+            pMessageBroker->HandleIncomingMessage(NV_MSGBROKER_API_OK, 
+				(void*)0x1234567812345678,
                 123, const_cast<char*>(topic2.c_str()));
                 
-            pMessageBroker->HandleIncomingMessage(NV_MSGBROKER_API_OK, (void*)0x1234567812345678,
+            pMessageBroker->HandleIncomingMessage(NV_MSGBROKER_API_OK, 
+				(void*)0x1234567812345678,
                 123, const_cast<char*>(topic3.c_str()));
                 
             THEN( "the single Subscriber is called for all" )
@@ -290,9 +298,10 @@ void async_response(void *user_ptr,  uint status)
     std::cout << "response callback called \n";
 }
 
-SCENARIO( "A connected MessageBroker can send a message asynchronously", "[MessageBroker]" )
+SCENARIO( "A connected MessageBrokerModuleClient can send a message asynchronously", 
+	"[MessageBrokerModuleClient]" )
 {
-    GIVEN( "A new MessageBroker" )
+    GIVEN( "A new MessageBrokerModuleClient" )
     {
         DSL_MESSAGE_BROKER_PTR pMessageBroker = 
             DSL_MESSAGE_BROKER_NEW(brokerName.c_str(), brokerConfigFile.c_str(), 
@@ -318,9 +327,10 @@ SCENARIO( "A connected MessageBroker can send a message asynchronously", "[Messa
     }
 }
 
-SCENARIO( "A MessageBroker calls all Connection Listeners correctly", "[MessageBroker]" )
+SCENARIO( "A MessageBrokerModuleClient calls all Connection Listeners correctly", 
+	"[MessageBrokerModuleClient]" )
 {
-    GIVEN( "A new MessageBroker" )
+    GIVEN( "A new MessageBrokerModuleClient" )
     {
         DSL_MESSAGE_BROKER_PTR pMessageBroker = 
             DSL_MESSAGE_BROKER_NEW(brokerName.c_str(), brokerConfigFile.c_str(), 

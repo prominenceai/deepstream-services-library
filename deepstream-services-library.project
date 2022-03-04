@@ -59,6 +59,7 @@
       <File Name="examples/python/rtsp_player_to_test_connections.py"/>
       <File Name="examples/python/semantic_segmentation.py"/>
       <File Name="examples/python/message_broker_azure_device_client.py"/>
+      <File Name="examples/python/message_broker_azure_module_client.py"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="src">
@@ -234,7 +235,8 @@
       <File Name="test/unit/DslPadProbeHandlerUnitTest.cpp"/>
       <File Name="test/unit/DslOdeActionUnitTest.cpp"/>
       <File Name="test/unit/DslMessageBrokerStubs.h"/>
-      <File Name="test/unit/DslMessageBrokerUnitTest.cpp"/>
+      <File Name="test/unit/DslMessageBrokerAzureModuleClientUnitTest.cpp"/>
+      <File Name="test/unit/DslMessageBrokerAzureDeviceClientUnitTest.cpp"/>
     </VirtualDirectory>
     <File Name="test/catch.hpp"/>
     <File Name="test/DslCatch.cpp"/>
