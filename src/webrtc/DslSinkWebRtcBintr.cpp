@@ -46,16 +46,16 @@ namespace DSL
         switch (codec)
         {
         case DSL_CODEC_H264 :
-            m_pPayloader = DSL_ELEMENT_NEW("rtph264pay", "webrtc-sink-bin-h264-payloader");
+            m_pPayloader = DSL_ELEMENT_NEW("rtph264pay", name);
             break;
         case DSL_CODEC_H265 :
-            m_pPayloader = DSL_ELEMENT_NEW("rtph265pay", "webrtc-sink-bin-h265-payloader");
+            m_pPayloader = DSL_ELEMENT_NEW("rtph265pay", name);
             break;
         default:
             LOG_ERROR("Invalid codec = '" << codec << "' for new WebRtcSinkBintr '" << name << "'");
             throw;
         }
-        m_pWebRtcCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "webrtc-sink-bin-caps-filter");
+        m_pWebRtcCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
         
         GstCaps* pCaps = gst_caps_from_string("application/x-rtp,media=video,encoding-name=H264,payload=96");
         m_pWebRtcCapsFilter->SetAttribute("caps", pCaps);
@@ -88,7 +88,7 @@ namespace DSL
             LOG_ERROR("WebRtcSinkBintr '" << GetName() << "' is already linked");
         }
 
-        m_pWebRtcBin = DSL_ELEMENT_NEW("webrtcbin", "sink-bin-webrtc");
+        m_pWebRtcBin = DSL_ELEMENT_NEW("webrtcbin", name);
 
         // Set the STUN and/or TURN server 
         if (m_stunServer.size())

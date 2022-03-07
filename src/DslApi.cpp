@@ -6485,6 +6485,228 @@ uint dsl_mailer_list_size()
 {
     return DSL::Services::GetServices()->MailerListSize();
 }
+
+DslReturnType dsl_message_broker_new(const wchar_t* name, 
+    const wchar_t* broker_config_file, const wchar_t* protocol_lib, 
+    const wchar_t* connection_string)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(broker_config_file);
+    RETURN_IF_PARAM_IS_NULL(protocol_lib);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrBrokerConfig(broker_config_file);
+    std::string cstrBrokerConfig(wstrBrokerConfig.begin(), wstrBrokerConfig.end());
+    std::wstring wstrProtocolLib(protocol_lib);
+    std::string cstrProtocolLib(wstrProtocolLib.begin(), wstrProtocolLib.end());
+    
+    std::string cstrConn;
+    if (connection_string != NULL)
+    {
+        std::wstring wstrConn(connection_string);
+        cstrConn.assign(wstrConn.begin(), wstrConn.end());
+    }
+    
+    return DSL::Services::GetServices()->MessageBrokerNew(cstrName.c_str(), 
+        cstrBrokerConfig.c_str(), cstrProtocolLib.c_str(), cstrConn.c_str());
+}
+
+DslReturnType dsl_message_broker_settings_get(const wchar_t* name, 
+    const wchar_t** broker_config_file, const wchar_t**  protocol_lib,
+    const wchar_t** connection_string)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(broker_config_file);
+    RETURN_IF_PARAM_IS_NULL(protocol_lib);
+    RETURN_IF_PARAM_IS_NULL(connection_string);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cConfigFile;
+    static std::string cstrConfigFile;
+    static std::wstring wcstrConfigFile;
+    const char* cProtocolLib;
+    static std::string cstrProtocolLib;
+    static std::wstring wcstrProtocolLib;
+    const char* cConnStr;
+    static std::string cstrConnStr;
+    static std::wstring wcstrConnStr;
+    
+    uint retval = DSL::Services::GetServices()->MessageBrokerSettingsGet(
+        cstrName.c_str(), &cConfigFile, &cProtocolLib, &cConnStr);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrConfigFile.assign(cConfigFile);
+        wcstrConfigFile.assign(cstrConfigFile.begin(), cstrConfigFile.end());
+        *broker_config_file = wcstrConfigFile.c_str();
+        cstrProtocolLib.assign(cProtocolLib);
+        wcstrProtocolLib.assign(cstrProtocolLib.begin(), cstrProtocolLib.end());
+        *protocol_lib = wcstrProtocolLib.c_str();
+        cstrConnStr.assign(cConnStr);
+        wcstrConnStr.assign(cstrConnStr.begin(), cstrConnStr.end());
+        *connection_string = wcstrConnStr.c_str();
+    }
+    return retval;
+} 
+
+DslReturnType dsl_message_broker_settings_set(const wchar_t* name, 
+    const wchar_t* broker_config_file, const wchar_t* protocol_lib,
+    const wchar_t* connection_string)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(broker_config_file);
+    RETURN_IF_PARAM_IS_NULL(protocol_lib);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrBrokerConfig(broker_config_file);
+    std::string cstrBrokerConfig(wstrBrokerConfig.begin(), wstrBrokerConfig.end());
+    std::wstring wstrProtocolLib(protocol_lib);
+    std::string cstrProtocolLib(wstrProtocolLib.begin(), wstrProtocolLib.end());
+    
+
+    std::string cstrConn;
+    if (connection_string != NULL)
+    {
+        std::wstring wstrConn(connection_string);
+        cstrConn.assign(wstrConn.begin(), wstrConn.end());
+    }
+    
+    return DSL::Services::GetServices()->MessageBrokerSettingsSet(cstrName.c_str(), 
+        cstrBrokerConfig.c_str(), cstrProtocolLib.c_str(), 
+        cstrConn.c_str());
+}
+    
+DslReturnType dsl_message_broker_connect(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->MessageBrokerConnect(cstrName.c_str());
+}
+
+DslReturnType dsl_message_broker_disconnect(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->MessageBrokerDisconnect(cstrName.c_str());
+}
+
+DslReturnType dsl_message_broker_is_connected(const wchar_t* name,
+    boolean* connected)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->MessageBrokerIsConnected(cstrName.c_str(),
+        connected);
+}
+
+DslReturnType dsl_message_broker_message_send_async(const wchar_t* name,
+    const wchar_t* topic, void* message, size_t size, 
+    dsl_message_broker_send_result_listener_cb result_listener, void* user_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(result_listener);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrTopic;
+    if (topic != NULL)
+    {
+        std::wstring wstrTopic(topic);
+        cstrTopic.assign(wstrTopic.begin(), wstrTopic.end());
+    }
+
+    return DSL::Services::GetServices()->MessageBrokerMessageSendAsync(
+        cstrName.c_str(), cstrTopic.c_str(), message, size, result_listener, user_data);
+}
+    
+DslReturnType dsl_message_broker_subscriber_add(const wchar_t* name,
+    dsl_message_broker_subscriber_cb subscriber, const wchar_t** topics,
+    void* user_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(subscriber);
+    
+    const char** cTopics;
+    uint numTopics(0);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->MessageBrokerSubscriberAdd(
+        cstrName.c_str(), subscriber, cTopics, numTopics, user_data);
+}
+
+DslReturnType dsl_message_broker_subscriber_remove(const wchar_t* name,
+    dsl_message_broker_subscriber_cb subscriber)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(subscriber);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->MessageBrokerSubscriberRemove(
+        cstrName.c_str(), subscriber);
+}
+
+DslReturnType dsl_message_broker_connection_listener_add(const wchar_t* name,
+    dsl_message_broker_connection_listener_cb handler, void* user_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->MessageBrokerConnectionListenerAdd(
+        cstrName.c_str(), handler, user_data);
+}
+
+DslReturnType dsl_message_broker_connection_listener_remove(const wchar_t* name,
+    dsl_message_broker_connection_listener_cb handler)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->MessageBrokerConnectionListenerRemove(
+        cstrName.c_str(), handler);
+}
+
+DslReturnType dsl_message_broker_delete(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->MessageBrokerDelete(cstrName.c_str());
+}
+
+DslReturnType dsl_message_broker_delete_all()
+{
+    return DSL::Services::GetServices()->MessageBrokerDeleteAll();
+}
+
+uint dsl_message_broker_list_size()
+{
+    return DSL::Services::GetServices()->MessageBrokerListSize();
+}
     
 void dsl_delete_all()
 {

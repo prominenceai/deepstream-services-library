@@ -74,7 +74,7 @@ if retval != DSL_RETURN_SUCCESS:
 ```
 
 ## Getting Started
-* [Installing DSL Dependencies](/docs/building-dsl.md)
+* [Installing DSL Dependencies](/docs/installing-dependencies.md)
 * **Building and Importing DSL**
 
 ## API Reference
@@ -101,3 +101,4 @@ if retval != DSL_RETURN_SUCCESS:
 * [Component](/docs/api-component.md)
 * [Mailer](/docs/api-mailer.md)
 * [WebSocket Server](/docs/api-ws-server.md)
+* [Message Broker](/docs/api-msg-broker.md)

@@ -34,13 +34,15 @@ THE SOFTWARE.
 static const std::wstring pipeline_name(L"test-pipeline");
 
 static const std::wstring source_name1(L"uri-source");
-static const std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
+static const std::wstring uri(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 static const uint intr_decode(false);
 static const uint drop_frame_interval(0); 
 
 static const std::wstring primary_gie_name(L"primary-gie");
-static const std::wstring infer_config_file(L"./test/configs/config_infer_primary_nano.txt");
-static const std::wstring model_engine_file(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+static std::wstring infer_config_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
+static std::wstring model_engine_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
 
 static const std::wstring tracker_name(L"ktl-tracker");
 static const uint tracker_width(480);
@@ -64,14 +66,16 @@ static const uint sink_height(720);
 static const std::wstring window_sink_name(L"window-sink");
 
 static const std::wstring message_sink_name(L"message-sink");
-static const std::wstring converter_config_file(L"./test/configs/dstest4_msgconv_config.txt");
+static const std::wstring converter_config_file(
+	L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-test4/dstest4_msgconv_config.txt");
 static const std::wstring protocol_lib(NVDS_AZURE_PROTO_LIB);
 static const uint payload_type(DSL_MSG_PAYLOAD_DEEPSTREAM);
-static const std::wstring broker_config_file(L"./test/configs/cfg_azure.txt");
+static const std::wstring broker_config_file(
+	L"/opt/nvidia/deepstream/deepstream/sources/libs/azure_protocol_adaptor/device_client/cfg_azure.txt");
 
 // SET CONNECTION STRING
 static std::wstring connection_string(
-    L"HostName=prominenceai-hub.azure-devices.net;DeviceId=nano-1;SharedAccessKey=KBSMofZOA9VpWcCKwXaVbcHRdW5hXyiUnf5tr1MZSik="); 
+    L"HostName=my-hub.azure-devices.net;DeviceId=nano-1;SharedAccessKey=ABCDEFG12345678abcdefg"); 
     
 static std::wstring topic(L"DSL_MESSAGE_TOPIC");
 

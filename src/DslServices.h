@@ -32,6 +32,7 @@ THE SOFTWARE.
 #include "DslOdeArea.h"
 #include "DslOdeTrigger.h"
 #include "DslPipelineBintr.h"
+#include "DslMessageBroker.h"
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
 #elif GSTREAMER_SUB_VERSION >= 18
@@ -1145,6 +1146,48 @@ namespace DSL {
         DslReturnType MailerDeleteAll();
         
         uint MailerListSize();
+
+        DslReturnType MessageBrokerNew(const char* name,
+            const char* brokerConfigFile, const char* protocolLib, 
+            const char* connectionString);
+            
+        DslReturnType MessageBrokerSettingsGet(const char* name, 
+            const char** brokerConfigFile, const char** protocolLib, 
+            const char** connectionString);
+        
+        DslReturnType MessageBrokerSettingsSet(const char* name, 
+            const char* brokerConfigFile, const char* protocolLib,
+            const char* connectionString);
+
+        DslReturnType MessageBrokerConnect(const char* name);
+        
+        DslReturnType MessageBrokerDisconnect(const char* name);
+
+        DslReturnType MessageBrokerIsConnected(const char* name,
+            boolean* connected);
+
+        DslReturnType MessageBrokerMessageSendAsync(const char* name,
+            const char* topic, void* message, size_t size, 
+            dsl_message_broker_send_result_listener_cb result_listener, void* clientData);
+        
+        DslReturnType MessageBrokerSubscriberAdd(const char* name,
+            dsl_message_broker_subscriber_cb subscriber, const char** topics,
+            uint numTopics, void* userData);
+        
+        DslReturnType MessageBrokerSubscriberRemove(const char* name,
+            dsl_message_broker_subscriber_cb subscriber);
+        
+        DslReturnType MessageBrokerConnectionListenerAdd(const char* name,
+            dsl_message_broker_connection_listener_cb handler, void* userData);
+        
+        DslReturnType MessageBrokerConnectionListenerRemove(const char* name,
+            dsl_message_broker_connection_listener_cb handler);
+        
+        DslReturnType MessageBrokerDelete(const char* name);
+        
+        DslReturnType MessageBrokerDeleteAll();
+
+        uint MessageBrokerListSize();
         
         void DeleteAll();
         
@@ -1306,6 +1349,11 @@ namespace DSL {
          * @brief map of all pipeline components creaated by the client, key=name
          */
         std::map <std::string, std::shared_ptr<Bintr>> m_components;
+
+        /**
+         * @brief map of all message borkers creaated by the client, key=name
+         */
+        std::map <std::string, std::shared_ptr<MessageBroker>> m_messageBrokers;
         
         /**
          * @brief Each source is assigned a unique id for the life of the source.

@@ -45,19 +45,19 @@ namespace DSL
             throw;
         }
         
-        m_pSinkQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "dewarper-sink-queue");
-        m_pVidConv = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "dewarper-vid-conv");
-        m_pVidCaps = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "dewarper-vid-caps");
-        m_pDewarper = DSL_ELEMENT_NEW(NVDS_ELEM_DEWARPER, "dewarper");
-        m_pDewarperCaps = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "dewarper-caps");
-        m_pSrcQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "dewarper-src-queue");
+        m_pSinkQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvvideoconvert");
+        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
+        m_pVidCaps = DSL_ELEMENT_EXT_NEW("capsfilter", name, "nvdewarper");
+        m_pDewarper = DSL_ELEMENT_NEW("nvdewarper", name);
+        m_pDewarperCaps = DSL_ELEMENT_NEW("capsfilter", "queue");
+        m_pSrcQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src");
 
         m_pVidConv->SetAttribute("gpu-id", m_gpuId);
         m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
 
         // Set Capabilities filter for Video Converter 
         GstCaps* caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGBA", NULL);
-        gst_caps_set_features(caps, 0, gst_caps_features_new(MEMORY_FEATURES, NULL));
+        gst_caps_set_features(caps, 0, gst_caps_features_new("memory:NVMM", NULL));
         m_pVidCaps->SetAttribute("caps", caps);
         gst_caps_unref(caps);
 
