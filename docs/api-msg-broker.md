@@ -1,48 +1,13 @@
 # Message Broker API Reference
-Message Broker - TODO
+Message Broker - Work in progress (WIP)
 
 ---
 
 ## Protocol Adapters
-### [Azure MQTT Protocol Adapter Libraries](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvmsgbroker.html#azure-mqtt-protocol-adapter-libraries)
-
-#### Install Additional dependencies
-For an x86 computer running Ubuntu:
-```
-sudo apt-get install -y libcurl3 libssl-dev uuid-dev libglib2.0 libglib2.0-dev
-```
-For Jetson:
-```
-sudo apt-get install -y libcurl4-openssl-dev libssl-dev uuid-dev libglib2.0 libglib2.0-dev
-```
-#### Setup an Azure IoT Hub Instance
-Follow the directions at https://docs.microsoft.com/en-us/azure/iot-hub/tutorial-connectivity#create-an-iot-hub.
-
-#### Setup Broker Config File - specific to the protocol adpater library used
-
-**For the Device-Client protocol adapter** - device-to-cloud messaging - use
-* `/opt/nvidia/deepstream/deepstream/lib/libnvds_azure_proto.so` - and
-* `/opt/nvidia/deepstream/deepstream/sources/libs/azure_protocol_adapter/device_client/ctg_azure` - as an example.
-
-**For the Model-Client protocol adapter** - bidirectional device-remote-entity messaging - use
-* `/opt/nvidia/deepstream/deepstream/lib/libnvds_azure_edge_proto.so` - and
-* `/opt/nvidia/deepstream/deepstream/sources/libs/azure_protocol_adapter/module_client/ctg_azure` - as an example.
-
-#### Setup set up Azure IoT Edge runtime on the edge device (require for Module-Client only)
-For an x86 computer running Ubuntu:
- * Follow the instructions here. https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux
-
-For Jetson:
-* The best approach is still DBD.
-
-### [AMQP Protocol Adapter](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvmsgbroker.html#amqp-protocol-adapter)
-Still to be tested.
-
-### [REDIS Protocol Adapter](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvmsgbroker.html#redis-protocol-adapter)
-Still to be tested.
-
-### [Kafka Protocol Adapter]()
-Still to be tested.
+* [Azure MQTT Protocol Adapter Libraries](/docs/proto-lib-azure.md)
+* AMQP Protocol Adapter - still to be tested.
+* REDIS Protocol Adapter - still to be tested.
+* Kafka Protocol Adapter - still to be tested.
 
 --- 
 ## ODE Action API
