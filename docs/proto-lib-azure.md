@@ -29,22 +29,17 @@ Currently, the only way to use Azure CLI on ARM64 is to install from PyPI (https
 ```
 pip3 install azure-cli
 ```
+If the install fails see [Failure installing azure-cli on Jetson](#failure-installing-azure-cli-on-jetson) under [Trouble Shooting](#trouble-shooting).
+
+Once installation is complete you will need to reboot the device
+```bash
+sudo reboot
+```
 Verify the installation with.
 ```bash
 az --version
 ```
-
-If the command fails with 
-```
-/usr/bin/az: line 2: /opt/az/bin/python3: cannot execute binary file: Exec format error
-
-```
-
-You have an invalid debian version installed which can be removed with.
-```bash
-sudo apt-get remove -y azure-cli
-```
-Open a new terminal and re-verify.
+If the verification command fails see [Failure varifying azure-cli install on Jetson](#failure-varifying-azure-cli-intall-on-jetson) under [Trouble Shooting](#trouble-shooting).
 
 ### Add the azure-iot extension.
 ``` bash
@@ -57,7 +52,7 @@ Log into to your Azure IoT Hub on the cloud from your device terminal window. Th
 az login
 ```
 
-Create an IoT edge device identiy from you device terminal with the following command.
+Create an IoT edge device from you device terminal with the following command.
 ```bash
 az iot hub device-identity create --device-id <device-id> --hub-name <hub-name> --edge-enabled
 ```
@@ -65,7 +60,7 @@ where
 * `<device-id>` =  name (string) to identify the new device
 * `<hub-name>` = the hub-name you used when you [Setup an Azure IoT Hub Instance](setup_an_azure_iot_hub_instance) above.
 
-Verify the device identity creation with the following command. 
+Verify the device creation with the following command. 
 ```bash
 az iot hub device-identity list --hub-name <hub-name>
 ```
@@ -93,6 +88,11 @@ Enter the following commands.
 sudo apt-get -y install libffi-dev jq python-pip
 pip3 install iotedgedev
 sudo mv ~/.local/bin/iotedgedev /usr/local/bin
+```
+Install curl 
+```bash
+sudo apt update
+sudo apt install curl
 ```
 Download and install the standard libiothsm implementation
 ```bash
@@ -190,3 +190,52 @@ Verify the module deployment with the following command.
 ```bash
 iotedge list
 ```
+
+## Trouble Shooting
+### Failure installing azure-cli on Jetson.
+If the command to intall azure-cli using pip3 fails with the following module dependency errors
+```
+    No package 'libffi' found
+    c/_cffi_backend.c:15:10: fatal error: ffi.h: No such file or directory
+     #include <ffi.h>
+              ^~~~~~~
+    compilation terminated.
+```
+Install the dev suite of `libffi` as follows:
+```bash
+sudo apt-get install libffi6 libffi-dev
+```
+
+If the command to install fails with the following error
+```
+    Traceback (most recent call last):
+      File "<string>", line 1, in <module>
+      File "/tmp/pip-build-jshgucrb/cryptography/setup.py", line 14, in <module>
+        from setuptools_rust import RustExtension
+    ModuleNotFoundError: No module named 'setuptools_rust'
+    
+            =============================DEBUG ASSISTANCE==========================
+            If you are seeing an error here please try the following to
+            successfully install cryptography:
+    
+            Upgrade to the latest pip and try again. This will fix errors for most
+            users. See: https://pip.pypa.io/en/stable/installing/#upgrading-pip
+            =============================DEBUG ASSISTANCE==========================
+```
+Upgrade to the latest version of `setuptools` with 
+```bash
+sudo apt-get install python3-setuptools
+```
+
+### Failure varifying azure-cli install on Jetson
+If the command `az --version ` fails with 
+```
+/usr/bin/az: line 2: /opt/az/bin/python3: cannot execute binary file: Exec format error
+
+```
+
+You have an invalid debian version installed which can be removed with.
+```bash
+sudo apt-get remove -y azure-cli
+```
+Open a new terminal and re-verify.
