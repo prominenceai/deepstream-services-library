@@ -1,8 +1,8 @@
 [![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/prominenceai/deepstream-services-library?include_prereleases)](https://github.com/canammex-tech/deepstream-services-library/releases)
 [![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/prominenceai/deepstream-services-library/blob/master/LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/ansicolortags/badge/?version=latest)](https://github.com/prominenceai/deepstream-services-library/blob/master/docs/overview.md)
-[![Ask Me Anything!](https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg)](https://discord.com/channels/750454524849684540/750457019260993636)
-[![](https://dcbadge.vercel.app/api/shield/rjhowell44#3682?style=flat?theme=discord)]()
+[![Ask Me Anything!](https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg)](https://github.com/prominenceai/deepstream-services-library/issues/new/choose)
+[![](https://dcbadge.vercel.app/api/shield/676582645760786528?style=flat?theme=discord)](https://github.com/prominenceai/deepstream-services-library/Issues)
 
 ![](/Images/under-construction.png)
 
