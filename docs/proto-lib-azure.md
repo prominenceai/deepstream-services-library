@@ -115,16 +115,6 @@ provisioning:
   source: "manual"
   device_connection_string: "<ADD DEVICE CONNECTION STRING HERE>"
 ```
-Update the default IoT Edge `agent` configuration to pull the 1.0.8-rc1 version of the agent.
-```yaml
-agent:
-  name: "edgeAgent"
-  type: "docker"
-  env: {}
-  config:
-    image: "mcr.microsoft.com/azureiotedge-agent:1.0.8-rc1"
-    auth: {}
-```
 
 Restart the IoT Edge service
 ```bash
@@ -190,6 +180,14 @@ Verify the module deployment with the following command.
 ```bash
 iotedge list
 ```
+You should see the following
+```
+NAME             STATUS           DESCRIPTION      CONFIG
+edgeAgent        running          Up 2 minutes     mcr.microsoft.com/azureiotedge-agent:1.0
+edgeHub          running          Up 2 minutes     mcr.microsoft.com/azureiotedge-hub:1.0
+```
+
+
 
 ## Trouble Shooting
 ### Failure installing azure-cli on Jetson.
