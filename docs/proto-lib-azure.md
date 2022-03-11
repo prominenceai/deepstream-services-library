@@ -7,7 +7,7 @@ NVIDIA provides two protocol libraries installed with DeepStream under `/opt/nvi
 ### Install Additional device dependencies
 #### For an x86 computer running Ubuntu:
 ```
-sudo apt-get install -y libcurl3 libssl-dev uuid-dev libglib2.0 libglib2.0-dev
+sudo apt-get install -y libcurl3 libssl-dev uuid-dev libglib2.0 libglib2.0-dev libffi6 ibffi-dev
 ```
 #### For Jetson:
 ```
@@ -72,10 +72,16 @@ az iot hub device-identity list --hub-name <hub-name>
 ```
 Or check from your Azure IoT Hub instance on the cloud. From your hub dashboard, select the **`IoT Edge`** item in the left menu pane, you should then seem your device listed in the main window.
 
+![](/Images/new-azure-iot-edge-device.png)
+
 Get the connection string for your new device
 ```bash
 az iot hub device-identity connection-string show --device-id <device-id> --hub-name <hub-name>
 ```
+Or copy the `Primary Connection String` from your Azure IoT Hub instance by selecting the device name on IoT Edge main page (see image above).
+
+![](/Images/azure-iot-edge-device-details.png)
+
 You will need the connection-string to use the [Message Sink](/docs/api-sink#dsl_sink_message_new) and [Message Broker API](/docs/api-msg-broker.md).
 Your device setup is now sufficient to use the Device Client `libnvds_azure_proto.so` with the following examples.
 * [ode_instance_trigger_message_server.py](/examples/python/ode_instance_trigger_message_server.py)
@@ -91,9 +97,13 @@ Follow the instructions here. https://docs.microsoft.com/en-us/azure/iot-edge/ho
 #### For Jetson:
 Enter the following commands.
 ```bash
-sudo apt-get -y install libffi-dev jq python-pip
 pip3 install iotedgedev
 sudo mv ~/.local/bin/iotedgedev /usr/local/bin
+```
+Install curl
+```bash
+sudo apt update
+sudo apt install curl
 ```
 Download and install the standard libiothsm implementation
 ```bash
@@ -117,9 +127,25 @@ provisioning:
   device_connection_string: "<ADD DEVICE CONNECTION STRING HERE>"
 ```
 
-Restart the IoT Edge service
+Restart the IoT Edge service with the following command
 ```bash
 service iotedge restart
+```
+Verify the status of the IoT Edge Service by entering
+```bash
+systemctl status iotedge
+```
+You should see the following status output - press `Ctrl C` to exit
+```
+● iotedge.service - Azure IoT Edge daemon
+   Loaded: loaded (/lib/systemd/system/iotedge.service; enabled; vendor preset: enabled)
+   Active: active (running) since Thu 2022-03-10 23:20:15 PST; 4min 51s ago
+     Docs: man:iotedged(8)
+ Main PID: 14728 (iotedged)
+    Tasks: 11 (limit: 4172)
+   CGroup: /system.slice/iotedge.service
+           └─14728 /usr/bin/iotedged -c /etc/iotedge/config.yaml
+
 ```
 
 ### Build and deploy a Docker Image
