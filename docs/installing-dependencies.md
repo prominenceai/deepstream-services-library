@@ -1,5 +1,5 @@
 # Installing DSL Dependencies
-The DeepStream Services Library (DSL) is built on the NVIDA® [DeepStream SDK](https://developer.nvidia.com/deepstream-sdk) and requires all SDK components to be installed and verified. 
+The DeepStream Services Library (DSL) is built on the NVIDA® [DeepStream SDK](https://developer.nvidia.com/deepstream-sdk) and requires all SDK components to be installed and verified.
 
 Please consult the [NVIDIA DeepStream Quick Start Guide](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Quickstart.html) for complete Installation Instructions.
 
@@ -60,9 +60,9 @@ sudo apt-get install libapr1 libapr1-dev libaprutil1 libaprutil1-dev
 ```
 
 ### Geometry Engine, Open Source (GEOS)
-DSL uses the [GEOS](https://trac.osgeo.org/geos) C Library `libgeos-dev` - specifically, a set of spacial predicate functions for determining if geometries - points, lines, polygons - touch, cross, ovelap, etc. 
+DSL uses the [GEOS](https://trac.osgeo.org/geos) C Library `libgeos-dev` - specifically, a set of spatial predicate functions for determining if geometries - points, lines, polygons - touch, cross, overlap, etc.
 ```
-sudo apt install libgeos-dev 
+sudo apt install libgeos-dev
 ```
 
 ### Open Computer Vision
