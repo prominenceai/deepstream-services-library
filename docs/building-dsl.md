@@ -88,7 +88,9 @@ make dox
 ### Running the Test Application
 ***This step is optional unless contributing changes.***
 
-#### *Note: The Model Engine files, and other assets required to run the Tests are not checked into this repository as they exceed GitHub's size restrictions. You will not be able to run the tests after building. We are working to remedy this in an upcoming release.*
+Current requirements and limitations.
+* Many of test cases have a dependency on the Nano versions of the caffemodel engine files.
+* Triton inference server installation is required.
 
 Once the test executable has been built, it can be run with the command below.
 
