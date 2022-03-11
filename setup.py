@@ -26,6 +26,7 @@
 
 from os import system
 
+system('mkdir -p "`python3 -m site --user-site`"')
 system('cp -rf ./dsl.py "`python3 -m site --user-site`"')
 
 
