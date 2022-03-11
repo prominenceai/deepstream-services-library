@@ -7,11 +7,17 @@ NVIDIA provides two protocol libraries installed with DeepStream under `/opt/nvi
 ### Install Additional device dependencies
 #### For an x86 computer running Ubuntu:
 ```
-sudo apt-get install -y libcurl3 libssl-dev uuid-dev libglib2.0 libglib2.0-dev
+sudo apt-get install -y libcurl3 libssl-dev uuid-dev libglib2.0 libglib2.0-dev libffi6 ibffi-dev
 ```
 #### For Jetson:
 ```
-sudo apt-get install -y libcurl4-openssl-dev libssl-dev uuid-dev libglib2.0 libglib2.0-dev
+sudo apt-get install -y libcurl4-openssl-dev libssl-dev uuid-dev libglib2.0 libglib2.0-dev libffi6 libffi-dev
+```
+
+Ensure that all `python` dependencies have been installed and that you are using the latest version of `pip`
+```bash
+sudo apt-get install -y python3-pip python-pip python3-setuptools
+sudo pip3 install --upgrade pip
 ```
 
 ### Setup an Azure IoT Hub Instance
@@ -29,22 +35,17 @@ Currently, the only way to use Azure CLI on ARM64 is to install from PyPI (https
 ```
 pip3 install azure-cli
 ```
+If the install fails see [Failure installing azure-cli on Jetson](#failure-installing-azure-cli-on-jetson) under [Trouble Shooting](#trouble-shooting).
+
+***Important: once the installation is complete you will need to reboot the device!***
+```bash
+sudo reboot
+```
 Verify the installation with.
 ```bash
 az --version
 ```
-
-If the command fails with 
-```
-/usr/bin/az: line 2: /opt/az/bin/python3: cannot execute binary file: Exec format error
-
-```
-
-You have an invalid debian version installed which can be removed with.
-```bash
-sudo apt-get remove -y azure-cli
-```
-Open a new terminal and re-verify.
+If the verification command fails see [Failure varifying azure-cli install on Jetson](#failure-varifying-azure-cli-intall-on-jetson) under [Trouble Shooting](#trouble-shooting).
 
 ### Add the azure-iot extension.
 ``` bash
@@ -57,7 +58,7 @@ Log into to your Azure IoT Hub on the cloud from your device terminal window. Th
 az login
 ```
 
-Create an IoT edge device identiy from you device terminal with the following command.
+Create an IoT edge device from you device terminal with the following command.
 ```bash
 az iot hub device-identity create --device-id <device-id> --hub-name <hub-name> --edge-enabled
 ```
@@ -65,16 +66,22 @@ where
 * `<device-id>` =  name (string) to identify the new device
 * `<hub-name>` = the hub-name you used when you [Setup an Azure IoT Hub Instance](setup_an_azure_iot_hub_instance) above.
 
-Verify the device identity creation with the following command. 
+Verify the device creation with the following command. 
 ```bash
 az iot hub device-identity list --hub-name <hub-name>
 ```
 Or check from your Azure IoT Hub instance on the cloud. From your hub dashboard, select the **`IoT Edge`** item in the left menu pane, you should then seem your device listed in the main window.
 
+![](/Images/new-azure-iot-edge-device.png)
+
 Get the connection string for your new device
 ```bash
 az iot hub device-identity connection-string show --device-id <device-id> --hub-name <hub-name>
 ```
+Or copy the `Primary Connection String` from your Azure IoT Hub instance by selecting the device name on IoT Edge main page (see image above).
+
+![](/Images/azure-iot-edge-device-details.png)
+
 You will need the connection-string to use the [Message Sink](/docs/api-sink#dsl_sink_message_new) and [Message Broker API](/docs/api-msg-broker.md).
 Your device setup is now sufficient to use the Device Client `libnvds_azure_proto.so` with the following examples.
 * [ode_instance_trigger_message_server.py](/examples/python/ode_instance_trigger_message_server.py)
@@ -90,9 +97,13 @@ Follow the instructions here. https://docs.microsoft.com/en-us/azure/iot-edge/ho
 #### For Jetson:
 Enter the following commands.
 ```bash
-sudo apt-get -y install libffi-dev jq python-pip
 pip3 install iotedgedev
 sudo mv ~/.local/bin/iotedgedev /usr/local/bin
+```
+Install curl
+```bash
+sudo apt update
+sudo apt install curl
 ```
 Download and install the standard libiothsm implementation
 ```bash
@@ -115,20 +126,26 @@ provisioning:
   source: "manual"
   device_connection_string: "<ADD DEVICE CONNECTION STRING HERE>"
 ```
-Update the default IoT Edge `agent` configuration to pull the 1.0.8-rc1 version of the agent.
-```yaml
-agent:
-  name: "edgeAgent"
-  type: "docker"
-  env: {}
-  config:
-    image: "mcr.microsoft.com/azureiotedge-agent:1.0.8-rc1"
-    auth: {}
-```
 
-Restart the IoT Edge service
+Restart the IoT Edge service with the following command
 ```bash
 service iotedge restart
+```
+Verify the status of the IoT Edge Service by entering
+```bash
+systemctl status iotedge
+```
+You should see the following status output - press `Ctrl C` to exit
+```
+● iotedge.service - Azure IoT Edge daemon
+   Loaded: loaded (/lib/systemd/system/iotedge.service; enabled; vendor preset: enabled)
+   Active: active (running) since Thu 2022-03-10 23:20:15 PST; 4min 51s ago
+     Docs: man:iotedged(8)
+ Main PID: 14728 (iotedged)
+    Tasks: 11 (limit: 4172)
+   CGroup: /system.slice/iotedge.service
+           └─14728 /usr/bin/iotedged -c /etc/iotedge/config.yaml
+
 ```
 
 ### Build and deploy a Docker Image
@@ -190,3 +207,61 @@ Verify the module deployment with the following command.
 ```bash
 iotedge list
 ```
+You should see the following
+```
+NAME             STATUS           DESCRIPTION      CONFIG
+edgeAgent        running          Up 2 minutes     mcr.microsoft.com/azureiotedge-agent:1.0
+edgeHub          running          Up 2 minutes     mcr.microsoft.com/azureiotedge-hub:1.0
+```
+
+
+
+## Trouble Shooting
+### Failure installing azure-cli on Jetson.
+If the command to intall azure-cli using pip3 fails with the following module dependency errors
+```
+    No package 'libffi' found
+    c/_cffi_backend.c:15:10: fatal error: ffi.h: No such file or directory
+     #include <ffi.h>
+              ^~~~~~~
+    compilation terminated.
+```
+Install the dev suite of `libffi` as follows:
+```bash
+sudo apt-get install libffi6 libffi-dev
+```
+
+If the command to install fails with the following error
+```
+    Traceback (most recent call last):
+      File "<string>", line 1, in <module>
+      File "/tmp/pip-build-jshgucrb/cryptography/setup.py", line 14, in <module>
+        from setuptools_rust import RustExtension
+    ModuleNotFoundError: No module named 'setuptools_rust'
+    
+            =============================DEBUG ASSISTANCE==========================
+            If you are seeing an error here please try the following to
+            successfully install cryptography:
+    
+            Upgrade to the latest pip and try again. This will fix errors for most
+            users. See: https://pip.pypa.io/en/stable/installing/#upgrading-pip
+            =============================DEBUG ASSISTANCE==========================
+```
+Upgrade to the latest version of `setuptools` and `pip` with the following commands
+```bash
+sudo apt-get install python3-setuptools
+sudo pip3 install --upgrade pip
+```
+
+### Failure varifying azure-cli install on Jetson
+If the command `az --version ` fails with 
+```
+/usr/bin/az: line 2: /opt/az/bin/python3: cannot execute binary file: Exec format error
+
+```
+
+You have an invalid debian version installed which can be removed with.
+```bash
+sudo apt-get remove -y azure-cli
+```
+Open a new terminal and re-verify.
