@@ -7,7 +7,7 @@ There are a few simple steps to creating the shared library, `libdsl.so`.
 2. Use the make (all) default to build the `dsl-test-app` executable
 3. Use `sudo make lib` command to build the object files into `libdsl.so`
 4. Generate  caffemodel engine files (optional)
-5. Import the shared lib using Python3 
+5. Import the shared lib using Python3
 6. Run the `dsl-test-app` to verify DSL changes (optional)
 
 ### Clone the Repository
@@ -34,7 +34,7 @@ make -j 4
 to use 4 CPU cores for the parallel.
 
 ### Make and install the shared library
-Once the object files have been created by calling `make`, the source-only objects can be re-linked into the `libdsl.so` with the following Makefile option. Root level privledges are required for the Makefile to copy the lib to `/usr/local/lib` once built.
+Once the object files have been created by calling `make`, the source-only objects can be re-linked into the `libdsl.so` with the following Makefile option. Root level privileges are required for the Makefile to copy the lib to `/usr/local/lib` once built.
 
 ```
 sudo make lib
@@ -58,7 +58,7 @@ The following files are generated (Jetson Nano versions by default)
 /opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_fp16.engine
 /opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypesresnet18.caffemodel_b8_gpu0_fp16.engine
 ```
-Update the Primary detector path specification in the script to generate files for other devices. 
+Update the Primary detector path specification in the script to generate files for other devices.
 
 
 ### Import the shared lib using Python3
