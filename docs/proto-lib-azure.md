@@ -11,7 +11,13 @@ sudo apt-get install -y libcurl3 libssl-dev uuid-dev libglib2.0 libglib2.0-dev
 ```
 #### For Jetson:
 ```
-sudo apt-get install -y libcurl4-openssl-dev libssl-dev uuid-dev libglib2.0 libglib2.0-dev
+sudo apt-get install -y libcurl4-openssl-dev libssl-dev uuid-dev libglib2.0 libglib2.0-dev libffi6 libffi-dev
+```
+
+Ensure that all `python` dependencies have been installed and that you are using the latest version of `pip`
+```bash
+sudo apt-get install -y python3-pip python-pip python3-setuptools
+sudo pip3 install --upgrade pip
 ```
 
 ### Setup an Azure IoT Hub Instance
@@ -31,7 +37,7 @@ pip3 install azure-cli
 ```
 If the install fails see [Failure installing azure-cli on Jetson](#failure-installing-azure-cli-on-jetson) under [Trouble Shooting](#trouble-shooting).
 
-Once installation is complete you will need to reboot the device
+***Important: once the installation is complete you will need to reboot the device!***
 ```bash
 sudo reboot
 ```
@@ -88,11 +94,6 @@ Enter the following commands.
 sudo apt-get -y install libffi-dev jq python-pip
 pip3 install iotedgedev
 sudo mv ~/.local/bin/iotedgedev /usr/local/bin
-```
-Install curl 
-```bash
-sudo apt update
-sudo apt install curl
 ```
 Download and install the standard libiothsm implementation
 ```bash
@@ -220,9 +221,10 @@ If the command to install fails with the following error
             users. See: https://pip.pypa.io/en/stable/installing/#upgrading-pip
             =============================DEBUG ASSISTANCE==========================
 ```
-Upgrade to the latest version of `setuptools` with 
+Upgrade to the latest version of `setuptools` and `pip` with the following commands
 ```bash
 sudo apt-get install python3-setuptools
+sudo pip3 install --upgrade pip
 ```
 
 ### Failure varifying azure-cli install on Jetson
