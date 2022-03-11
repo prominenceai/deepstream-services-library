@@ -62,12 +62,16 @@ Update the Primary detector path specification in the script to generate files f
 
 
 ### Import the shared lib using Python3
-The shared lib `libdsl.so` is mapped to Python3 using [CTypes](https://docs.python.org/3/library/ctypes.html) in the python module `dsl.py`, also located in the DSL root folder.
+The shared lib `libdsl.so` is mapped to Python3 using [CTypes](https://docs.python.org/3/library/ctypes.html) in the python module `dsl.py`. 
 
+Run the `setup.py` script in the DSL root folder to install `dsl.py`.
+```bash
+python3 ./setup.py
+```
+
+Import dsl into your python code.
 ```python
-import sys
-# add path to dsl.py module
-sys.path.insert(0, "../../")
+#!/usr/bin/env python
 from dsl import *
 
 # New CSI Live Camera Source
