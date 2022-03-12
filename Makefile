@@ -31,6 +31,7 @@ LIB:= libdsl
 CXX = g++
 
 TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
+USER_SITE = "`python3 -m site --user-site`"
 
 CXX_VERSION:=c++17
 DSL_VERSION:='L"v0.23.alpha"'
@@ -169,10 +170,23 @@ $(APP): $(OBJS) Makefile
 	$(CXX) -o $(APP) $(OBJS) $(LIBS)
 
 lib:
+	@echo ----------------------------------------------------------------------
+	@echo -- NOTICE: '"make lib"' has been replaced with '"sudo make install"'
+	@echo ----------------------------------------------------------------------
+	
+install:
+	if [ ! -d "/tmp/.dsl" ]; then \
+		mkdir -p /tmp/.dsl; \
+		chmod -R a+rwX /tmp/.dsl; \
+	fi
 	ar rcs $(LIB).a $(OBJS)
 	ar dv $(LIB).a DslCatch.o $(TEST_OBJS)
 	$(CXX) -shared $(OBJS) -o $(LIB).so $(LIBS)
 	cp -f $(LIB).so /usr/local/lib
+	if [ ! -d $(USER_SITE) ]; then \
+		mkdir -p $(USER_SITE); \
+	fi
+	cp -rf ./dsl.py $(USER_SITE)
 	
 debug_lib:
 	$(CXX) -shared $(OBJS) -o $(LIB).so $(LIBS) 
