@@ -300,6 +300,5 @@
     <File Name="Makefile"/>
     <File Name="make_caffemodel_engine_files.py"/>
     <File Name="dsl.py"/>
-    <File Name="setup.py"/>
   </VirtualDirectory>
 </CodeLite_Project>
