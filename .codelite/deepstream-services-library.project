@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Project Name="deepstream-services-library" Version="10.0.0" InternalType="">
+  <Description/>
+  <Dependencies/>
+  <VirtualDirectory Name="src">
+    <File Name="../src/DslApi.cpp"/>
+    <File Name="../src/DslBranchBintr.cpp"/>
+    <File Name="../src/DslDewarperBintr.cpp"/>
+    <File Name="../src/DslDisplayTypes.cpp"/>
+    <File Name="../src/DslGeosTypes.cpp"/>
+    <File Name="../src/DslInferBintr.cpp"/>
+    <File Name="../src/DslMailer.cpp"/>
+    <File Name="../src/DslMessageBroker.cpp"/>
+    <File Name="../src/DslMultiComponentsBintr.cpp"/>
+    <File Name="../src/DslOdeAction.cpp"/>
+    <File Name="../src/DslOdeArea.cpp"/>
+    <File Name="../src/DslOdeTrigger.cpp"/>
+    <File Name="../src/DslOfvBintr.cpp"/>
+    <File Name="../src/DslOsdBintr.cpp"/>
+    <File Name="../src/DslPadProbeHandler.cpp"/>
+    <File Name="../src/DslPipelineBintr.cpp"/>
+    <File Name="../src/DslPipelineSInfersBintr.cpp"/>
+    <File Name="../src/DslPipelineSourcesBintr.cpp"/>
+    <File Name="../src/DslPipelineStateMgr.cpp"/>
+    <File Name="../src/DslPipelineXWinMgr.cpp"/>
+    <File Name="../src/DslPlayerBintr.cpp"/>
+    <File Name="../src/DslRecordMgr.cpp"/>
+    <File Name="../src/DslSegVisualBintr.cpp"/>
+    <File Name="../src/DslServices.cpp"/>
+    <File Name="../src/DslServicesBranch.cpp"/>
+    <File Name="../src/DslServicesComponent.cpp"/>
+    <File Name="../src/DslServicesDisplayType.cpp"/>
+    <File Name="../src/DslServicesInfer.cpp"/>
+    <File Name="../src/DslServicesMailer.cpp"/>
+    <File Name="../src/DslServicesMessageBroker.cpp"/>
+    <File Name="../src/DslServicesOdeAction.cpp"/>
+    <File Name="../src/DslServicesOdeArea.cpp"/>
+    <File Name="../src/DslServicesOdeTrigger.cpp"/>
+    <File Name="../src/DslServicesOsd.cpp"/>
+    <File Name="../src/DslServicesPipeline.cpp"/>
+    <File Name="../src/DslServicesPlayer.cpp"/>
+    <File Name="../src/DslServicesPph.cpp"/>
+    <File Name="../src/DslServicesSink.cpp"/>
+    <File Name="../src/DslServicesSource.cpp"/>
+    <File Name="../src/DslServicesTee.cpp"/>
+    <File Name="../src/DslServicesTiler.cpp"/>
+    <File Name="../src/DslServicesTracker.cpp"/>
+    <File Name="../src/DslSinkBintr.cpp"/>
+    <File Name="../src/DslSourceBintr.cpp"/>
+    <File Name="../src/DslTapBintr.cpp"/>
+    <File Name="../src/DslTilerBintr.cpp"/>
+    <File Name="../src/DslTrackerBintr.cpp"/>
+    <File Name="../src/Dsl.h"/>
+    <File Name="../src/DslApi.h"/>
+    <File Name="../src/DslBase.h"/>
+    <File Name="../src/DslBintr.h"/>
+    <File Name="../src/DslBranchBintr.h"/>
+    <File Name="../src/DslDewarperBintr.h"/>
+    <File Name="../src/DslDisplayTypes.h"/>
+    <File Name="../src/DslElementr.h"/>
+    <File Name="../src/DslGeosTypes.h"/>
+    <File Name="../src/DslInferBintr.h"/>
+    <File Name="../src/DslLog.h"/>
+    <File Name="../src/DslLogGst.h"/>
+    <File Name="../src/DslMailer.h"/>
+    <File Name="../src/DslMessageBroker.h"/>
+    <File Name="../src/DslMultiComponentsBintr.h"/>
+    <File Name="../src/DslMutex.h"/>
+    <File Name="../src/DslNodetr.h"/>
+    <File Name="../src/DslOdeAction.h"/>
+    <File Name="../src/DslOdeArea.h"/>
+    <File Name="../src/DslOdeBase.h"/>
+    <File Name="../src/DslOdeTrigger.h"/>
+    <File Name="../src/DslOfvBintr.h"/>
+    <File Name="../src/DslOsdBintr.h"/>
+    <File Name="../src/DslPadProbeHandler.h"/>
+    <File Name="../src/DslPipelineBintr.h"/>
+    <File Name="../src/DslPipelineSInfersBintr.h"/>
+    <File Name="../src/DslPipelineSourcesBintr.h"/>
+    <File Name="../src/DslPipelineStateMgr.h"/>
+    <File Name="../src/DslPipelineXWinMgr.h"/>
+    <File Name="../src/DslPlayerBintr.h"/>
+    <File Name="../src/DslRecordMgr.h"/>
+    <File Name="../src/DslSegVisualBintr.h"/>
+    <File Name="../src/DslServices.h"/>
+    <File Name="../src/DslServicesValidate.h"/>
+    <File Name="../src/DslSinkBintr.h"/>
+    <File Name="../src/DslSourceBintr.h"/>
+    <File Name="../src/DslSourceMeter.h"/>
+    <File Name="../src/DslStateChange.h"/>
+    <File Name="../src/DslSurfaceTransform.h"/>
+    <File Name="../src/DslTapBintr.h"/>
+    <File Name="../src/DslTilerBintr.h"/>
+    <File Name="../src/DslTrackerBintr.h"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="test">
+    <VirtualDirectory Name="api">
+      <File Name="../test/api/DslBranchMgtApiTest.cpp"/>
+      <File Name="../test/api/DslComponentMgt.cpp"/>
+      <File Name="../test/api/DslDisplayTypesApiTest.cpp"/>
+      <File Name="../test/api/DslDisplayTypesBehaviorTest.cpp"/>
+      <File Name="../test/api/DslInferApiTest.cpp"/>
+      <File Name="../test/api/DslMailerApiTest.cpp"/>
+      <File Name="../test/api/DslMessageBrokerApiTest.cpp"/>
+      <File Name="../test/api/DslMessageSinkBehaviorTest.cpp"/>
+      <File Name="../test/api/DslOdeActionApiTest.cpp"/>
+      <File Name="../test/api/DslOdeAreaApiTest.cpp"/>
+      <File Name="../test/api/DslOdeBehaviorTest.cpp"/>
+      <File Name="../test/api/DslOdeTriggerApiTest.cpp"/>
+      <File Name="../test/api/DslOsdApiTest.cpp"/>
+      <File Name="../test/api/DslPipelineCbApiTest.cpp"/>
+      <File Name="../test/api/DslPipelineDbgApiTest.cpp"/>
+      <File Name="../test/api/DslPipelineMainLoopTest.cpp"/>
+      <File Name="../test/api/DslPipelineMgtApiTest.cpp"/>
+      <File Name="../test/api/DslPipelinePlayComponentsTest.cpp"/>
+      <File Name="../test/api/DslPipelinePlayTrackerTest.cpp"/>
+      <File Name="../test/api/DslPipelinePlayTritonTest.cpp"/>
+      <File Name="../test/api/DslPipelineSourcesApiTest.cpp"/>
+      <File Name="../test/api/DslPipelineStateMgt.cpp"/>
+      <File Name="../test/api/DslPipelineStreamMuxerApiTest.cpp"/>
+      <File Name="../test/api/DslPipelineTilerApiTest.cpp"/>
+      <File Name="../test/api/DslPipelineXWindowApiTest.cpp"/>
+      <File Name="../test/api/DslPlayerApiTest.cpp"/>
+      <File Name="../test/api/DslPphApiTest.cpp"/>
+      <File Name="../test/api/DslSegVisualApiTest.cpp"/>
+      <File Name="../test/api/DslSinkApiTest.cpp"/>
+      <File Name="../test/api/DslSinkMessageApiTest.cpp"/>
+      <File Name="../test/api/DslSourceApiTest.cpp"/>
+      <File Name="../test/api/DslTapApiTest.cpp"/>
+      <File Name="../test/api/DslTeeApiTest.cpp"/>
+      <File Name="../test/api/DslTilerApiTest.cpp"/>
+      <File Name="../test/api/DslTisApiTest.cpp"/>
+      <File Name="../test/api/DslTrackerApiTest.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="unit">
+      <File Name="../test/unit/DslDemuxerAndTeeUnitTest.cpp"/>
+      <File Name="../test/unit/DslDewarperUnitTest.cpp"/>
+      <File Name="../test/unit/DslDisplayTypesUnitTest.cpp"/>
+      <File Name="../test/unit/DslElementrUnitTest.cpp"/>
+      <File Name="../test/unit/DslGeosTypesUnitTest.cpp"/>
+      <File Name="../test/unit/DslMailerUnitTest.cpp"/>
+      <File Name="../test/unit/DslMessageBrokerAzureDeviceClientUnitTest.cpp"/>
+      <File Name="../test/unit/DslMessageBrokerAzureModuleClientUnitTest.cpp"/>
+      <File Name="../test/unit/DslMsgSinkUnitTest.cpp"/>
+      <File Name="../test/unit/DslMultiSinksUnitTest.cpp"/>
+      <File Name="../test/unit/DslNodetrUnitTest.cpp"/>
+      <File Name="../test/unit/DslOdeActionUnitTest.cpp"/>
+      <File Name="../test/unit/DslOdeAreaUnitTest.cpp"/>
+      <File Name="../test/unit/DslOdeTriggerUnitTest.cpp"/>
+      <File Name="../test/unit/DslOfvUnitTest.cpp"/>
+      <File Name="../test/unit/DslOsdUnitTest.cpp"/>
+      <File Name="../test/unit/DslPadProbeHandlerUnitTest.cpp"/>
+      <File Name="../test/unit/DslPipelineMainLoopUnitTest.cpp"/>
+      <File Name="../test/unit/DslPipelineSInfersUnitTest.cpp"/>
+      <File Name="../test/unit/DslPipelineSourcesUnitTest.cpp"/>
+      <File Name="../test/unit/DslPipelineUnitTest.cpp"/>
+      <File Name="../test/unit/DslPlayerUnitTest.cpp"/>
+      <File Name="../test/unit/DslPrimaryGieUnitTest.cpp"/>
+      <File Name="../test/unit/DslPrimaryTisUnitTest.cpp"/>
+      <File Name="../test/unit/DslSecondaryGieUnitTest.cpp"/>
+      <File Name="../test/unit/DslSecondaryTisUnitTest.cpp"/>
+      <File Name="../test/unit/DslSegVisualUnitTest.cpp"/>
+      <File Name="../test/unit/DslSinkUnitTest.cpp"/>
+      <File Name="../test/unit/DslSourceUnitTest.cpp"/>
+      <File Name="../test/unit/DslTapUnitTest.cpp"/>
+      <File Name="../test/unit/DslTilerUnitTest.cpp"/>
+      <File Name="../test/unit/DslTrackerUnitTest.cpp"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <Settings Type="Dynamic Library">
+    <GlobalSettings>
+      <Compiler Options="" C_Options="" Assembler="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g" C_Options="-g" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="" IntermediateDirectory="./Debug" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="yes">
+        <RebuildCommand/>
+        <CleanCommand>make clean</CleanCommand>
+        <BuildCommand>make -j 4</BuildCommand>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory>/home/prominenceai2/prominenceai/deepstream-services-library</WorkingDirectory>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="-O2" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="" IntermediateDirectory="./Release" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="yes">
+        <RebuildCommand/>
+        <CleanCommand>make clean</CleanCommand>
+        <BuildCommand>make</BuildCommand>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory>$(WorkspacePath)</WorkingDirectory>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+  </Settings>
+  <VirtualDirectory Name="root">
+    <File Name="../dsl.py"/>
+    <File Name="../make_caffemodel_engine_files.py"/>
+    <File Name="../Makefile"/>
+    <File Name="../README.md"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="examples">
+    <VirtualDirectory Name="cpp">
+      <File Name="../examples/cpp/1file_ptis_ktl_osd_window.cpp"/>
+      <File Name="../examples/cpp/multiple_pipelines.cpp"/>
+      <File Name="../examples/cpp/ode_occurrence_4rtsp_start_record_tap_action.cpp"/>
+      <File Name="../examples/cpp/player_play_all_mp4_files_found.cpp"/>
+      <File Name="../examples/cpp/rtsp_player_to_test_connections.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="python">
+      <File Name="../examples/python/1csi_live_pgie_demuxer_osd_overlay_rtsp_h254.py"/>
+      <File Name="../examples/python/1csi_live_pgie_osd_overlay_rtsp_h254.py"/>
+      <File Name="../examples/python/1csi_live_pgie_tiler_osd_window.py"/>
+      <File Name="../examples/python/1file_ptis_dcf_osd_window.py"/>
+      <File Name="../examples/python/1file_ptis_ktl_3stis_osd_window.py"/>
+      <File Name="../examples/python/1file_ptis_ktl_osd_window.py"/>
+      <File Name="../examples/python/1file_webrtc_connect_post_play.py"/>
+      <File Name="../examples/python/1file_webrtc_connect_pre_play.py"/>
+      <File Name="../examples/python/1uri_file_pgie_iou_tiler_osd_custom_pph_window.py"/>
+      <File Name="../examples/python/1uri_file_pgie_ktl_tiler_osd_custom_pph_window.py"/>
+      <File Name="../examples/python/1uri_file_pgie_ktl_tiler_osd_window_h264_mkv.py"/>
+      <File Name="../examples/python/1uri_file_pgie_ktl_tiler_osd_window_h265_mp4.py"/>
+      <File Name="../examples/python/1uri_https_tiler_window_dyn_overlay.py"/>
+      <File Name="../examples/python/1uri_jpeg_ptis_osd_window.py"/>
+      <File Name="../examples/python/2rtsp_splitter_demuxer_pgie_ktl_tiler_osd_window_2_file.py"/>
+      <File Name="../examples/python/2uri_file_pgie_ktl_3sgie_tiler_osd_bmh_window.py"/>
+      <File Name="../examples/python/2uri_file_pgie_ktl_demuxer_1osd_1overlay_1window.py"/>
+      <File Name="../examples/python/2uri_splitter_pgie_ktl_osd_window_and_file.py"/>
+      <File Name="../examples/python/4uri_file_pgie_ktl_tiler_osd_overlay.py"/>
+      <File Name="../examples/python/4uri_file_tiler_show_source_control.py"/>
+      <File Name="../examples/python/4uri_live_pgie_tiler_osd_window.py"/>
+      <File Name="../examples/python/8uri_file_pph_meter_performace_reporting.py"/>
+      <File Name="../examples/python/dyn_uri_file_pgie_ktl_tiler_osd_window.py"/>
+      <File Name="../examples/python/industrial_segmentation.py"/>
+      <File Name="../examples/python/libdsl.so"/>
+      <File Name="../examples/python/message_broker_azure_device_client.py"/>
+      <File Name="../examples/python/message_broker_azure_module_client.py"/>
+      <File Name="../examples/python/multiple_pipelines.py"/>
+      <File Name="../examples/python/nvidia_osd_sink_pad_buffer_probe.py"/>
+      <File Name="../examples/python/ode_always_trigger_display_source_info.py"/>
+      <File Name="../examples/python/ode_count_trigger_display_meta.py"/>
+      <File Name="../examples/python/ode_distance_trigger_fill_object.py"/>
+      <File Name="../examples/python/ode_instance_trigger_fill_new_object.py"/>
+      <File Name="../examples/python/ode_instance_trigger_message_server.py"/>
+      <File Name="../examples/python/ode_intersection_min_max_dimensions.py"/>
+      <File Name="../examples/python/ode_largest_object_fill_surroundings.py"/>
+      <File Name="../examples/python/ode_new_high_new_low_triggers_fill_frame.py"/>
+      <File Name="../examples/python/ode_occurrence_4rtsp_start_record_tap_action.py"/>
+      <File Name="../examples/python/ode_occurrence_frame_capture_email_attachment.py"/>
+      <File Name="../examples/python/ode_occurrence_line_area_intersection.py"/>
+      <File Name="../examples/python/ode_occurrence_object_capture_overlay_image.py"/>
+      <File Name="../examples/python/ode_occurrence_polygon_area_inclussion_exclusion.py"/>
+      <File Name="../examples/python/ode_occurrence_record_sink_overlay_playback_send_email.py"/>
+      <File Name="../examples/python/ode_occurrence_uri_send_smtp_mail.py"/>
+      <File Name="../examples/python/ode_occurrence_uri_start_record_sink_action.py"/>
+      <File Name="../examples/python/ode_persistence_and_earliest_triggers_custom_labels.py"/>
+      <File Name="../examples/python/ode_persistence_trigger_fill_tracked_objects.py"/>
+      <File Name="../examples/python/ode_trigger_criteria.py"/>
+      <File Name="../examples/python/player_play_all_mp4_files_found.py"/>
+      <File Name="../examples/python/rtsp_player_to_test_connections.py"/>
+      <File Name="../examples/python/semantic_segmentation.py"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="tkinter">
+      <File Name="../examples/tkinter/action.py"/>
+      <File Name="../examples/tkinter/color.py"/>
+      <File Name="../examples/tkinter/config.py"/>
+      <File Name="../examples/tkinter/display_type.py"/>
+      <File Name="../examples/tkinter/tkapp.py"/>
+      <File Name="../examples/tkinter/tkapp_window.py"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+</CodeLite_Project>
