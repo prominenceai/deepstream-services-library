@@ -8,7 +8,7 @@
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Release" Selected="yes">
       <Environment/>
-      <Project Name="deepstream-services-library" ConfigName="Debug"/>
+      <Project Name="deepstream-services-library" ConfigName="Release"/>
     </WorkspaceConfiguration>
   </BuildMatrix>
 </CodeLite_Workspace>
