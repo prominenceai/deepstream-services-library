@@ -6739,3 +6739,67 @@ uint dsl_gpu_type_get(uint gpu_id)
             ? DSL_GPU_TYPE_INTEGRATED
             : DSL_GPU_TYPE_DISCRETE;
 }
+
+DslReturnType dsl_debug_log_level_get(const wchar_t** level)
+{
+    RETURN_IF_PARAM_IS_NULL(level);
+
+    const char* cLevel(NULL);
+    static std::wstring wcstrLevel;
+    
+    uint retval = DSL::Services::GetServices()->DebugLogLevelGet(&cLevel);
+    if (retval ==  DSL_RESULT_SUCCESS and cLevel)
+    {
+        std::string cstrLevel(cLevel);
+        wcstrLevel.assign(cstrLevel.begin(), cstrLevel.end());
+        *level = wcstrLevel.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_debug_log_level_set(const wchar_t* level)
+{
+    RETURN_IF_PARAM_IS_NULL(level);
+    
+    std::wstring wstrLevel(level);
+    std::string cstrLevel(wstrLevel.begin(), wstrLevel.end());
+
+    return DSL::Services::GetServices()->DebugLogLevelSet(cstrLevel.c_str());
+}
+
+DslReturnType dsl_debug_log_file_get(const wchar_t** file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    const char* cFilePath(NULL);
+    static std::wstring wcstrFilePath;
+    
+    uint retval = DSL::Services::GetServices()->DebugLogFileGet(&cFilePath);
+    if (retval ==  DSL_RESULT_SUCCESS and cFilePath)
+    {
+        std::string cstrFilePath(cFilePath);
+        wcstrFilePath.assign(cstrFilePath.begin(), cstrFilePath.end());
+        *file_path = wcstrFilePath.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_debug_log_file_set(const wchar_t* file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(file_path);
+    
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->DebugLogFileSet(cstrFilePath.c_str());
+}
+
+DslReturnType dsl_debug_log_file_set_with_ts(const wchar_t* file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(file_path);
+    
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->DebugLogFileSetWithTs(cstrFilePath.c_str());
+}

@@ -11,6 +11,9 @@
 *.gch
 *.pch
 
+# Python
+*.pyc
+
 # Compiled Dynamic libraries
 *.so
 *.dylib
@@ -37,5 +40,9 @@
 *.dot
 *.jpeg
 
+# CodeLite
+*.session
+*.tags
+*.db
+
 # Directories
-test/models/

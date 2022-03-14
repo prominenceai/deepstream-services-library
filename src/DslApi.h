@@ -5808,6 +5808,42 @@ void dsl_stdout_restore();
  */ 
 uint dsl_gpu_type_get(uint gpu_id);
 
+/**
+ * @brief gets the current GST_DEBUG environment variable setting.
+ * @return current level string defining one or more debug group/level pairs
+ * prefixed with optional global default. 
+ */
+DslReturnType dsl_debug_log_level_get(const wchar_t** level);
+
+/**
+ * @brief sets the GST_DEBUG environment variable.
+ * @param[in] level new level (string) defining one or more debug group/level pairs
+ * prefixed with optional global default. eg. export GST_DEBUG=1,DSL:4
+ */
+DslReturnType dsl_debug_log_level_set(const wchar_t* level);
+
+/**
+ * @brief gets the current GST_DEBUG_FILE environment variable.
+ * @return current file name specification defining one or more debug group/level pairs
+ * prefixed with optional global default. 
+ */
+DslReturnType dsl_debug_log_file_get(const wchar_t** file_path);
+
+/**
+ * @brief sets the GST_DEBUG_FILE environment variable to a given file 
+ * path specification.
+ * @param[in] file_path relative or absolute file path to persist GST Logs
+ */
+DslReturnType dsl_debug_log_file_set(const wchar_t* file_path);
+
+/**
+ * @brief sets the GST_DEBUG_FILE environment varible to a given file 
+ * path specification appended with the current date/time.
+ * @param[in] file_path relative or absolute file path to persist GST Logs
+ */
+DslReturnType dsl_debug_log_file_set_with_ts(const wchar_t* file_path);
+
+
 EXTERN_C_END
 
 #endif /* _DSL_API_H */

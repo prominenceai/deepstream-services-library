@@ -1191,7 +1191,17 @@ namespace DSL {
         
         void DeleteAll();
         
-        DslReturnType StdOutRedirect(const char* filepath);
+        DslReturnType StdOutRedirect(const char* filePath);
+        
+        DslReturnType DebugLogLevelGet(const char** level);
+        
+        DslReturnType DebugLogLevelSet(const char* level);
+        
+        DslReturnType DebugLogFileGet(const char** filePath);
+        
+        DslReturnType DebugLogFileSet(const char* filePath);
+        
+        DslReturnType DebugLogFileSetWithTs(const char* filePath);
         
         void StdOutRestore();
 
@@ -1214,6 +1224,10 @@ namespace DSL {
          * @return true if all events were handled succesfully
          */
         bool HandleXWindowEvents(); 
+
+        static std::string GST_DEBUG;
+
+        static std::string GST_DEBUG_FILE;
 
     private:
 
@@ -1389,7 +1403,6 @@ namespace DSL {
         std::fstream m_stdOutRedirectFile;
         
         std::streambuf* m_stdOutRdBufBackup;
-        
     };  
 
     /**
