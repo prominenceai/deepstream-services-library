@@ -5778,15 +5778,16 @@ const wchar_t* dsl_return_value_to_string(uint result);
 const wchar_t* dsl_state_value_to_string(uint state);
 
 /**
- * @brief Returns the current version of DSL
- * @return string representation of the current release
- */
-const wchar_t* dsl_version_get();
-
-/**
  * @brief Releases/deletes all DSL/GST resources
  */
 void dsl_delete_all();
+
+/**
+ * @brief Gets the GPU type for a specified GPU Id.
+ * @param[in] gpu_id id of the GPU to query.
+ * @return one of the DSL_GPU_TYPE constant values
+ */ 
+uint dsl_info_gpu_type_get(uint gpu_id);
 
 /**
  * @brief Redirects all data streamed to std::cout << by DSL to a specified file.
@@ -5794,54 +5795,60 @@ void dsl_delete_all();
  * @param[in] file_path absolute or relative file path specification
  * @return true on success, one DSL_RESULT otherwise
  */
-DslReturnType dsl_stdout_redirect(const wchar_t* file_path);
+DslReturnType dsl_info_stdout_redirect(const wchar_t* file_path);
 
 /**
  * @brief Restores the std::cout rdbuf from redirection
  */
-void dsl_stdout_restore();
-
-/**
- * @brief Gets the GPU type for a specified GPU Id.
- * @param[in] gpu_id id of the GPU to query.
- * @return one of the DSL_GPU_TYPE constant values
- */ 
-uint dsl_gpu_type_get(uint gpu_id);
+void dsl_info_stdout_restore();
 
 /**
  * @brief gets the current GST_DEBUG environment variable setting.
  * @return current level string defining one or more debug group/level pairs
  * prefixed with optional global default. 
  */
-DslReturnType dsl_debug_log_level_get(const wchar_t** level);
+DslReturnType dsl_info_log_level_get(const wchar_t** level);
 
 /**
  * @brief sets the GST_DEBUG environment variable.
  * @param[in] level new level (string) defining one or more debug group/level pairs
  * prefixed with optional global default. eg. export GST_DEBUG=1,DSL:4
  */
-DslReturnType dsl_debug_log_level_set(const wchar_t* level);
+DslReturnType dsl_info_log_level_set(const wchar_t* level);
 
 /**
  * @brief gets the current GST_DEBUG_FILE environment variable.
  * @return current file name specification defining one or more debug group/level pairs
  * prefixed with optional global default. 
  */
-DslReturnType dsl_debug_log_file_get(const wchar_t** file_path);
+DslReturnType dsl_info_log_file_get(const wchar_t** file_path);
 
 /**
  * @brief sets the GST_DEBUG_FILE environment variable to a given file 
  * path specification.
  * @param[in] file_path relative or absolute file path to persist GST Logs
  */
-DslReturnType dsl_debug_log_file_set(const wchar_t* file_path);
+DslReturnType dsl_info_log_file_set(const wchar_t* file_path);
 
 /**
  * @brief sets the GST_DEBUG_FILE environment varible to a given file 
  * path specification appended with the current date/time.
  * @param[in] file_path relative or absolute file path to persist GST Logs
  */
-DslReturnType dsl_debug_log_file_set_with_ts(const wchar_t* file_path);
+DslReturnType dsl_info_log_file_set_with_ts(const wchar_t* file_path);
+
+/**
+ * @brief restores the origin default log function which will write
+ * logs to GST_DEBUG_FILE if set, or stdio otherwise.
+ * @return 
+ */
+DslReturnType dsl_info_log_function_restore();
+
+/**
+ * @brief Returns the current version of DSL
+ * @return string representation of the current release
+ */
+const wchar_t* dsl_info_version_get();
 
 
 EXTERN_C_END

@@ -66,7 +66,7 @@ def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
-
+    
         for file in os.listdir(dir_path):
             if file.endswith(".mp4"):
             

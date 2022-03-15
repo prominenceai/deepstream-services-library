@@ -6713,22 +6713,12 @@ void dsl_delete_all()
     DSL::Services::GetServices()->DeleteAll();
 }
 
-DslReturnType dsl_stdout_redirect(const wchar_t* file_path)
+const wchar_t* dsl_info_version_get()
 {
-    RETURN_IF_PARAM_IS_NULL(file_path);
-
-    std::wstring wstrFilePath(file_path);
-    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
-
-    return DSL::Services::GetServices()->StdOutRedirect(cstrFilePath.c_str());
+    return DSL_VERSION;
 }
 
-void dsl_stdout_restore()
-{
-    DSL::Services::GetServices()->StdOutRestore();
-}
-
-uint dsl_gpu_type_get(uint gpu_id)
+uint dsl_info_gpu_type_get(uint gpu_id)
 {
         // Get the Device properties
         cudaDeviceProp deviceProp;
@@ -6740,14 +6730,29 @@ uint dsl_gpu_type_get(uint gpu_id)
             : DSL_GPU_TYPE_DISCRETE;
 }
 
-DslReturnType dsl_debug_log_level_get(const wchar_t** level)
+DslReturnType dsl_info_stdout_redirect(const wchar_t* file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->InfoStdOutRedirect(cstrFilePath.c_str());
+}
+
+void dsl_info_stdout_restore()
+{
+    DSL::Services::GetServices()->InfoStdOutRestore();
+}
+
+DslReturnType dsl_info_log_level_get(const wchar_t** level)
 {
     RETURN_IF_PARAM_IS_NULL(level);
 
     const char* cLevel(NULL);
     static std::wstring wcstrLevel;
     
-    uint retval = DSL::Services::GetServices()->DebugLogLevelGet(&cLevel);
+    uint retval = DSL::Services::GetServices()->InfoLogLevelGet(&cLevel);
     if (retval ==  DSL_RESULT_SUCCESS and cLevel)
     {
         std::string cstrLevel(cLevel);
@@ -6757,24 +6762,24 @@ DslReturnType dsl_debug_log_level_get(const wchar_t** level)
     return retval;
 }
 
-DslReturnType dsl_debug_log_level_set(const wchar_t* level)
+DslReturnType dsl_info_log_level_set(const wchar_t* level)
 {
     RETURN_IF_PARAM_IS_NULL(level);
     
     std::wstring wstrLevel(level);
     std::string cstrLevel(wstrLevel.begin(), wstrLevel.end());
 
-    return DSL::Services::GetServices()->DebugLogLevelSet(cstrLevel.c_str());
+    return DSL::Services::GetServices()->InfoLogLevelSet(cstrLevel.c_str());
 }
 
-DslReturnType dsl_debug_log_file_get(const wchar_t** file_path)
+DslReturnType dsl_info_log_file_get(const wchar_t** file_path)
 {
     RETURN_IF_PARAM_IS_NULL(file_path);
 
     const char* cFilePath(NULL);
     static std::wstring wcstrFilePath;
     
-    uint retval = DSL::Services::GetServices()->DebugLogFileGet(&cFilePath);
+    uint retval = DSL::Services::GetServices()->InfoLogFileGet(&cFilePath);
     if (retval ==  DSL_RESULT_SUCCESS and cFilePath)
     {
         std::string cstrFilePath(cFilePath);
@@ -6784,22 +6789,28 @@ DslReturnType dsl_debug_log_file_get(const wchar_t** file_path)
     return retval;
 }
 
-DslReturnType dsl_debug_log_file_set(const wchar_t* file_path)
+DslReturnType dsl_info_log_file_set(const wchar_t* file_path)
 {
     RETURN_IF_PARAM_IS_NULL(file_path);
     
     std::wstring wstrFilePath(file_path);
     std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
 
-    return DSL::Services::GetServices()->DebugLogFileSet(cstrFilePath.c_str());
+    return DSL::Services::GetServices()->InfoLogFileSet(cstrFilePath.c_str());
 }
 
-DslReturnType dsl_debug_log_file_set_with_ts(const wchar_t* file_path)
+DslReturnType dsl_info_log_file_set_with_ts(const wchar_t* file_path)
 {
     RETURN_IF_PARAM_IS_NULL(file_path);
     
     std::wstring wstrFilePath(file_path);
     std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
 
-    return DSL::Services::GetServices()->DebugLogFileSetWithTs(cstrFilePath.c_str());
+    return DSL::Services::GetServices()->InfoLogFileSetWithTs(cstrFilePath.c_str());
 }
+
+DslReturnType dsl_info_log_function_restore()
+{
+    return DSL::Services::GetServices()->InfoLogFunctionRestore();
+}
+

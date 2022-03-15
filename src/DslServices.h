@@ -1191,19 +1191,27 @@ namespace DSL {
         
         void DeleteAll();
         
-        DslReturnType StdOutRedirect(const char* filePath);
+        DslReturnType InfoInitDebugSettings();
         
-        DslReturnType DebugLogLevelGet(const char** level);
+        DslReturnType InfoDeinitDebugSettings();
         
-        DslReturnType DebugLogLevelSet(const char* level);
+        DslReturnType InfoStdOutRedirect(const char* filePath);
+
+        void InfoStdOutRestore();
         
-        DslReturnType DebugLogFileGet(const char** filePath);
+        DslReturnType InfoLogLevelGet(const char** level);
         
-        DslReturnType DebugLogFileSet(const char* filePath);
+        DslReturnType InfoLogLevelSet(const char* level);
         
-        DslReturnType DebugLogFileSetWithTs(const char* filePath);
+        DslReturnType InfoLogFileGet(const char** filePath);
         
-        void StdOutRestore();
+        DslReturnType InfoLogFileSet(const char* filePath);
+        
+        DslReturnType InfoLogFileSetWithTs(const char* filePath);
+        
+        DslReturnType InfoLogFunctionRestore();
+        
+        FILE* InfoLogFileHandleGet();
 
         GMainLoop* GetMainLoopHandle()
         {
@@ -1225,8 +1233,14 @@ namespace DSL {
          */
         bool HandleXWindowEvents(); 
 
+        /**
+         * @brief GStreamer Debug environment variable name
+         */
         static std::string GST_DEBUG;
 
+        /**
+         * @brief GStreamer Debug-File environment variable name
+         */
         static std::string GST_DEBUG_FILE;
 
     private:
@@ -1396,13 +1410,29 @@ namespace DSL {
         std::map <std::string, uint> m_inferIds;
         
         /**
-         * @brief DSL Comms object for libcurl services
+         * @brief map of all mailer objects by name
          */
         std::map <std::string, std::shared_ptr<Mailer>> m_mailers;
         
+        /**
+         * @brief file-path of the redirected std out if set.
+         */
         std::fstream m_stdOutRedirectFile;
         
+        /**
+         * @brief back-up for the original std out prior to redirection.
+         */
         std::streambuf* m_stdOutRdBufBackup;
+        
+        /**
+         * @brief Debug Log Level (threshold) to override the value of GST_DEBUG 
+         */
+        std::string m_gstDebugLogLevel;
+        
+        std::string m_debugLogFilePath;
+        
+        FILE* m_debugLogFileHandle;
+
     };  
 
     /**
@@ -1413,6 +1443,10 @@ namespace DSL {
     
 
     static gboolean MainLoopThread(gpointer arg);
+    
+    static void gst_debug_log_override(GstDebugCategory * category, GstDebugLevel level,
+        const gchar * file, const gchar * function, gint line,
+        GObject * object, GstDebugMessage * message, gpointer unused);
 }
 
 

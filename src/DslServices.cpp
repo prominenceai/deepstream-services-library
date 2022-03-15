@@ -90,11 +90,6 @@ const wchar_t* dsl_state_value_to_string(uint state)
     return DSL::Services::GetServices()->StateValueToString(state);
 }
 
-const wchar_t* dsl_version_get()
-{
-    return DSL_VERSION;
-}
-
 void geosNoticeHandler(const char *fmt, ...)
 {
     // TODO
@@ -135,22 +130,6 @@ namespace DSL
                 gst_init(&argc, &argv);
                 doGstDeinit = true;
                 
-                // One-time init of Curl with no addition features
-                CURLcode result = curl_global_init(CURL_GLOBAL_NOTHING);
-                if (result != CURLE_OK)
-                {
-                    LOG_ERROR("curl_global_init failed: " << curl_easy_strerror(result));
-                    throw;
-                }
-                curl_version_info_data* info = curl_version_info(CURLVERSION_NOW);
-                
-                LOG_INFO("Libcurl Initialized Successfully");
-                LOG_INFO("Version: " << info->version);
-                LOG_INFO("Host: " << info->host);
-                LOG_INFO("Features: " << info->features);
-                LOG_INFO("SSL Version: " << info->ssl_version);
-                LOG_INFO("Libz Version: " << info->libz_version);
-                LOG_INFO("Protocols: " << info->protocols);
             }
             
             // Safe to start logging
@@ -169,18 +148,45 @@ namespace DSL
             
             // Create the default Display types
             m_pInstance->DisplayTypeCreateIntrinsicTypes();
+
+            std::wstring wVersion(DSL_VERSION);
+            std::string cVersion(wVersion.begin(), wVersion.end());
+            LOG_INFO("DSL Version: " << cVersion);
+
+            // One-time init of Curl with no addition features
+            CURLcode result = curl_global_init(CURL_GLOBAL_NOTHING);
+            if (result != CURLE_OK)
+            {
+                LOG_ERROR("curl_global_init failed: " << curl_easy_strerror(result));
+                throw;
+            }
+            curl_version_info_data* info = curl_version_info(CURLVERSION_NOW);
+            
+            LOG_INFO("Libcurl Initialized Successfully");
+            LOG_INFO("Version: " << info->version);
+            LOG_INFO("Host: " << info->host);
+            LOG_INFO("Features: " << info->features);
+            LOG_INFO("SSL Version: " << info->ssl_version);
+            LOG_INFO("Libz Version: " << info->libz_version);
+            LOG_INFO("Protocols: " << info->protocols);
         }
         return m_pInstance;
     }
         
     Services::Services(bool doGstDeinit)
         : m_doGstDeinit(doGstDeinit)
+        , m_debugLogFileHandle(NULL)
         , m_pMainLoop(g_main_loop_new(NULL, FALSE))
         , m_sourceNumInUseMax(DSL_DEFAULT_SOURCE_IN_USE_MAX)
         , m_sinkNumInUseMax(DSL_DEFAULT_SINK_IN_USE_MAX)
     {
         LOG_FUNC();
 
+        if (InfoInitDebugSettings() != DSL_RESULT_SUCCESS)
+        {
+            LOG_ERROR("DSL threw exception intializing Debug Settings");
+            throw;
+        }
         g_mutex_init(&m_servicesMutex);
     }
 
@@ -196,6 +202,8 @@ namespace DSL
             
             // Cleanup Lib cURL
             curl_global_cleanup();
+            
+            InfoDeinitDebugSettings();
             
             // If this Services object called gst_init(), and not the client.
             if (m_doGstDeinit)
@@ -226,62 +234,6 @@ namespace DSL
         DisplayTypeDeleteAll();
         MailerDeleteAll();
         MessageBrokerDeleteAll();
-    }
-
-    DslReturnType Services::StdOutRedirect(const char* filepath)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            if (m_stdOutRedirectFile.is_open())
-            {
-                LOG_ERROR("stdout is currently/already in a redirected state");
-                return DSL_RESULT_FAILURE;
-            }
-            
-            // backup the default 
-            m_stdOutRdBufBackup = std::cout.rdbuf();
-            
-            // open the redirect file and the rdbuf
-            m_stdOutRedirectFile.open(filepath, std::ios::out);
-            std::streambuf* redirectFileRdBuf = m_stdOutRedirectFile.rdbuf();
-            
-            // assign the file's rdbuf to the stdout's
-            std::cout.rdbuf(redirectFileRdBuf);
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("DSL threw an exception redirecting stdout");
-            return DSL_RESULT_THREW_EXCEPTION;
-        }
-    }
-    
-    void Services::StdOutRestore()
-    {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            if (!m_stdOutRedirectFile.is_open())
-            {
-                LOG_ERROR("stdout is not currently in a redirected state");
-                return;
-            }
-
-            // restore the stdout to the initial backupt
-            std::cout.rdbuf(m_stdOutRdBufBackup);
-
-            // close the redirct file
-            m_stdOutRedirectFile.close();
-        }
-        catch(...)
-        {
-            LOG_ERROR("DSL threw an exception close stdout redirect file");
-        }
     }
    
     // ------------------------------------------------------------------------------
