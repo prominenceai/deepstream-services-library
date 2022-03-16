@@ -140,3 +140,4 @@ Note: the total passed assertions and test cases are subject to change.
 * [Mailer](/docs/api-mailer.md)
 * [WebSocket Server](/docs/api-ws-server.md)
 * [Message Broker](/docs/api-msg-broker.md)
+* [Info API](/docs/api-info.md)
