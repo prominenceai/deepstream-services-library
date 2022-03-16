@@ -1,5 +1,5 @@
 # Sink API Reference
-Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must have at least one sink in use, along with other certain components, to reach a state of Ready. DSL supports seven types of Sinks:
+Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must have at least one sink in use, along with other certain components, to reach a state of Ready. DSL supports eight different types of Sinks:
 * Overlay Sink - renders/overlays video on a Parent display **(Jetson Platform Only)**
 * Window Sink - renders/overlays video on a Parent XWindow
 * File Sink - encodes video to a media container file
@@ -1326,3 +1326,4 @@ retval = dsl_sink_num_in_use_max_set(24)
 * [Mailer](/docs/api-mailer.md)
 * [WebSocket Server](/docs/api-ws-server.md)
 * [Message Broker](/docs/api-msg-broker.md)
+* [Info API](/docs/api-info.md)
