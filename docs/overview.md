@@ -21,8 +21,6 @@
 * [SMTP Services](#smtp-services)
 * [DSL Initialization](#dsl-initialization)
 * [DSL Delete All](#dsl-delete-all)
-* [DSL Version](#dsl-version)
-* [GPU Types](#gpu-types)
 * [Main Loop Context](#main-loop-context)
 * [Service Return Codes](#service-return-codes)
 * [API Reference](#api-reference)
@@ -1067,31 +1065,6 @@ dsl_delete_all()
 
 <br>
 
-## DSL Version
-The version label of the DSL shared library `libdsl.so` can be determined by calling `dsl_version_get()`. Version information and release notes can be found on the [Releases](/releases) page.
-
-**Python Script**
-```Python
-current_version = dsl_version_get()
-```
-
-<br>
-
-## GPU Types
-Applications can query DSL for the platform's GPU type by calling `dsl_gpu_type_get`. The following constants defined in `dsl.h` are used to identify the GPU type in use 
-
-```c
-#define DSL_GPU_TYPE_INTEGRATED                                     0
-#define DSL_GPU_TYPE_DISCRETE                                       1
-```
-
-**Python Script**
-```Python
-gpu_type = dsl_gpu_type_get()
-```
-
-<br>
-
 ## Main Loop Context
 After creating all components, adding them to a Pipeline, and setting the Pipeline's state to Playing, the Application must call `dsl_main_loop_run()`. The service creates a mainloop that runs/iterates the default GLib main context to check if anything the Pipeline is watching for has happened. The main loop will be run until another thread -- typically a "client callback function" called from the Pipeline's context -- calls `dsl_main_loop_quit()`
 
@@ -1149,6 +1122,8 @@ if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
 * [Component](/docs/api-component.md)
 * [Mailer](/docs/api-mailer.md)
 * [WebSocket Server](/docs/api-ws-server.md)
+* [Message Broker](/docs/api-msg-broker.md)
+* [Info API](/docs/api-info.md)
 
 --- 
 * <b id="f1">1</b> Quote from GStreamer documentation [here](https://gstreamer.freedesktop.org/documentation/?gi-language=c). [↩](#a1)
