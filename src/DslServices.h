@@ -1195,9 +1195,13 @@ namespace DSL {
         
         DslReturnType InfoDeinitDebugSettings();
         
-        DslReturnType InfoStdOutRedirect(const char* filePath);
+        DslReturnType InfoStdoutGet(const char** filePath);
 
-        void InfoStdOutRestore();
+        DslReturnType InfoStdoutRedirect(const char* filePath, uint mode);
+
+        DslReturnType InfoStdoutRedirectWithTs(const char* filePath);
+
+        DslReturnType InfoStdOutRestore();
         
         DslReturnType InfoLogLevelGet(const char** level);
         
@@ -1205,7 +1209,7 @@ namespace DSL {
         
         DslReturnType InfoLogFileGet(const char** filePath);
         
-        DslReturnType InfoLogFileSet(const char* filePath);
+        DslReturnType InfoLogFileSet(const char* filePath, uint mode);
         
         DslReturnType InfoLogFileSetWithTs(const char* filePath);
         
@@ -1242,6 +1246,11 @@ namespace DSL {
          * @brief GStreamer Debug-File environment variable name
          */
         static std::string GST_DEBUG_FILE;
+        
+        /**
+         *@brief Default stdout file_path value
+         */
+        static std::string CONSOLE;
 
     private:
 
@@ -1415,22 +1424,33 @@ namespace DSL {
         std::map <std::string, std::shared_ptr<Mailer>> m_mailers;
         
         /**
-         * @brief file-path of the redirected std out if set.
+         * @brief file-path of the redirected stdout if set.
+         */
+        std::string m_stdOutRedirectFilePath; 
+        
+        /**
+         * @brief file-stream object for the redirected stdout.
          */
         std::fstream m_stdOutRedirectFile;
         
         /**
-         * @brief back-up for the original std out prior to redirection.
+         * @brief back-up for the original stdout prior to redirection.
          */
         std::streambuf* m_stdOutRdBufBackup;
         
         /**
-         * @brief Debug Log Level (threshold) to override the value of GST_DEBUG 
+         * @brief Debug Log Level (threshold) to override the value of GST_DEBUG.
          */
         std::string m_gstDebugLogLevel;
         
+        /**
+         * @brief Debug Log File to override the value of GST_DEBUG_FILE.
+         */
         std::string m_debugLogFilePath;
         
+        /**
+         * @brief File handle for the Debug Log File if open.
+         */
         FILE* m_debugLogFileHandle;
 
     };  

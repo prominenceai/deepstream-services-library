@@ -6730,19 +6730,49 @@ uint dsl_info_gpu_type_get(uint gpu_id)
             : DSL_GPU_TYPE_DISCRETE;
 }
 
-DslReturnType dsl_info_stdout_redirect(const wchar_t* file_path)
+DslReturnType dsl_info_stdout_get(const wchar_t** file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    const char* cFilePath(NULL);
+    static std::wstring wcstrFilePath;
+    
+    uint retval = DSL::Services::GetServices()->InfoStdoutGet(&cFilePath);
+    if (retval ==  DSL_RESULT_SUCCESS and cFilePath)
+    {
+        std::string cstrFilePath(cFilePath);
+        wcstrFilePath.assign(cstrFilePath.begin(), cstrFilePath.end());
+        *file_path = wcstrFilePath.c_str();
+    }
+    return retval;
+}
+
+
+DslReturnType dsl_info_stdout_redirect(const wchar_t* file_path, uint mode)
 {
     RETURN_IF_PARAM_IS_NULL(file_path);
 
     std::wstring wstrFilePath(file_path);
     std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
 
-    return DSL::Services::GetServices()->InfoStdOutRedirect(cstrFilePath.c_str());
+    return DSL::Services::GetServices()->InfoStdoutRedirect(
+        cstrFilePath.c_str(), mode);
 }
 
-void dsl_info_stdout_restore()
+DslReturnType dsl_info_stdout_redirect_with_ts(const wchar_t* file_path)
 {
-    DSL::Services::GetServices()->InfoStdOutRestore();
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->InfoStdoutRedirectWithTs(
+        cstrFilePath.c_str());
+}
+
+DslReturnType dsl_info_stdout_restore()
+{
+    return DSL::Services::GetServices()->InfoStdOutRestore();
 }
 
 DslReturnType dsl_info_log_level_get(const wchar_t** level)
@@ -6789,14 +6819,15 @@ DslReturnType dsl_info_log_file_get(const wchar_t** file_path)
     return retval;
 }
 
-DslReturnType dsl_info_log_file_set(const wchar_t* file_path)
+DslReturnType dsl_info_log_file_set(const wchar_t* file_path, uint mode)
 {
     RETURN_IF_PARAM_IS_NULL(file_path);
     
     std::wstring wstrFilePath(file_path);
     std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
 
-    return DSL::Services::GetServices()->InfoLogFileSet(cstrFilePath.c_str());
+    return DSL::Services::GetServices()->InfoLogFileSet(
+        cstrFilePath.c_str(), mode);
 }
 
 DslReturnType dsl_info_log_file_set_with_ts(const wchar_t* file_path)

@@ -31,6 +31,7 @@ namespace DSL
 
     std::string Services::GST_DEBUG = "GST_DEBUG";
     std::string Services::GST_DEBUG_FILE = "GST_DEBUG_FILE";
+    std::string Services::CONSOLE = "console";
     
     DslReturnType Services::InfoInitDebugSettings()
     {
@@ -73,10 +74,11 @@ namespace DSL
         {
             if (m_debugLogFileHandle)
             {
-                fclose(m_debugLogFileHandle);
-                LOG_INFO("DSL closed the current log file = '" 
-                    << m_debugLogFilePath.c_str() << "'");
-                m_debugLogFileHandle = NULL;
+                InfoLogFunctionRestore();
+            }
+            if (m_stdOutRedirectFile.is_open())
+            {
+                InfoStdOutRestore();
             }
             
             return DSL_RESULT_SUCCESS;
@@ -88,7 +90,33 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::InfoStdOutRedirect(const char* filepath)
+    DslReturnType Services::InfoStdoutGet(const char** filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            if (!m_stdOutRedirectFile.is_open())
+            {
+                *filePath = CONSOLE.c_str();
+            }
+            else
+            {
+                *filePath = m_stdOutRedirectFilePath.c_str();
+            }
+            LOG_INFO("Stdout is currently set to = " << *filePath);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("DSL threw an exception getting log-file");
+            return DSL_RESULT_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::InfoStdoutRedirect(const char* filePath,
+        uint mode)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -97,19 +125,37 @@ namespace DSL
         {
             if (m_stdOutRedirectFile.is_open())
             {
-                LOG_ERROR("stdout is currently/already in a redirected state");
-                return DSL_RESULT_FAILURE;
+                m_stdOutRedirectFile.close();
+                LOG_INFO("DSL closed the current stdout redirect file = '" 
+                    << m_debugLogFilePath.c_str() << "'");
             }
+
+            m_stdOutRedirectFilePath.assign(filePath);
+            m_stdOutRedirectFilePath.append(".log");
             
             // backup the default 
             m_stdOutRdBufBackup = std::cout.rdbuf();
             
-            // open the redirect file and the rdbuf
-            m_stdOutRedirectFile.open(filepath, std::ios::out);
+            if (mode == DSL_WRITE_MODE_TRUNCATE)
+            {
+                // open the redirect file and truncate contents if found 
+                m_stdOutRedirectFile.open(m_stdOutRedirectFilePath.c_str(), 
+                    std::ios::out | std::ios::trunc);
+            }
+            else
+            {
+                // open the redirect file for append if found
+                m_stdOutRedirectFile.open(m_stdOutRedirectFilePath.c_str(), 
+                    std::ios::out);
+            }
+            
             std::streambuf* redirectFileRdBuf = m_stdOutRedirectFile.rdbuf();
             
             // assign the file's rdbuf to the stdout's
             std::cout.rdbuf(redirectFileRdBuf);
+
+            LOG_INFO("DSL redirected stdout to log file = " 
+                << m_stdOutRedirectFilePath.c_str());
             
             return DSL_RESULT_SUCCESS;
         }
@@ -119,8 +165,20 @@ namespace DSL
             return DSL_RESULT_THREW_EXCEPTION;
         }
     }
+
+    DslReturnType Services::InfoStdoutRedirectWithTs(const char* filePath)
+    {
+        std::string stringFilePath = filePath;
+        auto t = std::time(nullptr);
+        auto tm = *std::localtime(&t);
+
+        std::ostringstream filePathStream;
+        filePathStream << stringFilePath << std::put_time(&tm, "-%Y%m%d-%H%M%S");
+        return InfoStdoutRedirect(filePathStream.str().c_str(), 
+            DSL_WRITE_MODE_TRUNCATE);
+    }
     
-    void Services::InfoStdOutRestore()
+    DslReturnType Services::InfoStdOutRestore()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
@@ -129,18 +187,21 @@ namespace DSL
             if (!m_stdOutRedirectFile.is_open())
             {
                 LOG_ERROR("stdout is not currently in a redirected state");
-                return;
+                return DSL_RESULT_FAILURE;
             }
 
-            // restore the stdout to the initial backupt
+            // restore the stdout to the initial backup
             std::cout.rdbuf(m_stdOutRdBufBackup);
 
             // close the redirct file
             m_stdOutRedirectFile.close();
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("DSL threw an exception close stdout redirect file");
+            return DSL_RESULT_THREW_EXCEPTION;
         }
     }
     
@@ -150,7 +211,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
-        {
+        { 
             *level = m_gstDebugLogLevel.c_str();
             
             LOG_INFO("The GST debug log level = " << *level);
@@ -201,7 +262,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::InfoLogFileSet(const char* filePath)
+    DslReturnType Services::InfoLogFileSet(const char* filePath,
+        uint mode)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -217,17 +279,26 @@ namespace DSL
             }    
             m_debugLogFilePath.assign(filePath);
             m_debugLogFilePath.append(".log");
-            m_debugLogFileHandle = fopen(m_debugLogFilePath.c_str(),"w");
+            
+            if (mode == DSL_WRITE_MODE_TRUNCATE)
+            {
+                m_debugLogFileHandle = fopen(m_debugLogFilePath.c_str(),"w");
+            }
+            else
+            {
+                m_debugLogFileHandle = fopen(m_debugLogFilePath.c_str(),"a");
+            }
             
             if (!m_debugLogFileHandle)
             {
-                LOG_ERROR("DSL failed to create log-file = '" << filePath << "'");
+                LOG_ERROR("DSL failed to create log-file = '" 
+                    << m_debugLogFilePath.c_str() << "'");
                 return DSL_RESULT_FAILURE;
             }
             
             gst_debug_remove_log_function(gst_debug_log_default);
             gst_debug_add_log_function(gst_debug_log_override, this, NULL);
-            LOG_INFO("DSL set the debug log file = " << filePath);
+            LOG_INFO("DSL set the debug log file = " << m_debugLogFilePath.c_str());
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
@@ -240,44 +311,14 @@ namespace DSL
     DslReturnType Services::InfoLogFileSetWithTs(const char* filePath)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        try
-        {
-            std::string stringFilePath = filePath;
-            auto t = std::time(nullptr);
-            auto tm = *std::localtime(&t);
+        std::string stringFilePath = filePath;
+        auto t = std::time(nullptr);
+        auto tm = *std::localtime(&t);
 
-            std::ostringstream filePathStream;
-            filePathStream << stringFilePath << std::put_time(&tm, "-%Y%m%d-%H%M%S.log");
-            std::string fullFilePath = filePathStream.str();
-            
-            if (m_debugLogFileHandle)
-            {
-                fclose(m_debugLogFileHandle);
-                LOG_INFO("DSL closed the current log file = '" 
-                    << m_debugLogFilePath.c_str() << "'");
-                m_debugLogFileHandle = NULL;
-            }    
-            m_debugLogFileHandle = fopen(fullFilePath.c_str(),"w");
-            
-            if (!m_debugLogFileHandle)
-            {
-                LOG_ERROR("DSL failed to create log-file = '" << fullFilePath << "'");
-                return DSL_RESULT_FAILURE;
-            }
-            m_debugLogFilePath.assign(fullFilePath);
-            
-            gst_debug_remove_log_function(gst_debug_log_default);
-            gst_debug_add_log_function(gst_debug_log_override, this, NULL);
-            LOG_INFO("DSL set the debug log file = " << filePath);
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("DSL threw an exception on setting log-file with timestamp");
-            return DSL_RESULT_THREW_EXCEPTION;
-        }
+        std::ostringstream filePathStream;
+        filePathStream << stringFilePath << std::put_time(&tm, "-%Y%m%d-%H%M%S");
+        return InfoLogFileSet(filePathStream.str().c_str(), DSL_WRITE_MODE_TRUNCATE);
     }
     
     FILE* Services::InfoLogFileHandleGet()
@@ -301,7 +342,7 @@ namespace DSL
                 
                 gst_debug_remove_log_function(gst_debug_log_override);
                 gst_debug_add_log_function(gst_debug_log_default, NULL, NULL);
-                LOG_INFO("DSL Restored default log function");
+                LOG_INFO("DSL Restored the default log function");
             }
             return DSL_RESULT_SUCCESS;
         }

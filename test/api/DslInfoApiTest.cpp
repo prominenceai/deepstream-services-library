@@ -28,7 +28,132 @@ THE SOFTWARE.
 
 #define TIME_TO_SLEEP_FOR std::chrono::milliseconds(2000)
 
-SCENARIO( "The Debug API set and get the Debug Log Level correctly", "[info-api]" )
+SCENARIO( "The Info API can redirect and get stdout correctly", "[info-api]" )
+{
+    GIVEN( "A set of file parameters" ) 
+    {
+        std::wstring file_path;
+        std::wstring initial_file_path;
+        std::wstring expected_file_path(L"console");
+        std::wstring returned_file_path;
+        const wchar_t* c_returned_file_path;
+
+        REQUIRE( dsl_info_stdout_get(&c_returned_file_path) == 
+            DSL_RESULT_SUCCESS );
+
+        initial_file_path.assign(c_returned_file_path);
+        
+        REQUIRE( initial_file_path == expected_file_path );
+        
+        WHEN( "When stdout is redirected to a new file" ) 
+        {
+            file_path.assign(L"/tmp/.dsl/dsl-stdout");
+            REQUIRE( dsl_info_stdout_redirect(file_path.c_str(), DSL_WRITE_MODE_APPEND) == 
+                DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct file_path is returned on get" ) 
+            {
+                REQUIRE( dsl_info_stdout_get(&c_returned_file_path) == 
+                    DSL_RESULT_SUCCESS );
+                returned_file_path.assign(c_returned_file_path);
+                file_path.append(L".log");
+                REQUIRE( returned_file_path == file_path );
+
+                REQUIRE( dsl_info_stdout_restore() == 
+                    DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "The Info API can redirect and get stdout with timestamp correctly", "[info-api]" )
+{
+    GIVEN( "A set of file parameters" ) 
+    {
+        std::wstring file_path;
+        std::wstring initial_file_path;
+        std::wstring expected_file_path(L"console");
+        std::wstring returned_file_path;
+        const wchar_t* c_returned_file_path;
+
+        REQUIRE( dsl_info_stdout_get(&c_returned_file_path) == 
+            DSL_RESULT_SUCCESS );
+
+        initial_file_path.assign(c_returned_file_path);
+        
+        REQUIRE( initial_file_path == expected_file_path );
+        
+        WHEN( "When stdout is redirected to a new file" ) 
+        {
+            file_path.assign(L"/tmp/.dsl/dsl-stdout");
+            REQUIRE( dsl_info_stdout_redirect_with_ts(file_path.c_str()) == 
+                DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct file_path is returned on get" ) 
+            {
+                REQUIRE( dsl_info_stdout_get(&c_returned_file_path) == 
+                    DSL_RESULT_SUCCESS );
+                    
+                std::wcout << "DSL set stdout = '" << c_returned_file_path << "\n";
+
+                REQUIRE( dsl_info_stdout_restore() == 
+                    DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "The Info API can redirect and get stdout with timestamp multiple times", "[info-api]" )
+{
+    GIVEN( "A set of file parameters" ) 
+    {
+        std::wstring file_path;
+        std::wstring initial_file_path;
+        std::wstring expected_file_path(L"console");
+        std::wstring returned_file_path;
+        const wchar_t* c_returned_file_path;
+
+        REQUIRE( dsl_info_stdout_get(&c_returned_file_path) == 
+            DSL_RESULT_SUCCESS );
+
+        initial_file_path.assign(c_returned_file_path);
+        
+        REQUIRE( initial_file_path == expected_file_path );
+        
+        WHEN( "When stdout is redirected to a new file" ) 
+        {
+            file_path.assign(L"/tmp/.dsl/dsl-stdout");
+            REQUIRE( dsl_info_stdout_redirect_with_ts(file_path.c_str()) == 
+                DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct file_path is returned on get" ) 
+            {
+                REQUIRE( dsl_info_stdout_get(&c_returned_file_path) == 
+                    DSL_RESULT_SUCCESS );
+                std::wcout << "DSL set stdout = '" << c_returned_file_path << "\n";
+
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_info_stdout_redirect_with_ts(file_path.c_str()) == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_info_stdout_get(&c_returned_file_path) == 
+                    DSL_RESULT_SUCCESS );
+                std::wcout << "DSL set stdout = '" << c_returned_file_path << "\n";
+
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_info_stdout_redirect_with_ts(file_path.c_str()) == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_info_stdout_get(&c_returned_file_path) == 
+                    DSL_RESULT_SUCCESS );
+                std::wcout << "DSL set stdout = '" << c_returned_file_path << "\n";
+
+                REQUIRE( dsl_info_stdout_restore() == 
+                    DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "The Info API set and get the Debug Log Level correctly", "[info-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
@@ -64,7 +189,7 @@ SCENARIO( "The Debug API set and get the Debug Log Level correctly", "[info-api]
     }
 }
 
-SCENARIO( "The Debug API set and get the Debug Log File correctly", "[info-api]" )
+SCENARIO( "The Info API set and get the Debug Log File correctly", "[info-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
@@ -82,7 +207,7 @@ SCENARIO( "The Debug API set and get the Debug Log File correctly", "[info-api]"
         WHEN( "When the debug file_path is updated" ) 
         {
             file_path.assign(L"/tmp/.dsl/dsl-logs");
-            REQUIRE( dsl_info_log_file_set(file_path.c_str()) == 
+            REQUIRE( dsl_info_log_file_set(file_path.c_str(), DSL_WRITE_MODE_APPEND) == 
                 DSL_RESULT_SUCCESS );
             
             THEN( "The correct file_path is returned on get" ) 
@@ -100,7 +225,7 @@ SCENARIO( "The Debug API set and get the Debug Log File correctly", "[info-api]"
     }
 }
 
-SCENARIO( "The Debug API set and get the Debug Log File with Time-Stamp correctly", "[info-api]" )
+SCENARIO( "The Info API set and get the Debug Log File with Time-Stamp correctly", "[info-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
@@ -133,7 +258,7 @@ SCENARIO( "The Debug API set and get the Debug Log File with Time-Stamp correctl
     }
 }
 
-SCENARIO( "The Debug API set and get the Debug Log File with Time-Stamp multiple times", "[info-api]" )
+SCENARIO( "The Info API set and get the Debug Log File with Time-Stamp multiple times", "[info-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
@@ -178,7 +303,7 @@ SCENARIO( "The Debug API set and get the Debug Log File with Time-Stamp multiple
     }
 }
 
-SCENARIO( "The Debug API checks for NULL input parameters", "[info-api]" )
+SCENARIO( "The Info API checks for NULL input parameters", "[info-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
@@ -192,7 +317,7 @@ SCENARIO( "The Debug API checks for NULL input parameters", "[info-api]" )
                     DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_info_log_file_get(NULL) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_info_log_file_set(NULL) == 
+                REQUIRE( dsl_info_log_file_set(NULL, 0) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_info_log_file_set_with_ts(NULL) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
