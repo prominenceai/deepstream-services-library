@@ -455,3 +455,4 @@ size = dsl_message_broker_list_size()
 * [Mailer](/docs/api-mailer.md)
 * [WebSocket Server](/docs/api-ws-server.md)
 * **Message Broker**
+* [Info API](/docs/api-info.md)
