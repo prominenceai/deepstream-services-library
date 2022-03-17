@@ -92,6 +92,7 @@
     <File Name="../src/DslTapBintr.h"/>
     <File Name="../src/DslTilerBintr.h"/>
     <File Name="../src/DslTrackerBintr.h"/>
+    <File Name="../src/DslServicesInfo.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="api">
@@ -131,6 +132,7 @@
       <File Name="../test/api/DslTilerApiTest.cpp"/>
       <File Name="../test/api/DslTisApiTest.cpp"/>
       <File Name="../test/api/DslTrackerApiTest.cpp"/>
+      <File Name="../test/api/DslInfoApiTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDemuxerAndTeeUnitTest.cpp"/>
@@ -261,6 +263,7 @@
     <File Name="../make_caffemodel_engine_files.py"/>
     <File Name="../Makefile"/>
     <File Name="../README.md"/>
+    <File Name="../.gitignore"/>
   </VirtualDirectory>
   <VirtualDirectory Name="examples">
     <VirtualDirectory Name="cpp">

@@ -5778,35 +5778,116 @@ const wchar_t* dsl_return_value_to_string(uint result);
 const wchar_t* dsl_state_value_to_string(uint state);
 
 /**
- * @brief Returns the current version of DSL
- * @return string representation of the current release
- */
-const wchar_t* dsl_version_get();
-
-/**
  * @brief Releases/deletes all DSL/GST resources
  */
 void dsl_delete_all();
 
 /**
- * @brief Redirects all data streamed to std::cout << by DSL to a specified file.
- * The file is opened for append if it currently exists. 
- * @param[in] file_path absolute or relative file path specification
- * @return true on success, one DSL_RESULT otherwise
+ * @brief Returns the current version of DSL
+ * @return string representation of the current release
  */
-DslReturnType dsl_stdout_redirect(const wchar_t* file_path);
-
-/**
- * @brief Restores the std::cout rdbuf from redirection
- */
-void dsl_stdout_restore();
+const wchar_t* dsl_info_version_get();
 
 /**
  * @brief Gets the GPU type for a specified GPU Id.
  * @param[in] gpu_id id of the GPU to query.
- * @return one of the DSL_GPU_TYPE constant values
+ * @return one of the DSL_GPU_TYPE constant values.
  */ 
-uint dsl_gpu_type_get(uint gpu_id);
+uint dsl_info_gpu_type_get(uint gpu_id);
+
+/**
+ * @brief Gets the current setting for where stdout is directed.
+ * @param[out] file_path absolute file path specification or "console".
+ * @return true on successful query, one DSL_RESULT otherwise.
+ */
+DslReturnType dsl_info_stdout_get(const wchar_t** file_path);
+
+/**
+ * @brief Redirects all data streamed to stdout including debug logs by default. 
+ * The current log file, if one is active, will be saved. The file can be opened for 
+ * append or truncated if found. 
+ * @param[in] file_path absolute or relative file path specification
+ * @param[in] mode either DSL_WRITE_MODE_APPEND or DSL_WRITE_MODE_TRUNCATE
+ * @return true on successful query, one DSL_RESULT otherwise
+ * @note this service appends a ".log" extension to file_path. 
+ */
+DslReturnType dsl_info_stdout_redirect(const wchar_t* file_path, uint mode);
+
+/**
+ * @brief Redirects all data streamed to stdout including debug logs by default.
+ * The current log file, if one is active, will be saved. 
+ * @param[in] file_path absolute or relative file path specification
+ * @param[in] mode either DSL_WRITE_MODE_APPEND or DSL_WRITE_MODE_TRUNCATE
+ * @return true on successful update, one DSL_RESULT otherwise.
+ * @note this service appends a timestamp with the format %Y%m%d-%H%M%S.
+ * and ".log" extension to file_path. If redirecting to a new file from an existing file.
+ */
+DslReturnType dsl_info_stdout_redirect_with_ts(const wchar_t* file_path);
+
+/**
+ * @brief Restores the std::cout rdbuf from redirection
+ * @return true on successful update, one DSL_RESULT otherwise.
+ */
+DslReturnType dsl_info_stdout_restore();
+
+/**
+ * @brief Gets the current GST debug log level if set with the environment
+ * variable GST_DEBUG or with a call to dsl_info_log_level_set
+ * @parma[out] level current level string defining one or more debug group/level pairs.
+ * prefixed with optional global default. Empty string if undefined.
+ * @return true on successful query, one of DSL_RESULT otherwise
+*/
+DslReturnType dsl_info_log_level_get(const wchar_t** level);
+
+/**
+ * @brief Sets the GST debug log level. The call will override the currnet 
+ * value of the GST_DEBUG environment variable.
+ * @param[in] level new level (string) defining one or more debug group/level pairs
+ * prefixed with optional global default. eg. export GST_DEBUG=1,DSL:4
+ * @return true on successful update, one of DSL_RESULT otherwise
+ */
+DslReturnType dsl_info_log_level_set(const wchar_t* level);
+
+/**
+ * @brief Gets the current GST debug log file if set with the environment
+ * variable GST_DEBUG_FILE or with a call to dsl_info_log_file_set or 
+ * dsl_info_log_file_set_with_ts. 
+ * @param[out] file_path the complete file path/name specification with 
+ * (optional) timestamp and file extension. Empty string if undefined.
+ * @return true on successful query, one of DSL_RESULT otherwise.
+ */
+DslReturnType dsl_info_log_file_get(const wchar_t** file_path);
+
+/**
+ * @brief Sets the GST debug log file. The call will override the current value of 
+ * the DSL_DEBUG_FILE environment variable.  The current  running log file, if one 
+ * will be saved. The file can be opened for append or truncated if found. 
+ * @param[in] file_path relative or absolute file path without an extension.
+ * @param[in] mode either DSL_WRITE_MODE_APPEND or DSL_WRITE_MODE_TRUNCATE.
+ * @return true on successful update, one of DSL_RESULT otherwise.
+ * @note this service appends a ".log" extension to file_path. The current
+ * log file in use, if one exists, will be closed.
+*/ 
+DslReturnType dsl_info_log_file_set(const wchar_t* file_path, uint mode);
+
+/**
+ * @brief Sets the GST debug log file. The call will override the current
+ * value of the DSL_DEBUG_FILE environment variable. The current  running
+ * log file, if one is active, will be saved.
+ * @param[in] file_path relative or absolute file path to persist GST Logs.
+ * @return true on successful update, one of DSL_RESULT otherwise
+ * @note this service appends a timestamp with the format %Y%m%d-%H%M%S 
+ * and ".log" extension to file_path.
+ */
+DslReturnType dsl_info_log_file_set_with_ts(const wchar_t* file_path);
+
+/**
+ * @brief Restores the original default log function which will write
+ * logs to GST_DEBUG_FILE if set, or stdio otherwise.
+ * @return true on successful update, one of DSL_RESULT otherwise
+ */
+DslReturnType dsl_info_log_function_restore();
+
 
 EXTERN_C_END
 

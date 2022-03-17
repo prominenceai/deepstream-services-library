@@ -5006,45 +5006,108 @@ def dsl_state_value_to_string(state):
     return _dsl.dsl_state_value_to_string(state)
 
 ##
-## dsl_version_get()
-##
-_dsl.dsl_version_get.restype = c_wchar_p
-def dsl_version_get():
-    global _dsl
-    return _dsl.dsl_version_get()
-
-##
 ## dsl_delete_all()
 ##
 _dsl.dsl_delete_all.restype = c_bool
 def dsl_delete_all():
     global _dsl
     return _dsl.dsl_delete_all()
-    
+
 ##
-## dsl_stdout_redirect()
+## dsl_info_version_get()
 ##
-_dsl.dsl_stdout_redirect.argtypes = [c_wchar_p]
-_dsl.dsl_stdout_redirect.restype = c_uint
-def dsl_stdout_redirect(file_path):
+_dsl.dsl_info_version_get.restype = c_wchar_p
+def dsl_info_version_get():
     global _dsl
-    result = _dsl.dsl_stdout_redirect(file_path)
+    return _dsl.dsl_info_version_get()
+
+
+##
+## dsl_info_stdout_redirect()
+##
+_dsl.dsl_info_stdout_redirect.argtypes = [c_wchar_p]
+_dsl.dsl_info_stdout_redirect.restype = c_uint
+def dsl_info_stdout_redirect(file_path):
+    global _dsl
+    result = _dsl.dsl_info_stdout_redirect(file_path)
     return int(result)
 
 ##
-## dsl_stdout_restore()
+## dsl_info_stdout_restore()
 ##
-_dsl.dsl_stdout_restore.restype = c_bool
-def dsl_stdout_restore():
+_dsl.dsl_info_stdout_restore.restype = c_bool
+def dsl_info_stdout_restore():
     global _dsl
-    return _dsl.dsl_stdout_restore()
+    return _dsl.dsl_info_stdout_restore()
     
 ##
-## dsl_gpu_type_get()
+## dsl_info_gpu_type_get()
 ##
-_dsl.dsl_gpu_type_get.argtypes = [c_uint]
-_dsl.dsl_gpu_type_get.restype = c_uint
-def dsl_gpu_type_get(gpu_id):
+_dsl.dsl_info_gpu_type_get.argtypes = [c_uint]
+_dsl.dsl_info_gpu_type_get.restype = c_uint
+def dsl_info_gpu_type_get(gpu_id):
     global _dsl
-    result = _dsl.dsl_gpu_type_get(gpu_id)
+    result = _dsl.dsl_info_gpu_type_get(gpu_id)
+    return int(result)
+
+##
+## dsl_info_log_level_get()
+##
+_dsl.dsl_info_log_level_get.argtypes = [POINTER(c_wchar_p)]
+_dsl.dsl_info_log_level_get.restype = c_uint
+def dsl_info_log_level_get():
+    global _dsl
+    level = c_wchar_p(0)
+    result = _dsl.dsl_info_log_level_get(name, DSL_WCHAR_PP(level))
+    return int(result), level.value 
+
+##
+## dsl_info_log_level_set()
+##
+_dsl.dsl_info_log_level_set.argtypes = [c_wchar_p]
+_dsl.dsl_info_log_level_set.restype = c_uint
+def dsl_info_log_level_set(level):
+    global _dsl
+    result = _dsl.dsl_info_log_level_set(level)
+    return int(result)
+
+##
+## dsl_info_log_file_get()
+##
+_dsl.dsl_info_log_file_get.argtypes = [POINTER(c_wchar_p)]
+_dsl.dsl_info_log_file_get.restype = c_uint
+def dsl_info_log_file_get():
+    global _dsl
+    level = c_wchar_p(0)
+    result = _dsl.dsl_info_log_file_get(name, DSL_WCHAR_PP(level))
+    return int(result), level.value 
+
+##
+## dsl_info_log_file_set()
+##
+_dsl.dsl_info_log_file_set.argtypes = [c_wchar_p]
+_dsl.dsl_info_log_file_set.restype = c_uint
+def dsl_info_log_file_set(level):
+    global _dsl
+    result = _dsl.dsl_info_log_file_set(level)
+    return int(result)
+
+##
+## dsl_info_log_file_set_with_ts()
+##
+_dsl.dsl_info_log_file_set_with_ts.argtypes = [c_wchar_p]
+_dsl.dsl_info_log_file_set_with_ts.restype = c_uint
+def dsl_info_log_file_set_with_ts(level):
+    global _dsl
+    result = _dsl.dsl_info_log_file_set_with_ts(level)
+    return int(result)
+
+##
+## dsl_info_log_function_restore()
+##
+_dsl.dsl_info_log_function_restore.argtypes = []
+_dsl.dsl_info_log_function_restore.restype = c_uint
+def dsl_info_log_function_restore():
+    global _dsl
+    result = _dsl.dsl_info_log_function_restore()
     return int(result)
