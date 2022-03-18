@@ -184,7 +184,7 @@ retval = dsl_message_broker_delete_all()
 ```C++
 DslReturnType dsl_message_broker_connect(const wchar_t* name);
 ```
-This service attempts to connect the Message Broker to a remote entity. Clients can listen for connection events by add a callback of type type [dsl_message_broker_connection_listener_cb](#dsl_message_broker_connection_listener_cb) by calling [dsl_message_broker_connection_listener_add](#dsl_message_broker_connection_listener_add)
+This service attempts to connect the Message Broker to a remote entity. Clients can listen for connection events by adding a callback of type [dsl_message_broker_connection_listener_cb](#dsl_message_broker_connection_listener_cb) by calling [dsl_message_broker_connection_listener_add](#dsl_message_broker_connection_listener_add)
 
 **Parameters**
 * `name` - [in] unique name of the Message Broker to connect.
