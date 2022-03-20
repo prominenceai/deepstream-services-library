@@ -63,9 +63,6 @@ def thread_function(name):
     # Simple message to send to the server
     unicode_message = "Hello remote server - edge device is messaging"
     
-    # Maximum number of message to send. 
-    message_limit = 10
-    
     while message_limit:
         retval = dsl_message_broker_message_send_async('message-broker',
             topic = "/dsl/message",
@@ -75,10 +72,7 @@ def thread_function(name):
             client_data = None)
         print('dsl_message_broker_message_send_async returned ', 
             dsl_return_value_to_string(retval))
-        time.sleep(2)
-        
-        message_limit -= 1
-        
+        time.sleep(5)
         
 
 def main(args):
@@ -86,6 +80,21 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
     
+        # Direct debug logs and stdout to the mapped /tmp/.dsl/ folder which is 
+        # accessible from outside of the running Docker container.
+        retval = dsl_info_log_file_set_with_ts('/tmp/.dsl/debug')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_info_stdout_redirect_with_ts('/tmp/.dsl/stdout')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Set the debug log level with a default level of 1 (ERROR) for all
+        # Gstreamer objects and plugins, and with DSL's level set to 4 (INFO).
+        retval = dsl_info_log_level_set('1,DSL:4')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # Create a new Message Broker with the specs defined above
         retval = dsl_message_broker_new('message-broker', 
             broker_config_file = broker_config_file,

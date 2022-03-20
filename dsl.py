@@ -81,11 +81,11 @@ DSL_ODE_ANY_CLASS = int('7FFFFFFF',16)
 DSL_TILER_SHOW_ALL_SOURCES = None
 
 # Copied from x.h
-Button1	= 1
-Button2	= 2
-Button3	= 3
-Button4	= 4
-Button5	= 5
+Button1 = 1
+Button2 = 2
+Button3 = 3
+Button4 = 4
+Button5 = 5
 
 DSL_PAD_PROBE_DROP    = 0
 DSL_PAD_PROBE_OK      = 1
@@ -5025,11 +5025,21 @@ def dsl_info_version_get():
 ##
 ## dsl_info_stdout_redirect()
 ##
-_dsl.dsl_info_stdout_redirect.argtypes = [c_wchar_p]
+_dsl.dsl_info_stdout_redirect.argtypes = [c_wchar_p, c_uint]
 _dsl.dsl_info_stdout_redirect.restype = c_uint
-def dsl_info_stdout_redirect(file_path):
+def dsl_info_stdout_redirect(file_path, mode):
     global _dsl
-    result = _dsl.dsl_info_stdout_redirect(file_path)
+    result = _dsl.dsl_info_stdout_redirect(file_path, mode)
+    return int(result)
+
+##
+## dsl_info_stdout_redirect_with_ts()
+##
+_dsl.dsl_info_stdout_redirect_with_ts.argtypes = [c_wchar_p]
+_dsl.dsl_info_stdout_redirect_with_ts.restype = c_uint
+def dsl_info_stdout_redirect_with_ts(file_path):
+    global _dsl
+    result = _dsl.dsl_info_stdout_redirect_with_ts(file_path)
     return int(result)
 
 ##
