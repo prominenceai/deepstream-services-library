@@ -247,8 +247,8 @@ namespace DSL
                     try
                     {
                         std::wstring wstrTopic(pTopic->begin(), pTopic->end());
-                        imap.second(status, message, length, wstrTopic.c_str(),
-                            m_messageSubscribers[m_messageTopics[pTopic]]);
+                        imap.second(m_messageSubscribers[m_messageTopics[pTopic]],
+                            status, message, length, wstrTopic.c_str());
                     }
                     catch(...)
                     {

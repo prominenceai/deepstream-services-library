@@ -31,17 +31,21 @@ from dsl import *
 import threading
 import time
 
-################################################################################
+#####################################################################################
 # This example demonstrates the use of the Module Client Azure protocol for
-# bi-directional messaging - CAUTION: this script is a work in progress (WIP).
-################################################################################
+# bi-directional messaging.  The script must be run from a deployed Docker container
+#
+# See https://github.com/prominenceai//deepstream-services-library/proto-lib-azure.md
+#####################################################################################
 protocol_lib = \
     '/opt/nvidia/deepstream/deepstream/lib/libnvds_azure_edge_proto.so'
 broker_config_file = \
     '/opt/nvidia/deepstream/deepstream/sources/libs/azure_protocol_adaptor/module_client/cfg_azure.txt'
 
-# Connection string must be defined in /etc/iotedge/config.yaml
+# Connection string must be defined in /etc/iotedge/config.toml
 connection_string = None
+
+DEFAULT_TOPIC = "/dsl/example-topic"
 
 ## 
 # Function to be called on connection failure 
@@ -56,6 +60,14 @@ def message_broker_send_result_listener(client_data, status):
     print('Result listener called with status:', status)
 
 ## 
+# Function to be incomming message received
+## 
+def message_broker_subscriber(client_data, status, message, length, topic):
+    print('Incomming message received with status:', status)
+    print('Message topic:', topic)
+    print('Message length', length)
+
+## 
 # Thread loop function to periodically send a pre-canned message
 ## 
 def thread_function(name):
@@ -65,7 +77,7 @@ def thread_function(name):
     
     while message_limit:
         retval = dsl_message_broker_message_send_async('message-broker',
-            topic = "/dsl/message",
+            topic = DEFAULT_TOPIC,
             message = unicode_message.encode('ascii'),
             size = len(unicode_message),
             response_listener = message_broker_send_result_listener,
@@ -80,7 +92,7 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
     
-        # Direct debug logs and stdout to the mapped /tmp/.dsl/ folder which is 
+        # Direct debug logs to a file in /tmp/.dsl/ folder which is 
         # accessible from outside of the running Docker container.
         retval = dsl_info_log_file_set_with_ts('/tmp/.dsl/debug')
         if retval != DSL_RETURN_SUCCESS:
@@ -102,15 +114,26 @@ def main(args):
             connection_string = connection_string)
         if retval != DSL_RETURN_SUCCESS:
             break
-            
+
         # Add a connection listener to be notified on connection failure.
         retval = dsl_message_broker_connection_listener_add('message-broker',
-            message_broker_connection_listener, None)    
+            message_broker_connection_listener, client_data=None)    
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # Connect to the remote server
         retval = dsl_message_broker_connect('message-broker')
         if retval != DSL_RETURN_SUCCESS:
             break
+            
+        # Add the subscriber callback function defined above. This a contrived
+        # example that subscribes to its own messages -- loopback test
+        retval = dsl_message_broker_subscriber_add('message-broker',
+            message_broker_subscriber, topics = [DEFAULT_TOPIC, None], 
+            client_data=None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
             
         # Start the messaging thread to send a number of canned messages.
         send_thread = threading.Thread(target=thread_function, args=(1,))

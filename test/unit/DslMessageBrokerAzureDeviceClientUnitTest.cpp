@@ -34,9 +34,6 @@ static std::string protocolLib("/opt/nvidia/deepstream/deepstream/lib/libnvds_az
 static std::string connectionString;
 static std::string brokerConfigFile(
     "/opt/nvidia/deepstream/deepstream-6.0/sources/libs/azure_protocol_adaptor/device_client/cfg_azure.txt");
-static std::string topic1("subscribed/topic/1");
-static std::string topic2("subscribed/topic/2");
-static std::string topic3("subscribed/topic/3");
 
 SCENARIO( "A new MessageBrokerDeviceClient is created correctly", "[MessageBrokerDeviceClient]" )
 {

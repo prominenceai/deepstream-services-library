@@ -228,6 +228,7 @@ DSL_WEBRTC_SINK_CLIENT_LISTENER = CFUNCTYPE(None, POINTER(dsl_webrtc_connection_
 DSL_ODE_TRIGGER_LIMIT_EVENT_LISTENER = CFUNCTYPE(None, c_uint, c_uint, c_void_p)
 DSL_ODE_ENABLED_STATE_CHANGE_LISTENER = CFUNCTYPE(None, c_bool, c_void_p)
 DSL_MESSAGE_BROKER_CONNECTION_LISTENER = CFUNCTYPE(None, c_void_p, c_uint)
+DSL_MESSAGE_BROKER_SUBSCRIBER = CFUNCTYPE(None, c_void_p, c_uint, c_void_p, c_uint, c_wchar_p)
 DSL_MESSAGE_BROKER_SEND_RESULT_LISTENER = CFUNCTYPE(None, c_void_p, c_uint)
 
 ##
@@ -4955,7 +4956,37 @@ def dsl_message_broker_disconnect(name):
     global _dsl
     result =_dsl.dsl_message_broker_disconnect(name)
     return int(result)
+
+##
+## dsl_message_broker_subscriber_add()
+##
+_dsl.dsl_message_broker_subscriber_add.argtypes = [c_wchar_p, 
+    DSL_MESSAGE_BROKER_SUBSCRIBER, c_void_p]
+_dsl.dsl_message_broker_subscriber_add.restype = c_uint
+def dsl_message_broker_subscriber_add(name, subscriber, topics, client_data):
+    global _dsl
+    c_subscriber = DSL_MESSAGE_BROKER_SUBSCRIBER(subscriber)
+    callbacks.append(c_subscriber)
+    arr = (c_wchar_p * len(topics))()
+    arr[:] = topics
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_message_broker_subscriber_add(name, 
+        c_subscriber, arr, c_client_data)
+    return int(result)
     
+##
+## dsl_message_broker_subscriber_remove()
+##
+_dsl.dsl_message_broker_subscriber_remove.argtypes = [c_wchar_p, 
+    DSL_MESSAGE_BROKER_SUBSCRIBER]
+_dsl.dsl_message_broker_subscriber_remove.restype = c_uint
+def dsl_message_broker_subscriber_remove(name, subscriber):
+    global _dsl
+    c_subscriber = DSL_MESSAGE_BROKER_SUBSCRIBER(subscriber)
+    result = _dsl.dsl_message_broker_subscriber_remove(name, c_subscriber)
+    return int(result)
+
 ##
 ## dsl_message_broker_message_send_async()
 ##

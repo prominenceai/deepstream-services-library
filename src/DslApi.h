@@ -1056,13 +1056,13 @@ typedef void (*dsl_sink_webrtc_client_listener_cb)(dsl_webrtc_connection_data* i
 /**
  * @brief callback typedef for a client to receive incoming messages
  * filtered by topic. 
+ * @param[in] client_data opaque pointer to client's user data.
  * @param[in] status status of the received messages, one of DSL_STATUS_BROKER
  * @param[in] message pointer to the message received.
  * @param[in] length length of the message received in bytes.
- * @param[in] client_data opaque pointer to client's user data.
  */
-typedef void (*dsl_message_broker_subscriber_cb)(uint status, void *message, 
-    uint length, const wchar_t* topic, void* client_data);
+typedef void (*dsl_message_broker_subscriber_cb)(void* client_data, uint status, void *message, 
+    uint length, const wchar_t* topic);
     
 /**
  * @brief callback typedef for a client to receive and handle
