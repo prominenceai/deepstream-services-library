@@ -101,6 +101,25 @@ Follow the below steps from the instructions here. https://docs.microsoft.com/en
 ### Build and deploy a Docker Image
 See the instructions and Docker file under the [deepstream-services-library-docker](https://github.com/prominenceai/deepstream-services-library-docker) GitHub repository.
 
+### Grant host access to the local X-server
+As a privileged user (root), append the following lines to file **`/etc/profile`** replacing `<hub-name>` with the name of your Azure Hub Instance.
+
+```bash
+if [ "$DISPLAY" != "" ]
+then
+ xhost +<hub-name>.azure-devices.net
+fi
+```
+Make the file excutable 
+```bash
+sudo chmod u+x /etc/profile
+```
+Then execute the file. You should see confirmation of the host addion similar to below.
+```bash
+sudo /etc/profile
+my-hub.azure-devices.net being added to access control list
+```
+
 ### Deploy IoT Modules
 There are two IoT Edge System Modules that must be deployed with every edge device. The following instructions detail the steps to create a new IoT module to run the Docker Image created in the previous section [Build and deploy a Docker Image](#build-and-deploy-a-docker-image).
 
@@ -109,7 +128,7 @@ From your Azure portal, select `IoT Edge` from the left menu selections, then se
 
 <br>
 
-Select the **`+ Add`** button under the **IoT Modules** section on the `Set modules` page, see below.
+Select the `+ Add` button under the **IoT Edge Modules** section on the `Set modules` page and select the first item `+ IoT Edge Module` as shown below.
 
 <br>
 
@@ -117,22 +136,21 @@ Select the **`+ Add`** button under the **IoT Modules** section on the `Set modu
 
 <br>
 
-Define the `Module Settings` by specifying the `IoT Edge Module Name` and `Image URI` to the the Docker Image created in the previous section [Build and deploy a Docker Image](#build-and-deploy-a-docker-image) as shown in the image below.
+Define the **`Module Settings`** by specifying the `IoT Edge Module Name` and `Image URI` to the the Docker Image created in the previous section [Build and deploy a Docker Image](#build-and-deploy-a-docker-image) as shown in the image below.
 
 ![](/Images/azure-iot-edge-device-create-module-settings.png)
 
 <br>
 
-Select the `Environment Variables` tab and add the `DISPLAY` variable as shown below.
+Select the **`Environment Variables`** tab and add the `DISPLAY` variable as shown below. Set the value to `:0` for local or `:1` for remote.
 
 ![](/Images/azure-iot-edge-device-create-environment-variables.png)
 
 <br>
 
-Select the `Container Create Options` 
+Select the **`Container Create Options`** tab 
 
 ![](/Images/azure-iot-edge-device-create-container-create-options.png)
-)
     
 Then add the below JSON code and select **`Add`**
 ```json
@@ -162,7 +180,7 @@ Then add the below JSON code and select **`Add`**
 
 <br>
 
-Then, select the **`Review + create`** button from the Set modules main page as show below:
+Once code has been added, select the **`Review + create`** button from the `Set modules` main page as show below:
 
 ![](/Images/azure-iot-edge-device-create-module-review-and-create.png)
 
