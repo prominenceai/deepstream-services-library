@@ -33,7 +33,7 @@ curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 #### For Jetson:
 Currently, the only way to use Azure CLI on ARM64 is to install from PyPI (https://pypi.org/project/azure-cli/):
 ```
-pip3 install azure-cli
+sudo pip3 install azure-cli
 ```
 If the install fails see [Failure installing azure-cli on Jetson](#failure-installing-azure-cli-on-jetson) under [Trouble Shooting](#trouble-shooting).
 
@@ -88,132 +88,21 @@ Your device setup is now sufficient to use the Device Client `libnvds_azure_prot
 * [message_broker_azure_device_client.py](/examples/python/message_broker_azure_device_client.py)
 
 ## Azure Module Client setup
-***Still a work in progress (WIP)***
 
 ### Setup Azure IoT Edge runtime on the edge device
-#### For an x86 computer running Ubuntu:
-Follow the instructions here. https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux
-
-#### For Jetson:
-Enter the following commands.
-```bash
-pip3 install iotedgedev
-sudo mv ~/.local/bin/iotedgedev /usr/local/bin
-```
-Install curl
-```bash
-sudo apt update
-sudo apt install curl
-```
-Download and install the standard libiothsm implementation
-```bash
-curl -L https://github.com/Azure/azure-iotedge/releases/download/1.0.8-rc1/libiothsm-std_1.0.8.rc1-1_arm64.deb -o libiothsm-std.deb && sudo dpkg -i ./libiothsm-std.deb
-```
-Download and install the IoT Edge Security Daemon
-```bash
-curl -L https://github.com/Azure/azure-iotedge/releases/download/1.0.8-rc1/iotedge_1.0.8.rc1-1_arm64.deb -o iotedge.deb && sudo dpkg -i ./iotedge.deb
-```
-Run apt-get fix
-```bash
-sudo apt-get install -f
-```
-
-Update the `/etc/iotedge/config.yaml` file.
-
-Find the `provisioning` section of the file and uncomment the manual provisioning mode. Update the value of device_connection_string with the connection string from your IoT Edge device.
-```yaml
-provisioning:
-  source: "manual"
-  device_connection_string: "<ADD DEVICE CONNECTION STRING HERE>"
-```
-
-Restart the IoT Edge service with the following command
-```bash
-service iotedge restart
-```
-Verify the status of the IoT Edge Service by entering
-```bash
-systemctl status iotedge
-```
-You should see the following status output - press `Ctrl C` to exit
-```
-● iotedge.service - Azure IoT Edge daemon
-   Loaded: loaded (/lib/systemd/system/iotedge.service; enabled; vendor preset: enabled)
-   Active: active (running) since Thu 2022-03-10 23:20:15 PST; 4min 51s ago
-     Docs: man:iotedged(8)
- Main PID: 14728 (iotedged)
-    Tasks: 11 (limit: 4172)
-   CGroup: /system.slice/iotedge.service
-           └─14728 /usr/bin/iotedged -c /etc/iotedge/config.yaml
-
-```
+#### For For Jetson and x86 computers running Ubuntu:
+Follow the below steps from the instructions here. https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux. Specifically:
+* [Install IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-provision-single-device-linux-symmetric?view=iotedge-2020-11&tabs=azure-portal%2Cubuntu#install-iot-edge).
+* **Caution:** make sure to skip the section [Install a container engine](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-provision-single-device-linux-symmetric?view=iotedge-2020-11&tabs=azure-portal%2Cubuntu#install-a-container-engine).
+* [Install the IoT Edge runtime](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-provision-single-device-linux-symmetric?view=iotedge-2020-11&tabs=azure-portal%2Cubuntu#install-the-iot-edge-runtime).
+* [Provision the device with its cloud identity](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-provision-single-device-linux-symmetric?view=iotedge-2020-11&tabs=azure-portal%2Cubuntu#provision-the-device-with-its-cloud-identity)
+* [Verify successful configuration](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-provision-single-device-linux-symmetric?view=iotedge-2020-11&tabs=azure-portal%2Cubuntu#verify-successful-configuration)
 
 ### Build and deploy a Docker Image
 See the instructions and Docker file under the [deepstream-services-library-docker](https://github.com/prominenceai/deepstream-services-library-docker) GitHub repository.
 
 ### Deploy IoT Modules
-There are two IoT Edge System Modules that must be deployed with every edge device. The modules can be pulled to the edge device using the Azure CLI and IoT extension. 
-
-Clone the `azure-deployment-config` repository to your device.
-```bash
-git clone https://github.com/prominenceai/azure-deployment-config
-```
-Files:
-* `deployment.template.json` - template file from which the deployment config is created.
-* `.env` - environment file for your credentials
-Update the `.env` file with your credentials and the address of your local Docker registry you created in the [Build and deploy a Docker Image] 
-```yaml
-CONTAINER_REGISTRY_USERNAME = "my-username"
-CONTAINER_REGISTRY_PASSWORD = "my-password"
-CONTAINER_REGISTRY_ADDRESS = "http://localhost:5000"
-```
-
-Generate the deployment manifest from the deployment.template.json with the following command.
-```bash
-iotedgedev genconfig -f deployment.template.json -P arm64v8
-```
-You should see the following confirmation
-```
-=======================================
-======== ENVIRONMENT VARIABLES ========
-=======================================
-
-Environment Variables loaded from: .env (/home/prominenceai1/prominenceai/azure-deployment-config/.env)
-Expanding image placeholders
-Converting createOptions
-Deleting template schema version
-Expanding 'deployment.template.json' to 'config/deployment.arm64v8.json'
-Validating generated deployment manifest config/deployment.arm64v8.json
-Validating schema of deployment manifest.
-Deployment manifest schema validation passed.
-Start validating createOptions for all modules.
-Validating createOptions for module edgeAgent
-createOptions of module edgeAgent validation passed
-Validating createOptions for module edgeHub
-createOptions of module edgeHub validation passed
-Validation for all createOptions passed.
-```
-Note the config file path above `config/deployment.arm64v8.json`
-
-Then, deploy the modules with the following command using the config path as shown.
-```bash
-az iot edge set-modules --device-id <device id> --hub-name <hub name> --content ./config/deployment.arm64v8.json
-```
-where 
-* `<device-id>` =  the device-id you used when you [Create an IoT Edge Device Identity](create_an_iot_edge_device_identity) above.
-* `<hub-name>` = the hub-name you used when you [Setup an Azure IoT Hub Instance](setup_an_azure_iot_hub_instance) above.
-
-Verify the module deployment with the following command.
-```bash
-iotedge list
-```
-You should see the following
-```
-NAME             STATUS           DESCRIPTION      CONFIG
-edgeAgent        running          Up 2 minutes     mcr.microsoft.com/azureiotedge-agent:1.0
-edgeHub          running          Up 2 minutes     mcr.microsoft.com/azureiotedge-hub:1.0
-```
-
+There are two IoT Edge System Modules that must be deployed with every edge device. 
 
 
 ## Trouble Shooting
