@@ -1,7 +1,7 @@
 # Azure MQTT Protocol Adapter Libraries
 NVIDIA provides two protocol libraries installed with DeepStream under `/opt/nvidia/deepstream/deepstream/sources/libs`
 * `libnvds_azure_proto.so` - a device client protocol for sending messages from the device to an Azure IoT Hub instance. Requires minimal setup.
-* `libnvds_azure_edge_proto.so` - a module client protocol for bidirectional device-server messaging. Applications linking with DSL must be run in a deployed Docker container. 
+* `libnvds_azure_edge_proto.so` - a module client protocol for bidirectional device-server messaging. Applications linking with DSL must be run in a deployed Docker container.
 
 ## Common Setup for both Protocol Adapters
 ### Install Additional device dependencies
@@ -45,7 +45,7 @@ Verify the installation with.
 ```bash
 az --version
 ```
-If the verification command fails see [Failure varifying azure-cli install on Jetson](#failure-varifying-azure-cli-intall-on-jetson) under [Trouble Shooting](#trouble-shooting).
+If the verification command fails see [Failure verifying azure-cli install on Jetson](#failure-varifying-azure-cli-intall-on-jetson) under [Trouble Shooting](#trouble-shooting).
 
 ### Add the azure-iot extension.
 ``` bash
@@ -62,11 +62,11 @@ Create an IoT edge device from you device terminal with the following command.
 ```bash
 az iot hub device-identity create --device-id <device-id> --hub-name <hub-name> --edge-enabled
 ```
-where 
+where
 * `<device-id>` =  name (string) to identify the new device
 * `<hub-name>` = the hub-name you used when you [Setup an Azure IoT Hub Instance](setup_an_azure_iot_hub_instance) above.
 
-Verify the device creation with the following command. 
+Verify the device creation with the following command.
 ```bash
 az iot hub device-identity list --hub-name <hub-name>
 ```
@@ -110,11 +110,11 @@ then
  xhost +<hub-name>.azure-devices.net
 fi
 ```
-Make the file excutable 
+Make the file executable
 ```bash
 sudo chmod u+x /etc/profile
 ```
-Then execute the file. You should see confirmation of the host addion similar to below.
+Then execute the file. You should see confirmation of the host addition similar to below.
 ```bash
 sudo /etc/profile
 my-hub.azure-devices.net being added to access control list
@@ -123,7 +123,7 @@ my-hub.azure-devices.net being added to access control list
 ### Deploy IoT Modules
 There are two IoT Edge System Modules that must be deployed with every edge device. The following instructions detail the steps to create a new IoT module to run the Docker Image created in the previous section [Build and deploy a Docker Image](#build-and-deploy-a-docker-image).
 
-From your Azure portal, select `IoT Edge` from the left menu selections, then select your device by its id. From the device page, select the `Set modules` from the uper menu bar as show below
+From your Azure portal, select `IoT Edge` from the left menu selections, then select your device by its id. From the device page, select the `Set modules` from the upper menu bar as show below
 ![](/Images/azure-iot-edge-device-set-modules.png)
 
 <br>
@@ -148,10 +148,10 @@ Select the **`Environment Variables`** tab and add the `DISPLAY` variable as sho
 
 <br>
 
-Select the **`Container Create Options`** tab 
+Select the **`Container Create Options`** tab
 
 ![](/Images/azure-iot-edge-device-create-container-create-options.png)
-    
+   
 Then add the below JSON code and select **`Add`**
 ```json
 {
@@ -186,7 +186,7 @@ Once code has been added, select the **`Review + create`** button from the `Set 
 
 ## Trouble Shooting
 ### Failure installing azure-cli on Jetson.
-If the command to intall azure-cli using pip3 fails with the following module dependency errors
+If the command to install azure-cli using pip3 fails with the following module dependency errors
 ```
     No package 'libffi' found
     c/_cffi_backend.c:15:10: fatal error: ffi.h: No such file or directory
@@ -206,11 +206,11 @@ If the command to install fails with the following error
       File "/tmp/pip-build-jshgucrb/cryptography/setup.py", line 14, in <module>
         from setuptools_rust import RustExtension
     ModuleNotFoundError: No module named 'setuptools_rust'
-    
+   
             =============================DEBUG ASSISTANCE==========================
             If you are seeing an error here please try the following to
             successfully install cryptography:
-    
+   
             Upgrade to the latest pip and try again. This will fix errors for most
             users. See: https://pip.pypa.io/en/stable/installing/#upgrading-pip
             =============================DEBUG ASSISTANCE==========================
@@ -221,14 +221,14 @@ sudo apt-get install python3-setuptools
 sudo pip3 install --upgrade pip
 ```
 
-### Failure varifying azure-cli install on Jetson
-If the command `az --version ` fails with 
+### Failure verifying azure-cli install on Jetson
+If the command `az --version ` fails with
 ```
 /usr/bin/az: line 2: /opt/az/bin/python3: cannot execute binary file: Exec format error
 
 ```
 
-You have an invalid debian version installed which can be removed with.
+You have an invalid Debian version installed which can be removed with.
 ```bash
 sudo apt-get remove -y azure-cli
 ```
