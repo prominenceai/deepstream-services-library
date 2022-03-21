@@ -102,8 +102,69 @@ Follow the below steps from the instructions here. https://docs.microsoft.com/en
 See the instructions and Docker file under the [deepstream-services-library-docker](https://github.com/prominenceai/deepstream-services-library-docker) GitHub repository.
 
 ### Deploy IoT Modules
-There are two IoT Edge System Modules that must be deployed with every edge device. 
+There are two IoT Edge System Modules that must be deployed with every edge device. The following instructions detail the steps to create a new IoT module to run the Docker Image created in the previous section [Build and deploy a Docker Image](#build-and-deploy-a-docker-image).
 
+From your Azure portal, select `IoT Edge` from the left menu selections, then select your device by its id. From the device page, select the `Set modules` from the uper menu bar as show below
+![](/Images/azure-iot-edge-device-set-modules.png)
+
+<br>
+
+Select the **`+ Add`** button under the **IoT Modules** section on the `Set modules` page, see below.
+
+<br>
+
+![](/Images/azure-iot-edge-device-create-module.png)
+
+<br>
+
+Define the `Module Settings` by specifying the `IoT Edge Module Name` and `Image URI` to the the Docker Image created in the previous section [Build and deploy a Docker Image](#build-and-deploy-a-docker-image) as shown in the image below.
+
+![](/Images/azure-iot-edge-device-create-module-settings.png)
+
+<br>
+
+Select the `Environment Variables` tab and add the `DISPLAY` variable as shown below.
+
+![](/Images/azure-iot-edge-device-create-environment-variables.png)
+
+<br>
+
+Select the `Container Create Options` 
+
+![](/Images/azure-iot-edge-device-create-container-create-options.png)
+)
+    
+Then add the below JSON code and select **`Add`**
+```json
+{
+    "Entrypoint": [
+        "python3",
+        "/opt/prominenceai/deepstream-services-library/examples/python/message_broker_azure_module_client.py"
+    ],
+    "HostConfig": {
+        "runtime": "nvidia",
+        "NetworkMode": "host",
+        "Binds": [
+            "/tmp/argus_socket:/tmp/argus_socket",
+            "/tmp/.X11-unix/:/tmp/.X11-unix/",
+            "/tmp/.dsl/:/tmp/.dsl/"
+        ],
+        "IpcMode": "host"
+    },
+    "NetworkingConfig": {
+        "EndpointsConfig": {
+            "host": {}
+        }
+    },
+    "WorkingDir": "/opt/prominenceai/deepstream-services-library/examples/python/"
+}
+```
+
+<br>
+
+Then, select the **`Review + create`** button from the Set modules main page as show below:
+
+![](/Images/azure-iot-edge-device-create-module-review-and-create.png)
 
 ## Trouble Shooting
 ### Failure installing azure-cli on Jetson.
