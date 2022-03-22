@@ -1,16 +1,52 @@
 # Message Broker API Reference
-Message Broker - Work in progress (WIP)
+Message Broker objects wrap around NVIDIA's [Message Broker Interface (nv_msgbroker)](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvmsgbroker.html#nv-msgbroker-message-broker-interface) which in turn acts as a wrapper around the [message protocol adapter libraries](#deepstream-installed-protocol-adapter-libraries) listed below.
+
+**Important Note:** The Message Broker API implementation and documentation are in a very preliminary state - released so that others can contribute on more testing and setup documentation for the various protocol adapter libraries.
+
+### Message Broker Construction and Destruction
+Message Brokers are created by calling [dsl_message_broker_new](#dsl_message_broker_new) with one of the protocol adapter libraries defined above. As with all DSL Components, Broker objects must be uniquely named or creation will fail. Broker objects are destroyed by calling either [dsl_message_broker_delete](#dsl_message_broker_delete) or [dsl_message_broker_delete_all](#dsl_message_broker_delete_all)
+
+### Connection Management.
+Message Brokers are connected to a remote entity by calling [dsl_message_broker_connect](#dsl_message_broker_connect) and disconnected by calling [dsl_message_broker_disconnect](#dsl_message_broker_disconnect). The current connection state can be uptrained by calling [dsl_message_broker_is_connected](#dsl_message_broker_is_connected). Clients can listen for connection events by calling [dsl_message_broker_connection_listener_add](#dsl_message_broker_connection_listener_add) with a callback of type [dsl_message_broker_connection_listener_cb](#dsl_message_broker_connection_listener_cb). **Note:** the particular cases for when the callback is called by each of the protocol adapter libraries is still to be determined.
+
+### Sending Asynchronous Messages
+Clients can send messages with a specific topic to a remote entity by calling [dsl_message_broker_message_send_async](#dsl_message_broker_message_send_async), while passing in a callback of type [dsl_message_broker_send_result_listener_cb](#dsl_message_broker_send_result_listener_cb) to receive the asynchronous notification of the send operation's success or failure.
+
+### Subscribing to Messages
+Clients can subscribe to incoming messages for one or more topics sent from a remote entity. A callback of type of [dsl_message_broker_subscriber_cb](#dsl_message_broker_subscriber_cb) can be added to a Message Broker by calling  [dsl_message_broker_subscriber_add](#dsl_message_broker_subscriber_add)
+and removed by calling [dsl_message_broker_subscriber_remove](#dsl_message_broker_subscriber_remove).
+
+**Note**: the protocol adapter library used must support bidirectional messaging. The Azure Module Client library `libnvds_azure_edge_proto.so` for example.
 
 ---
 
-## Protocol Adapters
-* [Azure MQTT Protocol Adapter Libraries](/docs/proto-lib-azure.md)
-* AMQP Protocol Adapter - still to be tested.
-* REDIS Protocol Adapter - still to be tested.
-* Kafka Protocol Adapter - still to be tested.
+## DeepStream Installed Protocol Adapter Libraries
+There are five implementations of the [Message API Protocol Adapter Interface(nvds-msgapi)](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvmsgbroker.html#nvds-msgapi-protocol-adapter-interface) installed with DeepStream under the folder `/opt/nvidia/deepstream/deepstream/libs`.
 
---- 
-## ODE Action API
+#### Azure MQTT Protocol Adapter Libraries
+There are two Azure adapter libraries, one for `device clients` to send messages to a remote entity, and one for `module clients` that can send and receive messages as a deployed IoT Edge Module.
+
+***Complete setup and usage instructions for both adapter libraries can be found [here](/docs/proto-lib-azure.md)***
+
+#### AMQP Protocol Adapter Library
+still to be tested.
+
+#### REDIS Protocol Adapter Library
+still to be tested.
+
+#### Kafka Protocol Adapter Library
+still to be tested.
+
+---
+## Applicable examples
+* [message_broker_azure_device_client.py](/examples/python/message_broker_azure_device_client.py)
+a simple example that sends a "hello world" string to an Azure Hub Instance. How to send more complex payloads in Python is still to be determined. C/C++ is more straight forward.
+* [message_broker_azure_module_client.py](/examples/python/message_broker_azure_module_client.py)
+a simple example that sends "hello world" strings from two different threads, each with their own result callback and unique topic. The same example subscribes to both topics as a way to test the bidirectional messaging. The messages sent to the Azure Hub instance will be sent back to the module client as a simple loop-back test.
+
+---
+
+## Message Broker API
 
 **Callback Types:**
 * [dsl_message_broker_connection_listener_cb](#dsl_message_broker_connection_listener_cb)
@@ -117,7 +153,7 @@ DslReturnType dsl_message_broker_new(const wchar_t* name,
     const wchar_t* broker_config_file, const wchar_t* protocol_lib,
     const wchar_t* connection_string);
 ```
-The constructor creates a uniquely named Message Broker. 
+The constructor creates a uniquely named Message Broker.
 
 Refer to the [nvmsgbroker](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvmsgbroker.html#) plugin documentation along with the README files located under the NVIDIA DeepStream installation folders `/opt/nvidia/deepstream/deepstream/sources/libs/<protocol-lib-adapter>` for information on Broker config settings and connection string syntax for each of the provided protocol adapter libraries.
 
