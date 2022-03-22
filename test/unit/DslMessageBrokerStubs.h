@@ -30,6 +30,9 @@ extern "C"
 {
 #endif
 
+static nv_msgbroker_subscribe_cb_t g_subscriber;
+static void* g_client_data;
+
 #undef nv_msgbroker_connect
 #define nv_msgbroker_connect _dsl_nv_msgbroker_connect
 
@@ -51,6 +54,7 @@ static NvMsgBrokerErrorType _dsl_nv_msgbroker_subscribe(NvMsgBrokerClientHandle 
 #undef nv_msgbroker_disconnect
 #define nv_msgbroker_disconnect _dsl_nv_msgbroker_disconnect
 
+
 NvMsgBrokerErrorType _dsl_nv_msgbroker_disconnect(NvMsgBrokerClientHandle h_ptr);
 
 static NvMsgBrokerClientHandle _dsl_nv_msgbroker_connect(char *broker_conn_str, 
@@ -64,10 +68,15 @@ static NvMsgBrokerClientHandle _dsl_nv_msgbroker_connect(char *broker_conn_str,
 static NvMsgBrokerErrorType _dsl_nv_msgbroker_send_async(NvMsgBrokerClientHandle h_ptr, 
     NvMsgBrokerClientMsg message, nv_msgbroker_send_cb_t cb, void *user_ctx)
 {
-    LOG_INFO("_dsl_nv_msgbroker_connect called");
+    LOG_INFO("_dsl_nv_msgbroker_send_async called");
     LOG_INFO("  topic = " << message.topic);
+    LOG_INFO("  payload = " << message.payload);
+    LOG_INFO("  length = " << message.payload_len);
     
     cb(user_ctx, NV_MSGBROKER_API_OK);
+    
+    g_subscriber(NV_MSGBROKER_API_OK, message.payload, message.payload_len,
+        message.topic, g_client_data);
 
     return NV_MSGBROKER_API_OK;
 }
@@ -76,6 +85,9 @@ static NvMsgBrokerErrorType _dsl_nv_msgbroker_subscribe(NvMsgBrokerClientHandle 
     char ** topics, int num_topics,  nv_msgbroker_subscribe_cb_t cb, void *user_ctx)
 {
     LOG_INFO( "_dsl_nv_msgbroker_subscribe called");
+    
+    g_subscriber = cb;
+    g_client_data = user_ctx;
 
     return NV_MSGBROKER_API_OK;
 }

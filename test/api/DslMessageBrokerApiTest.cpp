@@ -285,8 +285,8 @@ SCENARIO( "A Connection Listener can be added to and removed from a Message Broc
     }
 }    
 
-static void message_subscriber_cb(uint status, void *message, 
-    uint length, const wchar_t* topic, void* client_data)
+static void message_subscriber_cb(void* client_data, uint status, void *message, 
+    uint length, const wchar_t* topic)
 {    
 }
 

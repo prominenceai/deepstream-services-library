@@ -197,6 +197,8 @@ namespace DSL
         }
         for (const char** topic = topics; *topic; topic++)
         {
+            std::cout << "received topic = " << *topic << "\n";
+            
             std::shared_ptr<std::string> pTopic = std::shared_ptr<std::string>(
                 new std::string(*topic));
             m_messageTopics[pTopic] = subscriber;
@@ -247,8 +249,7 @@ namespace DSL
                     try
                     {
                         std::wstring wstrTopic(pTopic->begin(), pTopic->end());
-                        imap.second(status, message, length, wstrTopic.c_str(),
-                            m_messageSubscribers[m_messageTopics[pTopic]]);
+                        imap.second(NULL, status, message, length, wstrTopic.c_str());
                     }
                     catch(...)
                     {
@@ -261,7 +262,7 @@ namespace DSL
             LOG_WARN("MessageBroker '" << GetName() 
                 << "' received a message for topic '" << topic 
                 << "', however no client has subscribed for this topic");
-            }
+        }
     }
             
     bool MessageBroker::AddConnectionListener(
