@@ -4960,8 +4960,8 @@ def dsl_message_broker_disconnect(name):
 ##
 ## dsl_message_broker_subscriber_add()
 ##
-_dsl.dsl_message_broker_subscriber_add.argtypes = [c_wchar_p, 
-    DSL_MESSAGE_BROKER_SUBSCRIBER, c_void_p]
+#_dsl.dsl_message_broker_subscriber_add.argtypes = [c_wchar_p, 
+#    DSL_MESSAGE_BROKER_SUBSCRIBER, c_void_p]
 _dsl.dsl_message_broker_subscriber_add.restype = c_uint
 def dsl_message_broker_subscriber_add(name, subscriber, topics, client_data):
     global _dsl
@@ -4969,6 +4969,8 @@ def dsl_message_broker_subscriber_add(name, subscriber, topics, client_data):
     callbacks.append(c_subscriber)
     arr = (c_wchar_p * len(topics))()
     arr[:] = topics
+    
+    print(arr)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
     result = _dsl.dsl_message_broker_subscriber_add(name, 

@@ -1061,7 +1061,7 @@ typedef void (*dsl_sink_webrtc_client_listener_cb)(dsl_webrtc_connection_data* i
  * @param[in] message pointer to the message received.
  * @param[in] length length of the message received in bytes.
  */
-typedef void (*dsl_message_broker_subscriber_cb)(void* client_data, uint status, void *message, 
+typedef void (*dsl_message_broker_subscriber_cb)(void* client_data, uint status, void* message, 
     uint length, const wchar_t* topic);
     
 /**

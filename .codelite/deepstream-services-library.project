@@ -210,7 +210,6 @@
       <File Name="../examples/python/industrial_segmentation.py"/>
       <File Name="../examples/python/libdsl.so"/>
       <File Name="../examples/python/message_broker_azure_device_client.py"/>
-      <File Name="../examples/python/message_broker_azure_module_client.py"/>
       <File Name="../examples/python/multiple_pipelines.py"/>
       <File Name="../examples/python/nvidia_osd_sink_pad_buffer_probe.py"/>
       <File Name="../examples/python/ode_always_trigger_display_source_info.py"/>
@@ -235,6 +234,7 @@
       <File Name="../examples/python/player_play_all_mp4_files_found.py"/>
       <File Name="../examples/python/rtsp_player_to_test_connections.py"/>
       <File Name="../examples/python/semantic_segmentation.py"/>
+      <File Name="../examples/python/message_broker_azure_module_client.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>
@@ -314,8 +314,8 @@
       <PostBuild/>
       <CustomBuild Enabled="yes">
         <RebuildCommand/>
-        <CleanCommand>make clean</CleanCommand>
-        <BuildCommand>make</BuildCommand>
+        <CleanCommand>make -C ../ clean</CleanCommand>
+        <BuildCommand>make -C ../ -j 4</BuildCommand>
         <PreprocessFileCommand/>
         <SingleFileCommand/>
         <MakefileGenerationCommand/>

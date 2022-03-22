@@ -28,8 +28,10 @@ import sys
 sys.path.insert(0, "../../")
 from dsl import *
 
+import datetime
 import threading
 import time
+import logging
 
 #####################################################################################
 # This example demonstrates the use of the Module Client Azure protocol for
@@ -45,64 +47,101 @@ broker_config_file = \
 # Connection string must be defined in /etc/iotedge/config.toml
 connection_string = None
 
-DEFAULT_TOPIC = "/dsl/example-topic"
+# Topics used for sending and subscribing to messages
+DEFAULT_TOPIC_1 = '/dsl/example-topic-1'
+DEFAULT_TOPIC_2 = '/dsl/example-topic-2'
 
 ## 
 # Function to be called on connection failure 
 ## 
 def message_broker_connection_listener(client_data, status):
-    print('Connection listener called with status:', status)
+    logging.info('Connection listener called with status: {}'.format(status))
 
 ## 
-# Function to be called on send-async result
+# Function #1 to be called on send-async result
 ## 
-def message_broker_send_result_listener(client_data, status):
-    print('Result listener called with status:', status)
+def message_broker_send_result_listener_1(client_data, status):
+    logging.info('Result listener_1 called with status: {}'.format(status))
 
 ## 
-# Function to be incomming message received
+# Function #2 to be called on send-async result
+## 
+def message_broker_send_result_listener_2(client_data, status):
+    logging.info('Result listener_2 called with status: {}'.format(status))
+
+## 
+# Function to be called on incomming message received
 ## 
 def message_broker_subscriber(client_data, status, message, length, topic):
-    print('Incomming message received with status:', status)
-    print('Message topic:', topic)
-    print('Message length', length)
+
+    logging.info('Incomming message received with status: {}'.format(status))
+    logging.info('  topic: {}'.format(topic))
+    logging.info('  length: {}'.format(length))
+    
+    # NOTE: need to determine how to cast the `void* message` with `length` 
+    # back to a ascii string. This example is still a work in progress (WIP)
+    # logging.info('  payload: {}'.format(payload.decode('utf-8')))
 
 ## 
 # Thread loop function to periodically send a pre-canned message
 ## 
-def thread_function(name):
+def thread_function_1(name):
 
     # Simple message to send to the server
-    unicode_message = "Hello remote server - edge device is messaging"
+    unicode_message = "Hello world - thread_function_1 is messaging"
     
-    while message_limit:
+    while 1:
         retval = dsl_message_broker_message_send_async('message-broker',
-            topic = DEFAULT_TOPIC,
+            topic = DEFAULT_TOPIC_1,
+            message = unicode_message.encode('utf-8'),
+            size = len(unicode_message),
+            response_listener = message_broker_send_result_listener_1,
+            client_data = None)
+        logging.info('thread_function_1 - send async returned:{}'.
+            format(dsl_return_value_to_string(retval)))
+        time.sleep(5)
+        
+## 
+# Thread loop function to periodically send a pre-canned message
+## 
+def thread_function_2(name):
+
+    # Simple message to send to the server
+    unicode_message = "Hello world - thread_function_2 is messaging"
+    
+    while 1:
+        retval = dsl_message_broker_message_send_async('message-broker',
+            topic = DEFAULT_TOPIC_2,
             message = unicode_message.encode('ascii'),
             size = len(unicode_message),
-            response_listener = message_broker_send_result_listener,
+            response_listener = message_broker_send_result_listener_2,
             client_data = None)
-        print('dsl_message_broker_message_send_async returned ', 
-            dsl_return_value_to_string(retval))
-        time.sleep(5)
+        logging.info('thread_function_2 - send async returned:{}'.
+            format(dsl_return_value_to_string(retval)))
+        time.sleep(6)
         
 
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
-    
-        # Direct debug logs to a file in /tmp/.dsl/ folder which is 
+
+        # Direcect log statements to file in the /tmp/.dsl/ folder which is 
         # accessible from outside of the running Docker container.
+        logging.basicConfig(
+            filename='/tmp/.dsl/msg_app-{:%Y%m%d-%H%M%S}.log'.format(datetime.datetime.now()),
+            filemode = 'w',
+            format = '%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+            datefmt = '%H:%M:%S',
+            level=logging.INFO)
+
+        # Direct GStreamer debug logs to a file in the /tmp/.dsl/ folder .
         retval = dsl_info_log_file_set_with_ts('/tmp/.dsl/debug')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_info_stdout_redirect_with_ts('/tmp/.dsl/stdout')
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Set the debug log level with a default level of 1 (ERROR) for all
-        # Gstreamer objects and plugins, and with DSL's level set to 4 (INFO).
+        # GStreamer objects and plugins, and with DSL's level set to 4 (INFO).
         retval = dsl_info_log_level_set('1,DSL:4')
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -129,24 +168,27 @@ def main(args):
         # Add the subscriber callback function defined above. This a contrived
         # example that subscribes to its own messages -- loopback test
         retval = dsl_message_broker_subscriber_add('message-broker',
-            message_broker_subscriber, topics = [DEFAULT_TOPIC, None], 
-            client_data=None)
+            message_broker_subscriber, 
+            topics = [DEFAULT_TOPIC_1, DEFAULT_TOPIC_2, None], 
+            client_data = None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
             
-        # Start the messaging thread to send a number of canned messages.
-        send_thread = threading.Thread(target=thread_function, args=(1,))
+        # Start the messaging threads and join
+        send_thread_1 = threading.Thread(target=thread_function_1, args=(1,))
+        send_thread_2 = threading.Thread(target=thread_function_2, args=(1,))
         
-        send_thread.start()
-        send_thread.join()
+        send_thread_1.start()
+        send_thread_2.start()
+        send_thread_1.join()
+        send_thread_2.join()
         
         retval = DSL_RETURN_SUCCESS
         break
 
     # Print out the final result
-    print(dsl_return_value_to_string(retval))
-    
+    logging.info('Final result = {}'.format(dsl_return_value_to_string(retval)))
 
     # Cleanup all DSL/GST resources
     dsl_delete_all()

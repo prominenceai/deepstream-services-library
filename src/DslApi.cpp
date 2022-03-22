@@ -6638,15 +6638,34 @@ DslReturnType dsl_message_broker_subscriber_add(const wchar_t* name,
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(subscriber);
-    
-    const char** cTopics;
-    uint numTopics(0);
+
+    std::cout << "subscriber add called " << "\n";
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    std::vector<std::shared_ptr<std::string>> newTopics; 
+    std::vector<const char*> cTopics;
+    
+    for (const wchar_t** topic = topics; *topic; topic++)
+    {
+        std::wstring wstrTopic(*topic);
+        std::string cstrTopic(wstrTopic.begin(), wstrTopic.end());
+        
+        std::cout << "new topic = " << cstrTopic.c_str() << "\n";
+        
+        std::shared_ptr<std::string> newTopic = 
+            std::shared_ptr<std::string>(new std::string(cstrTopic.c_str()));
+        newTopics.push_back(newTopic);
+        cTopics.push_back(newTopic->c_str());
+    }
+    cTopics.push_back(NULL);
+    
+    std::cout << "first topic = " << cTopics[0] << "\n";
 
     return DSL::Services::GetServices()->MessageBrokerSubscriberAdd(
-        cstrName.c_str(), subscriber, cTopics, numTopics, user_data);
+        cstrName.c_str(), subscriber, &cTopics[0], newTopics.size(), user_data);
+    return DSL_RESULT_SUCCESS;
 }
 
 DslReturnType dsl_message_broker_subscriber_remove(const wchar_t* name,
