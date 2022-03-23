@@ -1,13 +1,6 @@
 # DSL API Reference
 
-### Services API:
-* [dsl_version_get](/docs/overview.md#dsl-version)
-* [dsl_gpu_type_get](/docs/overview.md#dsl_gpu_type_get)
-* [dsl_main_loop_run](/docs/overview.md#main-loop-context)
-* [dsl_main_loop_quit](/docs/overview.md#main-loop-context)
-* [dsl_return_value_to_string](/docs/overview.md#service-return-codes)
-
-### Callback Types:
+## Callback Types:
 * [dsl_ode_handle_occurrence_cb](/docs/api-ode-action.md#dsl_ode_handle_occurrence_cb)
 * [dsl_ode_check_for_occurrence_cb](/docs/api-ode-trigger.md#dsl_ode_check_for_occurrence_cb)
 * [dsl_ode_post_process_frame_cb](/docs/api-ode-trigger.md#dsl_ode_post_process_frame_cb)
@@ -29,8 +22,28 @@
 * [dsl_message_broker_connection_listener_cb](/docs/api-msg-broker.md#dsl_message_broker_connection_listener_cb)
 * [dsl_message_broker_send_result_listener_cb](/docs/api-msg-broker.md#dsl_message_broker_send_result_listener_cb)
 * [dsl_message_broker_subscriber_cb](api-msg-broker.md#dsl_message_broker_subscriber_cb)
-* 
-### Pipeline API:
+
+## DSL Services API:
+* [dsl_main_loop_run](/docs/overview.md#main-loop-context)
+* [dsl_main_loop_quit](/docs/overview.md#main-loop-context)
+* [dsl_return_value_to_string](/docs/overview.md#service-return-codes)
+
+## Info API:
+* [Overview](/docs/api-info.md)
+* [dsl_info_version_get](/docs/api-info.md#dsl_info_version_get)
+* [dsl_info_gpu_type_get](/docs/api-info.md#dsl_info_gpu_type_get)
+* [dsl_info_stdout_get](/docs/api-info.md#dsl_info_stdout_get)
+* [dsl_info_stdout_redirect](/docs/api-info.md#dsl_info_stdout_redirect)
+* [dsl_info_stdout_redirect_with_ts](/docs/api-info.md#dsl_info_stdout_redirect_with_ts)
+* [dsl_info_stdout_restore](/docs/api-info.md#dsl_info_stdout_restore)
+* [dsl_info_log_level_get](/docs/api-info.md#dsl_info_log_level_get)
+* [dsl_info_log_level_set](/docs/api-info.md#dsl_info_log_level_set)
+* [dsl_info_log_file_get](/docs/api-info.md#dsl_info_log_file_get)
+* [dsl_info_log_file_set](/docs/api-info.md#dsl_info_log_file_set)
+* [dsl_info_log_file_set_with_ts](/docs/api-info.md#dsl_info_log_file_set)
+* [dsl_info_log_function_restore](/docs/api-info.md#dsl_info_log_file_set)
+
+## Pipeline API:
 * [Overview](/docs/api-pipeline.md)
 * [dsl_pipeline_new](/docs/api-pipeline.md#dsl_pipeline_new)
 * [dsl_pipeline_new_many](/docs/api-pipeline.md#dsl_pipeline_new_many)
@@ -111,7 +124,7 @@
 * [dsl_player_state_get](/docs/api-player.md#dsl_player_state_get)
 * [dsl_player_exists](/docs/api-player.md#dsl_player_exists)
 * [dsl_player_list_size](/docs/api-player.md#dsl_player_list_size)
-* 
+
 ## Branch API
 * [Overview](/docs/api-branch.md)
 * [dsl_branch_new](/docs/api-branch.md#dsl_branch_new)
@@ -123,7 +136,7 @@
 * [dsl_branch_component_remove_many](/docs/api-branch.md#dsl_branch_component_remove_many)
 * [dsl_branch_component_remove_all](/docs/api-branch.md#dsl_branch_component_remove_all)
 
-### Source API:
+## Source API:
 * [Overview](/docs/api-source.md)
 * [dsl_source_csi_new](/docs/api-source.md#dsl_source_csi_new)
 * [dsl_source_usb_new](/docs/api-source.md#dsl_source_usb_new)
@@ -165,7 +178,7 @@
 * [dsl_source_num_in_use_max_get](/docs/api-source.md#dsl_source_num_in_use_max_get)
 * [dsl_source_num_in_use_max_set](/docs/api-source.md#dsl_source_num_in_use_max_set)
 
-### Source Tap API:
+## Source Tap API:
 * [Overview](/docs/api-tap.md)
 * [dsl_tap_record_session_start](/docs/api-tap.md#dsl_tap_record_session_start)
 * [dsl_tap_record_session_stop](/docs/api-tap.md#dsl_tap_record_session_stop)
@@ -184,13 +197,13 @@
 * [dsl_tap_record_mailer_add](/docs/api-tap.md#dsl_tap_record_mailer_add)
 * [dsl_tap_record_mailer_remove](/docs/api-tap.md#dsl_tap_record_mailer_remove) 
 
-### Dewarpper:
+## Dewarpper:
 * [Overview](/docs/api-dewarper.md)
 * [dsl_dewarper_new](/docs/api-dewarper.md#dsl_dewarper_new)
 * [dsl_dwarper_config_file_get](/docs/api-dewarper.md#dsl_dwarper_config_file_get)
 * [dsl_dwarper_config_file_set](/docs/api-dewarper.md#dsl_dwarper_config_file_set)
 
-### Primary and Secondary Inference API:
+## Primary and Secondary Inference API:
 * [Overview](/docs/api-gie.md)
 * [dsl_infer_gie_primary_new](/docs/api-gie.md#dsl_infer_gie_primary_new)
 * [dsl_infer_gie_secondary_new](/docs/api-gie.md#dsl_infer_gie_secondary_new)
@@ -206,7 +219,7 @@
 * [dsl_infer_primary_pph_add](/docs/api-gie.md#dsl_infer_primary_pph_add)
 * [dsl_infer_primary_pph_remove](/docs/api-gie.md#dsl_infer_primary_pph_remove)
 
-### Tracker:
+## Tracker:
 * [Overview](/docs/api-tracker.md)
 * [dsl_tracker_ktl_new](/docs/api-tracker.md#dsl_tracker_ktl_new)
 * [dsl_tracker_iou_new](/docs/api-tracker.md#dsl_tracker_iou_new)
@@ -222,7 +235,7 @@
 * [dsl_tracker_pph_add](/docs/api-tracker.md#dsl_tracker_pph_add)
 * [dsl_tracker_pph_remove](/docs/api-tracker.md#dsl_tracker_pph_remove)
 
-### Segmentation Visualizer
+## Segmentation Visualizer
 * [Overview](/docs/api-segvisual.md)
 * [dsl_segvisual_new](/docs/api-segvisual.md#dsl_segvisual_new)
 * [dsl_segvisual_dimensions_get](/docs/api-segvisual.md#dsl_segvisual_dimensions_get)
@@ -230,7 +243,7 @@
 * [dsl_segvisual_pph_add](/docs/api-segvisual.md#dsl_segvisual_pph_add).
 * [dsl_segvisual_pph_remove](/docs/api-segvisual.md#dsl_segvisual_pph_remove).
 
-### Tiler:
+## Tiler:
 * [Overview](/docs/api-tiler.md)
 * [dsl_tiler_new](/docs/api-tiler.md#dsl_tiler_new)
 * [dsl_tiler_dimensions_get](/docs/api-tiler.md#dsl_tiler_dimensions_get)
@@ -245,7 +258,7 @@
 * [dsl_tiler_pph_add](/docs/api-tiler.md#dsl_tiler_pph_add).
 * [dsl_tiler_pph_remove](/docs/api-tiler.md#dsl_tiler_pph_remove)
 
-### On-Screen Display (OSD):
+## On-Screen Display (OSD):
 * [Overview](/docs/api-osd.md)
 * [dsl_osd_new](/docs/api-osd.md#dsl_osd_new)
 * [dsl_osd_text_enabled_get](/docs/api-osd.md#dsl_osd_text_enabled_get)
@@ -265,7 +278,7 @@
 * [dsl_osd_pph_add](/docs/api-osd.md##dsl_osd_pph_add)
 * [dsl_osd_pph_remove](/docs/api-osd.md##dsl_osd_pph_remove)
 
-### Demuxer and Splitter - Tee:
+## Demuxer and Splitter - Tee:
 * [Overview](/docs/api-tee.md)
 * [dsl_tee_demuxer_new](/docs/api-tee.md#dsl_tee_demuxer_new)
 * [dsl_tee_demuxer_new_branch_add_many](/docs/api-tee.md#dsl_tee_demuxer_new_branch_add_many)
@@ -280,7 +293,7 @@
 * [dsl_tee_pph_add](/docs/api-tee.md#dsl_tee_pph_add).
 * [dsl_tee_pph_remove](/docs/api-tee.md#dsl_tee_pph_remove).
 
-### Sink:
+## Sink:
 * [Overview](/docs/api-sink.md)
 * [dsl_sink_overlay_new](/docs/api-sink.md#dsl_sink_overlay_new)
 * [dsl_sink_window_new](/docs/api-sink.md#dsl_sink_window_new)
@@ -331,7 +344,7 @@
 * [dsl_sink_num_in_use_max_get](/docs/api-sink.md#dsl_sink_num_in_use_max_get)
 * [dsl_sink_num_in_use_max_set](/docs/api-sink.md#dsl_sink_num_in_use_max_set)
 
-### Pad Probe Handler:
+## Pad Probe Handler:
 * [Overview](/docs/api-pph.md)
 * [dsl_pph_custom_new](/docs/api-pph.md#dsl_pph_custom_new)
 * [dsl_pph_meter_new](/docs/api-pph.md#dsl_pph_meter_new)
@@ -350,7 +363,7 @@
 * [dsl_pph_enabled_set](/docs/api-pph.md#dsl_pph_enabled_set)
 * [dsl_pph_list_size](/docs/api-pph.md#dsl_pph_list_size)
 
-### ODE Trigger:
+## ODE Trigger:
 * [Overview](/docs/api-ode-trigger.md)
 * [dsl_ode_trigger_always_new](/docs/api-ode-trigger.md#dsl_ode_trigger_always_new)
 * [dsl_ode_trigger_absence_new](/docs/api-ode-trigger.md#dsl_ode_trigger_absence_new)
@@ -419,7 +432,7 @@
 * [dsl_ode_trigger_area_remove_all](/docs/api-ode-trigger.md#dsl_ode_trigger_area_remove_all)
 * [dsl_ode_trigger_list_size](/docs/api-ode-trigger.md#dsl_ode_trigger_list_size)
 
-### ODE Action:
+## ODE Action:
 * [Overview](/docs/api-ode-action.md)
 * [dsl_ode_action_action_disable_new](/docs/api-ode-action.md#dsl_ode_action_action_disable_new)
 * [dsl_ode_action_action_enable_new](/docs/api-ode-action.md#dsl_ode_action_action_enable_new)
@@ -468,7 +481,7 @@
 * [dsl_ode_action_customize_label_set](/docs/api-ode-action.md#dsl_ode_action_customize_label_set)
 * [dsl_ode_action_list_size](/docs/api-ode-action.md#dsl_ode_action_list_size)
 
-### ODE Area:
+## ODE Area:
 * [Overview](/docs/api-ode-area.md)
 * [dsl_ode_area_line_new](/docs/api-ode-area.md#dsl_ode_area_line_new)
 * [dsl_ode_area_inclusion_new](/docs/api-ode-area.md#dsl_ode_area_inclusion_new)
@@ -478,7 +491,7 @@
 * [dsl_ode_area_delete_all](/docs/api-ode-area.md#dsl_ode_area_delete_all)
 * [dsl_ode_area_list_size](/docs/api-ode-area.md#dsl_ode_area_list_size)
 
-### Display Type:
+## Display Type:
 * [Overview](/docs/api-display-type.md)
 * [dsl_display_type_rgba_color_new](/docs/api-display-type.md#dsl_display_type_rgba_color_new)
 * [dsl_display_type_rgba_font_new](/docs/api-display-type.md#dsl_display_type_rgba_font_new)
@@ -496,7 +509,7 @@
 * [dsl_display_type_delete_all](/docs/api-display-type.md#dsl_display_type_delete_all)
 * [dsl_display_type_list_size](/docs/api-display-type.md#dsl_display_type_list_size)
 
-### Component API:
+## Component API:
 * [Overview](/docs/api-component.md)
 * [dsl_component_delete](/docs/api-component.md#dsl_component_delete)
 * [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many)
@@ -511,7 +524,7 @@
 * [dsl_component_nvbuf_mem_type_set_many](/docs/api-component.md#dsl_component_nvbuf_mem_type_set_many)
 * [dsl_component_is_in_use](/docs/api-component.md#dsl_component_is_in_use)
 
-### Mailer API:
+## Mailer API:
 * [Overview](/docs/api-mailer.md)
 * [dsl_mailer_new](/docs/api-mailer.md#dsl_mailer_new)
 * [dsl_mailer_delete](/docs/api-mailer.md#dsl_mailer_delete)
@@ -533,7 +546,7 @@
 * [dsl_mailer_exists](/docs/api-mailer.md#dsl_mailer_exists)
 * [dsl_mailer_list_size](/docs/api-mailer.md#dsl_mailer_list_size)
 
-### WebSocket Server API:
+## WebSocket Server API:
 * [Overview](/docs/api-ws-server.md)
 * [dsl_websocket_server_path_add](/docs/api-ws-server.md#dsl_websocket_server_path_add)
 * [dsl_websocket_server_listening_start](/docs/api-ws-server.md#dsl_websocket_server_listening_start)
@@ -542,7 +555,7 @@
 * [dsl_websocket_server_client_listener_add](/docs/api-ws-server.md#dsl_websocket_server_client_listener_add)
 * [dsl_websocket_server_client_listener_remove](/docs/api-ws-server.md#dsl_websocket_server_client_listener_remove)
 
-### Message Broker API:
+## Message Broker API:
 * [Overview](/docs/api-msg-broker.md)
 * [dsl_message_broker_new](/docs/api-msg-broker.md#dsl_message_broker_new)
 * [dsl_message_broker_delete](/docs/api-msg-broker.md#dsl_message_broker_delete)
@@ -558,4 +571,3 @@
 * [dsl_message_broker_settings_get](/docs/api-msg-broker.md#dsl_message_broker_settings_get)
 * [dsl_message_broker_settings_set](/docs/api-msg-broker.md#dsl_message_broker_settings_set)
 * [dsl_message_broker_list_size](/docs/api-msg-broker.md#dsl_message_broker_list_size)
-

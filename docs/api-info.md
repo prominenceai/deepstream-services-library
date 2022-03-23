@@ -3,7 +3,7 @@ The Informational Services API provides runtime access to the current DSL versio
 
 The standard output stream (stdout) can be redirected to a file by calling [dsl_info_stdout_redirect](#dsl_info_stdout_redirect) or [dsl_info_stdout_redirect_with_ts](#dsl_info_stdout_redirect_with_ts). The current filename, if redirection is active, can be queried by calling [dsl_info_stdout_get](#dsl_info_stdout_get). The standard output stream can be restored by calling [dsl_info_stdout_restore](#dsl_info_stdout_restore)
 
-Applications can control the GStreamer debug log level - by calling [dsl_info_log_level_set](#dsl_info_log_level_set) - and debug log file - by calling [dsl_info_log_file_set](#dsl_info_log_file_set) or [dsl_info_log_file_set_with_ts](#dsl_info_log_file_set). The `level` and `file_path` values can be queried by calling [dsl_info_log_level_get](#dsl_info_log_level_get) and [dsl_info_log_file_get](#dsl_info_log_file_get) respectively. The default logging function can be restored by calling [dsl_info_log_function_restore](#dsl_info_log_file_set).
+Applications can control the GStreamer debug log level - by calling [dsl_info_log_level_set](#dsl_info_log_level_set) - and the debug log file - by calling [dsl_info_log_file_set](#dsl_info_log_file_set) or [dsl_info_log_file_set_with_ts](#dsl_info_log_file_set). The `level` and `file_path` values can be queried by calling [dsl_info_log_level_get](#dsl_info_log_level_get) and [dsl_info_log_file_get](#dsl_info_log_file_get) respectively. The default logging function can be restored by calling [dsl_info_log_function_restore](#dsl_info_log_file_set).
 
 ---
 ## Info API
@@ -114,7 +114,9 @@ stdout_file_path = dsl_info_stdout_get()
 ```C++
 DslReturnType dsl_info_stdout_redirect(const wchar_t* file_path, uint mode);
 ```
-This service redirects all data streamed to stdout -- which includes debug logs by default -- to a specified file. The current running log file will be saved if stdout is already redirected.
+This service redirects all data streamed to stdout to a specified file. The current running log file will be saved if stdout is already redirected. 
+
+Note: stdout redirection does not include the GStreamer debug logs even when sent to the console, nor does it include print statements from a calling Python application. 
 
 **Important notes**
 * This service appends a `.log` extension to `file_path` on file open.
@@ -138,6 +140,8 @@ retval = dsl_info_stdout_redirect('/tmp/.dsl/stdout', DSL_WRITE_MODE_APPEND)
 DslReturnType dsl_info_stdout_redirect_with_ts(const wchar_t* file_path);
 ```
 This service redirects all data streamed to stdout to a specified file. The current running log file will be saved if stdout is already redirected. The file is opened with the current date and time appended to `file_path`
+
+Note: stdout redirection does not include the GStreamer debug logs even when sent to the console, nor does it include print statements from a calling Python application. 
 
 **Important notes**
 * This service appends a `<%Y%m%d-%H%M%S>.log` timestamp and extension to `file_path` on file open.

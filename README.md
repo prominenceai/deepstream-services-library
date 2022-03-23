@@ -2,7 +2,6 @@
 [![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/prominenceai/deepstream-services-library/blob/master/LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/ansicolortags/badge/?version=latest)](https://github.com/prominenceai/deepstream-services-library/blob/master/docs/overview.md)
 [![Ask Me Anything!](https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg)](https://github.com/prominenceai/deepstream-services-library/issues/new/choose)
-![](https://dcbadge.vercel.app/api/shield/676582645760786528?style=flat?theme=discord)
 
 ![](/Images/under-construction.png)
 
@@ -83,6 +82,7 @@ Come join us on [Discord](https://discord.gg/MJvY9jjpAK), an informal place to c
   * [Mailer](/docs/api-mailer.md)
   * [WebSocket Server](/docs/api-ws-server.md)
   * [Message Broker](/docs/api-msg-broker.md)
+  * [Info API](/docs/api-info.md)
 * [Examples](/docs/examples.md)
   * [C/C++](/docs/examples-cpp.md)
   * [Python](/docs/examples-python.md)
