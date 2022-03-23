@@ -204,7 +204,7 @@ Once the code has been added, select the **`Review + create`** button from the `
 
 ![](/Images/azure-iot-edge-device-create-module-review-and-create.png)
 
-Make sure the `validation passesd` as show in the upper left corner in the image below and then select **`Create`**
+Make sure that the `validation passed` - as show in the upper left corner in the image below - and then select **`Create`**
 
 <br>
 
@@ -217,6 +217,8 @@ All three IoT Edge Modules should now be in a `running` state as shown below.
 <br>
 
 ![](/Images/azure-iot-edge-device-set-modules-success.png)
+
+The example script directs the DSL INFO logs and Python application logs to files located under `/tmp/.dsl/` which is viewable from outside of the Module container.
 
 ---
 
