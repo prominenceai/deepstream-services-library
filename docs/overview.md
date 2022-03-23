@@ -23,6 +23,7 @@
 * [DSL Delete All](#dsl-delete-all)
 * [Main Loop Context](#main-loop-context)
 * [Service Return Codes](#service-return-codes)
+* [Docker Support](#docker-support)
 * [API Reference](#api-reference)
 
 ## Introduction
@@ -60,7 +61,8 @@ retval += dsl_tiler_new('my-tiler', width=1280, height=720)
 
 # new On-Screen Display for inference visualization - bounding boxes and labels - 
 # with both labels and clock enabled
-retval += dsl_osd_new('my-osd', text_enabled=True, clock_enabled=True)
+retval += dsl_osd_new('my-osd', text_enabled=True, clock_enabled=True,
+    bbox_enabled=True, mask_enabled=False)
 
 # new X11/EGL Window Sink for video rendering - Pipeline will create a new XWindow if one is not provided
 retval += dsl_sink_window_new('my-window-sink', width=1280, height=720)
@@ -187,7 +189,8 @@ Clients can add/remove one or more [Pad Probe Handlers](#pad-probe-handlers) to 
 4. Record Sink
 5. RTSP Sink
 6. WebRTC Sink - Requires GStreamer 1.18 or later
-7. Fake Sink
+7. IoT Message Sink
+8. Fake Sink
 
 Overlay and Window Sinks have settable dimensions: width and height in pixels, and X and Y directional offsets that can be updated after creation. 
 
@@ -203,6 +206,8 @@ would use
 ```
 rtsp://my-jetson.local:8554/my-rtsp-sink
 ```
+
+The Message Sink converts Object Detection Event (ODE) data into protocol specfic IoT messages and brokers/sends the messages to a remote entity.
 
 See the [Sink API](/docs/api-sink.md) reference section for more information.
 
@@ -233,7 +238,8 @@ The first step is to create all components for **Branch 1** and assemble - Multi
 ```Python
 # New Tiler, On-Screen Display, and Window Sink
 retval = dsl_tiler_new('tiler', width=1920, height=540)
-retval = dsl_osd_new('osd', clock_enabled=True)
+retval = dsl_osd_new('my-osd', text_enabled=True, clock_enabled=True,
+    bbox_enabled=True, mask_enabled=False)
 retval = dsl_sink_window_new('window-sink', x_offset=0, y_offset=0, width=1920, height=540)
 
 # New Branch component to assemble Branch-1
@@ -301,7 +307,8 @@ retval = dsl_pipeline_play('pipeline')
 
 # New Tiler, On-Screen Display, and Window Sink
 retval = dsl_tiler_new('tiler', width=1920, height=540)
-retval = dsl_osd_new('osd', clock_enabled=True)
+retval = dsl_osd_new('my-osd', text_enabled=True, clock_enabled=True,
+    bbox_enabled=True, mask_enabled=False)
 retval = dsl_sink_window_new('window-sink', x_offset=0, y_offset=0, width=1920, height=540)
 
 # New Branch component to assemble Branch-1
@@ -707,7 +714,8 @@ while True:
     if (retval != DSL_RETURN_SUCCESS):
         break
 
-    retval = dsl_osd_new('osd', clock_enabled=True)
+    retval = dsl_osd_new('my-osd', text_enabled=True, clock_enabled=True,
+        bbox_enabled=True, mask_enabled=False)
     if (retval != DSL_RETURN_SUCCESS):
         break
 
@@ -1094,6 +1102,9 @@ if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
 ```
 
 <br>
+
+## Docker Support
+The [deepstream-services-library-docker](https://github.com/prominenceai/deepstream-services-library-docker) repo contain a `Dockerfile`, utility scripts, and instructions to create and run a DSL-DeepStream container, built with the [nvcr.io/nvidia/deepstream-l4t:6.0-triton](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_docker_containers.html#id2) base image (Jetson).
 
 ## Getting Started
 * [Installing Dependencies](/docs/installing-dependencies.md)
