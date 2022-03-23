@@ -23,18 +23,18 @@ and removed by calling [dsl_message_broker_subscriber_remove](#dsl_message_broke
 ## DeepStream Installed Protocol Adapter Libraries
 There are five implementations of the [Message API Protocol Adapter Interface(nvds-msgapi)](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvmsgbroker.html#nvds-msgapi-protocol-adapter-interface) installed with DeepStream under the folder `/opt/nvidia/deepstream/deepstream/libs`.
 
-#### Azure MQTT Protocol Adapter Libraries
+### Azure MQTT Protocol Adapter Libraries
 There are two Azure adapter libraries, one for `device clients` to send messages to a remote entity, and one for `module clients` that can send and receive messages as a deployed IoT Edge Module.
 
 ***Complete setup and usage instructions for both adapter libraries can be found [here](/docs/proto-lib-azure.md)***
 
-#### AMQP Protocol Adapter Library
+### AMQP Protocol Adapter Library
 still to be tested.
 
-#### REDIS Protocol Adapter Library
+### REDIS Protocol Adapter Library
 still to be tested.
 
-#### Kafka Protocol Adapter Library
+### Kafka Protocol Adapter Library
 still to be tested.
 
 ---
@@ -130,17 +130,17 @@ Callback typedef for a client to listen for the asynchronous result when calling
 
 ### *dsl_message_broker_subscriber_cb*
 ```C
-typedef void (*dsl_message_broker_subscriber_cb)(void* client_data, uint status,
-    const wchar_t* topic, void *message, uint size);
+typedef void (*dsl_message_broker_subscriber_cb)(void* client_data, uint status, void* message, 
+    uint length, const wchar_t* topic);
 ```
 Callback typedef for a client to listen for messages received from a remote entity.
 
 **Parameters**
 * `client_data` [in]  opaque pointer to the client's user data, provided by the client.  
 * `status` [in] message status. One of the [DSL_STATUS_BROKER](#constants) constants defined above.
-* `topic` [in] topic for the received message.
 * `message` [in]  opaque pointer to the message received.
 * `size` [in] size of the message in bytes.
+* `topic` [in] topic for the received message.
 
 <br>
 
