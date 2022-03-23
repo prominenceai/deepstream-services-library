@@ -1,10 +1,14 @@
 # Azure MQTT Protocol Adapter Libraries
-NVIDIA provides two protocol libraries installed with DeepStream under `/opt/nvidia/deepstream/deepstream/sources/libs`
+NVIDIA provides two Azure MQTT protocol libraries installed with DeepStream under `/opt/nvidia/deepstream/deepstream/sources/libs`
 * `libnvds_azure_proto.so` - a device client protocol for sending messages from the device to an Azure IoT Hub instance. Requires minimal setup.
 * `libnvds_azure_edge_proto.so` - a module client protocol for bidirectional device-server messaging. Applications linking with DSL must be run in a deployed Docker container.
 
-## Common Setup for both Protocol Adapters
-### Install Additional device dependencies
+The protocol adapter libraries are used by the DSL [Message Sink](/docs/api-sink.md#dsl_message_sink_new) and [Message Broker](/docs/api-msg-broker.md) components.
+
+---
+
+# Common Setup for both Protocol Adapters
+## Install Additional device dependencies
 #### For an x86 computer running Ubuntu:
 ```
 sudo apt-get install -y libcurl3 libssl-dev uuid-dev libglib2.0 libglib2.0-dev libffi6 ibffi-dev
@@ -20,8 +24,13 @@ sudo apt-get install -y python3-pip python-pip python3-setuptools
 sudo pip3 install --upgrade pip
 ```
 
-### Setup an Azure IoT Hub Instance
+## Setup an Azure IoT Hub Instance
 Follow the directions at https://docs.microsoft.com/en-us/azure/iot-hub/tutorial-connectivity#create-an-iot-hub.
+
+## Register your IoT Edge Device
+There are three methods for registering your deviec, as outlined at https://docs.microsoft.com/en-us/azure/iot-edge/how-to-provision-single-device-linux-symmetric?view=iotedge-2020-11&tabs=azure-portal%2Cubuntu#register-your-device - **Azure portal**, **Visual Studio Code**, and **Azure CLI** - with **Azure portal** being the simplest.
+
+The following section details the installation requirements and steps to use the **Azure CLI**.
 
 ### Install the Azure CLI on your edge device
 #### For an x86 computer running Ubuntu:
@@ -87,9 +96,11 @@ Your device setup is now sufficient to use the Device Client `libnvds_azure_prot
 * [ode_instance_trigger_message_server.py](/examples/python/ode_instance_trigger_message_server.py)
 * [message_broker_azure_device_client.py](/examples/python/message_broker_azure_device_client.py)
 
-## Azure Module Client setup
+---
 
-### Setup Azure IoT Edge runtime on the edge device
+# Azure Module Client setup
+
+### Setup the Azure IoT Edge runtime on the edge device
 #### For For Jetson and x86 computers running Ubuntu:
 Follow the below steps from the instructions here. https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux. Specifically:
 * [Install IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-provision-single-device-linux-symmetric?view=iotedge-2020-11&tabs=azure-portal%2Cubuntu#install-iot-edge).
@@ -98,11 +109,11 @@ Follow the below steps from the instructions here. https://docs.microsoft.com/en
 * [Provision the device with its cloud identity](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-provision-single-device-linux-symmetric?view=iotedge-2020-11&tabs=azure-portal%2Cubuntu#provision-the-device-with-its-cloud-identity)
 * [Verify successful configuration](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-provision-single-device-linux-symmetric?view=iotedge-2020-11&tabs=azure-portal%2Cubuntu#verify-successful-configuration)
 
-### Build and deploy a Docker Image
+## Build and deploy a Docker Image
 See the instructions and Docker file under the [deepstream-services-library-docker](https://github.com/prominenceai/deepstream-services-library-docker) GitHub repository.
 
-### Grant host access to the local X-server
-As a privileged user (root), append the following lines to file **`/etc/profile`** replacing `<hub-name>` with the name of your Azure Hub Instance.
+## Grant host access to the local X-server
+As a privileged user (root), append the following lines to file **`/etc/profile`** to allow access to the local X-servere.
 
 ```bash
 if [ "$DISPLAY" != "" ]
@@ -114,16 +125,25 @@ Make the file executable
 ```bash
 sudo chmod u+x /etc/profile
 ```
-Then execute the file. You should see confirmation of the host addition similar to below.
+Then execute the file. 
 ```bash
 sudo /etc/profile
-my-hub.azure-devices.net being added to access control list
 ```
+You should see confirmation similar to below.
+```
+access control disabled, clients can connect from any host.
+```
+**Note:** how to correctly setup specific or limited access is still under investigation.
 
-### Deploy IoT Modules
-There are two IoT Edge System Modules that must be deployed with every edge device. The following instructions detail the steps to create a new IoT module to run the Docker Image created in the previous section [Build and deploy a Docker Image](#build-and-deploy-a-docker-image).
+## Deploy IoT Modules
+The following instructions detail the steps to create a new *IoT Edge Custom Module* to run the Docker Image created in the previous section [Build and deploy a Docker Image](#build-and-deploy-a-docker-image).
 
-From your Azure portal, select `IoT Edge` from the left menu selections, then select your device by its id. From the device page, select the `Set modules` from the upper menu bar as show below
+From your Azure portal, select `IoT Edge` from the left menu pane, then select your device by its id. You should see the two existing *IoT Edge System Modules* that were deployed when you [Setup the Azure IoT Edge runtime on the edge device](#setup-the-azure-iot-edge-runtime-on-the-edge-device). 
+
+To setup a new *IoT Edge Custom Module* to run the [message_broker_azure_module_client.py](/examples/python/message_broker_azure_module_client.py) example, select the `Set modules` from the upper menu bar on the device page, as show below.
+
+<br>
+
 ![](/Images/azure-iot-edge-device-set-modules.png)
 
 <br>
@@ -180,12 +200,38 @@ Then add the below JSON code and select **`Add`**
 
 <br>
 
-Once code has been added, select the **`Review + create`** button from the `Set modules` main page as show below:
+Once the code has been added, select the **`Review + create`** button from the `Set modules` main page as show below:
 
 ![](/Images/azure-iot-edge-device-create-module-review-and-create.png)
 
-## Trouble Shooting
-### Failure installing azure-cli on Jetson.
+Make sure the `validation passesd` as show in the upper left corner in the image below and then select **`Create`**
+
+<br>
+
+![](/Images/azure-iot-edge-device-create-module-validate-success.png)
+
+<br>
+
+All three IoT Edge Modules should now be in a `running` state as shown below.
+
+<br>
+
+![](/Images/azure-iot-edge-device-set-modules-success.png)
+
+---
+
+## Next Steps and Usefull Links 
+
+### [Troubleshoot IoT Edge devices from the Azure portal](https://docs.microsoft.com/en-us/azure/iot-edge/troubleshoot-in-portal?view=iotedge-2020-11)
+Use the trouble shooting page in the Azure portal to monitor IoT Edge devices and modules.
+
+### [Quickstart: Create an Azure SQL Database](https://docs.microsoft.com/en-us/azure/azure-sql/database/single-database-create-quickstart?tabs=azure-portal)
+Create a single database in Azure SQL Database using either the Azure portal, a PowerShell script, or an Azure CLI script. You then query the database using Query editor in the Azure portal.
+
+---
+
+# Trouble Shooting
+## Failure installing azure-cli on Jetson.
 If the command to install azure-cli using pip3 fails with the following module dependency errors
 ```
     No package 'libffi' found
