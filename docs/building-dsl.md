@@ -1,25 +1,23 @@
 # Building and Importing DSL
 
-The DSL shared library is built using GCC and GNU Make. The MakeFile is located in the DSL root folder.
-There are a few simple steps to creating the shared library, `libdsl.so`.
+The DSL shared library is built using GCC and GNU Make. The MakeFile is located in the DSL root folder. There are a few simple steps involved in creating and installing the shared library, `libdsl.so`. The current default `make` -- prior to releasing DSL v1.0 -- builds DSL into a command line test-executable for running all API and Unit level test cases. The DSL source-only object files, built for the test application, are re-linked into the `libdsl.so` shared library.
 
+## Contents / Steps
 1. Clone this repository to pull down all source
 2. Use the make (all) default to build the `dsl-test-app` executable
-3. Use `sudo make lib` command to build the object files into `libdsl.so`
-4. Generate  caffemodel engine files (optional)
+3. Use the `sudo make install` option to build the object files into `libdsl.so` and intall the lib
+4. Generate caffemodel engine files (optional)
 5. Import the shared lib using Python3
 6. Run the `dsl-test-app` to verify DSL changes (optional)
 
 ### Clone the Repository
-The current default `make` -- prior to releasing DSL v1.0 -- builds DSL into a command line test-executable for running all API and Unit level test cases. The DSL source-only object files, built for the test application, can then be re-linked into the `libdsl.so` shared library.
-
-Clone the repository to pull all source code required to build the DSL test application
+Clone the repository to pull all source code required to build the DSL test application - then navigate to the `deepstream-services-library` root folder.
 ```
 git clone https://github.com/prominenceai/deepstream-services-library
+cd deepstream-services-library
 ```
 
 ***Import Note: When building with GStreamer v1.18 on Ubuntu 20.04, you will need to set the GStreamer sub version in the Makefile to 18 for the WebRTC Sink and WebSocket source code to be included in the build.***
-
 
 ### Make (all)
 Invoke the standard make (all) to compile all source code and test scenarios into objects files, and link them into a [Catch2](https://github.com/catchorg/Catch2) test application. On successful build, the `dsl-test-app` will be found under the same root folder.
@@ -33,11 +31,13 @@ make -j 4
 ```
 to use 4 CPU cores for the parallel.
 
-### Make and install the shared library
-Once the object files have been created by calling `make`, the source-only objects can be re-linked into the `libdsl.so` with the following Makefile option. Root level privileges are required for the Makefile to copy the lib to `/usr/local/lib` once built.
+### Make and install the shared library and install dsl.py
+Once the dsl-test-app.exe has been created, the source-only objects can be re-linked into the `libdsl.so` with the make install option. Root level privileges are required for the Makefile to copy the lib to `/usr/local/lib` once built. 
+
+The DSL Python bindings file (dsl.py) is also copied to `.local/lib/python3.6/site-packages` with the following command.
 
 ```
-sudo make lib
+sudo make install
 ```
 
 ### Generate caffemodel engine files (optional)
@@ -64,11 +64,6 @@ Update the Primary detector path specification in the script to generate files f
 ### Import the shared lib using Python3
 The shared lib `libdsl.so` is mapped to Python3 using [CTypes](https://docs.python.org/3/library/ctypes.html) in the python module `dsl.py`. 
 
-Run the `setup.py` script in the DSL root folder to install `dsl.py`.
-```bash
-python3 ./setup.py
-```
-
 Import dsl into your python code.
 ```python
 #!/usr/bin/env python
@@ -90,7 +85,7 @@ make dox
 ```
 
 ### Running the Test Application
-***This step is optional unless contributing changes.***
+***This step is optional unless contributing code changes.***
 
 Current requirements and limitations.
 * Many of test cases have a dependency on the Nano versions of the caffemodel engine files.
@@ -99,10 +94,10 @@ Current requirements and limitations.
 Once the test executable has been built, it can be run with the command below.
 
 ```
-./dsl-test-app
+./dsl-test-app.exe
 ```
 
-After completion, ensure that all tests have passed before building the shared library.
+After completion, ensure that all tests have passed before submitting a pull request.
 ```
 ===============================================================================
 All tests passed (5199 assertions in 670 test cases)
