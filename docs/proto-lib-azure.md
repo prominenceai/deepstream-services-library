@@ -107,7 +107,7 @@ As a privileged user (root), append the following lines to file **`/etc/profile`
 ```bash
 if [ "$DISPLAY" != "" ]
 then
- xhost +<hub-name>.azure-devices.net
+  xhost +
 fi
 ```
 Make the file executable
