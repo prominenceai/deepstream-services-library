@@ -1,5 +1,5 @@
 # Azure MQTT Protocol Adapter Libraries
-NVIDIA provides two Azure MQTT protocol libraries installed with DeepStream under `/opt/nvidia/deepstream/deepstream/sources/libs`
+NVIDIA provides two Azure MQTT protocol libraries installed with DeepStream under `/opt/nvidia/deepstream/deepstream/lib`
 * `libnvds_azure_proto.so` - a device client protocol for sending messages from the device to an Azure IoT Hub instance. Requires minimal setup.
 * `libnvds_azure_edge_proto.so` - a module client protocol for bidirectional device-server messaging. Applications linking with DSL must be run in a deployed Docker container.
 
