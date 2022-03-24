@@ -5,6 +5,22 @@ NVIDIA provides two Azure MQTT protocol libraries installed with DeepStream unde
 
 The protocol adapter libraries are used by the DSL [Message Sink](/docs/api-sink.md#dsl_message_sink_new) and [Message Broker](/docs/api-msg-broker.md) components.
 
+## Contents
+* [Common Setup for both Protocol Adapters](#common-setup-for-both-protocol-adapters)
+  * [Install Additional device dependencies](#install-additional-device-dependencies)
+  * [Setup an Azure IoT Hub Instance](#setup-an-azure-iot-hub-instance)
+  * [Register your IoT Edge Device](#register-your-iot-edge-device)
+  * [Enable the NVIDIA logger](#enable-the-nvidia-logger)
+* [Azure Module Client setup](#azure-module-client-setup)
+  * [Setup the Azure IoT Edge runtime on the edge device](#setup-the-azure-iot-edge-runtime-on-the-edge-device)
+  * [Build and deploy a Docker Image](#build-and-deploy-a-docker-image)
+  * [Grant host access to the local X-server](grant-host-access-to-the-local-x-server)
+  * [Deploy IoT Modules](#deploy-iot-modules)
+  * [Next Steps and Useful Links](#next-steps-and-useful-links)
+* [Trouble Shooting](#trouble-shooting)
+  * [Failure installing azure-cli on Jetson](#failure-installing-azure-cli-on-jetson)
+  * [Failure verifying azure-cli install on Jetson](#failure-verifying-azure-cli-install-on-jetson)
+ 
 ---
 
 # Common Setup for both Protocol Adapters
@@ -116,7 +132,7 @@ Your device setup is now sufficient to use the Device Client `libnvds_azure_prot
 
 # Azure Module Client setup
 
-### Setup the Azure IoT Edge runtime on the edge device
+## Setup the Azure IoT Edge runtime on the edge device
 #### For Jetson and x86 computers running Ubuntu:
 Follow the below steps from the instructions here. https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux. Specifically:
 * [Install IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-provision-single-device-linux-symmetric?view=iotedge-2020-11&tabs=azure-portal%2Cubuntu#install-iot-edge).
