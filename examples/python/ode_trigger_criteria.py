@@ -25,16 +25,17 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.insert(0, "../../")
 from dsl import *
 import time
 
-uri_file = "../../test/streams/sample_1080p_h264.mp4"
+uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
-# Filespecs for the Primary GIE and IOU Tracker
-primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
-tracker_config_file = '../../test/configs/iou_config.txt'
+# Filespecs for the Primary GIE
+primary_infer_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+tracker_config_file = '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
@@ -244,7 +245,7 @@ def main(args):
         # Create the remaining Pipeline components
         
         # New URI File Source using the filespec defined above
-        retval = dsl_source_uri_new('uri-source', uri_file, False, False, 0)
+        retval = dsl_source_uri_new('uri-source', uri_h265, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 

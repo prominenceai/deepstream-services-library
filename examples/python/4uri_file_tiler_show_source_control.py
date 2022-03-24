@@ -25,7 +25,6 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.insert(0, "../../")
 import time
 
 from dsl import *
@@ -52,7 +51,7 @@ SHOW_SOURCE_TIMEOUT = 2
 # Function to be called on End-of-Stream (EOS) event
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
-    dsl_pipeline_stop()
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -60,7 +59,7 @@ def eos_event_listener(client_data):
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
-    dsl_pipeline_stop()
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -89,6 +88,7 @@ def xwindow_key_event_handler(key_string, client_data):
         
     # Q or Esc = quit application
     elif key_string.upper() == 'Q' or key_string == '':
+        dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
         
     # if one of the unique soure Ids, show source

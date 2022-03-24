@@ -25,7 +25,6 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.insert(0, "../../")
 from dsl import *
 
 uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
