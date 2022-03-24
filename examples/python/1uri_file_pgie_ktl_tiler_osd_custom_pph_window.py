@@ -25,7 +25,6 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.insert(0, "../../")
 from dsl import *
 from nvidia_osd_sink_pad_buffer_probe import osd_sink_pad_buffer_probe
 

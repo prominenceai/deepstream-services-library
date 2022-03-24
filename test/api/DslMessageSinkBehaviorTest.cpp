@@ -73,10 +73,6 @@ static const uint payload_type(DSL_MSG_PAYLOAD_DEEPSTREAM);
 static const std::wstring broker_config_file(
 	L"/opt/nvidia/deepstream/deepstream/sources/libs/azure_protocol_adaptor/device_client/cfg_azure.txt");
 
-// SET CONNECTION STRING
-static std::wstring connection_string(
-    L"HostName=my-hub.azure-devices.net;DeviceId=nano-1;SharedAccessKey=ABCDEFG12345678abcdefg"); 
-    
 static std::wstring topic(L"DSL_MESSAGE_TOPIC");
 
 static const std::wstring ode_handler_name(L"ode-handler");
@@ -105,7 +101,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Tiled Display, Window 
         
         REQUIRE( dsl_sink_message_new(message_sink_name.c_str(), converter_config_file.c_str(),
             payload_type, broker_config_file.c_str(), protocol_lib.c_str(),
-            connection_string.c_str(), topic.c_str()) == DSL_RESULT_SUCCESS );
+            NULL, topic.c_str()) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_ode_action_print_new(print_action_name.c_str(), false)  == 
             DSL_RESULT_SUCCESS );

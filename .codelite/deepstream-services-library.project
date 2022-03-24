@@ -204,7 +204,6 @@
       <File Name="../examples/python/2uri_splitter_pgie_ktl_osd_window_and_file.py"/>
       <File Name="../examples/python/4uri_file_pgie_ktl_tiler_osd_overlay.py"/>
       <File Name="../examples/python/4uri_file_tiler_show_source_control.py"/>
-      <File Name="../examples/python/4uri_live_pgie_tiler_osd_window.py"/>
       <File Name="../examples/python/8uri_file_pph_meter_performace_reporting.py"/>
       <File Name="../examples/python/dyn_uri_file_pgie_ktl_tiler_osd_window.py"/>
       <File Name="../examples/python/industrial_segmentation.py"/>
