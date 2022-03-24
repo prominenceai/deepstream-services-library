@@ -91,7 +91,23 @@ Or copy the `Primary Connection String` from your Azure IoT Hub instance by sele
 
 ![](/Images/azure-iot-edge-device-details.png)
 
-You will need the connection-string to use the [Message Sink](/docs/api-sink#dsl_sink_message_new) and [Message Broker API](/docs/api-msg-broker.md).
+You will need the connection-string to use the [Message Sink](/docs/api-sink.md#dsl_sink_message_new) and [Message Broker API](/docs/api-msg-broker.md).
+
+## Enable the NVIDIA logger
+#### For Jetson and x86 computers running Ubuntu:
+Run the settup script with the following commands.
+```bash
+sudo chmod u+x /opt/nvidia/deepstream/deepstream/sources/tools/nvds_logger/setup_nvds_logger.sh
+sudo /opt/nvidia/deepstream/deepstream/sources/tools/nvds_logger/setup_nvds_logger.sh
+```
+Log messages will be written to `/tmp/nvds/ds.log`.
+
+**Note:** when using the [Message Sink](/docs/api-sink.md#dsl_sink_message_new), setup errors will result in the Pipeline failing to play. The reason for the failure may be found in the nvds log file, for example
+```
+Mar 24 16:37:57 prominenceai1-desktop dsl-test-app.exe: DSLOG:NVDS_AZURE_PROTO: Error. Azure connection string not provided#012
+Mar 24 16:37:57 prominenceai1-desktop dsl-test-app.exe: DSLOG:NVDS_AZURE_PROTO: nvds_msgapi_connect: Failure in fetching azure connection string
+```
+
 Your device setup is now sufficient to use the Device Client `libnvds_azure_proto.so` with the following examples.
 * [ode_instance_trigger_message_server.py](/examples/python/ode_instance_trigger_message_server.py)
 * [message_broker_azure_device_client.py](/examples/python/message_broker_azure_device_client.py)
