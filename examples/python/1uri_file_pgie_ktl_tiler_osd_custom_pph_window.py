@@ -25,15 +25,16 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.insert(0, "../../")
 from dsl import *
 from nvidia_osd_sink_pad_buffer_probe import osd_sink_pad_buffer_probe
 
-uri_file = "../../test/streams/sample_1080p_h264.mp4"
+uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
-# Filespecs for the Primary GIE
-primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+# Filespecs for the Primary GIE and IOU Trcaker
+primary_infer_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
 ## 
 # Function to be called on XWindow KeyRelease event

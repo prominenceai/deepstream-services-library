@@ -529,13 +529,13 @@ SCENARIO( "A new Count Trigger can be created and deleted correctly", "[ode-trig
         std::wstring odeTriggerName(L"count");
         uint class_id(0);
         uint limit(0);
-		uint minimum(10);
-		uint maximum(30);
+        uint minimum(10);
+        uint maximum(30);
 
         WHEN( "When the Trigger is created" )         
         {
             REQUIRE( dsl_ode_trigger_count_new(odeTriggerName.c_str(), 
-				NULL, class_id, limit, minimum, maximum) == DSL_RESULT_SUCCESS );
+                NULL, class_id, limit, minimum, maximum) == DSL_RESULT_SUCCESS );
             
             THEN( "The Trigger can be deleted only once" ) 
             {
@@ -547,12 +547,12 @@ SCENARIO( "A new Count Trigger can be created and deleted correctly", "[ode-trig
         WHEN( "When the Trigger is created" )         
         {
             REQUIRE( dsl_ode_trigger_count_new(odeTriggerName.c_str(), 
-				NULL, class_id, limit, minimum, maximum) == DSL_RESULT_SUCCESS );
+                NULL, class_id, limit, minimum, maximum) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Trigger with the same name fails to create" ) 
             {
                 REQUIRE( dsl_ode_trigger_count_new(odeTriggerName.c_str(), 
-					NULL, class_id, limit, minimum, maximum) == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
+                    NULL, class_id, limit, minimum, maximum) == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
@@ -840,13 +840,13 @@ SCENARIO( "A new Persistence Trigger can be created and deleted correctly", "[od
         std::wstring odeTriggerName(L"persistence");
         uint class_id(0);
         uint limit(0);
-		uint minimum(10);
-		uint maximum(30);
+        uint minimum(10);
+        uint maximum(30);
 
         WHEN( "When the Trigger is created" )         
         {
             REQUIRE( dsl_ode_trigger_persistence_new(odeTriggerName.c_str(), 
-				NULL, class_id, limit, minimum, maximum) == DSL_RESULT_SUCCESS );
+                NULL, class_id, limit, minimum, maximum) == DSL_RESULT_SUCCESS );
             
             THEN( "The Trigger can be deleted only once" ) 
             {
@@ -858,12 +858,12 @@ SCENARIO( "A new Persistence Trigger can be created and deleted correctly", "[od
         WHEN( "When the Trigger is created" )         
         {
             REQUIRE( dsl_ode_trigger_persistence_new(odeTriggerName.c_str(), 
-				NULL, class_id, limit, minimum, maximum) == DSL_RESULT_SUCCESS );
+                NULL, class_id, limit, minimum, maximum) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Trigger with the same name fails to create" ) 
             {
                 REQUIRE( dsl_ode_trigger_persistence_new(odeTriggerName.c_str(), 
-					NULL, class_id, limit, minimum, maximum) == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
+                    NULL, class_id, limit, minimum, maximum) == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
@@ -879,8 +879,8 @@ SCENARIO( "An ODE Persistence Trigger's minimum and maximum can be set/get", "[o
         std::wstring odeTriggerName(L"persistence");
         uint class_id(0);
         uint limit(0);
-		uint minimum(10);
-		uint maximum(30);
+        uint minimum(10);
+        uint maximum(30);
 
         REQUIRE( dsl_ode_trigger_persistence_new(odeTriggerName.c_str(), 
             NULL, class_id, limit, minimum, maximum) == DSL_RESULT_SUCCESS );
@@ -1011,15 +1011,15 @@ SCENARIO( "A new Distance Trigger can be created and deleted correctly", "[ode-t
         uint class_id_a(0);
         uint class_id_b(0);
         uint limit(0);
-		uint minimum(10);
-		uint maximum(30);
+        uint minimum(10);
+        uint maximum(30);
         uint test_point(DSL_BBOX_POINT_ANY);
         uint test_method(DSL_DISTANCE_METHOD_FIXED_PIXELS);
 
         WHEN( "When the Trigger is created" )         
         {
             REQUIRE( dsl_ode_trigger_distance_new(odeTriggerName.c_str(), 
-				NULL, class_id_a, class_id_b, limit, minimum, maximum, test_point, test_method) == DSL_RESULT_SUCCESS );
+                NULL, class_id_a, class_id_b, limit, minimum, maximum, test_point, test_method) == DSL_RESULT_SUCCESS );
             
             THEN( "The Trigger can be deleted only once" ) 
             {
@@ -1031,12 +1031,12 @@ SCENARIO( "A new Distance Trigger can be created and deleted correctly", "[ode-t
         WHEN( "When the Trigger is created" )         
         {
             REQUIRE( dsl_ode_trigger_distance_new(odeTriggerName.c_str(), 
-				NULL, class_id_a, class_id_b, limit, minimum, maximum, test_point, test_method) == DSL_RESULT_SUCCESS );
+                NULL, class_id_a, class_id_b, limit, minimum, maximum, test_point, test_method) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Trigger with the same name fails to create" ) 
             {
                 REQUIRE( dsl_ode_trigger_distance_new(odeTriggerName.c_str(), 
-					NULL, class_id_a, class_id_b, limit, minimum, maximum, test_point, test_method)
+                    NULL, class_id_a, class_id_b, limit, minimum, maximum, test_point, test_method)
                         == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
@@ -1054,8 +1054,8 @@ SCENARIO( "An ODE Distance Trigger's minimum and maximum can be set/get", "[ode-
         uint class_id_a(0);
         uint class_id_b(0);
         uint limit(0);
-		uint minimum(10);
-		uint maximum(30);
+        uint minimum(10);
+        uint maximum(30);
         uint test_point(DSL_BBOX_POINT_ANY);
         uint test_method(DSL_DISTANCE_METHOD_FIXED_PIXELS);
 
@@ -1112,8 +1112,8 @@ SCENARIO( "An ODE Distance Trigger's test parameters can be set/get", "[ode-trig
         uint class_id_a(0);
         uint class_id_b(0);
         uint limit(0);
-		uint minimum(10);
-		uint maximum(30);
+        uint minimum(10);
+        uint maximum(30);
         uint test_point(DSL_BBOX_POINT_ANY);
         uint test_method(DSL_DISTANCE_METHOD_FIXED_PIXELS);
 

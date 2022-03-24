@@ -508,3 +508,5 @@ num_mailers = dsl_mailer_list_size()
 * [Component](/docs/api-component.md)
 * **Mailer**
 * [WebSocket Server](/docs/api-ws-server.md)
+* [Message Broker](/docs/api-msg-broker.md)
+* [Info API](/docs/api-info.md)

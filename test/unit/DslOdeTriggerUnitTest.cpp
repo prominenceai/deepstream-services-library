@@ -1850,7 +1850,7 @@ SCENARIO( "A CountOdeTrigger handles ODE Occurrence correctly", "[OdeTrigger]" )
 
         DSL_ODE_TRIGGER_COUNT_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_COUNT_NEW(odeTriggerName.c_str(), source.c_str(), 
-				classId, limit, minimum, maximum);
+                classId, limit, minimum, maximum);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -2036,7 +2036,7 @@ SCENARIO( "A PersistenceOdeTrigger adds/updates tracked objects correctly", "[Od
 
         DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_PERSISTENCE_NEW(odeTriggerName.c_str(), 
-				source.c_str(), classId, limit, minimum, maximum);
+                source.c_str(), classId, limit, minimum, maximum);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -2046,45 +2046,45 @@ SCENARIO( "A PersistenceOdeTrigger adds/updates tracked objects correctly", "[Od
         NvDsFrameMeta frameMeta =  {0};
         frameMeta.ntp_timestamp = INT64_MAX;
 
-		NvDsObjectMeta objectMeta1 = {0};
-		objectMeta1.class_id = classId;
-		NvDsObjectMeta objectMeta2 = {0};
-		objectMeta2.class_id = classId;
-		NvDsObjectMeta objectMeta3 = {0};
-		objectMeta3.class_id = classId;
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId;
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId;
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId;
         
         WHEN( "Three unique objects, each from a unique source, are provided" )
         {
-			frameMeta.frame_num = 1;
-			objectMeta1.object_id = 1;
-			objectMeta2.object_id = 2;
-			objectMeta3.object_id = 3;
+            frameMeta.frame_num = 1;
+            objectMeta1.object_id = 1;
+            objectMeta2.object_id = 2;
+            objectMeta3.object_id = 3;
             
             THEN( "CheckForOccurrence adds the tracked objects correctly " )
             {
-				frameMeta.source_id = 1;
-				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-				frameMeta.source_id = 2;
-				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-				frameMeta.source_id = 3;
-				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+                frameMeta.source_id = 1;
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                frameMeta.source_id = 2;
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                frameMeta.source_id = 3;
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
             }
         }
         WHEN( "Three object metas are provide for two unique objects" )
         {
-			frameMeta.source_id = 2;
-			objectMeta1.object_id = 0;
-			objectMeta2.object_id = 1;
-			objectMeta3.object_id = 1;
+            frameMeta.source_id = 2;
+            objectMeta1.object_id = 0;
+            objectMeta2.object_id = 1;
+            objectMeta3.object_id = 1;
             
             THEN( "CheckForOccurrence adds the tracked objects correctly " )
             {
-				frameMeta.frame_num = 1;
-				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-				// new frame 
-				frameMeta.frame_num = 2;
-				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+                frameMeta.frame_num = 1;
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                // new frame 
+                frameMeta.frame_num = 2;
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
             }
         }
     }
@@ -2105,7 +2105,7 @@ SCENARIO( "A PersistenceOdeTrigger purges tracked objects correctly", "[OdeTrigg
 
         DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_PERSISTENCE_NEW(odeTriggerName.c_str(), 
-				source.c_str(), classId, limit, minimum, maximum);
+                source.c_str(), classId, limit, minimum, maximum);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -2115,27 +2115,27 @@ SCENARIO( "A PersistenceOdeTrigger purges tracked objects correctly", "[OdeTrigg
         NvDsFrameMeta frameMeta =  {0};
         frameMeta.ntp_timestamp = INT64_MAX;
 
-		NvDsObjectMeta objectMeta1 = {0};
-		objectMeta1.class_id = classId;
-		NvDsObjectMeta objectMeta2 = {0};
-		objectMeta2.class_id = classId;
-		NvDsObjectMeta objectMeta3 = {0};
-		objectMeta3.class_id = classId;
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId;
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId;
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId;
         
         WHEN( "Three unique objects, each from a unique source, are added" )
         {
-			frameMeta.frame_num = 1;
-			objectMeta1.object_id = 1;
-			frameMeta.source_id = 1;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-			objectMeta2.object_id = 2;
-			frameMeta.source_id = 2;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-			// new frame
-			frameMeta.frame_num = 2;
-			objectMeta3.object_id = 3;
-			frameMeta.source_id = 3;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            frameMeta.frame_num = 1;
+            objectMeta1.object_id = 1;
+            frameMeta.source_id = 1;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            objectMeta2.object_id = 2;
+            frameMeta.source_id = 2;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            // new frame
+            frameMeta.frame_num = 2;
+            objectMeta3.object_id = 3;
+            frameMeta.source_id = 3;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
             
             THEN( "PostProcessFrame purges the first two objects" )
             {
@@ -2160,7 +2160,7 @@ SCENARIO( "A PersistenceOdeTrigger Post Processes ODE Occurrences correctly", "[
 
         DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_PERSISTENCE_NEW(odeTriggerName.c_str(), 
-				source.c_str(), classId, limit, minimum, maximum);
+                source.c_str(), classId, limit, minimum, maximum);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -2169,27 +2169,27 @@ SCENARIO( "A PersistenceOdeTrigger Post Processes ODE Occurrences correctly", "[
 
         NvDsFrameMeta frameMeta =  {0};
         frameMeta.ntp_timestamp = INT64_MAX;
-		frameMeta.frame_num = 1;
+        frameMeta.frame_num = 1;
 
-		NvDsObjectMeta objectMeta1 = {0};
-		objectMeta1.class_id = classId;
-		objectMeta1.object_id = 1;
-		NvDsObjectMeta objectMeta2 = {0};
-		objectMeta2.class_id = classId;
-		objectMeta2.object_id = 2;
-		NvDsObjectMeta objectMeta3 = {0};
-		objectMeta3.class_id = classId;
-		objectMeta3.object_id = 3;
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId;
+        objectMeta1.object_id = 1;
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId;
+        objectMeta2.object_id = 2;
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId;
+        objectMeta3.object_id = 3;
         
         WHEN( "The objects are tracked for < than the minimum time" )
         {
-			frameMeta.source_id = 1;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-			frameMeta.source_id = 2;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-			frameMeta.source_id = 3;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
-			
+            frameMeta.source_id = 1;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            frameMeta.source_id = 2;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            frameMeta.source_id = 3;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            
             THEN( "PostProcessFrame returns 0 occurrences" )
             {
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
@@ -2197,20 +2197,20 @@ SCENARIO( "A PersistenceOdeTrigger Post Processes ODE Occurrences correctly", "[
         }
         WHEN( "The objects are tracked for > the minimum time and < the maximum time" )
         {
-			frameMeta.source_id = 1;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-			frameMeta.source_id = 2;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-			frameMeta.source_id = 3;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
-			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-			frameMeta.frame_num = 2;
-			frameMeta.source_id = 1;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-			frameMeta.source_id = 2;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-			frameMeta.source_id = 3;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            frameMeta.source_id = 1;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            frameMeta.source_id = 2;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            frameMeta.source_id = 3;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            frameMeta.frame_num = 2;
+            frameMeta.source_id = 1;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            frameMeta.source_id = 2;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            frameMeta.source_id = 3;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
 
             THEN( "PostProcessFrame returns 3 occurrences" )
             {
@@ -2219,20 +2219,20 @@ SCENARIO( "A PersistenceOdeTrigger Post Processes ODE Occurrences correctly", "[
         }
         WHEN( "The objects are tracked for > the maximum time" )
         {
-			frameMeta.source_id = 1;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-			frameMeta.source_id = 2;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-			frameMeta.source_id = 3;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
-			std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-			frameMeta.frame_num = 2;
-			frameMeta.source_id = 1;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-			frameMeta.source_id = 2;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-			frameMeta.source_id = 3;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            frameMeta.source_id = 1;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            frameMeta.source_id = 2;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            frameMeta.source_id = 3;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+            frameMeta.frame_num = 2;
+            frameMeta.source_id = 1;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            frameMeta.source_id = 2;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            frameMeta.source_id = 3;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
 
             THEN( "PostProcessFrame returns 0 occurrences" )
             {
@@ -2255,7 +2255,7 @@ SCENARIO( "A LatestOdeTrigger adds/updates tracked objects correctly", "[OdeTrig
 
         DSL_ODE_TRIGGER_LATEST_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_LATEST_NEW(odeTriggerName.c_str(), 
-				source.c_str(), classId, limit);
+                source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -2265,45 +2265,45 @@ SCENARIO( "A LatestOdeTrigger adds/updates tracked objects correctly", "[OdeTrig
         NvDsFrameMeta frameMeta =  {0};
         frameMeta.ntp_timestamp = INT64_MAX;
 
-		NvDsObjectMeta objectMeta1 = {0};
-		objectMeta1.class_id = classId;
-		NvDsObjectMeta objectMeta2 = {0};
-		objectMeta2.class_id = classId;
-		NvDsObjectMeta objectMeta3 = {0};
-		objectMeta3.class_id = classId;
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId;
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId;
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId;
         
         WHEN( "Three unique objects, each from a unique source, are provided" )
         {
-			frameMeta.frame_num = 1;
-			objectMeta1.object_id = 1;
-			objectMeta2.object_id = 2;
-			objectMeta3.object_id = 3;
+            frameMeta.frame_num = 1;
+            objectMeta1.object_id = 1;
+            objectMeta2.object_id = 2;
+            objectMeta3.object_id = 3;
             
             THEN( "CheckForOccurrence adds the tracked objects correctly " )
             {
-				frameMeta.source_id = 1;
-				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-				frameMeta.source_id = 2;
-				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-				frameMeta.source_id = 3;
-				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+                frameMeta.source_id = 1;
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                frameMeta.source_id = 2;
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                frameMeta.source_id = 3;
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
             }
         }
         WHEN( "Three object metas are provide for two unique objects" )
         {
-			frameMeta.source_id = 2;
-			objectMeta1.object_id = 0;
-			objectMeta2.object_id = 1;
-			objectMeta3.object_id = 1;
+            frameMeta.source_id = 2;
+            objectMeta1.object_id = 0;
+            objectMeta2.object_id = 1;
+            objectMeta3.object_id = 1;
             
             THEN( "CheckForOccurrence adds the tracked objects correctly " )
             {
-				frameMeta.frame_num = 1;
-				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-				// new frame 
-				frameMeta.frame_num = 2;
-				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+                frameMeta.frame_num = 1;
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                // new frame 
+                frameMeta.frame_num = 2;
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
             }
         }
     }
@@ -2322,7 +2322,7 @@ SCENARIO( "A LatestOdeTrigger purges tracked objects correctly", "[OdeTrigger]" 
 
         DSL_ODE_TRIGGER_LATEST_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_LATEST_NEW(odeTriggerName.c_str(), 
-				source.c_str(), classId, limit);
+                source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -2332,27 +2332,27 @@ SCENARIO( "A LatestOdeTrigger purges tracked objects correctly", "[OdeTrigger]" 
         NvDsFrameMeta frameMeta =  {0};
         frameMeta.ntp_timestamp = INT64_MAX;
 
-		NvDsObjectMeta objectMeta1 = {0};
-		objectMeta1.class_id = classId;
-		NvDsObjectMeta objectMeta2 = {0};
-		objectMeta2.class_id = classId;
-		NvDsObjectMeta objectMeta3 = {0};
-		objectMeta3.class_id = classId;
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId;
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId;
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId;
         
         WHEN( "Three unique objects, each from a unique source, are added" )
         {
-			frameMeta.frame_num = 1;
-			objectMeta1.object_id = 1;
-			frameMeta.source_id = 1;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-			objectMeta2.object_id = 2;
-			frameMeta.source_id = 2;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-			// new frame
-			frameMeta.frame_num = 2;
-			objectMeta3.object_id = 3;
-			frameMeta.source_id = 3;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            frameMeta.frame_num = 1;
+            objectMeta1.object_id = 1;
+            frameMeta.source_id = 1;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            objectMeta2.object_id = 2;
+            frameMeta.source_id = 2;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            // new frame
+            frameMeta.frame_num = 2;
+            objectMeta3.object_id = 3;
+            frameMeta.source_id = 3;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
             
             THEN( "PostProcessFrame purges the first two objects" )
             {
@@ -2375,7 +2375,7 @@ SCENARIO( "A LatestOdeTrigger Post Processes ODE Occurrences correctly", "[OdeTr
 
         DSL_ODE_TRIGGER_LATEST_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_LATEST_NEW(odeTriggerName.c_str(), 
-				source.c_str(), classId, limit);
+                source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -2384,27 +2384,27 @@ SCENARIO( "A LatestOdeTrigger Post Processes ODE Occurrences correctly", "[OdeTr
 
         NvDsFrameMeta frameMeta =  {0};
         frameMeta.ntp_timestamp = INT64_MAX;
-		frameMeta.frame_num = 1;
+        frameMeta.frame_num = 1;
 
-		NvDsObjectMeta objectMeta1 = {0};
-		objectMeta1.class_id = classId;
-		objectMeta1.object_id = 1;
-		NvDsObjectMeta objectMeta2 = {0};
-		objectMeta2.class_id = classId;
-		objectMeta2.object_id = 2;
-		NvDsObjectMeta objectMeta3 = {0};
-		objectMeta3.class_id = classId;
-		objectMeta3.object_id = 3;
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId;
+        objectMeta1.object_id = 1;
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId;
+        objectMeta2.object_id = 2;
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId;
+        objectMeta3.object_id = 3;
         
         WHEN( "The objects are tracked for for only one frame" )
         {
-			frameMeta.source_id = 1;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-			frameMeta.source_id = 2;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-			frameMeta.source_id = 3;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
-			
+            frameMeta.source_id = 1;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            frameMeta.source_id = 2;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            frameMeta.source_id = 3;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            
             THEN( "PostProcessFrame returns 0 occurrences" )
             {
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
@@ -2412,22 +2412,22 @@ SCENARIO( "A LatestOdeTrigger Post Processes ODE Occurrences correctly", "[OdeTr
         }
         WHEN( "The objects are tracked for two frames" )
         {
-			frameMeta.source_id = 1;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-			frameMeta.source_id = 2;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-			frameMeta.source_id = 3;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
-			std::this_thread::sleep_for(std::chrono::milliseconds(1100));
+            frameMeta.source_id = 1;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            frameMeta.source_id = 2;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            frameMeta.source_id = 3;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            std::this_thread::sleep_for(std::chrono::milliseconds(1100));
             REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
 
-			frameMeta.frame_num = 2;
-			frameMeta.source_id = 1;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-			frameMeta.source_id = 2;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-			frameMeta.source_id = 3;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            frameMeta.frame_num = 2;
+            frameMeta.source_id = 1;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            frameMeta.source_id = 2;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            frameMeta.source_id = 3;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
 
             THEN( "PostProcessFrame returns 3 occurrences" )
             {
@@ -2436,26 +2436,26 @@ SCENARIO( "A LatestOdeTrigger Post Processes ODE Occurrences correctly", "[OdeTr
         }
         WHEN( "when only one object is tracked for three frames" )
         {
-			frameMeta.source_id = 1;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-			frameMeta.source_id = 2;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-			frameMeta.source_id = 3;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
-			std::this_thread::sleep_for(std::chrono::milliseconds(1100));
+            frameMeta.source_id = 1;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            frameMeta.source_id = 2;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            frameMeta.source_id = 3;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            std::this_thread::sleep_for(std::chrono::milliseconds(1100));
             REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
-			frameMeta.frame_num = 2;
-			frameMeta.source_id = 1;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-			frameMeta.source_id = 2;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-			std::this_thread::sleep_for(std::chrono::milliseconds(1100));
+            frameMeta.frame_num = 2;
+            frameMeta.source_id = 1;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            frameMeta.source_id = 2;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            std::this_thread::sleep_for(std::chrono::milliseconds(1100));
             REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
-			frameMeta.frame_num = 3;
-			frameMeta.source_id = 2;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-			frameMeta.source_id = 3;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            frameMeta.frame_num = 3;
+            frameMeta.source_id = 2;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            frameMeta.source_id = 3;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
 
             THEN( "PostProcessFrame returns 1 occurrences" )
             {
@@ -2481,7 +2481,7 @@ SCENARIO( "A EarliestOdeTrigger adds/updates tracked objects correctly", "[OdeTr
 
         DSL_ODE_TRIGGER_EARLIEST_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_EARLIEST_NEW(odeTriggerName.c_str(), 
-				source.c_str(), classId, limit);
+                source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -2491,45 +2491,45 @@ SCENARIO( "A EarliestOdeTrigger adds/updates tracked objects correctly", "[OdeTr
         NvDsFrameMeta frameMeta =  {0};
         frameMeta.ntp_timestamp = INT64_MAX;
 
-		NvDsObjectMeta objectMeta1 = {0};
-		objectMeta1.class_id = classId;
-		NvDsObjectMeta objectMeta2 = {0};
-		objectMeta2.class_id = classId;
-		NvDsObjectMeta objectMeta3 = {0};
-		objectMeta3.class_id = classId;
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId;
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId;
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId;
         
         WHEN( "Three unique objects, each from a unique source, are provided" )
         {
-			frameMeta.frame_num = 1;
-			objectMeta1.object_id = 1;
-			objectMeta2.object_id = 2;
-			objectMeta3.object_id = 3;
+            frameMeta.frame_num = 1;
+            objectMeta1.object_id = 1;
+            objectMeta2.object_id = 2;
+            objectMeta3.object_id = 3;
             
             THEN( "CheckForOccurrence adds the tracked objects correctly " )
             {
-				frameMeta.source_id = 1;
-				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-				frameMeta.source_id = 2;
-				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-				frameMeta.source_id = 3;
-				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+                frameMeta.source_id = 1;
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                frameMeta.source_id = 2;
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                frameMeta.source_id = 3;
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
             }
         }
         WHEN( "Three object metas are provide for two unique objects" )
         {
-			frameMeta.source_id = 2;
-			objectMeta1.object_id = 0;
-			objectMeta2.object_id = 1;
-			objectMeta3.object_id = 1;
+            frameMeta.source_id = 2;
+            objectMeta1.object_id = 0;
+            objectMeta2.object_id = 1;
+            objectMeta3.object_id = 1;
             
             THEN( "CheckForOccurrence adds the tracked objects correctly " )
             {
-				frameMeta.frame_num = 1;
-				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-				// new frame 
-				frameMeta.frame_num = 2;
-				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+                frameMeta.frame_num = 1;
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                // new frame 
+                frameMeta.frame_num = 2;
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
             }
         }
     }
@@ -2548,7 +2548,7 @@ SCENARIO( "A EarliestOdeTrigger purges tracked objects correctly", "[OdeTrigger]
 
         DSL_ODE_TRIGGER_EARLIEST_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_EARLIEST_NEW(odeTriggerName.c_str(), 
-				source.c_str(), classId, limit);
+                source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -2558,27 +2558,27 @@ SCENARIO( "A EarliestOdeTrigger purges tracked objects correctly", "[OdeTrigger]
         NvDsFrameMeta frameMeta =  {0};
         frameMeta.ntp_timestamp = INT64_MAX;
 
-		NvDsObjectMeta objectMeta1 = {0};
-		objectMeta1.class_id = classId;
-		NvDsObjectMeta objectMeta2 = {0};
-		objectMeta2.class_id = classId;
-		NvDsObjectMeta objectMeta3 = {0};
-		objectMeta3.class_id = classId;
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId;
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId;
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId;
         
         WHEN( "Three unique objects, each from a unique source, are added" )
         {
-			frameMeta.frame_num = 1;
-			objectMeta1.object_id = 1;
-			frameMeta.source_id = 1;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-			objectMeta2.object_id = 2;
-			frameMeta.source_id = 2;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-			// new frame
-			frameMeta.frame_num = 2;
-			objectMeta3.object_id = 3;
-			frameMeta.source_id = 3;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            frameMeta.frame_num = 1;
+            objectMeta1.object_id = 1;
+            frameMeta.source_id = 1;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            objectMeta2.object_id = 2;
+            frameMeta.source_id = 2;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            // new frame
+            frameMeta.frame_num = 2;
+            objectMeta3.object_id = 3;
+            frameMeta.source_id = 3;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
             
             THEN( "PostProcessFrame purges the first two objects" )
             {
@@ -2601,7 +2601,7 @@ SCENARIO( "A EarliestOdeTrigger Post Processes ODE Occurrences correctly", "[Ode
 
         DSL_ODE_TRIGGER_LATEST_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_LATEST_NEW(odeTriggerName.c_str(), 
-				source.c_str(), classId, limit);
+                source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -2610,27 +2610,27 @@ SCENARIO( "A EarliestOdeTrigger Post Processes ODE Occurrences correctly", "[Ode
 
         NvDsFrameMeta frameMeta =  {0};
         frameMeta.ntp_timestamp = INT64_MAX;
-		frameMeta.frame_num = 1;
+        frameMeta.frame_num = 1;
 
-		NvDsObjectMeta objectMeta1 = {0};
-		objectMeta1.class_id = classId;
-		objectMeta1.object_id = 1;
-		NvDsObjectMeta objectMeta2 = {0};
-		objectMeta2.class_id = classId;
-		objectMeta2.object_id = 2;
-		NvDsObjectMeta objectMeta3 = {0};
-		objectMeta3.class_id = classId;
-		objectMeta3.object_id = 3;
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId;
+        objectMeta1.object_id = 1;
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId;
+        objectMeta2.object_id = 2;
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId;
+        objectMeta3.object_id = 3;
         
         WHEN( "The objects are tracked for for only one frame" )
         {
-			frameMeta.source_id = 1;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-			frameMeta.source_id = 2;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-			frameMeta.source_id = 3;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
-			
+            frameMeta.source_id = 1;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            frameMeta.source_id = 2;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            frameMeta.source_id = 3;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            
             THEN( "PostProcessFrame returns 0 occurrences" )
             {
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
@@ -2638,22 +2638,22 @@ SCENARIO( "A EarliestOdeTrigger Post Processes ODE Occurrences correctly", "[Ode
         }
         WHEN( "The objects are tracked for two frames" )
         {
-			frameMeta.source_id = 1;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-			frameMeta.source_id = 2;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-			frameMeta.source_id = 3;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
-			std::this_thread::sleep_for(std::chrono::milliseconds(1100));
+            frameMeta.source_id = 1;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            frameMeta.source_id = 2;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            frameMeta.source_id = 3;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            std::this_thread::sleep_for(std::chrono::milliseconds(1100));
             REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
 
-			frameMeta.frame_num = 2;
-			frameMeta.source_id = 1;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-			frameMeta.source_id = 2;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-			frameMeta.source_id = 3;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            frameMeta.frame_num = 2;
+            frameMeta.source_id = 1;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            frameMeta.source_id = 2;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            frameMeta.source_id = 3;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
 
             THEN( "PostProcessFrame returns 3 occurrences" )
             {
@@ -2662,26 +2662,26 @@ SCENARIO( "A EarliestOdeTrigger Post Processes ODE Occurrences correctly", "[Ode
         }
         WHEN( "when only one object is tracked for three frames" )
         {
-			frameMeta.source_id = 1;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-			frameMeta.source_id = 2;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-			frameMeta.source_id = 3;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
-			std::this_thread::sleep_for(std::chrono::milliseconds(1100));
+            frameMeta.source_id = 1;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            frameMeta.source_id = 2;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            frameMeta.source_id = 3;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            std::this_thread::sleep_for(std::chrono::milliseconds(1100));
             REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
-			frameMeta.frame_num = 2;
-			frameMeta.source_id = 1;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-			frameMeta.source_id = 2;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-			std::this_thread::sleep_for(std::chrono::milliseconds(1100));
+            frameMeta.frame_num = 2;
+            frameMeta.source_id = 1;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            frameMeta.source_id = 2;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            std::this_thread::sleep_for(std::chrono::milliseconds(1100));
             REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
-			frameMeta.frame_num = 3;
-			frameMeta.source_id = 2;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-			frameMeta.source_id = 3;
-			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            frameMeta.frame_num = 3;
+            frameMeta.source_id = 2;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            frameMeta.source_id = 3;
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
 
             THEN( "PostProcessFrame returns 1 occurrences" )
             {

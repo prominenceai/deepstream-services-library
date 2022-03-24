@@ -651,6 +651,39 @@ DslReturnType dsl_ode_action_log_new(const wchar_t* name)
     return DSL::Services::GetServices()->OdeActionLogNew(cstrName.c_str());
 }
 
+DslReturnType dsl_ode_action_message_meta_add_new(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionMessageMetaAddNew(cstrName.c_str());
+}
+
+DslReturnType dsl_ode_action_message_meta_type_get(const wchar_t* name,
+    uint* meta_type)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionMessageMetaTypeGet(
+        cstrName.c_str(), meta_type);
+}
+    
+DslReturnType dsl_ode_action_message_meta_type_set(const wchar_t* name,
+    uint meta_type)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionMessageMetaTypeSet(
+        cstrName.c_str(), meta_type);
+}
    
 DslReturnType dsl_ode_action_display_meta_add_new(const wchar_t* name, const wchar_t* display_type)
 {
@@ -1390,7 +1423,7 @@ DslReturnType dsl_ode_trigger_persistence_range_set(const wchar_t* name,
     return DSL::Services::GetServices()->OdeTriggerPersistenceRangeSet(cstrName.c_str(), 
         minimum, maximum);
 }
-	
+    
 DslReturnType dsl_ode_trigger_count_new(const wchar_t* name, const wchar_t* source, 
     uint class_id, uint limit, uint minimum, uint maximum)
 {
@@ -3096,12 +3129,12 @@ DslReturnType dsl_infer_gie_primary_new(const wchar_t* name, const wchar_t* infe
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrConfig(infer_config_file);
     std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
-	
-	std::string cstrEngine;
-	if (model_engine_file != NULL)
-	{
-		std::wstring wstrEngine(model_engine_file);
-		cstrEngine.assign(wstrEngine.begin(), wstrEngine.end());
+    
+    std::string cstrEngine;
+    if (model_engine_file != NULL)
+    {
+        std::wstring wstrEngine(model_engine_file);
+        cstrEngine.assign(wstrEngine.begin(), wstrEngine.end());
     }
     return DSL::Services::GetServices()->PrimaryGieNew(cstrName.c_str(), cstrConfig.c_str(),
         cstrEngine.c_str(), interval);
@@ -3117,7 +3150,7 @@ DslReturnType dsl_infer_tis_primary_new(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrConfig(infer_config_file);
     std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
-	
+    
     return DSL::Services::GetServices()->PrimaryTisNew(cstrName.c_str(), 
         cstrConfig.c_str(), interval);
 }
@@ -3136,11 +3169,11 @@ DslReturnType dsl_infer_gie_secondary_new(const wchar_t* name, const wchar_t* in
     std::wstring wstrInferOnGie(infer_on_gie);
     std::string cstrInferOnGie(wstrInferOnGie.begin(), wstrInferOnGie.end());
 
-	std::string cstrEngine;
-	if (model_engine_file != NULL)
-	{
-		std::wstring wstrEngine(model_engine_file);
-		cstrEngine.assign(wstrEngine.begin(), wstrEngine.end());
+    std::string cstrEngine;
+    if (model_engine_file != NULL)
+    {
+        std::wstring wstrEngine(model_engine_file);
+        cstrEngine.assign(wstrEngine.begin(), wstrEngine.end());
     }
     return DSL::Services::GetServices()->SecondaryGieNew(cstrName.c_str(), cstrConfig.c_str(),
         cstrEngine.c_str(), cstrInferOnGie.c_str(), interval);
@@ -3258,7 +3291,7 @@ DslReturnType dsl_gie_model_engine_file_get(const wchar_t* name, const wchar_t**
     }
     return retval;
 }
-
+ 
 DslReturnType dsl_gie_model_engine_file_set(const wchar_t* name, const wchar_t* model_engine_file)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -3317,11 +3350,11 @@ DslReturnType dsl_tracker_dcf_new(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-	std::string cstrCfgFile;
-	if (config_file != NULL)
-	{
-		std::wstring wstrCfgFile(config_file);
-		cstrCfgFile.assign(wstrCfgFile.begin(), wstrCfgFile.end());
+    std::string cstrCfgFile;
+    if (config_file != NULL)
+    {
+        std::wstring wstrCfgFile(config_file);
+        cstrCfgFile.assign(wstrCfgFile.begin(), wstrCfgFile.end());
     }
 
     return DSL::Services::GetServices()->TrackerDcfNew(cstrName.c_str(), 
@@ -3348,11 +3381,11 @@ DslReturnType dsl_tracker_iou_new(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-	std::string cstrCfgFile;
-	if (config_file != NULL)
-	{
-		std::wstring wstrCfgFile(config_file);
-		cstrCfgFile.assign(wstrCfgFile.begin(), wstrCfgFile.end());
+    std::string cstrCfgFile;
+    if (config_file != NULL)
+    {
+        std::wstring wstrCfgFile(config_file);
+        cstrCfgFile.assign(wstrCfgFile.begin(), wstrCfgFile.end());
     }
 
     return DSL::Services::GetServices()->TrackerIouNew(cstrName.c_str(), 
@@ -4445,16 +4478,16 @@ DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_serve
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     std::string cstrStunServer;
-	std::string cstrTurnServer;
-	if (stun_server != NULL)
-	{
-		std::wstring wstrStunServer(stun_server);
-		cstrStunServer.assign(wstrStunServer.begin(), wstrStunServer.end());
+    std::string cstrTurnServer;
+    if (stun_server != NULL)
+    {
+        std::wstring wstrStunServer(stun_server);
+        cstrStunServer.assign(wstrStunServer.begin(), wstrStunServer.end());
     }
-	if (turn_server != NULL)
-	{
-		std::wstring wstrTurnServer(turn_server);
-		cstrTurnServer.assign(wstrTurnServer.begin(), wstrTurnServer.end());
+    if (turn_server != NULL)
+    {
+        std::wstring wstrTurnServer(turn_server);
+        cstrTurnServer.assign(wstrTurnServer.begin(), wstrTurnServer.end());
     }
 
     return DSL::Services::GetServices()->SinkWebRtcNew(cstrName.c_str(),
@@ -4527,16 +4560,16 @@ DslReturnType dsl_sink_webrtc_servers_set(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     std::string cstrStunServer;
-	std::string cstrTurnServer;
-	if (stun_server != NULL)
-	{
-		std::wstring wstrStunServer(stun_server);
-		cstrStunServer.assign(wstrStunServer.begin(), wstrStunServer.end());
+    std::string cstrTurnServer;
+    if (stun_server != NULL)
+    {
+        std::wstring wstrStunServer(stun_server);
+        cstrStunServer.assign(wstrStunServer.begin(), wstrStunServer.end());
     }
-	if (turn_server != NULL)
-	{
-		std::wstring wstrTurnServer(turn_server);
-		cstrTurnServer.assign(wstrTurnServer.begin(), wstrTurnServer.end());
+    if (turn_server != NULL)
+    {
+        std::wstring wstrTurnServer(turn_server);
+        cstrTurnServer.assign(wstrTurnServer.begin(), wstrTurnServer.end());
     }
 
     return DSL::Services::GetServices()->SinkWebRtcServersSet(cstrName.c_str(),
@@ -4674,6 +4707,189 @@ DslReturnType dsl_websocket_server_client_listener_remove(
 #endif    
 }
 
+DslReturnType dsl_sink_message_new(const wchar_t* name, 
+    const wchar_t* converter_config_file, uint payload_type, 
+    const wchar_t* broker_config_file, const wchar_t* protocol_lib, 
+    const wchar_t* connection_string, const wchar_t* topic)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(converter_config_file);
+    RETURN_IF_PARAM_IS_NULL(broker_config_file);
+    RETURN_IF_PARAM_IS_NULL(protocol_lib);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrConvConfig(converter_config_file);
+    std::string cstrConvConfig(wstrConvConfig.begin(), wstrConvConfig.end());
+    std::wstring wstrBrokerConfig(broker_config_file);
+    std::string cstrBrokerConfig(wstrBrokerConfig.begin(), wstrBrokerConfig.end());
+    std::wstring wstrProtocolLib(protocol_lib);
+    std::string cstrProtocolLib(wstrProtocolLib.begin(), wstrProtocolLib.end());
+    
+    std::string cstrConn;
+    if (connection_string != NULL)
+    {
+        std::wstring wstrConn(connection_string);
+        cstrConn.assign(wstrConn.begin(), wstrConn.end());
+    }
+    
+    std::string cstrTopic;
+    if (topic != NULL)
+    {
+        std::wstring wstrTopic(topic);
+        cstrTopic.assign(wstrTopic.begin(), wstrTopic.end());
+    }
+
+    return DSL::Services::GetServices()->SinkMessageNew(cstrName.c_str(), 
+        cstrConvConfig.c_str(), payload_type, cstrBrokerConfig.c_str(), 
+        cstrProtocolLib.c_str(), cstrConn.c_str(), cstrTopic.c_str());
+}
+
+DslReturnType dsl_sink_message_meta_type_get(const wchar_t* name,
+    uint* meta_type)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkMessageMetaTypeGet(cstrName.c_str(), 
+        meta_type);
+}
+    
+DslReturnType dsl_sink_message_meta_type_set(const wchar_t* name,
+    uint meta_type)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkMessageMetaTypeSet(cstrName.c_str(), 
+        meta_type);
+}
+    
+DslReturnType dsl_sink_message_converter_settings_get(const wchar_t* name, 
+    const wchar_t** converter_config_file, uint* payload_type)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(converter_config_file);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cConfigFile;
+    static std::string cstrConfigFile;
+    static std::wstring wcstrConfigFile;
+    
+    uint retval = DSL::Services::GetServices()->SinkMessageConverterSettingsGet(
+        cstrName.c_str(), &cConfigFile, payload_type);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrConfigFile.assign(cConfigFile);
+        wcstrConfigFile.assign(cstrConfigFile.begin(), cstrConfigFile.end());
+        *converter_config_file = wcstrConfigFile.c_str();
+    }
+    return retval;
+}
+    
+DslReturnType dsl_sink_message_converter_settings_set(const wchar_t* name, 
+    const wchar_t* converter_config_file, uint payload_type)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(converter_config_file);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrConvConfig(converter_config_file);
+    std::string cstrConvConfig(wstrConvConfig.begin(), wstrConvConfig.end());
+
+    return DSL::Services::GetServices()->SinkMessageConverterSettingsSet(cstrName.c_str(), 
+        cstrConvConfig.c_str(), payload_type);
+}
+
+DslReturnType dsl_sink_message_broker_settings_get(const wchar_t* name, 
+    const wchar_t** broker_config_file, const wchar_t**  protocol_lib,
+    const wchar_t** connection_string, const wchar_t** topic)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(broker_config_file);
+    RETURN_IF_PARAM_IS_NULL(protocol_lib);
+    RETURN_IF_PARAM_IS_NULL(connection_string);
+    RETURN_IF_PARAM_IS_NULL(topic);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cConfigFile;
+    static std::string cstrConfigFile;
+    static std::wstring wcstrConfigFile;
+    const char* cProtocolLib;
+    static std::string cstrProtocolLib;
+    static std::wstring wcstrProtocolLib;
+    const char* cConnStr;
+    static std::string cstrConnStr;
+    static std::wstring wcstrConnStr;
+    const char* cTopic;
+    static std::string cstrTopic;
+    static std::wstring wcstrTopic;
+    
+    uint retval = DSL::Services::GetServices()->SinkMessageBrokerSettingsGet(
+        cstrName.c_str(), &cConfigFile, &cProtocolLib, &cConnStr, &cTopic);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrConfigFile.assign(cConfigFile);
+        wcstrConfigFile.assign(cstrConfigFile.begin(), cstrConfigFile.end());
+        *broker_config_file = wcstrConfigFile.c_str();
+        cstrProtocolLib.assign(cProtocolLib);
+        wcstrProtocolLib.assign(cstrProtocolLib.begin(), cstrProtocolLib.end());
+        *protocol_lib = wcstrProtocolLib.c_str();
+        cstrConnStr.assign(cConnStr);
+        wcstrConnStr.assign(cstrConnStr.begin(), cstrConnStr.end());
+        *connection_string = wcstrConnStr.c_str();
+        cstrTopic.assign(cTopic);
+        wcstrTopic.assign(cstrTopic.begin(), cstrTopic.end());
+        *topic = wcstrTopic.c_str();
+    }
+    return retval;
+} 
+
+DslReturnType dsl_sink_message_broker_settings_set(const wchar_t* name, 
+    const wchar_t* broker_config_file, const wchar_t* protocol_lib,
+    const wchar_t* connection_string, const wchar_t* topic)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(broker_config_file);
+    RETURN_IF_PARAM_IS_NULL(protocol_lib);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrBrokerConfig(broker_config_file);
+    std::string cstrBrokerConfig(wstrBrokerConfig.begin(), wstrBrokerConfig.end());
+    std::wstring wstrProtocolLib(protocol_lib);
+    std::string cstrProtocolLib(wstrProtocolLib.begin(), wstrProtocolLib.end());
+    
+
+    std::string cstrConn;
+    if (connection_string != NULL)
+    {
+        std::wstring wstrConn(connection_string);
+        cstrConn.assign(wstrConn.begin(), wstrConn.end());
+    }
+    
+    std::string cstrTopic;
+    if (topic != NULL)
+    {
+        std::wstring wstrTopic(topic);
+        cstrTopic.assign(wstrTopic.begin(), wstrTopic.end());
+    }
+
+    return DSL::Services::GetServices()->SinkMessageBrokerSettingsSet(cstrName.c_str(), 
+        cstrBrokerConfig.c_str(), cstrProtocolLib.c_str(), 
+        cstrConn.c_str(), cstrTopic.c_str());
+}
+    
+    
 DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -6269,28 +6485,259 @@ uint dsl_mailer_list_size()
 {
     return DSL::Services::GetServices()->MailerListSize();
 }
+
+DslReturnType dsl_message_broker_new(const wchar_t* name, 
+    const wchar_t* broker_config_file, const wchar_t* protocol_lib, 
+    const wchar_t* connection_string)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(broker_config_file);
+    RETURN_IF_PARAM_IS_NULL(protocol_lib);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrBrokerConfig(broker_config_file);
+    std::string cstrBrokerConfig(wstrBrokerConfig.begin(), wstrBrokerConfig.end());
+    std::wstring wstrProtocolLib(protocol_lib);
+    std::string cstrProtocolLib(wstrProtocolLib.begin(), wstrProtocolLib.end());
+    
+    std::string cstrConn;
+    if (connection_string != NULL)
+    {
+        std::wstring wstrConn(connection_string);
+        cstrConn.assign(wstrConn.begin(), wstrConn.end());
+    }
+    
+    return DSL::Services::GetServices()->MessageBrokerNew(cstrName.c_str(), 
+        cstrBrokerConfig.c_str(), cstrProtocolLib.c_str(), cstrConn.c_str());
+}
+
+DslReturnType dsl_message_broker_settings_get(const wchar_t* name, 
+    const wchar_t** broker_config_file, const wchar_t**  protocol_lib,
+    const wchar_t** connection_string)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(broker_config_file);
+    RETURN_IF_PARAM_IS_NULL(protocol_lib);
+    RETURN_IF_PARAM_IS_NULL(connection_string);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cConfigFile;
+    static std::string cstrConfigFile;
+    static std::wstring wcstrConfigFile;
+    const char* cProtocolLib;
+    static std::string cstrProtocolLib;
+    static std::wstring wcstrProtocolLib;
+    const char* cConnStr;
+    static std::string cstrConnStr;
+    static std::wstring wcstrConnStr;
+    
+    uint retval = DSL::Services::GetServices()->MessageBrokerSettingsGet(
+        cstrName.c_str(), &cConfigFile, &cProtocolLib, &cConnStr);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrConfigFile.assign(cConfigFile);
+        wcstrConfigFile.assign(cstrConfigFile.begin(), cstrConfigFile.end());
+        *broker_config_file = wcstrConfigFile.c_str();
+        cstrProtocolLib.assign(cProtocolLib);
+        wcstrProtocolLib.assign(cstrProtocolLib.begin(), cstrProtocolLib.end());
+        *protocol_lib = wcstrProtocolLib.c_str();
+        cstrConnStr.assign(cConnStr);
+        wcstrConnStr.assign(cstrConnStr.begin(), cstrConnStr.end());
+        *connection_string = wcstrConnStr.c_str();
+    }
+    return retval;
+} 
+
+DslReturnType dsl_message_broker_settings_set(const wchar_t* name, 
+    const wchar_t* broker_config_file, const wchar_t* protocol_lib,
+    const wchar_t* connection_string)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(broker_config_file);
+    RETURN_IF_PARAM_IS_NULL(protocol_lib);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrBrokerConfig(broker_config_file);
+    std::string cstrBrokerConfig(wstrBrokerConfig.begin(), wstrBrokerConfig.end());
+    std::wstring wstrProtocolLib(protocol_lib);
+    std::string cstrProtocolLib(wstrProtocolLib.begin(), wstrProtocolLib.end());
+    
+
+    std::string cstrConn;
+    if (connection_string != NULL)
+    {
+        std::wstring wstrConn(connection_string);
+        cstrConn.assign(wstrConn.begin(), wstrConn.end());
+    }
+    
+    return DSL::Services::GetServices()->MessageBrokerSettingsSet(cstrName.c_str(), 
+        cstrBrokerConfig.c_str(), cstrProtocolLib.c_str(), 
+        cstrConn.c_str());
+}
+    
+DslReturnType dsl_message_broker_connect(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->MessageBrokerConnect(cstrName.c_str());
+}
+
+DslReturnType dsl_message_broker_disconnect(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->MessageBrokerDisconnect(cstrName.c_str());
+}
+
+DslReturnType dsl_message_broker_is_connected(const wchar_t* name,
+    boolean* connected)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->MessageBrokerIsConnected(cstrName.c_str(),
+        connected);
+}
+
+DslReturnType dsl_message_broker_message_send_async(const wchar_t* name,
+    const wchar_t* topic, void* message, size_t size, 
+    dsl_message_broker_send_result_listener_cb result_listener, void* user_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(result_listener);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrTopic;
+    if (topic != NULL)
+    {
+        std::wstring wstrTopic(topic);
+        cstrTopic.assign(wstrTopic.begin(), wstrTopic.end());
+    }
+
+    return DSL::Services::GetServices()->MessageBrokerMessageSendAsync(
+        cstrName.c_str(), cstrTopic.c_str(), message, size, result_listener, user_data);
+}
+    
+DslReturnType dsl_message_broker_subscriber_add(const wchar_t* name,
+    dsl_message_broker_subscriber_cb subscriber, const wchar_t** topics,
+    void* user_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(subscriber);
+
+    std::cout << "subscriber add called " << "\n";
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    std::vector<std::shared_ptr<std::string>> newTopics; 
+    std::vector<const char*> cTopics;
+    
+    for (const wchar_t** topic = topics; *topic; topic++)
+    {
+        std::wstring wstrTopic(*topic);
+        std::string cstrTopic(wstrTopic.begin(), wstrTopic.end());
+        
+        std::cout << "new topic = " << cstrTopic.c_str() << "\n";
+        
+        std::shared_ptr<std::string> newTopic = 
+            std::shared_ptr<std::string>(new std::string(cstrTopic.c_str()));
+        newTopics.push_back(newTopic);
+        cTopics.push_back(newTopic->c_str());
+    }
+    cTopics.push_back(NULL);
+    
+    std::cout << "first topic = " << cTopics[0] << "\n";
+
+    return DSL::Services::GetServices()->MessageBrokerSubscriberAdd(
+        cstrName.c_str(), subscriber, &cTopics[0], newTopics.size(), user_data);
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_message_broker_subscriber_remove(const wchar_t* name,
+    dsl_message_broker_subscriber_cb subscriber)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(subscriber);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->MessageBrokerSubscriberRemove(
+        cstrName.c_str(), subscriber);
+}
+
+DslReturnType dsl_message_broker_connection_listener_add(const wchar_t* name,
+    dsl_message_broker_connection_listener_cb handler, void* user_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->MessageBrokerConnectionListenerAdd(
+        cstrName.c_str(), handler, user_data);
+}
+
+DslReturnType dsl_message_broker_connection_listener_remove(const wchar_t* name,
+    dsl_message_broker_connection_listener_cb handler)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->MessageBrokerConnectionListenerRemove(
+        cstrName.c_str(), handler);
+}
+
+DslReturnType dsl_message_broker_delete(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->MessageBrokerDelete(cstrName.c_str());
+}
+
+DslReturnType dsl_message_broker_delete_all()
+{
+    return DSL::Services::GetServices()->MessageBrokerDeleteAll();
+}
+
+uint dsl_message_broker_list_size()
+{
+    return DSL::Services::GetServices()->MessageBrokerListSize();
+}
     
 void dsl_delete_all()
 {
     DSL::Services::GetServices()->DeleteAll();
 }
 
-DslReturnType dsl_stdout_redirect(const wchar_t* file_path)
+const wchar_t* dsl_info_version_get()
 {
-    RETURN_IF_PARAM_IS_NULL(file_path);
-
-    std::wstring wstrFilePath(file_path);
-    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
-
-    return DSL::Services::GetServices()->StdOutRedirect(cstrFilePath.c_str());
+    return DSL_VERSION;
 }
 
-void dsl_stdout_restore()
-{
-    DSL::Services::GetServices()->StdOutRestore();
-}
-
-uint dsl_gpu_type_get(uint gpu_id)
+uint dsl_info_gpu_type_get(uint gpu_id)
 {
         // Get the Device properties
         cudaDeviceProp deviceProp;
@@ -6301,3 +6748,119 @@ uint dsl_gpu_type_get(uint gpu_id)
             ? DSL_GPU_TYPE_INTEGRATED
             : DSL_GPU_TYPE_DISCRETE;
 }
+
+DslReturnType dsl_info_stdout_get(const wchar_t** file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    const char* cFilePath(NULL);
+    static std::wstring wcstrFilePath;
+    
+    uint retval = DSL::Services::GetServices()->InfoStdoutGet(&cFilePath);
+    if (retval ==  DSL_RESULT_SUCCESS and cFilePath)
+    {
+        std::string cstrFilePath(cFilePath);
+        wcstrFilePath.assign(cstrFilePath.begin(), cstrFilePath.end());
+        *file_path = wcstrFilePath.c_str();
+    }
+    return retval;
+}
+
+
+DslReturnType dsl_info_stdout_redirect(const wchar_t* file_path, uint mode)
+{
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->InfoStdoutRedirect(
+        cstrFilePath.c_str(), mode);
+}
+
+DslReturnType dsl_info_stdout_redirect_with_ts(const wchar_t* file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->InfoStdoutRedirectWithTs(
+        cstrFilePath.c_str());
+}
+
+DslReturnType dsl_info_stdout_restore()
+{
+    return DSL::Services::GetServices()->InfoStdOutRestore();
+}
+
+DslReturnType dsl_info_log_level_get(const wchar_t** level)
+{
+    RETURN_IF_PARAM_IS_NULL(level);
+
+    const char* cLevel(NULL);
+    static std::wstring wcstrLevel;
+    
+    uint retval = DSL::Services::GetServices()->InfoLogLevelGet(&cLevel);
+    if (retval ==  DSL_RESULT_SUCCESS and cLevel)
+    {
+        std::string cstrLevel(cLevel);
+        wcstrLevel.assign(cstrLevel.begin(), cstrLevel.end());
+        *level = wcstrLevel.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_info_log_level_set(const wchar_t* level)
+{
+    RETURN_IF_PARAM_IS_NULL(level);
+    
+    std::wstring wstrLevel(level);
+    std::string cstrLevel(wstrLevel.begin(), wstrLevel.end());
+
+    return DSL::Services::GetServices()->InfoLogLevelSet(cstrLevel.c_str());
+}
+
+DslReturnType dsl_info_log_file_get(const wchar_t** file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    const char* cFilePath(NULL);
+    static std::wstring wcstrFilePath;
+    
+    uint retval = DSL::Services::GetServices()->InfoLogFileGet(&cFilePath);
+    if (retval ==  DSL_RESULT_SUCCESS and cFilePath)
+    {
+        std::string cstrFilePath(cFilePath);
+        wcstrFilePath.assign(cstrFilePath.begin(), cstrFilePath.end());
+        *file_path = wcstrFilePath.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_info_log_file_set(const wchar_t* file_path, uint mode)
+{
+    RETURN_IF_PARAM_IS_NULL(file_path);
+    
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->InfoLogFileSet(
+        cstrFilePath.c_str(), mode);
+}
+
+DslReturnType dsl_info_log_file_set_with_ts(const wchar_t* file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(file_path);
+    
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->InfoLogFileSetWithTs(cstrFilePath.c_str());
+}
+
+DslReturnType dsl_info_log_function_restore()
+{
+    return DSL::Services::GetServices()->InfoLogFunctionRestore();
+}
+

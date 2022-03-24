@@ -48,13 +48,13 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "osd_queue");
-        m_pVidPreConv = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "osd_vid_pre_conv");
-        m_pConvQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "osd_conv_queue");
-        m_pOsd = DSL_ELEMENT_NEW(NVDS_ELEM_OSD, "nvosd0");
+        m_pVidConvQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvvideoconvert");
+        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
+        m_pOsdQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvdsosd");
+        m_pOsd = DSL_ELEMENT_NEW("nvdsosd", name);
 
-        m_pVidPreConv->SetAttribute("gpu-id", m_gpuId);
-        m_pVidPreConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+        m_pVidConv->SetAttribute("gpu-id", m_gpuId);
+        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
 
         m_pOsd->SetAttribute("gpu-id", m_gpuId);
         m_pOsd->SetAttribute("display-text", m_textEnabled);
@@ -67,15 +67,15 @@ namespace DSL
         m_pOsd->SetAttribute("display-bbox", m_bboxEnabled);
         m_pOsd->SetAttribute("display-mask", m_maskEnabled);
         
-        AddChild(m_pQueue);
-        AddChild(m_pVidPreConv);
-        AddChild(m_pConvQueue);
+        AddChild(m_pVidConvQueue);
+        AddChild(m_pVidConv);
+        AddChild(m_pOsdQueue);
         AddChild(m_pOsd);
 
-        m_pQueue->AddGhostPadToParent("sink");
+        m_pVidConvQueue->AddGhostPadToParent("sink");
         m_pOsd->AddGhostPadToParent("src");
 
-        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("osd-sink-pad-probe", "sink", m_pQueue);
+        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("osd-sink-pad-probe", "sink", m_pVidConvQueue);
         m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW("osd-src-pad-probe", "src", m_pOsd);
     }    
     
@@ -99,9 +99,9 @@ namespace DSL
             return false;
         }
         
-        if (!m_pQueue->LinkToSink(m_pVidPreConv) or
-            !m_pVidPreConv->LinkToSink(m_pConvQueue) or
-            !m_pConvQueue->LinkToSink(m_pOsd))
+        if (!m_pVidConvQueue->LinkToSink(m_pVidConv) or
+            !m_pVidConv->LinkToSink(m_pOsdQueue) or
+            !m_pOsdQueue->LinkToSink(m_pOsd))
         {
             return false;
         }
@@ -118,9 +118,9 @@ namespace DSL
             LOG_ERROR("OsdBintr '" << m_name << "' is not linked");
             return;
         }
-        m_pQueue->UnlinkFromSink();
-        m_pVidPreConv->UnlinkFromSink();
-        m_pConvQueue->UnlinkFromSink();
+        m_pVidConvQueue->UnlinkFromSink();
+        m_pVidConv->UnlinkFromSink();
+        m_pOsdQueue->UnlinkFromSink();
         m_isLinked = false;
     }
 
@@ -392,7 +392,7 @@ namespace DSL
 
         m_gpuId = gpuId;
 
-        m_pVidPreConv->SetAttribute("gpu-id", m_gpuId);
+        m_pVidConv->SetAttribute("gpu-id", m_gpuId);
         m_pOsd->SetAttribute("gpu-id", m_gpuId);
         
         return true;
@@ -409,7 +409,7 @@ namespace DSL
             return false;
         }
         m_nvbufMemType = nvbufMemType;
-        m_pVidPreConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
 
         return true;
     }

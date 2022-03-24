@@ -90,11 +90,6 @@ const wchar_t* dsl_state_value_to_string(uint state)
     return DSL::Services::GetServices()->StateValueToString(state);
 }
 
-const wchar_t* dsl_version_get()
-{
-    return DSL_VERSION;
-}
-
 void geosNoticeHandler(const char *fmt, ...)
 {
     // TODO
@@ -135,22 +130,6 @@ namespace DSL
                 gst_init(&argc, &argv);
                 doGstDeinit = true;
                 
-                // One-time init of Curl with no addition features
-                CURLcode result = curl_global_init(CURL_GLOBAL_NOTHING);
-                if (result != CURLE_OK)
-                {
-                    LOG_ERROR("curl_global_init failed: " << curl_easy_strerror(result));
-                    throw;
-                }
-                curl_version_info_data* info = curl_version_info(CURLVERSION_NOW);
-                
-                LOG_INFO("Libcurl Initialized Successfully");
-                LOG_INFO("Version: " << info->version);
-                LOG_INFO("Host: " << info->host);
-                LOG_INFO("Features: " << info->features);
-                LOG_INFO("SSL Version: " << info->ssl_version);
-                LOG_INFO("Libz Version: " << info->libz_version);
-                LOG_INFO("Protocols: " << info->protocols);
             }
             
             // Safe to start logging
@@ -169,18 +148,45 @@ namespace DSL
             
             // Create the default Display types
             m_pInstance->DisplayTypeCreateIntrinsicTypes();
+
+            std::wstring wVersion(DSL_VERSION);
+            std::string cVersion(wVersion.begin(), wVersion.end());
+            LOG_INFO("DSL Version: " << cVersion);
+
+            // One-time init of Curl with no addition features
+            CURLcode result = curl_global_init(CURL_GLOBAL_NOTHING);
+            if (result != CURLE_OK)
+            {
+                LOG_ERROR("curl_global_init failed: " << curl_easy_strerror(result));
+                throw;
+            }
+            curl_version_info_data* info = curl_version_info(CURLVERSION_NOW);
+            
+            LOG_INFO("Libcurl Initialized Successfully");
+            LOG_INFO("Version: " << info->version);
+            LOG_INFO("Host: " << info->host);
+            LOG_INFO("Features: " << info->features);
+            LOG_INFO("SSL Version: " << info->ssl_version);
+            LOG_INFO("Libz Version: " << info->libz_version);
+            LOG_INFO("Protocols: " << info->protocols);
         }
         return m_pInstance;
     }
         
     Services::Services(bool doGstDeinit)
         : m_doGstDeinit(doGstDeinit)
+        , m_debugLogFileHandle(NULL)
         , m_pMainLoop(g_main_loop_new(NULL, FALSE))
         , m_sourceNumInUseMax(DSL_DEFAULT_SOURCE_IN_USE_MAX)
         , m_sinkNumInUseMax(DSL_DEFAULT_SINK_IN_USE_MAX)
     {
         LOG_FUNC();
 
+        if (InfoInitDebugSettings() != DSL_RESULT_SUCCESS)
+        {
+            LOG_ERROR("DSL threw exception intializing Debug Settings");
+            throw;
+        }
         g_mutex_init(&m_servicesMutex);
     }
 
@@ -196,6 +202,8 @@ namespace DSL
             
             // Cleanup Lib cURL
             curl_global_cleanup();
+            
+            InfoDeinitDebugSettings();
             
             // If this Services object called gst_init(), and not the client.
             if (m_doGstDeinit)
@@ -225,62 +233,7 @@ namespace DSL
         OdeActionDeleteAll();
         DisplayTypeDeleteAll();
         MailerDeleteAll();
-    }
-
-    DslReturnType Services::StdOutRedirect(const char* filepath)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            if (m_stdOutRedirectFile.is_open())
-            {
-                LOG_ERROR("stdout is currently/already in a redirected state");
-                return DSL_RESULT_FAILURE;
-            }
-            
-            // backup the default 
-            m_stdOutRdBufBackup = std::cout.rdbuf();
-            
-            // open the redirect file and the rdbuf
-            m_stdOutRedirectFile.open(filepath, std::ios::out);
-            std::streambuf* redirectFileRdBuf = m_stdOutRedirectFile.rdbuf();
-            
-            // assign the file's rdbuf to the stdout's
-            std::cout.rdbuf(redirectFileRdBuf);
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("DSL threw an exception redirecting stdout");
-            return DSL_RESULT_THREW_EXCEPTION;
-        }
-    }
-    
-    void Services::StdOutRestore()
-    {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            if (!m_stdOutRedirectFile.is_open())
-            {
-                LOG_ERROR("stdout is not currently in a redirected state");
-                return;
-            }
-
-            // restore the stdout to the initial backupt
-            std::cout.rdbuf(m_stdOutRdBufBackup);
-
-            // close the redirct file
-            m_stdOutRedirectFile.close();
-        }
-        catch(...)
-        {
-            LOG_ERROR("DSL threw an exception close stdout redirect file");
-        }
+        MessageBrokerDeleteAll();
     }
    
     // ------------------------------------------------------------------------------
@@ -332,6 +285,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_FAILURE] = L"DSL_RESULT_FAILURE";
         m_returnValueToString[DSL_RESULT_API_NOT_IMPLEMENTED] = L"DSL_RESULT_API_NOT_IMPLEMENTED";
         m_returnValueToString[DSL_RESULT_API_NOT_SUPPORTED] = L"DSL_RESULT_API_NOT_SUPPORTED";
+        m_returnValueToString[DSL_RESULT_API_NOT_ENABLED] = L"DSL_RESULT_API_NOT_ENABLED";
         m_returnValueToString[DSL_RESULT_INVALID_INPUT_PARAM] = L"DSL_RESULT_INVALID_INPUT_PARAM";
         m_returnValueToString[DSL_RESULT_THREW_EXCEPTION] = L"DSL_RESULT_THREW_EXCEPTION";
         
@@ -438,6 +392,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK] = L"DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK";
         m_returnValueToString[DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK] = L"DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK";
         m_returnValueToString[DSL_RESULT_SINK_COMPONENT_IS_NOT_RENDER_SINK] = L"DSL_RESULT_SINK_COMPONENT_IS_NOT_RENDER_SINK";
+        m_returnValueToString[DSL_RESULT_SINK_COMPONENT_IS_NOT_MESSAGE_SINK] = L"DSL_RESULT_SINK_COMPONENT_IS_NOT_MESSAGE_SINK";
         m_returnValueToString[DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED] = L"DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED] = L"DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_HANDLER_ADD_FAILED] = L"DSL_RESULT_SINK_HANDLER_ADD_FAILED";
@@ -450,6 +405,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED] = L"DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_OVERLAY_NOT_SUPPORTED] = L"DSL_RESULT_SINK_OVERLAY_NOT_SUPPORTED";
         m_returnValueToString[DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED] = L"DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED";
+        m_returnValueToString[DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND] = L"DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_UNIQUE] = L"DSL_RESULT_OSD_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_FOUND] = L"DSL_RESULT_OSD_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_OSD_NAME_BAD_FORMAT] = L"DSL_RESULT_OSD_NAME_BAD_FORMAT";
@@ -505,7 +461,6 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_TILER_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_TILER_HANDLER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_TILER_PAD_TYPE_INVALID] = L"DSL_RESULT_TILER_PAD_TYPE_INVALID";
         m_returnValueToString[DSL_RESULT_TILER_COMPONENT_IS_NOT_TILER] = L"DSL_RESULT_TILER_COMPONENT_IS_NOT_TILER";
-        m_returnValueToString[DSL_RESULT_BRANCH_RESULT] = L"DSL_RESULT_BRANCH_RESULT";
         m_returnValueToString[DSL_RESULT_BRANCH_NAME_NOT_UNIQUE] = L"DSL_RESULT_BRANCH_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_BRANCH_NAME_NOT_FOUND] = L"DSL_RESULT_BRANCH_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_BRANCH_NAME_BAD_FORMAT] = L"DSL_RESULT_BRANCH_NAME_BAD_FORMAT";
@@ -514,7 +469,6 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_BRANCH_COMPONENT_REMOVE_FAILED] = L"DSL_RESULT_BRANCH_COMPONENT_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_BRANCH_SOURCE_NOT_ALLOWED] = L"DSL_RESULT_BRANCH_SOURCE_NOT_ALLOWED";
         m_returnValueToString[DSL_RESULT_BRANCH_SINK_MAX_IN_USE_REACHED] = L"DSL_RESULT_BRANCH_SINK_MAX_IN_USE_REACHED";
-        m_returnValueToString[DSL_RESULT_PIPELINE_RESULT] = L"DSL_RESULT_PIPELINE_RESULT";
         m_returnValueToString[DSL_RESULT_PIPELINE_NAME_NOT_UNIQUE] = L"DSL_RESULT_PIPELINE_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_PIPELINE_NAME_NOT_FOUND] = L"DSL_RESULT_PIPELINE_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_PIPELINE_NAME_BAD_FORMAT] = L"DSL_RESULT_PIPELINE_NAME_BAD_FORMAT";
@@ -566,7 +520,6 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_TAP_PLAYER_REMOVE_FAILED] = L"DSL_RESULT_TAP_PLAYER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_TAP_MAILER_ADD_FAILED] = L"DSL_RESULT_TAP_MAILER_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_TAP_MAILER_REMOVE_FAILED] = L"DSL_RESULT_TAP_MAILER_REMOVE_FAILED";
-        m_returnValueToString[DSL_RESULT_PLAYER_RESULT] = L"DSL_RESULT_PLAYER_RESULT";
         m_returnValueToString[DSL_RESULT_PLAYER_NAME_NOT_UNIQUE] = L"DSL_RESULT_PLAYER_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_PLAYER_NAME_NOT_FOUND] = L"DSL_RESULT_PLAYER_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_PLAYER_NAME_BAD_FORMAT] = L"DSL_RESULT_PLAYER_NAME_BAD_FORMAT";
@@ -593,6 +546,21 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_WEBSOCKET_SERVER_SET_FAILED] = L"DSL_RESULT_WEBSOCKET_SERVER_SET_FAILED";
         m_returnValueToString[DSL_RESULT_WEBSOCKET_SERVER_CLIENT_LISTENER_ADD_FAILED] = L"DSL_RESULT_WEBSOCKET_SERVER_CLIENT_LISTENER_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_WEBSOCKET_SERVER_CLIENT_LISTENER_REMOVE_FAILED] = L"DSL_RESULT_WEBSOCKET_SERVER_CLIENT_LISTENER_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_BROKER_NAME_NOT_UNIQUE] = L"DSL_RESULT_BROKER_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_BROKER_NAME_NOT_FOUND] = L"DSL_RESULT_BROKER_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_BROKER_THREW_EXCEPTION] = L"DSL_RESULT_BROKER_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_BROKER_IN_USE] = L"DSL_RESULT_BROKER_IN_USE";
+        m_returnValueToString[DSL_RESULT_BROKER_SET_FAILED] = L"DSL_RESULT_BROKER_SET_FAILED";
+        m_returnValueToString[DSL_RESULT_BROKER_PARAMETER_INVALID] = L"DSL_RESULT_BROKER_PARAMETER_INVALID";
+        m_returnValueToString[DSL_RESULT_BROKER_SUBSCRIBER_ADD_FAILED] = L"DSL_RESULT_BROKER_SUBSCRIBER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_BROKER_SUBSCRIBER_REMOVE_FAILED] = L"DSL_RESULT_BROKER_SUBSCRIBER_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_BROKER_LISTENER_ADD_FAILED] = L"DSL_RESULT_BROKER_LISTENER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_BROKER_LISTENER_REMOVE_FAILED] = L"DSL_RESULT_BROKER_LISTENER_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_BROKER_CONFIG_FILE_NOT_FOUND] = L"DSL_RESULT_BROKER_CONFIG_FILE_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_BROKER_PROTOCOL_LIB_NOT_FOUND] = L"DSL_RESULT_BROKER_PROTOCOL_LIB_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_BROKER_CONNECT_FAILED] = L"DSL_RESULT_BROKER_CONNECT_FAILED";
+        m_returnValueToString[DSL_RESULT_BROKER_DISCONNECT_FAILED] = L"DSL_RESULT_BROKER_DISCONNECT_FAILED";
+        m_returnValueToString[DSL_RESULT_BROKER_MESSAGE_SEND_FAILED] = L"DSL_RESULT_BROKER_MESSAGE_SEND_FAILED";
         
         m_returnValueToString[DSL_RESULT_INVALID_RESULT_CODE] = L"Invalid DSL Result CODE";
    }

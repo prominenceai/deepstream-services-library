@@ -25,7 +25,6 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.insert(0, "../../")
 import time
 
 from dsl import *
@@ -43,7 +42,7 @@ file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4'
 
 # Filespecs for the Primary Triton Inference Server (PTIS)
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_plan_engine_primary.txt'
 
 # Window Sink Dimensions
 sink_width = 1280

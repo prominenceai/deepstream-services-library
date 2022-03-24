@@ -35,21 +35,20 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pSinkQueue = DSL_ELEMENT_NEW("queue", "opt-flow-sink-queue");
-        m_pOptFlow = DSL_ELEMENT_NEW("nvof", "opt-flow");
-        m_pOptFlowQueue = DSL_ELEMENT_NEW("queue", "opt-flow-visual-queue");
-        m_pOptFlowVisual = DSL_ELEMENT_NEW("nvofvisual", "opt-flow-visual");
-
+        m_pOptFlowQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvof");
+        m_pOptFlow = DSL_ELEMENT_NEW("nvof", name);
+        m_pOptFlowVisualQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvofvisual");
+        m_pOptFlowVisual = DSL_ELEMENT_NEW("nvofvisual", name);
         
-        AddChild(m_pSinkQueue);
-        AddChild(m_pOptFlow);
         AddChild(m_pOptFlowQueue);
+        AddChild(m_pOptFlow);
+        AddChild(m_pOptFlowVisualQueue);
         AddChild(m_pOptFlowVisual);
 
-        m_pSinkQueue->AddGhostPadToParent("sink");
+        m_pOptFlowQueue->AddGhostPadToParent("sink");
         m_pOptFlowVisual->AddGhostPadToParent("src");
 
-        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("osd-sink-pad-probe", "sink", m_pSinkQueue);
+        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("osd-sink-pad-probe", "sink", m_pOptFlowQueue);
         m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW("osd-src-pad-probe", "src", m_pOptFlowVisual);
     }    
     
@@ -72,9 +71,9 @@ namespace DSL
             LOG_ERROR("OfvBintr '" << m_name << "' is already linked");
             return false;
         }
-        if (!m_pSinkQueue->LinkToSink(m_pOptFlow) or
-            !m_pOptFlow->LinkToSink(m_pOptFlowQueue) or
-            !m_pOptFlowQueue->LinkToSink(m_pOptFlowVisual))
+        if (!m_pOptFlowQueue->LinkToSink(m_pOptFlow) or
+            !m_pOptFlow->LinkToSink(m_pOptFlowVisualQueue) or
+            !m_pOptFlowVisualQueue->LinkToSink(m_pOptFlowVisual))
         {
             return false;
         }
@@ -91,9 +90,9 @@ namespace DSL
             LOG_ERROR("OfvBintr '" << m_name << "' is not linked");
             return;
         }
-        m_pSinkQueue->UnlinkFromSink();
-        m_pOptFlow->UnlinkFromSink();
         m_pOptFlowQueue->UnlinkFromSink();
+        m_pOptFlow->UnlinkFromSink();
+        m_pOptFlowVisualQueue->UnlinkFromSink();
         m_isLinked = false;
     }
     

@@ -1,6 +1,32 @@
+################################################################################
+# The MIT License
+#
+# Copyright (c)  2019 - 2022, Prominence AI, Inc.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+################################################################################
+
+#!/usr/bin/env python
+
 from ctypes import *
 
-_dsl = CDLL('./libdsl.so')
+_dsl = CDLL('/usr/local/lib/libdsl.so')
 
 DSL_RETURN_SUCCESS = 0
 
@@ -55,11 +81,11 @@ DSL_ODE_ANY_CLASS = int('7FFFFFFF',16)
 DSL_TILER_SHOW_ALL_SOURCES = None
 
 # Copied from x.h
-Button1	= 1
-Button2	= 2
-Button3	= 3
-Button4	= 4
-Button5	= 5
+Button1 = 1
+Button2 = 2
+Button3 = 3
+Button4 = 4
+Button5 = 5
 
 DSL_PAD_PROBE_DROP    = 0
 DSL_PAD_PROBE_OK      = 1
@@ -115,6 +141,17 @@ DSL_SOCKET_CONNECTION_STATE_INITIATED = 1
 DSL_SOCKET_CONNECTION_STATE_FAILED    = 2
 
 DSL_WEBSOCKET_SERVER_DEFAULT_HTTP_PORT = 60001
+
+DSL_MSG_PAYLOAD_DEEPSTREAM         = 0
+DSL_MSG_PAYLOAD_DEEPSTREAM_MINIMAL = 1
+
+DSL_MSG_PAYLOAD_DEEPSTREAM         = 0
+DSL_MSG_PAYLOAD_DEEPSTREAM_MINIMAL = 1
+
+DSL_STATUS_BROKER_OK            = 0
+DSL_STATUS_BROKER_ERROR         = 1
+DSL_STATUS_BROKER_RECONNECTING  = 2
+DSL_STATUS_BROKER_NOT_SUPPORTED = 3
 
 class dsl_coordinate(Structure):
     _fields_ = [
@@ -190,6 +227,9 @@ DSL_WEBSOCKET_SERVER_CLIENT_LISTENER = CFUNCTYPE(None, c_wchar_p, c_void_p)
 DSL_WEBRTC_SINK_CLIENT_LISTENER = CFUNCTYPE(None, POINTER(dsl_webrtc_connection_data), c_void_p)
 DSL_ODE_TRIGGER_LIMIT_EVENT_LISTENER = CFUNCTYPE(None, c_uint, c_uint, c_void_p)
 DSL_ODE_ENABLED_STATE_CHANGE_LISTENER = CFUNCTYPE(None, c_bool, c_void_p)
+DSL_MESSAGE_BROKER_CONNECTION_LISTENER = CFUNCTYPE(None, c_void_p, c_uint)
+DSL_MESSAGE_BROKER_SUBSCRIBER = CFUNCTYPE(None, c_void_p, c_uint, c_void_p, c_uint, c_wchar_p)
+DSL_MESSAGE_BROKER_SEND_RESULT_LISTENER = CFUNCTYPE(None, c_void_p, c_uint)
 
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
@@ -605,6 +645,16 @@ _dsl.dsl_ode_action_log_new.restype = c_uint
 def dsl_ode_action_log_new(name):
     global _dsl
     result =_dsl.dsl_ode_action_log_new(name)
+    return int(result)
+
+##
+## dsl_ode_action_message_meta_add_new()
+##
+_dsl.dsl_ode_action_message_meta_add_new.argtypes = [c_wchar_p]
+_dsl.dsl_ode_action_message_meta_add_new.restype = c_uint
+def dsl_ode_action_message_meta_add_new(name):
+    global _dsl
+    result =_dsl.dsl_ode_action_message_meta_add_new(name)
     return int(result)
 
 ##
@@ -3485,6 +3535,19 @@ def dsl_sink_webrtc_client_listener_remove(name, client_listener):
     return int(result)
 
 ##
+## dsl_sink_message_new()
+##
+_dsl.dsl_sink_message_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_wchar_p, 
+    c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_message_new.restype = c_uint
+def dsl_sink_message_new(name, converter_config_file, payload_type, 
+    broker_config_file, protocol_lib, connection_string, topic):
+    global _dsl
+    result =_dsl.dsl_sink_message_new(name, converter_config_file, payload_type, 
+        broker_config_file, protocol_lib, connection_string, topic)
+    return int(result)
+    
+##
 ## dsl_sink_sync_settings_get()
 ##
 _dsl.dsl_sink_sync_settings_get.argtypes = [c_wchar_p, POINTER(c_bool), POINTER(c_bool)]
@@ -4836,6 +4899,114 @@ def dsl_mailer_delete_all():
     return int(result)
 
 ##
+## dsl_message_broker_new()
+##
+_dsl.dsl_message_broker_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_message_broker_new.restype = c_uint
+def dsl_message_broker_new(name, broker_config_file, protocol_lib, connection_string):
+    global _dsl
+    result =_dsl.dsl_message_broker_new(name, 
+        broker_config_file, protocol_lib, connection_string)
+    return int(result)
+
+##
+## dsl_message_broker_connection_listener_add()
+##
+_dsl.dsl_message_broker_connection_listener_add.argtypes = [c_wchar_p, 
+    DSL_MESSAGE_BROKER_CONNECTION_LISTENER, c_void_p]
+_dsl.dsl_message_broker_connection_listener_add.restype = c_uint
+def dsl_message_broker_connection_listener_add(name, client_listener, client_data):
+    global _dsl
+    c_client_listener = DSL_MESSAGE_BROKER_CONNECTION_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_message_broker_connection_listener_add(name, 
+        c_client_listener, c_client_data)
+    return int(result)
+    
+##
+## dsl_message_broker_connection_listener_remove()
+##
+_dsl.dsl_message_broker_connection_listener_remove.argtypes = [c_wchar_p, 
+    DSL_MESSAGE_BROKER_CONNECTION_LISTENER]
+_dsl.dsl_message_broker_connection_listener_remove.restype = c_uint
+def dsl_message_broker_connection_listener_remove(name, client_listener):
+    global _dsl
+    c_client_listener = DSL_MESSAGE_BROKER_CONNECTION_LISTENER(client_listener)
+    result = _dsl.dsl_message_broker_connection_listener_remove(name, c_client_listener)
+    return int(result)
+
+##
+## dsl_message_broker_connect()
+##
+_dsl.dsl_message_broker_connect.argtypes = [c_wchar_p]
+_dsl.dsl_message_broker_connect.restype = c_uint
+def dsl_message_broker_connect(name):
+    global _dsl
+    result =_dsl.dsl_message_broker_connect(name)
+    return int(result)
+
+##
+## dsl_message_broker_connect()
+##
+_dsl.dsl_message_broker_disconnect.argtypes = [c_wchar_p]
+_dsl.dsl_message_broker_disconnect.restype = c_uint
+def dsl_message_broker_disconnect(name):
+    global _dsl
+    result =_dsl.dsl_message_broker_disconnect(name)
+    return int(result)
+
+##
+## dsl_message_broker_subscriber_add()
+##
+#_dsl.dsl_message_broker_subscriber_add.argtypes = [c_wchar_p, 
+#    DSL_MESSAGE_BROKER_SUBSCRIBER, c_void_p]
+_dsl.dsl_message_broker_subscriber_add.restype = c_uint
+def dsl_message_broker_subscriber_add(name, subscriber, topics, client_data):
+    global _dsl
+    c_subscriber = DSL_MESSAGE_BROKER_SUBSCRIBER(subscriber)
+    callbacks.append(c_subscriber)
+    arr = (c_wchar_p * len(topics))()
+    arr[:] = topics
+    
+    print(arr)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_message_broker_subscriber_add(name, 
+        c_subscriber, arr, c_client_data)
+    return int(result)
+    
+##
+## dsl_message_broker_subscriber_remove()
+##
+_dsl.dsl_message_broker_subscriber_remove.argtypes = [c_wchar_p, 
+    DSL_MESSAGE_BROKER_SUBSCRIBER]
+_dsl.dsl_message_broker_subscriber_remove.restype = c_uint
+def dsl_message_broker_subscriber_remove(name, subscriber):
+    global _dsl
+    c_subscriber = DSL_MESSAGE_BROKER_SUBSCRIBER(subscriber)
+    result = _dsl.dsl_message_broker_subscriber_remove(name, c_subscriber)
+    return int(result)
+
+##
+## dsl_message_broker_message_send_async()
+##
+_dsl.dsl_message_broker_message_send_async.argtypes = [c_wchar_p, c_wchar_p, c_void_p,
+    c_uint, DSL_MESSAGE_BROKER_SEND_RESULT_LISTENER, c_void_p]
+_dsl.dsl_message_broker_message_send_async.restype = c_uint
+def dsl_message_broker_message_send_async(name, topic, message, 
+    size, response_listener, client_data):
+    global _dsl
+    c_result_listener = DSL_MESSAGE_BROKER_SEND_RESULT_LISTENER(response_listener)
+    callbacks.append(c_result_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_message_broker_message_send_async(name, 
+        topic, message, size, c_result_listener, c_client_data)
+    return int(result)
+
+##
 ## dsl_main_loop_run()
 ##
 def dsl_main_loop_run():
@@ -4868,45 +5039,118 @@ def dsl_state_value_to_string(state):
     return _dsl.dsl_state_value_to_string(state)
 
 ##
-## dsl_version_get()
-##
-_dsl.dsl_version_get.restype = c_wchar_p
-def dsl_version_get():
-    global _dsl
-    return _dsl.dsl_version_get()
-
-##
 ## dsl_delete_all()
 ##
 _dsl.dsl_delete_all.restype = c_bool
 def dsl_delete_all():
     global _dsl
     return _dsl.dsl_delete_all()
-    
+
 ##
-## dsl_stdout_redirect()
+## dsl_info_version_get()
 ##
-_dsl.dsl_stdout_redirect.argtypes = [c_wchar_p]
-_dsl.dsl_stdout_redirect.restype = c_uint
-def dsl_stdout_redirect(file_path):
+_dsl.dsl_info_version_get.restype = c_wchar_p
+def dsl_info_version_get():
     global _dsl
-    result = _dsl.dsl_stdout_redirect(file_path)
+    return _dsl.dsl_info_version_get()
+
+
+##
+## dsl_info_stdout_redirect()
+##
+_dsl.dsl_info_stdout_redirect.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_info_stdout_redirect.restype = c_uint
+def dsl_info_stdout_redirect(file_path, mode):
+    global _dsl
+    result = _dsl.dsl_info_stdout_redirect(file_path, mode)
     return int(result)
 
 ##
-## dsl_stdout_restore()
+## dsl_info_stdout_redirect_with_ts()
 ##
-_dsl.dsl_stdout_restore.restype = c_bool
-def dsl_stdout_restore():
+_dsl.dsl_info_stdout_redirect_with_ts.argtypes = [c_wchar_p]
+_dsl.dsl_info_stdout_redirect_with_ts.restype = c_uint
+def dsl_info_stdout_redirect_with_ts(file_path):
     global _dsl
-    return _dsl.dsl_stdout_restore()
+    result = _dsl.dsl_info_stdout_redirect_with_ts(file_path)
+    return int(result)
+
+##
+## dsl_info_stdout_restore()
+##
+_dsl.dsl_info_stdout_restore.restype = c_bool
+def dsl_info_stdout_restore():
+    global _dsl
+    return _dsl.dsl_info_stdout_restore()
     
 ##
-## dsl_gpu_type_get()
+## dsl_info_gpu_type_get()
 ##
-_dsl.dsl_gpu_type_get.argtypes = [c_uint]
-_dsl.dsl_gpu_type_get.restype = c_uint
-def dsl_gpu_type_get(gpu_id):
+_dsl.dsl_info_gpu_type_get.argtypes = [c_uint]
+_dsl.dsl_info_gpu_type_get.restype = c_uint
+def dsl_info_gpu_type_get(gpu_id):
     global _dsl
-    result = _dsl.dsl_gpu_type_get(gpu_id)
+    result = _dsl.dsl_info_gpu_type_get(gpu_id)
+    return int(result)
+
+##
+## dsl_info_log_level_get()
+##
+_dsl.dsl_info_log_level_get.argtypes = [POINTER(c_wchar_p)]
+_dsl.dsl_info_log_level_get.restype = c_uint
+def dsl_info_log_level_get():
+    global _dsl
+    level = c_wchar_p(0)
+    result = _dsl.dsl_info_log_level_get(name, DSL_WCHAR_PP(level))
+    return int(result), level.value 
+
+##
+## dsl_info_log_level_set()
+##
+_dsl.dsl_info_log_level_set.argtypes = [c_wchar_p]
+_dsl.dsl_info_log_level_set.restype = c_uint
+def dsl_info_log_level_set(level):
+    global _dsl
+    result = _dsl.dsl_info_log_level_set(level)
+    return int(result)
+
+##
+## dsl_info_log_file_get()
+##
+_dsl.dsl_info_log_file_get.argtypes = [POINTER(c_wchar_p)]
+_dsl.dsl_info_log_file_get.restype = c_uint
+def dsl_info_log_file_get():
+    global _dsl
+    level = c_wchar_p(0)
+    result = _dsl.dsl_info_log_file_get(name, DSL_WCHAR_PP(level))
+    return int(result), level.value 
+
+##
+## dsl_info_log_file_set()
+##
+_dsl.dsl_info_log_file_set.argtypes = [c_wchar_p]
+_dsl.dsl_info_log_file_set.restype = c_uint
+def dsl_info_log_file_set(level):
+    global _dsl
+    result = _dsl.dsl_info_log_file_set(level)
+    return int(result)
+
+##
+## dsl_info_log_file_set_with_ts()
+##
+_dsl.dsl_info_log_file_set_with_ts.argtypes = [c_wchar_p]
+_dsl.dsl_info_log_file_set_with_ts.restype = c_uint
+def dsl_info_log_file_set_with_ts(level):
+    global _dsl
+    result = _dsl.dsl_info_log_file_set_with_ts(level)
+    return int(result)
+
+##
+## dsl_info_log_function_restore()
+##
+_dsl.dsl_info_log_function_restore.argtypes = []
+_dsl.dsl_info_log_function_restore.restype = c_uint
+def dsl_info_log_function_restore():
+    global _dsl
+    result = _dsl.dsl_info_log_function_restore()
     return int(result)

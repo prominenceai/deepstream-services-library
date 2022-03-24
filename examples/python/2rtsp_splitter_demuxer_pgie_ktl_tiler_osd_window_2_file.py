@@ -25,14 +25,17 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.insert(0, "../../")
 import time
 
 from dsl import *
 
 # Filespecs for the Primary GIE
-inferConfigFile = '../../test/configs/config_infer_primary_nano.txt'
-modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+primary_infer_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+
+uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
 ## 
 # Function to be called on XWindow Delete event
@@ -54,10 +57,10 @@ def main(args):
     while True:
 
         # Two URI File Sources - using the same file.
-        retval = dsl_source_uri_new('source-1', "../../test/streams/sample_1080p_h264.mp4", False, 0, 2)
+        retval = dsl_source_uri_new('source-1', uri_h265, False, 0, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_source_uri_new('source-2', "../../test/streams/sample_1080p_h264.mp4", False, 0, 2)
+        retval = dsl_source_uri_new('source-2', uri_h265, False, 0, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -67,7 +70,7 @@ def main(args):
             break
 
         # New Primary GIE using the filespecs above, with infer interval
-        retval = dsl_infer_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 5)
+        retval = dsl_infer_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 5)
         if retval != DSL_RETURN_SUCCESS:
             break
 

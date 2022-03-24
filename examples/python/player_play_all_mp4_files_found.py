@@ -25,12 +25,11 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.insert(0, "../../")
 from dsl import *
 import time
 import os
 
-dir_path = "../../test/streams"
+dir_path = "/opt/nvidia/deepstream/deepstream/samples/streams"
 
 ## 
 # Function to be called on Player termination event
@@ -66,7 +65,7 @@ def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
-
+    
         for file in os.listdir(dir_path):
             if file.endswith(".mp4"):
             

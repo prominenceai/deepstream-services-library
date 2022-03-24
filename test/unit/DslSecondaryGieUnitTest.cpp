@@ -25,18 +25,20 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslInferBintr.h"
 
+static std::string primaryGieName("primary-gie");
+static std::string secondaryGieName("secondary-gie");
+static std::string inferConfigFile(
+    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carcolor.txt");
+static std::string modelEngineFile(
+    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarColor/resnet18.caffemodel");
+static uint interval(1);
+
 using namespace DSL;
 
 SCENARIO( "A new SecondaryGieBintr is created correctly",  "[SecondaryGieBintr]" )
 {
     GIVEN( "Attributes for a new SecondaryGieBintr" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string secondaryGieName = "secondary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
-        uint interval(1);
-        
         WHEN( "A new SecondaryGieBintr is created" )
         {
             DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
@@ -63,12 +65,6 @@ SCENARIO( "A SecondaryGieBintr can not LinkAll before setting batch size",  "[Se
 {
     GIVEN( "A new SecondaryGieBintr in an Unlinked state" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string secondaryGieName = "secondary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
-        uint interval(1);
-        
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
             DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
@@ -90,12 +86,6 @@ SCENARIO( "After setting batch size, a new SecondaryGieBintr can LinkAll Child E
 {
     GIVEN( "A new SecondaryGieBintr in an Unlinked state" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string secondaryGieName = "secondary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
-        uint interval(1);
-        
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
             DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
@@ -118,12 +108,6 @@ SCENARIO( "A Linked SecondaryGieBintr can UnlinkAll Child Elementrs",  "[Seconda
 {
     GIVEN( "A Linked SecondaryGieBintr" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string secondaryGieName = "secondary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
-        uint interval(1);
-
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
             DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
@@ -146,12 +130,6 @@ SCENARIO( "A Linked SecondaryGieBintr can not be linked again",  "[SecondaryGieB
 {
     GIVEN( "A new SecondaryGieBintr" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string secondaryGieName = "secondary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
-        uint interval(1);
-
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
             DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
@@ -173,12 +151,6 @@ SCENARIO( "A SecondaryGieBintr can Get and Set its GPU ID",  "[SecondaryGieBintr
 {
     GIVEN( "A new SecondaryGieBintr in memory" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string secondaryGieName = "secondary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
-        uint interval(1);
-        
         uint GPUID0(0);
         uint GPUID1(1);
 
@@ -204,12 +176,6 @@ SCENARIO( "A SecondaryGieBintr can Set and Get its Infer Config and Model Engine
 {
     GIVEN( "A new SecondaryGieBintr in memory" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string secondaryGieName = "secondary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
-        uint interval(1);
-        
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
             DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), primaryGieName.c_str(), interval);
@@ -222,10 +188,12 @@ SCENARIO( "A SecondaryGieBintr can Set and Get its Infer Config and Model Engine
         
         WHEN( "The SecondaryGieBintr's Infer Config File is set" )
         {
-            std::string newInferConfigFile = "./test/configs/config_infer_secondary_carmake_nano.txt";
+            std::string newInferConfigFile(
+                "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carmake.txt");
             REQUIRE( pSecondaryGieBintr->SetInferConfigFile(newInferConfigFile.c_str()) == true );
 
-            std::string newModelEngineFile = "./test/models/Secondary_CarMake/resnet18.caffemodel";
+            std::string newModelEngineFile(
+                "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel");
             REQUIRE( pSecondaryGieBintr->SetModelEngineFile(newModelEngineFile.c_str()) == true );
 
             THEN( "The correct Infer Config File is returned on get" )

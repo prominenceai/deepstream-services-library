@@ -86,6 +86,16 @@ namespace DSL
         }
         
         /**
+         * @brief updates the current name by appending a suffix
+         * @return const std::string name given to this Event
+         */
+        void AppendSuffix(const char* suffix)
+        {
+            m_name += "-";
+            m_name += suffix;
+        }
+        
+        /**
          * @brief returns the currently assigned Index used for mapping order
          * @return current index value, default = 0, updated with SetIndex()
          */

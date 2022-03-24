@@ -25,15 +25,16 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.insert(0, "../../")
 from dsl import *
 
-uri_file = "../../test/streams/sample_1080p_h264.mp4"
+uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
-# Filespecs for the Primary GIE and IOU Trcaker
-primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
-tracker_config_file = '../../test/configs/iou_config.txt'
+# Filespecs for the Primary GIE
+primary_infer_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+tracker_config_file = '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
@@ -55,6 +56,7 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
  
 ## 
@@ -62,6 +64,7 @@ def xwindow_key_event_handler(key_string, client_data):
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -69,6 +72,7 @@ def xwindow_delete_event_handler(client_data):
 ## 
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -229,7 +233,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_ode_action_print_new('print')
+        retval = dsl_ode_action_print_new('print', force_flush=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -260,7 +264,7 @@ def main(args):
         #
         # Create the remaining Pipeline components
         
-        retval = dsl_source_uri_new('uri-source', uri_file, is_live=False, 
+        retval = dsl_source_uri_new('uri-source', uri_h265, is_live=False, 
             intra_decode=0, drop_frame_interval=0)
         if retval != DSL_RETURN_SUCCESS:
             break

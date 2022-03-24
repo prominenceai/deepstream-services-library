@@ -54,11 +54,10 @@ THE SOFTWARE.
 #include <sys/stat.h>
 #include <regex>
 
-#include <deepstream_common.h>
-#include <deepstream_config.h>
-#include <deepstream_perf.h>
+
 #include <nvds_version.h>
 #include <gstnvdsmeta.h>
+#include <nvdsmeta_schema.h>
 #include <gstnvdsinfer.h>
 #include <gst-nvdssr.h>
 #include <cuda_runtime_api.h>

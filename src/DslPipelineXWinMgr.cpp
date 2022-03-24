@@ -32,7 +32,7 @@ namespace DSL
         : m_pXWindowEventThread(NULL)
         , m_pXDisplay(0)
         , m_pXWindow(0)
-		, m_pXWindowCreated(false)
+        , m_pXWindowCreated(false)
         , m_xWindowOffsetX(0)
         , m_xWindowOffsetY(0)
         , m_xWindowWidth(0)
@@ -383,8 +383,8 @@ namespace DSL
             LOG_ERROR("Failed to create new X Window");
             return false;
         }
-		// Flag used to cleanup the handle - pipeline created vs. client created.
-		m_pXWindowCreated = True;
+        // Flag used to cleanup the handle - pipeline created vs. client created.
+        m_pXWindowCreated = True;
         XSetWindowAttributes attr{0};
         
         attr.event_mask = ButtonPress | KeyRelease;
@@ -430,33 +430,33 @@ namespace DSL
         return (m_pXWindow and m_pXWindowCreated);
     }
     
-	Window PipelineXWinMgr::GetXWindow()
+    Window PipelineXWinMgr::GetXWindow()
     {
         LOG_FUNC();
         
         return m_pXWindow;
     }
     
-	bool PipelineXWinMgr::SetXWindow(Window xWindow)
-	{
+    bool PipelineXWinMgr::SetXWindow(Window xWindow)
+    {
         LOG_FUNC();
-		
-//		if (IsLinked())
-//		{
+        
+//        if (IsLinked())
+//        {
 //            LOG_ERROR("Pipeline '" << GetName() 
-//				<< "' failed to set XWindow handle as it is currently linked");
+//                << "' failed to set XWindow handle as it is currently linked");
 //            return false;
-//		}
-		if (m_pXWindowCreated)
-		{
+//        }
+        if (m_pXWindowCreated)
+        {
             DestroyXWindow();
             LOG_INFO("PipelineXWinMgr destroyed its own XWindow to use the client's");
             m_pXWindowCreated = false;
-		}
-		m_pXWindow = xWindow;
-		return true;
-	}
-	
+        }
+        m_pXWindow = xWindow;
+        return true;
+    }
+    
     bool PipelineXWinMgr::ClearXWindow()
     {
         LOG_FUNC();

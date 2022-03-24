@@ -30,10 +30,14 @@ import time
 
 from dsl import *
 
+uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+
 # Filespecs for the Primary GIE
-inferConfigFile = '../../test/configs/config_infer_primary_nano.txt'
-modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
-tracker_config_file = '../../test/configs/iou_config.txt'
+inferConfigFile = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+modelEngineFile = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+tracker_config_file = '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 # Best to keep Tiler dimensions the same as Streamux/Source
 TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
@@ -52,6 +56,7 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
     
     # if one of the unique soure Ids, show source
@@ -70,6 +75,7 @@ def xwindow_key_event_handler(key_string, client_data):
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -77,6 +83,7 @@ def xwindow_delete_event_handler(client_data):
 ## 
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -153,12 +160,12 @@ def main(args):
         #
         # Create the remaining Pipeline components
         # Four New URI File Sources
-        retval = dsl_source_uri_new('North Camera', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
+        retval = dsl_source_uri_new('North Camera', uri_h265, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        dsl_source_uri_new('South Camera', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
-        dsl_source_uri_new('East Camera', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
-        dsl_source_uri_new('West Camera', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
+        dsl_source_uri_new('South Camera', uri_h265, False, False, 0)
+        dsl_source_uri_new('East Camera', uri_h265, False, False, 0)
+        dsl_source_uri_new('West Camera', uri_h265, False, False, 0)
 
         # New Primary GIE using the filespecs above, with interval and Id
         retval = dsl_infer_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 4)

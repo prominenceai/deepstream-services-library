@@ -30,10 +30,14 @@ import time
 
 from dsl import *
 
+# Test URI used for all sources
+uri = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4'
 # Filespecs for the Primary GIE
-inferConfigFile = '../../test/configs/config_infer_primary_nano.txt'
-modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
-tracker_config_file = '../../test/configs/iou_config.txt'
+inferConfigFile = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+modelEngineFile = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+tracker_config_file = '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
 TILER_HEIGHT = 720
@@ -145,19 +149,20 @@ def main(args):
         # Create the remaining Pipeline components
         # ... starting with eight URI File Sources
         
-        retval = dsl_source_uri_new('Camera 1', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
+        retval = dsl_source_uri_new('Camera 1', uri, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        dsl_source_uri_new('Camera 2', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
-        dsl_source_uri_new('Camera 3', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
-        dsl_source_uri_new('Camera 4', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
-        dsl_source_uri_new('Camera 5', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
-        dsl_source_uri_new('Camera 6', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
-        dsl_source_uri_new('Camera 7', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
-        dsl_source_uri_new('Camera 8', "../../test/streams/sample_1080p_h264.mp4", False, False, 0)
+        dsl_source_uri_new('Camera 2', uri, False, False, 0)
+        dsl_source_uri_new('Camera 3', uri, False, False, 0)
+        dsl_source_uri_new('Camera 4', uri, False, False, 0)
+        dsl_source_uri_new('Camera 5', uri, False, False, 0)
+        dsl_source_uri_new('Camera 6', uri, False, False, 0)
+        dsl_source_uri_new('Camera 7', uri, False, False, 0)
+        dsl_source_uri_new('Camera 8', uri, False, False, 0)
 
         # New Primary GIE using the filespecs above, with interval and Id
-        retval = dsl_infer_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, interval=4)
+#        retval = dsl_infer_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, interval=4)
+        retval = dsl_infer_gie_primary_new('primary-gie', inferConfigFile, None, interval=4)
         if retval != DSL_RETURN_SUCCESS:
             break
 

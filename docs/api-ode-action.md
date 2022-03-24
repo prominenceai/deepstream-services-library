@@ -4,6 +4,8 @@ ODE Actions implement their own "action-specific" event-handler that gets invoke
 #### Actions on Metadata
 Several ODE Actions can be created to update the Frame and object Metadata to be rendered by a downstream [On-Screen-Display](/docs/api-osd.md) if added.  See [dsl_ode_action_format_bbox_new](#dsl_ode_action_format_bbox_new), [dsl_ode_action_format_label_new](#dsl_ode_action_format_label_new),  [dsl_ode_action_customize_label_new](#dsl_ode_action_customize_label_new), [dsl_ode_action_fill_frame_new](#dsl_ode_action_fill_frame_new), and [dsl_ode_action_fill_object_new](#dsl_ode_action_fill_object_new).
 
+NVDS_EVENT_MSG_META data can be added on ODE occurrence to be converted to an IoT message and sent to an IoT hub by a downstream [Message-Sink](/docs/api-sink.md). See [dsl_ode_action_message_meta_add_new](#dsl_ode_action_message_meta_add_new).
+
 #### Actions on Record Components
 There are two actions that start a new recording session, one for the [Record-Sink](/docs/api-sink.md) created with [dsl_ode_action_sink_record_start_new](#dsl_ode_action_sink_record_start_new) and the other for the [Record-Tap](/docs/api-tap.md) created with [dsl_ode_action_tap_record_start_new](#dsl_ode_action_tap_record_start_new)
 
@@ -58,6 +60,7 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 * [dsl_ode_action_format_label_new](#dsl_ode_action_format_label_new)
 * [dsl_ode_action_handler_disable_new](#dsl_ode_action_handler_disable_new)
 * [dsl_ode_action_log_new](#dsl_ode_action_log_new)
+* [dsl_ode_action_message_meta_add_new](#dsl_ode_action_message_meta_add_new)
 * [dsl_ode_action_pause_new](#dsl_ode_action_pause_new)
 * [dsl_ode_action_print_new](#dsl_ode_action_print_new)
 * [dsl_ode_action_redact_new](#dsl_ode_action_redact_new)
@@ -664,8 +667,6 @@ $ export GST_DEBUG=1,DSL:4
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
-* `text` - [in] if true, the action hides the display text for Object/Frame that triggered the ODE occurrence
-* `border` - [in] if true, the action hides the rectangle border for Object that triggered the ODE occurrence
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -673,6 +674,27 @@ $ export GST_DEBUG=1,DSL:4
 **Python Example**
 ```Python
 retval = dsl_ode_action_log_new('my-gstreamer-log-action')
+```
+
+<br>
+
+### *dsl_ode_action_message_meta_add_new*
+```C++
+DslReturnType dsl_ode_action_message_meta_add_new(const wchar_t* name);
+```
+The constructor creates a uniquely named **Add Message Meta** ODE Action. When invoked, this Action will allocate a [`NvDsEventMsgMeta`](https://docs.nvidia.com/metropolis/deepstream/4.0/dev-guide/DeepStream_Development_Guide/baggage/structNvDsEventMsgMeta.html) structure, populate it with the ODE data, and add it as `user_meta_data` to the the `frame_meta`. 
+
+**Note:** a [Message-Sink](/docs/api-sink.md#dsl_sink_message_new) is required to convert and broker the message downstream.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_message_meta_add_new('my-add-message-meta-action')
 ```
 
 <br>
@@ -1306,6 +1328,7 @@ size = dsl_ode_action_list_size()
 ```
 
 <br>
+
 ---
 
 ## API Reference
@@ -1331,3 +1354,5 @@ size = dsl_ode_action_list_size()
 * [Component](/docs/api-component.md)
 * [Mailer](/docs/api-mailer.md)
 * [WebSocket Server](/docs/api-ws-server.md)
+* [Message Broker](/docs/api-msg-broker.md)
+* [Info API](/docs/api-info.md)

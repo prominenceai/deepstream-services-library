@@ -32,6 +32,7 @@ THE SOFTWARE.
 #include "DslOdeArea.h"
 #include "DslOdeTrigger.h"
 #include "DslPipelineBintr.h"
+#include "DslMessageBroker.h"
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
 #elif GSTREAMER_SUB_VERSION >= 18
@@ -152,6 +153,14 @@ namespace DSL {
             const char* font, boolean hasBgColor, const char* bgColor);
         
         DslReturnType OdeActionLogNew(const char* name);
+
+        DslReturnType OdeActionMessageMetaAddNew(const char* name);
+        
+        DslReturnType OdeActionMessageMetaTypeGet(const char* name,
+            uint* metaType);
+
+        DslReturnType OdeActionMessageMetaTypeSet(const char* name,
+            uint metaType);
 
         DslReturnType OdeActionEmailNew(const char* name, 
             const char* mailer, const char* subject);
@@ -856,6 +865,31 @@ namespace DSL {
         DslReturnType WebsocketServerClientListenerRemove(
             dsl_websocket_server_client_listener_cb listener);
 
+        DslReturnType SinkMessageNew(const char* name, 
+            const char* converterConfigFile, uint payloadType, 
+            const char* brokerConfigFile, const char* protocolLib, 
+            const char* connectionString, const char* topic);
+            
+        DslReturnType SinkMessageMetaTypeGet(const char* name,
+            uint* metaType);
+            
+        DslReturnType SinkMessageMetaTypeSet(const char* name,
+            uint metaType);
+            
+        DslReturnType SinkMessageConverterSettingsGet(const char* name, 
+            const char** converterConfigFile, uint* payloadType);
+            
+        DslReturnType SinkMessageConverterSettingsSet(const char* name, 
+            const char* converterConfigFile, uint payloadType);
+            
+        DslReturnType SinkMessageBrokerSettingsGet(const char* name, 
+            const char** brokerConfigFile, const char** protocolLib,
+            const char** connectionString, const char** topic);
+
+        DslReturnType SinkMessageBrokerSettingsSet(const char* name, 
+            const char* brokerConfigFile, const char* protocolLib,
+            const char* connectionString, const char* topic);
+        
         uint SinkNumInUseGet();
         
         uint SinkNumInUseMaxGet();
@@ -926,7 +960,7 @@ namespace DSL {
         DslReturnType PipelineXWindowHandleGet(const char* name, uint64_t* xwindow);
 
         DslReturnType PipelineXWindowHandleSet(const char* name, uint64_t xwindow);
-		
+        
         DslReturnType PipelineXWindowClear(const char* name);
         
         DslReturnType PipelineXWindowDestroy(const char* name);
@@ -1112,12 +1146,76 @@ namespace DSL {
         DslReturnType MailerDeleteAll();
         
         uint MailerListSize();
+
+        DslReturnType MessageBrokerNew(const char* name,
+            const char* brokerConfigFile, const char* protocolLib, 
+            const char* connectionString);
+            
+        DslReturnType MessageBrokerSettingsGet(const char* name, 
+            const char** brokerConfigFile, const char** protocolLib, 
+            const char** connectionString);
+        
+        DslReturnType MessageBrokerSettingsSet(const char* name, 
+            const char* brokerConfigFile, const char* protocolLib,
+            const char* connectionString);
+
+        DslReturnType MessageBrokerConnect(const char* name);
+        
+        DslReturnType MessageBrokerDisconnect(const char* name);
+
+        DslReturnType MessageBrokerIsConnected(const char* name,
+            boolean* connected);
+
+        DslReturnType MessageBrokerMessageSendAsync(const char* name,
+            const char* topic, void* message, size_t size, 
+            dsl_message_broker_send_result_listener_cb result_listener, void* clientData);
+        
+        DslReturnType MessageBrokerSubscriberAdd(const char* name,
+            dsl_message_broker_subscriber_cb subscriber, const char** topics,
+            uint numTopics, void* userData);
+        
+        DslReturnType MessageBrokerSubscriberRemove(const char* name,
+            dsl_message_broker_subscriber_cb subscriber);
+        
+        DslReturnType MessageBrokerConnectionListenerAdd(const char* name,
+            dsl_message_broker_connection_listener_cb handler, void* userData);
+        
+        DslReturnType MessageBrokerConnectionListenerRemove(const char* name,
+            dsl_message_broker_connection_listener_cb handler);
+        
+        DslReturnType MessageBrokerDelete(const char* name);
+        
+        DslReturnType MessageBrokerDeleteAll();
+
+        uint MessageBrokerListSize();
         
         void DeleteAll();
         
-        DslReturnType StdOutRedirect(const char* filepath);
+        DslReturnType InfoInitDebugSettings();
         
-        void StdOutRestore();
+        DslReturnType InfoDeinitDebugSettings();
+        
+        DslReturnType InfoStdoutGet(const char** filePath);
+
+        DslReturnType InfoStdoutRedirect(const char* filePath, uint mode);
+
+        DslReturnType InfoStdoutRedirectWithTs(const char* filePath);
+
+        DslReturnType InfoStdOutRestore();
+        
+        DslReturnType InfoLogLevelGet(const char** level);
+        
+        DslReturnType InfoLogLevelSet(const char* level);
+        
+        DslReturnType InfoLogFileGet(const char** filePath);
+        
+        DslReturnType InfoLogFileSet(const char* filePath, uint mode);
+        
+        DslReturnType InfoLogFileSetWithTs(const char* filePath);
+        
+        DslReturnType InfoLogFunctionRestore();
+        
+        FILE* InfoLogFileHandleGet();
 
         GMainLoop* GetMainLoopHandle()
         {
@@ -1138,6 +1236,21 @@ namespace DSL {
          * @return true if all events were handled succesfully
          */
         bool HandleXWindowEvents(); 
+
+        /**
+         * @brief GStreamer Debug environment variable name
+         */
+        static std::string GST_DEBUG;
+
+        /**
+         * @brief GStreamer Debug-File environment variable name
+         */
+        static std::string GST_DEBUG_FILE;
+        
+        /**
+         *@brief Default stdout file_path value
+         */
+        static std::string CONSOLE;
 
     private:
 
@@ -1273,6 +1386,11 @@ namespace DSL {
          * @brief map of all pipeline components creaated by the client, key=name
          */
         std::map <std::string, std::shared_ptr<Bintr>> m_components;
+
+        /**
+         * @brief map of all message borkers creaated by the client, key=name
+         */
+        std::map <std::string, std::shared_ptr<MessageBroker>> m_messageBrokers;
         
         /**
          * @brief Each source is assigned a unique id for the life of the source.
@@ -1301,14 +1419,40 @@ namespace DSL {
         std::map <std::string, uint> m_inferIds;
         
         /**
-         * @brief DSL Comms object for libcurl services
+         * @brief map of all mailer objects by name
          */
         std::map <std::string, std::shared_ptr<Mailer>> m_mailers;
         
+        /**
+         * @brief file-path of the redirected stdout if set.
+         */
+        std::string m_stdOutRedirectFilePath; 
+        
+        /**
+         * @brief file-stream object for the redirected stdout.
+         */
         std::fstream m_stdOutRedirectFile;
         
+        /**
+         * @brief back-up for the original stdout prior to redirection.
+         */
         std::streambuf* m_stdOutRdBufBackup;
         
+        /**
+         * @brief Debug Log Level (threshold) to override the value of GST_DEBUG.
+         */
+        std::string m_gstDebugLogLevel;
+        
+        /**
+         * @brief Debug Log File to override the value of GST_DEBUG_FILE.
+         */
+        std::string m_debugLogFilePath;
+        
+        /**
+         * @brief File handle for the Debug Log File if open.
+         */
+        FILE* m_debugLogFileHandle;
+
     };  
 
     /**
@@ -1319,6 +1463,10 @@ namespace DSL {
     
 
     static gboolean MainLoopThread(gpointer arg);
+    
+    static void gst_debug_log_override(GstDebugCategory * category, GstDebugLevel level,
+        const gchar * file, const gchar * function, gint line,
+        GObject * object, GstDebugMessage * message, gpointer unused);
 }
 
 

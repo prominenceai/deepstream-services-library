@@ -28,18 +28,32 @@ THE SOFTWARE.
 #include "DslSourceBintr.h"
 #include "DslPipelineSourcesBintr.h"
 
+static std::string sourceName("test-source");
+static std::string uri("/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
+static std::string uri2("/opt/nvidia/deepstream/deepstream/samples/streams/yoga.mp4");
+static std::string filePath("/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
+static uint intrDecode(false);
+static uint dropFrameInterval(0);
+
+static std::string dewarperName("dewarper");
+static std::string defConfigFile("./test/configs/config_dewarper.txt");
+
+static std::string rtspSourceName("rtsp-source");
+static std::string rtspUri("rtsp://208.72.70.171:80/mjpg/video.mjpg");
+static uint latency(100);
+static uint timeout(20);
+
+static std::string jpgFilePath1("/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg");
+static std::string jpgFilePath2("/opt/nvidia/deepstream/deepstream/samples/streams/yoga.jpg");
+
+static uint width(1920), height(1080), fpsN(30), fpsD(1);
+
 using namespace DSL;
 
 SCENARIO( "A new CsiSourceBintr is created correctly",  "[SourceBintr]" )
 {
     GIVEN( "A name for a new CsiSourceBintr" ) 
     {
-        uint width(1280);
-        uint height(720);
-        uint fpsN(30);
-        uint fpsD(1);
-        std::string sourceName("test-csi-source");
-
         WHEN( "The CsiSourceBintr is created " )
         {
         
@@ -243,11 +257,6 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[SourceBintr]" )
 {
     GIVEN( "A name for a new UriSourceBintr" ) 
     {
-        std::string sourceName = "test-uri-source";
-        std::string uri = "./test/streams/sample_1080p_h264.mp4";
-        uint intrDecode(true);
-        uint dropFrameInterval(2);
-        
         char absolutePath[PATH_MAX+1];
         std::string fullUriPath = realpath(uri.c_str(), absolutePath);
         fullUriPath.insert(0, "file:");
@@ -287,11 +296,6 @@ SCENARIO( "A UriSourceBintr can LinkAll child Elementrs correctly",  "[SourceBin
 {
     GIVEN( "A new UriSourceBintr in memory" ) 
     {
-        std::string sourceName("test-file-source");
-        std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint intrDecode(true);
-        uint dropFrameInterval(2);
-
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
             sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
@@ -311,11 +315,6 @@ SCENARIO( "A UriSourceBintr can UnlinkAll all child Elementrs correctly",  "[Sou
 {
     GIVEN( "A new, linked UriSourceBintr " ) 
     {
-        std::string sourceName("test-file-source");
-        std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint intrDecode(true);
-        uint dropFrameInterval(2);
-
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
             sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
@@ -338,14 +337,6 @@ SCENARIO( "A UriSourceBintr can Add a Child DewarperBintr",  "[SourceBintr]" )
 {
     GIVEN( "A new UriSourceBintr and DewarperBintr in memory" ) 
     {
-        std::string sourceName("test-file-source");
-        std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint intrDecode(true);
-        uint dropFrameInterval(2);
-
-        std::string dewarperName("dewarper");
-        std::string defConfigFile("./test/configs/config_dewarper.txt");
-
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
             sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
@@ -368,14 +359,6 @@ SCENARIO( "A UriSourceBintr can Remove a Child DewarperBintr",  "[SourceBintr]" 
 {
     GIVEN( "A new UriSourceBintr with a child DewarperBintr" ) 
     {
-        std::string sourceName("test-file-source");
-        std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint intrDecode(true);
-        uint dropFrameInterval(2);
-
-        std::string dewarperName("dewarper");
-        std::string defConfigFile("./test/configs/config_dewarper.txt");
-
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
             sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
@@ -400,21 +383,13 @@ SCENARIO( "A UriSourceBintr can ensure a single Child DewarperBintr",  "[SourceB
 {
     GIVEN( "A new UriSourceBintr with a child DewarperBintr" ) 
     {
-        std::string sourceName("test-file-source");
-        std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint intrDecode(true);
-        uint dropFrameInterval(2);
-
-        std::string dewarperName1("dewarper1");
-        std::string defConfigFile("./test/configs/config_dewarper.txt");
-
         std::string dewarperName2("dewarper2");
 
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
             sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
         DSL_DEWARPER_PTR pDewarperBintr1 = 
-            DSL_DEWARPER_NEW(dewarperName1.c_str(), defConfigFile.c_str());
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
 
         DSL_DEWARPER_PTR pDewarperBintr2 = 
             DSL_DEWARPER_NEW(dewarperName2.c_str(), defConfigFile.c_str());
@@ -441,14 +416,6 @@ SCENARIO( "A UriSourceBintr with a child DewarperBintr can LinkAll child Element
 {
     GIVEN( "A new UriSourceBintr with a child DewarperBintr" ) 
     {
-        std::string sourceName("test-file-source");
-        std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint intrDecode(true);
-        uint dropFrameInterval(2);
-
-        std::string dewarperName("dewarper");
-        std::string defConfigFile("./test/configs/config_dewarper.txt");
-
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
             sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
@@ -473,14 +440,6 @@ SCENARIO( "A Linked UriSourceBintr with a child DewarperBintr can UnlinkAll chil
 {
     GIVEN( "A new UriSourceBintr with a child DewarperBintr" ) 
     {
-        std::string sourceName("test-file-source");
-        std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint intrDecode(true);
-        uint dropFrameInterval(2);
-
-        std::string dewarperName("dewarper");
-        std::string defConfigFile("./test/configs/config_dewarper.txt");
-
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
             sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
@@ -507,12 +466,6 @@ SCENARIO( "A UriSourceBintr can Set and Get its URI",  "[SourceBintr]" )
 {
     GIVEN( "A new UriSourceBintr in memory" ) 
     {
-        std::string sourceName = "test-uri-source";
-        std::string uri = "./test/streams/sample_1080p_h264.mp4";
-        uint cudadecMemType(DSL_NVBUF_MEM_TYPE_DEFAULT);
-        uint intrDecode(true);
-        uint dropFrameInterval(2);
-        
         char absolutePath[PATH_MAX+1];
         std::string fullUriPath = realpath(uri.c_str(), absolutePath);
         fullUriPath.insert(0, "file:");
@@ -525,12 +478,14 @@ SCENARIO( "A UriSourceBintr can Set and Get its URI",  "[SourceBintr]" )
 
         WHEN( "The UriSourceBintr's URI is updated " )
         {
-            // TODO: should use a new UIR here
-            REQUIRE( pSourceBintr->SetUri(uri.c_str()) == true );
+            std::string fullUriPath2 = realpath(uri2.c_str(), absolutePath);
+            fullUriPath2.insert(0, "file:");
+            
+            REQUIRE( pSourceBintr->SetUri(uri2.c_str()) == true );
             THEN( "The correct URI is returned on get" )
             {
                 std::string returnedUri = pSourceBintr->GetUri();
-                REQUIRE( returnedUri == fullUriPath );
+                REQUIRE( returnedUri == fullUriPath2 );
             }
         }
     }
@@ -540,11 +495,6 @@ SCENARIO( "A UriSourceBintr can Get and Set its GPU ID",  "[SourceBintr]" )
 {
     GIVEN( "A new UriSourceBintr in memory" ) 
     {
-        std::string sourceName("test-file-source");
-        std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint intrDecode(true);
-        uint dropFrameInterval(2);
-        
         DSL_URI_SOURCE_PTR pUriSourceBintr = DSL_URI_SOURCE_NEW(
             sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
@@ -569,17 +519,11 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[SourceBintr]" )
 {
     GIVEN( "A name for a new RtspSourceBintr" ) 
     {
-        std::string sourceName("rtsp-source");
-        std::string uri("rtsp://208.72.70.171:80/mjpg/video.mjpg");
-        uint intrDecode(false);
-        uint dropFrameInterval(0);
-        uint latency(100);
-        uint timeout(20);
 
         WHEN( "The RtspSourceBintr is created " )
         {
             DSL_RTSP_SOURCE_PTR pSourceBintr = DSL_RTSP_SOURCE_NEW(sourceName.c_str(), 
-                uri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
+                rtspUri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
 
             THEN( "All memeber variables are initialized correctly" )
             {
@@ -611,7 +555,7 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->IsLive() == true );
                 
                 std::string returnedUri = pSourceBintr->GetUri();
-                REQUIRE( returnedUri == uri );
+                REQUIRE( returnedUri == rtspUri );
                 
                 uint retWidth, retHeight, retFpsN, retFpsD;
                 pSourceBintr->GetDimensions(&retWidth, &retHeight);
@@ -629,15 +573,8 @@ SCENARIO( "A new RtspSourceBintr's attributes can be set/get ",  "[SourceBintr]"
 {
     GIVEN( "A new RtspSourceBintr with a timeout" ) 
     {
-        std::string sourceName("rtsp-source");
-        std::string uri("rtsp://208.72.70.171:80/mjpg/video.mjpg");
-        uint intrDecode(false);
-        uint dropFrameInterval(0);
-        uint latency(100);
-        uint timeout(20);
-
         DSL_RTSP_SOURCE_PTR pSourceBintr = DSL_RTSP_SOURCE_NEW(sourceName.c_str(), 
-            uri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
+            rtspUri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
 
         WHEN( "The RtspSourceBintr's timeout set " )
         {
@@ -693,15 +630,8 @@ SCENARIO( "An RtspSourceBintr can add and remove State Change Listeners",  "[Sou
 {
     GIVEN( "A new RtspSourceBintr with a timeout" ) 
     {
-        std::string sourceName("rtsp-source");
-        std::string uri("rtsp://208.72.70.171:80/mjpg/video.mjpg");
-        uint intrDecode(false);
-        uint dropFrameInterval(0);
-        uint latency(100);
-        uint timeout(20);
-
         DSL_RTSP_SOURCE_PTR pRtspSourceBintr = DSL_RTSP_SOURCE_NEW(sourceName.c_str(), 
-            uri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
+            rtspUri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
         
         WHEN( "Client Listeners are added" )
         {
@@ -736,16 +666,10 @@ SCENARIO( "An RtspSourceBintr calls all State Change Listeners on change of stat
 {
     GIVEN( "A new RtspSourceBintr with a timeout" ) 
     {
-        std::string sourceName("rtsp-source");
-        std::string uri("rtsp://208.72.70.171:80/mjpg/video.mjpg");
-        uint intrDecode(false);
-        uint dropFrameInterval(0);
-        uint latency(100);
-        uint timeout(20);
         uint userData1(0), userData2(0);
 
         DSL_RTSP_SOURCE_PTR pRtspSourceBintr = DSL_RTSP_SOURCE_NEW(sourceName.c_str(), 
-            uri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
+            rtspUri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
 
         REQUIRE( pRtspSourceBintr->AddStateChangeListener(source_state_change_listener_cb1, &userData1) == true );
         REQUIRE( pRtspSourceBintr->AddStateChangeListener(source_state_change_listener_cb2, &userData2) == true );
@@ -772,16 +696,10 @@ SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "
 {
     GIVEN( "A new RtspSourceBintr with a timeout" ) 
     {
-        std::string sourceName("rtsp-source");
-        std::string uri("rtsp://208.72.70.171:80/mjpg/video.mjpg");
-        uint intrDecode(false);
-        uint dropFrameInterval(0);
-        uint latency(100);
-        uint timeout(20);
         uint userData1(0), userData2(0);
 
         DSL_RTSP_SOURCE_PTR pRtspSourceBintr = DSL_RTSP_SOURCE_NEW(sourceName.c_str(), 
-            uri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
+            rtspUri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
 
         REQUIRE( pRtspSourceBintr->AddStateChangeListener(source_state_change_listener_cb1, &userData1) == true );
         REQUIRE( pRtspSourceBintr->AddStateChangeListener(source_state_change_listener_cb2, &userData2) == true );
@@ -871,15 +789,9 @@ SCENARIO( "A RtspSourceBintr can Get and Set its GPU ID",  "[SourceBintr]" )
 {
     GIVEN( "A new RtspSourceBintr in memory" ) 
     {
-        std::string sourceName("test-rtsp-source");
-        std::string uri("rtsp://hddn01.skylinewebcams.com/live.m3u8?a=e8inqgf08vq4rp43gvmkj9ilv0");
-        uint intrDecode(true);
-        uint dropFrameInterval(2);
-        uint latency(100);
-        uint timeout(20);
-        
+//        std::string uri("rtsp://hddn01.skylinewebcams.com/live.m3u8?a=e8inqgf08vq4rp43gvmkj9ilv0");
         DSL_RTSP_SOURCE_PTR pRtspSourceBintr = DSL_RTSP_SOURCE_NEW(sourceName.c_str(),
-            uri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
+            rtspUri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
 
         uint GPUID0(0);
         uint GPUID1(1);
@@ -902,9 +814,6 @@ SCENARIO( "A new FileSourceBintr is created correctly",  "[SourceBintr]" )
 {
     GIVEN( "A name for a new FileSourceBintr" ) 
     {
-        std::string sourceName = "file-source";
-        std::string filePath = "./test/streams/sample_1080p_h264.mp4";
-        
         char absolutePath[PATH_MAX+1];
         std::string fullFillPath = realpath(filePath.c_str(), absolutePath);
         fullFillPath.insert(0, "file:");
@@ -936,17 +845,14 @@ SCENARIO( "A FileSourceBintr can LinkAll child Elementrs correctly",  "[SourceBi
 {
     GIVEN( "A new FileSourceBintr in memory" ) 
     {
-        std::string sourceName("test-file-source");
-        std::string filePath("./test/streams/sample_1080p_h264.mp4");
-
         DSL_FILE_SOURCE_PTR pSourceBintr = DSL_FILE_SOURCE_NEW(
             sourceName.c_str(), filePath.c_str(), false);
 
-        WHEN( "The UriSourceBintr is called to LinkAll" )
+        WHEN( "The FileSourceBintr is called to LinkAll" )
         {
             REQUIRE( pSourceBintr->LinkAll() == true );
 
-            THEN( "The UriSourceBintr IsLinked state is updated correctly" )
+            THEN( "The FileSourceBintr IsLinked state is updated correctly" )
             {
                 REQUIRE( pSourceBintr->IsLinked() == true );
             }
@@ -958,20 +864,17 @@ SCENARIO( "A FileSourceBintr can UnlinkAll all child Elementrs correctly",  "[So
 {
     GIVEN( "A new, linked FileSourceBintr " ) 
     {
-        std::string sourceName("file-source");
-        std::string filePath("./test/streams/sample_1080p_h264.mp4");
-
         DSL_FILE_SOURCE_PTR pSourceBintr = DSL_FILE_SOURCE_NEW(
             sourceName.c_str(), filePath.c_str(), false);
 
         REQUIRE( pSourceBintr->LinkAll() == true );
         REQUIRE( pSourceBintr->IsLinked() == true );
 
-        WHEN( "The UriSourceBintr is called to UnlinkAll" )
+        WHEN( "The FileSourceBintr is called to UnlinkAll" )
         {
             pSourceBintr->UnlinkAll();
 
-            THEN( "The UriSourceBintr IsLinked state is updated correctly" )
+            THEN( "The FileSourceBintr IsLinked state is updated correctly" )
             {
                 REQUIRE( pSourceBintr->IsLinked() == false );
             }
@@ -983,16 +886,13 @@ SCENARIO( "A new ImageSourceBintr is created correctly",  "[SourceBintr]" )
 {
     GIVEN( "Attributes for a new ImageSourceBintr" ) 
     {
-        std::string sourceName = "image-source";
-        std::string filePath = "./test/streams/sample_720p.jpg";
-        
         char absolutePath[PATH_MAX+1];
-        std::string fullFillPath = realpath(filePath.c_str(), absolutePath);
+        std::string fullFillPath = realpath(jpgFilePath1.c_str(), absolutePath);
 
         WHEN( "The ImageSourceBintr is created " )
         {
             DSL_IMAGE_SOURCE_PTR pSourceBintr = DSL_IMAGE_SOURCE_NEW(
-                sourceName.c_str(), filePath.c_str(), false, 1, 1, 0);
+                sourceName.c_str(), jpgFilePath1.c_str(), false, 1, 1, 0);
 
             THEN( "All memeber variables are initialized correctly" )
             {
@@ -1018,11 +918,8 @@ SCENARIO( "An ImageSourceBintr can LinkAll child Elementrs correctly",  "[Source
 {
     GIVEN( "A new ImageSourceBintr in memory" ) 
     {
-        std::string sourceName = "image-source";
-        std::string filePath = "./test/streams/sample_720p.jpg";
-
         DSL_IMAGE_SOURCE_PTR pSourceBintr = DSL_IMAGE_SOURCE_NEW(
-            sourceName.c_str(), filePath.c_str(), false, 1, 1, 0);
+            sourceName.c_str(), jpgFilePath1.c_str(), false, 1, 1, 0);
 
         WHEN( "The ImageSourceBintr is called to LinkAll" )
         {
@@ -1040,11 +937,8 @@ SCENARIO( "An ImageSourceBintr can UnlinkAll all child Elementrs correctly",  "[
 {
     GIVEN( "A new, linked ImageSourceBintr " ) 
     {
-        std::string sourceName = "image-source";
-        std::string filePath = "./test/streams/sample_720p.jpg";
-
         DSL_IMAGE_SOURCE_PTR pSourceBintr = DSL_IMAGE_SOURCE_NEW(
-            sourceName.c_str(), filePath.c_str(), true, 1, 1, 0);
+            sourceName.c_str(), jpgFilePath1.c_str(), true, 1, 1, 0);
 
         REQUIRE( pSourceBintr->LinkAll() == true );
         REQUIRE( pSourceBintr->IsLinked() == true );

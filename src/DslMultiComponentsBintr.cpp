@@ -35,8 +35,8 @@ namespace DSL
         LOG_FUNC();
         
         // Single Queue and Tee element for all Components
-        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "sink_bin_queue");
-        m_pTee = DSL_ELEMENT_NEW(teeType, "sink_bin_tee");
+        m_pQueue = DSL_ELEMENT_NEW("queue", name);
+        m_pTee = DSL_ELEMENT_NEW(teeType, name);
 
         AddChild(m_pQueue);
         AddChild(m_pTee);

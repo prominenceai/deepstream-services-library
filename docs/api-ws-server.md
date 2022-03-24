@@ -209,3 +209,5 @@ retval = dsl_websocket_server_client_listener_remove(client_listener_cb)
 * [Component](/docs/api-component.md)
 * [Mailer](/docs/api-mailer.md)
 * **Websocket Server**
+* [Message Broker](/docs/api-msg-broker.md)
+* [Info API](/docs/api-info.md)

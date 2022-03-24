@@ -41,7 +41,7 @@ namespace DSL
         // Get the Device properties
         cudaGetDeviceProperties(&m_cudaDeviceProp, m_gpuId);
 
-        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "sink-bin-queue");
+        m_pQueue = DSL_ELEMENT_NEW("queue", name);
         AddChild(m_pQueue);
         m_pQueue->AddGhostPadToParent("sink");
     }
@@ -99,7 +99,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, "sink-bin-fake");
+        m_pFakeSink = DSL_ELEMENT_NEW("fakesink", name);
         m_pFakeSink->SetAttribute("enable-last-sample", false);
         m_pFakeSink->SetAttribute("max-lateness", -1);
         m_pFakeSink->SetAttribute("sync", m_sync);
@@ -258,7 +258,7 @@ namespace DSL
             RemoveChild(m_pOverlay);
         }
         
-        m_pOverlay = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_OVERLAY, "sink-bin-overlay");
+        m_pOverlay = DSL_ELEMENT_NEW("nvoverlaysink", GetCStrName());
         
         m_pOverlay->SetAttribute("overlay", m_uniqueId);
         m_pOverlay->SetAttribute("display-id", m_displayId);
@@ -399,8 +399,8 @@ namespace DSL
         // x86_64
         if (!m_cudaDeviceProp.integrated)
         {
-            m_pTransform = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "sink-bin-transform");
-            m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "sink-bin-caps-filter");
+            m_pTransform = DSL_ELEMENT_NEW("nvvideoconvert", name);
+            m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
 
             GstCaps * pCaps = gst_caps_new_empty_simple("video/x-raw");
             if (!pCaps)
@@ -426,7 +426,7 @@ namespace DSL
         // aarch_64
         else
         {
-            m_pTransform = DSL_ELEMENT_NEW(NVDS_ELEM_EGLTRANSFORM, "sink-bin-transform");
+            m_pTransform = DSL_ELEMENT_NEW("nvegltransform", name);
         }
         
         // Reset to create m_pEglGles
@@ -459,7 +459,7 @@ namespace DSL
             RemoveChild(m_pEglGles);
         }
         
-        m_pEglGles = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_EGL, "sink-bin-eglgles");
+        m_pEglGles = DSL_ELEMENT_NEW("nveglglessink", GetCStrName());
         
         m_pEglGles->SetAttribute("window-x", m_offsetX);
         m_pEglGles->SetAttribute("window-y", m_offsetY);
@@ -667,14 +667,14 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pTransform = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "encode-sink-bin-transform");
-        m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "encode-sink-bin-caps-filter");
+        m_pTransform = DSL_ELEMENT_NEW("nvvideoconvert", name);
+        m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
         m_pTransform->SetAttribute("gpu-id", m_gpuId);
 
         switch (codec)
         {
         case DSL_CODEC_H264 :
-            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H264_HW, "encode-sink-bin-encoder");
+            m_pEncoder = DSL_ELEMENT_NEW("nvv4l2h264enc", name);
             m_pEncoder->SetAttribute("bitrate", m_bitrate);
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
             // aarch_64
@@ -682,10 +682,10 @@ namespace DSL
             {
                 m_pEncoder->SetAttribute("bufapi-version", true);
             }                
-            m_pParser = DSL_ELEMENT_NEW("h264parse", "encode-sink-bin-parser");
+            m_pParser = DSL_ELEMENT_NEW("h264parse", name);
             break;
         case DSL_CODEC_H265 :
-            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H265_HW, "encode-sink-bin-encoder");
+            m_pEncoder = DSL_ELEMENT_NEW("nvv4l2h265enc", name);
             m_pEncoder->SetAttribute("bitrate", m_bitrate);
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
             // aarch_64
@@ -693,7 +693,7 @@ namespace DSL
             {
                 m_pEncoder->SetAttribute("bufapi-version", true);
             }      
-            m_pParser = DSL_ELEMENT_NEW("h265parse", "encode-sink-bin-parser");
+            m_pParser = DSL_ELEMENT_NEW("h265parse", name);
             break;
         default:
             LOG_ERROR("Invalid codec = '" << codec << "' for new Sink '" << name << "'");
@@ -771,7 +771,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pFileSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FILE, "file-sink-bin");
+        m_pFileSink = DSL_ELEMENT_NEW("filesink", name);
 
         m_pFileSink->SetAttribute("location", filepath);
         m_pFileSink->SetAttribute("sync", m_sync);
@@ -780,10 +780,10 @@ namespace DSL
         switch (container)
         {
         case DSL_CONTAINER_MP4 :
-            m_pContainer = DSL_ELEMENT_NEW(NVDS_ELEM_MUX_MP4, "encode-sink-bin-container");        
+            m_pContainer = DSL_ELEMENT_NEW("qtmux", name);        
             break;
         case DSL_CONTAINER_MKV :
-            m_pContainer = DSL_ELEMENT_NEW(NVDS_ELEM_MKV, "encode-sink-bin-container");        
+            m_pContainer = DSL_ELEMENT_NEW("matroskamux", name);        
             break;
         default:
             LOG_ERROR("Invalid container = '" << container << "' for new Sink '" << name << "'");
@@ -986,11 +986,11 @@ namespace DSL
         switch (codec)
         {
         case DSL_CODEC_H264 :
-            m_pPayloader = DSL_ELEMENT_NEW("rtph264pay", "rtsp-sink-bin-h264-payloader");
+            m_pPayloader = DSL_ELEMENT_NEW("rtph264pay", name);
             codecString.assign("H264");
             break;
         case DSL_CODEC_H265 :
-            m_pPayloader = DSL_ELEMENT_NEW("rtph265pay", "rtsp-sink-bin-h265-payloader");
+            m_pPayloader = DSL_ELEMENT_NEW("rtph265pay", name);
             codecString.assign("H265");
             break;
         default:
@@ -998,7 +998,7 @@ namespace DSL
             throw;
         }
 
-        m_pUdpSink = DSL_ELEMENT_NEW("udpsink", "rtsp-sink-bin");
+        m_pUdpSink = DSL_ELEMENT_NEW("udpsink", name);
 
         m_pUdpSink->SetAttribute("host", m_host.c_str());
         m_pUdpSink->SetAttribute("port", m_udpPort);
@@ -1130,6 +1130,212 @@ namespace DSL
         m_pUdpSink->SetAttribute("sync", m_sync);
         m_pUdpSink->SetAttribute("async", m_async);
 
+        return true;
+    }
+
+    MessageSinkBintr::MessageSinkBintr(const char* name, const char* converterConfigFile, 
+        uint payloadType, const char* brokerConfigFile, const char* protocolLib, 
+        const char* connectionString, const char* topic)
+        : SinkBintr(name, true, false) // used for fake sink only
+        , m_metaType(NVDS_EVENT_MSG_META)
+        , m_converterConfigFile(converterConfigFile)
+        , m_payloadType(payloadType)
+        , m_brokerConfigFile(brokerConfigFile)
+        , m_connectionString(connectionString)
+        , m_protocolLib(protocolLib)
+        , m_topic(topic)
+        , m_qos(false)
+{
+        LOG_FUNC();
+        
+        m_pTee = DSL_ELEMENT_NEW("tee", name);
+        m_pMsgConverterQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvmsgconv");
+        m_pMsgConverter = DSL_ELEMENT_NEW("nvmsgconv", name);
+        m_pMsgBroker = DSL_ELEMENT_NEW("nvmsgbroker", name);
+        m_pFakeSinkQueue = DSL_ELEMENT_EXT_NEW("queue", name, "fakesink");
+        m_pFakeSink = DSL_ELEMENT_NEW("fakesink", name);
+        
+        //m_pMsgConverter->SetAttribute("comp-id", m_metaType);
+        m_pMsgConverter->SetAttribute("config", m_converterConfigFile.c_str());
+        m_pMsgConverter->SetAttribute("payload-type", m_payloadType);
+
+        m_pMsgBroker->SetAttribute("proto-lib", m_protocolLib.c_str());
+        m_pMsgBroker->SetAttribute("conn-str", m_connectionString.c_str());
+        m_pMsgBroker->SetAttribute("sync", false);
+
+        m_pFakeSink->SetAttribute("enable-last-sample", false);
+        m_pFakeSink->SetAttribute("max-lateness", -1);
+        m_pFakeSink->SetAttribute("sync", m_sync);
+        m_pFakeSink->SetAttribute("async", m_async);
+        m_pFakeSink->SetAttribute("qos", m_qos);
+        
+        if (brokerConfigFile)
+        {
+            m_pMsgBroker->SetAttribute("config", m_brokerConfigFile.c_str());
+        }
+        if (m_topic.size())
+        {
+            m_pMsgBroker->SetAttribute("topic", m_topic.c_str());
+        }
+        
+        AddChild(m_pTee);
+        AddChild(m_pMsgConverterQueue);
+        AddChild(m_pMsgConverter);
+        AddChild(m_pMsgBroker);
+        AddChild(m_pFakeSinkQueue);
+        AddChild(m_pFakeSink);
+    }
+
+    MessageSinkBintr::~MessageSinkBintr()
+    {
+        LOG_FUNC();
+    
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool MessageSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("MessageSinkBintr '" << GetName() << "' is already linked");
+            return false;
+        }
+        if (!m_pQueue->LinkToSink(m_pTee) or
+            !m_pMsgConverterQueue->LinkToSourceTee(m_pTee, "src_%u") or
+            !m_pMsgConverterQueue->LinkToSink(m_pMsgConverter) or
+            !m_pMsgConverter->LinkToSink(m_pMsgBroker) or
+            !m_pFakeSinkQueue->LinkToSourceTee(m_pTee, "src_%u") or
+            !m_pFakeSinkQueue->LinkToSink(m_pFakeSink))
+        {
+            return false;
+        }
+        m_isLinked = true;
+        return true;
+    }
+    
+    void MessageSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("MessageSinkBintr '" << GetName() << "' is not linked");
+            return;
+        }
+        m_pFakeSinkQueue->UnlinkFromSink();
+        m_pFakeSinkQueue->UnlinkFromSourceTee();
+        m_pMsgConverter->UnlinkFromSink();
+        m_pMsgConverterQueue->UnlinkFromSink();
+        m_pMsgConverterQueue->UnlinkFromSourceTee();
+        m_pQueue->UnlinkFromSink();
+        m_isLinked = false;
+    }
+    
+    bool MessageSinkBintr::SetSyncSettings(bool sync, bool async)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Sync/Async Settings for MessageSinkBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_sync = sync;
+        m_async = async;
+
+        m_pMsgBroker->SetAttribute("sink", m_sync);
+        return true;
+    }
+
+    void MessageSinkBintr::GetConverterSettings(const char** converterConfigFile,
+        uint* payloadType)
+    {
+        LOG_FUNC();
+        
+        *converterConfigFile = m_converterConfigFile.c_str();
+        *payloadType = m_payloadType;
+    }
+
+    uint MessageSinkBintr::GetMetaType()
+    {
+        LOG_FUNC();
+        
+        return m_metaType;
+    }
+
+    bool MessageSinkBintr::SetMetaType(uint metaType)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set meta-type for MessageSinkBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_metaType = metaType;
+        m_pMsgConverter->SetAttribute("comp-id", m_metaType);
+        
+        return true;
+    }
+
+    bool MessageSinkBintr::SetConverterSettings(const char* converterConfigFile,
+        uint payloadType)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Message Conveter Settings for MessageSinkBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_converterConfigFile.assign(converterConfigFile);
+        m_payloadType = payloadType;
+
+        m_pMsgConverter->SetAttribute("config", m_converterConfigFile.c_str());
+        m_pMsgConverter->SetAttribute("payload-type", m_payloadType);
+        return true;
+    }
+
+    void MessageSinkBintr::GetBrokerSettings(const char** brokerConfigFile,
+        const char** protocolLib, const char** connectionString, const char** topic)
+    {
+        LOG_FUNC();
+        
+        *brokerConfigFile = m_brokerConfigFile.c_str();
+        *protocolLib = m_protocolLib.c_str();
+        *connectionString = m_connectionString.c_str();
+        *topic = m_topic.c_str();
+    }
+
+    bool MessageSinkBintr::SetBrokerSettings(const char* brokerConfigFile,
+        const char* protocolLib, const char* connectionString, const char* topic)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Message Broker Settings for MessageSinkBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+
+        m_brokerConfigFile.assign(brokerConfigFile);
+        m_protocolLib.assign(protocolLib);
+        m_connectionString.assign(connectionString);
+        m_topic.assign(topic);
+        
+        m_pMsgBroker->SetAttribute("config", m_brokerConfigFile.c_str());
+        m_pMsgBroker->SetAttribute("proto-lib", m_protocolLib.c_str());
+        m_pMsgBroker->SetAttribute("conn-str", m_connectionString.c_str());
+        m_pMsgBroker->SetAttribute("topic", m_topic.c_str());
         return true;
     }
 

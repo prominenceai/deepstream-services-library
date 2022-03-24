@@ -25,15 +25,16 @@
 ################################################################################
 
 
-APP:= dsl-test-app
+APP:= dsl-test-app.exe
 LIB:= libdsl
 
 CXX = g++
 
 TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
+USER_SITE = "`python3 -m site --user-site`"
 
 CXX_VERSION:=c++17
-DSL_VERSION:='L"v0.22b.alpha"'
+DSL_VERSION:='L"v0.23.alpha"'
 GLIB_VERSION:=2.0
 GSTREAMER_VERSION:=1.0
 GSTREAMER_SUB_VERSION:=14
@@ -51,7 +52,7 @@ SRCS+= $(wildcard ./test/*.cpp)
 SRCS+= $(wildcard ./test/api/*.cpp)
 SRCS+= $(wildcard ./test/unit/*.cpp)
 
-INCS:= $(wildcard ./src/*.h)
+INCS+= $(wildcard ./src/*.h)
 INCS+= $(wildcard ./test/*.hpp)
 
 ifeq ($(GSTREAMER_SUB_VERSION),18)
@@ -70,9 +71,9 @@ OBJS:= $(SRCS:.c=.o)
 OBJS:= $(OBJS:.cpp=.o)
 
 CFLAGS+= -I$(INC_INSTALL_DIR) \
-    -std=$(CXX_VERSION) \
-    -I$(SRC_INSTALL_DIR)/apps/apps-common/includes \
-    -I/opt/include \
+	-std=$(CXX_VERSION) \
+	-I$(SRC_INSTALL_DIR)/apps/apps-common/includes \
+	-I/opt/include \
 	-I/usr/include \
 	-I/usr/include/gstreamer-$(GSTREAMER_VERSION) \
 	-I/usr/include/glib-$(GLIB_VERSION) \
@@ -83,12 +84,18 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-I./test \
 	-I./test/api \
 	-DDSL_VERSION=$(DSL_VERSION) \
-    -DDSL_LOGGER_IMP='"DslLogGst.h"'\
+	-DDSL_LOGGER_IMP='"DslLogGst.h"'\
 	-DGSTREAMER_SUB_VERSION=$(GSTREAMER_SUB_VERSION) \
+	-DBUILD_MESSAGE_SINK=$(BUILD_MESSAGE_SINK) \
 	-DNVDS_DCF_LIB='"$(LIB_INSTALL_DIR)/libnvds_nvdcf.so"' \
 	-DNVDS_KLT_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_klt.so"' \
 	-DNVDS_IOU_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_iou.so"' \
 	-DNVDS_MOT_LIB='"$(LIB_INSTALL_DIR)/libnvds_nvmultiobjecttracker.so"' \
+	-DNVDS_AMQP_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_amqp_proto.so"' \
+	-DNVDS_AZURE_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_azure_proto.so"' \
+	-DNVDS_AZURE_EDGE_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_azure_edge_proto"' \
+	-DNVDS_KAFKA_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_kafka_proto.so"' \
+	-DNVDS_REDIS_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_redis_proto.so"' \
     -fPIC 
 
 ifeq ($(GSTREAMER_SUB_VERSION),18)
@@ -113,6 +120,7 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-lnvbufsurface \
 	-lnvbufsurftransform \
 	-lnvdsgst_smartrecord \
+	-lnvds_msgbroker \
 	-lglib-$(GLIB_VERSION) \
 	-lgstreamer-$(GSTREAMER_VERSION) \
 	-Lgstreamer-video-$(GSTREAMER_VERSION) \
@@ -162,12 +170,25 @@ $(APP): $(OBJS) Makefile
 	$(CXX) -o $(APP) $(OBJS) $(LIBS)
 
 lib:
+	@echo ----------------------------------------------------------------------
+	@echo -- NOTICE: '"make lib"' has been replaced with '"sudo make install"'
+	@echo ----------------------------------------------------------------------
+	
+install:
+	if [ ! -d "/tmp/.dsl" ]; then \
+		mkdir -p /tmp/.dsl; \
+		chmod -R a+rwX /tmp/.dsl; \
+	fi
 	ar rcs $(LIB).a $(OBJS)
 	ar dv $(LIB).a DslCatch.o $(TEST_OBJS)
 	$(CXX) -shared $(OBJS) -o $(LIB).so $(LIBS)
-	cp $(LIB).so examples/python/
+	cp -f $(LIB).so /usr/local/lib
+	if [ ! -d $(USER_SITE) ]; then \
+		mkdir -p $(USER_SITE); \
+	fi
+	cp -rf ./dsl.py $(USER_SITE)
 	
-so_lib:
+debug_lib:
 	$(CXX) -shared $(OBJS) -o $(LIB).so $(LIBS) 
 	cp $(LIB).so examples/python/
 

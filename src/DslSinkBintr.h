@@ -76,7 +76,14 @@ namespace DSL
     #define DSL_RTSP_SINK_NEW(name, host, udpPort, rtspPort, codec, bitrate, interval) \
         std::shared_ptr<RtspSinkBintr>( \
         new RtspSinkBintr(name, host, udpPort, rtspPort, codec, bitrate, interval))
-        
+
+    #define DSL_MESSAGE_SINK_PTR std::shared_ptr<MessageSinkBintr>
+    #define DSL_MESSAGE_SINK_NEW(name, \
+            converterConfigFile, payloadType, brokerConfigFile, \
+            protocolLib, connectionString, topic) \
+        std::shared_ptr<MessageSinkBintr>(new MessageSinkBintr(name, \
+            converterConfigFile, payloadType, brokerConfigFile, \
+            protocolLib, connectionString, topic))
         
     class SinkBintr : public Bintr
     {
@@ -611,7 +618,181 @@ namespace DSL
         DSL_ELEMENT_PTR m_pPayloader;
         DSL_ELEMENT_PTR m_pUdpSink;
     };
+
+/**
+     * @class MessageSinkBintr 
+     * @brief Implements a Message Sink Bin Container Class (Bintr)
+     */
+    class MessageSinkBintr : public SinkBintr
+    {
+    public: 
     
+        /**
+         * @brief Ctor for the MessageSinkBintr class
+         */
+        MessageSinkBintr(const char* name, const char* converterConfigFile, 
+        uint payloadType, const char* brokerConfigFile, const char* protocolLib, 
+        const char* connectionString, const char* topic);
+
+        /**
+         * @brief Dtor for the MessageSinkBintr class
+         */
+        ~MessageSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this MessageSinkBintr
+         * @return true if all links were successful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this MessageSinkBintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief Gets the current base_meta.meta_type filter in use by 
+         * the MessageSinkBintr.
+         * @return the current meta-type id in use, default = NVDS_EVENT_MSG_META.
+         */
+        uint GetMetaType();
+
+        /**
+         * @brief Sets the base_meta.meta_type filter for the MessageSinkBintr to use.
+         * @param[in] metaType new meta-type id to use, must be >= NVDS_START_USER_META
+         * or = NVDS_EVENT_MSG_META.
+         * @return true on successful update, false otherwise.
+         */
+        bool SetMetaType(uint metaType);
+        
+        /**
+         * @brief Gets the current message converter settings for the MessageSinkBintr.
+         * @param[out] converterConfigFile absolute file-path to the current
+         * message converter config file in use.
+         * @param[out] payloadType current payload type setting.
+         */
+        void GetConverterSettings(const char** converterConfigFile,
+            uint* payloadType);
+            
+        /**
+         * @brief Sets the current message converter settings for the MessageSinkBintr.
+         * @param[in] converterConfigFile absolute or relate file-path to a new
+         * message converter config file to use.
+         * @param[in] payloadType new payload type setting to use.
+         * @return true if successful, false otherwise.
+         */
+        bool SetConverterSettings(const char* converterConfigFile,
+            uint payloadType);
+
+        /**
+         * @brief Gets the current message broker settings for the MsgSinBintr.
+         * @param[out] brokerConfigFile absolute file-path to the current message
+         * borker config file in use.
+         * @param[out] protocolLib current protocol adapter library in use
+         * @param[out] connectionString current connection string in use.
+         * @param[out] topic (optional) message topic current in use.
+         */
+        void GetBrokerSettings(const char** brokerConfigFile, const char** protocolLib,
+            const char** connectionString, const char** topic);
+
+        /**
+         * @brief Sets the message broker settings for the MsgSinBintr.
+         * @param[in] brokerConfigFile absolute or relative file-path to 
+         * a new message borker config file to use.
+         * @param[in] protocolLib new protocol adapter library to use.
+         * @param[in] connectionString new connection string to use.
+         * @param[in] topic (optional) new message topic to use.
+         * @return true if successful, false otherwise.
+         */
+        bool SetBrokerSettings(const char* brokerConfigFile, const char* protocolLib, 
+            const char* connectionString, const char* topic);
+
+        /**
+         * @brief sets the current sync and async settings for the SinkBintr
+         * @param[in] sync current sync setting, true if set, false otherwise.
+         * @param[in] async parameter is unused -- setting has no affect.
+         * @return true if successful, false otherwise. 
+         */
+        bool SetSyncSettings(bool sync, bool async);
+
+    private:
+
+        /**
+         * @brief qualitiy of service setting for the fake sink.
+         */
+        boolean m_qos;
+
+        /**
+         * @brief defines the base_meta.meta_type id filter to use for
+         * all message meta to convert and send. Default = NVDS_EVENT_MSG_META.
+         * Custom values must be greater than NVDS_START_USER_META
+         * Both constants are defined in nvdsmeta.h 
+         */
+        uint m_metaType;
+
+        /**
+         * @brief absolute path to the message converter config file is use.
+         */
+        std::string m_converterConfigFile;
+        
+        /**
+         * @brief payload type, one of the DSL_MSG_PAYLOAD_<*> constants 
+         */
+        uint m_payloadType; 
+        
+        /**
+         * @brief absolute path to the message broker config file in use.
+         */
+        std::string m_brokerConfigFile; 
+        
+        /**
+         * @brief connection string used as end-point for communication with server.
+         */
+        std::string m_connectionString;
+        
+        /**
+         * @brief Absolute pathname to the library that contains the protocol adapter.
+         */
+        std::string m_protocolLib; 
+        
+        /**
+         * @brief (optional) message topic name.
+         */
+        std::string m_topic;
+    
+        /**
+         * @brief Tee element for this MessageSinkBintr 
+         */
+        DSL_ELEMENT_PTR m_pTee;
+
+        /**
+         * @brief Tee Src Queue for the message-converter element for this MessageSinkBintr 
+         */
+        DSL_ELEMENT_PTR m_pMsgConverterQueue;
+        
+        /**
+         * @brief NVIDIA message-converter element for this MessageSinkBintr 
+         */
+        DSL_ELEMENT_PTR m_pMsgConverter;
+
+        /**
+         * @brief NVIDIA message-broker element for this MessageSinkBintr.
+         */
+        DSL_ELEMENT_PTR m_pMsgBroker;
+
+        /**
+         * @brief Tee Src Queue for the Fake Sink element for this MessageSinkBintr 
+         */
+        DSL_ELEMENT_PTR m_pFakeSinkQueue;
+
+        /**
+         * @brief Fake Sink element for the MessageSinkBintr.
+         */
+        DSL_ELEMENT_PTR m_pFakeSink;
+
+    };
+        
 }
 #endif // _DSL_SINK_BINTR_H
     

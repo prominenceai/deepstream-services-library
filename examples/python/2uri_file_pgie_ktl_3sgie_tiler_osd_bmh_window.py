@@ -25,26 +25,33 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.insert(0, "../../")
 from dsl import *
 from nvidia_osd_sink_pad_buffer_probe import osd_sink_pad_buffer_probe
 
-uri_h264 = "../../test/streams/sample_1080p_h264.mp4"
-uri_h265 = "../../test/streams/sample_1080p_h265.mp4"
+uri_h264 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
 # Filespecs for the Primary GIE
-primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+primary_infer_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
 # Filespecs for the Secondary GIE
-sgie1_config_file = '../../test/configs/config_infer_secondary_carcolor_nano.txt'
-sgie1_model_file = '../../test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine'
+sgie1_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carcolor.txt'
+sgie1_model_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine'
 
-sgie2_config_file = '../../test/configs/config_infer_secondary_carmake_nano.txt'
-sgie2_model_file = '../../test/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_fp16.engine'
+sgie2_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carmake.txt'
+sgie2_model_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_fp16.enginee'
 
-sgie3_config_file = '../../test/configs/config_infer_secondary_vehicletypes_nano.txt'
-sgie3_model_file = '../../test/models/Secondary_VehicleTypes/resnet18.caffemodel_b8_gpu0_fp16.engine'
+sgie3_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt'
+sgie3_model_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18.caffemodel_b8_gpu0_fp16.engine'
 
 ## 
 # Function to be called on XWindow KeyRelease event

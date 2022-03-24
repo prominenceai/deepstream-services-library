@@ -40,8 +40,9 @@ THE SOFTWARE.
 #define DSL_RESULT_FAILURE                                          0x00000001
 #define DSL_RESULT_API_NOT_IMPLEMENTED                              0x00000002
 #define DSL_RESULT_API_NOT_SUPPORTED                                0x00000003
-#define DSL_RESULT_INVALID_INPUT_PARAM                              0x00000004
-#define DSL_RESULT_THREW_EXCEPTION                                  0x00000005
+#define DSL_RESULT_API_NOT_ENABLED                                  0x00000004
+#define DSL_RESULT_INVALID_INPUT_PARAM                              0x00000005
+#define DSL_RESULT_THREW_EXCEPTION                                  0x00000006
 #define DSL_RESULT_INVALID_RESULT_CODE                              UINT32_MAX
 
 /**
@@ -139,6 +140,8 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_ADD_FAILED           0x00040017
 #define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED        0x00040018
 #define DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED             0x00040019
+#define DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND               0x00040020
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_MESSAGE_SINK               0x00040021
 
 /**
  * OSD API Return Values
@@ -422,6 +425,27 @@ THE SOFTWARE.
 #define DSL_RESULT_WEBSOCKET_SERVER_CLIENT_LISTENER_REMOVE_FAILED   0x00700004
 
 /**
+ * Message Broker API Return Values
+ */
+#define DSL_RESULT_BROKER_RESULT                                    0x00800000
+#define DSL_RESULT_BROKER_NAME_NOT_UNIQUE                           0x00800001
+#define DSL_RESULT_BROKER_NAME_NOT_FOUND                            0x00800002
+#define DSL_RESULT_BROKER_THREW_EXCEPTION                           0x00800003
+#define DSL_RESULT_BROKER_IN_USE                                    0x00800004
+#define DSL_RESULT_BROKER_SET_FAILED                                0x00800005
+#define DSL_RESULT_BROKER_PARAMETER_INVALID                         0x00800006
+#define DSL_RESULT_BROKER_SUBSCRIBER_ADD_FAILED                     0x00800007
+#define DSL_RESULT_BROKER_SUBSCRIBER_REMOVE_FAILED                  0x00800008
+#define DSL_RESULT_BROKER_LISTENER_ADD_FAILED                       0x00800009
+#define DSL_RESULT_BROKER_LISTENER_REMOVE_FAILED                    0x0080000A
+#define DSL_RESULT_BROKER_CONFIG_FILE_NOT_FOUND                     0x0080000B
+#define DSL_RESULT_BROKER_PROTOCOL_LIB_NOT_FOUND                    0x0080000C
+#define DSL_RESULT_BROKER_CONNECT_FAILED                            0x0080000D
+#define DSL_RESULT_BROKER_DISCONNECT_FAILED                         0x0080000E
+#define DSL_RESULT_BROKER_MESSAGE_SEND_FAILED                       0x0080000F
+
+
+/**
  * GPU Types
  */
 #define DSL_GPU_TYPE_INTEGRATED                                     0
@@ -548,7 +572,7 @@ THE SOFTWARE.
 #define DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT                         40000
 #define DSL_DEFAULT_STREAMMUX_WIDTH                                 1920
 #define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
-#define DSL_DEFAULT_STREAMMUX_MAX_NUM_SERFACES_PER_FRAME			1
+#define DSL_DEFAULT_STREAMMUX_MAX_NUM_SERFACES_PER_FRAME            1
 
 #define DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC                     10
 #define DSL_DEFAULT_WAIT_FOR_EOS_TIMEOUT_IN_SEC                     2
@@ -655,6 +679,22 @@ THE SOFTWARE.
  * For the Absence Trigger, occurrences will always be 0. 
  */
 #define DSL_METRIC_OBJECT_OCCURRENCES                               6
+
+/**
+ * @brief Message converter payload schema types used by all Message Sinks.
+ */
+#define DSL_MSG_PAYLOAD_DEEPSTREAM                                  0
+#define DSL_MSG_PAYLOAD_DEEPSTREAM_MINIMAL                          1
+#define DSL_MSG_PAYLOAD_CUSTOM                                      257
+
+/**
+ * @brief Message Broker Status/Result codes
+ */
+#define DSL_STATUS_BROKER_OK                                        0
+#define DSL_STATUS_BROKER_ERROR                                     1
+#define DSL_STATUS_BROKER_RECONNECTING                              2
+#define DSL_STATUS_BROKER_NOT_SUPPORTED                             3
+
 
 EXTERN_C_BEGIN
 
@@ -1012,6 +1052,33 @@ typedef void (*dsl_websocket_server_client_listener_cb)(const wchar_t* path,
  */
 typedef void (*dsl_sink_webrtc_client_listener_cb)(dsl_webrtc_connection_data* info, 
     void* client_data);
+
+/**
+ * @brief callback typedef for a client to receive incoming messages
+ * filtered by topic. 
+ * @param[in] client_data opaque pointer to client's user data.
+ * @param[in] status status of the received messages, one of DSL_STATUS_BROKER
+ * @param[in] message pointer to the message received.
+ * @param[in] length length of the message received in bytes.
+ */
+typedef void (*dsl_message_broker_subscriber_cb)(void* client_data, uint status, void* message, 
+    uint length, const wchar_t* topic);
+    
+/**
+ * @brief callback typedef for a client to receive and handle
+ * incoming message processing errors. 
+ * @param[in] client_data opaque pointer to client's user data.
+ * @param[in] status status code returned by the Message Broker
+ */
+typedef void (*dsl_message_broker_connection_listener_cb)(void* client_data, uint status);
+
+/**
+ * @brief callback typedef for a client to receive an asynchronus result
+ * from calling dsl_message_broker_message_send.
+ * @param[in] client_data opaque pointer to client's user data.
+ * @param[in] status status code returned by the Message Broker
+ */
+typedef void (*dsl_message_broker_send_result_listener_cb)(void* client_data, uint status);
 
 /**
  * @brief creates a uniquely named RGBA Display Color
@@ -1453,6 +1520,34 @@ DslReturnType dsl_ode_action_handler_disable_new(const wchar_t* name, const wcha
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_log_new(const wchar_t* name);
+
+/**
+ * @brief Creates a uniquely named Message Meta Add ODE Action that attaches NvDsEventMsgMeta
+ * to the NvDsFrameMeta on ODE occurrence.
+ * @param[in] name unique name for the Message ODE Action 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_message_meta_add_new(const wchar_t* name);
+
+///**
+// * @brief Gets the current meta-type identifier in use by the named Message Sink.
+// * @param[in] name unique name of the Message ODE Action to query.
+// * @param[out] meta_type the current meta-type in use, default = NVDS_EVENT_MSG_META.
+// * @return DSL_RESULT_SUCCESS on successful query, one of the 
+// * DSL_RESULT_ODE_ACTION_RESULT values otherwise.
+// */
+//DslReturnType dsl_ode_action_message_meta_type_get(const wchar_t* name,
+//    uint* meta_type);
+//
+///**
+// * @brief Sets the meta-type identifier for the named Message Sink to use
+// * @param[in] name unique name of the Message ODE Action to update
+// * @param[in] meta_type the new meta-type to use, must > or = NVDS_START_USER_META.
+// * @return DSL_RESULT_SUCCESS on successful update, one of the 
+// * DSL_RESULT_ODE_ACTION_RESULT values otherwise.
+// */
+//DslReturnType dsl_ode_action_message_meta_type_set(const wchar_t* name,
+//    uint meta_type);
 
 /**
  * @brief Creates a uniquely named Pause ODE Action
@@ -1958,7 +2053,7 @@ DslReturnType dsl_ode_trigger_persistence_range_get(const wchar_t* name,
  */
 DslReturnType dsl_ode_trigger_persistence_range_set(const wchar_t* name, 
     uint minimum, uint maximum);
-	
+    
 /**
  * @brief Smallest trigger that checks for the occurrence of Objects within a frame
  * and if at least one is found, Triggers on the Object with smallest rectangle area.
@@ -4323,6 +4418,96 @@ DslReturnType dsl_websocket_server_client_listener_remove(
     dsl_websocket_server_client_listener_cb listener);
 
 /**
+ * @brief Creates a new, uniquely named Message Sink.
+ * @param[in] name unique component name for the new Message Sink.
+ * @param[in] converter_config_file absolute or relate path to a message-converter
+ * configuration file of type text or csv.
+ * @param[in] payload_type one of the DSL_MSG_PAYLOAD constants.
+ * @param[in] broker_config_file absolute or relate path to a message-broker 
+ * configuration file required by nvds_msgapi_* interface.
+ * @param[in] protocol_lib absolute or relative path to the protocol adapter
+ * that implements the nvds_msgapi_* interface.
+ * @param[in] connection_string end point for communication with server of
+ * the format <name>;<port>;<specifier>
+ * @param[in] topic (optional) message topic name.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_message_new(const wchar_t* name, 
+    const wchar_t* converter_config_file, uint payload_type, 
+    const wchar_t* broker_config_file, const wchar_t* protocol_lib, 
+    const wchar_t* connection_string, const wchar_t* topic);
+
+///**
+// * @brief Gets the current message meta-type filter in use by the named Message Sink.
+// * @param name unique name of the Message Sink to query.
+// * @param[out] meta_type the current meta-type filter in use, 
+// * default = NVDS_EVENT_MSG_META.
+// * @return DSL_RESULT_SUCCESS on successful query,  on of DSL_RESULT_SINK_RESULT 
+// * on failure.
+// */
+//DslReturnType dsl_sink_message_meta_type_get(const wchar_t* name,
+//    uint* meta_type);
+//    
+///**
+// * @brief Sets the current message meta-type filter for the named Message Sink to use.
+// * @param name unique name of the Message Sink to update.
+// * @param[in] meta_type the new meta-type filter to use, must be equal to or
+// * greater than NVDS_START_USER_META.
+// * @return DSL_RESULT_SUCCESS on successful update,  on of DSL_RESULT_SINK_RESULT 
+// * on failure.
+// */
+//DslReturnType dsl_sink_message_meta_type_set(const wchar_t* name,
+//    uint meta_type);
+
+/**
+ * @brief Gets the current message converter settings for the named Message Sink.
+ * @param[out] converter_config_file absolute file-path to the current
+ * message converter config file in use.
+ * @param[out] payload_type current payload type, one of the DSL_MSG_PAYLOAD constants.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_message_converter_settings_get(const wchar_t* name, 
+    const wchar_t** converter_config_file, uint* payload_type);
+    
+/**
+ * @brief Sets the current message converter settings for the named Message Sink.
+ * @param[in] converter_config_file absolute or relate file-path to a new
+ * message converter config file to use.
+ * @param[in] payload_type new payload type to use, one of the DSL_MSG_PAYLOAD constants.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_message_converter_settings_set(const wchar_t* name, 
+    const wchar_t* converter_config_file, uint payload_type);
+
+/**
+ * @brief Gets the current message broker settings for the named Message Sink.
+ * @param[out] broker_config_file absolute file-path to the current message
+ * broker config file in use.
+ * @param[out] protocol_lib absolute file-path to the current protocol adapter
+ * library in use.
+ * @param[out] connection_string current connection string in use.
+ * @param[out] topic (optional) message topic current in use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_message_broker_settings_get(const wchar_t* name, 
+    const wchar_t** broker_config_file, const wchar_t** protocol_lib,
+    const wchar_t** connection_string, const wchar_t** topic);
+
+/**
+ * @brief Sets the message broker settings for the named Message Sink.
+ * @param[in] broker_config_file absolute or relative file-path to 
+ * a new message broker config file to use.
+ * @param[out] protocol_lib absolute file-path to a new protocol adapter
+ * library to use.
+ * @param[in] connection_string new connection string in use.
+ * @param[in] topic (optional) new message topic to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_message_broker_settings_set(const wchar_t* name, 
+    const wchar_t* broker_config_file, const wchar_t* protocol_lib,
+    const wchar_t* connection_string, const wchar_t* topic);
+
+/**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
  * One or more Pad Probe Handlers can be added to the SINK PAD only (single stream).
  * @param[in] name unique name of the Sink to update
@@ -5421,6 +5606,152 @@ boolean dsl_mailer_exists(const wchar_t* name);
 uint dsl_mailer_list_size();
 
 /**
+ * @brief Creates a uniquely name Message Broker.
+ * @param name unique name for the new Message Broker
+ * @param[in] broker_config_file absolute or relate path to a message-broker 
+ * configuration file required by nvds_msgapi_* interface.
+ * @param[in] protocol_lib absolute or relative path to the protocol adapter
+ * that implements the nvds_msgapi_* interface.
+ * @param[in] connection_string end point for communication with server of
+ * the format <name>;<port>;<specifier>
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_new(const wchar_t* name, 
+    const wchar_t* broker_config_file, const wchar_t* protocol_lib, 
+    const wchar_t* connection_string);
+
+/**
+ * @brief Gets the current broker settings for the named Message Broker.
+ * @param[out] broker_config_file absolute file-path to the current message
+ * broker config file in use.
+ * @param[out] protocol_lib absolute file-path to the current protocol adapter
+ * library in use.
+ * @param[out] connection_string current connection string in use.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_settings_get(const wchar_t* name, 
+    const wchar_t** broker_config_file, const wchar_t** protocol_lib,
+    const wchar_t** connection_string);
+
+/**
+ * @brief Sets the broker settings for the named Message Broker.
+ * @param[in] broker_config_file absolute or relative file-path to 
+ * a new message broker config file to use.
+ * @param[out] protocol_lib absolute file-path to a new protocol adapter
+ * library to use.
+ * @param[in] connection_string new connection string in use.
+ * @param[in] topic (optional) new message topic to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_message_broker_settings_set(const wchar_t* name, 
+    const wchar_t* broker_config_file, const wchar_t* protocol_lib,
+    const wchar_t* connection_string);
+
+/**
+ * @brief Connects a uniquely name Iot Message Broker with an IoT hub.
+ * @param[in] name unique name of the Message Broker to connect.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_connect(const wchar_t* name);
+
+/**
+ * @brief Disconnects a uniquely named Message Broker from an IoT hub.
+ * @param[in] name unique name of the Message Broker to disconnect.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_disconnect(const wchar_t* name);
+
+/**
+ * @brief Returns the current connected state for the named Message Broker.
+ * @param[in] name unique name of the Message Broker to query.
+ * @param[out] connected true if connected, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_is_connected(const wchar_t* name, boolean* connected);
+
+/**
+ * @brief Sends an asynchronous message to a connected end-point.
+ * @param name name of the Message Broker to send the message.
+ * @param topic topic for the message to send.
+ * @param message payload of the message to send
+ * @param size of the message payload in bytes.
+ * @param result callback to be invoked to provide an asynchronous result
+ * of the send operation.
+ * @param[in] client_data opaque pointer to client data to be passed backed to 
+ * the hanlder function when called.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_message_send_async(const wchar_t* name,
+    const wchar_t* topic, void* message, size_t size, 
+    dsl_message_broker_send_result_listener_cb result_listener, void* user_data);
+
+/**
+ * @brief Adds a client subscriber callback function to a named Message Broker.
+ * Once added, the client will be called with each message received for a given
+ * set of topics.
+ * @param[in] name unique name of the Message Broker to update.
+ * @param[in] subscriber subscriber function to add to the named Message Broker.
+ * @param[in] topics topics for the subscriber to register. 
+ * @param[in] client_data opaque pointer to client data to be passed backed to 
+ * the hanlder function when called.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_subscriber_add(const wchar_t* name,
+    dsl_message_broker_subscriber_cb subscriber, const wchar_t** topics,
+    void* client_data);
+    
+/**
+ * @brief Removes a client handler previously added with a call to
+ * dsl_message_broker_subscriber_add.
+ * @param[in] name unique name of the Message Broker to update.
+ * @param[in] subscriber subscriber function to remove from the named Message Broker.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_subscriber_remove(const wchar_t* name,
+    dsl_message_broker_subscriber_cb subscriber);
+
+/**
+ * @brief Adds a client handler callback function to a named Message Broker.
+ * Once added, the client will be called on each messaging error that occurs.
+ * @param[in] name unique name of the Message Broker to update.
+ * @param[in] handler error handler function to add to the named Message Broker.
+ * @param[in] client_data opaque pointer to client data to be passed backed to 
+ * the handler function when called.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_connection_listener_add(const wchar_t* name,
+    dsl_message_broker_connection_listener_cb handler, void* client_data);
+        
+/**
+ * @brief Removes a client handler previously added with a call to
+ * dsl_message_broker_connection_listener_add.
+ * @param[in] name unique name of the Message Broker to update.
+ * @param[in] handler handler function to remove from the named Message Broker.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_connection_listener_remove(const wchar_t* name,
+    dsl_message_broker_connection_listener_cb handler);
+
+/**
+ * @brief deletes a uniquely named Message Broker.
+ * @param[in] name unique name of the Message Broker to delete.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_delete(const wchar_t* name);
+
+/**
+ * @brief Deletes all Message Brokers.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_BROKER_RESULT otherwise.
+ */
+DslReturnType dsl_message_broker_delete_all();
+
+/**
+ * @brief Returns the size of the list of Message Brokers
+ * @return the number of Display Types in the list
+ */
+uint dsl_message_broker_list_size();
+
+/**
  * @brief entry point to the GST Main Loop
  * Note: This is a blocking call - executes an endless loop
  */
@@ -5447,35 +5778,116 @@ const wchar_t* dsl_return_value_to_string(uint result);
 const wchar_t* dsl_state_value_to_string(uint state);
 
 /**
- * @brief Returns the current version of DSL
- * @return string representation of the current release
- */
-const wchar_t* dsl_version_get();
-
-/**
  * @brief Releases/deletes all DSL/GST resources
  */
 void dsl_delete_all();
 
 /**
- * @brief Redirects all data streamed to std::cout << by DSL to a specified file.
- * The file is opened for append if it currently exists. 
- * @param[in] file_path absolute or relative file path specification
- * @return true on success, one DSL_RESULT otherwise
+ * @brief Returns the current version of DSL
+ * @return string representation of the current release
  */
-DslReturnType dsl_stdout_redirect(const wchar_t* file_path);
-
-/**
- * @brief Restores the std::cout rdbuf from redirection
- */
-void dsl_stdout_restore();
+const wchar_t* dsl_info_version_get();
 
 /**
  * @brief Gets the GPU type for a specified GPU Id.
  * @param[in] gpu_id id of the GPU to query.
- * @return one of the DSL_GPU_TYPE constant values
+ * @return one of the DSL_GPU_TYPE constant values.
  */ 
-uint dsl_gpu_type_get(uint gpu_id);
+uint dsl_info_gpu_type_get(uint gpu_id);
+
+/**
+ * @brief Gets the current setting for where stdout is directed.
+ * @param[out] file_path absolute file path specification or "console".
+ * @return true on successful query, one DSL_RESULT otherwise.
+ */
+DslReturnType dsl_info_stdout_get(const wchar_t** file_path);
+
+/**
+ * @brief Redirects all data streamed to stdout including debug logs by default. 
+ * The current log file, if one is active, will be saved. The file can be opened for 
+ * append or truncated if found. 
+ * @param[in] file_path absolute or relative file path specification
+ * @param[in] mode either DSL_WRITE_MODE_APPEND or DSL_WRITE_MODE_TRUNCATE
+ * @return true on successful query, one DSL_RESULT otherwise
+ * @note this service appends a ".log" extension to file_path. 
+ */
+DslReturnType dsl_info_stdout_redirect(const wchar_t* file_path, uint mode);
+
+/**
+ * @brief Redirects all data streamed to stdout including debug logs by default.
+ * The current log file, if one is active, will be saved. 
+ * @param[in] file_path absolute or relative file path specification
+ * @param[in] mode either DSL_WRITE_MODE_APPEND or DSL_WRITE_MODE_TRUNCATE
+ * @return true on successful update, one DSL_RESULT otherwise.
+ * @note this service appends a timestamp with the format %Y%m%d-%H%M%S.
+ * and ".log" extension to file_path. If redirecting to a new file from an existing file.
+ */
+DslReturnType dsl_info_stdout_redirect_with_ts(const wchar_t* file_path);
+
+/**
+ * @brief Restores the std::cout rdbuf from redirection
+ * @return true on successful update, one DSL_RESULT otherwise.
+ */
+DslReturnType dsl_info_stdout_restore();
+
+/**
+ * @brief Gets the current GST debug log level if set with the environment
+ * variable GST_DEBUG or with a call to dsl_info_log_level_set
+ * @parma[out] level current level string defining one or more debug group/level pairs.
+ * prefixed with optional global default. Empty string if undefined.
+ * @return true on successful query, one of DSL_RESULT otherwise
+*/
+DslReturnType dsl_info_log_level_get(const wchar_t** level);
+
+/**
+ * @brief Sets the GST debug log level. The call will override the currnet 
+ * value of the GST_DEBUG environment variable.
+ * @param[in] level new level (string) defining one or more debug group/level pairs
+ * prefixed with optional global default. eg. export GST_DEBUG=1,DSL:4
+ * @return true on successful update, one of DSL_RESULT otherwise
+ */
+DslReturnType dsl_info_log_level_set(const wchar_t* level);
+
+/**
+ * @brief Gets the current GST debug log file if set with the environment
+ * variable GST_DEBUG_FILE or with a call to dsl_info_log_file_set or 
+ * dsl_info_log_file_set_with_ts. 
+ * @param[out] file_path the complete file path/name specification with 
+ * (optional) timestamp and file extension. Empty string if undefined.
+ * @return true on successful query, one of DSL_RESULT otherwise.
+ */
+DslReturnType dsl_info_log_file_get(const wchar_t** file_path);
+
+/**
+ * @brief Sets the GST debug log file. The call will override the current value of 
+ * the DSL_DEBUG_FILE environment variable.  The current  running log file, if one 
+ * will be saved. The file can be opened for append or truncated if found. 
+ * @param[in] file_path relative or absolute file path without an extension.
+ * @param[in] mode either DSL_WRITE_MODE_APPEND or DSL_WRITE_MODE_TRUNCATE.
+ * @return true on successful update, one of DSL_RESULT otherwise.
+ * @note this service appends a ".log" extension to file_path. The current
+ * log file in use, if one exists, will be closed.
+*/ 
+DslReturnType dsl_info_log_file_set(const wchar_t* file_path, uint mode);
+
+/**
+ * @brief Sets the GST debug log file. The call will override the current
+ * value of the DSL_DEBUG_FILE environment variable. The current  running
+ * log file, if one is active, will be saved.
+ * @param[in] file_path relative or absolute file path to persist GST Logs.
+ * @return true on successful update, one of DSL_RESULT otherwise
+ * @note this service appends a timestamp with the format %Y%m%d-%H%M%S 
+ * and ".log" extension to file_path.
+ */
+DslReturnType dsl_info_log_file_set_with_ts(const wchar_t* file_path);
+
+/**
+ * @brief Restores the original default log function which will write
+ * logs to GST_DEBUG_FILE if set, or stdio otherwise.
+ * @return true on successful update, one of DSL_RESULT otherwise
+ */
+DslReturnType dsl_info_log_function_restore();
+
 
 EXTERN_C_END
 
