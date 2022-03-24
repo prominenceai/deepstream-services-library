@@ -5,6 +5,22 @@ NVIDIA provides two Azure MQTT protocol libraries installed with DeepStream unde
 
 The protocol adapter libraries are used by the DSL [Message Sink](/docs/api-sink.md#dsl_message_sink_new) and [Message Broker](/docs/api-msg-broker.md) components.
 
+## Contents
+* [Common Setup for both Protocol Adapters](#common-setup-for-both-protocol-adapters)
+  * [Install Additional device dependencies](#install-additional-device-dependencies)
+  * [Setup an Azure IoT Hub Instance](#setup-an-azure-iot-hub-instance)
+  * [Register your IoT Edge Device](#register-your-iot-edge-device)
+  * [Enable the NVIDIA logger](#enable-the-nvidia-logger)
+* [Azure Module Client setup](#azure-module-client-setup)
+  * [Setup the Azure IoT Edge runtime on the edge device](#setup-the-azure-iot-edge-runtime-on-the-edge-device)
+  * [Build and deploy a Docker Image](#build-and-deploy-a-docker-image)
+  * [Grant host access to the local X-server](grant-host-access-to-the-local-x-server)
+  * [Deploy IoT Modules](#deploy-iot-modules)
+  * [Next Steps and Useful Links](#next-steps-and-useful-links)
+* [Trouble Shooting](#trouble-shooting)
+  * [Failure installing azure-cli on Jetson](#failure-installing-azure-cli-on-jetson)
+  * [Failure verifying azure-cli install on Jetson](#failure-verifying-azure-cli-install-on-jetson)
+ 
 ---
 
 # Common Setup for both Protocol Adapters
@@ -91,7 +107,23 @@ Or copy the `Primary Connection String` from your Azure IoT Hub instance by sele
 
 ![](/Images/azure-iot-edge-device-details.png)
 
-You will need the connection-string to use the [Message Sink](/docs/api-sink#dsl_sink_message_new) and [Message Broker API](/docs/api-msg-broker.md).
+You will need the connection-string to use the [Message Sink](/docs/api-sink.md#dsl_sink_message_new) and [Message Broker API](/docs/api-msg-broker.md).
+
+## Enable the NVIDIA logger
+#### For Jetson and x86 computers running Ubuntu:
+Run the settup script with the following commands.
+```bash
+sudo chmod u+x /opt/nvidia/deepstream/deepstream/sources/tools/nvds_logger/setup_nvds_logger.sh
+sudo /opt/nvidia/deepstream/deepstream/sources/tools/nvds_logger/setup_nvds_logger.sh
+```
+Log messages will be written to `/tmp/nvds/ds.log`.
+
+**Note:** when using the [Message Sink](/docs/api-sink.md#dsl_sink_message_new), setup errors will result in the Pipeline failing to play. The reason for the failure may be found in the nvds log file, for example
+```
+Mar 24 16:37:57 prominenceai1-desktop dsl-test-app.exe: DSLOG:NVDS_AZURE_PROTO: Error. Azure connection string not provided#012
+Mar 24 16:37:57 prominenceai1-desktop dsl-test-app.exe: DSLOG:NVDS_AZURE_PROTO: nvds_msgapi_connect: Failure in fetching azure connection string
+```
+
 Your device setup is now sufficient to use the Device Client `libnvds_azure_proto.so` with the following examples.
 * [ode_instance_trigger_message_server.py](/examples/python/ode_instance_trigger_message_server.py)
 * [message_broker_azure_device_client.py](/examples/python/message_broker_azure_device_client.py)
@@ -100,7 +132,7 @@ Your device setup is now sufficient to use the Device Client `libnvds_azure_prot
 
 # Azure Module Client setup
 
-### Setup the Azure IoT Edge runtime on the edge device
+## Setup the Azure IoT Edge runtime on the edge device
 #### For Jetson and x86 computers running Ubuntu:
 Follow the below steps from the instructions here. https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux. Specifically:
 * [Install IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-provision-single-device-linux-symmetric?view=iotedge-2020-11&tabs=azure-portal%2Cubuntu#install-iot-edge).
