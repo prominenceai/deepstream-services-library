@@ -780,7 +780,7 @@ namespace DSL
         const uint fpsN(4), fpsD(1);
         
         std::string sourceName = m_name + "-image-source";
-        DSL_IMAGE_SOURCE_PTR pSource = DSL_IMAGE_SOURCE_NEW(sourceName.c_str(), 
+        DSL_IMAGE_STREAM_SOURCE_PTR pSource = DSL_IMAGE_STREAM_SOURCE_NEW(sourceName.c_str(), 
             filePath, isLive, fpsN, fpsD, m_timeout);        
 
         if (!AddChild(pSource))
@@ -829,8 +829,8 @@ namespace DSL
         }
         m_timeout = timeout;
         
-        DSL_IMAGE_SOURCE_PTR pImageSource = 
-            std::dynamic_pointer_cast<ImageSourceBintr>(m_pSource);
+        DSL_IMAGE_STREAM_SOURCE_PTR pImageSource = 
+            std::dynamic_pointer_cast<ImageStreamSourceBintr>(m_pSource);
         
         pImageSource->SetTimeout(timeout);
         return true;

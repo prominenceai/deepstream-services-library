@@ -213,7 +213,7 @@ namespace DSL
     /**
      * @class RenderPlayerBintr
      * @file DslPlayerBintr.h
-     * @brief Implements a PlayerBintr with a FileSourceBintr or ImageSourceBintr
+     * @brief Implements a PlayerBintr with a FileSourceBintr or ImageStreamSourceBintr
      * and OverlaySink or WindowSinkBintr
      */
     class RenderPlayerBintr : public PlayerBintr
@@ -394,7 +394,7 @@ namespace DSL
     /**
      * @class ImageRenderPlayerBintr
      * @file DslPlayerBintr.h
-     * @brief Implements a PlayerBintr with an ImageSourceBintr
+     * @brief Implements a PlayerBintr with an ImageStreamSourceBintr
      * and OverlaySink or WindowSinkBintr
      */
     class ImageRenderPlayerBintr : public RenderPlayerBintr

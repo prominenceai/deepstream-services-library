@@ -287,7 +287,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceImageNew(const char* name, const char* filePath, 
+    DslReturnType Services::SourceImageStreamNew(const char* name, const char* filePath, 
         boolean isLive, uint fpsN, uint fpsD, uint timeout)
     {
         LOG_FUNC();
@@ -307,7 +307,7 @@ namespace DSL
                 LOG_ERROR("Image Source'" << filePath << "' Not found");
                 return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
             }
-            m_components[name] = DSL_IMAGE_SOURCE_NEW(
+            m_components[name] = DSL_IMAGE_STREAM_SOURCE_NEW(
                 name, filePath, isLive, fpsN, fpsD, timeout);
 
             LOG_INFO("New Image Source '" << name << "' created successfully");
@@ -321,7 +321,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceImagePathGet(const char* name, const char** filePath)
+    DslReturnType Services::SourceImageStreamPathGet(const char* name, const char** filePath)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -329,10 +329,10 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSourceBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageStreamSourceBintr);
 
-            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
+            DSL_IMAGE_STREAM_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ImageStreamSourceBintr>(m_components[name]);
 
             *filePath = pSourceBintr->GetUri();
             
@@ -349,7 +349,7 @@ namespace DSL
     }
             
 
-    DslReturnType Services::SourceImagePathSet(const char* name, const char* filePath)
+    DslReturnType Services::SourceImageStreamPathSet(const char* name, const char* filePath)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -357,10 +357,10 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSourceBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageStreamSourceBintr);
 
-            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
+            DSL_IMAGE_STREAM_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ImageStreamSourceBintr>(m_components[name]);
 
             std::ifstream streamUriFile(filePath);
             if (!streamUriFile.good())
@@ -385,7 +385,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceImageTimeoutGet(const char* name, uint* timeout)
+    DslReturnType Services::SourceImageStreamTimeoutGet(const char* name, uint* timeout)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -393,10 +393,10 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSourceBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageStreamSourceBintr);
 
-            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
+            DSL_IMAGE_STREAM_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ImageStreamSourceBintr>(m_components[name]);
          
             *timeout = pSourceBintr->GetTimeout();
 
@@ -412,7 +412,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceImageTimeoutSet(const char* name, uint timeout)
+    DslReturnType Services::SourceImageStreamTimeoutSet(const char* name, uint timeout)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -420,10 +420,10 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSourceBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageStreamSourceBintr);
 
-            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
+            DSL_IMAGE_STREAM_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ImageStreamSourceBintr>(m_components[name]);
          
             if (!pSourceBintr->SetTimeout(timeout))
             {

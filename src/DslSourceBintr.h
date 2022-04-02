@@ -64,9 +64,9 @@ namespace DSL
     #define DSL_FILE_SOURCE_NEW(name, uri, repeatEnabled) \
         std::shared_ptr<FileSourceBintr>(new FileSourceBintr(name, uri, repeatEnabled))
 
-    #define DSL_IMAGE_SOURCE_PTR std::shared_ptr<ImageSourceBintr>
-    #define DSL_IMAGE_SOURCE_NEW(name, filePath, isLive, fpsN, fpsD, timeout) \
-        std::shared_ptr<ImageSourceBintr>(new ImageSourceBintr(name, \
+    #define DSL_IMAGE_STREAM_SOURCE_PTR std::shared_ptr<ImageStreamSourceBintr>
+    #define DSL_IMAGE_STREAM_SOURCE_NEW(name, filePath, isLive, fpsN, fpsD, timeout) \
+        std::shared_ptr<ImageStreamSourceBintr>(new ImageStreamSourceBintr(name, \
             filePath, isLive, fpsN, fpsD, timeout))
 
     #define DSL_RTSP_SOURCE_PTR std::shared_ptr<RtspSourceBintr>
@@ -559,23 +559,23 @@ namespace DSL
     //*********************************************************************************
 
     /**
-     * @class ImageSourceBintr
+     * @class ImageStreamSourceBintr
      * @brief 
      */
-    class ImageSourceBintr : public ResourceSourceBintr
+    class ImageStreamSourceBintr : public ResourceSourceBintr
     {
     public: 
     
         /**
-         * @brief Ctor for the ImageSourceBintr class
+         * @brief Ctor for the ImageStreamSourceBintr class
          */
-        ImageSourceBintr(const char* name, 
+        ImageStreamSourceBintr(const char* name, 
             const char* uri, bool isLive, uint fpsN, uint fpsD, uint timeout);
         
         /**
-         * @brief Dtor for the ImageSourceBintr class
+         * @brief Dtor for the ImageStreamSourceBintr class
          */
-        ~ImageSourceBintr();
+        ~ImageStreamSourceBintr();
 
         /**
          * @brief Links all Child Elementrs owned by this Source Bintr

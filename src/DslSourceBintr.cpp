@@ -920,7 +920,7 @@ namespace DSL
     
     //*********************************************************************************
 
-    ImageSourceBintr::ImageSourceBintr(const char* name, 
+    ImageStreamSourceBintr::ImageStreamSourceBintr(const char* name, 
         const char* uri, bool isLive, uint fpsN, uint fpsD, uint timeout)
         : ResourceSourceBintr(name, uri)
         , m_timeout(timeout)
@@ -948,13 +948,13 @@ namespace DSL
         AddChild(m_pSourceCapsFilter);
         AddChild(m_pImageOverlay);
         
-        // Source Ghost Pad for ImageSourceBintr
+        // Source Ghost Pad for ImageStreamSourceBintr
         m_pImageOverlay->AddGhostPadToParent("src");
 
         g_mutex_init(&m_timeoutTimerMutex);
     }
     
-    ImageSourceBintr::~ImageSourceBintr()
+    ImageStreamSourceBintr::~ImageStreamSourceBintr()
     {
         LOG_FUNC();
         
@@ -965,19 +965,19 @@ namespace DSL
         g_mutex_clear(&m_timeoutTimerMutex);
     }
 
-    bool ImageSourceBintr::LinkAll()
+    bool ImageStreamSourceBintr::LinkAll()
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("ImageSourceBintr '" << GetName() << "' is already in a linked state");
+            LOG_ERROR("ImageStreamSourceBintr '" << GetName() << "' is already in a linked state");
             return false;
         }
         if (!m_pSourceElement->LinkToSink(m_pSourceCapsFilter) or
             !m_pSourceCapsFilter->LinkToSink(m_pImageOverlay))
         {
-            LOG_ERROR("ImageSourceBintr '" << GetName() << "' failed to LinkAll");
+            LOG_ERROR("ImageStreamSourceBintr '" << GetName() << "' failed to LinkAll");
             return false;
         }
         m_isLinked = true;
@@ -991,13 +991,13 @@ namespace DSL
         return true;
     }
 
-    void ImageSourceBintr::UnlinkAll()
+    void ImageStreamSourceBintr::UnlinkAll()
     {
         LOG_FUNC();
 
         if (!m_isLinked)
         {
-            LOG_ERROR("ImageSourceBintr '" << GetName() << "' is not in a linked state");
+            LOG_ERROR("ImageStreamSourceBintr '" << GetName() << "' is not in a linked state");
             return;
         }
         if (m_timeoutTimerId)
@@ -1010,13 +1010,13 @@ namespace DSL
         if (!m_pSourceElement->UnlinkFromSink() or
             !m_pSourceCapsFilter->UnlinkFromSink())
         {
-            LOG_ERROR("ImageSourceBintr '" << GetName() << "' failed to UnlinkAll");
+            LOG_ERROR("ImageStreamSourceBintr '" << GetName() << "' failed to UnlinkAll");
             return;
         }    
         m_isLinked = false;
     }
     
-    int ImageSourceBintr::HandleDisplayTimeout()
+    int ImageStreamSourceBintr::HandleDisplayTimeout()
     {
         LOG_FUNC();
         
@@ -1030,20 +1030,20 @@ namespace DSL
         return 0;
     }
 
-    bool ImageSourceBintr::SetUri(const char* uri)
+    bool ImageStreamSourceBintr::SetUri(const char* uri)
     {
         LOG_FUNC();
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set File Path for ImageSourceBintr '" << GetName() 
+            LOG_ERROR("Unable to set File Path for ImageStreamSourceBintr '" << GetName() 
                 << "' as it's currently in use");
             return false;
         }
         std::string pathString(uri);
         if (pathString.empty())
         {
-            LOG_INFO("File Path for ImageSourceBintr '" << GetName() 
+            LOG_INFO("File Path for ImageStreamSourceBintr '" << GetName() 
                 << "' is empty. Source is in a non playable state");
             return true;
         }
@@ -1082,14 +1082,14 @@ namespace DSL
         return true;
     }
     
-    uint ImageSourceBintr::GetTimeout()
+    uint ImageStreamSourceBintr::GetTimeout()
     {
         LOG_FUNC();
         
         return m_timeout;
     }
 
-    bool ImageSourceBintr::SetTimeout(uint timeout)
+    bool ImageStreamSourceBintr::SetTimeout(uint timeout)
     {
         LOG_FUNC();
         
@@ -1890,7 +1890,7 @@ namespace DSL
 
     static int ImageSourceDisplayTimeoutHandler(gpointer pSource)
     {
-        return static_cast<ImageSourceBintr*>(pSource)->
+        return static_cast<ImageStreamSourceBintr*>(pSource)->
             HandleDisplayTimeout();
     }
     

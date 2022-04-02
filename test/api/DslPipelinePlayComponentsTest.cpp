@@ -1291,7 +1291,7 @@ SCENARIO( "A new Pipeline with a Image Source, Window Sink, and Tiled Display ca
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_image_new(image_source.c_str(), image_path1.c_str(), false, 
+        REQUIRE( dsl_source_image_stream_new(image_source.c_str(), image_path1.c_str(), false, 
             fps_n, fps_d, 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
@@ -1374,7 +1374,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Industrial Segmentatio
 //        REQUIRE( dsl_source_uri_new(source_name1.c_str(), image_path2.c_str(), 
 //            false, intr_decode, interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_source_image_new(image_source.c_str(), image_path1.c_str(), false, 
+        REQUIRE( dsl_source_image_stream_new(image_source.c_str(), image_path1.c_str(), false, 
             fps_n, fps_d, 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), ind_seg_infer_config_file.c_str(), 

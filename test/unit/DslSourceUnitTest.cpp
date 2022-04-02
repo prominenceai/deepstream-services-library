@@ -333,51 +333,51 @@ SCENARIO( "A UriSourceBintr can UnlinkAll all child Elementrs correctly",  "[Sou
     }
 }
 
-SCENARIO( "A UriSourceBintr can Add a Child DewarperBintr",  "[SourceBintr]" )
-{
-    GIVEN( "A new UriSourceBintr and DewarperBintr in memory" ) 
-    {
-        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
+//SCENARIO( "A UriSourceBintr can Add a Child DewarperBintr",  "[SourceBintr]" )
+//{
+//    GIVEN( "A new UriSourceBintr and DewarperBintr in memory" ) 
+//    {
+//        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+//            sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
+//
+//        DSL_DEWARPER_PTR pDewarperBintr = 
+//            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+//
+//        WHEN( "The DewarperBintr is added to UriSourceBintr" )
+//        {
+//            REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr) == true );
+//
+//            THEN( "The UriSourceBintr correctly returns that it has a dewarper" )
+//            {
+//                REQUIRE( pSourceBintr->HasDewarperBintr() == true );
+//            }
+//        }
+//    }
+//}
 
-        DSL_DEWARPER_PTR pDewarperBintr = 
-            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
-
-        WHEN( "The DewarperBintr is added to UriSourceBintr" )
-        {
-            REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr) == true );
-
-            THEN( "The UriSourceBintr correctly returns that it has a dewarper" )
-            {
-                REQUIRE( pSourceBintr->HasDewarperBintr() == true );
-            }
-        }
-    }
-}
-
-SCENARIO( "A UriSourceBintr can Remove a Child DewarperBintr",  "[SourceBintr]" )
-{
-    GIVEN( "A new UriSourceBintr with a child DewarperBintr" ) 
-    {
-        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
-
-        DSL_DEWARPER_PTR pDewarperBintr = 
-            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
-
-        REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr) == true );
-
-        WHEN( "The DewarperBintr is removed from the UriSourceBintr" )
-        {
-            REQUIRE( pSourceBintr->RemoveDewarperBintr() == true );
-            
-            THEN( "The UriSourceBintr correctly returns that it does not have a dewarper" )
-            {
-                REQUIRE( pSourceBintr->HasDewarperBintr() == false );
-            }
-        }
-    }
-}
+//SCENARIO( "A UriSourceBintr can Remove a Child DewarperBintr",  "[SourceBintr]" )
+//{
+//    GIVEN( "A new UriSourceBintr with a child DewarperBintr" ) 
+//    {
+//        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+//            sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
+//
+//        DSL_DEWARPER_PTR pDewarperBintr = 
+//            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+//
+//        REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr) == true );
+//
+//        WHEN( "The DewarperBintr is removed from the UriSourceBintr" )
+//        {
+//            REQUIRE( pSourceBintr->RemoveDewarperBintr() == true );
+//            
+//            THEN( "The UriSourceBintr correctly returns that it does not have a dewarper" )
+//            {
+//                REQUIRE( pSourceBintr->HasDewarperBintr() == false );
+//            }
+//        }
+//    }
+//}
 
 SCENARIO( "A UriSourceBintr can ensure a single Child DewarperBintr",  "[SourceBintr]" )
 {
@@ -891,7 +891,7 @@ SCENARIO( "A new ImageSourceBintr is created correctly",  "[SourceBintr]" )
 
         WHEN( "The ImageSourceBintr is created " )
         {
-            DSL_IMAGE_SOURCE_PTR pSourceBintr = DSL_IMAGE_SOURCE_NEW(
+            DSL_IMAGE_STREAM_SOURCE_PTR pSourceBintr = DSL_IMAGE_STREAM_SOURCE_NEW(
                 sourceName.c_str(), jpgFilePath1.c_str(), false, 1, 1, 0);
 
             THEN( "All memeber variables are initialized correctly" )
@@ -918,7 +918,7 @@ SCENARIO( "An ImageSourceBintr can LinkAll child Elementrs correctly",  "[Source
 {
     GIVEN( "A new ImageSourceBintr in memory" ) 
     {
-        DSL_IMAGE_SOURCE_PTR pSourceBintr = DSL_IMAGE_SOURCE_NEW(
+        DSL_IMAGE_STREAM_SOURCE_PTR pSourceBintr = DSL_IMAGE_STREAM_SOURCE_NEW(
             sourceName.c_str(), jpgFilePath1.c_str(), false, 1, 1, 0);
 
         WHEN( "The ImageSourceBintr is called to LinkAll" )
@@ -937,7 +937,7 @@ SCENARIO( "An ImageSourceBintr can UnlinkAll all child Elementrs correctly",  "[
 {
     GIVEN( "A new, linked ImageSourceBintr " ) 
     {
-        DSL_IMAGE_SOURCE_PTR pSourceBintr = DSL_IMAGE_SOURCE_NEW(
+        DSL_IMAGE_STREAM_SOURCE_PTR pSourceBintr = DSL_IMAGE_STREAM_SOURCE_NEW(
             sourceName.c_str(), jpgFilePath1.c_str(), true, 1, 1, 0);
 
         REQUIRE( pSourceBintr->LinkAll() == true );

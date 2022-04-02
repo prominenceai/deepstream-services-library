@@ -164,7 +164,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(UsbSourceBintr)) and  \
         !components[name]->IsType(typeid(UriSourceBintr)) and  \
         !components[name]->IsType(typeid(FileSourceBintr)) and  \
-        !components[name]->IsType(typeid(ImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(ImageStreamSourceBintr)) and  \
         !components[name]->IsType(typeid(RtspSourceBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Source"); \

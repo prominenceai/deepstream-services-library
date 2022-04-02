@@ -2813,7 +2813,7 @@ DslReturnType dsl_source_file_repeat_enabled_get(const wchar_t* name, boolean* e
 DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
- * @brief creates a new, uniquely named Image Source component that
+ * @brief creates a new, uniquely named Image Stream Source component that
  * streams an image at a specified framerate
  * @param[in] name Unique name for the Image Source
  * @param[in] file_path absolute or relative path to the image file to play
@@ -2823,7 +2823,7 @@ DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name, boolean en
  * @param[in] timeout source will send an EOS event on timeout, set to 0 to disable
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_image_new(const wchar_t* name, 
+DslReturnType dsl_source_image_stream_new(const wchar_t* name, 
     const wchar_t* file_path, boolean is_live, uint fps_n, uint fps_d, uint timeout);
 
 /**
@@ -2832,7 +2832,7 @@ DslReturnType dsl_source_image_new(const wchar_t* name,
  * @param[out] FilePath in use by the Image Source
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_image_path_get(const wchar_t* name, const wchar_t** file_path);
+DslReturnType dsl_source_image_stream_path_get(const wchar_t* name, const wchar_t** file_path);
 
 /**
  * @brief Sets the current File Path for the named JPEG Image Source to use
@@ -2840,7 +2840,7 @@ DslReturnType dsl_source_image_path_get(const wchar_t* name, const wchar_t** fil
  * @param[in] file_path new file path to use by the Image Source
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_image_path_set(const wchar_t* name, const wchar_t* file_path);
+DslReturnType dsl_source_image_stream_path_set(const wchar_t* name, const wchar_t* file_path);
 
 /**
  * @brief Gets the current Timeout setting for the Image Source
@@ -2849,7 +2849,7 @@ DslReturnType dsl_source_image_path_set(const wchar_t* name, const wchar_t* file
  * timer is disabled
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_image_timeout_get(const wchar_t* name, uint* timeout);
+DslReturnType dsl_source_image_stream_timeout_get(const wchar_t* name, uint* timeout);
 
 /**
  * @brief Sets the current Timeout setting for the Image Source
@@ -2857,7 +2857,7 @@ DslReturnType dsl_source_image_timeout_get(const wchar_t* name, uint* timeout);
  * @param[in] timeout new timeout value for the EOS Timer (in seconds), 0 to disable. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_image_timeout_set(const wchar_t* name, uint timeout);
+DslReturnType dsl_source_image_stream_timeout_set(const wchar_t* name, uint timeout);
     
 /**
  * @brief creates a new, uniquely named RTSP Source component

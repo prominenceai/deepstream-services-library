@@ -1210,9 +1210,9 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
     }
 }
 
-SCENARIO( "A Pipeline with an ImageSourceBintr is able to Link/UnlinkAll", "[PipelineBintr]" )
+SCENARIO( "A Pipeline with an ImageStreamSourceBintr is able to Link/UnlinkAll", "[PipelineBintr]" )
 {
-    GIVEN( "A new ImageSourceBintr, PrimaryGieBintr, TilerBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    GIVEN( "A new ImageStreamSourceBintr, PrimaryGieBintr, TilerBintr, OverlaySinkBintr, and a PipelineBintr" ) 
     {
         std::string sourceName = "image-source";
         std::string filePath = "./test/streams/sample_720p.jpg";
@@ -1237,8 +1237,8 @@ SCENARIO( "A Pipeline with an ImageSourceBintr is able to Link/UnlinkAll", "[Pip
         uint sinkW(0);
         uint sinkH(0);
 
-        DSL_IMAGE_SOURCE_PTR pSourceBintr = 
-            DSL_IMAGE_SOURCE_NEW(sourceName.c_str(), filePath.c_str(), isLive, fps_n, fps_d, timeout);
+        DSL_IMAGE_STREAM_SOURCE_PTR pSourceBintr = 
+            DSL_IMAGE_STREAM_SOURCE_NEW(sourceName.c_str(), filePath.c_str(), isLive, fps_n, fps_d, timeout);
 
         DSL_TILER_PTR pTilerBintr = 
             DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
