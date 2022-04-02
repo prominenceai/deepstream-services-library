@@ -731,7 +731,7 @@ SCENARIO( "A new Image Source returns the correct attribute values", "[source-ap
 
         WHEN( "A new Image Source is created" ) 
         {
-            REQUIRE( dsl_source_image_new(source_name.c_str(), image_path.c_str(),
+            REQUIRE( dsl_source_image_stream_new(source_name.c_str(), image_path.c_str(),
                 is_live, fps_n, fps_d, timeout) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
@@ -757,23 +757,23 @@ SCENARIO( "A Image Source Component can Set/Get its Display Timeout setting", "[
 {
     GIVEN( "A new File Source" )
     {
-        REQUIRE( dsl_source_image_new(source_name.c_str(), image_path.c_str(),
+        REQUIRE( dsl_source_image_stream_new(source_name.c_str(), image_path.c_str(),
             is_live, fps_n, fps_d, timeout) == DSL_RESULT_SUCCESS );
 
         uint retTimeout(321);
-        REQUIRE( dsl_source_image_timeout_get(source_name.c_str(), 
+        REQUIRE( dsl_source_image_stream_timeout_get(source_name.c_str(), 
             &retTimeout) == DSL_RESULT_SUCCESS );
         REQUIRE( retTimeout == timeout );
 
         WHEN( "The Source's Timeout setting is set" ) 
         {
             uint newTimeout(444);
-            REQUIRE( dsl_source_image_timeout_set(source_name.c_str(), 
+            REQUIRE( dsl_source_image_stream_timeout_set(source_name.c_str(), 
                 newTimeout) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct value is returned on get" )
             {
-                REQUIRE( dsl_source_image_timeout_get(source_name.c_str(), 
+                REQUIRE( dsl_source_image_stream_timeout_get(source_name.c_str(), 
                     &retTimeout) == DSL_RESULT_SUCCESS );
                 REQUIRE( retTimeout == newTimeout );
                     
@@ -799,7 +799,7 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_uri_new( source_name.c_str(), NULL, false, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_rtsp_new( NULL, NULL, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_rtsp_new( source_name.c_str(), NULL, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_image_new( NULL, NULL, false, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_image_stream_new( NULL, NULL, false, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_file_new( NULL, NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
                 // Note NULL file_path is valid for File and Image Sources
 

@@ -115,7 +115,6 @@
       <File Name="../test/api/DslPipelineMgtApiTest.cpp"/>
       <File Name="../test/api/DslPipelinePlayComponentsTest.cpp"/>
       <File Name="../test/api/DslPipelinePlayTrackerTest.cpp"/>
-      <File Name="../test/api/DslPipelinePlayTritonTest.cpp"/>
       <File Name="../test/api/DslPipelineSourcesApiTest.cpp"/>
       <File Name="../test/api/DslPipelineStateMgt.cpp"/>
       <File Name="../test/api/DslPipelineStreamMuxerApiTest.cpp"/>
@@ -130,7 +129,6 @@
       <File Name="../test/api/DslTapApiTest.cpp"/>
       <File Name="../test/api/DslTeeApiTest.cpp"/>
       <File Name="../test/api/DslTilerApiTest.cpp"/>
-      <File Name="../test/api/DslTisApiTest.cpp"/>
       <File Name="../test/api/DslTrackerApiTest.cpp"/>
       <File Name="../test/api/DslInfoApiTest.cpp"/>
     </VirtualDirectory>
@@ -157,9 +155,7 @@
       <File Name="../test/unit/DslPipelineUnitTest.cpp"/>
       <File Name="../test/unit/DslPlayerUnitTest.cpp"/>
       <File Name="../test/unit/DslPrimaryGieUnitTest.cpp"/>
-      <File Name="../test/unit/DslPrimaryTisUnitTest.cpp"/>
       <File Name="../test/unit/DslSecondaryGieUnitTest.cpp"/>
-      <File Name="../test/unit/DslSecondaryTisUnitTest.cpp"/>
       <File Name="../test/unit/DslSegVisualUnitTest.cpp"/>
       <File Name="../test/unit/DslSinkUnitTest.cpp"/>
       <File Name="../test/unit/DslSourceUnitTest.cpp"/>

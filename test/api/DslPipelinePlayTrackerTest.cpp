@@ -31,6 +31,19 @@ THE SOFTWARE.
 // ---------------------------------------------------------------------------
 // Shared Test Inputs 
 
+static const std::wstring primary_gie_name(L"primary-gie");
+static std::wstring primary_infer_config_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
+static std::wstring primary_model_engine_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+
+static const std::wstring secondary_gie_name(L"secondary-gie");
+static const std::wstring sgie_infer_config_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carcolor.txt");
+static const std::wstring sgie_model_engine_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine");
+
+
 static const std::wstring primary_tis_name(L"primary-tis");
 static const std::wstring ptis_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_plan_engine_primary.txt");
@@ -38,6 +51,7 @@ static const std::wstring ptis_infer_config_file(
 static const std::wstring secondary_tis_name(L"secondary-tis");
 static const std::wstring stis_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_secondary_plan_engine_carcolor.txt");
+
     
 static const std::wstring dcf_tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
@@ -72,10 +86,10 @@ static const uint sink_width(1280);
 static const uint sink_height(720);
 
 
-SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker with its Batch Processing \
+SCENARIO( "A new Pipeline with a Primary GIE, DCF Tracker with its Batch Processing \
     and Past Frame Reporting enabled", "[tracker-play]" )
 {
-    GIVEN( "A Pipeline, File source, Primary TIS, KTL Tracker, OSD, and Overlay Sink" ) 
+    GIVEN( "A Pipeline, File source, Primary GIE, KTL Tracker, OSD, and Overlay Sink" ) 
     {
         boolean inference_interval(4);
         boolean batch_processing_enabled(true);
@@ -92,9 +106,9 @@ SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker with its Batch Process
         REQUIRE( dsl_source_file_new(source_name4.c_str(), file_path.c_str(), 
             false) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_tis_primary_new(primary_tis_name.c_str(), 
-            ptis_infer_config_file.c_str(), inference_interval)
-            == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 
+            0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tracker_dcf_new(dcf_tracker_name.c_str(), NULL, tracker_width, tracker_height,
             batch_processing_enabled, past_frame_reporting_enabled) 
@@ -109,7 +123,7 @@ SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker with its Batch Process
             offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"file-source-1", L"file-source-2", 
-            L"file-source-3", L"file-source-4", L"primary-tis", 
+            L"file-source-3", L"file-source-4", L"primary-gie", 
             L"dcf-tracker", L"tiler", L"on-screen-display", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
@@ -131,9 +145,9 @@ SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker with its Batch Process
     }
 }
 
-SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker with its Batch Processing and Past Frame Reporting disabled", "[tracker-play]" )
+SCENARIO( "A new Pipeline with a Primary GIE, DCF Tracker with its Batch Processing and Past Frame Reporting disabled", "[tracker-play]" )
 {
-    GIVEN( "A Pipeline, File source, Primary TIS, KTL Tracker, OSD, and Overlay Sink" ) 
+    GIVEN( "A Pipeline, File source, Primary GIE, KTL Tracker, OSD, and Overlay Sink" ) 
     {
         boolean inference_interval(4);
         boolean batch_processing_enabled(false);
@@ -144,9 +158,9 @@ SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker with its Batch Process
         REQUIRE( dsl_source_file_new(source_name1.c_str(), file_path.c_str(), 
             false) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_tis_primary_new(primary_tis_name.c_str(), 
-            ptis_infer_config_file.c_str(), inference_interval)
-            == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 
+            0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tracker_dcf_new(dcf_tracker_name.c_str(), NULL, tracker_width, tracker_height,
             batch_processing_enabled, past_frame_reporting_enabled) 
@@ -158,7 +172,7 @@ SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker with its Batch Process
         REQUIRE( dsl_sink_window_new(sink_name.c_str(),
             offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"file-source-1", L"primary-tis", 
+        const wchar_t* components[] = {L"file-source-1", L"primary-gie", 
             L"dcf-tracker", L"on-screen-display", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
@@ -180,9 +194,9 @@ SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker with its Batch Process
     }
 }
 
-SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker and optional config file", "[tracker-play]" )
+SCENARIO( "A new Pipeline with a Primary GIE, DCF Tracker and optional config file", "[tracker-play]" )
 {
-    GIVEN( "A Pipeline, File source, Primary TIS, KTL Tracker, OSD, and Overlay Sink" ) 
+    GIVEN( "A Pipeline, File source, Primary GIE, KTL Tracker, OSD, and Overlay Sink" ) 
     {
         boolean inference_interval(4);
         boolean batch_processing_enabled(true);
@@ -199,9 +213,9 @@ SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker and optional config fi
         REQUIRE( dsl_source_file_new(source_name4.c_str(), file_path.c_str(), 
             false) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_tis_primary_new(primary_tis_name.c_str(), 
-            ptis_infer_config_file.c_str(), inference_interval)
-            == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 
+            0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tracker_dcf_new(dcf_tracker_name.c_str(), dcf_tracker_config_file.c_str(), tracker_width, tracker_height,
             batch_processing_enabled, past_frame_reporting_enabled) 
@@ -216,7 +230,7 @@ SCENARIO( "A new Pipeline with a Primary TIS, DCF Tracker and optional config fi
             offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"file-source-1", L"file-source-2", 
-            L"file-source-3", L"file-source-4", L"primary-tis", 
+            L"file-source-3", L"file-source-4", L"primary-gie", 
             L"dcf-tracker", L"tiler", L"on-screen-display", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 

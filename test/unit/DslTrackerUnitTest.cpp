@@ -179,7 +179,7 @@ SCENARIO( "An IOU Tracker is created correctly", "[TrackerBintr]" )
         std::string trackerName("iou-tracker");
         uint width(200);
         uint height(100);
-        std::string defConfigFile("./test/configs/iou_config.txt");
+        std::string defConfigFile("/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.ym");
 
         WHEN( "The IOU Tracker is created" )
         {

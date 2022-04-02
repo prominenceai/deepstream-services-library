@@ -28,6 +28,36 @@ THE SOFTWARE.
 
 using namespace DSL;
 
+static const std::string pipelineSGiesName = "pipeline-sgies";
+
+static const std::string primaryGieName("primary-gie");
+static const std::string secondaryGieName("secondary-gie");
+static const std::string pgieInferConfigFile(
+    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
+static const std::string pgieModelEngineFile(
+    "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+
+static const std::string secondaryGieName1("secondary-gie-1");
+static const std::string secondaryGieName2("secondary-gie-2");
+static const std::string secondaryGieName3("secondary-gie-3");
+static const std::string sgieInferConfigFile1(
+    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carcolor.txt");
+static const std::string sgieModelEngineFile1(
+    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine");
+static const std::string sgieInferConfigFile2(
+    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carmake.txt");
+static const std::string sgieModelEngineFile2(
+    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_fp16.engine");
+static const std::string sgieInferConfigFile3(
+    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt");
+static const std::string sgieModelEngineFile3(
+    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18.caffemodel_b8_gpu0_fp16.engine");
+
+static const uint primaryUniqueId = std::hash<std::string>{}(primaryGieName.c_str());
+static const uint secondaryUniqueId = std::hash<std::string>{}(secondaryGieName.c_str());
+
+static const uint interval(1);
+
 SCENARIO( "A PipelineSInfersBintr is created correctly", "[PipelineSInfersBintr]" )
 {
     GIVEN( "A name for a PipelineSInfersBintr" ) 
@@ -52,18 +82,10 @@ SCENARIO( "A SecondaryInferBintr can be added to a PipelineSInfersBintr", "[Pipe
 {
     GIVEN( "A new PipelineSInfersBintr and SecondearyGieBintr" ) 
     {
-        std::string pipelineSGiesName = "pipeline-sgies";
-
-        std::string primaryGieName = "primary-gie";
-        std::string secondaryGieName = "secondary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine";
-        uint primaryUniqueId = std::hash<std::string>{}(primaryGieName.c_str());
-        uint secondaryUniqueId = std::hash<std::string>{}(secondaryGieName.c_str());
 
         DSL_SECONDARY_INFER_PTR pSecondaryInferBintr = 
-            DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), primaryGieName.c_str(), 0, DSL_INFER_TYPE_GIE);
+            DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), sgieInferConfigFile1.c_str(), 
+            sgieModelEngineFile1.c_str(), primaryGieName.c_str(), 0, DSL_INFER_TYPE_GIE);
 
         REQUIRE( pSecondaryInferBintr->GetUniqueId() == secondaryUniqueId);
         REQUIRE( pSecondaryInferBintr->SetInferOnName(primaryGieName.c_str()) == true );
@@ -90,19 +112,10 @@ SCENARIO( "A SecondaryInferBintr can be removed from a PipelineSInfersBintr", "[
 {
     GIVEN( "A new PipelineSInfersBintr with a child SecondearyGieBintr" ) 
     {
-        std::string pipelineSGiesName = "pipeline-sgies";
-
-        std::string primaryGieName = "primary-gie";
-        std::string secondaryGieName = "secondary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine";
-        uint secondaryUniqueId = std::hash<std::string>{}(secondaryGieName.c_str());
-
-        uint interval(1);
 
         DSL_SECONDARY_INFER_PTR pSecondaryInferBintr = 
-            DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
+            DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), sgieInferConfigFile1.c_str(), 
+            sgieModelEngineFile1.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         REQUIRE( pSecondaryInferBintr->GetUniqueId() == secondaryUniqueId);
 
@@ -130,18 +143,9 @@ SCENARIO( "A SecondaryInferBintr can only be added to a PipelineSInfersBintr onc
 {
     GIVEN( "A new PipelineSInfersBintr with a child SecondearyGieBintr" ) 
     {
-        std::string pipelineSGiesName = "pipeline-sgies";
-
-        std::string primaryGieName = "primary-gie";
-        std::string secondaryGieName = "secondary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine";
-
-        uint interval(1);
-
         DSL_SECONDARY_INFER_PTR pSecondaryInferBintr = 
-            DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
+            DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), sgieInferConfigFile1.c_str(), 
+            sgieModelEngineFile1.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());
@@ -164,18 +168,9 @@ SCENARIO( "A PipelineSInfersBintr can not LinkAll without setting the PrimaryGie
 {
     GIVEN( "A new PipelineSInfersBintr with a child SecondearyGieBintr" ) 
     {
-        std::string pipelineSGiesName = "pipeline-sgies";
-
-        std::string primaryGieName = "primary-gie";
-        std::string secondaryGieName = "secondary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine";
-
-        uint interval(1);
-
         DSL_SECONDARY_INFER_PTR pSecondaryInferBintr = 
-            DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
+            DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), sgieInferConfigFile1.c_str(), 
+            sgieModelEngineFile1.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());
@@ -198,15 +193,6 @@ SCENARIO( "A PipelineSInfersBintr can not LinkAll without setting the Batch Size
 {
     GIVEN( "A new  PrimaryGieBintr and PipelineSInfersBintr with a child SecondearyGieBintr" ) 
     {
-        std::string pipelineSGiesName = "pipeline-sgies";
-
-        std::string primaryGieName = "primary-gie";
-        std::string pgieInferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string pgieModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine";
-
-        std::string secondaryGieName = "secondary-gie";
-        std::string sgieInferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
-        std::string sgieModelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine";
         uint interval(1);
 
         DSL_PRIMARY_INFER_PTR pPrimaryGieBintr = 
@@ -214,8 +200,8 @@ SCENARIO( "A PipelineSInfersBintr can not LinkAll without setting the Batch Size
             pgieModelEngineFile.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_SECONDARY_INFER_PTR pSecondaryInferBintr = 
-            DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), sgieInferConfigFile.c_str(), 
-            sgieModelEngineFile.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
+            DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), sgieInferConfigFile1.c_str(), 
+            sgieModelEngineFile1.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());
@@ -240,15 +226,6 @@ SCENARIO( "A PipelineSInfersBintr with its PrimaryGieId and Batch Size set can L
 {
     GIVEN( "A new PipelineSInfersBintr with a child SecondearyGieBintr" ) 
     {
-        std::string pipelineSGiesName = "pipeline-sgies";
-
-        std::string primaryGieName = "primary-gie";
-        std::string pgieInferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string pgieModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine";
-
-        std::string secondaryGieName = "secondary-gie";
-        std::string sgieInferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
-        std::string sgieModelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine";
         uint interval(1);
 
         DSL_PRIMARY_INFER_PTR pPrimaryGieBintr = 
@@ -256,8 +233,8 @@ SCENARIO( "A PipelineSInfersBintr with its PrimaryGieId and Batch Size set can L
             pgieModelEngineFile.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_SECONDARY_INFER_PTR pSecondaryInferBintr = 
-            DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), sgieInferConfigFile.c_str(), 
-            sgieModelEngineFile.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
+            DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), sgieInferConfigFile1.c_str(), 
+            sgieModelEngineFile1.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());
@@ -282,15 +259,6 @@ SCENARIO( "A PipelineSInfersBintr Linked with a SecondaryInferBintr can UnlinkAl
 {
     GIVEN( "A new PipelineSInfersBintr Linked with a child SecondearyGieBintr" ) 
     {
-        std::string pipelineSGiesName = "pipeline-sgies";
-
-        std::string primaryGieName = "primary-gie";
-        std::string pgieInferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string pgieModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine";
-
-        std::string secondaryGieName = "secondary-gie";
-        std::string sgieInferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
-        std::string sgieModelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine";
         uint interval(1);
 
         DSL_PRIMARY_INFER_PTR pPrimaryGieBintr = 
@@ -298,8 +266,8 @@ SCENARIO( "A PipelineSInfersBintr Linked with a SecondaryInferBintr can UnlinkAl
             pgieModelEngineFile.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_SECONDARY_INFER_PTR pSecondaryInferBintr = 
-            DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), sgieInferConfigFile.c_str(), 
-            sgieModelEngineFile.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
+            DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), sgieInferConfigFile1.c_str(), 
+            sgieModelEngineFile1.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());
@@ -327,17 +295,6 @@ SCENARIO( "A PipelineSInfersBintr with several SecondaryInferBintrs can LinkAll"
 {
     GIVEN( "A new PipelineSInfersBintr with three child SecondearyGieBintrs" ) 
     {
-        std::string pipelineSGiesName = "pipeline-sgies";
-
-        std::string primaryGieName = "primary-gie";
-        std::string pgieInferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string pgieModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine";
-
-        std::string secondaryGieName1 = "secondary-gie-1";
-        std::string secondaryGieName2 = "secondary-gie-2";
-        std::string secondaryGieName3 = "secondary-gie-3";
-        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine";
         uint interval(0);
 
         DSL_PRIMARY_INFER_PTR pPrimaryGieBintr = 
@@ -345,16 +302,16 @@ SCENARIO( "A PipelineSInfersBintr with several SecondaryInferBintrs can LinkAll"
             pgieModelEngineFile.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_SECONDARY_INFER_PTR pSecondaryInferBintr1 = 
-            DSL_SECONDARY_INFER_NEW(secondaryGieName1.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
+            DSL_SECONDARY_INFER_NEW(secondaryGieName1.c_str(), sgieInferConfigFile1.c_str(), 
+            sgieModelEngineFile1.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_SECONDARY_INFER_PTR pSecondaryInferBintr2 = 
-            DSL_SECONDARY_INFER_NEW(secondaryGieName2.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
+            DSL_SECONDARY_INFER_NEW(secondaryGieName2.c_str(), sgieInferConfigFile2.c_str(), 
+            sgieModelEngineFile2.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_SECONDARY_INFER_PTR pSecondaryInferBintr3 = 
-            DSL_SECONDARY_INFER_NEW(secondaryGieName3.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
+            DSL_SECONDARY_INFER_NEW(secondaryGieName3.c_str(), sgieInferConfigFile3.c_str(), 
+            sgieModelEngineFile3.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());
@@ -385,17 +342,6 @@ SCENARIO( "A PipelineSInfersBintr with several SecondaryInferBintrs can UnlinkAl
 {
     GIVEN( "A new PipelineSInfersBintr with a child SecondearyGieBintr" ) 
     {
-        std::string pipelineSGiesName = "pipeline-sgies";
-
-        std::string primaryGieName = "primary-gie";
-        std::string pgieInferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string pgieModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine";
-
-        std::string secondaryGieName1 = "secondary-gie-1";
-        std::string secondaryGieName2 = "secondary-gie-2";
-        std::string secondaryGieName3 = "secondary-gie-3";
-        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine";
         uint interval(0);
 
         DSL_PRIMARY_INFER_PTR pPrimaryGieBintr = 
@@ -403,16 +349,16 @@ SCENARIO( "A PipelineSInfersBintr with several SecondaryInferBintrs can UnlinkAl
             pgieModelEngineFile.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_SECONDARY_INFER_PTR pSecondaryInferBintr1 = 
-            DSL_SECONDARY_INFER_NEW(secondaryGieName1.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
+            DSL_SECONDARY_INFER_NEW(secondaryGieName1.c_str(), sgieInferConfigFile1.c_str(), 
+            sgieModelEngineFile1.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_SECONDARY_INFER_PTR pSecondaryInferBintr2 = 
-            DSL_SECONDARY_INFER_NEW(secondaryGieName2.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
+            DSL_SECONDARY_INFER_NEW(secondaryGieName2.c_str(), sgieInferConfigFile2.c_str(), 
+            sgieModelEngineFile2.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_SECONDARY_INFER_PTR pSecondaryInferBintr3 = 
-            DSL_SECONDARY_INFER_NEW(secondaryGieName3.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
+            DSL_SECONDARY_INFER_NEW(secondaryGieName3.c_str(), sgieInferConfigFile3.c_str(), 
+            sgieModelEngineFile2.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());

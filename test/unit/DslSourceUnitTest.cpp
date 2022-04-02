@@ -36,7 +36,8 @@ static uint intrDecode(false);
 static uint dropFrameInterval(0);
 
 static std::string dewarperName("dewarper");
-static std::string defConfigFile("./test/configs/config_dewarper.txt");
+static const std::string defConfigFile(
+"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/config_dewarper.txt");
 
 static std::string rtspSourceName("rtsp-source");
 static std::string rtspUri("rtsp://208.72.70.171:80/mjpg/video.mjpg");
@@ -891,7 +892,7 @@ SCENARIO( "A new ImageSourceBintr is created correctly",  "[SourceBintr]" )
 
         WHEN( "The ImageSourceBintr is created " )
         {
-            DSL_IMAGE_SOURCE_PTR pSourceBintr = DSL_IMAGE_SOURCE_NEW(
+            DSL_IMAGE_STREAM_SOURCE_PTR pSourceBintr = DSL_IMAGE_STREAM_SOURCE_NEW(
                 sourceName.c_str(), jpgFilePath1.c_str(), false, 1, 1, 0);
 
             THEN( "All memeber variables are initialized correctly" )
@@ -918,7 +919,7 @@ SCENARIO( "An ImageSourceBintr can LinkAll child Elementrs correctly",  "[Source
 {
     GIVEN( "A new ImageSourceBintr in memory" ) 
     {
-        DSL_IMAGE_SOURCE_PTR pSourceBintr = DSL_IMAGE_SOURCE_NEW(
+        DSL_IMAGE_STREAM_SOURCE_PTR pSourceBintr = DSL_IMAGE_STREAM_SOURCE_NEW(
             sourceName.c_str(), jpgFilePath1.c_str(), false, 1, 1, 0);
 
         WHEN( "The ImageSourceBintr is called to LinkAll" )
@@ -937,7 +938,7 @@ SCENARIO( "An ImageSourceBintr can UnlinkAll all child Elementrs correctly",  "[
 {
     GIVEN( "A new, linked ImageSourceBintr " ) 
     {
-        DSL_IMAGE_SOURCE_PTR pSourceBintr = DSL_IMAGE_SOURCE_NEW(
+        DSL_IMAGE_STREAM_SOURCE_PTR pSourceBintr = DSL_IMAGE_STREAM_SOURCE_NEW(
             sourceName.c_str(), jpgFilePath1.c_str(), true, 1, 1, 0);
 
         REQUIRE( pSourceBintr->LinkAll() == true );
