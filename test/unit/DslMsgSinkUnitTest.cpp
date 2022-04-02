@@ -29,15 +29,17 @@ THE SOFTWARE.
 using namespace DSL;
 
 static std::string sinkName("msg-sink");
-static std::string conversionConfigFile("./test/configs/dstest4_msgconv_config.txt");
+static std::string conversionConfigFile(
+    "/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-test4/dstest4_msgconv_config.txt");
 //static uint payloadType(PAYLOAD_DEEPSTREAM_MINIMAL);
 static uint payloadType(0);
 static std::string protocolLib("/opt/nvidia/deepstream/deepstream/lib/libnvds_azure_proto.so");
-//static std::string connectionString("HostName=<my-hub>.azure-devices.net;DeviceId=<device_id>;SharedAccessKey=<my-policy-key>"); 
-static std::string connectionString(
-    "HostName=my-hub.azure-devices.net;DeviceId=1234;SharedAccessKey=abcd"); 
-static std::string brokerConfigFile("/test/configs/cfg_azure.txt");
+static std::string brokerConfigFile(
+    "/opt/nvidia/deepstream/deepstream/sources/libs/azure_protocol_adaptor/device_client/cfg_azure.txt");
 static std::string topic("DSL_MESSAGE_TOPIC");
+
+static std::string connectionString(
+    "HostName=prominenceai-hub.azure-devices.net;DeviceId=nano1;SharedAccessKey=abcdefghijklmnopqrstuvwzyz");
 
 SCENARIO( "A new MsgSinkBintr is created correctly",  "[MsgSinkBintr]" )
 {

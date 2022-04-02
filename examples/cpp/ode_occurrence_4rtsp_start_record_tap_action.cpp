@@ -38,9 +38,13 @@ std::wstring src_url_4 = L"rtsp://user:pwd!@192.168.1.67:554/Streaming/Channels/
 // These must be set to point to the location of these files on your network.  
 // Examples for your use can often be found in your Deepstream install, i.e. /opt/nvidia/deepstream/deepstream-6.0/samples
 // Filespecs for the Primary GIE    
-std::wstring primary_infer_config_file = L"./test/configs/config_infer_primary_nano.txt";    
-std::wstring primary_model_engine_file = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine";
-std::wstring tracker_config_file = L"./test/configs/iou_config.txt";
+std::wstring primary_infer_config_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
+std::wstring primary_model_engine_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+std::wstring tracker_config_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
+
 
 int TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH;
 int TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT;

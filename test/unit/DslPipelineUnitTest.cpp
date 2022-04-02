@@ -32,6 +32,58 @@ THE SOFTWARE.
 
 using namespace DSL;
 
+static const std::string sourceName("source");
+static const std::string sourceName1("source-1");
+static const std::string sourceName2("source-2");
+static const std::string sourceName3("source-3");
+static const std::string sourceName4("source-4");
+
+static const std::string filePath(
+    "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
+
+static const std::string imagePath("/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg");
+
+static const std::string sinkName("sink");
+static const std::string sinkName1("sink-1");
+static const std::string sinkName2("sink-2");
+static const std::string sinkName3("sink-3");
+static const std::string sinkName4("sink-4");
+
+static const std::string tilerName("tiler");
+static const std::string pipelineName("pipeline");
+static const std::string primaryGieName("primary-gie");
+static const std::string primaryInferConfigFile(
+    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
+static const std::string primaryModelEngineFile(
+    "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+    
+static const std::string demuxerName("demuxer");
+static const std::string trackerName("ktl-tracker");
+static const uint trackerW(300);
+static const uint trackerH(150);
+
+static const std::string secondaryGieName("secondary-gie");
+static const std::string secondaryInferConfigFile(
+    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carmake.txt");
+static const std::string secondaryModelEngineFile(
+    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_fp16.engine");
+
+static const std::string osdName("on-screen-tiler");
+        
+static const uint sourceW(1280);
+static const uint sourceH(720);
+static const uint interval(1);
+static const uint fps_n(1);
+static const uint fps_d(30);
+static const uint tilerW(1280);
+static const uint tilerH(720);
+static const uint displayId(0);
+static const uint depth(0);
+static const uint offsetX(0);
+static const uint offsetY(0);
+static const uint windowW(1280);
+static const uint windowH(720);
+
 SCENARIO( "A New PipelineBintr is created correctly", "[PipelineBintr]" )
 {
     GIVEN( "A new name for a PipelineBintr" ) 
@@ -59,24 +111,11 @@ SCENARIO( "A New PipelineBintr will fail to LinkAll with insufficient Components
 {
     GIVEN( "A new CsiSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
     {
-        std::string sourceName = "csi-source";
-        std::string sinkName = "overlay-sink";
-        std::string pipelineName = "pipeline";
-
-        uint tilerW(1280);
-        uint tilerH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
-
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
 
         DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
 
@@ -105,8 +144,6 @@ SCENARIO( "A PipelineBintr will fail to create an XWindow without setting dimens
 {
     GIVEN( "A PipelineBintr with default XWindow dimensions of 0" ) 
     {
-        std::string pipelineName = "pipeline";
-
         DSL_PIPELINE_PTR pPipelineBintr = 
             DSL_PIPELINE_NEW(pipelineName.c_str());
 
@@ -126,11 +163,6 @@ SCENARIO( "A PipelineBintr's' XWindow is created correctly", "[PipelineBintr]" )
 {
     GIVEN( "A PipelineBintr with valid XWindow dimensions" ) 
     {
-        std::string pipelineName = "pipeline";
-
-        uint windowW(1280);
-        uint windowH(720);
-
         DSL_PIPELINE_PTR pPipelineBintr = 
             DSL_PIPELINE_NEW(pipelineName.c_str());
 
@@ -152,10 +184,6 @@ SCENARIO( "A PipelineBintr's' XWindow is created correctly in Full-Screen-Mode",
 {
     GIVEN( "A PipelineBintr with valid XWindow dimensions" ) 
     {
-        std::string pipelineName = "pipeline";
-
-        uint windowW(1280);
-        uint windowH(720);
         boolean full_screen_enabled(1);
 
         DSL_PIPELINE_PTR pPipelineBintr = 
@@ -180,22 +208,6 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components ", "[PipelineBi
 {
     GIVEN( "A new TilerBintr, CsiSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
     {
-        std::string sourceName = "csi-source";
-        std::string sinkName = "overlay-sink";
-        std::string tilerName = "tiler";
-        std::string pipelineName = "pipeline";
-
-        uint tilerW(1280);
-        uint tilerH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
-
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
 
@@ -203,7 +215,7 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components ", "[PipelineBi
             DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -225,22 +237,6 @@ SCENARIO( "A Pipeline is able to UnlinkAll after linking with minimum Components
 {
     GIVEN( "A new TilerBintr, CsiSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
     {
-        std::string sourceName = "csi-source";
-        std::string sinkName = "overlay-sink";
-        std::string tilerName = "tiler";
-        std::string pipelineName = "pipeline";
-
-        uint tilerW(1280);
-        uint tilerH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
-
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
 
@@ -248,7 +244,7 @@ SCENARIO( "A Pipeline is able to UnlinkAll after linking with minimum Components
             DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -271,25 +267,6 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components and a PrimaryGi
 {
     GIVEN( "A new TilerBintr, CsiSourceBintr, PrimaryGieBintr, OverlaySinkBintr, and a PipelineBintr" ) 
     {
-        std::string sourceName = "csi-source";
-        std::string sinkName = "overlay-sink";
-        std::string tilerName = "tiler";
-        std::string pipelineName = "pipeline";
-        std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        
-        uint interval(1);
-        uint tilerW(1280);
-        uint tilerH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
 
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
@@ -298,11 +275,11 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components and a PrimaryGi
             DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), interval);
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -325,27 +302,6 @@ SCENARIO( "A Pipeline is unable to LinkAll with a SecondaryGieBintr and no Prima
 {
     GIVEN( "A new TilerBintr, CsiSourceBintr, SecondaryGieBintr, OverlaySinkBintr, and a PipelineBintr" ) 
     {
-        std::string sourceName = "csi-source";
-        std::string sinkName = "overlay-sink";
-        std::string tilerName = "tiler";
-        std::string pipelineName = "pipeline";
-        std::string primaryGieName = "primary-gie";
-        std::string secondaryGieName = "secondary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet10.caffemodel_b8_gpu0_fp16.engine";
-        
-        uint interval(1);
-        uint tilerW(1280);
-        uint tilerH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
-
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
 
@@ -353,11 +309,11 @@ SCENARIO( "A Pipeline is unable to LinkAll with a SecondaryGieBintr and no Prima
             DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), primaryGieName.c_str(), interval);
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -382,27 +338,6 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr an
 {
     GIVEN( "A new TilerBintr, CsiSourceBintr, PrimaryGieBintr, OverlaySinkBintr, PipelineBintr, and OsdBintr" ) 
     {
-        std::string pipelineName = "pipeline";
-        std::string sourceName = "csi-source";
-        std::string primaryGieName = "primary-gie";
-        std::string tilerName = "tiler";
-        std::string sinkName = "overlay-sink";
-        std::string osdName = "on-screen-tiler";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine";
-        
-        uint interval(1);
-        uint tilerW(1280);
-        uint tilerH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
-
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
 
@@ -410,11 +345,11 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr an
             DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), interval);
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
 
         DSL_OSD_PTR pOsdBintr = 
             DSL_OSD_NEW(osdName.c_str(), true, true, true, false);
@@ -444,30 +379,6 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, O
 {
     GIVEN( "A new TilerBintr, CsiSourceBintr, PrimaryGieBintr, OverlaySinkBintr, PipelineBintr, TrackerBintr, and OsdBintr" ) 
     {
-        std::string pipelineName = "pipeline";
-        std::string sourceName = "csi-source";
-        std::string trackerName = "ktl-tracker";
-        std::string primaryGieName = "primary-gie";
-        std::string tilerName = "tiler";
-        std::string sinkName = "overlay-sink";
-        std::string osdName = "on-screen-tiler";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        
-        uint interval(1);
-        uint trackerW(300);
-        uint trackerH(150);
-        uint tilerW(1280);
-        uint tilerH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
-
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
 
@@ -475,8 +386,8 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, O
             DSL_KTL_TRACKER_NEW(trackerName.c_str(), trackerW, trackerH);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), interval);
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
 
         DSL_TILER_PTR pTilerBintr = 
             DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
@@ -485,7 +396,7 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, O
             DSL_OSD_NEW(osdName.c_str(), true, true, true, false);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -513,32 +424,6 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with all Optional Compone
 {
     GIVEN( "A new TilerBintr, CsiSourceBintr, PrimaryGieBintr, SecondaryGieBintr, OsdBintr, OverlaySinkBintr, and PipelineBintr" ) 
     {
-        std::string pipelineName = "pipeline";
-        std::string sourceName = "csi-source";
-        std::string tilerName = "tiler";
-        std::string sinkName = "overlay-sink";
-        std::string trackerName = "ktl-tracker";
-        std::string primaryGieName = "primary-gie";
-        std::string primaryInferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string primaryModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        std::string secondaryGieName = "secondary-gie";
-        std::string secondaryInferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
-        std::string secondaryModelEngineFile = "./test/models/Secondary_CarColor/resnet10.caffemodel_b8_gpu0_fp16.engine";
-        std::string osdName = "on-screen-tiler";
-        
-        uint interval(1);
-        uint trackerW(300);
-        uint trackerH(150);
-        uint tilerW(1280);
-        uint tilerH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
 
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
@@ -561,7 +446,7 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with all Optional Compone
             DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -591,12 +476,8 @@ SCENARIO( "A Pipeline can have at most one TilerBintr", "[PipelineBintr]" )
 {
     GIVEN( "Two new TilerBintrs and PipelineBintr" ) 
     {
-        std::string pipelineName = "pipeline";
-        std::string tilerName1 = "tiler-1";
-        std::string tilerName2 = "tiler-2";
-
-        uint tilerW(1280);
-        uint tilerH(720);
+        std::string tilerName1("tiler-1");
+        std::string tilerName2("tiler-2");
 
         DSL_TILER_PTR pTilerBintr1 = 
             DSL_TILER_NEW(tilerName1.c_str(), tilerW, tilerH);
@@ -622,12 +503,8 @@ SCENARIO( "A Pipeline can have at most one TrackerBintr", "[PipelineBintr]" )
 {
     GIVEN( "Two new TrackerBintrs and PipelineBintr" ) 
     {
-        std::string pipelineName = "pipeline";
-        std::string trackerName1 = "tracker-1";
-        std::string trackerName2 = "tracker-2";
-
-        uint trackerW(300);
-        uint trackerH(150);
+        std::string trackerName1("tracker-1");
+        std::string trackerName2("tracker-2");
 
         DSL_KTL_TRACKER_PTR pTrackerBintr1 = 
             DSL_KTL_TRACKER_NEW(trackerName1.c_str(), trackerW, trackerH);
@@ -653,13 +530,8 @@ SCENARIO( "A Pipeline can have at most one PrimaryGieBintr", "[PipelineBintr]" )
 {
     GIVEN( "Two new PrimaryGieBintrs and PipelineBintr" ) 
     {
-        std::string pipelineName = "pipeline";
-        std::string primaryGieName1 = "primary-gie-1";
-        std::string primaryGieName2 = "primary-gie-2";
-
-        std::string primaryInferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string primaryModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        uint interval(1);
+        std::string primaryGieName1("primary-gie-1");
+        std::string primaryGieName2("primary-gie-2");
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr1 = 
             DSL_PRIMARY_GIE_NEW(primaryGieName1.c_str(), primaryInferConfigFile.c_str(), 
@@ -687,9 +559,8 @@ SCENARIO( "A Pipeline can have at most one OsdBintr", "[PipelineBintr]" )
 {
     GIVEN( "Two new OsdBintrs and PipelineBintr" ) 
     {
-        std::string pipelineName = "pipeline";
-        std::string osdName1 = "on-screen-tiler-1";
-        std::string osdName2 = "on-screen-tiler-2";
+        std::string osdName1("on-screen-display-1");
+        std::string osdName2("on-screen-display-2");
 
         DSL_OSD_PTR pOsdBintr1 = 
             DSL_OSD_NEW(osdName1.c_str(), true, true, true, false);
@@ -715,9 +586,8 @@ SCENARIO( "A Pipeline can have at most one DemuxerBintr", "[PipelineBintr]" )
 {
     GIVEN( "Two new DemuxerBintrs and PipelineBintr" ) 
     {
-        std::string pipelineName = "pipeline";
-        std::string demuxerName1 = "demuxer-1";
-        std::string demuxerName2 = "demuxer-2";
+        std::string demuxerName1("demuxer-1");
+        std::string demuxerName2("demuxer-2");
 
         DSL_DEMUXER_PTR pDemuxerBintr1 = 
             DSL_DEMUXER_NEW(demuxerName1.c_str());
@@ -743,13 +613,6 @@ SCENARIO( "Adding a DemuxerBintr to a PipelineBintr with a TilerBintr fails", "[
 {
     GIVEN( "A PipelineBintr, TilerBinter and Demuxer" ) 
     {
-        std::string demuxerName = "demuxer";
-        std::string tilerName = "tiler";
-        std::string pipelineName = "pipeline";
-
-        uint tilerW(1280);
-        uint tilerH(720);
-
         DSL_DEMUXER_PTR pDemuxerBintr = 
             DSL_DEMUXER_NEW(demuxerName.c_str());
 
@@ -775,13 +638,6 @@ SCENARIO( "Adding a TilerBintr to a PipelineBintr with a DemuxerBintr fails", "[
 {
     GIVEN( "A PipelineBintr, TilerBinter and Demuxer" ) 
     {
-        std::string demuxerName = "demuxer";
-        std::string tilerName = "tiler";
-        std::string pipelineName = "pipeline";
-
-        uint tilerW(1280);
-        uint tilerH(720);
-
         DSL_DEMUXER_PTR pDemuxerBintr = 
             DSL_DEMUXER_NEW(demuxerName.c_str());
 
@@ -807,15 +663,6 @@ SCENARIO( "Adding an OsdBintr to a PipelineBintr with a DemuxerBintr fails", "[P
 {
     GIVEN( "A PipelineBintr, TilerBinter and Demuxer" ) 
     {
-        std::string demuxerName = "demuxer";
-        std::string osdName = "on-screen-display";
-        std::string pipelineName = "pipeline";
-
-        boolean clockEnabled(false);
-        boolean textEnabled(false);
-        boolean bboxEnabled(false);
-        boolean maskEnabled(false);
-
         DSL_DEMUXER_PTR pDemuxerBintr = 
             DSL_DEMUXER_NEW(demuxerName.c_str());
 
@@ -823,7 +670,7 @@ SCENARIO( "Adding an OsdBintr to a PipelineBintr with a DemuxerBintr fails", "[P
             DSL_PIPELINE_NEW(pipelineName.c_str());
 
         DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), 
-            textEnabled, clockEnabled, bboxEnabled, maskEnabled);
+            false, false, false, false);
 
         WHEN( "A DemuxerBintr is added to the PipelineBintr" )
         {
@@ -841,22 +688,6 @@ SCENARIO( "A Pipeline is able to LinkAll with a Demuxer and minimum Components",
 {
     GIVEN( "A new DemuxerBintr, CsiSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
     {
-        std::string sourceName = "csi-source";
-        std::string sinkName = "overlay-sink";
-        std::string demuxerName = "demuxer";
-        std::string pipelineName = "pipeline";
-
-        uint sourceW(1280);
-        uint sourceH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
-
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
 
@@ -864,7 +695,7 @@ SCENARIO( "A Pipeline is able to LinkAll with a Demuxer and minimum Components",
         DSL_BINTR_PTR pDemuxerBintr = std::shared_ptr<Bintr>(new DemuxerBintr(demuxerName.c_str()));
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
 
@@ -889,22 +720,6 @@ SCENARIO( "A Pipeline is able to UnlinkAll with a Demuxer and minimum Components
 {
     GIVEN( "A PipelineBintr with DemuxerBintr, CsiSourceBintr, OverlaySinkBintr in a Linked State" ) 
     {
-        std::string sourceName = "csi-source";
-        std::string sinkName = "overlay-sink";
-        std::string demuxerName = "demuxer";
-        std::string pipelineName = "pipeline";
-
-        uint sourceW(1280);
-        uint sourceH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
-
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
 
@@ -912,7 +727,7 @@ SCENARIO( "A Pipeline is able to UnlinkAll with a Demuxer and minimum Components
         DSL_BINTR_PTR pDemuxerBintr = std::shared_ptr<Bintr>(new DemuxerBintr(demuxerName.c_str()));
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth,  offsetX, offsetY, sinkW, sinkH);
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth,  offsetX, offsetY, windowW, windowH);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -940,45 +755,25 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and multiple S
 {
     GIVEN( "A PipelineBintr with DemuxerBintr and multiple CsiSourceBintrs and WindowSinkBintrs in a Linked State" ) 
     {
-        std::string sourceName1 = "csi-source1";
-        std::string sourceName2 = "csi-source2";
-        std::string sourceName3 = "csi-source3";
-        std::string sourceName4 = "csi-source4";
-        std::string sinkName1 = "window-sink1";
-        std::string sinkName2 = "window-sink2";
-        std::string sinkName3 = "window-sink3";
-        std::string sinkName4 = "window-sink4";
-        std::string demuxerName = "demuxer";
-        std::string pipelineName = "pipeline";
-
-        uint sourceW(1280);
-        uint sourceH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
-
         DSL_CSI_SOURCE_PTR pSourceBintr1 = 
             DSL_CSI_SOURCE_NEW(sourceName1.c_str(), sourceW, sourceH, fps_n, fps_d);
         DSL_WINDOW_SINK_PTR pSinkBintr1 = 
-            DSL_WINDOW_SINK_NEW(sinkName1.c_str(), offsetX, offsetY, sinkW, sinkH);
+            DSL_WINDOW_SINK_NEW(sinkName1.c_str(), offsetX, offsetY, windowW, windowH);
 
         DSL_CSI_SOURCE_PTR pSourceBintr2 = 
             DSL_CSI_SOURCE_NEW(sourceName2.c_str(), sourceW, sourceH, fps_n, fps_d);
         DSL_WINDOW_SINK_PTR pSinkBintr2 = 
-            DSL_WINDOW_SINK_NEW(sinkName2.c_str(), offsetX, offsetY, sinkW, sinkH);
+            DSL_WINDOW_SINK_NEW(sinkName2.c_str(), offsetX, offsetY, windowW, windowH);
 
         DSL_CSI_SOURCE_PTR pSourceBintr3 = 
             DSL_CSI_SOURCE_NEW(sourceName3.c_str(), sourceW, sourceH, fps_n, fps_d);
         DSL_WINDOW_SINK_PTR pSinkBintr3 = 
-            DSL_WINDOW_SINK_NEW(sinkName3.c_str(), offsetX, offsetY, sinkW, sinkH);
+            DSL_WINDOW_SINK_NEW(sinkName3.c_str(), offsetX, offsetY, windowW, windowH);
 
         DSL_CSI_SOURCE_PTR pSourceBintr4 = 
             DSL_CSI_SOURCE_NEW(sourceName4.c_str(), sourceW, sourceH, fps_n, fps_d);
         DSL_WINDOW_SINK_PTR pSinkBintr4 = 
-            DSL_WINDOW_SINK_NEW(sinkName4.c_str(), offsetX, offsetY, sinkW, sinkH);
+            DSL_WINDOW_SINK_NEW(sinkName4.c_str(), offsetX, offsetY, windowW, windowH);
 
         // Note: need to use Bintr pointer when calling DemuxerBinter->AddChild() - non-ambiguious
         DSL_BINTR_PTR pDemuxerBintr = std::shared_ptr<Bintr>(new DemuxerBintr(demuxerName.c_str()));
@@ -1015,25 +810,6 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and Primary GI
 {
     GIVEN( "A PipelineBintr,  DemuxerBintr, CsiSourceBintr, WindowSinkBintr, Primary GIE" ) 
     {
-        std::string sourceName = "csi-source";
-        std::string sinkName = "window-sink";
-        std::string demuxerName = "demuxer";
-        std::string pipelineName = "pipeline";
-        std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        
-        uint interval(1);
-
-        uint sourceW(1280);
-        uint sourceH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
-
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
 
@@ -1041,11 +817,11 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and Primary GI
         DSL_BINTR_PTR pDemuxerBintr = std::shared_ptr<Bintr>(new DemuxerBintr(demuxerName.c_str()));
 
         DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), interval);
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -1074,28 +850,6 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
 {
     GIVEN( "A PipelineBintr, DemuxerBintr, CsiSourceBintr, WindowSinkBintr, PrimaryGieBintr, TrackerBintr" ) 
     {
-        std::string sourceName = "csi-source";
-        std::string sinkName = "window-sink";
-        std::string demuxerName = "demuxer";
-        std::string pipelineName = "pipeline";
-        std::string trackerName = "ktl-tracker";
-        std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        
-        uint interval(1);
-
-        uint sourceW(1280);
-        uint sourceH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
-        uint trackerW(300);
-        uint trackerH(150);
-
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
 
@@ -1103,11 +857,11 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
         DSL_BINTR_PTR pDemuxerBintr = std::shared_ptr<Bintr>(new DemuxerBintr(demuxerName.c_str()));
 
         DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), interval);
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
 
         DSL_KTL_TRACKER_PTR pTrackerBintr = 
             DSL_KTL_TRACKER_NEW(trackerName.c_str(), trackerW, trackerH);
@@ -1140,31 +894,6 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
 {
     GIVEN( "A PipelineBintr, DemuxerBintr, CsiSourceBintr, WindowSinkBintr, PrimaryGieBintr, TrackerBintr, SecondaryGieBintr" ) 
     {
-        std::string sourceName = "csi-source";
-        std::string sinkName = "window-sink";
-        std::string demuxerName = "demuxer";
-        std::string pipelineName = "pipeline";
-        std::string trackerName = "ktl-tracker";
-        std::string primaryGieName = "primary-gie";
-        std::string primaryInferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string primaryModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        std::string secondaryGieName = "secondary-gie";
-        std::string secondaryInferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
-        std::string secondaryModelEngineFile = "./test/models/Secondary_CarColor/resnet10.caffemodel_b8_gpu0_fp16.engine";
-        
-        uint interval(1);
-
-        uint sourceW(1280);
-        uint sourceH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
-        uint trackerW(300);
-        uint trackerH(150);
-
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
 
@@ -1172,7 +901,7 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
         DSL_BINTR_PTR pDemuxerBintr = std::shared_ptr<Bintr>(new DemuxerBintr(demuxerName.c_str()));
 
         DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
             DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
@@ -1214,41 +943,21 @@ SCENARIO( "A Pipeline with an ImageStreamSourceBintr is able to Link/UnlinkAll",
 {
     GIVEN( "A new ImageStreamSourceBintr, PrimaryGieBintr, TilerBintr, OverlaySinkBintr, and a PipelineBintr" ) 
     {
-        std::string sourceName = "image-source";
-        std::string filePath = "./test/streams/sample_720p.jpg";
-        std::string sinkName = "overlay-sink";
-        std::string tilerName = "tiler";
-        std::string pipelineName = "pipeline";
-        std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        
         bool isLive(true);
         uint timeout(0);
-        uint interval(1);
-        uint tilerW(1280);
-        uint tilerH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
 
         DSL_IMAGE_STREAM_SOURCE_PTR pSourceBintr = 
-            DSL_IMAGE_STREAM_SOURCE_NEW(sourceName.c_str(), filePath.c_str(), isLive, fps_n, fps_d, timeout);
+            DSL_IMAGE_STREAM_SOURCE_NEW(sourceName.c_str(), imagePath.c_str(), isLive, fps_n, fps_d, timeout);
 
         DSL_TILER_PTR pTilerBintr = 
             DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), interval);
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
 
@@ -1276,25 +985,7 @@ SCENARIO( "A Pipeline with an FileSourceBintr is able to Link/UnlinkAll", "[Pipe
 {
     GIVEN( "A new FileSourceBintr, PrimaryGieBintr, TilerBintr, OverlaySinkBintr, and a PipelineBintr" ) 
     {
-        std::string sourceName("file-source");
-        std::string filePath("./test/streams/sample_1080p_h264.mp4");
-        std::string sinkName = "overlay-sink";
-        std::string tilerName = "tiler";
-        std::string pipelineName = "pipeline";
-        std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-
         uint repeat(true);
-        uint interval(1);
-        uint tilerW(1280);
-        uint tilerH(720);
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
 
         DSL_FILE_SOURCE_PTR pSourceBintr = 
             DSL_FILE_SOURCE_NEW(sourceName.c_str(), filePath.c_str(), repeat);
@@ -1303,11 +994,11 @@ SCENARIO( "A Pipeline with an FileSourceBintr is able to Link/UnlinkAll", "[Pipe
             DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), interval);
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
 

@@ -27,12 +27,14 @@ THE SOFTWARE.
 #include "DslApi.h"
 
 static std::wstring sink_name(L"msg-sink");
-static std::wstring converter_config_file(L"./test/configs/dstest4_msgconv_config.txt");
-static uint payload_type(DSL_MSG_PAYLOAD_DEEPSTREAM);
-static std::wstring broker_config_file(L"./test/configs/cfg_azure.txt");
-static std::wstring protocol_lib(NVDS_AZURE_PROTO_LIB);
+static const std::wstring converter_config_file(
+	L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-test4/dstest4_msgconv_config.txt");
+static const std::wstring protocol_lib(NVDS_AZURE_PROTO_LIB);
+static const uint payload_type(DSL_MSG_PAYLOAD_DEEPSTREAM);
+static const std::wstring broker_config_file(
+	L"/opt/nvidia/deepstream/deepstream/sources/libs/azure_protocol_adaptor/device_client/cfg_azure.txt");
 
-//static std::string connectionString(L"HostName=<my-hub>.azure-devices.net;DeviceId=<device_id>;SharedAccessKey=<my-policy-key>"); 
+
 static std::wstring connection_string(
     L"HostName=my-hub.azure-devices.net;DeviceId=1234;SharedAccessKey=abcd"); 
 static std::wstring topic(L"DSL_MESSAGE_TOP");
@@ -48,7 +50,7 @@ SCENARIO( "The Components container is updated correctly on new Message Sink", "
         {
             REQUIRE( dsl_sink_message_new(sink_name.c_str(), converter_config_file.c_str(),
                 payload_type, broker_config_file.c_str(), protocol_lib.c_str(),
-                connection_string.c_str(), topic.c_str()) == DSL_RESULT_SUCCESS );
+                NULL, topic.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
             {
@@ -67,7 +69,7 @@ SCENARIO( "The Components container is updated correctly on Message Sink delete"
         
         REQUIRE( dsl_sink_message_new(sink_name.c_str(), converter_config_file.c_str(),
             payload_type, broker_config_file.c_str(), protocol_lib.c_str(),
-            connection_string.c_str(), topic.c_str()) == DSL_RESULT_SUCCESS );
+            NULL, topic.c_str()) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_component_list_size() == 1 );
 
@@ -95,7 +97,7 @@ SCENARIO( "The Message Sink API verifies all input file pathspecs correctly", "[
             
             REQUIRE( dsl_sink_message_new(sink_name.c_str(), invalid_converter_config_file.c_str(),
                 payload_type, broker_config_file.c_str(), protocol_lib.c_str(),
-                connection_string.c_str(), topic.c_str()) == 
+                NULL, topic.c_str()) == 
                     DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND );
             
             THEN( "The list size remains unchanged" )
@@ -109,7 +111,7 @@ SCENARIO( "The Message Sink API verifies all input file pathspecs correctly", "[
             
             REQUIRE( dsl_sink_message_new(sink_name.c_str(), converter_config_file.c_str(),
                 payload_type, invalid_broker_config_file.c_str(), protocol_lib.c_str(),
-                connection_string.c_str(), topic.c_str()) == 
+                NULL, topic.c_str()) == 
                     DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND );
             
             THEN( "The list size remains unchanged" )
@@ -123,7 +125,7 @@ SCENARIO( "The Message Sink API verifies all input file pathspecs correctly", "[
             
             REQUIRE( dsl_sink_message_new(sink_name.c_str(), converter_config_file.c_str(),
                 payload_type, invalid_protocol_lib.c_str(), protocol_lib.c_str(),
-                connection_string.c_str(), topic.c_str()) == 
+                NULL, topic.c_str()) == 
                     DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND );
             
             THEN( "The list size remains unchanged" )
@@ -142,7 +144,7 @@ SCENARIO( "A Message Sink's Broker Settings can be updated", "[message-sink-api]
         
         REQUIRE( dsl_sink_message_new(sink_name.c_str(), converter_config_file.c_str(),
             payload_type, broker_config_file.c_str(), protocol_lib.c_str(),
-            connection_string.c_str(), topic.c_str()) == DSL_RESULT_SUCCESS );
+            NULL, topic.c_str()) == DSL_RESULT_SUCCESS );
 
         const wchar_t* c_ret_broker_config_file;
         const wchar_t* c_ret_protocol_lib;

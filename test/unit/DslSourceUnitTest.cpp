@@ -36,7 +36,8 @@ static uint intrDecode(false);
 static uint dropFrameInterval(0);
 
 static std::string dewarperName("dewarper");
-static std::string defConfigFile("./test/configs/config_dewarper.txt");
+static const std::string defConfigFile(
+"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/config_dewarper.txt");
 
 static std::string rtspSourceName("rtsp-source");
 static std::string rtspUri("rtsp://208.72.70.171:80/mjpg/video.mjpg");
@@ -333,51 +334,51 @@ SCENARIO( "A UriSourceBintr can UnlinkAll all child Elementrs correctly",  "[Sou
     }
 }
 
-//SCENARIO( "A UriSourceBintr can Add a Child DewarperBintr",  "[SourceBintr]" )
-//{
-//    GIVEN( "A new UriSourceBintr and DewarperBintr in memory" ) 
-//    {
-//        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-//            sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
-//
-//        DSL_DEWARPER_PTR pDewarperBintr = 
-//            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
-//
-//        WHEN( "The DewarperBintr is added to UriSourceBintr" )
-//        {
-//            REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr) == true );
-//
-//            THEN( "The UriSourceBintr correctly returns that it has a dewarper" )
-//            {
-//                REQUIRE( pSourceBintr->HasDewarperBintr() == true );
-//            }
-//        }
-//    }
-//}
+SCENARIO( "A UriSourceBintr can Add a Child DewarperBintr",  "[SourceBintr]" )
+{
+    GIVEN( "A new UriSourceBintr and DewarperBintr in memory" ) 
+    {
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
-//SCENARIO( "A UriSourceBintr can Remove a Child DewarperBintr",  "[SourceBintr]" )
-//{
-//    GIVEN( "A new UriSourceBintr with a child DewarperBintr" ) 
-//    {
-//        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-//            sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
-//
-//        DSL_DEWARPER_PTR pDewarperBintr = 
-//            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
-//
-//        REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr) == true );
-//
-//        WHEN( "The DewarperBintr is removed from the UriSourceBintr" )
-//        {
-//            REQUIRE( pSourceBintr->RemoveDewarperBintr() == true );
-//            
-//            THEN( "The UriSourceBintr correctly returns that it does not have a dewarper" )
-//            {
-//                REQUIRE( pSourceBintr->HasDewarperBintr() == false );
-//            }
-//        }
-//    }
-//}
+        DSL_DEWARPER_PTR pDewarperBintr = 
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+
+        WHEN( "The DewarperBintr is added to UriSourceBintr" )
+        {
+            REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr) == true );
+
+            THEN( "The UriSourceBintr correctly returns that it has a dewarper" )
+            {
+                REQUIRE( pSourceBintr->HasDewarperBintr() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A UriSourceBintr can Remove a Child DewarperBintr",  "[SourceBintr]" )
+{
+    GIVEN( "A new UriSourceBintr with a child DewarperBintr" ) 
+    {
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
+
+        DSL_DEWARPER_PTR pDewarperBintr = 
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+
+        REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr) == true );
+
+        WHEN( "The DewarperBintr is removed from the UriSourceBintr" )
+        {
+            REQUIRE( pSourceBintr->RemoveDewarperBintr() == true );
+            
+            THEN( "The UriSourceBintr correctly returns that it does not have a dewarper" )
+            {
+                REQUIRE( pSourceBintr->HasDewarperBintr() == false );
+            }
+        }
+    }
+}
 
 SCENARIO( "A UriSourceBintr can ensure a single Child DewarperBintr",  "[SourceBintr]" )
 {
