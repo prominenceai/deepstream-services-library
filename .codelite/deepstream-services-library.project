@@ -131,6 +131,7 @@
       <File Name="../test/api/DslTilerApiTest.cpp"/>
       <File Name="../test/api/DslTrackerApiTest.cpp"/>
       <File Name="../test/api/DslInfoApiTest.cpp"/>
+      <File Name="../test/api/DslImageSourceBehaviorTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDemuxerAndTeeUnitTest.cpp"/>

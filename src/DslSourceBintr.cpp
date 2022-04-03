@@ -58,6 +58,11 @@ namespace DSL
     SourceBintr::~SourceBintr()
     {
         LOG_FUNC();
+
+        if (m_isLinked)
+        {    
+            UnlinkAll();
+        }
         
         Services::GetServices()->_sourceNameErase(GetCStrName());
     }
@@ -162,11 +167,6 @@ namespace DSL
     CsiSourceBintr::~CsiSourceBintr()
     {
         LOG_FUNC();
-
-        if (m_isLinked)
-        {    
-            UnlinkAll();
-        }
     }
     
     bool CsiSourceBintr::LinkAll()
@@ -251,11 +251,6 @@ namespace DSL
     UsbSourceBintr::~UsbSourceBintr()
     {
         LOG_FUNC();
-
-        if (m_isLinked)
-        {    
-            UnlinkAll();
-        }
     }
 
     bool UsbSourceBintr::LinkAll()
@@ -681,11 +676,6 @@ namespace DSL
     UriSourceBintr::~UriSourceBintr()
     {
         LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            UnlinkAll();
-        }
     }
 
     bool UriSourceBintr::LinkAll()
@@ -881,7 +871,7 @@ namespace DSL
         if (IsLinked())
         {
             LOG_ERROR("Unable to set File Path for FileSourceBintr '" << GetName() 
-                << "' as it's currently in use");
+                << "' as it's currently linked");
             return false;
         }
         
@@ -915,6 +905,97 @@ namespace DSL
         }
         
         m_repeatEnabled = enabled;
+        return true;
+    }
+
+    //*********************************************************************************
+
+    ImageSourceBintr::ImageSourceBintr(const char* name, const char* uri)
+        : ResourceSourceBintr(name, uri)
+    {
+        LOG_FUNC();
+        
+        m_pSourceElement = DSL_ELEMENT_NEW("filesrc", name);
+        m_pJpegParse = DSL_ELEMENT_NEW("jpegparse", name);
+        m_pV4L2Decoder = DSL_ELEMENT_NEW("nvv4l2decoder", name); 
+
+        if (!SetUri(uri))
+        {
+            throw;
+        }
+
+        // Add all new Elementrs as Children to the SourceBintr
+        AddChild(m_pSourceElement);
+        AddChild(m_pJpegParse);
+        AddChild(m_pV4L2Decoder);
+        
+        // Source Ghost Pad for ImageStreamSourceBintr
+        m_pV4L2Decoder->AddGhostPadToParent("src");
+    }
+    
+    ImageSourceBintr::~ImageSourceBintr()
+    {
+        LOG_FUNC();
+    }
+
+    bool ImageSourceBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("ImageSourceBintr '" << GetName() << "' is already in a linked state");
+            return false;
+        }
+        if (!m_pSourceElement->LinkToSink(m_pJpegParse) or
+            !m_pJpegParse->LinkToSink(m_pV4L2Decoder))
+        {
+            LOG_ERROR("ImageSourceBintr '" << GetName() << "' failed to LinkAll");
+            return false;
+        }
+        m_isLinked = true;
+        
+        return true;
+    }
+
+    void ImageSourceBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+
+        if (!m_isLinked)
+        {
+            LOG_ERROR("ImageSourceBintr '" << GetName() << "' is not in a linked state");
+            return;
+        }
+        
+        if (!m_pSourceElement->UnlinkFromSink() or
+            !m_pJpegParse->UnlinkFromSink())
+        {
+            LOG_ERROR("ImageSourceBintr '" << GetName() << "' failed to UnlinkAll");
+            return;
+        }    
+        m_isLinked = false;
+    }
+
+    bool ImageSourceBintr::SetUri(const char* uri)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set File Path for ImageSourceBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        
+        if (!SetUri(uri))
+        {
+            return false;
+        }
+        if (m_uri.size())
+        {
+            m_pSourceElement->SetAttribute("location", m_uri.c_str());
+        }
         return true;
     }
     
@@ -958,10 +1039,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsLinked())
-        {
-            UnlinkAll();
-        }
         g_mutex_clear(&m_timeoutTimerMutex);
     }
 
@@ -1180,10 +1257,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsLinked())
-        {
-            UnlinkAll();
-        }
         if (m_reconnectionManagerTimerId)
         {
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionManagerMutex);

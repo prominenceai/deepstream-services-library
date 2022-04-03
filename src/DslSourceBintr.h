@@ -64,6 +64,10 @@ namespace DSL
     #define DSL_FILE_SOURCE_NEW(name, uri, repeatEnabled) \
         std::shared_ptr<FileSourceBintr>(new FileSourceBintr(name, uri, repeatEnabled))
 
+    #define DSL_IMAGE_SOURCE_PTR std::shared_ptr<ImageSourceBintr>
+    #define DSL_IMAGE_SOURCE_NEW(name, uri) \
+        std::shared_ptr<ImageSourceBintr>(new ImageSourceBintr(name, uri))
+
     #define DSL_IMAGE_STREAM_SOURCE_PTR std::shared_ptr<ImageStreamSourceBintr>
     #define DSL_IMAGE_STREAM_SOURCE_NEW(name, filePath, isLive, fpsN, fpsD, timeout) \
         std::shared_ptr<ImageStreamSourceBintr>(new ImageStreamSourceBintr(name, \
@@ -87,6 +91,8 @@ namespace DSL
         SourceBintr(const char* name);
 
         ~SourceBintr();
+        
+        void UnlinkAll(){};
 
         bool AddToParent(DSL_BASE_PTR pParentBintr);
 
@@ -553,6 +559,58 @@ namespace DSL
         bool SetRepeatEnabled(bool enabled);
         
     private:
+
+    };
+
+    //*********************************************************************************
+
+    /**
+     * @class ImageSourceBintr
+     * @brief Implements a MJPEG Decode Source - single frame to EOS
+     */
+    class ImageSourceBintr : public ResourceSourceBintr
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the ImageSourceBintr
+         * @param uri relative or absolute path to the input file source.
+         */
+        ImageSourceBintr(const char* name, const char* uri);
+        
+        /**
+         * @brief dtor for the ImageSourceBintr
+         */
+        ~ImageSourceBintr();
+
+        /**
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Source Bintr
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief Sets the URL for ImageSourceBintr 
+         * @param uri relative or absolute path to the input file source.
+         */
+        bool SetUri(const char* uri);
+        
+    private:
+
+        /**
+         * @brief JPEG Parser for this ImageSourceBintr
+         */
+        DSL_ELEMENT_PTR m_pJpegParse;
+
+        /**
+         * @brief V4L2 Decoder for this ImageSourceBintr
+         */
+        DSL_ELEMENT_PTR m_pV4L2Decoder;
 
     };
 

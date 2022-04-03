@@ -287,8 +287,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceImageStreamNew(const char* name, const char* filePath, 
-        boolean isLive, uint fpsN, uint fpsD, uint timeout)
+    DslReturnType Services::SourceImageNew(const char* name, const char* filePath)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -307,8 +306,7 @@ namespace DSL
                 LOG_ERROR("Image Source'" << filePath << "' Not found");
                 return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
             }
-            m_components[name] = DSL_IMAGE_STREAM_SOURCE_NEW(
-                name, filePath, isLive, fpsN, fpsD, timeout);
+            m_components[name] = DSL_IMAGE_SOURCE_NEW(name, filePath);
 
             LOG_INFO("New Image Source '" << name << "' created successfully");
 
@@ -321,7 +319,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceImageStreamPathGet(const char* name, const char** filePath)
+    DslReturnType Services::SourceImagePathGet(const char* name, const char** filePath)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -329,10 +327,10 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageStreamSourceBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSourceBintr);
 
-            DSL_IMAGE_STREAM_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<ImageStreamSourceBintr>(m_components[name]);
+            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
 
             *filePath = pSourceBintr->GetUri();
             
@@ -349,7 +347,7 @@ namespace DSL
     }
             
 
-    DslReturnType Services::SourceImageStreamPathSet(const char* name, const char* filePath)
+    DslReturnType Services::SourceImagePathSet(const char* name, const char* filePath)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -357,10 +355,10 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageStreamSourceBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSourceBintr);
 
-            DSL_IMAGE_STREAM_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<ImageStreamSourceBintr>(m_components[name]);
+            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
 
             std::ifstream streamUriFile(filePath);
             if (!streamUriFile.good())
@@ -385,6 +383,104 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SourceImageStreamNew(const char* name, const char* filePath, 
+        boolean isLive, uint fpsN, uint fpsD, uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Source name '" << name << "' is not unique");
+                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+            }
+            std::ifstream streamUriFile(filePath);
+            if (!streamUriFile.good())
+            {
+                LOG_ERROR("Image Stream Source'" << filePath << "' Not found");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            m_components[name] = DSL_IMAGE_STREAM_SOURCE_NEW(
+                name, filePath, isLive, fpsN, fpsD, timeout);
+
+            LOG_INFO("New Image Stream Source '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Image Stream Source '" << name << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceImageStreamPathGet(const char* name, const char** filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageStreamSourceBintr);
+
+            DSL_IMAGE_STREAM_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ImageStreamSourceBintr>(m_components[name]);
+
+            *filePath = pSourceBintr->GetUri();
+            
+            LOG_INFO("Image Stream Source '" << name << "' returned File Path = '" 
+                << *filePath << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Stream Source '" << name << "' threw exception getting File Path");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::SourceImageStreamPathSet(const char* name, const char* filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageStreamSourceBintr);
+
+            DSL_IMAGE_STREAM_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ImageStreamSourceBintr>(m_components[name]);
+
+            std::ifstream streamUriFile(filePath);
+            if (!streamUriFile.good())
+            {
+                LOG_ERROR("Image Stream Source'" << filePath << "' Not found");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            if (!pSourceBintr->SetUri(filePath));
+            {
+                LOG_ERROR("Failed to Set FilePath '" << filePath << "' for Image Stream Source '" << name << "'");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            LOG_INFO("Image Stream Source '" << name << "' set File Path = '" 
+                << filePath << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Stream Source '" << name << "' threw exception setting File path");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::SourceImageStreamTimeoutGet(const char* name, uint* timeout)
     {
         LOG_FUNC();
@@ -400,14 +496,14 @@ namespace DSL
          
             *timeout = pSourceBintr->GetTimeout();
 
-            LOG_INFO("Image Source '" << name << "' returned Timeout = " 
+            LOG_INFO("Image Stream Source '" << name << "' returned Timeout = " 
                 << *timeout << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Image Source '" << name << "' threw exception getting Timeout");
+            LOG_ERROR("Image Stream Source '" << name << "' threw exception getting Timeout");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
@@ -427,17 +523,17 @@ namespace DSL
          
             if (!pSourceBintr->SetTimeout(timeout))
             {
-                LOG_ERROR("Failed to set Timeout for Image Source '" << name << "'");
+                LOG_ERROR("Failed to set Timeout for Image Stream Source '" << name << "'");
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
-            LOG_INFO("Image Source '" << name << "' set Timeout = " 
+            LOG_INFO("Image Stream Source '" << name << "' set Timeout = " 
                 << timeout << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Image Source '" << name << "' threw exception setting Timeout");
+            LOG_ERROR("Image Stream Source '" << name << "' threw exception setting Timeout");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }

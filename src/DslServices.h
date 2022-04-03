@@ -467,6 +467,12 @@ namespace DSL {
     
         DslReturnType SourceFileRepeatEnabledSet(const char* name, boolean enabled);
             
+        DslReturnType SourceImageNew(const char* name, const char* filePath);
+
+        DslReturnType SourceImagePathGet(const char* name, const char** filePath);
+
+        DslReturnType SourceImagePathSet(const char* name, const char* filePath);
+
         DslReturnType SourceImageStreamNew(const char* name, const char* filePath, 
             boolean isLive, uint fpsN, uint fpsD, uint timeout);
 
