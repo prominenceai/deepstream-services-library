@@ -2492,7 +2492,7 @@ DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name, boolean en
         enabled);
 }
 
-DslReturnType dsl_source_image_new(const wchar_t* name, const wchar_t* file_path)
+DslReturnType dsl_source_image_frame_new(const wchar_t* name, const wchar_t* file_path)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(file_path);
@@ -2502,7 +2502,21 @@ DslReturnType dsl_source_image_new(const wchar_t* name, const wchar_t* file_path
     std::wstring wstrFilePath(file_path);
     std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
 
-    return DSL::Services::GetServices()->SourceImageNew(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SourceImageFrameNew(cstrName.c_str(), 
+        cstrFilePath.c_str());
+}
+
+DslReturnType dsl_source_image_frame_many_new(const wchar_t* name, const wchar_t* file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->SourceImageFrameManyNew(cstrName.c_str(), 
         cstrFilePath.c_str());
 }
 

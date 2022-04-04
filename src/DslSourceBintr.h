@@ -65,8 +65,14 @@ namespace DSL
         std::shared_ptr<FileSourceBintr>(new FileSourceBintr(name, uri, repeatEnabled))
 
     #define DSL_IMAGE_SOURCE_PTR std::shared_ptr<ImageSourceBintr>
-    #define DSL_IMAGE_SOURCE_NEW(name, uri) \
-        std::shared_ptr<ImageSourceBintr>(new ImageSourceBintr(name, uri))
+
+    #define DSL_IMAGE_FRAME_SOURCE_PTR std::shared_ptr<ImageFrameSourceBintr>
+    #define DSL_IMAGE_FRAME_SOURCE_NEW(name, uri) \
+        std::shared_ptr<ImageFrameSourceBintr>(new ImageFrameSourceBintr(name, uri))
+
+    #define DSL_MULTI_IMAGE_FRAME_SOURCE_PTR std::shared_ptr<MultiImageFrameSourceBintr>
+    #define DSL_MULTI_IMAGE_FRAME_SOURCE_NEW(name, uri) \
+        std::shared_ptr<MultiImageFrameSourceBintr>(new MultiImageFrameSourceBintr(name, uri))
 
     #define DSL_IMAGE_STREAM_SOURCE_PTR std::shared_ptr<ImageStreamSourceBintr>
     #define DSL_IMAGE_STREAM_SOURCE_NEW(name, filePath, isLive, fpsN, fpsD, timeout) \
@@ -288,6 +294,7 @@ namespace DSL
     }; 
 
     //*********************************************************************************
+    
     class ResourceSourceBintr: public SourceBintr
     {
     public:
@@ -295,6 +302,12 @@ namespace DSL
         ResourceSourceBintr(const char* name, const char* uri)
             : SourceBintr(name)
             , m_uri(uri)
+        {
+            LOG_FUNC();
+        };
+            
+        ResourceSourceBintr(const char* name, const char** uris)
+            : SourceBintr(name)
         {
             LOG_FUNC();
         };
@@ -314,7 +327,12 @@ namespace DSL
             
             return m_uri.c_str();
         }
-
+        
+        /**
+         * @brief Virtual method to be implented by eached derived Resource Source
+         * @param uri Source specific use of URI varries.
+         * @return true on successful update, false otherwise
+         */
         virtual bool SetUri(const char* uri) = 0;
         
        /**
@@ -566,17 +584,20 @@ namespace DSL
 
     /**
      * @class ImageSourceBintr
-     * @brief Implements a MJPEG Decode Source - single frame to EOS
+     * @brief Implements a Image Decode Source Super class 
      */
     class ImageSourceBintr : public ResourceSourceBintr
     {
     public: 
     
         /**
-         * @brief ctor for the ImageSourceBintr
-         * @param uri relative or absolute path to the input file source.
+         * @brief ctor #1 for the ImageSourceBintr
+         * @param[in] name unique name for the Image Source
+         * @param[in] type one of the DSL_IMAGE_TYPE_* defined in the CPP
+         * @param[in] uri relative or absolute path to the input file source.
          */
-        ImageSourceBintr(const char* name, const char* uri);
+        ImageSourceBintr(const char* name, uint type, const char* uri);
+        
         
         /**
          * @brief dtor for the ImageSourceBintr
@@ -593,24 +614,81 @@ namespace DSL
          * @brief Unlinks all Child Elementrs owned by this Source Bintr
          */
         void UnlinkAll();
+        
+    private:
 
         /**
-         * @brief Sets the URL for ImageSourceBintr 
+         * @brief JPEG or PNG Parser for this ImageSourceBintr
+         */
+        DSL_ELEMENT_PTR m_pParser;
+
+        /**
+         * @brief V4L2 Decoder for this ImageSourceBintr
+         */
+        DSL_ELEMENT_PTR m_pDecoder;
+
+    };
+
+    //*********************************************************************************
+
+    /**
+     * @class ImageFrameSourceBintr
+     * @brief Implements a Single JPEG Image Decode Source - single frame to EOS
+     */
+    class ImageFrameSourceBintr : public ImageSourceBintr
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the ImageFrameSourceBintr
+         * @param[in] name unique name for the Image Source
+         * @param[in] uri relative or absolute path to the input file source.
+         */
+        ImageFrameSourceBintr(const char* name, const char* uri);
+        
+        /**
+         * @brief dtor for the ImageFrameSourceBintr
+         */
+        ~ImageFrameSourceBintr();
+
+        /**
+         * @brief Sets the URL for ImageFrameSourceBintr 
          * @param uri relative or absolute path to the input file source.
          */
         bool SetUri(const char* uri);
         
     private:
 
+    };
+
+    //*********************************************************************************
+
+    /**
+     * @class MultiImageFrameSourceBintr
+     * @brief Implements a Multi Image Decode Source - multiple frames to EOS
+     */
+    class MultiImageFrameSourceBintr : public ImageSourceBintr
+    {
+    public: 
+    
         /**
-         * @brief JPEG Parser for this ImageSourceBintr
+         * @brief ctor for the MultiImageFrameSourceBintr
+         * @param uri relative or absolute path to the input file source.
          */
-        DSL_ELEMENT_PTR m_pJpegParse;
+        MultiImageFrameSourceBintr(const char* name, const char* uri);
+        
+        /**
+         * @brief dtor for the MultiImageFrameSourceBintr
+         */
+        ~MultiImageFrameSourceBintr();
 
         /**
-         * @brief V4L2 Decoder for this ImageSourceBintr
+         * @brief Sets the URIs for MultiImageFrameSourceBintr 
+         * @param uri relative or absolute path to the input file source.
          */
-        DSL_ELEMENT_PTR m_pV4L2Decoder;
+        bool SetUri(const char* uri);
+        
+    private:
 
     };
 

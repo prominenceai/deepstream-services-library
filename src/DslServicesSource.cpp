@@ -287,7 +287,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceImageNew(const char* name, const char* filePath)
+    DslReturnType Services::SourceImageFrameNew(const char* name, const char* filePath)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -303,23 +303,58 @@ namespace DSL
             std::ifstream streamUriFile(filePath);
             if (!streamUriFile.good())
             {
-                LOG_ERROR("Image Source'" << filePath << "' Not found");
+                LOG_ERROR("Image Frame Source'" << filePath << "' Not found");
                 return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
             }
-            m_components[name] = DSL_IMAGE_SOURCE_NEW(name, filePath);
+            m_components[name] = DSL_IMAGE_FRAME_SOURCE_NEW(name, filePath);
 
-            LOG_INFO("New Image Source '" << name << "' created successfully");
+            LOG_INFO("New Image Frame Source '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Image Source '" << name << "' threw exception on create");
+            LOG_ERROR("New Image Frame Source '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::SourceImagePathGet(const char* name, const char** filePath)
+    DslReturnType Services::SourceImageFrameManyNew(const char* name, const char* filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Source name '" << name << "' is not unique");
+                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+            }
+//            std::ifstream streamUriFile(filePath);
+//            if (!streamUriFile.good())
+//            {
+//                LOG_ERROR("Image Source'" << filePath << "' Not found");
+//                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+//            }
+            m_components[name] = DSL_MULTI_IMAGE_FRAME_SOURCE_NEW(name, filePath);
+
+            LOG_INFO("New Multi Image Frame Source '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Multi Image Frame Source '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceImagePathGet(const char* name, 
+        const char** filePath)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -327,7 +362,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSourceBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_IMAGE_SOURCE(m_components, name);
 
             DSL_IMAGE_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
@@ -355,7 +390,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSourceBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_IMAGE_SOURCE(m_components, name);
 
             DSL_IMAGE_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
