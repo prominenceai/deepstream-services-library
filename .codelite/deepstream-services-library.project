@@ -195,7 +195,6 @@
       <File Name="../examples/python/1uri_file_pgie_ktl_tiler_osd_window_h264_mkv.py"/>
       <File Name="../examples/python/1uri_file_pgie_ktl_tiler_osd_window_h265_mp4.py"/>
       <File Name="../examples/python/1uri_https_tiler_window_dyn_overlay.py"/>
-      <File Name="../examples/python/1uri_jpeg_ptis_osd_window.py"/>
       <File Name="../examples/python/2rtsp_splitter_demuxer_pgie_ktl_tiler_osd_window_2_file.py"/>
       <File Name="../examples/python/2uri_file_pgie_ktl_3sgie_tiler_osd_bmh_window.py"/>
       <File Name="../examples/python/2uri_file_pgie_ktl_demuxer_1osd_1overlay_1window.py"/>
@@ -232,6 +231,7 @@
       <File Name="../examples/python/rtsp_player_to_test_connections.py"/>
       <File Name="../examples/python/semantic_segmentation.py"/>
       <File Name="../examples/python/message_broker_azure_module_client.py"/>
+      <File Name="../examples/python/1image_jpeg_pgie_osd_window.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>

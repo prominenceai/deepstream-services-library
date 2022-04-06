@@ -31,10 +31,7 @@ from dsl import *
 
 #-------------------------------------------------------------------------------------------
 #
-# This example demonstrates the use of a URI Source to stream a JPEG file.
-#
-# Inference is done using a Primary Triton Inference Server (PTIS). The PTIS
-# requires a unique name, TIS inference config file, and inference interval when created.
+# This example demonstrates the use of an Image Source to infer on a single JPEG image
 #
 # The PTIS is added to a new Pipeline with the single URI JPF Source, KTL Tracker, 
 # On-Screen-Display (OSD), and Window Sink with 1280x720 dimensions.
@@ -42,9 +39,11 @@ from dsl import *
 # File path for the single File Source
 file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg'
 
-# Filespecs for the Primary Triton Inference Server (PTIS)
+# Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_plan_engine_primary.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
 # Window Sink Dimensions
 sink_width = 1280
@@ -92,16 +91,14 @@ def main(args):
 
         # New URI Image Source using the files path defined above, not simulating
         # a live source, stream at 15 hz, and generate EOS after 10 seconds.
-        retval = dsl_source_uri_new('image-source', 
-            uri = file_path, 
-            is_live = False,
-            intra_decode = False,
-            drop_frame_interval = 0)
+        retval = dsl_source_image_new('image-source', 
+            file_path = file_path)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # New Primary TIS using the filespec specified above, with interval = 0
-        retval = dsl_infer_tis_primary_new('primary-tis', primary_infer_config_file, 0)
+        # New Primary GIE using the filespecs above with interval = 0
+        retval = dsl_infer_gie_primary_new('primary-gie', 
+            primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -123,7 +120,7 @@ def main(args):
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['image-source', 'primary-tis', 'ktl-tracker', 'on-screen-display', 'window-sink', None])
+            ['image-source', 'primary-gie', 'ktl-tracker', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
