@@ -164,6 +164,9 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(UsbSourceBintr)) and  \
         !components[name]->IsType(typeid(UriSourceBintr)) and  \
         !components[name]->IsType(typeid(FileSourceBintr)) and  \
+        !components[name]->IsType(typeid(ImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(SingleImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(MultiImageSourceBintr)) and  \
         !components[name]->IsType(typeid(ImageStreamSourceBintr)) and  \
         !components[name]->IsType(typeid(RtspSourceBintr))) \
     { \
@@ -178,7 +181,20 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(RtspSourceBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
-        return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE; \
+        return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_DECODE_SOURCE; \
+    } \
+}while(0); 
+
+#define DSL_RETURN_IF_COMPONENT_IS_NOT_FILE_SOURCE(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(FileSourceBintr)) and  \
+        !components[name]->IsType(typeid(ImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(SingleImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(MultiImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(ImageStreamSourceBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
+        return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_FILE_SOURCE; \
     } \
 }while(0); 
 

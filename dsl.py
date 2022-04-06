@@ -2019,6 +2019,16 @@ def dsl_source_file_repeat_enabled_set(name, enabled):
     return int(result)
 
 ##
+## dsl_source_image_new()
+##
+_dsl.dsl_source_image_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_image_new.restype = c_uint
+def dsl_source_image_new(name, file_path):
+    global _dsl
+    result = _dsl.dsl_source_image_new(name, file_path)
+    return int(result)
+
+##
 ## dsl_source_image_stream_new()
 ##
 _dsl.dsl_source_image_stream_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint, c_uint, c_uint]
@@ -2026,27 +2036,6 @@ _dsl.dsl_source_image_stream_new.restype = c_uint
 def dsl_source_image_stream_new(name, file_path, is_live, fps_n, fps_d, timeout):
     global _dsl
     result = _dsl.dsl_source_image_stream_new(name, file_path, is_live, fps_n, fps_d, timeout)
-    return int(result)
-
-##
-## dsl_source_image_stream_path_get()
-##
-_dsl.dsl_source_image_stream_path_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
-_dsl.dsl_source_image_stream_path_get.restype = c_uint
-def dsl_source_image_stream_path_get(name):
-    global _dsl
-    file_path = c_wchar_p(0)
-    result = _dsl.dsl_source_image_stream_path_get(name, DSL_WCHAR_PP(file_path))
-    return int(result), file_path.value 
-
-##
-## dsl_source_image_stream_path_set()
-##
-_dsl.dsl_source_image_stream_path_set.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_source_image_stream_path_set.restype = c_uint
-def dsl_source_image_stream_path_set(name, file_path):
-    global _dsl
-    result = _dsl.dsl_source_image_stream_path_set(name, file_path)
     return int(result)
 
 ##

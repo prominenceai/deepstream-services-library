@@ -332,7 +332,7 @@ static void send_message_result_listener_cb(void* client_data, uint status)
     std::cout << "result listener called with status = " << status;
 }
 
-SCENARIO( "The Message Broker can send an async message", "[new]" )
+SCENARIO( "The Message Broker can send an async message", "[message-broker-api]" )
 {
     GIVEN( "A new Message Broker in a connected state" ) 
     {
