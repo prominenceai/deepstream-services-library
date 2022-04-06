@@ -1,5 +1,5 @@
 # Source API Reference
-Sources are the head components for all DSL Pipelines. Pipelines must have at least one source in use, among other components, to reach a state of Ready. DSL supports six types of Streaming Sources, two Camera, two Decode, and two Non-Live sources:
+Sources are the head components for all DSL Pipelines. Pipelines must have at least one source in use - among other components - to transition to a state of playing. DSL supports 7 types of Sources, two Camera, three Decode, and two Image:
 
 **Camera Sources:**
 * Camera Serial Interface ( CSI )
@@ -7,11 +7,12 @@ Sources are the head components for all DSL Pipelines. Pipelines must have at le
 
 **Decode Sources:**
 * Uniform Resource Identifier ( URI )
+* Video File
 * Real-time Streaming Protocol ( RTSP )
 
-**Non-Live Sources:**
-* Video File Source
-* Image File Source (can simulate live source)
+**Image Sources:**
+* Single Image ( single frame to EOS )
+* Streaming Image ( streamed at a give frame rate )
 
 #### Source Construction and Destruction
 Sources are created using one of six type-specific [constructors](#constructors). As with all components, Streaming Sources must be uniquely named from all other Pipeline components created. 
@@ -45,6 +46,7 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_rtsp_new](#dsl_source_rtsp_new)
 * [dsl_source_file_new](#dsl_source_file_new)
 * [dsl_source_image_new](#dsl_source_image_new)
+* [dsl_source_image_stream_new](#dsl_source_image_stream_new)
 
 **methods:**
 * [dsl_source_dimensions_get](#dsl_source_dimensions_get)
@@ -72,10 +74,8 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_file_path_set](#dsl_source_file_path_set)
 * [dsl_source_file_repeat_enabled_get](#dsl_source_file_repeat_enabled_get)
 * [dsl_source_file_repeat_enabled_set](#dsl_source_file_repeat_enabled_set)
-* [dsl_source_image_path_get](#dsl_source_image_path_get)
-* [dsl_source_image_path_set](#dsl_source_image_path_set)
-* [dsl_source_image_timeout_get](#dsl_source_image_timeout_get)
-* [dsl_source_image_timeout_set](#dsl_source_image_timeout_set)
+* [dsl_source_image_stream_timeout_get](#dsl_source_image_stream_timeout_get)
+* [dsl_source_image_stream_timeout_set](#dsl_source_image_stream_timeout_get)
 * [dsl_source_num_in_use_get](#dsl_source_num_in_use_get)
 * [dsl_source_num_in_use_max_get](#dsl_source_num_in_use_max_get)
 * [dsl_source_num_in_use_max_set](#dsl_source_num_in_use_max_set)
@@ -323,9 +323,30 @@ retval = dsl_source_file_new('my-uri-source', './streams/sample_1080p_h264.mp4',
 ### *dsl_source_image_new*
 ```C
 DslReturnType dsl_source_image_new(const wchar_t* name, 
+    const wchar_t* file_path);
+```
+This service creates a new, uniquely named Image Source component. The Image is streamed as a single frame followed by an End of Stream (EOS) event. 
+
+**Parameters**
+* `name` - [in] unique name for the new Source
+* `file_path` - [in] absolute or relative path to the image file to play
+* 
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_image_new('my-uri-source', './streams/image4.jpg')
+```
+
+<br>
+
+### *dsl_source_image_stream_new*
+```C
+DslReturnType dsl_source_image_stream_new(const wchar_t* name, 
     const wchar_t* file_path, boolean is_live, uint fps_n, uint fps_d, uint timeout);
 ```
-This service creates a new, uniquely named Image Source component. The Image is overlaid on top of a mock video stream that plays at a specifed frame rate. The video source can mock both live and non-live sources allowing the Image to be batched (with a Pipeline's built-in stream-muxer) along with other Source components. 
+This service creates a new, uniquely named Streaming Image Source component. The Image is overlaid on top of a mock video stream that plays at a specifed frame rate. The video source can mock both live and non-live sources allowing the Image to be batched along with other Source components. 
 
 **Parameters**
 * `name` - [in] unique name for the new Source
@@ -340,7 +361,7 @@ This service creates a new, uniquely named Image Source component. The Image is 
 
 **Python Example**
 ```Python
-retval = dsl_source_image_new('my-uri-source', './streams/image4.jpg', 
+retval = dsl_source_image_stream_new('my-uri-source', './streams/image4.jpg', 
     false, 30, 1, 0)
 ```
 
@@ -784,7 +805,7 @@ retval = dsl_source_rtsp_tap_remove('my-rtsp-source')
 ```C
 DslReturnType dsl_source_file_path_get(const wchar_t* name, const wchar_t** file_path);
 ```
-This service gets the current file path in use for the named File source
+This service gets the current file path in use for the named File, Image, or Streaming Image source
 
 **Parameters**
 * `name` - [in] unique name of the Source to query
@@ -803,7 +824,7 @@ retval, file_path = dsl_source_file_path_get('my-file-source')
 ```C
 DslReturnType dsl_source_file_path_set(const wchar_t* name, const wchar_t* file_path);
 ```
-This service sets the file path to use by the named File source. 
+This service sets the file path to use by the named File, Image, or Streaming Image source
 
 **Parameters**
 * `name` - [in] unique name of the Source to update
@@ -858,50 +879,11 @@ retval = dsl_source_file_repeat_enabled_set('my-file-source', True)
 
 <br>
 
-### *dsl_source_image_path_get*
+### *dsl_source_image_stream_timeout_get*
 ```C
-DslReturnType dsl_source_image_path_get(const wchar_t* name, const wchar_t** file_path);
+DslReturnType dsl_source_image_stream_timeout_get(const wchar_t* name, uint* timeout);
 ```
-This service gets the current File Path in use for the named Image source
-
-**Parameters**
-* `name` - [in] unique name of the Image Source to query
-* `file_path` - [out] absolute file path setting in use by the Image source
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval, file_path = dsl_source_image_path_get('my-image-source')
-```
-<br>
-
-### *dsl_source_image_path_set*
-```C
-DslReturnType dsl_source_image_path_set(const wchar_t* name, const wchar_t* file_path);
-```
-This service sets the File Path to use by the named Image source. 
-
-**Parameters**
-* `name` - [in] unique name of the Image Source to update
-* `file_path` - [in] absolute or relative file path to use
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_source_image_path_set('my-image-source', './streams/image4.jpg')
-```
-
-<br>
-
-### *dsl_source_image_timeout_get*
-```C
-DslReturnType dsl_source_image_timeout_get(const wchar_t* name, uint* timeout);
-```
-This service gets the current timeout setting in use for the named Image source
+This service gets the current timeout setting in use for the named Streaming Image source
 
 **Parameters**
 * `name` - [in] unique name of the Image Source to query
@@ -912,15 +894,15 @@ This service gets the current timeout setting in use for the named Image source
 
 **Python Example**
 ```Python
-retval, timeout = dsl_source_image_timeout_get('my-image-source')
+retval, timeout = dsl_source_image_stream_timeout_get('my-image-source')
 ```
 <br>
 
-### *dsl_source_image_timeout_set*
+### *dsl_source_image_stream_timeout_set*
 ```C
-DslReturnType dsl_source_image_timeout_set(const wchar_t* name, uint timeout);
+DslReturnType dsl_source_image_stream_timeout_set(const wchar_t* name, uint timeout);
 ```
-This service sets the File Path to use by the named Image source. 
+This service sets the File Path to use by the named Streaming Image source. 
 
 **Parameters**
 * `name` - [in] unique name of the Image Source to update
@@ -931,7 +913,7 @@ This service sets the File Path to use by the named Image source.
 
 **Python Example**
 ```Python
-retval = dsl_source_image_timeout_set('my-image-source', 30)
+retval = dsl_source_image_stream_timeout_set('my-image-source', 30)
 ```
 
 <br>
