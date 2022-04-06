@@ -174,10 +174,10 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSourceBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_FILE_SOURCE(m_components, name);
 
-            DSL_FILE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<FileSourceBintr>(m_components[name]);
+            DSL_RESOURCE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ResourceSourceBintr>(m_components[name]);
 
             *filePath = pSourceBintr->GetUri();
 
@@ -202,10 +202,10 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSourceBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_FILE_SOURCE(m_components, name);
 
-            DSL_FILE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<FileSourceBintr>(m_components[name]);
+            DSL_RESOURCE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ResourceSourceBintr>(m_components[name]);
 
             std::ifstream streamUriFile(filePath);
             if (!streamUriFile.good())
@@ -326,75 +326,6 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceImagePathGet(const char* name, 
-        const char** filePath)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                ImageSourceBintr);
-
-            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
-
-            *filePath = pSourceBintr->GetUri();
-            
-            LOG_INFO("Image Source '" << name << "' returned File Path = '" 
-                << *filePath << "' successfully");
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Source '" 
-                << name << "' threw exception getting File Path");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-            
-
-    DslReturnType Services::SourceImagePathSet(const char* name, const char* filePath)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                ImageSourceBintr);
-
-            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
-
-            std::ifstream streamUriFile(filePath);
-            if (!streamUriFile.good())
-            {
-                LOG_ERROR("Image Source'" << filePath << "' Not found");
-                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-            }
-            if (!pSourceBintr->SetUri(filePath));
-            {
-                LOG_ERROR("Failed to Set FilePath '" << filePath 
-                    << "' for Image Source '" << name << "'");
-                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-            }
-            LOG_INFO("Image Source '" << name << "' set File Path = '" 
-                << filePath << "' successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Source '" << name << "' threw exception setting File path");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-
     DslReturnType Services::SourceImageMultiNew(const char* name, 
         const char* filePath, uint fpsN, uint fpsD)
     {
@@ -431,75 +362,6 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceImageMultiPathGet(const char* name, 
-        const char** filePath)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                MultiImageSourceBintr);
-
-            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<MultiImageSourceBintr>(m_components[name]);
-
-            *filePath = pSourceBintr->GetUri();
-            
-            LOG_INFO("Multi Image Source '" << name << "' returned File Path = '" 
-                << *filePath << "' successfully");
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Multi Image Source '" 
-                << name << "' threw exception getting File Path");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-            
-
-    DslReturnType Services::SourceImageMultiPathSet(const char* name, const char* filePath)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                MultiImageSourceBintr);
-
-            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<MultiImageSourceBintr>(m_components[name]);
-
-//            std::ifstream streamUriFile(filePath);
-//            if (!streamUriFile.good())
-//            {
-//                LOG_ERROR("Image Source'" << filePath << "' Not found");
-//                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-//            }
-            if (!pSourceBintr->SetUri(filePath));
-            {
-                LOG_ERROR("Failed to Set FilePath '" << filePath 
-                    << "' for Multi Image Source '" << name << "'");
-                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-            }
-            LOG_INFO("Multi Image Source '" << name << "' set File Path = '" 
-                << filePath << "' successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Multi Image Source '" << name << "' threw exception setting File path");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-
     DslReturnType Services::SourceImageStreamNew(const char* name, const char* filePath, 
         boolean isLive, uint fpsN, uint fpsD, uint timeout)
     {
@@ -530,70 +392,6 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New Image Stream Source '" << name << "' threw exception on create");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SourceImageStreamPathGet(const char* name, const char** filePath)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageStreamSourceBintr);
-
-            DSL_IMAGE_STREAM_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<ImageStreamSourceBintr>(m_components[name]);
-
-            *filePath = pSourceBintr->GetUri();
-            
-            LOG_INFO("Image Stream Source '" << name << "' returned File Path = '" 
-                << *filePath << "' successfully");
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Stream Source '" << name << "' threw exception getting File Path");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-            
-
-    DslReturnType Services::SourceImageStreamPathSet(const char* name, const char* filePath)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageStreamSourceBintr);
-
-            DSL_IMAGE_STREAM_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<ImageStreamSourceBintr>(m_components[name]);
-
-            std::ifstream streamUriFile(filePath);
-            if (!streamUriFile.good())
-            {
-                LOG_ERROR("Image Stream Source'" << filePath << "' Not found");
-                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-            }
-            if (!pSourceBintr->SetUri(filePath));
-            {
-                LOG_ERROR("Failed to Set FilePath '" << filePath << "' for Image Stream Source '" << name << "'");
-                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-            }
-            LOG_INFO("Image Stream Source '" << name << "' set File Path = '" 
-                << filePath << "' successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Stream Source '" << name << "' threw exception setting File path");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }

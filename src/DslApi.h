@@ -82,7 +82,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_TAP_REMOVE_FAILED                         0x0002000F
 #define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x00020010
 #define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_DECODE_SOURCE            0x00020011
-#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_IMAGE_SOURCE             0x00020012
+#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_FILE_SOURCE              0x00020012
 #define DSL_RESULT_SOURCE_CALLBACK_ADD_FAILED                       0x00020013
 #define DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED                    0x00020014
 #define DSL_RESULT_SOURCE_SET_FAILED                                0x00020015
@@ -2845,22 +2845,6 @@ DslReturnType dsl_source_image_new(const wchar_t* name,
     const wchar_t* file_path);
 
 /**
- * @brief Gets the current File Path in use by the named Image Source
- * @param[in] name name of the Image Source to query
- * @param[out] file_path in use by the Image Source
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_image_path_get(const wchar_t* name, const wchar_t** file_path);
-
-/**
- * @brief Sets the current File Path for the named Image Source to use
- * @param[in] name name of the Image Source to update
- * @param[in] file_path new file path to used by the Image Source
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_image_path_set(const wchar_t* name, const wchar_t* file_path);
-
-/**
  * @brief creates a new, uniquely named Multi Image Source component that
  * decodes multiple images specified by folder/filename-pattern.
  * @param[in] name Unique name for the Image Frame Source
@@ -2875,24 +2859,6 @@ DslReturnType dsl_source_image_multi_new(const wchar_t* name,
     const wchar_t* file_path, uint fps_n, uint fps_d);
 
 /**
- * @brief Gets the current File Path in use by the named Multi Image Source
- * @param[in] name name of the Image Source to query
- * @param[out] file_path in use by the Image Source
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_image_multi_path_get(const wchar_t* name, const wchar_t** file_path);
-
-/**
- * @brief Sets the current File Path for the named Multi Image Source to use
- * @param[in] name name of the Image Source to update
- * @param[in] file_path use the printf style %d in the absolute or relative path. 
- * Eample: "./my_images/image.%d04.mjpg", where the files in "./my_images/"
- * are named "image.0000.mjpg", "image.0001.mjpg", "image.0002.mjpg" etc.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_image_multi_path_set(const wchar_t* name, const wchar_t* file_path);
-
-/**
  * @brief creates a new, uniquely named Image Stream Source component that
  * streams an image at a specified framerate
  * @param[in] name Unique name for the Image Source
@@ -2905,22 +2871,6 @@ DslReturnType dsl_source_image_multi_path_set(const wchar_t* name, const wchar_t
  */
 DslReturnType dsl_source_image_stream_new(const wchar_t* name, 
     const wchar_t* file_path, boolean is_live, uint fps_n, uint fps_d, uint timeout);
-
-/**
- * @brief Gets the current File Path in use by the named Image Stream Source
- * @param[in] name name of the Image Source to query
- * @param[out] FilePath in use by the Image Source
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_image_stream_path_get(const wchar_t* name, const wchar_t** file_path);
-
-/**
- * @brief Sets the current File Path for the named Image Stream Source to use
- * @param[in] name name of the Image Source to update
- * @param[in] file_path new file path to use by the Image Source
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_image_stream_path_set(const wchar_t* name, const wchar_t* file_path);
 
 /**
  * @brief Gets the current Timeout setting for the Image Stream Source

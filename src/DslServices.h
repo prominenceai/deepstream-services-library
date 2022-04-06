@@ -470,23 +470,11 @@ namespace DSL {
         DslReturnType SourceImageNew(const char* name, 
             const char* filePath);
 
-        DslReturnType SourceImagePathGet(const char* name, const char** filePath);
-
-        DslReturnType SourceImagePathSet(const char* name, const char* filePath);
-
         DslReturnType SourceImageMultiNew(const char* name, 
             const char* filePath, uint fpsN, uint fpsD);
 
-        DslReturnType SourceImageMultiPathGet(const char* name, const char** filePath);
-
-        DslReturnType SourceImageMultiPathSet(const char* name, const char* filePath);
-
         DslReturnType SourceImageStreamNew(const char* name, const char* filePath, 
             boolean isLive, uint fpsN, uint fpsD, uint timeout);
-
-        DslReturnType SourceImageStreamPathGet(const char* name, const char** filePath);
-
-        DslReturnType SourceImageStreamPathSet(const char* name, const char* filePath);
 
         DslReturnType SourceImageStreamTimeoutGet(const char* name, uint* timeout);
     
