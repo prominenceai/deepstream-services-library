@@ -2492,7 +2492,8 @@ DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name, boolean en
         enabled);
 }
 
-DslReturnType dsl_source_image_frame_new(const wchar_t* name, const wchar_t* file_path)
+DslReturnType dsl_source_image_new(const wchar_t* name, 
+    const wchar_t* file_path)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(file_path);
@@ -2502,21 +2503,7 @@ DslReturnType dsl_source_image_frame_new(const wchar_t* name, const wchar_t* fil
     std::wstring wstrFilePath(file_path);
     std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
 
-    return DSL::Services::GetServices()->SourceImageFrameNew(cstrName.c_str(), 
-        cstrFilePath.c_str());
-}
-
-DslReturnType dsl_source_image_frame_many_new(const wchar_t* name, const wchar_t* file_path)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(file_path);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrFilePath(file_path);
-    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
-
-    return DSL::Services::GetServices()->SourceImageFrameManyNew(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SourceImageNew(cstrName.c_str(), 
         cstrFilePath.c_str());
 }
 
@@ -2555,6 +2542,59 @@ DslReturnType dsl_source_image_path_set(const wchar_t* name, const wchar_t* file
     std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
 
     return DSL::Services::GetServices()->SourceImagePathSet(cstrName.c_str(), 
+        cstrFilePath.c_str());
+}
+
+DslReturnType dsl_source_image_multi_new(const wchar_t* name, 
+    const wchar_t* file_path, uint fps_n, uint fps_d)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->SourceImageMultiNew(cstrName.c_str(), 
+        cstrFilePath.c_str(), fps_n, fps_d);
+}
+
+DslReturnType dsl_source_image_multi_path_get(const wchar_t* name, 
+    const wchar_t** file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cFilePath;
+    static std::string cstrFilePath;
+    static std::wstring wcstrFilePath;
+    
+    uint retval = DSL::Services::GetServices()->SourceImageMultiPathGet(cstrName.c_str(), 
+        &cFilePath);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrFilePath.assign(cFilePath);
+        wcstrFilePath.assign(cstrFilePath.begin(), cstrFilePath.end());
+        *file_path = wcstrFilePath.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_source_image_multi_path_set(const wchar_t* name, const wchar_t* file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->SourceImageMultiPathSet(cstrName.c_str(), 
         cstrFilePath.c_str());
 }
 

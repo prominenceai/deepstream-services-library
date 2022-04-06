@@ -26,21 +26,24 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 
-#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(1000)
+#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(3000)
 
 // ---------------------------------------------------------------------------
 // Shared Test Inputs 
 
 static const std::wstring pipeline_name(L"test-pipeline");
+static const std::wstring player_name(L"test-player");
 
 static const std::wstring source_name1(L"image-source-1");
 static const std::wstring source_name2(L"image-source-2");
 static const std::wstring source_name3(L"image-source-3");
 static const std::wstring source_name4(L"image-source-4");
 static const std::wstring jpeg_file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg");
-static const std::wstring jpeg_file_path_multi(L"./test/streams/sample_720p.%04d.jpeg");
+static const std::wstring jpeg_file_path_multi(L"./test/streams/sample_720p.%d.jpeg");
 static const std::wstring mjpeg_file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.mjpeg");
-static const std::wstring mjpeg_file_path_multi(L"./test/streams/sample_720p.%04d.mjpeg");
+static const std::wstring mjpeg_file_path_multi(L"./test/streams/sample_720p.%d.mjpeg");
+
+static const std::wstring png_file_path(L"./test/streams/sample_720p.png");
 
 static const std::wstring primary_gie_name(L"primary-gie");
 static std::wstring infer_config_file(
@@ -74,9 +77,22 @@ static const std::wstring ode_handler_name(L"ode-handler");
 static const std::wstring occurrence_trigger_name(L"occurrence-trigger");
 static const std::wstring print_action_name(L"print-action");
 
+static const std::wstring pipeline_graph_name(L"pipeline-playing");
+
 // ---------------------------------------------------------------------------
 
-SCENARIO( "A new Pipeline with an JPEG Image Frame Source, Primary GIE, Tiled Display, \
+// 
+// Function to be called on End-of-Stream (EOS) event
+// 
+static void eos_event_listener(void* client_data)
+{
+    std::wcout << L"EOS event for Pipeline " << std::endl;
+    dsl_main_loop_quit();
+}    
+
+// ---------------------------------------------------------------------------
+
+SCENARIO( "A new Pipeline with a JPEG Image Source, Primary GIE, Tiled Display, \
     Window Sink, ODE Trigger and Action can play",
     "[image-source-play]" )
 {
@@ -84,7 +100,7 @@ SCENARIO( "A new Pipeline with an JPEG Image Frame Source, Primary GIE, Tiled Di
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_image_frame_new(source_name1.c_str(),
+        REQUIRE( dsl_source_image_new(source_name1.c_str(),
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
@@ -124,10 +140,14 @@ SCENARIO( "A new Pipeline with an JPEG Image Frame Source, Primary GIE, Tiled Di
             REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
                 components) == DSL_RESULT_SUCCESS );
 
+            REQUIRE( dsl_pipeline_eos_listener_add(pipeline_name.c_str(), 
+                eos_event_listener, NULL) == DSL_RESULT_SUCCESS );
+
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                dsl_main_loop_run();
+                
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
                 dsl_delete_all();
@@ -138,13 +158,13 @@ SCENARIO( "A new Pipeline with an JPEG Image Frame Source, Primary GIE, Tiled Di
 
 SCENARIO( "A new Pipeline with an MJPEG Image Frame Source, Primary GIE, Tiled Display, \
     Window Sink, ODE Trigger and Action can play",
-    "[new2]" )
+    "[image-source-play]" )
 {
     GIVEN( "A Pipeline, URI source, Primary GIE, Tiled Display, Window Sink" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_image_frame_new(source_name1.c_str(),
+        REQUIRE( dsl_source_image_new(source_name1.c_str(),
             mjpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
@@ -196,20 +216,22 @@ SCENARIO( "A new Pipeline with an MJPEG Image Frame Source, Primary GIE, Tiled D
     }
 }
 
-SCENARIO( "A new Pipeline with 4 JPEG Image Frame Sources, Primary GIE, Tiled Display, Window Sink can play", 
-    "[image-source-play]" )
+SCENARIO( "A new Pipeline with 4 JPEG Image Sources, Primary GIE, \
+    Tiled Display, Window Sink can play", "[image-source-play]" )
 {
     GIVEN( "A Pipeline, URI source, Primary GIE, Tiled Display, Window Sink" ) 
     {
+        uint fps_n(10), fps_d(1);
+
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_image_frame_new(source_name1.c_str(), 
+        REQUIRE( dsl_source_image_new(source_name1.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_image_frame_new(source_name2.c_str(), 
+        REQUIRE( dsl_source_image_new(source_name2.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_image_frame_new(source_name3.c_str(), 
+        REQUIRE( dsl_source_image_new(source_name3.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_image_frame_new(source_name4.c_str(), 
+        REQUIRE( dsl_source_image_new(source_name4.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
@@ -260,16 +282,88 @@ SCENARIO( "A new Pipeline with 4 JPEG Image Frame Sources, Primary GIE, Tiled Di
     }
 }
 
-SCENARIO( "A new Pipeline with a Many JPEG Image Frame Source, Primary GIE, Tiled Display, \
+// ---------------------------------------------------------------------------
+
+SCENARIO( "A new Pipeline with a Image Stream Source, Primary GIE, Tiled Display, \
     Window Sink, ODE Trigger and Action can play",
     "[new]" )
 {
     GIVEN( "A Pipeline, URI source, Primary GIE, Tiled Display, Window Sink" ) 
     {
+        uint fps_n(10), fps_d(1);
+        
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_image_frame_many_new(source_name1.c_str(), 
-            jpeg_file_path_multi.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_image_stream_new(source_name1.c_str(),
+            jpeg_file_path.c_str(), false, fps_n, fps_d, false) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            infer_config_file.c_str(), model_engine_file.c_str(),
+            0) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
+            tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_action_print_new(print_action_name.c_str(), false) == 
+            DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_ode_trigger_occurrence_new(occurrence_trigger_name.c_str(),
+            DSL_ODE_ANY_SOURCE, DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_ONE) ==
+            DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(occurrence_trigger_name.c_str(), 
+            print_action_name.c_str()) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_pph_ode_new(ode_handler_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_trigger_add(ode_handler_name.c_str(), 
+            occurrence_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_tiler_pph_add(tiler_name1.c_str(), ode_handler_name.c_str(), 
+            DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+        
+        const wchar_t* components[] = {L"image-source-1",L"primary-gie", L"tiler", 
+            L"window-sink", NULL};
+        
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_pipeline_eos_listener_add(pipeline_name.c_str(), 
+                eos_event_listener, NULL) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                dsl_pipeline_dump_to_dot(pipeline_name.c_str(), 
+                    const_cast<wchar_t*>(pipeline_graph_name.c_str()));
+
+                dsl_main_loop_run();
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                dsl_delete_all();
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Pipeline with a Multi JPEG Image Frame Source, Primary GIE, Tiled Display, \
+    Window Sink, ODE Trigger and Action can play",
+    "[new2]" )
+{
+    GIVEN( "A Pipeline, URI source, Primary GIE, Tiled Display, Window Sink" ) 
+    {
+        uint fps_n(1), fps_d(1);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_image_multi_new(source_name1.c_str(), 
+            jpeg_file_path_multi.c_str(), fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
             infer_config_file.c_str(), model_engine_file.c_str(), 
@@ -297,9 +391,11 @@ SCENARIO( "A new Pipeline with a Many JPEG Image Frame Source, Primary GIE, Tile
         REQUIRE( dsl_tiler_pph_add(tiler_name1.c_str(), ode_handler_name.c_str(), 
             DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
         
-        const wchar_t* components[] = {L"image-source-1",L"primary-gie", L"tiler", 
-            L"window-sink", NULL};
+//        const wchar_t* components[] = {L"image-source-1",L"primary-gie", L"tiler", 
+//            L"window-sink", NULL};
         
+        const wchar_t* components[] = {L"image-source-1",
+            L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -308,10 +404,15 @@ SCENARIO( "A new Pipeline with a Many JPEG Image Frame Source, Primary GIE, Tile
             REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
                 components) == DSL_RESULT_SUCCESS );
 
+            REQUIRE( dsl_pipeline_eos_listener_add(pipeline_name.c_str(), 
+                eos_event_listener, NULL) == DSL_RESULT_SUCCESS );
+                
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                dsl_pipeline_dump_to_dot(pipeline_name.c_str(), 
+                    const_cast<wchar_t*>(pipeline_graph_name.c_str()));
+                dsl_main_loop_run();
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
                 dsl_delete_all();
@@ -320,16 +421,18 @@ SCENARIO( "A new Pipeline with a Many JPEG Image Frame Source, Primary GIE, Tile
     }
 }
 
-SCENARIO( "A new Pipeline with a Many MJPEG Image Frame Source, Primary GIE, Tiled Display, \
+SCENARIO( "A new Pipeline with a Multi MJPEG Image Frame Source, Primary GIE, Tiled Display, \
     Window Sink, ODE Trigger and Action can play",
     "[image-source-play]" )
 {
     GIVEN( "A Pipeline, URI source, Primary GIE, Tiled Display, Window Sink" ) 
     {
+        uint fps_n(1), fps_d(1);
+
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_image_frame_many_new(source_name1.c_str(), 
-            mjpeg_file_path_multi.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_image_multi_new(source_name1.c_str(), 
+            mjpeg_file_path_multi.c_str(), fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
             infer_config_file.c_str(), model_engine_file.c_str(), 
@@ -371,7 +474,7 @@ SCENARIO( "A new Pipeline with a Many MJPEG Image Frame Source, Primary GIE, Til
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*3);
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
                 dsl_delete_all();
@@ -380,3 +483,44 @@ SCENARIO( "A new Pipeline with a Many MJPEG Image Frame Source, Primary GIE, Til
     }
 }
 
+SCENARIO( "A new Player with a Multi JPEG Image Source and Window Sink can play",
+    "[new3]" )
+{
+    GIVEN( "A Player with a Multi JPEG Source, Window Sink" ) 
+    {
+        uint fps_n(1), fps_d(1);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_image_multi_new(source_name1.c_str(), 
+            jpeg_file_path_multi.c_str(), fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+//        REQUIRE( dsl_source_image_new(source_name1.c_str(), 
+//            jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
+
+        
+        const wchar_t* components[] = {L"image-source-1",
+            L"window-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_player_new(player_name.c_str(), source_name1.c_str(),
+                window_sink_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_player_termination_event_listener_add(player_name.c_str(), 
+                eos_event_listener, NULL) == DSL_RESULT_SUCCESS );
+                
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                dsl_main_loop_run();
+                REQUIRE( dsl_player_stop(player_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                dsl_delete_all();
+            }
+        }
+    }
+}

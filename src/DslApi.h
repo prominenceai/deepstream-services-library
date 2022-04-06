@@ -570,6 +570,26 @@ THE SOFTWARE.
 #define DSL_DEFAULT_SOURCE_IN_USE_MAX                               8
 #define DSL_DEFAULT_SINK_IN_USE_MAX                                 8
 
+/**
+ * @brief Image Source Type constants
+ */
+#define DSL_IMAGE_TYPE_SINGLE                                       0
+#define DSL_IMAGE_TYPE_MULTI                                        1
+#define DSL_IMAGE_TYPE_STREAM                                       2
+
+/**
+ * @brief Image Source File Format constants
+ */
+#define DSL_IMAGE_FORMAT_JPG                                        0
+#define DSL_IMAGE_FORMAT_PNG                                        1
+
+/**
+ * @brief Image Source File Extention constants
+ */
+#define DSL_IMAGE_EXT_JPG                                           "jpg"
+#define DSL_IMAGE_EXT_PNG                                           "png"
+
+
 #define DSL_DEFAULT_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE             DSL_NVBUF_MEM_TYPE_DEFAULT
 #define DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT                         40000
 #define DSL_DEFAULT_STREAMMUX_WIDTH                                 1920
@@ -2815,32 +2835,19 @@ DslReturnType dsl_source_file_repeat_enabled_get(const wchar_t* name, boolean* e
 DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
- * @brief creates a new, uniquely named Image Frame Source component that
+ * @brief creates a new, uniquely named Image Source component that
  * decodes a single image producing a single frame followed by EOS
- * @param[in] name Unique name for the Image Frame Source
+ * @param[in] name Unique name for the Image Source
  * @param[in] file_path absolute or relative path to the image file to play
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_image_frame_new(const wchar_t* name, 
-    const wchar_t* file_path);
-
-/**
- * @brief creates a new, uniquely named Many Image Frame Source component that
- * decodes a single image producing a single frame followed by EOS
- * @param[in] name Unique name for the Image Source
- * @param[in] file_path using the printf style %d in the absolute or 
- * relative path to the image files to play. 
- * Eample: "./my_images/image.%d04.mjpg", where the files in "./my_images/"
- * are named "image.0000.mjpg", "image.0001.mjpg", "image.0002.mjpg" etc.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_image_frame_many_new(const wchar_t* name, 
+DslReturnType dsl_source_image_new(const wchar_t* name, 
     const wchar_t* file_path);
 
 /**
  * @brief Gets the current File Path in use by the named Image Source
  * @param[in] name name of the Image Source to query
- * @param[out] FilePath in use by the Image Source
+ * @param[out] file_path in use by the Image Source
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_image_path_get(const wchar_t* name, const wchar_t** file_path);
@@ -2848,10 +2855,42 @@ DslReturnType dsl_source_image_path_get(const wchar_t* name, const wchar_t** fil
 /**
  * @brief Sets the current File Path for the named Image Source to use
  * @param[in] name name of the Image Source to update
- * @param[in] file_path new file path to use by the Image Source
+ * @param[in] file_path new file path to used by the Image Source
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_image_path_set(const wchar_t* name, const wchar_t* file_path);
+
+/**
+ * @brief creates a new, uniquely named Multi Image Source component that
+ * decodes multiple images specified by folder/filename-pattern.
+ * @param[in] name Unique name for the Image Frame Source
+ * @param[in] file_path use the printf style %d in the absolute or relative path. 
+ * Eample: "./my_images/image.%d04.mjpg", where the files in "./my_images/"
+ * are named "image.0000.mjpg", "image.0001.mjpg", "image.0002.mjpg" etc.
+ * @param[in] fps-n frames/second fraction numerator
+ * @param[in] fps-d frames/second fraction denominator
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_image_multi_new(const wchar_t* name, 
+    const wchar_t* file_path, uint fps_n, uint fps_d);
+
+/**
+ * @brief Gets the current File Path in use by the named Multi Image Source
+ * @param[in] name name of the Image Source to query
+ * @param[out] file_path in use by the Image Source
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_image_multi_path_get(const wchar_t* name, const wchar_t** file_path);
+
+/**
+ * @brief Sets the current File Path for the named Multi Image Source to use
+ * @param[in] name name of the Image Source to update
+ * @param[in] file_path use the printf style %d in the absolute or relative path. 
+ * Eample: "./my_images/image.%d04.mjpg", where the files in "./my_images/"
+ * are named "image.0000.mjpg", "image.0001.mjpg", "image.0002.mjpg" etc.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_image_multi_path_set(const wchar_t* name, const wchar_t* file_path);
 
 /**
  * @brief creates a new, uniquely named Image Stream Source component that

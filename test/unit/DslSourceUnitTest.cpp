@@ -46,6 +46,7 @@ static uint timeout(20);
 
 static std::string jpgFilePath1("/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg");
 static std::string jpgFilePath2("/opt/nvidia/deepstream/deepstream/samples/streams/yoga.jpg");
+static std::string multJpgFilePath("./test/streams/sample_720p.%04d.mjpeg");
 
 static uint width(1920), height(1080), fpsN(30), fpsD(1);
 
@@ -956,16 +957,16 @@ SCENARIO( "An ImageStreamSourceBintr can UnlinkAll all child Elementrs correctly
     }
 }
 
-SCENARIO( "A new ImageFrameSourceBintr is created correctly",  "[SourceBintr]" )
+SCENARIO( "A new SingleImageSourceBintr is created correctly",  "[SourceBintr]" )
 {
-    GIVEN( "Attributes for a new ImageFrameSourceBintr" ) 
+    GIVEN( "Attributes for a new SingleImageSourceBintr" ) 
     {
         char absolutePath[PATH_MAX+1];
         std::string fullFillPath = realpath(jpgFilePath1.c_str(), absolutePath);
 
-        WHEN( "The ImageFrameSourceBintr is created " )
+        WHEN( "The MultiImageSourceBintr is created " )
         {
-            DSL_IMAGE_FRAME_SOURCE_PTR pSourceBintr = DSL_IMAGE_FRAME_SOURCE_NEW(
+            DSL_SINGLE_IMAGE_SOURCE_PTR pSourceBintr = DSL_SINGLE_IMAGE_SOURCE_NEW(
                 sourceName.c_str(), jpgFilePath1.c_str());
 
             THEN( "All memeber variables are initialized correctly" )
@@ -986,18 +987,18 @@ SCENARIO( "A new ImageFrameSourceBintr is created correctly",  "[SourceBintr]" )
     }
 }
 
-SCENARIO( "An ImageFrameSourceBintr can LinkAll child Elementrs correctly",  "[SourceBintr]" )
+SCENARIO( "An SingleImageSourceBintr can LinkAll child Elementrs correctly",  "[SourceBintr]" )
 {
-    GIVEN( "A new ImageFrameSourceBintr in memory" ) 
+    GIVEN( "A new SingleImageSourceBintr in memory" ) 
     {
-        DSL_IMAGE_FRAME_SOURCE_PTR pSourceBintr = DSL_IMAGE_FRAME_SOURCE_NEW(
+        DSL_SINGLE_IMAGE_SOURCE_PTR pSourceBintr = DSL_SINGLE_IMAGE_SOURCE_NEW(
             sourceName.c_str(), jpgFilePath1.c_str());
 
-        WHEN( "The ImageFrameSourceBintr is called to LinkAll" )
+        WHEN( "The SingleImageSourceBintr is called to LinkAll" )
         {
             REQUIRE( pSourceBintr->LinkAll() == true );
 
-            THEN( "The ImageFrameSourceBintr IsLinked state is updated correctly" )
+            THEN( "The SingleImageSourceBintr IsLinked state is updated correctly" )
             {
                 REQUIRE( pSourceBintr->IsLinked() == true );
             }
@@ -1005,21 +1006,92 @@ SCENARIO( "An ImageFrameSourceBintr can LinkAll child Elementrs correctly",  "[S
     }
 }
 
-SCENARIO( "An ImageFrameSourceBintr can UnlinkAll all child Elementrs correctly",  "[SourceBintr]" )
+SCENARIO( "An SingleImageSourceBintr can UnlinkAll all child Elementrs correctly",  "[SourceBintr]" )
 {
-    GIVEN( "A new, linked ImageFrameSourceBintr " ) 
+    GIVEN( "A new, linked SingleImageSourceBintr " ) 
     {
-        DSL_IMAGE_FRAME_SOURCE_PTR pSourceBintr = DSL_IMAGE_FRAME_SOURCE_NEW(
+        DSL_SINGLE_IMAGE_SOURCE_PTR pSourceBintr = DSL_SINGLE_IMAGE_SOURCE_NEW(
             sourceName.c_str(), jpgFilePath1.c_str());
 
         REQUIRE( pSourceBintr->LinkAll() == true );
         REQUIRE( pSourceBintr->IsLinked() == true );
 
-        WHEN( "The ImageFrameSourceBintr is called to UnlinkAll" )
+        WHEN( "The SingleImageSourceBintr is called to UnlinkAll" )
         {
             pSourceBintr->UnlinkAll();
 
-            THEN( "The ImageFrameSourceBintr IsLinked state is updated correctly" )
+            THEN( "The SingleImageSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new MultiImageSourceBintr is created correctly",  "[SourceBintr]" )
+{
+    GIVEN( "Attributes for a new MultiImageSourceBintr" ) 
+    {
+        char absolutePath[PATH_MAX+1];
+        std::string fullFillPath = realpath(jpgFilePath1.c_str(), absolutePath);
+
+        WHEN( "The MultiImageSourceBintr is created " )
+        {
+            DSL_MULTI_IMAGE_SOURCE_PTR pSourceBintr = DSL_MULTI_IMAGE_SOURCE_NEW(
+                sourceName.c_str(), multJpgFilePath.c_str(), 1, 1);
+
+            THEN( "All memeber variables are initialized correctly" )
+            {
+                REQUIRE( pSourceBintr->m_gpuId == 0 );
+                REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
+                REQUIRE( pSourceBintr->GetGstObject() != NULL );
+                REQUIRE( pSourceBintr->GetId() == 0 );
+                REQUIRE( pSourceBintr->IsInUse() == false );
+                
+                // Must reflect use of file stream
+                REQUIRE( pSourceBintr->IsLive() == false );
+                
+                std::string returnedFilePath = pSourceBintr->GetUri();
+                REQUIRE( returnedFilePath == fullFillPath );
+            }
+        }
+    }
+}
+
+SCENARIO( "An MultiImageSourceBintr can LinkAll child Elementrs correctly",  "[SourceBintr]" )
+{
+    GIVEN( "A new MultiImageSourceBintr in memory" ) 
+    {
+        DSL_MULTI_IMAGE_SOURCE_PTR pSourceBintr = DSL_MULTI_IMAGE_SOURCE_NEW(
+            sourceName.c_str(), multJpgFilePath.c_str(), 1, 1);
+
+        WHEN( "The MultiImageSourceBintr is called to LinkAll" )
+        {
+            REQUIRE( pSourceBintr->LinkAll() == true );
+
+            THEN( "The MultiImageSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "An MultiImageSourceBintr can UnlinkAll all child Elementrs correctly",  "[SourceBintr]" )
+{
+    GIVEN( "A new, linked MultiImageSourceBintr " ) 
+    {
+        DSL_MULTI_IMAGE_SOURCE_PTR pSourceBintr = DSL_MULTI_IMAGE_SOURCE_NEW(
+            sourceName.c_str(), multJpgFilePath.c_str(), 1, 1);
+
+        REQUIRE( pSourceBintr->LinkAll() == true );
+        REQUIRE( pSourceBintr->IsLinked() == true );
+
+        WHEN( "The MultiImageSourceBintr is called to UnlinkAll" )
+        {
+            pSourceBintr->UnlinkAll();
+
+            THEN( "The MultiImageSourceBintr IsLinked state is updated correctly" )
             {
                 REQUIRE( pSourceBintr->IsLinked() == false );
             }
