@@ -83,6 +83,10 @@ namespace DSL {
             const dsl_coordinate* coordinates, uint numCoordinates, 
             uint borderWidth, const char* color);
 
+        DslReturnType DisplayTypeRgbaLineMultiNew(const char* name, 
+            const dsl_coordinate* coordinates, uint numCoordinates, 
+            uint borderWidth, const char* color);
+
         DslReturnType DisplayTypeRgbaCircleNew(const char* name, uint xCenter, uint yCenter, uint radius,
             const char* color, bool hasBgColor, const char* bgColor);
     
@@ -270,6 +274,9 @@ namespace DSL {
         DslReturnType OdeTriggerAccumulationNew(const char* name, 
             const char* source, uint classId, uint limit);
 
+        DslReturnType OdeTriggerCrossNew(const char* name, 
+            const char* source, uint classId, uint limit);
+        
         DslReturnType OdeTriggerInstanceNew(const char* name, 
             const char* source, uint classId, uint limit);
         

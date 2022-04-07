@@ -53,7 +53,7 @@ namespace DSL
             if (m_displayTypes.find(name) != m_displayTypes.end())
             {   
                 LOG_ERROR("RGBA Color name '" << name << "' is not unique");
-                return DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE;
+                return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
             }
             m_displayTypes[name] = DSL_RGBA_COLOR_NEW(name, 
                 red, green, blue, alpha);
@@ -81,7 +81,7 @@ namespace DSL
             if (m_displayTypes.find(name) != m_displayTypes.end())
             {   
                 LOG_ERROR("RGBA Font name '" << name << "' is not unique");
-                return DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE;
+                return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
             }
             
             DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
@@ -115,7 +115,7 @@ namespace DSL
             if (m_displayTypes.find(name) != m_displayTypes.end())
             {   
                 LOG_ERROR("RGBA Text name '" << name << "' is not unique");
-                return DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE;
+                return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
             }
             
             DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
@@ -163,7 +163,7 @@ namespace DSL
             if (m_displayTypes.find(name) != m_displayTypes.end())
             {   
                 LOG_ERROR("RGBA Line name '" << name << "' is not unique");
-                return DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE;
+                return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
             }
             
             DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
@@ -197,13 +197,13 @@ namespace DSL
             if (m_displayTypes.find(name) != m_displayTypes.end())
             {   
                 LOG_ERROR("RGBA Arrow name '" << name << "' is not unique");
-                return DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE;
+                return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
             }
 
             if (head > DSL_ARROW_BOTH_HEAD)
             {
                 LOG_ERROR("RGBA Head Type Invalid for RGBA Arrow'" << name << "'");
-                return DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID;
+                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
             }
             DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
             DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
@@ -236,7 +236,7 @@ namespace DSL
             if (m_displayTypes.find(name) != m_displayTypes.end())
             {   
                 LOG_ERROR("RGBA Rectangle name '" << name << "' is not unique");
-                return DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE;
+                return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
             }
             
             DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
@@ -285,7 +285,7 @@ namespace DSL
             if (m_displayTypes.find(name) != m_displayTypes.end())
             {   
                 LOG_ERROR("RGBA Polygon name '" << name << "' is not unique");
-                return DSL_RESULT_DISPLAY_RGBA_POLYGON_NAME_NOT_UNIQUE;
+                return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
             }
             if (numCoordinates > DSL_MAX_POLYGON_COORDINATES)
             {
@@ -302,18 +302,58 @@ namespace DSL
             m_displayTypes[name] = DSL_RGBA_POLYGON_NEW(name, 
                 coordinates, numCoordinates, borderWidth, pColor);
 
-            LOG_INFO("New RGBA Rectangle '" << name << "' created successfully");
+            LOG_INFO("New RGBA Polygon '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New RGBA Rectangle '" << name << "' threw exception on create");
+            LOG_ERROR("New RGBA Polygon '" << name << "' threw exception on create");
             return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
         }
     }
     
+    DslReturnType Services::DisplayTypeRgbaLineMultiNew(const char* name, 
+        const dsl_coordinate* coordinates, uint numCoordinates, 
+        uint borderWidth, const char* color)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Polygon name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
+            }
+            if (numCoordinates > DSL_MAX_MULTI_LINE_COORDINATES)
+            {
+                LOG_ERROR("Max coordinates exceeded creating RGBA Multi-Line name '" << name << "'");
+                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
+            }
+            
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+            
+            m_displayTypes[name] = DSL_RGBA_MULTI_LINE_NEW(name, 
+                coordinates, numCoordinates, borderWidth, pColor);
+
+            LOG_INFO("New RGBA Multi Line '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Multi Line '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::DisplayTypeRgbaCircleNew(const char* name, uint xCenter, uint yCenter, uint radius,
         const char* color, bool hasBgColor, const char* bgColor)
     {
@@ -326,7 +366,7 @@ namespace DSL
             if (m_displayTypes.find(name) != m_displayTypes.end())
             {   
                 LOG_ERROR("RGBA Rectangle name '" << name << "' is not unique");
-                return DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE;
+                return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
             }
             
             DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
@@ -374,7 +414,7 @@ namespace DSL
             if (m_displayTypes.find(name) != m_displayTypes.end())
             {   
                 LOG_ERROR("Source Number name '" << name << "' is not unique");
-                return DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE;
+                return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
             }
             
             DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
@@ -422,7 +462,7 @@ namespace DSL
             if (m_displayTypes.find(name) != m_displayTypes.end())
             {   
                 LOG_ERROR("Source Name name '" << name << "' is not unique");
-                return DSL_RESULT_DISPLAY_SOURCE_NAME_NAME_NOT_UNIQUE;
+                return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
             }
             
             DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
@@ -470,7 +510,7 @@ namespace DSL
             if (m_displayTypes.find(name) != m_displayTypes.end())
             {   
                 LOG_ERROR("Source Dimensions name '" << name << "' is not unique");
-                return DSL_RESULT_DISPLAY_SOURCE_DIMENSIONS_NAME_NOT_UNIQUE;
+                return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
             }
             
             DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
@@ -518,7 +558,7 @@ namespace DSL
             if (m_displayTypes.find(name) != m_displayTypes.end())
             {   
                 LOG_ERROR("Source Frame-Rate name '" << name << "' is not unique");
-                return DSL_RESULT_DISPLAY_SOURCE_FRAMERATE_NAME_NOT_UNIQUE;
+                return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
             }
             
             DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);

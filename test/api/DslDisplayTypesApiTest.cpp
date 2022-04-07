@@ -54,7 +54,7 @@ SCENARIO( "A new RGBA Color can be created and deleted", "[display-types-api]" )
             THEN( "A second RGBA Color of the same name fails to create" ) 
             {
                 REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
-                    red, green, blue, alpha) == DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE );
+                    red, green, blue, alpha) == DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE );
 
                 REQUIRE( dsl_display_type_delete(colorName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_list_size() == 0 );
@@ -97,7 +97,7 @@ SCENARIO( "A new RGBA Font can be created and deleted", "[display-types-api]" )
             THEN( "A second RGBA Font of the same name fails to create" ) 
             {
                 REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
-                    size, colorName.c_str()) == DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE );
+                    size, colorName.c_str()) == DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE );
 
                 REQUIRE( dsl_display_type_delete(fontName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
@@ -131,7 +131,7 @@ SCENARIO( "A new RGBA Text can be created and deleted", "[display-types-api]" )
         WHEN( "A new RGBA Text is created" ) 
         {
             REQUIRE( dsl_display_type_rgba_text_new(textName.c_str(), text.c_str(), 
-                xOffset, yOffset, fontName.c_str(), true, colorName.c_str())== DSL_RESULT_SUCCESS );
+                xOffset, yOffset, fontName.c_str(), true, colorName.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The RGBA Text can be deleted" ) 
             {
@@ -160,7 +160,8 @@ SCENARIO( "A new RGBA Text can be created and deleted", "[display-types-api]" )
             THEN( "A second RGBA Text of the same name fails to create" ) 
             {
                 REQUIRE( dsl_display_type_rgba_text_new(textName.c_str(), text.c_str(), 
-                    xOffset, yOffset, fontName.c_str(), true, colorName.c_str())== DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE );
+                    xOffset, yOffset, fontName.c_str(), true, colorName.c_str()) == 
+                        DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE );
 
                 REQUIRE( dsl_display_type_delete(textName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
@@ -204,7 +205,7 @@ SCENARIO( "A new RGBA Line can be created and deleted", "[display-types-api]" )
             THEN( "A second RGBA Line of the same name fails to create" ) 
             {
                 REQUIRE( dsl_display_type_rgba_line_new(lineName.c_str(), 
-                    x1, y1, x2, y2, width, colorName.c_str())== DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE );
+                    x1, y1, x2, y2, width, colorName.c_str()) == DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE );
 
                 REQUIRE( dsl_display_type_delete(lineName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
@@ -249,7 +250,8 @@ SCENARIO( "A new RGBA Arrow can be created and deleted", "[display-types-api]" )
             THEN( "A second RGBA Arrow of the same name fails to create" ) 
             {
                 REQUIRE( dsl_display_type_rgba_arrow_new(arrowName.c_str(), 
-                    x1, y1, x2, y2, width, head, colorName.c_str())== DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE );
+                    x1, y1, x2, y2, width, head, colorName.c_str()) == 
+                    DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE );
 
                 REQUIRE( dsl_display_type_delete(arrowName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
@@ -263,7 +265,8 @@ SCENARIO( "A new RGBA Arrow can be created and deleted", "[display-types-api]" )
             THEN( "The RGBA Arrow fails to create" ) 
             {
                 REQUIRE( dsl_display_type_rgba_arrow_new(arrowName.c_str(), 
-                    x1, y1, x2, y2, width, head, colorName.c_str())== DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID );
+                    x1, y1, x2, y2, width, head, colorName.c_str()) ==
+                        DSL_RESULT_DISPLAY_PARAMETER_INVALID );
 
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_list_size() == 0 );
@@ -318,7 +321,8 @@ SCENARIO( "A new RGBA Rectangle can be created and deleted", "[display-types-api
             THEN( "A second RGBA Rectangle of the same name fails to create" ) 
             {
                 REQUIRE( dsl_display_type_rgba_rectangle_new(rectangleName.c_str(), left, top, width, height, 
-                    border_width, colorName.c_str(), true, colorName.c_str())== DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE );
+                    border_width, colorName.c_str(), true, colorName.c_str()) == 
+                        DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE );
 
                 REQUIRE( dsl_display_type_delete(rectangleName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
@@ -364,7 +368,8 @@ SCENARIO( "A new RGBA Polygon can be created and deleted", "[display-types-api]"
             THEN( "A second RGBA Polygon of the same name fails to create" ) 
             {
                 REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), coordinates, num_coordinates, 
-                    border_width, colorName.c_str())== DSL_RESULT_DISPLAY_RGBA_POLYGON_NAME_NOT_UNIQUE );
+                    border_width, colorName.c_str()) == 
+                        DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE );
 
                 REQUIRE( dsl_display_type_delete(polygonName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
@@ -378,6 +383,66 @@ SCENARIO( "A new RGBA Polygon can be created and deleted", "[display-types-api]"
             THEN( "A RGBA Polygon fails to create" ) 
             {
                 REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), coordinates, num_coordinates, 
+                    border_width, colorName.c_str())== DSL_RESULT_DISPLAY_PARAMETER_INVALID );
+
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new RGBA Mulit-Line can be created and deleted", "[display-types-api]" )
+{
+    GIVEN( "Attributes for a new RGBA Mulit-Line" ) 
+    {
+        std::wstring multiLineName(L"multi-line");
+        uint border_width(3);
+
+        std::wstring colorName(L"my-color");
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        dsl_coordinate coordinates[4] = {{100,100},{210,110},{220, 300},{110,330}};
+        uint num_coordinates(4);
+
+        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A new RGBA Polygon is created" ) 
+        {
+            REQUIRE( dsl_display_type_rgba_line_multi_new(multiLineName.c_str(), coordinates, num_coordinates, 
+                border_width, colorName.c_str())== DSL_RESULT_SUCCESS );
+
+            THEN( "The RGBA Rectangle can be deleted" ) 
+            {
+                REQUIRE( dsl_display_type_delete(multiLineName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "A new RGBA Polygon is created" ) 
+        {
+            REQUIRE( dsl_display_type_rgba_line_multi_new(multiLineName.c_str(), coordinates, num_coordinates, 
+                border_width, colorName.c_str())== DSL_RESULT_SUCCESS );
+            
+            THEN( "A second RGBA Polygon of the same name fails to create" ) 
+            {
+                REQUIRE( dsl_display_type_rgba_line_multi_new(multiLineName.c_str(), coordinates, num_coordinates, 
+                    border_width, colorName.c_str()) == 
+                        DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE );
+
+                REQUIRE( dsl_display_type_delete(multiLineName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "An invalid 'num_coordinates' value is used to create an RGBA Polygon" ) 
+        {
+            num_coordinates = DSL_MAX_MULTI_LINE_COORDINATES+1; 
+            
+            THEN( "A RGBA Polygon fails to create" ) 
+            {
+                REQUIRE( dsl_display_type_rgba_line_multi_new(multiLineName.c_str(), coordinates, num_coordinates, 
                     border_width, colorName.c_str())== DSL_RESULT_DISPLAY_PARAMETER_INVALID );
 
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
@@ -433,7 +498,8 @@ SCENARIO( "A new RGBA Circle can be created and deleted", "[display-types-api]" 
             THEN( "A second RGBA Circle of the same name fails to create" ) 
             {
                 REQUIRE( dsl_display_type_rgba_circle_new(circleName.c_str(), x_center, y_center,
-                    radius, colorName.c_str(), true, colorName.c_str())== DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE );
+                    radius, colorName.c_str(), true, colorName.c_str()) == 
+                        DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE );
 
                 REQUIRE( dsl_display_type_delete(circleName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
@@ -495,7 +561,8 @@ SCENARIO( "A new Source Number Display can be created and deleted", "[display-ty
             THEN( "A second Source Number Display of the same name fails to create" ) 
             {
                 REQUIRE( dsl_display_type_source_number_new(displayName.c_str(),
-                    xOffset, yOffset, fontName.c_str(), true, colorName.c_str())== DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE );
+                    xOffset, yOffset, fontName.c_str(), true, colorName.c_str()) == 
+                        DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE );
 
                 REQUIRE( dsl_display_type_delete(displayName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
@@ -557,7 +624,8 @@ SCENARIO( "A new Source Name Display can be created and deleted", "[display-type
             THEN( "A second Source Name Display of the same name fails to create" ) 
             {
                 REQUIRE( dsl_display_type_source_name_new(displayName.c_str(),
-                    xOffset, yOffset, fontName.c_str(), true, colorName.c_str())== DSL_RESULT_DISPLAY_SOURCE_NAME_NAME_NOT_UNIQUE );
+                    xOffset, yOffset, fontName.c_str(), true, colorName.c_str()) == 
+                        DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE );
 
                 REQUIRE( dsl_display_type_delete(displayName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
@@ -619,7 +687,8 @@ SCENARIO( "A new Source Dimensions Display can be created and deleted", "[displa
             THEN( "A second Source Dimenions Display of the same name fails to create" ) 
             {
                 REQUIRE( dsl_display_type_source_dimensions_new(displayName.c_str(),
-                    xOffset, yOffset, fontName.c_str(), true, colorName.c_str())== DSL_RESULT_DISPLAY_SOURCE_DIMENSIONS_NAME_NOT_UNIQUE );
+                    xOffset, yOffset, fontName.c_str(), true, colorName.c_str()) == 
+                        DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE );
 
                 REQUIRE( dsl_display_type_delete(displayName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );

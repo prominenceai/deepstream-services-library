@@ -919,8 +919,163 @@ namespace DSL
         
         // return the running accumulative total
         return m_accumulativeOccurrences;
-   }
+    }
 
+    // *****************************************************************************
+    
+    CrossOdeTrigger::CrossOdeTrigger(const char* name, const char* source, 
+        uint classId, uint limit)
+        : OdeTrigger(name, source, classId, limit)
+    {
+        LOG_FUNC();
+    }
+
+    CrossOdeTrigger::~CrossOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+
+    void CrossOdeTrigger::Reset()
+    {
+        LOG_FUNC();
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            m_trackedObjectsPerSource.clear();
+        }        
+        // call the base class to complete the Reset
+        OdeTrigger::Reset();
+    }
+
+    bool CrossOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!CheckForSourceId(pFrameMeta->source_id) or 
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+        {
+            return false;
+        }
+
+        // if this is the first occurrence of any object for this source
+        if (m_trackedObjectsPerSource.find(pFrameMeta->source_id) == 
+            m_trackedObjectsPerSource.end())
+        {
+            LOG_DEBUG("First object detected with id = " << pObjectMeta->object_id 
+                << " for source = " << pFrameMeta->source_id);
+            
+            // create a new tracked object for this tracking Id and source
+            std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
+                (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num, 
+                    pObjectMeta->rect_params));
+                
+            // create a map of tracked objects for this source    
+            std::shared_ptr<TrackedObjects> pTrackedObjects = 
+                std::shared_ptr<TrackedObjects>(new TrackedObjects());
+                
+            // insert the new tracked object into the new map    
+            pTrackedObjects->insert(std::pair<uint64_t, 
+                std::shared_ptr<TrackedObject>>(pObjectMeta->object_id, pTrackedObject));
+                
+            // add the map of tracked objects for this source to the map of all tracked objects.
+            m_trackedObjectsPerSource[pFrameMeta->source_id] = pTrackedObjects;
+        }
+        else
+        {
+            std::shared_ptr<TrackedObjects> pTrackedObjects = 
+                m_trackedObjectsPerSource[pFrameMeta->source_id];
+                
+            // else, if this is the first occurrence of a specific object for this source
+            if (pTrackedObjects->find(pObjectMeta->object_id) == pTrackedObjects->end())
+            {
+                LOG_DEBUG("New object detected with id = " << pObjectMeta->object_id 
+                    << " for source = " << pFrameMeta->source_id);
+                
+                // create a new tracked object for this tracking Id and source
+                std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
+                    (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num,
+                        pObjectMeta->rect_params));
+
+                // insert the new tracked object into the new map    
+                pTrackedObjects->insert(std::pair<uint64_t, 
+                    std::shared_ptr<TrackedObject>>(pObjectMeta->object_id, pTrackedObject));        
+            }
+            else
+            {
+                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+                
+                LOG_DEBUG("Tracked objected detected with id = " << pObjectMeta->object_id 
+                    << " for source = " << pFrameMeta->source_id);
+                    
+                // else, the object is currently being tracked - so update 
+                pTrackedObjects->at(pObjectMeta->object_id)->
+                    m_frameNumber = pFrameMeta->frame_num;
+                pTrackedObjects->at(pObjectMeta->object_id)->
+                    PushRectangle(pObjectMeta->rect_params);
+                
+//                LOG_DEBUG("Persistence for tracked object with id = " << pObjectMeta->object_id 
+//                    << " for source = " << pFrameMeta->source_id << ", = " << trackedTimeMs << " ms");
+                
+                // if the object's tracked time is within range. 
+//                if (trackedTimeMs >= m_minimumMs and trackedTimeMs <= m_maximumMs)
+//                {
+//                    // event has been triggered
+//                    IncrementAndCheckTriggerCount();
+//                    m_occurrences++;
+//
+//                    // update the total event count static variable
+//                    s_eventCount++;
+//        
+//                    // add the persistence value to the array of misc_obj_info
+//                    // as both the Primary and Persistence specific indecies.
+//                    pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] = 
+//                    pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = 
+//                        (uint64_t)(trackedTimeMs/1000);
+//                        
+//                    for (const auto &imap: m_pOdeActionsIndexed)
+//                    {
+//                        DSL_ODE_ACTION_PTR pOdeAction = 
+//                            std::dynamic_pointer_cast<OdeAction>(imap.second);
+//                        pOdeAction->HandleOccurrence(shared_from_this(), 
+//                            pBuffer, pDisplayMeta, pFrameMeta, pObjectMeta);
+//                    }
+//                }
+            }
+        }
+        return true;
+    }
+
+    uint CrossOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+        NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
+    {
+        if (m_trackedObjectsPerSource.empty())
+        {
+            return 0;
+        }
+        
+        // purge all tracked objects, for all sources that are not in the current frame.
+        for (const auto &trackedObjects: m_trackedObjectsPerSource)
+        {
+            std::shared_ptr<TrackedObjects> pTrackedObjects = trackedObjects.second;
+
+            auto trackedObject = pTrackedObjects->cbegin();
+            while (trackedObject != pTrackedObjects->cend())
+            {
+                if (trackedObject->second->m_frameNumber != pFrameMeta->frame_num)
+                {
+                    LOG_DEBUG("Purging tracked object with id = " << trackedObject->first 
+                        << " for source = " << trackedObjects.first);
+                        
+                    // use the return value to update the iterator, as erase invalidates it
+                    trackedObject = pTrackedObjects->erase(trackedObject);
+                }
+                else {
+                    ++trackedObject;
+                }            
+            }
+        }
+        return m_occurrences;
+    }
+   
     // *****************************************************************************
 
     InstanceOdeTrigger::InstanceOdeTrigger(const char* name, 
@@ -1209,7 +1364,8 @@ namespace DSL
             
             // create a new tracked object for this tracking Id and source
             std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
-                (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num));
+                (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num, 
+                    pObjectMeta->rect_params));
                 
             // create a map of tracked objects for this source    
             std::shared_ptr<TrackedObjects> pTrackedObjects = 
@@ -1235,7 +1391,8 @@ namespace DSL
                 
                 // create a new tracked object for this tracking Id and source
                 std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
-                    (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num));
+                    (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num, 
+                        pObjectMeta->rect_params));
 
                 // insert the new tracked object into the new map    
                 pTrackedObjects->insert(std::pair<uint64_t, 
@@ -1247,8 +1404,12 @@ namespace DSL
                 
                 LOG_DEBUG("Tracked objected detected with id = " << pObjectMeta->object_id 
                     << " for source = " << pFrameMeta->source_id);
-                // else, the object is currently being tracked - so update the frame number
-                pTrackedObjects->at(pObjectMeta->object_id)->m_frameNumber = pFrameMeta->frame_num;
+                    
+                // else, the object is currently being tracked - so update 
+                pTrackedObjects->at(pObjectMeta->object_id)->
+                    m_frameNumber = pFrameMeta->frame_num;
+                pTrackedObjects->at(pObjectMeta->object_id)->
+                    PushRectangle(pObjectMeta->rect_params);
                 
                 timeval currentTime;
                 gettimeofday(&currentTime, NULL);
@@ -1584,7 +1745,8 @@ namespace DSL
             
             // create a new tracked object for this tracking Id and source
             std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
-                (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num));
+                (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num, 
+                    pObjectMeta->rect_params));
                 
             // create a map of tracked objects for this source    
             std::shared_ptr<TrackedObjects> pTrackedObjects = 
@@ -1610,7 +1772,8 @@ namespace DSL
                 
                 // create a new tracked object for this tracking Id and source
                 std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
-                    (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num));
+                    (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num, 
+                        pObjectMeta->rect_params));
 
                 // insert the new tracked object into the new map    
                 pTrackedObjects->insert(std::pair<uint64_t, 
@@ -1622,8 +1785,12 @@ namespace DSL
                 
                 LOG_DEBUG("Tracked objected detected with id = " << pObjectMeta->object_id 
                     << " for source = " << pFrameMeta->source_id);
-                // else, the object is currently being tracked - so update the frame number
-                pTrackedObjects->at(pObjectMeta->object_id)->m_frameNumber = pFrameMeta->frame_num;
+                    
+                // else, the object is currently being tracked - so update 
+                pTrackedObjects->at(pObjectMeta->object_id)->
+                    m_frameNumber = pFrameMeta->frame_num;
+                pTrackedObjects->at(pObjectMeta->object_id)->
+                    PushRectangle(pObjectMeta->rect_params);
                 
                 timeval currentTime;
                 gettimeofday(&currentTime, NULL);
@@ -1750,7 +1917,8 @@ namespace DSL
             
             // create a new tracked object for this tracking Id and source
             std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
-                (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num));
+                (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num, 
+                    pObjectMeta->rect_params));
                 
             // create a map of tracked objects for this source    
             std::shared_ptr<TrackedObjects> pTrackedObjects = 
@@ -1776,7 +1944,8 @@ namespace DSL
                 
                 // create a new tracked object for this tracking Id and source
                 std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
-                    (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num));
+                    (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num, 
+                        pObjectMeta->rect_params));
 
                 // insert the new tracked object into the new map    
                 pTrackedObjects->insert(std::pair<uint64_t, 
@@ -1788,9 +1957,13 @@ namespace DSL
                 
                 LOG_DEBUG("Tracked objected detected with id = " << pObjectMeta->object_id 
                     << " for source = " << pFrameMeta->source_id);
-                // else, the object is currently being tracked - so update the frame number
-                pTrackedObjects->at(pObjectMeta->object_id)->m_frameNumber = pFrameMeta->frame_num;
-                
+                    
+                // else, the object is currently being tracked - so update 
+                pTrackedObjects->at(pObjectMeta->object_id)->
+                    m_frameNumber = pFrameMeta->frame_num;
+                pTrackedObjects->at(pObjectMeta->object_id)->
+                    PushRectangle(pObjectMeta->rect_params);
+
                 timeval currentTime;
                 gettimeofday(&currentTime, NULL);
                 

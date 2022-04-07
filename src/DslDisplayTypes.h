@@ -63,6 +63,10 @@ namespace DSL
     #define DSL_RGBA_POLYGON_NEW(name, coordinates, numCoordinates, borderWidth, pColor) \
         std::shared_ptr<RgbaPolygon>(new RgbaPolygon(name, coordinates, numCoordinates, borderWidth, pColor))
     
+    #define DSL_RGBA_MULTI_LINE_PTR std::shared_ptr<RgbaMultiLine>
+    #define DSL_RGBA_MULTI_LINE_NEW(name, coordinates, numCoordinates, borderWidth, pColor) \
+        std::shared_ptr<RgbaMultiLine>(new RgbaMultiLine(name, coordinates, numCoordinates, borderWidth, pColor))
+    
     #define DSL_RGBA_CIRCLE_PTR std::shared_ptr<RgbaCircle>
     #define DSL_RGBA_CIRCLE_NEW(name, x_center, y_center, radius, pColor, hasBgColor, pBgColor) \
         std::shared_ptr<RgbaCircle>(new RgbaCircle(name, x_center, y_center, radius, pColor, hasBgColor, pBgColor))
@@ -280,7 +284,7 @@ namespace DSL
     public:
 
         /**
-         * @brief ctor for RGBA Rectangle
+         * @brief ctor for RGBA Polygon
          * @param[in] name unique name for the RGBA Rectangle
          * @param[in] coordinates an array of xy dsl_coordinates defining the Polygon
          * @param[in] numPoints number of xy coordinates in the array.
@@ -294,6 +298,58 @@ namespace DSL
 
         void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
     };
+
+    // ********************************************************************
+
+    /**
+     * @struct dsl_multi_line
+     * @brief 
+     */
+    typedef struct _dsl_multi_line_parms
+    {
+        /**
+         * @brief an array coordinates defining the polygon
+         * The last point provided will be connected to the first
+         */
+        dsl_coordinate* coordinates;
+        
+        /**
+         * @brief the number of coordinates in the polygon
+         */
+        uint num_coordinates;
+         
+        /**
+         * @brief width of the polygon lines in pixels
+         */
+        uint border_width;    
+
+        /**
+         * @brief RGBA color of the polygon lines in pixels
+         */
+        NvOSD_ColorParams color;
+         
+    } dsl_multi_line_params;
+
+    class RgbaMultiLine : public DisplayType, public dsl_multi_line_params
+    {
+    public:
+
+        /**
+         * @brief ctor for RGBA Multi-Line class
+         * @param[in] name unique name for the RGBA Multi-Line
+         * @param[in] coordinates an array of xy dsl_coordinates defining the Multi-Line
+         * @param[in] numPoints number of xy coordinates in the array.
+         * @param[in] lineWidth width of the Multi-Line in pixels
+         * @param[in] pColor RGBA Color for this RGBA Polygon
+         */
+        RgbaMultiLine(const char* name, const dsl_coordinate* coordinates, uint numCoordinates,
+            uint lineWidth, DSL_RGBA_COLOR_PTR pColor);
+
+        ~RgbaMultiLine();
+
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+    };
+
     
     // ********************************************************************
 

@@ -338,20 +338,7 @@ THE SOFTWARE.
 #define DSL_RESULT_DISPLAY_TYPE_IN_USE                              0x00200004
 #define DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE                0x00200005
 #define DSL_RESULT_DISPLAY_TYPE_IS_BASE_TYPE                        0x00200006
-#define DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE               0x00200007
-#define DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE                0x00200008
-#define DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE                0x00200009
-#define DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE                0x0020000A
-#define DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE               0x0020000B
-#define DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID                  0x0020000C
-#define DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE           0x0020000D
-#define DSL_RESULT_DISPLAY_RGBA_POLYGON_NAME_NOT_UNIQUE             0x0020000E
-#define DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE              0x0020000F
-#define DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE            0x00200010
-#define DSL_RESULT_DISPLAY_SOURCE_NAME_NAME_NOT_UNIQUE              0x00200011
-#define DSL_RESULT_DISPLAY_SOURCE_DIMENSIONS_NAME_NOT_UNIQUE        0x00200012
-#define DSL_RESULT_DISPLAY_SOURCE_FRAMERATE_NAME_NOT_UNIQUE         0x00200013
-#define DSL_RESULT_DISPLAY_PARAMETER_INVALID                        0x00200014
+#define DSL_RESULT_DISPLAY_PARAMETER_INVALID                        0x00200008
 
 
 /**
@@ -628,9 +615,10 @@ THE SOFTWARE.
 #define DSL_DISTANCE_METHOD_PERCENT_HEIGHT_B                        4
 
 /**
- * @brief the maximum number of coordinates when defining a Polygon
+ * @brief the maximum number of coordinates when defining a Display Type
  */
 #define DSL_MAX_POLYGON_COORDINATES                                 16
+#define DSL_MAX_MULTI_LINE_COORDINATES                              16
 
 /**
  * @brief the maximum number of messages that can be queued up
@@ -1196,6 +1184,19 @@ DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_display_type_rgba_polygon_new(const wchar_t* name, 
+    const dsl_coordinate* coordinates, uint num_coordinates, uint border_width, 
+    const wchar_t* color);
+
+/**
+ * @brief creates a uniquely named RGBA Multi-Line
+ * @param[in] name unique name for the RGBA Multi-Line
+ * @param[in] coordinate an array of dsl_coordinate structures 
+ * @param[in] num_coordinates the number of xy coordinates in the array
+ * @param[in] border_width width of the multi-line in pixels
+ * @param[in] color RGBA Color for the multi-line
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_line_multi_new(const wchar_t* name, 
     const dsl_coordinate* coordinates, uint num_coordinates, uint border_width, 
     const wchar_t* color);
 
@@ -1976,6 +1977,18 @@ DslReturnType dsl_ode_trigger_count_range_get(const wchar_t* name,
  */
 DslReturnType dsl_ode_trigger_count_range_set(const wchar_t* name, 
     uint minimum, uint maximum);
+
+/**
+ * @brief Cross trigger that tracks Objects and triggers on the occurrence that an 
+ * object crosses the trigger's Line or Polygon Area.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
+ * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
     
 /**
  * @brief Occurence trigger that checks for a new instance of an Object for a 

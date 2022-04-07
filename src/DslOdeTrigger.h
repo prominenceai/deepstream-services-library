@@ -22,12 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_ODE_TYPE_H
-#define _DSL_ODE_TYPE_H
+#ifndef _DSL_ODE_TRIGGER_H
+#define _DSL_ODE_TRIGGER_H
 
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslOdeBase.h"
+#include "DslOdeTrackedObject.h"
 
 namespace DSL
 {
@@ -47,6 +48,10 @@ namespace DSL
     #define DSL_ODE_TRIGGER_ACCUMULATION_PTR std::shared_ptr<AccumulationOdeTrigger>
     #define DSL_ODE_TRIGGER_ACCUMULATION_NEW(name, source, classId, limit) \
         std::shared_ptr<AccumulationOdeTrigger>(new AccumulationOdeTrigger(name, source, classId, limit))
+
+    #define DSL_ODE_TRIGGER_CROSS_PTR std::shared_ptr<CrossOdeTrigger>
+    #define DSL_ODE_TRIGGER_CROSS_NEW(name, source, classId, limit) \
+        std::shared_ptr<CrossOdeTrigger>(new CrossOdeTrigger(name, source, classId, limit))
 
     #define DSL_ODE_TRIGGER_INSTANCE_PTR std::shared_ptr<InstanceOdeTrigger>
     #define DSL_ODE_TRIGGER_INSTANCE_NEW(name, source, classId, limit) \
@@ -115,8 +120,12 @@ namespace DSL
         std::shared_ptr<IntersectionOdeTrigger> \
             (new IntersectionOdeTrigger(name, source, classIdA, classIdB, limit))
 
+    // *****************************************************************************
 
-
+    /**
+     * @class OdeTrigger
+     * @brief Implements a super/abstract class for all ODE Triggers
+     */
     class OdeTrigger : public OdeBase
     {
     public: 
@@ -738,6 +747,48 @@ namespace DSL
     
     };
 
+    class CrossOdeTrigger : public OdeTrigger
+    {
+    public:
+    
+        CrossOdeTrigger(const char* name, const char* source, uint classId, uint limit);
+        
+        ~CrossOdeTrigger();
+
+        /**
+         * @brief Overrides the base Reset in order to clear m_instances
+         */
+        void Reset();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for to determine if the object has
+         * crossed the Trigger's Area - line or line segment of a polygon.
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to post process the frame and generate a Cross Accumulation Event 
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+            
+    private:
+
+        /**
+         * @brief map of tracked objects per source - Key = source Id
+         */
+        std::map <uint, std::shared_ptr<TrackedObjects>> m_trackedObjectsPerSource;
+    
+    };
+    
     class InstanceOdeTrigger : public OdeTrigger
     {
     public:
@@ -932,39 +983,6 @@ namespace DSL
         uint m_maximum;
         
     };
-
-    struct TrackedObject
-    {
-
-        TrackedObject(uint64_t trackingId, uint64_t frameNumber)
-            : m_trackingId(trackingId)
-            , m_frameNumber(frameNumber)
-        {
-            timeval creationTime;
-            gettimeofday(&creationTime, NULL);
-            m_creationTimeMs = creationTime.tv_sec*1000.0 + creationTime.tv_usec/1000.0;
-        }
-        
-        /**
-         * @brief unique id for the tracked object
-         */
-        uint64_t m_trackingId;
-        
-        /**
-         * @brief frame number for the tracked object, updated on detection within a new frame
-         */
-        uint64_t m_frameNumber;
-        
-        /**
-         * @brief time of creation for this Tracked Object, used to test for object persistence
-         */
-        double m_creationTimeMs;
-    };
-    
-    /**
-     * @brief map of tracked objects - unique Tracking Id as key
-     */
-    typedef std::map <uint64_t, std::shared_ptr<TrackedObject>> TrackedObjects;
 
     class PersistenceOdeTrigger : public OdeTrigger
     {
@@ -1610,4 +1628,4 @@ namespace DSL
 
 }
 
-#endif // _DSL_ODE_H
+#endif // _DSL_ODE_TRIGGER_H

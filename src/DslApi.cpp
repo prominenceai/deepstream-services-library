@@ -161,6 +161,23 @@ DslReturnType dsl_display_type_rgba_polygon_new(const wchar_t* name,
         coordinates, num_coordinates, border_width, cstrColor.c_str());
 }
     
+DslReturnType dsl_display_type_rgba_line_multi_new(const wchar_t* name, 
+    const dsl_coordinate* coordinates, uint num_coordinates, 
+    uint border_width, const wchar_t* color)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(coordinates);
+    RETURN_IF_PARAM_IS_NULL(color);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrColor(color);
+    std::string cstrColor(wstrColor.begin(), wstrColor.end());
+
+    return DSL::Services::GetServices()->DisplayTypeRgbaLineMultiNew(cstrName.c_str(), 
+        coordinates, num_coordinates, border_width, cstrColor.c_str());
+}
+    
 DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, 
     uint x_center, uint y_center, uint radius, const wchar_t* color, 
     bool has_bg_color, const wchar_t* bg_color)
@@ -1269,6 +1286,23 @@ DslReturnType dsl_ode_trigger_accumulation_new(const wchar_t* name,
         cstrSource.c_str(), class_id, limit);
 }
     
+DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrSource;
+    if (source)
+    {
+        std::wstring wstrSource(source);
+        cstrSource.assign(wstrSource.begin(), wstrSource.end());
+    }
+    return DSL::Services::GetServices()->OdeTriggerCrossNew(cstrName.c_str(), 
+        cstrSource.c_str(), class_id, limit);
+}
     
 DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit)

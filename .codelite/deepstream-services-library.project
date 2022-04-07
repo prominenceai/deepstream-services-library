@@ -93,6 +93,8 @@
     <File Name="../src/DslTilerBintr.h"/>
     <File Name="../src/DslTrackerBintr.h"/>
     <File Name="../src/DslServicesInfo.cpp"/>
+    <File Name="../src/DslOdeTrackedObject.h"/>
+    <File Name="../src/DslOdeTrackedObject.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="api">
