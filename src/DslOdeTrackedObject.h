@@ -31,39 +31,44 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    template <typename T, int MaxLen, typename Container=std::deque<T>>
-    class FixedQueue : public std::queue<T, Container> {
-    public:
-        void push(const T& value) {
-            if (this->size() == MaxLen) {
-               this->c.pop_front();
-            }
-            std::queue<T, Container>::push(value);
-        }
-    };
-    
-
     struct TrackedObject
     {
 
         /**
-         * @brief Ctor for the TrackedObject struct
+         * @brief Ctor 1 of 2 for the TrackedObject struct
+         * @param[in] unique trackingId for the tracked object
+         * @param frameNumber the object was first detected
+         */
+        TrackedObject(uint64_t trackingId, uint64_t frameNumber);
+        
+        /**
+         * @brief Ctor 2 of 2 for the TrackedObject struct
          * @param[in] unique trackingId for the tracked object
          * @param frameNumber the object was first detected
          * @param rectParams rectParms from the object's meta when first detected
+         * @param maxHistory maximum number of bbox coordinates to track
          */
         TrackedObject(uint64_t trackingId, uint64_t frameNumber,
-            const NvOSD_RectParams& rectParams);
+            const NvOSD_RectParams* rectParams, uint maxHistory);
         
         /**
-         * @brief function to push a new set of positional rectParms
-         * on to the tracked object's m_rectangleTrace queue
+         * @brief function to push a new set of positional bbox coordinates
+         * on to the tracked object's m_bboxTrace queue
          * @param rectParams new rectangle params to push
          */
-        void PushRectangle(const NvOSD_RectParams& rectParams);
+        void PushBbox(const NvOSD_RectParams* rectParams);
         
         /**
-         * @brief unique id for the tracked object
+         * @brief returns a vector of coordinates defining the TrackedObject's
+         * trace for a specfic test-point on the object's bounding box
+         * @param testPoint test-point to generate the trace with.
+         * @return shared pointer to a vector of coordinates.
+         */
+        std::shared_ptr<std::vector<dsl_coordinate>> 
+            GetTrace(uint testPoint);
+        
+        /**
+         * @brief unique tracking id for the tracked object.
          */
         uint64_t m_trackingId;
         
@@ -78,9 +83,14 @@ namespace DSL
         double m_creationTimeMs;
         
         /**
+         * @brief maximum number of bbox coordinates to maintain/trace
+         */
+        uint m_maxHistory;
+        
+        /**
          * @brief a fixed size queue of Rectangle Params 
          */
-        FixedQueue<std::shared_ptr<NvOSD_RectParams>, 10> m_rectangleTrace;
+        std::deque<std::shared_ptr<NvBbox_Coords>> m_bboxTrace;
     };
 
     /**

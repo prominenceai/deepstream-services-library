@@ -663,7 +663,17 @@ namespace DSL
         {
             return false;
         }
+        return true;
+    }
+
+    bool OdeTrigger::CheckForWithin(NvDsObjectMeta* pObjectMeta)
+    {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         // If areas are defined, check condition
+
         if (m_pOdeAreasIndexed.size())
         {
             for (const auto &imap: m_pOdeAreasIndexed)
@@ -743,7 +753,7 @@ namespace DSL
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) 
-            or !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+            or !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
         {
             return false;
         }
@@ -796,7 +806,7 @@ namespace DSL
         // occurrences in the PostProcessFrame() . If the m_occurrences is not updated the Trigger 
         // will report Absence incorrectly
         if (!CheckForSourceId(pFrameMeta->source_id) or 
-            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
         {
             return false;
         }
@@ -861,7 +871,7 @@ namespace DSL
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or 
-            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
         {
             return false;
         }
@@ -924,8 +934,9 @@ namespace DSL
     // *****************************************************************************
     
     CrossOdeTrigger::CrossOdeTrigger(const char* name, const char* source, 
-        uint classId, uint limit)
+        uint classId, uint limit, uint maxTracePoints)
         : OdeTrigger(name, source, classId, limit)
+        , m_maxTracePoints(maxTracePoints)
     {
         LOG_FUNC();
     }
@@ -950,6 +961,7 @@ namespace DSL
     bool CrossOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        // Note: we don't check for within area criteria until we have a trace.
         if (!CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta))
         {
@@ -966,7 +978,7 @@ namespace DSL
             // create a new tracked object for this tracking Id and source
             std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
                 (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num, 
-                    pObjectMeta->rect_params));
+                    &pObjectMeta->rect_params, m_maxTracePoints));
                 
             // create a map of tracked objects for this source    
             std::shared_ptr<TrackedObjects> pTrackedObjects = 
@@ -993,7 +1005,7 @@ namespace DSL
                 // create a new tracked object for this tracking Id and source
                 std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
                     (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num,
-                        pObjectMeta->rect_params));
+                        &pObjectMeta->rect_params, m_maxTracePoints));
 
                 // insert the new tracked object into the new map    
                 pTrackedObjects->insert(std::pair<uint64_t, 
@@ -1010,10 +1022,9 @@ namespace DSL
                 pTrackedObjects->at(pObjectMeta->object_id)->
                     m_frameNumber = pFrameMeta->frame_num;
                 pTrackedObjects->at(pObjectMeta->object_id)->
-                    PushRectangle(pObjectMeta->rect_params);
+                    PushBbox(&pObjectMeta->rect_params);
+
                 
-//                LOG_DEBUG("Persistence for tracked object with id = " << pObjectMeta->object_id 
-//                    << " for source = " << pFrameMeta->source_id << ", = " << trackedTimeMs << " ms");
                 
                 // if the object's tracked time is within range. 
 //                if (trackedTimeMs >= m_minimumMs and trackedTimeMs <= m_maximumMs)
@@ -1025,20 +1036,20 @@ namespace DSL
 //                    // update the total event count static variable
 //                    s_eventCount++;
 //        
-//                    // add the persistence value to the array of misc_obj_info
-//                    // as both the Primary and Persistence specific indecies.
-//                    pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] = 
-//                    pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = 
-//                        (uint64_t)(trackedTimeMs/1000);
-//                        
-//                    for (const auto &imap: m_pOdeActionsIndexed)
-//                    {
-//                        DSL_ODE_ACTION_PTR pOdeAction = 
-//                            std::dynamic_pointer_cast<OdeAction>(imap.second);
-//                        pOdeAction->HandleOccurrence(shared_from_this(), 
-//                            pBuffer, pDisplayMeta, pFrameMeta, pObjectMeta);
-//                    }
-//                }
+                    // add the persistence value to the array of misc_obj_info
+                    // as both the Primary and Persistence specific indecies.
+                    pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] = 
+                    pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = 
+                        (uint64_t)(trackedTimeMs/1000);
+                        
+                    for (const auto &imap: m_pOdeActionsIndexed)
+                    {
+                        DSL_ODE_ACTION_PTR pOdeAction = 
+                            std::dynamic_pointer_cast<OdeAction>(imap.second);
+                        pOdeAction->HandleOccurrence(shared_from_this(), 
+                            pBuffer, pDisplayMeta, pFrameMeta, pObjectMeta);
+                    }
+                }
             }
         }
         return true;
@@ -1106,7 +1117,7 @@ namespace DSL
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or 
-            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
         {
             return false;
         }
@@ -1172,7 +1183,7 @@ namespace DSL
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or 
-            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
         {
             return false;
         }
@@ -1229,7 +1240,7 @@ namespace DSL
     {
         // conditional execution
         if (!m_enabled or !m_clientChecker or !CheckForSourceId(pFrameMeta->source_id) 
-            or !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+            or !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
         {
             return false;
         }
@@ -1350,7 +1361,7 @@ namespace DSL
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!CheckForSourceId(pFrameMeta->source_id) or 
-            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
         {
             return false;
         }
@@ -1364,8 +1375,7 @@ namespace DSL
             
             // create a new tracked object for this tracking Id and source
             std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
-                (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num, 
-                    pObjectMeta->rect_params));
+                (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num));
                 
             // create a map of tracked objects for this source    
             std::shared_ptr<TrackedObjects> pTrackedObjects = 
@@ -1391,8 +1401,7 @@ namespace DSL
                 
                 // create a new tracked object for this tracking Id and source
                 std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
-                    (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num, 
-                        pObjectMeta->rect_params));
+                    (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num));
 
                 // insert the new tracked object into the new map    
                 pTrackedObjects->insert(std::pair<uint64_t, 
@@ -1408,8 +1417,6 @@ namespace DSL
                 // else, the object is currently being tracked - so update 
                 pTrackedObjects->at(pObjectMeta->object_id)->
                     m_frameNumber = pFrameMeta->frame_num;
-                pTrackedObjects->at(pObjectMeta->object_id)->
-                    PushRectangle(pObjectMeta->rect_params);
                 
                 timeval currentTime;
                 gettimeofday(&currentTime, NULL);
@@ -1519,7 +1526,7 @@ namespace DSL
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!CheckForSourceId(pFrameMeta->source_id) or 
-            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
         {
             return false;
         }
@@ -1572,7 +1579,7 @@ namespace DSL
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!CheckForSourceId(pFrameMeta->source_id) or 
-            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
         {
             return false;
         }
@@ -1644,7 +1651,7 @@ namespace DSL
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!CheckForSourceId(pFrameMeta->source_id) or 
-            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
         {
             return false;
         }
@@ -1731,7 +1738,7 @@ namespace DSL
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!CheckForSourceId(pFrameMeta->source_id) or 
-            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
         {
             return false;
         }
@@ -1745,8 +1752,7 @@ namespace DSL
             
             // create a new tracked object for this tracking Id and source
             std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
-                (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num, 
-                    pObjectMeta->rect_params));
+                (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num));
                 
             // create a map of tracked objects for this source    
             std::shared_ptr<TrackedObjects> pTrackedObjects = 
@@ -1772,8 +1778,7 @@ namespace DSL
                 
                 // create a new tracked object for this tracking Id and source
                 std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
-                    (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num, 
-                        pObjectMeta->rect_params));
+                    (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num));
 
                 // insert the new tracked object into the new map    
                 pTrackedObjects->insert(std::pair<uint64_t, 
@@ -1789,8 +1794,6 @@ namespace DSL
                 // else, the object is currently being tracked - so update 
                 pTrackedObjects->at(pObjectMeta->object_id)->
                     m_frameNumber = pFrameMeta->frame_num;
-                pTrackedObjects->at(pObjectMeta->object_id)->
-                    PushRectangle(pObjectMeta->rect_params);
                 
                 timeval currentTime;
                 gettimeofday(&currentTime, NULL);
@@ -1903,7 +1906,7 @@ namespace DSL
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!CheckForSourceId(pFrameMeta->source_id) or 
-            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
         {
             return false;
         }
@@ -1917,8 +1920,7 @@ namespace DSL
             
             // create a new tracked object for this tracking Id and source
             std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
-                (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num, 
-                    pObjectMeta->rect_params));
+                (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num));
                 
             // create a map of tracked objects for this source    
             std::shared_ptr<TrackedObjects> pTrackedObjects = 
@@ -1944,8 +1946,7 @@ namespace DSL
                 
                 // create a new tracked object for this tracking Id and source
                 std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
-                    (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num, 
-                        pObjectMeta->rect_params));
+                    (new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num));
 
                 // insert the new tracked object into the new map    
                 pTrackedObjects->insert(std::pair<uint64_t, 
@@ -1961,8 +1962,6 @@ namespace DSL
                 // else, the object is currently being tracked - so update 
                 pTrackedObjects->at(pObjectMeta->object_id)->
                     m_frameNumber = pFrameMeta->frame_num;
-                pTrackedObjects->at(pObjectMeta->object_id)->
-                    PushRectangle(pObjectMeta->rect_params);
 
                 timeval currentTime;
                 gettimeofday(&currentTime, NULL);
@@ -2076,7 +2075,7 @@ namespace DSL
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or 
-            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
         {
             return false;
         }
@@ -2148,7 +2147,7 @@ namespace DSL
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or 
-            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
         {
             return false;
         }
@@ -2234,7 +2233,7 @@ namespace DSL
         bool occurrenceAdded(false);
         
         m_classId = m_classIdA;
-        if (CheckForMinCriteria(pFrameMeta, pObjectMeta))
+        if (CheckForMinCriteria(pFrameMeta, pObjectMeta) and CheckForWithin(pObjectMeta))
         {
             m_occurrenceMetaListA.push_back(pObjectMeta);
             occurrenceAdded = true;
@@ -2242,7 +2241,7 @@ namespace DSL
         else if (!m_classIdAOnly)
         {
             m_classId = m_classIdB;
-            if (CheckForMinCriteria(pFrameMeta, pObjectMeta))
+            if (CheckForMinCriteria(pFrameMeta, pObjectMeta) and CheckForWithin(pObjectMeta))
             {
                 m_occurrenceMetaListB.push_back(pObjectMeta);
                 occurrenceAdded = true;
@@ -2274,8 +2273,6 @@ namespace DSL
         , m_testMethod(testMethod)
     {
         LOG_FUNC();
-        
-        LOG_WARN("min = " << m_minimum << ", max = " << m_maximum);
     }
 
     DistanceOdeTrigger::~DistanceOdeTrigger()

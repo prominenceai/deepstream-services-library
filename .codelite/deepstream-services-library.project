@@ -166,6 +166,7 @@
       <File Name="../test/unit/DslTapUnitTest.cpp"/>
       <File Name="../test/unit/DslTilerUnitTest.cpp"/>
       <File Name="../test/unit/DslTrackerUnitTest.cpp"/>
+      <File Name="../test/unit/DslOdeTrackedObjectUnitTest.cpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="root">

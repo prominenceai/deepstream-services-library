@@ -183,8 +183,8 @@ namespace DSL
     
     // ********************************************************************
 
-    RgbaPolygon::RgbaPolygon(const char* name, const dsl_coordinate* coordinates, uint numCoordinates,
-        uint lineWidth, DSL_RGBA_COLOR_PTR pColor)
+    RgbaPolygon::RgbaPolygon(const char* name, const dsl_coordinate* coordinates, 
+        uint numCoordinates, uint lineWidth, DSL_RGBA_COLOR_PTR pColor)
         : DisplayType(name)
         , dsl_polygon_params{NULL, numCoordinates, lineWidth, *pColor}
     {
@@ -222,8 +222,8 @@ namespace DSL
 
     // ********************************************************************
 
-    RgbaMultiLine::RgbaMultiLine(const char* name, const dsl_coordinate* coordinates, uint numCoordinates,
-        uint lineWidth, DSL_RGBA_COLOR_PTR pColor)
+    RgbaMultiLine::RgbaMultiLine(const char* name, const dsl_coordinate* coordinates, 
+        uint numCoordinates, uint lineWidth, DSL_RGBA_COLOR_PTR pColor)
         : DisplayType(name)
         , dsl_multi_line_params{NULL, numCoordinates, lineWidth, *pColor}
     {

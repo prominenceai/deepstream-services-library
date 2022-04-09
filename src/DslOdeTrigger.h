@@ -43,27 +43,33 @@ namespace DSL
 
     #define DSL_ODE_TRIGGER_ABSENCE_PTR std::shared_ptr<AbsenceOdeTrigger>
     #define DSL_ODE_TRIGGER_ABSENCE_NEW(name, source, classId, limit) \
-        std::shared_ptr<AbsenceOdeTrigger>(new AbsenceOdeTrigger(name, source, classId, limit))
+        std::shared_ptr<AbsenceOdeTrigger>(new AbsenceOdeTrigger(name, \
+            source, classId, limit))
 
     #define DSL_ODE_TRIGGER_ACCUMULATION_PTR std::shared_ptr<AccumulationOdeTrigger>
     #define DSL_ODE_TRIGGER_ACCUMULATION_NEW(name, source, classId, limit) \
-        std::shared_ptr<AccumulationOdeTrigger>(new AccumulationOdeTrigger(name, source, classId, limit))
+        std::shared_ptr<AccumulationOdeTrigger>(new AccumulationOdeTrigger(name, \
+            source, classId, limit))
 
     #define DSL_ODE_TRIGGER_CROSS_PTR std::shared_ptr<CrossOdeTrigger>
-    #define DSL_ODE_TRIGGER_CROSS_NEW(name, source, classId, limit) \
-        std::shared_ptr<CrossOdeTrigger>(new CrossOdeTrigger(name, source, classId, limit))
+    #define DSL_ODE_TRIGGER_CROSS_NEW(name, source, classId, limit, maxTracePoints) \
+        std::shared_ptr<CrossOdeTrigger>(new CrossOdeTrigger(name, \
+            source, classId, limit, maxTracePoints))
 
     #define DSL_ODE_TRIGGER_INSTANCE_PTR std::shared_ptr<InstanceOdeTrigger>
     #define DSL_ODE_TRIGGER_INSTANCE_NEW(name, source, classId, limit) \
-        std::shared_ptr<InstanceOdeTrigger>(new InstanceOdeTrigger(name, source, classId, limit))
+        std::shared_ptr<InstanceOdeTrigger>(new InstanceOdeTrigger(name, \
+            source, classId, limit))
 
     #define DSL_ODE_TRIGGER_OCCURRENCE_PTR std::shared_ptr<OccurrenceOdeTrigger>
     #define DSL_ODE_TRIGGER_OCCURRENCE_NEW(name, source, classId, limit) \
-        std::shared_ptr<OccurrenceOdeTrigger>(new OccurrenceOdeTrigger(name, source, classId, limit))
+        std::shared_ptr<OccurrenceOdeTrigger>(new OccurrenceOdeTrigger(name, \
+            source, classId, limit))
 
     #define DSL_ODE_TRIGGER_SUMMATION_PTR std::shared_ptr<SummationOdeTrigger>
     #define DSL_ODE_TRIGGER_SUMMATION_NEW(name, source, classId, limit) \
-        std::shared_ptr<SummationOdeTrigger>(new SummationOdeTrigger(name, source, classId, limit))
+        std::shared_ptr<SummationOdeTrigger>(new SummationOdeTrigger(name, \
+            source, classId, limit))
         
     #define DSL_ODE_TRIGGER_CUSTOM_PTR std::shared_ptr<CustomOdeTrigger>
     #define DSL_ODE_TRIGGER_CUSTOM_NEW(name, \
@@ -78,32 +84,38 @@ namespace DSL
 
     #define DSL_ODE_TRIGGER_COUNT_PTR std::shared_ptr<CountOdeTrigger>
     #define DSL_ODE_TRIGGER_COUNT_NEW(name, source, classId, limit, minimum, maximum) \
-        std::shared_ptr<CountOdeTrigger> \
-            (new CountOdeTrigger(name, source, classId, limit, minimum, maximum))
+        std::shared_ptr<CountOdeTrigger> (new CountOdeTrigger(name, \
+            source, classId, limit, minimum, maximum))
 
     #define DSL_ODE_TRIGGER_SMALLEST_PTR std::shared_ptr<SmallestOdeTrigger>
     #define DSL_ODE_TRIGGER_SMALLEST_NEW(name, source, classId, limit) \
-        std::shared_ptr<SmallestOdeTrigger>(new SmallestOdeTrigger(name, source, classId, limit))
+        std::shared_ptr<SmallestOdeTrigger>(new SmallestOdeTrigger(name, \
+            source, classId, limit))
 
     #define DSL_ODE_TRIGGER_LARGEST_PTR std::shared_ptr<LargestOdeTrigger>
     #define DSL_ODE_TRIGGER_LARGEST_NEW(name, source, classId, limit) \
-        std::shared_ptr<LargestOdeTrigger>(new LargestOdeTrigger(name, source, classId, limit))
+        std::shared_ptr<LargestOdeTrigger>(new LargestOdeTrigger(name, \
+            source, classId, limit))
 
     #define DSL_ODE_TRIGGER_LATEST_PTR std::shared_ptr<LatestOdeTrigger>
     #define DSL_ODE_TRIGGER_LATEST_NEW(name, source, classId, limit) \
-        std::shared_ptr<LatestOdeTrigger>(new LatestOdeTrigger(name, source, classId, limit))
+        std::shared_ptr<LatestOdeTrigger>(new LatestOdeTrigger(name, \
+            source, classId, limit))
 
     #define DSL_ODE_TRIGGER_EARLIEST_PTR std::shared_ptr<EarliestOdeTrigger>
     #define DSL_ODE_TRIGGER_EARLIEST_NEW(name, source, classId, limit) \
-        std::shared_ptr<EarliestOdeTrigger>(new EarliestOdeTrigger(name, source, classId, limit))
+        std::shared_ptr<EarliestOdeTrigger>(new EarliestOdeTrigger(name, \
+            source, classId, limit))
 
     #define DSL_ODE_TRIGGER_NEW_LOW_PTR std::shared_ptr<NewLowOdeTrigger>
     #define DSL_ODE_TRIGGER_NEW_LOW_NEW(name, source, classId, limit, preset) \
-        std::shared_ptr<NewLowOdeTrigger>(new NewLowOdeTrigger(name, source, classId, limit, preset))
+        std::shared_ptr<NewLowOdeTrigger>(new NewLowOdeTrigger(name, \
+            source, classId, limit, preset))
 
     #define DSL_ODE_TRIGGER_NEW_HIGH_PTR std::shared_ptr<NewHighOdeTrigger>
     #define DSL_ODE_TRIGGER_NEW_HIGH_NEW(name, source, classId, limit, preset) \
-        std::shared_ptr<NewHighOdeTrigger>(new NewHighOdeTrigger(name, source, classId, limit, preset))
+        std::shared_ptr<NewHighOdeTrigger>(new NewHighOdeTrigger(name, \
+            source, classId, limit, preset))
 
     // Triggers for ClassA - ClassB Testing
 
@@ -417,6 +429,15 @@ namespace DSL
          */
         bool CheckForMinCriteria(NvDsFrameMeta* pFrameMeta, 
             NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Common function to check if an Object's bbox fails within
+         * one of the Triggers Areas
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to test 
+         * for within
+         * @return true if the bbox is within one of the trigger's area, false otherwise
+         */
+        bool CheckForWithin(NvDsObjectMeta* pObjectMeta);
         
         /**
          * @brief Common function to check if a Frame's source id meets the 
@@ -751,7 +772,8 @@ namespace DSL
     {
     public:
     
-        CrossOdeTrigger(const char* name, const char* source, uint classId, uint limit);
+        CrossOdeTrigger(const char* name, const char* source, uint classId, uint limit,
+            uint maxTracePoints);
         
         ~CrossOdeTrigger();
 
@@ -781,6 +803,12 @@ namespace DSL
             NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
             
     private:
+    
+        /**
+         * @brief maximum number of bounding box coordinates to use
+         * when tracking an objects path vs Trigger's Area. 
+         */
+        uint m_maxTracePoints;
 
         /**
          * @brief map of tracked objects per source - Key = source Id

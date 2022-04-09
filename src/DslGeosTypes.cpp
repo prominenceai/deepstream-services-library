@@ -76,6 +76,8 @@ namespace DSL
         return (uint)round(distance);
     }
     
+    //******************************************************************************
+    
     GeosLine::GeosLine(const NvOSD_LineParams& line)
         : m_pGeosLine(NULL)
     {
@@ -121,6 +123,65 @@ namespace DSL
         // Don't log function entry/exit
         
         char result = GEOSIntersects(m_pGeosLine, testLine.m_pGeosLine);
+        if (result == 2)
+        {
+            LOG_ERROR("Exception when testing if GEOS Line Strings cross");
+            throw;
+        }
+        return bool(result);
+    }
+
+    //******************************************************************************
+    
+    GeosMultiLine::GeosMultiLine(const dsl_multi_line_params& multiLine)
+        : m_pGeosMultiLine(NULL)
+    {
+        // Don't log function entry/exit
+        
+        GEOSCoordSequence* geosCoordSequence = GEOSCoordSeq_create(multiLine.num_coordinates+1, 2);
+        if (!geosCoordSequence)
+        {
+            LOG_ERROR("Exception when creating GEOS Coordinate Sequence");
+            throw;
+        }
+        for (uint i = 0; i < multiLine.num_coordinates; i++)
+        {
+            if (!GEOSCoordSeq_setX(geosCoordSequence, i, 
+                    double(multiLine.coordinates[i].x)) or   
+                !GEOSCoordSeq_setY(geosCoordSequence, i, 
+                    double(multiLine.coordinates[i].y))) 
+            {
+                LOG_ERROR("Exception when setting GEOS Coordinate Sequence");
+                throw;
+            }
+        }
+        
+        
+        // once created, m_pGeosMultiLine will own the memory of geosCoordSequence
+        // and will free it when GEOSGeom_destroy is called
+        m_pGeosMultiLine = GEOSGeom_createLineString(geosCoordSequence);
+        if (!m_pGeosMultiLine)
+        {
+            LOG_ERROR("Exception when creating GEOS Line String");
+            throw;
+        }
+    }
+    
+    GeosMultiLine::~GeosMultiLine()
+    {
+        // Don't log function entry/exit
+        
+        if (m_pGeosMultiLine)
+        {
+            GEOSGeom_destroy(m_pGeosMultiLine);
+        }
+    }
+
+    bool GeosMultiLine::Intersects(const GeosLine& testLine)
+    {
+        // Don't log function entry/exit
+        
+        char result = GEOSIntersects(m_pGeosMultiLine, testLine.m_pGeosLine);
         if (result == 2)
         {
             LOG_ERROR("Exception when testing if GEOS Line Strings cross");

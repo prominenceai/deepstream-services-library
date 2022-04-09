@@ -1985,10 +1985,12 @@ DslReturnType dsl_ode_trigger_count_range_set(const wchar_t* name,
  * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @param[in] max_trace_points maximum number of x,y coordinates to trace an object's
+ * movement. The trace is used for determining if an object corsses the Triggers Area. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit);
+    const wchar_t* source, uint class_id, uint limit, uint max_trace_points);
     
 /**
  * @brief Occurence trigger that checks for a new instance of an Object for a 

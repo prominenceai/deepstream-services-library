@@ -99,6 +99,40 @@ namespace DSL
     };
 
     /**
+     * @class GeosMultiLine
+     * @file DslGeosTypes.h
+     * @brief Implements a GEOS Multi-Line object that can test for
+     * intersection with a GEOS Line object
+     */
+    class GeosMultiLine
+    {
+    public: 
+
+        /**
+         * @brief ctor for the GeosMultiLine class
+         * @param[in] multi-line reference to a DSL Multi-Line Structure.
+         */
+        GeosMultiLine(const dsl_multi_line_params& multiLine);
+
+        /**
+         * @brief dtor for the GeosMultiLine class
+         */
+        ~GeosMultiLine();
+
+        /**
+         * @brief function to determine if two GEOS Lines intersect
+         * @param[in] testLine GEOS line to test for intersection
+         * @return true if lines intersect, false otherwise
+         */
+        bool Intersects(const GeosLine& testLine);
+        
+        /**
+         * @brief Actual GEOS Multi-Line for this class.
+         */
+        GEOSGeometry* m_pGeosMultiLine;
+    };
+
+    /**
      * @class GeosRectangle
      * @file DslGeosTypes.h
      * @brief Implements a GEOS Rectangle object that can test for
