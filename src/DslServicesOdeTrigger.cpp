@@ -154,7 +154,7 @@ namespace DSL
     }
     
     DslReturnType Services::OdeTriggerCrossNew(const char* name, 
-        const char* source, uint classId, uint limit, uint maxTracePoints)
+        const char* source, uint classId, uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -168,7 +168,7 @@ namespace DSL
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
             m_odeTriggers[name] = DSL_ODE_TRIGGER_CROSS_NEW(name, 
-                source, classId, limit, maxTracePoints);
+                source, classId, limit);
             
             LOG_INFO("New Cross ODE Trigger '" << name 
                 << "' created successfully");

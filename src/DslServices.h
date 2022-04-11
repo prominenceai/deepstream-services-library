@@ -275,7 +275,7 @@ namespace DSL {
             const char* source, uint classId, uint limit);
 
         DslReturnType OdeTriggerCrossNew(const char* name, 
-            const char* source, uint classId, uint limit, uint maxTracePoints);
+            const char* source, uint classId, uint limit);
         
         DslReturnType OdeTriggerInstanceNew(const char* name, 
             const char* source, uint classId, uint limit);

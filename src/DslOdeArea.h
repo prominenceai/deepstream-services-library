@@ -49,9 +49,9 @@ namespace DSL
             name, pDisplayType, show, bboxTestPoint))
 
     #define DSL_ODE_AREA_LINE_PTR std::shared_ptr<OdeLineArea>
-    #define DSL_ODE_AREA_LINE_NEW(name, pLine, show, bboxTestEdge) \
+    #define DSL_ODE_AREA_LINE_NEW(name, pLine, show, bboxTestPoint) \
         std::shared_ptr<OdeLineArea>(new OdeLineArea( \
-            name, pLine, show, bboxTestEdge))
+            name, pLine, show, bboxTestPoint))
 
     class OdeArea : public Base
     {
@@ -62,9 +62,11 @@ namespace DSL
          * @param[in] name unique name for the Area
          * @param[in] pDisplayType a shared pointer to a RGBA Display Type.
          * @param[in] show if true, the area will be displayed by adding meta data
-         * @param[in] 
+         * @param[in] bboxTestPoint one of DSL_BBOX_POINT defining the bounding box 
+         * point to check for Area inclusion or cross
          */
-        OdeArea(const char* name, DSL_DISPLAY_TYPE_PTR pDisplayType, bool show);
+        OdeArea(const char* name, DSL_DISPLAY_TYPE_PTR pDisplayType, 
+            bool show, uint bboxTestPoint);
 
         /**
          * @brief dtor for the OdeArea
@@ -72,18 +74,25 @@ namespace DSL
         ~OdeArea();
         
         /**
-         * @brief Adds metadata for the RGBA rectangle to pDisplayMeta to overlay the Area for show
+         * @brief Adds metadata for the RGBA rectangle to pDisplayMeta to overlay 
+         * the Area for show
          * @param[in] pDisplayMeta show metadata to add the Area to
          * @param[in] pFrameMeta the Frame metadata for the current Frame
          */
         void AddMeta(NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
         
         /**
-         * @brief Checks if an bounding box edge (for Line Areas) or point (for Polygon Areas)  
-         * is within this Area's underlying display type.
+         * @brief Checks if an bounding box edge point is within this Area's 
+         * underlying display type.
          * @param[in] pBox pointer to an object's bbox rectangle to check for within
          */
         virtual bool CheckForWithin(const NvOSD_RectParams& bbox) = 0;
+        
+        /**
+         * @brief Checks if a bounding box trace crosses the Area's underlying display type.
+         * @param[in] coordinates vector of coordinates defining a bbox trace
+         */
+        virtual bool CheckForCross(const std::vector<dsl_coordinate>& coordinates) = 0;
         
         /**
          * @brief Display type used to define the Area's location, dimensions, and color
@@ -94,6 +103,11 @@ namespace DSL
          * @brief Display the area (add display meta) if true
          */
         bool m_show;
+
+        /**
+         * @brief Bounding box test point to check for Area overlap/cross. One of DSL_BBOX_POINT
+         */
+        uint m_bboxTestPoint;
         
         /**
          * @brief Updated for each source/frame-number. Allows multiple Triggers to share a single Area,
@@ -114,8 +128,7 @@ namespace DSL
          * @param[in] name unique name for the Area
          * @param[in] pPolygon a shared pointer to a RGBA Polygon Type.
          * @param[in] show if true, the area will be displayed by adding meta data
-         * @param[in] bboxTestPoint the bounding box point to check for Area overlap
-         * @param[in] areaType either DSL_AREA_TYPE_INCLUSION or DSL_AREA_TYPE_EXCLUSION
+         * @param[in] bboxTestPoint the bounding box point to check for Area criteria
          */
         OdePolygonArea(const char* name, DSL_RGBA_POLYGON_PTR pPolygon, 
             bool show, uint bboxTestPoint);
@@ -126,17 +139,18 @@ namespace DSL
         ~OdePolygonArea();
 
         /**
-         * @brief Checks if the Area overlaps with the provided object bbox based on
-         * the bboxTestPoint criteria set for the Area
+         * @brief Checks if an bounding box edge point is within this Area's 
+         * underlying display type.
          * @param[in] pBox pointer to an object's bbox rectangle to check for overlap
          */
         bool CheckForWithin(const NvOSD_RectParams& bbox);
-        
-        /**
-         * @brief Bounding box test point to check for Area overlap. One of DSL_BBOX_POINT
-         */
-        uint m_bboxTestPoint;
 
+        /**
+         * @brief Checks if a bounding box trace crosses the Area's underlying display type.
+         * @param[in] coordinates vector of coordinates defining a bbox trace
+         */
+        bool CheckForCross(const std::vector<dsl_coordinate>& coordinates);
+        
         /**
          * @brief GeosPolygon type created with the Area's display type
          */
@@ -199,7 +213,7 @@ namespace DSL
          * of the bounding box to test for lines crossing
          */
         OdeLineArea(const char* name, DSL_RGBA_LINE_PTR pLine, 
-            bool show, uint bboxTestEdge);
+            bool show, uint bboxTestPoint);
 
         /**
          * @brief Checks if the Line Area overlaps (crosses) with the provided object 
@@ -207,6 +221,12 @@ namespace DSL
          * @param[in] pBox pointer to an object's bbox rectangle to check for overlap
          */
         bool CheckForWithin(const NvOSD_RectParams& bbox);
+
+        /**
+         * @brief Checks if a bounding box trace crosses the Area's underlying display type.
+         * @param[in] coordinates vector of coordinates defining a bbox trace
+         */
+        bool CheckForCross(const std::vector<dsl_coordinate>& coordinates);
 
         /**
          * @brief dtor for the InclusionOdeArea

@@ -31,8 +31,14 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    struct TrackedObject
+    /**
+     * @class TrackedObject
+     * @file DslOdeTrackedObject.h
+     * @brief Implements a Tracked Object with a history of bbox coordinates.
+     */
+    class TrackedObject
     {
+    public:
 
         /**
          * @brief Ctor 1 of 2 for the TrackedObject struct
@@ -44,29 +50,51 @@ namespace DSL
         /**
          * @brief Ctor 2 of 2 for the TrackedObject struct
          * @param[in] unique trackingId for the tracked object
-         * @param frameNumber the object was first detected
-         * @param rectParams rectParms from the object's meta when first detected
-         * @param maxHistory maximum number of bbox coordinates to track
+         * @param[in] frameNumber the object was first detected
+         * @param[in] rectParams rectParms from the object's meta when first detected
+         * @param[in] maxHistory maximum number of bbox coordinates to track
          */
         TrackedObject(uint64_t trackingId, uint64_t frameNumber,
             const NvOSD_RectParams* rectParams, uint maxHistory);
+            
+        /**
+         * @brief function to update the tracked-object's last frame number and 
+         * push a new set of positional bbox coordinates on to the tracked 
+         * object's m_bboxTrace queue.
+         * @param[in] currentFrameNumber new frame number to save
+         * @param[in] rectParams new rectangle params to push
+         */
+        void Update(uint64_t currentFrameNumber, const NvOSD_RectParams* rectParams);
         
         /**
-         * @brief function to push a new set of positional bbox coordinates
-         * on to the tracked object's m_bboxTrace queue
-         * @param rectParams new rectangle params to push
+         * @brief returns the last-detected frame number for the tracked object.
+         * @return frame number, from creation or last Update()
          */
-        void PushBbox(const NvOSD_RectParams* rectParams);
+        uint64_t GetTrackingId(){return m_trackingId;};
+        
+        /**
+         * @brief returns the last-detected frame number for the tracked object.
+         * @return frame number, from creation or last Update()
+         */
+        uint64_t GetFrameNumber(){return m_frameNumber;};
+        
+        /**
+         * @brief calculates the duration of time the object has been tracked.
+         * @return the duration in units of ms
+         */
+        double GetDurationMs();
         
         /**
          * @brief returns a vector of coordinates defining the TrackedObject's
          * trace for a specfic test-point on the object's bounding box
-         * @param testPoint test-point to generate the trace with.
+         * @param[in] testPoint test-point to generate the trace with.
          * @return shared pointer to a vector of coordinates.
          */
         std::shared_ptr<std::vector<dsl_coordinate>> 
             GetTrace(uint testPoint);
-        
+    
+    private:
+    
         /**
          * @brief unique tracking id for the tracked object.
          */
@@ -92,12 +120,90 @@ namespace DSL
          */
         std::deque<std::shared_ptr<NvBbox_Coords>> m_bboxTrace;
     };
+    
+    //*******************************************************************************
 
     /**
-     * @brief map of tracked objects - unique Tracking Id as key
+     * @class TrackedObjects
+     * @file DslOdeTrackedObject.h
+     * @brief Manages a map of tracked objects.
      */
-    typedef std::map <uint64_t, std::shared_ptr<TrackedObject>> TrackedObjects;
+    class TrackedObjects
+    {
+    public:
+        /**
+         * @brief Ctor TrackedObjects class
+         * @param[in] maxHistory maximum number of bbox coordinates to track
+         */
+        TrackedObjects(uint maxHistory);
+        
+        /**
+         * @brief determines if an object is currently tracked for a given source.
+         * @param[in] sourceId source to filter on
+         * @param[in] trackingId unique tracking id of the object to query
+         * @return true if the object is currenty tracked, false otherwise.
+         */ 
+        bool IsTracked(uint sourceId, uint64_t trackingId);
+        
+        /**
+         * @brief adds an untracked object to the collection of tracked objects
+         * per source.
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true on successful add, false otherwise.
+         */
+        bool Track(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+        /**
+         * @brief Gets the Tracked Object for a specified source and tranking Id
+         * @param[in] sourceId source to filter on
+         * @param[in] trackingId unique tracking id of the object to query
+         * @return a shared pointer if found, null_ptr otherwise.
+         */
+        std::shared_ptr<TrackedObject> GetObject(uint sourceId, uint64_t trackingId);
+        
+        /**
+         * @brief Purges all tracked objects that are not in the current frame
+         * @param currentFrameNumber current frame number to use as a purge filter.
+         */
+        void Purge(uint64_t currentFrameNumber);
+        
+        /**
+         * @brief Clears/deletes all tracked objects
+         */
+        void Clear();
+        
+        /**
+         * @brief Query to determine if the container is empty
+         * @return true if empty of tracked objects, false otherwise
+         */
+        bool IsEmpty(){return m_trackedObjectsPerSource.empty();};
+        
+        /**
+         * @brief gets the time of tracked object creation
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta
+         * @return Creation date if found, 0 otherwise.
+         */
+        double GetCreationTime(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief maximum number of bbox coordinates to maintain/trace
+         */
+        uint m_maxHistory;
+        
+        /**
+         * @brief map of tracked objects - Key = unique Tracking Id
+         */
+        typedef std::map <uint64_t, std::shared_ptr<TrackedObject>> TrackedObjectsT;
 
+        /**
+         * @brief map of tracked objects per source - Key = source Id
+         */
+        std::map <uint, std::shared_ptr<TrackedObjectsT>> m_trackedObjectsPerSource;
+    };    
 }
 
 #endif // _DSL_ODE_TRACKED_OBJECT_H

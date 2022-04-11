@@ -29,13 +29,13 @@ namespace DSL
 {
 
     OdeArea::OdeArea(const char* name, 
-        DSL_DISPLAY_TYPE_PTR pDisplayType, bool show)
+        DSL_DISPLAY_TYPE_PTR pDisplayType, bool show, uint bboxTestPoint)
         : Base(name)
         , m_pDisplayType(pDisplayType)
         , m_show(show)
+        , m_bboxTestPoint(bboxTestPoint)
     {
         LOG_FUNC();
-        
     }
     
     OdeArea::~OdeArea()
@@ -74,9 +74,8 @@ namespace DSL
 
     OdePolygonArea::OdePolygonArea(const char* name, 
         DSL_RGBA_POLYGON_PTR pPolygon, bool show, uint bboxTestPoint)
-        : OdeArea(name, pPolygon, show)
+        : OdeArea(name, pPolygon, show, bboxTestPoint)
         , m_pGeosPolygon(*pPolygon)
-        , m_bboxTestPoint(bboxTestPoint)
     {
         LOG_FUNC();
     }
@@ -146,6 +145,13 @@ namespace DSL
         return m_pGeosPolygon.Contains(testPoint);
     }
     
+    bool OdePolygonArea::CheckForCross(const std::vector<dsl_coordinate>& coordinates)
+    {
+        // Do not log function entry
+        
+        return false;
+    }
+    
     // *****************************************************************************
     
     OdeInclusionArea::OdeInclusionArea(const char* name, 
@@ -177,10 +183,9 @@ namespace DSL
     // *****************************************************************************
     
     OdeLineArea::OdeLineArea(const char* name, 
-        DSL_RGBA_LINE_PTR pLine, bool show, uint bboxTestEdge)
-        : OdeArea(name, pLine, show)
+        DSL_RGBA_LINE_PTR pLine, bool show, uint bboxTestPoint)
+        : OdeArea(name, pLine, show, bboxTestPoint)
         , m_pGeosLine(*pLine)
-        , m_bboxTestEdge(bboxTestEdge)
     {
         LOG_FUNC();
     }
@@ -194,43 +199,51 @@ namespace DSL
     {
         // Do not log function entry
         
-        NvOSD_LineParams testEdge{0};
-        
-        switch (m_bboxTestEdge)
-        {
-        case DSL_BBOX_EDGE_TOP :
-            testEdge.x1 = bbox.left;
-            testEdge.y1 = bbox.top;
-            testEdge.x2 = bbox.left + bbox.width;
-            testEdge.y2 = bbox.top;
-            break;
-        case DSL_BBOX_EDGE_BOTTOM :
-            testEdge.x1 = bbox.left;
-            testEdge.y1 = bbox.top + bbox.height;
-            testEdge.x2 = bbox.left + bbox.width;
-            testEdge.y2 = bbox.top + bbox.height;
-            break;
-        case DSL_BBOX_EDGE_LEFT :
-            testEdge.x1 = bbox.left;
-            testEdge.y1 = bbox.top;
-            testEdge.x2 = bbox.left;
-            testEdge.y2 = bbox.top + bbox.height;
-            break;
-        case DSL_BBOX_EDGE_RIGHT :
-            testEdge.x1 = bbox.left + bbox.width;
-            testEdge.y1 = bbox.top;
-            testEdge.x2 = bbox.left + bbox.width;
-            testEdge.y2 = bbox.top + bbox.height;
-            break;
-        default:
-            LOG_ERROR("Invalid DSL_BBOX_EDGE = '" << m_bboxTestEdge 
-                << "' for OdeLineArea '" << GetName() << "'");
-            throw;
-        }
-        
-        GeosLine testGeosLine(testEdge);
+//        NvOSD_LineParams testEdge{0};
+//        
+//        switch (m_bboxTestPoint)
+//        {
+//        case DSL_BBOX_EDGE_TOP :
+//            testEdge.x1 = bbox.left;
+//            testEdge.y1 = bbox.top;
+//            testEdge.x2 = bbox.left + bbox.width;
+//            testEdge.y2 = bbox.top;
+//            break;
+//        case DSL_BBOX_EDGE_BOTTOM :
+//            testEdge.x1 = bbox.left;
+//            testEdge.y1 = bbox.top + bbox.height;
+//            testEdge.x2 = bbox.left + bbox.width;
+//            testEdge.y2 = bbox.top + bbox.height;
+//            break;
+//        case DSL_BBOX_EDGE_LEFT :
+//            testEdge.x1 = bbox.left;
+//            testEdge.y1 = bbox.top;
+//            testEdge.x2 = bbox.left;
+//            testEdge.y2 = bbox.top + bbox.height;
+//            break;
+//        case DSL_BBOX_EDGE_RIGHT :
+//            testEdge.x1 = bbox.left + bbox.width;
+//            testEdge.y1 = bbox.top;
+//            testEdge.x2 = bbox.left + bbox.width;
+//            testEdge.y2 = bbox.top + bbox.height;
+//            break;
+//        default:
+//            LOG_ERROR("Invalid DSL_BBOX_EDGE = '" << m_bboxTestEdge 
+//                << "' for OdeLineArea '" << GetName() << "'");
+//            throw;
+//        }
+//        
+//        GeosLine testGeosLine(testEdge);
+//
+//        return m_pGeosLine.Intersects(testGeosLine);
+        return false;
+    }
 
-        return m_pGeosLine.Intersects(testGeosLine);
+    bool OdeLineArea::CheckForCross(const std::vector<dsl_coordinate>& coordinates)
+    {
+        // Do not log function entry
+        
+        return false;
     }
     
 }

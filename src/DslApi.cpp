@@ -1287,7 +1287,7 @@ DslReturnType dsl_ode_trigger_accumulation_new(const wchar_t* name,
 }
     
 DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit, uint maxTracePoints)
+    const wchar_t* source, uint class_id, uint limit)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -1301,7 +1301,7 @@ DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name,
         cstrSource.assign(wstrSource.begin(), wstrSource.end());
     }
     return DSL::Services::GetServices()->OdeTriggerCrossNew(cstrName.c_str(), 
-        cstrSource.c_str(), class_id, limit, maxTracePoints);
+        cstrSource.c_str(), class_id, limit);
 }
     
 DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name, 

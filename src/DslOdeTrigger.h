@@ -51,10 +51,11 @@ namespace DSL
         std::shared_ptr<AccumulationOdeTrigger>(new AccumulationOdeTrigger(name, \
             source, classId, limit))
 
+    #define DSL_ODE_TRIGGER_TRACKING_PTR std:shared_ptr<TrackingOdeTrigger>
     #define DSL_ODE_TRIGGER_CROSS_PTR std::shared_ptr<CrossOdeTrigger>
-    #define DSL_ODE_TRIGGER_CROSS_NEW(name, source, classId, limit, maxTracePoints) \
+    #define DSL_ODE_TRIGGER_CROSS_NEW(name, source, classId, limit) \
         std::shared_ptr<CrossOdeTrigger>(new CrossOdeTrigger(name, \
-            source, classId, limit, maxTracePoints))
+            source, classId, limit))
 
     #define DSL_ODE_TRIGGER_INSTANCE_PTR std::shared_ptr<InstanceOdeTrigger>
     #define DSL_ODE_TRIGGER_INSTANCE_NEW(name, source, classId, limit) \
@@ -768,19 +769,34 @@ namespace DSL
     
     };
 
-    class CrossOdeTrigger : public OdeTrigger
+    class TrackingOdeTrigger : public OdeTrigger
     {
     public:
     
-        CrossOdeTrigger(const char* name, const char* source, uint classId, uint limit,
-            uint maxTracePoints);
+        TrackingOdeTrigger(const char* name, const char* source, uint classId, uint limit);
         
-        ~CrossOdeTrigger();
-
+        ~TrackingOdeTrigger();
+        
         /**
-         * @brief Overrides the base Reset in order to clear m_instances
+         * @brief Overrides the base Reset in order to clear m_trackedObjectsPerSource
          */
         void Reset();
+
+    protected:
+        /**
+         * @brief map of tracked objects per source - Key = source Id
+         */
+        std::shared_ptr<TrackedObjects> m_pTrackedObjectsPerSource;
+    
+    };
+
+    class CrossOdeTrigger : public TrackingOdeTrigger
+    {
+    public:
+    
+        CrossOdeTrigger(const char* name, const char* source, uint classId, uint limit);
+        
+        ~CrossOdeTrigger();
 
         /**
          * @brief Function to check a given Object Meta data structure for to determine if the object has
@@ -803,17 +819,6 @@ namespace DSL
             NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
             
     private:
-    
-        /**
-         * @brief maximum number of bounding box coordinates to use
-         * when tracking an objects path vs Trigger's Area. 
-         */
-        uint m_maxTracePoints;
-
-        /**
-         * @brief map of tracked objects per source - Key = source Id
-         */
-        std::map <uint, std::shared_ptr<TrackedObjects>> m_trackedObjectsPerSource;
     
     };
     
@@ -1012,7 +1017,7 @@ namespace DSL
         
     };
 
-    class PersistenceOdeTrigger : public OdeTrigger
+    class PersistenceOdeTrigger : public TrackingOdeTrigger
     {
     public:
     
@@ -1020,11 +1025,6 @@ namespace DSL
             const char* source, uint classId, uint limit, uint minimum, uint maximum);
         
         ~PersistenceOdeTrigger();
-
-        /**
-         * @brief Overrides the base Reset in order to clear m_trackedObjectsPerSource
-         */
-        void Reset();
 
         /**
          * @brief Gets the current Minimum and Maximum time settings in use. 
@@ -1076,11 +1076,6 @@ namespace DSL
          * @brief maximum duration of object persistence - 0 = no maximum
          */
         double m_maximumMs;
-    
-        /**
-         * @brief map of tracked objects per source - Key = source Id
-         */
-        std::map <uint, std::shared_ptr<TrackedObjects>> m_trackedObjectsPerSource;
     };
 
     class CountOdeTrigger : public OdeTrigger
@@ -1226,18 +1221,13 @@ namespace DSL
     
     };
 
-    class LatestOdeTrigger : public OdeTrigger
+    class LatestOdeTrigger : public TrackingOdeTrigger
     {
     public:
     
         LatestOdeTrigger(const char* name, const char* source, uint classId, uint limit);
         
         ~LatestOdeTrigger();
-
-        /**
-         * @brief Overrides the base Reset in order to clear m_trackedObjectsPerSource
-         */
-        void Reset();
 
         /**
          * @brief Function to check a given Object Meta data structure for Object occurrence
@@ -1264,11 +1254,6 @@ namespace DSL
     private:
     
         /**
-         * @brief map of tracked objects per source - Key = source Id
-         */
-        std::map <uint, std::shared_ptr<TrackedObjects>> m_trackedObjectsPerSource;
-        
-        /**
          * @brief pointer to the Latest - least Persistent - object in the current frame
          */
         NvDsObjectMeta* m_pLatestObjectMeta;
@@ -1279,18 +1264,13 @@ namespace DSL
         double m_latestTrackedTimeMs;
     };
 
-    class EarliestOdeTrigger : public OdeTrigger
+    class EarliestOdeTrigger : public TrackingOdeTrigger
     {
     public:
     
         EarliestOdeTrigger(const char* name, const char* source, uint classId, uint limit);
         
         ~EarliestOdeTrigger();
-
-        /**
-         * @brief Overrides the base Reset in order to clear m_trackedObjectsPerSource
-         */
-        void Reset();
 
         /**
          * @brief Function to check a given Object Meta data structure for Object occurrence
@@ -1315,11 +1295,6 @@ namespace DSL
             NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
 
     private:
-    
-        /**
-         * @brief map of tracked objects per source - Key = source Id
-         */
-        std::map <uint, std::shared_ptr<TrackedObjects>> m_trackedObjectsPerSource;
     
         /**
          * @brief pointer to the Earliest - most Persistent - object in the current frame

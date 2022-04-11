@@ -621,6 +621,12 @@ THE SOFTWARE.
 #define DSL_MAX_MULTI_LINE_COORDINATES                              16
 
 /**
+ * @brief default maximum number of bbox frames for an ODE Tracking
+ * Trigger to maintain as an object trace / history
+ */
+#define DSL_DEFAULT_TRACKING_TRIGGER_MAX_TRACE_POINTS                10
+
+/**
  * @brief the maximum number of messages that can be queued up
  * by all Mailers running in the main-loop context before
  * new messages are dropped. Messages are pulled from the queue
@@ -1985,12 +1991,10 @@ DslReturnType dsl_ode_trigger_count_range_set(const wchar_t* name,
  * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @param[in] max_trace_points maximum number of x,y coordinates to trace an object's
- * movement. The trace is used for determining if an object corsses the Triggers Area. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit, uint max_trace_points);
+    const wchar_t* source, uint class_id, uint limit);
     
 /**
  * @brief Occurence trigger that checks for a new instance of an Object for a 
