@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslDisplayTypes.h"
 #include "DslGeosTypes.h"
+#include "DslOdeTrackedObject.h"
 
 namespace DSL
 {
@@ -90,10 +91,17 @@ namespace DSL
         
         /**
          * @brief Checks if a bounding box trace crosses the Area's underlying display type.
-         * @param[in] coordinates vector of coordinates defining a bbox trace
+         * @param[in] pTrackedObject shared pointer to a tracked object.
          */
-        virtual bool CheckForCross(const std::vector<dsl_coordinate>& coordinates) = 0;
+        virtual bool CheckForCross(const std::shared_ptr<TrackedObject> pTrackedObject) = 0;
         
+        /**
+         * @brief Gets the bbox test-point for the current 
+         * @return 
+         */
+        uint GetBboxTestPoint(){return m_bboxTestPoint;};
+        
+    protected:
         /**
          * @brief Display type used to define the Area's location, dimensions, and color
          */
@@ -147,9 +155,9 @@ namespace DSL
 
         /**
          * @brief Checks if a bounding box trace crosses the Area's underlying display type.
-         * @param[in] coordinates vector of coordinates defining a bbox trace
+         * @param[in] pTrackedObject shared pointer to a tracked object.
          */
-        bool CheckForCross(const std::vector<dsl_coordinate>& coordinates);
+        bool CheckForCross(const std::shared_ptr<TrackedObject> pTrackedObject);
         
         /**
          * @brief GeosPolygon type created with the Area's display type
@@ -224,9 +232,9 @@ namespace DSL
 
         /**
          * @brief Checks if a bounding box trace crosses the Area's underlying display type.
-         * @param[in] coordinates vector of coordinates defining a bbox trace
+         * @param[in] pTrackedObject shared pointer to a tracked object.
          */
-        bool CheckForCross(const std::vector<dsl_coordinate>& coordinates);
+        bool CheckForCross(const std::shared_ptr<TrackedObject> pTrackedObject);
 
         /**
          * @brief dtor for the InclusionOdeArea

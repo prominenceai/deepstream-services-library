@@ -276,6 +276,12 @@ namespace DSL {
 
         DslReturnType OdeTriggerCrossNew(const char* name, 
             const char* source, uint classId, uint limit);
+            
+        DslReturnType OdeTriggerCrossTraceSettingsGet(const char* name, 
+            boolean* enabled, const char** color, uint* lineWidth);
+            
+        DslReturnType OdeTriggerCrossTraceSettingsSet(const char* name, 
+            boolean enabled, const char* color, uint lineWidth);
         
         DslReturnType OdeTriggerInstanceNew(const char* name, 
             const char* source, uint classId, uint limit);

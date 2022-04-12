@@ -1995,6 +1995,28 @@ DslReturnType dsl_ode_trigger_count_range_set(const wchar_t* name,
  */
 DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit);
+
+/**
+ * @brief Gets the current trace settings for the named Cross trigger.
+ * @param[in] name unique name for the ODE Trigger to query
+ * @param[out] enabled true if object trace display is enabled, default = disabled 
+ * @param[out] color name of the color to use for object trace display, default = no-color.
+ * @param[out] line_width width of the object trace if display is enabled.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_cross_trace_settings_get(const wchar_t* name, 
+    boolean* enabled, const wchar_t** color, uint* line_width);
+    
+/**
+ * @brief Sets the trace settings for the named Cross trigger.
+ * @param[in] name unique name for the ODE Trigger to update
+ * @param[in] enabled set to true to enable object trace display, false otherwise
+ * @param[in] color name of the color to use for object trace display.
+ * @param[in] line_width width of the object trace if display is enabled.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_cross_trace_settings_set(const wchar_t* name, 
+    boolean enabled, const wchar_t* color, uint line_width);
     
 /**
  * @brief Occurence trigger that checks for a new instance of an Object for a 

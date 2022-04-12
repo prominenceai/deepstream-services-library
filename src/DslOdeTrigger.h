@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslOdeBase.h"
 #include "DslOdeTrackedObject.h"
+#include "DslDisplayTypes.h"
 
 namespace DSL
 {
@@ -53,9 +54,9 @@ namespace DSL
 
     #define DSL_ODE_TRIGGER_TRACKING_PTR std:shared_ptr<TrackingOdeTrigger>
     #define DSL_ODE_TRIGGER_CROSS_PTR std::shared_ptr<CrossOdeTrigger>
-    #define DSL_ODE_TRIGGER_CROSS_NEW(name, source, classId, limit) \
+    #define DSL_ODE_TRIGGER_CROSS_NEW(name, source, classId, limit, pColor) \
         std::shared_ptr<CrossOdeTrigger>(new CrossOdeTrigger(name, \
-            source, classId, limit))
+            source, classId, limit, pColor))
 
     #define DSL_ODE_TRIGGER_INSTANCE_PTR std::shared_ptr<InstanceOdeTrigger>
     #define DSL_ODE_TRIGGER_INSTANCE_NEW(name, source, classId, limit) \
@@ -794,7 +795,8 @@ namespace DSL
     {
     public:
     
-        CrossOdeTrigger(const char* name, const char* source, uint classId, uint limit);
+        CrossOdeTrigger(const char* name, const char* source, uint classId, 
+            uint limit, DSL_RGBA_COLOR_PTR pColor);
         
         ~CrossOdeTrigger();
 
@@ -817,8 +819,40 @@ namespace DSL
          */
         uint PostProcessFrame(GstBuffer* pBuffer, 
             NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        
+        /**
+         * @brief Gets the current trace setting for this CrossOdeTrigger.
+         * @param[out] enabled true if trace display is enabled, false otherwise.
+         * @param[out] color name of the RGBA Color for the trace display.
+         * @param[out] lineWidth for the trace display when enabled.
+         */
+        void GetTraceSettings(bool* enabled, const char** color, uint* lineWidth);
+        
+        /**
+         * @brief Gets the current trace setting for this CrossOdeTrigger.
+         * @param[in] enabled true if trace display is enabled, false otherwise.
+         * @param[in] pColor shared pointer to RGBA Color to use for the trace display.
+         * @param[in] lineWidth for the trace display if enabled.
+         */
+        void SetTraceSettings(bool enabled, DSL_RGBA_COLOR_PTR pColor, 
+            uint lineWidth);
             
     private:
+    
+        /**
+         * @brief true if object trace display is enabled, false otherwise.
+         */
+        bool m_traceEnabled;
+        
+        /**
+         * @brief shared pointer to RGBA Color to use for the object trace display.
+         */
+        DSL_RGBA_COLOR_PTR m_pTraceColor;
+        
+        /**
+         * @brief line width for the object trace in units of pixels.
+         */
+        uint m_traceLineWidth;
     
     };
     
@@ -826,7 +860,8 @@ namespace DSL
     {
     public:
     
-        InstanceOdeTrigger(const char* name, const char* source, uint classId, uint limit);
+        InstanceOdeTrigger(const char* name, 
+            const char* source, uint classId, uint limit);
         
         ~InstanceOdeTrigger();
 

@@ -46,7 +46,6 @@ namespace DSL
             }
             DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, polygon);
             
-            // Interim ... only supporting rectangles at this
             DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, polygon, RgbaPolygon);
             
             if (bboxTestPoint > DSL_BBOX_POINT_ANY)

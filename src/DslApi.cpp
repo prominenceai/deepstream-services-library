@@ -1303,6 +1303,45 @@ DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name,
     return DSL::Services::GetServices()->OdeTriggerCrossNew(cstrName.c_str(), 
         cstrSource.c_str(), class_id, limit);
 }
+
+DslReturnType dsl_ode_trigger_cross_trace_settings_get(const wchar_t* name, 
+    boolean* enabled, const wchar_t** color, uint* line_width)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* ccolor;
+    static std::string cstrColor;
+    static std::wstring wcstrColor;
+    
+    uint retval = DSL::Services::GetServices()->OdeTriggerCrossTraceSettingsGet(
+        cstrName.c_str(), enabled, &ccolor, line_width);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrColor.assign(ccolor);
+        wcstrColor.assign(cstrColor.begin(), cstrColor.end());
+        
+        *color = wcstrColor.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_ode_trigger_cross_trace_settings_set(const wchar_t* name, 
+    boolean enabled, const wchar_t* color, uint line_width)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(color);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrColor(color);
+    std::string cstrColor(wstrColor.begin(), wstrColor.end());
+
+    return DSL::Services::GetServices()->OdeTriggerCrossTraceSettingsSet(cstrName.c_str(), 
+        enabled, cstrColor.c_str(), line_width);
+}
     
 DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit)

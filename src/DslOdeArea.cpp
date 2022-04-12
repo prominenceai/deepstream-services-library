@@ -145,7 +145,7 @@ namespace DSL
         return m_pGeosPolygon.Contains(testPoint);
     }
     
-    bool OdePolygonArea::CheckForCross(const std::vector<dsl_coordinate>& coordinates)
+    bool OdePolygonArea::CheckForCross(const std::shared_ptr<TrackedObject> pTrackedObject)
     {
         // Do not log function entry
         
@@ -239,7 +239,7 @@ namespace DSL
         return false;
     }
 
-    bool OdeLineArea::CheckForCross(const std::vector<dsl_coordinate>& coordinates)
+    bool OdeLineArea::CheckForCross(const std::shared_ptr<TrackedObject> pTrackedObject)
     {
         // Do not log function entry
         

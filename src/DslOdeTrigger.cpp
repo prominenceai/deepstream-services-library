@@ -964,8 +964,11 @@ namespace DSL
     // *****************************************************************************
     
     CrossOdeTrigger::CrossOdeTrigger(const char* name, const char* source, 
-        uint classId, uint limit)
+        uint classId, uint limit, DSL_RGBA_COLOR_PTR pColor)
         : TrackingOdeTrigger(name, source, classId, limit)
+        , m_traceEnabled(false)
+        , m_pTraceColor(pColor)
+        , m_traceLineWidth(0)
     {
         LOG_FUNC();
     }
@@ -978,6 +981,8 @@ namespace DSL
     bool CrossOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         if (!m_pOdeAreasIndexed.size())
         {
             LOG_ERROR("At least on OdeArea is required for CrossOdeTrigger '" 
@@ -1000,18 +1005,23 @@ namespace DSL
             return false;
         }
 
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        std::shared_ptr<TrackedObject> trackedObject = 
+        std::shared_ptr<TrackedObject> pTrackedObject = 
             m_pTrackedObjectsPerSource->GetObject(pFrameMeta->source_id,
                 pObjectMeta->object_id);
                 
-        trackedObject->Update(pFrameMeta->frame_num, &pObjectMeta->rect_params);
+        pTrackedObject->Update(pFrameMeta->frame_num, &pObjectMeta->rect_params);
             
         for (const auto &imap: m_pOdeAreasIndexed)
         {
             DSL_ODE_AREA_PTR pOdeArea = std::dynamic_pointer_cast<OdeArea>(imap.second);
-            if (pOdeArea->CheckForCross(pObjectMeta->rect_params))
+            
+            if (m_traceEnabled)
+            {
+                std::shared_ptr<std::vector<dsl_coordinate>> pTrace = 
+                    pTrackedObject->GetTrace(pOdeArea->GetBboxTestPoint());
+            }
+            
+            if (pOdeArea->CheckForCross(pTrackedObject))
             {
                 // event has been triggered
                 IncrementAndCheckTriggerCount();
@@ -1044,6 +1054,27 @@ namespace DSL
         m_pTrackedObjectsPerSource->Purge(pFrameMeta->frame_num);
         return m_occurrences;
     }
+    
+    void CrossOdeTrigger::GetTraceSettings(bool* enabled, 
+        const char** color, uint* lineWidth)
+    {
+        LOG_FUNC();
+
+        *enabled = m_traceEnabled;
+        *color = m_pTraceColor->GetName().c_str();
+        *lineWidth = m_traceLineWidth;
+    }
+    
+    void CrossOdeTrigger::SetTraceSettings(bool enabled, DSL_RGBA_COLOR_PTR pColor, 
+        uint lineWidth)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_traceEnabled = enabled;
+        m_pTraceColor = pColor;
+        m_traceLineWidth = lineWidth;
+    }        
    
     // *****************************************************************************
 
@@ -1306,6 +1337,8 @@ namespace DSL
     bool PersistenceOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
         if (!CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
         {
@@ -1321,15 +1354,13 @@ namespace DSL
         }
         else
         {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-            
-            std::shared_ptr<TrackedObject> trackedObject = 
+            std::shared_ptr<TrackedObject> pTrackedObject = 
                 m_pTrackedObjectsPerSource->GetObject(pFrameMeta->source_id,
                     pObjectMeta->object_id);
                     
-            trackedObject->Update(pFrameMeta->frame_num, &pObjectMeta->rect_params);
+            pTrackedObject->Update(pFrameMeta->frame_num, &pObjectMeta->rect_params);
 
-            double trackedTimeMs = trackedObject->GetDurationMs();
+            double trackedTimeMs = pTrackedObject->GetDurationMs();
             
             LOG_DEBUG("Persistence for tracked object with id = " << pObjectMeta->object_id 
                 << " for source = " << pFrameMeta->source_id << ", = " << trackedTimeMs << " ms");
@@ -1610,6 +1641,8 @@ namespace DSL
     bool LatestOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         if (!CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
         {
@@ -1624,15 +1657,13 @@ namespace DSL
         }
         else
         {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-            
-            std::shared_ptr<TrackedObject> trackedObject = 
+            std::shared_ptr<TrackedObject> pTrackedObject = 
                 m_pTrackedObjectsPerSource->GetObject(pFrameMeta->source_id,
                     pObjectMeta->object_id);
                     
-            trackedObject->Update(pFrameMeta->frame_num, &pObjectMeta->rect_params);
+            pTrackedObject->Update(pFrameMeta->frame_num, &pObjectMeta->rect_params);
 
-            double trackedTimeMs = trackedObject->GetDurationMs();
+            double trackedTimeMs = pTrackedObject->GetDurationMs();
             
             if ((m_pLatestObjectMeta == NULL) or (trackedTimeMs < m_latestTrackedTimeMs))
             {
@@ -1705,6 +1736,8 @@ namespace DSL
     bool EarliestOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         if (!CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
         {
@@ -1719,15 +1752,13 @@ namespace DSL
         }
         else
         {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-            
-            std::shared_ptr<TrackedObject> trackedObject = 
+            std::shared_ptr<TrackedObject> pTrackedObject = 
                 m_pTrackedObjectsPerSource->GetObject(pFrameMeta->source_id,
                     pObjectMeta->object_id);
                     
-            trackedObject->Update(pFrameMeta->frame_num, &pObjectMeta->rect_params);
+            pTrackedObject->Update(pFrameMeta->frame_num, &pObjectMeta->rect_params);
 
-            double trackedTimeMs = trackedObject->GetDurationMs();
+            double trackedTimeMs = pTrackedObject->GetDurationMs();
                 
             if ((m_pEarliestObjectMeta == NULL) or (trackedTimeMs > m_earliestTrackedTimeMs))
             {
