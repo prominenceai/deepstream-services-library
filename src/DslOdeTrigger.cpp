@@ -934,13 +934,13 @@ namespace DSL
     // *****************************************************************************
     
     TrackingOdeTrigger::TrackingOdeTrigger(const char* name, const char* source, 
-        uint classId, uint limit)
+        uint classId, uint limit, uint maxTracePoints)
         : OdeTrigger(name, source, classId, limit)
     {
         LOG_FUNC();
         
         m_pTrackedObjectsPerSource = std::shared_ptr<TrackedObjects>(
-            new TrackedObjects(DSL_DEFAULT_TRACKING_TRIGGER_MAX_TRACE_POINTS));
+            new TrackedObjects(maxTracePoints));
     }
 
     TrackingOdeTrigger::~TrackingOdeTrigger()
@@ -964,8 +964,9 @@ namespace DSL
     // *****************************************************************************
     
     CrossOdeTrigger::CrossOdeTrigger(const char* name, const char* source, 
-        uint classId, uint limit, DSL_RGBA_COLOR_PTR pColor)
-        : TrackingOdeTrigger(name, source, classId, limit)
+        uint classId, uint limit, uint maxTracePoints, DSL_RGBA_COLOR_PTR pColor)
+        : TrackingOdeTrigger(name, source, classId, limit, maxTracePoints)
+        , m_maxTracePoints(maxTracePoints)
         , m_traceEnabled(false)
         , m_pTraceColor(pColor)
         , m_traceLineWidth(0)
@@ -981,11 +982,9 @@ namespace DSL
     bool CrossOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
         if (!m_pOdeAreasIndexed.size())
         {
-            LOG_ERROR("At least on OdeArea is required for CrossOdeTrigger '" 
+            LOG_ERROR("At least one OdeArea is required for CrossOdeTrigger '" 
                 << GetName() << "'");
             return false;
         }
@@ -996,6 +995,8 @@ namespace DSL
         {
             return false;
         }
+
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
         // if this is the first occurrence of any object for this source
         if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
@@ -1017,8 +1018,17 @@ namespace DSL
             
             if (m_traceEnabled)
             {
+                // Get the trace vector for the testpoint defined for this Area
                 std::shared_ptr<std::vector<dsl_coordinate>> pTrace = 
                     pTrackedObject->GetTrace(pOdeArea->GetBboxTestPoint());
+                    
+                // Create a RGBA multi-line from the trace vector and trace-view settings.
+                DSL_RGBA_MULTI_LINE_PTR pMultiLine = DSL_RGBA_MULTI_LINE_NEW(
+                    GetName().c_str(), pTrace->data(), pTrace->size(), 
+                    m_traceLineWidth, m_pTraceColor);
+                    
+                // Add the multi-line's meta to the Frame's display-meta
+                pMultiLine->AddMeta(pDisplayMeta, pFrameMeta);
             }
             
             if (pOdeArea->CheckForCross(pTrackedObject))
@@ -1046,6 +1056,11 @@ namespace DSL
     uint CrossOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
         NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
     {
+        // Filter on skip-frame interval
+        if (m_skipFrame)
+        {
+            return false;
+        }
         if (m_pTrackedObjectsPerSource->IsEmpty())
         {
             return 0;
@@ -1055,7 +1070,23 @@ namespace DSL
         return m_occurrences;
     }
     
-    void CrossOdeTrigger::GetTraceSettings(bool* enabled, 
+    void CrossOdeTrigger::GetMaxTracePoints(uint* maxTracePoints)
+    {
+        LOG_FUNC();
+
+        *maxTracePoints = m_maxTracePoints;
+    }
+    
+    void CrossOdeTrigger::SetMaxTracePoints(uint maxTracePoints)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        m_maxTracePoints = maxTracePoints;
+        m_pTrackedObjectsPerSource->SetMaxHistory(m_maxTracePoints);
+    }
+    
+    void CrossOdeTrigger::GetTraceViewSettings(bool* enabled, 
         const char** color, uint* lineWidth)
     {
         LOG_FUNC();
@@ -1065,7 +1096,7 @@ namespace DSL
         *lineWidth = m_traceLineWidth;
     }
     
-    void CrossOdeTrigger::SetTraceSettings(bool enabled, DSL_RGBA_COLOR_PTR pColor, 
+    void CrossOdeTrigger::SetTraceViewSettings(bool enabled, DSL_RGBA_COLOR_PTR pColor, 
         uint lineWidth)
     {
         LOG_FUNC();
@@ -1305,7 +1336,7 @@ namespace DSL
     
     PersistenceOdeTrigger::PersistenceOdeTrigger(const char* name, const char* source, 
         uint classId, uint limit, uint minimum, uint maximum)
-        : TrackingOdeTrigger(name, source, classId, limit)
+        : TrackingOdeTrigger(name, source, classId, limit, 0)
         , m_minimumMs(minimum*1000.0)
         , m_maximumMs(maximum*1000.0)
     {
@@ -1337,14 +1368,13 @@ namespace DSL
     bool PersistenceOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
         if (!CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
         {
             return false;
         }
 
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
         // if this is the first occurrence of any object for this source
         if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
@@ -1626,7 +1656,7 @@ namespace DSL
     
     LatestOdeTrigger::LatestOdeTrigger(const char* name, const char* source, 
         uint classId, uint limit)
-        : TrackingOdeTrigger(name, source, classId, limit)
+        : TrackingOdeTrigger(name, source, classId, limit, 0)
         , m_pLatestObjectMeta(NULL)
         , m_latestTrackedTimeMs(0)
     {
@@ -1641,14 +1671,14 @@ namespace DSL
     bool LatestOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
         if (!CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
         {
             return false;
         }
 
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         // if this is the first occurrence of any object for this source
         if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
             pObjectMeta->object_id))
@@ -1721,7 +1751,7 @@ namespace DSL
     
     EarliestOdeTrigger::EarliestOdeTrigger(const char* name, const char* source, 
         uint classId, uint limit)
-        : TrackingOdeTrigger(name, source, classId, limit)
+        : TrackingOdeTrigger(name, source, classId, limit, 0)
         , m_pEarliestObjectMeta(NULL)
         , m_earliestTrackedTimeMs(0)
     {
@@ -1736,14 +1766,14 @@ namespace DSL
     bool EarliestOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
         if (!CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
         {
             return false;
         }
 
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         // if this is the first occurrence of any object for this source
         if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
             pObjectMeta->object_id)) 

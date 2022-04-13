@@ -254,7 +254,7 @@ namespace DSL {
             const char* polygon, boolean display, uint bboxTestPoint);
 
         DslReturnType OdeAreaLineNew(const char* name, 
-            const char* line, boolean display, uint bboxTestEdge);
+            const char* line, boolean display, uint bboxTestPoint);
 
         DslReturnType OdeAreaDelete(const char* name);
         
@@ -275,12 +275,18 @@ namespace DSL {
             const char* source, uint classId, uint limit);
 
         DslReturnType OdeTriggerCrossNew(const char* name, 
-            const char* source, uint classId, uint limit);
+            const char* source, uint classId, uint limit, uint maxTracePoints);
             
-        DslReturnType OdeTriggerCrossTraceSettingsGet(const char* name, 
+        DslReturnType OdeTriggerCrossTracePointsMaxGet(const char* name, 
+            uint* maxTracePoints);
+            
+        DslReturnType OdeTriggerCrossTracePointsMaxSet(const char* name, 
+            uint maxTracePoints);
+            
+        DslReturnType OdeTriggerCrossTraceViewSettingsGet(const char* name, 
             boolean* enabled, const char** color, uint* lineWidth);
             
-        DslReturnType OdeTriggerCrossTraceSettingsSet(const char* name, 
+        DslReturnType OdeTriggerCrossTraceViewSettingsSet(const char* name, 
             boolean enabled, const char* color, uint lineWidth);
         
         DslReturnType OdeTriggerInstanceNew(const char* name, 

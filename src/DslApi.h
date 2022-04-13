@@ -1871,12 +1871,12 @@ DslReturnType dsl_ode_area_exclusion_new(const wchar_t* name,
  * @param[in] name unique name of the ODE Line Area to create
  * @param[in] line name of an RGBA Line used to define location, dimensions, color
  * @param[in] show set to true to show (overlay) the line on each frame
- * @param[in] bbox_test_edge one of DSL_BBOX_EDGE values defining which edge of a
- * object's bounding box to use when testing for lines crossing
+ * @param[in] bbox_test_point one of DSL_BBOX_POINT values defining which point of a
+ * object's bounding box to use when testing for line crossing
  * @return DSL_RESULT_SUCCESS on successful create, DSL_RESULT_ODE_AREA_RESULT otherwise.
  */
 DslReturnType dsl_ode_area_line_new(const wchar_t* name,
-    const wchar_t* line, boolean show, uint bbox_test_edge);
+    const wchar_t* line, boolean show, uint bbox_test_point);
 
 /**
  * @brief Deletes an ODE Area
@@ -1991,11 +1991,33 @@ DslReturnType dsl_ode_trigger_count_range_set(const wchar_t* name,
  * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @param[in] max_trace_points maximum number of past trace points to maintain for
+ * each tracked objects. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit);
+    const wchar_t* source, uint class_id, uint limit, uint max_trace_points);
 
+/**
+ * @brief Gets the current max trace-points setting for the named Cross trigger.
+ * @param[in] name unique name for the ODE Trigger to query
+ * @param[out] max_trace_points current setting for the maximum number of past 
+ * trace points to maintain for each tracked objects. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_cross_trace_points_max_get(const wchar_t* name, 
+    uint* max_trace_points);
+    
+/**
+ * @brief Sets the max trace-points setting for the named Cross trigger.
+ * @param[in] name unique name for the ODE Trigger to update
+ * @param[out] max_trace_points current setting for the maximum number of past 
+ * trace points to maintain for each tracked objects. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_cross_trace_points_max_set(const wchar_t* name, 
+    uint max_trace_points);
+    
 /**
  * @brief Gets the current trace settings for the named Cross trigger.
  * @param[in] name unique name for the ODE Trigger to query
@@ -2004,7 +2026,7 @@ DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name,
  * @param[out] line_width width of the object trace if display is enabled.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_cross_trace_settings_get(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_cross_trace_view_settings_get(const wchar_t* name, 
     boolean* enabled, const wchar_t** color, uint* line_width);
     
 /**
@@ -2015,7 +2037,7 @@ DslReturnType dsl_ode_trigger_cross_trace_settings_get(const wchar_t* name,
  * @param[in] line_width width of the object trace if display is enabled.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_cross_trace_settings_set(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_cross_trace_view_settings_set(const wchar_t* name, 
     boolean enabled, const wchar_t* color, uint line_width);
     
 /**

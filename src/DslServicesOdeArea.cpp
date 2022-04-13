@@ -115,7 +115,7 @@ namespace DSL
     }                
     
     DslReturnType Services::OdeAreaLineNew(const char* name, 
-        const char* line, boolean show, uint bboxTestEdge)
+        const char* line, boolean show, uint bboxTestPoint)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -131,9 +131,9 @@ namespace DSL
             DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, line);
             DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, line, RgbaLine);
             
-            if (bboxTestEdge > DSL_BBOX_EDGE_RIGHT)
+            if (bboxTestPoint > DSL_BBOX_POINT_WEST)
             {
-                LOG_ERROR("Bounding box test edge value of '" << bboxTestEdge << 
+                LOG_ERROR("Bounding box test point value of '" << bboxTestPoint << 
                     "' is invalid when creating ODE Line Area '" << name << "'");
                 return DSL_RESULT_ODE_AREA_PARAMETER_INVALID;
             }
@@ -141,7 +141,7 @@ namespace DSL
             DSL_RGBA_LINE_PTR pLine = 
                 std::dynamic_pointer_cast<RgbaLine>(m_displayTypes[line]);
             
-            m_odeAreas[name] = DSL_ODE_AREA_LINE_NEW(name, pLine, show, bboxTestEdge);
+            m_odeAreas[name] = DSL_ODE_AREA_LINE_NEW(name, pLine, show, bboxTestPoint);
          
             LOG_INFO("New ODE Line Area '" << name << "' created successfully");
 

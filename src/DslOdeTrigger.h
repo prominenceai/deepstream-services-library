@@ -53,10 +53,12 @@ namespace DSL
             source, classId, limit))
 
     #define DSL_ODE_TRIGGER_TRACKING_PTR std:shared_ptr<TrackingOdeTrigger>
+    
     #define DSL_ODE_TRIGGER_CROSS_PTR std::shared_ptr<CrossOdeTrigger>
-    #define DSL_ODE_TRIGGER_CROSS_NEW(name, source, classId, limit, pColor) \
+    #define DSL_ODE_TRIGGER_CROSS_NEW(name, \
+        source, classId, limit, maxTracePoints, pColor) \
         std::shared_ptr<CrossOdeTrigger>(new CrossOdeTrigger(name, \
-            source, classId, limit, pColor))
+            source, classId, limit, maxTracePoints, pColor))
 
     #define DSL_ODE_TRIGGER_INSTANCE_PTR std::shared_ptr<InstanceOdeTrigger>
     #define DSL_ODE_TRIGGER_INSTANCE_NEW(name, source, classId, limit) \
@@ -774,7 +776,8 @@ namespace DSL
     {
     public:
     
-        TrackingOdeTrigger(const char* name, const char* source, uint classId, uint limit);
+        TrackingOdeTrigger(const char* name, 
+            const char* source, uint classId, uint limit, uint maxTracePoints);
         
         ~TrackingOdeTrigger();
         
@@ -796,7 +799,7 @@ namespace DSL
     public:
     
         CrossOdeTrigger(const char* name, const char* source, uint classId, 
-            uint limit, DSL_RGBA_COLOR_PTR pColor);
+            uint limit, uint maxTracePoints, DSL_RGBA_COLOR_PTR pColor);
         
         ~CrossOdeTrigger();
 
@@ -821,12 +824,24 @@ namespace DSL
             NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
         
         /**
+         * @brief Gets the current max-trace-point setting for this CrossOdeTrigger
+         * @param[out] maxTracePoints current max setting
+         */
+        void GetMaxTracePoints(uint* maxTracePoints);
+
+        /**
+         * @brief Sets the max-trace-point setting for this CrossOdeTrigger
+         * @param[out] maxTracePoints new max setting
+         */
+        void SetMaxTracePoints(uint maxTracePoints);
+        
+        /**
          * @brief Gets the current trace setting for this CrossOdeTrigger.
          * @param[out] enabled true if trace display is enabled, false otherwise.
          * @param[out] color name of the RGBA Color for the trace display.
          * @param[out] lineWidth for the trace display when enabled.
          */
-        void GetTraceSettings(bool* enabled, const char** color, uint* lineWidth);
+        void GetTraceViewSettings(bool* enabled, const char** color, uint* lineWidth);
         
         /**
          * @brief Gets the current trace setting for this CrossOdeTrigger.
@@ -834,11 +849,16 @@ namespace DSL
          * @param[in] pColor shared pointer to RGBA Color to use for the trace display.
          * @param[in] lineWidth for the trace display if enabled.
          */
-        void SetTraceSettings(bool enabled, DSL_RGBA_COLOR_PTR pColor, 
+        void SetTraceViewSettings(bool enabled, DSL_RGBA_COLOR_PTR pColor, 
             uint lineWidth);
             
     private:
     
+        /**
+         * @brief maximum number of trace points to use in cross detection
+         */
+        uint m_maxTracePoints;
+
         /**
          * @brief true if object trace display is enabled, false otherwise.
          */

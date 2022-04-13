@@ -41,14 +41,7 @@ namespace DSL
     public:
 
         /**
-         * @brief Ctor 1 of 2 for the TrackedObject struct
-         * @param[in] unique trackingId for the tracked object
-         * @param frameNumber the object was first detected
-         */
-        TrackedObject(uint64_t trackingId, uint64_t frameNumber);
-        
-        /**
-         * @brief Ctor 2 of 2 for the TrackedObject struct
+         * @brief Ctor for the TrackedObject struct
          * @param[in] unique trackingId for the tracked object
          * @param[in] frameNumber the object was first detected
          * @param[in] rectParams rectParms from the object's meta when first detected
@@ -57,6 +50,12 @@ namespace DSL
         TrackedObject(uint64_t trackingId, uint64_t frameNumber,
             const NvOSD_RectParams* rectParams, uint maxHistory);
             
+        /**
+         * @brief Sets the max history for this tracked object
+         * @param maxHistory new max history setting.
+         */
+        void SetMaxHistory(uint maxHistory);
+        
         /**
          * @brief function to update the tracked-object's last frame number and 
          * push a new set of positional bbox coordinates on to the tracked 
@@ -186,6 +185,12 @@ namespace DSL
          * @return Creation date if found, 0 otherwise.
          */
         double GetCreationTime(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+        /**
+         * @brief Sets the max history for all objects tracked
+         * @param maxHistory new max history setting.
+         */
+        void SetMaxHistory(uint maxHistory);
         
     private:
     

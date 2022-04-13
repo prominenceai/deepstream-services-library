@@ -41,6 +41,13 @@ namespace DSL
         Update(frameNumber, pRectParams);
     }
     
+    void TrackedObject::SetMaxHistory(uint maxHistory)
+    {
+        LOG_FUNC();
+        
+        m_maxHistory = maxHistory;
+    }
+    
     void TrackedObject::Update(uint64_t currentFrameNumber, 
         const NvOSD_RectParams* pRectParams)
     {
@@ -54,13 +61,17 @@ namespace DSL
             std::shared_ptr<NvBbox_Coords>(new NvBbox_Coords);
         memcpy(&(*pBboxCoords), pRectParams, sizeof(NvBbox_Coords));
 
-        // Maintain max queue depth
-        if (m_bboxTrace.size() == m_maxHistory)
+        // If maintaining bbox trace-point history
+        if (m_maxHistory)
         {
-           m_bboxTrace.pop_front();
+            // Maintain max queue depth
+            while (m_bboxTrace.size() >= m_maxHistory)
+            {
+               m_bboxTrace.pop_front();
+            }
+            
+            m_bboxTrace.push_back(pBboxCoords);
         }
-        
-        m_bboxTrace.push_back(pBboxCoords);
     }
 
     double TrackedObject::GetDurationMs()
@@ -135,8 +146,8 @@ namespace DSL
             // at the current index of the bbox history.
             pTraceCoordinates->at(traceIdx++) = traceCoordinate;
 
-            LOG_INFO("Trace point x=" << traceCoordinate.x 
-                << ",y=" << traceCoordinate.x);
+            LOG_DEBUG("Trace point x=" << traceCoordinate.x 
+                << ",y=" << traceCoordinate.y);
         }
         return pTraceCoordinates;
     }
@@ -307,4 +318,21 @@ namespace DSL
             
         return pTrackedObjects->at(pObjectMeta->object_id)->GetDurationMs();
     }
+
+    void TrackedObjects::SetMaxHistory(uint maxHistory)
+    {
+        LOG_FUNC();
+        
+        for (const auto &trackedObjects: m_trackedObjectsPerSource)
+        {
+            std::shared_ptr<TrackedObjectsT> pTrackedObjects = 
+                trackedObjects.second;
+                
+            for (const auto &trackedObject: *pTrackedObjects)
+            {
+                trackedObject.second->SetMaxHistory(maxHistory);
+            }
+        }
+    }
+    
 }    

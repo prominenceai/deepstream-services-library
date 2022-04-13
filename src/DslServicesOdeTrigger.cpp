@@ -154,7 +154,7 @@ namespace DSL
     }
     
     DslReturnType Services::OdeTriggerCrossNew(const char* name, 
-        const char* source, uint classId, uint limit)
+        const char* source, uint classId, uint limit, uint maxTracePoints)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -167,11 +167,11 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            DSL_RGBA_COLOR_PTR pColor = std::dynamic_pointer_cast<RgbaColor>(
-                m_displayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
+            DSL_RGBA_COLOR_PTR pColor = std::dynamic_pointer_cast<RgbaColor>
+                (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
             
             m_odeTriggers[name] = DSL_ODE_TRIGGER_CROSS_NEW(name, 
-                source, classId, limit, pColor);
+                source, classId, limit, maxTracePoints, pColor);
             
             LOG_INFO("New Cross ODE Trigger '" << name 
                 << "' created successfully");
@@ -186,8 +186,65 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeTriggerCrossTraceSettingsGet(const char* name, 
-            boolean* enabled, const char** color, uint* lineWidth)
+    DslReturnType Services::OdeTriggerCrossTracePointsMaxGet(const char* name, 
+        uint* maxTracePoints)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, 
+                name, CrossOdeTrigger);
+            
+            DSL_ODE_TRIGGER_CROSS_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<CrossOdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->GetMaxTracePoints(maxTracePoints);
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Cross Trigger '" << name 
+                << "' threw exception getting max trace points");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::OdeTriggerCrossTracePointsMaxSet(const char* name, 
+        uint maxTracePoints)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, 
+                name, CrossOdeTrigger);
+            
+            DSL_ODE_TRIGGER_CROSS_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<CrossOdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->SetMaxTracePoints(maxTracePoints);
+
+            LOG_INFO("ODE Cross Trigger '" << name 
+                << "' set maximum trace-points settings successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Cross Trigger '" << name 
+                << "' threw exception getting max trace points");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::OdeTriggerCrossTraceViewSettingsGet(const char* name, 
+        boolean* enabled, const char** color, uint* lineWidth)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -202,8 +259,11 @@ namespace DSL
                 std::dynamic_pointer_cast<CrossOdeTrigger>(m_odeTriggers[name]);
 
             bool bEnabled;
-            pOdeTrigger->GetTraceSettings(&bEnabled, color, lineWidth);
+            pOdeTrigger->GetTraceViewSettings(&bEnabled, color, lineWidth);
             *enabled = bEnabled;
+
+            LOG_INFO("ODE Cross Trigger '" << name 
+                << "' returned trace-view settings successfully");
             
             return DSL_RESULT_SUCCESS;
         }
@@ -215,8 +275,8 @@ namespace DSL
         }
     }                
     
-    DslReturnType Services::OdeTriggerCrossTraceSettingsSet(const char* name, 
-            boolean enabled, const char* color, uint lineWidth)
+    DslReturnType Services::OdeTriggerCrossTraceViewSettingsSet(const char* name, 
+        boolean enabled, const char* color, uint lineWidth)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -236,7 +296,10 @@ namespace DSL
             DSL_RGBA_COLOR_PTR pColor = 
                 std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
 
-            pOdeTrigger->SetTraceSettings(enabled, pColor, lineWidth);
+            pOdeTrigger->SetTraceViewSettings(enabled, pColor, lineWidth);
+
+            LOG_INFO("ODE Cross Trigger '" << name 
+                << "' set trace-view settings successfully");
             
             return DSL_RESULT_SUCCESS;
         }

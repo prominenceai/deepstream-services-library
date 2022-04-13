@@ -319,9 +319,9 @@ namespace DSL
         uint num_coordinates;
          
         /**
-         * @brief width of the polygon lines in pixels
+         * @brief width of the multiple lines in pixels
          */
-        uint border_width;    
+        uint line_width;    
 
         /**
          * @brief RGBA color of the polygon lines in pixels

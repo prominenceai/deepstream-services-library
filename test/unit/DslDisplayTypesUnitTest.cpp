@@ -301,7 +301,7 @@ SCENARIO( "A RGBA Multi-Line is constructed correctly", "[DisplayTypes]" )
             {
                 REQUIRE( pMultiLine->GetName() == multiLineName );
                 REQUIRE( pMultiLine->num_coordinates == numCoordinates );
-                REQUIRE( pMultiLine->border_width == lineWidth );
+                REQUIRE( pMultiLine->line_width == lineWidth );
                 REQUIRE( pMultiLine->color.red == red );
                 REQUIRE( pMultiLine->color.blue == blue );
                 REQUIRE( pMultiLine->color.green == green );

@@ -1003,6 +1003,138 @@ SCENARIO( "A New Low Trigger can be created and deleted correctly", "[ode-trigge
     }
 }    
 
+SCENARIO( "A new Cross Trigger can be created and deleted correctly", "[ode-trigger-api]" )
+{
+    GIVEN( "Attributes for a new Cross Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"Cross");
+        uint limit(0);
+        uint max_trace_points(10);
+
+        WHEN( "When the Trigger is created" )         
+        {
+            REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
+                NULL, 0, limit, max_trace_points) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Trigger can be deleted only once" ) 
+            {
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) 
+                    == DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND );
+            }
+        }
+        WHEN( "When the Trigger is created" )         
+        {
+            REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
+                NULL, 0, limit, max_trace_points) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Trigger with the same name fails to create" ) 
+            {
+                REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
+                    NULL, 0, limit, max_trace_points) 
+                        == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A Cross Trigger can update its max-trace-points correctly", "[ode-trigger-api]" )
+{
+    GIVEN( "A new Cross Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"Cross");
+        uint limit(0);
+        uint max_trace_points(10);
+        uint ret_max_trace_points(0);
+
+        REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
+            NULL, 0, limit, max_trace_points) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_ode_trigger_cross_trace_points_max_get(odeTriggerName.c_str(), 
+            &ret_max_trace_points) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_max_trace_points == max_trace_points );
+
+        WHEN( "When the Trigger's max trace points is updated" )
+        {
+            uint new_max_trace_points(99);
+            
+            REQUIRE( dsl_ode_trigger_cross_trace_points_max_set(odeTriggerName.c_str(), 
+                new_max_trace_points) == DSL_RESULT_SUCCESS );
+                
+            THEN( "The correct value is returned on get" )
+            {
+                REQUIRE( dsl_ode_trigger_cross_trace_points_max_get(odeTriggerName.c_str(), 
+                    &ret_max_trace_points) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_trace_points == new_max_trace_points );
+
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A Cross Trigger can update its trace view setting correctly", "[ode-trigger-api]" )
+{
+    GIVEN( "A new Cross Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"Cross");
+        uint limit(0);
+        uint max_trace_points(10);
+
+        boolean ret_trace_view_enabled(true);
+        const wchar_t* c_ret_color;
+        uint ret_line_width(99);
+        
+        REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
+            NULL, 0, limit, max_trace_points) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_ode_trigger_cross_trace_view_settings_get(odeTriggerName.c_str(), 
+            &ret_trace_view_enabled, &c_ret_color, &ret_line_width) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( ret_trace_view_enabled == false );
+        std::wstring ret_color(c_ret_color);
+        std::wstring exp_color(L"no-color");
+        REQUIRE( ret_color == exp_color );
+        REQUIRE( ret_line_width == 0 );
+
+        WHEN( "When the Trigger's trace view settings are updated" )
+        {
+            std::wstring color_name(L"my-color");
+            double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+            REQUIRE( dsl_display_type_rgba_color_new(color_name.c_str(), 
+                red, green, blue, alpha) == DSL_RESULT_SUCCESS );
+            
+            boolean new_trace_view_enabled(true);
+            uint new_line_width(10);
+            
+            REQUIRE( dsl_ode_trigger_cross_trace_view_settings_set(odeTriggerName.c_str(), 
+                new_trace_view_enabled, color_name.c_str(), new_line_width) == DSL_RESULT_SUCCESS );
+                
+            THEN( "The correct value is returned on get" )
+            {
+                REQUIRE( dsl_ode_trigger_cross_trace_view_settings_get(odeTriggerName.c_str(), 
+                    &ret_trace_view_enabled, &c_ret_color, &ret_line_width) == DSL_RESULT_SUCCESS );
+                    
+                REQUIRE( ret_trace_view_enabled ==  new_trace_view_enabled );
+                ret_color.assign(c_ret_color);
+                REQUIRE( ret_color == color_name );
+                REQUIRE( ret_line_width == new_line_width );
+
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
 SCENARIO( "A new Distance Trigger can be created and deleted correctly", "[ode-trigger-api]" )
 {
     GIVEN( "Attributes for a new Distance Trigger" ) 

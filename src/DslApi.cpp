@@ -1164,7 +1164,7 @@ DslReturnType dsl_ode_area_exclusion_new(const wchar_t* name,
 }
 
 DslReturnType dsl_ode_area_line_new(const wchar_t* name, 
-    const wchar_t* line, boolean show, uint bbox_test_edge)
+    const wchar_t* line, boolean show, uint bbox_test_point)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(line);
@@ -1175,7 +1175,7 @@ DslReturnType dsl_ode_area_line_new(const wchar_t* name,
     std::string cstrLine(wstrLine.begin(), wstrLine.end());
 
     return DSL::Services::GetServices()->OdeAreaLineNew(cstrName.c_str(), 
-        cstrLine.c_str(), show, bbox_test_edge);
+        cstrLine.c_str(), show, bbox_test_point);
 }
 
 DslReturnType dsl_ode_area_delete(const wchar_t* name)
@@ -1287,7 +1287,7 @@ DslReturnType dsl_ode_trigger_accumulation_new(const wchar_t* name,
 }
     
 DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit)
+    const wchar_t* source, uint class_id, uint limit, uint max_trace_points)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -1301,10 +1301,34 @@ DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name,
         cstrSource.assign(wstrSource.begin(), wstrSource.end());
     }
     return DSL::Services::GetServices()->OdeTriggerCrossNew(cstrName.c_str(), 
-        cstrSource.c_str(), class_id, limit);
+        cstrSource.c_str(), class_id, limit, max_trace_points);
 }
 
-DslReturnType dsl_ode_trigger_cross_trace_settings_get(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_cross_trace_points_max_get(const wchar_t* name, 
+    uint* max_trace_points)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerCrossTracePointsMaxGet(cstrName.c_str(), 
+        max_trace_points);
+}
+
+DslReturnType dsl_ode_trigger_cross_trace_points_max_set(const wchar_t* name, 
+    uint max_trace_points)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerCrossTracePointsMaxSet(cstrName.c_str(), 
+        max_trace_points);
+}
+    
+DslReturnType dsl_ode_trigger_cross_trace_view_settings_get(const wchar_t* name, 
     boolean* enabled, const wchar_t** color, uint* line_width)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -1316,8 +1340,9 @@ DslReturnType dsl_ode_trigger_cross_trace_settings_get(const wchar_t* name,
     static std::string cstrColor;
     static std::wstring wcstrColor;
     
-    uint retval = DSL::Services::GetServices()->OdeTriggerCrossTraceSettingsGet(
+    uint retval = DSL::Services::GetServices()->OdeTriggerCrossTraceViewSettingsGet(
         cstrName.c_str(), enabled, &ccolor, line_width);
+
     if (retval ==  DSL_RESULT_SUCCESS)
     {
         cstrColor.assign(ccolor);
@@ -1328,7 +1353,7 @@ DslReturnType dsl_ode_trigger_cross_trace_settings_get(const wchar_t* name,
     return retval;
 }
 
-DslReturnType dsl_ode_trigger_cross_trace_settings_set(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_cross_trace_view_settings_set(const wchar_t* name, 
     boolean enabled, const wchar_t* color, uint line_width)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -1339,7 +1364,7 @@ DslReturnType dsl_ode_trigger_cross_trace_settings_set(const wchar_t* name,
     std::wstring wstrColor(color);
     std::string cstrColor(wstrColor.begin(), wstrColor.end());
 
-    return DSL::Services::GetServices()->OdeTriggerCrossTraceSettingsSet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->OdeTriggerCrossTraceViewSettingsSet(cstrName.c_str(), 
         enabled, cstrColor.c_str(), line_width);
 }
     

@@ -252,7 +252,7 @@ namespace DSL
                 coordinates[i].y, 
                 coordinates[(i+1)].x, 
                 coordinates[(i+1)].y, 
-                border_width, 
+                line_width, 
                 color};
                 
             pDisplayMeta->line_params[pDisplayMeta->num_lines++] = line;

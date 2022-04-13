@@ -84,12 +84,14 @@ static const std::wstring person_occurrence_name(L"person-occurrence");
 static const std::wstring first_person_occurrence_name(L"first-person-occurrence");
 static const std::wstring person_summation_name(L"person-summation");
 static const std::wstring person_accumulation_name(L"person-accumulation");
+static const std::wstring person_cross_name(L"person-cross");
 static const uint person_class_id(2);
 static const std::wstring roadsign_occurrence_name(L"roadsign-occurrence");
 static const std::wstring first_roadsign_occurrence_name(L"first-roadsign-occurrence");
 static const std::wstring roadsign_summation_name(L"roadsign-summation");
 static const std::wstring roadsign_accumulation_name(L"roadsign-accumulation");
 static const uint roadsign_class_id(3);
+
 
 std::wstring vehicle_string(L"Vehicle count: %6");
 std::wstring bycle_string(L"Bycle count: %6");
@@ -115,7 +117,8 @@ static const uint size(14);
 
 // ---------------------------------------------------------------------------
 
-SCENARIO( "A new Pipeline with an ODE Handler without any child ODE Triggers can play", "[ode-behavior]" )
+SCENARIO( "A new Pipeline with an ODE Handler without any child ODE Triggers can play",
+    "[ode-behavior]" )
 {
     GIVEN( "A Pipeline, URI source, KTL Tracker, Primary GIE, Tiled Display, ODE Hander, and Overlay Sink" ) 
     {
@@ -1476,6 +1479,114 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Custo
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
                 REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can play", "[new]" )
+{
+    GIVEN( "A Pipeline, ODE Handler, Cross ODE Trigger, Line ODE Area, and Fill ODE Action" ) 
+    {
+
+        std::wstring odeFillActionName(L"fill-action");
+
+        std::wstring ode_pph_name(L"ode-handler");
+        
+        std::wstring lineName(L"line");
+        uint x1(300), y1(600), x2(600), y2(620);
+        uint line_width(5);
+
+        std::wstring white(L"solid-white");
+        std::wstring green(L"solid-green");
+        
+        std::wstring areaName  = L"line-area";
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
+            model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), 
+            tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tiler_new(tiler_name.c_str(), 
+            width, height) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pph_ode_new(ode_pph_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), 
+            ode_pph_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_new(white.c_str(), 
+            1.0, 1.0, 1.0, 1.0) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_new(green.c_str(), 
+            0.5, 1.0, 0.5, 0.5) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_line_new(lineName.c_str(), 
+            x1, y1, x2, y2, line_width, white.c_str())== DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_area_line_new(areaName.c_str(), lineName.c_str(), 
+            true, DSL_BBOX_POINT_SOUTH) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_trigger_cross_new(person_cross_name.c_str(), 
+            NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE, 15) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_interval_set(person_cross_name.c_str(), 2) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_ode_trigger_cross_trace_view_settings_set(person_cross_name.c_str(),
+            true, green.c_str(), 4) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_area_add(person_cross_name.c_str(), 
+            areaName.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_action_format_bbox_new(odeFillActionName.c_str(), 
+            0, NULL, true, white.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_trigger_action_add(person_cross_name.c_str(), 
+            odeFillActionName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(),
+            person_cross_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_osd_new(osd_name.c_str(), false, false,
+            false, false) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {L"uri-source", 
+            L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"window-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*20);
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
     }
