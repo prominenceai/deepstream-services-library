@@ -1009,12 +1009,14 @@ SCENARIO( "A new Cross Trigger can be created and deleted correctly", "[ode-trig
     {
         std::wstring odeTriggerName(L"Cross");
         uint limit(0);
-        uint max_trace_points(10);
+        uint min_trace_points(10);
+        uint max_trace_points(20);
 
         WHEN( "When the Trigger is created" )         
         {
             REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
-                NULL, 0, limit, max_trace_points) == DSL_RESULT_SUCCESS );
+                NULL, 0, limit, min_trace_points, max_trace_points, 
+                DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
             
             THEN( "The Trigger can be deleted only once" ) 
             {
@@ -1028,12 +1030,14 @@ SCENARIO( "A new Cross Trigger can be created and deleted correctly", "[ode-trig
         WHEN( "When the Trigger is created" )         
         {
             REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
-                NULL, 0, limit, max_trace_points) == DSL_RESULT_SUCCESS );
+                NULL, 0, limit, min_trace_points, max_trace_points,
+                DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Trigger with the same name fails to create" ) 
             {
                 REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
-                    NULL, 0, limit, max_trace_points) 
+                    NULL, 0, limit, min_trace_points, max_trace_points,
+                    DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) 
                         == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) 
@@ -1050,28 +1054,40 @@ SCENARIO( "A Cross Trigger can update its max-trace-points correctly", "[ode-tri
     {
         std::wstring odeTriggerName(L"Cross");
         uint limit(0);
-        uint max_trace_points(10);
+        uint min_trace_points(10);
+        uint max_trace_points(20);
+        uint ret_min_trace_points(0);
         uint ret_max_trace_points(0);
+        uint ret_test_method(99);
 
         REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
-            NULL, 0, limit, max_trace_points) == DSL_RESULT_SUCCESS );
+            NULL, 0, limit, min_trace_points, max_trace_points,
+            DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_ode_trigger_cross_trace_points_max_get(odeTriggerName.c_str(), 
-            &ret_max_trace_points) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_cross_trace_point_settings_get(odeTriggerName.c_str(), 
+            &ret_min_trace_points, &ret_min_trace_points, &ret_test_method) 
+                == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_min_trace_points == min_trace_points );
         REQUIRE( ret_max_trace_points == max_trace_points );
+        REQUIRE( ret_test_method == DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS );
 
         WHEN( "When the Trigger's max trace points is updated" )
         {
+            uint new_min_trace_points(88);
             uint new_max_trace_points(99);
             
-            REQUIRE( dsl_ode_trigger_cross_trace_points_max_set(odeTriggerName.c_str(), 
-                new_max_trace_points) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_trigger_cross_trace_point_settings_set(odeTriggerName.c_str(), 
+                new_min_trace_points, new_max_trace_points,
+                DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
                 
             THEN( "The correct value is returned on get" )
             {
-                REQUIRE( dsl_ode_trigger_cross_trace_points_max_get(odeTriggerName.c_str(), 
-                    &ret_max_trace_points) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_cross_trace_point_settings_get(odeTriggerName.c_str(), 
+                    &ret_min_trace_points, &ret_min_trace_points, &ret_test_method) 
+                        == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_trace_points == new_min_trace_points );
                 REQUIRE( ret_max_trace_points == new_max_trace_points );
+                REQUIRE( ret_test_method == DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS );
 
                 REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) 
                     == DSL_RESULT_SUCCESS );
@@ -1086,14 +1102,16 @@ SCENARIO( "A Cross Trigger can update its trace view setting correctly", "[ode-t
     {
         std::wstring odeTriggerName(L"Cross");
         uint limit(0);
-        uint max_trace_points(10);
+        uint min_trace_points(10);
+        uint max_trace_points(20);
 
         boolean ret_trace_view_enabled(true);
         const wchar_t* c_ret_color;
         uint ret_line_width(99);
         
         REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
-            NULL, 0, limit, max_trace_points) == DSL_RESULT_SUCCESS );
+            NULL, 0, limit, min_trace_points, max_trace_points,
+            DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_ode_trigger_cross_trace_view_settings_get(odeTriggerName.c_str(), 
             &ret_trace_view_enabled, &c_ret_color, &ret_line_width) == DSL_RESULT_SUCCESS );

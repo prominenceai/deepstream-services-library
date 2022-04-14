@@ -41,7 +41,7 @@ namespace DSL
     public:
 
         /**
-         * @brief Ctor for the TrackedObject struct
+         * @brief Ctor for the TrackedObject class
          * @param[in] unique trackingId for the tracked object
          * @param[in] frameNumber the object was first detected
          * @param[in] rectParams rectParms from the object's meta when first detected
@@ -66,6 +66,17 @@ namespace DSL
         void Update(uint64_t currentFrameNumber, const NvOSD_RectParams* rectParams);
         
         /**
+         * @brief marks the tracked object as triggered
+         */
+        void SetTriggered(){m_triggered=true;};
+        
+        /**
+         * @brief returns the triggered state for the tracked object.
+         * @return true if the tracked object has triggered an occurence
+         */
+        bool GetTriggered(){return m_triggered;};
+        
+        /**
          * @brief returns the last-detected frame number for the tracked object.
          * @return frame number, from creation or last Update()
          */
@@ -84,15 +95,25 @@ namespace DSL
         double GetDurationMs();
         
         /**
+         * @brief Gets the current size of the bounding box trace.
+         * @return current size of the bbox trace.
+         */
+        size_t Size(){return m_bboxTrace.size();};
+        
+        /**
          * @brief returns a vector of coordinates defining the TrackedObject's
          * trace for a specfic test-point on the object's bounding box
          * @param[in] testPoint test-point to generate the trace with.
+         * @param[in] method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants
          * @return shared pointer to a vector of coordinates.
          */
         std::shared_ptr<std::vector<dsl_coordinate>> 
-            GetTrace(uint testPoint);
+            GetTrace(uint testPoint, uint method);
     
     private:
+
+        void getCoordinate(std::shared_ptr<NvBbox_Coords> pBbox, 
+            uint testPoint, dsl_coordinate& traceCoordinate);
     
         /**
          * @brief unique tracking id for the tracked object.
@@ -100,22 +121,27 @@ namespace DSL
         uint64_t m_trackingId;
         
         /**
-         * @brief frame number for the tracked object, updated on detection within a new frame
+         * @brief frame number for the tracked object, updated on detection within a new frame.
          */
         uint64_t m_frameNumber;
         
         /**
-         * @brief time of creation for this Tracked Object, used to test for object persistence
+         * @brief time of creation for this Tracked Object, used to test for object persistence.
          */
         double m_creationTimeMs;
         
         /**
-         * @brief maximum number of bbox coordinates to maintain/trace
+         * @brief flag to mark a Tracked Object as having triggered an ODE occurrence.
+         */
+        bool m_triggered;
+        
+        /**
+         * @brief maximum number of bbox coordinates to maintain/trace.
          */
         uint m_maxHistory;
         
         /**
-         * @brief a fixed size queue of Rectangle Params 
+         * @brief a fixed size queue of Rectangle Params.
          */
         std::deque<std::shared_ptr<NvBbox_Coords>> m_bboxTrace;
     };
@@ -160,6 +186,13 @@ namespace DSL
          * @return a shared pointer if found, null_ptr otherwise.
          */
         std::shared_ptr<TrackedObject> GetObject(uint sourceId, uint64_t trackingId);
+        
+        /**
+         * @brief Deletes a Tracked Object by source Id and tracking Id
+         * @param[in] sourceId source to filter on
+         * @param[in] trackingId unique tracking id of the object to query
+         */
+        void DeleteObject(uint sourceId, uint64_t trackingId);
         
         /**
          * @brief Purges all tracked objects that are not in the current frame

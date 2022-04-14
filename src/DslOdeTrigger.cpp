@@ -964,10 +964,13 @@ namespace DSL
     // *****************************************************************************
     
     CrossOdeTrigger::CrossOdeTrigger(const char* name, const char* source, 
-        uint classId, uint limit, uint maxTracePoints, DSL_RGBA_COLOR_PTR pColor)
+        uint classId, uint limit, uint minTracePoints, uint maxTracePoints, 
+        uint testMethod, DSL_RGBA_COLOR_PTR pColor)
         : TrackingOdeTrigger(name, source, classId, limit, maxTracePoints)
+        , m_minTracePoints(minTracePoints)
         , m_maxTracePoints(maxTracePoints)
         , m_traceEnabled(false)
+        , m_testMethod(testMethod)
         , m_pTraceColor(pColor)
         , m_traceLineWidth(0)
     {
@@ -1016,12 +1019,13 @@ namespace DSL
         {
             DSL_ODE_AREA_PTR pOdeArea = std::dynamic_pointer_cast<OdeArea>(imap.second);
             
+            // Get the trace vector for the testpoint defined for this Area
+            std::shared_ptr<std::vector<dsl_coordinate>> pTrace = 
+                pTrackedObject->GetTrace(pOdeArea->GetBboxTestPoint(), 
+                    m_testMethod);
+
             if (m_traceEnabled)
             {
-                // Get the trace vector for the testpoint defined for this Area
-                std::shared_ptr<std::vector<dsl_coordinate>> pTrace = 
-                    pTrackedObject->GetTrace(pOdeArea->GetBboxTestPoint());
-                    
                 // Create a RGBA multi-line from the trace vector and trace-view settings.
                 DSL_RGBA_MULTI_LINE_PTR pMultiLine = DSL_RGBA_MULTI_LINE_NEW(
                     GetName().c_str(), pTrace->data(), pTrace->size(), 
@@ -1031,7 +1035,8 @@ namespace DSL
                 pMultiLine->AddMeta(pDisplayMeta, pFrameMeta);
             }
             
-            if (pOdeArea->CheckForCross(pTrackedObject))
+            if (pTrackedObject->Size() >= m_minTracePoints and 
+                !pTrackedObject->GetTriggered() and pOdeArea->CheckForCross(pTrace))
             {
                 // event has been triggered
                 IncrementAndCheckTriggerCount();
@@ -1047,6 +1052,9 @@ namespace DSL
                     pOdeAction->HandleOccurrence(shared_from_this(), 
                         pBuffer, pDisplayMeta, pFrameMeta, pObjectMeta);
                 }
+                // Once the object has crossed, mark as triggered.
+                pTrackedObject->SetTriggered();
+         
                 return true;
             }
         }
@@ -1070,19 +1078,25 @@ namespace DSL
         return m_occurrences;
     }
     
-    void CrossOdeTrigger::GetMaxTracePoints(uint* maxTracePoints)
+    void CrossOdeTrigger::GetTracePointSettings(uint* minTracePoints, 
+        uint* maxTracePoints, uint* testMethod)
     {
         LOG_FUNC();
 
+        *minTracePoints = m_minTracePoints;
         *maxTracePoints = m_maxTracePoints;
+        *testMethod = m_testMethod;
     }
     
-    void CrossOdeTrigger::SetMaxTracePoints(uint maxTracePoints)
+    void CrossOdeTrigger::SetTracePointSettings(uint minTracePoints,
+        uint maxTracePoints, uint testMethod)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
+        m_minTracePoints = minTracePoints;
         m_maxTracePoints = maxTracePoints;
+        m_testMethod = testMethod;
         m_pTrackedObjectsPerSource->SetMaxHistory(m_maxTracePoints);
     }
     

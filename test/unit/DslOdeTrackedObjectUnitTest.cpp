@@ -55,7 +55,8 @@ SCENARIO( "A TrackedObject is created correctly", "[TrackedObject]" )
                 REQUIRE( pTrackedObject->GetFrameNumber() == frame_num);
 
                 std::shared_ptr<std::vector<dsl_coordinate>> pTrace = 
-                    pTrackedObject->GetTrace(DSL_BBOX_POINT_NORTH_WEST);
+                    pTrackedObject->GetTrace(DSL_BBOX_POINT_NORTH_WEST,
+                        DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS);
                     
                 REQUIRE( pTrace->at(0).x == 10 );
                 REQUIRE( pTrace->at(0).y == 10 );
@@ -120,7 +121,8 @@ SCENARIO( "A TrackedObject generates the correct trace", "[TrackedObject]" )
                 REQUIRE( pTrackedObject->GetFrameNumber() == 4);
 
                 std::shared_ptr<std::vector<dsl_coordinate>> pTrace = 
-                    pTrackedObject->GetTrace(DSL_BBOX_POINT_NORTH_WEST);
+                    pTrackedObject->GetTrace(DSL_BBOX_POINT_NORTH_WEST,
+                        DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS);
                     
                 std::vector<dsl_coordinate> expectedTrace = 
                     {{10,10},{20,20},{30,30},{40,40},{50,50}};

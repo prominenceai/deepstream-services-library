@@ -145,7 +145,8 @@ namespace DSL
         return m_pGeosPolygon.Contains(testPoint);
     }
     
-    bool OdePolygonArea::CheckForCross(const std::shared_ptr<TrackedObject> pTrackedObject)
+    bool OdePolygonArea::CheckForCross(
+        const std::shared_ptr<std::vector<dsl_coordinate>> pTrace)
     {
         // Do not log function entry
         
@@ -239,11 +240,18 @@ namespace DSL
         return false;
     }
 
-    bool OdeLineArea::CheckForCross(const std::shared_ptr<TrackedObject> pTrackedObject)
+    bool OdeLineArea::CheckForCross(
+        const std::shared_ptr<std::vector<dsl_coordinate>> pTrace)
     {
         // Do not log function entry
+//        dsl_multi_line_params lineParms = {pTrace->data(), pTrace->size};
+        dsl_multi_line_params lineParms = {0};
+        lineParms.coordinates = pTrace->data();
+        lineParms.num_coordinates = pTrace->size();
+            
+        GeosMultiLine multiLine(lineParms);
         
-        return false;
+        return multiLine.Intersects(m_pGeosLine);
     }
     
 }

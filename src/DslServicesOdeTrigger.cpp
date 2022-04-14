@@ -154,7 +154,8 @@ namespace DSL
     }
     
     DslReturnType Services::OdeTriggerCrossNew(const char* name, 
-        const char* source, uint classId, uint limit, uint maxTracePoints)
+        const char* source, uint classId, uint limit, 
+        uint minTracePoints, uint maxTracePoints, uint testMethod)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -167,11 +168,26 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
+            if (testMethod > DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS)
+            {
+                LOG_ERROR("Invalid test method = " << testMethod 
+                    << " for ODE Cross Trigger name '" << name << "'");
+                return DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID;
+            }
+            if (testMethod == DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS and 
+                maxTracePoints > MAX_ELEMENTS_IN_DISPLAY_META)
+            {
+                LOG_WARN("Maximum trace points = " << maxTracePoints 
+                    << " exceeds maximum limit of " << MAX_ELEMENTS_IN_DISPLAY_META 
+                    << " when using method ALL_POINTS for ODE Cross Trigger name '" 
+                    << name << "'");
+            }
             DSL_RGBA_COLOR_PTR pColor = std::dynamic_pointer_cast<RgbaColor>
                 (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
             
             m_odeTriggers[name] = DSL_ODE_TRIGGER_CROSS_NEW(name, 
-                source, classId, limit, maxTracePoints, pColor);
+                source, classId, limit, minTracePoints, maxTracePoints, 
+                testMethod, pColor);
             
             LOG_INFO("New Cross ODE Trigger '" << name 
                 << "' created successfully");
@@ -186,8 +202,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeTriggerCrossTracePointsMaxGet(const char* name, 
-        uint* maxTracePoints)
+    DslReturnType Services::OdeTriggerCrossTracePointSettingsGet(const char* name, 
+        uint* minTracePoints, uint* maxTracePoints, uint* testMethod)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -201,20 +217,24 @@ namespace DSL
             DSL_ODE_TRIGGER_CROSS_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<CrossOdeTrigger>(m_odeTriggers[name]);
 
-            pOdeTrigger->GetMaxTracePoints(maxTracePoints);
+            pOdeTrigger->GetTracePointSettings(minTracePoints, 
+                maxTracePoints, testMethod);
+
+            LOG_INFO("ODE Cross Trigger '" << name 
+                << "' returned trace-point settings successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("ODE Cross Trigger '" << name 
-                << "' threw exception getting max trace points");
+                << "' threw exception getting trace-point settings");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
     
-    DslReturnType Services::OdeTriggerCrossTracePointsMaxSet(const char* name, 
-        uint maxTracePoints)
+    DslReturnType Services::OdeTriggerCrossTracePointSettingsSet(const char* name, 
+        uint minTracePoints, uint maxTracePoints, uint testMethod)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -228,17 +248,18 @@ namespace DSL
             DSL_ODE_TRIGGER_CROSS_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<CrossOdeTrigger>(m_odeTriggers[name]);
 
-            pOdeTrigger->SetMaxTracePoints(maxTracePoints);
+            pOdeTrigger->SetTracePointSettings(minTracePoints, 
+                maxTracePoints, testMethod);
 
             LOG_INFO("ODE Cross Trigger '" << name 
-                << "' set maximum trace-points settings successfully");
+                << "' set trace-point settings successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("ODE Cross Trigger '" << name 
-                << "' threw exception getting max trace points");
+                << "' threw exception getting trace point settings");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                

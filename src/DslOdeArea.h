@@ -91,9 +91,9 @@ namespace DSL
         
         /**
          * @brief Checks if a bounding box trace crosses the Area's underlying display type.
-         * @param[in] pTrackedObject shared pointer to a tracked object.
+         * @param[in] pTrace shared pointer to a vector of dsl_coordinates.
          */
-        virtual bool CheckForCross(const std::shared_ptr<TrackedObject> pTrackedObject) = 0;
+        virtual bool CheckForCross(const std::shared_ptr<std::vector<dsl_coordinate>> pTrace) = 0;
         
         /**
          * @brief Gets the bbox test-point for the current 
@@ -155,9 +155,9 @@ namespace DSL
 
         /**
          * @brief Checks if a bounding box trace crosses the Area's underlying display type.
-         * @param[in] pTrackedObject shared pointer to a tracked object.
+         * @param[in] pTrace shared pointer to a vector of dsl_coordinates.
          */
-        bool CheckForCross(const std::shared_ptr<TrackedObject> pTrackedObject);
+        bool CheckForCross(const std::shared_ptr<std::vector<dsl_coordinate>> pTrace);
         
         /**
          * @brief GeosPolygon type created with the Area's display type
@@ -232,9 +232,9 @@ namespace DSL
 
         /**
          * @brief Checks if a bounding box trace crosses the Area's underlying display type.
-         * @param[in] pTrackedObject shared pointer to a tracked object.
+         * @param[in] pTrace shared pointer to a vector of dsl_coordinates.
          */
-        bool CheckForCross(const std::shared_ptr<TrackedObject> pTrackedObject);
+        bool CheckForCross(const std::shared_ptr<std::vector<dsl_coordinate>> pTrace);
 
         /**
          * @brief dtor for the InclusionOdeArea

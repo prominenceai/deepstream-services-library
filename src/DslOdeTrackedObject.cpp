@@ -31,6 +31,7 @@ namespace DSL
         const NvOSD_RectParams* pRectParams, uint maxHistory)
         : m_trackingId(trackingId)
         , m_maxHistory(maxHistory)
+        , m_triggered(false)
     {
         // No function log - avoid overhead.
         
@@ -84,9 +85,27 @@ namespace DSL
     }
 
     
-    std::shared_ptr<std::vector<dsl_coordinate>> TrackedObject::GetTrace(uint testPoint)
+    std::shared_ptr<std::vector<dsl_coordinate>> TrackedObject::GetTrace(
+        uint testPoint, uint method)
     {
         // No function log - avoid overhead.
+        
+        if (method == DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS)
+        {
+            // Create the trace - i.e. a vector of pre-sized blank coordinates
+            std::shared_ptr<std::vector<dsl_coordinate>> pTraceCoordinates =
+                std::shared_ptr<std::vector<dsl_coordinate>>(
+                    new std::vector<dsl_coordinate>(2));
+            
+            dsl_coordinate traceCoordinate{0};
+            getCoordinate(m_bboxTrace.front(), testPoint, traceCoordinate);
+            pTraceCoordinates->at(0) = traceCoordinate;
+            
+            getCoordinate(m_bboxTrace.back(), testPoint, traceCoordinate);
+            pTraceCoordinates->at(1) = traceCoordinate;
+            
+            return pTraceCoordinates;
+        }
 
         // Create the trace - i.e. a vector of pre-sized blank coordinates
         std::shared_ptr<std::vector<dsl_coordinate>> pTraceCoordinates =
@@ -94,54 +113,11 @@ namespace DSL
                 new std::vector<dsl_coordinate>(m_bboxTrace.size()));
             
         uint traceIdx(0);
+        dsl_coordinate traceCoordinate{0};
         
-        for (const auto & ideque: m_bboxTrace)
+        for (const auto& ideque: m_bboxTrace)
         {
-            dsl_coordinate traceCoordinate;
-            
-            switch (testPoint)
-            {
-            case DSL_BBOX_POINT_CENTER :
-                traceCoordinate.x = round(ideque->left + ideque->width/2);
-                traceCoordinate.y = round(ideque->top + ideque->height/2);
-                break;
-            case DSL_BBOX_POINT_NORTH_WEST :
-                traceCoordinate.x = round(ideque->left);
-                traceCoordinate.y = round(ideque->top);
-                break;
-            case DSL_BBOX_POINT_NORTH :
-                traceCoordinate.x = round(ideque->left + ideque->width/2);
-                traceCoordinate.y = round(ideque->top);
-                break;
-            case DSL_BBOX_POINT_NORTH_EAST :
-                traceCoordinate.x = round(ideque->left + ideque->width);
-                traceCoordinate.y = round(ideque->top);
-                break;
-            case DSL_BBOX_POINT_EAST :
-                traceCoordinate.x = round(ideque->left + ideque->width);
-                traceCoordinate.y = round(ideque->top + ideque->height/2);
-                break;
-            case DSL_BBOX_POINT_SOUTH_EAST :
-                traceCoordinate.x = round(ideque->left + ideque->width);
-                traceCoordinate.y = round(ideque->top + ideque->height);
-                break;
-            case DSL_BBOX_POINT_SOUTH :
-                traceCoordinate.x = round(ideque->left + ideque->width/2);
-                traceCoordinate.y = round(ideque->top + ideque->height);
-                break;
-            case DSL_BBOX_POINT_SOUTH_WEST :
-                traceCoordinate.x = round(ideque->left);
-                traceCoordinate.y = round(ideque->top + ideque->height);
-                break;
-            case DSL_BBOX_POINT_WEST :
-                traceCoordinate.x = round(ideque->left);
-                traceCoordinate.y = round(ideque->top + ideque->height/2);
-                break;
-            default:
-                LOG_ERROR("Invalid DSL_BBOX_POINT = '" << testPoint 
-                    << "' for Tracked Object ");
-                throw;
-            }          
+            getCoordinate(ideque, testPoint, traceCoordinate);
             // copy the calculated coordinates into the pre-sized vector 
             // at the current index of the bbox history.
             pTraceCoordinates->at(traceIdx++) = traceCoordinate;
@@ -149,8 +125,59 @@ namespace DSL
             LOG_DEBUG("Trace point x=" << traceCoordinate.x 
                 << ",y=" << traceCoordinate.y);
         }
+        
         return pTraceCoordinates;
     }
+
+    void TrackedObject::getCoordinate(std::shared_ptr<NvBbox_Coords> pBbox, 
+        uint testPoint, dsl_coordinate& traceCoordinate)
+    {
+        switch (testPoint)
+        {
+        case DSL_BBOX_POINT_CENTER :
+            traceCoordinate.x = round(pBbox->left + pBbox->width/2);
+            traceCoordinate.y = round(pBbox->top + pBbox->height/2);
+            break;
+        case DSL_BBOX_POINT_NORTH_WEST :
+            traceCoordinate.x = round(pBbox->left);
+            traceCoordinate.y = round(pBbox->top);
+            break;
+        case DSL_BBOX_POINT_NORTH :
+            traceCoordinate.x = round(pBbox->left + pBbox->width/2);
+            traceCoordinate.y = round(pBbox->top);
+            break;
+        case DSL_BBOX_POINT_NORTH_EAST :
+            traceCoordinate.x = round(pBbox->left + pBbox->width);
+            traceCoordinate.y = round(pBbox->top);
+            break;
+        case DSL_BBOX_POINT_EAST :
+            traceCoordinate.x = round(pBbox->left + pBbox->width);
+            traceCoordinate.y = round(pBbox->top + pBbox->height/2);
+            break;
+        case DSL_BBOX_POINT_SOUTH_EAST :
+            traceCoordinate.x = round(pBbox->left + pBbox->width);
+            traceCoordinate.y = round(pBbox->top + pBbox->height);
+            break;
+        case DSL_BBOX_POINT_SOUTH :
+            traceCoordinate.x = round(pBbox->left + pBbox->width/2);
+            traceCoordinate.y = round(pBbox->top + pBbox->height);
+            break;
+        case DSL_BBOX_POINT_SOUTH_WEST :
+            traceCoordinate.x = round(pBbox->left);
+            traceCoordinate.y = round(pBbox->top + pBbox->height);
+            break;
+        case DSL_BBOX_POINT_WEST :
+            traceCoordinate.x = round(pBbox->left);
+            traceCoordinate.y = round(pBbox->top + pBbox->height/2);
+            break;
+        default:
+            LOG_ERROR("Invalid DSL_BBOX_POINT = '" << testPoint 
+                << "' for Tracked Object ");
+            throw;
+        }          
+    }
+    
+    //********************************************************************************
     
     TrackedObjects::TrackedObjects(uint maxHistory)
         : m_maxHistory(maxHistory)
@@ -204,8 +231,6 @@ namespace DSL
         // else, the object is currently being tracked.
         return pTrackedObjects->at(trackingId);
     }
-    
-    //********************************************************************************
     
     bool TrackedObjects::Track(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
@@ -267,6 +292,34 @@ namespace DSL
             << " is already being tracked");
         return false;
     }
+
+    void TrackedObjects::DeleteObject(uint sourceId, uint64_t trackingId)
+    {
+        // If the sourceId does not exist, then not tracked.
+        if (m_trackedObjectsPerSource.find(sourceId) == 
+            m_trackedObjectsPerSource.end())
+        {
+            LOG_ERROR("Source = " << sourceId 
+                << " is not being tracked");
+            return;
+        }
+        std::shared_ptr<TrackedObjectsT> pTrackedObjects = 
+            m_trackedObjectsPerSource[sourceId];
+            
+        // else, if this is the first occurrence of a specific object for this source
+        if (pTrackedObjects->find(trackingId) == pTrackedObjects->end())
+        {
+            LOG_ERROR("Object with id = " << trackingId 
+                << " for source = " << sourceId 
+                << " is not being tracked");
+            return;
+        }
+        
+        LOG_WARN("size = " << pTrackedObjects->size());
+        // else, the object is currently being tracked.
+        pTrackedObjects->erase(trackingId);
+        LOG_WARN("size = " << pTrackedObjects->size());
+    }    
 
     void TrackedObjects::Purge(uint64_t currentFrameNumber)
     {

@@ -99,6 +99,10 @@ namespace DSL
     {
         LOG_FUNC();
 
+        if (pDisplayMeta->num_labels == MAX_ELEMENTS_IN_DISPLAY_META)
+        {
+            return;
+        }
         NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
 
         // copy over our text params, display_text currently == NULL
@@ -132,6 +136,10 @@ namespace DSL
     {
         LOG_FUNC();
 
+        if (pDisplayMeta->num_lines == MAX_ELEMENTS_IN_DISPLAY_META)
+        {
+            return;
+        }
         pDisplayMeta->line_params[pDisplayMeta->num_lines++] = *this;
     }
     
@@ -154,6 +162,11 @@ namespace DSL
     void RgbaArrow::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
+
+        if (pDisplayMeta->num_arrows == MAX_ELEMENTS_IN_DISPLAY_META)
+        {
+            return;
+        }
 
         pDisplayMeta->arrow_params[pDisplayMeta->num_arrows++] = *this;
     }
@@ -178,6 +191,10 @@ namespace DSL
     {
         LOG_FUNC();
 
+        if (pDisplayMeta->num_rects == MAX_ELEMENTS_IN_DISPLAY_META)
+        {
+            return;
+        }
         pDisplayMeta->rect_params[pDisplayMeta->num_rects++] = *this;
     }
     
@@ -206,6 +223,11 @@ namespace DSL
     {
         LOG_FUNC();
 
+
+        if ((pDisplayMeta->num_lines + num_coordinates) > MAX_ELEMENTS_IN_DISPLAY_META)
+        {
+            return;
+        }
         for (uint i = 0; i < num_coordinates; i++)
         {
             NvOSD_LineParams line = {
@@ -245,6 +267,10 @@ namespace DSL
     {
         LOG_FUNC();
 
+        if ((pDisplayMeta->num_lines + num_coordinates) > MAX_ELEMENTS_IN_DISPLAY_META)
+        {
+            return;
+        }
         for (uint i = 0; i < num_coordinates-1; i++)
         {
             NvOSD_LineParams line = {

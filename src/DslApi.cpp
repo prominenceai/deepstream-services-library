@@ -1287,7 +1287,8 @@ DslReturnType dsl_ode_trigger_accumulation_new(const wchar_t* name,
 }
     
 DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit, uint max_trace_points)
+    const wchar_t* source, uint class_id, uint limit, uint min_trace_points, 
+    uint max_trace_points, uint test_method)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -1301,31 +1302,32 @@ DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name,
         cstrSource.assign(wstrSource.begin(), wstrSource.end());
     }
     return DSL::Services::GetServices()->OdeTriggerCrossNew(cstrName.c_str(), 
-        cstrSource.c_str(), class_id, limit, max_trace_points);
+        cstrSource.c_str(), class_id, limit, min_trace_points, 
+        max_trace_points, test_method);
 }
 
-DslReturnType dsl_ode_trigger_cross_trace_points_max_get(const wchar_t* name, 
-    uint* max_trace_points)
+DslReturnType dsl_ode_trigger_cross_trace_point_settings_get(const wchar_t* name, 
+    uint* min_trace_points, uint* max_trace_points, uint* test_method)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerCrossTracePointsMaxGet(cstrName.c_str(), 
-        max_trace_points);
+    return DSL::Services::GetServices()->OdeTriggerCrossTracePointSettingsGet(cstrName.c_str(), 
+        min_trace_points, max_trace_points, test_method);
 }
 
-DslReturnType dsl_ode_trigger_cross_trace_points_max_set(const wchar_t* name, 
-    uint max_trace_points)
+DslReturnType dsl_ode_trigger_cross_trace_point_settings_set(const wchar_t* name, 
+    uint min_trace_points, uint max_trace_points, uint test_method)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerCrossTracePointsMaxSet(cstrName.c_str(), 
-        max_trace_points);
+    return DSL::Services::GetServices()->OdeTriggerCrossTracePointSettingsSet(cstrName.c_str(), 
+        min_trace_points, max_trace_points, test_method);
 }
     
 DslReturnType dsl_ode_trigger_cross_trace_view_settings_get(const wchar_t* name, 

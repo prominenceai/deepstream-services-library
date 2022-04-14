@@ -275,13 +275,14 @@ namespace DSL {
             const char* source, uint classId, uint limit);
 
         DslReturnType OdeTriggerCrossNew(const char* name, 
-            const char* source, uint classId, uint limit, uint maxTracePoints);
+            const char* source, uint classId, uint limit, 
+            uint minTracePoints, uint maxTracePoints, uint testMethod);
             
-        DslReturnType OdeTriggerCrossTracePointsMaxGet(const char* name, 
-            uint* maxTracePoints);
+        DslReturnType OdeTriggerCrossTracePointSettingsGet(const char* name, 
+            uint* minTracePoints, uint* maxTracePoints, uint* testMethod);
             
-        DslReturnType OdeTriggerCrossTracePointsMaxSet(const char* name, 
-            uint maxTracePoints);
+        DslReturnType OdeTriggerCrossTracePointSettingsSet(const char* name, 
+            uint minTracePoints, uint maxTracePoints, uint testMethod);
             
         DslReturnType OdeTriggerCrossTraceViewSettingsGet(const char* name, 
             boolean* enabled, const char** color, uint* lineWidth);

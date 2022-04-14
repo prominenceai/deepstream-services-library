@@ -1534,9 +1534,10 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can p
             true, DSL_BBOX_POINT_SOUTH) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_cross_new(person_cross_name.c_str(), 
-            NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE, 15) == DSL_RESULT_SUCCESS );
+            NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE, 10, 30, 
+            DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_trigger_interval_set(person_cross_name.c_str(), 2) == DSL_RESULT_SUCCESS );
+//        REQUIRE( dsl_ode_trigger_interval_set(person_cross_name.c_str(), 2) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_ode_trigger_cross_trace_view_settings_set(person_cross_name.c_str(),
             true, green.c_str(), 4) == DSL_RESULT_SUCCESS );
@@ -1544,11 +1545,11 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can p
         REQUIRE( dsl_ode_trigger_area_add(person_cross_name.c_str(), 
             areaName.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_format_bbox_new(odeFillActionName.c_str(), 
-            0, NULL, true, white.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_print_new(ode_action_name.c_str(), 
+            false) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_action_add(person_cross_name.c_str(), 
-            odeFillActionName.c_str()) == DSL_RESULT_SUCCESS );
+            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(),
             person_cross_name.c_str()) == DSL_RESULT_SUCCESS );

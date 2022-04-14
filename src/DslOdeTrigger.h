@@ -56,9 +56,9 @@ namespace DSL
     
     #define DSL_ODE_TRIGGER_CROSS_PTR std::shared_ptr<CrossOdeTrigger>
     #define DSL_ODE_TRIGGER_CROSS_NEW(name, \
-        source, classId, limit, maxTracePoints, pColor) \
+        source, classId, limit, minTracePoints, maxTracePoints, testMethod, pColor) \
         std::shared_ptr<CrossOdeTrigger>(new CrossOdeTrigger(name, \
-            source, classId, limit, maxTracePoints, pColor))
+            source, classId, limit, minTracePoints, maxTracePoints, testMethod, pColor))
 
     #define DSL_ODE_TRIGGER_INSTANCE_PTR std::shared_ptr<InstanceOdeTrigger>
     #define DSL_ODE_TRIGGER_INSTANCE_NEW(name, source, classId, limit) \
@@ -799,7 +799,8 @@ namespace DSL
     public:
     
         CrossOdeTrigger(const char* name, const char* source, uint classId, 
-            uint limit, uint maxTracePoints, DSL_RGBA_COLOR_PTR pColor);
+            uint limit, uint minTracePoints, uint maxTracePoints, 
+            uint testMethod, DSL_RGBA_COLOR_PTR pColor);
         
         ~CrossOdeTrigger();
 
@@ -824,16 +825,22 @@ namespace DSL
             NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
         
         /**
-         * @brief Gets the current max-trace-point setting for this CrossOdeTrigger
-         * @param[out] maxTracePoints current max setting
+         * @brief Gets the current max-trace-point setting for this CrossOdeTrigger.
+         * @param[out] minTracePoints current min trace-point setting.
+         * @param[out] maxTracePoints current max trace-point setting.
+         * @param[out] testMethod one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
          */
-        void GetMaxTracePoints(uint* maxTracePoints);
+        void GetTracePointSettings(uint* minTracePoints, 
+            uint* maxTracePoints, uint* testMethod);
 
         /**
-         * @brief Sets the max-trace-point setting for this CrossOdeTrigger
-         * @param[out] maxTracePoints new max setting
+         * @brief Sets the max-trace-point setting for this CrossOdeTrigger.
+         * @param[in] minTracePoints current min trace-point setting.
+         * @param[in] maxTracePoints current max trace-point setting.
+         * @param[in] testMethod one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
          */
-        void SetMaxTracePoints(uint maxTracePoints);
+        void SetTracePointSettings(uint minTracePoints,
+            uint maxTracePoints, uint testMethod);
         
         /**
          * @brief Gets the current trace setting for this CrossOdeTrigger.
@@ -855,6 +862,11 @@ namespace DSL
     private:
     
         /**
+         * @brief minimum number of trace points to use in cross detection
+         */
+        uint m_minTracePoints;
+
+        /**
          * @brief maximum number of trace points to use in cross detection
          */
         uint m_maxTracePoints;
@@ -863,6 +875,11 @@ namespace DSL
          * @brief true if object trace display is enabled, false otherwise.
          */
         bool m_traceEnabled;
+        
+        /**
+         * @brief method to test object trace line crossing. All-points or end-points.
+         */
+        uint m_testMethod;
         
         /**
          * @brief shared pointer to RGBA Color to use for the object trace display.
