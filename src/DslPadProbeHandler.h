@@ -284,6 +284,18 @@ namespace DSL
          * @brief removes all childred ODE Triggers from this ODE Pad Probe Handler.
          */
         void RemoveAllChildren();
+        
+        /**
+         * @brief Gets the current Display Meta Allocation per frame size.
+         * @return the allocation size, default = 1
+         */
+        uint GetDisplayMetaAllocSize();
+        
+        /**
+         * @brief Gets the current Display Meta Allocation per frame size.
+         * @return the allocation size, default = 1
+         */
+        void SetDisplayMetaAllocSize(uint count);
 
         /**
          * @brief ODE Pad Probe Handler
@@ -294,6 +306,11 @@ namespace DSL
         GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo);
         
     private:
+    
+        /**
+         * @brief specifies how many Display Meta structures are allocated for each frame
+         */
+        uint m_displayMetaAllocSize;
         
         /**
          * @brief Index variable to incremment/assign on ODE Action add.

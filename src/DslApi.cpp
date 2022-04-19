@@ -1287,7 +1287,7 @@ DslReturnType dsl_ode_trigger_accumulation_new(const wchar_t* name,
 }
     
 DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit, uint min_trace_points, 
+    const wchar_t* source, uint class_id, uint limit, uint min_frame_count, 
     uint max_trace_points, uint test_method)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -1302,35 +1302,35 @@ DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name,
         cstrSource.assign(wstrSource.begin(), wstrSource.end());
     }
     return DSL::Services::GetServices()->OdeTriggerCrossNew(cstrName.c_str(), 
-        cstrSource.c_str(), class_id, limit, min_trace_points, 
+        cstrSource.c_str(), class_id, limit, min_frame_count, 
         max_trace_points, test_method);
 }
 
-DslReturnType dsl_ode_trigger_cross_trace_point_settings_get(const wchar_t* name, 
-    uint* min_trace_points, uint* max_trace_points, uint* test_method)
+DslReturnType dsl_ode_trigger_cross_test_settings_get(const wchar_t* name, 
+    uint* min_frame_count, uint* max_trace_points, uint* test_method)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerCrossTracePointSettingsGet(cstrName.c_str(), 
-        min_trace_points, max_trace_points, test_method);
+    return DSL::Services::GetServices()->OdeTriggerCrossTestSettingsGet(cstrName.c_str(), 
+        min_frame_count, max_trace_points, test_method);
 }
 
-DslReturnType dsl_ode_trigger_cross_trace_point_settings_set(const wchar_t* name, 
-    uint min_trace_points, uint max_trace_points, uint test_method)
+DslReturnType dsl_ode_trigger_cross_test_settings_set(const wchar_t* name, 
+    uint min_frame_count, uint max_trace_points, uint test_method)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerCrossTracePointSettingsSet(cstrName.c_str(), 
-        min_trace_points, max_trace_points, test_method);
+    return DSL::Services::GetServices()->OdeTriggerCrossTestSettingsSet(cstrName.c_str(), 
+        min_frame_count, max_trace_points, test_method);
 }
     
-DslReturnType dsl_ode_trigger_cross_trace_view_settings_get(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_cross_view_settings_get(const wchar_t* name, 
     boolean* enabled, const wchar_t** color, uint* line_width)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -1342,7 +1342,7 @@ DslReturnType dsl_ode_trigger_cross_trace_view_settings_get(const wchar_t* name,
     static std::string cstrColor;
     static std::wstring wcstrColor;
     
-    uint retval = DSL::Services::GetServices()->OdeTriggerCrossTraceViewSettingsGet(
+    uint retval = DSL::Services::GetServices()->OdeTriggerCrossViewSettingsGet(
         cstrName.c_str(), enabled, &ccolor, line_width);
 
     if (retval ==  DSL_RESULT_SUCCESS)
@@ -1355,7 +1355,7 @@ DslReturnType dsl_ode_trigger_cross_trace_view_settings_get(const wchar_t* name,
     return retval;
 }
 
-DslReturnType dsl_ode_trigger_cross_trace_view_settings_set(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_cross_view_settings_set(const wchar_t* name, 
     boolean enabled, const wchar_t* color, uint line_width)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -1366,7 +1366,7 @@ DslReturnType dsl_ode_trigger_cross_trace_view_settings_set(const wchar_t* name,
     std::wstring wstrColor(color);
     std::string cstrColor(wstrColor.begin(), wstrColor.end());
 
-    return DSL::Services::GetServices()->OdeTriggerCrossTraceViewSettingsSet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->OdeTriggerCrossViewSettingsSet(cstrName.c_str(), 
         enabled, cstrColor.c_str(), line_width);
 }
     
@@ -2414,6 +2414,28 @@ DslReturnType dsl_pph_ode_trigger_remove_all(const wchar_t* name)
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->PphOdeTriggerRemoveAll(cstrName.c_str());
+}
+
+DslReturnType dsl_pph_ode_display_meta_alloc_size_get(const wchar_t* name, uint* count)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PphOdeDisplayMetaAllocSizeGet(
+        cstrName.c_str(), count);
+}
+
+DslReturnType dsl_pph_ode_display_meta_alloc_size_set(const wchar_t* name, uint count)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PphOdeDisplayMetaAllocSizeSet(
+        cstrName.c_str(), count);
 }
 
 DslReturnType dsl_pph_enabled_get(const wchar_t* name, boolean* enabled)

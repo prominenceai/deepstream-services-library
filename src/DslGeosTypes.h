@@ -93,6 +93,13 @@ namespace DSL
         bool Intersects(const GeosLine& testLine);
         
         /**
+         * @brief function to determine the distance from a Point.
+         * @param[in] testPoint GEOS point to calculate for distance. 
+         * @return the distance in pixels. 
+         */
+        uint Distance(const GeosPoint& testPoint);
+        
+        /**
          * @brief Actual GEOS Line for this class.
          */
         GEOSGeometry* m_pGeosLine;
@@ -124,7 +131,7 @@ namespace DSL
          * @param[in] testLine GEOS line to test for intersection
          * @return true if lines intersect, false otherwise
          */
-        bool Intersects(const GeosLine& testLine);
+        bool Crosses(const GeosLine& testLine);
         
         /**
          * @brief Actual GEOS Multi-Line for this class.
@@ -171,6 +178,7 @@ namespace DSL
          * @brief Actual GEOS Rectangle for this class.
          */
         GEOSGeometry* m_pGeosRectangle;
+
     };
 
     /**
@@ -225,6 +233,7 @@ namespace DSL
          * @brief Actual GEOS Polygon for this class.
          */
         GEOSGeometry* m_pGeosPolygon;
+
     };
 
 }

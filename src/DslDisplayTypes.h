@@ -101,7 +101,8 @@ namespace DSL
 
         ~DisplayType();
         
-        virtual void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        virtual void AddMeta(std::vector<NvDsDisplayMeta*>& 
+            displayMetaData, NvDsFrameMeta* pFrameMeta);
     };
     
     // ********************************************************************
@@ -118,7 +119,8 @@ namespace DSL
          * @param[in] green green level for the RGB color [0..1]
          * @param[in] alpha alpha level for the RGB color [0..1]
          */
-        RgbaColor(const char* name, double red, double green, double blue, double alpha);
+        RgbaColor(const char* name, 
+            double red, double green, double blue, double alpha);
 
         ~RgbaColor();
     };
@@ -135,7 +137,8 @@ namespace DSL
          * @param[in] size size of the font
          * @param[in] color RGBA Color for the RGBA font
          */
-        RgbaFont(const char* name, const char* font, uint size, DSL_RGBA_COLOR_PTR color);
+        RgbaFont(const char* name, 
+            const char* font, uint size, DSL_RGBA_COLOR_PTR color);
 
         ~RgbaFont();
         
@@ -163,7 +166,15 @@ namespace DSL
 
         ~RgbaText();
 
-        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        /**
+         * @brief Adds the Display Type's meta to the provided displayMetaData
+         * @param displayMetaData vector of allocated Display metadata to add 
+         * the meta to
+         * @param pFrameMeta frame meta for the frame the display meta 
+         * will be added to.
+         */
+        void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+            NvDsFrameMeta* pFrameMeta);
         
         std::string m_text;
         
@@ -192,7 +203,15 @@ namespace DSL
 
         ~RgbaLine();
 
-        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        /**
+         * @brief Adds the Display Type's meta to the provided displayMetaData
+         * @param displayMetaData vector of allocated Display metadata to add 
+         * the meta to
+         * @param pFrameMeta frame meta for the frame the display meta 
+         * will be added to.
+         */
+        void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+            NvDsFrameMeta* pFrameMeta);
     };
     
     // ********************************************************************
@@ -217,7 +236,15 @@ namespace DSL
 
         ~RgbaArrow();
 
-        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        /**
+         * @brief Adds the Display Type's meta to the provided displayMetaData
+         * @param displayMetaData vector of allocated Display metadata to add 
+         * the meta to
+         * @param pFrameMeta frame meta for the frame the display meta 
+         * will be added to.
+         */
+        void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+            NvDsFrameMeta* pFrameMeta);
     };
 
     // ********************************************************************
@@ -239,11 +266,20 @@ namespace DSL
          * @param[in] pBgColor RGBA Color for the Circle background if set
          */
         RgbaRectangle(const char* name, uint left, uint top, uint width, uint height, 
-            uint borderWidth, DSL_RGBA_COLOR_PTR pColor, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor);
+            uint borderWidth, DSL_RGBA_COLOR_PTR pColor, bool hasBgColor, 
+            DSL_RGBA_COLOR_PTR pBgColor);
 
         ~RgbaRectangle();
 
-        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        /**
+         * @brief Adds the Display Type's meta to the provided displayMetaData
+         * @param displayMetaData vector of allocated Display metadata to add 
+         * the meta to
+         * @param pFrameMeta frame meta for the frame the display meta 
+         * will be added to.
+         */
+        void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+            NvDsFrameMeta* pFrameMeta);
     };
     
     // ********************************************************************
@@ -296,7 +332,15 @@ namespace DSL
 
         ~RgbaPolygon();
 
-        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        /**
+         * @brief Adds the Display Type's meta to the provided displayMetaData
+         * @param displayMetaData vector of allocated Display metadata to add 
+         * the meta to
+         * @param pFrameMeta frame meta for the frame the display meta 
+         * will be added to.
+         */
+        void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+            NvDsFrameMeta* pFrameMeta);
     };
 
     // ********************************************************************
@@ -342,12 +386,21 @@ namespace DSL
          * @param[in] lineWidth width of the Multi-Line in pixels
          * @param[in] pColor RGBA Color for this RGBA Polygon
          */
-        RgbaMultiLine(const char* name, const dsl_coordinate* coordinates, uint numCoordinates,
+        RgbaMultiLine(const char* name, 
+            const dsl_coordinate* coordinates, uint numCoordinates,
             uint lineWidth, DSL_RGBA_COLOR_PTR pColor);
 
         ~RgbaMultiLine();
 
-        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        /**
+         * @brief Adds the Display Type's meta to the provided displayMetaData
+         * @param displayMetaData vector of allocated Display metadata to add 
+         * the meta to
+         * @param pFrameMeta frame meta for the frame the display meta 
+         * will be added to.
+         */
+        void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+            NvDsFrameMeta* pFrameMeta);
     };
 
     
@@ -372,7 +425,15 @@ namespace DSL
 
         ~RgbaCircle();
 
-        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        /**
+         * @brief Adds the Display Type's meta to the provided displayMetaData
+         * @param displayMetaData vector of allocated Display metadata to add 
+         * the meta to
+         * @param pFrameMeta frame meta for the frame the display meta 
+         * will be added to.
+         */
+        void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+            NvDsFrameMeta* pFrameMeta);
     };
 
     // ********************************************************************
@@ -395,7 +456,15 @@ namespace DSL
 
         ~SourceDimensions();
 
-        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        /**
+         * @brief Adds the Display Type's meta to the provided displayMetaData
+         * @param displayMetaData vector of allocated Display metadata to add 
+         * the meta to
+         * @param pFrameMeta frame meta for the frame the display meta 
+         * will be added to.
+         */
+        void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+            NvDsFrameMeta* pFrameMeta);
         
         DSL_RGBA_FONT_PTR m_pFont;
     };
@@ -420,7 +489,15 @@ namespace DSL
 
         ~SourceFrameRate();
 
-        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        /**
+         * @brief Adds the Display Type's meta to the provided displayMetaData
+         * @param displayMetaData vector of allocated Display metadata to add 
+         * the meta to
+         * @param pFrameMeta frame meta for the frame the display meta 
+         * will be added to.
+         */
+        void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+            NvDsFrameMeta* pFrameMeta);
         
         DSL_RGBA_FONT_PTR m_pFont;
     };
@@ -445,7 +522,15 @@ namespace DSL
 
         ~SourceNumber();
 
-        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        /**
+         * @brief Adds the Display Type's meta to the provided displayMetaData
+         * @param displayMetaData vector of allocated Display metadata to add 
+         * the meta to
+         * @param pFrameMeta frame meta for the frame the display meta 
+         * will be added to.
+         */
+        void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+            NvDsFrameMeta* pFrameMeta);
         
         DSL_RGBA_FONT_PTR m_pFont;
     };
@@ -470,7 +555,15 @@ namespace DSL
 
         ~SourceName();
 
-        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        /**
+         * @brief Adds the Display Type's meta to the provided displayMetaData
+         * @param displayMetaData vector of allocated Display metadata to add 
+         * the meta to
+         * @param pFrameMeta frame meta for the frame the display meta 
+         * will be added to.
+         */
+        void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+            NvDsFrameMeta* pFrameMeta);
         
         DSL_RGBA_FONT_PTR m_pFont;
     };

@@ -606,7 +606,7 @@ namespace DSL
             DSL_DISPLAY_TYPE_PTR pDisplayType = 
                 std::dynamic_pointer_cast<DisplayType>(m_displayTypes[name]);
 
-            pDisplayType->AddMeta((NvDsDisplayMeta*)pDisplayMeta, (NvDsFrameMeta*)pFrameMeta);
+//            pDisplayType->AddMeta((NvDsDisplayMeta*)pDisplayMeta, (NvDsFrameMeta*)pFrameMeta);
             
             LOG_INFO("Display Type '" << name << "' deleted successfully");
             return DSL_RESULT_SUCCESS;

@@ -276,18 +276,18 @@ namespace DSL {
 
         DslReturnType OdeTriggerCrossNew(const char* name, 
             const char* source, uint classId, uint limit, 
-            uint minTracePoints, uint maxTracePoints, uint testMethod);
+            uint minFrameCount, uint maxTracePoints, uint testMethod);
             
-        DslReturnType OdeTriggerCrossTracePointSettingsGet(const char* name, 
-            uint* minTracePoints, uint* maxTracePoints, uint* testMethod);
+        DslReturnType OdeTriggerCrossTestSettingsGet(const char* name, 
+            uint* minFrameCount, uint* maxTracePoints, uint* testMethod);
             
-        DslReturnType OdeTriggerCrossTracePointSettingsSet(const char* name, 
-            uint minTracePoints, uint maxTracePoints, uint testMethod);
+        DslReturnType OdeTriggerCrossTestSettingsSet(const char* name, 
+            uint minFrameCount, uint maxTracePoints, uint testMethod);
             
-        DslReturnType OdeTriggerCrossTraceViewSettingsGet(const char* name, 
+        DslReturnType OdeTriggerCrossViewSettingsGet(const char* name, 
             boolean* enabled, const char** color, uint* lineWidth);
             
-        DslReturnType OdeTriggerCrossTraceViewSettingsSet(const char* name, 
+        DslReturnType OdeTriggerCrossViewSettingsSet(const char* name, 
             boolean enabled, const char* color, uint lineWidth);
         
         DslReturnType OdeTriggerInstanceNew(const char* name, 
@@ -456,6 +456,10 @@ namespace DSL {
         DslReturnType PphOdeTriggerRemove(const char* name, const char* trigger);
 
         DslReturnType PphOdeTriggerRemoveAll(const char* name);
+        
+        DslReturnType PphOdeDisplayMetaAllocSizeGet(const char* name, uint* count);
+
+        DslReturnType PphOdeDisplayMetaAllocSizeSet(const char* name, uint count);
 
         DslReturnType PphEnabledGet(const char* name, boolean* enabled);
         

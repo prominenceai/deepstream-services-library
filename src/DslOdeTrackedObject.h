@@ -66,29 +66,6 @@ namespace DSL
         void Update(uint64_t currentFrameNumber, const NvOSD_RectParams* rectParams);
         
         /**
-         * @brief marks the tracked object as triggered
-         */
-        void SetTriggered(){m_triggered=true;};
-        
-        /**
-         * @brief returns the triggered state for the tracked object.
-         * @return true if the tracked object has triggered an occurence
-         */
-        bool GetTriggered(){return m_triggered;};
-        
-        /**
-         * @brief returns the last-detected frame number for the tracked object.
-         * @return frame number, from creation or last Update()
-         */
-        uint64_t GetTrackingId(){return m_trackingId;};
-        
-        /**
-         * @brief returns the last-detected frame number for the tracked object.
-         * @return frame number, from creation or last Update()
-         */
-        uint64_t GetFrameNumber(){return m_frameNumber;};
-        
-        /**
          * @brief calculates the duration of time the object has been tracked.
          * @return the duration in units of ms
          */
@@ -98,10 +75,18 @@ namespace DSL
          * @brief Gets the current size of the bounding box trace.
          * @return current size of the bbox trace.
          */
-        size_t Size(){return m_bboxTrace.size();};
+        size_t BboxTraceSize(){return m_bboxTrace.size();};
         
         /**
-         * @brief returns a vector of coordinates defining the TrackedObject's
+         * @brief Gets the coordinates for a specific test-point for the 
+         * first bounding box in the TrackedObject's history.
+         * @param[in] testPoint to generate the coordinates with
+         * @return coordinates
+         */
+        dsl_coordinate GetFirstCoordinate(uint testPoint);
+        
+        /**
+         * @brief Returns a vector of coordinates defining the TrackedObject's
          * trace for a specfic test-point on the object's bounding box
          * @param[in] testPoint test-point to generate the trace with.
          * @param[in] method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants
@@ -109,31 +94,26 @@ namespace DSL
          */
         std::shared_ptr<std::vector<dsl_coordinate>> 
             GetTrace(uint testPoint, uint method);
+
+        /**
+         * @brief unique tracking id for the tracked object.
+         */
+        uint64_t trackingId;
+        
+        /**
+         * @brief frame number for the tracked object, updated on detection within a new frame.
+         */
+        uint64_t frameNumber;
     
     private:
 
         void getCoordinate(std::shared_ptr<NvBbox_Coords> pBbox, 
             uint testPoint, dsl_coordinate& traceCoordinate);
-    
-        /**
-         * @brief unique tracking id for the tracked object.
-         */
-        uint64_t m_trackingId;
-        
-        /**
-         * @brief frame number for the tracked object, updated on detection within a new frame.
-         */
-        uint64_t m_frameNumber;
         
         /**
          * @brief time of creation for this Tracked Object, used to test for object persistence.
          */
         double m_creationTimeMs;
-        
-        /**
-         * @brief flag to mark a Tracked Object as having triggered an ODE occurrence.
-         */
-        bool m_triggered;
         
         /**
          * @brief maximum number of bbox coordinates to maintain/trace.
@@ -175,9 +155,10 @@ namespace DSL
          * per source.
          * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
-         * @return true on successful add, false otherwise.
+         * @return a shared pointer to the newly tracked object, null_ptr otherwise.
          */
-        bool Track(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        std::shared_ptr<TrackedObject> Track(NvDsFrameMeta* pFrameMeta, 
+            NvDsObjectMeta* pObjectMeta);
         
         /**
          * @brief Gets the Tracked Object for a specified source and tranking Id

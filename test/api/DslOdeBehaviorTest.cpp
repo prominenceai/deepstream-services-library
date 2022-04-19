@@ -1494,8 +1494,8 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can p
         std::wstring ode_pph_name(L"ode-handler");
         
         std::wstring lineName(L"line");
-        uint x1(300), y1(600), x2(600), y2(620);
-        uint line_width(5);
+        uint x1(250), y1(700), x2(620), y2(720);
+        uint line_width(10);
 
         std::wstring white(L"solid-white");
         std::wstring green(L"solid-green");
@@ -1517,6 +1517,8 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can p
             width, height) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_pph_ode_new(ode_pph_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_display_meta_alloc_size_set(
+            ode_pph_name.c_str(), 3) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), 
             ode_pph_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
@@ -1534,12 +1536,13 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can p
             true, DSL_BBOX_POINT_SOUTH) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_cross_new(person_cross_name.c_str(), 
-            NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE, 10, 30, 
-            DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS) == DSL_RESULT_SUCCESS );
+            NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE, 10, 200, 
+            DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
 
-//        REQUIRE( dsl_ode_trigger_interval_set(person_cross_name.c_str(), 2) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_confidence_min_set(person_cross_name.c_str(), 
+            0.40) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_ode_trigger_cross_trace_view_settings_set(person_cross_name.c_str(),
+        REQUIRE( dsl_ode_trigger_cross_view_settings_set(person_cross_name.c_str(),
             true, green.c_str(), 4) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_area_add(person_cross_name.c_str(), 

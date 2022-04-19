@@ -77,10 +77,12 @@ namespace DSL
         /**
          * @brief Adds metadata for the RGBA rectangle to pDisplayMeta to overlay 
          * the Area for show
-         * @param[in] pDisplayMeta show metadata to add the Area to
+         * @param[in] displayMetaData vector of pointers to allocated Display Meta 
+         * structures to add the Area's underliying Display Type to.
          * @param[in] pFrameMeta the Frame metadata for the current Frame
          */
-        void AddMeta(NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
+        void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData,  
+            NvDsFrameMeta* pFrameMeta);
         
         /**
          * @brief Checks if an bounding box edge point is within this Area's 
@@ -88,20 +90,39 @@ namespace DSL
          * @param[in] pBox pointer to an object's bbox rectangle to check for within
          */
         virtual bool CheckForWithin(const NvOSD_RectParams& bbox) = 0;
+
+        /**
+         * @brief returns the direction of an x, y point relative to the
+         * @param[in] coordinate x,y coordinate for the point to test
+         * @return one DSL_AREA_TO_POINT_DIRECTION_IN or DSL_AREA_TO_POINT_DIRECTION_OUT
+         */ 
+        virtual uint GetPointDirection(dsl_coordinate& coordinate) = 0;
         
         /**
-         * @brief Checks if a bounding box trace crosses the Area's underlying display type.
-         * @param[in] pTrace shared pointer to a vector of dsl_coordinates.
+         * @brief tests if a point is on the area's line(s) including line width,
+         * @param[in] coordinate x,y coordinate for the point to test
+         * @return true if the point is located on the line, false otherwise.
          */
-        virtual bool CheckForCross(const std::shared_ptr<std::vector<dsl_coordinate>> pTrace) = 0;
+        virtual bool IsPointOnLine(dsl_coordinate& coordinate) = 0;
         
         /**
-         * @brief Gets the bbox test-point for the current 
-         * @return 
+         * @brief Checks if a bounding box trace crosses the Area's display type.
+         * @param[in] pTrace shared pointer to a vector of dsl_coordinates.
+         * @param[out] direction on of the DSL_AREA_CROSS_DIRECTION_* constants 
+         *  defining the
+         * direction of the cross if
+         */
+        virtual bool CheckForCross(const std::shared_ptr<std::vector<dsl_coordinate>> 
+            pTrace, uint& direction) = 0;
+        
+        /**
+         * @brief Gets the bbox test-point for the defined for this area
+         * @return one of the DSL_BBOX_POINT_* constants defining the test point.
          */
         uint GetBboxTestPoint(){return m_bboxTestPoint;};
         
     protected:
+    
         /**
          * @brief Display type used to define the Area's location, dimensions, and color
          */
@@ -154,15 +175,33 @@ namespace DSL
         bool CheckForWithin(const NvOSD_RectParams& bbox);
 
         /**
-         * @brief Checks if a bounding box trace crosses the Area's underlying display type.
-         * @param[in] pTrace shared pointer to a vector of dsl_coordinates.
-         */
-        bool CheckForCross(const std::shared_ptr<std::vector<dsl_coordinate>> pTrace);
+         * @brief returns the direction of an x, y point relative to the
+         * @param[in] coordinate x,y coordinate for the point to test
+         * @return one DSL_AREA_TO_POINT_DIRECTION_IN or DSL_AREA_TO_POINT_DIRECTION_OUT
+         */ 
+        uint GetPointDirection(dsl_coordinate& coordinate);
         
         /**
-         * @brief GeosPolygon type created with the Area's display type
+         * @brief tests if a point is on the area's line(s) including line width,
+         * @param[in] coordinate x,y coordinate for the point to test
+         * @return true if the point is located on the line, false otherwise.
          */
-        GeosPolygon m_pGeosPolygon;
+        bool IsPointOnLine(dsl_coordinate& coordinate);
+
+        /**
+         * @brief Checks if a bounding box trace crosses the Area's underlying display type.
+         * @param[in] pTrace shared pointer to a vector of dsl_coordinates.
+         * @param[out] direction on of the DSL_AREA_CROSS_DIRECTION_* constants defining the
+         * direction of the cross if
+         */
+        bool CheckForCross(const std::shared_ptr<std::vector<dsl_coordinate>> pTrace,
+            uint& direction);
+
+        /**
+         * @brief Polygon display type used to define the Area's location, dimensions, and color
+         */
+        DSL_RGBA_POLYGON_PTR m_pPolygon;
+        
     };
 
 
@@ -214,7 +253,7 @@ namespace DSL
     public: 
 
         /**
-         * @brief ctor for the OdeExclusionArea
+         * @brief ctor for the OdeLineArea
          * @param[in] pLine a shared pointer to a RGBA Line Display Type.
          * @param[in] show if true, the area will be displayed by adding meta data
          * @param[in] bbox_test_edge one of DSL_BBOX_EDGE values to define which edge
@@ -224,6 +263,11 @@ namespace DSL
             bool show, uint bboxTestPoint);
 
         /**
+         * @brief dtor for the OdeLineArea
+         */
+        ~OdeLineArea();
+        
+        /**
          * @brief Checks if the Line Area overlaps (crosses) with the provided object 
          * rectangle based on the bboxTestEdge set for the Line Area
          * @param[in] pBox pointer to an object's bbox rectangle to check for overlap
@@ -231,21 +275,33 @@ namespace DSL
         bool CheckForWithin(const NvOSD_RectParams& bbox);
 
         /**
-         * @brief Checks if a bounding box trace crosses the Area's underlying display type.
-         * @param[in] pTrace shared pointer to a vector of dsl_coordinates.
+         * @brief returns the direction of an x, y point relative to the
+         * @param[in] coordinate x,y coordinate for the point to test
+         * @return one DSL_AREA_TO_POINT_DIRECTION_IN or DSL_AREA_TO_POINT_DIRECTION_OUT
+         */ 
+        uint GetPointDirection(dsl_coordinate& coordinate);
+        
+        /**
+         * @brief tests if a point is on the area's line(s) including line width,
+         * @param[in] coordinate x,y coordinate for the point to test
+         * @return true if the point is located on the line, false otherwise.
          */
-        bool CheckForCross(const std::shared_ptr<std::vector<dsl_coordinate>> pTrace);
+        bool IsPointOnLine(dsl_coordinate& coordinate);
 
         /**
-         * @brief dtor for the InclusionOdeArea
+         * @brief Checks if a bounding box trace crosses the Area's underlying display type.
+         * @param[in] pTrace shared pointer to a vector of dsl_coordinates.
+         * @param[out] direction on of the DSL_AREA_CROSS_DIRECTION_* constants defining the
+         * direction of the cross if
          */
-        ~OdeLineArea();
-        
+        bool CheckForCross(const std::shared_ptr<std::vector<dsl_coordinate>> pTrace,
+            uint& direction);
+
         /**
-         * @brief GeosLine type created with the Area's display type
+         * @brief Polygon display type used to define the Area's location, dimensions, and color
          */
-        GeosLine m_pGeosLine;
-        
+        DSL_RGBA_LINE_PTR m_pLine;
+
         /**
          * @brief one of DSL_BBOX_EDGE values defining which edge
          * of the bounding box to test for lines crossing

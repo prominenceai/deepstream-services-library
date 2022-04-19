@@ -43,7 +43,8 @@ namespace DSL
         LOG_FUNC();
     }
         
-    void OdeArea::AddMeta(NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
+    void OdeArea::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData,  
+        NvDsFrameMeta* pFrameMeta)
     {
         LOG_FUNC();
         
@@ -66,7 +67,7 @@ namespace DSL
             // Update the frame number so we only add the rectangle once
             m_frameNumPerSource[pFrameMeta->source_id] = pFrameMeta->frame_num;
 
-            m_pDisplayType->AddMeta(pDisplayMeta, pFrameMeta);
+            m_pDisplayType->AddMeta(displayMetaData, pFrameMeta);
         }
     }
     
@@ -75,7 +76,7 @@ namespace DSL
     OdePolygonArea::OdePolygonArea(const char* name, 
         DSL_RGBA_POLYGON_PTR pPolygon, bool show, uint bboxTestPoint)
         : OdeArea(name, pPolygon, show, bboxTestPoint)
-        , m_pGeosPolygon(*pPolygon)
+        , m_pPolygon(pPolygon)
     {
         LOG_FUNC();
     }
@@ -95,9 +96,9 @@ namespace DSL
         switch (m_bboxTestPoint)
         {
         case DSL_BBOX_POINT_ANY :
-            return (m_pGeosPolygon.Overlaps(testPolygon) or
-                m_pGeosPolygon.Contains(testPolygon) or
-                testPolygon.Contains(m_pGeosPolygon));
+            return (((GeosPolygon)*m_pPolygon).Overlaps(testPolygon) or
+                ((GeosPolygon)*m_pPolygon).Contains(testPolygon) or
+                testPolygon.Contains((GeosPolygon)*m_pPolygon));
                 
         case DSL_BBOX_POINT_CENTER :
             x = round(bbox.left + bbox.width/2);
@@ -137,16 +138,27 @@ namespace DSL
             break;
         default:
             LOG_ERROR("Invalid DSL_BBOX_POINT = '" << m_bboxTestPoint 
-                << "' for OdeLineArea '" << GetName() << "'");
+                << "' for OdePolygonArea '" << GetName() << "'");
             throw;
         }
         
         GeosPoint testPoint(x,y);
-        return m_pGeosPolygon.Contains(testPoint);
+        return ((GeosPolygon)*m_pPolygon).Contains(testPoint);
+    }
+
+    uint OdePolygonArea::GetPointDirection(dsl_coordinate& coordinate)
+    {
+        return 0;
+    }
+    
+    bool OdePolygonArea::IsPointOnLine(dsl_coordinate& coordinate)
+    {
+        return false;
     }
     
     bool OdePolygonArea::CheckForCross(
-        const std::shared_ptr<std::vector<dsl_coordinate>> pTrace)
+        const std::shared_ptr<std::vector<dsl_coordinate>> pTrace,
+        uint& distance)
     {
         // Do not log function entry
         
@@ -186,7 +198,7 @@ namespace DSL
     OdeLineArea::OdeLineArea(const char* name, 
         DSL_RGBA_LINE_PTR pLine, bool show, uint bboxTestPoint)
         : OdeArea(name, pLine, show, bboxTestPoint)
-        , m_pGeosLine(*pLine)
+        , m_pLine(pLine)
     {
         LOG_FUNC();
     }
@@ -240,18 +252,52 @@ namespace DSL
         return false;
     }
 
+    uint OdeLineArea::GetPointDirection(dsl_coordinate& coordinate)
+    {
+        int dvalue = 
+            (coordinate.x - m_pLine->x1) * (m_pLine->y2 - m_pLine->y1) -
+            (coordinate.y - m_pLine->y1) * (m_pLine->x2 - m_pLine->x1);
+            
+        return (dvalue > 0) 
+            ? DSL_AREA_CROSS_DIRECTION_OUT
+            : DSL_AREA_CROSS_DIRECTION_IN;
+    }
+    
+    bool OdeLineArea::IsPointOnLine(dsl_coordinate& coordinate)
+    {
+        GeosPoint point(coordinate.x, coordinate.y);
+        
+        return (((GeosLine)*m_pLine).Distance(point) <= 
+            (m_pLine->line_width/2));
+    }
+    
     bool OdeLineArea::CheckForCross(
-        const std::shared_ptr<std::vector<dsl_coordinate>> pTrace)
+        const std::shared_ptr<std::vector<dsl_coordinate>> pTrace,
+        uint& direction)
     {
         // Do not log function entry
-//        dsl_multi_line_params lineParms = {pTrace->data(), pTrace->size};
-        dsl_multi_line_params lineParms = {0};
-        lineParms.coordinates = pTrace->data();
-        lineParms.num_coordinates = pTrace->size();
-            
+        
+        // covert the trace vector to line-parameters for testing
+        dsl_multi_line_params lineParms = {pTrace->data(), 
+            (uint)pTrace->size()};
+        
+        // create a Geos object from the line-parameters to check 
+        // for cross with this Area's line.
         GeosMultiLine multiLine(lineParms);
         
-        return multiLine.Intersects(m_pGeosLine);
+        if (!multiLine.Crosses(*m_pLine))
+        { 
+            return false;
+        }
+
+        direction = GetPointDirection(pTrace->back());
+        
+        // use the Area's line width and trace-endpoint to determine if the cross
+        // is sufficient to report, i.e. the line width is used as hysteresis.
+        GeosPoint endPoint(pTrace->back().x, pTrace->back().y);
+        
+        return (((GeosLine)*m_pLine).Distance(endPoint) > 
+            (m_pLine->line_width/2));
     }
     
 }

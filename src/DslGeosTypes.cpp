@@ -66,7 +66,7 @@ namespace DSL
     uint GeosPoint::Distance(const GeosPoint& testPoint)
     {
         // Don't log function entry/exit
-        double distance;
+        double distance(0);
         
         if (!GEOSDistance(m_pGeosPoint, testPoint.m_pGeosPoint, &distance))
         {
@@ -130,6 +130,19 @@ namespace DSL
         }
         return bool(result);
     }
+    
+    uint GeosLine::Distance(const GeosPoint& testPoint)
+    {
+        // Don't log function entry/exit
+        double distance(0);
+        
+        if (!GEOSDistance(m_pGeosLine, testPoint.m_pGeosPoint, &distance))
+        {
+            LOG_ERROR("Exception when calling GEOS Distance");
+            throw;
+        }
+        return (uint)round(distance);
+    }
 
     //******************************************************************************
     
@@ -177,7 +190,7 @@ namespace DSL
         }
     }
 
-    bool GeosMultiLine::Intersects(const GeosLine& testLine)
+    bool GeosMultiLine::Crosses(const GeosLine& testLine)
     {
         // Don't log function entry/exit
         
@@ -246,7 +259,7 @@ namespace DSL
     uint GeosRectangle::Distance(const GeosRectangle& testRectangle)
     {
         // Don't log function entry/exit
-        double distance;
+        double distance(0);
         
         if (!GEOSDistance(m_pGeosRectangle, testRectangle.m_pGeosRectangle, &distance))
         {

@@ -51,8 +51,8 @@ SCENARIO( "A TrackedObject is created correctly", "[TrackedObject]" )
                 
             THEN( "All attributes are setup correctly" )
             {
-                REQUIRE( pTrackedObject->GetTrackingId() == objectMeta.object_id );
-                REQUIRE( pTrackedObject->GetFrameNumber() == frame_num);
+                REQUIRE( pTrackedObject->trackingId == objectMeta.object_id );
+                REQUIRE( pTrackedObject->frameNumber == frame_num);
 
                 std::shared_ptr<std::vector<dsl_coordinate>> pTrace = 
                     pTrackedObject->GetTrace(DSL_BBOX_POINT_NORTH_WEST,
@@ -117,8 +117,8 @@ SCENARIO( "A TrackedObject generates the correct trace", "[TrackedObject]" )
 
             THEN( "All attributes are updated correctly" )
             {
-                REQUIRE( pTrackedObject->GetTrackingId() == objectMeta.object_id );
-                REQUIRE( pTrackedObject->GetFrameNumber() == 4);
+                REQUIRE( pTrackedObject->trackingId == objectMeta.object_id );
+                REQUIRE( pTrackedObject->frameNumber == 4);
 
                 std::shared_ptr<std::vector<dsl_coordinate>> pTrace = 
                     pTrackedObject->GetTrace(DSL_BBOX_POINT_NORTH_WEST,
@@ -184,10 +184,10 @@ SCENARIO( "A TrackedObjects Container adds a Tracked Object correctly", "[Tracke
 
         WHEN( "An Object is added to be container" )
         {
-            REQUIRE( pTrackedObjectsPerSource->Track(&frameMeta, &objectMeta) == true );
+            REQUIRE( pTrackedObjectsPerSource->Track(&frameMeta, &objectMeta) != nullptr );
 
             // Second call for the same object must fail
-            REQUIRE( pTrackedObjectsPerSource->Track(&frameMeta, &objectMeta) == false );
+            REQUIRE( pTrackedObjectsPerSource->Track(&frameMeta, &objectMeta) == nullptr );
             
             THEN( "It's correctly returned on GetObject" )
             {
@@ -198,8 +198,8 @@ SCENARIO( "A TrackedObjects Container adds a Tracked Object correctly", "[Tracke
                     pTrackedObjectsPerSource->GetObject(frameMeta.source_id,
                         objectMeta.object_id);
                         
-                REQUIRE( pTrackedObject->GetTrackingId() == objectMeta.object_id );
-                REQUIRE( pTrackedObject->GetFrameNumber() == frameMeta.frame_num );
+                REQUIRE( pTrackedObject->trackingId == objectMeta.object_id );
+                REQUIRE( pTrackedObject->frameNumber == frameMeta.frame_num );
             }
         }
     }
@@ -231,21 +231,21 @@ SCENARIO( "A TrackedObjects Container manages multiple Tracked Object correctly"
             frameMeta.source_id = 1;
             objectMeta.object_id = 1;
 
-            REQUIRE( pTrackedObjectsPerSource->Track(&frameMeta, &objectMeta) == true );
+            REQUIRE( pTrackedObjectsPerSource->Track(&frameMeta, &objectMeta) != nullptr );
             REQUIRE( pTrackedObjectsPerSource->IsTracked(frameMeta.source_id,
                     objectMeta.object_id) == true );
 
             frameMeta.source_id = 2;
             objectMeta.object_id = 2;
 
-            REQUIRE( pTrackedObjectsPerSource->Track(&frameMeta, &objectMeta) == true );
+            REQUIRE( pTrackedObjectsPerSource->Track(&frameMeta, &objectMeta) != nullptr );
             REQUIRE( pTrackedObjectsPerSource->IsTracked(frameMeta.source_id,
                     objectMeta.object_id) == true );
 
             frameMeta.source_id = 3;
             objectMeta.object_id = 3;
 
-            REQUIRE( pTrackedObjectsPerSource->Track(&frameMeta, &objectMeta) == true );
+            REQUIRE( pTrackedObjectsPerSource->Track(&frameMeta, &objectMeta) != nullptr );
             REQUIRE( pTrackedObjectsPerSource->IsTracked(frameMeta.source_id,
                     objectMeta.object_id) == true );
 

@@ -42,7 +42,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void DisplayType::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
+    void DisplayType::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
         LOG_ERROR("Base Display Type can not be overlaid");
@@ -50,7 +51,8 @@ namespace DSL
     
     // ********************************************************************
 
-    RgbaColor::RgbaColor(const char* name, double red, double green, double blue, double alpha)
+    RgbaColor::RgbaColor(const char* name, 
+        double red, double green, double blue, double alpha)
         : DisplayType(name)
         , NvOSD_ColorParams{red, green, blue, alpha}
     {
@@ -64,7 +66,8 @@ namespace DSL
     
     // ********************************************************************
 
-    RgbaFont::RgbaFont(const char* name, const char* font, uint size, DSL_RGBA_COLOR_PTR color)
+    RgbaFont::RgbaFont(const char* name, 
+        const char* font, uint size, DSL_RGBA_COLOR_PTR color)
         : DisplayType(name)
         , m_fontName(font)
         , NvOSD_FontParams{NULL, size, *color}
@@ -79,7 +82,8 @@ namespace DSL
     
     // ********************************************************************
 
-    RgbaText::RgbaText(const char* name, const char* text, uint x_offset, uint y_offset, 
+    RgbaText::RgbaText(const char* name, 
+        const char* text, uint x_offset, uint y_offset, 
         DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
         : DisplayType(name)
         , m_text(text)
@@ -95,15 +99,29 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void RgbaText::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
+    void RgbaText::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
 
-        if (pDisplayMeta->num_labels == MAX_ELEMENTS_IN_DISPLAY_META)
+        // check to see if we're adding meta data - client can disable
+        // by setting the PPH ODE display meta alloc size to 0.
+        // and ensure we have available space in the vector of meta structs.
+        NvDsDisplayMeta* pDisplayMeta(NULL);
+        for (const auto& ivec: displayMetaData)
+        {
+            if (ivec->num_labels < MAX_ELEMENTS_IN_DISPLAY_META)
+            {
+                pDisplayMeta = ivec;
+                break;
+            }
+        }
+        if (!pDisplayMeta)
         {
             return;
         }
-        NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
+        NvOSD_TextParams *pTextParams = &pDisplayMeta->
+            text_params[pDisplayMeta->num_labels++];
 
         // copy over our text params, display_text currently == NULL
         *pTextParams = *this;
@@ -114,7 +132,8 @@ namespace DSL
         
         // Font, font-size, font-color
         pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
-        m_pFont->m_fontName.copy(pTextParams->font_params.font_name, MAX_DISPLAY_LEN, 0);
+        m_pFont->m_fontName.copy(pTextParams->font_params.font_name, 
+            MAX_DISPLAY_LEN, 0);
     }
         
     // ********************************************************************
@@ -132,11 +151,24 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void RgbaLine::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
+    void RgbaLine::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
 
-        if (pDisplayMeta->num_lines == MAX_ELEMENTS_IN_DISPLAY_META)
+        // check to see if we're adding meta data - client can disable
+        // by setting the PPH ODE display meta alloc size to 0.
+        // and ensure we have available space in the vector of meta structs.
+        NvDsDisplayMeta* pDisplayMeta(NULL);
+        for (const auto& ivec: displayMetaData)
+        {
+            if (ivec->num_lines < MAX_ELEMENTS_IN_DISPLAY_META)
+            {
+                pDisplayMeta = ivec;
+                break;
+            }
+        }
+        if (!pDisplayMeta)
         {
             return;
         }
@@ -148,7 +180,8 @@ namespace DSL
     RgbaArrow::RgbaArrow(const char* name, uint x1, uint y1, uint x2, uint y2, 
         uint width, uint head, DSL_RGBA_COLOR_PTR pColor)
         : DisplayType(name)
-        , NvOSD_ArrowParams{x1, y1, x2, y2, width, (NvOSD_Arrow_Head_Direction)head, *pColor}
+        , NvOSD_ArrowParams{x1, y1, x2, y2, width, 
+            (NvOSD_Arrow_Head_Direction)head, *pColor}
     {
         LOG_FUNC();
     }
@@ -159,11 +192,24 @@ namespace DSL
     }
 
 
-    void RgbaArrow::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
+    void RgbaArrow::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
 
-        if (pDisplayMeta->num_arrows == MAX_ELEMENTS_IN_DISPLAY_META)
+        // check to see if we're adding meta data - client can disable
+        // by setting the PPH ODE display meta alloc size to 0.
+        // and ensure we have available space in the vector of meta structs.
+        NvDsDisplayMeta* pDisplayMeta(NULL);
+        for (const auto& ivec: displayMetaData)
+        {
+            if (ivec->num_arrows < MAX_ELEMENTS_IN_DISPLAY_META)
+            {
+                pDisplayMeta = ivec;
+                break;
+            }
+        }
+        if (!pDisplayMeta)
         {
             return;
         }
@@ -173,8 +219,10 @@ namespace DSL
 
     // ********************************************************************
 
-    RgbaRectangle::RgbaRectangle(const char* name, uint left, uint top, uint width, uint height, 
-        uint borderWidth, DSL_RGBA_COLOR_PTR pColor, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
+    RgbaRectangle::RgbaRectangle(const char* name, 
+        uint left, uint top, uint width, uint height, 
+        uint borderWidth, DSL_RGBA_COLOR_PTR pColor,
+        bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
         : DisplayType(name)
         , NvOSD_RectParams{(float)left, (float)top, (float)width, (float)height, 
             borderWidth, *pColor, hasBgColor, 0, *pBgColor}
@@ -187,11 +235,24 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void RgbaRectangle::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
+    void RgbaRectangle::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
 
-        if (pDisplayMeta->num_rects == MAX_ELEMENTS_IN_DISPLAY_META)
+        // check to see if we're adding meta data - client can disable
+        // by setting the PPH ODE display meta alloc size to 0.
+        // and ensure we have available space in the vector of meta structs.
+        NvDsDisplayMeta* pDisplayMeta(NULL);
+        for (const auto& ivec: displayMetaData)
+        {
+            if (ivec->num_rects < MAX_ELEMENTS_IN_DISPLAY_META)
+            {
+                pDisplayMeta = ivec;
+                break;
+            }
+        }
+        if (!pDisplayMeta)
         {
             return;
         }
@@ -208,7 +269,8 @@ namespace DSL
         LOG_FUNC();
         
         // allocate data for coordinates and copy over values
-        this->coordinates = (dsl_coordinate*) g_malloc0(numCoordinates*sizeof(dsl_coordinate));
+        this->coordinates = 
+            (dsl_coordinate*) g_malloc0(numCoordinates*sizeof(dsl_coordinate));
         memcpy(this->coordinates, coordinates, numCoordinates*sizeof(dsl_coordinate));
     }
 
@@ -219,17 +281,30 @@ namespace DSL
         g_free(coordinates);
     }
 
-    void RgbaPolygon::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
+    void RgbaPolygon::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
 
-
-        if ((pDisplayMeta->num_lines + num_coordinates) > MAX_ELEMENTS_IN_DISPLAY_META)
-        {
-            return;
-        }
         for (uint i = 0; i < num_coordinates; i++)
         {
+            // check to see if we're adding meta data - client can disable
+            // by setting the PPH ODE display meta alloc size to 0.
+            // and ensure we have available space in the vector of meta structs.
+            NvDsDisplayMeta* pDisplayMeta(NULL);
+            for (const auto& ivec: displayMetaData)
+            {
+                if (ivec->num_lines < MAX_ELEMENTS_IN_DISPLAY_META)
+                {
+                    pDisplayMeta = ivec;
+                    break;
+                }
+            }
+            if (!pDisplayMeta)
+            {
+                return;
+            }
+            
             NvOSD_LineParams line = {
                 coordinates[i].x, 
                 coordinates[i].y, 
@@ -244,7 +319,8 @@ namespace DSL
 
     // ********************************************************************
 
-    RgbaMultiLine::RgbaMultiLine(const char* name, const dsl_coordinate* coordinates, 
+    RgbaMultiLine::RgbaMultiLine(const char* name, 
+        const dsl_coordinate* coordinates, 
         uint numCoordinates, uint lineWidth, DSL_RGBA_COLOR_PTR pColor)
         : DisplayType(name)
         , dsl_multi_line_params{NULL, numCoordinates, lineWidth, *pColor}
@@ -252,7 +328,8 @@ namespace DSL
         LOG_FUNC();
         
         // allocate data for coordinates and copy over values
-        this->coordinates = (dsl_coordinate*) g_malloc0(numCoordinates*sizeof(dsl_coordinate));
+        this->coordinates = 
+            (dsl_coordinate*) g_malloc0(numCoordinates*sizeof(dsl_coordinate));
         memcpy(this->coordinates, coordinates, numCoordinates*sizeof(dsl_coordinate));
     }
 
@@ -263,16 +340,29 @@ namespace DSL
         g_free(coordinates);
     }
 
-    void RgbaMultiLine::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
+    void RgbaMultiLine::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
 
-        if ((pDisplayMeta->num_lines + num_coordinates) > MAX_ELEMENTS_IN_DISPLAY_META)
-        {
-            return;
-        }
         for (uint i = 0; i < num_coordinates-1; i++)
         {
+            // check to see if we're adding meta data - client can disable
+            // by setting the PPH ODE display meta alloc size to 0.
+            // and ensure we have available space in the vector of meta structs.
+            NvDsDisplayMeta* pDisplayMeta(NULL);
+            for (const auto& ivec: displayMetaData)
+            {
+                if (ivec->num_lines < MAX_ELEMENTS_IN_DISPLAY_META)
+                {
+                    pDisplayMeta = ivec;
+                    break;
+                }
+            }
+            if (!pDisplayMeta)
+            {
+                return;
+            }
             NvOSD_LineParams line = {
                 coordinates[i].x, 
                 coordinates[i].y, 
@@ -299,16 +389,25 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void RgbaCircle::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
+    void RgbaCircle::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
 
-        pDisplayMeta->circle_params[pDisplayMeta->num_circles++] = *this;
+        // check to see if we're adding meta data - client can disable
+        // by setting the PPH ODE display meta alloc size to 0.
+        if (displayMetaData.empty())
+        {
+            return;
+        }
+        displayMetaData.at(0)->circle_params[
+            displayMetaData.at(0)->num_circles++] = *this;
     }
 
     // ********************************************************************
 
-    SourceDimensions::SourceDimensions(const char* name, uint x_offset, uint y_offset, 
+    SourceDimensions::SourceDimensions(const char* name, 
+        uint x_offset, uint y_offset, 
         DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
         : DisplayType(name)
         , m_pFont(pFont)
@@ -323,11 +422,19 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void SourceDimensions::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
+    void SourceDimensions::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
 
-        NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
+        // check to see if we're adding meta data - client can disable
+        // by setting the PPH ODE display meta alloc size to 0.
+        if (displayMetaData.empty())
+        {
+            return;
+        }
+        NvOSD_TextParams *pTextParams = 
+            &displayMetaData.at(0)->text_params[displayMetaData.at(0)->num_labels++];
 
         // copy over our text params, display_text currently == NULL
         *pTextParams = *this;
@@ -346,8 +453,9 @@ namespace DSL
 
     // ********************************************************************
 
-    SourceFrameRate::SourceFrameRate(const char* name, uint x_offset, uint y_offset, 
-        DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
+    SourceFrameRate::SourceFrameRate(const char* name, 
+        uint x_offset, uint y_offset, DSL_RGBA_FONT_PTR pFont, 
+        bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
         : DisplayType(name)
         , m_pFont(pFont)
         , NvOSD_TextParams{NULL, x_offset, y_offset, 
@@ -361,11 +469,19 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void SourceFrameRate::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
+    void SourceFrameRate::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
 
-        NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
+        // check to see if we're adding meta data - client can disable
+        // by setting the PPH ODE display meta alloc size to 0.
+        if (displayMetaData.empty())
+        {
+            return;
+        }
+        NvOSD_TextParams *pTextParams = 
+            &displayMetaData.at(0)->text_params[displayMetaData.at(0)->num_labels++];
 
         // copy over our text params, display_text currently == NULL
         *pTextParams = *this;
@@ -379,7 +495,8 @@ namespace DSL
         
         // Font, font-size, font-color
         pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
-        m_pFont->m_fontName.copy(pTextParams->font_params.font_name, MAX_DISPLAY_LEN, 0);
+        m_pFont->m_fontName.copy(pTextParams->font_params.font_name, 
+            MAX_DISPLAY_LEN, 0);
     }
     
     // ********************************************************************
@@ -399,11 +516,19 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void SourceNumber::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
+    void SourceNumber::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
 
-        NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
+        // check to see if we're adding meta data - client can disable
+        // by setting the PPH ODE display meta alloc size to 0.
+        if (displayMetaData.empty())
+        {
+            return;
+        }
+        NvOSD_TextParams *pTextParams = 
+            &displayMetaData.at(0)->text_params[displayMetaData.at(0)->num_labels++];
 
         // copy over our text params, display_text currently == NULL
         *pTextParams = *this;
@@ -436,18 +561,27 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void SourceName::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
+    void SourceName::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
 
-        NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
+        // check to see if we're adding meta data - client can disable
+        // by setting the PPH ODE display meta alloc size to 0.
+        if (displayMetaData.empty())
+        {
+            return;
+        }
+        NvOSD_TextParams *pTextParams = 
+            &displayMetaData.at(0)->text_params[displayMetaData.at(0)->num_labels++];
 
         // copy over our text params, display_text currently == NULL
         *pTextParams = *this;
         
         const char* name;
         
-        if (Services::GetServices()->SourceNameGet(pFrameMeta->source_id, &name) == DSL_RESULT_SUCCESS)
+        if (Services::GetServices()->SourceNameGet(pFrameMeta->source_id, &name) == 
+            DSL_RESULT_SUCCESS)
         {
             std::string nameString(name);
             // need to allocate storage for actual text, then copy.
@@ -456,7 +590,8 @@ namespace DSL
             
             // Font, font-size, font-color
             pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
-            m_pFont->m_fontName.copy(pTextParams->font_params.font_name, MAX_DISPLAY_LEN, 0);
+            m_pFont->m_fontName.copy(pTextParams->font_params.font_name, 
+                MAX_DISPLAY_LEN, 0);
         }
         
     }

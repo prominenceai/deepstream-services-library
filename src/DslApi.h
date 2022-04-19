@@ -540,7 +540,14 @@ THE SOFTWARE.
 
 #define DSL_AREA_TYPE_INCLUSION                                     0
 #define DSL_AREA_TYPE_EXCLUSION                                     1
-#define DSL_AREA_TYPE_LINE                                          3                         
+#define DSL_AREA_TYPE_LINE                                          3     
+
+/**
+ * @brief Defines the two ODE Area Line Cross directions.
+ */
+#define DSL_AREA_CROSS_DIRECTION_NONE                               0
+#define DSL_AREA_CROSS_DIRECTION_IN                                 1
+#define DSL_AREA_CROSS_DIRECTION_OUT                                2
 
 // Must match NvOSD_Arrow_Head_Direction
 #define DSL_ARROW_START_HEAD                                        0
@@ -1994,42 +2001,42 @@ DslReturnType dsl_ode_trigger_count_range_set(const wchar_t* name,
  * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @param[in] min_trace_points current setting for the minimum number of past 
- * trace points to trigger an ODE. 
+ * @param[in] min_frame_count setting for the minimum number of past 
+ * consective frames on both sides of a line (line or polygon area) to trigger an ODE.
  * @param[in] max_trace_points maximum number of past trace points to maintain for
  * each tracked objects. 
  * @param[in] test_method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit, uint min_trace_points, 
+    const wchar_t* source, uint class_id, uint limit, uint min_frame_count, 
     uint max_trace_points, uint test_method);
 
 /**
- * @brief Gets the current max trace-points setting for the named Cross trigger.
+ * @brief Gets the current test settings for the named Cross trigger.
  * @param[in] name unique name for the ODE Trigger to query
- * @param[out] min_trace_points current setting for the minimum number of past 
- * trace points to trigger an ODE. 
+ * @param[out] min_frame_count current setting for the minimum number of past 
+ * consective frames on both sides of a line (line or polygon area) to trigger an ODE.
  * @param[out] max_trace_points current setting for the maximum number of past 
  * trace points to maintain for each tracked objects. 
  * @param[out] test_method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_cross_trace_point_settings_get(const wchar_t* name, 
-    uint* min_trace_points, uint* max_trace_points, uint* test_method);
+DslReturnType dsl_ode_trigger_cross_test_settings_get(const wchar_t* name, 
+    uint* min_frame_count, uint* max_trace_points, uint* test_method);
     
 /**
  * @brief Sets the max trace-points setting for the named Cross trigger.
  * @param[in] name unique name for the ODE Trigger to update
- * @param[in] min_trace_points new setting for the minimum number of past 
- * trace points to trigger an ODE. 
+ * @param[in] min_frame_count new setting for the minimum number of past 
+ * consective frames on both sides of a line (line or polygon area) to trigger an ODE.
  * @param[in] max_trace_points new setting for the maximum number of past 
  * trace points to maintain for each tracked objects. 
  * @param[in] test_method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
 * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_cross_trace_point_settings_set(const wchar_t* name, 
-    uint min_trace_points, uint max_trace_points, uint test_method);
+DslReturnType dsl_ode_trigger_cross_test_settings_set(const wchar_t* name, 
+    uint min_frame_count, uint max_trace_points, uint test_method);
     
 /**
  * @brief Gets the current trace settings for the named Cross trigger.
@@ -2039,7 +2046,7 @@ DslReturnType dsl_ode_trigger_cross_trace_point_settings_set(const wchar_t* name
  * @param[out] line_width width of the object trace if display is enabled.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_cross_trace_view_settings_get(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_cross_view_settings_get(const wchar_t* name, 
     boolean* enabled, const wchar_t** color, uint* line_width);
     
 /**
@@ -2050,7 +2057,7 @@ DslReturnType dsl_ode_trigger_cross_trace_view_settings_get(const wchar_t* name,
  * @param[in] line_width width of the object trace if display is enabled.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_cross_trace_view_settings_set(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_cross_view_settings_set(const wchar_t* name, 
     boolean enabled, const wchar_t* color, uint line_width);
     
 /**
@@ -2748,6 +2755,28 @@ DslReturnType dsl_pph_ode_trigger_remove_many(const wchar_t* name, const wchar_t
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
 DslReturnType dsl_pph_ode_trigger_remove_all(const wchar_t* name);
+
+/**
+ * @brief Gets the current setting for the number of Display Meta structures that
+ * are allocated for each frame. Each structure can hold up to 16 display elements
+ * for each display type (lines, arrows, rectangles, etc.). The default size is one.
+ * Note: each allocation adds overhead to the processing of each frame. 
+ * @param[in] name unique name of the ODE Handler to update.
+ * @param[out] count current count of Display Meta structures allocated per frame
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ */
+DslReturnType dsl_pph_ode_display_meta_alloc_size_get(const wchar_t* name, uint* count);
+
+/**
+ * @brief Sets the current setting for the number of Display Meta structures that
+ * are allocated for each frame. Each structure can hold up to 16 display elements
+ * for each display type (lines, arrows, rectangles, etc.). The default size is one.
+ * Note: each allocation adds overhead to the processing of each frame. 
+ * @param[in] name unique name of the ODE Handler to update.
+ * @param[in] count current count of Display Meta structures allocated per frame
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ */
+DslReturnType dsl_pph_ode_display_meta_alloc_size_set(const wchar_t* name, uint count);
 
 /**
  * @brief creates a new, uniquely named Custom pad-probe-handler to process a buffer

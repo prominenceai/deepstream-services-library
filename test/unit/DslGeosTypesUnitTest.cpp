@@ -189,7 +189,7 @@ SCENARIO( "A GEOS Multi-Line and Line are determined to cross", "[GeosTypes]" )
 
             THEN( "The lines are determined to cross one another" )
             {
-                REQUIRE( testGeosMultiLine.Intersects(testGeosLine1) == true );
+                REQUIRE( testGeosMultiLine.Crosses(testGeosLine1) == true );
             }
         }
     }
@@ -225,7 +225,7 @@ SCENARIO( "Multi-Line and Line are determined to NOT cross", "[GeosTypes]" )
 
             THEN( "The lines are determined to NOT cross one another" )
             {
-                REQUIRE( testGeosMultiLine.Intersects(testGeosLine1) != true );
+                REQUIRE( testGeosMultiLine.Crosses(testGeosLine1) != true );
             }
         }
     }

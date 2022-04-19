@@ -29,9 +29,8 @@ namespace DSL
 {
     TrackedObject::TrackedObject(uint64_t trackingId, uint64_t frameNumber,
         const NvOSD_RectParams* pRectParams, uint maxHistory)
-        : m_trackingId(trackingId)
+        : trackingId(trackingId)
         , m_maxHistory(maxHistory)
-        , m_triggered(false)
     {
         // No function log - avoid overhead.
         
@@ -55,7 +54,7 @@ namespace DSL
         // No function log - avoid overhead.
         
         // update the tracked object's frame number - the filter used for purging.
-        m_frameNumber = currentFrameNumber;
+        frameNumber = currentFrameNumber;
         
         // Copy only the rectangle coordinates of the Object's RectParams
         std::shared_ptr pBboxCoords = 
@@ -84,6 +83,12 @@ namespace DSL
             m_creationTimeMs;
     }
 
+    dsl_coordinate TrackedObject::GetFirstCoordinate(uint testPoint)
+    {
+        dsl_coordinate traceCoordinate{0};
+        getCoordinate(m_bboxTrace.front(), testPoint, traceCoordinate);
+        return traceCoordinate;
+    }
     
     std::shared_ptr<std::vector<dsl_coordinate>> TrackedObject::GetTrace(
         uint testPoint, uint method)
@@ -232,7 +237,8 @@ namespace DSL
         return pTrackedObjects->at(trackingId);
     }
     
-    bool TrackedObjects::Track(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    std::shared_ptr<TrackedObject> TrackedObjects::Track(NvDsFrameMeta* pFrameMeta, 
+        NvDsObjectMeta* pObjectMeta)
     {
         // No function log - avoid overhead.
 
@@ -262,7 +268,7 @@ namespace DSL
             // all tracked objects.
             m_trackedObjectsPerSource[pFrameMeta->source_id] = pTrackedObjects;
             
-            return true;
+            return pTrackedObject;
         }
         std::shared_ptr<TrackedObjectsT> pTrackedObjects = 
             m_trackedObjectsPerSource[pFrameMeta->source_id];
@@ -284,13 +290,13 @@ namespace DSL
                 std::shared_ptr<TrackedObject>>(pObjectMeta->object_id, 
                     pTrackedObject));
             
-            return true;
+            return pTrackedObject;
         }
         
         LOG_ERROR("Object with id = " << pObjectMeta->object_id 
             << " for source = " << pFrameMeta->source_id 
             << " is already being tracked");
-        return false;
+        return nullptr;
     }
 
     void TrackedObjects::DeleteObject(uint sourceId, uint64_t trackingId)
@@ -315,10 +321,8 @@ namespace DSL
             return;
         }
         
-        LOG_WARN("size = " << pTrackedObjects->size());
         // else, the object is currently being tracked.
         pTrackedObjects->erase(trackingId);
-        LOG_WARN("size = " << pTrackedObjects->size());
     }    
 
     void TrackedObjects::Purge(uint64_t currentFrameNumber)
@@ -333,7 +337,7 @@ namespace DSL
             auto trackedObject = pTrackedObjects->cbegin();
             while (trackedObject != pTrackedObjects->cend())
             {
-                if (trackedObject->second->GetFrameNumber() != currentFrameNumber)
+                if (trackedObject->second->frameNumber != currentFrameNumber)
                 {
                     LOG_DEBUG("Purging tracked object with id = " 
                         << trackedObject->first << " for source = " 

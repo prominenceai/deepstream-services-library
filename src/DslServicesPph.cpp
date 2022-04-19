@@ -282,8 +282,64 @@ namespace DSL
         }
     }
 
-   DslReturnType Services::PphEnabledGet(const char* name, boolean* enabled)
-   {
+    DslReturnType Services::PphOdeDisplayMetaAllocSizeGet(const char* name, uint* count)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, OdePadProbeHandler);
+
+            DSL_PPH_ODE_PTR pOde = 
+                std::dynamic_pointer_cast<OdePadProbeHandler>(m_padProbeHandlers[name]);
+            
+            *count = pOde->GetDisplayMetaAllocSize();
+
+            LOG_INFO("ODE Pad Probe Handler '" << name 
+                << "' returned a Display Meta count of " << *count << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Pad Probe Handler '" << name 
+                << "' threw an exception getting Display Meta count");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PphOdeDisplayMetaAllocSizeSet(const char* name, uint count)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, OdePadProbeHandler);
+            
+            DSL_PPH_ODE_PTR pOde = 
+                std::dynamic_pointer_cast<OdePadProbeHandler>(m_padProbeHandlers[name]);
+
+            pOde->SetDisplayMetaAllocSize(count);
+
+            LOG_INFO("ODE Pad Probe Handler '" << name 
+                << "' set its Display Meta count to " << count << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Pad Probe Handler '" << name 
+                << "' threw an exception setting Display Meta count");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PphEnabledGet(const char* name, boolean* enabled)
+    {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
