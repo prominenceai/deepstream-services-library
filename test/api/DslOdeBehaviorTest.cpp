@@ -1494,8 +1494,8 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can p
         std::wstring ode_pph_name(L"ode-handler");
         
         std::wstring lineName(L"line");
-        uint x1(250), y1(700), x2(620), y2(720);
-        uint line_width(10);
+        uint x1(250), y1(660), x2(620), y2(680);
+        uint line_width(6);
 
         std::wstring white(L"solid-white");
         std::wstring green(L"solid-green");
@@ -1536,7 +1536,7 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can p
             true, DSL_BBOX_POINT_SOUTH) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_cross_new(person_cross_name.c_str(), 
-            NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE, 10, 200, 
+            NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE, 2, 200, 
             DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_confidence_min_set(person_cross_name.c_str(), 

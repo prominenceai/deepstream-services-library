@@ -54,6 +54,11 @@ namespace DSL
         std::shared_ptr<OdeLineArea>(new OdeLineArea( \
             name, pLine, show, bboxTestPoint))
 
+    #define DSL_ODE_AREA_MULTI_LINE_PTR std::shared_ptr<OdeMultiLineArea>
+    #define DSL_ODE_AREA_MULTI_LINE_NEW(name, pMultiLine, show, bboxTestPoint) \
+        std::shared_ptr<OdeMultiLineArea>(new OdeMultiLineArea( \
+            name, pMultiLine, show, bboxTestPoint))
+
     class OdeArea : public Base
     {
     public: 
@@ -85,35 +90,47 @@ namespace DSL
             NvDsFrameMeta* pFrameMeta);
         
         /**
-         * @brief Checks if an bounding box edge point is within this Area's 
-         * underlying display type.
-         * @param[in] pBox pointer to an object's bbox rectangle to check for within
+         * @brief Checks if a bounding box - using bboxTestPoint - is inside 
+         * the Area's RGBA Display Type.
+         * @param[in] bbox object's bbox rectangle to test for inside
+         * @return true if inside, false otherwise
          */
-        virtual bool CheckForWithin(const NvOSD_RectParams& bbox) = 0;
+        virtual bool IsBboxInside(const NvOSD_RectParams& bbox) = 0;
 
         /**
-         * @brief returns the direction of an x, y point relative to the
-         * @param[in] coordinate x,y coordinate for the point to test
-         * @return one DSL_AREA_TO_POINT_DIRECTION_IN or DSL_AREA_TO_POINT_DIRECTION_OUT
+         * @brief Checks if an x,y coordinate is inside the Area's Display Type.
+         * @param[in] pBox pointer to an object's bbox rectangle to check for inside.
+         * @return true if inside, false otherwise.
+         */
+        virtual bool IsPointInside(const dsl_coordinate& coordinate) = 0;
+
+        /**
+         * @brief returns the direction of an x, y point relative to the Area's
+         * Display Type
+         * @param[in] coordinate x,y coordinate for the point to test.
+         * @return one DSL_AREA_POINT_LOCATION_IN or DSL_AREA_POINT_LOCATION_OUT
          */ 
-        virtual uint GetPointDirection(dsl_coordinate& coordinate) = 0;
+        virtual uint GetPointLocation(const dsl_coordinate& coordinate) = 0;
         
         /**
          * @brief tests if a point is on the area's line(s) including line width,
-         * @param[in] coordinate x,y coordinate for the point to test
-         * @return true if the point is located on the line, false otherwise.
+         * @param[in] coordinate x,y coordinate for the point to test.
+         * @return true if the point is located on a line, false otherwise.
          */
-        virtual bool IsPointOnLine(dsl_coordinate& coordinate) = 0;
+        virtual bool IsPointOnLine(const dsl_coordinate& coordinate) = 0;
         
         /**
-         * @brief Checks if a bounding box trace crosses the Area's display type.
-         * @param[in] pTrace shared pointer to a vector of dsl_coordinates.
-         * @param[out] direction on of the DSL_AREA_CROSS_DIRECTION_* constants 
-         *  defining the
-         * direction of the cross if
+         * @brief Checks if a bounding box trace crosses the Area's Polygon 
+         * Display Type.
+         * @param[in] pTrace shared pointer to a vector of of dsl_coordinates.
+         * @param[out] direction one of the DSL_AREA_CROSS_DIRECTION_* constants 
+         * defining the direction of the cross, including DSL_AREA_CROSS_DIRECTION_NONE.
+         * @return true if trace fully crosses one of the sides of the Area's 
+         * Polygon including line-width, false otherwise.
          */
-        virtual bool CheckForCross(const std::shared_ptr<std::vector<dsl_coordinate>> 
-            pTrace, uint& direction) = 0;
+        virtual bool DoesTraceCrossLine(
+            const std::shared_ptr<std::vector<dsl_coordinate>> pTrace, 
+            uint& direction) = 0;
         
         /**
          * @brief Gets the bbox test-point for the defined for this area
@@ -122,6 +139,15 @@ namespace DSL
         uint GetBboxTestPoint(){return m_bboxTestPoint;};
         
     protected:
+    
+        /**
+         * @brief Get an x,y coordinate from a Bbox based on this Trigger's
+         * client specified test-point
+         * @param[in] pBbox to optain the coordinate from
+         * @param[out] coordinate x,y coordinage value.
+         */
+        void getCoordinate(const NvOSD_RectParams& bbox, 
+            dsl_coordinate& coordinate);
     
         /**
          * @brief Display type used to define the Area's location, dimensions, and color
@@ -168,33 +194,48 @@ namespace DSL
         ~OdePolygonArea();
 
         /**
-         * @brief Checks if an bounding box edge point is within this Area's 
-         * underlying display type.
-         * @param[in] pBox pointer to an object's bbox rectangle to check for overlap
+         * @brief Checks if a bounding box - using bboxTestPoint - is inside 
+         * the Area's Multi-Line Display Type.
+         * @param[in] bbox object's bbox rectangle to test for inside
+         * @return true if inside, false otherwise
          */
-        bool CheckForWithin(const NvOSD_RectParams& bbox);
+        bool IsBboxInside(const NvOSD_RectParams& bbox);
 
         /**
-         * @brief returns the direction of an x, y point relative to the
-         * @param[in] coordinate x,y coordinate for the point to test
-         * @return one DSL_AREA_TO_POINT_DIRECTION_IN or DSL_AREA_TO_POINT_DIRECTION_OUT
+         * @brief Checks if an x,y coordinate is inside the Area's Polygon 
+         * Display Type.
+         * @param[in] pBox pointer to an object's bbox rectangle to check for inside.
+         * @return true if inside, false otherwise.
+         */
+        bool IsPointInside(const dsl_coordinate& coordinate);
+
+        /**
+         * @brief Returns the location of an x, y point relative to the Area's 
+         * Polygon Display Type.
+         * @param[in] coordinate x,y coordinate of the point to test for location.
+         * @return DSL_AREA_POINT_LOCATION_INSIDE or DSL_AREA_POINT_LOCATION_OUTSIDE.
          */ 
-        uint GetPointDirection(dsl_coordinate& coordinate);
+        uint GetPointLocation(const dsl_coordinate& coordinate);
         
         /**
-         * @brief tests if a point is on the area's line(s) including line width,
-         * @param[in] coordinate x,y coordinate for the point to test
-         * @return true if the point is located on the line, false otherwise.
+         * @brief Tests if a point is on the Area's Polygon Display Type 
+         * including line width,
+         * @param[in] coordinate x,y coordinate for the point to test for on-line
+         * @return true if the point is located on the line including line-wide, 
+         * false otherwise.
          */
-        bool IsPointOnLine(dsl_coordinate& coordinate);
+        bool IsPointOnLine(const dsl_coordinate& coordinate);
 
         /**
-         * @brief Checks if a bounding box trace crosses the Area's underlying display type.
-         * @param[in] pTrace shared pointer to a vector of dsl_coordinates.
-         * @param[out] direction on of the DSL_AREA_CROSS_DIRECTION_* constants defining the
-         * direction of the cross if
+         * @brief Checks if a bounding box trace crosses the Area's Polygon 
+         * Display Type.
+         * @param[in] pTrace shared pointer to a vector of of dsl_coordinates.
+         * @param[out] direction one of the DSL_AREA_CROSS_DIRECTION_* constants 
+         * defining the direction of the cross, including DSL_AREA_CROSS_DIRECTION_NONE.
+         * @return true if trace fully crosses one of the sides of the Area's 
+         * Polygon including line-width, false otherwise.
          */
-        bool CheckForCross(const std::shared_ptr<std::vector<dsl_coordinate>> pTrace,
+        bool DoesTraceCrossLine(const std::shared_ptr<std::vector<dsl_coordinate>> pTrace,
             uint& direction);
 
         /**
@@ -268,37 +309,51 @@ namespace DSL
         ~OdeLineArea();
         
         /**
-         * @brief Checks if the Line Area overlaps (crosses) with the provided object 
-         * rectangle based on the bboxTestEdge set for the Line Area
-         * @param[in] pBox pointer to an object's bbox rectangle to check for overlap
+         * @brief Checks if a bounding box - using bboxTestPoint - is inside 
+         * the Area's Line Display Type.
+         * @param[in] bbox object's bbox rectangle to test for inside
+         * @return true if inside, false otherwise
          */
-        bool CheckForWithin(const NvOSD_RectParams& bbox);
+        bool IsBboxInside(const NvOSD_RectParams& bbox);
 
         /**
-         * @brief returns the direction of an x, y point relative to the
-         * @param[in] coordinate x,y coordinate for the point to test
-         * @return one DSL_AREA_TO_POINT_DIRECTION_IN or DSL_AREA_TO_POINT_DIRECTION_OUT
+         * @brief Checks if an x,y coordinate is inside the Area's Line Display Type.
+         * @param[in] pBox pointer to an object's bbox rectangle to check for inside.
+         * @return true if inside, false otherwise.
+         */
+        bool IsPointInside(const dsl_coordinate& coordinate);
+
+        /**
+         * @brief Returns the location of an x, y point relative to the Area's 
+         * Line Display Type.
+         * @param[in] coordinate x,y coordinate of the point to test for location.
+         * @return DSL_AREA_POINT_LOCATION_INSIDE or DSL_AREA_POINT_LOCATION_OUTSIDE.
          */ 
-        uint GetPointDirection(dsl_coordinate& coordinate);
+        uint GetPointLocation(const dsl_coordinate& coordinate);
         
         /**
-         * @brief tests if a point is on the area's line(s) including line width,
-         * @param[in] coordinate x,y coordinate for the point to test
-         * @return true if the point is located on the line, false otherwise.
+         * @brief Tests if a point is on the Area's Line Display Type 
+         * including line width,
+         * @param[in] coordinate x,y coordinate for the point to test for on-line
+         * @return true if the point is located on the line including line-wide, 
+         * false otherwise.
          */
-        bool IsPointOnLine(dsl_coordinate& coordinate);
+        bool IsPointOnLine(const dsl_coordinate& coordinate);
 
         /**
-         * @brief Checks if a bounding box trace crosses the Area's underlying display type.
-         * @param[in] pTrace shared pointer to a vector of dsl_coordinates.
-         * @param[out] direction on of the DSL_AREA_CROSS_DIRECTION_* constants defining the
-         * direction of the cross if
+         * @brief Checks if a bounding box trace crosses the Area's Line Display Type.
+         * @param[in] pTrace shared pointer to a vector of of dsl_coordinates.
+         * @param[out] direction one of the DSL_AREA_CROSS_DIRECTION_* constants 
+         * defining thedirection of the cross, including DSL_AREA_CROSS_DIRECTION_NONE.
+         * @return true if trace fully crosses the Area's multi-line including line-width, 
+         * false otherwise.
          */
-        bool CheckForCross(const std::shared_ptr<std::vector<dsl_coordinate>> pTrace,
+        bool DoesTraceCrossLine(const std::shared_ptr<std::vector<dsl_coordinate>> pTrace,
             uint& direction);
-
+            
         /**
-         * @brief Polygon display type used to define the Area's location, dimensions, and color
+         * @brief RGBA Line Display Type used to define the Area's location, 
+         * dimensions, and color
          */
         DSL_RGBA_LINE_PTR m_pLine;
 
@@ -309,6 +364,82 @@ namespace DSL
         uint m_bboxTestEdge;
     };
 
+    class OdeMultiLineArea : public OdeArea
+    {
+    public: 
+
+        /**
+         * @brief ctor for the OdeMultiLineArea
+         * @param[in] pMultiLine a shared pointer to a RGBA Multi Line Display Type.
+         * @param[in] show if true, the area will be displayed by adding meta data
+         * @param[in] bbox_test_edge one of DSL_BBOX_EDGE values to define which edge
+         * of the bounding box to test for lines crossing
+         */
+        OdeMultiLineArea(const char* name, DSL_RGBA_MULTI_LINE_PTR pMultiLine, 
+            bool show, uint bboxTestPoint);
+
+        /**
+         * @brief dtor for the OdeLineArea
+         */
+        ~OdeMultiLineArea();
+        
+        /**
+         * @brief Checks if a bounding box - using bboxTestPoint - is inside 
+         * the Area's Multi-Line Display Type.
+         * @param[in] bbox object's bbox rectangle to test for inside
+         * @return true if inside, false otherwise
+         */
+        bool IsBboxInside(const NvOSD_RectParams& bbox);
+
+        /**
+         * @brief Checks if an x,y coordinate is inside the Area's Multi-Line 
+         * Display Type.
+         * @param[in] pBox pointer to an object's bbox rectangle to check for inside.
+         * @return true if inside, false otherwise.
+         */
+        bool IsPointInside(const dsl_coordinate& coordinate);
+
+        /**
+         * @brief Returns the location of an x, y point relative to the Area's 
+         * Multi-Line Display Type.
+         * @param[in] coordinate x,y coordinate of the point to test for location.
+         * @return DSL_AREA_POINT_LOCATION_INSIDE or DSL_AREA_POINT_LOCATION_OUTSIDE.
+         */ 
+        uint GetPointLocation(const dsl_coordinate& coordinate);
+        
+        /**
+         * @brief Tests if a point is on the Area's Multi-Line Display Type 
+         * including line width,
+         * @param[in] coordinate x,y coordinate for the point to test for on-line
+         * @return true if the point is located on the line including line-wide, 
+         * false otherwise.
+         */
+        bool IsPointOnLine(const dsl_coordinate& coordinate);
+
+        /**
+         * @brief Checks if a bounding box trace crosses the Area's Multi-Line 
+         * Display Type.
+         * @param[in] pTrace shared pointer to a vector of of dsl_coordinates.
+         * @param[out] direction one of the DSL_AREA_CROSS_DIRECTION_* constants 
+         * defining the direction of the cross, including DSL_AREA_CROSS_DIRECTION_NONE.
+         * @return true if trace fully crosses the Area's multi-line including 
+         * line-width, false otherwise.
+         */
+        bool DoesTraceCrossLine(const std::shared_ptr<std::vector<dsl_coordinate>> pTrace,
+            uint& direction);
+
+        /**
+         * @brief RGBA Multi-Line Display Type used to define the Area's location, 
+         * dimensions, and color
+         */
+        DSL_RGBA_MULTI_LINE_PTR m_pMultiLine;
+
+        /**
+         * @brief one of DSL_BBOX_EDGE values defining which edge
+         * of the bounding box to test for lines crossing
+         */
+        uint m_bboxTestEdge;
+    };
 }
 
 #endif //_DSL_ODE_AREA_H

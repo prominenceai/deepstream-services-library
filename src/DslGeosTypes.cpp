@@ -144,65 +144,6 @@ namespace DSL
         return (uint)round(distance);
     }
 
-    //******************************************************************************
-    
-    GeosMultiLine::GeosMultiLine(const dsl_multi_line_params& multiLine)
-        : m_pGeosMultiLine(NULL)
-    {
-        // Don't log function entry/exit
-        
-        GEOSCoordSequence* geosCoordSequence = GEOSCoordSeq_create(multiLine.num_coordinates+1, 2);
-        if (!geosCoordSequence)
-        {
-            LOG_ERROR("Exception when creating GEOS Coordinate Sequence");
-            throw;
-        }
-        for (uint i = 0; i < multiLine.num_coordinates; i++)
-        {
-            if (!GEOSCoordSeq_setX(geosCoordSequence, i, 
-                    double(multiLine.coordinates[i].x)) or   
-                !GEOSCoordSeq_setY(geosCoordSequence, i, 
-                    double(multiLine.coordinates[i].y))) 
-            {
-                LOG_ERROR("Exception when setting GEOS Coordinate Sequence");
-                throw;
-            }
-        }
-        
-        
-        // once created, m_pGeosMultiLine will own the memory of geosCoordSequence
-        // and will free it when GEOSGeom_destroy is called
-        m_pGeosMultiLine = GEOSGeom_createLineString(geosCoordSequence);
-        if (!m_pGeosMultiLine)
-        {
-            LOG_ERROR("Exception when creating GEOS Line String");
-            throw;
-        }
-    }
-    
-    GeosMultiLine::~GeosMultiLine()
-    {
-        // Don't log function entry/exit
-        
-        if (m_pGeosMultiLine)
-        {
-            GEOSGeom_destroy(m_pGeosMultiLine);
-        }
-    }
-
-    bool GeosMultiLine::Crosses(const GeosLine& testLine)
-    {
-        // Don't log function entry/exit
-        
-        char result = GEOSIntersects(m_pGeosMultiLine, testLine.m_pGeosLine);
-        if (result == 2)
-        {
-            LOG_ERROR("Exception when testing if GEOS Line Strings cross");
-            throw;
-        }
-        return bool(result);
-    }
-
     // *****************************************************************************
 
     GeosRectangle::GeosRectangle(const NvOSD_RectParams& rectangle)
@@ -376,6 +317,19 @@ namespace DSL
         }
     }
 
+    uint GeosPolygon::Distance(const GeosPoint& testPoint)
+    {
+        // Don't log function entry/exit
+        double distance(0);
+        
+        if (!GEOSDistance(m_pGeosPolygon, testPoint.m_pGeosPoint, &distance))
+        {
+            LOG_ERROR("Exception when calling GEOS Distance");
+            throw;
+        }
+        return (uint)round(distance);
+    }
+
     bool GeosPolygon::Overlaps(const GeosPolygon& testPolygon)
     {
         // Don't log function entry/exit
@@ -416,6 +370,104 @@ namespace DSL
             throw;
         }
         return bool(result);
+    }
+
+    //******************************************************************************
+    
+    GeosMultiLine::GeosMultiLine(const dsl_multi_line_params& multiLine)
+        : m_pGeosMultiLine(NULL)
+    {
+        // Don't log function entry/exit
+        
+        GEOSCoordSequence* geosCoordSequence = GEOSCoordSeq_create(multiLine.num_coordinates+1, 2);
+        if (!geosCoordSequence)
+        {
+            LOG_ERROR("Exception when creating GEOS Coordinate Sequence");
+            throw;
+        }
+        for (uint i = 0; i < multiLine.num_coordinates; i++)
+        {
+            if (!GEOSCoordSeq_setX(geosCoordSequence, i, 
+                    double(multiLine.coordinates[i].x)) or   
+                !GEOSCoordSeq_setY(geosCoordSequence, i, 
+                    double(multiLine.coordinates[i].y))) 
+            {
+                LOG_ERROR("Exception when setting GEOS Coordinate Sequence");
+                throw;
+            }
+        }
+        
+        
+        // once created, m_pGeosMultiLine will own the memory of geosCoordSequence
+        // and will free it when GEOSGeom_destroy is called
+        m_pGeosMultiLine = GEOSGeom_createLineString(geosCoordSequence);
+        if (!m_pGeosMultiLine)
+        {
+            LOG_ERROR("Exception when creating GEOS Line String");
+            throw;
+        }
+    }
+    
+    GeosMultiLine::~GeosMultiLine()
+    {
+        // Don't log function entry/exit
+        
+        if (m_pGeosMultiLine)
+        {
+            GEOSGeom_destroy(m_pGeosMultiLine);
+        }
+    }
+
+    bool GeosMultiLine::Crosses(const GeosLine& testLine)
+    {
+        // Don't log function entry/exit
+        
+        char result = GEOSIntersects(m_pGeosMultiLine, testLine.m_pGeosLine);
+        if (result == 2)
+        {
+            LOG_ERROR("Exception when testing if GEOS Multi-Line crosses Line");
+            throw;
+        }
+        return bool(result);
+    }
+
+    bool GeosMultiLine::Crosses(const GeosPolygon& testPolygon)
+    {
+        // Don't log function entry/exit
+        
+        char result = GEOSIntersects(m_pGeosMultiLine, testPolygon.m_pGeosPolygon);
+        if (result == 2)
+        {
+            LOG_ERROR("Exception when testing if GEOS Multi-line crosses Polygon");
+            throw;
+        }
+        return bool(result);
+    }
+
+    bool GeosMultiLine::Crosses(const GeosMultiLine& testMultLine)
+    {
+        // Don't log function entry/exit
+        
+        char result = GEOSIntersects(m_pGeosMultiLine, testMultLine.m_pGeosMultiLine);
+        if (result == 2)
+        {
+            LOG_ERROR("Exception when testing if GEOS Multi-line crosses Multi-Line");
+            throw;
+        }
+        return bool(result);
+    }
+
+    uint GeosMultiLine::Distance(const GeosPoint& testPoint)
+    {
+        // Don't log function entry/exit
+        double distance(0);
+        
+        if (!GEOSDistance(m_pGeosMultiLine, testPoint.m_pGeosPoint, &distance))
+        {
+            LOG_ERROR("Exception when calling GEOS Distance");
+            throw;
+        }
+        return (uint)round(distance);
     }
 
 }

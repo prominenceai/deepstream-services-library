@@ -133,7 +133,7 @@ SCENARIO( "A new OdeLineArea is created correctly", "[OdeArea]" )
     }
 }
 
-SCENARIO( "A new OdeLineArea can CheckForWithin correctly", "[OdeArea]" )
+SCENARIO( "A new OdeLineArea can determine if IsBboxInside correctly", "[OdeArea]" )
 {
     GIVEN( "Attributes for a new OdeLineArea" ) 
     {
@@ -167,7 +167,7 @@ SCENARIO( "A new OdeLineArea can CheckForWithin correctly", "[OdeArea]" )
 
             THEN( "The bbox and Line Area are found to overlap" )
             {
-                REQUIRE(pOdeArea->CheckForWithin(bbox) == false);
+                REQUIRE(pOdeArea->IsBboxInside(bbox) == false);
             }
         }
         WHEN( "A bbox is defined with a crossing DSL_BBOX_EDGE_LEFT " )
@@ -184,7 +184,7 @@ SCENARIO( "A new OdeLineArea can CheckForWithin correctly", "[OdeArea]" )
 
             THEN( "The bbox and Line Area are found to overlap" )
             {
-                REQUIRE(pOdeArea->CheckForWithin(bbox) == true);
+                REQUIRE(pOdeArea->IsBboxInside(bbox) == true);
             }
         }
         
@@ -202,7 +202,7 @@ SCENARIO( "A new OdeLineArea can CheckForWithin correctly", "[OdeArea]" )
 
             THEN( "The bbox and Line Area are found to overlap" )
             {
-                REQUIRE(pOdeArea->CheckForWithin(bbox) == false);
+                REQUIRE(pOdeArea->IsBboxInside(bbox) == false);
             }
         }
         
@@ -220,7 +220,7 @@ SCENARIO( "A new OdeLineArea can CheckForWithin correctly", "[OdeArea]" )
 
             THEN( "The bbox and Line Area are found to overlap" )
             {
-                REQUIRE(pOdeArea->CheckForWithin(bbox) == true);
+                REQUIRE(pOdeArea->IsBboxInside(bbox) == true);
             }
         }
     }

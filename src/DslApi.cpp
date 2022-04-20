@@ -1178,6 +1178,21 @@ DslReturnType dsl_ode_area_line_new(const wchar_t* name,
         cstrLine.c_str(), show, bbox_test_point);
 }
 
+DslReturnType dsl_ode_area_line_mult_new(const wchar_t* name, 
+    const wchar_t* multi_line, boolean show, uint bbox_test_point)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(multi_line);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrMultiLine(multi_line);
+    std::string cstrMultiLine(wstrMultiLine.begin(), wstrMultiLine.end());
+
+    return DSL::Services::GetServices()->OdeAreaLineMultiNew(cstrName.c_str(), 
+        cstrMultiLine.c_str(), show, bbox_test_point);
+}
+
 DslReturnType dsl_ode_area_delete(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);

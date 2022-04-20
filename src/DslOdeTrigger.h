@@ -444,7 +444,7 @@ namespace DSL
          * for within
          * @return true if the bbox is within one of the trigger's area, false otherwise
          */
-        bool CheckForWithin(NvDsObjectMeta* pObjectMeta);
+        bool CheckForInside(NvDsObjectMeta* pObjectMeta);
         
         /**
          * @brief Common function to check if a Frame's source id meets the 

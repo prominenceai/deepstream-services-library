@@ -542,8 +542,19 @@ THE SOFTWARE.
 #define DSL_AREA_TYPE_EXCLUSION                                     1
 #define DSL_AREA_TYPE_LINE                                          3     
 
+#define DSL_AREA_CROSS_DIRECTION_NONE                               0
+#define DSL_AREA_CROSS_DIRECTION_IN                                 1
+#define DSL_AREA_CROSS_DIRECTION_OUT                                2
+
 /**
- * @brief Defines the two ODE Area Line Cross directions.
+ * @brief Defines a Point's location relative to an ODE Area.
+ */
+#define DSL_AREA_POINT_LOCATION_NONE                                0
+#define DSL_AREA_POINT_LOCATION_INSIDE                              1
+#define DSL_AREA_POINT_LOCATION_OUTSIDE                             2
+
+/**
+ * @brief Defines the ODE Area Line Cross directions.
  */
 #define DSL_AREA_CROSS_DIRECTION_NONE                               0
 #define DSL_AREA_CROSS_DIRECTION_IN                                 1
@@ -1887,6 +1898,19 @@ DslReturnType dsl_ode_area_exclusion_new(const wchar_t* name,
  */
 DslReturnType dsl_ode_area_line_new(const wchar_t* name,
     const wchar_t* line, boolean show, uint bbox_test_point);
+
+/**
+ * @brief Creates a uniquely named ODE Multi-Line Area
+ * @param[in] name unique name of the ODE Multi Line Area to create
+ * @param[in] multi_line name of an RGBA Multi-Line used to define location, 
+ * dimensions, color
+ * @param[in] show set to true to show (overlay) the line on each frame
+ * @param[in] bbox_test_point one of DSL_BBOX_POINT values defining which point of a
+ * object's bounding box to use when testing for line crossing
+ * @return DSL_RESULT_SUCCESS on successful create, DSL_RESULT_ODE_AREA_RESULT otherwise.
+ */
+DslReturnType dsl_ode_area_line_multi_new(const wchar_t* name,
+    const wchar_t* multi_line, boolean show, uint bbox_test_point);
 
 /**
  * @brief Deletes an ODE Area

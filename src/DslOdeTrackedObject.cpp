@@ -31,6 +31,8 @@ namespace DSL
         const NvOSD_RectParams* pRectParams, uint maxHistory)
         : trackingId(trackingId)
         , m_maxHistory(maxHistory)
+        , preEventFrameCount(1)
+        , onEventFrameCount(0)
     {
         // No function log - avoid overhead.
         
@@ -87,6 +89,13 @@ namespace DSL
     {
         dsl_coordinate traceCoordinate{0};
         getCoordinate(m_bboxTrace.front(), testPoint, traceCoordinate);
+        return traceCoordinate;
+    }
+    
+    dsl_coordinate TrackedObject::GetLastCoordinate(uint testPoint)
+    {
+        dsl_coordinate traceCoordinate{0};
+        getCoordinate(m_bboxTrace.back(), testPoint, traceCoordinate);
         return traceCoordinate;
     }
     

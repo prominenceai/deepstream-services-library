@@ -106,40 +106,6 @@ namespace DSL
     };
 
     /**
-     * @class GeosMultiLine
-     * @file DslGeosTypes.h
-     * @brief Implements a GEOS Multi-Line object that can test for
-     * intersection with a GEOS Line object
-     */
-    class GeosMultiLine
-    {
-    public: 
-
-        /**
-         * @brief ctor for the GeosMultiLine class
-         * @param[in] multi-line reference to a DSL Multi-Line Structure.
-         */
-        GeosMultiLine(const dsl_multi_line_params& multiLine);
-
-        /**
-         * @brief dtor for the GeosMultiLine class
-         */
-        ~GeosMultiLine();
-
-        /**
-         * @brief function to determine if two GEOS Lines intersect
-         * @param[in] testLine GEOS line to test for intersection
-         * @return true if lines intersect, false otherwise
-         */
-        bool Crosses(const GeosLine& testLine);
-        
-        /**
-         * @brief Actual GEOS Multi-Line for this class.
-         */
-        GEOSGeometry* m_pGeosMultiLine;
-    };
-
-    /**
      * @class GeosRectangle
      * @file DslGeosTypes.h
      * @brief Implements a GEOS Rectangle object that can test for
@@ -209,6 +175,13 @@ namespace DSL
         ~GeosPolygon();
 
         /**
+         * @brief function to determine the distance from a Point.
+         * @param[in] testPoint GEOS point to calculate for distance. 
+         * @return the distance in pixels. 
+         */
+        uint Distance(const GeosPoint& testPoint);
+
+        /**
          * @brief function to determine if two GEOS Polygons overlap
          * @param[in] testPolygon polygon to test for intersection with polygon
          * @return true if polygons intersect, false otherwise
@@ -235,6 +208,62 @@ namespace DSL
         GEOSGeometry* m_pGeosPolygon;
 
     };
+
+    /**
+     * @class GeosMultiLine
+     * @file DslGeosTypes.h
+     * @brief Implements a GEOS Multi-Line object that can test for
+     * intersection with a GEOS Line object
+     */
+    class GeosMultiLine
+    {
+    public: 
+
+        /**
+         * @brief ctor for the GeosMultiLine class
+         * @param[in] multi-line reference to a DSL Multi-Line Structure.
+         */ 
+        GeosMultiLine(const dsl_multi_line_params& multiLine);
+
+        /**
+         * @brief dtor for the GeosMultiLine class
+         */
+        ~GeosMultiLine();
+
+        /**
+         * @brief function to determine if a GEOS Line cross with this Multi-Line
+         * @param[in] testLine GEOS line to test for cross
+         * @return true if lines intersect, false otherwise
+         */
+        bool Crosses(const GeosLine& testLine);
+        
+        /**
+         * @brief function to determine a 
+         * @param[in] testLine GEOS line to test for intersection
+         * @return true if lines intersect, false otherwise
+         */
+        bool Crosses(const GeosPolygon& testPolygon);
+
+        /**
+         * @brief function to determine a 
+         * @param[in] testLine GEOS line to test for intersection
+         * @return true if lines intersect, false otherwise
+         */
+        bool Crosses(const GeosMultiLine& testMultLine);
+
+        /**
+         * @brief function to determine the distance from a Point.
+         * @param[in] testPoint GEOS point to calculate for distance. 
+         * @return the distance in pixels. 
+         */
+        uint Distance(const GeosPoint& testPoint);
+        
+        /**
+         * @brief Actual GEOS Multi-Line for this class.
+         */
+        GEOSGeometry* m_pGeosMultiLine;
+    };
+
 
 }
 

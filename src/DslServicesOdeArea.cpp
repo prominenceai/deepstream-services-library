@@ -46,7 +46,8 @@ namespace DSL
             }
             DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, polygon);
             
-            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, polygon, RgbaPolygon);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, 
+                polygon, RgbaPolygon);
             
             if (bboxTestPoint > DSL_BBOX_POINT_ANY)
             {
@@ -61,13 +62,15 @@ namespace DSL
             m_odeAreas[name] = DSL_ODE_AREA_INCLUSION_NEW(name, 
                 pPolygon, show, bboxTestPoint);
          
-            LOG_INFO("New ODE Inclusion Area '" << name << "' created successfully");
+            LOG_INFO("New ODE Inclusion Area '" << name 
+                << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("ODE Inclusion Area '" << name << "' threw exception on creation");
+            LOG_ERROR("ODE Inclusion Area '" << name 
+                << "' threw exception on creation");
             return DSL_RESULT_ODE_AREA_THREW_EXCEPTION;
         }
     }                
@@ -88,7 +91,8 @@ namespace DSL
             }
             DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, polygon);
             
-            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, polygon, RgbaPolygon);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, 
+                polygon, RgbaPolygon);
 
             if (bboxTestPoint > DSL_BBOX_POINT_ANY)
             {
@@ -129,7 +133,8 @@ namespace DSL
                 return DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE;
             }
             DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, line);
-            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, line, RgbaLine);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, 
+                line, RgbaLine);
             
             if (bboxTestPoint > DSL_BBOX_POINT_WEST)
             {
@@ -141,15 +146,62 @@ namespace DSL
             DSL_RGBA_LINE_PTR pLine = 
                 std::dynamic_pointer_cast<RgbaLine>(m_displayTypes[line]);
             
-            m_odeAreas[name] = DSL_ODE_AREA_LINE_NEW(name, pLine, show, bboxTestPoint);
+            m_odeAreas[name] = DSL_ODE_AREA_LINE_NEW(name, 
+                pLine, show, bboxTestPoint);
          
-            LOG_INFO("New ODE Line Area '" << name << "' created successfully");
+            LOG_INFO("New ODE Line Area '" << name 
+                << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("ODE Line Area '" << name << "' threw exception on creation");
+            LOG_ERROR("ODE Line Area '" << name 
+                << "' threw exception on creation");
+            return DSL_RESULT_ODE_AREA_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::OdeAreaLineMultiNew(const char* name, 
+        const char* multiLine, boolean show, uint bboxTestPoint)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure ODE Area name uniqueness 
+            if (m_odeAreas.find(name) != m_odeAreas.end())
+            {   
+                LOG_ERROR("ODE Area name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE;
+            }
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, multiLine);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, 
+                multiLine, RgbaMultiLine);
+            
+            if (bboxTestPoint > DSL_BBOX_POINT_WEST)
+            {
+                LOG_ERROR("Bounding box test point value of '" << bboxTestPoint << 
+                    "' is invalid when creating ODE Multi-Line Area '" << name << "'");
+                return DSL_RESULT_ODE_AREA_PARAMETER_INVALID;
+            }
+            
+            DSL_RGBA_MULTI_LINE_PTR pMultiLine = 
+                std::dynamic_pointer_cast<RgbaMultiLine>(m_displayTypes[multiLine]);
+            
+            m_odeAreas[name] = 
+                DSL_ODE_AREA_MULTI_LINE_NEW(name, pMultiLine, show, bboxTestPoint);
+         
+            LOG_INFO("New ODE Multi-Line Area '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Multi-Line Area '" << name 
+                << "' threw exception on creation");
             return DSL_RESULT_ODE_AREA_THREW_EXCEPTION;
         }
     }                
@@ -197,7 +249,8 @@ namespace DSL
                 // In the case of Delete all
                 if (imap.second.use_count() > 1)
                 {
-                    LOG_ERROR("ODE Area '" << imap.second->GetName() << "' is currently in use");
+                    LOG_ERROR("ODE Area '" << imap.second->GetName() 
+                        << "' is currently in use");
                     return DSL_RESULT_ODE_AREA_IN_USE;
                 }
             }

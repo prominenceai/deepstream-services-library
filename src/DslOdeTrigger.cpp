@@ -671,7 +671,7 @@ namespace DSL
         return true;
     }
 
-    bool OdeTrigger::CheckForWithin(NvDsObjectMeta* pObjectMeta)
+    bool OdeTrigger::CheckForInside(NvDsObjectMeta* pObjectMeta)
     {
         // Note: function is called from the system (callback) context
         // Gaurd against property updates from the client API
@@ -685,7 +685,7 @@ namespace DSL
             {
                 DSL_ODE_AREA_PTR pOdeArea = 
                     std::dynamic_pointer_cast<OdeArea>(imap.second);
-                if (pOdeArea->CheckForWithin(pObjectMeta->rect_params))
+                if (pOdeArea->IsBboxInside(pObjectMeta->rect_params))
                 {
                     return !pOdeArea->IsType(typeid(OdeExclusionArea));
                 }
@@ -767,7 +767,7 @@ namespace DSL
         if (!m_enabled or 
             !CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
-            !CheckForWithin(pObjectMeta))
+            !CheckForInside(pObjectMeta))
         {
             return false;
         }
@@ -823,7 +823,7 @@ namespace DSL
         // will report Absence incorrectly
         if (!CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
-            !CheckForWithin(pObjectMeta))
+            !CheckForInside(pObjectMeta))
         {
             return false;
         }
@@ -892,7 +892,7 @@ namespace DSL
         if (!m_enabled or 
             !CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
-            !CheckForWithin(pObjectMeta))
+            !CheckForInside(pObjectMeta))
         {
             return false;
         }
@@ -1015,7 +1015,7 @@ namespace DSL
             return false;
         }
 
-        // Note: we don't check for within area criteria until we have a trace.
+        // Check for minimum criteria - but not for within an Area. 
         if (!CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta))
         {
@@ -1028,34 +1028,48 @@ namespace DSL
         if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
             pObjectMeta->object_id))
         {
+            // Create a new Tracked object and return without occurence
             m_pTrackedObjectsPerSource->Track(pFrameMeta, pObjectMeta);
             return false;
         }
 
+        // Else, get the tracked object and update with current frame meta
         std::shared_ptr<TrackedObject> pTrackedObject = 
             m_pTrackedObjectsPerSource->GetObject(pFrameMeta->source_id,
                 pObjectMeta->object_id);
                 
         pTrackedObject->Update(pFrameMeta->frame_num, &pObjectMeta->rect_params);
             
+        // Iterate through the map of 1 or more Areas to test for line cross
         for (const auto &imap: m_pOdeAreasIndexed)
         {
             DSL_ODE_AREA_PTR pOdeArea = 
                 std::dynamic_pointer_cast<OdeArea>(imap.second);
                 
-            dsl_coordinate firstCoordinate = pTrackedObject->GetFirstCoordinate(
-                pOdeArea->GetBboxTestPoint());
+            uint testPoint = pOdeArea->GetBboxTestPoint();
+                
+            // get the first and last test-points to see if minimum requirments
+            // have been met to keep testing/tracking the current object.
+    
+            dsl_coordinate firstCoordinate = 
+                pTrackedObject->GetFirstCoordinate(testPoint);
+            dsl_coordinate lastCoordinate = 
+                pTrackedObject->GetLastCoordinate(testPoint);
             
-            if (pOdeArea->IsPointOnLine(firstCoordinate))
+            // purge tracked objects that start on the line, as well as
+            // objects on the line with less than the minimim frame count
+            if (pOdeArea->IsPointOnLine(firstCoordinate) or
+                (pOdeArea->IsPointOnLine(lastCoordinate) and
+                    pTrackedObject->preEventFrameCount << m_minFrameCount))
             {
                 m_pTrackedObjectsPerSource->DeleteObject(pFrameMeta->source_id,
                     pObjectMeta->object_id);
                 return false;
             }
+            
             // Get the trace vector for the testpoint defined for this Area
             std::shared_ptr<std::vector<dsl_coordinate>> pTrace = 
-                pTrackedObject->GetTrace(pOdeArea->GetBboxTestPoint(), 
-                    m_testMethod);
+                pTrackedObject->GetTrace(testPoint, m_testMethod);
 
             if (m_traceEnabled)
             {
@@ -1071,9 +1085,21 @@ namespace DSL
             
             uint direction;
 
-            if (pTrackedObject->BboxTraceSize() >= m_minFrameCount and
-                pOdeArea->CheckForCross(pTrace, direction))
+            if (pOdeArea->DoesTraceCrossLine(pTrace, direction))
             {
+                // If we've crosed before reaching the minimum frame count
+                if (pTrackedObject->preEventFrameCount < m_minFrameCount)
+                {
+                    // delete the object - will be retracked in the next frame.
+                    m_pTrackedObjectsPerSource->DeleteObject(pFrameMeta->source_id,
+                        pObjectMeta->object_id);
+                    return false;
+                }
+                if (++pTrackedObject->onEventFrameCount < m_minFrameCount)
+                {
+                    return false;
+                }
+                
                 // event has been triggered
                 IncrementAndCheckTriggerCount();
                 m_occurrences++;
@@ -1105,6 +1131,8 @@ namespace DSL
                 return true;
             }
         }
+        // No trigger, so update the per-event counter
+        pTrackedObject->preEventFrameCount++;
         return false;
     }
 
@@ -1201,7 +1229,7 @@ namespace DSL
         if (!m_enabled or 
             !CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
-            !CheckForWithin(pObjectMeta))
+            !CheckForInside(pObjectMeta))
         {
             return false;
         }
@@ -1270,7 +1298,7 @@ namespace DSL
         if (!m_enabled or 
             !CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
-            !CheckForWithin(pObjectMeta))
+            !CheckForInside(pObjectMeta))
         {
             return false;
         }
@@ -1331,7 +1359,7 @@ namespace DSL
             !m_clientChecker or 
             !CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
-            !CheckForWithin(pObjectMeta))
+            !CheckForInside(pObjectMeta))
         {
             return false;
         }
@@ -1442,7 +1470,7 @@ namespace DSL
     {
         if (!CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
-            !CheckForWithin(pObjectMeta))
+            !CheckForInside(pObjectMeta))
         {
             return false;
         }
@@ -1548,7 +1576,7 @@ namespace DSL
     {
         if (!CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
-            !CheckForWithin(pObjectMeta))
+            !CheckForInside(pObjectMeta))
         {
             return false;
         }
@@ -1605,7 +1633,7 @@ namespace DSL
     {
         if (!CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
-            !CheckForWithin(pObjectMeta))
+            !CheckForInside(pObjectMeta))
         {
             return false;
         }
@@ -1680,7 +1708,7 @@ namespace DSL
     {
         if (!CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
-            !CheckForWithin(pObjectMeta))
+            !CheckForInside(pObjectMeta))
         {
             return false;
         }
@@ -1757,7 +1785,7 @@ namespace DSL
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!CheckForSourceId(pFrameMeta->source_id) or 
-            !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForWithin(pObjectMeta))
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForInside(pObjectMeta))
         {
             return false;
         }
@@ -1854,7 +1882,7 @@ namespace DSL
     {
         if (!CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
-            !CheckForWithin(pObjectMeta))
+            !CheckForInside(pObjectMeta))
         {
             return false;
         }
@@ -1965,7 +1993,7 @@ namespace DSL
         if (!m_enabled or 
             !CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
-            !CheckForWithin(pObjectMeta))
+            !CheckForInside(pObjectMeta))
         {
             return false;
         }
@@ -2040,7 +2068,7 @@ namespace DSL
         if (!m_enabled or 
             !CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
-            !CheckForWithin(pObjectMeta))
+            !CheckForInside(pObjectMeta))
         {
             return false;
         }
@@ -2128,7 +2156,7 @@ namespace DSL
         
         m_classId = m_classIdA;
         if (CheckForMinCriteria(pFrameMeta, pObjectMeta) and 
-            CheckForWithin(pObjectMeta))
+            CheckForInside(pObjectMeta))
         {
             m_occurrenceMetaListA.push_back(pObjectMeta);
             occurrenceAdded = true;
@@ -2137,7 +2165,7 @@ namespace DSL
         {
             m_classId = m_classIdB;
             if (CheckForMinCriteria(pFrameMeta, pObjectMeta) and 
-                CheckForWithin(pObjectMeta))
+                CheckForInside(pObjectMeta))
             {
                 m_occurrenceMetaListB.push_back(pObjectMeta);
                 occurrenceAdded = true;

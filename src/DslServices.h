@@ -256,6 +256,9 @@ namespace DSL {
         DslReturnType OdeAreaLineNew(const char* name, 
             const char* line, boolean display, uint bboxTestPoint);
 
+        DslReturnType OdeAreaLineMultiNew(const char* name, 
+            const char* multiLine, boolean display, uint bboxTestPoint);
+
         DslReturnType OdeAreaDelete(const char* name);
         
         DslReturnType OdeAreaDeleteAll();

@@ -81,9 +81,17 @@ namespace DSL
          * @brief Gets the coordinates for a specific test-point for the 
          * first bounding box in the TrackedObject's history.
          * @param[in] testPoint to generate the coordinates with
-         * @return coordinates
+         * @return first coordinates 
          */
         dsl_coordinate GetFirstCoordinate(uint testPoint);
+        
+        /**
+         * @brief Gets the coordinates for a specific test-point for the 
+         * last bounding box in the TrackedObject's history.
+         * @param[in] testPoint to generate the coordinates with
+         * @return last coordinates
+         */
+        dsl_coordinate GetLastCoordinate(uint testPoint);
         
         /**
          * @brief Returns a vector of coordinates defining the TrackedObject's
@@ -104,9 +112,26 @@ namespace DSL
          * @brief frame number for the tracked object, updated on detection within a new frame.
          */
         uint64_t frameNumber;
+        
+        /**
+         * @brief number of tracked frames prior to event
+         */
+        uint preEventFrameCount;
+
+        /**
+         * @brief number of tracked events
+         */
+        uint onEventFrameCount;
     
     private:
 
+        /**
+         * @brief Get an x,y coordinate from a Bbox based on this Trigger's
+         * client specified test-point
+         * @param[in] pBbox to optain the coordinate from
+         * @param[in] testPoint one of the DSL_BBOX_POINT_* constants
+         * @param[out] traceCoordinate x,y coordinage value.
+         */
         void getCoordinate(std::shared_ptr<NvBbox_Coords> pBbox, 
             uint testPoint, dsl_coordinate& traceCoordinate);
         
