@@ -1088,7 +1088,9 @@ namespace DSL
             
             uint direction;
 
-            if (pOdeArea->DoesTraceCrossLine(pTrace, direction))
+            // Check of the trace has crossed the area
+            if (pOdeArea->DoesTraceCrossLine(pTrace->data(), 
+                pTrace->size(), direction))
             {
                 // If we've crosed before reaching the minimum frame count
                 if (pTrackedObject->preEventFrameCount < m_minFrameCount)

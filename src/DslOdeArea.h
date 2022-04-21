@@ -120,16 +120,16 @@ namespace DSL
         virtual bool IsPointOnLine(const dsl_coordinate& coordinate) = 0;
         
         /**
-         * @brief Checks if a bounding box trace crosses the Area's Polygon 
+         * @brief Checks if a bounding box trace crosses the Area's underlying 
          * Display Type.
-         * @param[in] pTrace shared pointer to a vector of of dsl_coordinates.
+         * @param[in] coordinates array of dsl_coordinates.
+         * @param[in] numCoordinates size of the array.
          * @param[out] direction one of the DSL_AREA_CROSS_DIRECTION_* constants 
          * defining the direction of the cross, including DSL_AREA_CROSS_DIRECTION_NONE.
-         * @return true if trace fully crosses one of the sides of the Area's 
-         * Polygon including line-width, false otherwise.
+         * @return true if trace fully crosses the Area's Display Type including 
+         * line-width, false otherwise.
          */
-        virtual bool DoesTraceCrossLine(
-            const std::shared_ptr<std::vector<dsl_coordinate>> pTrace, 
+        virtual bool DoesTraceCrossLine(dsl_coordinate* coordinates, uint numCoordinates,
             uint& direction) = 0;
         
         /**
@@ -229,13 +229,14 @@ namespace DSL
         /**
          * @brief Checks if a bounding box trace crosses the Area's Polygon 
          * Display Type.
-         * @param[in] pTrace shared pointer to a vector of of dsl_coordinates.
+         * @param[in] coordinates array of dsl_coordinates.
+         * @param[in] numCoordinates size of the array.
          * @param[out] direction one of the DSL_AREA_CROSS_DIRECTION_* constants 
          * defining the direction of the cross, including DSL_AREA_CROSS_DIRECTION_NONE.
          * @return true if trace fully crosses one of the sides of the Area's 
          * Polygon including line-width, false otherwise.
          */
-        bool DoesTraceCrossLine(const std::shared_ptr<std::vector<dsl_coordinate>> pTrace,
+        bool DoesTraceCrossLine(dsl_coordinate* coordinates, uint numCoordinates,
             uint& direction);
 
         /**
@@ -341,14 +342,16 @@ namespace DSL
         bool IsPointOnLine(const dsl_coordinate& coordinate);
 
         /**
-         * @brief Checks if a bounding box trace crosses the Area's Line Display Type.
-         * @param[in] pTrace shared pointer to a vector of of dsl_coordinates.
+         * @brief Checks if a bounding box trace crosses the Area's Line 
+         * Display Type.
+         * @param[in] coordinates array of dsl_coordinates.
+         * @param[in] numCoordinates size of the array.
          * @param[out] direction one of the DSL_AREA_CROSS_DIRECTION_* constants 
-         * defining thedirection of the cross, including DSL_AREA_CROSS_DIRECTION_NONE.
-         * @return true if trace fully crosses the Area's multi-line including line-width, 
-         * false otherwise.
+         * defining the direction of the cross, including DSL_AREA_CROSS_DIRECTION_NONE.
+         * @return true if trace fully crosses the Area's Line Display Type including 
+         * line-width, false otherwise.
          */
-        bool DoesTraceCrossLine(const std::shared_ptr<std::vector<dsl_coordinate>> pTrace,
+        bool DoesTraceCrossLine(dsl_coordinate* coordinates, uint numCoordinates,
             uint& direction);
             
         /**
@@ -419,13 +422,14 @@ namespace DSL
         /**
          * @brief Checks if a bounding box trace crosses the Area's Multi-Line 
          * Display Type.
-         * @param[in] pTrace shared pointer to a vector of of dsl_coordinates.
+         * @param[in] coordinates array of dsl_coordinates.
+         * @param[in] numCoordinates size of the array.
          * @param[out] direction one of the DSL_AREA_CROSS_DIRECTION_* constants 
          * defining the direction of the cross, including DSL_AREA_CROSS_DIRECTION_NONE.
-         * @return true if trace fully crosses the Area's multi-line including 
-         * line-width, false otherwise.
+         * @return true if trace fully crosses the Area's Multi-Line Display Type 
+         * including line-width, false otherwise.
          */
-        bool DoesTraceCrossLine(const std::shared_ptr<std::vector<dsl_coordinate>> pTrace,
+        bool DoesTraceCrossLine(dsl_coordinate* coordinates, uint numCoordinates,
             uint& direction);
 
         /**

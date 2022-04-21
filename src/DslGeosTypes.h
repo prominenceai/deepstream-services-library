@@ -212,6 +212,11 @@ namespace DSL
         bool Contains(const GeosPoint& testPoint);
         
         /**
+         * @brief Actual GEOS Line-String used for distance to border.
+         */
+        GEOSGeometry* m_pGeosMultiLine;
+        
+        /**
          * @brief Actual GEOS Polygon for this class.
          */
         GEOSGeometry* m_pGeosPolygon;

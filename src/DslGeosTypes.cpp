@@ -280,7 +280,18 @@ namespace DSL
                 throw;
             }
         }
+
+        // First, create Line String to use for calculating a points distance
+        // to the boarder of the Polygon, inside and out.
+        m_pGeosMultiLine = GEOSGeom_createLineString(geosCoordSequence);
+        if (!m_pGeosMultiLine)
+        {
+            LOG_ERROR("Exception when creating GEOS Line String");
+            throw;
+        }
         
+        // Next, create an outer ring from the coordinate sequence needed 
+        // to create a Polygon geometry.
         GEOSGeometry* outerRing = GEOSGeom_createLinearRing(geosCoordSequence);
         if (!outerRing)
         {
@@ -288,6 +299,8 @@ namespace DSL
             throw;
         }
 
+        // Finally, create the Polygon to use for checking if a point is
+        // within the Polygond
         m_pGeosPolygon = GEOSGeom_createPolygon(outerRing, NULL, 0);
         if (!m_pGeosPolygon)
         {
@@ -322,6 +335,17 @@ namespace DSL
             throw;
         }
         
+        // First, create Line String to use for calculating a points distance
+        // to the boarder of the Polygon, inside and out.
+        m_pGeosMultiLine = GEOSGeom_createLineString(geosCoordSequence);
+        if (!m_pGeosMultiLine)
+        {
+            LOG_ERROR("Exception when creating GEOS Line String");
+            throw;
+        }
+        
+        // Next, create an outer ring from the coordinate sequence needed 
+        // to create a Polygon geometry.
         GEOSGeometry* outerRing = GEOSGeom_createLinearRing(geosCoordSequence);
         if (!outerRing)
         {
@@ -329,6 +353,8 @@ namespace DSL
             throw;
         }
 
+        // Finally, create the Polygon to use for checking if a point is
+        // within the Polygond
         m_pGeosPolygon = GEOSGeom_createPolygon(outerRing, NULL, 0);
         if (!m_pGeosPolygon)
         {
@@ -352,7 +378,9 @@ namespace DSL
         // Don't log function entry/exit
         double distance(0);
         
-        if (!GEOSDistance(m_pGeosPolygon, testPoint.m_pGeosPoint, &distance))
+        // Use the Mutli-Line object to calculate distance to the border, 
+        // from inside and out.
+        if (!GEOSDistance(m_pGeosMultiLine, testPoint.m_pGeosPoint, &distance))
         {
             LOG_ERROR("Exception when calling GEOS Distance");
             throw;
@@ -426,7 +454,6 @@ namespace DSL
                 throw;
             }
         }
-        
         
         // once created, m_pGeosMultiLine will own the memory of geosCoordSequence
         // and will free it when GEOSGeom_destroy is called

@@ -428,6 +428,70 @@ SCENARIO( "A new OdeLineArea can determine IsPointOnLine correctly", "[OdeArea]"
     }
 }
 
+SCENARIO( "A new OdeLineArea can determine DoesTraceCrossLine correctly", "[OdeArea]" )
+{
+    GIVEN( "Attributes for a new OdeLineArea" ) 
+    {
+        std::string odeLineName("ode-line-area");
+        bool show(true);
+
+        std::string rgbaLineName  = "rgba-line";
+
+        // horizontal line coordinates
+        uint x1(100), y1(100), x2(400), y2(100);
+        uint width(10);
+
+        std::string colorName  = "custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), 
+            red, green, blue, alpha);
+        DSL_RGBA_LINE_PTR pLine = DSL_RGBA_LINE_NEW(rgbaLineName.c_str(), 
+            x1, y1, x2, y2, width, pColor);
+
+        uint bboxTestPoint(DSL_BBOX_POINT_SOUTH);
+        
+        DSL_ODE_AREA_LINE_PTR pOdeArea = 
+            DSL_ODE_AREA_LINE_NEW(odeLineName.c_str(), pLine, show, bboxTestPoint);
+
+        uint direction(99);
+
+        WHEN( "A trace is defined to cross the Line from outside" )
+        {
+            dsl_coordinate traceCoordinates[] = {{150,50},{150,90},{150,120},{175,150}};
+
+            THEN( "The trace is found to cross the Multi-Line Area" )
+            {
+                REQUIRE( pOdeArea->DoesTraceCrossLine(traceCoordinates,
+                    4, direction) == true );
+                REQUIRE( direction == DSL_AREA_CROSS_DIRECTION_IN );
+            }
+        }
+        WHEN( "A trace is defined to cross the Line from inside" )
+        {
+            dsl_coordinate traceCoordinates[] = {{175,150},{150,120},{150,90},{150,50}};
+
+            THEN( "The trace is found to cross the Multi-Line Area" )
+            {
+                REQUIRE( pOdeArea->DoesTraceCrossLine(traceCoordinates,
+                    4, direction) == true );
+                REQUIRE( direction == DSL_AREA_CROSS_DIRECTION_OUT );
+            }
+        }
+        WHEN( "A trace is defined to NOT cross the Line" )
+        {
+            dsl_coordinate traceCoordinates[] = {{150,450},{200,450},{250,460},{375,475}};
+
+            THEN( "The trace is found to not cross the Line Area" )
+            {
+                REQUIRE( pOdeArea->DoesTraceCrossLine(traceCoordinates,
+                    4, direction) == false );
+                REQUIRE( direction == DSL_AREA_CROSS_DIRECTION_NONE );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new MultiLineArea is created correctly", "[OdeArea]" )
 {
     GIVEN( "Attributes for a new OdeMultiLineArea" ) 
@@ -514,7 +578,7 @@ SCENARIO( "A new OdeMulLineArea can determine if IsPointInside correctly", "[Ode
     }
 }
 
-SCENARIO( "A new Horizonta OdeMultLineArea can GetPointLocation correctly", "[OdeArea]" )
+SCENARIO( "A new OdeMultLineArea can GetPointLocation correctly", "[OdeArea]" )
 {
     GIVEN( "Attributes for a new OdeLineArea" ) 
     {
@@ -569,6 +633,72 @@ SCENARIO( "A new Horizonta OdeMultLineArea can GetPointLocation correctly", "[Od
             {
                 REQUIRE(pOdeArea->GetPointLocation(coordinate) == 
                     DSL_AREA_POINT_LOCATION_ON_LINE );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new OdeMultLineArea can determine DoesTraceCrossLine correctly", 
+    "[OdeArea]" )
+{
+    GIVEN( "Attributes for a new OdeLineArea" ) 
+    {
+        std::string odeMultiLineName("ode-line-area");
+        bool show(true);
+
+        std::string rgbaMultiLineName  = "rgba-multi-line";
+
+        // multi-line coordinates
+        uint numCoordinates(4);
+        dsl_coordinate coordinates[4] = {{100,100},{200,90},{300,130},{400,150}};
+        uint width(4);
+
+        std::string colorName  = "custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), 
+            red, green, blue, alpha);
+        DSL_RGBA_MULTI_LINE_PTR pMultiLine = DSL_RGBA_MULTI_LINE_NEW(
+            rgbaMultiLineName.c_str(), coordinates, numCoordinates, width, pColor);
+
+        uint bboxTestPoint(DSL_BBOX_POINT_SOUTH);
+        
+        DSL_ODE_AREA_MULTI_LINE_PTR pOdeArea = DSL_ODE_AREA_MULTI_LINE_NEW(
+            odeMultiLineName.c_str(), pMultiLine, show, bboxTestPoint);
+            
+        uint direction(99);
+
+        WHEN( "A trace is defined to cross the Multi-Line from outside" )
+        {
+            dsl_coordinate traceCoordinates[] = {{150,50},{150,90},{150,120},{175,150}};
+
+            THEN( "The trace is found to cross the Multi-Line Area" )
+            {
+                REQUIRE( pOdeArea->DoesTraceCrossLine(traceCoordinates,
+                    4, direction) == true );
+                REQUIRE( direction == DSL_AREA_CROSS_DIRECTION_IN );
+            }
+        }
+        WHEN( "A trace is defined to cross the Multi-Line from inside" )
+        {
+            dsl_coordinate traceCoordinates[] = {{175,150},{150,120},{150,90},{150,50}};
+
+            THEN( "The trace is found to cross the Multi-Line Area" )
+            {
+                REQUIRE( pOdeArea->DoesTraceCrossLine(traceCoordinates,
+                    4, direction) == true );
+                REQUIRE( direction == DSL_AREA_CROSS_DIRECTION_OUT );
+            }
+        }
+        WHEN( "A trace is defined to NOT cross the Multi-Line" )
+        {
+            dsl_coordinate traceCoordinates[] = {{150,50},{200,50},{250,60},{375,75}};
+
+            THEN( "The trace is found to not cross the Multi-Line Area" )
+            {
+                REQUIRE( pOdeArea->DoesTraceCrossLine(traceCoordinates,
+                    4, direction) == false );
+                REQUIRE( direction == DSL_AREA_CROSS_DIRECTION_NONE );
             }
         }
     }
@@ -818,6 +948,70 @@ SCENARIO( "A new OdeInclussionArea can determine IsPointOnLine correctly", "[Ode
             THEN( "The point is found on the Polygon Area's line" )
             {
                 REQUIRE(pOdeArea->IsPointOnLine(coordinate) == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new OdeInclussionArea can determine DoesTraceCrossLine correctly", 
+    "[OdeArea]" )
+{
+    GIVEN( "Attributes for a new OdeInclussionArea" ) 
+    {
+        std::string odeAreaName("ode-inclusion-area");
+        bool show(true);
+
+        std::string polygonName  = "my-polygon";
+        uint numCoordinates(4);
+        dsl_coordinate coordinates[] = {{100,100},{210,110},{220, 300},{110,330}};
+        uint lineWidth(4);
+
+        std::string colorName  = "custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), 
+            red, green, blue, alpha);
+        DSL_RGBA_POLYGON_PTR pPolygon = DSL_RGBA_POLYGON_NEW(polygonName.c_str(), 
+            coordinates, numCoordinates, lineWidth, pColor);
+
+        uint bboxTestPoint(DSL_BBOX_POINT_NORTH);
+        
+        DSL_ODE_AREA_INCLUSION_PTR pOdeArea = DSL_ODE_AREA_INCLUSION_NEW(
+            odeAreaName.c_str(), pPolygon, show, bboxTestPoint);
+            
+        uint direction(0);
+
+        WHEN( "A trace is defined to cross the Polygon's border from outside" )
+        {
+            dsl_coordinate traceCoordinates[] = {{150,50},{150,90},{150,120},{175,150}};
+
+            THEN( "The trace is found to cross the Polygon Area" )
+            {
+                REQUIRE( pOdeArea->DoesTraceCrossLine(traceCoordinates,
+                    4, direction) == true );
+                REQUIRE( direction == DSL_AREA_CROSS_DIRECTION_IN );
+            }
+        }
+        WHEN( "A trace is defined to cross the Polygon's border from inside" )
+        {
+            dsl_coordinate traceCoordinates[] = {{175,150},{150,120},{150,90},{150,50}};
+
+            THEN( "The trace is found to cross the Polygon Area" )
+            {
+                REQUIRE( pOdeArea->DoesTraceCrossLine(traceCoordinates,
+                    4, direction) == true );
+                REQUIRE( direction == DSL_AREA_CROSS_DIRECTION_OUT );
+            }
+        }
+        WHEN( "A trace is defined to NOT cross the Polygon's border" )
+        {
+            dsl_coordinate traceCoordinates[] = {{150,50},{200,50},{250,60},{375,75}};
+
+            THEN( "The trace is found to cross the Polygon Area" )
+            {
+                REQUIRE( pOdeArea->DoesTraceCrossLine(traceCoordinates,
+                    4, direction) == false );
+                REQUIRE( direction == DSL_AREA_CROSS_DIRECTION_NONE );
             }
         }
     }

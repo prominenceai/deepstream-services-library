@@ -224,16 +224,16 @@ namespace DSL
         return false;
     }
     
-    bool OdePolygonArea::DoesTraceCrossLine(
-        const std::shared_ptr<std::vector<dsl_coordinate>> pTrace,
-        uint& direction)
+    bool OdePolygonArea::DoesTraceCrossLine(dsl_coordinate* coordinates, 
+        uint numCoordinates, uint& direction)
     {
         // Do not log function entry
         
         // covert the trace vector to line-parameters for testing
-        dsl_multi_line_params lineParms = {pTrace->data(), 
-            (uint)pTrace->size()};
+        dsl_multi_line_params lineParms = {coordinates, numCoordinates};
         
+        direction = DSL_AREA_CROSS_DIRECTION_NONE;
+
         // create a Geos object from the line-parameters to check 
         // for cross with this Area's line.
         GeosMultiLine multiLine(lineParms);
@@ -242,24 +242,25 @@ namespace DSL
         { 
             return false;
         }
-
-        direction = DSL_AREA_CROSS_DIRECTION_NONE;
         
         // use the Area's line width and trace-endpoint to determine if the cross
         // is sufficient to report, i.e. the line width is used as hysteresis.
-        GeosPoint endPoint(pTrace->back().x, pTrace->back().y);
+        GeosPoint endPoint(
+            coordinates[numCoordinates-1].x, 
+            coordinates[numCoordinates-1].y);
         
         bool crossed(((GeosPolygon)*m_pPolygon).Distance(endPoint) > 
             (m_pPolygon->border_width/2));
-            
+
         if (crossed)
         {
             // in case the object's trace crosses the line more than once.
-            if (GetPointLocation(pTrace->back()) == GetPointLocation(pTrace->front()))
+            if (GetPointLocation(coordinates[numCoordinates-1]) == 
+                GetPointLocation(coordinates[0]))
             {
                 return false;
             }
-            direction = GetPointLocation(pTrace->back());
+            direction = GetPointLocation(coordinates[numCoordinates-1]);
         }
         return crossed;
     }
@@ -362,15 +363,16 @@ namespace DSL
             (m_pLine->line_width/2));
     }
     
-    bool OdeLineArea::DoesTraceCrossLine(
-        const std::shared_ptr<std::vector<dsl_coordinate>> pTrace,
-        uint& direction)
+    bool OdeLineArea::DoesTraceCrossLine(dsl_coordinate* coordinates,
+        uint numCoordinates, uint& direction)
     {
         // Do not log function entry
         
         // covert the trace vector to line-parameters for testing
-        dsl_multi_line_params lineParms = {pTrace->data(), 
-            (uint)pTrace->size()};
+        dsl_multi_line_params lineParms = {coordinates, 
+            numCoordinates};
+
+        direction = DSL_AREA_CROSS_DIRECTION_NONE;
         
         // create a Geos object from the line-parameters to check 
         // for cross with this Area's line.
@@ -381,11 +383,11 @@ namespace DSL
             return false;
         }
 
-        direction = DSL_AREA_CROSS_DIRECTION_NONE;
-        
         // use the Area's line width and trace-endpoint to determine if the cross
         // is sufficient to report, i.e. the line width is used as hysteresis.
-        GeosPoint endPoint(pTrace->back().x, pTrace->back().y);
+        GeosPoint endPoint(
+            coordinates[numCoordinates-1].x, 
+            coordinates[numCoordinates-1].y);
         
         bool crossed(((GeosLine)*m_pLine).Distance(endPoint) > 
             (m_pLine->line_width/2));
@@ -393,11 +395,12 @@ namespace DSL
         if (crossed)
         {
             // in case the object's trace crosses the line more than once.
-            if (GetPointLocation(pTrace->back()) == GetPointLocation(pTrace->front()))
+            if (GetPointLocation(coordinates[numCoordinates-1]) == 
+                GetPointLocation(coordinates[0]))
             {
                 return false;
             }
-            direction = GetPointLocation(pTrace->back());
+            direction = GetPointLocation(coordinates[numCoordinates-1]);
         }
         return crossed;    
     }
@@ -519,15 +522,16 @@ namespace DSL
             (m_pMultiLine->line_width/2));
     }
     
-    bool OdeMultiLineArea::DoesTraceCrossLine(
-        const std::shared_ptr<std::vector<dsl_coordinate>> pTrace,
-        uint& direction)
+    bool OdeMultiLineArea::DoesTraceCrossLine(dsl_coordinate* coordinates, 
+        uint numCoordinates, uint& direction)
     {
         // Do not log function entry
         
         // covert the trace vector to line-parameters for testing
-        dsl_multi_line_params lineParms = {pTrace->data(), 
-            (uint)pTrace->size()};
+        dsl_multi_line_params lineParms = {coordinates, 
+            numCoordinates};
+
+        direction = DSL_AREA_CROSS_DIRECTION_NONE;
         
         // create a Geos object from the line-parameters to check 
         // for cross with this Area's line.
@@ -538,11 +542,11 @@ namespace DSL
             return false;
         }
         
-        direction = DSL_AREA_CROSS_DIRECTION_NONE;
-        
         // use the Area's line width and trace-endpoint to determine if the cross
         // is sufficient to report, i.e. the line width is used as hysteresis.
-        GeosPoint endPoint(pTrace->back().x, pTrace->back().y);
+        GeosPoint endPoint(
+            coordinates[numCoordinates-1].x, 
+            coordinates[numCoordinates-1].y);
         
         bool crossed(((GeosMultiLine)*m_pMultiLine).Distance(endPoint) > 
             (m_pMultiLine->line_width/2));
@@ -550,11 +554,12 @@ namespace DSL
         if (crossed)
         {
             // in case the object's trace crosses the line more than once.
-            if (GetPointLocation(pTrace->back()) == GetPointLocation(pTrace->front()))
+            if (GetPointLocation(coordinates[numCoordinates-1]) == 
+                GetPointLocation(coordinates[0]))
             {
                 return false;
             }
-            direction = GetPointLocation(pTrace->back());
+            direction = GetPointLocation(coordinates[numCoordinates-1]);
         }
         return crossed;
     }

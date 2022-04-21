@@ -1577,7 +1577,7 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can p
             THEN( "The Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*2);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
@@ -1720,7 +1720,7 @@ SCENARIO( "A new Pipeline with a Cross ODE Trigger using an ODE Polygon Area can
         std::wstring ode_pph_name(L"ode-handler");
         
         std::wstring polygon(L"polygon");
-        dsl_coordinate coordinates[4] = {{365,600},{980,620},{1000, 770},{180,750}};
+        dsl_coordinate coordinates[4] = {{240,650},{980,670},{1000, 770},{180,750}};
         uint num_coordinates(4);
         uint line_width(10);
 
@@ -1804,7 +1804,7 @@ SCENARIO( "A new Pipeline with a Cross ODE Trigger using an ODE Polygon Area can
             THEN( "The Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*2);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*20);
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
