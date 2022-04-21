@@ -352,13 +352,13 @@ namespace DSL
     typedef struct _dsl_multi_line_parms
     {
         /**
-         * @brief an array coordinates defining the polygon
+         * @brief an array coordinates defining the multi-line
          * The last point provided will be connected to the first
          */
         dsl_coordinate* coordinates;
         
         /**
-         * @brief the number of coordinates in the polygon
+         * @brief the number of coordinates in the multi-line
          */
         uint num_coordinates;
          
@@ -368,7 +368,7 @@ namespace DSL
         uint line_width;    
 
         /**
-         * @brief RGBA color of the polygon lines in pixels
+         * @brief RGBA color of the multi-line lines in pixels
          */
         NvOSD_ColorParams color;
          

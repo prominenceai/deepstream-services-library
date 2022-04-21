@@ -549,7 +549,7 @@ THE SOFTWARE.
 /**
  * @brief Defines a Point's location relative to an ODE Area.
  */
-#define DSL_AREA_POINT_LOCATION_NONE                                0
+#define DSL_AREA_POINT_LOCATION_ON_LINE                             0
 #define DSL_AREA_POINT_LOCATION_INSIDE                              1
 #define DSL_AREA_POINT_LOCATION_OUTSIDE                             2
 

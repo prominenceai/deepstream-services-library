@@ -108,6 +108,36 @@ namespace DSL
         }
     }
     
+    GeosLine::GeosLine(uint x1, uint y1, uint x2, uint y2)
+        : m_pGeosLine(NULL)
+    {
+        // Don't log function entry/exit
+        
+        GEOSCoordSequence* geosCoordSequence = GEOSCoordSeq_create(2, 2);
+        if (!geosCoordSequence)
+        {
+            LOG_ERROR("Exception when creating GEOS Coordinate Sequence");
+            throw;
+        }
+        if (!GEOSCoordSeq_setX(geosCoordSequence, 0, double(x1)) or 
+            !GEOSCoordSeq_setY(geosCoordSequence, 0, double(y1)) or
+            !GEOSCoordSeq_setX(geosCoordSequence, 1, double(x2)) or
+            !GEOSCoordSeq_setY(geosCoordSequence, 1, double(y2))) 
+        {
+            LOG_ERROR("Exception when setting GEOS Coordinate Sequence");
+            throw;
+        }
+        
+        // once created, m_pGeosLine will own the memory of geosCoordSequence
+        // and will free it when GEOSGeom_destroy is called
+        m_pGeosLine = GEOSGeom_createLineString(geosCoordSequence);
+        if (!m_pGeosLine)
+        {
+            LOG_ERROR("Exception when creating GEOS Line String");
+            throw;
+        }
+    }
+    
     GeosLine::~GeosLine()
     {
         // Don't log function entry/exit

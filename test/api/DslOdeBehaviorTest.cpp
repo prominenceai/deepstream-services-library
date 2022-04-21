@@ -698,7 +698,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
         std::wstring font_name(L"arial-14");
         uint size(14);
 
-        std::wstring areaName(L"area");
+        std::wstring area_name(L"area");
         std::wstring polygonName(L"polygon");
         uint border_width(3);
 
@@ -738,7 +738,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
             coordinates, num_coordinates, 
             border_width, light_white.c_str())== DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_area_inclusion_new(areaName.c_str(), 
+        REQUIRE( dsl_ode_area_inclusion_new(area_name.c_str(), 
             polygonName.c_str(), true, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
 
         // Display actions, one per class.
@@ -765,28 +765,28 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
         REQUIRE( dsl_ode_trigger_action_add(vehicle_summation_name.c_str(), 
             vehicle_display_action.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_area_add(vehicle_summation_name.c_str(), 
-            areaName.c_str()) == DSL_RESULT_SUCCESS );
+            area_name.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_summation_new(bicycle_summation_name.c_str(), 
             NULL, bicycle_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(bicycle_summation_name.c_str(), 
             bycle_display_action.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_area_add(bicycle_summation_name.c_str(), 
-            areaName.c_str()) == DSL_RESULT_SUCCESS );
+            area_name.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_summation_new(person_summation_name.c_str(), 
             NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(person_summation_name.c_str(), 
             person_display_action.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_area_add(person_summation_name.c_str(), 
-            areaName.c_str()) == DSL_RESULT_SUCCESS );
+            area_name.c_str()) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_ode_trigger_summation_new(roadsign_summation_name.c_str(), 
             NULL, roadsign_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(roadsign_summation_name.c_str(), 
             roadsign_display_action.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_area_add(roadsign_summation_name.c_str(), 
-            areaName.c_str()) == DSL_RESULT_SUCCESS );
+            area_name.c_str()) == DSL_RESULT_SUCCESS );
 
         const wchar_t* odeTypes[] = {L"vehicle-summation", L"bicycle-summation", 
             L"person-summation", L"roadsign-summation", NULL};
@@ -941,14 +941,14 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Line Area 
 
         std::wstring ode_pph_name(L"ode-handler");
         
-        std::wstring lineName(L"line");
+        std::wstring line_name(L"line");
         uint x1(300), y1(600), x2(600), y2(620);
         uint line_width(5);
 
         std::wstring colorName(L"opaque-white");
         double red(1.0), green(1.0), blue(1.0), alpha(1.0);
         
-        std::wstring areaName  = L"line-area";
+        std::wstring area_name  = L"line-area";
 
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -972,17 +972,17 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Line Area 
         REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_line_new(lineName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_line_new(line_name.c_str(), 
             x1, y1, x2, y2, line_width, colorName.c_str())== DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_area_line_new(areaName.c_str(), lineName.c_str(), 
+        REQUIRE( dsl_ode_area_line_new(area_name.c_str(), line_name.c_str(), 
             true, DSL_BBOX_EDGE_BOTTOM) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_occurrence_new(person_occurrence_name.c_str(), 
             NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_area_add(person_occurrence_name.c_str(), 
-            areaName.c_str()) == DSL_RESULT_SUCCESS );
+            area_name.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_action_format_bbox_new(odeFillActionName.c_str(), 
             0, NULL, true, colorName.c_str()) == DSL_RESULT_SUCCESS );
@@ -1048,7 +1048,7 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Inclussion
         std::wstring opaqueWhite(L"opaque-white");
         double red(1.0), green(1.0), blue(1.0), alpha(1.0);
         
-        std::wstring areaName  = L"inclusion-area";
+        std::wstring area_name  = L"inclusion-area";
 
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -1076,14 +1076,14 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Inclussion
             coordinates, num_coordinates, 
             border_width, opaqueWhite.c_str())== DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_area_inclusion_new(areaName.c_str(), polygonName.c_str(), 
+        REQUIRE( dsl_ode_area_inclusion_new(area_name.c_str(), polygonName.c_str(), 
             true, DSL_BBOX_POINT_SOUTH) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_occurrence_new(person_occurrence_name.c_str(), 
             NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_area_add(person_occurrence_name.c_str(), 
-            areaName.c_str()) == DSL_RESULT_SUCCESS );
+            area_name.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_action_format_bbox_new(odeFillActionName.c_str(), 
             0, NULL, true, opaqueWhite.c_str()) == DSL_RESULT_SUCCESS );
@@ -1150,7 +1150,7 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Exclusion 
         std::wstring opaqueWhite(L"opaque-white");
         double red(1.0), green(1.0), blue(1.0), alpha(1.0);
 
-        std::wstring areaName  = L"exclusion-area";
+        std::wstring area_name  = L"exclusion-area";
 
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -1178,14 +1178,14 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Exclusion 
             coordinates, num_coordinates, 
             border_width, opaqueWhite.c_str())== DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_area_exclusion_new(areaName.c_str(), polygonName.c_str(), 
+        REQUIRE( dsl_ode_area_exclusion_new(area_name.c_str(), polygonName.c_str(), 
             true, DSL_BBOX_POINT_SOUTH) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_occurrence_new(person_occurrence_name.c_str(), 
             NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_area_add(person_occurrence_name.c_str(), 
-            areaName.c_str()) == DSL_RESULT_SUCCESS );
+            area_name.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_action_format_bbox_new(odeFillActionName.c_str(), 
             0, NULL, true, opaqueWhite.c_str()) == DSL_RESULT_SUCCESS );
@@ -1409,7 +1409,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Forma
     }
 }
 
-SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Customize Label Action can play", "[ode-behavior]" )
+SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Customize Label Action can play", 
+    "[ode-behavior]" )
 {
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Costomize Label Action" ) 
     {
@@ -1484,31 +1485,31 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Custo
     }
 }
 
-SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can play", "[new]" )
+SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can play", 
+    "[ode-behavior]" )
 {
     GIVEN( "A Pipeline, ODE Handler, Cross ODE Trigger, Line ODE Area, and Fill ODE Action" ) 
     {
 
-        std::wstring odeFillActionName(L"fill-action");
-
         std::wstring ode_pph_name(L"ode-handler");
         
-        std::wstring lineName(L"line");
+        std::wstring line_name(L"line");
         uint x1(250), y1(660), x2(620), y2(680);
-        uint line_width(6);
+        uint line_width(10);
 
         std::wstring white(L"solid-white");
         std::wstring green(L"solid-green");
         
-        std::wstring areaName  = L"line-area";
+        std::wstring area_name  = L"line-area";
 
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
-            model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            infer_config_file.c_str(), model_engine_file.c_str(), 
+            0) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), 
             tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
@@ -1529,10 +1530,10 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can p
         REQUIRE( dsl_display_type_rgba_color_new(green.c_str(), 
             0.5, 1.0, 0.5, 0.5) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_line_new(lineName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_line_new(line_name.c_str(), 
             x1, y1, x2, y2, line_width, white.c_str())== DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_area_line_new(areaName.c_str(), lineName.c_str(), 
+        REQUIRE( dsl_ode_area_line_new(area_name.c_str(), line_name.c_str(), 
             true, DSL_BBOX_POINT_SOUTH) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_cross_new(person_cross_name.c_str(), 
@@ -1546,7 +1547,7 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can p
             true, green.c_str(), 4) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_area_add(person_cross_name.c_str(), 
-            areaName.c_str()) == DSL_RESULT_SUCCESS );
+            area_name.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_action_print_new(ode_action_name.c_str(), 
             false) == DSL_RESULT_SUCCESS );
@@ -1576,7 +1577,234 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can p
             THEN( "The Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*20);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*2);
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Multi-Line Area can play", 
+    "[temp]" )
+{
+    GIVEN( "A Pipeline, ODE Handler, Cross ODE Trigger, Line ODE Area, and Fill ODE Action" ) 
+    {
+
+        std::wstring odeFillActionName(L"fill-action");
+
+        std::wstring ode_pph_name(L"ode-handler");
+        
+        std::wstring multi_line_name(L"multi-line");
+        dsl_coordinate coordinates[4] = {{200,670},{300,620},{400, 690},{720,750}};
+        uint num_coordinates(4);
+        uint line_width(10);
+
+        std::wstring white(L"solid-white");
+        std::wstring red(L"solid-red");
+        
+        std::wstring area_name  = L"multi-line-area";
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            infer_config_file.c_str(), model_engine_file.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), 
+            tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tiler_new(tiler_name.c_str(), 
+            width, height) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pph_ode_new(ode_pph_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_display_meta_alloc_size_set(
+            ode_pph_name.c_str(), 3) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), 
+            ode_pph_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_new(white.c_str(), 
+            1.0, 1.0, 1.0, 0.7) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_new(red.c_str(), 
+            1.0, 0.0, 0.5, 1.0) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_line_multi_new(multi_line_name.c_str(), 
+            coordinates, num_coordinates, line_width, white.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_area_line_multi_new(area_name.c_str(), multi_line_name.c_str(), 
+            true, DSL_BBOX_POINT_SOUTH) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_trigger_cross_new(person_cross_name.c_str(), 
+            NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE, 2, 200, 
+            DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_confidence_min_set(person_cross_name.c_str(), 
+            0.40) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_ode_trigger_cross_view_settings_set(person_cross_name.c_str(),
+            true, red.c_str(), 4) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_area_add(person_cross_name.c_str(), 
+            area_name.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_action_print_new(ode_action_name.c_str(), 
+            false) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_trigger_action_add(person_cross_name.c_str(), 
+            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(),
+            person_cross_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_osd_new(osd_name.c_str(), false, false,
+            false, false) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {L"uri-source", 
+            L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"window-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*30);
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Pipeline with a Cross ODE Trigger using an ODE Polygon Area can play", 
+    "[new]" )
+{
+    GIVEN( "A Pipeline, ODE Handler, Cross ODE Trigger, Line ODE Area, and Fill ODE Action" ) 
+    {
+        std::wstring ode_pph_name(L"ode-handler");
+        
+        std::wstring polygon(L"polygon");
+        dsl_coordinate coordinates[4] = {{365,600},{980,620},{1000, 770},{180,750}};
+        uint num_coordinates(4);
+        uint line_width(10);
+
+        std::wstring white(L"solid-white");
+        std::wstring green(L"solid-green");
+        
+        std::wstring area_name  = L"multi-line-area";
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            infer_config_file.c_str(), model_engine_file.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), 
+            tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tiler_new(tiler_name.c_str(), 
+            width, height) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pph_ode_new(ode_pph_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_display_meta_alloc_size_set(
+            ode_pph_name.c_str(), 3) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), 
+            ode_pph_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_new(white.c_str(), 
+            1.0, 1.0, 1.0, 1.0) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_new(green.c_str(), 
+            0.5, 1.0, 0.5, 0.5) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_polygon_new(polygon.c_str(), 
+            coordinates, num_coordinates, line_width, white.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_area_inclusion_new(area_name.c_str(), polygon.c_str(), 
+            true, DSL_BBOX_POINT_SOUTH) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_trigger_cross_new(person_cross_name.c_str(), 
+            NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE, 2, 200, 
+            DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_confidence_min_set(person_cross_name.c_str(), 
+            0.40) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_ode_trigger_cross_view_settings_set(person_cross_name.c_str(),
+            true, green.c_str(), 4) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_area_add(person_cross_name.c_str(), 
+            area_name.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_action_print_new(ode_action_name.c_str(), 
+            false) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_trigger_action_add(person_cross_name.c_str(), 
+            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(),
+            person_cross_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_osd_new(osd_name.c_str(), false, false,
+            false, false) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {L"uri-source", 
+            L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"window-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*2);
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );

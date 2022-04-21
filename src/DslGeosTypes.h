@@ -75,11 +75,20 @@ namespace DSL
     public: 
 
         /**
-         * @brief ctor for the GeosLine class
+         * @brief ctor 1 of 2 for the GeosLine class
          * @param[in] line reference to a Nvidia OSD Line Structure.
          */
         GeosLine(const NvOSD_LineParams& line);
 
+        /**
+         * @brief ctor 1 of 2 for the GeosLine class
+         * @param[in] x1 x-position for the start point of the line
+         * @param[in] y1 y-position for the start point of the line
+         * @param[in] x2 x-position for the end point of the line
+         * @param[in] y2 y-position for the end point of the line
+         */
+        GeosLine(uint x1, uint y1, uint x2, uint y2);
+        
         /**
          * @brief dtor for the GeosLine class
          */

@@ -155,16 +155,47 @@ namespace DSL
 
     bool OdePolygonArea::IsPointInside(const dsl_coordinate& coordinate)
     {
+        // Do not log function entry
+
         GeosPoint testPoint(coordinate.x, coordinate.y);
 
-        return ((GeosPolygon)*m_pPolygon).Contains(testPoint);
+        for (uint i = 0; i < m_pPolygon->num_coordinates-1; i++)
+        {
+            GeosLine lineSegment(
+                m_pPolygon->coordinates[i].x, 
+                m_pPolygon->coordinates[i].y, 
+                m_pPolygon->coordinates[(i+1)].x, 
+                m_pPolygon->coordinates[(i+1)].y);
+            
+            if (lineSegment.Distance(testPoint) <= 
+                (m_pPolygon->border_width/2))
+            {
+                return false;
+            }
+            return ((GeosPolygon)*m_pPolygon).Contains(testPoint);          
+        }
     }
     
     uint OdePolygonArea::GetPointLocation(const dsl_coordinate& coordinate)
     {
+        // Do not log function entry
         
         GeosPoint testPoint(coordinate.x, coordinate.y);
 
+        for (uint i = 0; i < m_pPolygon->num_coordinates-1; i++)
+        {
+            GeosLine lineSegment(
+                m_pPolygon->coordinates[i].x, 
+                m_pPolygon->coordinates[i].y, 
+                m_pPolygon->coordinates[(i+1)].x, 
+                m_pPolygon->coordinates[(i+1)].y);
+            
+            if (lineSegment.Distance(testPoint) <= 
+                (m_pPolygon->border_width/2))
+            {
+                return DSL_AREA_POINT_LOCATION_ON_LINE;
+            }
+        }
         return ((GeosPolygon)*m_pPolygon).Contains(testPoint)
             ? DSL_AREA_POINT_LOCATION_INSIDE
             : DSL_AREA_POINT_LOCATION_OUTSIDE;
@@ -172,10 +203,25 @@ namespace DSL
     
     bool OdePolygonArea::IsPointOnLine(const dsl_coordinate& coordinate)
     {
+        // Do not log function entry
+
         GeosPoint point(coordinate.x, coordinate.y);
         
-        return ((GeosPolygon)*m_pPolygon).Distance(point) <= 
-            (m_pPolygon->border_width/2);
+        for (uint i = 0; i < m_pPolygon->num_coordinates-1; i++)
+        {
+            GeosLine lineSegment(
+                m_pPolygon->coordinates[i].x, 
+                m_pPolygon->coordinates[i].y, 
+                m_pPolygon->coordinates[(i+1)].x, 
+                m_pPolygon->coordinates[(i+1)].y);
+            
+            if (lineSegment.Distance(point) <= 
+                (m_pPolygon->border_width/2))
+            {
+                return true;
+            }
+        }
+        return false;
     }
     
     bool OdePolygonArea::DoesTraceCrossLine(
@@ -197,14 +243,25 @@ namespace DSL
             return false;
         }
 
-        direction = GetPointLocation(pTrace->back());
+        direction = DSL_AREA_CROSS_DIRECTION_NONE;
         
         // use the Area's line width and trace-endpoint to determine if the cross
         // is sufficient to report, i.e. the line width is used as hysteresis.
         GeosPoint endPoint(pTrace->back().x, pTrace->back().y);
         
-        return (((GeosPolygon)*m_pPolygon).Distance(endPoint) > 
+        bool crossed(((GeosPolygon)*m_pPolygon).Distance(endPoint) > 
             (m_pPolygon->border_width/2));
+            
+        if (crossed)
+        {
+            // in case the object's trace crosses the line more than once.
+            if (GetPointLocation(pTrace->back()) == GetPointLocation(pTrace->front()))
+            {
+                return false;
+            }
+            direction = GetPointLocation(pTrace->back());
+        }
+        return crossed;
     }
     
     // *****************************************************************************
@@ -252,27 +309,53 @@ namespace DSL
     
     bool OdeLineArea::IsBboxInside(const NvOSD_RectParams& bbox)
     {
-        return false;
-    }
-    
-    bool OdeLineArea::IsPointInside(const dsl_coordinate& coordinate)
-    {
-        return false;
-    }
+        // Do not log function entry
 
-    uint OdeLineArea::GetPointLocation(const dsl_coordinate& coordinate)
-    {
+        dsl_coordinate coordinate;
+        getCoordinate(bbox, coordinate);
+
         int dvalue = 
             (coordinate.x - m_pLine->x1) * (m_pLine->y2 - m_pLine->y1) -
             (coordinate.y - m_pLine->y1) * (m_pLine->x2 - m_pLine->x1);
             
+        return (dvalue <= 0) ;
+    }
+    
+    bool OdeLineArea::IsPointInside(const dsl_coordinate& coordinate)
+    {
+        // Do not log function entry
+
+        int dvalue = 
+            (coordinate.x - m_pLine->x1) * (m_pLine->y2 - m_pLine->y1) -
+            (coordinate.y - m_pLine->y1) * (m_pLine->x2 - m_pLine->x1);
+            
+        return (dvalue <= 0) ;
+    }
+
+    uint OdeLineArea::GetPointLocation(const dsl_coordinate& coordinate)
+    {
+        // Do not log function entry
+
+        GeosPoint point(coordinate.x, coordinate.y);
+        
+        if (((GeosLine)*m_pLine).Distance(point) <= 
+            (m_pLine->line_width/2))
+        {
+            return DSL_AREA_POINT_LOCATION_ON_LINE;
+        }
+        int dvalue = 
+            (coordinate.x - m_pLine->x1) * (m_pLine->y2 - m_pLine->y1) -
+            (coordinate.y - m_pLine->y1) * (m_pLine->x2 - m_pLine->x1);
+
         return (dvalue > 0) 
-            ? DSL_AREA_CROSS_DIRECTION_OUT
-            : DSL_AREA_CROSS_DIRECTION_IN;
+            ? DSL_AREA_POINT_LOCATION_OUTSIDE
+            : DSL_AREA_POINT_LOCATION_INSIDE;
     }
     
     bool OdeLineArea::IsPointOnLine(const dsl_coordinate& coordinate)
     {
+        // Do not log function entry
+
         GeosPoint point(coordinate.x, coordinate.y);
         
         return (((GeosLine)*m_pLine).Distance(point) <= 
@@ -298,14 +381,25 @@ namespace DSL
             return false;
         }
 
-        direction = GetPointLocation(pTrace->back());
+        direction = DSL_AREA_CROSS_DIRECTION_NONE;
         
         // use the Area's line width and trace-endpoint to determine if the cross
         // is sufficient to report, i.e. the line width is used as hysteresis.
         GeosPoint endPoint(pTrace->back().x, pTrace->back().y);
         
-        return (((GeosLine)*m_pLine).Distance(endPoint) > 
+        bool crossed(((GeosLine)*m_pLine).Distance(endPoint) > 
             (m_pLine->line_width/2));
+            
+        if (crossed)
+        {
+            // in case the object's trace crosses the line more than once.
+            if (GetPointLocation(pTrace->back()) == GetPointLocation(pTrace->front()))
+            {
+                return false;
+            }
+            direction = GetPointLocation(pTrace->back());
+        }
+        return crossed;    
     }
     
     // *****************************************************************************
@@ -325,24 +419,96 @@ namespace DSL
     
     bool OdeMultiLineArea::IsBboxInside(const NvOSD_RectParams& bbox)
     {
-        return false;
+        // Do not log function entry
+
+        uint inside(0), outside(0);
+        dsl_coordinate coordinate;
+        getCoordinate(bbox, coordinate);
+
+        for (uint i = 0; i < m_pMultiLine->num_coordinates-1; i++)
+        {
+            int dvalue = 
+                (coordinate.x - m_pMultiLine->coordinates[i].x) * 
+                    (m_pMultiLine->coordinates[(i+1)].y - m_pMultiLine->coordinates[i].y) -
+                (coordinate.y - m_pMultiLine->coordinates[i].y) * 
+                    (m_pMultiLine->coordinates[(i+1)].x - m_pMultiLine->coordinates[i].x);
+            
+            if (dvalue <= 0)
+            {
+                inside++;
+            }
+            else
+            {
+                outside++;
+            }
+        }
+        return inside > outside;
     }
     
     bool OdeMultiLineArea::IsPointInside(const dsl_coordinate& coordinate)
     {
-        return false;
+        // Do not log function entry
+
+        uint inside(0), outside(0);
+        GeosPoint point(coordinate.x, coordinate.y);
+
+        if (((GeosMultiLine)*m_pMultiLine).Distance(point) <= 
+            (m_pMultiLine->line_width/2))
+        {
+            return false;
+        }
+        for (uint i = 0; i < m_pMultiLine->num_coordinates-1; i++)
+        {
+            int dvalue = 
+                (coordinate.x - m_pMultiLine->coordinates[i].x) * 
+                    (m_pMultiLine->coordinates[(i+1)].y - m_pMultiLine->coordinates[i].y) -
+                (coordinate.y - m_pMultiLine->coordinates[i].y) * 
+                    (m_pMultiLine->coordinates[(i+1)].x - m_pMultiLine->coordinates[i].x);
+            
+            if (dvalue <= 0)
+            {
+                inside++;
+            }
+            else
+            {
+                outside++;
+            }
+        }
+        return inside > outside;
     }
 
     uint OdeMultiLineArea::GetPointLocation(const dsl_coordinate& coordinate)
     {
-//        int dvalue = 
-//            (coordinate.x - m_pLine->x1) * (m_pLine->y2 - m_pLine->y1) -
-//            (coordinate.y - m_pLine->y1) * (m_pLine->x2 - m_pLine->x1);
-//            
-//        return (dvalue > 0) 
-//            ? DSL_AREA_CROSS_DIRECTION_OUT
-//            : DSL_AREA_CROSS_DIRECTION_IN;
-        return 0;
+        // Do not log function entry
+
+        uint inside(0), outside(0);
+        GeosPoint point(coordinate.x, coordinate.y);
+
+        if (((GeosMultiLine)*m_pMultiLine).Distance(point) <= 
+            (m_pMultiLine->line_width/2))
+        {
+            return DSL_AREA_POINT_LOCATION_ON_LINE;
+        }
+        for (uint i = 0; i < m_pMultiLine->num_coordinates-1; i++)
+        {
+            int dvalue = 
+                (coordinate.x - m_pMultiLine->coordinates[i].x) * 
+                    (m_pMultiLine->coordinates[(i+1)].y - m_pMultiLine->coordinates[i].y) -
+                (coordinate.y - m_pMultiLine->coordinates[i].y) * 
+                    (m_pMultiLine->coordinates[(i+1)].x - m_pMultiLine->coordinates[i].x);
+            
+            if (dvalue <= 0)
+            {
+                inside++;
+            }
+            else
+            {
+                outside++;
+            }
+        }
+        return (inside > outside)
+            ? DSL_AREA_POINT_LOCATION_INSIDE
+            : DSL_AREA_POINT_LOCATION_OUTSIDE;
     }
     
     bool OdeMultiLineArea::IsPointOnLine(const dsl_coordinate& coordinate)
@@ -371,14 +537,25 @@ namespace DSL
         { 
             return false;
         }
-
-        direction = GetPointLocation(pTrace->back());
+        
+        direction = DSL_AREA_CROSS_DIRECTION_NONE;
         
         // use the Area's line width and trace-endpoint to determine if the cross
         // is sufficient to report, i.e. the line width is used as hysteresis.
         GeosPoint endPoint(pTrace->back().x, pTrace->back().y);
         
-        return (((GeosMultiLine)*m_pMultiLine).Distance(endPoint) > 
+        bool crossed(((GeosMultiLine)*m_pMultiLine).Distance(endPoint) > 
             (m_pMultiLine->line_width/2));
+            
+        if (crossed)
+        {
+            // in case the object's trace crosses the line more than once.
+            if (GetPointLocation(pTrace->back()) == GetPointLocation(pTrace->front()))
+            {
+                return false;
+            }
+            direction = GetPointLocation(pTrace->back());
+        }
+        return crossed;
     }
 }

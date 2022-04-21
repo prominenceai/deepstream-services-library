@@ -1178,7 +1178,7 @@ DslReturnType dsl_ode_area_line_new(const wchar_t* name,
         cstrLine.c_str(), show, bbox_test_point);
 }
 
-DslReturnType dsl_ode_area_line_mult_new(const wchar_t* name, 
+DslReturnType dsl_ode_area_line_multi_new(const wchar_t* name, 
     const wchar_t* multi_line, boolean show, uint bbox_test_point)
 {
     RETURN_IF_PARAM_IS_NULL(name);

@@ -1060,8 +1060,11 @@ namespace DSL
             // objects on the line with less than the minimim frame count
             if (pOdeArea->IsPointOnLine(firstCoordinate) or
                 (pOdeArea->IsPointOnLine(lastCoordinate) and
-                    pTrackedObject->preEventFrameCount << m_minFrameCount))
+                    pTrackedObject->preEventFrameCount < m_minFrameCount))
             {
+                LOG_DEBUG("Online without sufficient pre-count " 
+                    <<  pTrackedObject->preEventFrameCount << " - purging");
+                    
                 m_pTrackedObjectsPerSource->DeleteObject(pFrameMeta->source_id,
                     pObjectMeta->object_id);
                 return false;
@@ -1090,6 +1093,8 @@ namespace DSL
                 // If we've crosed before reaching the minimum frame count
                 if (pTrackedObject->preEventFrameCount < m_minFrameCount)
                 {
+                    LOG_DEBUG("Crossed line without sufficient pre-count - purging");
+                    
                     // delete the object - will be retracked in the next frame.
                     m_pTrackedObjectsPerSource->DeleteObject(pFrameMeta->source_id,
                         pObjectMeta->object_id);
