@@ -305,7 +305,9 @@ There are two parameters that that are used to define line cross hysteresis.
 
 **Note** The Object Trace can be added as meta-data for a downstream OSD to display by calling [dsl_ode_trigger_cross_view_settings_set](#dsl_ode_trigger_cross_view_settings_set).
 
-**Important** The default maximum number of elements per display meta type (lines, rectangles, text, etc.) is set to sixteen (16). Setting the test method to `DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS` when displaying the Object Trace can require up to `max_trace_points` of lines per tracked object. See [dsl_pph_ode_display_meta_alloc_size_set](/docs/ode-handler.md#dsl_pph_ode_display_meta_alloc_size_set) to allocate additional meta storage per frame.
+**Important!** The default maximum number of elements per display meta type (lines, rectangles, text, etc.) is set to sixteen (16). Setting the test method to `DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS` when displaying the Object Trace can require up to `max_trace_points` of lines per tracked object. See [dsl_pph_ode_display_meta_alloc_size_set](/docs/ode-handler.md#dsl_pph_ode_display_meta_alloc_size_set) to allocate additional meta storage per frame.
+
+**Very Important!** Setting a minimum Inference confidence level can be required to avoid false positives from distorting the Object's historical trace. See [dsl_ode_trigger_confidence_min_set](#dsl_ode_trigger_confidence_min_set). 
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
