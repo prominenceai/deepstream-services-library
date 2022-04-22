@@ -56,6 +56,8 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 **Methods:**
 * [dsl_ode_trigger_cross_test_settings_get](#dsl_ode_trigger_cross_test_settings_get)
 * [dsl_ode_trigger_cross_test_settings_set](#dsl_ode_trigger_cross_test_settings_set)
+* [dsl_ode_trigger_cross_view_settings_get](#dsl_ode_trigger_cross_view_settings_get)
+* [dsl_ode_trigger_cross_view_settings_set](#dsl_ode_trigger_cross_view_settings_set)
 * [dsl_ode_trigger_count_range_get](#dsl_ode_trigger_count_range_get)
 * [dsl_ode_trigger_count_range_set](#dsl_ode_trigger_count_range_set)
 * [dsl_ode_trigger_distance_range_get](#dsl_ode_trigger_distance_range_get)
