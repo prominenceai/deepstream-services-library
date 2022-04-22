@@ -42,6 +42,7 @@ namespace DSL
      */
     #define DSL_OBJECT_INFO_PRIMARY_METRIC     0
     #define DSL_OBJECT_INFO_PERSISTENCE        1
+    #define DSL_OBJECT_INFO_DIRECTION          2
     
     /**
      * @brief Constants for indexing "pFrameMeta->misc_frame_info" 
@@ -237,7 +238,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         virtual void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta) = 0;
         
     protected:
@@ -266,7 +267,8 @@ namespace DSL
          * hasBgColor = true
          */
         FormatBBoxOdeAction(const char* name, uint borderWidth,
-            DSL_RGBA_COLOR_PTR pBorderColor, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor);
+            DSL_RGBA_COLOR_PTR pBorderColor, bool hasBgColor, 
+            DSL_RGBA_COLOR_PTR pBgColor);
         
         /**
          * @brief dtor for the ODE Format BBox Action class
@@ -282,7 +284,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -326,7 +328,8 @@ namespace DSL
          * @param[in] clientHandler client callback function to call on ODE
          * @param[in] clientData opaque pointer to client data t return on callback
          */
-        CustomOdeAction(const char* name, dsl_ode_handle_occurrence_cb clientHandler, void* clientData);
+        CustomOdeAction(const char* name, 
+            dsl_ode_handle_occurrence_cb clientHandler, void* clientData);
         
         /**
          * @brief dtor for the ODE Custom Action class
@@ -342,7 +345,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -393,7 +396,8 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+            std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
         /**
@@ -402,7 +406,8 @@ namespace DSL
          * @param[in] userdata opaque pointer to client data passed into the listener function.
          * @return true on successfull add, false otherwise
          */
-        bool AddCaptureCompleteListener(dsl_capture_complete_listener_cb listener, void* userdata);
+        bool AddCaptureCompleteListener(dsl_capture_complete_listener_cb listener, 
+            void* userdata);
         
         /**
          * @brief removes a previously added Image Capture Complete callback
@@ -610,7 +615,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
@@ -663,7 +668,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
@@ -732,7 +737,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
@@ -777,7 +782,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
@@ -825,7 +830,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
     private:
@@ -863,7 +868,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
         /**
@@ -925,7 +930,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
@@ -970,7 +975,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
@@ -1019,7 +1024,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
     private:
@@ -1063,7 +1068,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1117,7 +1122,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
     private:
@@ -1157,7 +1162,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
         /**
@@ -1223,7 +1228,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
         /**
@@ -1310,7 +1315,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
@@ -1349,7 +1354,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1398,7 +1403,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1447,7 +1452,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1496,7 +1501,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1544,7 +1549,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pBaseTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1587,7 +1592,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1630,7 +1635,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pBaseTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1673,7 +1678,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1716,7 +1721,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1760,7 +1765,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1808,7 +1813,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1858,7 +1863,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1917,7 +1922,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1963,7 +1968,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -2022,7 +2027,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -2066,7 +2071,7 @@ namespace DSL
          * NULL if Frame level absence, total, min, max, etc. events.
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:

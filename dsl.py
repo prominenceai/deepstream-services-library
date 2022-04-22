@@ -109,6 +109,9 @@ DSL_BBOX_EDGE_BOTTOM = 1
 DSL_BBOX_EDGE_LEFT   = 2
 DSL_BBOX_EDGE_RIGHT  = 3
 
+DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS = 0
+DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS = 1
+
 DSL_DISTANCE_METHOD_FIXED_PIXELS     = 0
 DSL_DISTANCE_METHOD_PERCENT_WIDTH_A  = 1
 DSL_DISTANCE_METHOD_PERCENT_WIDTH_B  = 2
@@ -299,6 +302,18 @@ def dsl_display_type_rgba_polygon_new(name, coordinates, num_coordinates, border
     arr = (dsl_coordinate * num_coordinates)()
     arr[:] = coordinates
     result =_dsl.dsl_display_type_rgba_polygon_new(name, arr, num_coordinates, border_width, color)
+    return int(result)
+
+##
+## dsl_display_type_rgba_line_multi_new()
+##
+#_dsl.dsl_display_type_rgba_line_multi_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_rgba_line_multi_new.restype = c_uint
+def dsl_display_type_rgba_line_multi_new(name, coordinates, num_coordinates, border_width, color):
+    global _dsl
+    arr = (dsl_coordinate * num_coordinates)()
+    arr[:] = coordinates
+    result =_dsl.dsl_display_type_rgba_line_multi_new(name, arr, num_coordinates, border_width, color)
     return int(result)
 
 ##
@@ -989,9 +1004,19 @@ def dsl_ode_area_exclusion_new(name, polygon, show, bbox_test_point):
 ##
 _dsl.dsl_ode_area_line_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint]
 _dsl.dsl_ode_area_line_new.restype = c_uint
-def dsl_ode_area_line_new(name, line, show, bbox_test_edge):
+def dsl_ode_area_line_new(name, line, show, bbox_test_point):
     global _dsl
-    result =_dsl.dsl_ode_area_line_new(name, line, show, bbox_test_edge)
+    result =_dsl.dsl_ode_area_line_new(name, line, show, bbox_test_point)
+    return int(result)
+
+##
+## dsl_ode_area_line_multi_new()
+##
+_dsl.dsl_ode_area_line_multi_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint]
+_dsl.dsl_ode_area_line_multi_new.restype = c_uint
+def dsl_ode_area_line_multi_new(name, multi_line, show, bbox_test_point):
+    global _dsl
+    result =_dsl.dsl_ode_area_line_multi_new(name, multi_line, show, bbox_test_point)
     return int(result)
 
 ##
@@ -1064,6 +1089,75 @@ def dsl_ode_trigger_accumulation_new(name, source, class_id, limit):
     global _dsl
     result =_dsl.dsl_ode_trigger_accumulation_new(name, source, class_id, limit)
     return int(result)
+
+##
+## dsl_ode_trigger_cross_new()
+##
+_dsl.dsl_ode_trigger_cross_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint,
+    c_uint, c_uint, c_uint]
+_dsl.dsl_ode_trigger_cross_new.restype = c_uint
+def dsl_ode_trigger_cross_new(name, source, class_id, limit,
+    min_frame_count, max_trace_points, test_method):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_cross_new(name, source, class_id, limit,
+        min_frame_count, max_trace_points, test_method)
+    return int(result)
+
+##
+## dsl_ode_trigger_cross_test_settings_get()
+##
+_dsl.dsl_ode_trigger_cross_test_settings_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_ode_trigger_cross_test_settings_get.restype = c_uint
+def dsl_ode_trigger_cross_test_settings_get(name):
+    global _dsl
+    min_frame_count = c_uint(0) 
+    max_trace_points = c_uint(0)
+    test_method = c_uint(0)
+    result =_dsl.dsl_ode_trigger_cross_test_settings_get(name, 
+        DSL_UINT_P(min_frame_count), DSL_UINT_P(max_trace_points),
+        DSL_UINT_P(test_method))
+    return int(result), min_frame_count.value, max_trace_points.value, test_method.value
+    
+##
+## dsl_ode_trigger_cross_test_settings_set()
+##
+_dsl.dsl_ode_trigger_cross_test_settings_set.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_uint]
+_dsl.dsl_ode_trigger_cross_test_settings_set.restype = c_uint
+def dsl_ode_trigger_cross_test_settings_set(name,
+        min_frame_count, max_trace_points, test_method):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_cross_test_settings_set(name, 
+        min_frame_count, max_trace_points, test_method)
+    return int(result)
+
+##
+## dsl_ode_trigger_cross_view_settings_get()
+##
+_dsl.dsl_ode_trigger_cross_view_settings_get.argtypes = [c_wchar_p, 
+    POINTER(c_bool), POINTER(c_wchar_p), POINTER(c_uint)]
+_dsl.dsl_ode_trigger_cross_view_settings_get.restype = c_uint
+def dsl_ode_trigger_cross_view_settings_get(name):
+    global _dsl
+    enabled = c_bool(0) 
+    color = c_wchar_p(0)
+    line_width = c_uint(0)
+    result =_dsl.dsl_ode_trigger_cross_view_settings_get(name, 
+        DSL_BOOL_P(enabled), DSL_WCHAR_P(color), DSL_UINT_P(line_width))
+    return int(result), enabled.value, color.value, line_width.value
+
+##
+## dsl_ode_trigger_cross_view_settings_set()
+##
+_dsl.dsl_ode_trigger_cross_view_settings_set.argtypes = [c_wchar_p, 
+    c_bool, c_wchar_p, c_uint]
+_dsl.dsl_ode_trigger_cross_view_settings_set.restype = c_uint
+def dsl_ode_trigger_cross_view_settings_set(name, enabled, color, line_width):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_cross_view_settings_set(name, 
+        enabled, color, line_width)
+    return int(result) 
 
 ##
 ## dsl_ode_trigger_instance_new()
@@ -1337,7 +1431,7 @@ _dsl.dsl_ode_trigger_reset_timeout_get.restype = c_uint
 def dsl_ode_trigger_reset_timeout_get(name):
     global _dsl
     timeout = c_uint(0)
-    result =_dsl.dsl_ode_trigger_reset_timeout_get(name, DSL_BOOL_P(c_uint))
+    result =_dsl.dsl_ode_trigger_reset_timeout_get(name, DSL_UINT_P(c_uint))
     return int(result), timeout.value
 
 ##
@@ -1821,6 +1915,27 @@ _dsl.dsl_pph_ode_trigger_remove_all.restype = c_uint
 def dsl_pph_ode_trigger_remove_all(name):
     global _dsl
     result =_dsl.dsl_pph_ode_trigger_remove_all(name)
+    return int(result)
+
+##
+## dsl_pph_ode_display_meta_alloc_size_get()
+##
+_dsl.dsl_pph_ode_display_meta_alloc_size_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_pph_ode_display_meta_alloc_size_get.restype = c_uint
+def dsl_pph_ode_display_meta_alloc_size_get(name):
+    global _dsl
+    size = c_uint(0)
+    result =_dsl.dsl_pph_ode_display_meta_alloc_size_get(name, DSL_UINT_P(size))
+    return int(result), size.value
+
+##
+## dsl_pph_ode_display_meta_alloc_size_set()
+##
+_dsl.dsl_pph_ode_display_meta_alloc_size_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_pph_ode_display_meta_alloc_size_set.restype = c_uint
+def dsl_pph_ode_display_meta_alloc_size_set(name, size):
+    global _dsl
+    result =_dsl.dsl_pph_ode_display_meta_alloc_size_set(name, size)
     return int(result)
 
 ##

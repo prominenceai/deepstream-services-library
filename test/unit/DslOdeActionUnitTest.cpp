@@ -30,6 +30,8 @@ THE SOFTWARE.
 
 using namespace DSL;
 
+static std::vector<NvDsDisplayMeta*> displayMetaData;
+
 static void ode_occurrence_handler_cb(uint64_t event_id, const wchar_t* name,
     void* buffer, void* display_meta, void* frame_meta, void* object_meta, void* client_data)
 {
@@ -139,7 +141,8 @@ SCENARIO( "A FormatBBoxOdeAction handles an ODE Occurence correctly", "[OdeActio
             
             THEN( "The OdeAction can Handle the Occurrence" )
             {
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -240,7 +243,8 @@ SCENARIO( "A FormatLabelOdeAction handles an ODE Occurence correctly", "[OdeActi
             
             THEN( "The OdeAction can Handle the Occurrence" )
             {
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -301,7 +305,8 @@ SCENARIO( "A CustomOdeAction handles an ODE Occurence correctly", "[OdeAction]" 
             
             THEN( "The OdeAction can Handle the Occurrence" )
             {
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -521,7 +526,8 @@ SCENARIO( "A CustomLabelOdeAction handles an ODE Occurence correctly", "[OdeActi
             {
                 std::string expectedLabel("L:10,10 | D:200x100 | C:0.000000 | T:0s");
 
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
                 std::string actualLabel(objectMeta.text_params.display_text);
                 REQUIRE( actualLabel == expectedLabel );
             }
@@ -537,7 +543,8 @@ SCENARIO( "A CustomLabelOdeAction handles an ODE Occurence correctly", "[OdeActi
             {
                 std::string expectedLabel("");
 
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
                 std::string actualLabel(objectMeta.text_params.display_text);
                 REQUIRE( actualLabel == expectedLabel );
             }
@@ -610,7 +617,8 @@ SCENARIO( "A EmailOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
             
             THEN( "The OdeAction can Handle the Occurrence" )
             {
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -718,7 +726,8 @@ SCENARIO( "A FileOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: Action disable other Handler will produce an error message as Handler does not exist
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -753,7 +762,8 @@ SCENARIO( "A FileOdeAction with forceFlush set flushes the stream correctly", "[
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: verification requires visual post inspection of the file.
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
                 
                 // Simulate the idle thread callback
                 // Flush must return false to unschedule, self remove
@@ -810,7 +820,8 @@ SCENARIO( "A HandlerDisableOdeAction handles an ODE Occurence correctly", "[OdeA
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: Action disable other Handler will produce an error message as Handler does not exist
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -896,7 +907,8 @@ SCENARIO( "A LogOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
             
             THEN( "The OdeAction can Handle the Occurrence" )
             {
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -960,7 +972,8 @@ SCENARIO( "A PauseOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: Pipeline pause will produce an error message as it does not exist
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -1021,7 +1034,8 @@ SCENARIO( "A PrintOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
             
             THEN( "The OdeAction can Handle the Occurrence" )
             {
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -1089,7 +1103,8 @@ SCENARIO( "A RedactOdeAction handles an ODE Occurence correctly", "[OdeAction]" 
             
             THEN( "The OdeAction can Handle the Occurrence" )
             {
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
                 REQUIRE( objectMeta.rect_params.border_width == 0 );
                 REQUIRE( objectMeta.rect_params.has_bg_color == 1 );
                 REQUIRE( objectMeta.rect_params.bg_color.red == 0.0 );
@@ -1150,7 +1165,8 @@ SCENARIO( "A SinkAddOdeAction handles an ODE Occurence correctly", "[OdeAction]"
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: Pipeline Sink add will produce an error message as neither components exist
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -1205,7 +1221,8 @@ SCENARIO( "A SinkRemoveOdeAction handles an ODE Occurence correctly", "[OdeActio
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: Pipeline Sink remove will produce an error message as neither components exist
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -1260,7 +1277,8 @@ SCENARIO( "A SourceAddOdeAction handles an ODE Occurence correctly", "[OdeAction
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: Pipeline Source add will produce an error message as neither components exist
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -1315,7 +1333,8 @@ SCENARIO( "A SourceRemoveOdeAction handles an ODE Occurence correctly", "[OdeAct
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: Pipeline Source remove will produce an error message as neither components exist
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -1369,7 +1388,8 @@ SCENARIO( "An ActionAddOdeAction handles an ODE Occurence correctly", "[OdeActio
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: Trigger Action add will produce an error message as neither components exist
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -1422,7 +1442,8 @@ SCENARIO( "A ActionDisableOdeAction handles an ODE Occurence correctly", "[OdeAc
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: Action disable other action will produce an error message as it does not exist
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -1475,7 +1496,8 @@ SCENARIO( "A ActionEnableOdeAction handles an ODE Occurence correctly", "[OdeAct
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: Action enable other action will produce an error message as it does not exist
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -1529,7 +1551,8 @@ SCENARIO( "A AreaAddOdeAction handles an ODE Occurence correctly", "[OdeAction]"
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: Trigger Area add will produce an error message as neither components exist
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -1583,7 +1606,8 @@ SCENARIO( "A TriggerResetOdeAction handles an ODE Occurence correctly", "[OdeAct
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: Action reset other Trigger will produce an error message as Trigger does not exist
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -1637,7 +1661,8 @@ SCENARIO( "A TriggerDisableOdeAction handles an ODE Occurence correctly", "[OdeA
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: Action disable other Trigger will produce an error message as Trigger does not exist
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -1690,7 +1715,8 @@ SCENARIO( "A TriggerEnableOdeAction handles an ODE Occurence correctly", "[OdeAc
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: Action enable other Trigger will produce an error message as the Trigger does not exist
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -1767,7 +1793,8 @@ SCENARIO( "A RecordSinkStartOdeAction handles an ODE Occurence correctly", "[Ode
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: Action will produce an error message as the Record Sink does not exist
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -1843,7 +1870,8 @@ SCENARIO( "A RecordSinkStopOdeAction handles an ODE Occurence correctly", "[OdeA
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: Action will produce an error message as the Record Sink does not exist
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -1910,7 +1938,8 @@ SCENARIO( "A RecordTapStartOdeAction handles an ODE Occurence correctly", "[OdeA
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: Action will produce an error message as the Record Sink does not exist
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, 
+                    NULL, displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -1977,7 +2006,8 @@ SCENARIO( "A RecordTapStopOdeAction handles an ODE Occurence correctly", "[OdeAc
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: Action will produce an error message as the Record Sink does not exist
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }
@@ -2034,7 +2064,8 @@ SCENARIO( "A TilerShowSourceOdeAction handles an ODE Occurence correctly", "[Ode
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: Action will produce an error message as the Trigger does not exist
-                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
             }
         }
     }

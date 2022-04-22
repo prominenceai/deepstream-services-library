@@ -83,6 +83,10 @@ namespace DSL {
             const dsl_coordinate* coordinates, uint numCoordinates, 
             uint borderWidth, const char* color);
 
+        DslReturnType DisplayTypeRgbaLineMultiNew(const char* name, 
+            const dsl_coordinate* coordinates, uint numCoordinates, 
+            uint borderWidth, const char* color);
+
         DslReturnType DisplayTypeRgbaCircleNew(const char* name, uint xCenter, uint yCenter, uint radius,
             const char* color, bool hasBgColor, const char* bgColor);
     
@@ -250,7 +254,10 @@ namespace DSL {
             const char* polygon, boolean display, uint bboxTestPoint);
 
         DslReturnType OdeAreaLineNew(const char* name, 
-            const char* line, boolean display, uint bboxTestEdge);
+            const char* line, boolean display, uint bboxTestPoint);
+
+        DslReturnType OdeAreaLineMultiNew(const char* name, 
+            const char* multiLine, boolean display, uint bboxTestPoint);
 
         DslReturnType OdeAreaDelete(const char* name);
         
@@ -270,6 +277,22 @@ namespace DSL {
         DslReturnType OdeTriggerAccumulationNew(const char* name, 
             const char* source, uint classId, uint limit);
 
+        DslReturnType OdeTriggerCrossNew(const char* name, 
+            const char* source, uint classId, uint limit, 
+            uint minFrameCount, uint maxTracePoints, uint testMethod);
+            
+        DslReturnType OdeTriggerCrossTestSettingsGet(const char* name, 
+            uint* minFrameCount, uint* maxTracePoints, uint* testMethod);
+            
+        DslReturnType OdeTriggerCrossTestSettingsSet(const char* name, 
+            uint minFrameCount, uint maxTracePoints, uint testMethod);
+            
+        DslReturnType OdeTriggerCrossViewSettingsGet(const char* name, 
+            boolean* enabled, const char** color, uint* lineWidth);
+            
+        DslReturnType OdeTriggerCrossViewSettingsSet(const char* name, 
+            boolean enabled, const char* color, uint lineWidth);
+        
         DslReturnType OdeTriggerInstanceNew(const char* name, 
             const char* source, uint classId, uint limit);
         
@@ -436,6 +459,10 @@ namespace DSL {
         DslReturnType PphOdeTriggerRemove(const char* name, const char* trigger);
 
         DslReturnType PphOdeTriggerRemoveAll(const char* name);
+        
+        DslReturnType PphOdeDisplayMetaAllocSizeGet(const char* name, uint* size);
+
+        DslReturnType PphOdeDisplayMetaAllocSizeSet(const char* name, uint size);
 
         DslReturnType PphEnabledGet(const char* name, boolean* enabled);
         

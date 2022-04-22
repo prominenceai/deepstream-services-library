@@ -93,6 +93,8 @@
     <File Name="../src/DslTilerBintr.h"/>
     <File Name="../src/DslTrackerBintr.h"/>
     <File Name="../src/DslServicesInfo.cpp"/>
+    <File Name="../src/DslOdeTrackedObject.h"/>
+    <File Name="../src/DslOdeTrackedObject.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="api">
@@ -164,6 +166,7 @@
       <File Name="../test/unit/DslTapUnitTest.cpp"/>
       <File Name="../test/unit/DslTilerUnitTest.cpp"/>
       <File Name="../test/unit/DslTrackerUnitTest.cpp"/>
+      <File Name="../test/unit/DslOdeTrackedObjectUnitTest.cpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="root">
@@ -219,7 +222,6 @@
       <File Name="../examples/python/ode_occurrence_4rtsp_start_record_tap_action.py"/>
       <File Name="../examples/python/ode_occurrence_frame_capture_email_attachment.py"/>
       <File Name="../examples/python/ode_occurrence_line_area_intersection.py"/>
-      <File Name="../examples/python/ode_occurrence_object_capture_overlay_image.py"/>
       <File Name="../examples/python/ode_occurrence_polygon_area_inclussion_exclusion.py"/>
       <File Name="../examples/python/ode_occurrence_record_sink_overlay_playback_send_email.py"/>
       <File Name="../examples/python/ode_occurrence_uri_send_smtp_mail.py"/>
@@ -232,6 +234,7 @@
       <File Name="../examples/python/semantic_segmentation.py"/>
       <File Name="../examples/python/message_broker_azure_module_client.py"/>
       <File Name="../examples/python/1image_jpeg_pgie_osd_window.py"/>
+      <File Name="../examples/python/ode_line_cross_object_capture_overlay_image.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>

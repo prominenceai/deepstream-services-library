@@ -116,96 +116,50 @@ def main(args):
         
         #```````````````````````````````````````````````````````````````````````````````````
 
-        # Create a Format Label Action to remove the Object Label from view
-        # Note: the label can be disabled with the OSD API as well. 
-        retval = dsl_ode_action_format_label_new('remove-label', 
-            font=None, has_bg_color=False, bg_color=None)
+        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, green=0.2, blue=0.2, alpha=0.6)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Create a Format Bounding Box Action to remove the box border from view
-        retval = dsl_ode_action_format_bbox_new('remove-border', border_width=0,
-            border_color=None, has_bg_color=False, bg_color=None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Create an Any-Class Occurrence Trigger for our Hide Action
-        retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', source=DSL_ODE_ANY_SOURCE,
-            class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add_many('every-occurrence-trigger', 
-            actions=['remove-label', 'remove-border', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, green=0.0, blue=0.0, alpha=0.3)
+        retval = dsl_display_type_rgba_color_new('light-green', red=0.4, green=1.0, blue=0.4, alpha=1.0)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Create a new  Action used to fill a bounding box with the opaque red color
-        retval = dsl_ode_action_format_bbox_new('fill-action',
-            border_width = 0,
-            border_color = None,
-            has_bg_color = True,
-            bg_color = 'opaque-red')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # create a list of X,Y coordinates defining the points of the Polygon.
-        # Polygon can have a minimum of 3, maximum of 8 points (sides)
-        coordinates = [dsl_coordinate(365,600), dsl_coordinate(580,620), 
-            dsl_coordinate(600, 770), dsl_coordinate(180,750)]
-            
-        # Create the Polygon display type 
-        retval = dsl_display_type_rgba_polygon_new('polygon1', 
-            coordinates=coordinates, num_coordinates=len(coordinates), border_width=4, color='opaque-red')
+        retval = dsl_display_type_rgba_line_new('line', 
+            x1=280, y1=680, x2=600, y2=660, width=6, color='opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # create the ODE inclusion area to use as criteria for ODE occurrence
-        retval = dsl_ode_area_inclusion_new('polygon-area', polygon='polygon1', 
+        # create the ODE line area to use as criteria for ODE occurence
+        retval = dsl_ode_area_line_new('line-area', line='line', 
             show=True, bbox_test_point=DSL_BBOX_POINT_SOUTH)    
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Occurrence Trigger, filtering on PERSON class_id, 
-        # and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_occurrence_new('person-in-area-trigger',
-            source = DSL_ODE_ANY_SOURCE,
-            class_id = PGIE_CLASS_ID_PERSON, 
-            limit = DSL_ODE_TRIGGER_LIMIT_NONE)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        retval = dsl_ode_trigger_area_add('person-in-area-trigger', area='polygon-area')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
-        retval = dsl_ode_trigger_action_add('person-in-area-trigger', action='fill-action')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-
         # New Occurrence Trigger, filtering on PERSON class_id, for our capture object action
         # with a limit of one which will be reset in the capture-complete callback
-        retval = dsl_ode_trigger_instance_new('person-enter-area-trigger', 
+        retval = dsl_ode_trigger_cross_new('person-crossing-line', 
             source = DSL_ODE_ANY_SOURCE,
             class_id = PGIE_CLASS_ID_PERSON, 
-            limit = DSL_ODE_TRIGGER_LIMIT_NONE)
+            limit = DSL_ODE_TRIGGER_LIMIT_NONE,
+            min_frame_count = 5, 
+            max_trace_points = 200, 
+            test_method = DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Set a minimum confidence level to avoid false negatives.
+        retval = dsl_ode_trigger_confidence_min_set('person-crossing-line',
+            min_confidence = 0.4)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        retval = dsl_ode_trigger_cross_view_settings_set('person-crossing-line',
+            enabled=True, color='light-green', line_width=5)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Processing at 30 frames per second can create a lot of images quickly. This is
-        # true even when triggering on new Instances, as the object Tracker has LIMITED
-        # accuracy with such a low camera angle, i.e. it has trouble when objects cross
-        # in front of one another. We need to throttle the processing interval to 
-        # allow each captured image time to load and play in the Image Player
-        # Change from the default of 0 (every frame) to every 15 frames (2 Hz).
-        retval = dsl_ode_trigger_interval_set('person-enter-area-trigger', 15)
-
         # Using the same Inclusion area as the New Occurrence Trigger
-        retval = dsl_ode_trigger_area_add('person-enter-area-trigger', area='polygon-area')
+        retval = dsl_ode_trigger_area_add('person-crossing-line', area='line-area')
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -213,13 +167,17 @@ def main(args):
         retval = dsl_ode_action_capture_object_new('person-capture-action', outdir="./")
         if retval != DSL_RETURN_SUCCESS:
             break
-        
+
+        retval = dsl_ode_action_print_new('print-action', force_flush=False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # Add the capture complete listener function to the action
         retval = dsl_ode_action_capture_complete_listener_add('person-capture-action', 
             capture_complete_listener, None)
 
-        retval = dsl_ode_trigger_action_add('person-enter-area-trigger', 
-            action='person-capture-action')
+        retval = dsl_ode_trigger_action_add_many('person-crossing-line', 
+            actions=['person-capture-action', 'print-action', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -231,9 +189,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
-            'every-occurrence-trigger', 
-            'person-in-area-trigger', 
-            'person-enter-area-trigger',
+            'person-crossing-line',
             None])
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -296,7 +252,7 @@ def main(args):
 
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+            text_enabled=False, clock_enabled=False, bbox_enabled=False, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 

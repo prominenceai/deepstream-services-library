@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2021, Prominence AI, Inc.
+Copyright (c) 2021-2022, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -130,6 +130,107 @@ SCENARIO( "Two new GEOS Lines are determined to NOT cross", "[GeosTypes]" )
     }
 }
 
+SCENARIO( "A new GEOS Multi-Line is created correctly", "[GeosTypes]" )
+{
+    GIVEN( "A new DSL Multi-Line with coordinates and dimensions" ) 
+    {
+        std::string multiLineName  = "my-multi-line";
+        dsl_coordinate coordinates[4] = {{100,100},{210,110},{220, 300},{110,330}};
+        uint numCoordinates(4);
+        uint lineWidth(4);
+
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
+        
+        DSL_RGBA_MULTI_LINE_PTR pMultiLine = DSL_RGBA_MULTI_LINE_NEW(multiLineName.c_str(), 
+            coordinates, numCoordinates, lineWidth, pColor);
+        
+        WHEN( "A new GEOS Multi-Line is created" )
+        {
+            GeosMultiLine testGeosMultiLine(*pMultiLine);
+
+            THEN( "The GEOS Multi-Line's memebers are setup correctly" )
+            {
+                REQUIRE( testGeosMultiLine.m_pGeosMultiLine != NULL );
+            }
+        }
+    }
+}
+
+SCENARIO( "A GEOS Multi-Line and Line are determined to cross", "[GeosTypes]" )
+{
+    GIVEN( "A new DSL Multi-Line and NvOSD Line that cross" ) 
+    {
+        NvOSD_LineParams testLine1{0};
+        testLine1.x1 = 100;
+        testLine1.y1 = 100;
+        testLine1.x2 = 200;
+        testLine1.y2 = 200;
+ 
+        std::string multiLineName  = "my-multi-line";
+        dsl_coordinate coordinates[4] = {{100,100},{210,110},{220, 300},{110,330}};
+        uint numCoordinates(4);
+        uint lineWidth(4);
+
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
+        
+        DSL_RGBA_MULTI_LINE_PTR pMultiLine = DSL_RGBA_MULTI_LINE_NEW(multiLineName.c_str(), 
+            coordinates, numCoordinates, lineWidth, pColor);
+ 
+        WHEN( "The GEOS Types are created" )
+        {
+            GeosLine testGeosLine1(testLine1);
+            GeosMultiLine testGeosMultiLine(*pMultiLine);
+
+            THEN( "The lines are determined to cross one another" )
+            {
+                REQUIRE( testGeosMultiLine.Crosses(testGeosLine1) == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "Multi-Line and Line are determined to NOT cross", "[GeosTypes]" )
+{
+    GIVEN( "A new DSL Multi-Line and NvOSD Line that do not cross" ) 
+    {
+        NvOSD_LineParams testLine1{0};
+        testLine1.x1 = 10;
+        testLine1.y1 = 10;
+        testLine1.x2 = 200;
+        testLine1.y2 = 100;
+ 
+        std::string multiLineName  = "my-multi-line";
+        dsl_coordinate coordinates[4] = {{100,100},{210,110},{220, 300},{110,330}};
+        uint numCoordinates(4);
+        uint lineWidth(4);
+
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
+        
+        DSL_RGBA_MULTI_LINE_PTR pMultiLine = DSL_RGBA_MULTI_LINE_NEW(multiLineName.c_str(), 
+            coordinates, numCoordinates, lineWidth, pColor);
+ 
+        WHEN( "The GEOS Lines are created" )
+        {
+            GeosLine testGeosLine1(testLine1);
+            GeosMultiLine testGeosMultiLine(*pMultiLine);
+
+            THEN( "The lines are determined to NOT cross one another" )
+            {
+                REQUIRE( testGeosMultiLine.Crosses(testGeosLine1) != true );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new GEOS Rectangle is created correctly", "[GeosTypes]" )
 {
     GIVEN( "A new NvOSD Rectangle with coordinates and dimensions" ) 
@@ -206,11 +307,11 @@ SCENARIO( "A new GEOS Polygon is created from a Polygon Display Type correctly",
         DSL_RGBA_POLYGON_PTR pPolygon = DSL_RGBA_POLYGON_NEW(polygonName.c_str(), 
             coordinates, numCoordinates, lineWidth, pColor);
         
-        WHEN( "A new GEOS Line is created" )
+        WHEN( "A new GEOS Polygon is created" )
         {
             GeosPolygon testGeosPolygon(*pPolygon);
 
-            THEN( "The GEOS Line's memebers are setup correctly" )
+            THEN( "The GEOS Polygon's memebers are setup correctly" )
             {
                 REQUIRE( testGeosPolygon.m_pGeosPolygon != NULL );
             }

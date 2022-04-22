@@ -78,7 +78,9 @@ SCENARIO( "All DisplayTypes can be displayed by an ODE Action", "[display-types-
         uint line_width(5);
 
         std::wstring polygonName(L"polygon");
-        dsl_coordinate coordinates[4] = {{100,100},{210,110},{220,300},{110,330}};
+        std::wstring multiLineName(L"multi-line");
+        dsl_coordinate coordinates1[4] = {{100,100},{210,110},{220,300},{110,330}};
+        dsl_coordinate coordinates2[4] = {{100,400},{210,410},{220,500},{110,530}};
         uint num_coordinates(4);
         uint border_width(3);
 
@@ -90,16 +92,20 @@ SCENARIO( "All DisplayTypes can be displayed by an ODE Action", "[display-types-
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(),
             false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_infer_gie_primary_new(primaryGieName.c_str(), 
+            inferConfigFile.c_str(), modelEngineFile.c_str(), 
+            0) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), trackerW, trackerH) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), 
+            trackerW, trackerH) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), 
+            width, height) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_pph_ode_new(odePphName.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), odePphName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), 
+            odePphName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
@@ -107,14 +113,18 @@ SCENARIO( "All DisplayTypes can be displayed by an ODE Action", "[display-types-
         REQUIRE( dsl_display_type_rgba_line_new(lineName.c_str(), 
             x1, y1, x2, y2, line_width, colorName.c_str())== DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), coordinates, num_coordinates, 
-            border_width, colorName.c_str())== DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), 
+            coordinates1, num_coordinates, border_width, 
+            colorName.c_str())== DSL_RESULT_SUCCESS );
             
+        REQUIRE( dsl_display_type_rgba_line_multi_new(multiLineName.c_str(), 
+            coordinates2, num_coordinates, border_width, 
+            colorName.c_str())== DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_always_new(odeAlwaysTriggerName.c_str(), 
             NULL, DSL_ODE_PRE_OCCURRENCE_CHECK) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* display_types[] = {L"line", L"polygon", NULL};
+        const wchar_t* display_types[] = {L"line", L"polygon", L"multi-line", NULL};
 
         REQUIRE( dsl_ode_action_display_meta_add_many_new(odeDisplayMetaActionName.c_str(), 
             display_types) == DSL_RESULT_SUCCESS );
@@ -122,7 +132,8 @@ SCENARIO( "All DisplayTypes can be displayed by an ODE Action", "[display-types-
         REQUIRE( dsl_ode_trigger_action_add(odeAlwaysTriggerName.c_str(), 
             odeDisplayMetaActionName.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), odeAlwaysTriggerName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), 
+            odeAlwaysTriggerName.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_osd_new(osdName.c_str(), 
             textEnabled, clockEnabled, bboxEnabled, maskEnabled) == DSL_RESULT_SUCCESS );
@@ -130,13 +141,45 @@ SCENARIO( "All DisplayTypes can be displayed by an ODE Action", "[display-types-
         REQUIRE( dsl_sink_window_new(windowSinkName.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"window-sink", NULL};
+        const wchar_t* components[] = {L"uri-source", 
+            L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
             REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
         
-            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "When the PPH ODE Display Meta allocation size is 0" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+            
+            REQUIRE( dsl_pph_ode_display_meta_alloc_size_set(odePphName.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
 
             THEN( "The Pipeline is Able to LinkAll and Play" )
             {

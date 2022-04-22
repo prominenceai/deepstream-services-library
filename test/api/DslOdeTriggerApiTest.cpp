@@ -1003,6 +1003,193 @@ SCENARIO( "A New Low Trigger can be created and deleted correctly", "[ode-trigge
     }
 }    
 
+SCENARIO( "A new Cross Trigger can be created and deleted correctly", "[ode-trigger-api]" )
+{
+    GIVEN( "Attributes for a new Cross Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"Cross");
+        uint limit(0);
+        uint min_frame_count(10);
+        uint max_trace_points(20);
+
+        WHEN( "When the Trigger is created" )         
+        {
+            REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
+                NULL, 0, limit, min_frame_count, max_trace_points, 
+                DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Trigger can be deleted only once" ) 
+            {
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) 
+                    == DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND );
+            }
+        }
+        WHEN( "When the Trigger is created" )         
+        {
+            REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
+                NULL, 0, limit, min_frame_count, max_trace_points,
+                DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Trigger with the same name fails to create" ) 
+            {
+                REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
+                    NULL, 0, limit, min_frame_count, max_trace_points,
+                    DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) 
+                        == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A Cross Trigger can update its test settings correctly", "[ode-trigger-api]" )
+{
+    GIVEN( "A new Cross Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"Cross");
+        uint limit(0);
+        uint min_frame_count(10);
+        uint max_trace_points(20);
+        uint ret_min_frame_count(0);
+        uint ret_max_trace_points(0);
+        uint ret_test_method(99);
+
+        REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
+            NULL, 0, limit, min_frame_count, max_trace_points,
+            DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_ode_trigger_cross_test_settings_get(odeTriggerName.c_str(), 
+            &ret_min_frame_count, &ret_max_trace_points, &ret_test_method) 
+                == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_min_frame_count == min_frame_count );
+        REQUIRE( ret_max_trace_points == max_trace_points );
+        REQUIRE( ret_test_method == DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS );
+
+        WHEN( "When the Trigger's max trace points is updated" )
+        {
+            uint new_min_frame_count(88);
+            uint new_max_trace_points(99);
+            
+            REQUIRE( dsl_ode_trigger_cross_test_settings_set(odeTriggerName.c_str(), 
+                new_min_frame_count, new_max_trace_points,
+                DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
+                
+            THEN( "The correct value is returned on get" )
+            {
+                REQUIRE( dsl_ode_trigger_cross_test_settings_get(odeTriggerName.c_str(), 
+                    &ret_min_frame_count, &ret_max_trace_points, &ret_test_method) 
+                        == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_frame_count == new_min_frame_count );
+                REQUIRE( ret_max_trace_points == new_max_trace_points );
+                REQUIRE( ret_test_method == DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS );
+
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A Cross Trigger can update its view settings correctly", "[ode-trigger-api]" )
+{
+    GIVEN( "A new Cross Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"Cross");
+        uint limit(0);
+        uint min_frame_count(10);
+        uint max_trace_points(20);
+
+        boolean ret_trace_view_enabled(true);
+        const wchar_t* c_ret_color;
+        uint ret_line_width(99);
+        
+        REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
+            NULL, 0, limit, min_frame_count, max_trace_points,
+            DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_ode_trigger_cross_view_settings_get(odeTriggerName.c_str(), 
+            &ret_trace_view_enabled, &c_ret_color, &ret_line_width) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( ret_trace_view_enabled == false );
+        std::wstring ret_color(c_ret_color);
+        std::wstring exp_color(L"no-color");
+        REQUIRE( ret_color == exp_color );
+        REQUIRE( ret_line_width == 0 );
+
+        WHEN( "When the Trigger's trace view settings are updated" )
+        {
+            std::wstring color_name(L"my-color");
+            double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+            REQUIRE( dsl_display_type_rgba_color_new(color_name.c_str(), 
+                red, green, blue, alpha) == DSL_RESULT_SUCCESS );
+            
+            boolean new_trace_view_enabled(true);
+            uint new_line_width(10);
+            
+            REQUIRE( dsl_ode_trigger_cross_view_settings_set(odeTriggerName.c_str(), 
+                new_trace_view_enabled, color_name.c_str(), new_line_width) == DSL_RESULT_SUCCESS );
+                
+            THEN( "The correct value is returned on get" )
+            {
+                REQUIRE( dsl_ode_trigger_cross_view_settings_get(odeTriggerName.c_str(), 
+                    &ret_trace_view_enabled, &c_ret_color, &ret_line_width) == DSL_RESULT_SUCCESS );
+                    
+                REQUIRE( ret_trace_view_enabled ==  new_trace_view_enabled );
+                ret_color.assign(c_ret_color);
+                REQUIRE( ret_color == color_name );
+                REQUIRE( ret_line_width == new_line_width );
+
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "The Cross Trigger API checks all parameters correctly ", "[ode-trigger-api]" )
+{
+    GIVEN( "Attributes for a new Cross Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"Cross");
+        uint limit(0);
+
+        WHEN( "When invalid test settings are used" )         
+        {
+            uint min_frame_count(20);
+            uint max_trace_points(20);
+            
+            THEN( "The Trigger API fails on create-new" ) 
+            {
+                REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
+                    NULL, 0, limit, min_frame_count, max_trace_points, 
+                    DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == 
+                        DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID );
+            }
+        }
+        WHEN( "When an invalid test method is used" )         
+        {
+            uint min_frame_count(10);
+            uint max_trace_points(20);
+            
+            THEN( "The Trigger API fails on create-new" ) 
+            {
+                REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
+                    NULL, 0, limit, min_frame_count, max_trace_points, 
+                    DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS+1) == 
+                        DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID );
+            }
+        }
+    }
+}    
+
+
 SCENARIO( "A new Distance Trigger can be created and deleted correctly", "[ode-trigger-api]" )
 {
     GIVEN( "Attributes for a new Distance Trigger" ) 
@@ -1298,6 +1485,8 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
         std::wstring triggerName  = L"test-trigger";
         std::wstring otherName  = L"other";
         
+        const wchar_t* color;
+        
         uint class_id(0);
         const wchar_t* source(NULL);
         const wchar_t* infer(NULL);
@@ -1319,6 +1508,21 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
                 REQUIRE( dsl_ode_trigger_absence_new(NULL, NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_intersection_new(NULL, NULL, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_summation_new(NULL, NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_trigger_cross_new(NULL, NULL, 0, 0, 0, 0, 0) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_cross_view_settings_get(NULL, NULL, NULL, NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_cross_view_settings_get(triggerName.c_str(), 
+                    NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_cross_view_settings_get(triggerName.c_str(), 
+                    &enabled, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_cross_view_settings_get(triggerName.c_str(), 
+                    &enabled, &color, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_cross_view_settings_set(NULL, 0, NULL, 0) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_cross_view_settings_set(triggerName.c_str(), 0, NULL, 0) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_trigger_custom_new(NULL, NULL, 0, 0, NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_custom_new(triggerName.c_str(), NULL, 0, 0, NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );

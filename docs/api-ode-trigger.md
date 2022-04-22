@@ -31,6 +31,7 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 **Constructors:**
 * [dsl_ode_trigger_always_new](#dsl_ode_trigger_always_new)
 * [dsl_ode_trigger_absence_new](#dsl_ode_trigger_absence_new)
+* [dsl_ode_trigger_cross_new](#dsl_ode_trigger_cross_new)
 * [dsl_ode_trigger_occurrence_new](#dsl_ode_trigger_occurrence_new)
 * [dsl_ode_trigger_instance_new](#dsl_ode_trigger_instance_new)
 * [dsl_ode_trigger_persistence_new](#dsl_ode_trigger_persistence_new)
@@ -53,6 +54,10 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_delete_all](#dsl_ode_trigger_delete_all)
 
 **Methods:**
+* [dsl_ode_trigger_cross_test_settings_get](#dsl_ode_trigger_cross_test_settings_get)
+* [dsl_ode_trigger_cross_test_settings_set](#dsl_ode_trigger_cross_test_settings_set)
+* [dsl_ode_trigger_cross_view_settings_get](#dsl_ode_trigger_cross_view_settings_get)
+* [dsl_ode_trigger_cross_view_settings_set](#dsl_ode_trigger_cross_view_settings_set)
 * [dsl_ode_trigger_count_range_get](#dsl_ode_trigger_count_range_get)
 * [dsl_ode_trigger_count_range_set](#dsl_ode_trigger_count_range_set)
 * [dsl_ode_trigger_distance_range_get](#dsl_ode_trigger_distance_range_get)
@@ -133,11 +138,31 @@ The following symbolic constants are used by the ODE Trigger API
 #define DSL_ODE_TRIGGER_LIMIT_ONE                                   1
 ```
 
- #### ODE Trigger limit state values - for Triggers with limits
+#### ODE Trigger limit state values - for Triggers with limits
 ```C
 #define DSL_ODE_TRIGGER_LIMIT_EVENT_LIMIT_REACHED                   0
 #define DSL_ODE_TRIGGER_LIMIT_EVENT_LIMIT_CHANGED                   1
 #define DSL_ODE_TRIGGER_LIMIT_EVENT_COUNT_RESET                     2
+```
+
+#### Constants that define a Point's location relative to an ODE Area.
+```C
+#define DSL_AREA_POINT_LOCATION_ON_LINE                             0
+#define DSL_AREA_POINT_LOCATION_INSIDE                              1
+#define DSL_AREA_POINT_LOCATION_OUTSIDE                             2
+```
+
+#### Constants to define the ODE Area Line Cross directions.
+```c
+#define DSL_AREA_CROSS_DIRECTION_NONE                               0
+#define DSL_AREA_CROSS_DIRECTION_IN                                 1
+#define DSL_AREA_CROSS_DIRECTION_OUT                                2
+```
+
+#### Methods of testing Object-Trace Area Line Crossing
+```c
+#define DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS                     0
+#define DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS                     1
 ```
 
 #### Constants specifying a set of defined points along a bounding box border.
@@ -217,7 +242,7 @@ Defines a Callback typedef for a client listener function. Once added to an ODE 
 DslReturnType dsl_ode_trigger_always_new(const wchar_t* name, const wchar_t* source, uint when);
 ```
 
-The constructor creates an Always trigger that triggers an ODE occurrece on every new frame. Note, this is a No-Limit trigger, and setting a Class ID filer will have no effect.  Although always triggered, the client selects when to Trigger an ODE occurrence for each frame; before (pre) or after (post) processing of all Object metadata by all other Triggers. As with all Triggers, Always Triggers can be enabled and disabled at any time by calling [dsl_ode_trigger_enabled_set](#dsl_ode_trigger_enabled_set)
+The constructor creates an Always trigger that triggers an ODE occurrence on every new frame. Note, this is a No-Limit trigger, and setting a Class ID filer will have no effect.  Although always triggered, the client selects when to Trigger an ODE occurrence for each frame; before (pre) or after (post) processing of all Object metadata by all other Triggers. As with all Triggers, Always Triggers can be enabled and disabled at any time by calling [dsl_ode_trigger_enabled_set](#dsl_ode_trigger_enabled_set)
 
 Always triggers are helpful for adding [Display Types](/dsoc/api-display-types.md) -- text, lines, rectangles, etc. -- to each frame for one or all sources.
 
@@ -264,6 +289,49 @@ retval = dsl_ode_trigger_absence_new('my-absence-trigger', DSL_ODE_ANY_SOURCE,
 ```
 
 <br>
+
+### *dsl_ode_trigger_cross_new*
+```C++
+DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name,
+    const wchar_t* source, uint class_id, uint limit, uint min_frame_count,
+    uint max_trace_points, uint test_method);
+```
+
+The constructor creates a Cross Trigger that tracks Objects through consecutive frames and triggers on the occurrence that an object crosses one of the Trigger's Line, Multi-Line, or Polygon Areas. The Trigger maintains a vector of historical bounding-box coordinates for each object tracked by its unique tracking id. The Trigger, using the bounding box history and the Area's defined Test Point (SOUTH, WEST, etc.), generates an Object Trace - vector of x,y coordinates - to test for line cross with the Area's line(s).
+
+There are two parameters that that are used to define line cross hysteresis.
+1. The `line_width` defined for the Area - the test-point on the object's bounding box must fully cross the width of the line before triggering an event. This is required in both directions.
+2. The `min_frame_count` - defines the minimum consecutive number of frames the object must be detected on the initial side of the line, and the minimum (non-consecutive) number of frames the object must be detected on the new side.
+
+**Note** The Object Trace can be added as meta-data for a downstream OSD to display by calling [dsl_ode_trigger_cross_view_settings_set](#dsl_ode_trigger_cross_view_settings_set).
+
+**Important!** The default maximum number of elements per display meta type (lines, rectangles, text, etc.) is set to sixteen (16). Setting the test method to `DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS` when displaying the Object Trace can require up to `max_trace_points` of lines per tracked object. See [dsl_pph_ode_display_meta_alloc_size_set](/docs/ode-handler.md#dsl_pph_ode_display_meta_alloc_size_set) to allocate additional meta storage per frame.
+
+**Very Important!** Setting a minimum Inference confidence level can be required to avoid false positives from distorting the Object's historical trace. See [dsl_ode_trigger_confidence_min_set](#dsl_ode_trigger_confidence_min_set). 
+
+**Parameters**
+* `name` - [in] unique name for the ODE Trigger to create.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter.
+* `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
+* `min_frame_count` - [in] setting for the minimum number of past consecutive frames on the initial side and minimum (non-sequential) frames on the new side of a line (line, multi-line or polygon area) to trigger an ODE.
+* `max_trace_points` - [in] maximum number of past trace points to maintain for each tracked object.
+* `test_method` - [in] either DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS or DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS
+
+**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this operation can consume all available diskspace.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_cross_new('my-cross-trigger', 'camera-1',
+    PGIE_PERSON_CLASS_ID, DSL_ODE_TRIGGER_LIMIT_NONE, 5, 200,
+    DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS)
+```
+
+<br>
+
 
 ### *dsl_ode_trigger_occurrence_new*
 ```C++
@@ -752,6 +820,106 @@ retval = dsl_ode_trigger_delete_all()
 <br>
 
 ## Methods
+### *dsl_ode_trigger_cross_test_settings_get*
+```c++
+DslReturnType dsl_ode_trigger_cross_test_settings_get(const wchar_t* name,
+    uint* min_frame_count, uint* max_trace_points, uint* test_method);
+```
+
+This service gets the current test settings for the named Cross Trigger.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Cross Trigger to query.
+* `min_frame_count` - [out] current setting for the minimum number of past consecutive frames on the initial side and minimum (non-sequential) frames on the new side of a line (line, multi-line or polygon area) to trigger an ODE.
+* `max_trace_points` - [out] current setting for the maximum number of past trace points to maintain for each tracked object.
+* `test_method` - [out] either DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS or DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, min_frame_count, max_trace_points, test_method =
+    dsl_ode_trigger_cross_test_settings_get('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_cross_test_settings_set*
+```c++
+DslReturnType dsl_ode_trigger_cross_test_settings_set(const wchar_t* name,
+    uint min_frame_count, uint max_trace_points, uint test_method);
+```
+
+This service sets the test settings for the named Cross Trigger to use.  See [dsl_ode_trigger_cross_new](#dsl_ode_trigger_cross_new) for more information on the Cross Trigger test settings.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Cross Trigger to query.
+* `min_frame_count` - [in] new setting for the minimum number of past consecutive frames on the initial side and minimum (non-sequential) frames on the new side of a line (line, multi-line or polygon area) to trigger an ODE.
+* `max_trace_points` - [in] new setting for the maximum number of past trace points to maintain for each tracked object.
+* `test_method` - [in] either DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS or DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_cross_test_settings_get('my-trigger',
+    min_frame_count, max_trace_points, test_method)
+```
+
+<br>
+
+### *dsl_ode_trigger_cross_view_settings_get*
+```c++
+DslReturnType dsl_ode_trigger_cross_view_settings_get(const wchar_t* name,
+    boolean* enabled, const wchar_t** color, uint* line_width);
+```
+
+This service gets the current view settings for the named Cross Trigger.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Cross Trigger to query.
+* `enabled` - [out] true if object trace display is enabled, false otherwise. Default = disabled.
+* `color` - [out] name of the color to use for object trace display, default = no-color.
+* `line_width` - [out] width of the object trace if display is enabled.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, enabled, color, line_width =
+    dsl_ode_trigger_cross_view_settings_get('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_cross_view_settings_set*
+```c++
+DslReturnType dsl_ode_trigger_cross_view_settings_set(const wchar_t* name,
+    boolean enabled, const wchar_t* color, uint line_width);
+```
+
+This service Sets the view settings for the named Cross Trigger to use.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Cross Trigger to query.
+* `enabled` - [in] set to true to enable object trace display, false otherwise.
+* `color` - [in] name of the color to use for object trace display.
+* `line_width` - [in] width of the object trace if display is enabled.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_cross_view_settings_set('my-trigger',
+    True, 'my-color', 6)
+```
+
+<br>
+
 ### *dsl_ode_trigger_count_range_get*
 ```c++
 DslReturnType dsl_ode_trigger_count_range_get(const wchar_t* name,

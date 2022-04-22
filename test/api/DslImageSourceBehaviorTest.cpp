@@ -286,7 +286,7 @@ SCENARIO( "A new Pipeline with 4 JPEG Image Sources, Primary GIE, \
 
 SCENARIO( "A new Pipeline with a Image Stream Source, Primary GIE, Tiled Display, \
     Window Sink, ODE Trigger and Action can play",
-    "[new]" )
+    "[image-source-play]" )
 {
     GIVEN( "A Pipeline, URI source, Primary GIE, Tiled Display, Window Sink" ) 
     {
@@ -354,7 +354,7 @@ SCENARIO( "A new Pipeline with a Image Stream Source, Primary GIE, Tiled Display
 
 SCENARIO( "A new Pipeline with a Multi JPEG Image Frame Source, Primary GIE, Tiled Display, \
     Window Sink, ODE Trigger and Action can play",
-    "[new2]" )
+    "[image-source-play]" )
 {
     GIVEN( "A Pipeline, URI source, Primary GIE, Tiled Display, Window Sink" ) 
     {
@@ -484,7 +484,7 @@ SCENARIO( "A new Pipeline with a Multi MJPEG Image Frame Source, Primary GIE, Ti
 }
 
 SCENARIO( "A new Player with a Multi JPEG Image Source and Window Sink can play",
-    "[new3]" )
+    "[image-source-play]" )
 {
     GIVEN( "A Player with a Multi JPEG Source, Window Sink" ) 
     {

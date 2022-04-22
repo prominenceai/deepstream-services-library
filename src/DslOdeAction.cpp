@@ -79,7 +79,7 @@ namespace DSL
     }
 
     void FormatBBoxOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -114,7 +114,7 @@ namespace DSL
     }
     
     void CustomOdeAction::HandleOccurrence(DSL_BASE_PTR pBase, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -125,9 +125,15 @@ namespace DSL
         }
         try
         {
-            DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pBase);
-            m_clientHandler(pTrigger->s_eventCount, pTrigger->m_wName.c_str(), pBuffer,
-                pDisplayMeta, pFrameMeta, pObjectMeta, m_clientData);
+            NvDsDisplayMeta* pDisplayMeta(NULL);
+            if (displayMetaData.size())
+            {
+                pDisplayMeta = displayMetaData.at(0);
+            }
+            DSL_ODE_TRIGGER_PTR pTrigger 
+                = std::dynamic_pointer_cast<OdeTrigger>(pBase);
+            m_clientHandler(pTrigger->s_eventCount, pTrigger->m_wName.c_str(), 
+                pBuffer, pDisplayMeta, pFrameMeta, pObjectMeta, m_clientData);
         }
         catch(...)
         {
@@ -175,7 +181,8 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
         
-        if (m_captureCompleteListeners.find(listener) != m_captureCompleteListeners.end())
+        if (m_captureCompleteListeners.find(listener) != 
+            m_captureCompleteListeners.end())
         {   
             LOG_ERROR("ODE Capture Action '" << GetName() 
                 << "' - Complete listener is not unique");
@@ -192,7 +199,8 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
         
-        if (m_captureCompleteListeners.find(listener) == m_captureCompleteListeners.end())
+        if (m_captureCompleteListeners.find(listener) == 
+            m_captureCompleteListeners.end())
         {   
             LOG_ERROR("ODE Capture Action '" << GetName() 
                 << "'  - Complete listener not found");
@@ -208,7 +216,8 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
         
-        if (m_imagePlayers.find(pPlayer->GetName()) != m_imagePlayers.end())
+        if (m_imagePlayers.find(pPlayer->GetName()) != 
+            m_imagePlayers.end())
         {   
             LOG_ERROR("ODE Capture Action '" << GetName() 
                 << "'  - Image Player is not unique");
@@ -224,7 +233,8 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
         
-        if (m_imagePlayers.find(pPlayer->GetCStrName()) == m_imagePlayers.end())
+        if (m_imagePlayers.find(pPlayer->GetCStrName()) == 
+            m_imagePlayers.end())
         {   
             LOG_ERROR("ODE Capture Action '" << GetName() 
                 << "' - Image Player not found");
@@ -249,7 +259,8 @@ namespace DSL
         }
         // combine all input parameters as MailerSpecs and add
         std::shared_ptr<MailerSpecs> pMailerSpecs = 
-            std::shared_ptr<MailerSpecs>(new MailerSpecs(pMailer, subject, attach));
+            std::shared_ptr<MailerSpecs>(new MailerSpecs(
+                pMailer, subject, attach));
             
         m_mailers[pMailer->GetName()] = pMailerSpecs;
         
@@ -327,7 +338,7 @@ namespace DSL
     }
 
     void CaptureOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -349,7 +360,8 @@ namespace DSL
 
         NvBufSurfaceMemType transformMemType = pMappedBuffer->pSurface->memType;
 
-        LOG_INFO("Creating new mono-surface with memory type " << transformMemType);
+        LOG_INFO("Creating new mono-surface with memory type " 
+            << transformMemType);
 
         // Transforming only one frame in the batch, so create a copy of the single 
         // surface ... becoming our new source surface. This creates a new mono (non-batched) 
@@ -631,7 +643,8 @@ namespace DSL
 
     // ********************************************************************
 
-    DisableHandlerOdeAction::DisableHandlerOdeAction(const char* name, const char* handler)
+    DisableHandlerOdeAction::DisableHandlerOdeAction(const char* name, 
+        const char* handler)
         : OdeAction(name)
         , m_handler(handler)
     {
@@ -644,7 +657,7 @@ namespace DSL
     }
     
     void DisableHandlerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -687,7 +700,7 @@ namespace DSL
     }
 
         void CustomizeLabelOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -698,7 +711,8 @@ namespace DSL
             
             // Free up the existing label memory, and reallocate to ensure suffcient size
             g_free(pObjectMeta->text_params.display_text);
-            pObjectMeta->text_params.display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
+            pObjectMeta->text_params.display_text = 
+                (gchar*) g_malloc0(MAX_DISPLAY_LEN);
 
             for (auto const &iter: m_contentTypes)
             {
@@ -766,25 +780,31 @@ namespace DSL
     }
 
     void DisplayOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
-        if (m_enabled)
+        if (m_enabled and displayMetaData.size())
         {
-            DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+            DSL_ODE_TRIGGER_PTR pTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+                
+                
             
-            NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
+            NvOSD_TextParams *pTextParams = 
+                &displayMetaData.at(0)->text_params[displayMetaData.at(0)->num_labels++];
             pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
             
             std::string text(m_formatString.c_str());
             
             if (pObjectMeta)
             {
-                std::string location = std::to_string(lrint(pObjectMeta->rect_params.left)) +
+                std::string location = 
+                    std::to_string(lrint(pObjectMeta->rect_params.left)) +
                     "," + std::to_string(lrint(pObjectMeta->rect_params.top));
-                std::string dimensions = std::to_string(lrint(pObjectMeta->rect_params.width)) +
+                std::string dimensions = 
+                    std::to_string(lrint(pObjectMeta->rect_params.width)) +
                     "x" + std::to_string(lrint(pObjectMeta->rect_params.height));
                 
                 text = std::regex_replace(text, std::regex("\%0"), 
@@ -814,14 +834,15 @@ namespace DSL
             // Font, font-size, font-color
             pTextParams->font_params = *m_pFont;
             pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
-            m_pFont->m_fontName.copy(pTextParams->font_params.font_name, MAX_DISPLAY_LEN, 0);
+            m_pFont->m_fontName.copy(
+                pTextParams->font_params.font_name, MAX_DISPLAY_LEN, 0);
             
 
             // Text background color
             pTextParams->set_bg_clr = m_hasBgColor;
             pTextParams->text_bg_clr = *m_pBgColor;
             
-            nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
+            nvds_add_display_meta_to_frame(pFrameMeta, displayMetaData.at(0));
         }
     }
     
@@ -842,14 +863,15 @@ namespace DSL
     }
 
     void EmailOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
         if (m_enabled)
         {
-            DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+            DSL_ODE_TRIGGER_PTR pTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
             
             std::vector<std::string> body;
             
@@ -892,9 +914,12 @@ namespace DSL
                     +  std::to_string(pObjectMeta->object_id) + "<br>"));
                 body.push_back(std::string("    Label       : " 
                     +  std::string(pObjectMeta->obj_label) + "<br>"));
-                body.push_back(std::string("    Persistence       : " 
+                body.push_back(std::string("    Persistence : " 
                     + std::to_string(pObjectMeta->
                         misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE]) + "<br>"));
+                body.push_back(std::string("    Direction   : " 
+                    + std::to_string(pObjectMeta->
+                        misc_obj_info[DSL_OBJECT_INFO_DIRECTION]) + "<br>"));
                 body.push_back(std::string("    Confidence  : " 
                     +  std::to_string(pObjectMeta->confidence) + "<br>"));
                 body.push_back(std::string("    Left        : " 
@@ -984,7 +1009,8 @@ namespace DSL
             struct tm currentTm;
             localtime_r(&seconds, &currentTm);
 
-            strftime(dateTime, DATE_BUFF_LENGTH, "%a, %d %b %Y %H:%M:%S %z", &currentTm);
+            strftime(dateTime, DATE_BUFF_LENGTH, "%a, %d %b %Y %H:%M:%S %z", 
+                &currentTm);
             std::string dateTimeStr(dateTime);
             
             m_ostream << "-------------------------------------------------------------------" << "\n";
@@ -1062,7 +1088,7 @@ namespace DSL
     }
 
     void FileOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1072,7 +1098,8 @@ namespace DSL
         {
             return;
         }
-        DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+        DSL_ODE_TRIGGER_PTR pTrigger = 
+            std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
         
         if (m_format == DSL_EVENT_FILE_FORMAT_TEXT)
         {
@@ -1105,6 +1132,8 @@ namespace DSL
                 m_ostream << "    Label       : " << pObjectMeta->obj_label << "\n";
                 m_ostream << "    Persistence : " << pObjectMeta->
                     misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] + "\n";
+                m_ostream << "    Direction   : " << pObjectMeta->
+                    misc_obj_info[DSL_OBJECT_INFO_DIRECTION] + "\n";
                 m_ostream << "    Confidence  : " << pObjectMeta->confidence << "\n";
                 m_ostream << "    Left        : " << lrint(pObjectMeta->rect_params.left) << "\n";
                 m_ostream << "    Top         : " << lrint(pObjectMeta->rect_params.top) << "\n";
@@ -1161,6 +1190,8 @@ namespace DSL
                 m_ostream << pObjectMeta->confidence << ",";
                 m_ostream << pObjectMeta->
                     misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] + ",";
+                m_ostream << pObjectMeta->
+                    misc_obj_info[DSL_OBJECT_INFO_DIRECTION] + ",";
                 m_ostream << lrint(pObjectMeta->rect_params.left) << ",";
                 m_ostream << lrint(pObjectMeta->rect_params.top) << ",";
                 m_ostream << lrint(pObjectMeta->rect_params.width) << ",";
@@ -1168,7 +1199,7 @@ namespace DSL
             }
             else
             {
-                m_ostream << "0,0,0,0,0,0,0,0,0,0";
+                m_ostream << "0,0,0,0,0,0,0,0,0,0,0";
             }
 
             m_ostream << pTrigger->m_classId << ",";
@@ -1229,12 +1260,12 @@ namespace DSL
     }
 
     void FillSurroundingsOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
-        if (m_enabled and pObjectMeta)
+        if (m_enabled and pObjectMeta and displayMetaData.size())
         {
             
             uint x1(roundf(pObjectMeta->rect_params.left));
@@ -1245,32 +1276,34 @@ namespace DSL
             
             std::string leftRectName("left-rect");
             
-            DSL_RGBA_RECTANGLE_PTR pLeftRect = DSL_RGBA_RECTANGLE_NEW(leftRectName.c_str(), 
+            DSL_RGBA_RECTANGLE_PTR pLeftRect = 
+                DSL_RGBA_RECTANGLE_NEW(leftRectName.c_str(), 
                 0, 0, x1, pFrameMeta->source_frame_height, 0, m_pColor, true, m_pColor);
                 
-            pLeftRect->AddMeta(pDisplayMeta, pFrameMeta);
+            pLeftRect->AddMeta(displayMetaData, pFrameMeta);
 
             std::string rightRectName("right-rect");
             
-            DSL_RGBA_RECTANGLE_PTR pRightRect = DSL_RGBA_RECTANGLE_NEW(rightRectName.c_str(), 
+            DSL_RGBA_RECTANGLE_PTR pRightRect = 
+                DSL_RGBA_RECTANGLE_NEW(rightRectName.c_str(), 
                 x2, 0, pFrameMeta->source_frame_width, pFrameMeta->source_frame_height, 
                     0, m_pColor, true, m_pColor);
     
-            pRightRect->AddMeta(pDisplayMeta, pFrameMeta);
+            pRightRect->AddMeta(displayMetaData, pFrameMeta);
 
             std::string topRectName("top-rect");
             
             DSL_RGBA_RECTANGLE_PTR pTopRect = DSL_RGBA_RECTANGLE_NEW(topRectName.c_str(), 
                 x1, 0, rWidth, y1, 0, m_pColor, true, m_pColor);
                 
-            pTopRect->AddMeta(pDisplayMeta, pFrameMeta);
+            pTopRect->AddMeta(displayMetaData, pFrameMeta);
 
             std::string bottomRectName("bottom-rect");
             
             DSL_RGBA_RECTANGLE_PTR pBottomRect = DSL_RGBA_RECTANGLE_NEW(bottomRectName.c_str(), 
                 x1, y2, rWidth, pFrameMeta->source_frame_height, 0, m_pColor, true, m_pColor);
                 
-            pBottomRect->AddMeta(pDisplayMeta, pFrameMeta);
+            pBottomRect->AddMeta(displayMetaData, pFrameMeta);
         }
     }
 
@@ -1291,12 +1324,12 @@ namespace DSL
     }
 
     void FillFrameOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
-        if (m_enabled)
+        if (m_enabled and displayMetaData.size())
         {
             NvOSD_RectParams rectParams{0};
             rectParams.left = 0;
@@ -1307,7 +1340,7 @@ namespace DSL
             rectParams.has_bg_color = true;
             rectParams.bg_color = *m_pColor;
             
-            pDisplayMeta->rect_params[pDisplayMeta->num_rects++] = rectParams;
+            displayMetaData.at(0)->rect_params[displayMetaData.at(0)->num_rects++] = rectParams;
         }
     }
 
@@ -1325,14 +1358,15 @@ namespace DSL
     }
 
     void LogOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
         if (m_enabled)
         {
-            DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+            DSL_ODE_TRIGGER_PTR pTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
             
             LOG_INFO("Trigger Name    : " << pTrigger->GetName());
             LOG_INFO("  Unique ODE Id : " << pTrigger->s_eventCount);
@@ -1362,9 +1396,11 @@ namespace DSL
                 LOG_INFO("    Infer Id    : " << pObjectMeta->unique_component_id);
                 LOG_INFO("    Tracking Id : " << pObjectMeta->object_id);
                 LOG_INFO("    Label       : " << pObjectMeta->obj_label);
-                LOG_INFO("    Confidence  : " << pObjectMeta->confidence);
                 LOG_INFO("    Persistence : " << pObjectMeta->
                     misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE]);
+                LOG_INFO("    Direction   : " << pObjectMeta->
+                    misc_obj_info[DSL_OBJECT_INFO_DIRECTION]);
+                LOG_INFO("    Confidence  : " << pObjectMeta->confidence);
                 LOG_INFO("    Left        : " << pObjectMeta->rect_params.left);
                 LOG_INFO("    Top         : " << pObjectMeta->rect_params.top);
                 LOG_INFO("    Width       : " << pObjectMeta->rect_params.width);
@@ -1435,7 +1471,7 @@ namespace DSL
     }
 
     void MessageMetaAddOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1447,7 +1483,8 @@ namespace DSL
          
             pMsgMeta->sensorId = pFrameMeta->source_id;
             const char* sourceName;
-            Services::GetServices()->SourceNameGet(pFrameMeta->source_id, &sourceName);
+            Services::GetServices()->SourceNameGet(pFrameMeta->source_id, 
+                &sourceName);
             pMsgMeta->sensorStr = g_strdup(sourceName);
             pMsgMeta->frameId = pFrameMeta->frame_num;
             pMsgMeta->ts = g_strdup(Ntp2Str(pFrameMeta->ntp_timestamp).c_str());
@@ -1520,7 +1557,7 @@ namespace DSL
     }
 
     void FormatLabelOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1559,19 +1596,18 @@ namespace DSL
         
         m_pDisplayTypes.push_back(pDisplayType);
     }
-
     
     void AddDisplayMetaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
-        if (m_enabled)
+        if (m_enabled and displayMetaData.size())
         {
             for (const auto &ivec: m_pDisplayTypes)
             {
-                ivec->AddMeta(pDisplayMeta, pFrameMeta);
+                ivec->AddMeta(displayMetaData, pFrameMeta);
             }
         }
     }
@@ -1591,7 +1627,7 @@ namespace DSL
     }
     
     void PauseOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1628,7 +1664,7 @@ namespace DSL
     }
 
     void PrintOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1637,7 +1673,8 @@ namespace DSL
         {
             return;
         }
-        DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+        DSL_ODE_TRIGGER_PTR pTrigger = 
+            std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
         
         std::cout << "Trigger Name    : " << pTrigger->GetName() << "\n";
         std::cout << "  Unique ODE Id : " << pTrigger->s_eventCount << "\n";
@@ -1669,6 +1706,8 @@ namespace DSL
             std::cout << "    Confidence  : " << pObjectMeta->confidence << "\n";
             std::cout << "    Persistence : " << pObjectMeta->
                 misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] << "\n";
+            std::cout << "    Direction   : " << pObjectMeta->
+                misc_obj_info[DSL_OBJECT_INFO_DIRECTION] << "\n";
             std::cout << "    Left        : " << lrint(pObjectMeta->rect_params.left) << "\n";
             std::cout << "    Top         : " << lrint(pObjectMeta->rect_params.top) << "\n";
             std::cout << "    Width       : " << lrint(pObjectMeta->rect_params.width) << "\n";
@@ -1733,7 +1772,8 @@ namespace DSL
 
     }
 
-    void RedactOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+    void RedactOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1772,14 +1812,16 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void AddSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void AddSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
         if (m_enabled)
         {
-            Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), m_sink.c_str());
+            Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), 
+                m_sink.c_str());
         }
     }
 
@@ -1799,7 +1841,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RemoveSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void RemoveSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1807,7 +1850,8 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), m_sink.c_str());
+            Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), 
+                m_sink.c_str());
         }
     }
 
@@ -1827,7 +1871,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void AddSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void AddSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1835,7 +1880,8 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), m_source.c_str());
+            Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), 
+                m_source.c_str());
         }
     }
 
@@ -1855,7 +1901,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RemoveSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void RemoveSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1863,7 +1910,8 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), m_source.c_str());
+            Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), 
+                m_source.c_str());
         }
     }
 
@@ -1881,7 +1929,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void ResetTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void ResetTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1896,7 +1945,8 @@ namespace DSL
 
     // ********************************************************************
 
-    DisableTriggerOdeAction::DisableTriggerOdeAction(const char* name, const char* trigger)
+    DisableTriggerOdeAction::DisableTriggerOdeAction(const char* name, 
+        const char* trigger)
         : OdeAction(name)
         , m_trigger(trigger)
     {
@@ -1908,7 +1958,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void DisableTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void DisableTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1922,7 +1973,8 @@ namespace DSL
 
     // ********************************************************************
 
-    EnableTriggerOdeAction::EnableTriggerOdeAction(const char* name, const char* trigger)
+    EnableTriggerOdeAction::EnableTriggerOdeAction(const char* name, 
+        const char* trigger)
         : OdeAction(name)
         , m_trigger(trigger)
     {
@@ -1934,7 +1986,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void EnableTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void EnableTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1948,7 +2001,8 @@ namespace DSL
 
     // ********************************************************************
 
-    DisableActionOdeAction::DisableActionOdeAction(const char* name, const char* action)
+    DisableActionOdeAction::DisableActionOdeAction(const char* name, 
+        const char* action)
         : OdeAction(name)
         , m_action(action)
     {
@@ -1960,7 +2014,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void DisableActionOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void DisableActionOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1986,7 +2041,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void EnableActionOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void EnableActionOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2014,7 +2070,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void AddAreaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void AddAreaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2022,7 +2079,8 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->OdeTriggerAreaAdd(m_trigger.c_str(), m_area.c_str());
+            Services::GetServices()->OdeTriggerAreaAdd(m_trigger.c_str(), 
+                m_area.c_str());
         }
     }
     
@@ -2042,7 +2100,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RemoveAreaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void RemoveAreaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2072,7 +2131,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RecordSinkStartOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void RecordSinkStartOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2100,7 +2160,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RecordSinkStopOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void RecordSinkStopOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2108,7 +2169,8 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            std::dynamic_pointer_cast<RecordSinkBintr>(m_pRecordSink)->StopSession(false);
+            std::dynamic_pointer_cast<RecordSinkBintr>
+                (m_pRecordSink)->StopSession(false);
         }
     }
 
@@ -2130,7 +2192,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RecordTapStartOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void RecordTapStartOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2158,7 +2221,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RecordTapStopOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void RecordTapStopOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2171,7 +2235,8 @@ namespace DSL
     }
     // ********************************************************************
 
-    TilerShowSourceOdeAction::TilerShowSourceOdeAction(const char* name, const char* tiler, uint timeout, bool hasPrecedence)
+    TilerShowSourceOdeAction::TilerShowSourceOdeAction(const char* name, 
+        const char* tiler, uint timeout, bool hasPrecedence)
         : OdeAction(name)
         , m_tiler(tiler)
         , m_timeout(timeout)
@@ -2185,7 +2250,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void TilerShowSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void TilerShowSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2193,7 +2259,8 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value,
-            Services::GetServices()->TilerSourceShowSet(m_tiler.c_str(), pFrameMeta->source_id, m_timeout, m_hasPrecedence);
+            Services::GetServices()->TilerSourceShowSet(m_tiler.c_str(), 
+                pFrameMeta->source_id, m_timeout, m_hasPrecedence);
         }
     }
 }    

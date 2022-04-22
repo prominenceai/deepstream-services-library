@@ -338,20 +338,7 @@ THE SOFTWARE.
 #define DSL_RESULT_DISPLAY_TYPE_IN_USE                              0x00200004
 #define DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE                0x00200005
 #define DSL_RESULT_DISPLAY_TYPE_IS_BASE_TYPE                        0x00200006
-#define DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE               0x00200007
-#define DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE                0x00200008
-#define DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE                0x00200009
-#define DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE                0x0020000A
-#define DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE               0x0020000B
-#define DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID                  0x0020000C
-#define DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE           0x0020000D
-#define DSL_RESULT_DISPLAY_RGBA_POLYGON_NAME_NOT_UNIQUE             0x0020000E
-#define DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE              0x0020000F
-#define DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE            0x00200010
-#define DSL_RESULT_DISPLAY_SOURCE_NAME_NAME_NOT_UNIQUE              0x00200011
-#define DSL_RESULT_DISPLAY_SOURCE_DIMENSIONS_NAME_NOT_UNIQUE        0x00200012
-#define DSL_RESULT_DISPLAY_SOURCE_FRAMERATE_NAME_NOT_UNIQUE         0x00200013
-#define DSL_RESULT_DISPLAY_PARAMETER_INVALID                        0x00200014
+#define DSL_RESULT_DISPLAY_PARAMETER_INVALID                        0x00200008
 
 
 /**
@@ -553,7 +540,25 @@ THE SOFTWARE.
 
 #define DSL_AREA_TYPE_INCLUSION                                     0
 #define DSL_AREA_TYPE_EXCLUSION                                     1
-#define DSL_AREA_TYPE_LINE                                          3                         
+#define DSL_AREA_TYPE_LINE                                          3     
+
+#define DSL_AREA_CROSS_DIRECTION_NONE                               0
+#define DSL_AREA_CROSS_DIRECTION_IN                                 1
+#define DSL_AREA_CROSS_DIRECTION_OUT                                2
+
+/**
+ * @brief Defines a Point's location relative to an ODE Area.
+ */
+#define DSL_AREA_POINT_LOCATION_ON_LINE                             0
+#define DSL_AREA_POINT_LOCATION_INSIDE                              1
+#define DSL_AREA_POINT_LOCATION_OUTSIDE                             2
+
+/**
+ * @brief Defines the ODE Area Line Cross directions.
+ */
+#define DSL_AREA_CROSS_DIRECTION_NONE                               0
+#define DSL_AREA_CROSS_DIRECTION_IN                                 1
+#define DSL_AREA_CROSS_DIRECTION_OUT                                2
 
 // Must match NvOSD_Arrow_Head_Direction
 #define DSL_ARROW_START_HEAD                                        0
@@ -627,10 +632,20 @@ THE SOFTWARE.
 #define DSL_DISTANCE_METHOD_PERCENT_HEIGHT_A                        3
 #define DSL_DISTANCE_METHOD_PERCENT_HEIGHT_B                        4
 
+#define DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS                     0
+#define DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS                     1
+
 /**
- * @brief the maximum number of coordinates when defining a Polygon
+ * @brief the maximum number of coordinates when defining a Display Type
  */
 #define DSL_MAX_POLYGON_COORDINATES                                 16
+#define DSL_MAX_MULTI_LINE_COORDINATES                              16
+
+/**
+ * @brief default maximum number of bbox frames for an ODE Tracking
+ * Trigger to maintain as an object trace / history
+ */
+#define DSL_DEFAULT_TRACKING_TRIGGER_MAX_TRACE_POINTS               10
 
 /**
  * @brief the maximum number of messages that can be queued up
@@ -1196,6 +1211,19 @@ DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_display_type_rgba_polygon_new(const wchar_t* name, 
+    const dsl_coordinate* coordinates, uint num_coordinates, uint border_width, 
+    const wchar_t* color);
+
+/**
+ * @brief creates a uniquely named RGBA Multi-Line
+ * @param[in] name unique name for the RGBA Multi-Line
+ * @param[in] coordinate an array of dsl_coordinate structures 
+ * @param[in] num_coordinates the number of xy coordinates in the array
+ * @param[in] border_width width of the multi-line in pixels
+ * @param[in] color RGBA Color for the multi-line
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_line_multi_new(const wchar_t* name, 
     const dsl_coordinate* coordinates, uint num_coordinates, uint border_width, 
     const wchar_t* color);
 
@@ -1864,12 +1892,25 @@ DslReturnType dsl_ode_area_exclusion_new(const wchar_t* name,
  * @param[in] name unique name of the ODE Line Area to create
  * @param[in] line name of an RGBA Line used to define location, dimensions, color
  * @param[in] show set to true to show (overlay) the line on each frame
- * @param[in] bbox_test_edge one of DSL_BBOX_EDGE values defining which edge of a
- * object's bounding box to use when testing for lines crossing
+ * @param[in] bbox_test_point one of DSL_BBOX_POINT values defining which point of a
+ * object's bounding box to use when testing for line crossing
  * @return DSL_RESULT_SUCCESS on successful create, DSL_RESULT_ODE_AREA_RESULT otherwise.
  */
 DslReturnType dsl_ode_area_line_new(const wchar_t* name,
-    const wchar_t* line, boolean show, uint bbox_test_edge);
+    const wchar_t* line, boolean show, uint bbox_test_point);
+
+/**
+ * @brief Creates a uniquely named ODE Multi-Line Area
+ * @param[in] name unique name of the ODE Multi Line Area to create
+ * @param[in] multi_line name of an RGBA Multi-Line used to define location, 
+ * dimensions, color
+ * @param[in] show set to true to show (overlay) the line on each frame
+ * @param[in] bbox_test_point one of DSL_BBOX_POINT values defining which point of a
+ * object's bounding box to use when testing for line crossing
+ * @return DSL_RESULT_SUCCESS on successful create, DSL_RESULT_ODE_AREA_RESULT otherwise.
+ */
+DslReturnType dsl_ode_area_line_multi_new(const wchar_t* name,
+    const wchar_t* multi_line, boolean show, uint bbox_test_point);
 
 /**
  * @brief Deletes an ODE Area
@@ -1976,6 +2017,72 @@ DslReturnType dsl_ode_trigger_count_range_get(const wchar_t* name,
  */
 DslReturnType dsl_ode_trigger_count_range_set(const wchar_t* name, 
     uint minimum, uint maximum);
+
+/**
+ * @brief Cross trigger that tracks Objects and triggers on the occurrence that an 
+ * object crosses the trigger's Line or Polygon Area.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
+ * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @param[in] min_frame_count setting for the minimum number of past 
+ * consective frames on both sides of a line (line or polygon area) to trigger an ODE.
+ * @param[in] max_trace_points maximum number of past trace points to maintain for
+ * each tracked objects. 
+ * @param[in] test_method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit, uint min_frame_count, 
+    uint max_trace_points, uint test_method);
+
+/**
+ * @brief Gets the current test settings for the named Cross trigger.
+ * @param[in] name unique name for the ODE Trigger to query
+ * @param[out] min_frame_count current setting for the minimum number of past 
+ * consective frames on both sides of a line (line or polygon area) to trigger an ODE.
+ * @param[out] max_trace_points current setting for the maximum number of past 
+ * trace points to maintain for each tracked objects. 
+ * @param[out] test_method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_cross_test_settings_get(const wchar_t* name, 
+    uint* min_frame_count, uint* max_trace_points, uint* test_method);
+    
+/**
+ * @brief Sets the max trace-points setting for the named Cross trigger.
+ * @param[in] name unique name for the ODE Trigger to update
+ * @param[in] min_frame_count new setting for the minimum number of past 
+ * consective frames on both sides of a line (line or polygon area) to trigger an ODE.
+ * @param[in] max_trace_points new setting for the maximum number of past 
+ * trace points to maintain for each tracked objects. 
+ * @param[in] test_method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
+* @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_cross_test_settings_set(const wchar_t* name, 
+    uint min_frame_count, uint max_trace_points, uint test_method);
+    
+/**
+ * @brief Gets the current trace settings for the named Cross trigger.
+ * @param[in] name unique name for the ODE Trigger to query
+ * @param[out] enabled true if object trace display is enabled, default = disabled 
+ * @param[out] color name of the color to use for object trace display, default = no-color.
+ * @param[out] line_width width of the object trace if display is enabled.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_cross_view_settings_get(const wchar_t* name, 
+    boolean* enabled, const wchar_t** color, uint* line_width);
+    
+/**
+ * @brief Sets the trace settings for the named Cross trigger.
+ * @param[in] name unique name for the ODE Trigger to update
+ * @param[in] enabled set to true to enable object trace display, false otherwise
+ * @param[in] color name of the color to use for object trace display.
+ * @param[in] line_width width of the object trace if display is enabled.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_cross_view_settings_set(const wchar_t* name, 
+    boolean enabled, const wchar_t* color, uint line_width);
     
 /**
  * @brief Occurence trigger that checks for a new instance of an Object for a 
@@ -2672,6 +2779,28 @@ DslReturnType dsl_pph_ode_trigger_remove_many(const wchar_t* name, const wchar_t
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
 DslReturnType dsl_pph_ode_trigger_remove_all(const wchar_t* name);
+
+/**
+ * @brief Gets the current setting for the number of Display Meta structures that
+ * are allocated for each frame. Each structure can hold up to 16 display elements
+ * for each display type (lines, arrows, rectangles, etc.). The default size is one.
+ * Note: each allocation adds overhead to the processing of each frame. 
+ * @param[in] name unique name of the ODE Handler to query.
+ * @param[out] count current count of Display Meta structures allocated per frame
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ */
+DslReturnType dsl_pph_ode_display_meta_alloc_size_get(const wchar_t* name, uint* size);
+
+/**
+ * @brief Sets the current setting for the number of Display Meta structures that
+ * are allocated for each frame. Each structure can hold up to 16 display elements
+ * for each display type (lines, arrows, rectangles, etc.). The default size is one.
+ * Note: each allocation adds overhead to the processing of each frame. 
+ * @param[in] name unique name of the ODE Handler to update.
+ * @param[in] size number of Display Meta structures allocated per frame
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ */
+DslReturnType dsl_pph_ode_display_meta_alloc_size_set(const wchar_t* name, uint size);
 
 /**
  * @brief creates a new, uniquely named Custom pad-probe-handler to process a buffer

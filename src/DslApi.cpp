@@ -161,6 +161,23 @@ DslReturnType dsl_display_type_rgba_polygon_new(const wchar_t* name,
         coordinates, num_coordinates, border_width, cstrColor.c_str());
 }
     
+DslReturnType dsl_display_type_rgba_line_multi_new(const wchar_t* name, 
+    const dsl_coordinate* coordinates, uint num_coordinates, 
+    uint border_width, const wchar_t* color)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(coordinates);
+    RETURN_IF_PARAM_IS_NULL(color);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrColor(color);
+    std::string cstrColor(wstrColor.begin(), wstrColor.end());
+
+    return DSL::Services::GetServices()->DisplayTypeRgbaLineMultiNew(cstrName.c_str(), 
+        coordinates, num_coordinates, border_width, cstrColor.c_str());
+}
+    
 DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, 
     uint x_center, uint y_center, uint radius, const wchar_t* color, 
     bool has_bg_color, const wchar_t* bg_color)
@@ -1147,7 +1164,7 @@ DslReturnType dsl_ode_area_exclusion_new(const wchar_t* name,
 }
 
 DslReturnType dsl_ode_area_line_new(const wchar_t* name, 
-    const wchar_t* line, boolean show, uint bbox_test_edge)
+    const wchar_t* line, boolean show, uint bbox_test_point)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(line);
@@ -1158,7 +1175,22 @@ DslReturnType dsl_ode_area_line_new(const wchar_t* name,
     std::string cstrLine(wstrLine.begin(), wstrLine.end());
 
     return DSL::Services::GetServices()->OdeAreaLineNew(cstrName.c_str(), 
-        cstrLine.c_str(), show, bbox_test_edge);
+        cstrLine.c_str(), show, bbox_test_point);
+}
+
+DslReturnType dsl_ode_area_line_multi_new(const wchar_t* name, 
+    const wchar_t* multi_line, boolean show, uint bbox_test_point)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(multi_line);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrMultiLine(multi_line);
+    std::string cstrMultiLine(wstrMultiLine.begin(), wstrMultiLine.end());
+
+    return DSL::Services::GetServices()->OdeAreaLineMultiNew(cstrName.c_str(), 
+        cstrMultiLine.c_str(), show, bbox_test_point);
 }
 
 DslReturnType dsl_ode_area_delete(const wchar_t* name)
@@ -1269,6 +1301,92 @@ DslReturnType dsl_ode_trigger_accumulation_new(const wchar_t* name,
         cstrSource.c_str(), class_id, limit);
 }
     
+DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit, uint min_frame_count, 
+    uint max_trace_points, uint test_method)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrSource;
+    if (source)
+    {
+        std::wstring wstrSource(source);
+        cstrSource.assign(wstrSource.begin(), wstrSource.end());
+    }
+    return DSL::Services::GetServices()->OdeTriggerCrossNew(cstrName.c_str(), 
+        cstrSource.c_str(), class_id, limit, min_frame_count, 
+        max_trace_points, test_method);
+}
+
+DslReturnType dsl_ode_trigger_cross_test_settings_get(const wchar_t* name, 
+    uint* min_frame_count, uint* max_trace_points, uint* test_method)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerCrossTestSettingsGet(cstrName.c_str(), 
+        min_frame_count, max_trace_points, test_method);
+}
+
+DslReturnType dsl_ode_trigger_cross_test_settings_set(const wchar_t* name, 
+    uint min_frame_count, uint max_trace_points, uint test_method)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerCrossTestSettingsSet(cstrName.c_str(), 
+        min_frame_count, max_trace_points, test_method);
+}
+    
+DslReturnType dsl_ode_trigger_cross_view_settings_get(const wchar_t* name, 
+    boolean* enabled, const wchar_t** color, uint* line_width)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+    RETURN_IF_PARAM_IS_NULL(color);
+    RETURN_IF_PARAM_IS_NULL(line_width);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* ccolor;
+    static std::string cstrColor;
+    static std::wstring wcstrColor;
+    
+    uint retval = DSL::Services::GetServices()->OdeTriggerCrossViewSettingsGet(
+        cstrName.c_str(), enabled, &ccolor, line_width);
+
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrColor.assign(ccolor);
+        wcstrColor.assign(cstrColor.begin(), cstrColor.end());
+        
+        *color = wcstrColor.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_ode_trigger_cross_view_settings_set(const wchar_t* name, 
+    boolean enabled, const wchar_t* color, uint line_width)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(color);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrColor(color);
+    std::string cstrColor(wstrColor.begin(), wstrColor.end());
+
+    return DSL::Services::GetServices()->OdeTriggerCrossViewSettingsSet(cstrName.c_str(), 
+        enabled, cstrColor.c_str(), line_width);
+}
     
 DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit)
@@ -2314,6 +2432,28 @@ DslReturnType dsl_pph_ode_trigger_remove_all(const wchar_t* name)
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->PphOdeTriggerRemoveAll(cstrName.c_str());
+}
+
+DslReturnType dsl_pph_ode_display_meta_alloc_size_get(const wchar_t* name, uint* size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PphOdeDisplayMetaAllocSizeGet(
+        cstrName.c_str(), size);
+}
+
+DslReturnType dsl_pph_ode_display_meta_alloc_size_set(const wchar_t* name, uint size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PphOdeDisplayMetaAllocSizeSet(
+        cstrName.c_str(), size);
 }
 
 DslReturnType dsl_pph_enabled_get(const wchar_t* name, boolean* enabled)
