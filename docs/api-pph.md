@@ -49,6 +49,8 @@ ODE Triggers are added to an ODE Pad Probe Handler by calling [dsl_pph_ode_trigg
 * [dsl_pph_ode_trigger_remove](#dsl_pph_ode_trigger_remove)
 * [dsl_pph_ode_trigger_remove_many](#dsl_pph_ode_trigger_remove_many)
 * [dsl_pph_ode_trigger_remove_all](#dsl_pph_ode_trigger_remove_all)
+* [dsl_pph_ode_display_meta_alloc_size_get](#dsl_pph_ode_display_meta_alloc_size_get)
+* [dsl_pph_ode_display_meta_alloc_size_set](#dsl_pph_ode_display_meta_alloc_size_set)
 * [dsl_pph_enabled_get](#dsl_pph_enabled_get)
 * [dsl_pph_enabled_set](#dsl_pph_enabled_set)
 * [dsl_pph_list_size](#dsl_pph_list_size)
@@ -450,6 +452,48 @@ This service removes all ODE Triggers from a named ODE Pad Probe Handler.
 **Python Example**
 ```Python
 retval = dsl_pph_ode_trigger_remove_all('my-handler')
+```
+
+<br>
+
+### *dsl_pph_ode_display_meta_alloc_size_get*
+```c++
+DslReturnType dsl_pph_ode_display_meta_alloc_size_get(const wchar_t* name, uint* size);
+```
+
+This service gets the current setting for the number of Display Meta structures that are allocated for each frame. Each structure can hold up to 16 display elements for each display type (lines, arrows, rectangles, etc.). The default size is one. Note: each allocation adds overhead to the processing of each frame. 
+
+**Parameters**
+* `name` - [in] unique name of the ODE Pad Probe Handler to update.
+* `size - [out] current allocation size = number of structures allocated per frame
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, size = dsl_pph_ode_display_meta_alloc_size_get('my-handler')
+```
+
+<br>
+
+### *dsl_pph_ode_display_meta_alloc_size_set*
+```c++
+DslReturnType dsl_pph_ode_display_meta_alloc_size_set(const wchar_t* name, uint size);
+```
+
+This service sets the setting for the number of Display Meta structures that are allocated for each frame. Each structure can hold up to 16 display elements for each display type (lines, arrows, rectangles, etc.). The default size is one. Note: each allocation adds overhead to the processing of each frame. 
+
+**Parameters**
+* `name` - [in] unique name of the ODE Pad Probe Handler to update.
+* `size - [in] new allocation size = number of structures allocated per frame
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_pph_ode_display_meta_alloc_size_set('my-handler', 3)
 ```
 
 <br>
