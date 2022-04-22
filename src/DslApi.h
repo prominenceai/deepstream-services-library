@@ -2785,11 +2785,11 @@ DslReturnType dsl_pph_ode_trigger_remove_all(const wchar_t* name);
  * are allocated for each frame. Each structure can hold up to 16 display elements
  * for each display type (lines, arrows, rectangles, etc.). The default size is one.
  * Note: each allocation adds overhead to the processing of each frame. 
- * @param[in] name unique name of the ODE Handler to update.
+ * @param[in] name unique name of the ODE Handler to query.
  * @param[out] count current count of Display Meta structures allocated per frame
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
-DslReturnType dsl_pph_ode_display_meta_alloc_size_get(const wchar_t* name, uint* count);
+DslReturnType dsl_pph_ode_display_meta_alloc_size_get(const wchar_t* name, uint* size);
 
 /**
  * @brief Sets the current setting for the number of Display Meta structures that
@@ -2797,10 +2797,10 @@ DslReturnType dsl_pph_ode_display_meta_alloc_size_get(const wchar_t* name, uint*
  * for each display type (lines, arrows, rectangles, etc.). The default size is one.
  * Note: each allocation adds overhead to the processing of each frame. 
  * @param[in] name unique name of the ODE Handler to update.
- * @param[in] count current count of Display Meta structures allocated per frame
+ * @param[in] size number of Display Meta structures allocated per frame
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
-DslReturnType dsl_pph_ode_display_meta_alloc_size_set(const wchar_t* name, uint count);
+DslReturnType dsl_pph_ode_display_meta_alloc_size_set(const wchar_t* name, uint size);
 
 /**
  * @brief creates a new, uniquely named Custom pad-probe-handler to process a buffer

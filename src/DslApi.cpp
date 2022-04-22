@@ -2434,7 +2434,7 @@ DslReturnType dsl_pph_ode_trigger_remove_all(const wchar_t* name)
     return DSL::Services::GetServices()->PphOdeTriggerRemoveAll(cstrName.c_str());
 }
 
-DslReturnType dsl_pph_ode_display_meta_alloc_size_get(const wchar_t* name, uint* count)
+DslReturnType dsl_pph_ode_display_meta_alloc_size_get(const wchar_t* name, uint* size)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -2442,10 +2442,10 @@ DslReturnType dsl_pph_ode_display_meta_alloc_size_get(const wchar_t* name, uint*
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->PphOdeDisplayMetaAllocSizeGet(
-        cstrName.c_str(), count);
+        cstrName.c_str(), size);
 }
 
-DslReturnType dsl_pph_ode_display_meta_alloc_size_set(const wchar_t* name, uint count)
+DslReturnType dsl_pph_ode_display_meta_alloc_size_set(const wchar_t* name, uint size)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -2453,7 +2453,7 @@ DslReturnType dsl_pph_ode_display_meta_alloc_size_set(const wchar_t* name, uint 
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->PphOdeDisplayMetaAllocSizeSet(
-        cstrName.c_str(), count);
+        cstrName.c_str(), size);
 }
 
 DslReturnType dsl_pph_enabled_get(const wchar_t* name, boolean* enabled)

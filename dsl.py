@@ -1918,6 +1918,27 @@ def dsl_pph_ode_trigger_remove_all(name):
     return int(result)
 
 ##
+## dsl_pph_ode_display_meta_alloc_size_get()
+##
+_dsl.dsl_pph_ode_display_meta_alloc_size_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_pph_ode_display_meta_alloc_size_get.restype = c_uint
+def dsl_pph_ode_display_meta_alloc_size_get(name):
+    global _dsl
+    size = c_uint(0)
+    result =_dsl.dsl_pph_ode_display_meta_alloc_size_get(name, DSL_UINT_P(size))
+    return int(result), size.value
+
+##
+## dsl_pph_ode_display_meta_alloc_size_set()
+##
+_dsl.dsl_pph_ode_display_meta_alloc_size_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_pph_ode_display_meta_alloc_size_set.restype = c_uint
+def dsl_pph_ode_display_meta_alloc_size_set(name, size):
+    global _dsl
+    result =_dsl.dsl_pph_ode_display_meta_alloc_size_set(name, size)
+    return int(result)
+
+##
 ## dsl_pph_custom_new()
 ##
 _dsl.dsl_pph_custom_new.argtypes = [c_wchar_p, DSL_PPH_CUSTOM_CLIENT_HANDLER, c_void_p]

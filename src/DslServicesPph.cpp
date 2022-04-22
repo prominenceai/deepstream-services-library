@@ -282,7 +282,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::PphOdeDisplayMetaAllocSizeGet(const char* name, uint* count)
+    DslReturnType Services::PphOdeDisplayMetaAllocSizeGet(const char* name, uint* size)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -295,22 +295,22 @@ namespace DSL
             DSL_PPH_ODE_PTR pOde = 
                 std::dynamic_pointer_cast<OdePadProbeHandler>(m_padProbeHandlers[name]);
             
-            *count = pOde->GetDisplayMetaAllocSize();
+            *size = pOde->GetDisplayMetaAllocSize();
 
             LOG_INFO("ODE Pad Probe Handler '" << name 
-                << "' returned a Display Meta count of " << *count << " successfully");
+                << "' returned a Display Meta size of " << *size << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("ODE Pad Probe Handler '" << name 
-                << "' threw an exception getting Display Meta count");
+                << "' threw an exception getting Display Meta size");
             return DSL_RESULT_PPH_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::PphOdeDisplayMetaAllocSizeSet(const char* name, uint count)
+    DslReturnType Services::PphOdeDisplayMetaAllocSizeSet(const char* name, uint size)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -321,19 +321,19 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, OdePadProbeHandler);
             
             DSL_PPH_ODE_PTR pOde = 
-                std::dynamic_pointer_cast<OdePadProbeHandler>(m_padProbeHandlers[name]);
+                std::dynamic_pointer_cast<OdePadProbeHandler>(m_padProbeHandlers[name]); 
 
-            pOde->SetDisplayMetaAllocSize(count);
+            pOde->SetDisplayMetaAllocSize(size);
 
             LOG_INFO("ODE Pad Probe Handler '" << name 
-                << "' set its Display Meta count to " << count << " successfully");
+                << "' set its Display Meta size to " << size << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("ODE Pad Probe Handler '" << name 
-                << "' threw an exception setting Display Meta count");
+                << "' threw an exception setting Display Meta size");
             return DSL_RESULT_PPH_THREW_EXCEPTION;
         }
     }

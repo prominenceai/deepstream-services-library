@@ -460,9 +460,9 @@ namespace DSL {
 
         DslReturnType PphOdeTriggerRemoveAll(const char* name);
         
-        DslReturnType PphOdeDisplayMetaAllocSizeGet(const char* name, uint* count);
+        DslReturnType PphOdeDisplayMetaAllocSizeGet(const char* name, uint* size);
 
-        DslReturnType PphOdeDisplayMetaAllocSizeSet(const char* name, uint count);
+        DslReturnType PphOdeDisplayMetaAllocSizeSet(const char* name, uint size);
 
         DslReturnType PphEnabledGet(const char* name, boolean* enabled);
         
