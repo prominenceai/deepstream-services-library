@@ -116,7 +116,7 @@ def main(args):
         
         #```````````````````````````````````````````````````````````````````````````````````
 
-        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, green=0.0, blue=0.0, alpha=0.3)
+        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, green=0.2, blue=0.2, alpha=0.6)
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -125,13 +125,13 @@ def main(args):
             break
             
         retval = dsl_display_type_rgba_line_new('line', 
-            x1=280, y1=680, x2=600, y2=660, width=4, color='opaque-red')
+            x1=280, y1=680, x2=600, y2=660, width=6, color='opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
             
         # create the ODE line area to use as criteria for ODE occurence
         retval = dsl_ode_area_line_new('line-area', line='line', 
-            show=True, bbox_test_edge=DSL_BBOX_POINT_SOUTH)    
+            show=True, bbox_test_point=DSL_BBOX_POINT_SOUTH)    
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -141,14 +141,22 @@ def main(args):
             source = DSL_ODE_ANY_SOURCE,
             class_id = PGIE_CLASS_ID_PERSON, 
             limit = DSL_ODE_TRIGGER_LIMIT_NONE,
-            min_trace_points = 10, 
-            max_trace_points = 30, 
+            min_frame_count = 5, 
+            max_trace_points = 200, 
             test_method = DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_ode_trigger_cross_trace_view_settings_set('person-crossing-line',
+        # Set a minimum confidence level to avoid false negatives.
+        retval = dsl_ode_trigger_confidence_min_set('person-crossing-line',
+            min_confidence = 0.4)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        retval = dsl_ode_trigger_cross_view_settings_set('person-crossing-line',
             enabled=True, color='light-green', line_width=5)
+        if retval != DSL_RETURN_SUCCESS:
+            break
             
         # Using the same Inclusion area as the New Occurrence Trigger
         retval = dsl_ode_trigger_area_add('person-crossing-line', area='line-area')
@@ -159,13 +167,17 @@ def main(args):
         retval = dsl_ode_action_capture_object_new('person-capture-action', outdir="./")
         if retval != DSL_RETURN_SUCCESS:
             break
-        
+
+        retval = dsl_ode_action_print_new('print-action', force_flush=False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # Add the capture complete listener function to the action
         retval = dsl_ode_action_capture_complete_listener_add('person-capture-action', 
             capture_complete_listener, None)
 
-        retval = dsl_ode_trigger_action_add('person-crossing-line', 
-            action='person-capture-action')
+        retval = dsl_ode_trigger_action_add_many('person-crossing-line', 
+            actions=['person-capture-action', 'print-action', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

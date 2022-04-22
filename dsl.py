@@ -305,6 +305,18 @@ def dsl_display_type_rgba_polygon_new(name, coordinates, num_coordinates, border
     return int(result)
 
 ##
+## dsl_display_type_rgba_line_multi_new()
+##
+#_dsl.dsl_display_type_rgba_line_multi_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_rgba_line_multi_new.restype = c_uint
+def dsl_display_type_rgba_line_multi_new(name, coordinates, num_coordinates, border_width, color):
+    global _dsl
+    arr = (dsl_coordinate * num_coordinates)()
+    arr[:] = coordinates
+    result =_dsl.dsl_display_type_rgba_line_multi_new(name, arr, num_coordinates, border_width, color)
+    return int(result)
+
+##
 ## dsl_display_type_rgba_circle_new()
 ##
 _dsl.dsl_display_type_rgba_circle_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
@@ -992,9 +1004,19 @@ def dsl_ode_area_exclusion_new(name, polygon, show, bbox_test_point):
 ##
 _dsl.dsl_ode_area_line_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint]
 _dsl.dsl_ode_area_line_new.restype = c_uint
-def dsl_ode_area_line_new(name, line, show, bbox_test_edge):
+def dsl_ode_area_line_new(name, line, show, bbox_test_point):
     global _dsl
-    result =_dsl.dsl_ode_area_line_new(name, line, show, bbox_test_edge)
+    result =_dsl.dsl_ode_area_line_new(name, line, show, bbox_test_point)
+    return int(result)
+
+##
+## dsl_ode_area_line_multi_new()
+##
+_dsl.dsl_ode_area_line_multi_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint]
+_dsl.dsl_ode_area_line_multi_new.restype = c_uint
+def dsl_ode_area_line_multi_new(name, multi_line, show, bbox_test_point):
+    global _dsl
+    result =_dsl.dsl_ode_area_line_multi_new(name, multi_line, show, bbox_test_point)
     return int(result)
 
 ##

@@ -1349,6 +1349,9 @@ DslReturnType dsl_ode_trigger_cross_view_settings_get(const wchar_t* name,
     boolean* enabled, const wchar_t** color, uint* line_width)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+    RETURN_IF_PARAM_IS_NULL(color);
+    RETURN_IF_PARAM_IS_NULL(line_width);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());

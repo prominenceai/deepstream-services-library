@@ -171,7 +171,14 @@ namespace DSL
             if (testMethod > DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS)
             {
                 LOG_ERROR("Invalid test method = " << testMethod 
-                    << " for ODE Cross Trigger name '" << name << "'");
+                    << " for ODE Cross Trigger '" << name << "'");
+                return DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID;
+            }
+            if (minFrameCount >= maxTracePoints)
+            {
+                LOG_ERROR("Invalid parameters - max_trace_points = " << maxTracePoints 
+                    << "must be greater than min_frame_count = " << minFrameCount
+                    << "for ODE Cross Trigger '" << name << "'");
                 return DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID;
             }
             DSL_RGBA_COLOR_PTR pColor = std::dynamic_pointer_cast<RgbaColor>
@@ -237,6 +244,19 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, 
                 name, CrossOdeTrigger);
             
+            if (testMethod > DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS)
+            {
+                LOG_ERROR("Invalid test method = " << testMethod 
+                    << " for ODE Cross Trigger '" << name << "'");
+                return DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID;
+            }
+            if (minFrameCount >= maxTracePoints)
+            {
+                LOG_ERROR("Invalid parameters - max_trace_points = " << maxTracePoints 
+                    << "must be greater than min_frame_count = " << minFrameCount
+                    << "for ODE Cross Trigger '" << name << "'");
+                return DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID;
+            }
             DSL_ODE_TRIGGER_CROSS_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<CrossOdeTrigger>(m_odeTriggers[name]);
 
