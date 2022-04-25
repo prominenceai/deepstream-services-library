@@ -1726,6 +1726,7 @@ SCENARIO( "A new Pipeline with a Cross ODE Trigger using an ODE Polygon Area can
 
         std::wstring white(L"solid-white");
         std::wstring green(L"solid-green");
+        std::wstring random_color(L"random-color");
         
         std::wstring area_name  = L"multi-line-area";
 
@@ -1757,6 +1758,10 @@ SCENARIO( "A new Pipeline with a Cross ODE Trigger using an ODE Polygon Area can
         REQUIRE( dsl_display_type_rgba_color_new(green.c_str(), 
             0.5, 1.0, 0.5, 0.5) == DSL_RESULT_SUCCESS );
 
+        REQUIRE( dsl_display_type_rgba_color_random_new(random_color.c_str(), 
+            DSL_COLOR_HUE_RANDOM, DSL_COLOR_LUMINOSITY_RANDOM, 
+            1.0, 123) == DSL_RESULT_SUCCESS );
+
         REQUIRE( dsl_display_type_rgba_polygon_new(polygon.c_str(), 
             coordinates, num_coordinates, line_width, white.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -1771,7 +1776,7 @@ SCENARIO( "A new Pipeline with a Cross ODE Trigger using an ODE Polygon Area can
             0.40) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_ode_trigger_cross_view_settings_set(person_cross_name.c_str(),
-            true, green.c_str(), 4) == DSL_RESULT_SUCCESS );
+            true, random_color.c_str(), 4) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_area_add(person_cross_name.c_str(), 
             area_name.c_str()) == DSL_RESULT_SUCCESS );

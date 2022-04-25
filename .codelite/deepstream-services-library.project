@@ -6,7 +6,6 @@
     <File Name="../src/DslApi.cpp"/>
     <File Name="../src/DslBranchBintr.cpp"/>
     <File Name="../src/DslDewarperBintr.cpp"/>
-    <File Name="../src/DslDisplayTypes.cpp"/>
     <File Name="../src/DslGeosTypes.cpp"/>
     <File Name="../src/DslInferBintr.cpp"/>
     <File Name="../src/DslMailer.cpp"/>
@@ -244,6 +243,7 @@
       <File Name="../examples/tkinter/tkapp.py"/>
       <File Name="../examples/tkinter/tkapp_window.py"/>
     </VirtualDirectory>
+    <File Name="../src/DslDisplayTypes.cpp"/>
   </VirtualDirectory>
   <Settings Type="Dynamic Library">
     <GlobalSettings>
@@ -334,4 +334,8 @@
       </Completion>
     </Configuration>
   </Settings>
+  <VirtualDirectory Name="thirdparty">
+    <File Name="../src/thirdparty/randomcolor.cpp"/>
+    <File Name="../src/thirdparty/randomcolor.h"/>
+  </VirtualDirectory>
 </CodeLite_Project>

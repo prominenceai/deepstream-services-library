@@ -320,8 +320,7 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, 
                 name, CrossOdeTrigger);
             DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_displayTypes, 
-                color, RgbaColor);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(m_displayTypes, color);
             
             DSL_ODE_TRIGGER_CROSS_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<CrossOdeTrigger>(m_odeTriggers[name]);
@@ -478,8 +477,11 @@ namespace DSL
             // check for no maximum
             maximum = (maximum == 0) ? UINT32_MAX : maximum;
 
+            DSL_RGBA_COLOR_PTR pColor = std::dynamic_pointer_cast<RgbaColor>
+                (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
+
             m_odeTriggers[name] = DSL_ODE_TRIGGER_PERSISTENCE_NEW(name, 
-                source, classId, limit, minimum, maximum);
+                source, classId, limit, minimum, maximum, pColor);
             
             LOG_INFO("New Persistence ODE Trigger '" << name << "' created successfully");
 
@@ -869,7 +871,12 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_LATEST_NEW(name, source, classId, limit);
+
+            DSL_RGBA_COLOR_PTR pColor = std::dynamic_pointer_cast<RgbaColor>
+                (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
+
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_LATEST_NEW(name, 
+                source, classId, limit, pColor);
             
             LOG_INFO("New Latest ODE Trigger '" << name << "' created successfully");
 
@@ -877,7 +884,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("New Latest ODE Trigger '" << name << "' threw exception on create");
+            LOG_ERROR("New Latest ODE Trigger '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
@@ -896,15 +904,22 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_EARLIEST_NEW(name, source, classId, limit);
+
+            DSL_RGBA_COLOR_PTR pColor = std::dynamic_pointer_cast<RgbaColor>
+                (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
+
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_EARLIEST_NEW(name, 
+                source, classId, limit, pColor);
             
-            LOG_INFO("New Earliest ODE Trigger '" << name << "' created successfully");
+            LOG_INFO("New Earliest ODE Trigger '" << name 
+                << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Earliest ODE Trigger '" << name << "' threw exception on create");
+            LOG_ERROR("New Earliest ODE Trigger '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }

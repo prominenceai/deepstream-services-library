@@ -956,8 +956,15 @@ namespace DSL
     // *****************************************************************************
     
     TrackingOdeTrigger::TrackingOdeTrigger(const char* name, const char* source, 
-        uint classId, uint limit, uint maxTracePoints)
+        uint classId, uint limit, uint minFrameCount, uint maxTracePoints, 
+        uint testMethod, DSL_RGBA_COLOR_PTR pColor)
         : OdeTrigger(name, source, classId, limit)
+        , m_minFrameCount(minFrameCount)
+        , m_maxTracePoints(maxTracePoints)
+        , m_traceEnabled(false)
+        , m_testMethod(testMethod)
+        , m_pTraceColor(pColor)
+        , m_traceLineWidth(0)
     {
         LOG_FUNC();
         
@@ -981,20 +988,57 @@ namespace DSL
         // call the base class to complete the Reset
         OdeTrigger::Reset();
     }
-    
 
+    void TrackingOdeTrigger::GetTestSettings(uint* minFrameCount, 
+        uint* maxTracePoints, uint* testMethod)
+    {
+        LOG_FUNC();
+
+        *minFrameCount = m_minFrameCount;
+        *maxTracePoints = m_maxTracePoints;
+        *testMethod = m_testMethod;
+    }
+    
+    void TrackingOdeTrigger::SetTestSettings(uint minFrameCount,
+        uint maxTracePoints, uint testMethod)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        m_minFrameCount = minFrameCount;
+        m_maxTracePoints = maxTracePoints;
+        m_testMethod = testMethod;
+        m_pTrackedObjectsPerSource->SetMaxHistory(m_maxTracePoints);
+    }
+    
+    void TrackingOdeTrigger::GetViewSettings(bool* enabled, 
+        const char** color, uint* lineWidth)
+    {
+        LOG_FUNC();
+
+        *enabled = m_traceEnabled;
+        *color = m_pTraceColor->GetName().c_str();
+        *lineWidth = m_traceLineWidth;
+    }
+    
+    void TrackingOdeTrigger::SetViewSettings(bool enabled, 
+        DSL_RGBA_COLOR_PTR pColor, uint lineWidth)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_traceEnabled = enabled;
+        m_pTraceColor = pColor;
+        m_traceLineWidth = lineWidth;
+    }        
+   
     // *****************************************************************************
     
     CrossOdeTrigger::CrossOdeTrigger(const char* name, const char* source, 
         uint classId, uint limit, uint minFrameCount, uint maxTracePoints, 
         uint testMethod, DSL_RGBA_COLOR_PTR pColor)
-        : TrackingOdeTrigger(name, source, classId, limit, maxTracePoints)
-        , m_minFrameCount(minFrameCount)
-        , m_maxTracePoints(maxTracePoints)
-        , m_traceEnabled(false)
-        , m_testMethod(testMethod)
-        , m_pTraceColor(pColor)
-        , m_traceLineWidth(0)
+        : TrackingOdeTrigger(name, source, classId, limit, 
+            minFrameCount, maxTracePoints, testMethod, pColor)
     {
         LOG_FUNC();
     }
@@ -1029,7 +1073,11 @@ namespace DSL
             pObjectMeta->object_id))
         {
             // Create a new Tracked object and return without occurence
-            m_pTrackedObjectsPerSource->Track(pFrameMeta, pObjectMeta);
+            m_pTrackedObjectsPerSource->Track(pFrameMeta, 
+                pObjectMeta, m_pTraceColor);
+
+            // Update the color for the next tracked object to be created.
+            m_pTraceColor->SetNext();
             return false;
         }
 
@@ -1038,7 +1086,8 @@ namespace DSL
             m_pTrackedObjectsPerSource->GetObject(pFrameMeta->source_id,
                 pObjectMeta->object_id);
                 
-        pTrackedObject->Update(pFrameMeta->frame_num, &pObjectMeta->rect_params);
+        pTrackedObject->Update(pFrameMeta->frame_num, 
+            (NvBbox_Coords*)&pObjectMeta->rect_params);
             
         // Iterate through the map of 1 or more Areas to test for line cross
         for (const auto &imap: m_pOdeAreasIndexed)
@@ -1071,26 +1120,20 @@ namespace DSL
             }
             
             // Get the trace vector for the testpoint defined for this Area
-            std::shared_ptr<std::vector<dsl_coordinate>> pTrace = 
+            DSL_RGBA_MULTI_LINE_PTR pTrace = 
                 pTrackedObject->GetTrace(testPoint, m_testMethod);
 
             if (m_traceEnabled)
             {
-                // Create a RGBA multi-line from the trace vector and 
-                // trace-view settings.
-                DSL_RGBA_MULTI_LINE_PTR pMultiLine = DSL_RGBA_MULTI_LINE_NEW(
-                    GetName().c_str(), pTrace->data(), pTrace->size(), 
-                    m_traceLineWidth, m_pTraceColor);
-                    
                 // Add the multi-line's meta to the Frame's display-meta
-                pMultiLine->AddMeta(displayMetaData, pFrameMeta);
+                pTrace->AddMeta(displayMetaData, pFrameMeta);
             }
             
             uint direction;
 
             // Check of the trace has crossed the area
-            if (pOdeArea->DoesTraceCrossLine(pTrace->data(), 
-                pTrace->size(), direction))
+            if (pOdeArea->DoesTraceCrossLine(pTrace->coordinates, 
+                pTrace->num_coordinates, direction))
             {
                 // If we've crosed before reaching the minimum frame count
                 if (pTrackedObject->preEventFrameCount < m_minFrameCount)
@@ -1160,49 +1203,6 @@ namespace DSL
         return m_occurrences;
     }
     
-    void CrossOdeTrigger::GetTestSettings(uint* minFrameCount, 
-        uint* maxTracePoints, uint* testMethod)
-    {
-        LOG_FUNC();
-
-        *minFrameCount = m_minFrameCount;
-        *maxTracePoints = m_maxTracePoints;
-        *testMethod = m_testMethod;
-    }
-    
-    void CrossOdeTrigger::SetTestSettings(uint minFrameCount,
-        uint maxTracePoints, uint testMethod)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
-        m_minFrameCount = minFrameCount;
-        m_maxTracePoints = maxTracePoints;
-        m_testMethod = testMethod;
-        m_pTrackedObjectsPerSource->SetMaxHistory(m_maxTracePoints);
-    }
-    
-    void CrossOdeTrigger::GetViewSettings(bool* enabled, 
-        const char** color, uint* lineWidth)
-    {
-        LOG_FUNC();
-
-        *enabled = m_traceEnabled;
-        *color = m_pTraceColor->GetName().c_str();
-        *lineWidth = m_traceLineWidth;
-    }
-    
-    void CrossOdeTrigger::SetViewSettings(bool enabled, 
-        DSL_RGBA_COLOR_PTR pColor, uint lineWidth)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_traceEnabled = enabled;
-        m_pTraceColor = pColor;
-        m_traceLineWidth = lineWidth;
-    }        
-   
     // *****************************************************************************
 
     InstanceOdeTrigger::InstanceOdeTrigger(const char* name, 
@@ -1440,9 +1440,11 @@ namespace DSL
 
     // *****************************************************************************
     
-    PersistenceOdeTrigger::PersistenceOdeTrigger(const char* name, const char* source, 
-        uint classId, uint limit, uint minimum, uint maximum)
-        : TrackingOdeTrigger(name, source, classId, limit, 0)
+    PersistenceOdeTrigger::PersistenceOdeTrigger(const char* name, 
+        const char* source, uint classId, uint limit, uint minimum, 
+        uint maximum, DSL_RGBA_COLOR_PTR pColor)
+        : TrackingOdeTrigger(name, source, classId, limit, 
+            0, 0, 0, pColor)
         , m_minimumMs(minimum*1000.0)
         , m_maximumMs(maximum*1000.0)
     {
@@ -1488,7 +1490,12 @@ namespace DSL
         if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
             pObjectMeta->object_id))
         {
-            m_pTrackedObjectsPerSource->Track(pFrameMeta, pObjectMeta);
+            // Create a new Tracked object and return without occurence
+            m_pTrackedObjectsPerSource->Track(pFrameMeta, 
+                pObjectMeta, m_pTraceColor);
+
+            // Update the color for the next tracked object to be created.
+            m_pTraceColor->SetNext();
         }
         else
         {
@@ -1496,7 +1503,8 @@ namespace DSL
                 m_pTrackedObjectsPerSource->GetObject(pFrameMeta->source_id,
                     pObjectMeta->object_id);
                     
-            pTrackedObject->Update(pFrameMeta->frame_num, &pObjectMeta->rect_params);
+            pTrackedObject->Update(pFrameMeta->frame_num, 
+                (NvBbox_Coords*)&pObjectMeta->rect_params);
 
             double trackedTimeMs = pTrackedObject->GetDurationMs();
             
@@ -1774,8 +1782,9 @@ namespace DSL
     // *****************************************************************************
     
     LatestOdeTrigger::LatestOdeTrigger(const char* name, const char* source, 
-        uint classId, uint limit)
-        : TrackingOdeTrigger(name, source, classId, limit, 0)
+        uint classId, uint limit, DSL_RGBA_COLOR_PTR pColor)
+        : TrackingOdeTrigger(name, source, classId, limit, 
+            0, 0, 0, pColor)
         , m_pLatestObjectMeta(NULL)
         , m_latestTrackedTimeMs(0)
     {
@@ -1803,7 +1812,12 @@ namespace DSL
         if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
             pObjectMeta->object_id))
         {
-            m_pTrackedObjectsPerSource->Track(pFrameMeta, pObjectMeta);
+            // Create a new Tracked object and return without occurence
+            m_pTrackedObjectsPerSource->Track(pFrameMeta, 
+                pObjectMeta, m_pTraceColor);
+
+            // Update the color for the next tracked object to be created.
+            m_pTraceColor->SetNext();
         }
         else
         {
@@ -1811,7 +1825,8 @@ namespace DSL
                 m_pTrackedObjectsPerSource->GetObject(pFrameMeta->source_id,
                     pObjectMeta->object_id);
                     
-            pTrackedObject->Update(pFrameMeta->frame_num, &pObjectMeta->rect_params);
+            pTrackedObject->Update(pFrameMeta->frame_num, 
+                (NvBbox_Coords*)&pObjectMeta->rect_params);
 
             double trackedTimeMs = pTrackedObject->GetDurationMs();
             
@@ -1870,8 +1885,9 @@ namespace DSL
     // *****************************************************************************
     
     EarliestOdeTrigger::EarliestOdeTrigger(const char* name, const char* source, 
-        uint classId, uint limit)
-        : TrackingOdeTrigger(name, source, classId, limit, 0)
+        uint classId, uint limit, DSL_RGBA_COLOR_PTR pColor)
+        : TrackingOdeTrigger(name, source, classId, limit, 
+            0, 0, 0, pColor)
         , m_pEarliestObjectMeta(NULL)
         , m_earliestTrackedTimeMs(0)
     {
@@ -1900,7 +1916,12 @@ namespace DSL
         if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
             pObjectMeta->object_id)) 
         {
-            m_pTrackedObjectsPerSource->Track(pFrameMeta, pObjectMeta);
+            // Create a new Tracked object and return without occurence
+            m_pTrackedObjectsPerSource->Track(pFrameMeta, 
+                pObjectMeta, m_pTraceColor);
+
+            // Update the color for the next tracked object to be created.
+            m_pTraceColor->SetNext();
         }
         else
         {
@@ -1908,7 +1929,8 @@ namespace DSL
                 m_pTrackedObjectsPerSource->GetObject(pFrameMeta->source_id,
                     pObjectMeta->object_id);
                     
-            pTrackedObject->Update(pFrameMeta->frame_num, &pObjectMeta->rect_params);
+            pTrackedObject->Update(pFrameMeta->frame_num, 
+                (NvBbox_Coords*)&pObjectMeta->rect_params);
 
             double trackedTimeMs = pTrackedObject->GetDurationMs();
                 

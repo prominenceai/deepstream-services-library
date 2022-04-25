@@ -374,10 +374,21 @@ THE SOFTWARE.
 #define DSL_RETURN_IF_DISPLAY_TYPE_IS_BASE_TYPE(types, name) do \
 { \
     if (types[name]->IsType(typeid(RgbaColor)) or \
+        types[name]->IsType(typeid(RgbaRandomColor))or \
         types[name]->IsType(typeid(RgbaFont))) \
     { \
         LOG_ERROR("Display Type '" << name << "' is base type and can not be displayed"); \
         return DSL_RESULT_DISPLAY_TYPE_IS_BASE_TYPE; \
+    } \
+}while(0); 
+
+#define DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(types, name) do \
+{ \
+    if (!types[name]->IsType(typeid(RgbaColor)) and \
+        !types[name]->IsType(typeid(RgbaRandomColor))) \
+    { \
+        LOG_ERROR("Display Type '" << name << "' is not color type"); \
+        return DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE; \
     } \
 }while(0); 
 

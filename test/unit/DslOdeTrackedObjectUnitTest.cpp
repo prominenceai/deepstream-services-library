@@ -40,6 +40,11 @@ SCENARIO( "A TrackedObject is created correctly", "[TrackedObject]" )
         objectMeta.rect_params.top = 10;
         objectMeta.rect_params.width = 200;
         objectMeta.rect_params.height = 100;
+
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), 
+            red, green, blue, alpha);
         
         uint maxHistory(10);
         
@@ -47,19 +52,20 @@ SCENARIO( "A TrackedObject is created correctly", "[TrackedObject]" )
         {
             std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
                 (new TrackedObject(objectMeta.object_id, frame_num, 
-                    &objectMeta.rect_params, DSL_DEFAULT_TRACKING_TRIGGER_MAX_TRACE_POINTS));
+                    (NvBbox_Coords*)&objectMeta.rect_params, pColor, 
+                    DSL_DEFAULT_TRACKING_TRIGGER_MAX_TRACE_POINTS));
                 
             THEN( "All attributes are setup correctly" )
             {
                 REQUIRE( pTrackedObject->trackingId == objectMeta.object_id );
                 REQUIRE( pTrackedObject->frameNumber == frame_num);
 
-                std::shared_ptr<std::vector<dsl_coordinate>> pTrace = 
+                DSL_RGBA_MULTI_LINE_PTR pTrace = 
                     pTrackedObject->GetTrace(DSL_BBOX_POINT_NORTH_WEST,
                         DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS);
                     
-                REQUIRE( pTrace->at(0).x == 10 );
-                REQUIRE( pTrace->at(0).y == 10 );
+                REQUIRE( pTrace->coordinates[0].x == 10 );
+                REQUIRE( pTrace->coordinates[0].y == 10 );
             }
         }
     }
@@ -79,11 +85,16 @@ SCENARIO( "A TrackedObject generates the correct trace", "[TrackedObject]" )
         objectMeta.rect_params.width = 200;
         objectMeta.rect_params.height = 100;
 
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), 
+            red, green, blue, alpha);
+
         uint maxHistory(10);
         
         std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
             (new TrackedObject(objectMeta.object_id, frame_num, 
-                &objectMeta.rect_params, maxHistory));
+                (NvBbox_Coords*)&objectMeta.rect_params, pColor, maxHistory));
         
         WHEN( "A TrackedObject is updated" )
         {
@@ -92,45 +103,45 @@ SCENARIO( "A TrackedObject generates the correct trace", "[TrackedObject]" )
             objectMeta.rect_params.width = 210;
             objectMeta.rect_params.height = 110;
             
-            pTrackedObject->Update(1, &objectMeta.rect_params);
+            pTrackedObject->Update(1, (NvBbox_Coords*)&objectMeta.rect_params);
 
             objectMeta.rect_params.left = 30;
             objectMeta.rect_params.top = 30;
             objectMeta.rect_params.width = 220;
             objectMeta.rect_params.height = 120;
             
-            pTrackedObject->Update(2, &objectMeta.rect_params);
+            pTrackedObject->Update(2, (NvBbox_Coords*)&objectMeta.rect_params);
 
             objectMeta.rect_params.left = 40;
             objectMeta.rect_params.top = 40;
             objectMeta.rect_params.width = 230;
             objectMeta.rect_params.height = 130;
             
-            pTrackedObject->Update(3, &objectMeta.rect_params);
+            pTrackedObject->Update(3, (NvBbox_Coords*)&objectMeta.rect_params);
 
             objectMeta.rect_params.left = 50;
             objectMeta.rect_params.top = 50;
             objectMeta.rect_params.width = 240;
             objectMeta.rect_params.height = 140;
             
-            pTrackedObject->Update(4, &objectMeta.rect_params);
+            pTrackedObject->Update(4, (NvBbox_Coords*)&objectMeta.rect_params);
 
             THEN( "All attributes are updated correctly" )
             {
                 REQUIRE( pTrackedObject->trackingId == objectMeta.object_id );
                 REQUIRE( pTrackedObject->frameNumber == 4);
 
-                std::shared_ptr<std::vector<dsl_coordinate>> pTrace = 
+                DSL_RGBA_MULTI_LINE_PTR pTrace = 
                     pTrackedObject->GetTrace(DSL_BBOX_POINT_NORTH_WEST,
                         DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS);
                     
                 std::vector<dsl_coordinate> expectedTrace = 
                     {{10,10},{20,20},{30,30},{40,40},{50,50}};
 
-                for (auto i = 0; i < pTrace->size(); i++)
+                for (auto i = 0; i < pTrace->num_coordinates; i++)
                 {
-                    REQUIRE( pTrace->at(i).x == expectedTrace.at(i).x );
-                    REQUIRE( pTrace->at(i).y == expectedTrace.at(i).y );
+                    REQUIRE( pTrace->coordinates[i].x == expectedTrace.at(i).x );
+                    REQUIRE( pTrace->coordinates[i].y == expectedTrace.at(i).y );
                 }
             }
         }
@@ -176,6 +187,11 @@ SCENARIO( "A TrackedObjects Container adds a Tracked Object correctly", "[Tracke
         objectMeta.rect_params.width = 210;
         objectMeta.rect_params.height = 110;
 
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), 
+            red, green, blue, alpha);
+
         uint maxTracePoints(10);
 
         std::shared_ptr<TrackedObjects>pTrackedObjectsPerSource = 
@@ -184,10 +200,12 @@ SCENARIO( "A TrackedObjects Container adds a Tracked Object correctly", "[Tracke
 
         WHEN( "An Object is added to be container" )
         {
-            REQUIRE( pTrackedObjectsPerSource->Track(&frameMeta, &objectMeta) != nullptr );
+            REQUIRE( pTrackedObjectsPerSource->Track(&frameMeta, 
+                &objectMeta, pColor) != nullptr );
 
             // Second call for the same object must fail
-            REQUIRE( pTrackedObjectsPerSource->Track(&frameMeta, &objectMeta) == nullptr );
+            REQUIRE( pTrackedObjectsPerSource->Track(&frameMeta, 
+                &objectMeta, pColor) == nullptr );
             
             THEN( "It's correctly returned on GetObject" )
             {
@@ -217,6 +235,12 @@ SCENARIO( "A TrackedObjects Container manages multiple Tracked Object correctly"
         objectMeta.rect_params.top = 20;
         objectMeta.rect_params.width = 210;
         objectMeta.rect_params.height = 110;
+        
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), 
+            red, green, blue, alpha);
+
         uint maxTracePoints(10);
 
         std::shared_ptr<TrackedObjects>pTrackedObjectsPerSource = 
@@ -231,23 +255,26 @@ SCENARIO( "A TrackedObjects Container manages multiple Tracked Object correctly"
             frameMeta.source_id = 1;
             objectMeta.object_id = 1;
 
-            REQUIRE( pTrackedObjectsPerSource->Track(&frameMeta, &objectMeta) != nullptr );
+            REQUIRE( pTrackedObjectsPerSource->Track(&frameMeta, 
+                &objectMeta, pColor) != nullptr );
             REQUIRE( pTrackedObjectsPerSource->IsTracked(frameMeta.source_id,
-                    objectMeta.object_id) == true );
+                objectMeta.object_id) == true );
 
             frameMeta.source_id = 2;
             objectMeta.object_id = 2;
 
-            REQUIRE( pTrackedObjectsPerSource->Track(&frameMeta, &objectMeta) != nullptr );
+            REQUIRE( pTrackedObjectsPerSource->Track(&frameMeta, 
+                &objectMeta, pColor) != nullptr );
             REQUIRE( pTrackedObjectsPerSource->IsTracked(frameMeta.source_id,
-                    objectMeta.object_id) == true );
+                objectMeta.object_id) == true );
 
             frameMeta.source_id = 3;
             objectMeta.object_id = 3;
 
-            REQUIRE( pTrackedObjectsPerSource->Track(&frameMeta, &objectMeta) != nullptr );
+            REQUIRE( pTrackedObjectsPerSource->Track(&frameMeta, 
+                &objectMeta, pColor) != nullptr );
             REQUIRE( pTrackedObjectsPerSource->IsTracked(frameMeta.source_id,
-                    objectMeta.object_id) == true );
+                objectMeta.object_id) == true );
 
             
             THEN( "It's objects can be updated correctly" )
@@ -262,7 +289,8 @@ SCENARIO( "A TrackedObjects Container manages multiple Tracked Object correctly"
                     pTrackedObjectsPerSource->GetObject(frameMeta.source_id,
                         objectMeta.object_id);
                         
-                pTrackedObject->Update(newFrameNumber, &objectMeta.rect_params); 
+                pTrackedObject->Update(newFrameNumber, 
+                    (NvBbox_Coords*)&objectMeta.rect_params); 
 
                 frameMeta.source_id = 2;
                 objectMeta.object_id = 2;
@@ -270,15 +298,17 @@ SCENARIO( "A TrackedObjects Container manages multiple Tracked Object correctly"
                 pTrackedObject = pTrackedObjectsPerSource->GetObject(frameMeta.source_id,
                         objectMeta.object_id);
                         
-                pTrackedObject->Update(newFrameNumber, &objectMeta.rect_params);
+                pTrackedObject->Update(newFrameNumber, 
+                    (NvBbox_Coords*)&objectMeta.rect_params);
                     
                 frameMeta.source_id = 3;
                 objectMeta.object_id = 3;
 
                 pTrackedObject = pTrackedObjectsPerSource->GetObject(frameMeta.source_id,
-                        objectMeta.object_id);
+                    objectMeta.object_id);
                         
-                pTrackedObject->Update(newFrameNumber, &objectMeta.rect_params);
+                pTrackedObject->Update(newFrameNumber, 
+                    (NvBbox_Coords*)&objectMeta.rect_params);
 
                 // All should still be tracked after purging with the current frame number
                 
@@ -317,8 +347,6 @@ SCENARIO( "A TrackedObjects Container manages multiple Tracked Object correctly"
                 objectMeta.object_id = 3;
                 REQUIRE( pTrackedObjectsPerSource->IsTracked(frameMeta.source_id,
                         objectMeta.object_id) == false );
-
-                
             }
         }
     }

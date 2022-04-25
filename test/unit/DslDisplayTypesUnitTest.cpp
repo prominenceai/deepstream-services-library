@@ -37,7 +37,8 @@ SCENARIO( "An RGBA Color is constructed correctly", "[DisplayTypes]" )
 
         WHEN( "The RGBA Color is created" )
         {
-            DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
+            DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), 
+                red, green, blue, alpha);
             
             THEN( "Its member variables are initialized correctly" )
             {

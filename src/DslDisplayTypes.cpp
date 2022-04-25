@@ -58,10 +58,126 @@ namespace DSL
     {
         LOG_FUNC();
     }
+    
+    RgbaColor::RgbaColor(const RgbaColor& color)
+        : DisplayType("")
+        , NvOSD_ColorParams{color.red, color.green, color.blue, color.alpha}
+    {
+        LOG_FUNC();
+    }
 
     RgbaColor::~RgbaColor()
     {
         LOG_FUNC();
+    }
+
+    // ********************************************************************
+
+    RgbaPredefinedColor::RgbaPredefinedColor(const char* name,
+        uint hue, uint luminosity, double alpha)
+        : RgbaColor(name, 0.0, 0.0, 0.0, alpha)
+        , m_hue((RandomColor::Color)hue)
+        , m_luminosity((RandomColor::Luminosity)luminosity)
+    {
+        LOG_FUNC();
+        
+    }
+
+    RgbaPredefinedColor::~RgbaPredefinedColor()
+    {
+        LOG_FUNC();
+    }
+    
+    // ********************************************************************
+
+    RgbaColorPalette::RgbaColorPalette(const char* name, 
+        std::shared_ptr<std::vector<DSL_RGBA_COLOR_PTR>> pColorPalette)
+        : RgbaColor(name, 0.0, 0.0, 0.0, 0.0)
+        , m_pColorPalette(pColorPalette)
+        , m_currentColorIndex(0)
+    {
+        LOG_FUNC();
+        
+        SetNext();
+    }
+
+    RgbaColorPalette::~RgbaColorPalette()
+    {
+        LOG_FUNC();
+    }
+    
+    void RgbaColorPalette::SetNext()
+    {
+        // don't log function entry/exit
+        (RgbaColor)*this = *m_pColorPalette->at(m_currentColorIndex);
+        m_currentColorIndex = (m_currentColorIndex+1)%m_pColorPalette->size();
+    }
+    
+    // ********************************************************************
+
+    RgbaRandomColor::RgbaRandomColor(const char* name,
+        uint hue, uint luminosity, double alpha, uint seed)
+        : RgbaColor(name, 0.0, 0.0, 0.0, alpha)
+        , m_hue((RandomColor::Color)hue)
+        , m_luminosity((RandomColor::Luminosity)luminosity)
+    {
+        LOG_FUNC();
+        
+        m_randomColor.setSeed(seed);
+        SetNext();
+    }
+
+    RgbaRandomColor::~RgbaRandomColor()
+    {
+        LOG_FUNC();
+    }
+    
+    void RgbaRandomColor::SetNext()
+    {
+        // don't log function entry/exit
+
+        int color(m_randomColor.generate(m_hue, m_luminosity));
+
+        red = ((color >> 16) & 0xFF) / 255.0;
+        green = ((color >> 8) & 0xFF) / 255.0;
+        blue = ((color) & 0xFF) / 255.0;
+    }
+    
+    // ********************************************************************
+
+    RgbaOnDemandColor::RgbaOnDemandColor(const char* name, 
+        dsl_display_type_rgba_color_provider_cb provider, void* clientData)
+        : RgbaColor(name, 0.0, 0.0, 0.0, 0.0)
+        , m_provider(provider)
+        , m_clientData(clientData)
+    {
+        LOG_FUNC();
+        
+        SetNext();
+    }
+
+    RgbaOnDemandColor::~RgbaOnDemandColor()
+    {
+        LOG_FUNC();
+    }
+    
+    void RgbaOnDemandColor::SetNext()
+    {
+        if (m_provider)
+        {
+            try
+            {
+                m_provider(&red, &green, &blue, &alpha, m_clientData);
+            }
+            catch(...)
+            {
+                LOG_ERROR("RGBA Color On-Demand '" << GetName() 
+                    << "' threw exception calling client color provider callback");
+                    
+                // Disable client provider to avoid repetative error logs.
+                m_provider = NULL;
+            }
+        }
     }
     
     // ********************************************************************

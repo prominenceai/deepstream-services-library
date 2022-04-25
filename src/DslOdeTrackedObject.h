@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslOdeBase.h"
+#include "DslDisplayTypes.h"
 
 namespace DSL
 {
@@ -44,11 +45,15 @@ namespace DSL
          * @brief Ctor for the TrackedObject class
          * @param[in] unique trackingId for the tracked object
          * @param[in] frameNumber the object was first detected
-         * @param[in] rectParams rectParms from the object's meta when first detected
+         * @param[in] pCoordinates bounding box coordinates from the object's meta 
+         * when first detected
+         * @param[in] pColor shared pointer to an RGBA Color Type to
+         * set a unique color for the tracked object. 
          * @param[in] maxHistory maximum number of bbox coordinates to track
          */
         TrackedObject(uint64_t trackingId, uint64_t frameNumber,
-            const NvOSD_RectParams* rectParams, uint maxHistory);
+            const NvBbox_Coords* pCoordinates, DSL_RGBA_COLOR_PTR pColor, 
+            uint maxHistory);
             
         /**
          * @brief Sets the max history for this tracked object
@@ -61,9 +66,9 @@ namespace DSL
          * push a new set of positional bbox coordinates on to the tracked 
          * object's m_bboxTrace queue.
          * @param[in] currentFrameNumber new frame number to save
-         * @param[in] rectParams new rectangle params to push
+         * @param[in] pCoordinates new bounding box coordinates to push.
          */
-        void Update(uint64_t currentFrameNumber, const NvOSD_RectParams* rectParams);
+        void Update(uint64_t currentFrameNumber, const NvBbox_Coords* pCoordinates);
         
         /**
          * @brief calculates the duration of time the object has been tracked.
@@ -100,8 +105,7 @@ namespace DSL
          * @param[in] method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants
          * @return shared pointer to a vector of coordinates.
          */
-        std::shared_ptr<std::vector<dsl_coordinate>> 
-            GetTrace(uint testPoint, uint method);
+        DSL_RGBA_MULTI_LINE_PTR GetTrace(uint testPoint, uint method);
 
         /**
          * @brief unique tracking id for the tracked object.
@@ -109,7 +113,8 @@ namespace DSL
         uint64_t trackingId;
         
         /**
-         * @brief frame number for the tracked object, updated on detection within a new frame.
+         * @brief frame number for the tracked object, updated on detection 
+         * within a new frame.
          */
         uint64_t frameNumber;
         
@@ -130,13 +135,14 @@ namespace DSL
          * client specified test-point
          * @param[in] pBbox to optain the coordinate from
          * @param[in] testPoint one of the DSL_BBOX_POINT_* constants
-         * @param[out] traceCoordinate x,y coordinage value.
+         * @param[out] traceCoordinate x,y coordinate value.
          */
         void getCoordinate(std::shared_ptr<NvBbox_Coords> pBbox, 
             uint testPoint, dsl_coordinate& traceCoordinate);
         
         /**
-         * @brief time of creation for this Tracked Object, used to test for object persistence.
+         * @brief time of creation for this Tracked Object, used to test 
+         * for object persistence.
          */
         double m_creationTimeMs;
         
@@ -149,6 +155,12 @@ namespace DSL
          * @brief a fixed size queue of Rectangle Params.
          */
         std::deque<std::shared_ptr<NvBbox_Coords>> m_bboxTrace;
+        
+        /**
+         * @brief used to identify the tracked object with an RGBA color.
+         */
+        DSL_RGBA_COLOR_PTR m_pColor;
+        
     };
     
     //*******************************************************************************
@@ -178,12 +190,14 @@ namespace DSL
         /**
          * @brief adds an untracked object to the collection of tracked objects
          * per source.
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - 
+         * the frame that holds the Object Meta
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @param[in] pColor RGBA color to assign to the new Tracked object.
          * @return a shared pointer to the newly tracked object, null_ptr otherwise.
          */
         std::shared_ptr<TrackedObject> Track(NvDsFrameMeta* pFrameMeta, 
-            NvDsObjectMeta* pObjectMeta);
+            NvDsObjectMeta* pObjectMeta, DSL_RGBA_COLOR_PTR pColor);
         
         /**
          * @brief Gets the Tracked Object for a specified source and tranking Id
@@ -191,7 +205,8 @@ namespace DSL
          * @param[in] trackingId unique tracking id of the object to query
          * @return a shared pointer if found, null_ptr otherwise.
          */
-        std::shared_ptr<TrackedObject> GetObject(uint sourceId, uint64_t trackingId);
+        std::shared_ptr<TrackedObject> GetObject(uint sourceId, 
+            uint64_t trackingId);
         
         /**
          * @brief Deletes a Tracked Object by source Id and tracking Id
@@ -219,11 +234,13 @@ namespace DSL
         
         /**
          * @brief gets the time of tracked object creation
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - 
+         * the frame that holds the Object Meta
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta
          * @return Creation date if found, 0 otherwise.
          */
-        double GetCreationTime(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        double GetCreationTime(NvDsFrameMeta* pFrameMeta, 
+            NvDsObjectMeta* pObjectMeta);
         
         /**
          * @brief Sets the max history for all objects tracked

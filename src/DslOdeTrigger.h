@@ -82,9 +82,11 @@ namespace DSL
             source, classId, limit, clientChecker, clientPostProcessor, clientData))
 
     #define DSL_ODE_TRIGGER_PERSISTENCE_PTR std::shared_ptr<PersistenceOdeTrigger>
-    #define DSL_ODE_TRIGGER_PERSISTENCE_NEW(name, source, classId, limit, minimum, maximum) \
+    #define DSL_ODE_TRIGGER_PERSISTENCE_NEW(name, \
+        source, classId, limit, minimum, maximum, pColor) \
         std::shared_ptr<PersistenceOdeTrigger> \
-            (new PersistenceOdeTrigger(name, source, classId, limit, minimum, maximum))
+            (new PersistenceOdeTrigger(name, \
+                source, classId, limit, minimum, maximum, pColor))
 
     #define DSL_ODE_TRIGGER_COUNT_PTR std::shared_ptr<CountOdeTrigger>
     #define DSL_ODE_TRIGGER_COUNT_NEW(name, source, classId, limit, minimum, maximum) \
@@ -102,14 +104,14 @@ namespace DSL
             source, classId, limit))
 
     #define DSL_ODE_TRIGGER_LATEST_PTR std::shared_ptr<LatestOdeTrigger>
-    #define DSL_ODE_TRIGGER_LATEST_NEW(name, source, classId, limit) \
+    #define DSL_ODE_TRIGGER_LATEST_NEW(name, source, classId, limit, pColor) \
         std::shared_ptr<LatestOdeTrigger>(new LatestOdeTrigger(name, \
-            source, classId, limit))
+            source, classId, limit, pColor))
 
     #define DSL_ODE_TRIGGER_EARLIEST_PTR std::shared_ptr<EarliestOdeTrigger>
-    #define DSL_ODE_TRIGGER_EARLIEST_NEW(name, source, classId, limit) \
+    #define DSL_ODE_TRIGGER_EARLIEST_NEW(name, source, classId, limit, pColor) \
         std::shared_ptr<EarliestOdeTrigger>(new EarliestOdeTrigger(name, \
-            source, classId, limit))
+            source, classId, limit, pColor))
 
     #define DSL_ODE_TRIGGER_NEW_LOW_PTR std::shared_ptr<NewLowOdeTrigger>
     #define DSL_ODE_TRIGGER_NEW_LOW_NEW(name, source, classId, limit, preset) \
@@ -787,8 +789,9 @@ namespace DSL
     {
     public:
     
-        TrackingOdeTrigger(const char* name, 
-            const char* source, uint classId, uint limit, uint maxTracePoints);
+        TrackingOdeTrigger(const char* name, const char* source, uint classId, 
+            uint limit, uint minFrameCount, uint maxTracePoints, 
+            uint testMethod, DSL_RGBA_COLOR_PTR pColor);
         
         ~TrackingOdeTrigger();
         
@@ -797,45 +800,6 @@ namespace DSL
          */
         void Reset();
 
-    protected:
-        /**
-         * @brief map of tracked objects per source - Key = source Id
-         */
-        std::shared_ptr<TrackedObjects> m_pTrackedObjectsPerSource;
-    
-    };
-
-    class CrossOdeTrigger : public TrackingOdeTrigger
-    {
-    public:
-    
-        CrossOdeTrigger(const char* name, const char* source, uint classId, 
-            uint limit, uint minTracePoints, uint maxTracePoints, 
-            uint testMethod, DSL_RGBA_COLOR_PTR pColor);
-        
-        ~CrossOdeTrigger();
-
-        /**
-         * @brief Function to check a given Object Meta data structure for to determine if the object has
-         * crossed the Trigger's Area - line or line segment of a polygon.
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
-         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
-         * @return true if Occurrence, false otherwise
-         */
-        bool CheckForOccurrence(GstBuffer* pBuffer, 
-            std::vector<NvDsDisplayMeta*>& displayMetaData,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-
-        /**
-         * @brief Function to post process the frame and generate a Cross Accumulation Event 
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
-         * @param[in] pFrameMeta Frame meta data to post process.
-         * @return the number of ODE Occurrences triggered on post process
-         */
-        uint PostProcessFrame(GstBuffer* pBuffer, 
-            std::vector<NvDsDisplayMeta*>& displayMetaData, NvDsFrameMeta* pFrameMeta);
-        
         /**
          * @brief Gets the current max-trace-point setting for this CrossOdeTrigger.
          * @param[out] minFrameCount current min frame-count setting.
@@ -869,9 +833,9 @@ namespace DSL
          * @param[in] lineWidth for the trace display if enabled.
          */
         void SetViewSettings(bool enabled, DSL_RGBA_COLOR_PTR pColor, uint lineWidth);
-            
-    private:
-    
+
+    protected:
+
         /**
          * @brief minimum number of consective frames required to trigger an event
          * on both sides of the line. 
@@ -884,14 +848,14 @@ namespace DSL
         uint m_maxTracePoints;
 
         /**
-         * @brief true if object trace display is enabled, false otherwise.
-         */
-        bool m_traceEnabled;
-        
-        /**
          * @brief method to test object trace line crossing. All-points or end-points.
          */
         uint m_testMethod;
+        
+        /**
+         * @brief true if object trace display is enabled, false otherwise.
+         */
+        bool m_traceEnabled;
         
         /**
          * @brief shared pointer to RGBA Color to use for the object trace display.
@@ -902,6 +866,46 @@ namespace DSL
          * @brief line width for the object trace in units of pixels.
          */
         uint m_traceLineWidth;
+
+        /**
+         * @brief map of tracked objects per source - Key = source Id
+         */
+        std::shared_ptr<TrackedObjects> m_pTrackedObjectsPerSource;
+    
+    };
+
+    class CrossOdeTrigger : public TrackingOdeTrigger
+    {
+    public:
+    
+        CrossOdeTrigger(const char* name, const char* source, uint classId, 
+            uint limit, uint minFrameCount, uint maxTracePoints, 
+            uint testMethod, DSL_RGBA_COLOR_PTR pColor);
+        
+        ~CrossOdeTrigger();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for to determine if the object has
+         * crossed the Trigger's Area - line or line segment of a polygon.
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer, 
+            std::vector<NvDsDisplayMeta*>& displayMetaData,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to post process the frame and generate a Cross Accumulation Event 
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, 
+            std::vector<NvDsDisplayMeta*>& displayMetaData, NvDsFrameMeta* pFrameMeta);
+            
+    private:
     
     };
     
@@ -1116,8 +1120,8 @@ namespace DSL
     {
     public:
     
-        PersistenceOdeTrigger(const char* name, 
-            const char* source, uint classId, uint limit, uint minimum, uint maximum);
+        PersistenceOdeTrigger(const char* name, const char* source, uint classId, 
+            uint limit, uint minimum, uint maximum, DSL_RGBA_COLOR_PTR pColor);
         
         ~PersistenceOdeTrigger();
 
@@ -1332,7 +1336,7 @@ namespace DSL
     public:
     
         LatestOdeTrigger(const char* name, const char* source, 
-            uint classId, uint limit);
+            uint classId, uint limit, DSL_RGBA_COLOR_PTR pColor);
         
         ~LatestOdeTrigger();
 
@@ -1378,7 +1382,7 @@ namespace DSL
     public:
     
         EarliestOdeTrigger(const char* name, const char* source, 
-            uint classId, uint limit);
+            uint classId, uint limit, DSL_RGBA_COLOR_PTR pColor);
         
         ~EarliestOdeTrigger();
 

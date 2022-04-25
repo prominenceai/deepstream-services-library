@@ -63,11 +63,26 @@ namespace DSL {
         DslReturnType DisplayTypeRgbaColorNew(const char* name, 
             double red, double green, double blue, double alpha);
 
+        DslReturnType DisplayTypeRgbaColorPredefinedNew(const char* name, 
+            uint hue, uint luminosity, double alpha);
+
+        DslReturnType DisplayTypeRgbaColorPaletteNew(const char* name, 
+            const char** colors, uint num_colors);
+
+        DslReturnType DisplayTypeRgbaColorRandomNew(const char* name, 
+            uint hue, uint luminosity, double alpha, uint seed);
+
+        DslReturnType DisplayTypeRgbaColorOnDemandNew(const char* name, 
+            dsl_display_type_rgba_color_provider_cb provider, void* clientData);
+
+        DslReturnType DisplayTypeRgbaColorNextSet(const char* name);
+            
         DslReturnType DisplayTypeRgbaFontNew(const char* name, const char* font,
             uint size, const char* color);
             
         DslReturnType DisplayTypeRgbaTextNew(const char* name, const char* text, 
-            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
+            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, 
+            const char* bgColor);
 
         DslReturnType DisplayTypeRgbaLineNew(const char* name, 
             uint x1, uint y1, uint x2, uint y2, uint width, const char* color);
