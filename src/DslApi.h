@@ -299,6 +299,8 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_TRIGGER_CALLBACK_REMOVE_FAILED               0x000F000E
 #define DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID                    0x000E000F
 #define DSL_RESULT_ODE_TRIGGER_IS_NOT_AB_TYPE                       0x000E0010
+#define DSL_RESULT_ODE_TRIGGER_IS_NOT_TRACK_TRIGGER                 0x000E0011
+
 /**
  * ODE Action API Return Values
  */
@@ -2145,72 +2147,6 @@ DslReturnType dsl_ode_trigger_count_range_set(const wchar_t* name,
     uint minimum, uint maximum);
 
 /**
- * @brief Cross trigger that tracks Objects and triggers on the occurrence that an 
- * object crosses the trigger's Line or Polygon Area.
- * @param[in] name unique name for the ODE Trigger
- * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
- * @param[in] class_id class id filter for this ODE Trigger
- * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @param[in] min_frame_count setting for the minimum number of past 
- * consective frames on both sides of a line (line or polygon area) to trigger an ODE.
- * @param[in] max_trace_points maximum number of past trace points to maintain for
- * each tracked objects. 
- * @param[in] test_method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit, uint min_frame_count, 
-    uint max_trace_points, uint test_method);
-
-/**
- * @brief Gets the current test settings for the named Cross trigger.
- * @param[in] name unique name for the ODE Trigger to query
- * @param[out] min_frame_count current setting for the minimum number of past 
- * consective frames on both sides of a line (line or polygon area) to trigger an ODE.
- * @param[out] max_trace_points current setting for the maximum number of past 
- * trace points to maintain for each tracked objects. 
- * @param[out] test_method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_cross_test_settings_get(const wchar_t* name, 
-    uint* min_frame_count, uint* max_trace_points, uint* test_method);
-    
-/**
- * @brief Sets the max trace-points setting for the named Cross trigger.
- * @param[in] name unique name for the ODE Trigger to update
- * @param[in] min_frame_count new setting for the minimum number of past 
- * consective frames on both sides of a line (line or polygon area) to trigger an ODE.
- * @param[in] max_trace_points new setting for the maximum number of past 
- * trace points to maintain for each tracked objects. 
- * @param[in] test_method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
-* @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_cross_test_settings_set(const wchar_t* name, 
-    uint min_frame_count, uint max_trace_points, uint test_method);
-    
-/**
- * @brief Gets the current trace settings for the named Cross trigger.
- * @param[in] name unique name for the ODE Trigger to query
- * @param[out] enabled true if object trace display is enabled, default = disabled 
- * @param[out] color name of the color to use for object trace display, default = no-color.
- * @param[out] line_width width of the object trace if display is enabled.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_cross_view_settings_get(const wchar_t* name, 
-    boolean* enabled, const wchar_t** color, uint* line_width);
-    
-/**
- * @brief Sets the trace settings for the named Cross trigger.
- * @param[in] name unique name for the ODE Trigger to update
- * @param[in] enabled set to true to enable object trace display, false otherwise
- * @param[in] color name of the color to use for object trace display.
- * @param[in] line_width width of the object trace if display is enabled.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_cross_view_settings_set(const wchar_t* name, 
-    boolean enabled, const wchar_t* color, uint line_width);
-    
-/**
  * @brief Occurence trigger that checks for a new instance of an Object for a 
  * specified source and object class_id. Instance identification is based on Tracking Id
  * @param[in] name unique name for the ODE Trigger
@@ -2269,47 +2205,6 @@ DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name,
     const wchar_t* source, uint class_id, uint limit);
 
 /**
- * @brief Persistence trigger that checks for the persistence of Objects tracked 
- * for a specified source and object class_id. Each object tracked for ">= minimum 
- * and <= maximum time will trigger an ODE occurrence.
- * @param[in] name unique name for the ODE Trigger
- * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
- * @param[in] class_id class id filter for this ODE Trigger
- * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @param[in] minimum the minimum amount of time a unique object must remain detected 
- * before triggering an ODE occurrence - in units of seconds. 0 = no minimum
- * @param[in] maximum the maximum amount of time a unique object can remain detected 
- * before triggering an ODE occurrence - in units of seconds. 0 = no maximum
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_persistence_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit, uint minimum, uint maximum);
-
-/**
- * @brief Gets the current minimum and maximum time settings in use 
- * by the named Persistence Trigger
- * @param[in] name unique name of the Persistence Trigger to query
- * @param[out] minimum the minimum amount of time a unique object must remain detected 
- * before triggering an ODE occurrence - in units of seconds. 0 = no minimum
- * @param[out] maximum the maximum amount of time a unique object can remain detected 
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_persistence_range_get(const wchar_t* name, 
-    uint* minimum, uint* maximum);
-
-/**
- * @brief Sets the minimum and maximum time settings to use for a 
- * named Persistence Trigger
- * @param[in] name unique name of the Persitence Trigger to update
- * @param[in] minimum the minimum amount of time a unique object must remain detected 
- * before triggering an ODE occurrence - in units of seconds. 0 = no minimum
- * @param[in] maximum the maximum amount of time a unique object can remain detected 
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_persistence_range_set(const wchar_t* name, 
-    uint minimum, uint maximum);
-    
-/**
  * @brief Smallest trigger that checks for the occurrence of Objects within a frame
  * and if at least one is found, Triggers on the Object with smallest rectangle area.
  * @param[in] name unique name for the ODE Trigger
@@ -2331,32 +2226,6 @@ DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit);
-
-/**
- * @brief Latest Trigger that checks for the persistence of Objects tracked 
- * and will trigger on the Object with the least time of persistence (latest)
- * if at least one is found.
- * @param[in] name unique name for the ODE Trigger
- * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE.
- * @param[in] class_id class id filter for this ODE Trigger.
- * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_latest_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit);
-
-/**
- * @brief Earliest Trigger that checks for the persistence of Objects tracked 
- * and will trigger on the Object with the greatest time of persistence (earliest) 
- * if at least one is found.
- * @param[in] name unique name for the ODE Trigger.
- * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE.
- * @param[in] class_id class id filter for this ODE Trigger.
- * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_earliest_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit);
 
 /**
@@ -2468,6 +2337,140 @@ DslReturnType dsl_ode_trigger_distance_test_params_get(const wchar_t* name,
  */
 DslReturnType dsl_ode_trigger_distance_test_params_set(const wchar_t* name, 
     uint test_point, uint test_method);    
+
+/**
+ * @brief Cross trigger that tracks Objects and triggers on the occurrence that an 
+ * object crosses the trigger's Line or Polygon Area.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
+ * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @param[in] min_frame_count setting for the minimum number of past 
+ * consective frames on both sides of a line (line or polygon area) to trigger an ODE.
+ * @param[in] max_frame_count maximum number of past (non-consecutive) frames to 
+ * maintain for each tracked objects. 
+ * @param[in] test_method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_track_cross_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit, uint min_frame_count, 
+    uint max_frame_count, uint test_method);
+
+/**
+ * @brief Persistence trigger that checks for the persistence of Objects tracked 
+ * for a specified source and object class_id. Each object tracked for ">= minimum 
+ * and <= maximum time will trigger an ODE occurrence.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
+ * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @param[in] minimum the minimum amount of time a unique object must remain detected 
+ * before triggering an ODE occurrence - in units of seconds. 0 = no minimum
+ * @param[in] maximum the maximum amount of time a unique object can remain detected 
+ * before triggering an ODE occurrence - in units of seconds. 0 = no maximum
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_track_persistence_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit, uint minimum, uint maximum);
+
+/**
+ * @brief Gets the current minimum and maximum time settings in use 
+ * by the named Persistence Trigger
+ * @param[in] name unique name of the Persistence Trigger to query
+ * @param[out] minimum the minimum amount of time a unique object must remain detected 
+ * before triggering an ODE occurrence - in units of seconds. 0 = no minimum
+ * @param[out] maximum the maximum amount of time a unique object can remain detected 
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_track_persistence_range_get(const wchar_t* name, 
+    uint* minimum, uint* maximum);
+
+/**
+ * @brief Sets the minimum and maximum time settings to use for a 
+ * named Persistence Trigger
+ * @param[in] name unique name of the Persitence Trigger to update
+ * @param[in] minimum the minimum amount of time a unique object must remain detected 
+ * before triggering an ODE occurrence - in units of seconds. 0 = no minimum
+ * @param[in] maximum the maximum amount of time a unique object can remain detected 
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_track_persistence_range_set(const wchar_t* name, 
+    uint minimum, uint maximum);
+    
+/**
+ * @brief Latest Trigger that checks for the persistence of Objects tracked 
+ * and will trigger on the Object with the least time of persistence (latest)
+ * if at least one is found.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE.
+ * @param[in] class_id class id filter for this ODE Trigger.
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_track_latest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
+
+/**
+ * @brief Earliest Trigger that checks for the persistence of Objects tracked 
+ * and will trigger on the Object with the greatest time of persistence (earliest) 
+ * if at least one is found.
+ * @param[in] name unique name for the ODE Trigger.
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE.
+ * @param[in] class_id class id filter for this ODE Trigger.
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_track_earliest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
+
+/**
+ * @brief Gets the current test settings for the named tracker trigger.
+ * @param[in] name unique name for the ODE Trigger to query
+ * @param[out] min_frame_count current setting for the minimum number of past 
+ * consective frames on both sides of a line (line or polygon area) to trigger an ODE.
+ * @param[out] max_trace_points current setting for the maximum number of past 
+ * trace points to maintain for each tracked objects. 
+ * @param[out] test_method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_track_test_settings_get(const wchar_t* name, 
+    uint* min_frame_count, uint* max_trace_points, uint* test_method);
+    
+/**
+ * @brief Sets the max trace-points setting for the named tracker trigger.
+ * @param[in] name unique name for the ODE Trigger to update
+ * @param[in] min_frame_count new setting for the minimum number of past 
+ * consective frames on both sides of a line (line or polygon area) to trigger an ODE.
+ * @param[in] max_trace_points new setting for the maximum number of past 
+ * trace points to maintain for each tracked objects. 
+ * @param[in] test_method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
+* @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_track_test_settings_set(const wchar_t* name, 
+    uint min_frame_count, uint max_trace_points, uint test_method);
+    
+/**
+ * @brief Gets the current trace settings for the named tracker trigger.
+ * @param[in] name unique name for the ODE Trigger to query
+ * @param[out] enabled true if object trace display is enabled, default = disabled 
+ * @param[out] color name of the color to use for object trace display, default = no-color.
+ * @param[out] line_width width of the object trace if display is enabled.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_track_view_settings_get(const wchar_t* name, 
+    boolean* enabled, const wchar_t** color, uint* line_width);
+    
+/**
+ * @brief Sets the trace settings for the named tracker trigger.
+ * @param[in] name unique name for the ODE Trigger to update
+ * @param[in] enabled set to true to enable object trace display, false otherwise
+ * @param[in] color name of the color to use for object trace display.
+ * @param[in] line_width width of the object trace if display is enabled.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_track_view_settings_set(const wchar_t* name, 
+    boolean enabled, const wchar_t* color, uint line_width);
+    
 
 /**
  * @brief Resets the a named ODE Trigger, setting it's triggered count to 0

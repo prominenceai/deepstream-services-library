@@ -52,14 +52,6 @@ namespace DSL
         std::shared_ptr<AccumulationOdeTrigger>(new AccumulationOdeTrigger(name, \
             source, classId, limit))
 
-    #define DSL_ODE_TRIGGER_TRACKING_PTR std:shared_ptr<TrackingOdeTrigger>
-    
-    #define DSL_ODE_TRIGGER_CROSS_PTR std::shared_ptr<CrossOdeTrigger>
-    #define DSL_ODE_TRIGGER_CROSS_NEW(name, \
-        source, classId, limit, minTracePoints, maxTracePoints, testMethod, pColor) \
-        std::shared_ptr<CrossOdeTrigger>(new CrossOdeTrigger(name, \
-            source, classId, limit, minTracePoints, maxTracePoints, testMethod, pColor))
-
     #define DSL_ODE_TRIGGER_INSTANCE_PTR std::shared_ptr<InstanceOdeTrigger>
     #define DSL_ODE_TRIGGER_INSTANCE_NEW(name, source, classId, limit) \
         std::shared_ptr<InstanceOdeTrigger>(new InstanceOdeTrigger(name, \
@@ -81,13 +73,6 @@ namespace DSL
         std::shared_ptr<CustomOdeTrigger>(new CustomOdeTrigger(name, \
             source, classId, limit, clientChecker, clientPostProcessor, clientData))
 
-    #define DSL_ODE_TRIGGER_PERSISTENCE_PTR std::shared_ptr<PersistenceOdeTrigger>
-    #define DSL_ODE_TRIGGER_PERSISTENCE_NEW(name, \
-        source, classId, limit, minimum, maximum, pColor) \
-        std::shared_ptr<PersistenceOdeTrigger> \
-            (new PersistenceOdeTrigger(name, \
-                source, classId, limit, minimum, maximum, pColor))
-
     #define DSL_ODE_TRIGGER_COUNT_PTR std::shared_ptr<CountOdeTrigger>
     #define DSL_ODE_TRIGGER_COUNT_NEW(name, source, classId, limit, minimum, maximum) \
         std::shared_ptr<CountOdeTrigger> (new CountOdeTrigger(name, \
@@ -103,6 +88,32 @@ namespace DSL
         std::shared_ptr<LargestOdeTrigger>(new LargestOdeTrigger(name, \
             source, classId, limit))
 
+    #define DSL_ODE_TRIGGER_NEW_LOW_PTR std::shared_ptr<NewLowOdeTrigger>
+    #define DSL_ODE_TRIGGER_NEW_LOW_NEW(name, source, classId, limit, preset) \
+        std::shared_ptr<NewLowOdeTrigger>(new NewLowOdeTrigger(name, \
+            source, classId, limit, preset))
+
+    #define DSL_ODE_TRIGGER_NEW_HIGH_PTR std::shared_ptr<NewHighOdeTrigger>
+    #define DSL_ODE_TRIGGER_NEW_HIGH_NEW(name, source, classId, limit, preset) \
+        std::shared_ptr<NewHighOdeTrigger>(new NewHighOdeTrigger(name, \
+            source, classId, limit, preset))
+
+    // Triggers thta track objects
+
+    #define DSL_ODE_TRACKING_TRIGGER_PTR std::shared_ptr<TrackingOdeTrigger>
+    
+    #define DSL_ODE_TRIGGER_CROSS_PTR std::shared_ptr<CrossOdeTrigger>
+    #define DSL_ODE_TRIGGER_CROSS_NEW(name, \
+        source, classId, limit, minTracePoints, maxTracePoints, testMethod, pColor) \
+        std::shared_ptr<CrossOdeTrigger>(new CrossOdeTrigger(name, \
+            source, classId, limit, minTracePoints, maxTracePoints, testMethod, pColor))
+
+    #define DSL_ODE_TRIGGER_PERSISTENCE_PTR std::shared_ptr<PersistenceOdeTrigger>
+    #define DSL_ODE_TRIGGER_PERSISTENCE_NEW(name, \
+        source, classId, limit, minimum, maximum, pColor) \
+        std::shared_ptr<PersistenceOdeTrigger> \
+            (new PersistenceOdeTrigger(name, \
+                source, classId, limit, minimum, maximum, pColor))
     #define DSL_ODE_TRIGGER_LATEST_PTR std::shared_ptr<LatestOdeTrigger>
     #define DSL_ODE_TRIGGER_LATEST_NEW(name, source, classId, limit, pColor) \
         std::shared_ptr<LatestOdeTrigger>(new LatestOdeTrigger(name, \
@@ -113,15 +124,6 @@ namespace DSL
         std::shared_ptr<EarliestOdeTrigger>(new EarliestOdeTrigger(name, \
             source, classId, limit, pColor))
 
-    #define DSL_ODE_TRIGGER_NEW_LOW_PTR std::shared_ptr<NewLowOdeTrigger>
-    #define DSL_ODE_TRIGGER_NEW_LOW_NEW(name, source, classId, limit, preset) \
-        std::shared_ptr<NewLowOdeTrigger>(new NewLowOdeTrigger(name, \
-            source, classId, limit, preset))
-
-    #define DSL_ODE_TRIGGER_NEW_HIGH_PTR std::shared_ptr<NewHighOdeTrigger>
-    #define DSL_ODE_TRIGGER_NEW_HIGH_NEW(name, source, classId, limit, preset) \
-        std::shared_ptr<NewHighOdeTrigger>(new NewHighOdeTrigger(name, \
-            source, classId, limit, preset))
 
     // Triggers for ClassA - ClassB Testing
 

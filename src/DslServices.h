@@ -292,22 +292,6 @@ namespace DSL {
         DslReturnType OdeTriggerAccumulationNew(const char* name, 
             const char* source, uint classId, uint limit);
 
-        DslReturnType OdeTriggerCrossNew(const char* name, 
-            const char* source, uint classId, uint limit, 
-            uint minFrameCount, uint maxTracePoints, uint testMethod);
-            
-        DslReturnType OdeTriggerCrossTestSettingsGet(const char* name, 
-            uint* minFrameCount, uint* maxTracePoints, uint* testMethod);
-            
-        DslReturnType OdeTriggerCrossTestSettingsSet(const char* name, 
-            uint minFrameCount, uint maxTracePoints, uint testMethod);
-            
-        DslReturnType OdeTriggerCrossViewSettingsGet(const char* name, 
-            boolean* enabled, const char** color, uint* lineWidth);
-            
-        DslReturnType OdeTriggerCrossViewSettingsSet(const char* name, 
-            boolean enabled, const char* color, uint lineWidth);
-        
         DslReturnType OdeTriggerInstanceNew(const char* name, 
             const char* source, uint classId, uint limit);
         
@@ -320,15 +304,6 @@ namespace DSL {
         DslReturnType OdeTriggerCustomNew(const char* name, const char* source, 
             uint classId, uint limit,  dsl_ode_check_for_occurrence_cb client_checker, 
             dsl_ode_post_process_frame_cb client_post_processor, void* client_data);
-
-        DslReturnType OdeTriggerPersistenceNew(const char* name, const char* source,
-            uint classId, uint limit, uint minimum, uint maximum);
-
-        DslReturnType OdeTriggerPersistenceRangeGet(const char* name, 
-            uint* minimum, uint* maximum);
-        
-        DslReturnType OdeTriggerPersistenceRangeSet(const char* name, 
-            uint minimum, uint maximum);
 
         DslReturnType OdeTriggerCountNew(const char* name, const char* source, 
             uint classId, uint limit, uint minimum, uint maximum);
@@ -361,18 +336,43 @@ namespace DSL {
         DslReturnType OdeTriggerLargestNew(const char* name, 
             const char* source, uint classId, uint limit);
 
-        DslReturnType OdeTriggerLatestNew(const char* name, 
-            const char* source, uint classId, uint limit);
-
-        DslReturnType OdeTriggerEarliestNew(const char* name, 
-            const char* source, uint classId, uint limit);
+        DslReturnType OdeTriggerNewLowNew(const char* name, 
+            const char* source, uint classId, uint limit, uint preset);
 
         DslReturnType OdeTriggerNewHighNew(const char* name, 
             const char* source, uint classId, uint limit, uint preset);
 
-        DslReturnType OdeTriggerNewLowNew(const char* name, 
-            const char* source, uint classId, uint limit, uint preset);
+        DslReturnType OdeTriggerTrackCrossNew(const char* name, 
+            const char* source, uint classId, uint limit, 
+            uint minFrameCount, uint maxFrameCount, uint testMethod);
+            
+        DslReturnType OdeTriggerTrackPersistenceNew(const char* name, 
+            const char* source, uint classId, uint limit, uint minimum, uint maximum);
 
+        DslReturnType OdeTriggerTrackPersistenceRangeGet(const char* name, 
+            uint* minimum, uint* maximum);
+        
+        DslReturnType OdeTriggerTrackPersistenceRangeSet(const char* name, 
+            uint minimum, uint maximum);
+
+        DslReturnType OdeTriggerTrackEarliestNew(const char* name, 
+            const char* source, uint classId, uint limit);
+            
+        DslReturnType OdeTriggerTrackLatestNew(const char* name, 
+            const char* source, uint classId, uint limit);
+            
+        DslReturnType OdeTriggerTrackTestSettingsGet(const char* name, 
+            uint* minFrameCount, uint* maxFrameCount, uint* testMethod);
+            
+        DslReturnType OdeTriggerTrackTestSettingsSet(const char* name, 
+            uint minFrameCount, uint maxFrameCount, uint testMethod);
+            
+        DslReturnType OdeTriggerTrackViewSettingsGet(const char* name, 
+            boolean* enabled, const char** color, uint* lineWidth);
+            
+        DslReturnType OdeTriggerTrackViewSettingsSet(const char* name, 
+            boolean enabled, const char* color, uint lineWidth);
+        
         DslReturnType OdeTriggerReset(const char* name);
 
         DslReturnType OdeTriggerResetTimeoutGet(const char* name, uint* timeout);

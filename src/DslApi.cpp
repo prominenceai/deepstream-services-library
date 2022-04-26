@@ -1382,93 +1382,6 @@ DslReturnType dsl_ode_trigger_accumulation_new(const wchar_t* name,
         cstrSource.c_str(), class_id, limit);
 }
     
-DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit, uint min_frame_count, 
-    uint max_trace_points, uint test_method)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    std::string cstrSource;
-    if (source)
-    {
-        std::wstring wstrSource(source);
-        cstrSource.assign(wstrSource.begin(), wstrSource.end());
-    }
-    return DSL::Services::GetServices()->OdeTriggerCrossNew(cstrName.c_str(), 
-        cstrSource.c_str(), class_id, limit, min_frame_count, 
-        max_trace_points, test_method);
-}
-
-DslReturnType dsl_ode_trigger_cross_test_settings_get(const wchar_t* name, 
-    uint* min_frame_count, uint* max_trace_points, uint* test_method)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeTriggerCrossTestSettingsGet(cstrName.c_str(), 
-        min_frame_count, max_trace_points, test_method);
-}
-
-DslReturnType dsl_ode_trigger_cross_test_settings_set(const wchar_t* name, 
-    uint min_frame_count, uint max_trace_points, uint test_method)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeTriggerCrossTestSettingsSet(cstrName.c_str(), 
-        min_frame_count, max_trace_points, test_method);
-}
-    
-DslReturnType dsl_ode_trigger_cross_view_settings_get(const wchar_t* name, 
-    boolean* enabled, const wchar_t** color, uint* line_width)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(enabled);
-    RETURN_IF_PARAM_IS_NULL(color);
-    RETURN_IF_PARAM_IS_NULL(line_width);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    const char* ccolor;
-    static std::string cstrColor;
-    static std::wstring wcstrColor;
-    
-    uint retval = DSL::Services::GetServices()->OdeTriggerCrossViewSettingsGet(
-        cstrName.c_str(), enabled, &ccolor, line_width);
-
-    if (retval ==  DSL_RESULT_SUCCESS)
-    {
-        cstrColor.assign(ccolor);
-        wcstrColor.assign(cstrColor.begin(), cstrColor.end());
-        
-        *color = wcstrColor.c_str();
-    }
-    return retval;
-}
-
-DslReturnType dsl_ode_trigger_cross_view_settings_set(const wchar_t* name, 
-    boolean enabled, const wchar_t* color, uint line_width)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(color);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrColor(color);
-    std::string cstrColor(wstrColor.begin(), wstrColor.end());
-
-    return DSL::Services::GetServices()->OdeTriggerCrossViewSettingsSet(cstrName.c_str(), 
-        enabled, cstrColor.c_str(), line_width);
-}
-    
 DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit)
 {
@@ -1579,48 +1492,6 @@ DslReturnType dsl_ode_trigger_custom_new(const wchar_t* name, const wchar_t* sou
     }
     return DSL::Services::GetServices()->OdeTriggerCustomNew(cstrName.c_str(), cstrSource.c_str(), 
         class_id, limit, client_checker, client_post_processor, client_data);
-}
-    
-DslReturnType dsl_ode_trigger_persistence_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit, uint minimum, uint maximum)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    std::string cstrSource;
-    if (source)
-    {
-        std::wstring wstrSource(source);
-        cstrSource.assign(wstrSource.begin(), wstrSource.end());
-    }
-    return DSL::Services::GetServices()->OdeTriggerPersistenceNew(cstrName.c_str(), cstrSource.c_str(), 
-        class_id, limit, minimum, maximum);
-}
-
-DslReturnType dsl_ode_trigger_persistence_range_get(const wchar_t* name, 
-    uint* minimum, uint* maximum)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeTriggerPersistenceRangeGet(cstrName.c_str(), 
-        minimum, maximum);
-}
-    
-DslReturnType dsl_ode_trigger_persistence_range_set(const wchar_t* name, 
-    uint minimum, uint maximum)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeTriggerPersistenceRangeSet(cstrName.c_str(), 
-        minimum, maximum);
 }
     
 DslReturnType dsl_ode_trigger_count_new(const wchar_t* name, const wchar_t* source, 
@@ -1768,7 +1639,69 @@ DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name,
         cstrName.c_str(), cstrSource.c_str(), class_id, limit);
 }
 
-DslReturnType dsl_ode_trigger_latest_new(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_track_cross_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit, uint min_frame_count, 
+    uint max_frame_count, uint test_method)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrSource;
+    if (source)
+    {
+        std::wstring wstrSource(source);
+        cstrSource.assign(wstrSource.begin(), wstrSource.end());
+    }
+    return DSL::Services::GetServices()->OdeTriggerTrackCrossNew(cstrName.c_str(), 
+        cstrSource.c_str(), class_id, limit, min_frame_count, 
+        max_frame_count, test_method);
+}
+
+DslReturnType dsl_ode_trigger_track_persistence_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit, uint minimum, uint maximum)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrSource;
+    if (source)
+    {
+        std::wstring wstrSource(source);
+        cstrSource.assign(wstrSource.begin(), wstrSource.end());
+    }
+    return DSL::Services::GetServices()->OdeTriggerTrackPersistenceNew(
+        cstrName.c_str(), cstrSource.c_str(), class_id, limit, minimum, maximum);
+}
+
+DslReturnType dsl_ode_trigger_track_persistence_range_get(const wchar_t* name, 
+    uint* minimum, uint* maximum)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerTrackPersistenceRangeGet(
+        cstrName.c_str(), minimum, maximum);
+}
+    
+DslReturnType dsl_ode_trigger_track_persistence_range_set(const wchar_t* name, 
+    uint minimum, uint maximum)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerTrackPersistenceRangeSet(
+        cstrName.c_str(), minimum, maximum);
+}
+    
+DslReturnType dsl_ode_trigger_track_latest_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -1782,11 +1715,11 @@ DslReturnType dsl_ode_trigger_latest_new(const wchar_t* name,
         std::wstring wstrSource(source);
         cstrSource.assign(wstrSource.begin(), wstrSource.end());
     }
-    return DSL::Services::GetServices()->OdeTriggerLatestNew(
+    return DSL::Services::GetServices()->OdeTriggerTrackLatestNew(
         cstrName.c_str(), cstrSource.c_str(), class_id, limit);
 }
 
-DslReturnType dsl_ode_trigger_earliest_new(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_track_earliest_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -1800,10 +1733,77 @@ DslReturnType dsl_ode_trigger_earliest_new(const wchar_t* name,
         std::wstring wstrSource(source);
         cstrSource.assign(wstrSource.begin(), wstrSource.end());
     }
-    return DSL::Services::GetServices()->OdeTriggerEarliestNew(
+    return DSL::Services::GetServices()->OdeTriggerTrackEarliestNew(
         cstrName.c_str(), cstrSource.c_str(), class_id, limit);
 }
 
+DslReturnType dsl_ode_trigger_track_test_settings_get(const wchar_t* name, 
+    uint* min_frame_count, uint* max_frame_count, uint* test_method)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerTrackTestSettingsGet(
+        cstrName.c_str(), min_frame_count, max_frame_count, test_method);
+}
+
+DslReturnType dsl_ode_trigger_track_test_settings_set(const wchar_t* name, 
+    uint min_frame_count, uint max_frame_count, uint test_method)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerTrackTestSettingsSet(
+        cstrName.c_str(), min_frame_count, max_frame_count, test_method);
+}
+    
+DslReturnType dsl_ode_trigger_track_view_settings_get(const wchar_t* name, 
+    boolean* enabled, const wchar_t** color, uint* line_width)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+    RETURN_IF_PARAM_IS_NULL(color);
+    RETURN_IF_PARAM_IS_NULL(line_width);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* ccolor;
+    static std::string cstrColor;
+    static std::wstring wcstrColor;
+    
+    uint retval = DSL::Services::GetServices()->OdeTriggerTrackViewSettingsGet(
+        cstrName.c_str(), enabled, &ccolor, line_width);
+
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrColor.assign(ccolor);
+        wcstrColor.assign(cstrColor.begin(), cstrColor.end());
+        
+        *color = wcstrColor.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_ode_trigger_track_view_settings_set(const wchar_t* name, 
+    boolean enabled, const wchar_t* color, uint line_width)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(color);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrColor(color);
+    std::string cstrColor(wstrColor.begin(), wstrColor.end());
+
+    return DSL::Services::GetServices()->OdeTriggerTrackViewSettingsSet(cstrName.c_str(), 
+        enabled, cstrColor.c_str(), line_width);
+}
+    
 DslReturnType dsl_ode_trigger_reset(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);

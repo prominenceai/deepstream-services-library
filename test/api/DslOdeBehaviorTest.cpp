@@ -1536,14 +1536,14 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can p
         REQUIRE( dsl_ode_area_line_new(area_name.c_str(), line_name.c_str(), 
             true, DSL_BBOX_POINT_SOUTH) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_trigger_cross_new(person_cross_name.c_str(), 
+        REQUIRE( dsl_ode_trigger_track_cross_new(person_cross_name.c_str(), 
             NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE, 2, 200, 
             DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_confidence_min_set(person_cross_name.c_str(), 
             0.40) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_ode_trigger_cross_view_settings_set(person_cross_name.c_str(),
+        REQUIRE( dsl_ode_trigger_track_view_settings_set(person_cross_name.c_str(),
             true, green.c_str(), 4) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_area_add(person_cross_name.c_str(), 
@@ -1651,14 +1651,14 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Multi-Line Area
         REQUIRE( dsl_ode_area_line_multi_new(area_name.c_str(), multi_line_name.c_str(), 
             true, DSL_BBOX_POINT_SOUTH) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_trigger_cross_new(person_cross_name.c_str(), 
+        REQUIRE( dsl_ode_trigger_track_cross_new(person_cross_name.c_str(), 
             NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE, 2, 200, 
             DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_confidence_min_set(person_cross_name.c_str(), 
             0.40) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_ode_trigger_cross_view_settings_set(person_cross_name.c_str(),
+        REQUIRE( dsl_ode_trigger_track_view_settings_set(person_cross_name.c_str(),
             true, red.c_str(), 4) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_area_add(person_cross_name.c_str(), 
@@ -1747,7 +1747,7 @@ SCENARIO( "A new Pipeline with a Cross ODE Trigger using an ODE Polygon Area can
         
         REQUIRE( dsl_pph_ode_new(ode_pph_name.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_display_meta_alloc_size_set(
-            ode_pph_name.c_str(), 3) == DSL_RESULT_SUCCESS );
+            ode_pph_name.c_str(), 2) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), 
             ode_pph_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
@@ -1759,7 +1759,7 @@ SCENARIO( "A new Pipeline with a Cross ODE Trigger using an ODE Polygon Area can
             0.5, 1.0, 0.5, 0.5) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_rgba_color_random_new(random_color.c_str(), 
-            DSL_COLOR_HUE_RANDOM, DSL_COLOR_LUMINOSITY_RANDOM, 
+            DSL_COLOR_HUE_RANDOM, DSL_COLOR_LUMINOSITY_BRIGHT, 
             1.0, 123) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_rgba_polygon_new(polygon.c_str(), 
@@ -1768,14 +1768,14 @@ SCENARIO( "A new Pipeline with a Cross ODE Trigger using an ODE Polygon Area can
         REQUIRE( dsl_ode_area_inclusion_new(area_name.c_str(), polygon.c_str(), 
             true, DSL_BBOX_POINT_SOUTH) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_trigger_cross_new(person_cross_name.c_str(), 
+        REQUIRE( dsl_ode_trigger_track_cross_new(person_cross_name.c_str(), 
             NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE, 2, 200, 
             DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_confidence_min_set(person_cross_name.c_str(), 
             0.40) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_ode_trigger_cross_view_settings_set(person_cross_name.c_str(),
+        REQUIRE( dsl_ode_trigger_track_view_settings_set(person_cross_name.c_str(),
             true, random_color.c_str(), 4) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_area_add(person_cross_name.c_str(), 
@@ -1791,7 +1791,7 @@ SCENARIO( "A new Pipeline with a Cross ODE Trigger using an ODE Polygon Area can
             person_cross_name.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_osd_new(osd_name.c_str(), false, false,
-            false, false) == DSL_RESULT_SUCCESS );
+            true, false) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );

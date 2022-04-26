@@ -94,6 +94,7 @@
     <File Name="../src/DslServicesInfo.cpp"/>
     <File Name="../src/DslOdeTrackedObject.h"/>
     <File Name="../src/DslOdeTrackedObject.cpp"/>
+    <File Name="../src/DslDisplayTypes.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="api">
@@ -243,7 +244,6 @@
       <File Name="../examples/tkinter/tkapp.py"/>
       <File Name="../examples/tkinter/tkapp_window.py"/>
     </VirtualDirectory>
-    <File Name="../src/DslDisplayTypes.cpp"/>
   </VirtualDirectory>
   <Settings Type="Dynamic Library">
     <GlobalSettings>

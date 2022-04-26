@@ -162,7 +162,7 @@ def main(args):
         #```````````````````````````````````````````````````````````````````````````````````
         # Create the three persistence triggers for the PERSON class, each with their unique range
         # Set the minimum hight critera - we only care about people that are near the Camera
-        retval = dsl_ode_trigger_persistence_new('minimum-persitence-trigger', source='uri-source-1',
+        retval = dsl_ode_trigger_track_persistence_new('minimum-persitence-trigger', source='uri-source-1',
             class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE, minimum=0, maximum=2)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -170,7 +170,7 @@ def main(args):
             min_width=0, min_height=100)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_persistence_new('medium-persitence-trigger', source='uri-source-1',
+        retval = dsl_ode_trigger_track_persistence_new('medium-persitence-trigger', source='uri-source-1',
             class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE, minimum=2, maximum=4)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -178,7 +178,7 @@ def main(args):
             min_width=0, min_height=100)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_persistence_new('maximum-persitence-trigger', source='uri-source-1',
+        retval = dsl_ode_trigger_track_persistence_new('maximum-persitence-trigger', source='uri-source-1',
             class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE, minimum=4, maximum=0)
         if retval != DSL_RETURN_SUCCESS:
             break

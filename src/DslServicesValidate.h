@@ -74,6 +74,18 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define DSL_RETURN_IF_ODE_TRIGGER_IS_NOT_TRACK_TRIGGER(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(CrossOdeTrigger)) and  \
+        !components[name]->IsType(typeid(PersistenceOdeTrigger)) and \
+        !components[name]->IsType(typeid(EarliestOdeTrigger)) and \
+        !components[name]->IsType(typeid(LatestOdeTrigger))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not an AB ODE Trigger"); \
+        return DSL_RESULT_ODE_TRIGGER_IS_NOT_TRACK_TRIGGER; \
+    } \
+}while(0); 
+
 #define DSL_RETURN_IF_ODE_TRIGGER_IS_NOT_AB_TYPE(components, name) do \
 { \
     if (!components[name]->IsType(typeid(DistanceOdeTrigger)) and  \
