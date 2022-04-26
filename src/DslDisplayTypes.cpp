@@ -28,6 +28,50 @@ THE SOFTWARE.
 namespace DSL
 {
 
+//            name='Black', red=0, green= 0, blue=0, 
+//            name='Gray-50%', red=127, green= 127, blue=127, 
+//            name='Dark-red', red=136, green= 0, blue=21, 
+//            name='Red', red=237, green= 28, blue=36, 
+//            name='Orange', red=255, green= 127, blue=39, 
+//            name='Yellow', red=255, green=242, blue=0, 
+//            name='Green', red=34, green=177, blue=76, 
+//            name='Turquoise', red=0, green=162, blue=232, 
+//            name='Indigo', red=63, green=72, blue=204, 
+//            name='Purple', red=163, green=73, blue=164, 
+//            name='White', red=255, green=255, blue=255, 
+//            name='Gray-25', red=195, green=195, blue=195, 
+//            name='Brown', red=185, green=122, blue=87, 
+//            name='Rose', red=255, green=174, blue=201, 
+//            name='Gold', red=255, green=201, blue=14, 
+//            name='Light yellow', red=239, green=228, blue=176, 
+//            name='Lime', red=181, green= 230, blue=29, 
+//            name='Light turquoise', red=153, green= 217, blue=234, 
+//            name='Blue-gray', red=112, green=146, blue=190, 
+//            name='Lavender', red=200, green=191, blue=231, 
+
+    std::map<uint, NvOSD_ColorParams> RgbaPredefinedColor::s_predefinedColors = {
+        {DSL_COLOR_PREDEFINED_BLACK,            {0.0,   0.0,   0.0,   0.0}},
+        {DSL_COLOR_PREDEFINED_GRAY_50,          {0.498, 0.498, 0.498, 0.0}},
+        {DSL_COLOR_PREDEFINED_DARK_RED,         {0.533, 0.0,   0.082, 0.0}},
+        {DSL_COLOR_PREDEFINED_RED,              {0.929, 0.010, 0.141, 0.0}},
+        {DSL_COLOR_PREDEFINED_ORANGE,           {1.0,   0.498, 0.153, 0.0}},
+        {DSL_COLOR_PREDEFINED_YELLOW,           {1.0,   0.949, 0.0,   0.0}},
+        {DSL_COLOR_PREDEFINED_GREEN,            {0.133, 0.694, 0.298, 0.0}},
+        {DSL_COLOR_PREDEFINED_TURQUOISE,        {0.0,   0.635, 0.910, 0.0}},
+        {DSL_COLOR_PREDEFINED_INDIGO,           {0.247, 0.282, 0.8,   0.0}},
+        {DSL_COLOR_PREDEFINED_PURPLE,           {0.639, 0.286, 0.643, 0.0}},
+        {DSL_COLOR_PREDEFINED_WHITE,            {1.0,   1.0,   1.0,   0.0}},
+        {DSL_COLOR_PREDEFINED_GRAY_25,          {0.765, 0.765, 0.765, 0.0}},
+        {DSL_COLOR_PREDEFINED_BROWN,            {0.725, 0.478, 0.341, 0.0}},
+        {DSL_COLOR_PREDEFINED_ROSE,             {1.0,   0.682, 0.682, 0.0}},
+        {DSL_COLOR_PREDEFINED_GOLD,             {1.0,   0.788, 0.055, 0.0}},
+        {DSL_COLOR_PREDEFINED_LIGHT_YELLOW,     {0.937, 0.894, 0.690, 0.0}},
+        {DSL_COLOR_PREDEFINED_LIME,             {0.710, 0.902, 0.114, 0.0}},
+        {DSL_COLOR_PREDEFINED_LIGHT_TURQUOISE,  {0.6,   0.851, 0.918, 0.0}},
+        {DSL_COLOR_PREDEFINED_BLUE_GRAY,        {0.439, 0.573, 0.745, 0.0}},
+        {DSL_COLOR_PREDEFINED_LAVENDER,         {0.784, 0.749, 0.906, 0.0}}
+    };
+    
     // ********************************************************************
 
     
@@ -66,6 +110,13 @@ namespace DSL
         LOG_FUNC();
     }
 
+    RgbaColor::RgbaColor(const NvOSD_ColorParams& color)
+        : DisplayType("")
+        , NvOSD_ColorParams{color.red, color.green, color.blue, color.alpha}
+    {
+        LOG_FUNC();
+    }
+
     RgbaColor::~RgbaColor()
     {
         LOG_FUNC();
@@ -74,13 +125,13 @@ namespace DSL
     // ********************************************************************
 
     RgbaPredefinedColor::RgbaPredefinedColor(const char* name,
-        uint hue, uint luminosity, double alpha)
-        : RgbaColor(name, 0.0, 0.0, 0.0, alpha)
-        , m_hue((RandomColor::Color)hue)
-        , m_luminosity((RandomColor::Luminosity)luminosity)
+        uint colorId, double alpha)
+        : RgbaColor(s_predefinedColors[colorId])
+        , m_colorId(colorId)
     {
         LOG_FUNC();
         
+        alpha = alpha;
     }
 
     RgbaPredefinedColor::~RgbaPredefinedColor()

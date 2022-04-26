@@ -107,7 +107,7 @@ SCENARIO( "All DisplayTypes can be displayed by an ODE Action", "[display-types-
         REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), 
             odePphName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_rgba_line_new(lineName.c_str(), 

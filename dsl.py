@@ -243,19 +243,36 @@ callbacks = []
 clientdata = []
 
 ##
-## dsl_display_type_rgba_color_new()
+## dsl_display_type_rgba_color_custom_new()
 ##
-_dsl.dsl_display_type_rgba_color_new.argtypes = [c_wchar_p, c_double, c_double, c_double, c_double]
-_dsl.dsl_display_type_rgba_color_new.restype = c_uint
-def dsl_display_type_rgba_color_new(name, red, green, blue, alpha):
+_dsl.dsl_display_type_rgba_color_custom_new.argtypes = [c_wchar_p, 
+    c_double, c_double, c_double, c_double]
+_dsl.dsl_display_type_rgba_color_custom_new.restype = c_uint
+def dsl_display_type_rgba_color_custom_new(name, 
+    red, green, blue, alpha):
     global _dsl
-    result =_dsl.dsl_display_type_rgba_color_new(name, red, green, blue, alpha)
+    result =_dsl.dsl_display_type_rgba_color_custom_new(name, 
+        red, green, blue, alpha)
+    return int(result)
+
+##
+## dsl_display_type_rgba_color_predefined_new()
+##
+_dsl.dsl_display_type_rgba_color_predefined_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint]
+_dsl.dsl_display_type_rgba_color_predefined_new.restype = c_uint
+def dsl_display_type_rgba_color_predefined_new(name, 
+    color_id, alpha):
+    global _dsl
+    result =_dsl.dsl_display_type_rgba_color_predefined_new(name, 
+        color_id, alpha)
     return int(result)
 
 ##
 ## dsl_display_type_rgba_font_new()
 ##
-_dsl.dsl_display_type_rgba_font_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_wchar_p]
+_dsl.dsl_display_type_rgba_font_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_wchar_p]
 _dsl.dsl_display_type_rgba_font_new.restype = c_uint
 def dsl_display_type_rgba_font_new(name, font, size, color):
     global _dsl
@@ -265,31 +282,39 @@ def dsl_display_type_rgba_font_new(name, font, size, color):
 ##
 ## dsl_display_type_rgba_text_new()
 ##
-_dsl.dsl_display_type_rgba_text_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_rgba_text_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
 _dsl.dsl_display_type_rgba_text_new.restype = c_uint
-def dsl_display_type_rgba_text_new(name, text, x_offset, y_offset, font, has_bg_color, bg_color):
+def dsl_display_type_rgba_text_new(name, 
+    text, x_offset, y_offset, font, has_bg_color, bg_color):
     global _dsl
-    result =_dsl.dsl_display_type_rgba_text_new(name, text, x_offset, y_offset, font, has_bg_color, bg_color)
+    result =_dsl.dsl_display_type_rgba_text_new(name, 
+        text, x_offset, y_offset, font, has_bg_color, bg_color)
     return int(result)
 
 ##
 ## dsl_display_type_rgba_line_new()
 ##
-_dsl.dsl_display_type_rgba_line_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_wchar_p]
+_dsl.dsl_display_type_rgba_line_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_uint, c_uint, c_uint, c_wchar_p]
 _dsl.dsl_display_type_rgba_line_new.restype = c_uint
 def dsl_display_type_rgba_line_new(name, x1, y1, x2, y2, width, color):
     global _dsl
-    result =_dsl.dsl_display_type_rgba_line_new(name, x1, y1, x2, y2, width, color)
+    result =_dsl.dsl_display_type_rgba_line_new(name, 
+        x1, y1, x2, y2, width, color)
     return int(result)
 
 ##
 ## dsl_display_type_rgba_rectangle_new()
 ##
-_dsl.dsl_display_type_rgba_rectangle_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_rgba_rectangle_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_uint, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
 _dsl.dsl_display_type_rgba_rectangle_new.restype = c_uint
-def dsl_display_type_rgba_rectangle_new(name, left, top, width, height, border_width, color, has_bg_color, bg_color):
+def dsl_display_type_rgba_rectangle_new(name, 
+    left, top, width, height, border_width, color, has_bg_color, bg_color):
     global _dsl
-    result =_dsl.dsl_display_type_rgba_rectangle_new(name, left, top, width, height, border_width, color, has_bg_color, bg_color)
+    result =_dsl.dsl_display_type_rgba_rectangle_new(name, 
+        left, top, width, height, border_width, color, has_bg_color, bg_color)
     return int(result)
 
 ##

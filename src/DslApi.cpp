@@ -35,7 +35,7 @@ THE SOFTWARE.
 }while(0); 
 
 
-DslReturnType dsl_display_type_rgba_color_new(const wchar_t* name, 
+DslReturnType dsl_display_type_rgba_color_custom_new(const wchar_t* name, 
     double red, double green, double blue, double alpha)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -48,7 +48,7 @@ DslReturnType dsl_display_type_rgba_color_new(const wchar_t* name,
 }
 
 DslReturnType dsl_display_type_rgba_color_predefined_new(const wchar_t* name, 
-    uint seed, uint hue, uint luminosity, double alpha)
+    uint color_id, double alpha)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     
@@ -56,7 +56,7 @@ DslReturnType dsl_display_type_rgba_color_predefined_new(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->DisplayTypeRgbaColorPredefinedNew(
-        cstrName.c_str(), hue, luminosity, alpha);
+        cstrName.c_str(), color_id, alpha);
 }
 
 DslReturnType dsl_display_type_rgba_color_palette_new(const wchar_t* name, 

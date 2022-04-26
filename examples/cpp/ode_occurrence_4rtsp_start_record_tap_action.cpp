@@ -139,13 +139,13 @@ DslReturnType create_display_types()
 
     // ````````````````````````````````````````````````````````````````````````````````````````````````````````    
     // Create new RGBA color types    
-    retval = dsl_display_type_rgba_color_new(L"full-red", 1.0f, 0.0f, 0.0f, 1.0f);    
+    retval = dsl_display_type_rgba_color_custom_new(L"full-red", 1.0f, 0.0f, 0.0f, 1.0f);    
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
-    retval = dsl_display_type_rgba_color_new(L"full-white", 1.0f, 1.0f, 1.0f, 1.0f);    
+    retval = dsl_display_type_rgba_color_custom_new(L"full-white", 1.0f, 1.0f, 1.0f, 1.0f);    
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
-    retval = dsl_display_type_rgba_color_new(L"opaque-black", 0.0f, 0.0f, 0.0f, 0.8f);
+    retval = dsl_display_type_rgba_color_custom_new(L"opaque-black", 0.0f, 0.0f, 0.0f, 0.8f);
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
     retval = dsl_display_type_rgba_font_new(L"impact-20-white", L"impact", 20, L"full-white");    

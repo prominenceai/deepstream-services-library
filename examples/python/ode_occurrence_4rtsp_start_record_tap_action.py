@@ -96,13 +96,13 @@ def create_display_types():
 
     # ````````````````````````````````````````````````````````````````````````````````````````````````````````    
     # Create new RGBA color types    
-    retval = dsl_display_type_rgba_color_new('full-red', red=1.0, blue=0.0, green=0.0, alpha=1.0)    
+    retval = dsl_display_type_rgba_color_custom_new('full-red', red=1.0, blue=0.0, green=0.0, alpha=1.0)    
     if retval != DSL_RETURN_SUCCESS:    
         return retval    
-    retval = dsl_display_type_rgba_color_new('full-white', red=1.0, blue=1.0, green=1.0, alpha=1.0)    
+    retval = dsl_display_type_rgba_color_custom_new('full-white', red=1.0, blue=1.0, green=1.0, alpha=1.0)    
     if retval != DSL_RETURN_SUCCESS:    
         return retval    
-    retval = dsl_display_type_rgba_color_new('opaque-black', red=0.0, blue=0.0, green=0.0, alpha=0.8)    
+    retval = dsl_display_type_rgba_color_custom_new('opaque-black', red=0.0, blue=0.0, green=0.0, alpha=0.8)    
     if retval != DSL_RETURN_SUCCESS:    
         return retval    
     retval = dsl_display_type_rgba_font_new('impact-20-white', font='impact', size=20, color='full-white')    

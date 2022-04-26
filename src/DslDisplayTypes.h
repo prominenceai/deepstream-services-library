@@ -52,9 +52,9 @@ namespace DSL
             pColorPalette))
 
     #define DSL_RGBA_PREDEFINED_COLOR_PTR std::shared_ptr<RgbaPredefinedColor>
-    #define DSL_RGBA_PREDEFINED_COLOR_NEW(name, hue, luminosity, alpha) \
+    #define DSL_RGBA_PREDEFINED_COLOR_NEW(name, colorId, alpha) \
         std::shared_ptr<RgbaPredefinedColor>(new RgbaPredefinedColor(name, \
-            hue, luminosity, alpha))
+            colorId, alpha))
 
     #define DSL_RGBA_ON_DEMAND_COLOR_PTR std::shared_ptr<RgbaOnDemandColor>
     #define DSL_RGBA_ON_DEMAND_COLOR_NEW(name, provider, clientData) \
@@ -170,6 +170,11 @@ namespace DSL
          * @breif copy ctor for the RBGA Color
          */
         RgbaColor(const RgbaColor& color);
+        
+        /**
+         * @breif copy ctor for the RBGA Color
+         */
+        RgbaColor(const NvOSD_ColorParams& color);
 
         /**
          * @breif dtor for the RBGA Color
@@ -191,30 +196,29 @@ namespace DSL
         /**
          * @brief ctor for the RGBA Predefined Color class
          * @param[in] name unique name for the RGBA Predefined color
-         * @param[in] hue color hue to use for random color generation.
+         * @param[in] predefined color identifier. 
          * @param[in] luminosity luminocity level to use for random color generation. 
          * @param[in] alpha alpha level for the RGB color [0..1]
          */
-        RgbaPredefinedColor(const char* name, 
-            uint hue, uint luminosity, double alpha);
+        RgbaPredefinedColor(const char* name, uint colorId, double alpha);
 
         /**
          * @brief dtor for RGBA Predefined Color
          */
         ~RgbaPredefinedColor();
         
-        
     private:
-    
+
         /**
-         * @brief color hue to use for random color generation. 
+         * @brief
          */
-        RandomColor::Color m_hue;
+        static std::map<uint, NvOSD_ColorParams> s_predefinedColors;
         
         /**
-         * @brief luminocity level to use for random color generation. 
+         * @brief predefined color identifier. 
          */
-        RandomColor::Luminosity m_luminosity;
+        uint m_colorId;
+        
     };
     
     // ********************************************************************

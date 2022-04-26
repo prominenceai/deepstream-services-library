@@ -1251,7 +1251,7 @@ SCENARIO( "A Cross Trigger can update its view settings correctly", "[ode-trigge
             std::wstring color_name(L"my-color");
             double red(0.12), green(0.34), blue(0.56), alpha(0.78);
 
-            REQUIRE( dsl_display_type_rgba_color_new(color_name.c_str(), 
+            REQUIRE( dsl_display_type_rgba_color_custom_new(color_name.c_str(), 
                 red, green, blue, alpha) == DSL_RESULT_SUCCESS );
             
             boolean new_trace_view_enabled(true);

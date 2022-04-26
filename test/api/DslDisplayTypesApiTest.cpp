@@ -36,7 +36,7 @@ SCENARIO( "A new RGBA Color can be created and deleted", "[display-types-api]" )
         REQUIRE( dsl_display_type_list_size() == 0 );
         WHEN( "A new RGBA Color is created" ) 
         {
-            REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+            REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
                 red, green, blue, alpha) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_display_type_list_size() == 1 );
             
@@ -48,12 +48,12 @@ SCENARIO( "A new RGBA Color can be created and deleted", "[display-types-api]" )
         }
         WHEN( "A new RGBA Color is created" ) 
         {
-            REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+            REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
                 red, green, blue, alpha) == DSL_RESULT_SUCCESS );
             
             THEN( "A second RGBA Color of the same name fails to create" ) 
             {
-                REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+                REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
                     red, green, blue, alpha) == DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE );
 
                 REQUIRE( dsl_display_type_delete(colorName.c_str()) == DSL_RESULT_SUCCESS );
@@ -74,7 +74,7 @@ SCENARIO( "A new RGBA Font can be created and deleted", "[display-types-api]" )
         std::wstring colorName(L"my-color");
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
 
-        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new RGBA Font is created" ) 
@@ -122,7 +122,7 @@ SCENARIO( "A new RGBA Text can be created and deleted", "[display-types-api]" )
         std::wstring colorName(L"my-color");
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
 
-        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
@@ -182,7 +182,7 @@ SCENARIO( "A new RGBA Line can be created and deleted", "[display-types-api]" )
         std::wstring colorName(L"my-color");
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
 
-        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new RGBA Line is created" ) 
@@ -227,7 +227,7 @@ SCENARIO( "A new RGBA Arrow can be created and deleted", "[display-types-api]" )
         std::wstring colorName(L"my-color");
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
 
-        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new RGBA Arrow is created" ) 
@@ -286,7 +286,7 @@ SCENARIO( "A new RGBA Rectangle can be created and deleted", "[display-types-api
         std::wstring colorName(L"my-color");
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
 
-        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new RGBA Rectangle is created" ) 
@@ -345,7 +345,7 @@ SCENARIO( "A new RGBA Polygon can be created and deleted", "[display-types-api]"
         dsl_coordinate coordinates[4] = {{100,100},{210,110},{220, 300},{110,330}};
         uint num_coordinates(4);
 
-        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new RGBA Polygon is created" ) 
@@ -405,7 +405,7 @@ SCENARIO( "A new RGBA Mulit-Line can be created and deleted", "[display-types-ap
         dsl_coordinate coordinates[4] = {{100,100},{210,110},{220, 300},{110,330}};
         uint num_coordinates(4);
 
-        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new RGBA Polygon is created" ) 
@@ -463,7 +463,7 @@ SCENARIO( "A new RGBA Circle can be created and deleted", "[display-types-api]" 
         std::wstring colorName(L"my-color");
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
 
-        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new RGBA Circle is created" ) 
@@ -523,7 +523,7 @@ SCENARIO( "A new Source Number Display can be created and deleted", "[display-ty
         std::wstring colorName(L"my-color");
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
 
-        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
@@ -586,7 +586,7 @@ SCENARIO( "A new Source Name Display can be created and deleted", "[display-type
         std::wstring colorName(L"my-color");
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
 
-        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
@@ -649,7 +649,7 @@ SCENARIO( "A new Source Dimensions Display can be created and deleted", "[displa
         std::wstring colorName(L"my-color");
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
 
-        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
@@ -712,7 +712,7 @@ SCENARIO( "A new Source Dimensions Display can be created and deleted", "[displa
 //        std::wstring colorName(L"my-color");
 //        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
 //
-//        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+//        REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
 //            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),

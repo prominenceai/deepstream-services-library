@@ -139,15 +139,15 @@ def main(args):
         #          labels and bounding-boxes
 
         # Create the forground and background colors for our custom, formated Object Label 
-        retval = dsl_display_type_rgba_color_new('full-white', 
+        retval = dsl_display_type_rgba_color_custom_new('full-white', 
             red=1.0, blue=1.0, green=1.0, alpha=1.0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_display_type_rgba_color_new('opaque-black', 
+        retval = dsl_display_type_rgba_color_custom_new('opaque-black', 
             red=0.0, blue=0.0, green=0.0, alpha=0.8)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_display_type_rgba_color_new('shadow-black', 
+        retval = dsl_display_type_rgba_color_custom_new('shadow-black', 
             red=0.0, blue=0.0, green=0.0, alpha=0.1)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -161,14 +161,14 @@ def main(args):
             break
 
         # Create a border color for the Custom BBox format
-        retval = dsl_display_type_rgba_color_new('full-green', 
+        retval = dsl_display_type_rgba_color_custom_new('full-green', 
             red=0.0, blue=0.0, green=1.0, alpha=1.0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Create a border color for the Custom BBox format
         # for the earliest object to enter view
-        retval = dsl_display_type_rgba_color_new('light-blue', 
+        retval = dsl_display_type_rgba_color_custom_new('light-blue', 
             red=0.2, blue=1.0, green=0.2, alpha=1.0)
         if retval != DSL_RETURN_SUCCESS:
             break

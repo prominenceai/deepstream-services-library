@@ -43,7 +43,7 @@ SCENARIO( "The ODE Areas container is updated correctly on multiple new ODE Area
         REQUIRE( dsl_ode_area_list_size() == 0 );
 
         std::wstring colorName(L"light-white");
-        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
             1.0, 1.0, 1.0, 0.25) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), coordinates, num_coordinates, 
@@ -87,7 +87,7 @@ SCENARIO( "The ODE Areas container is updated correctly on Delete ODE Area", "[o
         REQUIRE( dsl_ode_area_list_size() == 0 );
 
         std::wstring colorName(L"light-white");
-        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
             1.0, 1.0, 1.0, 0.25) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), coordinates, num_coordinates, 
@@ -145,7 +145,7 @@ SCENARIO( "The ODE Line can be created and deleted", "[ode-area-api]" )
         std::wstring colorName(L"my-color");
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
 
-        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_rgba_line_new(lineName.c_str(), 
@@ -182,7 +182,7 @@ SCENARIO( "The ODE Line API checks for an invalid TestEdge parameter", "[ode-are
         std::wstring colorName(L"my-color");
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
 
-        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_rgba_line_new(lineName.c_str(), 

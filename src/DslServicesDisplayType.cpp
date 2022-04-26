@@ -70,7 +70,7 @@ namespace DSL
     }
 
     DslReturnType Services::DisplayTypeRgbaColorPredefinedNew(const char* name, 
-        uint hue, uint luminosity, double alpha)
+        uint colorId, double alpha)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -84,20 +84,14 @@ namespace DSL
                     << "' is not unique");
                 return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
             }
-            if (hue > DSL_COLOR_HUE_BROWN)
+            if (colorId > DSL_COLOR_PREDEFINED_LAVENDER)
             {
-                LOG_ERROR("Invalid hue value of " << hue 
-                    << " for New RGBA Predefined Color '" << name << "'");
-                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
-            }
-            if (luminosity > DSL_COLOR_LUMINOSITY_RANDOM)
-            {
-                LOG_ERROR("Invalid luminosity value of " << luminosity 
+                LOG_ERROR("Invalid color_id value of " << colorId 
                     << " for New RGBA Predefined Color '" << name << "'");
                 return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
             }
             m_displayTypes[name] = DSL_RGBA_PREDEFINED_COLOR_NEW(name, 
-                hue, luminosity, alpha);
+                colorId, alpha);
 
             LOG_INFO("New RGBA Predefined Color '" << name 
                 << "' created successfully");

@@ -116,11 +116,11 @@ def main(args):
         
         #```````````````````````````````````````````````````````````````````````````````````
 
-        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, green=0.2, blue=0.2, alpha=0.6)
+        retval = dsl_display_type_rgba_color_custom_new('opaque-red', red=1.0, green=0.2, blue=0.2, alpha=0.6)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_display_type_rgba_color_new('light-green', red=0.4, green=1.0, blue=0.4, alpha=1.0)
+        retval = dsl_display_type_rgba_color_custom_new('light-green', red=0.4, green=1.0, blue=0.4, alpha=1.0)
         if retval != DSL_RETURN_SUCCESS:
             break
             

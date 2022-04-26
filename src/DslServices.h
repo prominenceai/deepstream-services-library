@@ -64,7 +64,7 @@ namespace DSL {
             double red, double green, double blue, double alpha);
 
         DslReturnType DisplayTypeRgbaColorPredefinedNew(const char* name, 
-            uint hue, uint luminosity, double alpha);
+            uint colorId, double alpha);
 
         DslReturnType DisplayTypeRgbaColorPaletteNew(const char* name, 
             const char** colors, uint num_colors);

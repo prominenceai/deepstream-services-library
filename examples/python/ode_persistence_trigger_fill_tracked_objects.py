@@ -123,14 +123,14 @@ def main(args):
 
         #```````````````````````````````````````````````````````````````````````````````````
         # Create three new RGBA fill colors to fill the bounding boxes of new objects
-        retval = dsl_display_type_rgba_color_new('opaque-green', red=0.0, green=1.0, blue=0.0, alpha=0.3)
+        retval = dsl_display_type_rgba_color_custom_new('opaque-green', red=0.0, green=1.0, blue=0.0, alpha=0.3)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_display_type_rgba_color_new('opaque-yellow', red=1.0, green=1.0, blue=0.0, alpha=0.3)
+        retval = dsl_display_type_rgba_color_custom_new('opaque-yellow', red=1.0, green=1.0, blue=0.0, alpha=0.3)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, green=0.0, blue=0.0, alpha=0.3)
+        retval = dsl_display_type_rgba_color_custom_new('opaque-red', red=1.0, green=0.0, blue=0.0, alpha=0.3)
         if retval != DSL_RETURN_SUCCESS:
             break
             

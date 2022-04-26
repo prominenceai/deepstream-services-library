@@ -513,7 +513,32 @@ THE SOFTWARE.
 #define DSL_RTSP_RECONNECTION_TIMEOUT_S                             30
 
 /**
- * @brief Hue constants used to define predefined and random RGB colors.
+ * @brief Predefined Color Constants - rows 1 and 2.
+ */
+#define DSL_COLOR_PREDEFINED_BLACK                                  0
+#define DSL_COLOR_PREDEFINED_GRAY_50                                1
+#define DSL_COLOR_PREDEFINED_DARK_RED                               2
+#define DSL_COLOR_PREDEFINED_RED                                    3
+#define DSL_COLOR_PREDEFINED_ORANGE                                 4
+#define DSL_COLOR_PREDEFINED_YELLOW                                 5
+#define DSL_COLOR_PREDEFINED_GREEN                                  6
+#define DSL_COLOR_PREDEFINED_TURQUOISE                              7
+#define DSL_COLOR_PREDEFINED_INDIGO                                 8
+#define DSL_COLOR_PREDEFINED_PURPLE                                 9
+
+#define DSL_COLOR_PREDEFINED_WHITE                                  10
+#define DSL_COLOR_PREDEFINED_GRAY_25                                11
+#define DSL_COLOR_PREDEFINED_BROWN                                  12
+#define DSL_COLOR_PREDEFINED_ROSE                                   13
+#define DSL_COLOR_PREDEFINED_GOLD                                   14
+#define DSL_COLOR_PREDEFINED_LIGHT_YELLOW                           15
+#define DSL_COLOR_PREDEFINED_LIME                                   16
+#define DSL_COLOR_PREDEFINED_LIGHT_TURQUOISE                        17
+#define DSL_COLOR_PREDEFINED_BLUE_GRAY                              18
+#define DSL_COLOR_PREDEFINED_LAVENDER                               19
+
+/**
+ * @brief Hue constants used to define random RGB colors.
  */
 #define DSL_COLOR_HUE_RED                                           0
 #define DSL_COLOR_HUE_RED_ORANGE                                    1
@@ -543,6 +568,7 @@ THE SOFTWARE.
 #define DSL_COLOR_LUMINOSITY_LIGHT                                  2
 #define DSL_COLOR_LUMINOSITY_BRIGHT                                 3
 #define DSL_COLOR_LUMINOSITY_RANDOM                                 4
+
 #define DSL_CAPTURE_TYPE_OBJECT                                     0
 #define DSL_CAPTURE_TYPE_FRAME                                      1
 
@@ -1164,8 +1190,11 @@ typedef void (*dsl_message_broker_send_result_listener_cb)(void* client_data,
 typedef void (*dsl_display_type_rgba_color_provider_cb)(double* red, 
     double* green, double* blue, double* alpha, void* client_data);
 
+// -----------------------------------------------------------------------------------
+// Start of DSL Services 
+
 /**
- * @brief Creates a uniquely named RGBA Display Color.
+ * @brief Creates a uniquely named Custom RGBA Display Color.
  * Note: this is a static color for the life of the color object. 
  * @param[in] name unique name for the RGBA Color.
  * @param[in] red red level for the RGB color [0..1].
@@ -1175,21 +1204,20 @@ typedef void (*dsl_display_type_rgba_color_provider_cb)(double* red,
  * @return DSL_RESULT_SUCCESS on successful creation, one of 
  * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_display_type_rgba_color_new(const wchar_t* name, 
+DslReturnType dsl_display_type_rgba_color_custom_new(const wchar_t* name, 
     double red, double green, double blue, double alpha);
 
 /**
  * @brief Creates a uniquely named RGBA Predefined Display Color. 
  * Note: this is a static color for the life of the color object. 
  * @param[in] name unique name for the RGBA Predefined Color.
- * @param[in] hue one of the DSL_COLOR_HUE_* constant values. 
- * @param[in] luminosity one of the DSL_COLOR_LUMINOCITY contant values.
+ * @param[in] color_id one of the DSL_COLOR_PREDEFINED_* contants.
  * @param[in] alpha alpha level for the RGBA color [0..1].
  * @return DSL_RESULT_SUCCESS on successful creation, one of 
  * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_display_type_rgba_color_predefined_new(const wchar_t* name, 
-    uint hue, uint luminosity, double alpha);
+    uint color_id, double alpha);
 
 /**
  * @brief Creates a uniquely named RGBA Display Color Palette. The palette can
@@ -1208,9 +1236,9 @@ DslReturnType dsl_display_type_rgba_color_palette_new(const wchar_t* name,
  * @brief Creates a uniquely named RGBA Random Display Color.
  * Note: this is a dynamic color that regenerates on on new instance events.
  * @param[in] name unique name for the RGBA Random Color.
- * @param[in] hue one of the DSL_COLOR_HUE_* contants, use DSL_COLOR_HUE_HE_RANDOM for 
- * a full random color spectrum.
- * @param[in] luminosity one of the DSL_LUMINOSITY_* contants, use 
+ * @param[in] hue one of the DSL_COLOR_HUE_* constants, use DSL_COLOR_HUE_RANDOM
+ * for a full random color spectrum.
+ * @param[in] luminosity one of the DSL_LUMINOSITY_* constants, use 
  * DSL_LUMINOSITY_RANDOM for random luminosity.
  * @param[in] alpha alpha level for the RGB Random color [0..1].
  * @param[in] seed value to seed the random generator.
