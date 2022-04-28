@@ -65,6 +65,54 @@ DSL_STATE_PLAYING = 4
 DSL_STATE_CHANGE_ASYNC = 5
 DSL_STATE_UNKNOWN = int('7FFFFFFF',16)
 
+DSL_COLOR_PREDEFINED_BLACK = 0
+DSL_COLOR_PREDEFINED_GRAY_50 = 1
+DSL_COLOR_PREDEFINED_DARK_RED = 2
+DSL_COLOR_PREDEFINED_RED = 3
+DSL_COLOR_PREDEFINED_ORANGE = 4
+DSL_COLOR_PREDEFINED_YELLOW = 5
+DSL_COLOR_PREDEFINED_GREEN = 6
+DSL_COLOR_PREDEFINED_TURQUOISE = 7
+DSL_COLOR_PREDEFINED_INDIGO = 8
+DSL_COLOR_PREDEFINED_PURPLE = 9
+
+DSL_COLOR_PREDEFINED_WHITE = 10
+DSL_COLOR_PREDEFINED_GRAY_25 = 11
+DSL_COLOR_PREDEFINED_BROWN = 12
+DSL_COLOR_PREDEFINED_ROSE = 13
+DSL_COLOR_PREDEFINED_GOLD = 14
+DSL_COLOR_PREDEFINED_LIGHT_YELLOW = 15
+DSL_COLOR_PREDEFINED_LIME = 16
+DSL_COLOR_PREDEFINED_LIGHT_TURQUOISE = 17
+DSL_COLOR_PREDEFINED_BLUE_GRAY = 18
+DSL_COLOR_PREDEFINED_LAVENDER = 19
+
+DSL_COLOR_HUE_RED = 0
+DSL_COLOR_HUE_RED_ORANGE = 1
+DSL_COLOR_HUE_ORANGE = 2
+DSL_COLOR_HUE_ORANGE_YELLOW = 3
+DSL_COLOR_HUE_YELLOW = 4
+DSL_COLOR_HUE_YELLOW_GREEN = 5
+DSL_COLOR_HUE_GREEN = 6
+DSL_COLOR_HUE_GREEN_CYAN = 7
+DSL_COLOR_HUE_CYAN = 8
+DSL_COLOR_HUE_CYAN_BLUE = 9
+DSL_COLOR_HUE_BLUE = 10
+DSL_COLOR_HUE_BLUE_MAGENTA = 11
+DSL_COLOR_HUE_MAGENTA = 12
+DSL_COLOR_HUE_MAGENTA_PINK = 13
+DSL_COLOR_HUE_PINK = 14
+DSL_COLOR_HUE_PINK_RED = 15
+DSL_COLOR_HUE_RANDOM = 16
+DSL_COLOR_HUE_BLACK_AND_WHITE = 17
+DSL_COLOR_HUE_BROWN = 18
+
+DSL_COLOR_LUMINOSITY_DARK = 0
+DSL_COLOR_LUMINOSITY_NORMAL = 1
+DSL_COLOR_LUMINOSITY_LIGHT = 2
+DSL_COLOR_LUMINOSITY_BRIGHT = 3
+DSL_COLOR_LUMINOSITY_RANDOM = 4
+
 DSL_CAPTURE_TYPE_OBJECT = 0
 DSL_CAPTURE_TYPE_FRAME = 1
 
@@ -233,6 +281,7 @@ DSL_ODE_ENABLED_STATE_CHANGE_LISTENER = CFUNCTYPE(None, c_bool, c_void_p)
 DSL_MESSAGE_BROKER_CONNECTION_LISTENER = CFUNCTYPE(None, c_void_p, c_uint)
 DSL_MESSAGE_BROKER_SUBSCRIBER = CFUNCTYPE(None, c_void_p, c_uint, c_void_p, c_uint, c_wchar_p)
 DSL_MESSAGE_BROKER_SEND_RESULT_LISTENER = CFUNCTYPE(None, c_void_p, c_uint)
+DSL_DISPLAY_TYPE_RGBA_COLOR_PROVIDER = CFUNCTYPE(None, DSL_DOUBLE_P, DSL_DOUBLE_P, DSL_DOUBLE_P, DSL_DOUBLE_P, c_void_p)
 
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
@@ -266,6 +315,56 @@ def dsl_display_type_rgba_color_predefined_new(name,
     global _dsl
     result =_dsl.dsl_display_type_rgba_color_predefined_new(name, 
         color_id, alpha)
+    return int(result)
+
+##
+## dsl_display_type_rgba_color_palette_new()
+##
+# _dsl.dsl_display_type_rgba_color_palette_new.argtypes = [c_wchar_p, ???]
+_dsl.dsl_display_type_rgba_color_palette_new.restype = c_uint
+def dsl_display_type_rgba_color_palette_new(name, colors):
+    global _dsl
+    arr = (c_wchar_p * len(colors))()
+    arr[:] = colors
+    result =_dsl.dsl_display_type_rgba_color_palette_new(name, 
+        arr)
+    return int(result)
+
+##
+## dsl_display_type_rgba_color_palette_index_get()
+##
+_dsl.dsl_display_type_rgba_color_palette_index_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_display_type_rgba_color_palette_index_get.restype = c_uint
+def dsl_display_type_rgba_color_palette_index_get(name):
+    global _dsl
+    index = c_uint(0)
+    result =_dsl.dsl_display_type_rgba_color_palette_index_get(name, 
+        DSL_UINT_P(index))
+    return int(result), index.value
+
+##
+## dsl_display_type_rgba_color_palette_index_set()
+##
+_dsl.dsl_display_type_rgba_color_palette_index_set.argtypes = [c_wchar_p, 
+    c_uint]
+_dsl.dsl_display_type_rgba_color_palette_index_set.restype = c_uint
+def dsl_display_type_rgba_color_palette_index_set(name, index):
+    global _dsl
+    result =_dsl.dsl_display_type_rgba_color_palette_index_set(name, index)
+    return int(result)
+
+##
+## dsl_display_type_rgba_color_random_new()
+##
+_dsl.dsl_display_type_rgba_color_random_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_double, c_uint]
+_dsl.dsl_display_type_rgba_color_random_new.restype = c_uint
+def dsl_display_type_rgba_color_random_new(name, 
+    hue, luminosity, alpha, seed):
+    global _dsl
+    result =_dsl.dsl_display_type_rgba_color_random_new(name, 
+        hue, luminosity, alpha, seed)
     return int(result)
 
 ##

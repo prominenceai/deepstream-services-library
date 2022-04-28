@@ -89,6 +89,30 @@ DslReturnType dsl_display_type_rgba_color_palette_new(const wchar_t* name,
         cstrName.c_str(), &cColors[0], newColors.size());
     return DSL_RESULT_SUCCESS;
 }
+
+DslReturnType dsl_display_type_rgba_color_palette_index_get(const wchar_t* name, 
+    uint* index)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->DisplayTypeRgbaColorPaletteIndexGet(
+        cstrName.c_str(), index);
+}
+    
+DslReturnType dsl_display_type_rgba_color_palette_index_set(const wchar_t* name, 
+    uint index)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->DisplayTypeRgbaColorPaletteIndexSet(
+        cstrName.c_str(), index);
+}
     
 DslReturnType dsl_display_type_rgba_color_random_new(const wchar_t* name, 
     uint hue, uint luminosity, double alpha, uint seed)

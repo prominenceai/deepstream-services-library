@@ -144,9 +144,33 @@ namespace DSL
         DisplayType(const char* name);
 
         ~DisplayType();
+
+        /**
+         * @brief Locks the DisplayType's property mutex.
+         */
+        virtual inline void Lock();
         
+        /**
+         * @brief Unlocks the DisplayType's property mutex
+         */
+        virtual inline void Unlock();
+        
+        /**
+         * @brief Adds the Display Type's meta to the provided displayMetaData
+         * @param displayMetaData vector of allocated Display metadata to add 
+         * the meta to
+         * @param pFrameMeta frame meta for the frame the display meta 
+         * will be added to.
+         */
         virtual void AddMeta(std::vector<NvDsDisplayMeta*>& 
             displayMetaData, NvDsFrameMeta* pFrameMeta);
+            
+    protected:
+        
+        /**
+         * @brief Mutex to ensure mutual exlusion for propery read/writes
+         */
+        GMutex m_propertyMutex;
     };
     
     // ********************************************************************
@@ -167,15 +191,18 @@ namespace DSL
             double red, double green, double blue, double alpha);
 
         /**
+         * @breif ctor for the RBGA Color
+         * @param[in] name unique name for the RGBA Color
+         * @param[in] color NVIDIA color params to copy from.
+         */
+        RgbaColor(const char* name, const NvOSD_ColorParams& color);
+
+        /**
          * @breif copy ctor for the RBGA Color
+         * @param[in] color source RgbaColor to copy from
          */
         RgbaColor(const RgbaColor& color);
         
-        /**
-         * @breif copy ctor for the RBGA Color
-         */
-        RgbaColor(const NvOSD_ColorParams& color);
-
         /**
          * @breif dtor for the RBGA Color
          */
@@ -246,6 +273,19 @@ namespace DSL
          */
         void SetNext();
         
+        /**
+         * @brief Gets the palette index.
+         * @return current palette index values.
+         */
+        uint GetIndex();
+        
+        /**
+         * @brief Sets the palette index and color
+         * @param index new palette index
+         * @return true if successful, false otherwise.
+         */
+        bool SetIndex(uint index);
+        
     private:
     
         /**
@@ -280,7 +320,7 @@ namespace DSL
          * @brief dtor for RGBA Random Color
          */
         ~RgbaRandomColor();
-        
+
         /**
          * @brief Set the RGB values to the next random color.
          */
@@ -323,7 +363,7 @@ namespace DSL
          * @brief dtor for RGBA On Demand Color
          */
         ~RgbaOnDemandColor();
-        
+
         /**
          * @brief Calls the client's call back to get the next RGB values.
          */
@@ -351,16 +391,40 @@ namespace DSL
     
         /**
          * @brief ctor for RGBA Font
-         * @param[in] name standard string name of the actual font type
+         * @param[in] name unique name for the RgbaFont DisplayType
+         * @param[in] font standard string name of the actual tty font type
          * @param[in] size size of the font
          * @param[in] color RGBA Color for the RGBA font
          */
         RgbaFont(const char* name, 
             const char* font, uint size, DSL_RGBA_COLOR_PTR color);
 
+        /**
+         * @brief ctor for RGBA Font
+         */
         ~RgbaFont();
+
+        /**
+         * @brief Locks the DisplayType's property mutex.
+         */
+        inline void Lock();
         
+        /**
+         * @brief Unlocks the DisplayType's property mutex
+         */
+        inline void Unlock();
+        
+        /**
+         * @breif actual tty font name
+         */
         std::string m_fontName;
+
+    private:
+
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA Font
+         */
+        DSL_RGBA_COLOR_PTR m_pColor;
     };
     
     // ********************************************************************
@@ -385,6 +449,16 @@ namespace DSL
         ~RgbaText();
 
         /**
+         * @brief Locks the DisplayType's property mutex.
+         */
+        inline void Lock();
+        
+        /**
+         * @brief Unlocks the DisplayType's property mutex
+         */
+        inline void Unlock();
+
+        /**
          * @brief Adds the Display Type's meta to the provided displayMetaData
          * @param displayMetaData vector of allocated Display metadata to add 
          * the meta to
@@ -396,7 +470,17 @@ namespace DSL
         
         std::string m_text;
         
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Font Type for this RGBA Text
+         */
         DSL_RGBA_FONT_PTR m_pFont;
+
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA Text
+         */
+        DSL_RGBA_COLOR_PTR m_pBgColor;
     
     };
     
@@ -430,6 +514,13 @@ namespace DSL
          */
         void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta);
+            
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA Line
+         */
+        DSL_RGBA_COLOR_PTR m_pColor;
     };
     
     // ********************************************************************
@@ -463,6 +554,14 @@ namespace DSL
          */
         void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta);
+            
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA Arrow
+         */
+        DSL_RGBA_COLOR_PTR m_pColor;
+    
     };
 
     // ********************************************************************
@@ -498,6 +597,18 @@ namespace DSL
          */
         void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta);
+            
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA Font
+         */
+        DSL_RGBA_COLOR_PTR m_pColor;
+
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA Font
+         */
+        DSL_RGBA_COLOR_PTR m_pBgColor;
     };
     
     // ********************************************************************
@@ -559,6 +670,13 @@ namespace DSL
          */
         void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA Polygon
+         */
+        DSL_RGBA_COLOR_PTR m_pColor;
     };
 
     // ********************************************************************
@@ -619,6 +737,13 @@ namespace DSL
          */
         void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA Multi-Line
+         */
+        DSL_RGBA_COLOR_PTR m_pColor;
     };
 
     
@@ -652,6 +777,18 @@ namespace DSL
          */
         void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA Circle
+         */
+        DSL_RGBA_COLOR_PTR m_pColor;
+
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA Circle
+         */
+        DSL_RGBA_COLOR_PTR m_pBgColor;
     };
 
     // ********************************************************************
@@ -675,18 +812,28 @@ namespace DSL
         ~SourceDimensions();
 
         /**
-         * @brief Adds the Display Type's meta to the provided displayMetaData
-         * @param displayMetaData vector of allocated Display metadata to add 
-         * the meta to
-         * @param pFrameMeta frame meta for the frame the display meta 
+         * @brief Adds the Display Type's meta to the provided displayMetaData.
+         * @param displayMetaData vector of allocated Display metadata to add
+         * the meta to.
+         * @param pFrameMeta frame meta for the frame the display meta
          * will be added to.
          */
         void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta);
         
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Font Type for this RGBA SourceDiemnsions.
+         */
         DSL_RGBA_FONT_PTR m_pFont;
-    };
 
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA SourceDiemnsions.
+         */
+        DSL_RGBA_COLOR_PTR m_pBgColor;
+    };
+ 
     // ********************************************************************
 
     class SourceFrameRate : public DisplayType, public NvOSD_TextParams
@@ -717,7 +864,17 @@ namespace DSL
         void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta);
         
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Font Type for this RGBA SourceFrameRate.
+         */
         DSL_RGBA_FONT_PTR m_pFont;
+
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA SourceFrameRate.
+         */
+        DSL_RGBA_COLOR_PTR m_pBgColor;
     };
 
     // ********************************************************************
@@ -750,7 +907,17 @@ namespace DSL
         void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta);
         
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Font Type for this RGBA SourceNumber.
+         */
         DSL_RGBA_FONT_PTR m_pFont;
+
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA SourceNumber.
+         */
+        DSL_RGBA_COLOR_PTR m_pBgColor;
     };
 
     // ********************************************************************
@@ -783,7 +950,17 @@ namespace DSL
         void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta);
         
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Font Type for this RGBA SourceName.
+         */
         DSL_RGBA_FONT_PTR m_pFont;
+
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA SourceName.
+         */
+        DSL_RGBA_COLOR_PTR m_pBgColor;
     };
 
 }

@@ -149,6 +149,69 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::DisplayTypeRgbaColorPaletteIndexGet(const char* name,
+        uint* index)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_displayTypes, 
+                name, RgbaColorPalette);
+            
+            DSL_RGBA_COLOR_PALETTE_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColorPalette>(m_displayTypes[name]);
+            
+            *index = pColor->GetIndex();
+            
+            LOG_INFO("RGBA Color Palette '" << name 
+                << "' returned index = " << *index << "correctly");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RGBA Color Palette '" << name 
+                << "' threw exception on Get Index");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeRgbaColorPaletteIndexSet(const char* name,
+        uint index)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_displayTypes, 
+                name, RgbaColorPalette);
+            
+            DSL_RGBA_COLOR_PALETTE_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColorPalette>(m_displayTypes[name]);
+            
+            if (!pColor->SetIndex(index))
+            {
+                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
+            }
+            
+            LOG_INFO("RGBA Color Palette '" << name 
+                << "' set index = " << index << "correctly");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Color Palette '" << name 
+                << "' threw exception on Set Index");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::DisplayTypeRgbaColorRandomNew(const char* name, 
         uint hue, uint luminosity, double alpha, uint seed)
     {

@@ -1233,6 +1233,26 @@ DslReturnType dsl_display_type_rgba_color_palette_new(const wchar_t* name,
     const wchar_t** colors);
 
 /**
+ * @brief Gets the current index value for the named RGBA Color Palette 
+ * @param[in] name unique name of the RGBA Color Palette to query
+ * @param[out] index current index into the Color Palette's set of colors.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_color_palette_index_get(const wchar_t* name, 
+    uint* index);
+
+/**
+ * @brief Sets the index value for the named RGBA Color Palette 
+ * @param[in] name unique name of the RGBA Color Palette to update
+ * @param[in] index new index into for the Color Palette's set of colors.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_color_palette_index_set(const wchar_t* name, 
+    uint index);
+
+/**
  * @brief Creates a uniquely named RGBA Random Display Color.
  * Note: this is a dynamic color that regenerates on on new instance events.
  * @param[in] name unique name for the RGBA Random Color.

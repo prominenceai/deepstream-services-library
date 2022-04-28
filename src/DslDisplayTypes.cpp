@@ -79,11 +79,25 @@ namespace DSL
         : Base(name)
     {
         LOG_FUNC();
+        
+        g_mutex_init(&m_propertyMutex);
     }
 
     DisplayType::~DisplayType()
     {
         LOG_FUNC();
+
+        g_mutex_clear(&m_propertyMutex);
+    }
+
+    inline void DisplayType::Lock()
+    {
+        g_mutex_lock(&m_propertyMutex);        
+    }
+
+    inline void DisplayType::Unlock()
+    {
+        g_mutex_unlock(&m_propertyMutex);        
     }
     
     void DisplayType::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
@@ -110,8 +124,8 @@ namespace DSL
         LOG_FUNC();
     }
 
-    RgbaColor::RgbaColor(const NvOSD_ColorParams& color)
-        : DisplayType("")
+    RgbaColor::RgbaColor(const char* name, const NvOSD_ColorParams& color)
+        : DisplayType(name)
         , NvOSD_ColorParams{color.red, color.green, color.blue, color.alpha}
     {
         LOG_FUNC();
@@ -121,17 +135,17 @@ namespace DSL
     {
         LOG_FUNC();
     }
-
+    
     // ********************************************************************
 
     RgbaPredefinedColor::RgbaPredefinedColor(const char* name,
         uint colorId, double alpha)
-        : RgbaColor(s_predefinedColors[colorId])
+        : RgbaColor(name, s_predefinedColors[colorId])
         , m_colorId(colorId)
     {
         LOG_FUNC();
         
-        alpha = alpha;
+        this->alpha = alpha;
     }
 
     RgbaPredefinedColor::~RgbaPredefinedColor()
@@ -148,7 +162,7 @@ namespace DSL
         , m_currentColorIndex(0)
     {
         LOG_FUNC();
-        
+
         SetNext();
     }
 
@@ -159,9 +173,41 @@ namespace DSL
     
     void RgbaColorPalette::SetNext()
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         // don't log function entry/exit
-        (RgbaColor)*this = *m_pColorPalette->at(m_currentColorIndex);
+        red = m_pColorPalette->at(m_currentColorIndex)->red;
+        green = m_pColorPalette->at(m_currentColorIndex)->green;
+        blue = m_pColorPalette->at(m_currentColorIndex)->blue;
+        alpha = m_pColorPalette->at(m_currentColorIndex)->alpha;
         m_currentColorIndex = (m_currentColorIndex+1)%m_pColorPalette->size();
+    }
+
+    uint RgbaColorPalette::GetIndex()
+    {
+        LOG_FUNC();
+        
+        return m_currentColorIndex;
+    }
+    
+    bool RgbaColorPalette::SetIndex(uint index)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (index >= m_pColorPalette->size())
+        {
+            LOG_ERROR("Invalid index = " << index 
+                << " for RGBA Color Palette " << GetName() 
+                << " with palette size = " << m_pColorPalette->size());
+            return false;
+        }
+        m_currentColorIndex = index;
+        red = m_pColorPalette->at(m_currentColorIndex)->red;
+        green = m_pColorPalette->at(m_currentColorIndex)->green;
+        blue = m_pColorPalette->at(m_currentColorIndex)->blue;
+        alpha = m_pColorPalette->at(m_currentColorIndex)->alpha;
+        return true;
     }
     
     // ********************************************************************
@@ -186,6 +232,7 @@ namespace DSL
     void RgbaRandomColor::SetNext()
     {
         // don't log function entry/exit
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
         int color(m_randomColor.generate(m_hue, m_luminosity));
 
@@ -193,6 +240,7 @@ namespace DSL
         green = ((color >> 8) & 0xFF) / 255.0;
         blue = ((color) & 0xFF) / 255.0;
     }
+
     
     // ********************************************************************
 
@@ -214,6 +262,8 @@ namespace DSL
     
     void RgbaOnDemandColor::SetNext()
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         if (m_provider)
         {
             try
@@ -237,6 +287,7 @@ namespace DSL
         const char* font, uint size, DSL_RGBA_COLOR_PTR color)
         : DisplayType(name)
         , m_fontName(font)
+        , m_pColor(color)
         , NvOSD_FontParams{NULL, size, *color}
     {
         LOG_FUNC();
@@ -245,6 +296,17 @@ namespace DSL
     RgbaFont::~RgbaFont()
     {
         LOG_FUNC();
+    }
+
+    inline void RgbaFont::Lock()
+    {
+        m_pColor->Lock();
+        font_color = *m_pColor;
+    }
+
+    inline void RgbaFont::Unlock()
+    {
+        m_pColor->Unlock();
     }
     
     // ********************************************************************
@@ -255,6 +317,7 @@ namespace DSL
         : DisplayType(name)
         , m_text(text)
         , m_pFont(pFont)
+        , m_pBgColor(pBgColor)
         , NvOSD_TextParams{NULL, x_offset, y_offset, 
             *pFont, hasBgColor, *pBgColor}
     {
@@ -264,6 +327,20 @@ namespace DSL
     RgbaText::~RgbaText()
     {
         LOG_FUNC();
+    }
+    
+    inline void RgbaText::Lock()
+    {
+        m_pFont->Lock();
+        font_params = *m_pFont;
+        m_pBgColor->Lock();
+        text_bg_clr = *m_pBgColor;
+    }
+
+    inline void RgbaText::Unlock()
+    {
+        m_pFont->Unlock();
+        m_pBgColor->Unlock();
     }
 
     void RgbaText::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
@@ -289,9 +366,11 @@ namespace DSL
         }
         NvOSD_TextParams *pTextParams = &pDisplayMeta->
             text_params[pDisplayMeta->num_labels++];
-
+        
+        Lock();
         // copy over our text params, display_text currently == NULL
         *pTextParams = *this;
+        Unlock();
         
         // need to allocate storage for actual text, then copy.
         pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
@@ -308,6 +387,7 @@ namespace DSL
     RgbaLine::RgbaLine(const char* name, uint x1, uint y1, uint x2, uint y2, 
         uint width, DSL_RGBA_COLOR_PTR pColor)
         : DisplayType(name)
+        , m_pColor(pColor)
         , NvOSD_LineParams{x1, y1, x2, y2, width, *pColor}
     {
         LOG_FUNC();
@@ -339,6 +419,10 @@ namespace DSL
         {
             return;
         }
+        m_pColor->Lock();
+        line_color = *m_pColor;
+        m_pColor->Unlock();
+
         pDisplayMeta->line_params[pDisplayMeta->num_lines++] = *this;
     }
     
@@ -347,6 +431,7 @@ namespace DSL
     RgbaArrow::RgbaArrow(const char* name, uint x1, uint y1, uint x2, uint y2, 
         uint width, uint head, DSL_RGBA_COLOR_PTR pColor)
         : DisplayType(name)
+        , m_pColor(pColor)
         , NvOSD_ArrowParams{x1, y1, x2, y2, width, 
             (NvOSD_Arrow_Head_Direction)head, *pColor}
     {
@@ -357,7 +442,6 @@ namespace DSL
     {
         LOG_FUNC();
     }
-
 
     void RgbaArrow::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta) 
@@ -380,7 +464,9 @@ namespace DSL
         {
             return;
         }
-
+        m_pColor->Lock();
+        arrow_color = *m_pColor;
+        m_pColor->Unlock();
         pDisplayMeta->arrow_params[pDisplayMeta->num_arrows++] = *this;
     }
 
@@ -391,6 +477,8 @@ namespace DSL
         uint borderWidth, DSL_RGBA_COLOR_PTR pColor,
         bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
         : DisplayType(name)
+        , m_pColor(pColor)
+        , m_pBgColor(pBgColor)
         , NvOSD_RectParams{(float)left, (float)top, (float)width, (float)height, 
             borderWidth, *pColor, hasBgColor, 0, *pBgColor}
     {
@@ -423,6 +511,14 @@ namespace DSL
         {
             return;
         }
+        m_pColor->Lock();
+        border_color = *m_pColor;
+        m_pColor->Unlock();
+
+        m_pBgColor->Lock();
+        bg_color = *m_pBgColor;
+        m_pBgColor->Unlock();
+        
         pDisplayMeta->rect_params[pDisplayMeta->num_rects++] = *this;
     }
     
@@ -431,6 +527,7 @@ namespace DSL
     RgbaPolygon::RgbaPolygon(const char* name, const dsl_coordinate* coordinates, 
         uint numCoordinates, uint lineWidth, DSL_RGBA_COLOR_PTR pColor)
         : DisplayType(name)
+        , m_pColor(pColor)
         , dsl_polygon_params{NULL, numCoordinates, lineWidth, *pColor}
     {
         LOG_FUNC();
@@ -453,6 +550,10 @@ namespace DSL
     {
         LOG_FUNC();
 
+        m_pColor->Lock();
+        color = *m_pColor;
+        m_pColor->Unlock();
+        
         for (uint i = 0; i < num_coordinates; i++)
         {
             // check to see if we're adding meta data - client can disable
@@ -491,6 +592,7 @@ namespace DSL
         uint numCoordinates, uint lineWidth, DSL_RGBA_COLOR_PTR pColor)
         : DisplayType(name)
         , dsl_multi_line_params{NULL, numCoordinates, lineWidth, *pColor}
+        , m_pColor(pColor)
     {
         LOG_FUNC();
         
@@ -511,6 +613,10 @@ namespace DSL
         NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
+
+        m_pColor->Lock();
+        color = *m_pColor;
+        m_pColor->Unlock();
 
         for (uint i = 0; i < num_coordinates-1; i++)
         {
@@ -546,6 +652,8 @@ namespace DSL
     RgbaCircle::RgbaCircle(const char* name, uint x_center, uint y_center, uint radius,
         DSL_RGBA_COLOR_PTR pColor, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
         : DisplayType(name)
+        , m_pColor(pColor)
+        , m_pBgColor(pBgColor)
         , NvOSD_CircleParams{x_center, y_center, radius, *pColor, hasBgColor, *pBgColor}
     {
         LOG_FUNC();
@@ -567,6 +675,13 @@ namespace DSL
         {
             return;
         }
+        m_pColor->Lock();
+        circle_color = *m_pColor;
+        m_pColor->Unlock();
+        m_pBgColor->Lock();
+        bg_color = *m_pBgColor;
+        m_pBgColor->Unlock();
+        
         displayMetaData.at(0)->circle_params[
             displayMetaData.at(0)->num_circles++] = *this;
     }
@@ -578,6 +693,7 @@ namespace DSL
         DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
         : DisplayType(name)
         , m_pFont(pFont)
+        , m_pBgColor(pBgColor)
         , NvOSD_TextParams{NULL, x_offset, y_offset, 
             *pFont, hasBgColor, *pBgColor}
     {
@@ -602,6 +718,13 @@ namespace DSL
         }
         NvOSD_TextParams *pTextParams = 
             &displayMetaData.at(0)->text_params[displayMetaData.at(0)->num_labels++];
+            
+        m_pFont->Lock();
+        font_params = *m_pFont;
+        m_pFont->Unlock();
+        m_pBgColor->Lock();
+        text_bg_clr = *m_pBgColor;
+        m_pBgColor->Unlock();
 
         // copy over our text params, display_text currently == NULL
         *pTextParams = *this;
@@ -625,6 +748,7 @@ namespace DSL
         bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
         : DisplayType(name)
         , m_pFont(pFont)
+        , m_pBgColor(pBgColor)
         , NvOSD_TextParams{NULL, x_offset, y_offset, 
             *pFont, hasBgColor, *pBgColor}
     {
@@ -650,6 +774,13 @@ namespace DSL
         NvOSD_TextParams *pTextParams = 
             &displayMetaData.at(0)->text_params[displayMetaData.at(0)->num_labels++];
 
+        m_pFont->Lock();
+        font_params = *m_pFont;
+        m_pFont->Unlock();
+        m_pBgColor->Lock();
+        text_bg_clr = *m_pBgColor;
+        m_pBgColor->Unlock();
+
         // copy over our text params, display_text currently == NULL
         *pTextParams = *this;
         
@@ -672,6 +803,7 @@ namespace DSL
         DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
         : DisplayType(name)
         , m_pFont(pFont)
+        , m_pBgColor(pBgColor)
         , NvOSD_TextParams{NULL, x_offset, y_offset, 
             *pFont, hasBgColor, *pBgColor}
     {
@@ -697,6 +829,13 @@ namespace DSL
         NvOSD_TextParams *pTextParams = 
             &displayMetaData.at(0)->text_params[displayMetaData.at(0)->num_labels++];
 
+        m_pFont->Lock();
+        font_params = *m_pFont;
+        m_pFont->Unlock();
+        m_pBgColor->Lock();
+        text_bg_clr = *m_pBgColor;
+        m_pBgColor->Unlock();
+
         // copy over our text params, display_text currently == NULL
         *pTextParams = *this;
         
@@ -717,6 +856,7 @@ namespace DSL
         DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
         : DisplayType(name)
         , m_pFont(pFont)
+        , m_pBgColor(pBgColor)
         , NvOSD_TextParams{NULL, x_offset, y_offset, 
             *pFont, hasBgColor, *pBgColor}
     {
@@ -741,6 +881,13 @@ namespace DSL
         }
         NvOSD_TextParams *pTextParams = 
             &displayMetaData.at(0)->text_params[displayMetaData.at(0)->num_labels++];
+
+        m_pFont->Lock();
+        font_params = *m_pFont;
+        m_pFont->Unlock();
+        m_pBgColor->Lock();
+        text_bg_clr = *m_pBgColor;
+        m_pBgColor->Unlock();
 
         // copy over our text params, display_text currently == NULL
         *pTextParams = *this;
