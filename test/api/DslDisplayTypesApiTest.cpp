@@ -26,43 +26,396 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 
-SCENARIO( "A new RGBA Color can be created and deleted", "[display-types-api]" )
+SCENARIO( "A new RGBA Custom Color can be created and deleted",
+    "[display-types-api]" )
 {
-    GIVEN( "Attributes for a new RGBA Color" ) 
+    GIVEN( "Attributes for a new RGBA Custom Color" ) 
     {
         std::wstring colorName(L"my-color");
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
 
         REQUIRE( dsl_display_type_list_size() == 0 );
-        WHEN( "A new RGBA Color is created" ) 
+        WHEN( "A new RGBA Custom Color is created" ) 
         {
             REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
                 red, green, blue, alpha) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_display_type_list_size() == 1 );
             
-            THEN( "The Action can be deleted" ) 
+            THEN( "The RGBA Custom Color can be deleted" ) 
             {
-                REQUIRE( dsl_display_type_delete(colorName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_delete(colorName.c_str()) == 
+                    DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
-        WHEN( "A new RGBA Color is created" ) 
+        WHEN( "A new RGBA Custom Color is created" ) 
         {
             REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
                 red, green, blue, alpha) == DSL_RESULT_SUCCESS );
             
-            THEN( "A second RGBA Color of the same name fails to create" ) 
+            THEN( "A second RGBA Custom Color of the same name fails to create" ) 
             {
                 REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
-                    red, green, blue, alpha) == DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE );
+                    red, green, blue, alpha) == 
+                        DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE );
 
-                REQUIRE( dsl_display_type_delete(colorName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_delete(colorName.c_str()) == 
+                    DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
     }
 }
 
+SCENARIO( "A new RGBA Custom Color checks input parameter ranges correctly",
+    "[display-types-api]" )
+{
+    GIVEN( "Attributes for a new RGBA Custom Color" ) 
+    {
+        std::wstring colorName(L"my-color");
+
+        WHEN( "An invalid red parameter is issued" ) 
+        {
+            double red(1.1), green(0.34), blue(0.56), alpha(0.78);
+            
+            THEN( "The RGBA Custom Color fails to create" ) 
+            {
+                REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
+                    red, green, blue, alpha) == DSL_RESULT_DISPLAY_PARAMETER_INVALID );
+                    
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "An invalid green parameter is issued" ) 
+        {
+            double red(0.12), green(1.1), blue(0.56), alpha(0.78);
+            
+            THEN( "The RGBA Custom Color fails to create" ) 
+            {
+                REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
+                    red, green, blue, alpha) == DSL_RESULT_DISPLAY_PARAMETER_INVALID );
+                    
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "An invalid blue parameter is issued" ) 
+        {
+            double red(0.12), green(0.34), blue(1.10), alpha(0.78);
+            
+            THEN( "The RGBA Custom Color fails to create" ) 
+            {
+                REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
+                    red, green, blue, alpha) == DSL_RESULT_DISPLAY_PARAMETER_INVALID );
+                    
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "An invalid alpah parameter is issued" ) 
+        {
+            double red(0.12), green(0.34), blue(0.56), alpha(1.01);
+            
+            THEN( "The RGBA Custom Color fails to create" ) 
+            {
+                REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
+                    red, green, blue, alpha) == DSL_RESULT_DISPLAY_PARAMETER_INVALID );
+                    
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new RGBA Predefined Color can be created and deleted", 
+    "[display-types-api]" )
+{
+    GIVEN( "Attributes for a new RGBA Predefined Color" ) 
+    {
+        std::wstring colorName(L"my-color");
+        uint color_id(DSL_COLOR_HUE_MAGENTA_PINK);
+        double alpha(0.78);
+
+        REQUIRE( dsl_display_type_list_size() == 0 );
+        WHEN( "A new RGBA Predefined Color is created" ) 
+        {
+            REQUIRE( dsl_display_type_rgba_color_predefined_new(colorName.c_str(), 
+                color_id, alpha) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_display_type_list_size() == 1 );
+            
+            THEN( "The RGBA Predefined Color can be deleted" ) 
+            {
+                REQUIRE( dsl_display_type_delete(colorName.c_str()) == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "A new RGBA Predefined Color is created" ) 
+        {
+            REQUIRE( dsl_display_type_rgba_color_predefined_new(colorName.c_str(), 
+                color_id, alpha) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second RGBA Predefined Color of the same name fails to create" ) 
+            {
+                REQUIRE( dsl_display_type_rgba_color_predefined_new(colorName.c_str(), 
+                    color_id, alpha) == 
+                        DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE );
+
+                REQUIRE( dsl_display_type_delete(colorName.c_str()) == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new RGBA Predefined Color checks input parmeter ranges corectly", 
+    "[display-types-api]" )
+{
+    GIVEN( "Attributes for a new RGBA Predefined Color" ) 
+    {
+        std::wstring colorName(L"my-color");
+
+        REQUIRE( dsl_display_type_list_size() == 0 );
+
+        WHEN( "An invalid color_id parameter is issued" ) 
+        {
+            uint color_id(88);
+            double alpha(0.78);
+            
+            THEN( "The RGBA Predefined Color fails to create" ) 
+            {
+                REQUIRE( dsl_display_type_rgba_color_predefined_new(colorName.c_str(), 
+                    color_id, alpha) == DSL_RESULT_DISPLAY_PARAMETER_INVALID );
+
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "An invalid alpah parameter is issued" ) 
+        {
+            uint color_id(0);
+            double alpha(1.10);
+            
+            THEN( "The RGBA Predefined Color fails to create" ) 
+            {
+                REQUIRE( dsl_display_type_rgba_color_predefined_new(colorName.c_str(), 
+                    color_id, alpha) == DSL_RESULT_DISPLAY_PARAMETER_INVALID );
+
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new RGBA Color Palette can be created and deleted", 
+    "[display-types-api]" )
+{
+    GIVEN( "Attributes for a new RGBA Color Palette" ) 
+    {
+        std::wstring colorName1(L"color1");
+        std::wstring colorName2(L"color2");
+        std::wstring colorName3(L"color3");
+        std::wstring colorPaletteName(L"color-palette");
+        uint color_id1(DSL_COLOR_HUE_MAGENTA_PINK);
+        uint color_id2(DSL_COLOR_HUE_BLACK_AND_WHITE);
+        uint color_id3(DSL_COLOR_HUE_BLUE);
+        double alpha(0.78);
+
+        REQUIRE( dsl_display_type_list_size() == 0 );
+        
+        REQUIRE( dsl_display_type_rgba_color_predefined_new(colorName1.c_str(), 
+            color_id1, alpha) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_display_type_rgba_color_predefined_new(colorName2.c_str(), 
+            color_id2, alpha) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_display_type_rgba_color_predefined_new(colorName3.c_str(), 
+            color_id3, alpha) == DSL_RESULT_SUCCESS );
+            
+        const wchar_t* colors[] = 
+            {colorName1.c_str(), colorName2.c_str(), colorName3.c_str(), NULL};
+
+        WHEN( "A new RGBA Color Palette is created" ) 
+        {
+            REQUIRE( dsl_display_type_rgba_color_palette_new(
+                colorPaletteName.c_str(), colors) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_display_type_list_size() == 4 );
+            
+            THEN( "The RGBA Color Palette can be deleted" ) 
+            {
+                REQUIRE( dsl_display_type_delete_all() == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "A new RGBA Color Palette is created" ) 
+        {
+            REQUIRE( dsl_display_type_rgba_color_palette_new(
+                colorPaletteName.c_str(), colors) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second RGBA Color Palette of the same name fails to create" ) 
+            {
+                REQUIRE( dsl_display_type_rgba_color_palette_new(
+                    colorPaletteName.c_str(), colors) == 
+                        DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE );
+
+                REQUIRE( dsl_display_type_delete_all() == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new RGBA Random Color can be created and deleted", 
+    "[display-types-api]" )
+{
+    GIVEN( "Attributes for a new RGBA Random Color" ) 
+    {
+        std::wstring colorName(L"my-color");
+        uint color_id(DSL_COLOR_HUE_MAGENTA_PINK);
+        uint hue(DSL_COLOR_HUE_MAGENTA_PINK);
+        uint luminosity(DSL_COLOR_LUMINOSITY_DARK);
+        double alpha(0.78);
+        uint seed(444);
+
+        REQUIRE( dsl_display_type_list_size() == 0 );
+        WHEN( "A new RGBA Random Color is created" ) 
+        {
+            REQUIRE( dsl_display_type_rgba_color_random_new(colorName.c_str(), 
+                hue, luminosity, alpha, seed) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_display_type_list_size() == 1 );
+            
+            THEN( "The RGBA Random Color can be deleted" ) 
+            {
+                REQUIRE( dsl_display_type_delete(colorName.c_str()) == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "A new RGBA Random Color is created" ) 
+        {
+            REQUIRE( dsl_display_type_rgba_color_random_new(colorName.c_str(), 
+                hue, luminosity, alpha, seed) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second RGBA Random Color of the same name fails to create" ) 
+            {
+                REQUIRE( dsl_display_type_rgba_color_random_new(colorName.c_str(), 
+                    hue, luminosity, alpha, seed) == 
+                        DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE );
+
+                REQUIRE( dsl_display_type_delete(colorName.c_str()) == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new RGBA Random Color checks input parameter ranges correctly", 
+    "[display-types-api]" )
+{
+    GIVEN( "Attributes for a new RGBA Random Color" ) 
+    {
+        std::wstring colorName(L"my-color");
+        uint seed(444);
+
+        REQUIRE( dsl_display_type_list_size() == 0 );
+
+        WHEN( "When an invalid hue parameter is providied" ) 
+        {
+            uint hue(99);
+            uint luminosity(DSL_COLOR_LUMINOSITY_DARK);
+            double alpha(0.78);
+            
+            THEN( "RGBA Random Color fails to create" ) 
+            {
+                REQUIRE( dsl_display_type_rgba_color_random_new(colorName.c_str(), 
+                    hue, luminosity, alpha, seed) == 
+                        DSL_RESULT_DISPLAY_PARAMETER_INVALID );
+
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "When an invalid luminosity parameter is providied" ) 
+        {
+            uint hue(DSL_COLOR_HUE_MAGENTA_PINK);
+            uint luminosity(6);
+            double alpha(0.78);
+            
+            THEN( "RGBA Random Color fails to create" ) 
+            {
+                REQUIRE( dsl_display_type_rgba_color_random_new(colorName.c_str(), 
+                    hue, luminosity, alpha, seed) == 
+                        DSL_RESULT_DISPLAY_PARAMETER_INVALID );
+
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "When an invalid alpha parameter is providied" ) 
+        {
+            uint hue(DSL_COLOR_HUE_MAGENTA_PINK);
+            uint luminosity(DSL_COLOR_LUMINOSITY_DARK);
+            double alpha(1.01);
+            
+            THEN( "RGBA Random Color fails to create" ) 
+            {
+                REQUIRE( dsl_display_type_rgba_color_random_new(colorName.c_str(), 
+                    hue, luminosity, alpha, seed) == 
+                        DSL_RESULT_DISPLAY_PARAMETER_INVALID );
+
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
+static void color_provider(double* red, 
+    double* green, double* blue, double* alpha, void* client_data)
+{
+    *red = 0.123;
+    *green = 0.456;
+    *blue = 0.789;
+    *alpha = 0.444;
+}
+
+SCENARIO( "A new RGBA On-Demand Color can be created and deleted", 
+    "[display-types-api]" )
+{
+    GIVEN( "Attributes for a new RGBA On-Demand Color" ) 
+    {
+        std::wstring colorName(L"my-color");
+
+        REQUIRE( dsl_display_type_list_size() == 0 );
+        WHEN( "A new RGBA Random Color is created" ) 
+        {
+            REQUIRE( dsl_display_type_rgba_color_on_demand_new(colorName.c_str(), 
+                color_provider, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_display_type_list_size() == 1 );
+            
+            THEN( "The RGBA Random Color can be deleted" ) 
+            {
+                REQUIRE( dsl_display_type_delete(colorName.c_str()) == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "A new RGBA Random Color is created" ) 
+        {
+            REQUIRE( dsl_display_type_rgba_color_on_demand_new(colorName.c_str(), 
+                color_provider, NULL) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second RGBA Random Color of the same name fails to create" ) 
+            {
+                REQUIRE( dsl_display_type_rgba_color_on_demand_new(colorName.c_str(), 
+                    color_provider, NULL) == 
+                        DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE );
+
+                REQUIRE( dsl_display_type_delete(colorName.c_str()) == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
+    
 SCENARIO( "A new RGBA Font can be created and deleted", "[display-types-api]" )
 {
     GIVEN( "Attributes for a new RGBA Font" ) 

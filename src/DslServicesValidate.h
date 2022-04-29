@@ -397,7 +397,10 @@ THE SOFTWARE.
 #define DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(types, name) do \
 { \
     if (!types[name]->IsType(typeid(RgbaColor)) and \
-        !types[name]->IsType(typeid(RgbaRandomColor))) \
+        !types[name]->IsType(typeid(RgbaRandomColor)) and \
+        !types[name]->IsType(typeid(RgbaPredefinedColor)) and \
+        !types[name]->IsType(typeid(RgbaOnDemandColor)) and \
+        !types[name]->IsType(typeid(RgbaColorPalette))) \
     { \
         LOG_ERROR("Display Type '" << name << "' is not color type"); \
         return DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE; \

@@ -55,6 +55,30 @@ namespace DSL
                 LOG_ERROR("RGBA Color name '" << name << "' is not unique");
                 return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
             }
+            if ( red > 1.0)
+            {
+                LOG_ERROR("Invalid red parameter = " << red 
+                    << " greater than 1.0 for RGBA Color '" << name << "'");
+                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
+            }
+            if ( green > 1.0)
+            {
+                LOG_ERROR("Invalid green parameter = " << green 
+                    << " greater than 1.0 for RGBA Color '" << name << "'");
+                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
+            }
+            if ( blue > 1.0)
+            {
+                LOG_ERROR("Invalid blue parameter = " << blue
+                    << " greater than 1.0 for RGBA Color '" << name << "'");
+                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
+            }
+            if ( alpha > 1.0)
+            {
+                LOG_ERROR("Invalid alpha parameter = " << alpha 
+                    << " greater than 1.0 for RGBA Color '" << name << "'");
+                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
+            }
             m_displayTypes[name] = DSL_RGBA_COLOR_NEW(name, 
                 red, green, blue, alpha);
 
@@ -88,6 +112,12 @@ namespace DSL
             {
                 LOG_ERROR("Invalid color_id value of " << colorId 
                     << " for New RGBA Predefined Color '" << name << "'");
+                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
+            }
+            if ( alpha > 1.0)
+            {
+                LOG_ERROR("Invalid alpha parameter = " << alpha 
+                    << " greater than 1.0 for RGBA Color '" << name << "'");
                 return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
             }
             m_displayTypes[name] = DSL_RGBA_PREDEFINED_COLOR_NEW(name, 
@@ -237,6 +267,12 @@ namespace DSL
             {
                 LOG_ERROR("Invalid luminosity value of " << luminosity 
                     << " for New RGBA Random Color '" << name << "'");
+                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
+            }
+            if ( alpha > 1.0)
+            {
+                LOG_ERROR("Invalid alpha parameter = " << alpha 
+                    << " greater than 1.0 for RGBA RandomColor '" << name << "'");
                 return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
             }
             m_displayTypes[name] = DSL_RGBA_RANDOM_COLOR_NEW(name, 

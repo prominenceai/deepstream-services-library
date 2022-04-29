@@ -259,29 +259,94 @@ DSL_RTSP_CONNECTION_DATA_P = POINTER(dsl_rtsp_connection_data)
 ##
 ## Callback Typedefs
 ##
-DSL_META_BATCH_HANDLER = CFUNCTYPE(c_bool, c_void_p, c_void_p)
-DSL_STATE_CHANGE_LISTENER = CFUNCTYPE(None, c_uint, c_uint, c_void_p)
-DSL_EOS_LISTENER = CFUNCTYPE(None, c_void_p)
-DSL_ERROR_MESSAGE_HANDLER = CFUNCTYPE(None, c_wchar_p, c_wchar_p, c_void_p)
-DSL_XWINDOW_KEY_EVENT_HANDLER = CFUNCTYPE(None, c_wchar_p, c_void_p)
-DSL_XWINDOW_BUTTON_EVENT_HANDLER = CFUNCTYPE(None, c_uint, c_int, c_int, c_void_p)
-DSL_XWINDOW_DELETE_EVENT_HANDLER = CFUNCTYPE(None, c_void_p)
-DSL_ODE_HANDLE_OCCURRENCE = CFUNCTYPE(None, c_uint, c_wchar_p, c_void_p, c_void_p, c_void_p, c_void_p, c_void_p)
-DSL_ODE_CHECK_FOR_OCCURRENCE = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p, c_void_p)
-DSL_ODE_POST_PROCESS_FRAME = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p)
-DSL_RECORD_CLIENT_LISTNER = CFUNCTYPE(c_void_p, POINTER(dsl_recording_info), c_void_p)
-DSL_PPH_CUSTOM_CLIENT_HANDLER = CFUNCTYPE(c_uint, c_void_p, c_void_p)
-DSL_PPH_METER_CLIENT_HANDLER = CFUNCTYPE(c_bool, DSL_DOUBLE_P, DSL_DOUBLE_P, c_uint, c_void_p)
-DSL_PLAYER_TERMINATION_EVENT_LISTENER = CFUNCTYPE(None, c_void_p)
-DSL_CAPTURE_COMPLETE_LISTENER = CFUNCTYPE(None, POINTER(dsl_capture_info), c_void_p)
-DSL_WEBSOCKET_SERVER_CLIENT_LISTENER = CFUNCTYPE(None, c_wchar_p, c_void_p)
-DSL_WEBRTC_SINK_CLIENT_LISTENER = CFUNCTYPE(None, POINTER(dsl_webrtc_connection_data), c_void_p)
-DSL_ODE_TRIGGER_LIMIT_EVENT_LISTENER = CFUNCTYPE(None, c_uint, c_uint, c_void_p)
-DSL_ODE_ENABLED_STATE_CHANGE_LISTENER = CFUNCTYPE(None, c_bool, c_void_p)
-DSL_MESSAGE_BROKER_CONNECTION_LISTENER = CFUNCTYPE(None, c_void_p, c_uint)
-DSL_MESSAGE_BROKER_SUBSCRIBER = CFUNCTYPE(None, c_void_p, c_uint, c_void_p, c_uint, c_wchar_p)
-DSL_MESSAGE_BROKER_SEND_RESULT_LISTENER = CFUNCTYPE(None, c_void_p, c_uint)
-DSL_DISPLAY_TYPE_RGBA_COLOR_PROVIDER = CFUNCTYPE(None, DSL_DOUBLE_P, DSL_DOUBLE_P, DSL_DOUBLE_P, DSL_DOUBLE_P, c_void_p)
+
+# dsl_ode_handle_occurrence_cb
+DSL_ODE_HANDLE_OCCURRENCE = \
+    CFUNCTYPE(None, c_uint, c_wchar_p, c_void_p, c_void_p, c_void_p, c_void_p, c_void_p)
+
+# dsl_ode_check_for_occurrence_cb
+DSL_ODE_CHECK_FOR_OCCURRENCE = \
+    CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p, c_void_p)
+
+# dsl_ode_post_process_frame_cb
+DSL_ODE_POST_PROCESS_FRAME = \
+    CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p)
+
+# dsl_ode_enabled_state_change_listener_cb
+DSL_ODE_ENABLED_STATE_CHANGE_LISTENER = \
+    CFUNCTYPE(None, c_bool, c_void_p)
+
+# dsl_ode_trigger_limit_event_listener_cb
+DSL_ODE_TRIGGER_LIMIT_EVENT_LISTENER = \
+    CFUNCTYPE(None, c_uint, c_uint, c_void_p)
+
+# dsl_pph_meter_client_handler_cb
+DSL_PPH_METER_CLIENT_HANDLER = \
+    CFUNCTYPE(c_bool, DSL_DOUBLE_P, DSL_DOUBLE_P, c_uint, c_void_p)
+
+# dsl_pph_custom_client_handler_cb
+DSL_PPH_CUSTOM_CLIENT_HANDLER = \
+    CFUNCTYPE(c_uint, c_void_p, c_void_p)
+
+# dsl_state_change_listener_cb
+DSL_STATE_CHANGE_LISTENER = \
+    CFUNCTYPE(None, c_uint, c_uint, c_void_p)
+
+# dsl_eos_listener_cb
+DSL_EOS_LISTENER = \
+    CFUNCTYPE(None, c_void_p)
+
+# dsl_error_message_handler_cb
+DSL_ERROR_MESSAGE_HANDLER = \
+    CFUNCTYPE(None, c_wchar_p, c_wchar_p, c_void_p)
+
+# dsl_xwindow_key_event_handler_cb
+DSL_XWINDOW_KEY_EVENT_HANDLER = \
+    CFUNCTYPE(None, c_wchar_p, c_void_p)
+
+# dsl_xwindow_button_event_handler_cb
+DSL_XWINDOW_BUTTON_EVENT_HANDLER = \
+    CFUNCTYPE(None, c_uint, c_int, c_int, c_void_p)
+
+# dsl_xwindow_delete_event_handler_cb
+DSL_XWINDOW_DELETE_EVENT_HANDLER = \
+    CFUNCTYPE(None, c_void_p)
+
+# dsl_record_client_listener_cb
+DSL_RECORD_CLIENT_LISTNER = \
+    CFUNCTYPE(c_void_p, POINTER(dsl_recording_info), c_void_p)
+
+# dsl_capture_complete_listener_cb
+DSL_CAPTURE_COMPLETE_LISTENER = \
+    CFUNCTYPE(None, POINTER(dsl_capture_info), c_void_p)
+
+# dsl_player_termination_event_listener_cb
+DSL_PLAYER_TERMINATION_EVENT_LISTENER = \
+    CFUNCTYPE(None, c_void_p)
+
+# dsl_websocket_server_client_listener_cb
+DSL_WEBSOCKET_SERVER_CLIENT_LISTENER = \
+    CFUNCTYPE(None, c_wchar_p, c_void_p)
+
+# dsl_sink_webrtc_client_listener_cb
+DSL_WEBRTC_SINK_CLIENT_LISTENER = \
+    CFUNCTYPE(None, POINTER(dsl_webrtc_connection_data), c_void_p)
+
+# dsl_message_broker_subscriber_cb
+DSL_MESSAGE_BROKER_SUBSCRIBER = \
+    CFUNCTYPE(None, c_void_p, c_uint, c_void_p, c_uint, c_wchar_p)
+
+# dsl_message_broker_connection_listener_cb
+DSL_MESSAGE_BROKER_CONNECTION_LISTENER = \
+    CFUNCTYPE(None, c_void_p, c_uint)
+    
+# dsl_message_broker_send_result_listener_cb
+DSL_MESSAGE_BROKER_SEND_RESULT_LISTENER = \
+    CFUNCTYPE(None, c_void_p, c_uint)
+
+# dsl_display_type_rgba_color_provider_cb
+DSL_DISPLAY_TYPE_RGBA_COLOR_PROVIDER = \
+    CFUNCTYPE(None, DSL_DOUBLE_P, DSL_DOUBLE_P, DSL_DOUBLE_P, DSL_DOUBLE_P, c_void_p)
 
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
@@ -365,6 +430,32 @@ def dsl_display_type_rgba_color_random_new(name,
     global _dsl
     result =_dsl.dsl_display_type_rgba_color_random_new(name, 
         hue, luminosity, alpha, seed)
+    return int(result)
+
+##
+## dsl_display_type_rgba_color_on_demand_new()
+##
+_dsl.dsl_display_type_rgba_color_on_demand_new.argtypes = [c_wchar_p, 
+    DSL_DISPLAY_TYPE_RGBA_COLOR_PROVIDER, c_void_p]
+_dsl.dsl_display_type_rgba_color_on_demand_new.restype = c_uint
+def dsl_display_type_rgba_color_on_demand_new(name, provider, client_data):
+    global _dsl
+    c_provider = DSL_DISPLAY_TYPE_RGBA_COLOR_PROVIDER(provider)
+    callbacks.append(c_provider)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_display_type_rgba_color_on_demand_new(name, 
+        c_provider, c_client_data)
+    return int(result)
+
+##
+## dsl_display_type_rgba_color_next_set()
+##
+_dsl.dsl_display_type_rgba_color_next_set.argtypes = [c_wchar_p]
+_dsl.dsl_display_type_rgba_color_next_set.restype = c_uint
+def dsl_display_type_rgba_color_next_set(name):
+    global _dsl
+    result =_dsl.dsl_display_type_rgba_color_next_set(name)
     return int(result)
 
 ##
