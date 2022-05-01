@@ -40,10 +40,10 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_new_low_new](#dsl_ode_trigger_new_low_new)
 * [dsl_ode_trigger_smallest_new](#dsl_ode_trigger_smallest_new)
 * [dsl_ode_trigger_largest_new](#dsl_ode_trigger_largest_new)
-* [dsl_ode_trigger_track_cross_new](#dsl_ode_trigger_track_cross_new)
-* [dsl_ode_trigger_track_persistence_new](#dsl_ode_trigger_track_persistence_new)
-* [dsl_ode_trigger_track_earliest_new](#dsl_ode_trigger_track_earliest_new)
-* [dsl_ode_trigger_track_latest_new](#dsl_ode_trigger_track_latest_new)
+* [dsl_ode_trigger_cross_new](#dsl_ode_trigger_cross_new)
+* [dsl_ode_trigger_persistence_new](#dsl_ode_trigger_persistence_new)
+* [dsl_ode_trigger_earliest_new](#dsl_ode_trigger_earliest_new)
+* [dsl_ode_trigger_latest_new](#dsl_ode_trigger_latest_new)
 
 **Destructors:**
 * [dsl_ode_trigger_delete](#dsl_ode_trigger_delete)
@@ -57,12 +57,12 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_distance_range_set](#dsl_ode_trigger_distance_range_set)
 * [dsl_ode_trigger_distance_test_params_get](#dsl_ode_trigger_distance_test_params_get)
 * [dsl_ode_trigger_distance_test_params_set](#dsl_ode_trigger_distance_test_params_set)
-* [dsl_ode_trigger_track_test_settings_get](#dsl_ode_trigger_track_test_settings_get)
-* [dsl_ode_trigger_track_test_settings_set](#dsl_ode_trigger_track_test_settings_set)
-* [dsl_ode_trigger_track_view_settings_get](#dsl_ode_trigger_track_view_settings_get)
-* [dsl_ode_trigger_track_view_settings_set](#dsl_ode_trigger_track_view_settings_set)
-* [dsl_ode_trigger_track_persistence_range_get](#dsl_ode_trigger_track_persistence_range_get)
-* [dsl_ode_trigger_track_persistence_range_set](#dsl_ode_trigger_track_persistence_range_set)
+* [dsl_ode_trigger_cross_test_settings_get](#dsl_ode_trigger_cross_test_settings_get)
+* [dsl_ode_trigger_cross_test_settings_set](#dsl_ode_trigger_cross_test_settings_set)
+* [dsl_ode_trigger_cross_view_settings_get](#dsl_ode_trigger_cross_view_settings_get)
+* [dsl_ode_trigger_cross_view_settings_set](#dsl_ode_trigger_cross_view_settings_set)
+* [dsl_ode_trigger_persistence_range_get](#dsl_ode_trigger_persistence_range_get)
+* [dsl_ode_trigger_persistence_range_set](#dsl_ode_trigger_persistence_range_set)
 * [dsl_ode_trigger_reset](#dsl_ode_trigger_reset)
 * [dsl_ode_trigger_reset_timeout_get](#dsl_ode_trigger_reset_timeout_get)
 * [dsl_ode_trigger_reset_timeout_set](#dsl_ode_trigger_reset_timeout_set)
@@ -271,7 +271,7 @@ The constructor creates an Absence trigger that checks for the absence of Object
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filter.
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter.
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
@@ -299,7 +299,7 @@ The constructor creates a Uniquely named Custom Trigger that checks for the occu
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filter.
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter.
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
@@ -326,7 +326,7 @@ The constructor creates an Occurrence trigger that checks for the occurrence of 
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filter
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
@@ -353,7 +353,7 @@ The constructor creates an Instance trigger that checks for new instances of Obj
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filter
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
@@ -381,7 +381,7 @@ Note: Adding Actions to a Summation Trigger that require Object metadata during 
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filter.
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter.
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
@@ -409,7 +409,7 @@ Note: Adding Actions to an Accumulation Trigger that require Object metadata dur
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filter
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
@@ -439,7 +439,7 @@ Intersection requires at least one pixel of overlap between a pair of object's r
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filter.
 * `class_id_a` - [in] inference class id filter A. Use `DSL_ODE_ANY_CLASS` to disable the filter.
 * `class_id_b` - [in] inference class id filter B. Use `DSL_ODE_ANY_CLASS` to disable the filter.
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
@@ -512,7 +512,7 @@ This constructor creates a uniquely named Count Trigger that checks for the occu
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filter.
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter.
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 * `minimum` - [in] the minimum count for triggering ODE occurrence, 0 = no minimum.
@@ -541,7 +541,7 @@ This constructor creates a uniquely named New High Trigger that checks for the o
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filter.
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter.
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 * `preset` - [in] initial high count to start with. High count will be reset to the preset on trigger reset.
@@ -596,7 +596,7 @@ This constructor creates a uniquely named smallest trigger that checks for the o
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filter.
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter.
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
@@ -622,7 +622,7 @@ This constructor creates a uniquely named Largest trigger that checks for the oc
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filter.
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
@@ -639,9 +639,9 @@ retval = dsl_ode_trigger_largest_new('my-largest-trigger', DSL_ODE_ANY_SOURCE,
 
 <br>
 
-### *dsl_ode_trigger_track_cross_new*
+### *dsl_ode_trigger_cross_new*
 ```C++
-DslReturnType dsl_ode_trigger_track_cross_new(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit, uint min_frame_count, 
     uint max_frame_count, uint test_method);
 ```
@@ -661,7 +661,7 @@ This constructor creates a Cross Trigger that tracks Objects through consecutive
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filter.
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter.
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 * `min_frame_count` - [in] setting for the minimum number of past consecutive frames on the initial side and minimum (non-sequential) frames on the new side of a line (line, multi-line or polygon area) to trigger an ODE.
@@ -675,28 +675,24 @@ This constructor creates a Cross Trigger that tracks Objects through consecutive
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_track_cross_new('my-cross-trigger', 'camera-1',
+retval = dsl_ode_trigger_cross_new('my-cross-trigger', 'camera-1',
     PGIE_PERSON_CLASS_ID, DSL_ODE_TRIGGER_LIMIT_NONE, 5, 200,
     DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS)
 ```
 
 <br>
 
-### *dsl_ode_trigger_track_persistence_new*
+### *dsl_ode_trigger_persistence_new*
 ```C++
-DslReturnType dsl_ode_trigger_track_persistence_new(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_persistence_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit, uint minimum, uint maximum);
 ```
 
-The constructor creates a Persistence trigger that checks for the persistence of Objects tracked -- based on the `object_id` provided by the [Object Tracker](/docs/api-tracker.md) over consecutive frames -- for a specified source and object class_id. Each object tracked for ">= minimum and/or <= maximum time will trigger an ODE occurrence. The Trigger maintains a vector of historical bounding-box coordinates for each object tracked by its unique tracking id.
-
-**Note** The Object Trace can be added as meta-data for a downstream [On-Screen Display (OSD)](/docs/api-osd.md) to display by calling [dsl_ode_trigger_track_view_settings_set](#dsl_ode_trigger_track_view_settings_set).
-
-**Important!** The default maximum number of elements per display meta type (lines, rectangles, text, etc.) is set to sixteen (16). Setting the test method to `DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS` when displaying the Object Trace can require up to `max_trace_points` of lines per tracked object. See [dsl_pph_ode_display_meta_alloc_size_set](/docs/api-pph.md#dsl_pph_ode_display_meta_alloc_size_set) to allocate additional display meta structures per frame.
+The constructor creates a Persistence trigger that checks for the persistence of Objects tracked -- based on the `object_id` provided by the [Object Tracker](/docs/api-tracker.md) over consecutive frames -- for a specified source and object class_id. Each object tracked for ">= minimum and/or <= maximum time will trigger an ODE occurrence. 
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filter.
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter.
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 * `minimum` - [in] the minimum amount of time a unique object must remain detected before triggering an ODE occurrence - in units of seconds. 0 = no minimum.
@@ -709,26 +705,22 @@ The constructor creates a Persistence trigger that checks for the persistence of
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_track_persistence_new('my-persistence-trigger', DSL_ODE_ANY_SOURCE,
+retval = dsl_ode_trigger_persistence_new('my-persistence-trigger', DSL_ODE_ANY_SOURCE,
     DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE, minimum=15, maximum=0)
 ```
 
 <br>
 
-### *dsl_ode_trigger_track_earliest_new*
+### *dsl_ode_trigger_earliest_new*
 ```C++
-DslReturnType dsl_ode_trigger_track_earliest_new(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_earliest_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit);
 ```
 This constructor creates a uniquely named Earliest Trigger that checks for the persistence of Objects tracked and will trigger on the Object with the greatest time of persistence (earliest) if at least one is found. The Trigger maintains a vector of historical bounding-box coordinates for each object tracked by its unique tracking id.
 
-**Note** The Object Trace can be added as meta-data for a downstream [On-Screen Display (OSD)](/docs/api-osd.md) to display by calling [dsl_ode_trigger_track_view_settings_set](#dsl_ode_trigger_track_view_settings_set).
-
-**Important!** The default maximum number of elements per display meta type (lines, rectangles, text, etc.) is set to sixteen (16). Setting the test method to `DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS` when displaying the Object Trace can require up to `max_trace_points` of lines per tracked object. See [dsl_pph_ode_display_meta_alloc_size_set](/docs/api-pph.md#dsl_pph_ode_display_meta_alloc_size_set) to allocate additional display meta structures per frame.
-
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filter.
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter.
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
@@ -739,24 +731,22 @@ This constructor creates a uniquely named Earliest Trigger that checks for the p
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_track_earliest_new('my-earliest-trigger',
+retval = dsl_ode_trigger_earliest_new('my-earliest-trigger',
     DSL_ODE_ANY_SOURCE, DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE)
 ```
 
 <br>
 
-### *dsl_ode_trigger_track_latest_new*
+### *dsl_ode_trigger_latest_new*
 ```C++
-DslReturnType dsl_ode_trigger_track_latest_new(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_latest_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit);
 ```
 This constructor creates a uniquely named Latest Trigger that checks for the persistence of Objects tracked and will trigger on the Object with the least time of persistence (latest) if at least one is found. The Trigger maintains a vector of historical bounding-box coordinates for each object tracked by its unique tracking id.
 
-**Note** The Object Trace can be added as meta-data for a downstream [On-Screen Display (OSD)](/docs/api-osd.md) to display by calling [dsl_ode_trigger_track_view_settings_set](#dsl_ode_trigger_track_view_settings_set).
-
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filter.
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
@@ -767,7 +757,7 @@ This constructor creates a uniquely named Latest Trigger that checks for the per
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_track_latest_new('my-latest-trigger', DSL_ODE_ANY_SOURCE,
+retval = dsl_ode_trigger_latest_new('my-latest-trigger', DSL_ODE_ANY_SOURCE,
     DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE)
 ```
 
@@ -973,16 +963,16 @@ retval = dsl_ode_trigger_distance_test_params_get('my-trigger',
 
 <br>
 
-### *dsl_ode_trigger_track_test_settings_get*
+### *dsl_ode_trigger_cross_test_settings_get*
 ```c++
-DslReturnType dsl_ode_trigger_track_test_settings_get(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_cross_test_settings_get(const wchar_t* name, 
     uint* min_frame_count, uint* max_trace_points, uint* test_method);
 ```
 
-This service gets the current test settings for the named Tracking Trigger -- [Cross](#dsl_ode_trigger_track_cross_new), [Persistence](#dsl_ode_trigger_track_persistence_new), [Earliest](#dsl_ode_trigger_track_earliest_new), or [Latest](#dsl_ode_trigger_track_latest_new).
+This service gets the current test settings for the named Cross Trigger
 
 **Parameters**
-* `name` - [in] unique name of the ODE Tracking Trigger to query.
+* `name` - [in] unique name of the ODE Cross Trigger to query.
 * `min_frame_count` - [out] current setting for the minimum number of past consecutive frames on the initial side and minimum (non-sequential) frames on the new side of a line (line, multi-line or polygon area) to trigger an ODE.
 * `max_trace_points` - [out] current setting for the maximum number of past trace points to maintain for each tracked object.
 * `test_method` - [out] either DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS or DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS
@@ -998,16 +988,16 @@ retval, min_frame_count, max_trace_points, test_method =
 
 <br>
 
-### *dsl_ode_trigger_track_test_settings_set*
+### *dsl_ode_trigger_cross_test_settings_set*
 ```c++
-DslReturnType dsl_ode_trigger_track_test_settings_set(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_cross_test_settings_set(const wchar_t* name, 
     uint* min_frame_count, uint* max_trace_points, uint* test_method);
 ```
 
-This service sets the test settings for the named Tracking Trigger -- [Cross](#dsl_ode_trigger_track_cross_new), [Persistence](#dsl_ode_trigger_track_persistence_new), [Earliest](#dsl_ode_trigger_track_earliest_new), or [Latest](#dsl_ode_trigger_track_latest_new) -- to use. 
+This service sets the test settings for the named Cross Trigger to use. 
 
 **Parameters**
-* `name` - [in] unique name of the ODE Tracking Trigger to update.
+* `name` - [in] unique name of the ODE Cross Trigger to update.
 * `min_frame_count` - [in] new setting for the minimum number of past consecutive frames on the initial side and minimum (non-sequential) frames on the new side of a line (line, multi-line or polygon area) to trigger an ODE.
 * `max_trace_points` - [in] new setting for the maximum number of past trace points to maintain for each tracked object.
 * `test_method` - [in] either DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS or DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS.
@@ -1017,19 +1007,19 @@ This service sets the test settings for the named Tracking Trigger -- [Cross](#d
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_track_test_settings_set('my-trigger',
+retval = dsl_ode_trigger_cross_test_settings_set('my-trigger',
     min_frame_count, max_trace_points, test_method)
 ```
 
 <br>
 
-### *dsl_ode_trigger_track_view_settings_get*
+### *dsl_ode_trigger_cross_view_settings_get*
 ```c++
-DslReturnType dsl_ode_trigger_track_view_settings_get(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_cross_view_settings_get(const wchar_t* name, 
     boolean* enabled, const wchar_t** color, uint* line_width);
 ```
 
-This service gets the current view settings for the named Tracking Trigger -- [Cross](#dsl_ode_trigger_track_cross_new), [Persistence](#dsl_ode_trigger_track_persistence_new), [Earliest](#dsl_ode_trigger_track_earliest_new), or [Latest](#dsl_ode_trigger_track_latest_new).
+This service gets the current view settings for the named Cross Trigger.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Tracking Trigger to query.
@@ -1043,21 +1033,23 @@ This service gets the current view settings for the named Tracking Trigger -- [C
 **Python Example**
 ```Python
 retval, enabled, color, line_width =
-    dsl_ode_trigger_track_view_settings_get('my-trigger')
+    dsl_ode_trigger_cross_view_settings_get('my-trigger')
 ```
 
 <br>
 
-### *dsl_ode_trigger_track_view_settings_set*
+### *dsl_ode_trigger_cross_view_settings_set*
 ```c++
-DslReturnType dsl_ode_trigger_track_view_settings_set(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_cross_view_settings_set(const wchar_t* name, 
     boolean enabled, const wchar_t* color, uint line_width);
 ```
 
-This service Sets the view settings for the named Tracking Trigger -- [Cross](#dsl_ode_trigger_track_cross_new), [Persistence](#dsl_ode_trigger_track_persistence_new), [Earliest](#dsl_ode_trigger_track_earliest_new), or [Latest](#dsl_ode_trigger_track_latest_new) -- to use.
+This service Sets the trace view settings for the named Cross Trigger to use.
+
+**Note:** The tracked object's bounding box will be updated with `color` to match the object's trace if `enabled` is set to true.
 
 **Parameters**
-* `name` - [in] unique name of the ODE Tracking Trigger to update.
+* `name` - [in] unique name of the ODE Tracking Cross to update.
 * `enabled` - [in] set to true to enable object trace display, false otherwise.
 * `color` - [in] name of the color to use for object trace display.
 * `line_width` - [in] width of the object trace if display is enabled.
@@ -1067,15 +1059,15 @@ This service Sets the view settings for the named Tracking Trigger -- [Cross](#d
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_track_view_settings_set('my-trigger',
+retval = dsl_ode_trigger_cross_view_settings_set('my-trigger',
     True, 'my-color', 6)
 ```
 
 <br>
 
-### *dsl_ode_trigger_track_persistence_range_get*
+### *dsl_ode_trigger_persistence_range_get*
 ```c++
-DslReturnType dsl_ode_trigger_track_persistence_range_get(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_persistence_range_get(const wchar_t* name, 
     uint* minimum, uint* maximum);
 ```
 
@@ -1091,18 +1083,18 @@ This service gets the current minimum and maximum time settings in use by the na
 
 **Python Example**
 ```Python
-retval, minimum, maximum = dsl_ode_trigger_track_persistence_range_get('my-trigger')
+retval, minimum, maximum = dsl_ode_trigger_persistence_range_get('my-trigger')
 ```
 
 <br>
 
-### *dsl_ode_trigger_track_persistence_range_set*
+### *dsl_ode_trigger_persistence_range_set*
 ```c++
-DslReturnType dsl_ode_trigger_track_persistence_range_set(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_persistence_range_set(const wchar_t* name, 
     uint minimum, uint maximum);
 ```
 
-This service sets the current minimum and maximum time settings to use for the named ODE Tracking Persistence Trigger.
+This service sets the current minimum and maximum time settings to use for the named ODE Persistence Trigger.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Tracking Persistence Trigger to update.
@@ -1114,7 +1106,7 @@ This service sets the current minimum and maximum time settings to use for the n
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_track_persistence_range_set('my-trigger', 100, 300)
+retval = dsl_ode_trigger_persistence_range_set('my-trigger', 100, 300)
 ```
 
 
