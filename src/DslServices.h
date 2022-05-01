@@ -348,35 +348,35 @@ namespace DSL {
         DslReturnType OdeTriggerNewHighNew(const char* name, 
             const char* source, uint classId, uint limit, uint preset);
 
-        DslReturnType OdeTriggerTrackCrossNew(const char* name, 
+        DslReturnType OdeTriggerCrossNew(const char* name, 
             const char* source, uint classId, uint limit, 
             uint minFrameCount, uint maxFrameCount, uint testMethod);
             
-        DslReturnType OdeTriggerTrackPersistenceNew(const char* name, 
+        DslReturnType OdeTriggerPersistenceNew(const char* name, 
             const char* source, uint classId, uint limit, uint minimum, uint maximum);
 
-        DslReturnType OdeTriggerTrackPersistenceRangeGet(const char* name, 
+        DslReturnType OdeTriggerPersistenceRangeGet(const char* name, 
             uint* minimum, uint* maximum);
         
-        DslReturnType OdeTriggerTrackPersistenceRangeSet(const char* name, 
+        DslReturnType OdeTriggerPersistenceRangeSet(const char* name, 
             uint minimum, uint maximum);
 
-        DslReturnType OdeTriggerTrackEarliestNew(const char* name, 
+        DslReturnType OdeTriggerEarliestNew(const char* name, 
             const char* source, uint classId, uint limit);
             
-        DslReturnType OdeTriggerTrackLatestNew(const char* name, 
+        DslReturnType OdeTriggerLatestNew(const char* name, 
             const char* source, uint classId, uint limit);
             
-        DslReturnType OdeTriggerTrackTestSettingsGet(const char* name, 
+        DslReturnType OdeTriggerCrossTestSettingsGet(const char* name, 
             uint* minFrameCount, uint* maxFrameCount, uint* testMethod);
             
-        DslReturnType OdeTriggerTrackTestSettingsSet(const char* name, 
+        DslReturnType OdeTriggerCrossTestSettingsSet(const char* name, 
             uint minFrameCount, uint maxFrameCount, uint testMethod);
             
-        DslReturnType OdeTriggerTrackViewSettingsGet(const char* name, 
+        DslReturnType OdeTriggerCrossViewSettingsGet(const char* name, 
             boolean* enabled, const char** color, uint* lineWidth);
             
-        DslReturnType OdeTriggerTrackViewSettingsSet(const char* name, 
+        DslReturnType OdeTriggerCrossViewSettingsSet(const char* name, 
             boolean enabled, const char* color, uint lineWidth);
         
         DslReturnType OdeTriggerReset(const char* name);

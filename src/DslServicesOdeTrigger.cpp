@@ -630,7 +630,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeTriggerTrackCrossNew(const char* name, 
+    DslReturnType Services::OdeTriggerCrossNew(const char* name, 
         const char* source, uint classId, uint limit, 
         uint minFrameCount, uint maxFrameCount, uint testMethod)
     {
@@ -678,168 +678,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeTriggerTrackPersistenceNew(const char* name, const char* source, 
-        uint classId, uint limit, uint minimum, uint maximum)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure event name uniqueness 
-            if (m_odeTriggers.find(name) != m_odeTriggers.end())
-            {   
-                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
-            }
-            // check for no maximum
-            maximum = (maximum == 0) ? UINT32_MAX : maximum;
-
-            DSL_RGBA_COLOR_PTR pColor = std::dynamic_pointer_cast<RgbaColor>
-                (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
-
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_PERSISTENCE_NEW(name, 
-                source, classId, limit, minimum, maximum, pColor);
-            
-            LOG_INFO("New Persistence ODE Trigger '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Persistence ODE Trigger '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::OdeTriggerTrackPersistenceRangeGet(const char* name, 
-        uint* minimum, uint* maximum)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, PersistenceOdeTrigger);
-            
-            DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
-                std::dynamic_pointer_cast<PersistenceOdeTrigger>(m_odeTriggers[name]);
-
-            pOdeTrigger->GetRange(minimum, maximum);
-            
-            // check for no maximum
-            *maximum = (*maximum == UINT32_MAX) ? 0 : *maximum;
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Persistence Trigger '" << name 
-                << "' threw exception getting range");
-            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
-        }
-    }                
-    
-    DslReturnType Services::OdeTriggerTrackPersistenceRangeSet(const char* name, 
-        uint minimum, uint maximum)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, PersistenceOdeTrigger);
-            
-            DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
-                std::dynamic_pointer_cast<PersistenceOdeTrigger>(m_odeTriggers[name]);
-
-            // check for no maximum
-            maximum = (maximum == 0) ? UINT32_MAX : maximum;
-         
-            pOdeTrigger->SetRange(minimum, maximum);
-            
-            LOG_INFO("ODE Persistence Trigger '" << name << "' set new range from mimimum " 
-                << minimum << " to maximum " << maximum << " successfully");
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Persistence Trigger '" << name 
-                << "' threw exception setting range");
-            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
-        }
-    }                
-
-    DslReturnType Services::OdeTriggerTrackLatestNew(const char* name, 
-        const char* source, uint classId, uint limit)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure event name uniqueness 
-            if (m_odeTriggers.find(name) != m_odeTriggers.end())
-            {   
-                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
-            }
-
-            DSL_RGBA_COLOR_PTR pColor = std::dynamic_pointer_cast<RgbaColor>
-                (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
-
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_LATEST_NEW(name, 
-                source, classId, limit, pColor);
-            
-            LOG_INFO("New Latest ODE Trigger '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Latest ODE Trigger '" << name 
-                << "' threw exception on create");
-            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::OdeTriggerTrackEarliestNew(const char* name, 
-        const char* source, uint classId, uint limit)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure event name uniqueness 
-            if (m_odeTriggers.find(name) != m_odeTriggers.end())
-            {   
-                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
-            }
-
-            DSL_RGBA_COLOR_PTR pColor = std::dynamic_pointer_cast<RgbaColor>
-                (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
-
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_EARLIEST_NEW(name, 
-                source, classId, limit, pColor);
-            
-            LOG_INFO("New Earliest ODE Trigger '" << name 
-                << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Earliest ODE Trigger '" << name 
-                << "' threw exception on create");
-            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::OdeTriggerTrackTestSettingsGet(const char* name, 
+    DslReturnType Services::OdeTriggerCrossTestSettingsGet(const char* name, 
         uint* minFrameCount, uint* maxFrameCount, uint* testMethod)
     {
         LOG_FUNC();
@@ -848,7 +687,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            DSL_RETURN_IF_ODE_TRIGGER_IS_NOT_TRACK_TRIGGER(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, 
+                CrossOdeTrigger);
             
             DSL_ODE_TRACKING_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<TrackingOdeTrigger>(m_odeTriggers[name]);
@@ -869,7 +709,7 @@ namespace DSL
         }
     }                
     
-    DslReturnType Services::OdeTriggerTrackTestSettingsSet(const char* name, 
+    DslReturnType Services::OdeTriggerCrossTestSettingsSet(const char* name, 
         uint minFrameCount, uint maxFrameCount, uint testMethod)
     {
         LOG_FUNC();
@@ -878,7 +718,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            DSL_RETURN_IF_ODE_TRIGGER_IS_NOT_TRACK_TRIGGER(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, 
+                CrossOdeTrigger);
             
             if (testMethod > DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS)
             {
@@ -912,7 +753,7 @@ namespace DSL
         }
     }                
     
-    DslReturnType Services::OdeTriggerTrackViewSettingsGet(const char* name, 
+    DslReturnType Services::OdeTriggerCrossViewSettingsGet(const char* name, 
         boolean* enabled, const char** color, uint* lineWidth)
     {
         LOG_FUNC();
@@ -921,7 +762,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            DSL_RETURN_IF_ODE_TRIGGER_IS_NOT_TRACK_TRIGGER(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, 
+                CrossOdeTrigger);
             
             DSL_ODE_TRACKING_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<TrackingOdeTrigger>(m_odeTriggers[name]);
@@ -943,7 +785,7 @@ namespace DSL
         }
     }                
     
-    DslReturnType Services::OdeTriggerTrackViewSettingsSet(const char* name, 
+    DslReturnType Services::OdeTriggerCrossViewSettingsSet(const char* name, 
         boolean enabled, const char* color, uint lineWidth)
     {
         LOG_FUNC();
@@ -952,7 +794,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            DSL_RETURN_IF_ODE_TRIGGER_IS_NOT_TRACK_TRIGGER(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, 
+                CrossOdeTrigger);
             DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
             DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(m_displayTypes, color);
             
@@ -976,6 +819,169 @@ namespace DSL
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
+
+    DslReturnType Services::OdeTriggerPersistenceNew(const char* name, const char* source, 
+        uint classId, uint limit, uint minimum, uint maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+            // check for no maximum
+            maximum = (maximum == 0) ? UINT32_MAX : maximum;
+
+            DSL_RGBA_COLOR_PTR pColor = std::dynamic_pointer_cast<RgbaColor>
+                (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
+
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_PERSISTENCE_NEW(name, 
+                source, classId, limit, minimum, maximum, pColor);
+            
+            LOG_INFO("New Persistence ODE Trigger '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Persistence ODE Trigger '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeTriggerPersistenceRangeGet(const char* name, 
+        uint* minimum, uint* maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, 
+                PersistenceOdeTrigger);
+            
+            DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<PersistenceOdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->GetRange(minimum, maximum);
+            
+            // check for no maximum
+            *maximum = (*maximum == UINT32_MAX) ? 0 : *maximum;
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Persistence Trigger '" << name 
+                << "' threw exception getting range");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::OdeTriggerPersistenceRangeSet(const char* name, 
+        uint minimum, uint maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, 
+                PersistenceOdeTrigger);
+            
+            DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<PersistenceOdeTrigger>(m_odeTriggers[name]);
+
+            // check for no maximum
+            maximum = (maximum == 0) ? UINT32_MAX : maximum;
+         
+            pOdeTrigger->SetRange(minimum, maximum);
+            
+            LOG_INFO("ODE Persistence Trigger '" << name << "' set new range from mimimum " 
+                << minimum << " to maximum " << maximum << " successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Persistence Trigger '" << name 
+                << "' threw exception setting range");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerLatestNew(const char* name, 
+        const char* source, uint classId, uint limit)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+
+            DSL_RGBA_COLOR_PTR pColor = std::dynamic_pointer_cast<RgbaColor>
+                (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
+
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_LATEST_NEW(name, 
+                source, classId, limit, pColor);
+            
+            LOG_INFO("New Latest ODE Trigger '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Latest ODE Trigger '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeTriggerEarliestNew(const char* name, 
+        const char* source, uint classId, uint limit)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+
+            DSL_RGBA_COLOR_PTR pColor = std::dynamic_pointer_cast<RgbaColor>
+                (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
+
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_EARLIEST_NEW(name, 
+                source, classId, limit, pColor);
+            
+            LOG_INFO("New Earliest ODE Trigger '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Earliest ODE Trigger '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
     
     DslReturnType Services::OdeTriggerReset(const char* name)
     {

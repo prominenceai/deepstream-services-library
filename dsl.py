@@ -1377,109 +1377,109 @@ def dsl_ode_trigger_occurrence_new(name, source, class_id, limit):
     return int(result)
 
 ##
-## dsl_ode_trigger_track_cross_new()
+## dsl_ode_trigger_cross_new()
 ##
-_dsl.dsl_ode_trigger_track_cross_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint,
+_dsl.dsl_ode_trigger_cross_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint,
     c_uint, c_uint, c_uint]
-_dsl.dsl_ode_trigger_track_cross_new.restype = c_uint
-def dsl_ode_trigger_track_cross_new(name, source, class_id, limit,
+_dsl.dsl_ode_trigger_cross_new.restype = c_uint
+def dsl_ode_trigger_cross_new(name, source, class_id, limit,
     min_frame_count, max_trace_points, test_method):
     global _dsl
-    result =_dsl.dsl_ode_trigger_track_cross_new(name, source, class_id, limit,
+    result =_dsl.dsl_ode_trigger_cross_new(name, source, class_id, limit,
         min_frame_count, max_trace_points, test_method)
     return int(result)
 
 ##
-## dsl_ode_trigger_track_test_settings_get()
+## dsl_ode_trigger_cross_test_settings_get()
 ##
-_dsl.dsl_ode_trigger_track_test_settings_get.argtypes = [c_wchar_p, 
+_dsl.dsl_ode_trigger_cross_test_settings_get.argtypes = [c_wchar_p, 
     POINTER(c_uint), POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_ode_trigger_track_test_settings_get.restype = c_uint
-def dsl_ode_trigger_track_test_settings_get(name):
+_dsl.dsl_ode_trigger_cross_test_settings_get.restype = c_uint
+def dsl_ode_trigger_cross_test_settings_get(name):
     global _dsl
     min_frame_count = c_uint(0) 
     max_trace_points = c_uint(0)
     test_method = c_uint(0)
-    result =_dsl.dsl_ode_trigger_track_test_settings_get(name, 
+    result =_dsl.dsl_ode_trigger_cross_test_settings_get(name, 
         DSL_UINT_P(min_frame_count), DSL_UINT_P(max_trace_points),
         DSL_UINT_P(test_method))
     return int(result), min_frame_count.value, max_trace_points.value, test_method.value
     
 ##
-## dsl_ode_trigger_track_test_settings_set()
+## dsl_ode_trigger_cross_test_settings_set()
 ##
-_dsl.dsl_ode_trigger_track_test_settings_set.argtypes = [c_wchar_p, 
+_dsl.dsl_ode_trigger_cross_test_settings_set.argtypes = [c_wchar_p, 
     c_uint, c_uint, c_uint]
-_dsl.dsl_ode_trigger_track_test_settings_set.restype = c_uint
-def dsl_ode_trigger_track_test_settings_set(name,
+_dsl.dsl_ode_trigger_cross_test_settings_set.restype = c_uint
+def dsl_ode_trigger_cross_test_settings_set(name,
         min_frame_count, max_trace_points, test_method):
     global _dsl
-    result =_dsl.dsl_ode_trigger_track_test_settings_set(name, 
+    result =_dsl.dsl_ode_trigger_cross_test_settings_set(name, 
         min_frame_count, max_trace_points, test_method)
     return int(result)
 
 ##
-## dsl_ode_trigger_track_view_settings_get()
+## dsl_ode_trigger_cross_view_settings_get()
 ##
-_dsl.dsl_ode_trigger_track_view_settings_get.argtypes = [c_wchar_p, 
+_dsl.dsl_ode_trigger_cross_view_settings_get.argtypes = [c_wchar_p, 
     POINTER(c_bool), POINTER(c_wchar_p), POINTER(c_uint)]
-_dsl.dsl_ode_trigger_track_view_settings_get.restype = c_uint
-def dsl_ode_trigger_track_view_settings_get(name):
+_dsl.dsl_ode_trigger_cross_view_settings_get.restype = c_uint
+def dsl_ode_trigger_cross_view_settings_get(name):
     global _dsl
     enabled = c_bool(0) 
     color = c_wchar_p(0)
     line_width = c_uint(0)
-    result =_dsl.dsl_ode_trigger_track_view_settings_get(name, 
+    result =_dsl.dsl_ode_trigger_cross_view_settings_get(name, 
         DSL_BOOL_P(enabled), DSL_WCHAR_P(color), DSL_UINT_P(line_width))
     return int(result), enabled.value, color.value, line_width.value
 
 ##
-## dsl_ode_trigger_track_view_settings_set()
+## dsl_ode_trigger_cross_view_settings_set()
 ##
-_dsl.dsl_ode_trigger_track_view_settings_set.argtypes = [c_wchar_p, 
+_dsl.dsl_ode_trigger_cross_view_settings_set.argtypes = [c_wchar_p, 
     c_bool, c_wchar_p, c_uint]
-_dsl.dsl_ode_trigger_track_view_settings_set.restype = c_uint
-def dsl_ode_trigger_track_view_settings_set(name, enabled, color, line_width):
+_dsl.dsl_ode_trigger_cross_view_settings_set.restype = c_uint
+def dsl_ode_trigger_cross_view_settings_set(name, enabled, color, line_width):
     global _dsl
-    result =_dsl.dsl_ode_trigger_track_view_settings_set(name, 
+    result =_dsl.dsl_ode_trigger_cross_view_settings_set(name, 
         enabled, color, line_width)
     return int(result) 
 
 ##
-## dsl_ode_trigger_track_persistence_new()
+## dsl_ode_trigger_persistence_new()
 ##
-_dsl.dsl_ode_trigger_track_persistence_new.argtypes = [c_wchar_p, 
+_dsl.dsl_ode_trigger_persistence_new.argtypes = [c_wchar_p, 
     c_wchar_p, c_uint, c_uint, c_uint, c_uint]
-_dsl.dsl_ode_trigger_track_persistence_new.restype = c_uint
-def dsl_ode_trigger_track_persistence_new(name, 
+_dsl.dsl_ode_trigger_persistence_new.restype = c_uint
+def dsl_ode_trigger_persistence_new(name, 
     source, class_id, limit, minimum, maximum):
     global _dsl
-    result =_dsl.dsl_ode_trigger_track_persistence_new(name, 
+    result =_dsl.dsl_ode_trigger_persistence_new(name, 
         source, class_id, limit, minimum, maximum)
     return int(result)
 
 ##
-## dsl_ode_trigger_track_persistence_range_get()
+## dsl_ode_trigger_persistence_range_get()
 ##
-_dsl.dsl_ode_trigger_track_persistence_range_get.argtypes = [c_wchar_p, 
+_dsl.dsl_ode_trigger_persistence_range_get.argtypes = [c_wchar_p, 
     POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_ode_trigger_track_persistence_range_get.restype = c_uint
-def dsl_ode_trigger_track_persistence_range_get(name):
+_dsl.dsl_ode_trigger_persistence_range_get.restype = c_uint
+def dsl_ode_trigger_persistence_range_get(name):
     global _dsl
     minimum = c_uint(0)
     maximum = c_uint(0)
-    result =_dsl.dsl_ode_trigger_track_persistence_range_get(name, 
+    result =_dsl.dsl_ode_trigger_persistence_range_get(name, 
         DSL_UINT_P(minimum), DSL_UINT_P(maximum))
     return int(result), minimum.value, maximum.value
 
 ##
-## dsl_ode_trigger_track_persistence_range_set()
+## dsl_ode_trigger_persistence_range_set()
 ##
-_dsl.dsl_ode_trigger_track_persistence_range_set.argtypes = [c_wchar_p, c_uint, c_uint]
-_dsl.dsl_ode_trigger_track_persistence_range_set.restype = c_uint
-def dsl_ode_trigger_track_persistence_range_set(name, minimum, maximum):
+_dsl.dsl_ode_trigger_persistence_range_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_persistence_range_set.restype = c_uint
+def dsl_ode_trigger_persistence_range_set(name, minimum, maximum):
     global _dsl
-    result =_dsl.dsl_ode_trigger_track_persistence_range_set(name, 
+    result =_dsl.dsl_ode_trigger_persistence_range_set(name, 
         minimum, maximum)
     return int(result)
 
@@ -1612,23 +1612,23 @@ def dsl_ode_trigger_largest_new(name, source, class_id, limit):
     return int(result)
 
 ##
-## dsl_ode_trigger_track_latest_new()
+## dsl_ode_trigger_latest_new()
 ##
-_dsl.dsl_ode_trigger_track_latest_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
-_dsl.dsl_ode_trigger_track_latest_new.restype = c_uint
-def dsl_ode_trigger_track_latest_new(name, source, class_id, limit):
+_dsl.dsl_ode_trigger_latest_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_latest_new.restype = c_uint
+def dsl_ode_trigger_latest_new(name, source, class_id, limit):
     global _dsl
-    result =_dsl.dsl_ode_trigger_track_latest_new(name, source, class_id, limit)
+    result =_dsl.dsl_ode_trigger_latest_new(name, source, class_id, limit)
     return int(result)
 
 ##
-## dsl_ode_trigger_track_earliest_new()
+## dsl_ode_trigger_earliest_new()
 ##
-_dsl.dsl_ode_trigger_track_earliest_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
-_dsl.dsl_ode_trigger_track_earliest_new.restype = c_uint
-def dsl_ode_trigger_track_earliest_new(name, source, class_id, limit):
+_dsl.dsl_ode_trigger_earliest_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_earliest_new.restype = c_uint
+def dsl_ode_trigger_earliest_new(name, source, class_id, limit):
     global _dsl
-    result =_dsl.dsl_ode_trigger_track_earliest_new(name, source, class_id, limit)
+    result =_dsl.dsl_ode_trigger_earliest_new(name, source, class_id, limit)
     return int(result)
 
 ##

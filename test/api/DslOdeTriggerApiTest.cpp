@@ -867,7 +867,7 @@ SCENARIO( "A new Latest Trigger can be created and deleted correctly",
 
         WHEN( "When the Trigger is created" )         
         {
-            REQUIRE( dsl_ode_trigger_track_latest_new(odeTriggerName.c_str(), 
+            REQUIRE( dsl_ode_trigger_latest_new(odeTriggerName.c_str(), 
                 NULL, class_id, limit) == DSL_RESULT_SUCCESS );
             
             THEN( "The Trigger can be deleted only once" ) 
@@ -881,12 +881,12 @@ SCENARIO( "A new Latest Trigger can be created and deleted correctly",
         }
         WHEN( "When the Trigger is created" )         
         {
-            REQUIRE( dsl_ode_trigger_track_latest_new(odeTriggerName.c_str(), 
+            REQUIRE( dsl_ode_trigger_latest_new(odeTriggerName.c_str(), 
                 NULL, class_id, limit) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Trigger with the same name fails to create" ) 
             {
-                REQUIRE( dsl_ode_trigger_track_latest_new(odeTriggerName.c_str(), 
+                REQUIRE( dsl_ode_trigger_latest_new(odeTriggerName.c_str(), 
                     NULL, class_id, limit) 
                     == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
                     
@@ -909,7 +909,7 @@ SCENARIO( "A new Earliest Trigger can be created and deleted correctly",
 
         WHEN( "When the Trigger is created" )         
         {
-            REQUIRE( dsl_ode_trigger_track_earliest_new(odeTriggerName.c_str(), 
+            REQUIRE( dsl_ode_trigger_earliest_new(odeTriggerName.c_str(), 
                 NULL, class_id, limit) == DSL_RESULT_SUCCESS );
             
             THEN( "The Trigger can be deleted only once" ) 
@@ -923,12 +923,12 @@ SCENARIO( "A new Earliest Trigger can be created and deleted correctly",
         }
         WHEN( "When the Trigger is created" )         
         {
-            REQUIRE( dsl_ode_trigger_track_earliest_new(odeTriggerName.c_str(), 
+            REQUIRE( dsl_ode_trigger_earliest_new(odeTriggerName.c_str(), 
                 NULL, class_id, limit) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Trigger with the same name fails to create" ) 
             {
-                REQUIRE( dsl_ode_trigger_track_earliest_new(odeTriggerName.c_str(), 
+                REQUIRE( dsl_ode_trigger_earliest_new(odeTriggerName.c_str(), 
                     NULL, class_id, limit) == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) 
@@ -952,7 +952,7 @@ SCENARIO( "A new Persistence Trigger can be created and deleted correctly",
 
         WHEN( "When the Trigger is created" )         
         {
-            REQUIRE( dsl_ode_trigger_track_persistence_new(odeTriggerName.c_str(), 
+            REQUIRE( dsl_ode_trigger_persistence_new(odeTriggerName.c_str(), 
                 NULL, class_id, limit, minimum, maximum) == DSL_RESULT_SUCCESS );
             
             THEN( "The Trigger can be deleted only once" ) 
@@ -966,12 +966,12 @@ SCENARIO( "A new Persistence Trigger can be created and deleted correctly",
         }
         WHEN( "When the Trigger is created" )         
         {
-            REQUIRE( dsl_ode_trigger_track_persistence_new(odeTriggerName.c_str(), 
+            REQUIRE( dsl_ode_trigger_persistence_new(odeTriggerName.c_str(), 
                 NULL, class_id, limit, minimum, maximum) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Trigger with the same name fails to create" ) 
             {
-                REQUIRE( dsl_ode_trigger_track_persistence_new(odeTriggerName.c_str(), 
+                REQUIRE( dsl_ode_trigger_persistence_new(odeTriggerName.c_str(), 
                     NULL, class_id, limit, minimum, maximum) == 
                     DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
                     
@@ -994,11 +994,11 @@ SCENARIO( "An ODE Persistence Trigger's minimum and maximum can be set/get",
         uint minimum(10);
         uint maximum(30);
 
-        REQUIRE( dsl_ode_trigger_track_persistence_new(odeTriggerName.c_str(), 
+        REQUIRE( dsl_ode_trigger_persistence_new(odeTriggerName.c_str(), 
             NULL, class_id, limit, minimum, maximum) == DSL_RESULT_SUCCESS );
 
         uint ret_minimum(1), ret_maximum(1);
-        REQUIRE( dsl_ode_trigger_track_persistence_range_get(odeTriggerName.c_str(), 
+        REQUIRE( dsl_ode_trigger_persistence_range_get(odeTriggerName.c_str(), 
             &ret_minimum, &ret_maximum) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_minimum == minimum );
         REQUIRE( ret_maximum == maximum );
@@ -1006,12 +1006,12 @@ SCENARIO( "An ODE Persistence Trigger's minimum and maximum can be set/get",
         WHEN( "When the Count Trigger's minimum and maximum are updated" )         
         {
             uint new_minimum(100), new_maximum(200);
-            REQUIRE( dsl_ode_trigger_track_persistence_range_set(odeTriggerName.c_str(), 
+            REQUIRE( dsl_ode_trigger_persistence_range_set(odeTriggerName.c_str(), 
                 new_minimum, new_maximum) == DSL_RESULT_SUCCESS );
             
             THEN( "The correct values are returned on get" ) 
             {
-                REQUIRE( dsl_ode_trigger_track_persistence_range_get(
+                REQUIRE( dsl_ode_trigger_persistence_range_get(
                     odeTriggerName.c_str(), &ret_minimum, &ret_maximum) == 
                     DSL_RESULT_SUCCESS );
                 REQUIRE( new_minimum == ret_minimum );
@@ -1024,13 +1024,13 @@ SCENARIO( "An ODE Persistence Trigger's minimum and maximum can be set/get",
         WHEN( "When the Count Trigger's maximum is set to 0" )         
         {
             uint new_minimum(100), new_maximum(0);
-            REQUIRE( dsl_ode_trigger_track_persistence_range_set(
+            REQUIRE( dsl_ode_trigger_persistence_range_set(
                 odeTriggerName.c_str(), new_minimum, new_maximum) == 
                 DSL_RESULT_SUCCESS );
             
             THEN( "The correct values are returned on get" ) 
             {
-                REQUIRE( dsl_ode_trigger_track_persistence_range_get(
+                REQUIRE( dsl_ode_trigger_persistence_range_get(
                     odeTriggerName.c_str(), &ret_minimum, &ret_maximum) == 
                     DSL_RESULT_SUCCESS );
                 REQUIRE( new_minimum == ret_minimum );
@@ -1137,7 +1137,7 @@ SCENARIO( "A new Cross Trigger can be created and deleted correctly", "[ode-trig
 
         WHEN( "When the Trigger is created" )         
         {
-            REQUIRE( dsl_ode_trigger_track_cross_new(odeTriggerName.c_str(), 
+            REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
                 NULL, 0, limit, min_frame_count, max_trace_points, 
                 DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
             
@@ -1152,13 +1152,13 @@ SCENARIO( "A new Cross Trigger can be created and deleted correctly", "[ode-trig
         }
         WHEN( "When the Trigger is created" )         
         {
-            REQUIRE( dsl_ode_trigger_track_cross_new(odeTriggerName.c_str(), 
+            REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
                 NULL, 0, limit, min_frame_count, max_trace_points,
                 DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Trigger with the same name fails to create" ) 
             {
-                REQUIRE( dsl_ode_trigger_track_cross_new(odeTriggerName.c_str(), 
+                REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
                     NULL, 0, limit, min_frame_count, max_trace_points,
                     DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) 
                         == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
@@ -1183,11 +1183,11 @@ SCENARIO( "A Cross Trigger can update its test settings correctly", "[ode-trigge
         uint ret_max_trace_points(0);
         uint ret_test_method(99);
 
-        REQUIRE( dsl_ode_trigger_track_cross_new(odeTriggerName.c_str(), 
+        REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
             NULL, 0, limit, min_frame_count, max_trace_points,
             DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_ode_trigger_track_test_settings_get(odeTriggerName.c_str(), 
+        REQUIRE( dsl_ode_trigger_cross_test_settings_get(odeTriggerName.c_str(), 
             &ret_min_frame_count, &ret_max_trace_points, &ret_test_method) 
                 == DSL_RESULT_SUCCESS );
         REQUIRE( ret_min_frame_count == min_frame_count );
@@ -1199,13 +1199,13 @@ SCENARIO( "A Cross Trigger can update its test settings correctly", "[ode-trigge
             uint new_min_frame_count(88);
             uint new_max_trace_points(99);
             
-            REQUIRE( dsl_ode_trigger_track_test_settings_set(odeTriggerName.c_str(), 
+            REQUIRE( dsl_ode_trigger_cross_test_settings_set(odeTriggerName.c_str(), 
                 new_min_frame_count, new_max_trace_points,
                 DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
                 
             THEN( "The correct value is returned on get" )
             {
-                REQUIRE( dsl_ode_trigger_track_test_settings_get(odeTriggerName.c_str(), 
+                REQUIRE( dsl_ode_trigger_cross_test_settings_get(odeTriggerName.c_str(), 
                     &ret_min_frame_count, &ret_max_trace_points, &ret_test_method) 
                         == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_min_frame_count == new_min_frame_count );
@@ -1232,11 +1232,11 @@ SCENARIO( "A Cross Trigger can update its view settings correctly", "[ode-trigge
         const wchar_t* c_ret_color;
         uint ret_line_width(99);
         
-        REQUIRE( dsl_ode_trigger_track_cross_new(odeTriggerName.c_str(), 
+        REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
             NULL, 0, limit, min_frame_count, max_trace_points,
             DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_ode_trigger_track_view_settings_get(odeTriggerName.c_str(), 
+        REQUIRE( dsl_ode_trigger_cross_view_settings_get(odeTriggerName.c_str(), 
             &ret_trace_view_enabled, &c_ret_color, &ret_line_width) == 
                 DSL_RESULT_SUCCESS );
             
@@ -1257,13 +1257,13 @@ SCENARIO( "A Cross Trigger can update its view settings correctly", "[ode-trigge
             boolean new_trace_view_enabled(true);
             uint new_line_width(10);
             
-            REQUIRE( dsl_ode_trigger_track_view_settings_set(odeTriggerName.c_str(), 
+            REQUIRE( dsl_ode_trigger_cross_view_settings_set(odeTriggerName.c_str(), 
                 new_trace_view_enabled, color_name.c_str(), new_line_width) == 
                     DSL_RESULT_SUCCESS );
                 
             THEN( "The correct value is returned on get" )
             {
-                REQUIRE( dsl_ode_trigger_track_view_settings_get(odeTriggerName.c_str(), 
+                REQUIRE( dsl_ode_trigger_cross_view_settings_get(odeTriggerName.c_str(), 
                     &ret_trace_view_enabled, &c_ret_color, &ret_line_width) == 
                         DSL_RESULT_SUCCESS );
                     
@@ -1293,7 +1293,7 @@ SCENARIO( "The Cross Trigger API checks all parameters correctly ", "[ode-trigge
             
             THEN( "The Trigger API fails on create-new" ) 
             {
-                REQUIRE( dsl_ode_trigger_track_cross_new(odeTriggerName.c_str(), 
+                REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
                     NULL, 0, limit, min_frame_count, max_trace_points, 
                     DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == 
                         DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID );
@@ -1306,7 +1306,7 @@ SCENARIO( "The Cross Trigger API checks all parameters correctly ", "[ode-trigge
             
             THEN( "The Trigger API fails on create-new" ) 
             {
-                REQUIRE( dsl_ode_trigger_track_cross_new(odeTriggerName.c_str(), 
+                REQUIRE( dsl_ode_trigger_cross_new(odeTriggerName.c_str(), 
                     NULL, 0, limit, min_frame_count, max_trace_points, 
                     DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS+1) == 
                         DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID );
@@ -1647,19 +1647,19 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
                 REQUIRE( dsl_ode_trigger_intersection_new(NULL, NULL, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_summation_new(NULL, NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_trigger_track_cross_new(NULL, NULL, 0, 0, 0, 0, 0) == 
+                REQUIRE( dsl_ode_trigger_cross_new(NULL, NULL, 0, 0, 0, 0, 0) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_track_view_settings_get(NULL, NULL, NULL, NULL) == 
+                REQUIRE( dsl_ode_trigger_cross_view_settings_get(NULL, NULL, NULL, NULL) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_track_view_settings_get(triggerName.c_str(), 
+                REQUIRE( dsl_ode_trigger_cross_view_settings_get(triggerName.c_str(), 
                     NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_track_view_settings_get(triggerName.c_str(), 
+                REQUIRE( dsl_ode_trigger_cross_view_settings_get(triggerName.c_str(), 
                     &enabled, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_track_view_settings_get(triggerName.c_str(), 
+                REQUIRE( dsl_ode_trigger_cross_view_settings_get(triggerName.c_str(), 
                     &enabled, &color, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_track_view_settings_set(NULL, 0, NULL, 0) == 
+                REQUIRE( dsl_ode_trigger_cross_view_settings_set(NULL, 0, NULL, 0) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_track_view_settings_set(triggerName.c_str(), 0, NULL, 0) == 
+                REQUIRE( dsl_ode_trigger_cross_view_settings_set(triggerName.c_str(), 0, NULL, 0) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_trigger_custom_new(NULL, NULL, 0, 0, NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
@@ -1679,9 +1679,9 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
                 REQUIRE( dsl_ode_trigger_smallest_new(NULL, NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_largest_new(NULL, NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_trigger_track_persistence_new(NULL, NULL, 0, 0, 1, 2) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_track_persistence_range_get(NULL, &minimum, &maximum)  == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_track_persistence_range_set(NULL, minimum, maximum)  == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_persistence_new(NULL, NULL, 0, 0, 1, 2) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_persistence_range_get(NULL, &minimum, &maximum)  == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_persistence_range_set(NULL, minimum, maximum)  == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_trigger_new_low_new(NULL, NULL, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_new_high_new(NULL, NULL, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );

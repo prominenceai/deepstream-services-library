@@ -137,7 +137,7 @@ def main(args):
 
         # New Occurrence Trigger, filtering on PERSON class_id, for our capture object action
         # with a limit of one which will be reset in the capture-complete callback
-        retval = dsl_ode_trigger_track_cross_new('person-crossing-line', 
+        retval = dsl_ode_trigger_cross_new('person-crossing-line', 
             source = DSL_ODE_ANY_SOURCE,
             class_id = PGIE_CLASS_ID_PERSON, 
             limit = DSL_ODE_TRIGGER_LIMIT_NONE,
@@ -153,7 +153,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_ode_trigger_track_view_settings_set('person-crossing-line',
+        retval = dsl_ode_trigger_cross_view_settings_set('person-crossing-line',
             enabled=True, color='light-green', line_width=4)
         if retval != DSL_RETURN_SUCCESS:
             break

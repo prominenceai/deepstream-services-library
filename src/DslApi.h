@@ -2400,7 +2400,7 @@ DslReturnType dsl_ode_trigger_distance_test_params_set(const wchar_t* name,
  * @param[in] test_method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_track_cross_new(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit, uint min_frame_count, 
     uint max_frame_count, uint test_method);
 
@@ -2418,7 +2418,7 @@ DslReturnType dsl_ode_trigger_track_cross_new(const wchar_t* name,
  * before triggering an ODE occurrence - in units of seconds. 0 = no maximum
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_track_persistence_new(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_persistence_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit, uint minimum, uint maximum);
 
 /**
@@ -2430,7 +2430,7 @@ DslReturnType dsl_ode_trigger_track_persistence_new(const wchar_t* name,
  * @param[out] maximum the maximum amount of time a unique object can remain detected 
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_track_persistence_range_get(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_persistence_range_get(const wchar_t* name, 
     uint* minimum, uint* maximum);
 
 /**
@@ -2442,7 +2442,7 @@ DslReturnType dsl_ode_trigger_track_persistence_range_get(const wchar_t* name,
  * @param[in] maximum the maximum amount of time a unique object can remain detected 
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_track_persistence_range_set(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_persistence_range_set(const wchar_t* name, 
     uint minimum, uint maximum);
     
 /**
@@ -2455,7 +2455,7 @@ DslReturnType dsl_ode_trigger_track_persistence_range_set(const wchar_t* name,
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_track_latest_new(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_latest_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit);
 
 /**
@@ -2468,11 +2468,11 @@ DslReturnType dsl_ode_trigger_track_latest_new(const wchar_t* name,
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_track_earliest_new(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_earliest_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit);
 
 /**
- * @brief Gets the current test settings for the named tracker trigger.
+ * @brief Gets the current test settings for the named cross trigger.
  * @param[in] name unique name for the ODE Trigger to query
  * @param[out] min_frame_count current setting for the minimum number of past 
  * consective frames on both sides of a line (line or polygon area) to trigger an ODE.
@@ -2481,11 +2481,11 @@ DslReturnType dsl_ode_trigger_track_earliest_new(const wchar_t* name,
  * @param[out] test_method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_track_test_settings_get(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_cross_test_settings_get(const wchar_t* name, 
     uint* min_frame_count, uint* max_trace_points, uint* test_method);
     
 /**
- * @brief Sets the max trace-points setting for the named tracker trigger.
+ * @brief Sets the max trace-points setting for the named cross trigger.
  * @param[in] name unique name for the ODE Trigger to update
  * @param[in] min_frame_count new setting for the minimum number of past 
  * consective frames on both sides of a line (line or polygon area) to trigger an ODE.
@@ -2494,29 +2494,29 @@ DslReturnType dsl_ode_trigger_track_test_settings_get(const wchar_t* name,
  * @param[in] test_method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
 * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_track_test_settings_set(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_cross_test_settings_set(const wchar_t* name, 
     uint min_frame_count, uint max_trace_points, uint test_method);
     
 /**
- * @brief Gets the current trace settings for the named tracker trigger.
+ * @brief Gets the current trace settings for the named cross trigger.
  * @param[in] name unique name for the ODE Trigger to query
  * @param[out] enabled true if object trace display is enabled, default = disabled 
  * @param[out] color name of the color to use for object trace display, default = no-color.
  * @param[out] line_width width of the object trace if display is enabled.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_track_view_settings_get(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_cross_view_settings_get(const wchar_t* name, 
     boolean* enabled, const wchar_t** color, uint* line_width);
     
 /**
- * @brief Sets the trace settings for the named tracker trigger.
+ * @brief Sets the trace settings for the named cross trigger.
  * @param[in] name unique name for the ODE Trigger to update
  * @param[in] enabled set to true to enable object trace display, false otherwise
  * @param[in] color name of the color to use for object trace display.
  * @param[in] line_width width of the object trace if display is enabled.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_track_view_settings_set(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_cross_view_settings_set(const wchar_t* name, 
     boolean enabled, const wchar_t* color, uint line_width);
     
 

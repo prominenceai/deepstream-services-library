@@ -210,7 +210,7 @@ def main(args):
 
         # Create a Persistence Trigger with 0 minimum and maximum criteria
         # which will trigger on every Vehicle that is tracked
-        retval = dsl_ode_trigger_track_persistence_new('persitence-trigger', 
+        retval = dsl_ode_trigger_persistence_new('persitence-trigger', 
             source = 'uri-source',
             class_id = PGIE_CLASS_ID_VEHICLE, 
             limit = DSL_ODE_TRIGGER_LIMIT_NONE, 
@@ -292,7 +292,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         
-        retval = dsl_ode_trigger_track_earliest_new('earliest-trigger', 
+        retval = dsl_ode_trigger_earliest_new('earliest-trigger', 
             source = 'uri-source',
             class_id = PGIE_CLASS_ID_VEHICLE, 
             limit = DSL_ODE_TRIGGER_LIMIT_NONE)
