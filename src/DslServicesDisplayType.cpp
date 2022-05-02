@@ -336,8 +336,7 @@ namespace DSL
             
             pColor->SetNext();
             
-            LOG_INFO("New RGBA Color On-Demand '" << name 
-                << "' created successfully");
+            LOG_INFO("Dynamic RGBA Color '" << name << "' set next successfully");
 
             return DSL_RESULT_SUCCESS;
         }
