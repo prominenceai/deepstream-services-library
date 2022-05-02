@@ -235,8 +235,7 @@ void* main_loop_thread_func(void *data)
     return NULL;
 }
 
-//int main(int argc, char** argv)
-int test()
+int main(int argc, char** argv)
 {  
     DslReturnType retval(DSL_RESULT_SUCCESS);
 
