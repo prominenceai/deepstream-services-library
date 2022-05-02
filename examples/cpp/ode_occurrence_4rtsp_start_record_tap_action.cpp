@@ -35,8 +35,6 @@ std::wstring src_url_3 = L"rtsp://user:pwd!@192.168.1.66:554/Streaming/Channels/
 std::wstring src_url_4 = L"rtsp://user:pwd!@192.168.1.67:554/Streaming/Channels/101";
 
    
-// These must be set to point to the location of these files on your network.  
-// Examples for your use can often be found in your Deepstream install, i.e. /opt/nvidia/deepstream/deepstream-6.0/samples
 // Filespecs for the Primary GIE    
 std::wstring primary_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");

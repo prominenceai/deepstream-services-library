@@ -608,7 +608,7 @@ static void color_provider_cb(double* red,
 }
     
 SCENARIO( "DisplayTypes with an On-Deman Color can be displayed by an ODE Action", 
-    "[now]" )
+    "[display-types-behavior]" )
 {
     GIVEN( "A Pipeline, ODE Handler, Always ODE Trigger, and Display Meta Action" ) 
     {
