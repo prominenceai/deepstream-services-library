@@ -63,11 +63,32 @@ namespace DSL {
         DslReturnType DisplayTypeRgbaColorNew(const char* name, 
             double red, double green, double blue, double alpha);
 
+        DslReturnType DisplayTypeRgbaColorPredefinedNew(const char* name, 
+            uint colorId, double alpha);
+
+        DslReturnType DisplayTypeRgbaColorPaletteNew(const char* name, 
+            const char** colors, uint num_colors);
+
+        DslReturnType DisplayTypeRgbaColorPaletteIndexGet(const char* name, 
+            uint* index);
+
+        DslReturnType DisplayTypeRgbaColorPaletteIndexSet(const char* name, 
+            uint index);
+
+        DslReturnType DisplayTypeRgbaColorRandomNew(const char* name, 
+            uint hue, uint luminosity, double alpha, uint seed);
+
+        DslReturnType DisplayTypeRgbaColorOnDemandNew(const char* name, 
+            dsl_display_type_rgba_color_provider_cb provider, void* clientData);
+
+        DslReturnType DisplayTypeRgbaColorNextSet(const char* name);
+            
         DslReturnType DisplayTypeRgbaFontNew(const char* name, const char* font,
             uint size, const char* color);
             
         DslReturnType DisplayTypeRgbaTextNew(const char* name, const char* text, 
-            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
+            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, 
+            const char* bgColor);
 
         DslReturnType DisplayTypeRgbaLineNew(const char* name, 
             uint x1, uint y1, uint x2, uint y2, uint width, const char* color);
@@ -277,22 +298,6 @@ namespace DSL {
         DslReturnType OdeTriggerAccumulationNew(const char* name, 
             const char* source, uint classId, uint limit);
 
-        DslReturnType OdeTriggerCrossNew(const char* name, 
-            const char* source, uint classId, uint limit, 
-            uint minFrameCount, uint maxTracePoints, uint testMethod);
-            
-        DslReturnType OdeTriggerCrossTestSettingsGet(const char* name, 
-            uint* minFrameCount, uint* maxTracePoints, uint* testMethod);
-            
-        DslReturnType OdeTriggerCrossTestSettingsSet(const char* name, 
-            uint minFrameCount, uint maxTracePoints, uint testMethod);
-            
-        DslReturnType OdeTriggerCrossViewSettingsGet(const char* name, 
-            boolean* enabled, const char** color, uint* lineWidth);
-            
-        DslReturnType OdeTriggerCrossViewSettingsSet(const char* name, 
-            boolean enabled, const char* color, uint lineWidth);
-        
         DslReturnType OdeTriggerInstanceNew(const char* name, 
             const char* source, uint classId, uint limit);
         
@@ -305,15 +310,6 @@ namespace DSL {
         DslReturnType OdeTriggerCustomNew(const char* name, const char* source, 
             uint classId, uint limit,  dsl_ode_check_for_occurrence_cb client_checker, 
             dsl_ode_post_process_frame_cb client_post_processor, void* client_data);
-
-        DslReturnType OdeTriggerPersistenceNew(const char* name, const char* source,
-            uint classId, uint limit, uint minimum, uint maximum);
-
-        DslReturnType OdeTriggerPersistenceRangeGet(const char* name, 
-            uint* minimum, uint* maximum);
-        
-        DslReturnType OdeTriggerPersistenceRangeSet(const char* name, 
-            uint minimum, uint maximum);
 
         DslReturnType OdeTriggerCountNew(const char* name, const char* source, 
             uint classId, uint limit, uint minimum, uint maximum);
@@ -346,18 +342,43 @@ namespace DSL {
         DslReturnType OdeTriggerLargestNew(const char* name, 
             const char* source, uint classId, uint limit);
 
-        DslReturnType OdeTriggerLatestNew(const char* name, 
-            const char* source, uint classId, uint limit);
-
-        DslReturnType OdeTriggerEarliestNew(const char* name, 
-            const char* source, uint classId, uint limit);
+        DslReturnType OdeTriggerNewLowNew(const char* name, 
+            const char* source, uint classId, uint limit, uint preset);
 
         DslReturnType OdeTriggerNewHighNew(const char* name, 
             const char* source, uint classId, uint limit, uint preset);
 
-        DslReturnType OdeTriggerNewLowNew(const char* name, 
-            const char* source, uint classId, uint limit, uint preset);
+        DslReturnType OdeTriggerCrossNew(const char* name, 
+            const char* source, uint classId, uint limit, 
+            uint minFrameCount, uint maxFrameCount, uint testMethod);
+            
+        DslReturnType OdeTriggerPersistenceNew(const char* name, 
+            const char* source, uint classId, uint limit, uint minimum, uint maximum);
 
+        DslReturnType OdeTriggerPersistenceRangeGet(const char* name, 
+            uint* minimum, uint* maximum);
+        
+        DslReturnType OdeTriggerPersistenceRangeSet(const char* name, 
+            uint minimum, uint maximum);
+
+        DslReturnType OdeTriggerEarliestNew(const char* name, 
+            const char* source, uint classId, uint limit);
+            
+        DslReturnType OdeTriggerLatestNew(const char* name, 
+            const char* source, uint classId, uint limit);
+            
+        DslReturnType OdeTriggerCrossTestSettingsGet(const char* name, 
+            uint* minFrameCount, uint* maxFrameCount, uint* testMethod);
+            
+        DslReturnType OdeTriggerCrossTestSettingsSet(const char* name, 
+            uint minFrameCount, uint maxFrameCount, uint testMethod);
+            
+        DslReturnType OdeTriggerCrossViewSettingsGet(const char* name, 
+            boolean* enabled, const char** color, uint* lineWidth);
+            
+        DslReturnType OdeTriggerCrossViewSettingsSet(const char* name, 
+            boolean enabled, const char* color, uint lineWidth);
+        
         DslReturnType OdeTriggerReset(const char* name);
 
         DslReturnType OdeTriggerResetTimeoutGet(const char* name, uint* timeout);

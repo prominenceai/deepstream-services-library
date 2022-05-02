@@ -454,7 +454,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Triggers, eac
         uint textOffsetX(10);
         uint textOffsetY(20);
         
-        REQUIRE( dsl_display_type_rgba_color_new(full_black.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(full_black.c_str(), 
             0.0, 0.0, 0.0, 1.0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_rgba_font_new(font_name.c_str(), font.c_str(),
@@ -566,7 +566,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four ODE Accumulation Triggers wi
         uint textOffsetX(10);
         uint textOffsetY(20);
 
-        REQUIRE( dsl_display_type_rgba_color_new(full_black.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(full_black.c_str(), 
             0.0, 0.0, 0.0, 1.0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_rgba_font_new(font_name.c_str(), font.c_str(),
@@ -682,16 +682,16 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
         std::wstring printActionName(L"print-action");
         std::wstring fillActionName(L"fill-action");
         
-        REQUIRE( dsl_display_type_rgba_color_new(light_red.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(light_red.c_str(), 
             0.2, 0.0, 0.0, 0.5) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_color_new(full_white.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(full_white.c_str(), 
             1.0, 1.0, 1.0, 1.0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_color_new(light_white.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(light_white.c_str(), 
             1.0, 1.0, 1.0, 0.25) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_color_new(full_black.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(full_black.c_str(), 
             1.0, 1.0, 1.0, 1.0) == DSL_RESULT_SUCCESS );
 
         std::wstring font(L"arial");
@@ -969,7 +969,7 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Line Area 
         REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), 
             ode_pph_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_rgba_line_new(line_name.c_str(), 
@@ -1069,7 +1069,7 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Inclussion
         REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), 
             ode_pph_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_color_new(opaqueWhite.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(opaqueWhite.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), 
@@ -1171,7 +1171,7 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Exclusion 
         REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), 
             ode_pph_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_color_new(opaqueWhite.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(opaqueWhite.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), 
@@ -1249,10 +1249,10 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Forma
         
         boolean has_bg_color(true);
         
-        REQUIRE( dsl_display_type_rgba_color_new(border_color_name.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(border_color_name.c_str(), 
             0.12, 0.34, 0.56, 0.78) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_color_new(bg_color_name.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(bg_color_name.c_str(), 
             0.78, 0.56, 0.34, 0.43) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
@@ -1336,10 +1336,10 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Forma
         
         boolean has_bg_color(true);
         
-        REQUIRE( dsl_display_type_rgba_color_new(font_color_name.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(font_color_name.c_str(), 
             redFont, greenFont, blueFont, alphaFont) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_color_new(font_bg_color_name.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(font_bg_color_name.c_str(), 
             redBgColor, greenBgColor, blueBgColor, alphaBgColor) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_display_type_rgba_font_new(font_name.c_str(), 
@@ -1524,10 +1524,10 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can p
         REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), 
             ode_pph_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_color_new(white.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(white.c_str(), 
             1.0, 1.0, 1.0, 1.0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_color_new(green.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(green.c_str(), 
             0.5, 1.0, 0.5, 0.5) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_rgba_line_new(line_name.c_str(), 
@@ -1639,10 +1639,10 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Multi-Line Area
         REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), 
             ode_pph_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_color_new(white.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(white.c_str(), 
             1.0, 1.0, 1.0, 0.7) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_color_new(red.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(red.c_str(), 
             1.0, 0.0, 0.5, 1.0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_rgba_line_multi_new(multi_line_name.c_str(), 
@@ -1726,6 +1726,7 @@ SCENARIO( "A new Pipeline with a Cross ODE Trigger using an ODE Polygon Area can
 
         std::wstring white(L"solid-white");
         std::wstring green(L"solid-green");
+        std::wstring random_color(L"random-color");
         
         std::wstring area_name  = L"multi-line-area";
 
@@ -1746,16 +1747,20 @@ SCENARIO( "A new Pipeline with a Cross ODE Trigger using an ODE Polygon Area can
         
         REQUIRE( dsl_pph_ode_new(ode_pph_name.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_display_meta_alloc_size_set(
-            ode_pph_name.c_str(), 3) == DSL_RESULT_SUCCESS );
+            ode_pph_name.c_str(), 2) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), 
             ode_pph_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_color_new(white.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(white.c_str(), 
             1.0, 1.0, 1.0, 1.0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_color_new(green.c_str(), 
+        REQUIRE( dsl_display_type_rgba_color_custom_new(green.c_str(), 
             0.5, 1.0, 0.5, 0.5) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_random_new(random_color.c_str(), 
+            DSL_COLOR_HUE_RANDOM, DSL_COLOR_LUMINOSITY_BRIGHT, 
+            1.0, 123) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_rgba_polygon_new(polygon.c_str(), 
             coordinates, num_coordinates, line_width, white.c_str()) == DSL_RESULT_SUCCESS );
@@ -1771,7 +1776,7 @@ SCENARIO( "A new Pipeline with a Cross ODE Trigger using an ODE Polygon Area can
             0.40) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_ode_trigger_cross_view_settings_set(person_cross_name.c_str(),
-            true, green.c_str(), 4) == DSL_RESULT_SUCCESS );
+            true, random_color.c_str(), 4) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_area_add(person_cross_name.c_str(), 
             area_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -1786,7 +1791,7 @@ SCENARIO( "A new Pipeline with a Cross ODE Trigger using an ODE Polygon Area can
             person_cross_name.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_osd_new(osd_name.c_str(), false, false,
-            false, false) == DSL_RESULT_SUCCESS );
+            true, false) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );

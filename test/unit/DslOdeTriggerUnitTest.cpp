@@ -2174,9 +2174,14 @@ SCENARIO( "A PersistenceOdeTrigger adds/updates tracked objects correctly", "[Od
 
         std::string odeActionName("event-action");
 
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), 
+            red, green, blue, alpha);
+
         DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_PERSISTENCE_NEW(odeTriggerName.c_str(), 
-                source.c_str(), classId, limit, minimum, maximum);
+                source.c_str(), classId, limit, minimum, maximum, pColor);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -2249,9 +2254,14 @@ SCENARIO( "A PersistenceOdeTrigger purges tracked objects correctly", "[OdeTrigg
 
         std::string odeActionName("event-action");
 
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), 
+            red, green, blue, alpha);
+
         DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_PERSISTENCE_NEW(odeTriggerName.c_str(), 
-                source.c_str(), classId, limit, minimum, maximum);
+                source.c_str(), classId, limit, minimum, maximum, pColor);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -2308,9 +2318,14 @@ SCENARIO( "A PersistenceOdeTrigger Post Processes ODE Occurrences correctly", "[
 
         std::string odeActionName("event-action");
 
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), 
+            red, green, blue, alpha);
+
         DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_PERSISTENCE_NEW(odeTriggerName.c_str(), 
-                source.c_str(), classId, limit, minimum, maximum);
+                source.c_str(), classId, limit, minimum, maximum, pColor);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -2421,9 +2436,14 @@ SCENARIO( "A LatestOdeTrigger adds/updates tracked objects correctly", "[OdeTrig
 
         std::string odeActionName("event-action");
 
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), 
+            red, green, blue, alpha);
+
         DSL_ODE_TRIGGER_LATEST_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_LATEST_NEW(odeTriggerName.c_str(), 
-                source.c_str(), classId, limit);
+                source.c_str(), classId, limit, pColor);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -2494,9 +2514,14 @@ SCENARIO( "A LatestOdeTrigger purges tracked objects correctly", "[OdeTrigger]" 
 
         std::string odeActionName("event-action");
 
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), 
+            red, green, blue, alpha);
+
         DSL_ODE_TRIGGER_LATEST_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_LATEST_NEW(odeTriggerName.c_str(), 
-                source.c_str(), classId, limit);
+                source.c_str(), classId, limit, pColor);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -2551,9 +2576,14 @@ SCENARIO( "A LatestOdeTrigger Post Processes ODE Occurrences correctly", "[OdeTr
 
         std::string odeActionName("event-action");
 
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), 
+            red, green, blue, alpha);
+
         DSL_ODE_TRIGGER_LATEST_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_LATEST_NEW(odeTriggerName.c_str(), 
-                source.c_str(), classId, limit);
+                source.c_str(), classId, limit, pColor);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -2678,9 +2708,14 @@ SCENARIO( "A EarliestOdeTrigger adds/updates tracked objects correctly", "[OdeTr
 
         std::string odeActionName("event-action");
 
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), 
+            red, green, blue, alpha);
+
         DSL_ODE_TRIGGER_EARLIEST_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_EARLIEST_NEW(odeTriggerName.c_str(), 
-                source.c_str(), classId, limit);
+                source.c_str(), classId, limit, pColor);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -2745,9 +2780,14 @@ SCENARIO( "A EarliestOdeTrigger purges tracked objects correctly", "[OdeTrigger]
 
         std::string odeActionName("event-action");
 
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), 
+            red, green, blue, alpha);
+
         DSL_ODE_TRIGGER_EARLIEST_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_EARLIEST_NEW(odeTriggerName.c_str(), 
-                source.c_str(), classId, limit);
+                source.c_str(), classId, limit, pColor);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -2798,9 +2838,14 @@ SCENARIO( "A EarliestOdeTrigger Post Processes ODE Occurrences correctly", "[Ode
 
         std::string odeActionName("event-action");
 
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), 
+            red, green, blue, alpha);
+
         DSL_ODE_TRIGGER_LATEST_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_LATEST_NEW(odeTriggerName.c_str(), 
-                source.c_str(), classId, limit);
+                source.c_str(), classId, limit, pColor);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);

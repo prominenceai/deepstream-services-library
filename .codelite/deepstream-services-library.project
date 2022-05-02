@@ -6,7 +6,6 @@
     <File Name="../src/DslApi.cpp"/>
     <File Name="../src/DslBranchBintr.cpp"/>
     <File Name="../src/DslDewarperBintr.cpp"/>
-    <File Name="../src/DslDisplayTypes.cpp"/>
     <File Name="../src/DslGeosTypes.cpp"/>
     <File Name="../src/DslInferBintr.cpp"/>
     <File Name="../src/DslMailer.cpp"/>
@@ -95,6 +94,7 @@
     <File Name="../src/DslServicesInfo.cpp"/>
     <File Name="../src/DslOdeTrackedObject.h"/>
     <File Name="../src/DslOdeTrackedObject.cpp"/>
+    <File Name="../src/DslDisplayTypes.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="api">
@@ -334,4 +334,8 @@
       </Completion>
     </Configuration>
   </Settings>
+  <VirtualDirectory Name="thirdparty">
+    <File Name="../src/thirdparty/randomcolor.cpp"/>
+    <File Name="../src/thirdparty/randomcolor.h"/>
+  </VirtualDirectory>
 </CodeLite_Project>

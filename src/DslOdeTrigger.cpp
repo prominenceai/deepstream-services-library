@@ -953,256 +953,7 @@ namespace DSL
         return m_accumulativeOccurrences;
     }
 
-    // *****************************************************************************
     
-    TrackingOdeTrigger::TrackingOdeTrigger(const char* name, const char* source, 
-        uint classId, uint limit, uint maxTracePoints)
-        : OdeTrigger(name, source, classId, limit)
-    {
-        LOG_FUNC();
-        
-        m_pTrackedObjectsPerSource = std::shared_ptr<TrackedObjects>(
-            new TrackedObjects(maxTracePoints));
-    }
-
-    TrackingOdeTrigger::~TrackingOdeTrigger()
-    {
-        LOG_FUNC();
-    }
-
-    void TrackingOdeTrigger::Reset()
-    {
-        LOG_FUNC();
-        {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-            
-            m_pTrackedObjectsPerSource->Clear();
-        }        
-        // call the base class to complete the Reset
-        OdeTrigger::Reset();
-    }
-    
-
-    // *****************************************************************************
-    
-    CrossOdeTrigger::CrossOdeTrigger(const char* name, const char* source, 
-        uint classId, uint limit, uint minFrameCount, uint maxTracePoints, 
-        uint testMethod, DSL_RGBA_COLOR_PTR pColor)
-        : TrackingOdeTrigger(name, source, classId, limit, maxTracePoints)
-        , m_minFrameCount(minFrameCount)
-        , m_maxTracePoints(maxTracePoints)
-        , m_traceEnabled(false)
-        , m_testMethod(testMethod)
-        , m_pTraceColor(pColor)
-        , m_traceLineWidth(0)
-    {
-        LOG_FUNC();
-    }
-
-    CrossOdeTrigger::~CrossOdeTrigger()
-    {
-        LOG_FUNC();
-    }
-
-    bool CrossOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, 
-        std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        if (!m_pOdeAreasIndexed.size())
-        {
-            LOG_ERROR("At least one OdeArea is required for CrossOdeTrigger '" 
-                << GetName() << "'");
-            return false;
-        }
-
-        // Check for minimum criteria - but not for within an Area. 
-        if (!CheckForSourceId(pFrameMeta->source_id) or 
-            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
-        {
-            return false;
-        }
-
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
-        // if this is the first occurrence of any object for this source
-        if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
-            pObjectMeta->object_id))
-        {
-            // Create a new Tracked object and return without occurence
-            m_pTrackedObjectsPerSource->Track(pFrameMeta, pObjectMeta);
-            return false;
-        }
-
-        // Else, get the tracked object and update with current frame meta
-        std::shared_ptr<TrackedObject> pTrackedObject = 
-            m_pTrackedObjectsPerSource->GetObject(pFrameMeta->source_id,
-                pObjectMeta->object_id);
-                
-        pTrackedObject->Update(pFrameMeta->frame_num, &pObjectMeta->rect_params);
-            
-        // Iterate through the map of 1 or more Areas to test for line cross
-        for (const auto &imap: m_pOdeAreasIndexed)
-        {
-            DSL_ODE_AREA_PTR pOdeArea = 
-                std::dynamic_pointer_cast<OdeArea>(imap.second);
-                
-            uint testPoint = pOdeArea->GetBboxTestPoint();
-                
-            // get the first and last test-points to see if minimum requirments
-            // have been met to keep testing/tracking the current object.
-    
-            dsl_coordinate firstCoordinate = 
-                pTrackedObject->GetFirstCoordinate(testPoint);
-            dsl_coordinate lastCoordinate = 
-                pTrackedObject->GetLastCoordinate(testPoint);
-            
-            // purge tracked objects that start on the line, as well as
-            // objects on the line with less than the minimim frame count
-            if (pOdeArea->IsPointOnLine(firstCoordinate) or
-                (pOdeArea->IsPointOnLine(lastCoordinate) and
-                    pTrackedObject->preEventFrameCount < m_minFrameCount))
-            {
-                LOG_DEBUG("Online without sufficient pre-count " 
-                    <<  pTrackedObject->preEventFrameCount << " - purging");
-                    
-                m_pTrackedObjectsPerSource->DeleteObject(pFrameMeta->source_id,
-                    pObjectMeta->object_id);
-                return false;
-            }
-            
-            // Get the trace vector for the testpoint defined for this Area
-            std::shared_ptr<std::vector<dsl_coordinate>> pTrace = 
-                pTrackedObject->GetTrace(testPoint, m_testMethod);
-
-            if (m_traceEnabled)
-            {
-                // Create a RGBA multi-line from the trace vector and 
-                // trace-view settings.
-                DSL_RGBA_MULTI_LINE_PTR pMultiLine = DSL_RGBA_MULTI_LINE_NEW(
-                    GetName().c_str(), pTrace->data(), pTrace->size(), 
-                    m_traceLineWidth, m_pTraceColor);
-                    
-                // Add the multi-line's meta to the Frame's display-meta
-                pMultiLine->AddMeta(displayMetaData, pFrameMeta);
-            }
-            
-            uint direction;
-
-            // Check of the trace has crossed the area
-            if (pOdeArea->DoesTraceCrossLine(pTrace->data(), 
-                pTrace->size(), direction))
-            {
-                // If we've crosed before reaching the minimum frame count
-                if (pTrackedObject->preEventFrameCount < m_minFrameCount)
-                {
-                    LOG_DEBUG("Crossed line without sufficient pre-count - purging");
-                    
-                    // delete the object - will be retracked in the next frame.
-                    m_pTrackedObjectsPerSource->DeleteObject(pFrameMeta->source_id,
-                        pObjectMeta->object_id);
-                    return false;
-                }
-                if (++pTrackedObject->onEventFrameCount < m_minFrameCount)
-                {
-                    return false;
-                }
-                
-                // event has been triggered
-                IncrementAndCheckTriggerCount();
-                m_occurrences++;
-
-                // update the total event count static variable
-                s_eventCount++;
-
-                // add the persistence value to the array of misc_obj_info
-                // at both the Primary and Persistence specific indecies.
-                pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_DIRECTION] = 
-                pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = 
-                    direction;
-
-                pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] = 
-                    (uint64_t)(pTrackedObject->GetDurationMs());
-                    
-                for (const auto &imap: m_pOdeActionsIndexed)
-                {
-                    DSL_ODE_ACTION_PTR pOdeAction = 
-                        std::dynamic_pointer_cast<OdeAction>(imap.second);
-                    pOdeAction->HandleOccurrence(shared_from_this(), 
-                        pBuffer, displayMetaData, pFrameMeta, pObjectMeta);
-                }
-
-                // Once triggered, delete the tracked object.
-                m_pTrackedObjectsPerSource->DeleteObject(pFrameMeta->source_id,
-                    pObjectMeta->object_id);
-                    
-                return true;
-            }
-        }
-        // No trigger, so update the per-event counter
-        pTrackedObject->preEventFrameCount++;
-        return false;
-    }
-
-    uint CrossOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
-        std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
-    {
-        // Filter on skip-frame interval
-        if (m_skipFrame)
-        {
-            return false;
-        }
-        if (m_pTrackedObjectsPerSource->IsEmpty())
-        {
-            return 0;
-        }
-        // purge all tracked objects, for all sources that are not in the current frame.
-        m_pTrackedObjectsPerSource->Purge(pFrameMeta->frame_num);
-        return m_occurrences;
-    }
-    
-    void CrossOdeTrigger::GetTestSettings(uint* minFrameCount, 
-        uint* maxTracePoints, uint* testMethod)
-    {
-        LOG_FUNC();
-
-        *minFrameCount = m_minFrameCount;
-        *maxTracePoints = m_maxTracePoints;
-        *testMethod = m_testMethod;
-    }
-    
-    void CrossOdeTrigger::SetTestSettings(uint minFrameCount,
-        uint maxTracePoints, uint testMethod)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
-        m_minFrameCount = minFrameCount;
-        m_maxTracePoints = maxTracePoints;
-        m_testMethod = testMethod;
-        m_pTrackedObjectsPerSource->SetMaxHistory(m_maxTracePoints);
-    }
-    
-    void CrossOdeTrigger::GetViewSettings(bool* enabled, 
-        const char** color, uint* lineWidth)
-    {
-        LOG_FUNC();
-
-        *enabled = m_traceEnabled;
-        *color = m_pTraceColor->GetName().c_str();
-        *lineWidth = m_traceLineWidth;
-    }
-    
-    void CrossOdeTrigger::SetViewSettings(bool enabled, 
-        DSL_RGBA_COLOR_PTR pColor, uint lineWidth)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_traceEnabled = enabled;
-        m_pTraceColor = pColor;
-        m_traceLineWidth = lineWidth;
-    }        
-   
     // *****************************************************************************
 
     InstanceOdeTrigger::InstanceOdeTrigger(const char* name, 
@@ -1440,112 +1191,6 @@ namespace DSL
 
     // *****************************************************************************
     
-    PersistenceOdeTrigger::PersistenceOdeTrigger(const char* name, const char* source, 
-        uint classId, uint limit, uint minimum, uint maximum)
-        : TrackingOdeTrigger(name, source, classId, limit, 0)
-        , m_minimumMs(minimum*1000.0)
-        , m_maximumMs(maximum*1000.0)
-    {
-        LOG_FUNC();
-    }
-
-    PersistenceOdeTrigger::~PersistenceOdeTrigger()
-    {
-        LOG_FUNC();
-    }
-
-    void PersistenceOdeTrigger::GetRange(uint* minimum, uint* maximum)
-    {
-        LOG_FUNC();
-        
-        *minimum = m_minimumMs/1000;
-        *maximum = m_maximumMs/1000;
-    }
-
-    void PersistenceOdeTrigger::SetRange(uint minimum, uint maximum)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_minimumMs = minimum*1000.0;
-        m_maximumMs = maximum*1000.0;
-    }
-    
-    bool PersistenceOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, 
-        std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        if (!CheckForSourceId(pFrameMeta->source_id) or 
-            !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
-            !CheckForInside(pObjectMeta))
-        {
-            return false;
-        }
-
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
-        // if this is the first occurrence of any object for this source
-        if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
-            pObjectMeta->object_id))
-        {
-            m_pTrackedObjectsPerSource->Track(pFrameMeta, pObjectMeta);
-        }
-        else
-        {
-            std::shared_ptr<TrackedObject> pTrackedObject = 
-                m_pTrackedObjectsPerSource->GetObject(pFrameMeta->source_id,
-                    pObjectMeta->object_id);
-                    
-            pTrackedObject->Update(pFrameMeta->frame_num, &pObjectMeta->rect_params);
-
-            double trackedTimeMs = pTrackedObject->GetDurationMs();
-            
-            LOG_DEBUG("Persistence for tracked object with id = " 
-                << pObjectMeta->object_id << " for source = " 
-                << pFrameMeta->source_id << ", = " << trackedTimeMs << " ms");
-            
-            // if the object's tracked time is within range. 
-            if (trackedTimeMs >= m_minimumMs and trackedTimeMs <= m_maximumMs)
-            {
-                // event has been triggered
-                IncrementAndCheckTriggerCount();
-                m_occurrences++;
-
-                // update the total event count static variable
-                s_eventCount++;
-    
-                // add the persistence value to the array of misc_obj_info
-                // at both the Primary and Persistence specific indecies.
-                pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] = 
-                pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = 
-                    (uint64_t)(trackedTimeMs/1000);
-                    
-                for (const auto &imap: m_pOdeActionsIndexed)
-                {
-                    DSL_ODE_ACTION_PTR pOdeAction = 
-                        std::dynamic_pointer_cast<OdeAction>(imap.second);
-                    pOdeAction->HandleOccurrence(shared_from_this(), 
-                        pBuffer, displayMetaData, pFrameMeta, pObjectMeta);
-                }
-            }
-        }
-        return true;
-    }
-
-    uint PersistenceOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
-        std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
-    {
-        if (m_pTrackedObjectsPerSource->IsEmpty())
-        {
-            return 0;
-        }
-        // purge all tracked objects, for all sources that are not in the current frame.
-        m_pTrackedObjectsPerSource->Purge(pFrameMeta->frame_num);
-        return m_occurrences;
-    }
-
-    // *****************************************************************************
-    
     CountOdeTrigger::CountOdeTrigger(const char* name, const char* source,
         uint classId, uint limit, uint minimum, uint maximum)
         : OdeTrigger(name, source, classId, limit)
@@ -1773,199 +1418,6 @@ namespace DSL
 
     // *****************************************************************************
     
-    LatestOdeTrigger::LatestOdeTrigger(const char* name, const char* source, 
-        uint classId, uint limit)
-        : TrackingOdeTrigger(name, source, classId, limit, 0)
-        , m_pLatestObjectMeta(NULL)
-        , m_latestTrackedTimeMs(0)
-    {
-        LOG_FUNC();
-    }
-
-    LatestOdeTrigger::~LatestOdeTrigger()
-    {
-        LOG_FUNC();
-    }
-
-    bool LatestOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, 
-        std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        if (!CheckForSourceId(pFrameMeta->source_id) or 
-            !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForInside(pObjectMeta))
-        {
-            return false;
-        }
-
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        // if this is the first occurrence of any object for this source
-        if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
-            pObjectMeta->object_id))
-        {
-            m_pTrackedObjectsPerSource->Track(pFrameMeta, pObjectMeta);
-        }
-        else
-        {
-            std::shared_ptr<TrackedObject> pTrackedObject = 
-                m_pTrackedObjectsPerSource->GetObject(pFrameMeta->source_id,
-                    pObjectMeta->object_id);
-                    
-            pTrackedObject->Update(pFrameMeta->frame_num, &pObjectMeta->rect_params);
-
-            double trackedTimeMs = pTrackedObject->GetDurationMs();
-            
-            if ((m_pLatestObjectMeta == NULL) or (trackedTimeMs < m_latestTrackedTimeMs))
-            {
-                m_pLatestObjectMeta = pObjectMeta;
-                m_latestTrackedTimeMs = trackedTimeMs;
-            }
-        }
-        return true;
-    }
-    
-    uint LatestOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
-        std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
-    {
-        if (m_pTrackedObjectsPerSource->IsEmpty())
-        {
-            return 0;
-        }
-        
-        // If we a Newest Object ODE 
-        if (m_pLatestObjectMeta != NULL)
-        {
-            // event has been triggered
-            IncrementAndCheckTriggerCount();
-            m_occurrences++;
-
-            // update the total event count static variable
-            s_eventCount++;
-            
-            // add the persistence value to the array of misc_obj_info
-            // as both the Primary and Persistence specific indecies.
-            m_pLatestObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] = 
-            m_pLatestObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = 
-                (uint64_t)(m_latestTrackedTimeMs/1000);
-
-            for (const auto &imap: m_pOdeActionsIndexed)
-            {
-                DSL_ODE_ACTION_PTR pOdeAction = 
-                    std::dynamic_pointer_cast<OdeAction>(imap.second);
-                pOdeAction->HandleOccurrence(shared_from_this(), 
-                    pBuffer, displayMetaData, pFrameMeta, m_pLatestObjectMeta);
-            }
-        
-            // clear the Newest Object data for the next frame 
-            m_pLatestObjectMeta = NULL;
-            m_latestTrackedTimeMs = 0;
-        }
-        
-        // purge all tracked objects, for all sources that are not in the current frame.
-        m_pTrackedObjectsPerSource->Purge(pFrameMeta->frame_num);
-        
-        return (m_occurrences > 0);
-    }
-
-    // *****************************************************************************
-    
-    EarliestOdeTrigger::EarliestOdeTrigger(const char* name, const char* source, 
-        uint classId, uint limit)
-        : TrackingOdeTrigger(name, source, classId, limit, 0)
-        , m_pEarliestObjectMeta(NULL)
-        , m_earliestTrackedTimeMs(0)
-    {
-        LOG_FUNC();
-    }
-
-    EarliestOdeTrigger::~EarliestOdeTrigger()
-    {
-        LOG_FUNC();
-    }
-
-    bool EarliestOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, 
-        std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        if (!CheckForSourceId(pFrameMeta->source_id) or 
-            !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
-            !CheckForInside(pObjectMeta))
-        {
-            return false;
-        }
-
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        // if this is the first occurrence of any object for this source
-        if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
-            pObjectMeta->object_id)) 
-        {
-            m_pTrackedObjectsPerSource->Track(pFrameMeta, pObjectMeta);
-        }
-        else
-        {
-            std::shared_ptr<TrackedObject> pTrackedObject = 
-                m_pTrackedObjectsPerSource->GetObject(pFrameMeta->source_id,
-                    pObjectMeta->object_id);
-                    
-            pTrackedObject->Update(pFrameMeta->frame_num, &pObjectMeta->rect_params);
-
-            double trackedTimeMs = pTrackedObject->GetDurationMs();
-                
-            if ((m_pEarliestObjectMeta == NULL) or 
-                (trackedTimeMs > m_earliestTrackedTimeMs))
-            {
-                m_pEarliestObjectMeta = pObjectMeta;
-                m_earliestTrackedTimeMs = trackedTimeMs;
-                
-            }
-        }
-        return true;
-    }
-    
-    uint EarliestOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
-        std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
-    {
-        if (m_pTrackedObjectsPerSource->IsEmpty())
-        {
-            return 0;
-        }
-        
-        if (m_pEarliestObjectMeta != NULL)
-        {
-            // event has been triggered
-            IncrementAndCheckTriggerCount();
-            m_occurrences++;
-
-            // update the total event count static variable
-            s_eventCount++;
-
-            // add the persistence value to the array of misc_obj_info
-            // as both the Primary and Persistence specific indecies.
-            m_pEarliestObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] = 
-            m_pEarliestObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = 
-                (uint64_t)(m_earliestTrackedTimeMs/1000);
-
-            for (const auto &imap: m_pOdeActionsIndexed)
-            {
-                DSL_ODE_ACTION_PTR pOdeAction = 
-                    std::dynamic_pointer_cast<OdeAction>(imap.second);
-                pOdeAction->HandleOccurrence(shared_from_this(), 
-                    pBuffer, displayMetaData, pFrameMeta, m_pEarliestObjectMeta);
-            }
-        
-            // clear the Earliest Object data for the next frame 
-            m_pEarliestObjectMeta = NULL;
-            m_earliestTrackedTimeMs = 0;
-        }
-        
-        // purge all tracked objects, for all sources that are not in the current frame.
-        m_pTrackedObjectsPerSource->Purge(pFrameMeta->frame_num);
-        return (m_occurrences > 0);
-    }
-
-    // *****************************************************************************
-    
     NewLowOdeTrigger::NewLowOdeTrigger(const char* name, 
         const char* source, uint classId, uint limit, uint preset)
         : OdeTrigger(name, source, classId, limit)
@@ -2113,7 +1565,586 @@ namespace DSL
         }
         return 1; // At most once per frame
    }
+
+    // *****************************************************************************
+    // Tracking Triggers
+    // *****************************************************************************
+    
+    TrackingOdeTrigger::TrackingOdeTrigger(const char* name, const char* source, 
+        uint classId, uint limit, uint minFrameCount, uint maxTracePoints, 
+        uint testMethod, DSL_RGBA_COLOR_PTR pColor)
+        : OdeTrigger(name, source, classId, limit)
+        , m_minFrameCount(minFrameCount)
+        , m_maxTracePoints(maxTracePoints)
+        , m_traceEnabled(false)
+        , m_testMethod(testMethod)
+        , m_pTraceColor(pColor)
+        , m_traceLineWidth(0)
+    {
+        LOG_FUNC();
+        
+        m_pTrackedObjectsPerSource = std::shared_ptr<TrackedObjects>(
+            new TrackedObjects(maxTracePoints));
+    }
+
+    TrackingOdeTrigger::~TrackingOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+
+    void TrackingOdeTrigger::Reset()
+    {
+        LOG_FUNC();
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            m_pTrackedObjectsPerSource->Clear();
+        }        
+        // call the base class to complete the Reset
+        OdeTrigger::Reset();
+    }
+
+    void TrackingOdeTrigger::GetTestSettings(uint* minFrameCount, 
+        uint* maxTracePoints, uint* testMethod)
+    {
+        LOG_FUNC();
+
+        *minFrameCount = m_minFrameCount;
+        *maxTracePoints = m_maxTracePoints;
+        *testMethod = m_testMethod;
+    }
+    
+    void TrackingOdeTrigger::SetTestSettings(uint minFrameCount,
+        uint maxTracePoints, uint testMethod)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        m_minFrameCount = minFrameCount;
+        m_maxTracePoints = maxTracePoints;
+        m_testMethod = testMethod;
+        m_pTrackedObjectsPerSource->SetMaxHistory(m_maxTracePoints);
+    }
+    
+    void TrackingOdeTrigger::GetViewSettings(bool* enabled, 
+        const char** color, uint* lineWidth)
+    {
+        LOG_FUNC();
+
+        *enabled = m_traceEnabled;
+        *color = m_pTraceColor->GetName().c_str();
+        *lineWidth = m_traceLineWidth;
+    }
+    
+    void TrackingOdeTrigger::SetViewSettings(bool enabled, 
+        DSL_RGBA_COLOR_PTR pColor, uint lineWidth)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_traceEnabled = enabled;
+        m_pTraceColor = pColor;
+        m_traceLineWidth = lineWidth;
+    }        
    
+    // *****************************************************************************
+    
+    CrossOdeTrigger::CrossOdeTrigger(const char* name, const char* source, 
+        uint classId, uint limit, uint minFrameCount, uint maxTracePoints, 
+        uint testMethod, DSL_RGBA_COLOR_PTR pColor)
+        : TrackingOdeTrigger(name, source, classId, limit, 
+            minFrameCount, maxTracePoints, testMethod, pColor)
+    {
+        LOG_FUNC();
+    }
+
+    CrossOdeTrigger::~CrossOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+
+    bool CrossOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, 
+        std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!m_pOdeAreasIndexed.size())
+        {
+            LOG_ERROR("At least one OdeArea is required for CrossOdeTrigger '" 
+                << GetName() << "'");
+            return false;
+        }
+
+        // Check for minimum criteria - but not for within an Area. 
+        if (!CheckForSourceId(pFrameMeta->source_id) or 
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+        {
+            return false;
+        }
+
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        // if this is the first occurrence of this object for this source
+        if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
+            pObjectMeta->object_id))
+        {
+            // Create a new Tracked object and return without occurence
+            m_pTrackedObjectsPerSource->Track(pFrameMeta, 
+                pObjectMeta, m_pTraceColor);
+
+            // Update the color for the next tracked object to be created.
+            m_pTraceColor->SetNext();
+            
+            return false;
+        }
+
+        // Else, get the tracked object and update with current frame meta
+        std::shared_ptr<TrackedObject> pTrackedObject = 
+            m_pTrackedObjectsPerSource->GetObject(pFrameMeta->source_id,
+                pObjectMeta->object_id);
+                
+        pTrackedObject->Update(pFrameMeta->frame_num, 
+            (NvBbox_Coords*)&pObjectMeta->rect_params);
+            
+        // Iterate through the map of 1 or more Areas to test for line cross
+        for (const auto &imap: m_pOdeAreasIndexed)
+        {
+            DSL_ODE_AREA_PTR pOdeArea = 
+                std::dynamic_pointer_cast<OdeArea>(imap.second);
+                
+            uint testPoint = pOdeArea->GetBboxTestPoint();
+                
+            // get the first and last test-points to see if minimum requirments
+            // have been met to keep testing/tracking the current object.
+    
+            dsl_coordinate firstCoordinate = 
+                pTrackedObject->GetFirstCoordinate(testPoint);
+            dsl_coordinate lastCoordinate = 
+                pTrackedObject->GetLastCoordinate(testPoint);
+            
+            // purge tracked objects that start on the line, as well as
+            // objects on the line with less than the minimim frame count
+            if (pOdeArea->IsPointOnLine(firstCoordinate) or
+                (pOdeArea->IsPointOnLine(lastCoordinate) and
+                    pTrackedObject->preEventFrameCount < m_minFrameCount))
+            {
+                LOG_DEBUG("Online without sufficient pre-count " 
+                    <<  pTrackedObject->preEventFrameCount << " - purging");
+                    
+                m_pTrackedObjectsPerSource->DeleteObject(pFrameMeta->source_id,
+                    pObjectMeta->object_id);
+                return false;
+            }
+            
+            // Get the trace vector for the testpoint defined for this Area
+            DSL_RGBA_MULTI_LINE_PTR pTrace = 
+                pTrackedObject->GetTrace(testPoint, m_testMethod);
+
+            if (m_traceEnabled)
+            {
+                // Add the multi-line's meta to the Frame's display-meta
+                pTrace->line_width = m_traceLineWidth;
+                pTrace->AddMeta(displayMetaData, pFrameMeta);
+                pObjectMeta->rect_params.border_color = pTrace->color;
+                pObjectMeta->rect_params.border_width = pTrace->line_width;
+            }
+            
+            uint direction;
+
+            // Check of the trace has crossed the area
+            if (pOdeArea->DoesTraceCrossLine(pTrace->coordinates, 
+                pTrace->num_coordinates, direction))
+            {
+                // If we've crosed before reaching the minimum frame count
+                if (pTrackedObject->preEventFrameCount < m_minFrameCount)
+                {
+                    LOG_DEBUG("Crossed line without sufficient pre-count - purging");
+                    
+                    // delete the object - will be retracked in the next frame.
+                    m_pTrackedObjectsPerSource->DeleteObject(pFrameMeta->source_id,
+                        pObjectMeta->object_id);
+                    return false;
+                }
+                if (++pTrackedObject->onEventFrameCount < m_minFrameCount)
+                {
+                    return false;
+                }
+                
+                // event has been triggered
+                IncrementAndCheckTriggerCount();
+                m_occurrences++;
+
+                // update the total event count static variable
+                s_eventCount++;
+
+                // add the persistence value to the array of misc_obj_info
+                // at both the Primary and Persistence specific indecies.
+                pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_DIRECTION] = 
+                pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = 
+                    direction;
+
+                pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] = 
+                    (uint64_t)(pTrackedObject->GetDurationMs());
+                    
+                for (const auto &imap: m_pOdeActionsIndexed)
+                {
+                    DSL_ODE_ACTION_PTR pOdeAction = 
+                        std::dynamic_pointer_cast<OdeAction>(imap.second);
+                    pOdeAction->HandleOccurrence(shared_from_this(), 
+                        pBuffer, displayMetaData, pFrameMeta, pObjectMeta);
+                }
+
+                // Once triggered, delete the tracked object.
+                m_pTrackedObjectsPerSource->DeleteObject(pFrameMeta->source_id,
+                    pObjectMeta->object_id);
+                    
+                return true;
+            }
+        }
+        // No trigger, so update the per-event counter
+        pTrackedObject->preEventFrameCount++;
+        return false;
+    }
+
+    uint CrossOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+        std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
+    {
+        // Filter on skip-frame interval
+        if (m_skipFrame)
+        {
+            return false;
+        }
+        if (m_pTrackedObjectsPerSource->IsEmpty())
+        {
+            return 0;
+        }
+        // purge all tracked objects, for all sources that are not in the current frame.
+        m_pTrackedObjectsPerSource->Purge(pFrameMeta->frame_num);
+        return m_occurrences;
+    }
+
+    // *****************************************************************************
+    
+    PersistenceOdeTrigger::PersistenceOdeTrigger(const char* name, 
+        const char* source, uint classId, uint limit, uint minimum, 
+        uint maximum, DSL_RGBA_COLOR_PTR pColor)
+        : TrackingOdeTrigger(name, source, classId, limit, 
+            0, 0, 0, pColor)
+        , m_minimumMs(minimum*1000.0)
+        , m_maximumMs(maximum*1000.0)
+    {
+        LOG_FUNC();
+    }
+
+    PersistenceOdeTrigger::~PersistenceOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+
+    void PersistenceOdeTrigger::GetRange(uint* minimum, uint* maximum)
+    {
+        LOG_FUNC();
+        
+        *minimum = m_minimumMs/1000;
+        *maximum = m_maximumMs/1000;
+    }
+
+    void PersistenceOdeTrigger::SetRange(uint minimum, uint maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_minimumMs = minimum*1000.0;
+        m_maximumMs = maximum*1000.0;
+    }
+    
+    bool PersistenceOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, 
+        std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!CheckForSourceId(pFrameMeta->source_id) or 
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
+            !CheckForInside(pObjectMeta))
+        {
+            return false;
+        }
+
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        // if this is the first occurrence of any object for this source
+        if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
+            pObjectMeta->object_id))
+        {
+            // Create a new Tracked object and return without occurence
+            m_pTrackedObjectsPerSource->Track(pFrameMeta, 
+                pObjectMeta, m_pTraceColor);
+
+            // Update the color for the next tracked object to be created.
+            m_pTraceColor->SetNext();
+        }
+        else
+        {
+            std::shared_ptr<TrackedObject> pTrackedObject = 
+                m_pTrackedObjectsPerSource->GetObject(pFrameMeta->source_id,
+                    pObjectMeta->object_id);
+                    
+            pTrackedObject->Update(pFrameMeta->frame_num, 
+                (NvBbox_Coords*)&pObjectMeta->rect_params);
+
+            double trackedTimeMs = pTrackedObject->GetDurationMs();
+            
+            LOG_DEBUG("Persistence for tracked object with id = " 
+                << pObjectMeta->object_id << " for source = " 
+                << pFrameMeta->source_id << ", = " << trackedTimeMs << " ms");
+            
+            // if the object's tracked time is within range. 
+            if (trackedTimeMs >= m_minimumMs and trackedTimeMs <= m_maximumMs)
+            {
+                // event has been triggered
+                IncrementAndCheckTriggerCount();
+                m_occurrences++;
+
+                // update the total event count static variable
+                s_eventCount++;
+    
+                // add the persistence value to the array of misc_obj_info
+                // at both the Primary and Persistence specific indecies.
+                pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] = 
+                pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = 
+                    (uint64_t)(trackedTimeMs/1000);
+                    
+                for (const auto &imap: m_pOdeActionsIndexed)
+                {
+                    DSL_ODE_ACTION_PTR pOdeAction = 
+                        std::dynamic_pointer_cast<OdeAction>(imap.second);
+                    pOdeAction->HandleOccurrence(shared_from_this(), 
+                        pBuffer, displayMetaData, pFrameMeta, pObjectMeta);
+                }
+            }
+        }
+        return true;
+    }
+
+    uint PersistenceOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+        std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
+    {
+        if (m_pTrackedObjectsPerSource->IsEmpty())
+        {
+            return 0;
+        }
+        // purge all tracked objects, for all sources that are not in the current frame.
+        m_pTrackedObjectsPerSource->Purge(pFrameMeta->frame_num);
+        return m_occurrences;
+    }
+
+    // *****************************************************************************
+    
+    LatestOdeTrigger::LatestOdeTrigger(const char* name, const char* source, 
+        uint classId, uint limit, DSL_RGBA_COLOR_PTR pColor)
+        : TrackingOdeTrigger(name, source, classId, limit, 
+            0, 0, 0, pColor)
+        , m_pLatestObjectMeta(NULL)
+        , m_latestTrackedTimeMs(0)
+    {
+        LOG_FUNC();
+    }
+
+    LatestOdeTrigger::~LatestOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+
+    bool LatestOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, 
+        std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!CheckForSourceId(pFrameMeta->source_id) or 
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForInside(pObjectMeta))
+        {
+            return false;
+        }
+
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        // if this is the first occurrence of any object for this source
+        if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
+            pObjectMeta->object_id))
+        {
+            // Create a new Tracked object and return without occurence
+            m_pTrackedObjectsPerSource->Track(pFrameMeta, 
+                pObjectMeta, m_pTraceColor);
+
+            // Update the color for the next tracked object to be created.
+            m_pTraceColor->SetNext();
+        }
+        else
+        {
+            std::shared_ptr<TrackedObject> pTrackedObject = 
+                m_pTrackedObjectsPerSource->GetObject(pFrameMeta->source_id,
+                    pObjectMeta->object_id);
+                    
+            pTrackedObject->Update(pFrameMeta->frame_num, 
+                (NvBbox_Coords*)&pObjectMeta->rect_params);
+
+            double trackedTimeMs = pTrackedObject->GetDurationMs();
+            
+            if ((m_pLatestObjectMeta == NULL) or (trackedTimeMs < m_latestTrackedTimeMs))
+            {
+                m_pLatestObjectMeta = pObjectMeta;
+                m_latestTrackedTimeMs = trackedTimeMs;
+            }
+        }
+        return true;
+    }
+    
+    uint LatestOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+        std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
+    {
+        if (m_pTrackedObjectsPerSource->IsEmpty())
+        {
+            return 0;
+        }
+        
+        // If we a Newest Object ODE 
+        if (m_pLatestObjectMeta != NULL)
+        {
+            // event has been triggered
+            IncrementAndCheckTriggerCount();
+            m_occurrences++;
+
+            // update the total event count static variable
+            s_eventCount++;
+            
+            // add the persistence value to the array of misc_obj_info
+            // as both the Primary and Persistence specific indecies.
+            m_pLatestObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] = 
+            m_pLatestObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = 
+                (uint64_t)(m_latestTrackedTimeMs/1000);
+
+            for (const auto &imap: m_pOdeActionsIndexed)
+            {
+                DSL_ODE_ACTION_PTR pOdeAction = 
+                    std::dynamic_pointer_cast<OdeAction>(imap.second);
+                pOdeAction->HandleOccurrence(shared_from_this(), 
+                    pBuffer, displayMetaData, pFrameMeta, m_pLatestObjectMeta);
+            }
+        
+            // clear the Newest Object data for the next frame 
+            m_pLatestObjectMeta = NULL;
+            m_latestTrackedTimeMs = 0;
+        }
+        
+        // purge all tracked objects, for all sources that are not in the current frame.
+        m_pTrackedObjectsPerSource->Purge(pFrameMeta->frame_num);
+        
+        return (m_occurrences > 0);
+    }
+
+    // *****************************************************************************
+    
+    EarliestOdeTrigger::EarliestOdeTrigger(const char* name, const char* source, 
+        uint classId, uint limit, DSL_RGBA_COLOR_PTR pColor)
+        : TrackingOdeTrigger(name, source, classId, limit, 
+            0, 0, 0, pColor)
+        , m_pEarliestObjectMeta(NULL)
+        , m_earliestTrackedTimeMs(0)
+    {
+        LOG_FUNC();
+    }
+
+    EarliestOdeTrigger::~EarliestOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+
+    bool EarliestOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, 
+        std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!CheckForSourceId(pFrameMeta->source_id) or 
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
+            !CheckForInside(pObjectMeta))
+        {
+            return false;
+        }
+
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        // if this is the first occurrence of any object for this source
+        if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
+            pObjectMeta->object_id)) 
+        {
+            // Create a new Tracked object and return without occurence
+            m_pTrackedObjectsPerSource->Track(pFrameMeta, 
+                pObjectMeta, m_pTraceColor);
+
+            // Update the color for the next tracked object to be created.
+            m_pTraceColor->SetNext();
+        }
+        else
+        {
+            std::shared_ptr<TrackedObject> pTrackedObject = 
+                m_pTrackedObjectsPerSource->GetObject(pFrameMeta->source_id,
+                    pObjectMeta->object_id);
+                    
+            pTrackedObject->Update(pFrameMeta->frame_num, 
+                (NvBbox_Coords*)&pObjectMeta->rect_params);
+
+            double trackedTimeMs = pTrackedObject->GetDurationMs();
+                
+            if ((m_pEarliestObjectMeta == NULL) or 
+                (trackedTimeMs > m_earliestTrackedTimeMs))
+            {
+                m_pEarliestObjectMeta = pObjectMeta;
+                m_earliestTrackedTimeMs = trackedTimeMs;
+                
+            }
+        }
+        return true;
+    }
+    
+    uint EarliestOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+        std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
+    {
+        if (m_pTrackedObjectsPerSource->IsEmpty())
+        {
+            return 0;
+        }
+        
+        if (m_pEarliestObjectMeta != NULL)
+        {
+            // event has been triggered
+            IncrementAndCheckTriggerCount();
+            m_occurrences++;
+
+            // update the total event count static variable
+            s_eventCount++;
+
+            // add the persistence value to the array of misc_obj_info
+            // as both the Primary and Persistence specific indecies.
+            m_pEarliestObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] = 
+            m_pEarliestObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = 
+                (uint64_t)(m_earliestTrackedTimeMs/1000);
+
+            for (const auto &imap: m_pOdeActionsIndexed)
+            {
+                DSL_ODE_ACTION_PTR pOdeAction = 
+                    std::dynamic_pointer_cast<OdeAction>(imap.second);
+                pOdeAction->HandleOccurrence(shared_from_this(), 
+                    pBuffer, displayMetaData, pFrameMeta, m_pEarliestObjectMeta);
+            }
+        
+            // clear the Earliest Object data for the next frame 
+            m_pEarliestObjectMeta = NULL;
+            m_earliestTrackedTimeMs = 0;
+        }
+        
+        // purge all tracked objects, for all sources that are not in the current frame.
+        m_pTrackedObjectsPerSource->Purge(pFrameMeta->frame_num);
+        return (m_occurrences > 0);
+    }
+
+    // *****************************************************************************
+    // AB Trigger Types
     // *****************************************************************************
     
     ABOdeTrigger::ABOdeTrigger(const char* name, 

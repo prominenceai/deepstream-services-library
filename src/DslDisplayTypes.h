@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslBase.h"
+#include "randomcolor.h"
 
 #define MAX_DISPLAY_LEN 64
 
@@ -37,55 +38,98 @@ namespace DSL
 
     #define DSL_RGBA_COLOR_PTR std::shared_ptr<RgbaColor>
     #define DSL_RGBA_COLOR_NEW(name, red, green, blue, alpha) \
-        std::shared_ptr<RgbaColor>(new RgbaColor(name, red, green, blue, alpha))
+        std::shared_ptr<RgbaColor>(new RgbaColor(name, \
+            red, green, blue, alpha))
+
+    #define DSL_RGBA_RANDOM_COLOR_PTR std::shared_ptr<RgbaRandomColor>
+    #define DSL_RGBA_RANDOM_COLOR_NEW(name, hue, luminosity, alpha, seed) \
+        std::shared_ptr<RgbaRandomColor>(new RgbaRandomColor(name, \
+            hue, luminosity, alpha, seed))
+
+    #define DSL_RGBA_COLOR_PALETTE_PTR std::shared_ptr<RgbaColorPalette>
+    #define DSL_RGBA_COLOR_PALETTE_NEW(name, pColorPalette) \
+        std::shared_ptr<RgbaColorPalette>(new RgbaColorPalette(name, \
+            pColorPalette))
+
+    #define DSL_RGBA_PREDEFINED_COLOR_PTR std::shared_ptr<RgbaPredefinedColor>
+    #define DSL_RGBA_PREDEFINED_COLOR_NEW(name, colorId, alpha) \
+        std::shared_ptr<RgbaPredefinedColor>(new RgbaPredefinedColor(name, \
+            colorId, alpha))
+
+    #define DSL_RGBA_ON_DEMAND_COLOR_PTR std::shared_ptr<RgbaOnDemandColor>
+    #define DSL_RGBA_ON_DEMAND_COLOR_NEW(name, provider, clientData) \
+        std::shared_ptr<RgbaOnDemandColor>(new RgbaOnDemandColor(name, \
+            provider, clientData))
 
     #define DSL_RGBA_FONT_PTR std::shared_ptr<RgbaFont>
     #define DSL_RGBA_FONT_NEW(name, font, size, pColor) \
         std::shared_ptr<RgbaFont>(new RgbaFont(name, font, size, pColor))
 
     #define DSL_RGBA_TEXT_PTR std::shared_ptr<RgbaText>
-    #define DSL_RGBA_TEXT_NEW(name, text, x_offset, y_offset, font, hasBgColor, pBgColor) \
-        std::shared_ptr<RgbaText>(new RgbaText(name, text, x_offset, y_offset, font, hasBgColor, pBgColor))
+    #define DSL_RGBA_TEXT_NEW(name, \
+        text, x_offset, y_offset, font, hasBgColor, pBgColor) \
+        std::shared_ptr<RgbaText>(new RgbaText(name, \
+            text, x_offset, y_offset, font, hasBgColor, pBgColor))
         
     #define DSL_RGBA_LINE_PTR std::shared_ptr<RgbaLine>
-    #define DSL_RGBA_LINE_NEW(name, x1, y1, x2, y2, width, pColor) \
-        std::shared_ptr<RgbaLine>(new RgbaLine(name, x1, y1, x2, y2, width, pColor))
+    #define DSL_RGBA_LINE_NEW(name, \
+        x1, y1, x2, y2, width, pColor) \
+        std::shared_ptr<RgbaLine>(new RgbaLine(name, \
+            x1, y1, x2, y2, width, pColor))
 
     #define DSL_RGBA_ARROW_PTR std::shared_ptr<RgbaArrow>
-    #define DSL_RGBA_ARROW_NEW(name, x1, y1, x2, y2, width, head, pColor) \
-        std::shared_ptr<RgbaArrow>(new RgbaArrow(name, x1, y1, x2, y2, width, head, pColor))
+    #define DSL_RGBA_ARROW_NEW(name, \
+        x1, y1, x2, y2, width, head, pColor) \
+        std::shared_ptr<RgbaArrow>(new RgbaArrow(name, \
+            x1, y1, x2, y2, width, head, pColor))
 
     #define DSL_RGBA_RECTANGLE_PTR std::shared_ptr<RgbaRectangle>
-    #define DSL_RGBA_RECTANGLE_NEW(name, left, top, width, height, borderWidth, pColor, hasBgColor, pBgColor) \
-        std::shared_ptr<RgbaRectangle>(new RgbaRectangle(name, left, top, width, height, borderWidth, pColor, hasBgColor, pBgColor))
+    #define DSL_RGBA_RECTANGLE_NEW(name, \
+        left, top, width, height, borderWidth, pColor, hasBgColor, pBgColor) \
+        std::shared_ptr<RgbaRectangle>(new RgbaRectangle(name, \
+            left, top, width, height, borderWidth, pColor, hasBgColor, pBgColor))
 
     #define DSL_RGBA_POLYGON_PTR std::shared_ptr<RgbaPolygon>
-    #define DSL_RGBA_POLYGON_NEW(name, coordinates, numCoordinates, borderWidth, pColor) \
-        std::shared_ptr<RgbaPolygon>(new RgbaPolygon(name, coordinates, numCoordinates, borderWidth, pColor))
+    #define DSL_RGBA_POLYGON_NEW(name, \
+        coordinates, numCoordinates, borderWidth, pColor) \
+        std::shared_ptr<RgbaPolygon>(new RgbaPolygon(name, \
+            coordinates, numCoordinates, borderWidth, pColor))
     
     #define DSL_RGBA_MULTI_LINE_PTR std::shared_ptr<RgbaMultiLine>
-    #define DSL_RGBA_MULTI_LINE_NEW(name, coordinates, numCoordinates, borderWidth, pColor) \
-        std::shared_ptr<RgbaMultiLine>(new RgbaMultiLine(name, coordinates, numCoordinates, borderWidth, pColor))
+    #define DSL_RGBA_MULTI_LINE_NEW(name, \
+        coordinates, numCoordinates, borderWidth, pColor) \
+        std::shared_ptr<RgbaMultiLine>(new RgbaMultiLine(name, \
+            coordinates, numCoordinates, borderWidth, pColor))
     
     #define DSL_RGBA_CIRCLE_PTR std::shared_ptr<RgbaCircle>
-    #define DSL_RGBA_CIRCLE_NEW(name, x_center, y_center, radius, pColor, hasBgColor, pBgColor) \
-        std::shared_ptr<RgbaCircle>(new RgbaCircle(name, x_center, y_center, radius, pColor, hasBgColor, pBgColor))
+    #define DSL_RGBA_CIRCLE_NEW(name, \
+        x_center, y_center, radius, pColor, hasBgColor, pBgColor) \
+        std::shared_ptr<RgbaCircle>(new RgbaCircle(name, \
+            x_center, y_center, radius, pColor, hasBgColor, pBgColor))
 
     #define DSL_SOURCE_DIMENSIONS_PTR std::shared_ptr<SourceDimensions>
-    #define DSL_SOURCE_DIMENSIONS_NEW(name, x_offset, y_offset, font, hasBgColor, pBgColor) \
-        std::shared_ptr<SourceDimensions>(new SourceDimensions(name, x_offset, y_offset, font, hasBgColor, pBgColor))
+    #define DSL_SOURCE_DIMENSIONS_NEW(name, \
+        x_offset, y_offset, font, hasBgColor, pBgColor) \
+        std::shared_ptr<SourceDimensions>(new SourceDimensions(name, \
+            x_offset, y_offset, font, hasBgColor, pBgColor))
 
     #define DSL_SOURCE_FRAME_RATE_PTR std::shared_ptr<SourceFrameRate>
-    #define DSL_SOURCE_FRAME_RATE_NEW(name, x_offset, y_offset, font, hasBgColor, pBgColor) \
-        std::shared_ptr<SourceFrameRate>(new SourceFrameRate(name, x_offset, y_offset, font, hasBgColor, pBgColor))
+    #define DSL_SOURCE_FRAME_RATE_NEW(name, \
+        x_offset, y_offset, font, hasBgColor, pBgColor) \
+        std::shared_ptr<SourceFrameRate>(new SourceFrameRate(name, \
+            x_offset, y_offset, font, hasBgColor, pBgColor))
 
     #define DSL_SOURCE_NUMBER_PTR std::shared_ptr<SourceNumber>
-    #define DSL_SOURCE_NUMBER_NEW(name, x_offset, y_offset, font, hasBgColor, pBgColor) \
-        std::shared_ptr<SourceNumber>(new SourceNumber(name, x_offset, y_offset, font, hasBgColor, pBgColor))
+    #define DSL_SOURCE_NUMBER_NEW(name, \
+        x_offset, y_offset, font, hasBgColor, pBgColor) \
+        std::shared_ptr<SourceNumber>(new SourceNumber(name, \
+            x_offset, y_offset, font, hasBgColor, pBgColor))
 
     #define DSL_SOURCE_NAME_PTR std::shared_ptr<SourceName>
-    #define DSL_SOURCE_NAME_NEW(name, x_offset, y_offset, font, hasBgColor, pBgColor) \
-        std::shared_ptr<SourceName>(new SourceName(name, x_offset, y_offset, font, hasBgColor, pBgColor))
+    #define DSL_SOURCE_NAME_NEW(name, \
+        x_offset, y_offset, font, hasBgColor, pBgColor) \
+        std::shared_ptr<SourceName>(new SourceName(name, \
+            x_offset, y_offset, font, hasBgColor, pBgColor))
 
     // ********************************************************************
 
@@ -100,9 +144,33 @@ namespace DSL
         DisplayType(const char* name);
 
         ~DisplayType();
+
+        /**
+         * @brief Locks the DisplayType's property mutex.
+         */
+        virtual inline void Lock();
         
+        /**
+         * @brief Unlocks the DisplayType's property mutex
+         */
+        virtual inline void Unlock();
+        
+        /**
+         * @brief Adds the Display Type's meta to the provided displayMetaData
+         * @param displayMetaData vector of allocated Display metadata to add 
+         * the meta to
+         * @param pFrameMeta frame meta for the frame the display meta 
+         * will be added to.
+         */
         virtual void AddMeta(std::vector<NvDsDisplayMeta*>& 
             displayMetaData, NvDsFrameMeta* pFrameMeta);
+            
+    protected:
+        
+        /**
+         * @brief Mutex to ensure mutual exlusion for propery read/writes
+         */
+        GMutex m_propertyMutex;
     };
     
     // ********************************************************************
@@ -122,7 +190,197 @@ namespace DSL
         RgbaColor(const char* name, 
             double red, double green, double blue, double alpha);
 
+        /**
+         * @breif ctor for the RBGA Color
+         * @param[in] name unique name for the RGBA Color
+         * @param[in] color NVIDIA color params to copy from.
+         */
+        RgbaColor(const char* name, const NvOSD_ColorParams& color);
+
+        /**
+         * @breif copy ctor for the RBGA Color
+         * @param[in] color source RgbaColor to copy from
+         */
+        RgbaColor(const RgbaColor& color);
+        
+        /**
+         * @breif dtor for the RBGA Color
+         */
         ~RgbaColor();
+        
+        /**
+         * @brief noop SetNext for static color.
+         */
+        virtual void SetNext(){};
+    };
+
+    // ********************************************************************
+
+    class RgbaPredefinedColor : public RgbaColor
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the RGBA Predefined Color class
+         * @param[in] name unique name for the RGBA Predefined color
+         * @param[in] predefined color identifier. 
+         * @param[in] luminosity luminocity level to use for random color generation. 
+         * @param[in] alpha alpha level for the RGB color [0..1]
+         */
+        RgbaPredefinedColor(const char* name, uint colorId, double alpha);
+
+        /**
+         * @brief dtor for RGBA Predefined Color
+         */
+        ~RgbaPredefinedColor();
+        
+    private:
+
+        /**
+         * @brief
+         */
+        static std::map<uint, NvOSD_ColorParams> s_predefinedColors;
+        
+        /**
+         * @brief predefined color identifier. 
+         */
+        uint m_colorId;
+        
+    };
+    
+    // ********************************************************************
+
+    class RgbaColorPalette : public RgbaColor
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the RGBA RgbaColorPalette Color class
+         * @param[in] name unique name for the RGBA RgbaColorPalette color
+         * @param[in] pColorPalette a shared pointer to a vector of
+         * RGBA Colors.
+         */
+        RgbaColorPalette(const char* name, 
+            std::shared_ptr<std::vector<DSL_RGBA_COLOR_PTR>> pColorPalette);
+
+        /**
+         * @brief dtor for RGBA RgbaColorPalette Color
+         */
+        ~RgbaColorPalette();
+        
+        /**
+         * @brief Set the RGB values to the next color in the Palette.
+         */
+        void SetNext();
+        
+        /**
+         * @brief Gets the palette index.
+         * @return current palette index values.
+         */
+        uint GetIndex();
+        
+        /**
+         * @brief Sets the palette index and color
+         * @param index new palette index
+         * @return true if successful, false otherwise.
+         */
+        bool SetIndex(uint index);
+        
+    private:
+    
+        /**
+         * @brief index of the current color in the color palette vector
+         */
+        uint m_currentColorIndex;
+        /**
+         * @brief a shared pointer to a vector of
+         * RGBA Colors. 
+         */
+        std::shared_ptr<std::vector<DSL_RGBA_COLOR_PTR>> m_pColorPalette;
+    };
+    
+    // ********************************************************************
+
+    class RgbaRandomColor : public RgbaColor
+    {
+    public: 
+    
+        /**
+         * @brief ctor for RGBA Random Color
+         * @param[in] name unique name for the RGBA Random olor
+         * @param[in] hue color hue to use for random color generation.
+         * @param[in] luminosity luminocity level to use for random color generation. 
+         * @param[in] alpha alpha level for the RGB color [0..1]
+         * @param[in] seed value to seed the random generator 
+         */
+        RgbaRandomColor(const char* name, 
+            uint hue, uint luminosity, double alpha, uint seed);
+
+        /**
+         * @brief dtor for RGBA Random Color
+         */
+        ~RgbaRandomColor();
+
+        /**
+         * @brief Set the RGB values to the next random color.
+         */
+        void SetNext();
+        
+    private:
+    
+        /**
+         * @brief color hue to use for random color generation. 
+         */
+        RandomColor::Color m_hue;
+        
+        /**
+         * @brief luminocity level to use for random color generation. 
+         */
+        RandomColor::Luminosity m_luminosity;
+        
+        /**
+         * @brief random color generator
+         */
+        RandomColor m_randomColor;
+    };
+    
+    // ********************************************************************
+
+    class RgbaOnDemandColor : public RgbaColor
+    {
+    public: 
+    
+        /**
+         * @brief ctor for RGBA On Demand Color
+         * @param[in] name unique name for the RGBA On-Demand Color
+         * @param[in] provider callback function to be called on SetNext()
+         * @param[in] clientData opaque pointer to client's user data.
+         */
+        RgbaOnDemandColor(const char* name, 
+            dsl_display_type_rgba_color_provider_cb provider, void* clientData);
+
+        /**
+         * @brief dtor for RGBA On Demand Color
+         */
+        ~RgbaOnDemandColor();
+
+        /**
+         * @brief Calls the client's call back to get the next RGB values.
+         */
+        void SetNext();
+        
+    private:
+    
+        /**
+         * @brief Client callback to call on SetNext(). 
+         */
+        dsl_display_type_rgba_color_provider_cb m_provider;
+        
+        /**
+         * @brief opaque pointer to client's user data based back to m_provider.
+         */
+        void* m_clientData;
+        
     };
     
     // ********************************************************************
@@ -133,16 +391,40 @@ namespace DSL
     
         /**
          * @brief ctor for RGBA Font
-         * @param[in] name standard string name of the actual font type
+         * @param[in] name unique name for the RgbaFont DisplayType
+         * @param[in] font standard string name of the actual tty font type
          * @param[in] size size of the font
          * @param[in] color RGBA Color for the RGBA font
          */
         RgbaFont(const char* name, 
             const char* font, uint size, DSL_RGBA_COLOR_PTR color);
 
+        /**
+         * @brief ctor for RGBA Font
+         */
         ~RgbaFont();
+
+        /**
+         * @brief Locks the DisplayType's property mutex.
+         */
+        inline void Lock();
         
+        /**
+         * @brief Unlocks the DisplayType's property mutex
+         */
+        inline void Unlock();
+        
+        /**
+         * @breif actual tty font name
+         */
         std::string m_fontName;
+
+    private:
+
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA Font
+         */
+        DSL_RGBA_COLOR_PTR m_pColor;
     };
     
     // ********************************************************************
@@ -167,6 +449,16 @@ namespace DSL
         ~RgbaText();
 
         /**
+         * @brief Locks the DisplayType's property mutex.
+         */
+        inline void Lock();
+        
+        /**
+         * @brief Unlocks the DisplayType's property mutex
+         */
+        inline void Unlock();
+
+        /**
          * @brief Adds the Display Type's meta to the provided displayMetaData
          * @param displayMetaData vector of allocated Display metadata to add 
          * the meta to
@@ -178,7 +470,17 @@ namespace DSL
         
         std::string m_text;
         
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Font Type for this RGBA Text
+         */
         DSL_RGBA_FONT_PTR m_pFont;
+
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA Text
+         */
+        DSL_RGBA_COLOR_PTR m_pBgColor;
     
     };
     
@@ -212,6 +514,13 @@ namespace DSL
          */
         void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta);
+            
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA Line
+         */
+        DSL_RGBA_COLOR_PTR m_pColor;
     };
     
     // ********************************************************************
@@ -245,6 +554,14 @@ namespace DSL
          */
         void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta);
+            
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA Arrow
+         */
+        DSL_RGBA_COLOR_PTR m_pColor;
+    
     };
 
     // ********************************************************************
@@ -280,6 +597,18 @@ namespace DSL
          */
         void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta);
+            
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA Font
+         */
+        DSL_RGBA_COLOR_PTR m_pColor;
+
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA Font
+         */
+        DSL_RGBA_COLOR_PTR m_pBgColor;
     };
     
     // ********************************************************************
@@ -341,6 +670,13 @@ namespace DSL
          */
         void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA Polygon
+         */
+        DSL_RGBA_COLOR_PTR m_pColor;
     };
 
     // ********************************************************************
@@ -401,6 +737,13 @@ namespace DSL
          */
         void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA Multi-Line
+         */
+        DSL_RGBA_COLOR_PTR m_pColor;
     };
 
     
@@ -434,6 +777,18 @@ namespace DSL
          */
         void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA Circle
+         */
+        DSL_RGBA_COLOR_PTR m_pColor;
+
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA Circle
+         */
+        DSL_RGBA_COLOR_PTR m_pBgColor;
     };
 
     // ********************************************************************
@@ -457,18 +812,28 @@ namespace DSL
         ~SourceDimensions();
 
         /**
-         * @brief Adds the Display Type's meta to the provided displayMetaData
-         * @param displayMetaData vector of allocated Display metadata to add 
-         * the meta to
-         * @param pFrameMeta frame meta for the frame the display meta 
+         * @brief Adds the Display Type's meta to the provided displayMetaData.
+         * @param displayMetaData vector of allocated Display metadata to add
+         * the meta to.
+         * @param pFrameMeta frame meta for the frame the display meta
          * will be added to.
          */
         void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta);
         
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Font Type for this RGBA SourceDiemnsions.
+         */
         DSL_RGBA_FONT_PTR m_pFont;
-    };
 
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA SourceDiemnsions.
+         */
+        DSL_RGBA_COLOR_PTR m_pBgColor;
+    };
+ 
     // ********************************************************************
 
     class SourceFrameRate : public DisplayType, public NvOSD_TextParams
@@ -499,7 +864,17 @@ namespace DSL
         void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta);
         
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Font Type for this RGBA SourceFrameRate.
+         */
         DSL_RGBA_FONT_PTR m_pFont;
+
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA SourceFrameRate.
+         */
+        DSL_RGBA_COLOR_PTR m_pBgColor;
     };
 
     // ********************************************************************
@@ -532,7 +907,17 @@ namespace DSL
         void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta);
         
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Font Type for this RGBA SourceNumber.
+         */
         DSL_RGBA_FONT_PTR m_pFont;
+
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA SourceNumber.
+         */
+        DSL_RGBA_COLOR_PTR m_pBgColor;
     };
 
     // ********************************************************************
@@ -565,7 +950,17 @@ namespace DSL
         void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta);
         
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Font Type for this RGBA SourceName.
+         */
         DSL_RGBA_FONT_PTR m_pFont;
+
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA SourceName.
+         */
+        DSL_RGBA_COLOR_PTR m_pBgColor;
     };
 
 }

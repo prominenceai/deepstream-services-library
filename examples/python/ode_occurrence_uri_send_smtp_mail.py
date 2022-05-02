@@ -151,7 +151,7 @@ def main(args):
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Create new RGBA color types
-        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, blue=0.5, green=0.5, alpha=0.7)
+        retval = dsl_display_type_rgba_color_custom_new('opaque-red', red=1.0, blue=0.5, green=0.5, alpha=0.7)
         if retval != DSL_RETURN_SUCCESS:
             break
 

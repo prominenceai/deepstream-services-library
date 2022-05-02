@@ -28,7 +28,8 @@ THE SOFTWARE.
 namespace DSL
 {
     TrackedObject::TrackedObject(uint64_t trackingId, uint64_t frameNumber,
-        const NvOSD_RectParams* pRectParams, uint maxHistory)
+        const NvBbox_Coords* pCoordinates, DSL_RGBA_COLOR_PTR pColor, 
+        uint maxHistory)
         : trackingId(trackingId)
         , m_maxHistory(maxHistory)
         , preEventFrameCount(1)
@@ -40,7 +41,9 @@ namespace DSL
         gettimeofday(&creationTime, NULL);
         m_creationTimeMs = creationTime.tv_sec*1000.0 + creationTime.tv_usec/1000.0;
         
-        Update(frameNumber, pRectParams);
+        Update(frameNumber, pCoordinates);
+        
+        m_pColor = std::shared_ptr<RgbaColor>(new RgbaColor(*pColor));
     }
     
     void TrackedObject::SetMaxHistory(uint maxHistory)
@@ -51,7 +54,7 @@ namespace DSL
     }
     
     void TrackedObject::Update(uint64_t currentFrameNumber, 
-        const NvOSD_RectParams* pRectParams)
+        const NvBbox_Coords* pCoordinates)
     {
         // No function log - avoid overhead.
         
@@ -61,7 +64,9 @@ namespace DSL
         // Copy only the rectangle coordinates of the Object's RectParams
         std::shared_ptr pBboxCoords = 
             std::shared_ptr<NvBbox_Coords>(new NvBbox_Coords);
-        memcpy(&(*pBboxCoords), pRectParams, sizeof(NvBbox_Coords));
+            
+        *pBboxCoords = *pCoordinates;
+//        memcpy(&(*pBboxCoords), pCoordinates, sizeof(NvBbox_Coords));
 
         // If maintaining bbox trace-point history
         if (m_maxHistory)
@@ -99,48 +104,35 @@ namespace DSL
         return traceCoordinate;
     }
     
-    std::shared_ptr<std::vector<dsl_coordinate>> TrackedObject::GetTrace(
+    DSL_RGBA_MULTI_LINE_PTR TrackedObject::GetTrace(
         uint testPoint, uint method)
     {
         // No function log - avoid overhead.
         
+        // Create the trace - i.e. a vector of pre-sized blank coordinates
+        std::vector<dsl_coordinate> traceCoordinates;
+
+        dsl_coordinate traceCoordinate{0};
+            
         if (method == DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS)
         {
-            // Create the trace - i.e. a vector of pre-sized blank coordinates
-            std::shared_ptr<std::vector<dsl_coordinate>> pTraceCoordinates =
-                std::shared_ptr<std::vector<dsl_coordinate>>(
-                    new std::vector<dsl_coordinate>(2));
-            
-            dsl_coordinate traceCoordinate{0};
             getCoordinate(m_bboxTrace.front(), testPoint, traceCoordinate);
-            pTraceCoordinates->at(0) = traceCoordinate;
+            traceCoordinates.push_back(traceCoordinate);
             
             getCoordinate(m_bboxTrace.back(), testPoint, traceCoordinate);
-            pTraceCoordinates->at(1) = traceCoordinate;
-            
-            return pTraceCoordinates;
+            traceCoordinates.push_back(traceCoordinate);
         }
 
-        // Create the trace - i.e. a vector of pre-sized blank coordinates
-        std::shared_ptr<std::vector<dsl_coordinate>> pTraceCoordinates =
-            std::shared_ptr<std::vector<dsl_coordinate>>(
-                new std::vector<dsl_coordinate>(m_bboxTrace.size()));
-            
-        uint traceIdx(0);
-        dsl_coordinate traceCoordinate{0};
-        
-        for (const auto& ideque: m_bboxTrace)
+        else
         {
-            getCoordinate(ideque, testPoint, traceCoordinate);
-            // copy the calculated coordinates into the pre-sized vector 
-            // at the current index of the bbox history.
-            pTraceCoordinates->at(traceIdx++) = traceCoordinate;
-
-            LOG_DEBUG("Trace point x=" << traceCoordinate.x 
-                << ",y=" << traceCoordinate.y);
+            for (const auto& ideque: m_bboxTrace)
+            {
+                getCoordinate(ideque, testPoint, traceCoordinate);
+                traceCoordinates.push_back(traceCoordinate);
+            }
         }
-        
-        return pTraceCoordinates;
+        return DSL_RGBA_MULTI_LINE_NEW("", traceCoordinates.data(), 
+            traceCoordinates.size(), 5, m_pColor);
     }
 
     void TrackedObject::getCoordinate(std::shared_ptr<NvBbox_Coords> pBbox, 
@@ -247,7 +239,7 @@ namespace DSL
     }
     
     std::shared_ptr<TrackedObject> TrackedObjects::Track(NvDsFrameMeta* pFrameMeta, 
-        NvDsObjectMeta* pObjectMeta)
+        NvDsObjectMeta* pObjectMeta, DSL_RGBA_COLOR_PTR pColor)
     {
         // No function log - avoid overhead.
 
@@ -262,7 +254,8 @@ namespace DSL
             std::shared_ptr<TrackedObject> pTrackedObject = 
                 std::shared_ptr<TrackedObject>(new TrackedObject(
                     pObjectMeta->object_id, pFrameMeta->frame_num, 
-                    &pObjectMeta->rect_params, m_maxHistory));
+                    (NvBbox_Coords*)&pObjectMeta->rect_params, 
+                    pColor, m_maxHistory));
                 
             // create a map of tracked objects for this source    
             std::shared_ptr<TrackedObjectsT> pTrackedObjects = 
@@ -292,7 +285,8 @@ namespace DSL
             std::shared_ptr<TrackedObject> pTrackedObject = 
                 std::shared_ptr<TrackedObject>(new TrackedObject(
                     pObjectMeta->object_id, pFrameMeta->frame_num,
-                    &pObjectMeta->rect_params, m_maxHistory));
+                    (NvBbox_Coords*)&pObjectMeta->rect_params, 
+                    pColor, m_maxHistory));
 
             // insert the new tracked object into the new map    
             pTrackedObjects->insert(std::pair<uint64_t, 

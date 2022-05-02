@@ -108,7 +108,7 @@ def main(args):
         # the Sink for rendering.
         
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-        retval = dsl_display_type_rgba_color_new('flash-white', red=1.0, blue=1.0, green=1.0, alpha=0.7)
+        retval = dsl_display_type_rgba_color_custom_new('flash-white', red=1.0, blue=1.0, green=1.0, alpha=0.7)
         if retval != DSL_RETURN_SUCCESS:
             return retval
         
@@ -140,7 +140,7 @@ def main(args):
         # This area's background will be displayed shaded a default color of white. The Area will be added
         # To the 'person-occurrence' Trigger as criteria for ODE occurrence
 
-        retval = dsl_display_type_rgba_color_new('opaque-white', red=1.0, blue=1.0, green=1.0, alpha=0.2)
+        retval = dsl_display_type_rgba_color_custom_new('opaque-white', red=1.0, blue=1.0, green=1.0, alpha=0.2)
         if retval != DSL_RETURN_SUCCESS:
             return retval
 

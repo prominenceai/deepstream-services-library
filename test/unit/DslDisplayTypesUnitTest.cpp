@@ -27,9 +27,9 @@ THE SOFTWARE.
 
 using namespace DSL;
 
-SCENARIO( "An RGBA Color is constructed correctly", "[DisplayTypes]" )
+SCENARIO( "An RGBA Custom Color is constructed correctly", "[DisplayTypes]" )
 {
-    GIVEN( "Attributes for a new RGBA Color" )
+    GIVEN( "Attributes for a new RGBA Custom Color" )
     {
         std::string colorName  = "my-custom-color";
         
@@ -37,7 +37,8 @@ SCENARIO( "An RGBA Color is constructed correctly", "[DisplayTypes]" )
 
         WHEN( "The RGBA Color is created" )
         {
-            DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
+            DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), 
+                red, green, blue, alpha);
             
             THEN( "Its member variables are initialized correctly" )
             {
@@ -46,6 +47,79 @@ SCENARIO( "An RGBA Color is constructed correctly", "[DisplayTypes]" )
                 REQUIRE( pColor->blue == blue );
                 REQUIRE( pColor->green == green );
                 REQUIRE( pColor->alpha == alpha );
+            }
+        }
+    }
+}
+
+SCENARIO( "An RGBA Predefined Color is constructed correctly", "[DisplayTypes]" )
+{
+    GIVEN( "Attributes for a new RGBA Color" )
+    {
+        std::string colorName  = "my-predefined-color";
+
+        uint color = DSL_COLOR_PREDEFINED_GOLD; 
+        double alpha(0.78);
+
+        WHEN( "The RGBA Color is created" )
+        {
+            DSL_RGBA_PREDEFINED_COLOR_PTR pColor = 
+                DSL_RGBA_PREDEFINED_COLOR_NEW(colorName.c_str(), color, alpha);
+            
+            THEN( "Its member variables are initialized correctly" )
+            {
+                REQUIRE( pColor->GetName() == colorName );
+                REQUIRE( pColor->red == 1.0 );
+                REQUIRE( pColor->green == 0.788 );
+                REQUIRE( pColor->blue == 0.055 );
+                REQUIRE( pColor->alpha == alpha );
+            }
+        }
+    }
+}
+
+SCENARIO( "An RGBA Color Palette is constructed correctly", "[DisplayTypes]" )
+{
+    GIVEN( "Attributes for a new RGBA Color Palette" )
+    {
+        std::string colorName1  = "my-color-1";
+        std::string colorName2  = "my-color-2";
+        std::string colorPalette  = "my-color-palette";
+        
+        double red1(0.12), green1(0.34), blue1(0.56), alpha1(0.78);
+        double red2(0.66), green2(0.77), blue2(0.88), alpha2(0.99);
+
+        DSL_RGBA_COLOR_PTR pColor1 = DSL_RGBA_COLOR_NEW(colorName1.c_str(), 
+            red1, green1, blue1, alpha1);
+        DSL_RGBA_COLOR_PTR pColor2 = DSL_RGBA_COLOR_NEW(colorName1.c_str(), 
+            red2, green2, blue2, alpha2);
+
+        std::shared_ptr<std::vector<DSL_RGBA_COLOR_PTR>> pColorPalette = 
+            std::shared_ptr<std::vector<DSL_RGBA_COLOR_PTR>>(
+                new std::vector<DSL_RGBA_COLOR_PTR>);
+
+        pColorPalette->push_back(pColor1);
+        pColorPalette->push_back(pColor2);
+
+        WHEN( "The RGBA Color is created" )
+        {
+            DSL_RGBA_COLOR_PALETTE_PTR pColor = 
+                DSL_RGBA_COLOR_PALETTE_NEW(colorPalette.c_str(), pColorPalette);
+                
+            THEN( "Its member variables are initialized correctly" )
+            {
+                REQUIRE( pColor->GetName() == colorPalette );
+                REQUIRE( pColor->red == red1 );
+                REQUIRE( pColor->green == green1 );
+                REQUIRE( pColor->blue == blue1 );
+                REQUIRE( pColor->alpha == alpha1 );
+                
+                pColor->SetNext();
+
+                REQUIRE( pColor->red == red2 );
+                REQUIRE( pColor->green == green2 );
+                REQUIRE( pColor->blue == blue2 );
+                REQUIRE( pColor->alpha == alpha2 );
             }
         }
     }
