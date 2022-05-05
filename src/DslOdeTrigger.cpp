@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2022, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -63,7 +63,6 @@ namespace DSL
     {
         LOG_FUNC();
 
-        g_mutex_init(&m_propertyMutex);
         g_mutex_init(&m_resetTimerMutex);
     }
 
@@ -80,7 +79,6 @@ namespace DSL
             g_source_remove(m_resetTimerId);
         }
         g_mutex_clear(&m_resetTimerMutex);
-        g_mutex_clear(&m_propertyMutex);
     }
     
     bool OdeTrigger::AddAction(DSL_BASE_PTR pChild)
@@ -90,7 +88,7 @@ namespace DSL
         if (m_pOdeActions.find(pChild->GetName()) != m_pOdeActions.end())
         {
             LOG_ERROR("ODE Area '" << pChild->GetName() 
-                << "' is already a child of ODE Trigger'" << GetName() << "'");
+                << "' is already a child of ODE Trigger '" << GetName() << "'");
             return false;
         }
         
@@ -196,7 +194,35 @@ namespace DSL
         m_pOdeAreas.clear();
         m_pOdeAreasIndexed.clear();
     }
+
+    bool OdeTrigger::AddAccumulator(DSL_BASE_PTR pAccumulator)
+    {
+        LOG_FUNC();
+
+        if (m_pAccumulator)
+        {
+            LOG_ERROR("ODE Trigger '" << GetName() 
+                << "' all ready has an Accumulator");
+            return false;
+        }
+        m_pAccumulator = pAccumulator;
+        return true;
+    }
     
+    bool OdeTrigger::RemoveAccumulator()
+    {
+        LOG_FUNC();
+
+        if (!m_pAccumulator)
+        {
+            LOG_ERROR("ODE Trigger '" << GetName() 
+                << "' does not have an Accumulator");
+            return false;
+        }
+        m_pAccumulator = NULL;
+        return true;
+    }
+        
     void OdeTrigger::Reset()
     {
         LOG_FUNC();

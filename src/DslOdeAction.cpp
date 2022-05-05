@@ -699,9 +699,9 @@ namespace DSL
         m_contentTypes.assign(contentTypes.begin(), contentTypes.end());
     }
 
-        void CustomizeLabelOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    void CustomizeLabelOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+    GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+    NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c)   2021, Prominence AI, Inc.
+Copyright (c)   2021-2022, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,6 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslServices.h"
 #include "DslServicesValidate.h"
-#include "DslOdeArea.h"
 
 namespace DSL
 {
@@ -2014,6 +2013,65 @@ namespace DSL
         {
             LOG_ERROR("ODE Trigger '" << name 
                 << "' threw an exception removing All ODE Areas");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeTriggerAccumulatorAdd(const char* name, 
+        const char* accumulator)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_ACCUMULATOR_NAME_NOT_FOUND(m_odeAccumulators, 
+                accumulator);
+
+            // check for in-use
+
+            if (!m_odeTriggers[name]->AddAccumulator(m_odeAccumulators[accumulator]))
+            {
+                LOG_ERROR("ODE Trigger '" << name
+                    << "' failed to add ODE Accumulator '" << accumulator << "'");
+                return DSL_RESULT_ODE_TRIGGER_ACCUMULATOR_ADD_FAILED;
+            }
+            LOG_INFO("ODE Accumulator '" << accumulator
+                << "' was added to ODE Trigger '" << name << "' successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name
+                << "' threw exception adding ODE Area '" << accumulator << "'");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeTriggerAccumulatorRemove(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+
+            if (!m_odeTriggers[name]->RemoveAccumulator())
+            {
+                LOG_ERROR("ODE Trigger '" << name
+                    << "' failed to remove ODE Accumulator");
+                return DSL_RESULT_ODE_TRIGGER_ACCUMULATOR_REMOVE_FAILED;
+            }
+            LOG_INFO("ODE Accumulator was removed from ODE Trigger '" 
+                << name << "' successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name
+                << "' threw exception removing ODE Accumulator");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }

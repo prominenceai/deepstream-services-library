@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2022, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -195,42 +195,56 @@ namespace DSL
             NvDsFrameMeta* pFrameMeta){return m_occurrences;};
 
         /**
-         * @brief Adds an ODE Action as a child to this ODE Type
+         * @brief Adds an ODE Action as a child to this OdeTrigger
          * @param[in] pChild pointer to ODE Action to add
          * @return true if successful, false otherwise
          */
         bool AddAction(DSL_BASE_PTR pChild);
         
         /**
-         * @brief Removes a child ODE Action from this ODE Type
+         * @brief Removes a child ODE Action from this OdeTrigger
          * @param[in] pChild pointer to ODE Action to remove
          * @return true if successful, false otherwise
          */
         bool RemoveAction(DSL_BASE_PTR pChild);
         
         /**
-         * @brief Removes all child ODE Actions from this ODE Type
+         * @brief Removes all child ODE Actions from this OdeTrigger
          */
         void RemoveAllActions();
         
         /**
-         * @brief Adds an ODE Area as a child to this ODE Type
+         * @brief Adds an ODE Area as a child to this OdeTrigger
          * @param[in] pChild pointer to ODE Area to add
          * @return true if successful, false otherwise
          */
         bool AddArea(DSL_BASE_PTR pChild);
         
         /**
-         * @brief Removes a child ODE Area from this ODE Type
+         * @brief Removes a child ODE Area from this OdeTrigger
          * @param[in] pChild pointer to ODE Area to remove
          * @return true if successful, false otherwise
          */
         bool RemoveArea(DSL_BASE_PTR pChild);
         
         /**
-         * @brief Removes all child ODE Areas from this ODE Type
+         * @brief Removes all child ODE Areas from this OdeTrigger
          */
         void RemoveAllAreas();
+
+        /**
+         * @brief Adds a (one at most) ODE Accumulator as a child to this OdeTrigger.
+         * @param[in] pChild pointer to ODE Accumulator to add.
+         * @return true if successful, false otherwise
+         */
+        bool AddAccumulator(DSL_BASE_PTR pAccumulator);
+        
+        /**
+         * @brief Removes the child ODE Accumulator from this OdeTrigger
+         * @return true if successful, false otherwise
+         */
+        bool RemoveAccumulator();
+        
         
         /**
          * @brief Resets the Trigger
@@ -504,12 +518,12 @@ namespace DSL
          * @brief Map of child ODE Actions indexed by their add-order for execution
          */
         std::map <uint, DSL_BASE_PTR> m_pOdeActionsIndexed;
-    
-        /**
-         * @brief Mutex to ensure mutual exlusion for propery get/sets
-         */
-        GMutex m_propertyMutex;
         
+        /**
+         * @brief optional metric accumulator owned by the ODE Trigger.
+         */
+        DSL_BASE_PTR m_pAccumulator;
+    
         /**
          * @brief auto-reset timeout in units of seconds
          */
