@@ -296,9 +296,6 @@ namespace DSL {
         DslReturnType OdeTriggerAbsenceNew(const char* name, 
             const char* source, uint classId, uint limit);
 
-        DslReturnType OdeTriggerAccumulationNew(const char* name, 
-            const char* source, uint classId, uint limit);
-
         DslReturnType OdeTriggerInstanceNew(const char* name, 
             const char* source, uint classId, uint limit);
         

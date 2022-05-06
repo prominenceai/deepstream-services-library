@@ -779,6 +779,7 @@ THE SOFTWARE.
 #define DSL_METRIC_OBJECT_DIMENSIONS                                3
 #define DSL_METRIC_OBJECT_CONFIDENCE                                4
 #define DSL_METRIC_OBJECT_PERSISTENCE                               5
+#define DSL_METRIC_OBJECT_DIRECTION                                 6
 
 /**
  * @brief Metric Content Options for Trigger Output customization
@@ -789,7 +790,10 @@ THE SOFTWARE.
  * frame. For most other Triggers, this value will always be 1.
  * For the Absence Trigger, occurrences will always be 0. 
  */
-#define DSL_METRIC_OBJECT_OCCURRENCES                               6
+#define DSL_METRIC_OBJECT_OCCURRENCES                               7
+
+#define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_IN                  8
+#define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_OUT                 9
 
 /**
  * @brief Message converter payload schema types used by all Message Sinks.
@@ -2159,21 +2163,6 @@ DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name,
     const wchar_t* source, uint class_id, uint limit);
 
 /**
- * @brief Accumulation trigger that checks for new instances of Objects for a specified
- * source and object class_id accumulating the occurrences over consecutive frames. 
- * The current accumulative occurrence value is reported after each frame. New instance 
- * identification is based on Tracking Id.
- * Note: the accumulative occurrence value is cleared on trigger reset.
- * @param[in] name unique name for the ODE Trigger
- * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
- * @param[in] class_id class id filter for this ODE Trigger
- * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_accumulation_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit);
-    
-/**
  * @brief Count trigger that checks for the occurrence of Objects within a frame
  * and tests if the count is within a specified range.
  * @param[in] name unique name for the ODE Trigger
@@ -2905,7 +2894,7 @@ DslReturnType dsl_ode_trigger_area_remove_all(const wchar_t* name);
 /**
  * @brief Adds a named ODE Accumulator to a named ODE Trigger
  * @param[in] name unique name of the ODE Trigger to update
- * @param[in] accumulator unique name of the ODE Accumulator to Add
+ * @param[in] accumulator unique name of the ODE Accumulator to add
  * @return DSL_RESULT_SUCCESS on successful update, 
  * DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
@@ -2913,9 +2902,8 @@ DslReturnType dsl_ode_trigger_accumulator_add(const wchar_t* name,
     const wchar_t* accumulator);
 
 /**
- * @brief Adds a named ODE Accumulator to a named ODE Trigger
+ * @brief Removes the ODE Accumulator from a named ODE Trigger
  * @param[in] name unique name of the ODE Trigger to update
- * @param[in] accumulator unique name of the ODE Accumulator to Add
  * @return DSL_RESULT_SUCCESS on successful update, 
  * DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */

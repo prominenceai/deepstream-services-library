@@ -122,7 +122,7 @@ SCENARIO( "An OdeAccumulator executes its ODE Actions in the correct order ", "[
                 
                 // Remove Action 3 and add back in to change order    
                 REQUIRE( pOdeAccumlator->RemoveAction(pOdeAction3) == true );        
-                REQUIRE( pOdeTrigger->AddAction(pOdeAction3) == true );        
+                REQUIRE( pOdeAccumlator->AddAction(pOdeAction3) == true );        
                 
                 pOdeAccumlator->HandleOccurrences(pOdeTrigger, 
                     NULL, displayMetaData, &frameMeta);

@@ -86,11 +86,6 @@ namespace DSL
     private:
     
         /**
-         * @brief running accumulation of ODE Occurrences.
-         */
-        uint64_t m_accumulation;
-    
-        /**
          * @brief Index variable to incremment/assign on ODE Action add.
          */
         uint m_nextActionIndex;

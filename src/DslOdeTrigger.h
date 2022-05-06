@@ -47,11 +47,6 @@ namespace DSL
         std::shared_ptr<AbsenceOdeTrigger>(new AbsenceOdeTrigger(name, \
             source, classId, limit))
 
-    #define DSL_ODE_TRIGGER_ACCUMULATION_PTR std::shared_ptr<AccumulationOdeTrigger>
-    #define DSL_ODE_TRIGGER_ACCUMULATION_NEW(name, source, classId, limit) \
-        std::shared_ptr<AccumulationOdeTrigger>(new AccumulationOdeTrigger(name, \
-            source, classId, limit))
-
     #define DSL_ODE_TRIGGER_INSTANCE_PTR std::shared_ptr<InstanceOdeTrigger>
     #define DSL_ODE_TRIGGER_INSTANCE_NEW(name, source, classId, limit) \
         std::shared_ptr<InstanceOdeTrigger>(new InstanceOdeTrigger(name, \
@@ -110,19 +105,20 @@ namespace DSL
 
     #define DSL_ODE_TRIGGER_PERSISTENCE_PTR std::shared_ptr<PersistenceOdeTrigger>
     #define DSL_ODE_TRIGGER_PERSISTENCE_NEW(name, \
-        source, classId, limit, minimum, maximum, pColor) \
+        source, classId, limit, minimum, maximum) \
         std::shared_ptr<PersistenceOdeTrigger> \
             (new PersistenceOdeTrigger(name, \
-                source, classId, limit, minimum, maximum, pColor))
+                source, classId, limit, minimum, maximum))
+                
     #define DSL_ODE_TRIGGER_LATEST_PTR std::shared_ptr<LatestOdeTrigger>
-    #define DSL_ODE_TRIGGER_LATEST_NEW(name, source, classId, limit, pColor) \
+    #define DSL_ODE_TRIGGER_LATEST_NEW(name, source, classId, limit) \
         std::shared_ptr<LatestOdeTrigger>(new LatestOdeTrigger(name, \
-            source, classId, limit, pColor))
+            source, classId, limit))
 
     #define DSL_ODE_TRIGGER_EARLIEST_PTR std::shared_ptr<EarliestOdeTrigger>
-    #define DSL_ODE_TRIGGER_EARLIEST_NEW(name, source, classId, limit, pColor) \
+    #define DSL_ODE_TRIGGER_EARLIEST_NEW(name, source, classId, limit) \
         std::shared_ptr<EarliestOdeTrigger>(new EarliestOdeTrigger(name, \
-            source, classId, limit, pColor))
+            source, classId, limit))
 
 
     // Triggers for ClassA - ClassB Testing
@@ -754,60 +750,12 @@ namespace DSL
     
     };
 
-    class AccumulationOdeTrigger : public OdeTrigger
-    {
-    public:
-    
-        AccumulationOdeTrigger(const char* name, 
-            const char* source, uint classId, uint limit);
-        
-        ~AccumulationOdeTrigger();
-
-        /**
-         * @brief Overrides the base Reset in order to clear the m_accumulativeOccurrences
-         */
-        void Reset();
-
-        /**
-         * @brief Function to check a given Object Meta data structure for a New Instance of a Class and accumulate
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
-         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
-         * @return true if Occurrence, false otherwise
-         */
-        bool CheckForOccurrence(GstBuffer* pBuffer, 
-            std::vector<NvDsDisplayMeta*>& displayMetaData,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-
-        /**
-         * @brief Function to post process the frame and generate an Accumulation Event 
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
-         * @param[in] pFrameMeta Frame meta data to post process.
-         * @return the number of ODE Occurrences triggered on post process
-         */
-        uint PostProcessFrame(GstBuffer* pBuffer, 
-            std::vector<NvDsDisplayMeta*>& displayMetaData, NvDsFrameMeta* pFrameMeta);
-            
-    private:
-        /**
-         * @brief map of last Tracking Ids per unique source_id-class_id combination
-         */
-        std::map <std::string, uint64_t> m_instances;
-        
-        /**
-         * @brief accumulative Occurrence count of all unique objects
-         */
-        uint m_accumulativeOccurrences;
-    
-    };
-
     class TrackingOdeTrigger : public OdeTrigger
     {
     public:
     
         TrackingOdeTrigger(const char* name, const char* source, uint classId, 
-            uint limit, uint minFrameCount, uint maxTracePoints, 
-            uint testMethod, DSL_RGBA_COLOR_PTR pColor);
+            uint limit, uint maxTracePoints);
         
         ~TrackingOdeTrigger();
         
@@ -816,72 +764,7 @@ namespace DSL
          */
         void Reset();
 
-        /**
-         * @brief Gets the current max-trace-point setting for this CrossOdeTrigger.
-         * @param[out] minFrameCount current min frame-count setting.
-         * @param[out] maxTracePoints current max trace-point setting.
-         * @param[out] testMethod one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
-         */
-        void GetTestSettings(uint* minFrameCount, 
-            uint* maxTracePoints, uint* testMethod);
-
-        /**
-         * @brief Sets the max-trace-point setting for this CrossOdeTrigger.
-         * @param[in] minFrameCount current min frame-count setting.
-         * @param[in] maxTracePoints current max trace-point setting.
-         * @param[in] testMethod one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
-         */
-        void SetTestSettings(uint minFrameCount,
-            uint maxTracePoints, uint testMethod);
-        
-        /**
-         * @brief Gets the current trace setting for this CrossOdeTrigger.
-         * @param[out] enabled true if trace display is enabled, false otherwise.
-         * @param[out] color name of the RGBA Color for the trace display.
-         * @param[out] lineWidth for the trace display when enabled.
-         */
-        void GetViewSettings(bool* enabled, const char** color, uint* lineWidth);
-        
-        /**
-         * @brief Gets the current trace setting for this CrossOdeTrigger.
-         * @param[in] enabled true if trace display is enabled, false otherwise.
-         * @param[in] pColor shared pointer to RGBA Color to use for the trace display.
-         * @param[in] lineWidth for the trace display if enabled.
-         */
-        void SetViewSettings(bool enabled, DSL_RGBA_COLOR_PTR pColor, uint lineWidth);
-
     protected:
-
-        /**
-         * @brief minimum number of consective frames required to trigger an event
-         * on both sides of the line. 
-         */
-        uint m_minFrameCount;
-
-        /**
-         * @brief maximum number of trace points to use in cross detection
-         */
-        uint m_maxTracePoints;
-
-        /**
-         * @brief method to test object trace line crossing. All-points or end-points.
-         */
-        uint m_testMethod;
-        
-        /**
-         * @brief true if object trace display is enabled, false otherwise.
-         */
-        bool m_traceEnabled;
-        
-        /**
-         * @brief shared pointer to RGBA Color to use for the object trace display.
-         */
-        DSL_RGBA_COLOR_PTR m_pTraceColor;
-        
-        /**
-         * @brief line width for the object trace in units of pixels.
-         */
-        uint m_traceLineWidth;
 
         /**
          * @brief map of tracked objects per source - Key = source Id
@@ -920,8 +803,105 @@ namespace DSL
          */
         uint PostProcessFrame(GstBuffer* pBuffer, 
             std::vector<NvDsDisplayMeta*>& displayMetaData, NvDsFrameMeta* pFrameMeta);
+
+        /**
+         * @brief Gets the current max-trace-point setting for this CrossOdeTrigger.
+         * @param[out] minFrameCount current min frame-count setting.
+         * @param[out] maxTracePoints current max trace-point setting.
+         * @param[out] testMethod one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
+         */
+        void GetTestSettings(uint* minFrameCount, 
+            uint* maxTracePoints, uint* testMethod);
+
+        /**
+         * @brief Sets the max-trace-point setting for this CrossOdeTrigger.
+         * @param[in] minFrameCount current min frame-count setting.
+         * @param[in] maxTracePoints current max trace-point setting.
+         * @param[in] testMethod one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
+         */
+        void SetTestSettings(uint minFrameCount,
+            uint maxTracePoints, uint testMethod);
+        
+        /**
+         * @brief Gets the current trace setting for this CrossOdeTrigger.
+         * @param[out] enabled true if trace display is enabled, false otherwise.
+         * @param[out] color name of the RGBA Color for the trace display.
+         * @param[out] lineWidth for the trace display when enabled.
+         */
+        void GetViewSettings(bool* enabled, const char** color, uint* lineWidth);
+        
+        /**
+         * @brief Gets the current trace setting for this CrossOdeTrigger.
+         * @param[in] enabled true if trace display is enabled, false otherwise.
+         * @param[in] pColor shared pointer to RGBA Color to use for the trace display.
+         * @param[in] lineWidth for the trace display if enabled.
+         */
+        void SetViewSettings(bool enabled, DSL_RGBA_COLOR_PTR pColor, uint lineWidth);
+
+        /**
+         * @brief Overrides the base Reset in order to clear m_occurrencesIn and
+         * m_occurrencesOut
+         */
+        void Reset();
             
     private:
+
+        /**
+         * @brief maximum number of trace points to use in cross detection
+         */
+        uint m_maxTracePoints;
+
+        /**
+         * @brief number of occurrences in the "in-direction" for the current frame, 
+         * reset on exit of PostProcessFrame
+         */
+        uint m_occurrencesIn;
+
+        /**
+         * @brief number of occurrences in the "out-direction" for the current frame, 
+         * reset on exit of PostProcessFrame
+         */
+        uint m_occurrencesOut;
+
+        /**
+         * @brief number of occurrences in the "in-direction" accumlated over 
+         * all frames reset on Trigger reset. Only updated if/when the Trigger
+         * has an ODE Accumulator. 
+         */
+        uint m_occurrencesInAccumulated;
+
+        /**
+         * @brief number of occurrences in the "out-direction" accumulated over, 
+         * all frames reset on Trigger reset. Only updated if/when the Trigger
+         * has an ODE Accumulator. 
+         */
+        uint m_occurrencesOutAccumlated;
+
+        /**
+         * @brief minimum number of consective frames required to trigger an event
+         * on both sides of the line. 
+         */
+        uint m_minFrameCount;
+
+        /**
+         * @brief method to test object trace line crossing. All-points or end-points.
+         */
+        uint m_testMethod;
+        
+        /**
+         * @brief true if object trace display is enabled, false otherwise.
+         */
+        bool m_traceEnabled;
+        
+        /**
+         * @brief shared pointer to RGBA Color to use for the object trace display.
+         */
+        DSL_RGBA_COLOR_PTR m_pTraceColor;
+        
+        /**
+         * @brief line width for the object trace in units of pixels.
+         */
+        uint m_traceLineWidth;
     
     };
     
@@ -1137,7 +1117,7 @@ namespace DSL
     public:
     
         PersistenceOdeTrigger(const char* name, const char* source, uint classId, 
-            uint limit, uint minimum, uint maximum, DSL_RGBA_COLOR_PTR pColor);
+            uint limit, uint minimum, uint maximum);
         
         ~PersistenceOdeTrigger();
 
@@ -1352,7 +1332,7 @@ namespace DSL
     public:
     
         LatestOdeTrigger(const char* name, const char* source, 
-            uint classId, uint limit, DSL_RGBA_COLOR_PTR pColor);
+            uint classId, uint limit);
         
         ~LatestOdeTrigger();
 
@@ -1398,7 +1378,7 @@ namespace DSL
     public:
     
         EarliestOdeTrigger(const char* name, const char* source, 
-            uint classId, uint limit, DSL_RGBA_COLOR_PTR pColor);
+            uint classId, uint limit);
         
         ~EarliestOdeTrigger();
 

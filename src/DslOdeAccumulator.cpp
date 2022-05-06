@@ -31,7 +31,6 @@ namespace DSL
 
     OdeAccumulator::OdeAccumulator(const char* name)
         : OdeBase(name)
-        , m_accumulation(0)
     {
         LOG_FUNC();
     }
@@ -47,30 +46,19 @@ namespace DSL
         GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta)
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        // Add the occurrence metric for the current frame to the accumulative total.
-        m_accumulation += pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES];
-        
-        // Update the metric with the accumulative total before passing to actions.
-        pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES];
-
-        if (m_enabled)
-        {   
-            for (const auto &imap: m_pOdeActionsIndexed)
+        for (const auto &imap: m_pOdeActionsIndexed)
+        {
+            DSL_ODE_ACTION_PTR pOdeAction = 
+                std::dynamic_pointer_cast<OdeAction>(imap.second);
+            try
             {
-                DSL_ODE_ACTION_PTR pOdeAction = 
-                    std::dynamic_pointer_cast<OdeAction>(imap.second);
-                try
-                {
-                    pOdeAction->HandleOccurrence(pOdeTrigger, pBuffer, 
-                        displayMetaData, pFrameMeta, NULL);
-                }
-                catch(...)
-                {
-                    LOG_ERROR("ODE Accumulater '" << GetName() << "' => Action '" 
-                        << pOdeAction->GetName() << "' threw exception");
-                }
+                pOdeAction->HandleOccurrence(pOdeTrigger, pBuffer, 
+                    displayMetaData, pFrameMeta, NULL);
+            }
+            catch(...)
+            {
+                LOG_ERROR("ODE Accumulater '" << GetName() << "' => Action '" 
+                    << pOdeAction->GetName() << "' threw exception");
             }
         }
     }
@@ -111,7 +99,7 @@ namespace DSL
         // Erase the child from both maps
         m_pOdeActions.erase(pChild->GetName());
         m_pOdeActionsIndexed.erase(pChild->GetIndex());
-        
+
         // Clear the parent relationship and index
         pChild->ClearParentName();
         pChild->SetIndex(0);
@@ -131,6 +119,5 @@ namespace DSL
         m_pOdeActions.clear();
         m_pOdeActionsIndexed.clear();
     }
-    
     
 }

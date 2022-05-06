@@ -122,36 +122,6 @@ namespace DSL
     }
     
     
-    DslReturnType Services::OdeTriggerAccumulationNew(const char* name, 
-        const char* source, uint classId, uint limit)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure event name uniqueness 
-            if (m_odeTriggers.find(name) != m_odeTriggers.end())
-            {   
-                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
-            }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_ACCUMULATION_NEW(name, 
-                source, classId, limit);
-            
-            LOG_INFO("New Accumulation ODE Trigger '" << name 
-                << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Accumulation ODE Trigger '" << name 
-                << "' threw exception on create");
-            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
-        }
-    }
-    
     DslReturnType Services::OdeTriggerInstanceNew(const char* name, 
         const char* source, uint classId, uint limit)
     {
@@ -689,8 +659,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, 
                 CrossOdeTrigger);
             
-            DSL_ODE_TRACKING_TRIGGER_PTR pOdeTrigger = 
-                std::dynamic_pointer_cast<TrackingOdeTrigger>(m_odeTriggers[name]);
+            DSL_ODE_TRIGGER_CROSS_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<CrossOdeTrigger>(m_odeTriggers[name]);
 
             pOdeTrigger->GetTestSettings(minFrameCount, 
                 maxFrameCount, testMethod);
@@ -733,8 +703,8 @@ namespace DSL
                     << "for ODE Cross Trigger '" << name << "'");
                 return DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID;
             }
-            DSL_ODE_TRACKING_TRIGGER_PTR pOdeTrigger = 
-                std::dynamic_pointer_cast<TrackingOdeTrigger>(m_odeTriggers[name]);
+            DSL_ODE_TRIGGER_CROSS_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<CrossOdeTrigger>(m_odeTriggers[name]);
 
             pOdeTrigger->SetTestSettings(minFrameCount, 
                 maxFrameCount, testMethod);
@@ -764,8 +734,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, 
                 CrossOdeTrigger);
             
-            DSL_ODE_TRACKING_TRIGGER_PTR pOdeTrigger = 
-                std::dynamic_pointer_cast<TrackingOdeTrigger>(m_odeTriggers[name]);
+            DSL_ODE_TRIGGER_CROSS_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<CrossOdeTrigger>(m_odeTriggers[name]);
 
             bool bEnabled;
             pOdeTrigger->GetViewSettings(&bEnabled, color, lineWidth);
@@ -798,8 +768,8 @@ namespace DSL
             DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
             DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(m_displayTypes, color);
             
-            DSL_ODE_TRACKING_TRIGGER_PTR pOdeTrigger = 
-                std::dynamic_pointer_cast<TrackingOdeTrigger>(m_odeTriggers[name]);
+            DSL_ODE_TRIGGER_CROSS_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<CrossOdeTrigger>(m_odeTriggers[name]);
                 
             DSL_RGBA_COLOR_PTR pColor = 
                 std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
@@ -836,11 +806,8 @@ namespace DSL
             // check for no maximum
             maximum = (maximum == 0) ? UINT32_MAX : maximum;
 
-            DSL_RGBA_COLOR_PTR pColor = std::dynamic_pointer_cast<RgbaColor>
-                (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
-
             m_odeTriggers[name] = DSL_ODE_TRIGGER_PERSISTENCE_NEW(name, 
-                source, classId, limit, minimum, maximum, pColor);
+                source, classId, limit, minimum, maximum);
             
             LOG_INFO("New Persistence ODE Trigger '" << name << "' created successfully");
 
@@ -930,11 +897,8 @@ namespace DSL
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
 
-            DSL_RGBA_COLOR_PTR pColor = std::dynamic_pointer_cast<RgbaColor>
-                (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
-
             m_odeTriggers[name] = DSL_ODE_TRIGGER_LATEST_NEW(name, 
-                source, classId, limit, pColor);
+                source, classId, limit);
             
             LOG_INFO("New Latest ODE Trigger '" << name << "' created successfully");
 
@@ -963,11 +927,8 @@ namespace DSL
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
 
-            DSL_RGBA_COLOR_PTR pColor = std::dynamic_pointer_cast<RgbaColor>
-                (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
-
             m_odeTriggers[name] = DSL_ODE_TRIGGER_EARLIEST_NEW(name, 
-                source, classId, limit, pColor);
+                source, classId, limit);
             
             LOG_INFO("New Earliest ODE Trigger '" << name 
                 << "' created successfully");

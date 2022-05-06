@@ -459,47 +459,6 @@ SCENARIO( "A new Absence Trigger can be created and deleted correctly",
     }
 }    
 
-SCENARIO( "A new Accumulation Trigger can be created and deleted correctly", 
-    "[ode-trigger-api]" )
-{
-    GIVEN( "Attributes for a new Accumulation Trigger" ) 
-    {
-        std::wstring odeTriggerName(L"accumulation");
-        uint class_id(0);
-        uint limit(0);
-
-        WHEN( "When the Trigger is created" )         
-        {
-            REQUIRE( dsl_ode_trigger_accumulation_new(odeTriggerName.c_str(), 
-                NULL, class_id, limit) == DSL_RESULT_SUCCESS );
-            
-            THEN( "The Trigger can be deleted only once" ) 
-            {
-                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == 
-                    DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_trigger_list_size() == 0 );
-                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == 
-                    DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND );
-            }
-        }
-        WHEN( "When the Trigger is created" )         
-        {
-            REQUIRE( dsl_ode_trigger_accumulation_new(odeTriggerName.c_str(), 
-                NULL, class_id, limit) == DSL_RESULT_SUCCESS );
-            
-            THEN( "A second Trigger with the same name fails to create" ) 
-            {
-                REQUIRE( dsl_ode_trigger_accumulation_new(odeTriggerName.c_str(), 
-                    NULL, class_id, limit) == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
-                    
-                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == 
-                    DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_trigger_list_size() == 0 );
-            }
-        }
-    }
-}    
-
 SCENARIO( "A new Instance Trigger can be created and deleted correctly", 
     "[ode-trigger-api]" )
 {

@@ -43,7 +43,14 @@ namespace DSL
         
         Update(frameNumber, pCoordinates);
         
-        m_pColor = std::shared_ptr<RgbaColor>(new RgbaColor(*pColor));
+        if (pColor)
+        {
+            m_pColor = std::shared_ptr<RgbaColor>(new RgbaColor());
+        }
+        else
+        {
+            m_pColor = std::shared_ptr<RgbaColor>(new RgbaColor(*pColor));
+        }
     }
     
     void TrackedObject::SetMaxHistory(uint maxHistory)
