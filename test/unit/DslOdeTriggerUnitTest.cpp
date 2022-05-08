@@ -130,7 +130,7 @@ SCENARIO( "A new OdeOccurreceTrigger is created correctly", "[OdeTrigger]" )
     }
 }
 
-SCENARIO( "An OdeOccurrenceTrigger checks its enabled setting ", "[OdeTrigger]" )
+SCENARIO( "An OdeOccurrenceTrigger checks its enabled setting ", "[now]" )
 {
     GIVEN( "A new OdeTrigger with default criteria" ) 
     {

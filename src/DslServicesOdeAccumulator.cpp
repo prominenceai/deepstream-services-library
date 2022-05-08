@@ -30,6 +30,35 @@ THE SOFTWARE.
 namespace DSL
 {
 
+    DslReturnType Services::OdeAccumulatorNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure Accumulator name uniqueness 
+            if (m_odeAccumulators.find(name) != m_odeAccumulators.end())
+            {   
+                LOG_ERROR("ODE Accumulator name '" << name 
+                    << "' is not unique");
+                return DSL_RESULT_ODE_ACCUMULATOR_NAME_NOT_UNIQUE;
+            }
+            m_odeAccumulators[name] = DSL_ODE_ACCUMULATOR_NEW(name);
+            
+            LOG_INFO("New ODE Accumulator '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Accumulator '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_ODE_ACCUMULATOR_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::OdeAccumulatorActionAdd(const char* name, 
         const char* action)
     {

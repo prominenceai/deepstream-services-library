@@ -2413,6 +2413,16 @@ uint dsl_ode_trigger_list_size()
     return DSL::Services::GetServices()->OdeTriggerListSize();
 }
 
+DslReturnType dsl_ode_accumulator_new(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeAccumulatorNew(cstrName.c_str());
+}
+
 DslReturnType dsl_ode_accumulator_action_add(const wchar_t* name, const wchar_t* action)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -2423,7 +2433,8 @@ DslReturnType dsl_ode_accumulator_action_add(const wchar_t* name, const wchar_t*
     std::wstring wstrAction(action);
     std::string cstrAction(wstrAction.begin(), wstrAction.end());
 
-    return DSL::Services::GetServices()->OdeAccumulatorActionAdd(cstrName.c_str(), cstrAction.c_str());
+    return DSL::Services::GetServices()->OdeAccumulatorActionAdd(cstrName.c_str(), 
+        cstrAction.c_str());
 }
 
 DslReturnType dsl_ode_accumulator_action_add_many(const wchar_t* name, const wchar_t** actions)

@@ -45,6 +45,7 @@ namespace DSL
         , m_triggered(0)
         , m_limit(limit)
         , m_occurrences(0)
+        , m_occurrencesAccumulated(0)
         , m_minConfidence(0)
         , m_minWidth(0)
         , m_minHeight(0)
@@ -80,6 +81,39 @@ namespace DSL
         }
         g_mutex_clear(&m_resetTimerMutex);
     }
+
+    uint OdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+        std::vector<NvDsDisplayMeta*>& displayMetaData,
+        NvDsFrameMeta* pFrameMeta)
+    {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        // Filter on skip-frame interval
+        if (!m_enabled or m_skipFrame)
+        {
+            return 0;
+        }
+
+        // If the client has added an accumulator, 
+        if (m_pAccumulator)
+        {
+            m_occurrencesAccumulated += m_occurrences;
+            
+            pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] = 
+                DSL_FRAME_INFO_OCCURRENCES;
+            pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] = 
+                m_occurrencesAccumulated;
+                
+            DSL_ODE_ACCUMULATOR_PTR pOdeAccumulator = 
+                std::dynamic_pointer_cast<OdeAccumulator>(m_pAccumulator);
+                
+            pOdeAccumulator->HandleOccurrences(shared_from_this(),
+                pBuffer, displayMetaData, pFrameMeta);
+        }
+        return m_occurrences;
+    }        
     
     bool OdeTrigger::AddAction(DSL_BASE_PTR pChild)
     {
@@ -229,7 +263,8 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         m_triggered = 0;
-
+        m_occurrencesAccumulated = 0;
+        
         // iterate through the map of limit-event-listeners calling each
         for(auto const& imap: m_limitEventListeners)
         {
@@ -644,12 +679,8 @@ namespace DSL
     bool OdeTrigger::CheckForMinCriteria(NvDsFrameMeta* pFrameMeta, 
         NvDsObjectMeta* pObjectMeta)
     {
-        // Note: function is called from the system (callback) context
-        // Gaurd against property updates from the client API
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        // Filter on skip-frame interval
-        if (m_skipFrame)
+        // Filter on enable and skip-frame interval
+        if (!m_enabled or m_skipFrame)
         {
             return false;
         }
@@ -699,10 +730,6 @@ namespace DSL
 
     bool OdeTrigger::CheckForInside(NvDsObjectMeta* pObjectMeta)
     {
-        // Note: function is called from the system (callback) context
-        // Gaurd against property updates from the client API
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
         // If areas are defined, check condition
 
         if (m_pOdeAreasIndexed.size())
@@ -744,6 +771,14 @@ namespace DSL
         {
             return;
         }
+        if (m_interval)
+        {
+            m_intervalCounter = (m_intervalCounter + 1) % m_interval; 
+            if (m_intervalCounter != 0)
+            {
+                return;
+            }
+        }
         for (const auto &imap: m_pOdeActionsIndexed)
         {
             DSL_ODE_ACTION_PTR pOdeAction = 
@@ -757,10 +792,22 @@ namespace DSL
         std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta)
     {
-        if (m_skipFrame or !m_enabled or !CheckForSourceId(pFrameMeta->source_id) or 
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or 
             m_when != DSL_ODE_POST_OCCURRENCE_CHECK)
         {
             return 0;
+        }
+        if (m_interval)
+        {
+            m_intervalCounter = (m_intervalCounter + 1) % m_interval; 
+            if (m_intervalCounter != 0)
+            {
+                return 0;
+            }
         }
         for (const auto &imap: m_pOdeActionsIndexed)
         {
@@ -790,6 +837,10 @@ namespace DSL
         std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         if (!m_enabled or 
             !CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
@@ -797,7 +848,7 @@ namespace DSL
         {
             return false;
         }
-
+        
         IncrementAndCheckTriggerCount();
         m_occurrences++;
         
@@ -843,6 +894,10 @@ namespace DSL
         std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         // Important **** we need to check for Criteria even if the Absence Trigger is disabled. 
         // This is case another Trigger enables This trigger, and it checks for the number of 
         // occurrences in the PostProcessFrame() . If the m_occurrences is not updated the Trigger 
@@ -860,27 +915,40 @@ namespace DSL
     }
     
     uint AbsenceOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
-        std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
+        std::vector<NvDsDisplayMeta*>& displayMetaData, NvDsFrameMeta* pFrameMeta)
     {
-        if (!m_enabled or (m_limit and m_triggered >= m_limit) or m_occurrences) 
+        // create scope so the property-mutex can be unlocked before
+        // calling the base-class PostProcessFrame which locks the mutex.
         {
-            return 0;
-        }        
-        
-        // event has been triggered 
-        IncrementAndCheckTriggerCount();
+            // Note: function is called from the system (callback) context
+            // Gaurd against property updates from the client API
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            if (!m_enabled or (m_limit and m_triggered >= m_limit) or m_occurrences) 
+            {
+                return 0;
+            }        
+            
+            // since occurrences = 0, ODE occurrence for the Absence Trigger = 1
+            m_occurrences = 1;
+            
+            // event has been triggered 
+            IncrementAndCheckTriggerCount();
 
-        // update the total event count static variable
-        s_eventCount++;
+            // update the total event count static variable
+            s_eventCount++;
 
-        for (const auto &imap: m_pOdeActionsIndexed)
-        {
-            DSL_ODE_ACTION_PTR pOdeAction = 
-                std::dynamic_pointer_cast<OdeAction>(imap.second);
-            pOdeAction->HandleOccurrence(shared_from_this(), 
-                pBuffer, displayMetaData, pFrameMeta, NULL);
+            for (const auto &imap: m_pOdeActionsIndexed)
+            {
+                DSL_ODE_ACTION_PTR pOdeAction = 
+                    std::dynamic_pointer_cast<OdeAction>(imap.second);
+                pOdeAction->HandleOccurrence(shared_from_this(), 
+                    pBuffer, displayMetaData, pFrameMeta, NULL);
+            }
         }
-        return 1;
+        // mutext unlocked - safe to call base class
+        return OdeTrigger::PostProcessFrame(pBuffer, 
+            displayMetaData, pFrameMeta);
     }
 
     // *****************************************************************************
@@ -913,6 +981,10 @@ namespace DSL
         std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         if (!m_enabled or 
             !CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
@@ -964,6 +1036,7 @@ namespace DSL
         return false;
     }
 
+
     // *****************************************************************************
     
     SummationOdeTrigger::SummationOdeTrigger(const char* name, 
@@ -982,6 +1055,10 @@ namespace DSL
         std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         if (!m_enabled or 
             !CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
@@ -998,27 +1075,37 @@ namespace DSL
     uint SummationOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
         std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
     {
-        if (!m_enabled or m_skipFrame or (m_limit and m_triggered >= m_limit))
+        // create scope so the property-mutex can be unlocked before
+        // calling the base-class PostProcessFrame which locks the mutex.
         {
-            return 0;
-        }
-        // event has been triggered
-        IncrementAndCheckTriggerCount();
+            // Note: function is called from the system (callback) context
+            // Gaurd against property updates from the client API
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            if (!m_enabled or m_skipFrame or (m_limit and m_triggered >= m_limit))
+            {
+                return 0;
+            }
+            // event has been triggered
+            IncrementAndCheckTriggerCount();
 
-         // update the total event count static variable
-        s_eventCount++;
+             // update the total event count static variable
+            s_eventCount++;
 
-        pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] = 
-            DSL_FRAME_INFO_OCCURRENCES;
-        pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] = m_occurrences;
-        for (const auto &imap: m_pOdeActionsIndexed)
-        {
-            DSL_ODE_ACTION_PTR pOdeAction = 
-                std::dynamic_pointer_cast<OdeAction>(imap.second);
-            pOdeAction->HandleOccurrence(shared_from_this(), 
-                pBuffer, displayMetaData, pFrameMeta, NULL);
+            pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] = 
+                DSL_FRAME_INFO_OCCURRENCES;
+            pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] = m_occurrences;
+            for (const auto &imap: m_pOdeActionsIndexed)
+            {
+                DSL_ODE_ACTION_PTR pOdeAction = 
+                    std::dynamic_pointer_cast<OdeAction>(imap.second);
+                pOdeAction->HandleOccurrence(shared_from_this(), 
+                    pBuffer, displayMetaData, pFrameMeta, NULL);
+            }
         }
-        return 1; // Summation ODE is triggered on every frame
+        // mutex unlocked safe to call base class
+        return OdeTrigger::PostProcessFrame(pBuffer,
+            displayMetaData, pFrameMeta);
    }
 
     // *****************************************************************************
@@ -1043,6 +1130,10 @@ namespace DSL
         std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         // conditional execution
         if (!m_enabled or 
             !m_clientChecker or 
@@ -1085,39 +1176,49 @@ namespace DSL
     uint CustomOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
         std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
     {
-        // conditional execution
-        if (!m_enabled or m_clientPostProcessor == NULL)
+        // create scope so the property-mutex can be unlocked before
+        // calling the base-class PostProcessFrame which locks the mutex.
         {
-            return false;
-        }
-        try
-        {
-            if (!m_clientPostProcessor(pBuffer, pFrameMeta, m_clientData))
+            // Note: function is called from the system (callback) context
+            // Gaurd against property updates from the client API
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            // conditional execution
+            if (!m_enabled or m_clientPostProcessor == NULL)
             {
-                return 0;
+                return false;
+            }
+            try
+            {
+                if (!m_clientPostProcessor(pBuffer, pFrameMeta, m_clientData))
+                {
+                    return 0;
+                }
+            }
+            catch(...)
+            {
+                LOG_ERROR("Custon ODE Trigger '" << GetName() 
+                    << "' threw exception calling client callback");
+                return false;
+            }
+
+            // event has been triggered
+            IncrementAndCheckTriggerCount();
+
+             // update the total event count static variable
+            s_eventCount++;
+
+            for (const auto &imap: m_pOdeActionsIndexed)
+            {
+                DSL_ODE_ACTION_PTR pOdeAction = 
+                    std::dynamic_pointer_cast<OdeAction>(imap.second);
+                pOdeAction->HandleOccurrence(shared_from_this(), 
+                    pBuffer, displayMetaData, pFrameMeta, NULL);
             }
         }
-        catch(...)
-        {
-            LOG_ERROR("Custon ODE Trigger '" << GetName() 
-                << "' threw exception calling client callback");
-            return false;
-        }
-
-        // event has been triggered
-        IncrementAndCheckTriggerCount();
-
-         // update the total event count static variable
-        s_eventCount++;
-
-        for (const auto &imap: m_pOdeActionsIndexed)
-        {
-            DSL_ODE_ACTION_PTR pOdeAction = 
-                std::dynamic_pointer_cast<OdeAction>(imap.second);
-            pOdeAction->HandleOccurrence(shared_from_this(), 
-                pBuffer, displayMetaData, pFrameMeta, NULL);
-        }
-        return 1;
+        // mutex unlocked - safe to call base class
+        return OdeTrigger::PostProcessFrame(pBuffer,
+            displayMetaData, pFrameMeta);
     }
 
     // *****************************************************************************
@@ -1157,6 +1258,10 @@ namespace DSL
         std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         if (!CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
             !CheckForInside(pObjectMeta))
@@ -1172,28 +1277,35 @@ namespace DSL
     uint CountOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
         std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
-        if (!m_enabled or 
-            (m_occurrences < m_minimum) or 
-            (m_occurrences > m_maximum))
+        // create scope so the property-mutex can be unlocked before
+        // calling the base-class PostProcessFrame which locks the mutex.
         {
-            return 0;
-        }
-        // event has been triggered
-        IncrementAndCheckTriggerCount();
+            // Note: function is called from the system (callback) context
+            // Gaurd against property updates from the client API
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            if (!m_enabled or m_skipFrame or (m_limit and m_triggered >= m_limit) or
+                (m_occurrences < m_minimum) or (m_occurrences > m_maximum))
+            {
+                return 0;
+            }
+            // event has been triggered
+            IncrementAndCheckTriggerCount();
 
-         // update the total event count static variable
-        s_eventCount++;
+             // update the total event count static variable
+            s_eventCount++;
 
-        for (const auto &imap: m_pOdeActionsIndexed)
-        {
-            DSL_ODE_ACTION_PTR pOdeAction = 
-                std::dynamic_pointer_cast<OdeAction>(imap.second);
-            pOdeAction->HandleOccurrence(shared_from_this(), 
-                pBuffer, displayMetaData, pFrameMeta, NULL);
+            for (const auto &imap: m_pOdeActionsIndexed)
+            {
+                DSL_ODE_ACTION_PTR pOdeAction = 
+                    std::dynamic_pointer_cast<OdeAction>(imap.second);
+                pOdeAction->HandleOccurrence(shared_from_this(), 
+                    pBuffer, displayMetaData, pFrameMeta, NULL);
+            }
         }
-        return m_occurrences;
+        // mutex unlocked - safe to call base class
+        return OdeTrigger::PostProcessFrame(pBuffer,
+            displayMetaData, pFrameMeta);
    }
 
     // *****************************************************************************
@@ -1214,6 +1326,10 @@ namespace DSL
         std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         if (!CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
             !CheckForInside(pObjectMeta))
@@ -1229,46 +1345,56 @@ namespace DSL
     uint SmallestOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
         std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
     {
-        m_occurrences = 0;
-        
-        // need at least one object for a Minimum event
-        if (m_enabled and m_occurrenceMetaList.size())
+        // create scope so the property-mutex can be unlocked before
+        // calling the base-class PostProcessFrame which locks the mutex.
         {
-            // One occurrence to return and increment the accumulative Trigger count
-            m_occurrences = 1;
-            IncrementAndCheckTriggerCount();
-            // update the total event count static variable
-            s_eventCount++;
-
-            uint smallestArea = UINT32_MAX;
-            NvDsObjectMeta* smallestObject(NULL);
+            // Note: function is called from the system (callback) context
+            // Gaurd against property updates from the client API
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
             
-            // iterate through the list of object occurrences that passed all min criteria
-            for (const auto &ivec: m_occurrenceMetaList) 
+            m_occurrences = 0;
+            
+            // need at least one object for a Minimum event
+            if (m_enabled and m_occurrenceMetaList.size())
             {
-                uint rectArea = ivec->rect_params.width * ivec->rect_params.height;
-                if (rectArea < smallestArea) 
-                { 
-                    smallestArea = rectArea;
-                    smallestObject = ivec;    
-                }
-            }
-            // set the primary metric as the smallest bounding box by area
-            smallestObject->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
-                = smallestArea;
-            for (const auto &imap: m_pOdeActionsIndexed)
-            {
-                DSL_ODE_ACTION_PTR pOdeAction = 
-                    std::dynamic_pointer_cast<OdeAction>(imap.second);
-                
-                pOdeAction->HandleOccurrence(shared_from_this(), 
-                    pBuffer, displayMetaData, pFrameMeta, smallestObject);
-            }
-        }   
+                // One occurrence to return and increment the accumulative Trigger count
+                m_occurrences = 1;
+                IncrementAndCheckTriggerCount();
+                // update the total event count static variable
+                s_eventCount++;
 
-        // reset for next frame
-        m_occurrenceMetaList.clear();
-        return m_occurrences;
+                uint smallestArea = UINT32_MAX;
+                NvDsObjectMeta* smallestObject(NULL);
+                
+                // iterate through the list of object occurrences that passed all min criteria
+                for (const auto &ivec: m_occurrenceMetaList) 
+                {
+                    uint rectArea = ivec->rect_params.width * ivec->rect_params.height;
+                    if (rectArea < smallestArea) 
+                    { 
+                        smallestArea = rectArea;
+                        smallestObject = ivec;    
+                    }
+                }
+                // set the primary metric as the smallest bounding box by area
+                smallestObject->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
+                    = smallestArea;
+                for (const auto &imap: m_pOdeActionsIndexed)
+                {
+                    DSL_ODE_ACTION_PTR pOdeAction = 
+                        std::dynamic_pointer_cast<OdeAction>(imap.second);
+                    
+                    pOdeAction->HandleOccurrence(shared_from_this(), 
+                        pBuffer, displayMetaData, pFrameMeta, smallestObject);
+                }
+            }   
+
+            // reset for next frame
+            m_occurrenceMetaList.clear();
+        }
+        // mutex unlocked - safe to call base class
+        return OdeTrigger::PostProcessFrame(pBuffer,
+            displayMetaData, pFrameMeta);
    }
 
     // *****************************************************************************
@@ -1289,6 +1415,10 @@ namespace DSL
         std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         if (!CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
             !CheckForInside(pObjectMeta))
@@ -1304,47 +1434,57 @@ namespace DSL
     uint LargestOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
         std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
     {
-        m_occurrences = 0;
-        
-        // need at least one object for a Minimum event
-        if (m_enabled and m_occurrenceMetaList.size())
+        // create scope so the property-mutex can be unlocked before
+        // calling the base-class PostProcessFrame which locks the mutex.
         {
-            // Once occurrence to return and increment the accumulative Trigger count
-            m_occurrences = 1;
-            IncrementAndCheckTriggerCount();
-            // update the total event count static variable
-            s_eventCount++;
+            // Note: function is called from the system (callback) context
+            // Gaurd against property updates from the client API
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            m_occurrences = 0;
+            
+            // need at least one object for a Minimum event
+            if (m_enabled and m_occurrenceMetaList.size())
+            {
+                // Once occurrence to return and increment the accumulative Trigger count
+                m_occurrences = 1;
+                IncrementAndCheckTriggerCount();
+                // update the total event count static variable
+                s_eventCount++;
 
-            uint largestArea = 0;
-            NvDsObjectMeta* largestObject(NULL);
-            
-            // iterate through the list of object occurrences that passed all min criteria
-            for (const auto &ivec: m_occurrenceMetaList) 
-            {
-                uint rectArea = ivec->rect_params.width * ivec->rect_params.height;
-                if (rectArea > largestArea) 
-                { 
-                    largestArea = rectArea;
-                    largestObject = ivec;    
-                }
-            }
-            // set the primary metric as the larget area
-            largestObject->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
-                = largestArea;
-            
-            for (const auto &imap: m_pOdeActionsIndexed)
-            {
-                DSL_ODE_ACTION_PTR pOdeAction = 
-                    std::dynamic_pointer_cast<OdeAction>(imap.second);
+                uint largestArea = 0;
+                NvDsObjectMeta* largestObject(NULL);
                 
-                pOdeAction->HandleOccurrence(shared_from_this(), 
-                    pBuffer, displayMetaData, pFrameMeta, largestObject);
-            }
-        }   
+                // iterate through the list of object occurrences that passed all min criteria
+                for (const auto &ivec: m_occurrenceMetaList) 
+                {
+                    uint rectArea = ivec->rect_params.width * ivec->rect_params.height;
+                    if (rectArea > largestArea) 
+                    { 
+                        largestArea = rectArea;
+                        largestObject = ivec;    
+                    }
+                }
+                // set the primary metric as the larget area
+                largestObject->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
+                    = largestArea;
+                
+                for (const auto &imap: m_pOdeActionsIndexed)
+                {
+                    DSL_ODE_ACTION_PTR pOdeAction = 
+                        std::dynamic_pointer_cast<OdeAction>(imap.second);
+                    
+                    pOdeAction->HandleOccurrence(shared_from_this(), 
+                        pBuffer, displayMetaData, pFrameMeta, largestObject);
+                }
+            }   
 
-        // reset for next frame
-        m_occurrenceMetaList.clear();
-        return m_occurrences;
+            // reset for next frame
+            m_occurrenceMetaList.clear();
+        }
+        // mutex unlocked  - safe to call base class
+        return OdeTrigger::PostProcessFrame(pBuffer,
+            displayMetaData, pFrameMeta);
     }
 
     // *****************************************************************************
@@ -1380,6 +1520,10 @@ namespace DSL
         std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         if (!m_enabled or 
             !CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
@@ -1396,33 +1540,53 @@ namespace DSL
     uint NewLowOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
         std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
     {
-        if (!m_enabled or m_occurrences >= m_currentLow)
+        // create scope so the property-mutex can be unlocked before
+        // calling the base-class PostProcessFrame which locks the mutex.
         {
-            return 0;
+            // Note: function is called from the system (callback) context
+            // Gaurd against property updates from the client API
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            if (!m_enabled or m_skipFrame)
+            {
+                return 0;
+            }
+            
+            if (m_occurrences < m_currentLow)
+            {
+                // new low
+                m_currentLow = m_occurrences;
+                
+                // event has been triggered
+                IncrementAndCheckTriggerCount();
+
+                 // update the total event count static variable
+                s_eventCount++;
+
+                // Add the New High occurrences to the frame info
+                pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] = 
+                    DSL_FRAME_INFO_OCCURRENCES;
+                pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] = 
+                    m_occurrences;
+
+                for (const auto &imap: m_pOdeActionsIndexed)
+                {
+                    DSL_ODE_ACTION_PTR pOdeAction = 
+                        std::dynamic_pointer_cast<OdeAction>(imap.second);
+                    pOdeAction->HandleOccurrence(shared_from_this(), 
+                        pBuffer, displayMetaData, pFrameMeta, NULL);
+                }
+                // new high m_occurrences means ODE occurrence = 1
+                m_occurrences = 1;
+            }
+            else
+            {
+                m_occurrences = 0;
+            }
         }
-        // new low
-        m_currentLow = m_occurrences;
-        
-        // event has been triggered
-        IncrementAndCheckTriggerCount();
-
-         // update the total event count static variable
-        s_eventCount++;
-
-        // Add the New High occurrences to the frame info
-        pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] = 
-            DSL_FRAME_INFO_OCCURRENCES;
-        pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] = 
-            m_occurrences;
-
-        for (const auto &imap: m_pOdeActionsIndexed)
-        {
-            DSL_ODE_ACTION_PTR pOdeAction = 
-                std::dynamic_pointer_cast<OdeAction>(imap.second);
-            pOdeAction->HandleOccurrence(shared_from_this(), 
-                pBuffer, displayMetaData, pFrameMeta, NULL);
-        }
-        return 1; // At most once per frame
+        // mutex unlocked - safe to call base class
+        return OdeTrigger::PostProcessFrame(pBuffer,
+            displayMetaData, pFrameMeta);
    }
 
     // *****************************************************************************
@@ -1449,6 +1613,7 @@ namespace DSL
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
             
             m_currentHigh = m_preset;
+            m_occurrencesNewHighAccumulated = 0;
         }        
         // call the base class to complete the Reset
         OdeTrigger::Reset();
@@ -1458,6 +1623,10 @@ namespace DSL
         std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         if (!m_enabled or 
             !CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
@@ -1474,33 +1643,53 @@ namespace DSL
     uint NewHighOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
         std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
     {
-        if (!m_enabled or m_occurrences <= m_currentHigh)
+        // create scope so the property-mutex can be unlocked before
+        // calling the base-class PostProcessFrame which locks the mutex.
         {
-            return 0;
+            // Note: function is called from the system (callback) context
+            // Gaurd against property updates from the client API
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            if (!m_enabled or m_skipFrame)
+            {
+                return 0;
+            }
+            
+            if (m_occurrences > m_currentHigh)
+            {
+                // new high
+                m_currentHigh = m_occurrences;
+                
+                // event has been triggered
+                IncrementAndCheckTriggerCount();
+
+                 // update the total event count static variable
+                s_eventCount++;
+
+                // Add the New High occurrences to the frame info
+                pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] = 
+                    DSL_FRAME_INFO_OCCURRENCES;
+                pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] = 
+                    m_occurrences;
+
+                for (const auto &imap: m_pOdeActionsIndexed)
+                {
+                    DSL_ODE_ACTION_PTR pOdeAction = 
+                        std::dynamic_pointer_cast<OdeAction>(imap.second);
+                    pOdeAction->HandleOccurrence(shared_from_this(), 
+                        pBuffer, displayMetaData, pFrameMeta, NULL);
+                }
+                // new high m_occurrences means ODE occurrence = 1
+                m_occurrences = 1;
+            }
+            else
+            {
+                m_occurrences = 0;
+            }
         }
-        // new high
-        m_currentHigh = m_occurrences;
-        
-        // event has been triggered
-        IncrementAndCheckTriggerCount();
-
-         // update the total event count static variable
-        s_eventCount++;
-
-        // Add the New High occurrences to the frame info
-        pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] = 
-            DSL_FRAME_INFO_OCCURRENCES;
-        pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] = 
-            m_occurrences;
-
-        for (const auto &imap: m_pOdeActionsIndexed)
-        {
-            DSL_ODE_ACTION_PTR pOdeAction = 
-                std::dynamic_pointer_cast<OdeAction>(imap.second);
-            pOdeAction->HandleOccurrence(shared_from_this(), 
-                pBuffer, displayMetaData, pFrameMeta, NULL);
-        }
-        return 1; // At most once per frame
+        // mutex unlocked - safe to call base class
+        return OdeTrigger::PostProcessFrame(pBuffer,
+            displayMetaData, pFrameMeta);
    }
 
     // *****************************************************************************
@@ -1563,6 +1752,10 @@ namespace DSL
         std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         if (!m_pOdeAreasIndexed.size())
         {
             LOG_ERROR("At least one OdeArea is required for CrossOdeTrigger '" 
@@ -1576,8 +1769,6 @@ namespace DSL
         {
             return false;
         }
-
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
         // if this is the first occurrence of this object for this source
         if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
@@ -1713,12 +1904,14 @@ namespace DSL
     uint CrossOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
         std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
     {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
         // Filter on skip-frame interval
-        if (m_skipFrame)
+        if (!m_enabled or m_skipFrame)
         {
-            return false;
+            return 0;
         }
 
         // If the client has added an accumulator, 
@@ -1846,14 +2039,16 @@ namespace DSL
         std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         if (!CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
             !CheckForInside(pObjectMeta))
         {
             return false;
         }
-
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
         // if this is the first occurrence of any object for this source
         if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
@@ -1909,13 +2104,23 @@ namespace DSL
     uint PersistenceOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
         std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
     {
-        if (m_pTrackedObjectsPerSource->IsEmpty())
+        // create scope so the property-mutex can be unlocked before
+        // calling the base-class PostProcessFrame which locks the mutex.
         {
-            return 0;
+            // Note: function is called from the system (callback) context
+            // Gaurd against property updates from the client API
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            if (!m_enabled or m_skipFrame or m_pTrackedObjectsPerSource->IsEmpty())
+            {
+                return 0;
+            }
+            // purge all tracked objects, for all sources that are not in the current frame.
+            m_pTrackedObjectsPerSource->Purge(pFrameMeta->frame_num);
         }
-        // purge all tracked objects, for all sources that are not in the current frame.
-        m_pTrackedObjectsPerSource->Purge(pFrameMeta->frame_num);
-        return m_occurrences;
+        // mutext unlocked - safe to call base class
+        return OdeTrigger::PostProcessFrame(pBuffer,
+            displayMetaData, pFrameMeta);
     }
 
     // *****************************************************************************
@@ -1938,14 +2143,16 @@ namespace DSL
         std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         if (!CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or !CheckForInside(pObjectMeta))
         {
             return false;
         }
 
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
         // if this is the first occurrence of any object for this source
         if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
             pObjectMeta->object_id))
@@ -1977,44 +2184,52 @@ namespace DSL
     uint LatestOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
         std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
     {
-        if (m_pTrackedObjectsPerSource->IsEmpty())
+        // create scope so the property-mutex can be unlocked before
+        // calling the base-class PostProcessFrame which locks the mutex.
         {
-            return 0;
-        }
-        
-        // If we a Newest Object ODE 
-        if (m_pLatestObjectMeta != NULL)
-        {
-            // event has been triggered
-            IncrementAndCheckTriggerCount();
-            m_occurrences++;
-
-            // update the total event count static variable
-            s_eventCount++;
+            // Note: function is called from the system (callback) context
+            // Gaurd against property updates from the client API
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
             
-            // add the persistence value to the array of misc_obj_info
-            // as both the Primary and Persistence specific indecies.
-            m_pLatestObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] = 
-            m_pLatestObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = 
-                (uint64_t)(m_latestTrackedTimeMs/1000);
-
-            for (const auto &imap: m_pOdeActionsIndexed)
+            if (!m_enabled or m_skipFrame or m_pTrackedObjectsPerSource->IsEmpty())
             {
-                DSL_ODE_ACTION_PTR pOdeAction = 
-                    std::dynamic_pointer_cast<OdeAction>(imap.second);
-                pOdeAction->HandleOccurrence(shared_from_this(), 
-                    pBuffer, displayMetaData, pFrameMeta, m_pLatestObjectMeta);
+                return 0;
             }
-        
-            // clear the Newest Object data for the next frame 
-            m_pLatestObjectMeta = NULL;
-            m_latestTrackedTimeMs = 0;
+            
+            // If we a Latest Object ODE 
+            if (m_pLatestObjectMeta != NULL)
+            {
+                // event has been triggered
+                IncrementAndCheckTriggerCount();
+                m_occurrences++;
+
+                // update the total event count static variable
+                s_eventCount++;
+                
+                // add the persistence value to the array of misc_obj_info
+                // as both the Primary and Persistence specific indecies.
+                m_pLatestObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] = 
+                m_pLatestObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = 
+                    (uint64_t)(m_latestTrackedTimeMs/1000);
+
+                for (const auto &imap: m_pOdeActionsIndexed)
+                {
+                    DSL_ODE_ACTION_PTR pOdeAction = 
+                        std::dynamic_pointer_cast<OdeAction>(imap.second);
+                    pOdeAction->HandleOccurrence(shared_from_this(), 
+                        pBuffer, displayMetaData, pFrameMeta, m_pLatestObjectMeta);
+                }
+            
+                // clear the Newest Object data for the next frame 
+                m_pLatestObjectMeta = NULL;
+                m_latestTrackedTimeMs = 0;
+            }
+            // purge all tracked objects, for all sources that are not in the current frame.
+            m_pTrackedObjectsPerSource->Purge(pFrameMeta->frame_num);
         }
-        
-        // purge all tracked objects, for all sources that are not in the current frame.
-        m_pTrackedObjectsPerSource->Purge(pFrameMeta->frame_num);
-        
-        return (m_occurrences > 0);
+        // mutex unlocked - safe to call base class
+        return OdeTrigger::PostProcessFrame(pBuffer,
+            displayMetaData, pFrameMeta);
     }
 
     // *****************************************************************************
@@ -2037,6 +2252,10 @@ namespace DSL
         std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         if (!CheckForSourceId(pFrameMeta->source_id) or 
             !CheckForMinCriteria(pFrameMeta, pObjectMeta) or 
             !CheckForInside(pObjectMeta))
@@ -2044,8 +2263,6 @@ namespace DSL
             return false;
         }
 
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
         // if this is the first occurrence of any object for this source
         if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
             pObjectMeta->object_id)) 
@@ -2079,42 +2296,52 @@ namespace DSL
     uint EarliestOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
         std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
     {
-        if (m_pTrackedObjectsPerSource->IsEmpty())
+        // create scope so the property-mutex can be unlocked before
+        // calling the base-class PostProcessFrame which locks the mutex.
         {
-            return 0;
-        }
-        
-        if (m_pEarliestObjectMeta != NULL)
-        {
-            // event has been triggered
-            IncrementAndCheckTriggerCount();
-            m_occurrences++;
-
-            // update the total event count static variable
-            s_eventCount++;
-
-            // add the persistence value to the array of misc_obj_info
-            // as both the Primary and Persistence specific indecies.
-            m_pEarliestObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] = 
-            m_pEarliestObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = 
-                (uint64_t)(m_earliestTrackedTimeMs/1000);
-
-            for (const auto &imap: m_pOdeActionsIndexed)
+            // Note: function is called from the system (callback) context
+            // Gaurd against property updates from the client API
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            if (!m_enabled or m_skipFrame or m_pTrackedObjectsPerSource->IsEmpty())
             {
-                DSL_ODE_ACTION_PTR pOdeAction = 
-                    std::dynamic_pointer_cast<OdeAction>(imap.second);
-                pOdeAction->HandleOccurrence(shared_from_this(), 
-                    pBuffer, displayMetaData, pFrameMeta, m_pEarliestObjectMeta);
+                return 0;
             }
-        
-            // clear the Earliest Object data for the next frame 
-            m_pEarliestObjectMeta = NULL;
-            m_earliestTrackedTimeMs = 0;
+            
+            if (m_pEarliestObjectMeta != NULL)
+            {
+                // event has been triggered
+                IncrementAndCheckTriggerCount();
+                m_occurrences++;
+
+                // update the total event count static variable
+                s_eventCount++;
+
+                // add the persistence value to the array of misc_obj_info
+                // as both the Primary and Persistence specific indecies.
+                m_pEarliestObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] = 
+                m_pEarliestObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = 
+                    (uint64_t)(m_earliestTrackedTimeMs/1000);
+
+                for (const auto &imap: m_pOdeActionsIndexed)
+                {
+                    DSL_ODE_ACTION_PTR pOdeAction = 
+                        std::dynamic_pointer_cast<OdeAction>(imap.second);
+                    pOdeAction->HandleOccurrence(shared_from_this(), 
+                        pBuffer, displayMetaData, pFrameMeta, m_pEarliestObjectMeta);
+                }
+            
+                // clear the Earliest Object data for the next frame 
+                m_pEarliestObjectMeta = NULL;
+                m_earliestTrackedTimeMs = 0;
+            }
+            
+            // purge all tracked objects, for all sources that are not in the current frame.
+            m_pTrackedObjectsPerSource->Purge(pFrameMeta->frame_num);
         }
-        
-        // purge all tracked objects, for all sources that are not in the current frame.
-        m_pTrackedObjectsPerSource->Purge(pFrameMeta->frame_num);
-        return (m_occurrences > 0);
+        // mutex unlocked - safe to call base class
+        return OdeTrigger::PostProcessFrame(pBuffer,
+            displayMetaData, pFrameMeta);
     }
 
     // *****************************************************************************
@@ -2159,6 +2386,10 @@ namespace DSL
         std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
         if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id))
         {
             return false;
@@ -2254,76 +2485,25 @@ namespace DSL
     uint DistanceOdeTrigger::PostProcessFrameA(GstBuffer* pBuffer, 
         std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
     {
-        m_occurrences = 0;
-        
-        // need at least two objects for intersection to occur
-        if (m_enabled and m_occurrenceMetaListA.size() > 1)
+        // create scope so the property-mutex can be unlocked before
+        // calling the base-class PostProcessFrame which locks the mutex.
         {
-            // iterate through the list of object occurrences that passed all min criteria
-            for (uint i = 0; i < m_occurrenceMetaListA.size()-1 ; i++) 
+            // Note: function is called from the system (callback) context
+            // Gaurd against property updates from the client API
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            m_occurrences = 0;
+            
+            // need at least two objects for intersection to occur
+            while (m_enabled and m_occurrenceMetaListA.size() > 1)
             {
-                for (uint j = i+1; j < m_occurrenceMetaListA.size() ; j++) 
+                // iterate through the list of object occurrences that passed all min criteria
+                for (uint i = 0; i < m_occurrenceMetaListA.size()-1 ; i++) 
                 {
-                    if (CheckDistance(m_occurrenceMetaListA[i], 
-                        m_occurrenceMetaListA[j]))
+                    for (uint j = i+1; j < m_occurrenceMetaListA.size() ; j++) 
                     {
-                        // event has been triggered
-                        m_occurrences++;
-                        IncrementAndCheckTriggerCount();
-                        
-                         // update the total event count static variable
-                        s_eventCount++;
-
-                        // set the primary metric as the current occurrence for this frame
-                        m_occurrenceMetaListA[i]->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
-                            = m_occurrences;
-                        m_occurrenceMetaListA[j]->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
-                            = m_occurrences;
-
-                        for (const auto &imap: m_pOdeActionsIndexed)
-                        {
-                            DSL_ODE_ACTION_PTR pOdeAction = 
-                                std::dynamic_pointer_cast<OdeAction>(imap.second);
-                            
-                            // Invoke each action twice, once for each object in the tested pair
-                            pOdeAction->HandleOccurrence(shared_from_this(), 
-                                pBuffer, displayMetaData, pFrameMeta, m_occurrenceMetaListA[i]);
-                            pOdeAction->HandleOccurrence(shared_from_this(), 
-                                pBuffer, displayMetaData, pFrameMeta, m_occurrenceMetaListA[j]);
-                        }
-                        if (m_limit and m_triggered >= m_limit)
-                        {
-                            m_occurrenceMetaListA.clear();
-                            return m_occurrences;
-                        }
-                    }
-                }
-            }
-        }   
-
-        // reset for next frame
-        m_occurrenceMetaListA.clear();
-        return m_occurrences;
-    }
-   
-    uint DistanceOdeTrigger::PostProcessFrameAB(GstBuffer* pBuffer, 
-        std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
-    {
-        m_occurrences = 0;
-        
-        // need at least one object from each of the two Classes 
-        if (m_enabled and m_occurrenceMetaListA.size() and m_occurrenceMetaListB.size())
-        {
-            // iterate through the list of object occurrences that passed all min criteria
-            for (const auto &iterA: m_occurrenceMetaListA) 
-            {
-                for (const auto &iterB: m_occurrenceMetaListB) 
-                {
-                    // ensure we are not testing the same object which can be in both vectors
-                    // if Class Id A and B are specified to be the same.
-                    if (iterA != iterB)
-                    {
-                        if (CheckDistance(iterA, iterB))
+                        if (CheckDistance(m_occurrenceMetaListA[i], 
+                            m_occurrenceMetaListA[j]))
                         {
                             // event has been triggered
                             m_occurrences++;
@@ -2332,11 +2512,10 @@ namespace DSL
                              // update the total event count static variable
                             s_eventCount++;
 
-                            // set the primary metric as the current occurrence 
-                            // for this frame
-                            iterA->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
+                            // set the primary metric as the current occurrence for this frame
+                            m_occurrenceMetaListA[i]->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
                                 = m_occurrences;
-                            iterB->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
+                            m_occurrenceMetaListA[j]->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
                                 = m_occurrences;
 
                             for (const auto &imap: m_pOdeActionsIndexed)
@@ -2344,36 +2523,108 @@ namespace DSL
                                 DSL_ODE_ACTION_PTR pOdeAction = 
                                     std::dynamic_pointer_cast<OdeAction>(imap.second);
                                 
-                                // Invoke each action twice, once for each object 
-                                // in the tested pair
+                                // Invoke each action twice, once for each object in the tested pair
                                 pOdeAction->HandleOccurrence(shared_from_this(), 
-                                    pBuffer, displayMetaData, pFrameMeta, iterA);
+                                    pBuffer, displayMetaData, pFrameMeta, m_occurrenceMetaListA[i]);
                                 pOdeAction->HandleOccurrence(shared_from_this(), 
-                                    pBuffer, displayMetaData, pFrameMeta, iterB);
+                                    pBuffer, displayMetaData, pFrameMeta, m_occurrenceMetaListA[j]);
                             }
                             if (m_limit and m_triggered >= m_limit)
                             {
                                 m_occurrenceMetaListA.clear();
-                                m_occurrenceMetaListB.clear();
-                                return m_occurrences;
+                                break;
                             }
                         }
                     }
                 }
-            }
-        }   
+                break;
+            }   
 
-        // reset for next frame
-        m_occurrenceMetaListA.clear();
-        m_occurrenceMetaListB.clear();
-        return m_occurrences;
+            // reset for next frame
+            m_occurrenceMetaListA.clear();
+        }
+        // mutext unlocked - safe to call base class
+        return OdeTrigger::PostProcessFrame(pBuffer,
+            displayMetaData, pFrameMeta);
+    }
+   
+    uint DistanceOdeTrigger::PostProcessFrameAB(GstBuffer* pBuffer, 
+        std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
+    {
+        // create scope so the property-mutex can be unlocked before
+        // calling the base-class PostProcessFrame which locks the mutex.
+        {
+            // Note: function is called from the system (callback) context
+            // Gaurd against property updates from the client API
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            m_occurrences = 0;
+            
+            // need at least one object from each of the two Classes 
+            while (m_enabled and m_occurrenceMetaListA.size() and m_occurrenceMetaListB.size())
+            {
+                // iterate through the list of object occurrences that passed all min criteria
+                for (const auto &iterA: m_occurrenceMetaListA) 
+                {
+                    for (const auto &iterB: m_occurrenceMetaListB) 
+                    {
+                        // ensure we are not testing the same object which can be in both vectors
+                        // if Class Id A and B are specified to be the same.
+                        if (iterA != iterB)
+                        {
+                            if (CheckDistance(iterA, iterB))
+                            {
+                                // event has been triggered
+                                m_occurrences++;
+                                IncrementAndCheckTriggerCount();
+                                
+                                 // update the total event count static variable
+                                s_eventCount++;
+
+                                // set the primary metric as the current occurrence 
+                                // for this frame
+                                iterA->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
+                                    = m_occurrences;
+                                iterB->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
+                                    = m_occurrences;
+
+                                for (const auto &imap: m_pOdeActionsIndexed)
+                                {
+                                    DSL_ODE_ACTION_PTR pOdeAction = 
+                                        std::dynamic_pointer_cast<OdeAction>(imap.second);
+                                    
+                                    // Invoke each action twice, once for each object 
+                                    // in the tested pair
+                                    pOdeAction->HandleOccurrence(shared_from_this(), 
+                                        pBuffer, displayMetaData, pFrameMeta, iterA);
+                                    pOdeAction->HandleOccurrence(shared_from_this(), 
+                                        pBuffer, displayMetaData, pFrameMeta, iterB);
+                                }
+                                if (m_limit and m_triggered >= m_limit)
+                                {
+                                    m_occurrenceMetaListA.clear();
+                                    m_occurrenceMetaListB.clear();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
+            }   
+
+            // reset for next frame
+            m_occurrenceMetaListA.clear();
+            m_occurrenceMetaListB.clear();
+        }
+        // mutext unlocked - safe to call base class
+        return OdeTrigger::PostProcessFrame(pBuffer,
+            displayMetaData, pFrameMeta);
     }
 
     bool DistanceOdeTrigger::CheckDistance(NvDsObjectMeta* pObjectMetaA, 
         NvDsObjectMeta* pObjectMetaB)
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
         uint distance(0);
         if (m_testPoint == DSL_BBOX_POINT_ANY)
         {
@@ -2490,85 +2741,30 @@ namespace DSL
     {
         LOG_FUNC();
     }
-
     
     uint IntersectionOdeTrigger::PostProcessFrameA(GstBuffer* pBuffer, 
         std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
     {
-        m_occurrences = 0;
-        
-        // need at least two objects for intersection to occur
-        if (m_enabled and m_occurrenceMetaListA.size() > 1)
+        // create scope so the property-mutex can be unlocked before
+        // calling the base-class PostProcessFrame which locks the mutex.
         {
-            // iterate through the list of object occurrences that passed all min criteria
-            for (uint i = 0; i < m_occurrenceMetaListA.size()-1 ; i++) 
+            // Note: function is called from the system (callback) context
+            // Gaurd against property updates from the client API
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            m_occurrences = 0;
+            
+            // need at least two objects for intersection to occur
+            if (m_enabled and m_occurrenceMetaListA.size() > 1)
             {
-                for (uint j = i+1; j < m_occurrenceMetaListA.size() ; j++) 
+                // iterate through the list of object occurrences that passed all min criteria
+                for (uint i = 0; i < m_occurrenceMetaListA.size()-1 ; i++) 
                 {
-                    // check each in turn for any frame overlap
-                    GeosRectangle rectA(m_occurrenceMetaListA[i]->rect_params);
-                    GeosRectangle rectB(m_occurrenceMetaListA[j]->rect_params);
-                    if (rectA.Overlaps(rectB))
-                    {
-                        // event has been triggered
-                        m_occurrences++;
-                        IncrementAndCheckTriggerCount();
-                        
-                         // update the total event count static variable
-                        s_eventCount++;
-
-                        // set the primary metric as the current occurrence for this frame
-                        m_occurrenceMetaListA[i]->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
-                            = m_occurrences;
-                        m_occurrenceMetaListA[j]->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
-                            = m_occurrences;
-
-                        for (const auto &imap: m_pOdeActionsIndexed)
-                        {
-                            DSL_ODE_ACTION_PTR pOdeAction = 
-                                std::dynamic_pointer_cast<OdeAction>(imap.second);
-                            
-                            // Invoke each action twice, once for each object in the tested pair
-                            pOdeAction->HandleOccurrence(shared_from_this(), 
-                                pBuffer, displayMetaData, pFrameMeta, m_occurrenceMetaListA[i]);
-                            pOdeAction->HandleOccurrence(shared_from_this(), 
-                                pBuffer, displayMetaData, pFrameMeta, m_occurrenceMetaListA[j]);
-                        }
-                        if (m_limit and m_triggered >= m_limit)
-                        {
-                            m_occurrenceMetaListA.clear();
-                            return m_occurrences;
-                        }
-                    }
-                }
-            }
-        }   
-
-        // reset for next frame
-        m_occurrenceMetaListA.clear();
-        return m_occurrences;
-   }
-
-    uint IntersectionOdeTrigger::PostProcessFrameAB(GstBuffer* pBuffer, 
-        std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
-    {
-        m_occurrences = 0;
-        
-        // need at least one object from each of the two Classes 
-        if (m_enabled and m_occurrenceMetaListA.size() and m_occurrenceMetaListB.size())
-        {
-            // iterate through the list of object occurrences that passed all min criteria
-            for (const auto &iterA: m_occurrenceMetaListA) 
-            {
-                for (const auto &iterB: m_occurrenceMetaListB) 
-                {
-                    // ensure we are not testing the same object which can be in both vectors
-                    // if Class Id A and B are specified to be the same.
-                    if (iterA != iterB)
+                    for (uint j = i+1; j < m_occurrenceMetaListA.size() ; j++) 
                     {
                         // check each in turn for any frame overlap
-                        GeosRectangle rectA(iterA->rect_params);
-                        GeosRectangle rectB(iterB->rect_params);
+                        GeosRectangle rectA(m_occurrenceMetaListA[i]->rect_params);
+                        GeosRectangle rectB(m_occurrenceMetaListA[j]->rect_params);
                         if (rectA.Overlaps(rectB))
                         {
                             // event has been triggered
@@ -2578,40 +2774,114 @@ namespace DSL
                              // update the total event count static variable
                             s_eventCount++;
 
-                            // set the primary metric as the current occurrence 
-                            // for this frame
-                            iterA->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
+                            // set the primary metric as the current occurrence for this frame
+                            m_occurrenceMetaListA[i]->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
                                 = m_occurrences;
-                            iterB->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
+                            m_occurrenceMetaListA[j]->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
                                 = m_occurrences;
-                            
+
                             for (const auto &imap: m_pOdeActionsIndexed)
                             {
                                 DSL_ODE_ACTION_PTR pOdeAction = 
                                     std::dynamic_pointer_cast<OdeAction>(imap.second);
                                 
-                                // Invoke each action twice, once for each object 
-                                // in the tested pair
+                                // Invoke each action twice, once for each object in the tested pair
                                 pOdeAction->HandleOccurrence(shared_from_this(), 
-                                    pBuffer, displayMetaData, pFrameMeta, iterA);
+                                    pBuffer, displayMetaData, pFrameMeta, m_occurrenceMetaListA[i]);
                                 pOdeAction->HandleOccurrence(shared_from_this(), 
-                                    pBuffer, displayMetaData, pFrameMeta, iterB);
+                                    pBuffer, displayMetaData, pFrameMeta, m_occurrenceMetaListA[j]);
                             }
                             if (m_limit and m_triggered >= m_limit)
                             {
                                 m_occurrenceMetaListA.clear();
-                                m_occurrenceMetaListB.clear();
                                 return m_occurrences;
                             }
                         }
                     }
                 }
-            }
-        }   
+            }   
 
-        // reset for next frame
-        m_occurrenceMetaListA.clear();
-        m_occurrenceMetaListB.clear();
-        return m_occurrences;
+            // reset for next frame
+            m_occurrenceMetaListA.clear();
+        }
+        // mutext unlocked - safe to call base class
+        return OdeTrigger::PostProcessFrame(pBuffer,
+            displayMetaData, pFrameMeta);
+   }
+
+    uint IntersectionOdeTrigger::PostProcessFrameAB(GstBuffer* pBuffer, 
+        std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
+    {
+        // create scope so the property-mutex can be unlocked before
+        // calling the base-class PostProcessFrame which locks the mutex.
+        {
+            // Note: function is called from the system (callback) context
+            // Gaurd against property updates from the client API
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            m_occurrences = 0;
+            
+            // need at least one object from each of the two Classes 
+            if (m_enabled and m_occurrenceMetaListA.size() and m_occurrenceMetaListB.size())
+            {
+                // iterate through the list of object occurrences that passed all min criteria
+                for (const auto &iterA: m_occurrenceMetaListA) 
+                {
+                    for (const auto &iterB: m_occurrenceMetaListB) 
+                    {
+                        // ensure we are not testing the same object which can be in both vectors
+                        // if Class Id A and B are specified to be the same.
+                        if (iterA != iterB)
+                        {
+                            // check each in turn for any frame overlap
+                            GeosRectangle rectA(iterA->rect_params);
+                            GeosRectangle rectB(iterB->rect_params);
+                            if (rectA.Overlaps(rectB))
+                            {
+                                // event has been triggered
+                                m_occurrences++;
+                                IncrementAndCheckTriggerCount();
+                                
+                                 // update the total event count static variable
+                                s_eventCount++;
+
+                                // set the primary metric as the current occurrence 
+                                // for this frame
+                                iterA->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
+                                    = m_occurrences;
+                                iterB->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
+                                    = m_occurrences;
+                                
+                                for (const auto &imap: m_pOdeActionsIndexed)
+                                {
+                                    DSL_ODE_ACTION_PTR pOdeAction = 
+                                        std::dynamic_pointer_cast<OdeAction>(imap.second);
+                                    
+                                    // Invoke each action twice, once for each object 
+                                    // in the tested pair
+                                    pOdeAction->HandleOccurrence(shared_from_this(), 
+                                        pBuffer, displayMetaData, pFrameMeta, iterA);
+                                    pOdeAction->HandleOccurrence(shared_from_this(), 
+                                        pBuffer, displayMetaData, pFrameMeta, iterB);
+                                }
+                                if (m_limit and m_triggered >= m_limit)
+                                {
+                                    m_occurrenceMetaListA.clear();
+                                    m_occurrenceMetaListB.clear();
+                                    return m_occurrences;
+                                }
+                            }
+                        }
+                    }
+                }
+            }   
+
+            // reset for next frame
+            m_occurrenceMetaListA.clear();
+            m_occurrenceMetaListB.clear();
+        }
+        // mutex unlocked - safe to call base class
+        return OdeTrigger::PostProcessFrame(pBuffer,
+            displayMetaData, pFrameMeta);
     }
 }

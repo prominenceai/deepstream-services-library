@@ -108,9 +108,9 @@ SCENARIO( "A ODE Handler's Enabled Setting can be disabled and re-enabled", "[pp
     }
 }
 
-SCENARIO( "A new ODE Handler can Add and Remove a Detection Event", "[pph-api]" )
+SCENARIO( "A new ODE Handler can Add and Remove a ODE Trigger", "[pph-api]" )
 {
-    GIVEN( "A new ODE Handler and new Detection Event" ) 
+    GIVEN( "A new ODE Handler and new ODE Trigger" ) 
     {
         std::wstring odePphName(L"pph");
 
@@ -121,14 +121,14 @@ SCENARIO( "A new ODE Handler can Add and Remove a Detection Event", "[pph-api]" 
         REQUIRE( dsl_pph_ode_new(odePphName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_occurrence_new(triggerName.c_str(), NULL, class_id, limit) == DSL_RESULT_SUCCESS );
 
-        WHEN( "The Detection Event is added to the ODE Handler" ) 
+        WHEN( "The ODE Trigger is added to the ODE Handler" ) 
         {
             REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), triggerName.c_str()) == DSL_RESULT_SUCCESS );
             
             // Adding the same Event twice must fail
             REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), triggerName.c_str()) == DSL_RESULT_ODE_TRIGGER_IN_USE );
             
-            THEN( "The same Detection Event can be removed correctly" ) 
+            THEN( "The same ODE Trigger can be removed correctly" ) 
             {
                 REQUIRE( dsl_pph_ode_trigger_remove(odePphName.c_str(), triggerName.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -142,9 +142,9 @@ SCENARIO( "A new ODE Handler can Add and Remove a Detection Event", "[pph-api]" 
     }
 }
 
-SCENARIO( "A new ODE Handler can Add and Remove multiple Detection Events", "[pph-api]" )
+SCENARIO( "A new ODE Handler can Add and Remove multiple ODE Triggers", "[pph-api]" )
 {
-    GIVEN( "A new ODE Handler and multiple new Detection Events" ) 
+    GIVEN( "A new ODE Handler and multiple new ODE Triggers" ) 
     {
         std::wstring odePphName(L"pph");
 
@@ -160,13 +160,13 @@ SCENARIO( "A new ODE Handler can Add and Remove multiple Detection Events", "[pp
         REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName2.c_str(), NULL, class_id, limit) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName3.c_str(), NULL, class_id, limit) == DSL_RESULT_SUCCESS );
 
-        WHEN( "The Detection Events are added to the ODE Handler" ) 
+        WHEN( "The ODE Triggers are added to the ODE Handler" ) 
         {
             const wchar_t* odeTypes[] = {L"occurrence-1", L"occurrence-2", L"occurrence-3", NULL};
 
             REQUIRE( dsl_pph_ode_trigger_add_many(odePphName.c_str(), odeTypes) == DSL_RESULT_SUCCESS );
             
-            THEN( "The same Detection Event can be removed correctly" ) 
+            THEN( "The same ODE Trigger can be removed correctly" ) 
             {
                 REQUIRE( dsl_pph_ode_trigger_remove_many(odePphName.c_str(), odeTypes) == DSL_RESULT_SUCCESS );
                 

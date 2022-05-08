@@ -466,6 +466,8 @@ namespace DSL {
         
         uint OdeTriggerListSize();
 
+        DslReturnType OdeAccumulatorNew(const char* name);
+
         DslReturnType OdeAccumulatorActionAdd(const char* name, const char* action);
 
         DslReturnType OdeAccumulatorActionRemove(const char* name, const char* action);

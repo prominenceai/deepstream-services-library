@@ -188,7 +188,7 @@ namespace DSL
          */
         virtual uint PostProcessFrame(GstBuffer* pBuffer, 
             std::vector<NvDsDisplayMeta*>& displayMetaData,
-            NvDsFrameMeta* pFrameMeta){return m_occurrences;};
+            NvDsFrameMeta* pFrameMeta);
 
         /**
          * @brief Adds an ODE Action as a child to this OdeTrigger
@@ -581,6 +581,13 @@ namespace DSL
          * reset on exit of PostProcessFrame
          */
         uint m_occurrences; 
+        
+        /**
+         * @brief number of occurrences in the accumlated over all frames, reset on
+         * Trigger reset. Only updated if/when the Trigger has an ODE Accumulator. 
+         */
+        uint m_occurrencesAccumulated;
+        
 
         /**
          * @brief unique source name filter for this event
@@ -712,7 +719,7 @@ namespace DSL
         bool CheckForOccurrence(GstBuffer* pBuffer, 
             std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-        
+
     private:
     
     };
@@ -796,7 +803,7 @@ namespace DSL
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
         /**
-         * @brief Function to post process the frame and generate a Cross Accumulation Event 
+         * @brief Function to post process the frame and generate a Cross Accumulation Event
          * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
@@ -1522,6 +1529,12 @@ namespace DSL
          * Set to m_preset on trigger create and reset.
          */
         uint m_currentHigh;
+        
+        
+        /**
+         * @brief Accumlative count of new high events accross all frames.
+         */
+        uint64_t m_occurrencesNewHighAccumulated;
     
     };
 

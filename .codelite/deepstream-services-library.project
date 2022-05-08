@@ -139,6 +139,7 @@
       <File Name="../test/api/DslImageSourceApiTest.cpp"/>
       <File Name="../test/api/DslImageSourceBehaviorTest.cpp"/>
       <File Name="../test/api/DslCrossTriggerExampleTest.cpp"/>
+      <File Name="../test/api/DslOdeAccumulatorApiTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDemuxerAndTeeUnitTest.cpp"/>

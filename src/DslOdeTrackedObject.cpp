@@ -45,11 +45,11 @@ namespace DSL
         
         if (pColor)
         {
-            m_pColor = std::shared_ptr<RgbaColor>(new RgbaColor());
+            m_pColor = std::shared_ptr<RgbaColor>(new RgbaColor(*pColor));
         }
         else
         {
-            m_pColor = std::shared_ptr<RgbaColor>(new RgbaColor(*pColor));
+            m_pColor = std::shared_ptr<RgbaColor>(new RgbaColor());
         }
     }
     
