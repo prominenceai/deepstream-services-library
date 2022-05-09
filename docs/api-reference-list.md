@@ -437,20 +437,9 @@
 * [dsl_ode_trigger_area_remove](/docs/api-ode-trigger.md#dsl_ode_trigger_area_add)
 * [dsl_ode_trigger_area_remove_many](/docs/api-ode-trigger.md#dsl_ode_trigger_area_remove_many)
 * [dsl_ode_trigger_area_remove_all](/docs/api-ode-trigger.md#dsl_ode_trigger_area_remove_all)
+* [dsl_ode_trigger_accumulator_add](/docs/api-ode-trigger.md#dsl_ode_trigger_accumulator_add)
+* [dsl_ode_trigger_accumulator_remove](/docs/api-ode-trigger.md#dsl_ode_trigger_accumulator_remove)
 * [dsl_ode_trigger_list_size](/docs/api-ode-trigger.md#dsl_ode_trigger_list_size)
-
-## ODE Accumulator:
-* [Overview](/docs/api-ode-accumulator.md)
-* [dsl_ode_accumulator_new](/docs/api-ode-accumulator.md#dsl_ode_accumulator_new)
-* [dsl_ode_accumulator_delete](/docs/api-ode-accumulator.md#dsl_ode_accumulator_delete)
-* [dsl_ode_accumulator_delete_many](/docs/api-ode-accumulator.md#dsl_ode_accumulator_delete_many)
-* [dsl_ode_accumulator_delete_all](/docs/api-ode-accumulator.md#dsl_ode_accumulator_delete_all)
-* [dsl_ode_accumulator_action_add](/docs/api-ode-accumulator.md#dsl_ode_accumulator_action_add)
-* [dsl_ode_accumulator_action_add_many](/docs/api-ode-accumulator.md#dsl_ode_accumulator_action_remove_many)
-* [dsl_ode_accumulator_action_remove](/docs/api-ode-accumulator.md#dsl_ode_accumulator_action_remove)
-* [dsl_ode_accumulator_action_remove_many](/docs/api-ode-accumulator.md#dsl_ode_accumulator_action_remove_many)
-* [dsl_ode_accumulator_action_remove_all](/docs/api-ode-accumulator.md#dsl_ode_accumulator_action_remove_all)
-* [dsl_ode_accumulator_list_size](/docs/api-ode-accumulator.md#dsl_ode_accumulator_list_size)
 
 ## ODE Action:
 * [Overview](/docs/api-ode-action.md)
@@ -510,6 +499,19 @@
 * [dsl_ode_area_delete_many](/docs/api-ode-area.md#dsl_ode_area_delete_many)
 * [dsl_ode_area_delete_all](/docs/api-ode-area.md#dsl_ode_area_delete_all)
 * [dsl_ode_area_list_size](/docs/api-ode-area.md#dsl_ode_area_list_size)
+
+## ODE Accumulator:
+* [Overview](/docs/api-ode-accumulator.md)
+* [dsl_ode_accumulator_new](/docs/api-ode-accumulator.md#dsl_ode_accumulator_new)
+* [dsl_ode_accumulator_delete](/docs/api-ode-accumulator.md#dsl_ode_accumulator_delete)
+* [dsl_ode_accumulator_delete_many](/docs/api-ode-accumulator.md#dsl_ode_accumulator_delete_many)
+* [dsl_ode_accumulator_delete_all](/docs/api-ode-accumulator.md#dsl_ode_accumulator_delete_all)
+* [dsl_ode_accumulator_action_add](/docs/api-ode-accumulator.md#dsl_ode_accumulator_action_add)
+* [dsl_ode_accumulator_action_add_many](/docs/api-ode-accumulator.md#dsl_ode_accumulator_action_remove_many)
+* [dsl_ode_accumulator_action_remove](/docs/api-ode-accumulator.md#dsl_ode_accumulator_action_remove)
+* [dsl_ode_accumulator_action_remove_many](/docs/api-ode-accumulator.md#dsl_ode_accumulator_action_remove_many)
+* [dsl_ode_accumulator_action_remove_all](/docs/api-ode-accumulator.md#dsl_ode_accumulator_action_remove_all)
+* [dsl_ode_accumulator_list_size](/docs/api-ode-accumulator.md#dsl_ode_accumulator_list_size)
 
 ## Display Type:
 * [Overview](/docs/api-display-type.md)
