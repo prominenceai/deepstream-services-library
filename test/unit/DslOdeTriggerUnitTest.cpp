@@ -130,7 +130,7 @@ SCENARIO( "A new OdeOccurreceTrigger is created correctly", "[OdeTrigger]" )
     }
 }
 
-SCENARIO( "An OdeOccurrenceTrigger checks its enabled setting ", "[now]" )
+SCENARIO( "An OdeOccurrenceTrigger checks its enabled setting ", "[OdeTrigger]" )
 {
     GIVEN( "A new OdeTrigger with default criteria" ) 
     {
@@ -1762,7 +1762,7 @@ SCENARIO( "An InstanceOdeTrigger handles ODE Occurrences correctly", "[OdeTrigge
             objectMeta2.object_id = 2; 
             objectMeta3.object_id = 3; 
 
-            THEN( "Only the first object triggers ODE occurrence" )
+            THEN( "All three objects trigger ODE occurrence" )
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                     displayMetaData, &frameMeta, &objectMeta1) == true );
@@ -1787,6 +1787,384 @@ SCENARIO( "An InstanceOdeTrigger handles ODE Occurrences correctly", "[OdeTrigge
                     displayMetaData, &frameMeta, &objectMeta2) == true );
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                     displayMetaData, &frameMeta, &objectMeta3) == false );
+                Services::GetServices()->_sourceNameErase(source.c_str());
+            }
+        }
+    }
+}
+
+SCENARIO( "An InstanceOdeTrigger Accumulates ODE Occurrences correctly", "[OdeTrigger]" )
+{
+    GIVEN( "A new InstanceOdeTrigger with specific Class Id and Source Id criteria" ) 
+    {
+        std::string odeTriggerName("instance");
+        std::string source("source-1");
+        uint classId(1);
+        uint limit(0);
+
+        std::string odeAccumulatorName("accumulator-name");
+        std::string odeActionName("print-action");
+
+        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
+
+        DSL_ODE_TRIGGER_INSTANCE_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_INSTANCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
+            
+        DSL_ODE_ACCUMULATOR_PTR pOdeAccumulator = 
+            DSL_ODE_ACCUMULATOR_NEW(odeAccumulatorName.c_str());
+            
+        REQUIRE( pOdeAccumulator->AddAction(pOdeAction) == true );        
+
+        REQUIRE( pOdeTrigger->AddAccumulator(pOdeAccumulator) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = sourceId;
+
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId; 
+        
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId; 
+        
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId; 
+
+        WHEN( "Three objects have different object Id's" )
+        {
+            objectMeta1.object_id = 1; 
+            objectMeta2.object_id = 2; 
+            objectMeta3.object_id = 3; 
+            
+            THEN( "Instance Accumulation is handled correctly" )
+            {
+                frameMeta.frame_num = 1;
+                pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
+
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta3) == true );
+                    
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, 
+                    displayMetaData, &frameMeta) == 3 );
+
+                // same object Id's - no new instances
+                frameMeta.frame_num = 2;
+                pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
+
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta1) == false );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta2) == false );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta3) == false );
+
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, 
+                    displayMetaData, &frameMeta) == 0 );
+
+                // new object Id's - new instances
+                objectMeta1.object_id = 4; 
+                objectMeta2.object_id = 5; 
+                objectMeta3.object_id = 6; 
+                
+                frameMeta.frame_num = 3;
+                pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
+
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta3) == true );
+
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, 
+                    displayMetaData, &frameMeta) == 3 );
+
+                Services::GetServices()->_sourceNameErase(source.c_str());
+            }
+        }
+    }
+}
+
+SCENARIO( "A CrossOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]" )
+{
+    GIVEN( "A new CrossOdeTrigger with specific Class Id and Source Id criteria" ) 
+    {
+        std::string odeTriggerName("cross-trigger");
+        std::string source("source-1");
+        uint classId(1);
+        uint limit(0);
+        uint minFrameCount(0);
+        uint maxTracePoints(10);
+
+        std::string colorName("black");
+        std::string lineName("line");
+        std::string odeAreaName("line-area");
+        std::string odeActionName("print-action");
+
+        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
+
+        DSL_RGBA_PREDEFINED_COLOR_PTR pBlack = 
+            DSL_RGBA_PREDEFINED_COLOR_NEW(colorName.c_str(), 
+                DSL_COLOR_PREDEFINED_BLACK, 1.0);
+
+        DSL_ODE_TRIGGER_CROSS_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_CROSS_NEW(odeTriggerName.c_str(), 
+                source.c_str(), classId, limit, minFrameCount, maxTracePoints,
+                DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS, pBlack);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+                
+        DSL_RGBA_LINE_PTR pLine = 
+            DSL_RGBA_LINE_NEW(lineName.c_str(), 10,200,1000,200, 2, pBlack);
+            
+        DSL_ODE_AREA_LINE_PTR pOdeLineArea = 
+            DSL_ODE_AREA_LINE_NEW(lineName.c_str(), pLine, true, 
+                DSL_BBOX_POINT_SOUTH);
+
+        REQUIRE( pOdeTrigger->AddArea(pOdeLineArea) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.frame_num = 1;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = sourceId;
+
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId; 
+        objectMeta1.object_id = 1; 
+        objectMeta1.rect_params.left = 100;
+        objectMeta1.rect_params.width = 100;
+        objectMeta1.rect_params.height = 100;
+        
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId; 
+        objectMeta2.object_id = 2; 
+        objectMeta2.rect_params.left = 100;
+        objectMeta2.rect_params.width = 100;
+        objectMeta2.rect_params.height = 100;
+        
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId; 
+        objectMeta3.object_id = 3; 
+        objectMeta3.rect_params.left = 100;
+        objectMeta3.rect_params.width = 100;
+        objectMeta3.rect_params.height = 100;
+        
+        WHEN( "The objects start out above the line" )
+        {
+            objectMeta1.rect_params.top = 10;
+            objectMeta2.rect_params.top = 10;
+            objectMeta3.rect_params.top = 10;
+
+            pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
+            // first call will start the tracking for each
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                displayMetaData, &frameMeta, &objectMeta1) == false );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                displayMetaData, &frameMeta, &objectMeta2) == false );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                displayMetaData, &frameMeta, &objectMeta3) == false );
+
+            THEN( "Direction is reported as IN" )
+            {
+                // require manual/visual confirmation
+                frameMeta.frame_num = 2;
+                objectMeta1.rect_params.top = 400;
+                objectMeta2.rect_params.top = 400;
+                objectMeta3.rect_params.top = 400;
+                
+                pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta3) == true );
+
+                Services::GetServices()->_sourceNameErase(source.c_str());
+            }
+        }
+        WHEN( "The objects start out below the line" )
+        {
+            objectMeta1.rect_params.top = 400;
+            objectMeta2.rect_params.top = 400;
+            objectMeta3.rect_params.top = 400;
+
+            pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
+            // first call will start the tracking for each
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                displayMetaData, &frameMeta, &objectMeta1) == false );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                displayMetaData, &frameMeta, &objectMeta2) == false );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                displayMetaData, &frameMeta, &objectMeta3) == false );
+
+            THEN( "Direction is reported as OUT" )
+            {
+                // require manual/visual confirmation
+                frameMeta.frame_num = 2;
+                objectMeta1.rect_params.top = 10;
+                objectMeta2.rect_params.top = 10;
+                objectMeta3.rect_params.top = 10;
+                
+                pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta3) == true );
+
+                Services::GetServices()->_sourceNameErase(source.c_str());
+            }
+        }
+    }
+}
+
+SCENARIO( "A CrossOdeTrigger Accumulates ODE Occurrences correctly", "[OdeTrigger]" )
+{
+    GIVEN( "A new CrossOdeTrigger with specific Class Id and Source Id criteria" ) 
+    {
+        std::string odeTriggerName("cross-trigger");
+        std::string source("source-1");
+        uint classId(1);
+        uint limit(0);
+        uint minFrameCount(0);
+        uint maxTracePoints(10);
+
+        std::string colorName("black");
+        std::string lineName("line");
+        std::string odeAreaName("line-area");
+        std::string odeActionName("print-action");
+
+        std::string odeAccumulatorName("accumulator-name");
+
+        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
+
+        DSL_RGBA_PREDEFINED_COLOR_PTR pBlack = 
+            DSL_RGBA_PREDEFINED_COLOR_NEW(colorName.c_str(), 
+                DSL_COLOR_PREDEFINED_BLACK, 1.0);
+
+        DSL_ODE_TRIGGER_CROSS_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_CROSS_NEW(odeTriggerName.c_str(), 
+                source.c_str(), classId, limit, minFrameCount, maxTracePoints,
+                DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS, pBlack);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
+            
+        DSL_RGBA_LINE_PTR pLine = 
+            DSL_RGBA_LINE_NEW(lineName.c_str(), 10,200,1000,200, 2, pBlack);
+            
+        DSL_ODE_AREA_LINE_PTR pOdeLineArea = 
+            DSL_ODE_AREA_LINE_NEW(lineName.c_str(), pLine, true, 
+                DSL_BBOX_POINT_SOUTH);
+
+        REQUIRE( pOdeTrigger->AddArea(pOdeLineArea) == true );      
+  
+        DSL_ODE_ACCUMULATOR_PTR pOdeAccumulator = 
+            DSL_ODE_ACCUMULATOR_NEW(odeAccumulatorName.c_str());
+            
+        REQUIRE( pOdeAccumulator->AddAction(pOdeAction) == true );        
+
+        REQUIRE( pOdeTrigger->AddAccumulator(pOdeAccumulator) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.frame_num = 1;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = sourceId;
+
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId; 
+        objectMeta1.object_id = 1; 
+        objectMeta1.rect_params.left = 100;
+        objectMeta1.rect_params.width = 100;
+        objectMeta1.rect_params.height = 100;
+        
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId; 
+        objectMeta2.object_id = 2; 
+        objectMeta2.rect_params.left = 100;
+        objectMeta2.rect_params.width = 100;
+        objectMeta2.rect_params.height = 100;
+        
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId; 
+        objectMeta3.object_id = 3; 
+        objectMeta3.rect_params.left = 100;
+        objectMeta3.rect_params.width = 100;
+        objectMeta3.rect_params.height = 100;
+        
+        WHEN( "The objects cross back and forth over the line" )
+        {
+            THEN( "Accumulative direction occurrences are calculated correctly" )
+            {
+
+                objectMeta1.rect_params.top = 10;
+                objectMeta2.rect_params.top = 10;
+                objectMeta3.rect_params.top = 10;
+
+                pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
+                // first call will start the tracking for each
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta1) == false );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta2) == false );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta3) == false );
+                pOdeTrigger->PostProcessFrame(NULL, displayMetaData, &frameMeta);
+                
+                // require manual/visual confirmation
+                frameMeta.frame_num = 2;
+                objectMeta1.rect_params.top = 400;
+                objectMeta2.rect_params.top = 400;
+                objectMeta3.rect_params.top = 400;
+                
+                pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta3) == true );
+                pOdeTrigger->PostProcessFrame(NULL, displayMetaData, &frameMeta);
+
+                // require manual/visual confirmation
+                frameMeta.frame_num = 3;
+                
+                pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta1) == false );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta2) == false );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta3) == false );
+                pOdeTrigger->PostProcessFrame(NULL, displayMetaData, &frameMeta);
+
+                // require manual/visual confirmation
+                frameMeta.frame_num = 4;
+                objectMeta1.rect_params.top = 10;
+                objectMeta2.rect_params.top = 10;
+                objectMeta3.rect_params.top = 10;
+                
+                pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta3) == true );
+                pOdeTrigger->PostProcessFrame(NULL, displayMetaData, &frameMeta);
+
                 Services::GetServices()->_sourceNameErase(source.c_str());
             }
         }

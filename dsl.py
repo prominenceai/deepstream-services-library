@@ -178,14 +178,16 @@ DSL_EVENT_FILE_FORMAT_CSV    = 1
 DSL_WRITE_MODE_APPEND   = 0
 DSL_WRITE_MODE_TRUNCATE = 1
 
-DSL_METRIC_OBJECT_CLASS       = 0
-DSL_METRIC_OBJECT_TRACKING_ID = 1
-DSL_METRIC_OBJECT_LOCATION    = 2
-DSL_METRIC_OBJECT_DIMENSIONS  = 3
-DSL_METRIC_OBJECT_CONFIDENCE  = 4
-DSL_METRIC_OBJECT_PERSISTENCE = 5
+DSL_METRIC_OBJECT_CLASS                     = 0
+DSL_METRIC_OBJECT_TRACKING_ID               = 1
+DSL_METRIC_OBJECT_LOCATION                  = 2
+DSL_METRIC_OBJECT_DIMENSIONS                = 3
+DSL_METRIC_OBJECT_CONFIDENCE                = 4
+DSL_METRIC_OBJECT_PERSISTENCE               = 5
+DSL_METRIC_OBJECT_OCCURRENCES               = 7
+DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_IN  = 8
+DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_OUT = 9
 
-DSL_METRIC_OBJECT_OCCURRENCES = 6
 
 DSL_SOCKET_CONNECTION_STATE_CLOSED    = 0
 DSL_SOCKET_CONNECTION_STATE_INITIATED = 1
@@ -1296,16 +1298,6 @@ def dsl_ode_trigger_absence_new(name, source, class_id, limit):
     return int(result)
 
 ##
-## dsl_ode_trigger_accumulation_new()
-##
-_dsl.dsl_ode_trigger_accumulation_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
-_dsl.dsl_ode_trigger_accumulation_new.restype = c_uint
-def dsl_ode_trigger_accumulation_new(name, source, class_id, limit):
-    global _dsl
-    result =_dsl.dsl_ode_trigger_accumulation_new(name, source, class_id, limit)
-    return int(result)
-
-##
 ## dsl_ode_trigger_instance_new()
 ##
 _dsl.dsl_ode_trigger_instance_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
@@ -2031,6 +2023,26 @@ def dsl_ode_trigger_area_add_many(name, areas):
     return int(result)
 
 ##
+## dsl_ode_trigger_accumulator_add()
+##
+_dsl.dsl_ode_trigger_accumulator_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_trigger_accumulator_add.restype = c_uint
+def dsl_ode_trigger_accumulator_add(name, accumulator):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_accumulator_add(name, accumulator)
+    return int(result)
+
+##
+## dsl_ode_trigger_accumulator_remove()
+##
+_dsl.dsl_ode_trigger_accumulator_remove.argtypes = [c_wchar_p]
+_dsl.dsl_ode_trigger_accumulator_remove.restype = c_uint
+def dsl_ode_trigger_accumulator_remove(name):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_accumulator_remove(name)
+    return int(result)
+
+##
 ## dsl_ode_trigger_delete()
 ##
 _dsl.dsl_ode_trigger_delete.argtypes = [c_wchar_p]
@@ -2069,6 +2081,111 @@ _dsl.dsl_ode_trigger_list_size.restype = c_uint
 def dsl_ode_trigger_list_size():
     global _dsl
     result =_dsl.dsl_ode_trigger_list_size()
+    return int(result)
+
+##
+## dsl_ode_accumulator_new()
+##
+_dsl.dsl_ode_accumulator_new.argtypes = [c_wchar_p]
+_dsl.dsl_ode_accumulator_new.restype = c_uint
+def dsl_ode_accumulator_new(name):
+    global _dsl
+    result =_dsl.dsl_ode_accumulator_new(name)
+    return int(result)
+
+##
+## dsl_ode_accumulator_action_add()
+##
+_dsl.dsl_ode_accumulator_action_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_accumulator_action_add.restype = c_uint
+def dsl_ode_accumulator_action_add(name, action):
+    global _dsl
+    result =_dsl.dsl_ode_accumulator_action_add(name, action)
+    return int(result)
+
+##
+## dsl_ode_accumulator_action_add_many()
+##
+#_dsl.dsl_ode_accumulator_action_add_many.argtypes = [??]
+_dsl.dsl_ode_accumulator_action_add_many.restype = c_uint
+def dsl_ode_accumulator_action_add_many(name, actions):
+    global _dsl
+    arr = (c_wchar_p * len(actions))()
+    arr[:] = actions
+    result =_dsl.dsl_ode_accumulator_action_add_many(name, arr)
+    return int(result)
+
+##
+## dsl_ode_accumulator_action_remove()
+##
+_dsl.dsl_ode_accumulator_action_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_accumulator_action_remove.restype = c_uint
+def dsl_ode_accumulator_action_remove(name, action):
+    global _dsl
+    result =_dsl.dsl_ode_accumulator_action_remove(name, action)
+    return int(result)
+
+##
+## dsl_ode_accumulator_action_remove_many()
+##
+#_dsl.dsl_ode_accumulator_action_remove_many.argtypes = [??]
+_dsl.dsl_ode_accumulator_action_remove_many.restype = c_uint
+def dsl_ode_accumulator_action_remove_many(name, actions):
+    global _dsl
+    arr = (c_wchar_p * len(actions))()
+    arr[:] = actions
+    result =_dsl.dsl_ode_accumulator_action_remove_many(name, arr)
+    return int(result)
+
+##
+## dsl_ode_accumulator_action_remove_all()
+##
+_dsl.dsl_ode_accumulator_action_remove_all.argtypes = [c_wchar_p]
+_dsl.dsl_ode_accumulator_action_remove_all.restype = c_uint
+def dsl_ode_accumulator_action_remove_all(name):
+    global _dsl
+    result =_dsl.dsl_ode_accumulator_action_remove_all(name)
+    return int(result)
+
+##
+## dsl_ode_accumulator_delete()
+##
+_dsl.dsl_ode_accumulator_delete.argtypes = [c_wchar_p]
+_dsl.dsl_ode_accumulator_delete.restype = c_uint
+def dsl_ode_accumulator_delete(name):
+    global _dsl
+    result =_dsl.dsl_ode_accumulator_delete(name)
+    return int(result)
+
+##
+## dsl_ode_accumulator_delete_many()
+##
+#_dsl.dsl_ode_accumulator_delete_many.argtypes = [??]
+_dsl.dsl_ode_accumulator_delete_many.restype = c_uint
+def dsl_ode_accumulator_delete_many(names):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    result =_dsl.dsl_ode_accumulator_delete_many(arr)
+    return int(result)
+
+##
+## dsl_ode_accumulator_delete_all()
+##
+_dsl.dsl_ode_accumulator_delete_all.argtypes = []
+_dsl.dsl_ode_accumulator_delete_all.restype = c_uint
+def dsl_ode_accumulator_delete_all():
+    global _dsl
+    result =_dsl.dsl_ode_accumulator_delete_all()
+    return int(result)
+
+##
+## dsl_ode_accumulator_list_size()
+##
+_dsl.dsl_ode_accumulator_list_size.restype = c_uint
+def dsl_ode_accumulator_list_size():
+    global _dsl
+    result =_dsl.dsl_ode_accumulator_list_size()
     return int(result)
 
 ##

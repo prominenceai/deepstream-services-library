@@ -73,6 +73,10 @@ namespace DSL
         
         RemoveAllActions();
         RemoveAllAreas();
+        if (m_pAccumulator)
+        {
+            RemoveAccumulator();
+        }
         
         if (m_resetTimerId)
         {
@@ -1733,7 +1737,7 @@ namespace DSL
         , m_occurrencesIn(0)
         , m_occurrencesOut(0)
         , m_occurrencesInAccumulated(0)
-        , m_occurrencesOutAccumlated(0)
+        , m_occurrencesOutAccumulated(0)
         , m_minFrameCount(minFrameCount)
         , m_traceEnabled(false)
         , m_testMethod(testMethod)
@@ -1918,14 +1922,14 @@ namespace DSL
         if (m_pAccumulator)
         {
             m_occurrencesInAccumulated += m_occurrencesIn;
-            m_occurrencesOutAccumlated += m_occurrencesOut;
+            m_occurrencesOutAccumulated += m_occurrencesOut;
             
             pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] = 
                 DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN;
             pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN] = 
                 m_occurrencesInAccumulated;
             pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT] = 
-                m_occurrencesOutAccumlated;
+                m_occurrencesOutAccumulated;
                 
             DSL_ODE_ACCUMULATOR_PTR pOdeAccumulator = 
                 std::dynamic_pointer_cast<OdeAccumulator>(m_pAccumulator);
@@ -1995,7 +1999,7 @@ namespace DSL
             m_occurrencesIn = 0;
             m_occurrencesOut = 0;
             m_occurrencesInAccumulated = 0;
-            m_occurrencesOutAccumlated = 0;
+            m_occurrencesOutAccumulated = 0;
         }        
         // call the base class to complete the Reset
         TrackingOdeTrigger::Reset();

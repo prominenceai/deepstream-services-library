@@ -116,11 +116,40 @@ def main(args):
         
         #```````````````````````````````````````````````````````````````````````````````````
 
-        retval = dsl_display_type_rgba_color_custom_new('opaque-red', red=1.0, green=0.2, blue=0.2, alpha=0.6)
+        # Create a new Action to remove the bounding box by default.
+        # The bounding box will be reformatted by the ODE Cross Trigger
+        retval = dsl_ode_action_format_bbox_new('remove-bbox',
+            border_width = 0,
+            border_color = None,
+            has_bg_color = False,
+            bg_color = None)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_display_type_rgba_color_custom_new('light-green', red=0.4, green=1.0, blue=0.4, alpha=1.0)
+        # Create an Any-Class Occurrence Trigger for our remove label and border actions
+        retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', 
+            source = DSL_ODE_ANY_SOURCE,
+            class_id = DSL_ODE_ANY_CLASS, 
+            limit = DSL_ODE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add('every-occurrence-trigger', 'remove-bbox')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        #```````````````````````````````````````````````````````````````````````````````````
+
+        retval = dsl_display_type_rgba_color_custom_new('opaque-red', 
+            red=1.0, green=0.2, blue=0.2, alpha=0.6)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # New RGBA Random Color to use for Object Trace and BBox     
+        retval = dsl_display_type_rgba_color_random_new('random-color', 
+            hue = DSL_COLOR_HUE_RANDOM, 
+            luminosity = DSL_COLOR_LUMINOSITY_RANDOM,
+            alpha = 1.0,
+            seed = 0)
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -154,7 +183,7 @@ def main(args):
             break
 
         retval = dsl_ode_trigger_cross_view_settings_set('person-crossing-line',
-            enabled=True, color='light-green', line_width=4)
+            enabled=True, color='random-color', line_width=4)
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -175,12 +204,49 @@ def main(args):
         # Add the capture complete listener function to the action
         retval = dsl_ode_action_capture_complete_listener_add('person-capture-action', 
             capture_complete_listener, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         retval = dsl_ode_trigger_action_add_many('person-crossing-line', 
             actions=['person-capture-action', 'print-action', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
+
+        retval = dsl_display_type_rgba_color_custom_new('full-white', red=1.0, green=1.0, blue=1.0, alpha = 1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_display_type_rgba_color_custom_new('full-black', red=0.0, green=0.0, blue=0.0, alpha = 1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_display_type_rgba_font_new('arial-16-white', font='arial', size=16, color='full-white')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Create a new Display Action used to display the Accumulated ODE Occurrences.
+        # Format the display string using the occurrences in and out tokens.
+        retval = dsl_ode_action_display_new('display-action', 
+            format_string = 
+                "In = %" + str(DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_IN) +
+                ", Out = %" + str(DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_OUT),  
+            offset_x = 45,
+            offset_y = 60, 
+            font = 'arial-16-white', 
+            has_bg_color = True, 
+            bg_color = 'full-black')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        retval = dsl_ode_accumulator_new('cross-accumulator')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        retval = dsl_ode_accumulator_action_add('cross-accumulator', 'display-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        retval = dsl_ode_trigger_accumulator_add('person-crossing-line', 'cross-accumulator')
 
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         
@@ -188,9 +254,10 @@ def main(args):
         retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
+            
+        # Add the two ODE Trigger to the ODE Handler - order is important    
         retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
-            'person-crossing-line',
-            None])
+            'every-occurrence-trigger', 'person-crossing-line', None])
         if retval != DSL_RETURN_SUCCESS:
             break
         
@@ -252,7 +319,7 @@ def main(args):
 
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
-            text_enabled=False, clock_enabled=False, bbox_enabled=False, mask_enabled=False)
+            text_enabled=False, clock_enabled=False, bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 

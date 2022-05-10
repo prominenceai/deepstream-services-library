@@ -882,7 +882,7 @@ namespace DSL
          * all frames reset on Trigger reset. Only updated if/when the Trigger
          * has an ODE Accumulator. 
          */
-        uint m_occurrencesOutAccumlated;
+        uint m_occurrencesOutAccumulated;
 
         /**
          * @brief minimum number of consective frames required to trigger an event

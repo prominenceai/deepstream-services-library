@@ -228,7 +228,6 @@
       <File Name="../examples/python/ode_new_high_new_low_triggers_fill_frame.py"/>
       <File Name="../examples/python/ode_occurrence_4rtsp_start_record_tap_action.py"/>
       <File Name="../examples/python/ode_occurrence_frame_capture_email_attachment.py"/>
-      <File Name="../examples/python/ode_occurrence_line_area_intersection.py"/>
       <File Name="../examples/python/ode_occurrence_polygon_area_inclussion_exclusion.py"/>
       <File Name="../examples/python/ode_occurrence_record_sink_overlay_playback_send_email.py"/>
       <File Name="../examples/python/ode_occurrence_uri_send_smtp_mail.py"/>
