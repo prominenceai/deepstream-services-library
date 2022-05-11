@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include "DslBase.h"
 #include "DslOdeAction.h"
 #include "DslOdeArea.h"
+#include "DslOdeAccumulator.h"
 #include "DslOdeTrigger.h"
 #include "DslPipelineBintr.h"
 #include "DslMessageBroker.h"
@@ -295,9 +296,6 @@ namespace DSL {
         DslReturnType OdeTriggerAbsenceNew(const char* name, 
             const char* source, uint classId, uint limit);
 
-        DslReturnType OdeTriggerAccumulationNew(const char* name, 
-            const char* source, uint classId, uint limit);
-
         DslReturnType OdeTriggerInstanceNew(const char* name, 
             const char* source, uint classId, uint limit);
         
@@ -457,11 +455,30 @@ namespace DSL {
 
         DslReturnType OdeTriggerAreaRemoveAll(const char* name);
 
+        DslReturnType OdeTriggerAccumulatorAdd(const char* name, 
+            const char* accumulator);
+
+        DslReturnType OdeTriggerAccumulatorRemove(const char* name);
+
         DslReturnType OdeTriggerDelete(const char* name);
         
         DslReturnType OdeTriggerDeleteAll();
         
         uint OdeTriggerListSize();
+
+        DslReturnType OdeAccumulatorNew(const char* name);
+
+        DslReturnType OdeAccumulatorActionAdd(const char* name, const char* action);
+
+        DslReturnType OdeAccumulatorActionRemove(const char* name, const char* action);
+
+        DslReturnType OdeAccumulatorActionRemoveAll(const char* name);
+
+        DslReturnType OdeAccumulatorDelete(const char* name);
+        
+        DslReturnType OdeAccumulatorDeleteAll();
+        
+        uint OdeAccumulatorListSize();
 
         DslReturnType PphCustomNew(const char* name,
             dsl_pph_custom_client_handler_cb clientHandler, void* clientData);
@@ -1411,6 +1428,11 @@ namespace DSL {
          * @brief map of all ODE Areas created by the client, key=name
          */
         std::map <std::string, DSL_ODE_AREA_PTR> m_odeAreas;
+        
+        /**
+         * @brief map of all ODE Accumlators created by the client, key=name
+         */
+        std::map <std::string, DSL_ODE_ACCUMULATOR_PTR> m_odeAccumulators;
         
         /**
          * @brief map of all ODE Triggers created by the client, key=name

@@ -15,6 +15,9 @@ Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can 
 #### Adding and Removing Areas
 As with Actions, multiple ODE areas can be added to an ODE Trigger and the same ODE Areas can be added to multiple Triggers. ODE Areas are added to an ODE Trigger by calling [dsl_ode_trigger_area_add](#dsl_ode_trigger_area_add) and [dsl_ode_trigger_area_add_many](#dsl_ode_trigger_area_add_many) and removed with [dsl_ode_trigger_action_remove](#dsl_ode_trigger_area_remove), [dsl_ode_trigger_area_remove_many](#dsl_ode_trigger_area_remove_many), and [dsl_ode_trigger_area_remove_all](#dsl_ode_trigger_area_remove_all).
 
+#### Adding and Removing an Accumulator
+A single ODE Accumulator can be added to an ODE Trigger and the same ODE Accumulator can be added to multiple Triggers. An ODE Accumulator is added to an ODE Trigger by calling [dsl_ode_trigger_accumulator_add](#dsl_ode_trigger_accumulator_add) and removed with [dsl_ode_trigger_accumulator_remove](#dsl_ode_trigger_accumulator_remove).
+
 **Important** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as these operations can consume all available diskspace.
 
 ---
@@ -100,6 +103,9 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_area_remove](#dsl_ode_trigger_area_add)
 * [dsl_ode_trigger_area_remove_many](#dsl_ode_trigger_area_remove_many)
 * [dsl_ode_trigger_area_remove_all](#dsl_ode_trigger_area_remove_all)
+* [dsl_ode_trigger_accumulator_add](#dsl_ode_trigger_accumulator_add)
+* [dsl_ode_trigger_accumulator_remove](#dsl_ode_trigger_accumulator_remove)
+* [dsl_ode_trigger_list_size](#dsl_ode_trigger_list_size)
 
 ---
 ## Return Values
@@ -120,7 +126,8 @@ The following return codes are used by the ODE Trigger API
 #define DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID              0x000E000D
 #define DSL_RESULT_ODE_TRIGGER_ALWAYS_WHEN_PARAMETER_INVALID        0x000E000E
 #define DSL_RESULT_ODE_TRIGGER_IS_NOT_AB_TYPE                       0x000E0010
-#define DSL_RESULT_ODE_TRIGGER_IS_NOT_TRACK_TRIGGER                 0x000E0011
+#define DSL_RESULT_ODE_TRIGGER_ACCUMULATOR_ADD_FAILED               0x000E0011
+#define DSL_RESULT_ODE_TRIGGER_ACCUMULATOR_REMOVE_FAILED            0x000E0012
 ```
 
 ---
@@ -1900,6 +1907,48 @@ This service removes all ODE Areas from a named ODE Trigger.
 **Python Example**
 ```Python
 retval = dsl_ode_trigger_area_remove_all('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_accumulator_add*
+```c++
+DslReturnType dsl_ode_trigger_accumulator_add(const wchar_t* name, 
+    const wchar_t* accumulator);
+```
+
+This service adds a named ODE Accumulator to a named ODE Trigger. The Trigger can have at most one Accumulator. The same Accumulator can be added to multiple Triggers.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to update.
+* `accumulator` - [in] unique name of the ODE Accumulator to add
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_accumulator_add('my-trigger', 'my-accumulator')
+```
+
+<br>
+
+### *dsl_ode_trigger_accumulator_remove*
+```c++
+DslReturnType dsl_ode_trigger_accumulator_remove(const wchar_t* name);
+```
+
+This service removes a named ODE Accumulator from a named ODE Trigger. The services will fail if the Accumulator is not currently in-use by the named Trigger
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to update.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_accumulator_remove('my-trigger')
 ```
 
 <br>

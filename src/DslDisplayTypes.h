@@ -204,6 +204,11 @@ namespace DSL
         RgbaColor(const RgbaColor& color);
         
         /**
+         * @breif ctor for the no-color RBGA Color
+         */
+        RgbaColor();
+        
+        /**
          * @breif dtor for the RBGA Color
          */
         ~RgbaColor();

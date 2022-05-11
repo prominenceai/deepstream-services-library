@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2022, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -45,11 +45,6 @@ namespace DSL
     #define DSL_ODE_TRIGGER_ABSENCE_PTR std::shared_ptr<AbsenceOdeTrigger>
     #define DSL_ODE_TRIGGER_ABSENCE_NEW(name, source, classId, limit) \
         std::shared_ptr<AbsenceOdeTrigger>(new AbsenceOdeTrigger(name, \
-            source, classId, limit))
-
-    #define DSL_ODE_TRIGGER_ACCUMULATION_PTR std::shared_ptr<AccumulationOdeTrigger>
-    #define DSL_ODE_TRIGGER_ACCUMULATION_NEW(name, source, classId, limit) \
-        std::shared_ptr<AccumulationOdeTrigger>(new AccumulationOdeTrigger(name, \
             source, classId, limit))
 
     #define DSL_ODE_TRIGGER_INSTANCE_PTR std::shared_ptr<InstanceOdeTrigger>
@@ -110,19 +105,20 @@ namespace DSL
 
     #define DSL_ODE_TRIGGER_PERSISTENCE_PTR std::shared_ptr<PersistenceOdeTrigger>
     #define DSL_ODE_TRIGGER_PERSISTENCE_NEW(name, \
-        source, classId, limit, minimum, maximum, pColor) \
+        source, classId, limit, minimum, maximum) \
         std::shared_ptr<PersistenceOdeTrigger> \
             (new PersistenceOdeTrigger(name, \
-                source, classId, limit, minimum, maximum, pColor))
+                source, classId, limit, minimum, maximum))
+                
     #define DSL_ODE_TRIGGER_LATEST_PTR std::shared_ptr<LatestOdeTrigger>
-    #define DSL_ODE_TRIGGER_LATEST_NEW(name, source, classId, limit, pColor) \
+    #define DSL_ODE_TRIGGER_LATEST_NEW(name, source, classId, limit) \
         std::shared_ptr<LatestOdeTrigger>(new LatestOdeTrigger(name, \
-            source, classId, limit, pColor))
+            source, classId, limit))
 
     #define DSL_ODE_TRIGGER_EARLIEST_PTR std::shared_ptr<EarliestOdeTrigger>
-    #define DSL_ODE_TRIGGER_EARLIEST_NEW(name, source, classId, limit, pColor) \
+    #define DSL_ODE_TRIGGER_EARLIEST_NEW(name, source, classId, limit) \
         std::shared_ptr<EarliestOdeTrigger>(new EarliestOdeTrigger(name, \
-            source, classId, limit, pColor))
+            source, classId, limit))
 
 
     // Triggers for ClassA - ClassB Testing
@@ -192,45 +188,59 @@ namespace DSL
          */
         virtual uint PostProcessFrame(GstBuffer* pBuffer, 
             std::vector<NvDsDisplayMeta*>& displayMetaData,
-            NvDsFrameMeta* pFrameMeta){return m_occurrences;};
+            NvDsFrameMeta* pFrameMeta);
 
         /**
-         * @brief Adds an ODE Action as a child to this ODE Type
+         * @brief Adds an ODE Action as a child to this OdeTrigger
          * @param[in] pChild pointer to ODE Action to add
          * @return true if successful, false otherwise
          */
         bool AddAction(DSL_BASE_PTR pChild);
         
         /**
-         * @brief Removes a child ODE Action from this ODE Type
+         * @brief Removes a child ODE Action from this OdeTrigger
          * @param[in] pChild pointer to ODE Action to remove
          * @return true if successful, false otherwise
          */
         bool RemoveAction(DSL_BASE_PTR pChild);
         
         /**
-         * @brief Removes all child ODE Actions from this ODE Type
+         * @brief Removes all child ODE Actions from this OdeTrigger
          */
         void RemoveAllActions();
         
         /**
-         * @brief Adds an ODE Area as a child to this ODE Type
+         * @brief Adds an ODE Area as a child to this OdeTrigger
          * @param[in] pChild pointer to ODE Area to add
          * @return true if successful, false otherwise
          */
         bool AddArea(DSL_BASE_PTR pChild);
         
         /**
-         * @brief Removes a child ODE Area from this ODE Type
+         * @brief Removes a child ODE Area from this OdeTrigger
          * @param[in] pChild pointer to ODE Area to remove
          * @return true if successful, false otherwise
          */
         bool RemoveArea(DSL_BASE_PTR pChild);
         
         /**
-         * @brief Removes all child ODE Areas from this ODE Type
+         * @brief Removes all child ODE Areas from this OdeTrigger
          */
         void RemoveAllAreas();
+
+        /**
+         * @brief Adds a (one at most) ODE Accumulator as a child to this OdeTrigger.
+         * @param[in] pChild pointer to ODE Accumulator to add.
+         * @return true if successful, false otherwise
+         */
+        bool AddAccumulator(DSL_BASE_PTR pAccumulator);
+        
+        /**
+         * @brief Removes the child ODE Accumulator from this OdeTrigger
+         * @return true if successful, false otherwise
+         */
+        bool RemoveAccumulator();
+        
         
         /**
          * @brief Resets the Trigger
@@ -504,12 +514,12 @@ namespace DSL
          * @brief Map of child ODE Actions indexed by their add-order for execution
          */
         std::map <uint, DSL_BASE_PTR> m_pOdeActionsIndexed;
-    
-        /**
-         * @brief Mutex to ensure mutual exlusion for propery get/sets
-         */
-        GMutex m_propertyMutex;
         
+        /**
+         * @brief optional metric accumulator owned by the ODE Trigger.
+         */
+        DSL_BASE_PTR m_pAccumulator;
+    
         /**
          * @brief auto-reset timeout in units of seconds
          */
@@ -571,6 +581,13 @@ namespace DSL
          * reset on exit of PostProcessFrame
          */
         uint m_occurrences; 
+        
+        /**
+         * @brief number of occurrences in the accumlated over all frames, reset on
+         * Trigger reset. Only updated if/when the Trigger has an ODE Accumulator. 
+         */
+        uint m_occurrencesAccumulated;
+        
 
         /**
          * @brief unique source name filter for this event
@@ -702,7 +719,7 @@ namespace DSL
         bool CheckForOccurrence(GstBuffer* pBuffer, 
             std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-        
+
     private:
     
     };
@@ -740,22 +757,42 @@ namespace DSL
     
     };
 
-    class AccumulationOdeTrigger : public OdeTrigger
+    class TrackingOdeTrigger : public OdeTrigger
     {
     public:
     
-        AccumulationOdeTrigger(const char* name, 
-            const char* source, uint classId, uint limit);
+        TrackingOdeTrigger(const char* name, const char* source, uint classId, 
+            uint limit, uint maxTracePoints);
         
-        ~AccumulationOdeTrigger();
-
+        ~TrackingOdeTrigger();
+        
         /**
-         * @brief Overrides the base Reset in order to clear the m_accumulativeOccurrences
+         * @brief Overrides the base Reset in order to clear m_trackedObjectsPerSource
          */
         void Reset();
 
+    protected:
+
         /**
-         * @brief Function to check a given Object Meta data structure for a New Instance of a Class and accumulate
+         * @brief map of tracked objects per source - Key = source Id
+         */
+        std::shared_ptr<TrackedObjects> m_pTrackedObjectsPerSource;
+    
+    };
+
+    class CrossOdeTrigger : public TrackingOdeTrigger
+    {
+    public:
+    
+        CrossOdeTrigger(const char* name, const char* source, uint classId, 
+            uint limit, uint minFrameCount, uint maxTracePoints, 
+            uint testMethod, DSL_RGBA_COLOR_PTR pColor);
+        
+        ~CrossOdeTrigger();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for to determine if the object has
+         * crossed the Trigger's Area - line or line segment of a polygon.
          * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
          * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
@@ -766,41 +803,13 @@ namespace DSL
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
         /**
-         * @brief Function to post process the frame and generate an Accumulation Event 
+         * @brief Function to post process the frame and generate a Cross Accumulation Event
          * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
         uint PostProcessFrame(GstBuffer* pBuffer, 
             std::vector<NvDsDisplayMeta*>& displayMetaData, NvDsFrameMeta* pFrameMeta);
-            
-    private:
-        /**
-         * @brief map of last Tracking Ids per unique source_id-class_id combination
-         */
-        std::map <std::string, uint64_t> m_instances;
-        
-        /**
-         * @brief accumulative Occurrence count of all unique objects
-         */
-        uint m_accumulativeOccurrences;
-    
-    };
-
-    class TrackingOdeTrigger : public OdeTrigger
-    {
-    public:
-    
-        TrackingOdeTrigger(const char* name, const char* source, uint classId, 
-            uint limit, uint minFrameCount, uint maxTracePoints, 
-            uint testMethod, DSL_RGBA_COLOR_PTR pColor);
-        
-        ~TrackingOdeTrigger();
-        
-        /**
-         * @brief Overrides the base Reset in order to clear m_trackedObjectsPerSource
-         */
-        void Reset();
 
         /**
          * @brief Gets the current max-trace-point setting for this CrossOdeTrigger.
@@ -836,18 +845,50 @@ namespace DSL
          */
         void SetViewSettings(bool enabled, DSL_RGBA_COLOR_PTR pColor, uint lineWidth);
 
-    protected:
+        /**
+         * @brief Overrides the base Reset in order to clear m_occurrencesIn and
+         * m_occurrencesOut
+         */
+        void Reset();
+            
+    private:
+
+        /**
+         * @brief maximum number of trace points to use in cross detection
+         */
+        uint m_maxTracePoints;
+
+        /**
+         * @brief number of occurrences in the "in-direction" for the current frame, 
+         * reset on exit of PostProcessFrame
+         */
+        uint m_occurrencesIn;
+
+        /**
+         * @brief number of occurrences in the "out-direction" for the current frame, 
+         * reset on exit of PostProcessFrame
+         */
+        uint m_occurrencesOut;
+
+        /**
+         * @brief number of occurrences in the "in-direction" accumlated over 
+         * all frames reset on Trigger reset. Only updated if/when the Trigger
+         * has an ODE Accumulator. 
+         */
+        uint m_occurrencesInAccumulated;
+
+        /**
+         * @brief number of occurrences in the "out-direction" accumulated over, 
+         * all frames reset on Trigger reset. Only updated if/when the Trigger
+         * has an ODE Accumulator. 
+         */
+        uint m_occurrencesOutAccumulated;
 
         /**
          * @brief minimum number of consective frames required to trigger an event
          * on both sides of the line. 
          */
         uint m_minFrameCount;
-
-        /**
-         * @brief maximum number of trace points to use in cross detection
-         */
-        uint m_maxTracePoints;
 
         /**
          * @brief method to test object trace line crossing. All-points or end-points.
@@ -868,46 +909,6 @@ namespace DSL
          * @brief line width for the object trace in units of pixels.
          */
         uint m_traceLineWidth;
-
-        /**
-         * @brief map of tracked objects per source - Key = source Id
-         */
-        std::shared_ptr<TrackedObjects> m_pTrackedObjectsPerSource;
-    
-    };
-
-    class CrossOdeTrigger : public TrackingOdeTrigger
-    {
-    public:
-    
-        CrossOdeTrigger(const char* name, const char* source, uint classId, 
-            uint limit, uint minFrameCount, uint maxTracePoints, 
-            uint testMethod, DSL_RGBA_COLOR_PTR pColor);
-        
-        ~CrossOdeTrigger();
-
-        /**
-         * @brief Function to check a given Object Meta data structure for to determine if the object has
-         * crossed the Trigger's Area - line or line segment of a polygon.
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
-         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
-         * @return true if Occurrence, false otherwise
-         */
-        bool CheckForOccurrence(GstBuffer* pBuffer, 
-            std::vector<NvDsDisplayMeta*>& displayMetaData,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-
-        /**
-         * @brief Function to post process the frame and generate a Cross Accumulation Event 
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
-         * @param[in] pFrameMeta Frame meta data to post process.
-         * @return the number of ODE Occurrences triggered on post process
-         */
-        uint PostProcessFrame(GstBuffer* pBuffer, 
-            std::vector<NvDsDisplayMeta*>& displayMetaData, NvDsFrameMeta* pFrameMeta);
-            
-    private:
     
     };
     
@@ -1123,7 +1124,7 @@ namespace DSL
     public:
     
         PersistenceOdeTrigger(const char* name, const char* source, uint classId, 
-            uint limit, uint minimum, uint maximum, DSL_RGBA_COLOR_PTR pColor);
+            uint limit, uint minimum, uint maximum);
         
         ~PersistenceOdeTrigger();
 
@@ -1338,7 +1339,7 @@ namespace DSL
     public:
     
         LatestOdeTrigger(const char* name, const char* source, 
-            uint classId, uint limit, DSL_RGBA_COLOR_PTR pColor);
+            uint classId, uint limit);
         
         ~LatestOdeTrigger();
 
@@ -1384,7 +1385,7 @@ namespace DSL
     public:
     
         EarliestOdeTrigger(const char* name, const char* source, 
-            uint classId, uint limit, DSL_RGBA_COLOR_PTR pColor);
+            uint classId, uint limit);
         
         ~EarliestOdeTrigger();
 
@@ -1528,6 +1529,12 @@ namespace DSL
          * Set to m_preset on trigger create and reset.
          */
         uint m_currentHigh;
+        
+        
+        /**
+         * @brief Accumlative count of new high events accross all frames.
+         */
+        uint64_t m_occurrencesNewHighAccumulated;
     
     };
 

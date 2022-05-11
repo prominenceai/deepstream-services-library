@@ -124,6 +124,13 @@ namespace DSL
         LOG_FUNC();
     }
 
+    RgbaColor::RgbaColor()
+        : DisplayType("")
+        , NvOSD_ColorParams{0.0, 0.0, 0.0, 0.0}
+    {
+        LOG_FUNC();
+    }
+
     RgbaColor::RgbaColor(const char* name, const NvOSD_ColorParams& color)
         : DisplayType(name)
         , NvOSD_ColorParams{color.red, color.green, color.blue, color.alpha}

@@ -868,6 +868,7 @@ retval = dsl_display_type_meta_add('blue-circle', buffer, frame_meta)
 * [Sink](/docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE-Trigger](/docs/api-ode-trigger.md)
+* [ODE Accumulator](/docs/api-ode-accumulator.md)
 * [ODE Action](/docs/api-ode-action.md)
 * [ODE Area](/docs/api-ode-area.md)
 * **Display Type**

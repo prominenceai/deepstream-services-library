@@ -558,6 +558,7 @@ retval = dsl_pph_enabled_set('my-handler', False)
 * [Sink](/docs/api-sink.md)
 * **Pad Probe Handler**
 * [ODE Trigger](/docs/api-ode-trigger.md)
+* [ODE Accumulator](/docs/api-ode-accumulator.md)
 * [ODE Action](/docs/api-ode-action.md)
 * [ODE Area](/docs/api-ode-area.md)
 * [Display Type](/docs/api-display-types)

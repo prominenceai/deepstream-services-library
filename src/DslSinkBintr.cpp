@@ -220,13 +220,13 @@ namespace DSL
             LOG_ERROR("Overlay Sink is only supported on the aarch64 Platform'");
             throw;
         }
-        // Reset to create
-        if (!Reset())
+        
+        // Find the first available unique Id
+        while(std::find(s_uniqueIds.begin(), s_uniqueIds.end(), m_uniqueId) != s_uniqueIds.end())
         {
-            LOG_ERROR("Failed to create Overlay element for SinkBintr '" 
-                << GetName() << "'");
-            throw;
+            m_uniqueId++;
         }
+        s_uniqueIds.push_back(m_uniqueId);
     }
     
     bool OverlaySinkBintr::Reset()
@@ -241,17 +241,7 @@ namespace DSL
         }
 
         // If first time call - from the constructor
-        if (m_pOverlay == nullptr)
-        {
-            // Find the first available unique Id
-            while(std::find(s_uniqueIds.begin(), s_uniqueIds.end(), m_uniqueId) != s_uniqueIds.end())
-            {
-                m_uniqueId++;
-            }
-            s_uniqueIds.push_back(m_uniqueId);
-        }
-        // Else, this is an actual reset/recreate
-        else
+        if (m_pOverlay != nullptr)
         {
             // Remove the existing element from the objects bin
             gst_element_set_state(m_pOverlay->GetGstElement(), GST_STATE_NULL);
@@ -294,6 +284,11 @@ namespace DSL
             return false;
         }
 
+        if (!Reset())
+        {
+            LOG_ERROR("Failed to create/reset Overlay pluggin");
+            return false;
+        }
         if (!m_pQueue->LinkToSink(m_pOverlay))
         {
             return false;
@@ -348,8 +343,9 @@ namespace DSL
         m_offsetX = offsetX;
         m_offsetY = offsetY;
 
-        m_pOverlay->SetAttribute("overlay-x", m_offsetX);
-        m_pOverlay->SetAttribute("overlay-y", m_offsetY);
+        LOG_ERROR("Offsets x=" << m_offsetX << " y=" << m_offsetY);
+//        m_pOverlay->SetAttribute("overlay-x", m_offsetX);
+//        m_pOverlay->SetAttribute("overlay-y", m_offsetY);
         
         return true;
     }
@@ -361,8 +357,8 @@ namespace DSL
         m_width = width;
         m_height = height;
 
-        m_pOverlay->SetAttribute("overlay-w", m_width);
-        m_pOverlay->SetAttribute("overlay-h", m_height);
+//        m_pOverlay->SetAttribute("overlay-w", m_width);
+//        m_pOverlay->SetAttribute("overlay-h", m_height);
         
         return true;
     }

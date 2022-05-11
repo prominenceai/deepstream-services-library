@@ -300,6 +300,8 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID                    0x000E000F
 #define DSL_RESULT_ODE_TRIGGER_IS_NOT_AB_TYPE                       0x000E0010
 #define DSL_RESULT_ODE_TRIGGER_IS_NOT_TRACK_TRIGGER                 0x000E0011
+#define DSL_RESULT_ODE_TRIGGER_ACCUMULATOR_ADD_FAILED               0x000E0012
+#define DSL_RESULT_ODE_TRIGGER_ACCUMULATOR_REMOVE_FAILED            0x000E0013
 
 /**
  * ODE Action API Return Values
@@ -435,6 +437,19 @@ THE SOFTWARE.
 #define DSL_RESULT_BROKER_DISCONNECT_FAILED                         0x0080000E
 #define DSL_RESULT_BROKER_MESSAGE_SEND_FAILED                       0x0080000F
 
+/**
+ * ODE Accumulator API Return Values
+ */
+#define DSL_RESULT_ODE_ACCUMULATOR_RESULT                           0x00900000
+#define DSL_RESULT_ODE_ACCUMULATOR_NAME_NOT_UNIQUE                  0x00900001
+#define DSL_RESULT_ODE_ACCUMULATOR_NAME_NOT_FOUND                   0x00900002
+#define DSL_RESULT_ODE_ACCUMULATOR_THREW_EXCEPTION                  0x00900003
+#define DSL_RESULT_ODE_ACCUMULATOR_IN_USE                           0x00900004
+#define DSL_RESULT_ODE_ACCUMULATOR_SET_FAILED                       0x00900005
+#define DSL_RESULT_ODE_ACCUMULATOR_IS_NOT_ODE_ACCUMULATOR           0x00900006
+#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_ADD_FAILED                0x00900007
+#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_REMOVE_FAILED             0x00900008
+#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_NOT_IN_USE                0x00900009
 
 /**
  * GPU Types
@@ -764,6 +779,7 @@ THE SOFTWARE.
 #define DSL_METRIC_OBJECT_DIMENSIONS                                3
 #define DSL_METRIC_OBJECT_CONFIDENCE                                4
 #define DSL_METRIC_OBJECT_PERSISTENCE                               5
+#define DSL_METRIC_OBJECT_DIRECTION                                 6
 
 /**
  * @brief Metric Content Options for Trigger Output customization
@@ -774,7 +790,10 @@ THE SOFTWARE.
  * frame. For most other Triggers, this value will always be 1.
  * For the Absence Trigger, occurrences will always be 0. 
  */
-#define DSL_METRIC_OBJECT_OCCURRENCES                               6
+#define DSL_METRIC_OBJECT_OCCURRENCES                               7
+
+#define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_IN                  8
+#define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_OUT                 9
 
 /**
  * @brief Message converter payload schema types used by all Message Sinks.
@@ -2144,21 +2163,6 @@ DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name,
     const wchar_t* source, uint class_id, uint limit);
 
 /**
- * @brief Accumulation trigger that checks for new instances of Objects for a specified
- * source and object class_id accumulating the occurrences over consecutive frames. 
- * The current accumulative occurrence value is reported after each frame. New instance 
- * identification is based on Tracking Id.
- * Note: the accumulative occurrence value is cleared on trigger reset.
- * @param[in] name unique name for the ODE Trigger
- * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
- * @param[in] class_id class id filter for this ODE Trigger
- * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_accumulation_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit);
-    
-/**
  * @brief Count trigger that checks for the occurrence of Objects within a frame
  * and tests if the count is within a specified range.
  * @param[in] name unique name for the ODE Trigger
@@ -2875,32 +2879,55 @@ DslReturnType dsl_ode_trigger_area_remove(const wchar_t* name, const wchar_t* ar
  * @param[in] areas Null terminated list of unique names of the ODE Areas to remove
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_area_remove_many(const wchar_t* name, const wchar_t** areas);
+DslReturnType dsl_ode_trigger_area_remove_many(const wchar_t* name, 
+    const wchar_t** areas);
 
 /**
  * @brief Removes a named ODE Area from a named ODE Trigger
  * @param[in] name unique name of the ODE Trigger to update
  * @param[in] area unique name of the ODE Area to Remove
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_area_remove_all(const wchar_t* name);
 
 /**
- * @brief Deletes a uniquely named Trigger. The call will fail if the event is currently in use
+ * @brief Adds a named ODE Accumulator to a named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] accumulator unique name of the ODE Accumulator to add
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_accumulator_add(const wchar_t* name, 
+    const wchar_t* accumulator);
+
+/**
+ * @brief Removes the ODE Accumulator from a named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_accumulator_remove(const wchar_t* name);
+
+/**
+ * @brief Deletes a uniquely named Trigger. The call will fail if the Triggers is 
+ * currently in use
  * @brief[in] name unique name of the event to delte
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_delete(const wchar_t* name);
 
 /**
- * @brief Deletes a Null terminated list of Triggers. The call will fail if any of the events are currently in use
+ * @brief Deletes a Null terminated list of Triggers. The call will fail if any of 
+ * the Triggers are currently in use
  * @brief[in] names Null terminaed list of event names to delte
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_delete_many(const wchar_t** names);
 
 /**
- * @brief Deletes all Triggers. The call will fail if any of the events are currently in use
+ * @brief Deletes all Triggers. The call will fail if any of the Triggers are 
+ * currently in use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_delete_all();
@@ -2910,6 +2937,97 @@ DslReturnType dsl_ode_trigger_delete_all();
  * @return the number of Triggers in the list
  */
 uint dsl_ode_trigger_list_size();
+
+/**
+ * @brief Creates a new ODE Accumulator that when added to an ODE Trigger, accumulates
+ * the count(s) of ODE Occurrence and calls on all actions during the Trigger's post 
+ * processing of each frame.
+ * @param[in] name unique name for the ODE Accumulator
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
+ */
+DslReturnType dsl_ode_accumulator_new(const wchar_t* name);
+
+/**
+ * @brief Adds a named ODE Action to a named ODE Accumulator
+ * @param[in] name unique name of the ODE Accumulator to update
+ * @param[in] action unique name of the ODE Action to Add
+ * @return DSL_RESULT_SUCCESS on successful update, D
+ * SL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
+ */
+DslReturnType dsl_ode_accumulator_action_add(const wchar_t* name, 
+    const wchar_t* action);
+
+/**
+ * @brief Adds a Null terminated list of named ODE Actions to a named ODE Accumulator
+ * @param[in] name unique name of the ODE Accumulator to update
+ * @param[in] actions Null terminated list of unique names of the ODE Actions to add
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
+ */
+DslReturnType dsl_ode_accumulator_action_add_many(const wchar_t* name, 
+    const wchar_t** actions);
+
+/**
+ * @brief Removes a named ODE Action from a named ODE Accumulator
+ * @param[in] name unique name of the ODE Accumulator to update
+ * @param[in] action unique name of the ODE Action to Remove
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
+ */
+DslReturnType dsl_ode_accumulator_action_remove(const wchar_t* name, 
+    const wchar_t* action);
+
+/**
+ * @brief Removes a Null terminated list of named ODE Actions from a named 
+ * ODE Accumulator
+ * @param[in] name unique name of the ODE Accumulator to update
+ * @param[in] actions Null terminated list of unique names of the 
+ * ODE Actions to remove
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
+ */
+DslReturnType dsl_ode_accumulator_action_remove_many(const wchar_t* name, 
+    const wchar_t** actions);
+
+/**
+ * @brief Removes a named ODE Action from a named ODE Accumulator
+ * @param[in] name unique name of the ODE Accumulator to update
+ * @param[in] action unique name of the ODE Action to Remove
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
+ */
+DslReturnType dsl_ode_accumulator_action_remove_all(const wchar_t* name);
+
+/**
+ * @brief Deletes a uniquely named ODE Accumulator. The call will fail if 
+ * the ODE Accumulators is currently in use
+ * @brief[in] name unique name of the ODE Accumulator to delete
+ * @return DSL_RESULT_SUCCESS on successful delete, 
+ * DSL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
+ */
+DslReturnType dsl_ode_accumulator_delete(const wchar_t* name);
+
+/**
+ * @brief Deletes a Null terminated list of ODE Accumulator. The call will fail 
+ * if any of the ODE Accumulators are currently in use
+ * @brief[in] names Null terminaed list of ODE Accumulator names to delete
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
+ */
+DslReturnType dsl_ode_accumulator_delete_many(const wchar_t** names);
+
+/**
+ * @brief Deletes all ODE Accumulators. The call will fail if any of the 
+ * ODE Accumulators are currently in use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
+ */
+DslReturnType dsl_ode_accumulator_delete_all();
+
+/**
+ * @brief Returns the size of the list of ODE Accumulators
+ * @return the number of ODE Accumulators in the list
+ */
+uint dsl_ode_accumulator_list_size();
+
 
 /**
  * @brief creates a new, uniquely named Handler component

@@ -73,23 +73,19 @@ static const std::wstring ode_action_name(L"print");
 static const std::wstring vehicle_occurrence_name(L"vehicle-occurence");
 static const std::wstring first_vehicle_occurrence_name(L"first-vehicle-occurrence");
 static const std::wstring vehicle_summation_name(L"vehicle-summation");
-static const std::wstring vehicle_accumulation_name(L"vehicle-accumulation");
 static const uint vehicle_class_id(0);
 static const std::wstring bicycle_occurrence_name(L"Bicycle");
 static const std::wstring first_bycle_occurrence_name(L"first-bicycle-occurrence");
 static const std::wstring bicycle_summation_name(L"bicycle-summation");
-static const std::wstring bicycle_accumulation_name(L"bicycle-accumulation");
 static const uint bicycle_class_id(1);
 static const std::wstring person_occurrence_name(L"person-occurrence");
 static const std::wstring first_person_occurrence_name(L"first-person-occurrence");
 static const std::wstring person_summation_name(L"person-summation");
-static const std::wstring person_accumulation_name(L"person-accumulation");
 static const std::wstring person_cross_name(L"person-cross");
 static const uint person_class_id(2);
 static const std::wstring roadsign_occurrence_name(L"roadsign-occurrence");
 static const std::wstring first_roadsign_occurrence_name(L"first-roadsign-occurrence");
 static const std::wstring roadsign_summation_name(L"roadsign-summation");
-static const std::wstring roadsign_accumulation_name(L"roadsign-accumulation");
 static const uint roadsign_class_id(3);
 
 
@@ -557,118 +553,118 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Triggers, eac
     }
 }
 
-SCENARIO( "A new Pipeline with an ODE Handler, Four ODE Accumulation Triggers with ODE Display ActionS can play", "[ode-behavior]" )
-{
-    GIVEN( "A Pipeline, ODE Handler, Four Aggreation ODE Triggers each with a Display ODE Actions" ) 
-    {
-        
-        std::wstring displayActionName(L"display-action");
-        uint textOffsetX(10);
-        uint textOffsetY(20);
-
-        REQUIRE( dsl_display_type_rgba_color_custom_new(full_black.c_str(), 
-            0.0, 0.0, 0.0, 1.0) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_display_type_rgba_font_new(font_name.c_str(), font.c_str(),
-            size, full_black.c_str()) == DSL_RESULT_SUCCESS );
-        
-        REQUIRE( dsl_component_list_size() == 0 );
-
-        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
-            model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
-        
-        REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), 
-            tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_tiler_new(tiler_name.c_str(), width, height) == DSL_RESULT_SUCCESS );
-        
-        REQUIRE( dsl_pph_ode_new(ode_pph_name.c_str()) == DSL_RESULT_SUCCESS );
-        
-        REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), 
-            ode_pph_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
-
-        
-        REQUIRE( dsl_ode_action_display_new(vehicle_display_action.c_str(), 
-            vehicle_string.c_str(), textOffsetX, textOffsetY, font_name.c_str(), 
-            false, full_black.c_str()) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_ode_action_display_new(bycle_display_action.c_str(), 
-            bycle_string.c_str(), textOffsetX, textOffsetY+20, font_name.c_str(), 
-            false, full_black.c_str()) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_ode_action_display_new(person_display_action.c_str(), 
-            person_string.c_str(), textOffsetX, textOffsetY+40, font_name.c_str(), 
-            false, full_black.c_str()) == DSL_RESULT_SUCCESS );
-        
-        REQUIRE( dsl_ode_action_display_new(roadsign_display_action.c_str(), 
-            roadsign_string.c_str(), textOffsetX, textOffsetY+60, font_name.c_str(), 
-            false, full_black.c_str()) == DSL_RESULT_SUCCESS );
-        
-        // Create all occurrences
-        REQUIRE( dsl_ode_trigger_accumulation_new(vehicle_accumulation_name.c_str(), 
-            NULL, vehicle_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(vehicle_accumulation_name.c_str(), 
-            vehicle_display_action.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_accumulation_new(bicycle_accumulation_name.c_str(), 
-            NULL, bicycle_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(bicycle_accumulation_name.c_str(), 
-            bycle_display_action.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_accumulation_new(person_accumulation_name.c_str(), 
-            NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(person_accumulation_name.c_str(), 
-            person_display_action.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_accumulation_new(roadsign_accumulation_name.c_str(), 
-            NULL, roadsign_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(roadsign_accumulation_name.c_str(), 
-            roadsign_display_action.c_str()) == DSL_RESULT_SUCCESS );
-
-        const wchar_t* odeTypes[] = {L"vehicle-accumulation", L"bicycle-accumulation", 
-            L"person-accumulation", L"roadsign-accumulation", NULL};
-        
-        REQUIRE( dsl_pph_ode_trigger_add_many(ode_pph_name.c_str(), 
-            odeTypes) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
-            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
-        
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
-            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
-
-        const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"window-sink", NULL};
-        
-        WHEN( "When the Pipeline is Assembled" ) 
-        {
-            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-        
-            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
-                components) == DSL_RESULT_SUCCESS );
-
-            THEN( "Pipeline is Able to LinkAll and Play" )
-            {
-                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_list_size() == 0 );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_list_size() == 0 );
-                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pph_list_size() == 0 );
-                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_trigger_list_size() == 0 );
-                REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_action_list_size() == 0 );
-                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_display_type_list_size() == 0 );
-            }
-        }
-    }
-}
+//SCENARIO( "A new Pipeline with an ODE Handler, Four ODE Accumulation Triggers with ODE Display ActionS can play", "[ode-behavior]" )
+//{
+//    GIVEN( "A Pipeline, ODE Handler, Four Aggreation ODE Triggers each with a Display ODE Actions" ) 
+//    {
+//        
+//        std::wstring displayActionName(L"display-action");
+//        uint textOffsetX(10);
+//        uint textOffsetY(20);
+//
+//        REQUIRE( dsl_display_type_rgba_color_custom_new(full_black.c_str(), 
+//            0.0, 0.0, 0.0, 1.0) == DSL_RESULT_SUCCESS );
+//
+//        REQUIRE( dsl_display_type_rgba_font_new(font_name.c_str(), font.c_str(),
+//            size, full_black.c_str()) == DSL_RESULT_SUCCESS );
+//        
+//        REQUIRE( dsl_component_list_size() == 0 );
+//
+//        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
+//            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+//
+//        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
+//            model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+//        
+//        REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), 
+//            tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
+//
+//        REQUIRE( dsl_tiler_new(tiler_name.c_str(), width, height) == DSL_RESULT_SUCCESS );
+//        
+//        REQUIRE( dsl_pph_ode_new(ode_pph_name.c_str()) == DSL_RESULT_SUCCESS );
+//        
+//        REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), 
+//            ode_pph_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+//
+//        
+//        REQUIRE( dsl_ode_action_display_new(vehicle_display_action.c_str(), 
+//            vehicle_string.c_str(), textOffsetX, textOffsetY, font_name.c_str(), 
+//            false, full_black.c_str()) == DSL_RESULT_SUCCESS );
+//
+//        REQUIRE( dsl_ode_action_display_new(bycle_display_action.c_str(), 
+//            bycle_string.c_str(), textOffsetX, textOffsetY+20, font_name.c_str(), 
+//            false, full_black.c_str()) == DSL_RESULT_SUCCESS );
+//
+//        REQUIRE( dsl_ode_action_display_new(person_display_action.c_str(), 
+//            person_string.c_str(), textOffsetX, textOffsetY+40, font_name.c_str(), 
+//            false, full_black.c_str()) == DSL_RESULT_SUCCESS );
+//        
+//        REQUIRE( dsl_ode_action_display_new(roadsign_display_action.c_str(), 
+//            roadsign_string.c_str(), textOffsetX, textOffsetY+60, font_name.c_str(), 
+//            false, full_black.c_str()) == DSL_RESULT_SUCCESS );
+//        
+//        // Create all occurrences
+//        REQUIRE( dsl_ode_trigger_accumulation_new(vehicle_accumulation_name.c_str(), 
+//            NULL, vehicle_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
+//        REQUIRE( dsl_ode_trigger_action_add(vehicle_accumulation_name.c_str(), 
+//            vehicle_display_action.c_str()) == DSL_RESULT_SUCCESS );
+//        REQUIRE( dsl_ode_trigger_accumulation_new(bicycle_accumulation_name.c_str(), 
+//            NULL, bicycle_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
+//        REQUIRE( dsl_ode_trigger_action_add(bicycle_accumulation_name.c_str(), 
+//            bycle_display_action.c_str()) == DSL_RESULT_SUCCESS );
+//        REQUIRE( dsl_ode_trigger_accumulation_new(person_accumulation_name.c_str(), 
+//            NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
+//        REQUIRE( dsl_ode_trigger_action_add(person_accumulation_name.c_str(), 
+//            person_display_action.c_str()) == DSL_RESULT_SUCCESS );
+//        REQUIRE( dsl_ode_trigger_accumulation_new(roadsign_accumulation_name.c_str(), 
+//            NULL, roadsign_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
+//        REQUIRE( dsl_ode_trigger_action_add(roadsign_accumulation_name.c_str(), 
+//            roadsign_display_action.c_str()) == DSL_RESULT_SUCCESS );
+//
+//        const wchar_t* odeTypes[] = {L"vehicle-accumulation", L"bicycle-accumulation", 
+//            L"person-accumulation", L"roadsign-accumulation", NULL};
+//        
+//        REQUIRE( dsl_pph_ode_trigger_add_many(ode_pph_name.c_str(), 
+//            odeTypes) == DSL_RESULT_SUCCESS );
+//
+//        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+//            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
+//        
+//        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+//            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+//
+//        const wchar_t* components[] = {L"uri-source", 
+//            L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"window-sink", NULL};
+//        
+//        WHEN( "When the Pipeline is Assembled" ) 
+//        {
+//            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+//        
+//            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+//                components) == DSL_RESULT_SUCCESS );
+//
+//            THEN( "Pipeline is Able to LinkAll and Play" )
+//            {
+//                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+//                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+//                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+//
+//                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+//                REQUIRE( dsl_pipeline_list_size() == 0 );
+//                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+//                REQUIRE( dsl_component_list_size() == 0 );
+//                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+//                REQUIRE( dsl_pph_list_size() == 0 );
+//                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+//                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+//                REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
+//                REQUIRE( dsl_ode_action_list_size() == 0 );
+//                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+//                REQUIRE( dsl_display_type_list_size() == 0 );
+//            }
+//        }
+//    }
+//}
 
 SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with shared ODE Inclusion Area", "[ode-behavior]" )
 {

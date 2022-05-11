@@ -1388,24 +1388,6 @@ DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name,
         cstrSource.c_str(), class_id, limit);
 }
 
-DslReturnType dsl_ode_trigger_accumulation_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    std::string cstrSource;
-    if (source)
-    {
-        std::wstring wstrSource(source);
-        cstrSource.assign(wstrSource.begin(), wstrSource.end());
-    }
-    return DSL::Services::GetServices()->OdeTriggerAccumulationNew(cstrName.c_str(), 
-        cstrSource.c_str(), class_id, limit);
-}
-    
 DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit)
 {
@@ -2368,6 +2350,32 @@ DslReturnType dsl_ode_trigger_area_remove_all(const wchar_t* name)
     return DSL::Services::GetServices()->OdeTriggerAreaRemoveAll(cstrName.c_str());
 }
 
+DslReturnType dsl_ode_trigger_accumulator_add(const wchar_t* name, 
+    const wchar_t* accumulator)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(accumulator);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrAccumulator(accumulator);
+    std::string cstrAccumulator(wstrAccumulator.begin(), wstrAccumulator.end());
+
+    return DSL::Services::GetServices()->OdeTriggerAccumulatorAdd(
+        cstrName.c_str(), cstrAccumulator.c_str());
+}
+
+DslReturnType dsl_ode_trigger_accumulator_remove(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerAccumulatorRemove(
+        cstrName.c_str());
+}
+
 DslReturnType dsl_ode_trigger_delete(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -2403,6 +2411,136 @@ DslReturnType dsl_ode_trigger_delete_all()
 uint dsl_ode_trigger_list_size()
 {
     return DSL::Services::GetServices()->OdeTriggerListSize();
+}
+
+DslReturnType dsl_ode_accumulator_new(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeAccumulatorNew(cstrName.c_str());
+}
+
+DslReturnType dsl_ode_accumulator_action_add(const wchar_t* name, const wchar_t* action)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(action);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrAction(action);
+    std::string cstrAction(wstrAction.begin(), wstrAction.end());
+
+    return DSL::Services::GetServices()->OdeAccumulatorActionAdd(cstrName.c_str(), 
+        cstrAction.c_str());
+}
+
+DslReturnType dsl_ode_accumulator_action_add_many(const wchar_t* name, const wchar_t** actions)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(actions);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    for (const wchar_t** action = actions; *action; action++)
+    {
+        std::wstring wstrAction(*action);
+        std::string cstrAction(wstrAction.begin(), wstrAction.end());
+        
+        DslReturnType retval = DSL::Services::GetServices()->
+            OdeAccumulatorActionAdd(cstrName.c_str(), cstrAction.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_ode_accumulator_action_remove(const wchar_t* name, const wchar_t* action)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(action);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrAction(action);
+    std::string cstrAction(wstrAction.begin(), wstrAction.end());
+
+    return DSL::Services::GetServices()->OdeAccumulatorActionRemove(cstrName.c_str(), cstrAction.c_str());
+}
+
+DslReturnType dsl_ode_accumulator_action_remove_many(const wchar_t* name, const wchar_t** actions)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(actions);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    for (const wchar_t** action = actions; *action; action++)
+    {
+        std::wstring wstrAction(*action);
+        std::string cstrAction(wstrAction.begin(), wstrAction.end());
+        
+        DslReturnType retval = DSL::Services::GetServices()->
+            OdeAccumulatorActionRemove(cstrName.c_str(), cstrAction.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_ode_accumulator_action_remove_all(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->OdeAccumulatorActionRemoveAll(cstrName.c_str());
+}
+
+DslReturnType dsl_ode_accumulator_delete(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeAccumulatorDelete(cstrName.c_str());
+}
+
+DslReturnType dsl_ode_accumulator_delete_many(const wchar_t** names)
+{
+    RETURN_IF_PARAM_IS_NULL(names);
+
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->OdeAccumulatorDelete(cstrName.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_ode_accumulator_delete_all()
+{
+    return DSL::Services::GetServices()->OdeAccumulatorDeleteAll();
+}
+
+uint dsl_ode_accumulator_list_size()
+{
+    return DSL::Services::GetServices()->OdeAccumulatorListSize();
 }
 
 DslReturnType dsl_pph_custom_new(const wchar_t* name,

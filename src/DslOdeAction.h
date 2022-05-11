@@ -40,15 +40,18 @@ namespace DSL
      * @brief Constants for indexing "pObjectMeta->misc_obj_info" 
      * Triggers add specific metric data for child Actions to act on.
      */
-    #define DSL_OBJECT_INFO_PRIMARY_METRIC     0
-    #define DSL_OBJECT_INFO_PERSISTENCE        1
-    #define DSL_OBJECT_INFO_DIRECTION          2
+    #define DSL_OBJECT_INFO_PRIMARY_METRIC              0
+    #define DSL_OBJECT_INFO_PERSISTENCE                 1
+    #define DSL_OBJECT_INFO_DIRECTION                   2
     
     /**
      * @brief Constants for indexing "pFrameMeta->misc_frame_info" 
      * Triggers add specific metric data for child Actions to act on.
      */
-    #define DSL_FRAME_INFO_OCCURRENCES         0
+    #define DSL_FRAME_INFO_ACTIVE_INDEX                 0
+    #define DSL_FRAME_INFO_OCCURRENCES                  1
+    #define DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN     2
+    #define DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT    3
     
     /**
      * @brief convenience macros for shared pointer abstraction
