@@ -852,7 +852,6 @@ namespace DSL
                         std::to_string(pFrameMeta->misc_frame_info[
                             DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT]));
                 }
-                LOG_ERROR("text = " << text);
             }
             text.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
 

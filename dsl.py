@@ -375,7 +375,7 @@ def dsl_display_type_rgba_color_custom_new(name,
 ## dsl_display_type_rgba_color_predefined_new()
 ##
 _dsl.dsl_display_type_rgba_color_predefined_new.argtypes = [c_wchar_p, 
-    c_uint, c_uint]
+    c_uint, c_double]
 _dsl.dsl_display_type_rgba_color_predefined_new.restype = c_uint
 def dsl_display_type_rgba_color_predefined_new(name, 
     color_id, alpha):

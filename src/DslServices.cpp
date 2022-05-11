@@ -229,6 +229,7 @@ namespace DSL
         ComponentDeleteAll();
         PphDeleteAll();
         OdeTriggerDeleteAll();
+        OdeAccumulatorDeleteAll();
         OdeAreaDeleteAll();
         OdeActionDeleteAll();
         DisplayTypeDeleteAll();

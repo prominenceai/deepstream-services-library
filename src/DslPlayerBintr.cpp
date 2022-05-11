@@ -495,7 +495,13 @@ namespace DSL
         // everything we need to create the SinkBintr
         if (!SetDimensions())
         {
-            LOG_ERROR("Failed to update RenderSink for RenderPlayerBintr '" 
+            LOG_ERROR("Failed to update RenderSink dimensions for RenderPlayerBintr '" 
+                << GetName() << "'");
+            return false;
+        }
+        if (!SetOffsets(m_offsetX, m_offsetY))
+        {
+            LOG_ERROR("Failed to update RenderSink offsets for RenderPlayerBintr '" 
                 << GetName() << "'");
             return false;
         }
