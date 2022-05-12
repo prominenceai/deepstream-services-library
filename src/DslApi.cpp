@@ -2031,7 +2031,8 @@ DslReturnType dsl_ode_trigger_infer_get(const wchar_t* name, const wchar_t** inf
     static std::string cstrInfer;
     static std::wstring wcstrInfer;
     
-    uint retval = DSL::Services::GetServices()->OdeTriggerInferGet(cstrName.c_str(), &cInfer);
+    uint retval = DSL::Services::GetServices()->OdeTriggerInferGet(cstrName.c_str(), 
+        &cInfer);
     if (retval ==  DSL_RESULT_SUCCESS)
     {
         *infer = NULL;
@@ -2046,7 +2047,8 @@ DslReturnType dsl_ode_trigger_infer_get(const wchar_t* name, const wchar_t** inf
 
 }
 
-DslReturnType dsl_ode_trigger_infer_set(const wchar_t* name, const wchar_t* infer)
+DslReturnType dsl_ode_trigger_infer_set(const wchar_t* name, 
+    const wchar_t* infer)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -2059,87 +2061,128 @@ DslReturnType dsl_ode_trigger_infer_set(const wchar_t* name, const wchar_t* infe
         std::wstring wstrInfer(infer);
         cstrInfer.assign(wstrInfer.begin(), wstrInfer.end());
     }
-    return DSL::Services::GetServices()->OdeTriggerInferSet(cstrName.c_str(), cstrInfer.c_str());
+    return DSL::Services::GetServices()->OdeTriggerInferSet(
+        cstrName.c_str(), cstrInfer.c_str());
 }
 
-DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, float* min_confidence)
+DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, 
+    float* min_confidence)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerConfidenceMinGet(cstrName.c_str(), min_confidence);
+    return DSL::Services::GetServices()->OdeTriggerConfidenceMinGet(
+        cstrName.c_str(), min_confidence);
 }
 
-DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, float min_confidence)
+DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, 
+    float min_confidence)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerConfidenceMinSet(cstrName.c_str(), min_confidence);
+    return DSL::Services::GetServices()->OdeTriggerConfidenceMinSet(
+        cstrName.c_str(), min_confidence);
 }
 
-DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, float* min_width, float* min_height)
+DslReturnType dsl_ode_trigger_tracker_confidence_min_get(const wchar_t* name, 
+    float* min_confidence)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerDimensionsMinGet(cstrName.c_str(), min_width, min_height);
+    return DSL::Services::GetServices()->OdeTriggerTrackerConfidenceMinGet(
+        cstrName.c_str(), min_confidence);
 }
 
-DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, float min_width, float min_height)
+DslReturnType dsl_ode_trigger_tracker_confidence_min_set(const wchar_t* name, 
+    float min_confidence)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerDimensionsMinSet(cstrName.c_str(), min_width, min_height);
+    return DSL::Services::GetServices()->OdeTriggerTrackerConfidenceMinSet(
+        cstrName.c_str(), min_confidence);
 }
 
-DslReturnType dsl_ode_trigger_dimensions_max_get(const wchar_t* name, float* max_width, float* max_height)
+DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, 
+    float* min_width, float* min_height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerDimensionsMaxGet(cstrName.c_str(), max_width, max_height);
+    return DSL::Services::GetServices()->OdeTriggerDimensionsMinGet(
+        cstrName.c_str(), min_width, min_height);
 }
 
-DslReturnType dsl_ode_trigger_dimensions_max_set(const wchar_t* name, float max_width, float max_height)
+DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, 
+    float min_width, float min_height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerDimensionsMaxSet(cstrName.c_str(), max_width, max_height);
+    return DSL::Services::GetServices()->OdeTriggerDimensionsMinSet(
+        cstrName.c_str(), min_width, min_height);
 }
 
-DslReturnType dsl_ode_trigger_infer_done_only_get(const wchar_t* name, boolean* infer_done_only)
+DslReturnType dsl_ode_trigger_dimensions_max_get(const wchar_t* name, 
+    float* max_width, float* max_height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerInferDoneOnlyGet(cstrName.c_str(), infer_done_only);
+    return DSL::Services::GetServices()->OdeTriggerDimensionsMaxGet(
+        cstrName.c_str(), max_width, max_height);
 }
 
-DslReturnType dsl_ode_trigger_infer_done_only_set(const wchar_t* name, boolean infer_done_only)
+DslReturnType dsl_ode_trigger_dimensions_max_set(const wchar_t* name, 
+    float max_width, float max_height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerInferDoneOnlySet(cstrName.c_str(), infer_done_only);
+    return DSL::Services::GetServices()->OdeTriggerDimensionsMaxSet(
+        cstrName.c_str(), max_width, max_height);
+}
+
+DslReturnType dsl_ode_trigger_infer_done_only_get(const wchar_t* name, 
+    boolean* infer_done_only)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerInferDoneOnlyGet(
+        cstrName.c_str(), infer_done_only);
+}
+
+DslReturnType dsl_ode_trigger_infer_done_only_set(const wchar_t* name, 
+    boolean infer_done_only)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerInferDoneOnlySet(
+        cstrName.c_str(), infer_done_only);
 }
 
 DslReturnType dsl_ode_trigger_frame_count_min_get(const wchar_t* name, 

@@ -777,9 +777,10 @@ THE SOFTWARE.
 #define DSL_METRIC_OBJECT_TRACKING_ID                               1
 #define DSL_METRIC_OBJECT_LOCATION                                  2
 #define DSL_METRIC_OBJECT_DIMENSIONS                                3
-#define DSL_METRIC_OBJECT_CONFIDENCE                                4
-#define DSL_METRIC_OBJECT_PERSISTENCE                               5
-#define DSL_METRIC_OBJECT_DIRECTION                                 6
+#define DSL_METRIC_OBJECT_CONFIDENCE_INFERENCE                      4
+#define DSL_METRIC_OBJECT_CONFIDENCE_TRACKER                        5
+#define DSL_METRIC_OBJECT_PERSISTENCE                               6
+#define DSL_METRIC_OBJECT_DIRECTION                                 7
 
 /**
  * @brief Metric Content Options for Trigger Output customization
@@ -790,10 +791,10 @@ THE SOFTWARE.
  * frame. For most other Triggers, this value will always be 1.
  * For the Absence Trigger, occurrences will always be 0. 
  */
-#define DSL_METRIC_OBJECT_OCCURRENCES                               7
+#define DSL_METRIC_OBJECT_OCCURRENCES                               8
 
-#define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_IN                  8
-#define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_OUT                 9
+#define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_IN                  9
+#define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_OUT                 10
 
 /**
  * @brief Message converter payload schema types used by all Message Sinks.
@@ -2703,16 +2704,40 @@ DslReturnType dsl_ode_trigger_limit_set(const wchar_t* name, uint limit);
  * @param[out] min_confidence current minimum confidence criteria
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, float* min_confidence);
+DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, 
+    float* min_confidence);
 
 /**
- * @brief Sets the enabled setting for the ODE Trigger
+ * @brief Sets the minimum confidence setting for the ODE Trigger.
  * Setting the value of 0.0 indicates the minimum confidence criteria is disabled
+ * Note: the confidence level is only checked with the reported value is > 0.0
  * @param[in] name unique name of the ODE Trigger to update
- * @param[in] min_confidence minimum confidence to trigger an ODE occurrnce
+ * @param[in] min_confidence minimum confidence to trigger an ODE occurrence
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, float min_confidence);
+DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, 
+    float min_confidence);
+
+/**
+ * @brief Gets the current minimum Tracker confidence setting for the ODE Trigger
+ * A value of 0.0 (default) indicates the minimum Tracker confidence criteria is disabled
+ * @param[in] name unique name of the ODE Trigger to query
+ * @param[out] min_confidence current minimum Tracker confidence criteria
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_tracker_confidence_min_get(const wchar_t* name, 
+    float* min_confidence);
+
+/**
+ * @brief Sets the minimum Tracker confidence setting for the ODE Trigger
+ * Set the value of 0.0 to disable minimum Tracker confidence criteria.
+ * Note: the confidence level is only checked with the reported value is > 0.0
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] min_confidence minimum Tracker confidence to trigger an ODE occurrence
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_tracker_confidence_min_set(const wchar_t* name, 
+    float min_confidence);
 
 /**
  * @brief Gets the current minimum rectangle width and height values for the ODE Trigger
@@ -2722,7 +2747,8 @@ DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, float min_
  * @param[out] min_height returns the current minimun frame hight in use
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, float* min_width, float* min_height);
+DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, 
+    float* min_width, float* min_height);
 
 /**
  * @brief Sets the current minimum rectangle width and height values for the ODE Trigger
@@ -2732,7 +2758,8 @@ DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, float* min
  * @param[in] min_height the new minimun frame hight to use
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, float min_width, float min_height);
+DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, 
+    float min_width, float min_height);
 
 /**
  * @brief Gets the current maximum rectangle width and height values for the ODE Trigger
@@ -2742,7 +2769,8 @@ DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, float min_
  * @param[out] max_height returns the current maximun frame hight in use
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_dimensions_max_get(const wchar_t* name, float* max_width, float* max_height);
+DslReturnType dsl_ode_trigger_dimensions_max_get(const wchar_t* name, 
+    float* max_width, float* max_height);
 
 /**
  * @brief Sets the current maximum rectangle width and height values for the ODE Trigger
@@ -2752,7 +2780,8 @@ DslReturnType dsl_ode_trigger_dimensions_max_get(const wchar_t* name, float* max
  * @param[in] max_height the new maximun frame hight to use
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_dimensions_max_set(const wchar_t* name, float max_width, float max_height);
+DslReturnType dsl_ode_trigger_dimensions_max_set(const wchar_t* name, 
+    float max_width, float max_height);
 
 /**
  * @brief Gets the current Inferrence-Done-Only setting for the named trigger

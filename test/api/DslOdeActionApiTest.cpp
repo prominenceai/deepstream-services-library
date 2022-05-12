@@ -588,7 +588,7 @@ SCENARIO( "A new Customize Label ODE Action can be created and deleted", "[ode-a
     {
         std::wstring action_name(L"customize-label-action");
         uint label_types[] = {DSL_METRIC_OBJECT_LOCATION,
-            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE,
+            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE_INFERENCE,
             DSL_METRIC_OBJECT_PERSISTENCE};
 
         uint size(4);
@@ -622,7 +622,7 @@ SCENARIO( "Parameters for a new Customize Label ODE Action are checked on constr
     {
         std::wstring action_name(L"customize-label-action");
         uint label_types[] = {DSL_METRIC_OBJECT_LOCATION,
-            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE,
+            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE_INFERENCE,
             DSL_METRIC_OBJECT_PERSISTENCE};
 
         WHEN( "The size parameter is out of range" ) 
@@ -646,7 +646,7 @@ SCENARIO( "A new Customize Label ODE Action can be updated", "[ode-action-api]" 
     {
         std::wstring action_name(L"customize-label-action");
         uint label_types[] = {DSL_METRIC_OBJECT_LOCATION,
-            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE,
+            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE_INFERENCE,
             DSL_METRIC_OBJECT_PERSISTENCE};
             
         uint size(4);
@@ -695,7 +695,7 @@ SCENARIO( "A Customize Label ODE Action checks its parameters correctly", "[ode-
     {
         std::wstring action_name(L"customize-label-action");
         uint label_types[] = {DSL_METRIC_OBJECT_LOCATION,
-            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE,
+            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE_INFERENCE,
             DSL_METRIC_OBJECT_PERSISTENCE};
             
         uint size(4);

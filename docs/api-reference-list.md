@@ -419,6 +419,8 @@
 * [dsl_ode_trigger_limit_event_listener_remove](/docs/api-ode-trigger.md#dsl_ode_trigger_limit_event_listener_remove)
 * [dsl_ode_trigger_confidence_min_get](/docs/api-ode-trigger.md#dsl_ode_trigger_confidence_min_get)
 * [dsl_ode_trigger_confidence_min_set](/docs/api-ode-trigger.md#dsl_ode_trigger_confidence_min_set)
+* [dsl_ode_trigger_tracker_confidence_min_get](/docs/api-ode-trigger.md#dsl_ode_trigger_tracker_confidence_min_get)
+* [dsl_ode_trigger_tracker_confidence_min_set](/docs/api-ode-trigger.md#dsl_ode_trigger_tracker_confidence_min_set)
 * [dsl_ode_trigger_dimensions_min_get](/docs/api-ode-trigger.md#dsl_ode_trigger_dimensions_min_get)
 * [dsl_ode_trigger_dimensions_min_set](/docs/api-ode-trigger.md#dsl_ode_trigger_dimensions_min_set)
 * [dsl_ode_trigger_dimensions_max_get](/docs/api-ode-trigger.md#dsl_ode_trigger_dimensions_max_get)

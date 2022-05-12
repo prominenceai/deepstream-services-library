@@ -411,33 +411,51 @@ namespace DSL {
         
         DslReturnType OdeTriggerClassIdSet(const char* name, uint classId);
         
-        DslReturnType OdeTriggerClassIdABGet(const char* name, uint* classIdA, uint* classIdB);
+        DslReturnType OdeTriggerClassIdABGet(const char* name, 
+            uint* classIdA, uint* classIdB);
         
-        DslReturnType OdeTriggerClassIdABSet(const char* name, uint classIdA, uint classIdB);
+        DslReturnType OdeTriggerClassIdABSet(const char* name, 
+            uint classIdA, uint classIdB);
         
         DslReturnType OdeTriggerLimitGet(const char* name, uint* limit);
         
         DslReturnType OdeTriggerLimitSet(const char* name, uint limit);
         
-        DslReturnType OdeTriggerConfidenceMinGet(const char* name, float* minConfidence);
+        DslReturnType OdeTriggerConfidenceMinGet(const char* name, 
+            float* minConfidence);
         
-        DslReturnType OdeTriggerConfidenceMinSet(const char* name, float minConfidence);
+        DslReturnType OdeTriggerConfidenceMinSet(const char* name, 
+            float minConfidence);
         
-        DslReturnType OdeTriggerDimensionsMinGet(const char* name, float* min_width, float* min_height);
+        DslReturnType OdeTriggerTrackerConfidenceMinGet(const char* name, 
+            float* minConfidence);
         
-        DslReturnType OdeTriggerDimensionsMinSet(const char* name, float min_width, float min_height);
+        DslReturnType OdeTriggerTrackerConfidenceMinSet(const char* name, 
+            float minConfidence);
+        
+        DslReturnType OdeTriggerDimensionsMinGet(const char* name, 
+            float* min_width, float* min_height);
+        
+        DslReturnType OdeTriggerDimensionsMinSet(const char* name, 
+            float min_width, float min_height);
 
-        DslReturnType OdeTriggerDimensionsMaxGet(const char* name, float* max_width, float* max_height);
+        DslReturnType OdeTriggerDimensionsMaxGet(const char* name, 
+            float* max_width, float* max_height);
         
-        DslReturnType OdeTriggerDimensionsMaxSet(const char* name, float max_width, float max_height);
+        DslReturnType OdeTriggerDimensionsMaxSet(const char* name, 
+            float max_width, float max_height);
 
-        DslReturnType OdeTriggerFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d);
+        DslReturnType OdeTriggerFrameCountMinGet(const char* name, 
+            uint* min_count_n, uint* min_count_d);
 
-        DslReturnType OdeTriggerFrameCountMinSet(const char* name, uint min_count_n, uint min_count_d);
+        DslReturnType OdeTriggerFrameCountMinSet(const char* name, 
+            uint min_count_n, uint min_count_d);
         
-        DslReturnType OdeTriggerInferDoneOnlyGet(const char* name, boolean* inferDoneOnly);
+        DslReturnType OdeTriggerInferDoneOnlyGet(const char* name, 
+            boolean* inferDoneOnly);
         
-        DslReturnType OdeTriggerInferDoneOnlySet(const char* name, boolean inferDoneOnly);
+        DslReturnType OdeTriggerInferDoneOnlySet(const char* name, 
+            boolean inferDoneOnly);
         
         DslReturnType OdeTriggerIntervalGet(const char* name, uint* interval);
         

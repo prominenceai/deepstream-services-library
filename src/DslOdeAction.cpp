@@ -738,9 +738,13 @@ namespace DSL
                     label.append("x");
                     label.append(std::to_string(lrint(pObjectMeta->rect_params.height)));
                     break;
-                case DSL_METRIC_OBJECT_CONFIDENCE :
-                    label.append(((label.size()) ? " | C:" : "C:"));
+                case DSL_METRIC_OBJECT_CONFIDENCE_INFERENCE :
+                    label.append(((label.size()) ? " | IC:" : "IC:"));
                     label.append(std::to_string(pObjectMeta->confidence));
+                    break;
+                case DSL_METRIC_OBJECT_CONFIDENCE_TRACKER :
+                    label.append(((label.size()) ? " | TC:" : "TC:"));
+                    label.append(std::to_string(pObjectMeta->tracker_confidence));
                     break;
                 case DSL_METRIC_OBJECT_PERSISTENCE :
                     label.append(((label.size()) ? " | T:" : "T:"));
@@ -831,6 +835,8 @@ namespace DSL
                 text = std::regex_replace(text, std::regex("\%4"), 
                     std::to_string(pObjectMeta->confidence));
                 text = std::regex_replace(text, std::regex("\%5"), 
+                    std::to_string(pObjectMeta->tracker_confidence));
+                text = std::regex_replace(text, std::regex("\%6"), 
                     std::to_string(pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE]));
             }
             else
@@ -838,17 +844,17 @@ namespace DSL
                 if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
                     DSL_FRAME_INFO_OCCURRENCES)
                 {
-                    text = std::regex_replace(text, std::regex("\%7"), 
+                    text = std::regex_replace(text, std::regex("\%8"), 
                         std::to_string(pFrameMeta->misc_frame_info[
                             DSL_FRAME_INFO_OCCURRENCES]));
                 }
                 else if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
                     DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN)
                 {
-                    text = std::regex_replace(text, std::regex("\%8"), 
+                    text = std::regex_replace(text, std::regex("\%9"), 
                         std::to_string(pFrameMeta->misc_frame_info[
                             DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN]));
-                    text = std::regex_replace(text, std::regex("\%9"), 
+                    text = std::regex_replace(text, std::regex("\%10"), 
                         std::to_string(pFrameMeta->misc_frame_info[
                             DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT]));
                 }
@@ -904,87 +910,109 @@ namespace DSL
             
             std::vector<std::string> body;
             
-            body.push_back(std::string("Trigger Name    : " 
+            body.push_back(std::string("Trigger Name        : " 
                 + pTrigger->GetName() + "<br>"));
-            body.push_back(std::string("  Unique ODE Id : " 
+            body.push_back(std::string("  Unique ODE Id     : " 
                 + std::to_string(pTrigger->s_eventCount) + "<br>"));
-            body.push_back(std::string("  NTP Timestamp : " 
+            body.push_back(std::string("  NTP Timestamp     : " 
                 +  Ntp2Str(pFrameMeta->ntp_timestamp) + "<br>"));
-            body.push_back(std::string("  Source Data   : ------------------------<br>"));
+            body.push_back(std::string("  Source Data       : ------------------------<br>"));
             if (pFrameMeta->bInferDone)
             {
-                body.push_back(std::string("    Inference   : Yes<br>"));
+                body.push_back(std::string("    Inference       : Yes<br>"));
             }
             else
             {
-                body.push_back(std::string("    Inference   : No<br>"));
+                body.push_back(std::string("    Inference       : No<br>"));
             }
-            body.push_back(std::string("    Source Id   : " 
+            body.push_back(std::string("    Source Id       : " 
                 +  std::to_string(pFrameMeta->source_id) + "<br>"));
-            body.push_back(std::string("    Batch Id    : " 
+            body.push_back(std::string("    Batch Id        : " 
                 +  std::to_string(pFrameMeta->batch_id) + "<br>"));
-            body.push_back(std::string("    Pad Index   : " 
+            body.push_back(std::string("    Pad Index       : " 
                 +  std::to_string(pFrameMeta->pad_index) + "<br>"));
-            body.push_back(std::string("    Frame       : " 
+            body.push_back(std::string("    Frame           : " 
                 +  std::to_string(pFrameMeta->frame_num) + "<br>"));
-            body.push_back(std::string("    Width       : " 
+            body.push_back(std::string("    Width           : " 
                 +  std::to_string(pFrameMeta->source_frame_width) + "<br>"));
-            body.push_back(std::string("    Heigh       : " 
+            body.push_back(std::string("    Heigh           : " 
                 +  std::to_string(pFrameMeta->source_frame_height) + "<br>"));
-            body.push_back(std::string("  Object Data   : ------------------------<br>"));
-            body.push_back(std::string("    Occurrences : " 
+            body.push_back(std::string("  Object Data       : ------------------------<br>"));
+            body.push_back(std::string("    Occurrences     : " 
                 +  std::to_string(pTrigger->m_occurrences) + "<br>"));
 
             if (pObjectMeta)
             {
-                body.push_back(std::string("    Obj ClassId : " 
+                body.push_back(std::string("    Obj ClassId     : " 
                     +  std::to_string(pObjectMeta->class_id) + "<br>"));
-                body.push_back(std::string("    Tracking Id : " 
+                body.push_back(std::string("    Tracking Id     : " 
                     +  std::to_string(pObjectMeta->object_id) + "<br>"));
-                body.push_back(std::string("    Label       : " 
+                body.push_back(std::string("    Label           : " 
                     +  std::string(pObjectMeta->obj_label) + "<br>"));
-                body.push_back(std::string("    Persistence : " 
+                body.push_back(std::string("    Persistence     : " 
                     + std::to_string(pObjectMeta->
                         misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE]) + "<br>"));
-                body.push_back(std::string("    Direction   : " 
+                body.push_back(std::string("    Direction       : " 
                     + std::to_string(pObjectMeta->
                         misc_obj_info[DSL_OBJECT_INFO_DIRECTION]) + "<br>"));
-                body.push_back(std::string("    Confidence  : " 
+                body.push_back(std::string("    Infer Conf      : " 
                     +  std::to_string(pObjectMeta->confidence) + "<br>"));
-                body.push_back(std::string("    Left        : " 
+                body.push_back(std::string("    Track Conf      : " 
+                    +  std::to_string(pObjectMeta->tracker_confidence) + "<br>"));
+                body.push_back(std::string("    Left            : " 
                     +  std::to_string(lrint(pObjectMeta->rect_params.left)) + "<br>"));
-                body.push_back(std::string("    Top         : " 
+                body.push_back(std::string("    Top             : " 
                     +  std::to_string(lrint(pObjectMeta->rect_params.top)) + "<br>"));
-                body.push_back(std::string("    Width       : " 
+                body.push_back(std::string("    Width           : " 
                     +  std::to_string(lrint(pObjectMeta->rect_params.width)) + "<br>"));
-                body.push_back(std::string("    Height      : " 
+                body.push_back(std::string("    Height          : " 
                     +  std::to_string(lrint(pObjectMeta->rect_params.height)) + "<br>"));
-            }
-
-            body.push_back(std::string("  Criteria      : ------------------------<br>"));
-            body.push_back(std::string("    Class Id    : " 
-                +  std::to_string(pTrigger->m_classId) + "<br>"));
-            body.push_back(std::string("    Frame Count : " 
-                +  std::to_string(pTrigger->m_minFrameCountN) + " out of " 
-                +  std::to_string(pTrigger->m_minFrameCountD) + "<br>"));
-            body.push_back(std::string("    Min Width   : " 
-                +  std::to_string(lrint(pTrigger->m_minWidth)) + "<br>"));
-            body.push_back(std::string("    Min Height  : " 
-                +  std::to_string(lrint(pTrigger->m_minHeight)) + "<br>"));
-            body.push_back(std::string("    Max Width   : " 
-                +  std::to_string(lrint(pTrigger->m_maxWidth)) + "<br>"));
-            body.push_back(std::string("    Max Height  : " 
-                +  std::to_string(lrint(pTrigger->m_maxHeight)) + "<br>"));
-            body.push_back(std::string("    Confidence  : " 
-                +  std::to_string(pTrigger->m_minConfidence) + "<br>"));
-
-            if (pTrigger->m_inferDoneOnly)
-            {
-                body.push_back(std::string("    Inference   : Yes<br>"));
             }
             else
             {
-                body.push_back(std::string("    Inference   : No<br>"));
+                if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
+                    DSL_FRAME_INFO_OCCURRENCES)
+                {
+                    body.push_back(std::string("    Occurrences     : " 
+                        +  std::to_string(pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES]) + "<br>"));
+                }
+                else if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
+                    DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN)
+                {
+                    body.push_back(std::string("    Occurrences In  : " 
+                        +  std::to_string(pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN]) + "<br>"));
+                    body.push_back(std::string("    Occurrences Out : " 
+                        +  std::to_string(pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT]) + "<br>"));
+                }
+
+            }
+
+            body.push_back(std::string("  Criteria          : ------------------------<br>"));
+            body.push_back(std::string("    Class Id        : " 
+                +  std::to_string(pTrigger->m_classId) + "<br>"));
+            body.push_back(std::string("    Min Infer Conf  : " 
+                +  std::to_string(pTrigger->m_minConfidence) + "<br>"));
+            body.push_back(std::string("    Min Track Conf  : " 
+                +  std::to_string(pTrigger->m_minConfidence) + "<br>"));
+            body.push_back(std::string("    Min Frame Count : " 
+                +  std::to_string(pTrigger->m_minFrameCountN) + " out of " 
+                +  std::to_string(pTrigger->m_minFrameCountD) + "<br>"));
+            body.push_back(std::string("    Min Width       : " 
+                +  std::to_string(lrint(pTrigger->m_minWidth)) + "<br>"));
+            body.push_back(std::string("    Min Height      : " 
+                +  std::to_string(lrint(pTrigger->m_minHeight)) + "<br>"));
+            body.push_back(std::string("    Max Width       : " 
+                +  std::to_string(lrint(pTrigger->m_maxWidth)) + "<br>"));
+            body.push_back(std::string("    Max Height      : " 
+                +  std::to_string(lrint(pTrigger->m_maxHeight)) + "<br>"));
+
+            if (pTrigger->m_inferDoneOnly)
+            {
+                body.push_back(std::string("    Inference       : Yes<br>"));
+            }
+            else
+            {
+                body.push_back(std::string("    Inference       : No<br>"));
             }
             
             std::dynamic_pointer_cast<Mailer>(m_pMailer)->QueueMessage(m_subject, body);
@@ -1065,17 +1093,21 @@ namespace DSL
             m_ostream << "Object Id,";
             m_ostream << "Label,";
             m_ostream << "Persistence,";
-            m_ostream << "Confidence,";
+            m_ostream << "Direction In,";
+            m_ostream << "Direction Out,";
+            m_ostream << "Infer Conf,";
+            m_ostream << "Tracker Conf,";
             m_ostream << "Left,";
             m_ostream << "Top,";
             m_ostream << "Width,";
             m_ostream << "Height,";
             m_ostream << "Class Id Filter,";
+            m_ostream << "Min Infer Conf,";
+            m_ostream << "Min Track Conf,";
             m_ostream << "Min Width,";
             m_ostream << "Min Height,";
             m_ostream << "Max Width,";
             m_ostream << "Max Height,";
-            m_ostream << "Min Confidence,";
             m_ostream << "Inference Done Only\n";
         }
     
@@ -1132,53 +1164,88 @@ namespace DSL
         
         if (m_format == DSL_EVENT_FILE_FORMAT_TEXT)
         {
-            m_ostream << "Trigger Name    : " << pTrigger->GetName() << "\n";
-            m_ostream << "  Unique ODE Id : " << pTrigger->s_eventCount << "\n";
-            m_ostream << "  NTP Timestamp : " << Ntp2Str(pFrameMeta->ntp_timestamp) << "\n";
-            m_ostream << "  Source Data   : ------------------------" << "\n";
+            m_ostream << "Trigger Name        : " << pTrigger->GetName() << "\n";
+            m_ostream << "  Unique ODE Id     : " << pTrigger->s_eventCount << "\n";
+            m_ostream << "  NTP Timestamp     : " << Ntp2Str(pFrameMeta->ntp_timestamp) << "\n";
+            m_ostream << "  Source Data       : ------------------------" << "\n";
             if (pFrameMeta->bInferDone)
             {
-                m_ostream << "    Inference   : Yes\n";
+                m_ostream << "    Inference       : Yes\n";
             }
             else
             {
-                m_ostream << "    Inference   : No\n";
+                m_ostream << "    Inference       : No\n";
             }
-            m_ostream << "    Source Id   : " << pFrameMeta->source_id << "\n";
-            m_ostream << "    Batch Id    : " << pFrameMeta->batch_id << "\n";
-            m_ostream << "    Pad Index   : " << pFrameMeta->pad_index << "\n";
-            m_ostream << "    Frame       : " << pFrameMeta->frame_num << "\n";
-            m_ostream << "    Width       : " << pFrameMeta->source_frame_width << "\n";
-            m_ostream << "    Heigh       : " << pFrameMeta->source_frame_height << "\n";
-            m_ostream << "  Object Data   : ------------------------" << "\n";
-            m_ostream << "    Occurrences : " << pTrigger->m_occurrences << "\n";
+            m_ostream << "    Source Id       : " << pFrameMeta->source_id << "\n";
+            m_ostream << "    Batch Id        : " << pFrameMeta->batch_id << "\n";
+            m_ostream << "    Pad Index       : " << pFrameMeta->pad_index << "\n";
+            m_ostream << "    Frame           : " << pFrameMeta->frame_num << "\n";
+            m_ostream << "    Width           : " << pFrameMeta->source_frame_width << "\n";
+            m_ostream << "    Heigh           : " << pFrameMeta->source_frame_height << "\n";
+            m_ostream << "  Object Data       : ------------------------" << "\n";
 
             if (pObjectMeta)
             {
-                m_ostream << "    Obj ClassId : " << pObjectMeta->class_id << "\n";
-                m_ostream << "    Infer Id    : " << pObjectMeta->unique_component_id << "\n";
-                m_ostream << "    Tracking Id : " << pObjectMeta->object_id << "\n";
-                m_ostream << "    Label       : " << pObjectMeta->obj_label << "\n";
-                m_ostream << "    Persistence : " << pObjectMeta->
-                    misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] + "\n";
-                m_ostream << "    Direction   : " << pObjectMeta->
-                    misc_obj_info[DSL_OBJECT_INFO_DIRECTION] + "\n";
-                m_ostream << "    Confidence  : " << pObjectMeta->confidence << "\n";
-                m_ostream << "    Left        : " << lrint(pObjectMeta->rect_params.left) << "\n";
-                m_ostream << "    Top         : " << lrint(pObjectMeta->rect_params.top) << "\n";
-                m_ostream << "    Width       : " << lrint(pObjectMeta->rect_params.width) << "\n";
-                m_ostream << "    Height      : " << lrint(pObjectMeta->rect_params.height) << "\n";
+                m_ostream << "    Occurrences     : " << pTrigger->m_occurrences << "\n";
+                m_ostream << "    Obj ClassId     : " << pObjectMeta->class_id << "\n";
+                m_ostream << "    Infer Id        : " << pObjectMeta->unique_component_id << "\n";
+                m_ostream << "    Tracking Id     : " << pObjectMeta->object_id << "\n";
+                m_ostream << "    Label           : " << pObjectMeta->obj_label << "\n";
+                m_ostream << "    Persistence     : " << pObjectMeta->
+                    misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] << "\n";
+                if (pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_DIRECTION] == 
+                    DSL_AREA_CROSS_DIRECTION_NONE)
+                {
+                    m_ostream << "    Direction In    : " << "No\n";
+                    m_ostream << "    Direction Out   : " << "No\n";
+                }
+                else if (pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_DIRECTION] == 
+                    DSL_AREA_CROSS_DIRECTION_IN)
+                {
+                    m_ostream << "    Direction In    : " << "Yes\n";
+                    m_ostream << "    Direction Out   : " << "No\n";
+                }
+                else
+                {
+                    m_ostream << "    Direction In    : " << "No\n";
+                    m_ostream << "    Direction Out   : " << "Yes\n";
+                }
+                    
+                m_ostream << "    Infer Conf      : " << pObjectMeta->confidence << "\n";
+                m_ostream << "    Track Conf      : " << pObjectMeta->tracker_confidence << "\n";
+                m_ostream << "    Left            : " << lrint(pObjectMeta->rect_params.left) << "\n";
+                m_ostream << "    Top             : " << lrint(pObjectMeta->rect_params.top) << "\n";
+                m_ostream << "    Width           : " << lrint(pObjectMeta->rect_params.width) << "\n";
+                m_ostream << "    Height          : " << lrint(pObjectMeta->rect_params.height) << "\n";
+            }
+            else
+            {
+                if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
+                    DSL_FRAME_INFO_OCCURRENCES)
+                {
+                    m_ostream << "    Occurrences     : " 
+                        << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] << "\n";
+                }
+                else if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
+                    DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN)
+                {
+                    m_ostream << "    Occurrences In  : " 
+                        << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN] << "\n";
+                    m_ostream << "    Occurrences Out : " 
+                        << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT] << "\n";
+                }
             }
 
-            m_ostream << "  Criteria      : ------------------------" << "\n";
-            m_ostream << "    Class Id    : " << pTrigger->m_classId << "\n";
-            m_ostream << "    Confidence  : " << pTrigger->m_minConfidence << "\n";
-            m_ostream << "    Frame Count : " << pTrigger->m_minFrameCountN
+            m_ostream << "  Criteria          : ------------------------" << "\n";
+            m_ostream << "    Class Id        : " << pTrigger->m_classId << "\n";
+            m_ostream << "    Min Infer Conf  : " << pTrigger->m_minConfidence << "\n";
+            m_ostream << "    Min Track Conf  : " << pTrigger->m_minTrackerConfidence << "\n";
+            m_ostream << "    Min Frame Count : " << pTrigger->m_minFrameCountN
                 << " out of " << pTrigger->m_minFrameCountD << "\n";
-            m_ostream << "    Min Width   : " << lrint(pTrigger->m_minWidth) << "\n";
-            m_ostream << "    Min Height  : " << lrint(pTrigger->m_minHeight) << "\n";
-            m_ostream << "    Max Width   : " << lrint(pTrigger->m_maxWidth) << "\n";
-            m_ostream << "    Max Height  : " << lrint(pTrigger->m_maxHeight) << "\n";
+            m_ostream << "    Min Width       : " << lrint(pTrigger->m_minWidth) << "\n";
+            m_ostream << "    Min Height      : " << lrint(pTrigger->m_minHeight) << "\n";
+            m_ostream << "    Max Width       : " << lrint(pTrigger->m_maxWidth) << "\n";
+            m_ostream << "    Max Height      : " << lrint(pTrigger->m_maxHeight) << "\n";
 
             if (pTrigger->m_inferDoneOnly)
             {
@@ -1217,10 +1284,26 @@ namespace DSL
                 m_ostream << pObjectMeta->object_id << ",";
                 m_ostream << pObjectMeta->obj_label << ",";
                 m_ostream << pObjectMeta->confidence << ",";
+                m_ostream << pObjectMeta->tracker_confidence << ",";
                 m_ostream << pObjectMeta->
                     misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] + ",";
-                m_ostream << pObjectMeta->
-                    misc_obj_info[DSL_OBJECT_INFO_DIRECTION] + ",";
+                if (pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_DIRECTION] == 
+                    DSL_AREA_CROSS_DIRECTION_NONE)
+                {
+                    m_ostream << "No,";
+                    m_ostream << "No,";
+                }
+                else if (pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_DIRECTION] == 
+                    DSL_AREA_CROSS_DIRECTION_IN)
+                {
+                    m_ostream << "Yes,";
+                    m_ostream << "No,";
+                }
+                else
+                {
+                    m_ostream << "No,";
+                    m_ostream << "Yes,";
+                }
                 m_ostream << lrint(pObjectMeta->rect_params.left) << ",";
                 m_ostream << lrint(pObjectMeta->rect_params.top) << ",";
                 m_ostream << lrint(pObjectMeta->rect_params.width) << ",";
@@ -1228,7 +1311,9 @@ namespace DSL
             }
             else
             {
-                m_ostream << "0,0,0,0,0,0,0,0,0,0,0";
+                m_ostream << "0,0,0,0,0,0,0";
+                
+                m_ostream << "0,0,0,0,0";
             }
 
             m_ostream << pTrigger->m_classId << ",";
@@ -1237,6 +1322,7 @@ namespace DSL
             m_ostream << lrint(pTrigger->m_maxWidth) << ",";
             m_ostream << lrint(pTrigger->m_maxHeight) << ",";
             m_ostream << pTrigger->m_minConfidence << ",";
+            m_ostream << pTrigger->m_minTrackerConfidence << ",";
 
             if (pTrigger->m_inferDoneOnly)
             {
@@ -1397,62 +1483,81 @@ namespace DSL
             DSL_ODE_TRIGGER_PTR pTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
             
-            LOG_INFO("Trigger Name    : " << pTrigger->GetName());
-            LOG_INFO("  Unique ODE Id : " << pTrigger->s_eventCount);
-            LOG_INFO("  NTP Timestamp : " << Ntp2Str(pFrameMeta->ntp_timestamp));
-            LOG_INFO("  Source Data   : ------------------------");
+            LOG_INFO("Trigger Name        : " << pTrigger->GetName());
+            LOG_INFO("  Unique ODE Id     : " << pTrigger->s_eventCount);
+            LOG_INFO("  NTP Timestamp     : " << Ntp2Str(pFrameMeta->ntp_timestamp));
+            LOG_INFO("  Source Data       : ------------------------");
             
             if (pFrameMeta->bInferDone)
             {
-                LOG_INFO("    Inference   : Yes");
+                LOG_INFO("    Inference       : Yes");
             }
             else
             {
-                LOG_INFO("    Inference   : No");
+                LOG_INFO("    Inference       : No");
             }
-            LOG_INFO("    Source Id   : " << pFrameMeta->source_id);
-            LOG_INFO("    Batch Id    : " << pFrameMeta->batch_id);
-            LOG_INFO("    Pad Index   : " << pFrameMeta->pad_index);
-            LOG_INFO("    Frame       : " << pFrameMeta->frame_num);
-            LOG_INFO("    Width       : " << pFrameMeta->source_frame_width);
-            LOG_INFO("    Heigh       : " << pFrameMeta->source_frame_height );
-            LOG_INFO("  Object Data   : ------------------------");
-            LOG_INFO("    Occurrences : " << pTrigger->m_occurrences );
+            LOG_INFO("    Source Id       : " << pFrameMeta->source_id);
+            LOG_INFO("    Batch Id        : " << pFrameMeta->batch_id);
+            LOG_INFO("    Pad Index       : " << pFrameMeta->pad_index);
+            LOG_INFO("    Frame           : " << pFrameMeta->frame_num);
+            LOG_INFO("    Width           : " << pFrameMeta->source_frame_width);
+            LOG_INFO("    Heigh           : " << pFrameMeta->source_frame_height );
+            LOG_INFO("  Object Data       : ------------------------");
             
             if (pObjectMeta)
             {
-                LOG_INFO("    Obj ClassId : " << pObjectMeta->class_id);
-                LOG_INFO("    Infer Id    : " << pObjectMeta->unique_component_id);
-                LOG_INFO("    Tracking Id : " << pObjectMeta->object_id);
-                LOG_INFO("    Label       : " << pObjectMeta->obj_label);
-                LOG_INFO("    Persistence : " << pObjectMeta->
+                LOG_INFO("    Occurrences     : " << pTrigger->m_occurrences );
+                LOG_INFO("    Obj ClassId     : " << pObjectMeta->class_id);
+                LOG_INFO("    Infer Id        : " << pObjectMeta->unique_component_id);
+                LOG_INFO("    Tracking Id     : " << pObjectMeta->object_id);
+                LOG_INFO("    Label           : " << pObjectMeta->obj_label);
+                LOG_INFO("    Persistence     : " << pObjectMeta->
                     misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE]);
-                LOG_INFO("    Direction   : " << pObjectMeta->
+                LOG_INFO("    Direction       : " << pObjectMeta->
                     misc_obj_info[DSL_OBJECT_INFO_DIRECTION]);
-                LOG_INFO("    Confidence  : " << pObjectMeta->confidence);
-                LOG_INFO("    Left        : " << pObjectMeta->rect_params.left);
-                LOG_INFO("    Top         : " << pObjectMeta->rect_params.top);
-                LOG_INFO("    Width       : " << pObjectMeta->rect_params.width);
-                LOG_INFO("    Height      : " << pObjectMeta->rect_params.height);
-            }
-            LOG_INFO("  Criteria      : ------------------------");
-            LOG_INFO("    Class Id    : " << pTrigger->m_classId );
-            LOG_INFO("    Infer Id    : " << pTrigger->m_inferId );
-            LOG_INFO("    Confidence  : " << pTrigger->m_minConfidence);
-            LOG_INFO("    Frame Count : " << pTrigger->m_minFrameCountN
-                << " out of " << pTrigger->m_minFrameCountD);
-            LOG_INFO("    Min Width   : " << pTrigger->m_minWidth);
-            LOG_INFO("    Min Height  : " << pTrigger->m_minHeight);
-            LOG_INFO("    Max Width   : " << pTrigger->m_maxWidth);
-            LOG_INFO("    Max Height  : " << pTrigger->m_maxHeight);
-            
-            if (pTrigger->m_inferDoneOnly)
-            {
-                LOG_INFO("    Inference   : Yes");
+                LOG_INFO("    Infer Conf      : " << pObjectMeta->confidence);
+                LOG_INFO("    Track Conf      : " << pObjectMeta->tracker_confidence);
+                LOG_INFO("    Left            : " << pObjectMeta->rect_params.left);
+                LOG_INFO("    Top             : " << pObjectMeta->rect_params.top);
+                LOG_INFO("    Width           : " << pObjectMeta->rect_params.width);
+                LOG_INFO("    Height          : " << pObjectMeta->rect_params.height);
             }
             else
             {
-                LOG_INFO("    Inference   : No");
+                if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
+                    DSL_FRAME_INFO_OCCURRENCES)
+                {
+                    LOG_INFO("    Occurrences         : " 
+                        << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES]);
+                }
+                else if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
+                    DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN)
+                {
+                    LOG_INFO("    Occurrences In      : " 
+                        << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN]);
+                    LOG_INFO("    Occurrences Out     : " 
+                        << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT]);
+                }
+            }
+            LOG_INFO("  Criteria          : ------------------------");
+            LOG_INFO("    Class Id        : " << pTrigger->m_classId );
+            LOG_INFO("    Min Infer Id    : " << pTrigger->m_inferId );
+            LOG_INFO("    Min Infer Conf  : " << pTrigger->m_minConfidence);
+            LOG_INFO("    Min Track Conf  : " << pTrigger->m_minTrackerConfidence);
+            LOG_INFO("    Frame Count     : " << pTrigger->m_minFrameCountN
+                << " out of " << pTrigger->m_minFrameCountD);
+            LOG_INFO("    Min Width       : " << pTrigger->m_minWidth);
+            LOG_INFO("    Min Height      : " << pTrigger->m_minHeight);
+            LOG_INFO("    Max Width       : " << pTrigger->m_maxWidth);
+            LOG_INFO("    Max Height      : " << pTrigger->m_maxHeight);
+            
+            if (pTrigger->m_inferDoneOnly)
+            {
+                LOG_INFO("    Inference       : Yes");
+            }
+            else
+            {
+                LOG_INFO("    Inference       : No");
             }
         }
     }
@@ -1731,7 +1836,8 @@ namespace DSL
             std::cout << "    Infer Id        : " << pObjectMeta->unique_component_id << "\n";
             std::cout << "    Tracking Id     : " << pObjectMeta->object_id << "\n";
             std::cout << "    Label           : " << pObjectMeta->obj_label << "\n";
-            std::cout << "    Confidence      : " << pObjectMeta->confidence << "\n";
+            std::cout << "    Infer Conf      : " << pObjectMeta->confidence << "\n";
+            std::cout << "    Track Conf      : " << pObjectMeta->tracker_confidence << "\n";
             std::cout << "    Persistence     : " << pObjectMeta->
                 misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] << "\n";
             std::cout << "    Direction       : " << pObjectMeta->
@@ -1762,13 +1868,14 @@ namespace DSL
 
         std::cout << "  Criteria          : ------------------------" << "\n";
         std::cout << "    Class Id        : " << pTrigger->m_classId << "\n";
-        std::cout << "    Frame Count     : " << pTrigger->m_minFrameCountN
+        std::cout << "    Min Infer Conf  : " << pTrigger->m_minConfidence << "\n";
+        std::cout << "    Min Track Conf  : " << pTrigger->m_minTrackerConfidence << "\n";
+        std::cout << "    Min Frame Count : " << pTrigger->m_minFrameCountN
             << " out of " << pTrigger->m_minFrameCountD << "\n";
         std::cout << "    Min Width       : " << lrint(pTrigger->m_minWidth) << "\n";
         std::cout << "    Min Height      : " << lrint(pTrigger->m_minHeight) << "\n";
         std::cout << "    Max Width       : " << lrint(pTrigger->m_maxWidth) << "\n";
         std::cout << "    Max Height      : " << lrint(pTrigger->m_maxHeight) << "\n";
-        std::cout << "    Confidence      : " << pTrigger->m_minConfidence << "\n";
 
         if (pTrigger->m_inferDoneOnly)
         {

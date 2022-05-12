@@ -366,6 +366,18 @@ namespace DSL
         void SetMinConfidence(float minConfidence);
         
         /**
+         * @brief Gets the Minimuum Tracker Confidence to trigger the event
+         * @return the current Minimum Confidence value in use [0..1.0]
+         */
+        float GetMinTrackerConfidence();
+        
+        /**
+         * @brief Sets the Minumum Tracker Confidence to trigger the event
+         * @param minConfidence new Minumum Confidence value to use
+         */
+        void SetMinTrackerConfidence(float minConfidence);
+        
+        /**
          * @brief Gets the current Minimum rectangle width and height to trigger the event
          * a value of 0 means no minimum
          * @param[out] minWidth current minimum width value in use
@@ -622,6 +634,11 @@ namespace DSL
          * Mininum inference confidence to trigger an ODE occurrence [0.0..1.0]
          */
         float m_minConfidence;
+        
+        /**
+         * Mininum tracker confidence to trigger an ODE occurrence [0.0..1.0]
+         */
+        float m_minTrackerConfidence;
         
         /**
          * @brief Minimum rectangle width to trigger an ODE occurrence

@@ -182,11 +182,14 @@ DSL_METRIC_OBJECT_CLASS                     = 0
 DSL_METRIC_OBJECT_TRACKING_ID               = 1
 DSL_METRIC_OBJECT_LOCATION                  = 2
 DSL_METRIC_OBJECT_DIMENSIONS                = 3
-DSL_METRIC_OBJECT_CONFIDENCE                = 4
-DSL_METRIC_OBJECT_PERSISTENCE               = 5
-DSL_METRIC_OBJECT_OCCURRENCES               = 7
-DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_IN  = 8
-DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_OUT = 9
+DSL_METRIC_OBJECT_CONFIDENCE_INFERENCE      = 4
+DSL_METRIC_OBJECT_CONFIDENCE_TRACKER        = 5
+DSL_METRIC_OBJECT_PERSISTENCE               = 6
+DSL_METRIC_OBJECT_DIRECTION                 = 7
+
+DSL_METRIC_OBJECT_OCCURRENCES               = 8
+DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_IN  = 9
+DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_OUT = 10
 
 
 DSL_SOCKET_CONNECTION_STATE_CLOSED    = 0
@@ -1847,7 +1850,8 @@ _dsl.dsl_ode_trigger_confidence_min_get.restype = c_uint
 def dsl_ode_trigger_confidence_min_get(name):
     global _dsl
     min_confidence = c_float(0)
-    result =_dsl.dsl_ode_trigger_confidence_min_get(name, DSL_FLOAT_P(min_confidence))
+    result =_dsl.dsl_ode_trigger_confidence_min_get(name, 
+        DSL_FLOAT_P(min_confidence))
     return int(result), min_confidence.value
 
 ##
@@ -1861,15 +1865,40 @@ def dsl_ode_trigger_confidence_min_set(name, min_confidence):
     return int(result)
 
 ##
+## dsl_ode_trigger_tracker_confidence_min_get()
+##
+_dsl.dsl_ode_trigger_tracker_confidence_min_get.argtypes = [c_wchar_p, 
+    POINTER(c_float)]
+_dsl.dsl_ode_trigger_tracker_confidence_min_get.restype = c_uint
+def dsl_ode_trigger_tracker_confidence_min_get(name):
+    global _dsl
+    min_confidence = c_float(0)
+    result =_dsl.dsl_ode_trigger_tracker_confidence_min_get(name, 
+        DSL_FLOAT_P(min_confidence))
+    return int(result), min_confidence.value
+
+##
+## dsl_ode_trigger_tracker_confidence_min_set()
+##
+_dsl.dsl_ode_trigger_tracker_confidence_min_set.argtypes = [c_wchar_p, c_float]
+_dsl.dsl_ode_trigger_tracker_confidence_min_set.restype = c_uint
+def dsl_ode_trigger_tracker_confidence_min_set(name, min_confidence):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_tracker_confidence_min_set(name, min_confidence)
+    return int(result)
+
+##
 ## dsl_ode_trigger_dimensions_min_get()
 ##
-_dsl.dsl_ode_trigger_dimensions_min_get.argtypes = [c_wchar_p, POINTER(c_float), POINTER(c_float)]
+_dsl.dsl_ode_trigger_dimensions_min_get.argtypes = [c_wchar_p, 
+    POINTER(c_float), POINTER(c_float)]
 _dsl.dsl_ode_trigger_dimensions_min_get.restype = c_uint
 def dsl_ode_trigger_dimensions_min_get(name):
     global _dsl
     min_width = c_uint(0)
     min_height = c_uint(0)
-    result = _dsl.dsl_ode_trigger_dimensions_min_get(name, DSL_FLOAT_P(min_width), DSL_FLOAT_P(min_height))
+    result = _dsl.dsl_ode_trigger_dimensions_min_get(name, 
+        DSL_FLOAT_P(min_width), DSL_FLOAT_P(min_height))
     return int(result), min_width.value, min_height.value 
 
 ##

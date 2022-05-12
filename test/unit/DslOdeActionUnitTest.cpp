@@ -450,7 +450,7 @@ SCENARIO( "A new CustomLabelOdeAction is created correctly", "[OdeAction]" )
     {
         std::string actionName("ode-action");
         const std::vector<uint> label_types = {DSL_METRIC_OBJECT_LOCATION,
-            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE,
+            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE_INFERENCE,
             DSL_METRIC_OBJECT_PERSISTENCE};
 
         WHEN( "A new OdeAction is created with an array of content types" )
@@ -492,7 +492,7 @@ SCENARIO( "A CustomLabelOdeAction handles an ODE Occurence correctly", "[OdeActi
         
         std::string actionName("ode-action");
         const std::vector<uint> label_types = {DSL_METRIC_OBJECT_LOCATION,
-            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE,
+            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE_INFERENCE,
         DSL_METRIC_OBJECT_PERSISTENCE};
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 

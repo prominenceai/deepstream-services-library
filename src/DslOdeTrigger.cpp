@@ -47,6 +47,7 @@ namespace DSL
         , m_occurrences(0)
         , m_occurrencesAccumulated(0)
         , m_minConfidence(0)
+        , m_minTrackerConfidence(0)
         , m_minWidth(0)
         , m_minHeight(0)
         , m_maxWidth(0)
@@ -525,6 +526,21 @@ namespace DSL
         m_minConfidence = minConfidence;
     }
     
+    float OdeTrigger::GetMinTrackerConfidence()
+    {
+        LOG_FUNC();
+        
+        return m_minTrackerConfidence;
+    }
+    
+    void OdeTrigger::SetMinTrackerConfidence(float minConfidence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_minTrackerConfidence = minConfidence;
+    }
+    
     void OdeTrigger::GetMinDimensions(float* minWidth, float* minHeight)
     {
         LOG_FUNC();
@@ -706,9 +722,15 @@ namespace DSL
         {
             return false;
         }
-        // Ensure that the minimum confidence has been reached
+        // Ensure that the minimum Inference confidence has been reached
         if (pObjectMeta->confidence > 0 and 
             pObjectMeta->confidence < m_minConfidence)
+        {
+            return false;
+        }
+        // Ensure that the minimum Tracker confidence has been reached
+        if (pObjectMeta->tracker_confidence > 0 and 
+            pObjectMeta->tracker_confidence < m_minTrackerConfidence)
         {
             return false;
         }
@@ -1733,7 +1755,7 @@ namespace DSL
         uint classId, uint limit, uint minFrameCount, uint maxTracePoints, 
         uint testMethod, DSL_RGBA_COLOR_PTR pColor)
         : TrackingOdeTrigger(name, source, classId, limit, maxTracePoints)
-        , m_maxTracePoints(0)
+        , m_maxTracePoints(maxTracePoints)
         , m_occurrencesIn(0)
         , m_occurrencesOut(0)
         , m_occurrencesInAccumulated(0)

@@ -85,6 +85,8 @@ A single ODE Accumulator can be added to an ODE Trigger and the same ODE Accumul
 * [dsl_ode_trigger_limit_event_listener_remove](#dsl_ode_trigger_limit_event_listener_remove)
 * [dsl_ode_trigger_confidence_min_get](#dsl_ode_trigger_confidence_min_get)
 * [dsl_ode_trigger_confidence_min_set](#dsl_ode_trigger_confidence_min_set)
+* [dsl_ode_trigger_tracker_confidence_min_get](#dsl_ode_trigger_tracker_confidence_min_get)
+* [dsl_ode_trigger_tracker_confidence_min_set](#dsl_ode_trigger_tracker_confidence_min_set)
 * [dsl_ode_trigger_dimensions_min_get](#dsl_ode_trigger_dimensions_min_get)
 * [dsl_ode_trigger_dimensions_min_set](#dsl_ode_trigger_dimensions_min_set)
 * [dsl_ode_trigger_dimensions_max_get](#dsl_ode_trigger_dimensions_max_get)
@@ -1495,7 +1497,7 @@ retval = dsl_ode_trigger_limit_event_listener_remove('my-occurrence-trigger',
 DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, double* min_confidence);
 ```
 
-This service returns the current minimum confidence criteria for the named ODE Trigger. A value of 0 (default) indicates that the criteria is disable and the detected object's GIE confidence value will not be used as criteria for ODE occurrence.
+This service returns the current minimum Inference confidence criteria for the named ODE Trigger. A value of 0 (default) indicates that the criteria is disable and the detected object's Inference confidence value will not be used as criteria for ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
@@ -1516,7 +1518,7 @@ retval, min_confidence = dsl_ode_trigger_confidence_min_get('my-trigger')
 DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, double min_confidence);
 ```
 
-This service sets the minimum confidence criteria for the named ODE Trigger. A value of 0 disables the filter and the GIE confidence level will not be used as criteria for ODE occurrence.
+This service sets the minimum Inference confidence criteria for the named ODE Trigger. A value of 0 disables the filter and the Inference confidence level will not be used as criteria for ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
@@ -1528,6 +1530,48 @@ This service sets the minimum confidence criteria for the named ODE Trigger. A v
 **Python Example**
 ```Python
 retval = dsl_ode_trigger_confidence_min_set('my-trigger', min_confidence)
+```
+
+<br>
+
+### *dsl_ode_trigger_tracker_confidence_min_get*
+```c++
+DslReturnType dsl_ode_trigger_tracker_confidence_min_get(const wchar_t* name, double* min_confidence);
+```
+
+This service returns the current minimum Tracker confidence criteria for the named ODE Trigger. A value of 0 (default) indicates that the criteria is disable and the detected object's Tracker confidence value will not be used as criteria for ODE occurrence.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to query.
+* `min_confidence` - [out] current minimum confidence value between 0.0 and 1.0 for the ODE Trigger to filter on, 0 indicates disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, min_confidence = dsl_ode_trigger_tracker_confidence_min_get('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_tracker_confidence_min_set*
+```c++
+DslReturnType dsl_ode_trigger_tracker_confidence_min_set(const wchar_t* name, double min_confidence);
+```
+
+This service sets the minimum Tracker confidence criteria for the named ODE Trigger. A value of 0 disables the filter and the Tracker confidence level will not be used as criteria for ODE occurrence.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to query.
+* `min_confidence` - [in] new minimum confidence value as criteria for the ODE Trigger to filter on, or 0 to disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_tracker_confidence_min_set('my-trigger', min_confidence)
 ```
 
 <br>
