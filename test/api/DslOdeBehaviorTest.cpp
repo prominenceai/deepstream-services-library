@@ -1412,7 +1412,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Custo
     {
         std::wstring ode_action_name(L"customize-label-action");
         uint label_types[] = {DSL_METRIC_OBJECT_LOCATION,
-            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE,
+            DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE_INFERENCE,
             DSL_METRIC_OBJECT_PERSISTENCE};
 
         uint size(4);

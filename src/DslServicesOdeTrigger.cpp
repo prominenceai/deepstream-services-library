@@ -1466,7 +1466,8 @@ namespace DSL
             LOG_ERROR("ODE Trigger '" << name << "' threw exception getting limit");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
-    }                
+    }    
+            
     DslReturnType Services::OdeTriggerConfidenceMinGet(const char* 
         name, float* minConfidence)
     {
@@ -1482,7 +1483,7 @@ namespace DSL
          
             *minConfidence = pOdeTrigger->GetMinConfidence();
             
-            LOG_INFO("Trigger '" << name << "' returned Min Confidence = " 
+            LOG_INFO("Trigger '" << name << "' returned minimum confidence = " 
                 << *minConfidence << " successfully");
             
             return DSL_RESULT_SUCCESS;
@@ -1510,7 +1511,7 @@ namespace DSL
 
             pOdeTrigger->SetMinConfidence(minConfidence);
 
-            LOG_INFO("Trigger '" << name << "' set Min Confidence = " 
+            LOG_INFO("Trigger '" << name << "' set minimum confidence = " 
                 << minConfidence << " successfully");
             
             return DSL_RESULT_SUCCESS;
@@ -1519,6 +1520,62 @@ namespace DSL
         {
             LOG_ERROR("ODE Trigger '" << name 
                 << "' threw exception getting minimum confidence");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerTrackerConfidenceMinGet(const char* 
+        name, float* minConfidence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            *minConfidence = pOdeTrigger->GetMinTrackerConfidence();
+            
+            LOG_INFO("Trigger '" << name << "' returned minimum Tracker confidence = " 
+                << *minConfidence << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting minimum Tracker confidence");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerTrackerConfidenceMinSet(const char* name, 
+        float minConfidence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->SetMinTrackerConfidence(minConfidence);
+
+            LOG_INFO("Trigger '" << name << "' set minimum Tracker confidence = " 
+                << minConfidence << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting minimum Tracker confidence");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                

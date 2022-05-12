@@ -726,6 +726,44 @@ DslReturnType dsl_ode_action_print_new(const wchar_t* name, boolean force_flush)
 ```
 The constructor creates a uniquely named **Print** ODE Action. When invoked, this Action will print the Frame, Object and Trigger information that triggered the ODE occurrence to the console. The Print action can be very useful when setting-up/testing new ODE Triggers and Areas.
 
+Example output
+```
+Trigger Name        : person-crossing-line
+  Unique ODE Id     : 2657
+  NTP Timestamp     : 2022-05-11 20:47:53.170223
+  Source Data       : ------------------------
+    Inference       : Yes
+    Source Id       : 0
+    Batch Id        : 0
+    Pad Index       : 0
+    Frame           : 292
+    Width           : 1920
+    Heigh           : 1080
+  Object Data       : ------------------------
+    Obj ClassId     : 2
+    Infer Id        : 1557520627
+    Tracking Id     : 10
+    Label           : Person
+    Infer Conf      : 0.792785
+    Track Conf      : 1
+    Persistence     : 1644
+    Direction       : 2
+    Left            : 451
+    Top             : 466
+    Width           : 71
+    Height          : 196
+  Criteria          : ------------------------
+    Class Id        : 2
+    Min Infer Conf  : 0.4
+    Min Track Conf  : 0
+    Min Frame Count : 1 out of 1
+    Min Width       : 0
+    Min Height      : 140
+    Max Width       : 0
+    Max Height      : 360
+    Inference       : No
+```
+
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
 * `force_flush` - [in] if set, the action will schedule a flush buffer operation to be performed by the idle thread.  

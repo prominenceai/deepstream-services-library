@@ -501,7 +501,8 @@ SCENARIO( "An OdeOccurrenceTrigger notifies its limit-state-listeners", "[OdeTri
     }
 }
 
-SCENARIO( "An ODE Occurrence Trigger checks its minimum confidence correctly", "[OdeTrigger]" )
+SCENARIO( "An ODE Occurrence Trigger checks its minimum inference confidence correctly", 
+    "[OdeTrigger]" )
 {
     GIVEN( "A new OdeTrigger with default criteria" ) 
     {
@@ -513,7 +514,8 @@ SCENARIO( "An ODE Occurrence Trigger checks its minimum confidence correctly", "
         std::string odeActionName("print-action");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), 
+                source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -561,6 +563,78 @@ SCENARIO( "An ODE Occurrence Trigger checks its minimum confidence correctly", "
         WHEN( "The ODE Trigger's minimum confidence is greater tahn the Object's confidence" )
         {
             pOdeTrigger->SetMinConfidence(0.5001);
+            
+            THEN( "The ODE is NOT triggered" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta) == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "An ODE Occurrence Trigger checks its minimum tracker confidence correctly", 
+    "[OdeTrigger]" )
+{
+    GIVEN( "A new OdeTrigger with default criteria" ) 
+    {
+        std::string odeTriggerName("occurence");
+        std::string source;
+        uint classId(1);
+        uint limit(0); // not limit
+
+        std::string odeActionName("print-action");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), 
+                source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        // Frame Meta test data
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  
+        frameMeta.frame_num = 1;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        // Object Meta test data
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match ODE Trigger's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.rect_params.left = 10;
+        objectMeta.rect_params.top = 10;
+        objectMeta.rect_params.width = 200;
+        objectMeta.rect_params.height = 100;
+        
+        objectMeta.tracker_confidence = 0.5;
+        
+        WHEN( "The ODE Trigger's minimum confidence is less than the Object's confidence" )
+        {
+            pOdeTrigger->SetMinTrackerConfidence(0.4999);
+            
+            THEN( "The ODE is triggered" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The ODE Trigger's minimum confidence is equal to the Object's confidence" )
+        {
+            pOdeTrigger->SetMinTrackerConfidence(0.5);
+            
+            THEN( "The ODE is triggered" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The ODE Trigger's minimum confidence is greater tahn the Object's confidence" )
+        {
+            pOdeTrigger->SetMinTrackerConfidence(0.5001);
             
             THEN( "The ODE is NOT triggered" )
             {

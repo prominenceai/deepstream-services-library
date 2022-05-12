@@ -113,7 +113,7 @@ SCENARIO( "An ODE Trigger's Enabled setting can be set/get", "[ode-trigger-api]"
             &ret_enabled) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_enabled == 1 );
 
-        WHEN( "When the ODE Type's Enabled setting is disabled" )         
+        WHEN( "When the ODE Trigger's Enabled setting is disabled" )         
         {
             uint new_enabled(0);
             REQUIRE( dsl_ode_trigger_enabled_set(odeTriggerName.c_str(), 
@@ -124,6 +124,80 @@ SCENARIO( "An ODE Trigger's Enabled setting can be set/get", "[ode-trigger-api]"
                 REQUIRE( dsl_ode_trigger_enabled_get(odeTriggerName.c_str(), 
                     &ret_enabled) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_enabled == new_enabled );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "An ODE Trigger's Mimimum Inference Confidence setting can be set/get", 
+    "[ode-trigger-api]" )
+{
+    GIVEN( "An ODE Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"occurrence");
+        
+        uint class_id(9);
+        uint limit(0);
+
+        REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName.c_str(), 
+            NULL, class_id, limit) == DSL_RESULT_SUCCESS );
+
+        float ret_min_confidence(99.9);
+        
+        REQUIRE( dsl_ode_trigger_confidence_min_get(odeTriggerName.c_str(), 
+            &ret_min_confidence) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_min_confidence == 0.0 );
+
+        WHEN( "When the ODE Trigger's minimum confidence setting is updated" )
+        {
+            float new_min_confidence(0.4);
+            
+            REQUIRE( dsl_ode_trigger_confidence_min_set(odeTriggerName.c_str(), 
+                new_min_confidence) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_ode_trigger_confidence_min_get(odeTriggerName.c_str(), 
+                    &ret_min_confidence) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_confidence == new_min_confidence );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "An ODE Trigger's Mimimum Trackr Confidence setting can be set/get", 
+    "[ode-trigger-api]" )
+{
+    GIVEN( "An ODE Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"occurrence");
+        
+        uint class_id(9);
+        uint limit(0);
+
+        REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName.c_str(), 
+            NULL, class_id, limit) == DSL_RESULT_SUCCESS );
+
+        float ret_min_confidence(99.9);
+        
+        REQUIRE( dsl_ode_trigger_tracker_confidence_min_get(odeTriggerName.c_str(), 
+            &ret_min_confidence) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_min_confidence == 0.0 );
+
+        WHEN( "When the ODE Trigger's minimum confidence setting is updated" )
+        {
+            float new_min_confidence(0.4);
+            
+            REQUIRE( dsl_ode_trigger_tracker_confidence_min_set(odeTriggerName.c_str(), 
+                new_min_confidence) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_ode_trigger_tracker_confidence_min_get(odeTriggerName.c_str(), 
+                    &ret_min_confidence) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_confidence == new_min_confidence );
                 REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
@@ -147,7 +221,7 @@ SCENARIO( "An ODE Trigger's Auto-Reset Timeout setting can be set/get", "[ode-tr
             &ret_timeout) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_timeout == 0 );
 
-        WHEN( "When the ODE Type's Enabled setting is disabled" )         
+        WHEN( "When the ODE Trigger's Enabled setting is disabled" )         
         {
             uint new_timeout(44);
             REQUIRE( dsl_ode_trigger_reset_timeout_set(odeTriggerName.c_str(), 
