@@ -85,7 +85,7 @@ A single ODE Accumulator can be added to an ODE Trigger and the same ODE Accumul
 * [dsl_ode_trigger_limit_event_listener_remove](#dsl_ode_trigger_limit_event_listener_remove)
 * [dsl_ode_trigger_confidence_min_get](#dsl_ode_trigger_confidence_min_get)
 * [dsl_ode_trigger_confidence_min_set](#dsl_ode_trigger_confidence_min_set)
-* [dsl_ode_trigger_tracker_confidence_min_get](#dsl_ode_trigger_tracker_ confidence_min_get)
+* [dsl_ode_trigger_tracker_confidence_min_get](#dsl_ode_trigger_tracker_confidence_min_get)
 * [dsl_ode_trigger_tracker_confidence_min_set](#dsl_ode_trigger_tracker_confidence_min_set)
 * [dsl_ode_trigger_dimensions_min_get](#dsl_ode_trigger_dimensions_min_get)
 * [dsl_ode_trigger_dimensions_min_set](#dsl_ode_trigger_dimensions_min_set)
