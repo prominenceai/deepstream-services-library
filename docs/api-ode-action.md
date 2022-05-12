@@ -1,5 +1,5 @@
 # ODE Action API Reference
-ODE Actions implement their own "action-specific" event-handler that gets invoked by an ODE Trigger on the occurrence of an Object Detection Event (ODE). The relationship between ODE Triggers and ODE Actions is many-to-many. Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can be added to multiple ODE Triggers.
+ODE Actions implement their own "action-specific" event-handler that gets invoked by an [ODE Trigger](/docs/api-ode-trigger.md) or [ODE Accumulator](/docs/api-ode-accumulator.md) on the occurrence of an Object Detection Event (ODE). The relationship between ODE Triggers and ODE Actions is many-to-many. Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can be added to multiple ODE Triggers. The same is true for ODE Accumulators.
 
 #### Actions on Metadata
 Several ODE Actions can be created to update the Frame and object Metadata to be rendered by a downstream [On-Screen-Display](/docs/api-osd.md) if added.  See [dsl_ode_action_format_bbox_new](#dsl_ode_action_format_bbox_new), [dsl_ode_action_format_label_new](#dsl_ode_action_format_label_new),  [dsl_ode_action_customize_label_new](#dsl_ode_action_customize_label_new), [dsl_ode_action_fill_frame_new](#dsl_ode_action_fill_frame_new), and [dsl_ode_action_fill_object_new](#dsl_ode_action_fill_object_new).
@@ -13,7 +13,7 @@ There are two actions that start a new recording session, one for the [Record-Si
 Actions can be created to Disable other Actions on invocation. See [dsl_ode_action_action_disable_new](#dsl_ode_action_action_disable_new) and [dsl_ode_action_action_enable_new](#dsl_ode_action_action_enable_new).
 
 #### Actions with ODE Occurrence Data
-Actions performed with the ODE occurrence data include  [dsl_ode_action_callback_new](#dsl_ode_action_callback_new), [dsl_ode_action_display_new](#dsl_ode_action_display_new), [dsl_ode_action_log_new](#dsl_ode_action_log_new), [dsl_ode_action_email_new](dsl_ode_action_email_new), and [dsl_ode_action_print_new](#dsl_ode_action_print_new)
+Actions performed with the ODE occurrence data include  [dsl_ode_action_callback_new](#dsl_ode_action_callback_new), [dsl_ode_action_display_new](#dsl_ode_action_display_new), [dsl_ode_action_log_new](#dsl_ode_action_log_new), [dsl_ode_action_email_new](dsl_ode_action_email_new), [dsl_ode_action_file_new](#dsl_ode_action_file_new), and [dsl_ode_action_print_new](#dsl_ode_action_print_new)
 
 #### Actions on Areas
 Actions can be used to Add and Remove Areas to/from a Trigger on invocation. See [dsl_ode_action_area_add_new](#dsl_ode_action_area_add_new) and [dsl_ode_action_area_remove_new](#dsl_ode_action_area_remove_new).
@@ -25,10 +25,12 @@ Actions can be created to Disable, Enable or Reset a Trigger on invocation. See 
 There are a number of Actions that dynamically update the state or components in a Pipeline. [dsl_ode_action_pause_new](#dsl_ode_action_pause_new), [dsl_ode_action_sink_add_new](#dsl_ode_action_sink_add_new), [dsl_ode_action_sink_remove_new](#dsl_ode_action_sink_remove_new), [dsl_ode_action_source_add_new](#dsl_ode_action_source_add_new), [dsl_ode_action_source_remove_new](#dsl_ode_action_source_remove_new).
 
 #### ODE Action Construction and Destruction
-ODE Actions are created by calling one of type specific [constructors](#ode-action-api) defined below. Each constructor must have a unique name from all other Actions. Once created, Actions are deleted by calling [dsl_ode_action_delete](#dsl_ode_action_delete), [dsl_ode_action_delete_many](#dsl_ode_action_delete_many), or [dsl_ode_action_delete_all](#dsl_ode_action_delete_all). Attempting to delete an Action in-use by a Trigger will fail.
+ODE Actions are created by calling one of the type specific [constructors](#ode-action-api) defined below. Each constructor must have a unique name from all other Actions. Once created, Actions are deleted by calling [dsl_ode_action_delete](#dsl_ode_action_delete), [dsl_ode_action_delete_many](#dsl_ode_action_delete_many), or [dsl_ode_action_delete_all](#dsl_ode_action_delete_all). Attempting to delete an Action in-use by an ODE Trigger or ODE Accumulator will fail.
 
 #### Adding/Removing Actions
-ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](docs/api-ode-trigger#dsl_ode_trigger_action_add) and [dsl_ode_trigger_action_add_many](docs/api-ode-trigger#dsl_ode_trigger_action_add_many) and removed with [dsl_ode_trigger_action_remove](docs/api-ode-trigger#dsl_ode_trigger_action_remove), [dsl_ode_trigger_action_remove_many](docs/api-ode-traigger#dsl_ode_trigger_action_remove_many), and [dsl_ode_trigger_action_remove_all](docs/api-ode-trigger#dsl_ode_trigger_action_remove_all).
+ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](docs/api-ode-trigger.md#dsl_ode_trigger_action_add) and [dsl_ode_trigger_action_add_many](docs/api-ode-trigger.md#dsl_ode_trigger_action_add_many) and removed with [dsl_ode_trigger_action_remove](docs/api-ode-trigger.md#dsl_ode_trigger_action_remove), [dsl_ode_trigger_action_remove_many](docs/api-ode-traigger.md#dsl_ode_trigger_action_remove_many), and [dsl_ode_trigger_action_remove_all](docs/api-ode-trigger.md#dsl_ode_trigger_action_remove_all).
+
+ODE Actions are added to an ODE Accumulator by calling [dsl_ode_accumulator_action_add](docs/api-ode-accumulator.md#dsl_ode_accumulator_action_add) and [dsl_ode_accumulator_action_add_many](docs/api-ode-accumulator.md#dsl_ode_accumulator_action_add_many) and removed with [dsl_ode_accumulator_action_remove](docs/api-ode-accumulator.md#dsl_ode_accumulator_action_remove), [dsl_ode_accumulator_action_remove_many](docs/api-ode-accumulator.md#dsl_ode_trigger_action_remove_many), and [dsl_ode_accumulator_action_remove_all](docs/api-ode-accumulator.md#dsl_ode_accumulator_action_remove_all).
 
 
 ## ODE Action API
@@ -99,26 +101,37 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 
 ## Constants
 The following symbolic constants are used by the ODE Action API
+
+### File Formats and Write Modes
+Constants used by the [ODE File Action](#dsl_ode_action_file_new)
 ```C
 #define DSL_EVENT_FILE_FORMAT_TEXT                                  0
 #define DSL_EVENT_FILE_FORMAT_CSV                                   1
 
 #define DSL_WRITE_MODE_APPEND                                       0
 #define DSL_WRITE_MODE_TRUNCATE                                     1
+```
 
+### Metric Type Identifiers
+Constants used by the [ODE Customize Object Label](#dsl_ode_action_customize_label_new) and the [ODE Display On-Screen](#dsl_ode_action_display_new) Actions.
+```C
 #define DSL_METRIC_OBJECT_CLASS                                     0
 #define DSL_METRIC_OBJECT_TRACKING_ID                               1
 #define DSL_METRIC_OBJECT_LOCATION                                  2
 #define DSL_METRIC_OBJECT_DIMENSIONS                                3
-#define DSL_METRIC_OBJECT_CONFIDENCE                                4
-#define DSL_METRIC_OBJECT_PERSISTENCE                               5
-#define DSL_METRIC_OBJECT_OCCURRENCES                               6
-
+#define DSL_METRIC_OBJECT_CONFIDENCE_INFERENCE                      4
+#define DSL_METRIC_OBJECT_CONFIDENCE_TRACKER                        5
+#define DSL_METRIC_OBJECT_PERSISTENCE                               6
+#define DSL_METRIC_OBJECT_DIRECTION                                 7
+#define DSL_METRIC_OBJECT_OCCURRENCES                               8
+#define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_IN                  9
+#define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_OUT                 10
 ```
 
 ## Return Values
 The following return codes are used by the ODE Action API
 ```C
+#define DSL_RESULT_ODE_ACTION_RESULT                                0x000F0000
 #define DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE                       0x000F0001
 #define DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND                        0x000F0002
 #define DSL_RESULT_ODE_ACTION_CAPTURE_TYPE_INVALID                  0x000F0003
@@ -134,6 +147,7 @@ The following return codes are used by the ODE Action API
 #define DSL_RESULT_ODE_ACTION_PLAYER_REMOVE_FAILED                  0x000F000D
 #define DSL_RESULT_ODE_ACTION_MAILER_ADD_FAILED                     0x000F000E
 #define DSL_RESULT_ODE_ACTION_MAILER_REMOVE_FAILED                  0x000F000F
+#define DSL_RESULT_ODE_ACTION_PARAMETER_INVALID                     0x000F0010
 ```
 ---
 
@@ -221,27 +235,6 @@ Defines a Callback typedef for a client listener function. Once added to an ODE 
 ---
 
 ## Constructors
-### *dsl_ode_action_action_add_new*
-```C++
-DslReturnType dsl_ode_action_action_add_new(const wchar_t* name,
-    const wchar_t* trigger, const wchar_t* action);
-```
-The constructor creates a uniquely named **Add Action** ODE Action. When invoked, this Action will attempt to add a named ODE Action to a named ODE Trigger. The Action will produce an error log message if either the Trigger or Action do not exist.
-
-**Parameters**
-* `name` - [in] unique name for the ODE Action to create.
-* `trigger` - [in] unique name for the ODE Trigger to add the ODE Action to.
-* `action` - [in] unique name for the ODE Action to add to the ODE Trigger.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_ode_action_action_add_new('my-add-action-action', 'my-trigger', 'my-other-action')
-```
-
-<br>
 
 ### *dsl_ode_action_action_disable_new*
 ```C++
@@ -331,7 +324,7 @@ retval = dsl_ode_action_area_remove_new('my-remove-area-action', 'my-trigger', '
 ```C++
 DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, const wchar_t* outdir, boolean annotate);
 ```
-The constructor creates a uniquely named **Frame Capture** ODE Action. When invoked, this Action will capture the frame that triggered the ODE occurrence to a jpeg image file in the directory specified by `outdir`. The file name will be derived from combining the unique ODE Trigger name and unique ODE occurrence ID. The image can be annotated with one or more objects showing bounding boxes and labes. If the action is invoked by an object occurrence, then only the object will be annotated. If the action is invoked by a frame level occurrence - summation, min, max and range triggers for example - all detected objects in the frame will be annotated.
+The constructor creates a uniquely named **Frame Capture** ODE Action. When invoked, this Action will capture the frame that triggered the ODE occurrence to a jpeg image file in the directory specified by `outdir`. The file name will be derived from combining the unique ODE Trigger name and unique ODE occurrence ID. The image can be annotated with one or more objects showing bounding boxes and labels. If the action is invoked by an object occurrence, then only the object will be annotated. If the action is invoked by a frame level occurrence - summation, min, max and range triggers for example - all detected objects in the frame will be annotated.
 
 The constructor will return `DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND` if `outdir` is invalid.
 
@@ -354,7 +347,7 @@ retval = dsl_ode_action_capture_frame_new('my-frame-capture-action', './images/f
 ```C++
 DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name, const wchar_t* outdir);
 ```
-The constructor creates a uniquely named **Object Capture** ODE Action. When invoked, this Action will capture the object -- using its OSD rectangle parameters --  that triggered the ODE occurrence to a jpeg image file in the directory specified by `outdir`. The file name will be derived from combining the unique ODE Trigger name and unique ODE occurrence ID. The constructor will return `DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND` if `outdir` is invalid.
+The constructor creates a uniquely named **Object Capture** ODE Action. When invoked, this Action will capture the object -- using its OSD rectangle parameters -- that triggered the ODE occurrence to a jpeg image file in the directory specified by `outdir`. The file name will be derived from combining the unique ODE Trigger name and unique ODE occurrence ID. The constructor will return `DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND` if `outdir` is invalid.
 
 Note: Adding an Object Capture ODE Action to an Absence or Summation Trigger is meaningless and will result in a Non-Action.
 
@@ -367,7 +360,7 @@ Note: Adding an Object Capture ODE Action to an Absence or Summation Trigger is 
 
 **Python Example**
 ```Python
-retval = dsl_ode_action_capture_object_new('my-object-action', './images/frames')
+retval = dsl_ode_action_capture_object_new('my-object-action', './images/objects')
 ```
 
 <br>
@@ -378,6 +371,8 @@ DslReturnType dsl_ode_action_custom_new(const wchar_t* name,
     dsl_ode_occurrence_handler_cb client_handler, void* client_data);
 ```
 The constructor creates a uniquely named **Custom** ODE Action. When invoked, this Action will call the Client provided callback function with the Frame Meta and Object Meta that triggered the ODE occurrence.
+
+**IMPORTANT:** This services is only available through the C/C++ API. Python users, needing to parse the Frame and Object level metadata, must use a [Custom Pad Probe Handler](/docs/api-pph.md) along with NVIDIA's Python bindings available here: https://github.com/NVIDIA-AI-IOT/deepstream_python_apps/tree/master/bindings . Read more about Pyds API [here]. See the Python example [1uri_file_pgie_iou_tiler_osd_custom_pph_window.py](/examples/python/1uri_file_pgie_iou_tiler_osd_custom_pph_window.py) which uses the python module [nvidia_osd_sink_pad_buffer_probe.py](/examples/python/nvidia_osd_sink_pad_buffer_probe.py).
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
@@ -411,7 +406,7 @@ The constructor creates a uniquely named **Customize Label** ODE Action. When in
 
 **Python Example**
 ```Python    
-retval = dsl_ode_action_display_new('my-customize-label-action',
+retval = dsl_ode_action_customize_label_new('my-customize-label-action',
     [DSL_OBJECT_LABEL_TRACKING_ID, DSL_OBJECT_LABEL_PERSISTENCE], 2)
 ```
 
@@ -455,7 +450,7 @@ retval = dsl_ode_action_display_new('primary-display-action',
 ```C++
 DslReturnType dsl_ode_action_display_meta_add_new(const wchar_t* name, const wchar_t* display_type);
 ```
-The constructor creates a uniquely named **Add Display Meta** ODE Action. When invoked, this Action will add the Display Type to the Frame Meta that triggered the ODE occurrence.
+The constructor creates a uniquely named **Add Display Meta** ODE Action. When invoked, this Action will add the [Display Type](/docs/api-display-type.md) to the Frame Meta that triggered the ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
@@ -475,7 +470,7 @@ retval = dsl_ode_action_display_meta_add_new('my-add-display-meta-action', 'my-c
 ```C++
 DslReturnType dsl_ode_action_display_meta_add_new(const wchar_t* name, const wchar_t** display_types);
 ```
-The constructor creates a uniquely named **Add Many Display Meta** ODE Action. When invoked, this Action will add many Display Types to the Frame Meta that triggered the ODE occurrence.
+The constructor creates a uniquely named **Add Many Display Meta** ODE Action. When invoked, this Action will add many [Display Types](/docs/api-display-type.md) to the Frame Meta that triggered the ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
@@ -494,12 +489,14 @@ retval = dsl_ode_action_display_meta_add_new('my-add-display-meta-action',
 
 ### *dsl_ode_action_email_new*
 ```C++
-DslReturnType dsl_ode_action_email_new(const wchar_t* name, const wchar_t* subject);
+DslReturnType dsl_ode_action_email_new(const wchar_t* name,
+    const wchar_t* mailer, const wchar_t* subject);
 ```
-The constructor creates a uniquely named **Email** ODE Action. When invoked, this Action will send an Email message to all `To` and `Cc` addresses previously setup using the [SMTP Services API](/docs/api-smtp.md). The body of the email will contain all Fram/Object and Trigger Criteria information for the ODE occurrence that triggered the event.
+The constructor creates a uniquely named **Email** ODE Action. When invoked, this Action will send an email message using the named [SMTP Mailer](/docs/api-mailer.md). The body of the email will contain all Frame/Object and Trigger Criteria information for the ODE occurrence that triggered the event.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
+* `mailer` - [in] unique name of the Mailer component to use.
 * `subject` - [in] Subject line to add to all emails sent by this specific action.
 
 **Returns**
@@ -507,7 +504,8 @@ The constructor creates a uniquely named **Email** ODE Action. When invoked, thi
 
 **Python Example**
 ```Python
-retval = dsl_ode_action_email_new('my-email-action', 'Bicycle has entered Inclusion Area')
+retval = dsl_ode_action_email_new('my-email-action',
+    'my-mailer', 'Bicycle has entered Inclusion Area')
 ```
 
 <br>
@@ -644,7 +642,7 @@ The constructor creates a uniquely named **Disable Handler** ODE Action. When in
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
-* `text` - [in] unique name for the ODE Handler to disable
+* `handler` - [in] unique name for the ODE Handler to disable
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -682,7 +680,7 @@ retval = dsl_ode_action_log_new('my-gstreamer-log-action')
 ```C++
 DslReturnType dsl_ode_action_message_meta_add_new(const wchar_t* name);
 ```
-The constructor creates a uniquely named **Add Message Meta** ODE Action. When invoked, this Action will allocate a [`NvDsEventMsgMeta`](https://docs.nvidia.com/metropolis/deepstream/4.0/dev-guide/DeepStream_Development_Guide/baggage/structNvDsEventMsgMeta.html) structure, populate it with the ODE data, and add it as `user_meta_data` to the the `frame_meta`. 
+The constructor creates a uniquely named **Add Message Meta** ODE Action. When invoked, this Action will allocate a [`NvDsEventMsgMeta`](https://docs.nvidia.com/metropolis/deepstream/4.0/dev-guide/DeepStream_Development_Guide/baggage/structNvDsEventMsgMeta.html) structure, populate it with the ODE data, and add it as `user_meta_data` to the `frame_meta`.
 
 **Note:** a [Message-Sink](/docs/api-sink.md#dsl_sink_message_new) is required to convert and broker the message downstream.
 
@@ -786,7 +784,7 @@ retval = dsl_ode_action_print_new('my-print-action', false)
 DslReturnType dsl_ode_action_redact_new(const wchar_t* name);
 ```
 The constructor creates a uniquely named **Redact Object** ODE Action. When invoked, this Action will update an Object's metadata by
-* filling in the the rectangle with a black background color with an alpha level of 1.0.
+* filling in the rectangle with a black background color with an alpha level of 1.0.
 * hiding both the display text and rectangle boarder
 
 The action will Redact any detected object based on the GIE model and class Id in use... Face, License, etc.,
@@ -1032,10 +1030,10 @@ retval = dsl_ode_action_trigger_reset_new('my-enable-trigger-action', 'my-trigge
 ```C++
 DslReturnType dsl_ode_action_delete(const wchar_t* action);
 ```
-This destructor deletes a single, uniquely named ODE Action. The destructor will fail if the Action is currently `in-use` by one or more ODE Triggers
+This destructor deletes a single, uniquely named ODE Action. The destructor will fail if the Action is currently `in-use` by one or more ODE Triggers or ODE Accumulators.
 
 **Parameters**
-* `action` - [in] unique name for the ODE Action to delete
+* `action` - [in] unique name for the ODE Action to delete.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
@@ -1051,7 +1049,7 @@ retval = dsl_ode_action_delete('my-action')
 ```C++
 DslReturnType dsl_action_delete_many(const wchar_t** actions);
 ```
-This destructor deletes multiple uniquely named ODE Actions. Each name is checked for existence, with the function returning `DSL_RESULT_ACTION_NAME_NOT_FOUND` on first occurrence of failure. The destructor will fail if one of the Actions is currently `in-use` by one or more ODE Triggers
+This destructor deletes multiple uniquely named ODE Actions. Each name is checked for existence, with the function returning `DSL_RESULT_ACTION_NAME_NOT_FOUND` on first occurrence of failure. The destructor will fail if one of the Actions is currently `in-use` by one or more ODE Triggers or ODE Accumulators.
 
 **Parameters**
 * `actions` - [in] a NULL terminated array of uniquely named ODE Actions to delete.
@@ -1070,7 +1068,7 @@ retval = dsl_ode_action_delete_many(['my-action-a', 'my-action-b', 'my-action-c'
 ```C++
 DslReturnType dsl_ode_action_delete_all();
 ```
-This destructor deletes all ODE Actions currently in memory. The destructor will fail if any one of the Actions is currently `in-use` by one or more ODE Triggers.
+This destructor deletes all ODE Actions currently in memory. The destructor will fail if any one of the Actions is currently `in-use` by one or more ODE Triggers or ODE Accumulators.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
@@ -1090,12 +1088,12 @@ retval = dsl_ode_action_delete_all()
 DslReturnType dsl_ode_action_capture_complete_listener_add(const wchar_t* name,
     dsl_capture_complete_listener_cb listener, void* client_data);
 ```
-This service adds a callback function of type [dsl_capture_complete_listener_cb](#dsl_capture_complete_listener_cb) to a Capture Action identified by its unique name. The function will be called on Image Capture completion with a [dsl_capture_info](#dsl_capture_info) structure and the client provided `client_data`. Multiple callback functions can be registered with one Actions, and one callback function can be registered with multiple Actions.
+This service adds a callback function of type [dsl_capture_complete_listener_cb](#dsl_capture_complete_listener_cb) to a Capture Action identified by its unique name. The function will be called on Image Capture completion with a [dsl_capture_info](#dsl_capture_info) structure and the client provided `client_data`. Multiple callback functions can be registered with one Action, and one callback function can be registered with multiple Actions.
 
 **Parameters**
 * `name` - [in] unique name of the Action to update.
 * `listener` - [in] capture complete listener callback function to add.
-* `client_data` - [in] opaque pointer to user data returned to the listner is called back
+* `client_data` - [in] opaque pointer to user data returned to the listener is called back
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
