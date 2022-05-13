@@ -60,10 +60,6 @@ The following constants are used by the OSD Area API
 #define DSL_BBOX_POINT_WEST                                         8
 #define DSL_BBOX_POINT_ANY                                          9
 
-#define DSL_BBOX_EDGE_TOP                                           0
-#define DSL_BBOX_EDGE_BOTTOM                                        1
-#define DSL_BBOX_EDGE_LEFT                                          2
-#define DSL_BBOX_EDGE_RIGHT                                         3
 ```
 <br>
 
@@ -83,7 +79,7 @@ The Polygon can be shown (requires an [On-Screen Display](/docs/api-osd.md)) or 
 * `name` - [in] unique name for the ODE Inclusion Area to create.
 * `polygon` - [in] unique name for the Polygon to use as coordinates and optionally display
 * `show` - [in] if true, polygon metadata will be added to each structure of frame metadata.
-* `bbox_test_point` - [in] one of the [DSL_BBOX_POINT Constants](#Constants) define above
+* `bbox_test_point` - [in] one of the [DSL_BBOX_POINT Constants](#Constants) defined above.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -123,7 +119,7 @@ retval = dsl_ode_area_exclusion_new('my-exclusion-area', 'my-polygon', True, DSL
 ### *dsl_ode_area_line_new*
 ```C++
 DslReturnType dsl_ode_area_line_new(const wchar_t* name,
-    const wchar_t* line, boolean show, uint bbox_test_edge)
+    const wchar_t* line, boolean show, uint bbox_test_point);
 ```
 The constructor creates a uniquely named ODE **Line Area** using a uniquely named RGBA Line. ODE occurrence is triggered when a specified edge of the Object's bounding box crosses with the Line Area
 
@@ -133,8 +129,7 @@ The Line can be shown (requires an [On-Screen Display](/docs/api-osd.md)) or lef
 * `name` - [in] unique name for the ODE Line Area to create.
 * `line` - [in] unique name for the Line to use as coordinates and optionally display
 * `show` - [in] if true, polygon metadata will be added to each structure of frame metadata.
-* `bbox_test_edge` - [in] one of the [DSL_BBOX_EDGE Constants](#Constants) define above
-
+* `bbox_test_point` - [in] one of the [DSL_BBOX_EDGE Constants](#Constants) defining which point of a object's bounding box to use when testing for line crossing
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
