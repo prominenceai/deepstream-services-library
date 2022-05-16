@@ -2062,7 +2062,7 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("ODE Trigger '" << name
-                << "' threw exception adding ODE Area '" << accumulator << "'");
+                << "' threw exception adding ODE Accumulator '" << accumulator << "'");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
@@ -2090,6 +2090,65 @@ namespace DSL
         {
             LOG_ERROR("ODE Trigger '" << name
                 << "' threw exception removing ODE Accumulator");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeTriggerHeatMapperAdd(const char* name, 
+        const char* heatMapper)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_HEAT_MAPPER_NAME_NOT_FOUND(m_odeHeatMappers, 
+                heatMapper);
+
+            // check for in-use
+
+            if (!m_odeTriggers[name]->AddHeatMapper(m_odeHeatMappers[heatMapper]))
+            {
+                LOG_ERROR("ODE Trigger '" << name
+                    << "' failed to add ODE Heat-Mapper '" << heatMapper << "'");
+                return DSL_RESULT_ODE_TRIGGER_HEAT_MAPPER_ADD_FAILED;
+            }
+            LOG_INFO("ODE Heat-Mapper '" << heatMapper
+                << "' was added to ODE Trigger '" << name << "' successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name
+                << "' threw exception adding ODE Heat-Mapper '" << heatMapper << "'");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeTriggerHeatMapperRemove(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+
+            if (!m_odeTriggers[name]->RemoveHeatMapper())
+            {
+                LOG_ERROR("ODE Trigger '" << name
+                    << "' failed to remove ODE Heat-Mapper");
+                return DSL_RESULT_ODE_TRIGGER_HEAT_MAPPER_REMOVE_FAILED;
+            }
+            LOG_INFO("ODE Heat-Mapper was removed from ODE Trigger '" 
+                << name << "' successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name
+                << "' threw exception removing ODE Heat-Mapper");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }

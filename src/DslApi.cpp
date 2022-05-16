@@ -90,6 +90,18 @@ DslReturnType dsl_display_type_rgba_color_palette_new(const wchar_t* name,
     return DSL_RESULT_SUCCESS;
 }
 
+DslReturnType dsl_display_type_rgba_color_palette_predefined_new(const wchar_t* name, 
+    uint palette_id, double alpha)
+{    
+    RETURN_IF_PARAM_IS_NULL(name);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->DisplayTypeRgbaColorPalettePredefinedNew(
+        cstrName.c_str(), palette_id, alpha);
+}
+
 DslReturnType dsl_display_type_rgba_color_palette_index_get(const wchar_t* name, 
     uint* index)
 {
@@ -2419,6 +2431,32 @@ DslReturnType dsl_ode_trigger_accumulator_remove(const wchar_t* name)
         cstrName.c_str());
 }
 
+DslReturnType dsl_ode_trigger_heat_mapper_add(const wchar_t* name, 
+    const wchar_t* heat_mapper)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(heat_mapper);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHeatMapper(heat_mapper);
+    std::string cstrHeatMapper(wstrHeatMapper.begin(), wstrHeatMapper.end());
+
+    return DSL::Services::GetServices()->OdeTriggerHeatMapperAdd(
+        cstrName.c_str(), cstrHeatMapper.c_str());
+}
+
+DslReturnType dsl_ode_trigger_heat_mapper_remove(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerHeatMapperRemove(
+        cstrName.c_str());
+}
+
 DslReturnType dsl_ode_trigger_delete(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -2584,6 +2622,59 @@ DslReturnType dsl_ode_accumulator_delete_all()
 uint dsl_ode_accumulator_list_size()
 {
     return DSL::Services::GetServices()->OdeAccumulatorListSize();
+}
+
+DslReturnType dsl_ode_heat_mapper_new(const wchar_t* name, 
+    uint cols, uint rows, const wchar_t* color_palette)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(color_palette);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrColorPalette(color_palette);
+    std::string cstrColorPalette(wstrColorPalette.begin(), wstrColorPalette.end());
+
+    return DSL::Services::GetServices()->OdeHeatMapperNew(
+        cstrName.c_str(), cols, rows, cstrColorPalette.c_str());
+}
+    
+DslReturnType dsl_ode_heat_mapper_delete(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeHeatMapperDelete(cstrName.c_str());
+}
+
+DslReturnType dsl_ode_heat_mapper_delete_many(const wchar_t** names)
+{
+    RETURN_IF_PARAM_IS_NULL(names);
+
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->
+            OdeHeatMapperDelete(cstrName.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_ode_heat_mapper_delete_all()
+{
+    return DSL::Services::GetServices()->OdeHeatMapperDeleteAll();
+}
+
+uint dsl_ode_heat_mapper_list_size()
+{
+    return DSL::Services::GetServices()->OdeHeatMapperListSize();
 }
 
 DslReturnType dsl_pph_custom_new(const wchar_t* name,

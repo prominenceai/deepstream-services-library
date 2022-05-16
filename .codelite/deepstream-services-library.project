@@ -98,6 +98,9 @@
     <File Name="../src/DslOdeAccumulator.h"/>
     <File Name="../src/DslOdeAccumulator.cpp"/>
     <File Name="../src/DslServicesOdeAccumulator.cpp"/>
+    <File Name="../src/DslOdeHeatMapper.h"/>
+    <File Name="../src/DslOdeHeatMapper.cpp"/>
+    <File Name="../src/DslServicesOdeHeatMapper.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="api">
@@ -173,6 +176,7 @@
       <File Name="../test/unit/DslTrackerUnitTest.cpp"/>
       <File Name="../test/unit/DslOdeTrackedObjectUnitTest.cpp"/>
       <File Name="../test/unit/DslOdeAccumulatorUnitTest.cpp"/>
+      <File Name="../test/unit/DslOdeHeatMapperUnitTest.cpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="root">

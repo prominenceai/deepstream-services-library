@@ -31,6 +31,7 @@ THE SOFTWARE.
 #include "DslOdeAction.h"
 #include "DslOdeArea.h"
 #include "DslOdeAccumulator.h"
+#include "DslOdeHeatMapper.h"
 #include "DslOdeTrigger.h"
 #include "DslPipelineBintr.h"
 #include "DslMessageBroker.h"
@@ -69,6 +70,9 @@ namespace DSL {
 
         DslReturnType DisplayTypeRgbaColorPaletteNew(const char* name, 
             const char** colors, uint num_colors);
+
+        DslReturnType DisplayTypeRgbaColorPalettePredefinedNew(const char* name, 
+            uint paletteId, double alpha);
 
         DslReturnType DisplayTypeRgbaColorPaletteIndexGet(const char* name, 
             uint* index);
@@ -478,6 +482,11 @@ namespace DSL {
 
         DslReturnType OdeTriggerAccumulatorRemove(const char* name);
 
+        DslReturnType OdeTriggerHeatMapperAdd(const char* name, 
+            const char* heatMapper);
+
+        DslReturnType OdeTriggerHeatMapperRemove(const char* name);
+
         DslReturnType OdeTriggerDelete(const char* name);
         
         DslReturnType OdeTriggerDeleteAll();
@@ -497,6 +506,15 @@ namespace DSL {
         DslReturnType OdeAccumulatorDeleteAll();
         
         uint OdeAccumulatorListSize();
+
+        DslReturnType OdeHeatMapperNew(const char* name,
+            uint cols, uint rows, const char* colorPalette);
+        
+        DslReturnType OdeHeatMapperDelete(const char* name);
+        
+        DslReturnType OdeHeatMapperDeleteAll();
+        
+        uint OdeHeatMapperListSize();
 
         DslReturnType PphCustomNew(const char* name,
             dsl_pph_custom_client_handler_cb clientHandler, void* clientData);
@@ -1451,6 +1469,11 @@ namespace DSL {
          * @brief map of all ODE Accumlators created by the client, key=name
          */
         std::map <std::string, DSL_ODE_ACCUMULATOR_PTR> m_odeAccumulators;
+        
+        /**
+         * @brief map of all ODE Heat-Mappers created by the client, key=name
+         */
+        std::map <std::string, DSL_ODE_HEAT_MAPPER_PTR> m_odeHeatMappers;
         
         /**
          * @brief map of all ODE Triggers created by the client, key=name

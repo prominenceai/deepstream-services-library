@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include "DslOdeTrigger.h"
 #include "DslOdeAction.h"
 #include "DslOdeArea.h"
+#include "DslOdeHeatMapper.h"
 #include "DslServices.h"
 
 namespace DSL
@@ -123,6 +124,7 @@ namespace DSL
     bool OdeTrigger::AddAction(DSL_BASE_PTR pChild)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         if (m_pOdeActions.find(pChild->GetName()) != m_pOdeActions.end())
         {
@@ -145,6 +147,7 @@ namespace DSL
     bool OdeTrigger::RemoveAction(DSL_BASE_PTR pChild)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         if (m_pOdeActions.find(pChild->GetName()) == m_pOdeActions.end())
         {
@@ -166,6 +169,7 @@ namespace DSL
     void OdeTrigger::RemoveAllActions()
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         for (auto &imap: m_pOdeActions)
         {
@@ -180,6 +184,7 @@ namespace DSL
     bool OdeTrigger::AddArea(DSL_BASE_PTR pChild)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         if (m_pOdeAreas.find(pChild->GetName()) != m_pOdeAreas.end())
         {
@@ -201,6 +206,7 @@ namespace DSL
     bool OdeTrigger::RemoveArea(DSL_BASE_PTR pChild)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         if (m_pOdeAreas.find(pChild->GetName()) == m_pOdeAreas.end())
         {
@@ -223,6 +229,7 @@ namespace DSL
     void OdeTrigger::RemoveAllAreas()
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         for (auto &imap: m_pOdeAreas)
         {
@@ -237,6 +244,7 @@ namespace DSL
     bool OdeTrigger::AddAccumulator(DSL_BASE_PTR pAccumulator)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
         if (m_pAccumulator)
         {
@@ -251,6 +259,7 @@ namespace DSL
     bool OdeTrigger::RemoveAccumulator()
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
         if (!m_pAccumulator)
         {
@@ -262,6 +271,36 @@ namespace DSL
         return true;
     }
         
+    bool OdeTrigger::AddHeatMapper(DSL_BASE_PTR pHeatMapper)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_pHeatMapper)
+        {
+            LOG_ERROR("ODE Trigger '" << GetName() 
+                << "' all ready has a Heat-Mapper");
+            return false;
+        }
+        m_pHeatMapper = pHeatMapper;
+        return true;
+    }
+    
+    bool OdeTrigger::RemoveHeatMapper()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (!m_pHeatMapper)
+        {
+            LOG_ERROR("ODE Trigger '" << GetName() 
+                << "' does not have a Heat-Mapper");
+            return false;
+        }
+        m_pHeatMapper = NULL;
+        return true;
+    }
+        
     void OdeTrigger::Reset()
     {
         LOG_FUNC();
@@ -269,6 +308,11 @@ namespace DSL
         
         m_triggered = 0;
         m_occurrencesAccumulated = 0;
+        
+        if (m_pHeatMapper)
+        {
+            std::dynamic_pointer_cast<OdeHeatMapper>(m_pHeatMapper)->Reset();
+        }
         
         // iterate through the map of limit-event-listeners calling each
         for(auto const& imap: m_limitEventListeners)

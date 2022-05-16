@@ -179,6 +179,64 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::DisplayTypeRgbaColorPalettePredefinedNew(const char* name,
+        uint paletteId, double alpha)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Predefined Color Palette name '" << name 
+                    << "' is not unique");
+                return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
+            }
+            if (paletteId > DSL_COLOR_PREDEFINED_PALETTE_SPECTRAL)
+            {
+                LOG_ERROR("Invalid palette_id value of " << paletteId 
+                    << " for New RGBA Predefined Color Palette '" << name << "'");
+                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
+            }
+            if ( alpha > 1.0)
+            {
+                LOG_ERROR("Invalid alpha parameter = " << alpha 
+                    << " greater than 1.0 for RGBA Color Palette'" << name << "'");
+                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
+            }
+            
+            std::shared_ptr<std::vector<DSL_RGBA_COLOR_PTR>> pColorPalette = 
+               std::shared_ptr<std::vector<DSL_RGBA_COLOR_PTR>>{
+                    new std::vector<DSL_RGBA_COLOR_PTR>};
+            
+            for (auto const& ivec: 
+                RgbaPredefinedColor::s_predefinedColorPalettes[paletteId])
+            {
+                DSL_RGBA_COLOR_PTR pColor = std::shared_ptr<RgbaColor>
+                    (new RgbaColor("", ivec));
+                pColor->alpha = alpha;
+                
+                pColorPalette->push_back(pColor);
+            }
+            
+            m_displayTypes[name] = DSL_RGBA_COLOR_PALETTE_NEW(name, 
+                pColorPalette);
+
+            LOG_INFO("New RGBA Predefined Color Palette'" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Predefined Color '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::DisplayTypeRgbaColorPaletteIndexGet(const char* name,
         uint* index)
     {
