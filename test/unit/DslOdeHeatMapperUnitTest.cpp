@@ -60,7 +60,7 @@ SCENARIO( "A new OdeHeatMapper is created correctly", "[OdeHeatMapper]" )
         {
             DSL_ODE_HEAT_MAPPER_PTR pOdeHeatMapper = 
                 DSL_ODE_HEAT_MAPPER_NEW(odeHeatMapperName.c_str(), 
-                    rows, cols, pPredefinedColorPalette);
+                    rows, cols, DSL_BBOX_POINT_SOUTH, pPredefinedColorPalette);
 
             THEN( "The OdeAccumulator's memebers are setup and returned correctly" )
             {
@@ -98,7 +98,7 @@ SCENARIO( "A new OdeHeatMapper can HandleOccurrence correctly", "[OdeHeatMapper]
 
         DSL_ODE_HEAT_MAPPER_PTR pOdeHeatMapper = 
             DSL_ODE_HEAT_MAPPER_NEW(odeHeatMapperName.c_str(), 
-                cols, rows, pPredefinedColorPalette);
+                cols, rows, DSL_BBOX_POINT_SOUTH, pPredefinedColorPalette);
 
         WHEN( "The OdeHeatMapper is called to HandleOccurrence" )
         {
@@ -155,7 +155,7 @@ SCENARIO( "A new OdeHeatMapper can Reset correctly", "[OdeHeatMapper]" )
 
         DSL_ODE_HEAT_MAPPER_PTR pOdeHeatMapper = 
             DSL_ODE_HEAT_MAPPER_NEW(odeHeatMapperName.c_str(), 
-                cols, rows, pPredefinedColorPalette);
+                cols, rows, DSL_BBOX_POINT_SOUTH, pPredefinedColorPalette);
 
         NvDsFrameMeta frameMeta =  {0};
         frameMeta.source_frame_width = DSL_DEFAULT_STREAMMUX_WIDTH;

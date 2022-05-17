@@ -508,7 +508,7 @@ namespace DSL {
         uint OdeAccumulatorListSize();
 
         DslReturnType OdeHeatMapperNew(const char* name,
-            uint cols, uint rows, const char* colorPalette);
+            uint cols, uint rows, uint bboxTestPoint, const char* colorPalette);
         
         DslReturnType OdeHeatMapperDelete(const char* name);
         

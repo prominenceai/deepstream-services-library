@@ -3112,21 +3112,23 @@ uint dsl_ode_accumulator_list_size();
 
 /**
  * @brief Creates a new ODE Heat-Mapper that when added to an ODE Trigger, maps the
- * bounding-box center point for objects that trigger an ODE Occurrence over time. 
- * The frame, with width and height, is partitioned into a two-dimensional grid of 
- * rectangles as defined by the input parameters cols and rows. A color value from 
- * the provided RGBA Color Palete is assigned to each rectangle based on the 
- * percentage of center-points per rectangle. The RGBA Display Metadata is added 
- * to the Frame's metadata when the Trigger post processes each frame.
+ * bounding-box test point for objects that trigger an ODE Occurrence over time. 
+ * The source-frame, with width and height, is partitioned into a two-dimensional grid of 
+ * rectangles as defined by the input parameters cols and rows. A color value from the
+ * provided RGBA Color Palette is assigned to each rectangle based on the percentage
+ * of test-points per rectangle. The RGBA Display Metadata is added to the Frame's metadata
+ *  when the Trigger post processes each frame.
  * @param[in] name unique name for the ODE Heat-Mapper
  * @param[in] cols number of columns for the two-dimensional map.
  * @param[in] rows number of rows for the two-dimensional map
+ * @param[in] bbox_test_point one of DSL_BBOX_POINT values defining which point of a
+ * object's bounding box to use as coordinates for mapping.
  * @param[in] color_palette a palette of RGBA Colors to assign to the grid rectangles
  * based on the percentage of center-points per-square.  
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
  */
 DslReturnType dsl_ode_heat_mapper_new(const wchar_t* name, 
-    uint cols, uint rows, const wchar_t* color_palette);
+    uint cols, uint rows, uint bbox_test_point, const wchar_t* color_palette);
 
 /**
  * @brief Deletes a uniquely named ODE Heat-Mapper. The call will fail if 
@@ -3140,7 +3142,7 @@ DslReturnType dsl_ode_heat_mapper_delete(const wchar_t* name);
 /**
  * @brief Deletes a Null terminated list of ODE Heat-Mappers. The call will fail 
  * if any of the ODE Heat-Mappers are currently in use.
- * @brief[in] names Null terminaed list of ODE Heat-Mapper names to delete
+ * @brief[in] names Null terminated list of ODE Heat-Mapper names to delete
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
  */
 DslReturnType dsl_ode_heat_mapper_delete_many(const wchar_t** names);
@@ -3157,7 +3159,6 @@ DslReturnType dsl_ode_heat_mapper_delete_all();
  * @return the number of ODE Heat-Mapper in the list.
  */
 uint dsl_ode_heat_mapper_list_size();
-
 
 /**
  * @brief creates a new, uniquely named Handler component

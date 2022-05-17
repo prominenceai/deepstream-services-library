@@ -118,6 +118,14 @@ namespace DSL
             pOdeAccumulator->HandleOccurrences(shared_from_this(),
                 pBuffer, displayMetaData, pFrameMeta);
         }
+        
+        // If the client has added a heat-mapper
+        if (m_pHeatMapper)
+        {
+            std::dynamic_pointer_cast<OdeHeatMapper>(m_pHeatMapper)->AddDisplayMeta(
+                displayMetaData);
+        }
+        
         return m_occurrences;
     }        
     
@@ -927,6 +935,13 @@ namespace DSL
 
         // set the primary metric as the current occurrence for this frame
         pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = m_occurrences;
+
+
+        if (m_pHeatMapper)
+        {
+            std::dynamic_pointer_cast<OdeHeatMapper>(m_pHeatMapper)->HandleOccurrence(
+                pFrameMeta, pObjectMeta);
+        }
 
         for (const auto &imap: m_pOdeActionsIndexed)
         {

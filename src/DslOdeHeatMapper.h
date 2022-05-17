@@ -36,9 +36,9 @@ namespace DSL
      * @brief convenience macros for shared pointer abstraction
      */
     #define DSL_ODE_HEAT_MAPPER_PTR std::shared_ptr<OdeHeatMapper>
-    #define DSL_ODE_HEAT_MAPPER_NEW(name, rows, cols, pColorPalette) \
+    #define DSL_ODE_HEAT_MAPPER_NEW(name, rows, cols, bboxTestPoint, pColorPalette) \
         std::shared_ptr<OdeHeatMapper>(new OdeHeatMapper(name, \
-            rows, cols, pColorPalette))
+            rows, cols, bboxTestPoint, pColorPalette))
     
     // ********************************************************************
 
@@ -56,7 +56,7 @@ namespace DSL
          * @param[in]
          */
         OdeHeatMapper(const char* name, uint cols, uint rows,
-            DSL_RGBA_COLOR_PALETTE_PTR pColorPalette);
+            uint bboxTestPoint, DSL_RGBA_COLOR_PALETTE_PTR pColorPalette);
 
         /**
          * @brief dtor for the ODE virtual base class
@@ -92,6 +92,15 @@ namespace DSL
     private:
     
         /**
+         * @brief returs x,y coordinates from an Object's bbox coordinates
+         * and size as determined by the bboxTextPoint
+         * @param[in] pObjectMeta object metadata with bbox data
+         * @param[out] mapCoordinate x,y coordinate structure
+         */
+        void getCoordinate(NvDsObjectMeta* pObjectMeta, 
+            dsl_coordinate& mapCoordinate);
+    
+        /**
          * @brief number of columns along the horizontal axis
          * screen width / cols = width of heat map square.
          */
@@ -102,6 +111,22 @@ namespace DSL
          * screen height / rows = height of heat map square.
          */
         uint m_rows;
+        
+        /**
+         * @brief width of the grid rectangles in pixels.
+         */
+        uint m_gridRectWidth;
+
+        /**
+         * @brief height of the grid rectangles in pixels.
+         */
+        uint m_gridRectHeight;
+        
+        /**
+         * @brief one of DSL_BBOX_POINT values defining which point of a
+         * object's bounding box to use as map coordinates.
+         */
+        uint m_bboxTestPoint;
 
         /**
          * @brief shared pointer to a RGBA Color Palette to color
@@ -115,14 +140,14 @@ namespace DSL
         std::vector<std::vector<uint64_t>> m_heatMap;
         
         /**
-         * @brief running count of total points added to the heatmap.
+         * @brief running count of total occurrence added to the heatmap.
          */
-        uint64_t m_totalPoints;
+        uint64_t m_totalOccurrences;
         
         /**
-         * @brief the most points in any one map location..
+         * @brief the most occurrences in any one map location..
          */
-        uint64_t m_mostPoints;
+        uint64_t m_mostOccurrences;
     };
 }
 

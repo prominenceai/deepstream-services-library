@@ -73,7 +73,6 @@ namespace DSL
             std::shared_ptr<NvBbox_Coords>(new NvBbox_Coords);
             
         *pBboxCoords = *pCoordinates;
-//        memcpy(&(*pBboxCoords), pCoordinates, sizeof(NvBbox_Coords));
 
         // If maintaining bbox trace-point history
         if (m_maxHistory)

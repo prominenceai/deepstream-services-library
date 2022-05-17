@@ -245,6 +245,7 @@
       <File Name="../examples/python/message_broker_azure_module_client.py"/>
       <File Name="../examples/python/1image_jpeg_pgie_osd_window.py"/>
       <File Name="../examples/python/ode_line_cross_object_capture_overlay_image.py"/>
+      <File Name="../examples/python/ode_occurrence_trigger_with_heat_mapper.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>

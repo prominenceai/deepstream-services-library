@@ -31,7 +31,7 @@ namespace DSL
 {
 
     DslReturnType Services::OdeHeatMapperNew(const char* name,
-        uint cols, uint rows, const char* colorPalette)
+        uint cols, uint rows, uint bboxTestPoint, const char* colorPalette)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -54,7 +54,7 @@ namespace DSL
                     m_displayTypes[colorPalette]);
             
             m_odeHeatMappers[name] = DSL_ODE_HEAT_MAPPER_NEW(name,
-                cols, rows, pColorPalette);
+                cols, rows, bboxTestPoint, pColorPalette);
             
             LOG_INFO("New ODE Heat-Mapper '" << name 
                 << "' created successfully");

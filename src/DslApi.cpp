@@ -2625,7 +2625,7 @@ uint dsl_ode_accumulator_list_size()
 }
 
 DslReturnType dsl_ode_heat_mapper_new(const wchar_t* name, 
-    uint cols, uint rows, const wchar_t* color_palette)
+    uint cols, uint rows, uint bbox_test_point, const wchar_t* color_palette)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(color_palette);
@@ -2636,7 +2636,7 @@ DslReturnType dsl_ode_heat_mapper_new(const wchar_t* name,
     std::string cstrColorPalette(wstrColorPalette.begin(), wstrColorPalette.end());
 
     return DSL::Services::GetServices()->OdeHeatMapperNew(
-        cstrName.c_str(), cols, rows, cstrColorPalette.c_str());
+        cstrName.c_str(), cols, rows, bbox_test_point, cstrColorPalette.c_str());
 }
     
 DslReturnType dsl_ode_heat_mapper_delete(const wchar_t* name)
