@@ -601,11 +601,27 @@ THE SOFTWARE.
 #define DSL_COLOR_LUMINOSITY_RANDOM                                 4
 
 /**
- * @brief Predefined Color Palette constants used to create a predefined RGB color palette.
+ * @brief Predefined Color Palette constants used to create a predefined 
+ * RGB color palette.
  */
 #define DSL_COLOR_PREDEFINED_PALETTE_SPECTRAL                       0
+#define DSL_COLOR_PREDEFINED_PALETTE_RED                            1
+#define DSL_COLOR_PREDEFINED_PALETTE_GREEN                          2
+#define DSL_COLOR_PREDEFINED_PALETTE_BLUE                           3
+#define DSL_COLOR_PREDEFINED_PALETTE_GREY                           4
 
 
+/**
+ * @brief On-Screen Heat-Map legend locations.
+ */
+#define DSL_HEAT_MAP_LEGEND_LOCATION_TOP                            0
+#define DSL_HEAT_MAP_LEGEND_LOCATION_RIGHT                          1
+#define DSL_HEAT_MAP_LEGEND_LOCATION_BOTTOM                         2
+#define DSL_HEAT_MAP_LEGEND_LOCATION_LEFT                           3
+ 
+/**
+ * @brief On-Screen Heat-Map legend locations.
+ */
 #define DSL_CAPTURE_TYPE_OBJECT                                     0
 #define DSL_CAPTURE_TYPE_FRAME                                      1
 
@@ -3125,10 +3141,54 @@ uint dsl_ode_accumulator_list_size();
  * object's bounding box to use as coordinates for mapping.
  * @param[in] color_palette a palette of RGBA Colors to assign to the grid rectangles
  * based on the percentage of center-points per-square.  
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
  */
 DslReturnType dsl_ode_heat_mapper_new(const wchar_t* name, 
     uint cols, uint rows, uint bbox_test_point, const wchar_t* color_palette);
+
+/**
+ * @brief Gets the RGBA Color Palette in use by the named ODE Heat-Mapper
+ * @param[in] name unique name of the ODE Heat-Mapper to query
+ * @param[out] color_palette name of the RGBA Color Palette in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_color_palette_get(const wchar_t* name, 
+    const wchar_t** color_palette);
+
+/**
+ * @brief Sets the the RGBA Color Palette to use by the named ODE Heat-Mapper
+ * @param[in] name unique name of the ODE Heat-Mapper to update
+ * @param[in] color_palette name of the RGBA Color Palette to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_color_palette_set(const wchar_t* name, 
+    const wchar_t* color_palette);
+
+/**
+ * @brief Gets the current Legend settings for the named ODE Heat-Mapper.
+ * @param[in] name unique name of the ODE Heat-Mapper to query.
+ * @param[out] enabled true if display is enabled, false otherwise.
+ * @param[out] location current frame location, one of DSL_HEAT_MAP_LEGEND_LOCATION_*
+ * @param[out] width width of each entry in the legend in units of columns.
+ * @param[out] height height of each entry in the legend in units of rows.
+ * @return DSL_RESULT_SUCCESS on successful query, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_legend_settings_get(const wchar_t* name, 
+    boolean* enabled, uint* location, uint* width, uint* height);
+
+/**
+ * @brief Gets the current Legend settings for the named ODE Heat-Mapper.
+ * @param[in] name unique name of the ODE Heat-Mapper to update.
+ * @param[in] enabled set to true to enable display, false to disable.
+ * @param[in] location frame location, one of DSL_HEAT_MAP_LEGEND_LOCATION_*
+ * @param[in] width width of each entry in the legend in units of columns.
+ * @param[in] height height of each entry in the legend in units of rows.
+ * @return DSL_RESULT_SUCCESS on successful query, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_legend_settings_set(const wchar_t* name, 
+    boolean enabled, uint location, uint width, uint height);
 
 /**
  * @brief Deletes a uniquely named ODE Heat-Mapper. The call will fail if 

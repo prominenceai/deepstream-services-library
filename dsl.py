@@ -114,6 +114,15 @@ DSL_COLOR_LUMINOSITY_BRIGHT = 3
 DSL_COLOR_LUMINOSITY_RANDOM = 4
 
 DSL_COLOR_PREDEFINED_PALETTE_SPECTRAL = 0
+DSL_COLOR_PREDEFINED_PALETTE_RED = 1
+DSL_COLOR_PREDEFINED_PALETTE_GREEN = 2
+DSL_COLOR_PREDEFINED_PALETTE_BLUE = 3
+DSL_COLOR_PREDEFINED_PALETTE_GREY = 4
+
+DSL_HEAT_MAP_LEGEND_LOCATION_TOP = 0
+DSL_HEAT_MAP_LEGEND_LOCATION_RIGHT = 1
+DSL_HEAT_MAP_LEGEND_LOCATION_BOTTOM = 2
+DSL_HEAT_MAP_LEGEND_LOCATION_LEFT = 3
 
 DSL_CAPTURE_TYPE_OBJECT = 0
 DSL_CAPTURE_TYPE_FRAME = 1
@@ -2261,6 +2270,57 @@ def dsl_ode_heat_mapper_new(name, cols, rows, bbox_test_point, color_palette):
     global _dsl
     result =_dsl.dsl_ode_heat_mapper_new(name, 
         cols, rows, bbox_test_point, color_palette)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_legend_settings_get()
+##
+_dsl.dsl_ode_heat_mapper_legend_settings_get.argtypes = [c_wchar_p, 
+    POINTER(c_bool), POINTER(c_uint), POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_ode_heat_mapper_legend_settings_get.restype = c_uint
+def dsl_ode_heat_mapper_legend_settings_get(name):
+    global _dsl 
+    enabled = c_bool(0)
+    location = c_uint(0)
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_ode_heat_mapper_legend_settings_get(name, DSL_BOOL_P(enabled), 
+        DSL_UINT_P(location), DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), enabled.value, location.value, width.value, height.value 
+
+##
+## dsl_ode_heat_mapper_legend_settings_set()
+##
+_dsl.dsl_ode_heat_mapper_legend_settings_set.argtypes = [c_wchar_p, 
+    c_bool, c_uint, c_uint, c_uint]
+_dsl.dsl_ode_heat_mapper_legend_settings_set.restype = c_uint
+def dsl_ode_heat_mapper_legend_settings_set(name, enabled, location, width, height):
+    global _dsl
+    result = _dsl.dsl_ode_heat_mapper_legend_settings_set(name, 
+        enabled, location, width, height)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_color_palette_get()
+##
+_dsl.dsl_ode_heat_mapper_color_palette_get.argtypes = [c_wchar_p, 
+    POINTER(c_wchar_p)]
+_dsl.dsl_ode_heat_mapper_color_palette_get.restype = c_uint
+def dsl_ode_heat_mapper_color_palette_get(name):
+    global _dsl 
+    color_palette = c_wchar_p(0)
+    result = _dsl.dsl_ode_heat_mapper_color_palette_get(name,
+        DSL_WCHAR_P(color_palette))
+    return int(result), color_palette.value
+
+##
+## dsl_ode_heat_mapper_color_palette_set()
+##
+_dsl.dsl_ode_heat_mapper_color_palette_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_heat_mapper_color_palette_set.restype = c_uint
+def dsl_ode_heat_mapper_color_palette_set(name, color_palette):
+    global _dsl
+    result = _dsl.dsl_ode_heat_mapper_color_palette_set(name, color_palette)
     return int(result)
 
 ##

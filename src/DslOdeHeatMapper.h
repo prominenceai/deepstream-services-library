@@ -64,6 +64,39 @@ namespace DSL
         ~OdeHeatMapper();
         
         /**
+         * @brief Gets the current Color Palette in use
+         * @return shared pointer to the RGBA Color Palette in use
+         */
+        DSL_RGBA_COLOR_PALETTE_PTR GetColorPalette();
+        
+        /**
+         * @brief Sets the Color Palette to use for the OdeHeatMapper.
+         * @return true if the color Palette could be updated
+         */
+        bool SetColorPalette(DSL_RGBA_COLOR_PALETTE_PTR pColorPalette);
+        
+        /**
+         * @brief Gets the current Legend Settings for the OdeHeatMapper.
+         * @param[in] enabled true if display is enabled, false otherwise.
+         * @param[out] location one of the DSL_HEAT_MAP_LEGEND_LOCATION_* contants.
+         * @param[out] width width of each legend entry in units of grid rectangles.
+         * @param[out] height height of each legend entry in units of grid rectangles.
+         */
+        void GetLegendSettings(bool* enabled, uint* location, 
+            uint* width, uint* height);
+
+        /**
+         * @brief Gets the current Legend Settings for the OdeHeatMapper.
+         * @param[in] enabled set to true to display, false to disable.
+         * @param[in] location one of the DSL_HEAT_MAP_LEGEND_LOCATION_* contants.
+         * @param[in] width width of each legend entry in units of grid rectangles.
+         * @param[in] height height of each legend entry in units of grid rectangles.
+         * @return true on successful update, false otherwise
+         */
+        bool SetLegendSettings(bool enabled, uint location, 
+            uint width, uint height);
+        
+        /**
          * @brief Handles the ODE occurrence by updating the heat-map with new 
          * the bounding box center point provided by pObjectMeta,  
          * @param[in] pFrameMeta pointer to the Frame Meta data for the current frame
@@ -148,6 +181,36 @@ namespace DSL
          * @brief the most occurrences in any one map location..
          */
         uint64_t m_mostOccurrences;
+        
+        /**
+         * @brief true if Legend display is enabled, false otherwise.
+         */
+        bool m_legendEnabled;
+        
+        /**
+         * @brief one of the DSL_HEAT_MAP_LEGEND_LOCATION_* contants.
+         */
+        uint m_legendLocation;
+        
+        /**
+         * @brief left position of the legend in units of grid rectangles.
+         */
+        uint m_legendLeft;
+        
+        /**
+         * @brief top position of the legend in units of grid rectangles.
+         */
+        uint m_legendTop;
+        
+        /**
+         * @brief width of each legend entry in units of grid rectangles.
+         */
+        uint m_legendWidth; 
+
+        /**
+         * @brief height of each legend entry in units of grid rectangles.
+         */
+        uint m_legendHeight;
     };
 }
 

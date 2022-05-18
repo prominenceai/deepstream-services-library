@@ -49,11 +49,27 @@ WINDOW_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
 # Minimum Inference confidence level to Trigger ODE Occurrence
 PERSON_MIN_CONFIDENCE = 0.4 # 40%
 
+SPECTRAL_PALETTE = 'spectral-palette'
+RED_PALETTE = 'red-palette'
+GREEN_PALETTE = 'green-palette'
+BLUE_PALETTE = 'blue-palette'
+GREY_PALETTE = 'grey-palette'
+
+color_palettes = [SPECTRAL_PALETTE, RED_PALETTE, GREEN_PALETTE, BLUE_PALETTE, GREY_PALETTE]
+color_palette_index  = DSL_COLOR_PREDEFINED_PALETTE_SPECTRAL
+
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
 def xwindow_key_event_handler(key_string, client_data):
+    global color_palette_index
+    
     print('key released = ', key_string)
+    if key_string.upper() == 'N':
+        color_palette_index = \
+            (color_palette_index + 1) % (DSL_COLOR_PREDEFINED_PALETTE_GREY +1)
+        retval = dsl_ode_heat_mapper_color_palette_set('person-heat-mapper',
+            color_palettes[color_palette_index])    
     if key_string.upper() == 'P':
         dsl_pipeline_pause('pipeline')
     elif key_string.upper() == 'R':
@@ -144,15 +160,53 @@ def main(args):
             alpha = 0.6)
         if retval != DSL_RETURN_SUCCESS:
             break
+
+        # ----------------------------------------------------------------------------
+        # Create a color palette for each of the Predefined Palettes
+        retval = dsl_display_type_rgba_color_palette_predefined_new(SPECTRAL_PALETTE,
+            palette_id = DSL_COLOR_PREDEFINED_PALETTE_SPECTRAL,
+            alpha = 0.6)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        retval = dsl_display_type_rgba_color_palette_predefined_new(RED_PALETTE,
+            palette_id = DSL_COLOR_PREDEFINED_PALETTE_RED,
+            alpha = 0.6)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        retval = dsl_display_type_rgba_color_palette_predefined_new(GREEN_PALETTE,
+            palette_id = DSL_COLOR_PREDEFINED_PALETTE_GREEN,
+            alpha = 0.6)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_display_type_rgba_color_palette_predefined_new(BLUE_PALETTE,
+            palette_id = DSL_COLOR_PREDEFINED_PALETTE_BLUE,
+            alpha = 0.6)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_display_type_rgba_color_palette_predefined_new(GREY_PALETTE,
+            palette_id = DSL_COLOR_PREDEFINED_PALETTE_GREY,
+            alpha = 0.6)
+        if retval != DSL_RETURN_SUCCESS:
+            break
         
         # New ODE Heat-Mapper to map the Person occurrences overtime
         retval = dsl_ode_heat_mapper_new('person-heat-mapper',
             cols = 64, 
             rows = 36, 
             bbox_test_point = DSL_BBOX_POINT_SOUTH,
-            color_palette = 'spectral')
+            color_palette = color_palettes[color_palette_index])
         if retval != DSL_RETURN_SUCCESS:
             break
+            
+        # Enable and setup display of the heat-map legend.
+        retval = dsl_ode_heat_mapper_legend_settings_set('person-heat-mapper',
+            enabled = True,
+            location = DSL_HEAT_MAP_LEGEND_LOCATION_TOP, 
+            width = 2, 
+            height = 2)
+            
         
         retval = dsl_ode_trigger_heat_mapper_add('person-occurrence-trigger', 
             heat_mapper='person-heat-mapper')
@@ -169,7 +223,7 @@ def main(args):
         # Need to increase the number of display-meta structures that are
         # allocated per frame to handle all of the rectangles in the heat map.
         # Note, this adds overhead on a per-frame bases.
-        retval = dsl_pph_ode_display_meta_alloc_size_set('ode-handler', 10)
+        retval = dsl_pph_ode_display_meta_alloc_size_set('ode-handler', 12)
         if retval != DSL_RETURN_SUCCESS:
             break
         

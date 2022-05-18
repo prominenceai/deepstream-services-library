@@ -2638,6 +2638,69 @@ DslReturnType dsl_ode_heat_mapper_new(const wchar_t* name,
     return DSL::Services::GetServices()->OdeHeatMapperNew(
         cstrName.c_str(), cols, rows, bbox_test_point, cstrColorPalette.c_str());
 }
+
+DslReturnType dsl_ode_heat_mapper_color_palette_get(const wchar_t* name, 
+    const wchar_t** color_palette)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(color_palette);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cColorPalette;
+    static std::string cstrColorPalette;
+    static std::wstring wcstrColorPalette;
+    
+    DslReturnType result = DSL::Services::GetServices()->OdeHeatMapperColorPaletteGet(
+        cstrName.c_str(), &cColorPalette);
+    if (result == DSL_RESULT_SUCCESS)
+    {
+        cstrColorPalette.assign(cColorPalette);
+        wcstrColorPalette.assign(cstrColorPalette.begin(), cstrColorPalette.end());
+        *color_palette = wcstrColorPalette.c_str();
+    }
+    return result;
+}
+
+DslReturnType dsl_ode_heat_mapper_color_palette_set(const wchar_t* name, 
+    const wchar_t* color_palette)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(color_palette);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrColorPalette(color_palette);
+    std::string cstrColorPalette(wstrColorPalette.begin(), wstrColorPalette.end());
+
+    return DSL::Services::GetServices()->OdeHeatMapperColorPaletteSet(
+        cstrName.c_str(), cstrColorPalette.c_str());
+}
+    
+DslReturnType dsl_ode_heat_mapper_legend_settings_get(const wchar_t* name, 
+    boolean* enabled, uint* location, uint* width, uint* height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeHeatMapperLegendSettingsGet(
+        cstrName.c_str(), enabled, location, width, height);
+}
+    
+DslReturnType dsl_ode_heat_mapper_legend_settings_set(const wchar_t* name, 
+    boolean enabled, uint location, uint width, uint height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeHeatMapperLegendSettingsSet(
+        cstrName.c_str(), enabled, location, width, height);
+}
     
 DslReturnType dsl_ode_heat_mapper_delete(const wchar_t* name)
 {

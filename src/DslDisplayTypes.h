@@ -296,6 +296,13 @@ namespace DSL
          */
         bool SetIndex(uint index);
         
+        /**
+         * @brief Gets the current size of the color-palette
+         * @return size of the color palette
+         */
+        uint GetSize();
+
+        
     private:
     
         /**

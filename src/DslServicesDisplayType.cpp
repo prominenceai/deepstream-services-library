@@ -194,7 +194,7 @@ namespace DSL
                     << "' is not unique");
                 return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
             }
-            if (paletteId > DSL_COLOR_PREDEFINED_PALETTE_SPECTRAL)
+            if (paletteId > DSL_COLOR_PREDEFINED_PALETTE_GREY)
             {
                 LOG_ERROR("Invalid palette_id value of " << paletteId 
                     << " for New RGBA Predefined Color Palette '" << name << "'");

@@ -40,6 +40,12 @@ namespace DSL
         , m_heatMap(rows, std::vector<uint64_t> (cols, 0))
         , m_totalOccurrences(0)
         , m_mostOccurrences(0)
+        , m_legendEnabled(false)
+        , m_legendLocation(0)
+        , m_legendLeft(0)
+        , m_legendTop(0)
+        , m_legendWidth(0)
+        , m_legendHeight(0)
     {
         LOG_FUNC();
     }
@@ -48,6 +54,90 @@ namespace DSL
     {
         LOG_FUNC();
     }
+    
+    DSL_RGBA_COLOR_PALETTE_PTR OdeHeatMapper::GetColorPalette()
+    {
+        LOG_FUNC();
+        
+        return m_pColorPalette;
+    }
+    
+    bool OdeHeatMapper::SetColorPalette(DSL_RGBA_COLOR_PALETTE_PTR pColorPalette)
+    {
+        LOG_FUNC();
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+            m_pColorPalette = pColorPalette;
+        }
+        // need to recalculated legend settings.
+        return SetLegendSettings(m_legendEnabled, m_legendLocation,
+            m_legendWidth, m_legendHeight);
+    }
+    
+    void OdeHeatMapper::GetLegendSettings(bool* enabled, uint* location, 
+        uint* width, uint* height)
+    {
+        LOG_FUNC();
+        
+        *enabled = m_legendEnabled;
+        *location = m_legendLocation;
+        *width = m_legendWidth;
+        *height = m_legendHeight;
+    }            
+
+    bool OdeHeatMapper::SetLegendSettings(bool enabled, uint location, 
+        uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        // disable untill all params are checked.
+        m_legendEnabled = false;
+        
+        // If client is disabling - done
+        if (!enabled)
+        {
+            return true;
+        }
+         
+        if (location == DSL_HEAT_MAP_LEGEND_LOCATION_TOP or
+            location == DSL_HEAT_MAP_LEGEND_LOCATION_BOTTOM)
+        {
+            // Ensure we have enough horizontal space 
+            if ((width*m_pColorPalette->GetSize() + 2) > m_cols)
+            {
+                LOG_ERROR("Insufficient columns = " << m_cols 
+                   << "to display legend for Heat-Mapper '" << GetName());
+                return false;
+            }
+            m_legendLeft = m_cols / 2 - m_pColorPalette->GetSize()/2*width;
+            m_legendTop = (location == DSL_HEAT_MAP_LEGEND_LOCATION_TOP)
+                ? 1
+                : m_rows - 2;
+        }         
+        if (location == DSL_HEAT_MAP_LEGEND_LOCATION_LEFT or
+            location == DSL_HEAT_MAP_LEGEND_LOCATION_RIGHT)
+        {
+            if (height*m_pColorPalette->GetSize() + 2 > m_rows)
+            {
+                LOG_ERROR("Insufficient rows = " << m_rows 
+                   << "to display legend for Heat-Mapper '" << GetName());
+                return false;
+            }
+            m_legendLeft = (location == DSL_HEAT_MAP_LEGEND_LOCATION_LEFT)
+                ? 1
+                : m_cols - 1 - width;
+            m_legendTop = m_rows / 2 - m_pColorPalette->GetSize()*height;
+        }         
+
+        m_legendEnabled = true;
+        m_legendLocation = location;
+        m_legendWidth = width;
+        m_legendHeight = height;
+
+        return true;
+    }            
 
     void OdeHeatMapper::HandleOccurrence(NvDsFrameMeta* pFrameMeta, 
         NvDsObjectMeta* pObjectMeta)
@@ -83,6 +173,45 @@ namespace DSL
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
+        // Add legend first, just in case we run out of display-meta
+        if (m_legendEnabled)
+        {
+            // If the legend is added to a vertical axis
+            if (m_legendLocation == DSL_HEAT_MAP_LEGEND_LOCATION_TOP or
+                m_legendLocation == DSL_HEAT_MAP_LEGEND_LOCATION_BOTTOM)
+            {
+                for (uint j=0; j < m_pColorPalette->GetSize(); j++)
+                {
+                    m_pColorPalette->SetIndex(j);
+
+                    DSL_RGBA_RECTANGLE_PTR pRectangle = DSL_RGBA_RECTANGLE_NEW("", 
+                        m_legendLeft*m_gridRectWidth + j*m_gridRectWidth*m_legendWidth, 
+                        m_legendTop*m_gridRectHeight, 
+                        m_gridRectWidth*m_legendWidth, 
+                        m_gridRectHeight*m_legendHeight, 
+                        false, m_pColorPalette, true, m_pColorPalette);
+                        
+                    pRectangle->AddMeta(displayMetaData, NULL);
+                }
+            }
+            // Else the legend is added to a horizontal axis
+            else
+            {
+                for (uint i=0; i < m_pColorPalette->GetSize(); i++)
+                {
+                    m_pColorPalette->SetIndex(i);
+
+                    DSL_RGBA_RECTANGLE_PTR pRectangle = DSL_RGBA_RECTANGLE_NEW("", 
+                        m_legendLeft*m_gridRectWidth, 
+                        m_legendTop*m_gridRectHeight + i*m_gridRectHeight*m_legendHeight, 
+                        m_gridRectWidth*m_legendWidth, 
+                        m_gridRectHeight*m_legendHeight, 
+                        false, m_pColorPalette, true, m_pColorPalette);
+                        
+                    pRectangle->AddMeta(displayMetaData, NULL);
+                }
+            }    
+        }
         // Iterate through all rows
         for (uint i=0; i < m_rows; i++)
         {
@@ -99,7 +228,8 @@ namespace DSL
                     // multiply the occurrence for the current position by 10 and 
                     // divide by the most occurrences rouded up or down.
                     m_pColorPalette->SetIndex(
-                        std::round((double)m_heatMap[i][j]*10 / (double)(m_mostOccurrences)));
+                        std::round((double)m_heatMap[i][j]*(m_pColorPalette->GetSize()-1) / 
+                            (double)(m_mostOccurrences)));
                     
                     DSL_RGBA_RECTANGLE_PTR pRectangle = DSL_RGBA_RECTANGLE_NEW(
                         "", j*m_gridRectWidth, i*m_gridRectHeight, m_gridRectWidth, 
@@ -109,7 +239,7 @@ namespace DSL
                 }
             }
         }
-    }
+}
     
     void OdeHeatMapper::Reset()
     {

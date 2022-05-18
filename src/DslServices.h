@@ -509,7 +509,19 @@ namespace DSL {
 
         DslReturnType OdeHeatMapperNew(const char* name,
             uint cols, uint rows, uint bboxTestPoint, const char* colorPalette);
+            
+        DslReturnType OdeHeatMapperColorPaletteGet(const char* name,
+            const char** colorPalette);
         
+        DslReturnType OdeHeatMapperColorPaletteSet(const char* name,
+            const char* colorPalette);
+        
+        DslReturnType OdeHeatMapperLegendSettingsGet(const char* name,
+            boolean* enabled, uint* location, uint* width, uint* height);
+
+        DslReturnType OdeHeatMapperLegendSettingsSet(const char* name,
+            boolean enabled, uint location, uint width, uint height);
+
         DslReturnType OdeHeatMapperDelete(const char* name);
         
         DslReturnType OdeHeatMapperDeleteAll();
