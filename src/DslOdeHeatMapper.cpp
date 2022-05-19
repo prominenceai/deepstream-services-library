@@ -239,9 +239,9 @@ namespace DSL
                 }
             }
         }
-}
-    
-    void OdeHeatMapper::Reset()
+    }
+
+    void OdeHeatMapper::ClearMetrics()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -254,8 +254,8 @@ namespace DSL
             }
         }
     }
-    
-    void OdeHeatMapper::Dump()
+
+    void OdeHeatMapper::GetMetrics(const uint64_t** buffer, uint* size)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -264,12 +264,122 @@ namespace DSL
         {
             for (auto const& jvec: ivec)
             {
-                std::stringstream ss;
-                ss << std::setw(7) << std::setfill(' ') << jvec;
-                std::cout << ss.str();
             }
+        }
+    }
+
+    void OdeHeatMapper::PrintMetrics()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        uint charwidth = (m_mostOccurrences)
+            ? floor(log10(m_mostOccurrences)) + 2
+            : 2;
+        
+        for (auto const& ivec: m_heatMap)
+        {
+            std::stringstream ss;
+            for (auto const& jvec: ivec)
+            {
+                ss << std::setw(charwidth) << std::setfill(' ') << jvec;
+            }
+            std::cout << ss.str();
             std::cout << std::endl;
         }
+    }
+
+    void OdeHeatMapper::LogMetrics()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        uint charwidth = (m_mostOccurrences)
+            ? floor(log10(m_mostOccurrences)) + 2
+            : 2;
+
+        for (auto const& ivec: m_heatMap)
+        {
+            std::stringstream ss;
+            for (auto const& jvec: ivec)
+            {
+                ss << std::setw(charwidth) << std::setfill(' ') << jvec;
+            }
+            LOG_INFO(ss.str());
+        }
+    }
+
+    bool OdeHeatMapper::FileMetrics(const char* filePath, uint mode, uint format)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        // determine if new or existing file
+        std::ifstream streamUriFile(filePath);
+        bool fileExists(streamUriFile.good());
+        
+        std::fstream ostream;
+
+        try
+        {
+            if (mode == DSL_WRITE_MODE_APPEND)
+            {
+                ostream.open(filePath, std::fstream::out | std::fstream::app);
+            }
+            else
+            {
+                ostream.open(filePath, std::fstream::out | std::fstream::trunc);
+            }
+        }
+        catch(...) 
+        {
+            LOG_ERROR("OdeHeatMapper '" << GetName() 
+                << "' failed to open file to write metrics");
+            throw;
+        }
+
+        uint charwidth = (m_mostOccurrences)
+            ? floor(log10(m_mostOccurrences)) + 2
+            : 2;
+    
+        if ( format == DSL_EVENT_FILE_FORMAT_TEXT)
+        {
+            char dateTime[DATE_BUFF_LENGTH] = {0};
+            time_t seconds = time(NULL);
+            struct tm currentTm;
+            localtime_r(&seconds, &currentTm);
+
+            strftime(dateTime, DATE_BUFF_LENGTH, "%a, %d %b %Y %H:%M:%S %z", 
+                &currentTm);
+            std::string dateTimeStr(dateTime);
+            
+            ostream << "-------------------------------------------------------------------" << "\n";
+            ostream << " File opened: " << dateTimeStr.c_str() << "\n";
+            ostream << "-------------------------------------------------------------------" << "\n";
+            
+            for (auto const& ivec: m_heatMap)
+            {
+                for (auto const& jvec: ivec)
+                {
+                    ostream << std::setw(charwidth) << std::setfill(' ') << jvec;
+                }
+                ostream << std::endl;
+            }
+        }
+        else
+        {
+            for (auto const& ivec: m_heatMap)
+            {
+                for (auto const& jvec: ivec)
+                {
+                    ostream << jvec << ",";
+                }
+                ostream << std::endl;
+            }
+        }
+        ostream.close();
+        
+        return true;
     }
 
     void OdeHeatMapper::getCoordinate(NvDsObjectMeta* pObjectMeta, 

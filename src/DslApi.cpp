@@ -2701,6 +2701,66 @@ DslReturnType dsl_ode_heat_mapper_legend_settings_set(const wchar_t* name,
     return DSL::Services::GetServices()->OdeHeatMapperLegendSettingsSet(
         cstrName.c_str(), enabled, location, width, height);
 }
+
+DslReturnType dsl_ode_heat_mapper_metrics_clear(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeHeatMapperMetricsClear(
+        cstrName.c_str());
+}
+
+DslReturnType dsl_ode_heat_mapper_metrics_get(const wchar_t* name,
+    const uint64_t** buffer, uint* size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeHeatMapperMetricsGet(
+        cstrName.c_str(), buffer, size);
+}
+
+DslReturnType dsl_ode_heat_mapper_metrics_print(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeHeatMapperMetricsPrint(
+        cstrName.c_str());
+}
+
+DslReturnType dsl_ode_heat_mapper_metrics_log(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeHeatMapperMetricsLog(
+        cstrName.c_str());
+}
+
+DslReturnType dsl_ode_heat_mapper_metrics_file(const wchar_t* name,
+    const wchar_t* file_path, uint mode, uint format)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->OdeHeatMapperMetricsFile(
+        cstrName.c_str(), cstrFilePath.c_str(), mode, format);
+}
     
 DslReturnType dsl_ode_heat_mapper_delete(const wchar_t* name)
 {

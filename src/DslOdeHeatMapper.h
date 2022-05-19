@@ -115,12 +115,32 @@ namespace DSL
         /**
          * @brief Resets the OdeHeatMapper which clears the 2D m_heatMap vector.
          */
-        void Reset();
+        void ClearMetrics();
         
         /**
-         * @brief Dumps the 2D m_heatMap vector to the console.
+         * @brief Gets the 2D m_heatMap vector as a linear buffer.
+         * @param[out] buffer pointer to the returned buffer
+         * @param[out] size of the return buffer m_cols*m_rows
          */
-        void Dump(); 
+        void GetMetrics(const uint64_t** buffer, uint* size); 
+
+        /**
+         * @brief Prints the 2D m_heatMap vector to the console.
+         */
+        void PrintMetrics(); 
+        
+        /**
+         * @brief Logs the 2D m_heatMap vector at level = INFO.
+         */
+        void LogMetrics(); 
+        
+        /**
+         * @brief Writes the 2D m_heatMap vector to a file.
+         * @param[in] relative or absolute path to the file to write to.
+         * @param[in] mode file open/write mode, one of DSL_EVENT_FILE_MODE_* options
+         * @param[in] format one of the DSL_EVENT_FILE_FORMAT_* options
+         */
+        bool FileMetrics(const char* filePath, uint mode, uint format); 
         
     private:
     

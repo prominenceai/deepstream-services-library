@@ -3191,6 +3191,60 @@ DslReturnType dsl_ode_heat_mapper_legend_settings_set(const wchar_t* name,
     boolean enabled, uint location, uint width, uint height);
 
 /**
+ * @brief Calls on an ODE Heat-Mapper to clear its current heat-map metrics
+ * returning the map to its initial all-zero state. 
+ * @param[in] name unique name of the ODE Heat-Mapper to call on.
+ * @return DSL_RESULT_SUCCESS on success, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_metrics_clear(const wchar_t* name);
+
+/**
+ * @brief Get the current heat-map metrics from an ODE Heat-Mapper
+ * @param[in] name unique name of the ODE Heat-Mapper to query.
+ * @param[out] buffer a linear buffer of metric map data. Each row or 
+ * map data is serialized to a single buffer of size cols*rows. 
+ * Each element in the buffer indicates the total number of occurrences
+ * accumulated for the position in the map.
+ * @param[out] size size of buffer - cols*rows.
+ * @return DSL_RESULT_SUCCESS on success, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_metrics_get(const wchar_t* name,
+    const uint64_t** buffer, uint* size);
+
+/**
+ * @brief Calls on an ODE Heat-Mapper to print its current heat-map metrics
+ * to the console. 
+ * @param[in] name unique name of the ODE Heat-Mapper to call on.
+ * @return DSL_RESULT_SUCCESS on success, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_metrics_print(const wchar_t* name);
+
+/**
+ * @brief Calls on an ODE Heat-Mapper to log its current heat-map metrics
+ * at the INFO log level. 
+ * @param[in] name unique name of the ODE Heat-Mapper to call on.
+ * @return DSL_RESULT_SUCCESS on success, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_metrics_log(const wchar_t* name);
+
+/**
+ * @brief Calls on an ODE Heat-Mapper to write its current heat-map metrics to file.
+ * @param[in] name unique name of the ODE Heat-Mapper to call on.
+ * @param[in] file_path absolute or relative file path of the output file to use
+ * The file will be created if one does exists, or opened/used if found.
+ * @param[in] mode file open/write mode, one of DSL_EVENT_FILE_MODE_* options
+ * @param[in] format one of the DSL_EVENT_FILE_FORMAT_* options
+ * @return DSL_RESULT_SUCCESS on success, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_metrics_file(const wchar_t* name,
+    const wchar_t* file_path, uint mode, uint format);
+
+/**
  * @brief Deletes a uniquely named ODE Heat-Mapper. The call will fail if 
  * the ODE Heat-Mapper is currently in use.
  * @brief[in] name unique name of the ODE Heat-Mapper to delete

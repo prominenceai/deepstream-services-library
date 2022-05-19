@@ -317,11 +317,6 @@ namespace DSL
         m_triggered = 0;
         m_occurrencesAccumulated = 0;
         
-        if (m_pHeatMapper)
-        {
-            std::dynamic_pointer_cast<OdeHeatMapper>(m_pHeatMapper)->Reset();
-        }
-        
         // iterate through the map of limit-event-listeners calling each
         for(auto const& imap: m_limitEventListeners)
         {
@@ -995,7 +990,7 @@ namespace DSL
         }
         
         m_occurrences++;
-        
+
         return true;
     }
     
@@ -1098,6 +1093,12 @@ namespace DSL
             // update the total event count static variable
             s_eventCount++;
 
+            if (m_pHeatMapper)
+            {
+                std::dynamic_pointer_cast<OdeHeatMapper>(m_pHeatMapper)->HandleOccurrence(
+                    pFrameMeta, pObjectMeta);
+            }
+
             // set the primary metric to the new instance occurrence for this frame
             pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = m_occurrences;
 
@@ -1153,7 +1154,7 @@ namespace DSL
         }
         
         m_occurrences++;
-        
+
         return true;
     }
 
@@ -1247,6 +1248,12 @@ namespace DSL
         
         // update the total event count static variable
         s_eventCount++;
+
+        if (m_pHeatMapper)
+        {
+            std::dynamic_pointer_cast<OdeHeatMapper>(m_pHeatMapper)->HandleOccurrence(
+                pFrameMeta, pObjectMeta);
+        }
 
         for (const auto &imap: m_pOdeActionsIndexed)
         {
@@ -1356,6 +1363,11 @@ namespace DSL
         
         m_occurrences++;
         
+        if (m_pHeatMapper)
+        {
+            std::dynamic_pointer_cast<OdeHeatMapper>(m_pHeatMapper)->HandleOccurrence(
+                pFrameMeta, pObjectMeta);
+        }
         return true;
     }
 
@@ -1449,7 +1461,7 @@ namespace DSL
                 s_eventCount++;
 
                 uint smallestArea = UINT32_MAX;
-                NvDsObjectMeta* smallestObject(NULL);
+                NvDsObjectMeta* pSmallestObject(NULL);
                 
                 // iterate through the list of object occurrences that passed all min criteria
                 for (const auto &ivec: m_occurrenceMetaList) 
@@ -1458,11 +1470,17 @@ namespace DSL
                     if (rectArea < smallestArea) 
                     { 
                         smallestArea = rectArea;
-                        smallestObject = ivec;    
+                        pSmallestObject = ivec;    
                     }
                 }
+                // conditionally add the 
+                if (m_pHeatMapper)
+                {
+                    std::dynamic_pointer_cast<OdeHeatMapper>(m_pHeatMapper)->HandleOccurrence(
+                        pFrameMeta, pSmallestObject);
+                }
                 // set the primary metric as the smallest bounding box by area
-                smallestObject->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
+                pSmallestObject->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
                     = smallestArea;
                 for (const auto &imap: m_pOdeActionsIndexed)
                 {
@@ -1470,7 +1488,7 @@ namespace DSL
                         std::dynamic_pointer_cast<OdeAction>(imap.second);
                     
                     pOdeAction->HandleOccurrence(shared_from_this(), 
-                        pBuffer, displayMetaData, pFrameMeta, smallestObject);
+                        pBuffer, displayMetaData, pFrameMeta, pSmallestObject);
                 }
             }   
 
@@ -1538,7 +1556,7 @@ namespace DSL
                 s_eventCount++;
 
                 uint largestArea = 0;
-                NvDsObjectMeta* largestObject(NULL);
+                NvDsObjectMeta* pLargestObject(NULL);
                 
                 // iterate through the list of object occurrences that passed all min criteria
                 for (const auto &ivec: m_occurrenceMetaList) 
@@ -1547,11 +1565,19 @@ namespace DSL
                     if (rectArea > largestArea) 
                     { 
                         largestArea = rectArea;
-                        largestObject = ivec;    
+                        pLargestObject = ivec;    
                     }
                 }
+
+                // If the client has added a heat mapper, call to add-occurrence
+                if (m_pHeatMapper)
+                {
+                    std::dynamic_pointer_cast<OdeHeatMapper>(m_pHeatMapper)->HandleOccurrence(
+                        pFrameMeta, pLargestObject);
+                }
+                
                 // set the primary metric as the larget area
-                largestObject->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
+                pLargestObject->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
                     = largestArea;
                 
                 for (const auto &imap: m_pOdeActionsIndexed)
@@ -1560,7 +1586,7 @@ namespace DSL
                         std::dynamic_pointer_cast<OdeAction>(imap.second);
                     
                     pOdeAction->HandleOccurrence(shared_from_this(), 
-                        pBuffer, displayMetaData, pFrameMeta, largestObject);
+                        pBuffer, displayMetaData, pFrameMeta, pLargestObject);
                 }
             }   
 
@@ -1957,6 +1983,13 @@ namespace DSL
                 // update the total event count static variable
                 s_eventCount++;
 
+                // If the client has added a heat mapper, call to add the occurrence data
+                if (m_pHeatMapper)
+                {
+                    std::dynamic_pointer_cast<OdeHeatMapper>(m_pHeatMapper)->HandleOccurrence(
+                        pFrameMeta, pObjectMeta);
+                }
+
                 // add the persistence value to the array of misc_obj_info
                 // at both the Primary and Persistence specific indecies.
                 pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_DIRECTION] = 
@@ -1997,6 +2030,14 @@ namespace DSL
         if (!m_enabled or m_skipFrame)
         {
             return 0;
+        }
+
+        // If the client has added a heat-mapper, need to AddDisplayMeta here as
+        // the base/super class PostProcessFrame is not called .
+        if (m_pHeatMapper)
+        {
+            std::dynamic_pointer_cast<OdeHeatMapper>(m_pHeatMapper)->AddDisplayMeta(
+                displayMetaData);
         }
 
         // If the client has added an accumulator, 
@@ -2168,6 +2209,13 @@ namespace DSL
                 // update the total event count static variable
                 s_eventCount++;
     
+                // If the client has added a heat mapper, call to add the occurrence data
+                if (m_pHeatMapper)
+                {
+                    std::dynamic_pointer_cast<OdeHeatMapper>(m_pHeatMapper)->HandleOccurrence(
+                        pFrameMeta, pObjectMeta);
+                }
+
                 // add the persistence value to the array of misc_obj_info
                 // at both the Primary and Persistence specific indecies.
                 pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] = 
@@ -2290,6 +2338,13 @@ namespace DSL
 
                 // update the total event count static variable
                 s_eventCount++;
+
+                // If the client has added a heat mapper, call to add the occurrence data
+                if (m_pHeatMapper)
+                {
+                    std::dynamic_pointer_cast<OdeHeatMapper>(m_pHeatMapper)->HandleOccurrence(
+                        pFrameMeta, m_pLatestObjectMeta);
+                }
                 
                 // add the persistence value to the array of misc_obj_info
                 // as both the Primary and Persistence specific indecies.
@@ -2401,6 +2456,13 @@ namespace DSL
 
                 // update the total event count static variable
                 s_eventCount++;
+
+                // If the client has added a heat mapper, call to add the occurrence data
+                if (m_pHeatMapper)
+                {
+                    std::dynamic_pointer_cast<OdeHeatMapper>(m_pHeatMapper)->HandleOccurrence(
+                        pFrameMeta, m_pEarliestObjectMeta);
+                }
 
                 // add the persistence value to the array of misc_obj_info
                 // as both the Primary and Persistence specific indecies.

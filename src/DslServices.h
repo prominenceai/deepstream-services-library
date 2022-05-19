@@ -522,6 +522,18 @@ namespace DSL {
         DslReturnType OdeHeatMapperLegendSettingsSet(const char* name,
             boolean enabled, uint location, uint width, uint height);
 
+        DslReturnType OdeHeatMapperMetricsClear(const char* name);
+
+        DslReturnType OdeHeatMapperMetricsGet(const char* name,
+            const uint64_t** buffer, uint* size);
+
+        DslReturnType OdeHeatMapperMetricsPrint(const char* name);
+
+        DslReturnType OdeHeatMapperMetricsLog(const char* name);
+
+        DslReturnType OdeHeatMapperMetricsFile(const char* name,
+            const char* filePath, uint mode, uint format);
+
         DslReturnType OdeHeatMapperDelete(const char* name);
         
         DslReturnType OdeHeatMapperDeleteAll();

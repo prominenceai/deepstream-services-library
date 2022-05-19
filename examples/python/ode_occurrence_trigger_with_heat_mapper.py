@@ -65,11 +65,26 @@ def xwindow_key_event_handler(key_string, client_data):
     global color_palette_index
     
     print('key released = ', key_string)
+    
+    # N key maps to next color palette
     if key_string.upper() == 'N':
         color_palette_index = \
             (color_palette_index + 1) % (DSL_COLOR_PREDEFINED_PALETTE_GREY +1)
-        retval = dsl_ode_heat_mapper_color_palette_set('person-heat-mapper',
+        dsl_ode_heat_mapper_color_palette_set('person-heat-mapper',
             color_palettes[color_palette_index])    
+
+    # C key maps to clear heat-map metrics
+    if key_string.upper() == 'C':
+        dsl_ode_heat_mapper_metrics_clear('person-heat-mapper')
+        
+    # D key maps to print (dump) heat-map metrics to the console
+    if key_string.upper() == 'D':
+        dsl_ode_heat_mapper_metrics_print('person-heat-mapper')
+
+    # D key maps to print (dump) heat-map metrics to the console
+    if key_string.upper() == 'L':
+        dsl_ode_heat_mapper_metrics_log('person-heat-mapper')
+
     if key_string.upper() == 'P':
         dsl_pipeline_pause('pipeline')
     elif key_string.upper() == 'R':

@@ -192,6 +192,133 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::OdeHeatMapperMetricsClear(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_HEAT_MAPPER_NAME_NOT_FOUND(m_odeHeatMappers, name);
+            
+            m_odeHeatMappers[name]->ClearMetrics();
+
+            LOG_INFO("ODE Heat-Mapper '" << name 
+                << "' cleared its metrics successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE HeatMapper '" << name 
+                << "' threw an exception printing metrics");
+            return DSL_RESULT_ODE_HEAT_MAPPER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeHeatMapperMetricsGet(const char* name,
+        const uint64_t** buffer, uint* size)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_HEAT_MAPPER_NAME_NOT_FOUND(m_odeHeatMappers, name);
+            
+            m_odeHeatMappers[name]->GetMetrics(buffer, size);
+
+            LOG_INFO("ODE Heat-Mapper '" << name 
+                << "' printed its metrics to the console successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE HeatMapper '" << name 
+                << "' threw an exception printing metrics");
+            return DSL_RESULT_ODE_HEAT_MAPPER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeHeatMapperMetricsPrint(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_HEAT_MAPPER_NAME_NOT_FOUND(m_odeHeatMappers, name);
+            
+            m_odeHeatMappers[name]->PrintMetrics();
+
+            LOG_INFO("ODE Heat-Mapper '" << name 
+                << "' printed its metrics to the console successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE HeatMapper '" << name 
+                << "' threw an exception printing metrics");
+            return DSL_RESULT_ODE_HEAT_MAPPER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeHeatMapperMetricsLog(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_HEAT_MAPPER_NAME_NOT_FOUND(m_odeHeatMappers, name);
+            
+            m_odeHeatMappers[name]->LogMetrics();
+
+            LOG_INFO("ODE Heat-Mapper '" << name 
+                << "' Logged its metrics at level = INFO successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE HeatMapper '" << name 
+                << "' threw an exception loggin metrics");
+            return DSL_RESULT_ODE_HEAT_MAPPER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeHeatMapperMetricsFile(const char* name,
+        const char* filePath, uint mode, uint format)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_HEAT_MAPPER_NAME_NOT_FOUND(m_odeHeatMappers, name);
+            
+            if (!m_odeHeatMappers[name]->FileMetrics(filePath, mode, format))
+            {
+                LOG_ERROR("ODE HeatMapper '" << name 
+                    << "' failed to log metrics");
+                return DSL_RESULT_ODE_HEAT_MAPPER_SET_FAILED;
+            }
+
+            LOG_INFO("ODE Heat-Mapper '" << name 
+                << "' Logged its metrics at level = INFO successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE HeatMapper '" << name 
+                << "' threw an exception loggin metrics");
+            return DSL_RESULT_ODE_HEAT_MAPPER_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::OdeHeatMapperDelete(const char* name)
     {
         LOG_FUNC();

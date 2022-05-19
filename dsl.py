@@ -265,6 +265,7 @@ class dsl_webrtc_connection_data(Structure):
 ##
 DSL_UINT_P = POINTER(c_uint)
 DSL_UINT64_P = POINTER(c_uint64)
+DSL_UINT64_PP = POINTER(DSL_UINT64_P)
 DSL_BOOL_P = POINTER(c_bool)
 DSL_WCHAR_PP = POINTER(c_wchar_p)
 DSL_LONG_P = POINTER(c_long)
@@ -2323,6 +2324,47 @@ def dsl_ode_heat_mapper_color_palette_set(name, color_palette):
     result = _dsl.dsl_ode_heat_mapper_color_palette_set(name, color_palette)
     return int(result)
 
+##
+## dsl_ode_heat_mapper_metrics_clear()
+##
+_dsl.dsl_ode_heat_mapper_metrics_clear.argtypes = [c_wchar_p]
+_dsl.dsl_ode_heat_mapper_metrics_clear.restype = c_uint
+def dsl_ode_heat_mapper_metrics_clear(name):
+    global _dsl
+    result = _dsl.dsl_ode_heat_mapper_metrics_clear(name)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_metrics_print()
+##
+_dsl.dsl_ode_heat_mapper_metrics_print.argtypes = [c_wchar_p]
+_dsl.dsl_ode_heat_mapper_metrics_print.restype = c_uint
+def dsl_ode_heat_mapper_metrics_print(name):
+    global _dsl
+    result = _dsl.dsl_ode_heat_mapper_metrics_print(name)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_metrics_log()
+##
+_dsl.dsl_ode_heat_mapper_metrics_log.argtypes = [c_wchar_p]
+_dsl.dsl_ode_heat_mapper_metrics_log.restype = c_uint
+def dsl_ode_heat_mapper_metrics_log(name):
+    global _dsl
+    result = _dsl.dsl_ode_heat_mapper_metrics_log(name)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_metrics_file()
+##
+_dsl.dsl_ode_heat_mapper_metrics_file.argtypes = [c_wchar_p,
+    c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_heat_mapper_metrics_file.restype = c_uint
+def dsl_ode_heat_mapper_metrics_file(name, file_path, mode, format):
+    global _dsl
+    result = _dsl.dsl_ode_heat_mapper_metrics_file(name, file_path, mode, format)
+    return int(result)
+    
 ##
 ## dsl_ode_heat_mapper_delete()
 ##

@@ -121,7 +121,7 @@ SCENARIO( "A new OdeHeatMapper can HandleOccurrence correctly", "[OdeHeatMapper]
 
             THEN( "The OdeHeatMaper's heat-map is udated correctly" )
             {
-                pOdeHeatMapper->Dump();
+                pOdeHeatMapper->PrintMetrics();
             }
         }
     }
@@ -171,12 +171,12 @@ SCENARIO( "A new OdeHeatMapper can Reset correctly", "[OdeHeatMapper]" )
 
         WHEN( "The OdeHeatMapper is called to Reset" )
         {
-            pOdeHeatMapper->Dump();
-            pOdeHeatMapper->Reset();
+            pOdeHeatMapper->PrintMetrics();
+            pOdeHeatMapper->ClearMetrics();
 
             THEN( "The OdeHeatMaper's heat-map is cleared" )
             {
-                pOdeHeatMapper->Dump();
+                pOdeHeatMapper->PrintMetrics();
             }
         }
     }
