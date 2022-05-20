@@ -48,6 +48,8 @@ namespace DSL
         , m_legendHeight(0)
     {
         LOG_FUNC();
+        
+        m_outBuffer = std::unique_ptr<uint64_t[]>(new uint64_t[cols*rows]);
     }
 
     OdeHeatMapper::~OdeHeatMapper()
@@ -246,10 +248,13 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
+        // Iterate through all rows
         for (uint i=0; i < m_rows; i++)
         {
+            // and for each row, iterate through all columns.
             for (uint j=0; j < m_cols; j++)
             {
+                // clear data by resetting to 0
                 m_heatMap[i][j] = 0;
             }
         }
@@ -260,12 +265,21 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
+//        // Iterate through all rows
+//        for (uint i=0; i < m_rows; i++)
+//        {
+//            // and for each row, iterate through all columns.
+//            for (uint j=0; j < m_cols; j++)
+        int i=0;
         for (auto const& ivec: m_heatMap)
         {
             for (auto const& jvec: ivec)
             {
+                m_outBuffer[i++] = jvec;
             }
         }
+        *buffer = m_outBuffer.get();
+        *size = m_cols * m_rows;
     }
 
     void OdeHeatMapper::PrintMetrics()
@@ -314,10 +328,6 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
-        // determine if new or existing file
-        std::ifstream streamUriFile(filePath);
-        bool fileExists(streamUriFile.good());
-        
         std::fstream ostream;
 
         try
@@ -335,7 +345,7 @@ namespace DSL
         {
             LOG_ERROR("OdeHeatMapper '" << GetName() 
                 << "' failed to open file to write metrics");
-            throw;
+            return false;
         }
 
         uint charwidth = (m_mostOccurrences)

@@ -55,8 +55,23 @@ GREEN_PALETTE = 'green-palette'
 BLUE_PALETTE = 'blue-palette'
 GREY_PALETTE = 'grey-palette'
 
-color_palettes = [SPECTRAL_PALETTE, RED_PALETTE, GREEN_PALETTE, BLUE_PALETTE, GREY_PALETTE]
+COLOR_PALETTES = [SPECTRAL_PALETTE, RED_PALETTE, GREEN_PALETTE, BLUE_PALETTE, GREY_PALETTE]
 color_palette_index  = DSL_COLOR_PREDEFINED_PALETTE_SPECTRAL
+
+# ------------------------------------------------------------------------------------
+# This example demonstrates the use of an ODE Heat-Mapper added to an 
+# ODE Occurrence trigger that triggers on every Person occurrence.
+# The occurrence data is mapped/ovelaid on everyframe. The example creates 
+# all 5 predefined RGBA Color Palettes - Spectral, Red, Green, Blue, and Grey.
+# The ODE Heat-Mapper is created with the Spectral palette, but can be updated
+# at runtime by pressing the 'N' key.
+#
+# Several keys, bound to the Window Sink, are mapped to the ODE Heat Mapper services  
+#    - 'N' key maps to 'next' color palette with - dsl_ode_heat_mapper_color_palette_set
+#    - 'C' key maps to 'clear' heat-map metrics  - dsl_ode_heat_mapper_metrics_clear
+#    - 'P' key maps to 'print' heat-map metrics  - dsl_ode_heat_mapper_metrics_print
+#    - 'L' key maps to 'log' heat-map metrics    - dsl_ode_heat_mapper_metrics_log
+#    - 'G' key maps to 'get' heat-map metrics    - dsl_ode_heat_mapper_metrics_get
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -71,24 +86,26 @@ def xwindow_key_event_handler(key_string, client_data):
         color_palette_index = \
             (color_palette_index + 1) % (DSL_COLOR_PREDEFINED_PALETTE_GREY +1)
         dsl_ode_heat_mapper_color_palette_set('person-heat-mapper',
-            color_palettes[color_palette_index])    
+            COLOR_PALETTES[color_palette_index])    
 
     # C key maps to clear heat-map metrics
     if key_string.upper() == 'C':
         dsl_ode_heat_mapper_metrics_clear('person-heat-mapper')
         
-    # D key maps to print (dump) heat-map metrics to the console
-    if key_string.upper() == 'D':
+    # P key maps to print heat-map metrics to the console
+    if key_string.upper() == 'P':
         dsl_ode_heat_mapper_metrics_print('person-heat-mapper')
 
     # D key maps to print (dump) heat-map metrics to the console
     if key_string.upper() == 'L':
         dsl_ode_heat_mapper_metrics_log('person-heat-mapper')
 
-    if key_string.upper() == 'P':
-        dsl_pipeline_pause('pipeline')
-    elif key_string.upper() == 'R':
-        dsl_pipeline_play('pipeline')
+    # G key maps to get heat-map metrics
+    if key_string.upper() == 'G':
+        retval, buffer, size = dsl_ode_heat_mapper_metrics_get('person-heat-mapper')
+        
+        # access buffer as an array of size i.e. buffer[i] 
+
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
         dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
@@ -121,15 +138,14 @@ def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
-    
-        # This example demonstrates the use of an ODE Heat-Mapper added to 
-        # an ODE Occurrence trigger that triggers on every Person occurrence.
-        # The Heat-Mapper is created with a Predefined (spectral) Color Palette.
         
-        #```````````````````````````````````````````````````````````````````````````````````
+        #-----------------------------------------------------------------------------
+        # First, we want to remove the Object labels and bounding boxes. This is
+        # be adding Format-Label and Format-BBox actions to an Occurrence Trigger.
 
         # Create a Format Label Action to remove the Object Label from view
-        # Note: the label can be disabled with the OSD API as well. 
+        # Note: the label can be disabled with the OSD API as well, however
+        # that will disable all text/labels, not just object labels. 
         retval = dsl_ode_action_format_label_new('remove-label', 
             font=None, has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
@@ -141,7 +157,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create an Any-Class Occurrence Trigger for our Hide Action
+        # Create an Any-Class Occurrence Trigger for our remove Actions
         retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', 
             source = DSL_ODE_ANY_SOURCE, 
             class_id = DSL_ODE_ANY_CLASS, 
@@ -154,11 +170,13 @@ def main(args):
             break
 
         #```````````````````````````````````````````````````````````````````````````````````
+        # Next, create an Occurrence Trigger to filter on People - defined with
+        # a minimuim confidence level to eleminate most false positives
 
         # New Occurrence Trigger, filtering on PERSON class_id,
         retval = dsl_ode_trigger_occurrence_new('person-occurrence-trigger', 
             source = DSL_ODE_ANY_SOURCE,
-            class_id = PGIE_CLASS_ID_PERSON, 
+            class_id = PGIE_CLASS_ID_PERSON,
             limit = DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -169,15 +187,12 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Predefine Color Palette - easier than defining 10 custom colors
-        retval = dsl_display_type_rgba_color_palette_predefined_new('spectral',
-            palette_id = DSL_COLOR_PREDEFINED_PALETTE_SPECTRAL,
-            alpha = 0.6)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # ----------------------------------------------------------------------------
-        # Create a color palette for each of the Predefined Palettes
+        # Next, we create color palettes for each of the Predefined Palettes. Each
+        # palette can be tested with the ODE Heat-Mapper to see what looks best.
+        # The 'N' key will be mapped to select the 'Next' color palette - simpling 
+        # cycling through each of the indecies in the COLOR_PALETTES array.
+        
         retval = dsl_display_type_rgba_color_palette_predefined_new(SPECTRAL_PALETTE,
             palette_id = DSL_COLOR_PREDEFINED_PALETTE_SPECTRAL,
             alpha = 0.6)
@@ -206,12 +221,17 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         
+        #-----------------------------------------------------------------------------
+        # Next, we create the ODE Heat-Mapper with a set number of rows and columns
+        # using a 9:6 ratio so that the map entries will be square. In this example,
+        # we use the South (center bottom) point on the Bounding Box to obtain samples.
+        
         # New ODE Heat-Mapper to map the Person occurrences overtime
         retval = dsl_ode_heat_mapper_new('person-heat-mapper',
             cols = 64, 
             rows = 36, 
             bbox_test_point = DSL_BBOX_POINT_SOUTH,
-            color_palette = color_palettes[color_palette_index])
+            color_palette = COLOR_PALETTES[color_palette_index])
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -222,26 +242,32 @@ def main(args):
             width = 2, 
             height = 2)
             
-        
+        # Add the ODE Heat-Mapper to the Person Occurrence Trigger.
         retval = dsl_ode_trigger_heat_mapper_add('person-occurrence-trigger', 
             heat_mapper='person-heat-mapper')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
+        #`````````````````````````````````````````````````````````````````````````````
+        # Next, create the ODE Pad Probe Handler (PPH) and increase the number of
+        # Display metadata structures so that the cols * rows sqaures can be displayed.
+        #    64 * 36 / 16 elements (rectangles) per structure = 144. Since we only
+        # car about mapping people walking on the sidewalk (left half of view) we can 
+        # reduce the number by at least 50%. The Display metadata is allocated/freed 
+        # on each frame and therefore will add overhead to the Pipeline's execution.
         
         # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
         retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Need to increase the number of display-meta structures that are
-        # allocated per frame to handle all of the rectangles in the heat map.
-        # Note, this adds overhead on a per-frame bases.
-        retval = dsl_pph_ode_display_meta_alloc_size_set('ode-handler', 12)
+        # Increase the number of display-meta structures that are allocated 
+        # (default=1) per frame to handle all of the rectangles in the heat map.
+        retval = dsl_pph_ode_display_meta_alloc_size_set('ode-handler', 70)
         if retval != DSL_RETURN_SUCCESS:
             break
         
+        # Add the two Triggers to the ODE PPH to be invoked on every frame. 
         retval = dsl_pph_ode_trigger_add_many('ode-handler', 
             triggers=['every-occurrence-trigger', 'person-occurrence-trigger', None])
         if retval != DSL_RETURN_SUCCESS:

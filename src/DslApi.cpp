@@ -29,7 +29,7 @@ THE SOFTWARE.
 { \
     if (!input_string) \
     { \
-        LOG_ERROR("Input parameter must be a valid string and not NULL"); \
+        LOG_ERROR("Input parameter must be a valid and not NULL"); \
         return DSL_RESULT_INVALID_INPUT_PARAM; \
     } \
 }while(0); 
@@ -2717,6 +2717,7 @@ DslReturnType dsl_ode_heat_mapper_metrics_get(const wchar_t* name,
     const uint64_t** buffer, uint* size)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(buffer);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());

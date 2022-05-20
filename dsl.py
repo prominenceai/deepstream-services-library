@@ -2335,6 +2335,21 @@ def dsl_ode_heat_mapper_metrics_clear(name):
     return int(result)
 
 ##
+## dsl_ode_heat_mapper_metrics_get()
+##
+_dsl.dsl_ode_heat_mapper_metrics_get.argtypes = [c_wchar_p, 
+    POINTER(DSL_UINT64_P), POINTER(c_uint)]
+_dsl.dsl_ode_heat_mapper_metrics_get.restype = c_uint
+def dsl_ode_heat_mapper_metrics_get(name):
+    global _dsl 
+    buffer = POINTER(c_uint64)()
+    size = c_uint(0)
+    result = _dsl.dsl_ode_heat_mapper_metrics_get(name,
+        byref(buffer), DSL_UINT_P(size))
+    print (buffer[0])
+    return int(result), buffer, size.value
+
+##
 ## dsl_ode_heat_mapper_metrics_print()
 ##
 _dsl.dsl_ode_heat_mapper_metrics_print.argtypes = [c_wchar_p]

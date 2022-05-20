@@ -193,6 +193,12 @@ namespace DSL
         std::vector<std::vector<uint64_t>> m_heatMap;
         
         /**
+         * @brief a linear array of heat-map metrics updated on
+         * on call to get metrics and returned to the caller.
+         */
+        std::unique_ptr<uint64_t[]> m_outBuffer;
+        
+        /**
          * @brief running count of total occurrence added to the heatmap.
          */
         uint64_t m_totalOccurrences;

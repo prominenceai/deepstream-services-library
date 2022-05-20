@@ -144,3 +144,58 @@ SCENARIO( "A new Heat-Mapper can handle calls to its Metrics services",
     }
 }    
 
+SCENARIO( "The ODE Heat-Mapper API checks for NULL input parameters", "[ode-heat-mapper-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "When NULL pointers are used as input" ) 
+        {
+            THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
+            {
+                REQUIRE( dsl_ode_heat_mapper_new(NULL, 
+                    0, 0 , 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_heat_mapper_new(ode_heat_mapper_name.c_str(), 
+                    0, 0 , 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_heat_mapper_color_palette_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_heat_mapper_color_palette_get(ode_heat_mapper_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_heat_mapper_color_palette_set(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_heat_mapper_color_palette_set(ode_heat_mapper_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_heat_mapper_legend_settings_get(NULL, 
+                    NULL, NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_ode_heat_mapper_legend_settings_get(NULL, 
+                    0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_ode_heat_mapper_metrics_get(ode_heat_mapper_name.c_str(), 
+                    NULL, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_heat_mapper_metrics_get(NULL,
+                    NULL, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_heat_mapper_metrics_clear(NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_heat_mapper_metrics_print(NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_ode_heat_mapper_metrics_log(NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_heat_mapper_metrics_file(NULL,
+                    NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_ode_heat_mapper_metrics_file(ode_heat_mapper_name.c_str(),
+                    NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+            }
+        }
+    }
+}
