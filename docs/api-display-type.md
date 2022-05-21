@@ -871,6 +871,7 @@ retval = dsl_display_type_meta_add('blue-circle', buffer, frame_meta)
 * [ODE Accumulator](/docs/api-ode-accumulator.md)
 * [ODE Action](/docs/api-ode-action.md)
 * [ODE Area](/docs/api-ode-area.md)
+* [ODE Heat-Mapper](/docs/api-ode-heat-mapper.md)
 * **Display Type**
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
