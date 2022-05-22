@@ -17,8 +17,8 @@ The Heat-Mapper can display a map legend derived from the RGBA Color Palette
 The relationship between ODE Triggers and ODE Heat-Mappers is one-to-one. A Trigger can have at most one Heat-Mapper and one Heat-mapper can be added to only on Trigger. An ODE Heat Mapper is added to an ODE Trigger by calling [dsl_ode_trigger_heat_mapper add](/docs/api-ode-trigger.md#dsl_ode_trigger_heat_mapper_add) and removed with [dsl_ode_trigger_heat_mapper_remove](docs/api-ode-trigger.md#dsl_ode_trigger_heat_mapper_remove).
 
 ---
-## Applicable examples
-* [ode_occurrence_trigger_with_heat_mapper.py](/examples/python/ode_occurrence_trigger_with_heat_mapper.py) A simple example that creates an ODE Occurrence Trigger with an ODE Heat-Mapper that uses a Predefined Spectral RGBA Color Palette producing the below image. The example creates all five predefined color palettes which can be cycled through by selecting the `N` key while the Pipeline is playing.
+## Examples
+* [ode_occurrence_trigger_with_heat_mapper.py](/examples/python/ode_occurrence_trigger_with_heat_mapper.py) - a simple example that creates an [ODE Occurrence Trigger](/docs/api-ode-trigger.md#dsl_ode_trigger_occurrence_new) to trigger on each occurrence of an object with a `person` class Id and [minimum inference confidence](/docs/api-ode-trigger.md#dsl_ode_trigger_confidence_min_set).  An ODE Heat-Mapper, created with a [Predefined Spectral RGBA Color Palette](/docs/api-display-type.md#dsl_display_type_rgba_color_palette_predefined_new), is added to the ODE Occurrence Trigger producing a heat-map overlay as shown in the screen shot below. The example creates a set of predefined color palettes which can be cycled through by selecting the `N` key while the Pipeline is playing. The XWindow key handler function calls [dsl_ode_heat_mapper_color_palette_set](#dsl_ode_heat_mapper_color_palette_set) to change the Heat-Mapper's Palette.
 
 ![](/Images/spectral-person-heat-map.png)
 ---
@@ -153,9 +153,9 @@ retval = dsl_ode_heat_mapper_delete('my-heat-mapper')
 
 <br>
 
-### *dsl_ode_accumulator_delete_many*
+### *dsl_ode_heat_mapper_delete_many*
 ```C++
-DslReturnType dsl_ode_accumulator_delete_many(const wchar_t** names);
+DslReturnType dsl_ode_heat_mapper_delete_many(const wchar_t** names);
 ```
 This destructor deletes multiple uniquely named ODE Heat-Mappers. Each name is checked for existence with the service returning on first failure. The destructor will fail if one of the Heat-Mappers is currently `in-use` by an ODE Trigger.
 
