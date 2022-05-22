@@ -1251,6 +1251,7 @@ Except for the prefix, this method performs the identical service as
 * [ODE Accumulator](/docs/api-ode-accumulator.md)
 * [ODE Acton](/docs/api-ode-action.md)
 * [ODE Area](/docs/api-ode-area.md)
+* [ODE Heat-Mapper](/docs/api-ode-heat-mapper.md)
 * [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)

@@ -29,7 +29,7 @@ THE SOFTWARE.
 { \
     if (!input_string) \
     { \
-        LOG_ERROR("Input parameter must be a valid string and not NULL"); \
+        LOG_ERROR("Input parameter must be a valid and not NULL"); \
         return DSL_RESULT_INVALID_INPUT_PARAM; \
     } \
 }while(0); 
@@ -88,6 +88,18 @@ DslReturnType dsl_display_type_rgba_color_palette_new(const wchar_t* name,
     return DSL::Services::GetServices()->DisplayTypeRgbaColorPaletteNew(
         cstrName.c_str(), &cColors[0], newColors.size());
     return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_display_type_rgba_color_palette_predefined_new(const wchar_t* name, 
+    uint palette_id, double alpha)
+{    
+    RETURN_IF_PARAM_IS_NULL(name);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->DisplayTypeRgbaColorPalettePredefinedNew(
+        cstrName.c_str(), palette_id, alpha);
 }
 
 DslReturnType dsl_display_type_rgba_color_palette_index_get(const wchar_t* name, 
@@ -2419,6 +2431,32 @@ DslReturnType dsl_ode_trigger_accumulator_remove(const wchar_t* name)
         cstrName.c_str());
 }
 
+DslReturnType dsl_ode_trigger_heat_mapper_add(const wchar_t* name, 
+    const wchar_t* heat_mapper)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(heat_mapper);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHeatMapper(heat_mapper);
+    std::string cstrHeatMapper(wstrHeatMapper.begin(), wstrHeatMapper.end());
+
+    return DSL::Services::GetServices()->OdeTriggerHeatMapperAdd(
+        cstrName.c_str(), cstrHeatMapper.c_str());
+}
+
+DslReturnType dsl_ode_trigger_heat_mapper_remove(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerHeatMapperRemove(
+        cstrName.c_str());
+}
+
 DslReturnType dsl_ode_trigger_delete(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -2584,6 +2622,183 @@ DslReturnType dsl_ode_accumulator_delete_all()
 uint dsl_ode_accumulator_list_size()
 {
     return DSL::Services::GetServices()->OdeAccumulatorListSize();
+}
+
+DslReturnType dsl_ode_heat_mapper_new(const wchar_t* name, 
+    uint cols, uint rows, uint bbox_test_point, const wchar_t* color_palette)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(color_palette);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrColorPalette(color_palette);
+    std::string cstrColorPalette(wstrColorPalette.begin(), wstrColorPalette.end());
+
+    return DSL::Services::GetServices()->OdeHeatMapperNew(
+        cstrName.c_str(), cols, rows, bbox_test_point, cstrColorPalette.c_str());
+}
+
+DslReturnType dsl_ode_heat_mapper_color_palette_get(const wchar_t* name, 
+    const wchar_t** color_palette)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(color_palette);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cColorPalette;
+    static std::string cstrColorPalette;
+    static std::wstring wcstrColorPalette;
+    
+    DslReturnType result = DSL::Services::GetServices()->OdeHeatMapperColorPaletteGet(
+        cstrName.c_str(), &cColorPalette);
+    if (result == DSL_RESULT_SUCCESS)
+    {
+        cstrColorPalette.assign(cColorPalette);
+        wcstrColorPalette.assign(cstrColorPalette.begin(), cstrColorPalette.end());
+        *color_palette = wcstrColorPalette.c_str();
+    }
+    return result;
+}
+
+DslReturnType dsl_ode_heat_mapper_color_palette_set(const wchar_t* name, 
+    const wchar_t* color_palette)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(color_palette);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrColorPalette(color_palette);
+    std::string cstrColorPalette(wstrColorPalette.begin(), wstrColorPalette.end());
+
+    return DSL::Services::GetServices()->OdeHeatMapperColorPaletteSet(
+        cstrName.c_str(), cstrColorPalette.c_str());
+}
+    
+DslReturnType dsl_ode_heat_mapper_legend_settings_get(const wchar_t* name, 
+    boolean* enabled, uint* location, uint* width, uint* height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeHeatMapperLegendSettingsGet(
+        cstrName.c_str(), enabled, location, width, height);
+}
+    
+DslReturnType dsl_ode_heat_mapper_legend_settings_set(const wchar_t* name, 
+    boolean enabled, uint location, uint width, uint height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeHeatMapperLegendSettingsSet(
+        cstrName.c_str(), enabled, location, width, height);
+}
+
+DslReturnType dsl_ode_heat_mapper_metrics_clear(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeHeatMapperMetricsClear(
+        cstrName.c_str());
+}
+
+DslReturnType dsl_ode_heat_mapper_metrics_get(const wchar_t* name,
+    const uint64_t** buffer, uint* size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(buffer);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeHeatMapperMetricsGet(
+        cstrName.c_str(), buffer, size);
+}
+
+DslReturnType dsl_ode_heat_mapper_metrics_print(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeHeatMapperMetricsPrint(
+        cstrName.c_str());
+}
+
+DslReturnType dsl_ode_heat_mapper_metrics_log(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeHeatMapperMetricsLog(
+        cstrName.c_str());
+}
+
+DslReturnType dsl_ode_heat_mapper_metrics_file(const wchar_t* name,
+    const wchar_t* file_path, uint mode, uint format)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->OdeHeatMapperMetricsFile(
+        cstrName.c_str(), cstrFilePath.c_str(), mode, format);
+}
+    
+DslReturnType dsl_ode_heat_mapper_delete(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeHeatMapperDelete(cstrName.c_str());
+}
+
+DslReturnType dsl_ode_heat_mapper_delete_many(const wchar_t** names)
+{
+    RETURN_IF_PARAM_IS_NULL(names);
+
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->
+            OdeHeatMapperDelete(cstrName.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_ode_heat_mapper_delete_all()
+{
+    return DSL::Services::GetServices()->OdeHeatMapperDeleteAll();
+}
+
+uint dsl_ode_heat_mapper_list_size()
+{
+    return DSL::Services::GetServices()->OdeHeatMapperListSize();
 }
 
 DslReturnType dsl_pph_custom_new(const wchar_t* name,

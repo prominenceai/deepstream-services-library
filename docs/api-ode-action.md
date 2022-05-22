@@ -1386,6 +1386,7 @@ size = dsl_ode_action_list_size()
 * [ODE Accumulator](/docs/api-ode-accumulator.md)
 * **ODE Action**
 * [ODE Area](/docs/api-ode-area.md)
+* [ODE Heat-Mapper](/docs/api-ode-heat-mapper.md)
 * [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)

@@ -302,6 +302,8 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_TRIGGER_IS_NOT_TRACK_TRIGGER                 0x000E0011
 #define DSL_RESULT_ODE_TRIGGER_ACCUMULATOR_ADD_FAILED               0x000E0012
 #define DSL_RESULT_ODE_TRIGGER_ACCUMULATOR_REMOVE_FAILED            0x000E0013
+#define DSL_RESULT_ODE_TRIGGER_HEAT_MAPPER_ADD_FAILED               0x000E0014
+#define DSL_RESULT_ODE_TRIGGER_HEAT_MAPPER_REMOVE_FAILED            0x000E0015
 
 /**
  * ODE Action API Return Values
@@ -452,6 +454,20 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_ACCUMULATOR_ACTION_NOT_IN_USE                0x00900009
 
 /**
+ * ODE Heat-Mapper API Return Values
+ */
+#define DSL_RESULT_ODE_HEAT_MAPPER_RESULT                           0x00A00000
+#define DSL_RESULT_ODE_HEAT_MAPPER_NAME_NOT_UNIQUE                  0x00A00001
+#define DSL_RESULT_ODE_HEAT_MAPPER_NAME_NOT_FOUND                   0x00A00002
+#define DSL_RESULT_ODE_HEAT_MAPPER_THREW_EXCEPTION                  0x00A00003
+#define DSL_RESULT_ODE_HEAT_MAPPER_IN_USE                           0x00A00004
+#define DSL_RESULT_ODE_HEAT_MAPPER_SET_FAILED                       0x00A00005
+#define DSL_RESULT_ODE_HEAT_MAPPER_IS_NOT_ODE_HEAT_MAPPER           0x00A00006
+#define DSL_RESULT_ODE_HEAT_MAPPER_ACTION_ADD_FAILED                0x00A00007
+#define DSL_RESULT_ODE_HEAT_MAPPER_ACTION_REMOVE_FAILED             0x00A00008
+#define DSL_RESULT_ODE_HEAT_MAPPER_ACTION_NOT_IN_USE                0x00A00009
+
+/**
  * GPU Types
  */
 #define DSL_GPU_TYPE_INTEGRATED                                     0
@@ -576,7 +592,7 @@ THE SOFTWARE.
 #define DSL_COLOR_HUE_BROWN                                         18
 
 /**
- * @brief Luminosity constants used to define predefined and random RGB colors.
+ * @brief Luminosity constants used to create predefined and random RGB colors.
  */
 #define DSL_COLOR_LUMINOSITY_DARK                                   0
 #define DSL_COLOR_LUMINOSITY_NORMAL                                 1
@@ -584,6 +600,28 @@ THE SOFTWARE.
 #define DSL_COLOR_LUMINOSITY_BRIGHT                                 3
 #define DSL_COLOR_LUMINOSITY_RANDOM                                 4
 
+/**
+ * @brief Predefined Color Palette constants used to create a predefined 
+ * RGB color palette.
+ */
+#define DSL_COLOR_PREDEFINED_PALETTE_SPECTRAL                       0
+#define DSL_COLOR_PREDEFINED_PALETTE_RED                            1
+#define DSL_COLOR_PREDEFINED_PALETTE_GREEN                          2
+#define DSL_COLOR_PREDEFINED_PALETTE_BLUE                           3
+#define DSL_COLOR_PREDEFINED_PALETTE_GREY                           4
+
+
+/**
+ * @brief On-Screen Heat-Map legend locations.
+ */
+#define DSL_HEAT_MAP_LEGEND_LOCATION_TOP                            0
+#define DSL_HEAT_MAP_LEGEND_LOCATION_RIGHT                          1
+#define DSL_HEAT_MAP_LEGEND_LOCATION_BOTTOM                         2
+#define DSL_HEAT_MAP_LEGEND_LOCATION_LEFT                           3
+ 
+/**
+ * @brief On-Screen Heat-Map legend locations.
+ */
 #define DSL_CAPTURE_TYPE_OBJECT                                     0
 #define DSL_CAPTURE_TYPE_FRAME                                      1
 
@@ -1251,6 +1289,19 @@ DslReturnType dsl_display_type_rgba_color_predefined_new(const wchar_t* name,
  */
 DslReturnType dsl_display_type_rgba_color_palette_new(const wchar_t* name, 
     const wchar_t** colors);
+
+/**
+ * @brief Creates a uniquely named Predefined RGBA Display Color Palette.
+ * Note: this is a dynamic color that cycles through the provided palette 
+ * of colors on new instance events. 
+ * @param[in] name unique name for the RGBA Color Palette.
+ * @param[in] palette_id one of the DSL_COLOR_PREDEFINED_PALETTE* contants. 
+ * @param[in] alpha alpha level for the RGBA Predefined Color Palette.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_color_palette_predefined_new(const wchar_t* name, 
+    uint palette_id, double alpha);
 
 /**
  * @brief Gets the current index value for the named RGBA Color Palette 
@@ -2939,6 +2990,24 @@ DslReturnType dsl_ode_trigger_accumulator_add(const wchar_t* name,
 DslReturnType dsl_ode_trigger_accumulator_remove(const wchar_t* name);
 
 /**
+ * @brief Adds a named ODE Heat-Mapper to a named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] heat_mapper unique name of the ODE Heat-Mapper to add
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_heat_mapper_add(const wchar_t* name, 
+    const wchar_t* heat_mapper);
+
+/**
+ * @brief Removes the ODE Heat-Mapper from a named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_heat_mapper_remove(const wchar_t* name);
+
+/**
  * @brief Deletes a uniquely named Trigger. The call will fail if the Triggers is 
  * currently in use
  * @brief[in] name unique name of the event to delte
@@ -3029,7 +3098,7 @@ DslReturnType dsl_ode_accumulator_action_remove_all(const wchar_t* name);
 
 /**
  * @brief Deletes a uniquely named ODE Accumulator. The call will fail if 
- * the ODE Accumulators is currently in use
+ * the ODE Accumulator is currently in use
  * @brief[in] name unique name of the ODE Accumulator to delete
  * @return DSL_RESULT_SUCCESS on successful delete, 
  * DSL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
@@ -3057,6 +3126,153 @@ DslReturnType dsl_ode_accumulator_delete_all();
  */
 uint dsl_ode_accumulator_list_size();
 
+/**
+ * @brief Creates a new ODE Heat-Mapper that when added to an ODE Trigger, maps the
+ * bounding-box test point for objects that trigger an ODE Occurrence over time. 
+ * The source-frame, with width and height, is partitioned into a two-dimensional grid of 
+ * rectangles as defined by the input parameters cols and rows. A color value from the
+ * provided RGBA Color Palette is assigned to each rectangle based on the percentage
+ * of test-points per rectangle. The RGBA Display Metadata is added to the Frame's metadata
+ *  when the Trigger post processes each frame.
+ * @param[in] name unique name for the ODE Heat-Mapper
+ * @param[in] cols number of columns for the two-dimensional map.
+ * @param[in] rows number of rows for the two-dimensional map
+ * @param[in] bbox_test_point one of DSL_BBOX_POINT values defining which point of a
+ * object's bounding box to use as coordinates for mapping.
+ * @param[in] color_palette a palette of RGBA Colors to assign to the grid rectangles
+ * based on the percentage of center-points per-square.  
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_new(const wchar_t* name, 
+    uint cols, uint rows, uint bbox_test_point, const wchar_t* color_palette);
+
+/**
+ * @brief Gets the RGBA Color Palette in use by the named ODE Heat-Mapper
+ * @param[in] name unique name of the ODE Heat-Mapper to query
+ * @param[out] color_palette name of the RGBA Color Palette in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_color_palette_get(const wchar_t* name, 
+    const wchar_t** color_palette);
+
+/**
+ * @brief Sets the the RGBA Color Palette to use by the named ODE Heat-Mapper
+ * @param[in] name unique name of the ODE Heat-Mapper to update
+ * @param[in] color_palette name of the RGBA Color Palette to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_color_palette_set(const wchar_t* name, 
+    const wchar_t* color_palette);
+
+/**
+ * @brief Gets the current Legend settings for the named ODE Heat-Mapper.
+ * @param[in] name unique name of the ODE Heat-Mapper to query.
+ * @param[out] enabled true if display is enabled, false otherwise.
+ * @param[out] location current frame location, one of DSL_HEAT_MAP_LEGEND_LOCATION_*
+ * @param[out] width width of each entry in the legend in units of columns.
+ * @param[out] height height of each entry in the legend in units of rows.
+ * @return DSL_RESULT_SUCCESS on successful query, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_legend_settings_get(const wchar_t* name, 
+    boolean* enabled, uint* location, uint* width, uint* height);
+
+/**
+ * @brief Gets the current Legend settings for the named ODE Heat-Mapper.
+ * @param[in] name unique name of the ODE Heat-Mapper to update.
+ * @param[in] enabled set to true to enable display, false to disable.
+ * @param[in] location frame location, one of DSL_HEAT_MAP_LEGEND_LOCATION_*
+ * @param[in] width width of each entry in the legend in units of columns.
+ * @param[in] height height of each entry in the legend in units of rows.
+ * @return DSL_RESULT_SUCCESS on successful query, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_legend_settings_set(const wchar_t* name, 
+    boolean enabled, uint location, uint width, uint height);
+
+/**
+ * @brief Calls on an ODE Heat-Mapper to clear its current heat-map metrics
+ * returning the map to its initial all-zero state. 
+ * @param[in] name unique name of the ODE Heat-Mapper to call on.
+ * @return DSL_RESULT_SUCCESS on success, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_metrics_clear(const wchar_t* name);
+
+/**
+ * @brief Get the current heat-map metrics from an ODE Heat-Mapper
+ * @param[in] name unique name of the ODE Heat-Mapper to query.
+ * @param[out] buffer a linear buffer of metric map data. Each row or 
+ * map data is serialized to a single buffer of size cols*rows. 
+ * Each element in the buffer indicates the total number of occurrences
+ * accumulated for the position in the map.
+ * @param[out] size size of buffer - cols*rows.
+ * @return DSL_RESULT_SUCCESS on success, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_metrics_get(const wchar_t* name,
+    const uint64_t** buffer, uint* size);
+
+/**
+ * @brief Calls on an ODE Heat-Mapper to print its current heat-map metrics
+ * to the console. 
+ * @param[in] name unique name of the ODE Heat-Mapper to call on.
+ * @return DSL_RESULT_SUCCESS on success, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_metrics_print(const wchar_t* name);
+
+/**
+ * @brief Calls on an ODE Heat-Mapper to log its current heat-map metrics
+ * at the INFO log level. 
+ * @param[in] name unique name of the ODE Heat-Mapper to call on.
+ * @return DSL_RESULT_SUCCESS on success, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_metrics_log(const wchar_t* name);
+
+/**
+ * @brief Calls on an ODE Heat-Mapper to write its current heat-map metrics to file.
+ * @param[in] name unique name of the ODE Heat-Mapper to call on.
+ * @param[in] file_path absolute or relative file path of the output file to use
+ * The file will be created if one does exists, or opened/used if found.
+ * @param[in] mode file open/write mode, one of DSL_EVENT_FILE_MODE_* options
+ * @param[in] format one of the DSL_EVENT_FILE_FORMAT_* options
+ * @return DSL_RESULT_SUCCESS on success, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_metrics_file(const wchar_t* name,
+    const wchar_t* file_path, uint mode, uint format);
+
+/**
+ * @brief Deletes a uniquely named ODE Heat-Mapper. The call will fail if 
+ * the ODE Heat-Mapper is currently in use.
+ * @brief[in] name unique name of the ODE Heat-Mapper to delete
+ * @return DSL_RESULT_SUCCESS on successful delete, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_delete(const wchar_t* name);
+
+/**
+ * @brief Deletes a Null terminated list of ODE Heat-Mappers. The call will fail 
+ * if any of the ODE Heat-Mappers are currently in use.
+ * @brief[in] names Null terminated list of ODE Heat-Mapper names to delete
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_delete_many(const wchar_t** names);
+
+/**
+ * @brief Deletes all ODE Heat-Mappers. The call will fail if any of the 
+ * ODE Heat-Mappers are currently in use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_delete_all();
+
+/**
+ * @brief Returns the size of the list of ODE Heat-Mappers.
+ * @return the number of ODE Heat-Mapper in the list.
+ */
+uint dsl_ode_heat_mapper_list_size();
 
 /**
  * @brief creates a new, uniquely named Handler component

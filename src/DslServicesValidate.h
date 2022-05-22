@@ -73,6 +73,15 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define DSL_RETURN_IF_ODE_HEAT_MAPPER_NAME_NOT_FOUND(events, name) do \
+{ \
+    if (events.find(name) == events.end()) \
+    { \
+        LOG_ERROR("ODE Heat Mapper name '" << name << "' was not found"); \
+        return DSL_RESULT_ODE_HEAT_MAPPER_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+
 #define DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(events, name) do \
 { \
     if (events.find(name) == events.end()) \

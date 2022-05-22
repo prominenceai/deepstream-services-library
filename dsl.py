@@ -113,6 +113,17 @@ DSL_COLOR_LUMINOSITY_LIGHT = 2
 DSL_COLOR_LUMINOSITY_BRIGHT = 3
 DSL_COLOR_LUMINOSITY_RANDOM = 4
 
+DSL_COLOR_PREDEFINED_PALETTE_SPECTRAL = 0
+DSL_COLOR_PREDEFINED_PALETTE_RED = 1
+DSL_COLOR_PREDEFINED_PALETTE_GREEN = 2
+DSL_COLOR_PREDEFINED_PALETTE_BLUE = 3
+DSL_COLOR_PREDEFINED_PALETTE_GREY = 4
+
+DSL_HEAT_MAP_LEGEND_LOCATION_TOP = 0
+DSL_HEAT_MAP_LEGEND_LOCATION_RIGHT = 1
+DSL_HEAT_MAP_LEGEND_LOCATION_BOTTOM = 2
+DSL_HEAT_MAP_LEGEND_LOCATION_LEFT = 3
+
 DSL_CAPTURE_TYPE_OBJECT = 0
 DSL_CAPTURE_TYPE_FRAME = 1
 
@@ -254,6 +265,7 @@ class dsl_webrtc_connection_data(Structure):
 ##
 DSL_UINT_P = POINTER(c_uint)
 DSL_UINT64_P = POINTER(c_uint64)
+DSL_UINT64_PP = POINTER(DSL_UINT64_P)
 DSL_BOOL_P = POINTER(c_bool)
 DSL_WCHAR_PP = POINTER(c_wchar_p)
 DSL_LONG_P = POINTER(c_long)
@@ -398,6 +410,18 @@ def dsl_display_type_rgba_color_palette_new(name, colors):
     arr[:] = colors
     result =_dsl.dsl_display_type_rgba_color_palette_new(name, 
         arr)
+    return int(result)
+
+##
+## dsl_display_type_rgba_color_palette_predefined_new()
+##
+_dsl.dsl_display_type_rgba_color_palette_predefined_new.argtypes = [c_wchar_p,
+    c_uint, c_double]
+_dsl.dsl_display_type_rgba_color_palette_predefined_new.restype = c_uint
+def dsl_display_type_rgba_color_palette_predefined_new(name, palette_id, alpha):
+    global _dsl
+    result =_dsl.dsl_display_type_rgba_color_palette_predefined_new(name, 
+        palette_id, alpha)
     return int(result)
 
 ##
@@ -2072,6 +2096,26 @@ def dsl_ode_trigger_accumulator_remove(name):
     return int(result)
 
 ##
+## dsl_ode_trigger_heat_mapper_add()
+##
+_dsl.dsl_ode_trigger_heat_mapper_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_trigger_heat_mapper_add.restype = c_uint
+def dsl_ode_trigger_heat_mapper_add(name, heat_mapper):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_heat_mapper_add(name, heat_mapper)
+    return int(result)
+
+##
+## dsl_ode_trigger_heat_mapper_remove()
+##
+_dsl.dsl_ode_trigger_heat_mapper_remove.argtypes = [c_wchar_p]
+_dsl.dsl_ode_trigger_heat_mapper_remove.restype = c_uint
+def dsl_ode_trigger_heat_mapper_remove(name):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_heat_mapper_remove(name)
+    return int(result)
+
+##
 ## dsl_ode_trigger_delete()
 ##
 _dsl.dsl_ode_trigger_delete.argtypes = [c_wchar_p]
@@ -2215,6 +2259,166 @@ _dsl.dsl_ode_accumulator_list_size.restype = c_uint
 def dsl_ode_accumulator_list_size():
     global _dsl
     result =_dsl.dsl_ode_accumulator_list_size()
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_new()
+##
+_dsl.dsl_ode_heat_mapper_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_uint, c_wchar_p]
+_dsl.dsl_ode_heat_mapper_new.restype = c_uint
+def dsl_ode_heat_mapper_new(name, cols, rows, bbox_test_point, color_palette):
+    global _dsl
+    result =_dsl.dsl_ode_heat_mapper_new(name, 
+        cols, rows, bbox_test_point, color_palette)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_legend_settings_get()
+##
+_dsl.dsl_ode_heat_mapper_legend_settings_get.argtypes = [c_wchar_p, 
+    POINTER(c_bool), POINTER(c_uint), POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_ode_heat_mapper_legend_settings_get.restype = c_uint
+def dsl_ode_heat_mapper_legend_settings_get(name):
+    global _dsl 
+    enabled = c_bool(0)
+    location = c_uint(0)
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_ode_heat_mapper_legend_settings_get(name, DSL_BOOL_P(enabled), 
+        DSL_UINT_P(location), DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), enabled.value, location.value, width.value, height.value 
+
+##
+## dsl_ode_heat_mapper_legend_settings_set()
+##
+_dsl.dsl_ode_heat_mapper_legend_settings_set.argtypes = [c_wchar_p, 
+    c_bool, c_uint, c_uint, c_uint]
+_dsl.dsl_ode_heat_mapper_legend_settings_set.restype = c_uint
+def dsl_ode_heat_mapper_legend_settings_set(name, enabled, location, width, height):
+    global _dsl
+    result = _dsl.dsl_ode_heat_mapper_legend_settings_set(name, 
+        enabled, location, width, height)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_color_palette_get()
+##
+_dsl.dsl_ode_heat_mapper_color_palette_get.argtypes = [c_wchar_p, 
+    POINTER(c_wchar_p)]
+_dsl.dsl_ode_heat_mapper_color_palette_get.restype = c_uint
+def dsl_ode_heat_mapper_color_palette_get(name):
+    global _dsl 
+    color_palette = c_wchar_p(0)
+    result = _dsl.dsl_ode_heat_mapper_color_palette_get(name,
+        DSL_WCHAR_P(color_palette))
+    return int(result), color_palette.value
+
+##
+## dsl_ode_heat_mapper_color_palette_set()
+##
+_dsl.dsl_ode_heat_mapper_color_palette_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_heat_mapper_color_palette_set.restype = c_uint
+def dsl_ode_heat_mapper_color_palette_set(name, color_palette):
+    global _dsl
+    result = _dsl.dsl_ode_heat_mapper_color_palette_set(name, color_palette)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_metrics_clear()
+##
+_dsl.dsl_ode_heat_mapper_metrics_clear.argtypes = [c_wchar_p]
+_dsl.dsl_ode_heat_mapper_metrics_clear.restype = c_uint
+def dsl_ode_heat_mapper_metrics_clear(name):
+    global _dsl
+    result = _dsl.dsl_ode_heat_mapper_metrics_clear(name)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_metrics_get()
+##
+_dsl.dsl_ode_heat_mapper_metrics_get.argtypes = [c_wchar_p, 
+    POINTER(DSL_UINT64_P), POINTER(c_uint)]
+_dsl.dsl_ode_heat_mapper_metrics_get.restype = c_uint
+def dsl_ode_heat_mapper_metrics_get(name):
+    global _dsl 
+    buffer = POINTER(c_uint64)()
+    size = c_uint(0)
+    result = _dsl.dsl_ode_heat_mapper_metrics_get(name,
+        byref(buffer), DSL_UINT_P(size))
+    print (buffer[0])
+    return int(result), buffer, size.value
+
+##
+## dsl_ode_heat_mapper_metrics_print()
+##
+_dsl.dsl_ode_heat_mapper_metrics_print.argtypes = [c_wchar_p]
+_dsl.dsl_ode_heat_mapper_metrics_print.restype = c_uint
+def dsl_ode_heat_mapper_metrics_print(name):
+    global _dsl
+    result = _dsl.dsl_ode_heat_mapper_metrics_print(name)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_metrics_log()
+##
+_dsl.dsl_ode_heat_mapper_metrics_log.argtypes = [c_wchar_p]
+_dsl.dsl_ode_heat_mapper_metrics_log.restype = c_uint
+def dsl_ode_heat_mapper_metrics_log(name):
+    global _dsl
+    result = _dsl.dsl_ode_heat_mapper_metrics_log(name)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_metrics_file()
+##
+_dsl.dsl_ode_heat_mapper_metrics_file.argtypes = [c_wchar_p,
+    c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_heat_mapper_metrics_file.restype = c_uint
+def dsl_ode_heat_mapper_metrics_file(name, file_path, mode, format):
+    global _dsl
+    result = _dsl.dsl_ode_heat_mapper_metrics_file(name, file_path, mode, format)
+    return int(result)
+    
+##
+## dsl_ode_heat_mapper_delete()
+##
+_dsl.dsl_ode_heat_mapper_delete.argtypes = [c_wchar_p]
+_dsl.dsl_ode_heat_mapper_delete.restype = c_uint
+def dsl_ode_heat_mapper_delete(name):
+    global _dsl
+    result =_dsl.dsl_ode_heat_mapper_delete(name)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_delete_many()
+##
+#_dsl.dsl_ode_heat_mapper_delete_many.argtypes = [??]
+_dsl.dsl_ode_heat_mapper_delete_many.restype = c_uint
+def dsl_ode_heat_mapper_delete_many(names):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    result =_dsl.dsl_ode_heat_mapper_delete_many(arr)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_delete_all()
+##
+_dsl.dsl_ode_heat_mapper_delete_all.argtypes = []
+_dsl.dsl_ode_heat_mapper_delete_all.restype = c_uint
+def dsl_ode_heat_mapper_delete_all():
+    global _dsl
+    result =_dsl.dsl_ode_heat_mapper_delete_all()
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_list_size()
+##
+_dsl.dsl_ode_heat_mapper_list_size.restype = c_uint
+def dsl_ode_heat_mapper_list_size():
+    global _dsl
+    result =_dsl.dsl_ode_heat_mapper_list_size()
     return int(result)
 
 ##

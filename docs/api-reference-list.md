@@ -440,7 +440,9 @@
 * [dsl_ode_trigger_area_remove_many](/docs/api-ode-trigger.md#dsl_ode_trigger_area_remove_many)
 * [dsl_ode_trigger_area_remove_all](/docs/api-ode-trigger.md#dsl_ode_trigger_area_remove_all)
 * [dsl_ode_trigger_accumulator_add](/docs/api-ode-trigger.md#dsl_ode_trigger_accumulator_add)
-* [dsl_ode_trigger_accumulator_remove](/docs/api-ode-trigger.md#dsl_ode_trigger_accumulator_remove)
+* [dsl_ode_trigger_accumulator_remove](/docs/api-ode-trigger.md#dsl_ode_trigger_heat_mapper_remove)
+* [dsl_ode_trigger_heat_mapper_add](/docs/api-ode-trigger.md#dsl_ode_trigger_accumulator_add)
+* [dsl_ode_trigger_heat_mapper_remove](/docs/api-ode-trigger.md#dsl_ode_trigger_heat_mapper_remove)
 * [dsl_ode_trigger_list_size](/docs/api-ode-trigger.md#dsl_ode_trigger_list_size)
 
 ## ODE Action:
@@ -514,6 +516,23 @@
 * [dsl_ode_accumulator_action_remove_many](/docs/api-ode-accumulator.md#dsl_ode_accumulator_action_remove_many)
 * [dsl_ode_accumulator_action_remove_all](/docs/api-ode-accumulator.md#dsl_ode_accumulator_action_remove_all)
 * [dsl_ode_accumulator_list_size](/docs/api-ode-accumulator.md#dsl_ode_accumulator_list_size)
+
+## ODE Heat-Mapper:
+* [Overview](/docs/api-ode-heat-mapper.md)
+* [dsl_ode_heat_mapper_new](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_new)
+* [dsl_ode_heat_mapper_delete](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_delete)
+* [dsl_ode_heat_mapper_delete_many](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_delete_many)
+* [dsl_ode_heat_mapper_delete_all](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_delete_all)
+* [dsl_ode_heat_mapper_color_palette_get](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_color_palette_get)
+* [dsl_ode_heat_mapper_color_palette_set](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_color_palette_set)
+* [dsl_ode_heat_mapper_legend_settings_get](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_legend_settings_get)
+* [dsl_ode_heat_mapper_legend_settings_set](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_legend_settings_set)
+* [dsl_ode_heat_mapper_metrics_clear](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_metrics_clear)
+* [dsl_ode_heat_mapper_metrics_get](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_metrics_get)
+* [dsl_ode_heat_mapper_metrics_print](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_metrics_print)
+* [dsl_ode_heat_mapper_metrics_log](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_metrics_log)
+* [dsl_ode_heat_mapper_metrics_file](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_metrics_file)
+* [dsl_ode_heat_mapper_list_size](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_list_size)
 
 ## Display Type:
 * [Overview](/docs/api-display-type.md)

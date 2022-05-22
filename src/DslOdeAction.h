@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2022, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -224,7 +224,7 @@ namespace DSL
     public: 
     
         /**
-         * @brief ctor for the ODE virtual base class
+         * @brief ctor for the ODE Action virtual base class
          * @param[in] name unique name for the ODE Action
          */
         OdeAction(const char* name);
@@ -279,7 +279,7 @@ namespace DSL
         ~FormatBBoxOdeAction();
 
         /**
-         * @brief Handles the ODE occurrence by calling the client handler
+         * @brief Handles the ODE occurrence by formating the bounding box of pObjectMeta
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
          * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
