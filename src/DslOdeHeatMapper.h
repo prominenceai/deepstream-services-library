@@ -199,11 +199,6 @@ namespace DSL
         std::unique_ptr<uint64_t[]> m_outBuffer;
         
         /**
-         * @brief running count of total occurrence added to the heatmap.
-         */
-        uint64_t m_totalOccurrences;
-        
-        /**
          * @brief the most occurrences in any one map location..
          */
         uint64_t m_mostOccurrences;

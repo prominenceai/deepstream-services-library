@@ -38,7 +38,6 @@ namespace DSL
         , m_bboxTestPoint(bboxTestPoint)
         , m_pColorPalette(pColorPalette)
         , m_heatMap(rows, std::vector<uint64_t> (cols, 0))
-        , m_totalOccurrences(0)
         , m_mostOccurrences(0)
         , m_legendEnabled(false)
         , m_legendLocation(0)
@@ -258,6 +257,7 @@ namespace DSL
                 m_heatMap[i][j] = 0;
             }
         }
+        m_mostOccurrences = 0;
     }
 
     void OdeHeatMapper::GetMetrics(const uint64_t** buffer, uint* size)
@@ -265,11 +265,6 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
-//        // Iterate through all rows
-//        for (uint i=0; i < m_rows; i++)
-//        {
-//            // and for each row, iterate through all columns.
-//            for (uint j=0; j < m_cols; j++)
         int i=0;
         for (auto const& ivec: m_heatMap)
         {
