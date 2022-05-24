@@ -990,6 +990,14 @@ namespace DSL
             body.push_back(std::string("  Criteria          : ------------------------<br>"));
             body.push_back(std::string("    Class Id        : " 
                 +  std::to_string(pTrigger->m_classId) + "<br>"));
+            if (pTrigger->m_inferDoneOnly)
+            {
+                body.push_back(std::string("    Infer Done Only       : Yes<br>"));
+            }
+            else
+            {
+                body.push_back(std::string("    Inference       : No<br>"));
+            }
             body.push_back(std::string("    Min Infer Conf  : " 
                 +  std::to_string(pTrigger->m_minConfidence) + "<br>"));
             body.push_back(std::string("    Min Track Conf  : " 
@@ -1005,15 +1013,6 @@ namespace DSL
                 +  std::to_string(lrint(pTrigger->m_maxWidth)) + "<br>"));
             body.push_back(std::string("    Max Height      : " 
                 +  std::to_string(lrint(pTrigger->m_maxHeight)) + "<br>"));
-
-            if (pTrigger->m_inferDoneOnly)
-            {
-                body.push_back(std::string("    Inference       : Yes<br>"));
-            }
-            else
-            {
-                body.push_back(std::string("    Inference       : No<br>"));
-            }
             
             std::dynamic_pointer_cast<Mailer>(m_pMailer)->QueueMessage(m_subject, body);
         }
@@ -1672,6 +1671,115 @@ namespace DSL
         
         m_metaType = metaType;
     }
+    
+    // ********************************************************************
+
+    MonitorOdeAction::MonitorOdeAction(const char* name, 
+        dsl_ode_monitor_occurrence_cb clientMonitor, void* clientData)
+        : OdeAction(name)
+        , m_clientMonitor(clientMonitor)
+        , m_clientData(clientData)
+    {
+        LOG_FUNC();
+    }
+
+    MonitorOdeAction::~MonitorOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void MonitorOdeAction::HandleOccurrence(DSL_BASE_PTR pBase, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        if (!m_enabled)
+        {
+            return;
+        }
+        try
+        {
+            DSL_ODE_TRIGGER_PTR pTrigger 
+                = std::dynamic_pointer_cast<OdeTrigger>(pBase);
+                
+            dsl_ode_occurrence_info info{0};
+            
+            // convert the Trigger Name to wchar string type (client format)
+            std::wstring wstrTriggerName(pTrigger->GetName().begin(), 
+                pTrigger->GetName().end());
+            info.trigger_name = wstrTriggerName.c_str();
+            info.unique_ode_id = pTrigger->s_eventCount;
+            info.ntp_timestamp = pFrameMeta->ntp_timestamp;
+            info.source_info.inference_done = pFrameMeta->bInferDone;
+            info.source_info.source_id = pFrameMeta->source_id;
+            info.source_info.batch_id = pFrameMeta->batch_id;
+            info.source_info.pad_index = pFrameMeta->pad_index;
+            info.source_info.frame_num = pFrameMeta->frame_num;
+            info.source_info.frame_width = pFrameMeta->source_frame_width;
+            info.source_info.frame_height = pFrameMeta->source_frame_height;
+            
+            // true if the ODE occurrence information is for a specific object,
+            // false for frame-level multi-object events. (absence, new-high count, etc.). 
+            if (pObjectMeta)
+            {
+                // set the object-occurrence flag indicating that the 
+                // "info.object_info" structure is poplulated.
+                info.is_object_occurrence = true;
+                
+                info.object_info.class_id = pObjectMeta->class_id;
+                info.object_info.inference_component_id = pObjectMeta->unique_component_id;
+                info.object_info.tracking_id = pObjectMeta->object_id;
+
+                std::string strLabel(pObjectMeta->obj_label);
+                std::wstring wstrLabel(strLabel.begin(), strLabel.end());
+                info.object_info.label = wstrLabel.c_str();
+
+                info.object_info.persistence = pObjectMeta->
+                    misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE];
+                info.object_info.direction =  pObjectMeta->
+                    misc_obj_info[DSL_OBJECT_INFO_DIRECTION];
+
+                info.object_info.inference_confidence =  pObjectMeta->confidence;
+                info.object_info.tracker_confidence =  pObjectMeta->tracker_confidence;
+                
+                info.object_info.left = round(pObjectMeta->rect_params.left);
+                info.object_info.top = round(pObjectMeta->rect_params.top);
+                info.object_info.width = round(pObjectMeta->rect_params.width);
+                info.object_info.height = round(pObjectMeta->rect_params.height);
+            }
+            else
+            {
+                info.accumulative_info.occurrences_total = 
+                    pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES];
+                info.accumulative_info.occurrences_in = 
+                    pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN];
+                info.accumulative_info.occurrences_out =
+                    pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT];
+            }
+            
+            // Trigger criteria set for this ODE occurrence.
+            info.criteria_info.class_id =  pTrigger->m_classId;
+            info.criteria_info.inference_done_only = pTrigger->m_inferDoneOnly;
+            info.criteria_info.inference_component_id = pTrigger->m_inferId;
+            info.criteria_info.min_inference_confidence = pTrigger->m_minConfidence;
+            info.criteria_info.min_tracker_confidence = pTrigger->m_minTrackerConfidence;
+            info.criteria_info.min_width = pTrigger->m_minWidth;
+            info.criteria_info.min_height = pTrigger->m_minHeight;
+            info.criteria_info.max_width = pTrigger->m_maxWidth;
+            info.criteria_info.max_height = pTrigger->m_maxHeight;
+            info.criteria_info.interval = pTrigger->m_interval;
+            
+            // Call the Client's monitor callback with the info and client-data
+            m_clientMonitor(&info, m_clientData);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Monitor ODE Action '" << GetName() 
+                << "' threw exception calling client callback");
+        }
+    }
+    
     // ********************************************************************
 
     FormatLabelOdeAction::FormatLabelOdeAction(const char* name, 
