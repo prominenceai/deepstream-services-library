@@ -47,8 +47,8 @@ WINDOW_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
 # Minimum Inference confidence level to Trigger ODE Occurrence
 PERSON_MIN_CONFIDENCE = 0.4 # 40%
 
-PERSON_MIN_WIDTH = 
-PERSON_MIN_HEIGHT
+PERSON_MIN_WIDTH = 120
+PERSON_MIN_HEIGHT = 320
 
 # ------------------------------------------------------------------------------------
 # This example demonstrates the use of an ODE Monitor Action -- added to an 
@@ -111,17 +111,17 @@ def ode_occurrence_monitor(info_ptr, client_data):
     print('    Frame Num       :', info.source_info.frame_num)
     print('    Frame Width     :', info.source_info.frame_width)
     print('    Frame Height    :', info.source_info.frame_height)
-    print('    Infer Done      :', info.source_info.inferrence_done)
+    print('    Infer Done      :', info.source_info.inference_done)
 
     if info.is_object_occurrence:
         print('  Object Data       : ------------------------')
         print('    Class Id        :', info.object_info.class_id)
-        print('    Infer Comp Id   :', info.object_info.inferrence_component_id)
+        print('    Infer Comp Id   :', info.object_info.inference_component_id)
         print('    Tracking Id     :', info.object_info.tracking_id)
 #        print('    Label           :', info.object_info.label)
         print('    Persistence     :', info.object_info.persistence)
         print('    Direction       :', info.object_info.direction)
-        print('    Infer Conf      :', info.object_info.inferrence_confidence)
+        print('    Infer Conf      :', info.object_info.inference_confidence)
         print('    Track Conf      :', info.object_info.tracker_confidence)
         print('    Left            :', info.object_info.left)
         print('    Top             :', info.object_info.top)
@@ -136,10 +136,10 @@ def ode_occurrence_monitor(info_ptr, client_data):
 
     print('  Trigger Criterai  : ------------------------')
     print('    Class Id        :', info.criteria_info.class_id)
-    print('    Infer Comp Id   :', info.criteria_info.inferrence_component_id)
-    print('    Min Infer Conf  :', info.criteria_info.min_inferrence_confidence)
+    print('    Infer Comp Id   :', info.criteria_info.inference_component_id)
+    print('    Min Infer Conf  :', info.criteria_info.min_inference_confidence)
     print('    Min Track Conf  :', info.criteria_info.min_tracker_confidence)
-    print('    Infer Done Only :', info.criteria_info.inferrence_done_only)
+    print('    Infer Done Only :', info.criteria_info.inference_done_only)
     print('    Min Width       :', info.criteria_info.min_width)
     print('    Min Height      :', info.criteria_info.min_height)
     print('    Max Width       :', info.criteria_info.max_width)
@@ -201,9 +201,15 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
+        # Set the inference done only filter. 
+        retval = dsl_ode_trigger_infer_done_only_set('person-occurrence-trigger',
+            True)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
         # Set minimum bounding box dimensions to trigger.
         retval = dsl_ode_trigger_dimensions_min_set('person-occurrence-trigger',
-            min_width = 120, min_height = 320)
+            min_width = PERSON_MIN_WIDTH, min_height = PERSON_MIN_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
             
