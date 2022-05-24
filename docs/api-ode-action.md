@@ -13,7 +13,7 @@ There are two actions that start a new recording session, one for the [Record-Si
 Actions can be created to Disable other Actions on invocation. See [dsl_ode_action_action_disable_new](#dsl_ode_action_action_disable_new) and [dsl_ode_action_action_enable_new](#dsl_ode_action_action_enable_new).
 
 #### Actions with ODE Occurrence Data
-Actions performed with the ODE occurrence data include  [dsl_ode_action_callback_new](#dsl_ode_action_callback_new), [dsl_ode_action_display_new](#dsl_ode_action_display_new), [dsl_ode_action_log_new](#dsl_ode_action_log_new), [dsl_ode_action_email_new](dsl_ode_action_email_new), [dsl_ode_action_file_new](#dsl_ode_action_file_new), and [dsl_ode_action_print_new](#dsl_ode_action_print_new)
+Actions performed with the ODE occurrence data include  [dsl_ode_action_custom_new](#dsl_ode_action_custom_new), [dsl_ode_action_display_new](#dsl_ode_action_display_new), [dsl_ode_action_log_new](#dsl_ode_action_log_new), [dsl_ode_action_email_new](dsl_ode_action_email_new), [dsl_ode_action_file_new](#dsl_ode_action_file_new), [dsl_ode_action_monitor_new](#dsl_ode_action_monitor_new), and [dsl_ode_action_print_new](#dsl_ode_action_print_new)
 
 #### Actions on Areas
 Actions can be used to Add and Remove Areas to/from a Trigger on invocation. See [dsl_ode_action_area_add_new](#dsl_ode_action_area_add_new) and [dsl_ode_action_area_remove_new](#dsl_ode_action_area_remove_new).
@@ -36,10 +36,16 @@ ODE Actions are added to an ODE Accumulator by calling [dsl_ode_accumulator_acti
 ## ODE Action API
 **Types:**
 * [dsl_capture_info](#dsl_capture_info)
+* [dsl_ode_occurrence_source_info](#dsl_ode_occurrence_source_info)
+* [dsl_ode_occurrence_object_info](#dsl_ode_occurrence_object_info)
+* [dsl_ode_occurrence_accumulative_info](#dsl_ode_occurrence_accumulative_info)
+* [dsl_ode_occurrence_criteria_info](#dsl_ode_occurrence_criteria_info)
+* [dsl_ode_occurrence_info](#dsl_ode_occurrence_info)
 
 **Callback Types:**
 * [dsl_capture_complete_listener_cb](#dsl_capture_complete_listener_cb)
 * [dsl_ode_handle_occurrence_cb](#dsl_ode_handle_occurrence_cb)
+* [dsl_ode_monitor_occurrence_cb](#dsl_ode_monitor_occurrence_cb)
 * [dsl_ode_enabled_state_change_listener_cb](#dsl_ode_enabled_state_change_listener_cb)
 
 **Constructors:**
@@ -63,6 +69,7 @@ ODE Actions are added to an ODE Accumulator by calling [dsl_ode_accumulator_acti
 * [dsl_ode_action_handler_disable_new](#dsl_ode_action_handler_disable_new)
 * [dsl_ode_action_log_new](#dsl_ode_action_log_new)
 * [dsl_ode_action_message_meta_add_new](#dsl_ode_action_message_meta_add_new)
+* [dsl_ode_action_monitor_new](#dsl_ode_action_monitor_new)
 * [dsl_ode_action_pause_new](#dsl_ode_action_pause_new)
 * [dsl_ode_action_print_new](#dsl_ode_action_print_new)
 * [dsl_ode_action_redact_new](#dsl_ode_action_redact_new)
@@ -187,6 +194,151 @@ def capture_complete_listener(capture_info_ptr, client_data):
     print('width:      ', capture_info.width)
     print('height:     ', capture_info.height)
 ```
+<br>
+
+### *dsl_ode_occurrence_source_info*
+```C
+typedef struct _dsl_ode_occurrence_source_info
+{
+    uint source_id;
+    uint batch_id;
+    uint pad_index;
+    uint frame_num;
+    uint frame_width;
+    uint frame_height;
+    boolean inference_done;
+} dsl_ode_occurrence_source_info;
+```
+
+Video Source information for an ODE Occurrence.
+**Fields**
+
+* `source_id` - unique source id for this ODE occurrence.
+* `batch_id` -  the location of the frame in the batch for this ODE occurrence 
+* `pad_index` -  pad or port index of the Gst-streammux plugin for this ODE occurrence
+* `frame_num` - current frame number of the source for this ODE occurrence.
+* `frame_width` - width of the frame at input to Gst-streammux for this ODE occurrence.
+* `frame_height` - height of the frame at input to Gst-streammux for this ODE occurrence.
+* `inference_done` - true if inference was done on the frame for this ODE occurrence.
+
+<br>
+
+### *dsl_ode_occurrence_object_info*
+```C
+typedef struct _dsl_ode_occurrence_object_info
+{
+    uint class_id;
+    uint inference_component_id;
+    uint tracking_id;
+    const wchar_t* label;
+    uint persistence;
+    uint direction;
+    float inference_confidence;
+    float tracker_confidence;
+    uint left;
+    uint top;
+    uint width;
+    uint height;
+} dsl_ode_occurrence_object_info;
+```
+Detected Object information for an ODE Occurrence
+
+**Fields**
+* `class_id` - class id for the detected object
+* `inference_component_id` - unique id of the inference component that generated the object data.
+* `tracking_id` - unique tracking id as assigned by the multi-object-tracker (MOT).
+* `label` - unique label for the detected object.
+* `persistence` - current "time in frame" if tracked - Persistence and Cross Triggers.
+* `direction` - direction of the Object if line cross event - Cross Trigger only.
+* `inference_confidence` - inference confidence as calculated by the last detector.
+* `tracker_confidence` - tracker confidence if current frame was not inferred on.
+* `left` - the Object's bounding box left coordinate in pixels.
+* `top` - the Object's bounding box top coordinate in pixels.
+* `width` - the Object's bounding box width in pixels.
+* `height` - the Object's bounding box height in pixels.
+
+
+<br>
+
+### *dsl_ode_occurrence_accumulative_info*
+```C
+typedef struct _dsl_ode_occurrence_accumulative_info
+{
+    uint occurrences_total;
+    uint occurrences_in;
+    uint occurrences_out;
+} dsl_ode_occurrence_accumulative_info;
+```
+Accumulative ODE Occurrence metrics for frame-level ODE occurrences - Absence, New-High, New-Low, and Count - Or from [ODE Accumlator](/docs/api-ode-accumulator.md)
+
+**Fields**
+* `occurrences_total` - the total number of object detection occurrences for the frame-level ODE occurrence - Count, New-High, New-Low Triggers or from an ODE accumulator.
+* `occurrences_in` - the number of Line-Cross ODE occurrences in the "in-direction". Requires an ODE Cross-Trigger with ODE Accumulator
+* `occurrences_out` - the number of Line-Cross ODE occurrences in the "out-direction". Requires an ODE Cross-Trigger with ODE Accumulator
+
+<br>
+
+### *dsl_ode_occurrence_criteria_info*
+```C
+typedef struct _dsl_ode_occurrence_criteria_info
+{
+    uint class_id;
+    uint inference_component_id;
+    float min_inference_confidence;
+    float min_tracker_confidence;
+    boolean inference_done_only;
+    uint min_width;
+    uint min_height;
+    uint max_width;
+    uint max_height;
+    uint interval;
+} dsl_ode_occurrence_criteria_info;
+```
+ODE Trigger Criteria used for the ODE Occurrence.
+
+**Fields**
+* `class_id` - class id filter for ODE occurrence
+* `inference_component_id` - inference id filter for ODE occurrence
+* `min_inference_confidence` - the minimum inference confidence to trigger an ODE occurrence.
+* `min_tracker_confidence` - the minimum tracker confidence to trigger an ODE occurrence.
+* `inference_done_only` - inference must be performed to trigger an ODE occurrence.
+* `min_width`-  the minimum bounding box width to trigger an ODE occurrence.
+* `max_width` - the minimum bounding box height to trigger an ODE occurrence.
+* `max_width` - the maximum bounding box width to trigger an ODE occurrence.
+* `max_height` - the maximum bounding box height to trigger an ODE occurrence.
+* `interval` - the interval for checking for an ODE occurrence.
+
+<br>
+
+### *dsl_ode_occurrence_info*
+```C
+typedef struct _dsl_ode_occurrence_info
+{
+    const wchar_t* trigger_name;
+    uint64_t unique_ode_id;
+    uint64_t ntp_timestamp;
+    dsl_ode_occurrence_source_info source_info;
+    boolean is_object_occurrence;
+    dsl_ode_occurrence_object_info object_info;
+    dsl_ode_occurrence_accumulative_info accumulative_info;
+    dsl_ode_occurrence_criteria_info criteria_info;
+} dsl_ode_occurrence_info;
+```
+ODE Occurrence information provided to the client on callback to the client's [dsl_ode_monitor_occurrence_cb](#dsl_ode_monitor_occurrence_cb).
+
+**Fields**
+* `trigger_name`-  the unique name of the ODE Trigger that triggered the occurrence
+* `unique_ode_id` - unique occurrence Id for this occurrence.
+* `ntp_timestamp` - Network Time for this event.
+* `source_info` - Video Source information for this ODE Occurrence - see [dsl_ode_occurrence_source_info](#dsl_ode_occurrence_source_info)
+* `is_object_occurrence` - true if the ODE occurrence information is for a specific object, false for frame-level multi-object events. (absence, new-high count, etc.). 
+* `object_info` - Object information if object_occurrence == true - see [dsl_ode_occurrence_object_info](#dsl_ode_occurrence_object_info)
+* `accumulative_info` - Accumulative information if object_occurrence == false - see [dsl_ode_occurrence_accumulative_info](#dsl_ode_occurrence_accumulative_info)
+* `criteria_info` - Trigger Criteria information for this ODE occurrence.
+
+**NOTE:** `object_info` and `accumulative_info` are mutually exclusive determined by the boolean is_object_occurrence flag above.
+
+---
 
 ## Callback Types:
 ### *dsl_capture_complete_listener_cb*
@@ -206,7 +358,7 @@ Callback typedef for a client to listen for the notification that an Image or Ob
 typedef void (*dsl_ode_handle_occurrence_cb)(uint64_t event_id, const wchar_t* trigger,
     void* buffer, void* display_meta, void* frame_meta, void* object_meta, void* client_data);
 ```
-Callback typedef for a client ODE occurrence handler function. Once registered, by calling dsl_ode_action_custom_new, the function will be called on ODE occurrence.
+Callback typedef for a client ODE occurrence handler function. Once registered, by calling [dsl_ode_action_custom_new](#dsl_ode_action_custom_new), the function will be called on ODE occurrence.
 
 **Parameters**
 * `event_id` [in] unique event identification.
@@ -215,7 +367,21 @@ Callback typedef for a client ODE occurrence handler function. Once registered, 
 * `display_meta` [in] pointer to a NvDsDisplayMeta structure.
 * `frame_meta` [in] pointer to the NvDsFrameMeta structure that triggered the ODE event.
 * `object_meta` [in] pointer to the NvDsObjectMeta structure that triggered the ODE event. Note: This parameter will be set to NULL for ODE occurrences detected in Post process frame. Absence and Count ODE's as examples.
-* `user_data` [in] user_data opaque pointer to client's user data, provided by the client.  
+* `client_data` [in] opaque pointer to client's user data, provided by the client.  
+
+<br>
+
+### *dsl_ode_monitor_occurrence_cb*
+```C++
+typedef void (*dsl_ode_monitor_occurrence_cb)(dsl_ode_occurrence_info* occurrence_info,
+    void* client_data); 
+```
+Callback typedef for a client ODE occurrence monitor function. Once registered, by calling [dsl_ode_action_monitor_new](#dsl_ode_action_monitor_new), the function will be called on ODE occurrence.
+
+**Parameters**
+* `event_id` [in] unique event identification.
+* `occurrence_info` [in] point to a structure of ODE Occurrence information - see [dsl_ode_monitor_occurrence_cb](#dsl_ode_monitor_occurrence_cb)
+* `client_data` [in] opaque pointer to client's user data, provided by the client.  
 
 <br>
 
@@ -697,6 +863,28 @@ retval = dsl_ode_action_message_meta_add_new('my-add-message-meta-action')
 
 <br>
 
+### *dsl_ode_action_monitor_new*
+```C++
+DslReturnType dsl_ode_action_monitor_new(const wchar_t* name, 
+    dsl_ode_monitor_occurrence_cb client_monitor, void* client_data);
+```
+The constructor creates a uniquely named **Monitor Occurrence** ODE Action. When invoked, this Action will call the `client_monitor` callback function with a pointer to a structure of ODE occurrence information.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `client_monitor` - [in] function to call on ODE occurrence. 
+* `client_data` - [in]  opaue pointer to client's user data, returned on callback.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_monitor_new('my-monitor-action',
+    occurrence_monitor_cb, None)
+```
+
+<br>
 
 ### *dsl_ode_action_pause_new*
 ```C++
