@@ -118,7 +118,7 @@ def ode_occurrence_monitor(info_ptr, client_data):
         print('    Class Id        :', info.object_info.class_id)
         print('    Infer Comp Id   :', info.object_info.inference_component_id)
         print('    Tracking Id     :', info.object_info.tracking_id)
-#        print('    Label           :', info.object_info.label)
+        print('    Label           :', info.object_info.label)
         print('    Persistence     :', info.object_info.persistence)
         print('    Direction       :', info.object_info.direction)
         print('    Infer Conf      :', info.object_info.inference_confidence)
@@ -134,7 +134,7 @@ def ode_occurrence_monitor(info_ptr, client_data):
         print('    Occurrences In  :', info.accumulative_info.occurrences_total)
         print('    Occurrences Out :', info.accumulative_info.occurrences_total)
 
-    print('  Trigger Criterai  : ------------------------')
+    print('  Trigger Criteria  : ------------------------')
     print('    Class Id        :', info.criteria_info.class_id)
     print('    Infer Comp Id   :', info.criteria_info.inference_component_id)
     print('    Min Infer Conf  :', info.criteria_info.min_inference_confidence)

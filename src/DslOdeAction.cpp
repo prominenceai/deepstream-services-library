@@ -1719,6 +1719,10 @@ namespace DSL
             info.source_info.frame_width = pFrameMeta->source_frame_width;
             info.source_info.frame_height = pFrameMeta->source_frame_height;
             
+            // Automatic varaible needs to be valid for call to the client callback
+            // Create here at higher scope - in case it is used for Object metadata.
+            std::wstring wstrLabel;
+            
             // true if the ODE occurrence information is for a specific object,
             // false for frame-level multi-object events. (absence, new-high count, etc.). 
             if (pObjectMeta)
@@ -1732,7 +1736,7 @@ namespace DSL
                 info.object_info.tracking_id = pObjectMeta->object_id;
 
                 std::string strLabel(pObjectMeta->obj_label);
-                std::wstring wstrLabel(strLabel.begin(), strLabel.end());
+                wstrLabel.assign(strLabel.begin(), strLabel.end());
                 info.object_info.label = wstrLabel.c_str();
 
                 info.object_info.persistence = pObjectMeta->
