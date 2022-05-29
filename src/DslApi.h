@@ -1021,10 +1021,263 @@ typedef struct _dsl_coordinate
 } dsl_coordinate;
 
 /**
- *
+ * @struct dsl_ode_occurrence_source_info
+ * @brief Video Source information for the ODE Occurrence provided to the 
+ * client on callback.
+ */
+typedef struct _dsl_ode_occurrence_source_info
+{
+    /**
+     * @brief unique source id for this ODE occurrence.
+     */
+    uint source_id;
+    
+    /**
+     * @brief the location of the frame in the batch for this ODE occurrence 
+     */
+    uint batch_id;
+    
+    /**
+     * @brief pad or port index of the Gst-streammux plugin for this ODE occurrence
+     */
+    uint pad_index;
+    
+    /**
+     * @brief current frame number of the source for this ODE occurrence.
+     */
+    uint frame_num;
+    
+    /**
+     * @brief width of the frame at input to Gst-streammux for this ODE occurrence.
+     */
+    uint frame_width;
+    
+    /**
+     * @brief height of the frame at input to Gst-streammux for this ODE occurrence.
+     */
+    uint frame_height;
+    
+    /**
+     * @brief true if inference was done on the frame for this ODE occurrence.
+     */
+    boolean inference_done;
+    
+} dsl_ode_occurrence_source_info;
+
+/**
+ * @struct dsl_ode_occurrence_object_info
+ * @brief Detected Object information for the ODE Occurrence provided to the 
+ * client on callback.
+ */
+typedef struct _dsl_ode_occurrence_object_info
+{
+    /**
+     * @brief class id for the detected object
+     */
+    uint class_id;
+    
+    /**
+     * @brief unique id of the inference component that generated the object data.
+     */
+    uint inference_component_id;
+    
+    /**
+     * @brief unique tracking id as assigned by the multi-object-tracker (MOT)
+     */
+    uint tracking_id;
+    
+    /**
+     * @brief unique label for the detected object
+     */
+    const wchar_t* label;
+    
+    /**
+     * @brief current "time in frame" if tracked - Persistence and Cross Triggers
+     */
+    uint persistence;
+    
+    /**
+     * @brief direction of the Object if line cross event - Cross Trigger only.
+     */
+    uint direction;
+    
+    /**
+     * @brief inference confidence as calculated by the last detector.
+     */
+    float inference_confidence;
+    
+    /**
+     * @brief tracker confidence if current frame was not inferred on.
+     */
+    float tracker_confidence;
+
+    /**
+     * @brief the Object's bounding box left coordinate in pixels.
+     */
+    uint left;
+    
+    /**
+     * @brief the Object's bounding box top coordinate in pixels.
+     */
+    uint top;
+    
+    /**
+     * @brief the Object's bounding box width in pixels.
+     */
+    uint width;
+    
+    /**
+     * @brief the Object's bounding box height in pixels.
+     */
+    uint height;
+    
+} dsl_ode_occurrence_object_info;
+
+/**
+ * @struct _dsl_ode_occurrence_accumulative_info
+ * @brief Accumulative ODE Occurrence metrics provided to the 
+ * client on callback.
+ */
+typedef struct _dsl_ode_occurrence_accumulative_info
+{
+    /**
+     * @brief the total number of object detection occurrences for the 
+     * frame-level ODE occurrence - Count, New-High, New-Low Triggers
+     * or from an ODE accumulator.
+     */
+    uint occurrences_total;
+    
+    /**
+     * @brief the number of Line-Cross ODE occurrences in the "in-direction".
+     * Requires an ODE Cross-Trigger with ODE Accumulator
+     */
+    uint occurrences_in;
+
+    /**
+     * @brief the number of Line-Cross ODE occurrences in the "out-direction".
+     * Requires an ODE Cross-Trigger with ODE Accumulator
+     */
+    uint occurrences_out;
+
+} dsl_ode_occurrence_accumulative_info;
+
+
+/**
+ * @struct dsl_ode_occurrence_criteria_info
+ * @brief ODE Trigger Criteria used for the ODE Occurrence.
+ */
+typedef struct _dsl_ode_occurrence_criteria_info
+{
+    /**
+     * @brief class id filter for ODE occurrence
+     */
+    uint class_id;
+    
+    /**
+     * @brief inference id filter for ODE occurrence
+     */
+    uint inference_component_id;
+    
+    /**
+     * @brief the minimum inference confidence to trigger an ODE occurrence.
+     */
+    float min_inference_confidence;
+    
+    /**
+     * @brief the minimum tracker confidence to trigger an ODE occurrence.
+     */
+    float min_tracker_confidence;
+    
+    /**
+     * @brief inference must be performed to trigger an ODE occurrence.
+     */
+    boolean inference_done_only;
+     
+    /**
+     * @brief the minimum bounding box width to trigger an ODE occurrence.
+     */
+    uint min_width;
+    
+    /**
+     * @brief the minimum bounding box height to trigger an ODE occurrence.
+     */
+    uint min_height;
+    
+    /**
+     * @brief the maximum bounding box width to trigger an ODE occurrence.
+     */
+    uint max_width;
+    
+    /**
+     * @brief the maximum bounding box height to trigger an ODE occurrence.
+     */
+    uint max_height;
+    
+    /**
+     * @brief the interval for checking for an ODE occurrence.
+     */
+    uint interval;
+    
+} dsl_ode_occurrence_criteria_info;
+
+/**
+ * @struct dsl_ode_occurrence_info
+ * @brief ODE Occurrence information provided to the client on callback
+ */
+typedef struct _dsl_ode_occurrence_info
+{
+    /**
+     * @brief the unique name of the ODE Trigger that triggered the occurrence
+     */
+    const wchar_t* trigger_name;
+    
+    /**
+     * @brief unique occurrence Id for this occurrence.
+     */
+    uint64_t unique_ode_id;
+    
+    /**
+     * @brief Network Time for this event.
+     */
+    uint64_t ntp_timestamp;
+    
+    /**
+     * @brief Video Source information this ODE Occurrence
+     */
+    dsl_ode_occurrence_source_info source_info;
+
+    /**
+     * @brief true if the ODE occurrence information is for a specific object,
+     * false for frame-level multi-object events. (absence, new-high count, etc.). 
+     */
+    boolean is_object_occurrence;
+    
+    // NOTE: object_info and accumulative_info are mutually exclusive
+    // determined by the boolean is_object_occurrence flag above.
+    
+    /**
+     * @brief Object information if object_occurrence == true
+     */
+    dsl_ode_occurrence_object_info object_info;
+    
+    /**
+     * @brief Accumulative information if object_occurrence == false
+     */
+    dsl_ode_occurrence_accumulative_info accumulative_info;
+    
+    /**
+     * @brief Trigger Criteria information for this ODE occurrence.
+     */
+    dsl_ode_occurrence_criteria_info criteria_info;
+       
+} dsl_ode_occurrence_info;
+
+//------------------------------------------------------------------------------------
+
+/**
  * @brief Callback typedef for a client ODE occurrence handler function. 
- * Once registered by calling dsl_ode_action_custom_new, the function will 
- * be called on ODE occurrence. 
+ * Once registered by calling dsl_ode_action_custom_new, the function will be called 
+ * on ODE occurrence with the full set of parameters received by the ODE Action. 
  * @param[in] event_id unique ODE occurrence ID, numerically ordered by occurrence.
  * @param[in] trigger unique name of the ODE Event Trigger that triggered the occurrence.
  * @param[in] buffer pointer to the frame buffer of type GstBuffer.
@@ -1037,6 +1290,17 @@ typedef struct _dsl_coordinate
  */
 typedef void (*dsl_ode_handle_occurrence_cb)(uint64_t event_id, const wchar_t* trigger,
     void* buffer, void* display_meta, void* frame_meta, void* object_meta, void* client_data);
+
+/**
+ * @brief Callback typedef for a client ODE occurrence monitor function. 
+ * Once registered by calling dsl_ode_action_monitor_new, the function will be called 
+ * on ODE occurrence with all occurrence information using the dsl_ode_occurrence_info
+ * structure. 
+ * @param[in] occurrence_info occurrence information on ODE occurrence.
+ * @param[in] client_data opaque pointer to client's user data
+ */    
+typedef void (*dsl_ode_monitor_occurrence_cb)(dsl_ode_occurrence_info* occurrence_info,
+    void* client_data);    
 
 /**
  * @brief Callback typedef for a client ODE Custom Trigger check-for-occurrence function. Once 
@@ -1845,6 +2109,16 @@ DslReturnType dsl_ode_action_message_meta_add_new(const wchar_t* name);
 // */
 //DslReturnType dsl_ode_action_message_meta_type_set(const wchar_t* name,
 //    uint meta_type);
+
+/**
+ * @brief Creates a uniquely named Monitor ODE Action.
+ * @param[in] name unique name for the Monitor ODE Action. 
+ * @param[in] client_monitor function to call on ODE occurrence. 
+ * @param[in] client_data opaue pointer to client's user data, returned on callback.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_monitor_new(const wchar_t* name, 
+    dsl_ode_monitor_occurrence_cb client_monitor, void* client_data);
 
 /**
  * @brief Creates a uniquely named Pause ODE Action

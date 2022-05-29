@@ -260,6 +260,61 @@ class dsl_webrtc_connection_data(Structure):
     _fields_ = [
         ('current_state', c_uint)]
 
+class dsl_ode_occurrence_source_info(Structure):
+    _fields_ = [
+        ('source_id', c_uint),
+        ('batch_id', c_uint),
+        ('pad_index', c_uint),
+        ('frame_num', c_uint),
+        ('frame_width', c_uint),
+        ('frame_height', c_uint),
+        ('inference_done', c_bool)]
+        
+class dsl_ode_occurrence_object_info(Structure):
+    _fields_ = [
+        ('class_id', c_uint),
+        ('inference_component_id', c_uint),
+        ('tracking_id', c_uint),
+        ('label', c_wchar_p),
+        ('persistence', c_uint),
+        ('direction', c_uint),
+        ('inference_confidence', c_float),
+        ('tracker_confidence', c_float),
+        ('left', c_uint),
+        ('top', c_uint),
+        ('width', c_uint),
+        ('height', c_uint)]
+        
+class dsl_ode_occurrence_accumulative_info(Structure):
+    _fields_ = [
+        ('occurrences_total', c_uint),
+        ('occurrences_in', c_uint),
+        ('occurrences_out', c_uint)]
+
+class dsl_ode_occurrence_criteria_info(Structure):
+    _fields_ = [
+        ('class_id', c_uint),
+        ('inference_component_id', c_uint),
+        ('min_inference_confidence', c_float),
+        ('min_tracker_confidence', c_float),
+        ('inference_done_only', c_bool),
+        ('min_width', c_uint),
+        ('min_height', c_uint),
+        ('max_width', c_uint),
+        ('max_height', c_uint),
+        ('interval', c_uint)]
+
+class dsl_ode_occurrence_info(Structure):
+    _fields_ = [
+        ('trigger_name', c_wchar_p),
+        ('unique_ode_id', c_uint64),
+        ('ntp_timestamp', c_uint64),
+        ('source_info', dsl_ode_occurrence_source_info),
+        ('is_object_occurrence', c_bool),
+        ('object_info', dsl_ode_occurrence_object_info),
+        ('accumulative_info', dsl_ode_occurrence_accumulative_info),
+        ('criteria_info', dsl_ode_occurrence_criteria_info)]
+
 ##
 ## Pointer Typedefs
 ##
@@ -280,6 +335,10 @@ DSL_RTSP_CONNECTION_DATA_P = POINTER(dsl_rtsp_connection_data)
 # dsl_ode_handle_occurrence_cb
 DSL_ODE_HANDLE_OCCURRENCE = \
     CFUNCTYPE(None, c_uint, c_wchar_p, c_void_p, c_void_p, c_void_p, c_void_p, c_void_p)
+    
+# dsl_ode_monitor_occurrence_cb    
+DSL_ODE_MONITOR_OCCURRENCE = \
+    CFUNCTYPE(None, POINTER(dsl_ode_occurrence_info), c_void_p)
 
 # dsl_ode_check_for_occurrence_cb
 DSL_ODE_CHECK_FOR_OCCURRENCE = \
@@ -914,6 +973,20 @@ _dsl.dsl_ode_action_message_meta_add_new.restype = c_uint
 def dsl_ode_action_message_meta_add_new(name):
     global _dsl
     result =_dsl.dsl_ode_action_message_meta_add_new(name)
+    return int(result)
+
+##
+## dsl_ode_action_monitor_new()
+##
+_dsl.dsl_ode_action_monitor_new.argtypes = [c_wchar_p, DSL_ODE_MONITOR_OCCURRENCE, c_void_p]
+_dsl.dsl_ode_action_monitor_new.restype = c_uint
+def dsl_ode_action_monitor_new(name, client_monitor, client_data):
+    global _dsl
+    c_client_monitor= DSL_ODE_MONITOR_OCCURRENCE(client_monitor)
+    callbacks.append(c_client_monitor)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_ode_action_monitor_new(name, c_client_monitor, c_client_data)
     return int(result)
 
 ##

@@ -572,11 +572,6 @@ namespace DSL
             void*>m_limitEventListeners;
         
         /**
-         * @brief process interval, default = 0
-         */
-        uint m_interval;
-        
-        /**
          * @brief current number of frames in the current interval
          */
         uint m_intervalCounter;
@@ -677,6 +672,11 @@ namespace DSL
          */
         float m_maxHeight;
 
+        /**
+         * @brief process interval, default = 0
+         */
+        uint m_interval;
+        
         /**
          * @brief Minimum frame count numerator to trigger an ODE occurrence
          */

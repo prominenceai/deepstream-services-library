@@ -1002,6 +1002,33 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::OdeActionMonitorNew(const char* name,
+        dsl_ode_monitor_occurrence_cb clientMonitor, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_MONITOR_NEW(name, 
+                clientMonitor, clientData);
+
+            LOG_INFO("New ODE Monitor Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Monitor Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
     
     DslReturnType Services::OdeActionPauseNew(const char* name, const char* pipeline)
     {

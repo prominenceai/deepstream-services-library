@@ -191,6 +191,9 @@ namespace DSL {
 
         DslReturnType OdeActionMessageMetaTypeSet(const char* name,
             uint metaType);
+            
+        DslReturnType OdeActionMonitorNew(const char* name,
+            dsl_ode_monitor_occurrence_cb clientMonitor, void* clientData);
 
         DslReturnType OdeActionEmailNew(const char* name, 
             const char* mailer, const char* subject);

@@ -2048,6 +2048,10 @@ namespace DSL
             
             pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] = 
                 DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN;
+
+            pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] = 
+                m_occurrencesInAccumulated + m_occurrencesOutAccumulated;
+
             pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN] = 
                 m_occurrencesInAccumulated;
             pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT] = 

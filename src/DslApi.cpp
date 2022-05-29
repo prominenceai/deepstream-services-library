@@ -877,6 +877,19 @@ DslReturnType dsl_ode_action_file_new(const wchar_t* name,
         cstrFilePath.c_str(), mode, format, force_flush);
 }
 
+DslReturnType dsl_ode_action_monitor_new(const wchar_t* name, 
+    dsl_ode_monitor_occurrence_cb client_monitor, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(client_monitor);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionMonitorNew(cstrName.c_str(),
+        client_monitor, client_data);
+}
+
 DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipeline)
 {
     RETURN_IF_PARAM_IS_NULL(name);
