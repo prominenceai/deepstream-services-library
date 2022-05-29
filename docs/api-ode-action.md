@@ -210,7 +210,9 @@ typedef struct _dsl_ode_occurrence_source_info
 } dsl_ode_occurrence_source_info;
 ```
 
-Video Source information for an ODE Occurrence.
+Structure typedef used to provide Video Source information for an ODE Occurrence.
+
+Note: `dsl_ode_occurrence_source_info` is defined as a substructure for the [dsl_ode_occurrence_info](#dsl_ode_occurrence_info) structure used by the [dsl_ode_monitor_occurrence_cb](#dsl_ode_monitor_occurrence_cb) callback function.
 
 **Fields**
 
@@ -242,7 +244,9 @@ typedef struct _dsl_ode_occurrence_object_info
     uint height;
 } dsl_ode_occurrence_object_info;
 ```
-Detected Object information for an ODE Occurrence
+Structure typedef used to provide "detected object" information for an ODE Occurrence.
+
+Note: `dsl_ode_occurrence_object_info` is defined as a substructure for the [dsl_ode_occurrence_info](#dsl_ode_occurrence_info) structure used by the [dsl_ode_monitor_occurrence_cb](#dsl_ode_monitor_occurrence_cb) callback function.
 
 **Fields**
 * `class_id` - class id for the detected object
@@ -258,7 +262,6 @@ Detected Object information for an ODE Occurrence
 * `width` - the Object's bounding box width in pixels.
 * `height` - the Object's bounding box height in pixels.
 
-
 <br>
 
 ### *dsl_ode_occurrence_accumulative_info*
@@ -270,7 +273,9 @@ typedef struct _dsl_ode_occurrence_accumulative_info
     uint occurrences_out;
 } dsl_ode_occurrence_accumulative_info;
 ```
-Accumulative ODE Occurrence metrics for frame-level ODE occurrences - Absence, New-High, New-Low, and Count - Or from [ODE Accumlator](/docs/api-ode-accumulator.md)
+Structure typedef to provide accumulative ODE occurrence metrics for frame-level ODE occurrences - Absence, New-High, New-Low, and Count - Or from [ODE Accumlator](/docs/api-ode-accumulator.md)
+
+Note: `dsl_ode_occurrence_accumulative_info` is defined as a substructure for the [dsl_ode_occurrence_info](#dsl_ode_occurrence_info) structure used by the [dsl_ode_monitor_occurrence_cb](#dsl_ode_monitor_occurrence_cb) callback function.
 
 **Fields**
 * `occurrences_total` - the total number of object detection occurrences for the frame-level ODE occurrence - Count, New-High, New-Low Triggers or from an ODE accumulator.
@@ -295,7 +300,9 @@ typedef struct _dsl_ode_occurrence_criteria_info
     uint interval;
 } dsl_ode_occurrence_criteria_info;
 ```
-ODE Trigger Criteria used for the ODE Occurrence.
+Structure typedef used to provide information on the ODE trigger criteria used for the ODE Occurrence.
+
+Note: `dsl_ode_occurrence_criteria_info` is defined as a substructure for the [dsl_ode_occurrence_info](#dsl_ode_occurrence_info) structure used by the [dsl_ode_monitor_occurrence_cb](#dsl_ode_monitor_occurrence_cb) callback function.
 
 **Fields**
 * `class_id` - class id filter for ODE occurrence
