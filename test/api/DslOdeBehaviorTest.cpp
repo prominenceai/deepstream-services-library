@@ -1832,7 +1832,7 @@ SCENARIO( "A new Pipeline with a Cross ODE Trigger using an ODE Polygon Area can
 }
 
 SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Print ODE Action, \
-    and ODE Heat-Mapper can play", "[temp]" )
+    and ODE Heat-Mapper can play", "[ode-behavior]" )
 {
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Print ODE Action" ) 
     {
@@ -1895,7 +1895,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Print ODE
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*20);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*2);
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );

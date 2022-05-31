@@ -916,7 +916,7 @@ namespace DSL
         LOG_FUNC();
         
         // override the default source attributes
-//        m_isLive = False;
+        m_isLive = False;
 
         // Other components are created conditionaly by file type. 
         if (m_uri.find("jpeg") != std::string::npos or
