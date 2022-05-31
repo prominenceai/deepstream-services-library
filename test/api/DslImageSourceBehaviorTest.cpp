@@ -485,7 +485,7 @@ SCENARIO( "A new Pipeline with a Multi MJPEG Image Frame Source, Primary GIE, Ti
 }
 
 SCENARIO( "A new Player with a Multi JPEG Image Source and Window Sink can play",
-    "[temp]" )
+    "[image-source-play]" )
 {
     GIVEN( "A Player with a Multi JPEG Source, Window Sink" ) 
     {
