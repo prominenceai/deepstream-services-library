@@ -144,6 +144,7 @@
 * [dsl_source_rtsp_new](/docs/api-source.md#dsl_source_rtsp_new)
 * [dsl_source_file_new](/docs/api-source.md#dsl_source_file_new)
 * [dsl_source_image_new](/docs/api-source.md#dsl_source_image_new)
+* [dsl_source_image_multi_new](/docs/api-source.md#dsl_source_image_multi_new)
 * [dsl_source_image_stream_new](/docs/api-source.md#dsl_source_image_stream_new)
 * [dsl_source_dimensions_get](/docs/api-source.md#dsl_source_dimensions_get)
 * [dsl_source_framerate get](/docs/api-source.md#dsl_source_framerate_get)

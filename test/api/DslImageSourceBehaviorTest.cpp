@@ -38,10 +38,12 @@ static const std::wstring source_name1(L"image-source-1");
 static const std::wstring source_name2(L"image-source-2");
 static const std::wstring source_name3(L"image-source-3");
 static const std::wstring source_name4(L"image-source-4");
-static const std::wstring jpeg_file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg");
-static const std::wstring jpeg_file_path_multi(L"./test/streams/sample_720p.%d.jpeg");
+static const std::wstring jpeg_file_path(
+    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg");
+static const std::wstring jpeg_file_path_multi(L"/home/prominenceai1/prominenceai/deepstream-services-library/test/streams/sample_720p.%d.jpg");
 static const std::wstring mjpeg_file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.mjpeg");
-static const std::wstring mjpeg_file_path_multi(L"./test/streams/sample_720p.%d.mjpeg");
+static const std::wstring mjpeg_file_path_multi(
+    L"/home/prominenceai1/prominenceai/deepstream-services-library/test/streams/sample_720p.%d.mjpeg");
 
 static const std::wstring png_file_path(L"./test/streams/sample_720p.png");
 
@@ -75,6 +77,8 @@ static const std::wstring window_sink_name(L"window-sink");
 
 static const std::wstring ode_handler_name(L"ode-handler");
 static const std::wstring occurrence_trigger_name(L"occurrence-trigger");
+static const std::wstring summation_trigger_name(L"summation-trigger");
+
 static const std::wstring print_action_name(L"print-action");
 
 static const std::wstring pipeline_graph_name(L"pipeline-playing");
@@ -295,7 +299,7 @@ SCENARIO( "A new Pipeline with a Image Stream Source, Primary GIE, Tiled Display
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_image_stream_new(source_name1.c_str(),
-            jpeg_file_path.c_str(), false, fps_n, fps_d, false) == DSL_RESULT_SUCCESS );
+            jpeg_file_path.c_str(), false, fps_n, fps_d, 1) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
             infer_config_file.c_str(), model_engine_file.c_str(),
@@ -352,7 +356,7 @@ SCENARIO( "A new Pipeline with a Image Stream Source, Primary GIE, Tiled Display
     }
 }
 
-SCENARIO( "A new Pipeline with a Multi JPEG Image Frame Source, Primary GIE, Tiled Display, \
+SCENARIO( "A new Pipeline with a Multi JPG Image Frame Source, Primary GIE, Tiled Display, \
     Window Sink, ODE Trigger and Action can play",
     "[image-source-play]" )
 {
@@ -378,23 +382,20 @@ SCENARIO( "A new Pipeline with a Multi JPEG Image Frame Source, Primary GIE, Til
         REQUIRE( dsl_ode_action_print_new(print_action_name.c_str(), false)  == 
             DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_ode_trigger_occurrence_new(occurrence_trigger_name.c_str(),
-            DSL_ODE_ANY_SOURCE, DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_ONE) ==
+        REQUIRE( dsl_ode_trigger_summation_new(summation_trigger_name.c_str(),
+            DSL_ODE_ANY_SOURCE, DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE) ==
             DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(occurrence_trigger_name.c_str(), 
+        REQUIRE( dsl_ode_trigger_action_add(summation_trigger_name.c_str(), 
             print_action_name.c_str()) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_pph_ode_new(ode_handler_name.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(ode_handler_name.c_str(), 
-            occurrence_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
+            summation_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_tiler_pph_add(tiler_name1.c_str(), ode_handler_name.c_str(), 
             DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
         
-//        const wchar_t* components[] = {L"image-source-1",L"primary-gie", L"tiler", 
-//            L"window-sink", NULL};
-        
-        const wchar_t* components[] = {L"image-source-1",
+        const wchar_t* components[] = {L"image-source-1",L"primary-gie", L"tiler", 
             L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
@@ -484,7 +485,7 @@ SCENARIO( "A new Pipeline with a Multi MJPEG Image Frame Source, Primary GIE, Ti
 }
 
 SCENARIO( "A new Player with a Multi JPEG Image Source and Window Sink can play",
-    "[image-source-play]" )
+    "[temp]" )
 {
     GIVEN( "A Player with a Multi JPEG Source, Window Sink" ) 
     {
@@ -494,9 +495,6 @@ SCENARIO( "A new Player with a Multi JPEG Image Source and Window Sink can play"
 
         REQUIRE( dsl_source_image_multi_new(source_name1.c_str(), 
             jpeg_file_path_multi.c_str(), fps_n, fps_d) == DSL_RESULT_SUCCESS );
-
-//        REQUIRE( dsl_source_image_new(source_name1.c_str(), 
-//            jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
