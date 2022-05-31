@@ -62,16 +62,23 @@ static const uint num_coordinates(4);
 static const uint line_width(10);  
 
 // RGBA Colors and Polygon Display Type names.
+static const std::wstring light_yellow(L"light-yellow");
 static const std::wstring yellow(L"solid-yellow");
+static const std::wstring heavy_opaque_black(L"heavy-opaque-black");
+static const std::wstring black_background(L"black-background");
 static const std::wstring random_color(L"random-color");
+static const std::wstring verdana(L"verdana bold");
+static const std::wstring verdana_16_yellow(L"arial-16-yellow");
 static const std::wstring area_name  = L"polygon-area";
 
 // ODE Trigger names and class id.
+static const std::wstring every_frame_trigger(L"every-frame-trigger");
 static const std::wstring every_occurrence_trigger(L"every-occurrence");
 static const std::wstring person_cross_trigger(L"person-cross-trigger");
 static const uint person_class_id(2);
 
 // ODE Action names. 
+static const std::wstring add_text_background_action(L"add-background-action");
 static const std::wstring exclude_bbox_action(L"exclude-bbox-action");
 static const std::wstring ode_print_action_name(L"print-action");
 
@@ -141,6 +148,44 @@ int test()
     // Since we're not using args, we can Let DSL initialize GST on first call    
     while(true) 
     {    
+        retval = dsl_display_type_rgba_color_predefined_new(light_yellow.c_str(), 
+             DSL_COLOR_PREDEFINED_LIGHT_YELLOW, 1.0);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        retval = dsl_display_type_rgba_color_predefined_new(heavy_opaque_black.c_str(), 
+            DSL_COLOR_PREDEFINED_BLACK, 0.3);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        retval = dsl_display_type_rgba_font_new(verdana_16_yellow.c_str(), 
+            verdana.c_str(), 16, light_yellow.c_str());
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        retval = dsl_display_type_rgba_rectangle_new(black_background.c_str(),
+            1190, 30, 300, 120, 1, heavy_opaque_black.c_str(), true, 
+            heavy_opaque_black.c_str());
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // Create a list of Display Types to display on every frame.
+        const wchar_t* display_types[] = {black_background.c_str(), NULL};
+
+        // Create an ODE Acton to add the display metadata to a frame's metadata
+        retval = dsl_ode_action_display_meta_add_many_new(
+            add_text_background_action.c_str(),
+            display_types);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // Create a Trigger to trigger on every frame - alays.
+        retval = dsl_ode_trigger_always_new(every_frame_trigger.c_str(), 
+            DSL_ODE_ANY_SOURCE, DSL_ODE_PRE_OCCURRENCE_CHECK);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // Add the add-metatdata Action to the Always Trigger. We add
+        // the Trigger to the ODE Pad Probe Handler further below.
+        retval = dsl_ode_trigger_action_add(every_frame_trigger.c_str(),
+            add_text_background_action.c_str());
+        if (retval != DSL_RESULT_SUCCESS) break;
+        
+        
         // ---------------------------------------------------------------------------
         // New Display Types used to define a Polygon Area and Cross Trigger
         
@@ -247,8 +292,8 @@ int test()
 
         // Create a list of our trigger names to add to the ODE PPH
         // ** NOTE ** order is important - remove bounding boxes first.
-        const wchar_t* triggers[] ={every_occurrence_trigger.c_str(), 
-            person_cross_trigger.c_str(), NULL};
+        const wchar_t* triggers[] ={every_frame_trigger.c_str(), 
+            every_occurrence_trigger.c_str(), person_cross_trigger.c_str(), NULL};
 
         // Add the Triggers to the ODE PPH which will add to our OSD below.
         retval = dsl_pph_ode_trigger_add_many(ode_pph_name.c_str(), triggers);

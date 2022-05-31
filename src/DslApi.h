@@ -302,6 +302,8 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_TRIGGER_IS_NOT_TRACK_TRIGGER                 0x000E0011
 #define DSL_RESULT_ODE_TRIGGER_ACCUMULATOR_ADD_FAILED               0x000E0012
 #define DSL_RESULT_ODE_TRIGGER_ACCUMULATOR_REMOVE_FAILED            0x000E0013
+#define DSL_RESULT_ODE_TRIGGER_HEAT_MAPPER_ADD_FAILED               0x000E0014
+#define DSL_RESULT_ODE_TRIGGER_HEAT_MAPPER_REMOVE_FAILED            0x000E0015
 
 /**
  * ODE Action API Return Values
@@ -452,6 +454,20 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_ACCUMULATOR_ACTION_NOT_IN_USE                0x00900009
 
 /**
+ * ODE Heat-Mapper API Return Values
+ */
+#define DSL_RESULT_ODE_HEAT_MAPPER_RESULT                           0x00A00000
+#define DSL_RESULT_ODE_HEAT_MAPPER_NAME_NOT_UNIQUE                  0x00A00001
+#define DSL_RESULT_ODE_HEAT_MAPPER_NAME_NOT_FOUND                   0x00A00002
+#define DSL_RESULT_ODE_HEAT_MAPPER_THREW_EXCEPTION                  0x00A00003
+#define DSL_RESULT_ODE_HEAT_MAPPER_IN_USE                           0x00A00004
+#define DSL_RESULT_ODE_HEAT_MAPPER_SET_FAILED                       0x00A00005
+#define DSL_RESULT_ODE_HEAT_MAPPER_IS_NOT_ODE_HEAT_MAPPER           0x00A00006
+#define DSL_RESULT_ODE_HEAT_MAPPER_ACTION_ADD_FAILED                0x00A00007
+#define DSL_RESULT_ODE_HEAT_MAPPER_ACTION_REMOVE_FAILED             0x00A00008
+#define DSL_RESULT_ODE_HEAT_MAPPER_ACTION_NOT_IN_USE                0x00A00009
+
+/**
  * GPU Types
  */
 #define DSL_GPU_TYPE_INTEGRATED                                     0
@@ -576,7 +592,7 @@ THE SOFTWARE.
 #define DSL_COLOR_HUE_BROWN                                         18
 
 /**
- * @brief Luminosity constants used to define predefined and random RGB colors.
+ * @brief Luminosity constants used to create predefined and random RGB colors.
  */
 #define DSL_COLOR_LUMINOSITY_DARK                                   0
 #define DSL_COLOR_LUMINOSITY_NORMAL                                 1
@@ -584,6 +600,28 @@ THE SOFTWARE.
 #define DSL_COLOR_LUMINOSITY_BRIGHT                                 3
 #define DSL_COLOR_LUMINOSITY_RANDOM                                 4
 
+/**
+ * @brief Predefined Color Palette constants used to create a predefined 
+ * RGB color palette.
+ */
+#define DSL_COLOR_PREDEFINED_PALETTE_SPECTRAL                       0
+#define DSL_COLOR_PREDEFINED_PALETTE_RED                            1
+#define DSL_COLOR_PREDEFINED_PALETTE_GREEN                          2
+#define DSL_COLOR_PREDEFINED_PALETTE_BLUE                           3
+#define DSL_COLOR_PREDEFINED_PALETTE_GREY                           4
+
+
+/**
+ * @brief On-Screen Heat-Map legend locations.
+ */
+#define DSL_HEAT_MAP_LEGEND_LOCATION_TOP                            0
+#define DSL_HEAT_MAP_LEGEND_LOCATION_RIGHT                          1
+#define DSL_HEAT_MAP_LEGEND_LOCATION_BOTTOM                         2
+#define DSL_HEAT_MAP_LEGEND_LOCATION_LEFT                           3
+ 
+/**
+ * @brief On-Screen Heat-Map legend locations.
+ */
 #define DSL_CAPTURE_TYPE_OBJECT                                     0
 #define DSL_CAPTURE_TYPE_FRAME                                      1
 
@@ -983,10 +1021,263 @@ typedef struct _dsl_coordinate
 } dsl_coordinate;
 
 /**
- *
+ * @struct dsl_ode_occurrence_source_info
+ * @brief Video Source information for the ODE Occurrence provided to the 
+ * client on callback.
+ */
+typedef struct _dsl_ode_occurrence_source_info
+{
+    /**
+     * @brief unique source id for this ODE occurrence.
+     */
+    uint source_id;
+    
+    /**
+     * @brief the location of the frame in the batch for this ODE occurrence 
+     */
+    uint batch_id;
+    
+    /**
+     * @brief pad or port index of the Gst-streammux plugin for this ODE occurrence
+     */
+    uint pad_index;
+    
+    /**
+     * @brief current frame number of the source for this ODE occurrence.
+     */
+    uint frame_num;
+    
+    /**
+     * @brief width of the frame at input to Gst-streammux for this ODE occurrence.
+     */
+    uint frame_width;
+    
+    /**
+     * @brief height of the frame at input to Gst-streammux for this ODE occurrence.
+     */
+    uint frame_height;
+    
+    /**
+     * @brief true if inference was done on the frame for this ODE occurrence.
+     */
+    boolean inference_done;
+    
+} dsl_ode_occurrence_source_info;
+
+/**
+ * @struct dsl_ode_occurrence_object_info
+ * @brief Detected Object information for the ODE Occurrence provided to the 
+ * client on callback.
+ */
+typedef struct _dsl_ode_occurrence_object_info
+{
+    /**
+     * @brief class id for the detected object
+     */
+    uint class_id;
+    
+    /**
+     * @brief unique id of the inference component that generated the object data.
+     */
+    uint inference_component_id;
+    
+    /**
+     * @brief unique tracking id as assigned by the multi-object-tracker (MOT)
+     */
+    uint tracking_id;
+    
+    /**
+     * @brief unique label for the detected object
+     */
+    const wchar_t* label;
+    
+    /**
+     * @brief current "time in frame" if tracked - Persistence and Cross Triggers
+     */
+    uint persistence;
+    
+    /**
+     * @brief direction of the Object if line cross event - Cross Trigger only.
+     */
+    uint direction;
+    
+    /**
+     * @brief inference confidence as calculated by the last detector.
+     */
+    float inference_confidence;
+    
+    /**
+     * @brief tracker confidence if current frame was not inferred on.
+     */
+    float tracker_confidence;
+
+    /**
+     * @brief the Object's bounding box left coordinate in pixels.
+     */
+    uint left;
+    
+    /**
+     * @brief the Object's bounding box top coordinate in pixels.
+     */
+    uint top;
+    
+    /**
+     * @brief the Object's bounding box width in pixels.
+     */
+    uint width;
+    
+    /**
+     * @brief the Object's bounding box height in pixels.
+     */
+    uint height;
+    
+} dsl_ode_occurrence_object_info;
+
+/**
+ * @struct _dsl_ode_occurrence_accumulative_info
+ * @brief Accumulative ODE Occurrence metrics provided to the 
+ * client on callback.
+ */
+typedef struct _dsl_ode_occurrence_accumulative_info
+{
+    /**
+     * @brief the total number of object detection occurrences for the 
+     * frame-level ODE occurrence - Count, New-High, New-Low Triggers
+     * or from an ODE accumulator.
+     */
+    uint occurrences_total;
+    
+    /**
+     * @brief the number of Line-Cross ODE occurrences in the "in-direction".
+     * Requires an ODE Cross-Trigger with ODE Accumulator
+     */
+    uint occurrences_in;
+
+    /**
+     * @brief the number of Line-Cross ODE occurrences in the "out-direction".
+     * Requires an ODE Cross-Trigger with ODE Accumulator
+     */
+    uint occurrences_out;
+
+} dsl_ode_occurrence_accumulative_info;
+
+
+/**
+ * @struct dsl_ode_occurrence_criteria_info
+ * @brief ODE Trigger Criteria used for the ODE Occurrence.
+ */
+typedef struct _dsl_ode_occurrence_criteria_info
+{
+    /**
+     * @brief class id filter for ODE occurrence
+     */
+    uint class_id;
+    
+    /**
+     * @brief inference id filter for ODE occurrence
+     */
+    uint inference_component_id;
+    
+    /**
+     * @brief the minimum inference confidence to trigger an ODE occurrence.
+     */
+    float min_inference_confidence;
+    
+    /**
+     * @brief the minimum tracker confidence to trigger an ODE occurrence.
+     */
+    float min_tracker_confidence;
+    
+    /**
+     * @brief inference must be performed to trigger an ODE occurrence.
+     */
+    boolean inference_done_only;
+     
+    /**
+     * @brief the minimum bounding box width to trigger an ODE occurrence.
+     */
+    uint min_width;
+    
+    /**
+     * @brief the minimum bounding box height to trigger an ODE occurrence.
+     */
+    uint min_height;
+    
+    /**
+     * @brief the maximum bounding box width to trigger an ODE occurrence.
+     */
+    uint max_width;
+    
+    /**
+     * @brief the maximum bounding box height to trigger an ODE occurrence.
+     */
+    uint max_height;
+    
+    /**
+     * @brief the interval for checking for an ODE occurrence.
+     */
+    uint interval;
+    
+} dsl_ode_occurrence_criteria_info;
+
+/**
+ * @struct dsl_ode_occurrence_info
+ * @brief ODE Occurrence information provided to the client on callback
+ */
+typedef struct _dsl_ode_occurrence_info
+{
+    /**
+     * @brief the unique name of the ODE Trigger that triggered the occurrence
+     */
+    const wchar_t* trigger_name;
+    
+    /**
+     * @brief unique occurrence Id for this occurrence.
+     */
+    uint64_t unique_ode_id;
+    
+    /**
+     * @brief Network Time for this event.
+     */
+    uint64_t ntp_timestamp;
+    
+    /**
+     * @brief Video Source information this ODE Occurrence
+     */
+    dsl_ode_occurrence_source_info source_info;
+
+    /**
+     * @brief true if the ODE occurrence information is for a specific object,
+     * false for frame-level multi-object events. (absence, new-high count, etc.). 
+     */
+    boolean is_object_occurrence;
+    
+    // NOTE: object_info and accumulative_info are mutually exclusive
+    // determined by the boolean is_object_occurrence flag above.
+    
+    /**
+     * @brief Object information if object_occurrence == true
+     */
+    dsl_ode_occurrence_object_info object_info;
+    
+    /**
+     * @brief Accumulative information if object_occurrence == false
+     */
+    dsl_ode_occurrence_accumulative_info accumulative_info;
+    
+    /**
+     * @brief Trigger Criteria information for this ODE occurrence.
+     */
+    dsl_ode_occurrence_criteria_info criteria_info;
+       
+} dsl_ode_occurrence_info;
+
+//------------------------------------------------------------------------------------
+
+/**
  * @brief Callback typedef for a client ODE occurrence handler function. 
- * Once registered by calling dsl_ode_action_custom_new, the function will 
- * be called on ODE occurrence. 
+ * Once registered by calling dsl_ode_action_custom_new, the function will be called 
+ * on ODE occurrence with the full set of parameters received by the ODE Action. 
  * @param[in] event_id unique ODE occurrence ID, numerically ordered by occurrence.
  * @param[in] trigger unique name of the ODE Event Trigger that triggered the occurrence.
  * @param[in] buffer pointer to the frame buffer of type GstBuffer.
@@ -999,6 +1290,17 @@ typedef struct _dsl_coordinate
  */
 typedef void (*dsl_ode_handle_occurrence_cb)(uint64_t event_id, const wchar_t* trigger,
     void* buffer, void* display_meta, void* frame_meta, void* object_meta, void* client_data);
+
+/**
+ * @brief Callback typedef for a client ODE occurrence monitor function. 
+ * Once registered by calling dsl_ode_action_monitor_new, the function will be called 
+ * on ODE occurrence with all occurrence information using the dsl_ode_occurrence_info
+ * structure. 
+ * @param[in] occurrence_info occurrence information on ODE occurrence.
+ * @param[in] client_data opaque pointer to client's user data
+ */    
+typedef void (*dsl_ode_monitor_occurrence_cb)(dsl_ode_occurrence_info* occurrence_info,
+    void* client_data);    
 
 /**
  * @brief Callback typedef for a client ODE Custom Trigger check-for-occurrence function. Once 
@@ -1251,6 +1553,19 @@ DslReturnType dsl_display_type_rgba_color_predefined_new(const wchar_t* name,
  */
 DslReturnType dsl_display_type_rgba_color_palette_new(const wchar_t* name, 
     const wchar_t** colors);
+
+/**
+ * @brief Creates a uniquely named Predefined RGBA Display Color Palette.
+ * Note: this is a dynamic color that cycles through the provided palette 
+ * of colors on new instance events. 
+ * @param[in] name unique name for the RGBA Color Palette.
+ * @param[in] palette_id one of the DSL_COLOR_PREDEFINED_PALETTE* contants. 
+ * @param[in] alpha alpha level for the RGBA Predefined Color Palette.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_color_palette_predefined_new(const wchar_t* name, 
+    uint palette_id, double alpha);
 
 /**
  * @brief Gets the current index value for the named RGBA Color Palette 
@@ -1794,6 +2109,16 @@ DslReturnType dsl_ode_action_message_meta_add_new(const wchar_t* name);
 // */
 //DslReturnType dsl_ode_action_message_meta_type_set(const wchar_t* name,
 //    uint meta_type);
+
+/**
+ * @brief Creates a uniquely named Monitor ODE Action.
+ * @param[in] name unique name for the Monitor ODE Action. 
+ * @param[in] client_monitor function to call on ODE occurrence. 
+ * @param[in] client_data opaue pointer to client's user data, returned on callback.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_monitor_new(const wchar_t* name, 
+    dsl_ode_monitor_occurrence_cb client_monitor, void* client_data);
 
 /**
  * @brief Creates a uniquely named Pause ODE Action
@@ -2939,6 +3264,24 @@ DslReturnType dsl_ode_trigger_accumulator_add(const wchar_t* name,
 DslReturnType dsl_ode_trigger_accumulator_remove(const wchar_t* name);
 
 /**
+ * @brief Adds a named ODE Heat-Mapper to a named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] heat_mapper unique name of the ODE Heat-Mapper to add
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_heat_mapper_add(const wchar_t* name, 
+    const wchar_t* heat_mapper);
+
+/**
+ * @brief Removes the ODE Heat-Mapper from a named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_heat_mapper_remove(const wchar_t* name);
+
+/**
  * @brief Deletes a uniquely named Trigger. The call will fail if the Triggers is 
  * currently in use
  * @brief[in] name unique name of the event to delte
@@ -3029,7 +3372,7 @@ DslReturnType dsl_ode_accumulator_action_remove_all(const wchar_t* name);
 
 /**
  * @brief Deletes a uniquely named ODE Accumulator. The call will fail if 
- * the ODE Accumulators is currently in use
+ * the ODE Accumulator is currently in use
  * @brief[in] name unique name of the ODE Accumulator to delete
  * @return DSL_RESULT_SUCCESS on successful delete, 
  * DSL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
@@ -3057,6 +3400,153 @@ DslReturnType dsl_ode_accumulator_delete_all();
  */
 uint dsl_ode_accumulator_list_size();
 
+/**
+ * @brief Creates a new ODE Heat-Mapper that when added to an ODE Trigger, maps the
+ * bounding-box test point for objects that trigger an ODE Occurrence over time. 
+ * The source-frame, with width and height, is partitioned into a two-dimensional grid of 
+ * rectangles as defined by the input parameters cols and rows. A color value from the
+ * provided RGBA Color Palette is assigned to each rectangle based on the percentage
+ * of test-points per rectangle. The RGBA Display Metadata is added to the Frame's metadata
+ *  when the Trigger post processes each frame.
+ * @param[in] name unique name for the ODE Heat-Mapper
+ * @param[in] cols number of columns for the two-dimensional map.
+ * @param[in] rows number of rows for the two-dimensional map
+ * @param[in] bbox_test_point one of DSL_BBOX_POINT values defining which point of a
+ * object's bounding box to use as coordinates for mapping.
+ * @param[in] color_palette a palette of RGBA Colors to assign to the grid rectangles
+ * based on the percentage of center-points per-square.  
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_new(const wchar_t* name, 
+    uint cols, uint rows, uint bbox_test_point, const wchar_t* color_palette);
+
+/**
+ * @brief Gets the RGBA Color Palette in use by the named ODE Heat-Mapper
+ * @param[in] name unique name of the ODE Heat-Mapper to query
+ * @param[out] color_palette name of the RGBA Color Palette in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_color_palette_get(const wchar_t* name, 
+    const wchar_t** color_palette);
+
+/**
+ * @brief Sets the the RGBA Color Palette to use by the named ODE Heat-Mapper
+ * @param[in] name unique name of the ODE Heat-Mapper to update
+ * @param[in] color_palette name of the RGBA Color Palette to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_color_palette_set(const wchar_t* name, 
+    const wchar_t* color_palette);
+
+/**
+ * @brief Gets the current Legend settings for the named ODE Heat-Mapper.
+ * @param[in] name unique name of the ODE Heat-Mapper to query.
+ * @param[out] enabled true if display is enabled, false otherwise.
+ * @param[out] location current frame location, one of DSL_HEAT_MAP_LEGEND_LOCATION_*
+ * @param[out] width width of each entry in the legend in units of columns.
+ * @param[out] height height of each entry in the legend in units of rows.
+ * @return DSL_RESULT_SUCCESS on successful query, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_legend_settings_get(const wchar_t* name, 
+    boolean* enabled, uint* location, uint* width, uint* height);
+
+/**
+ * @brief Gets the current Legend settings for the named ODE Heat-Mapper.
+ * @param[in] name unique name of the ODE Heat-Mapper to update.
+ * @param[in] enabled set to true to enable display, false to disable.
+ * @param[in] location frame location, one of DSL_HEAT_MAP_LEGEND_LOCATION_*
+ * @param[in] width width of each entry in the legend in units of columns.
+ * @param[in] height height of each entry in the legend in units of rows.
+ * @return DSL_RESULT_SUCCESS on successful query, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_legend_settings_set(const wchar_t* name, 
+    boolean enabled, uint location, uint width, uint height);
+
+/**
+ * @brief Calls on an ODE Heat-Mapper to clear its current heat-map metrics
+ * returning the map to its initial all-zero state. 
+ * @param[in] name unique name of the ODE Heat-Mapper to call on.
+ * @return DSL_RESULT_SUCCESS on success, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_metrics_clear(const wchar_t* name);
+
+/**
+ * @brief Get the current heat-map metrics from an ODE Heat-Mapper
+ * @param[in] name unique name of the ODE Heat-Mapper to query.
+ * @param[out] buffer a linear buffer of metric map data. Each row or 
+ * map data is serialized to a single buffer of size cols*rows. 
+ * Each element in the buffer indicates the total number of occurrences
+ * accumulated for the position in the map.
+ * @param[out] size size of buffer - cols*rows.
+ * @return DSL_RESULT_SUCCESS on success, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_metrics_get(const wchar_t* name,
+    const uint64_t** buffer, uint* size);
+
+/**
+ * @brief Calls on an ODE Heat-Mapper to print its current heat-map metrics
+ * to the console. 
+ * @param[in] name unique name of the ODE Heat-Mapper to call on.
+ * @return DSL_RESULT_SUCCESS on success, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_metrics_print(const wchar_t* name);
+
+/**
+ * @brief Calls on an ODE Heat-Mapper to log its current heat-map metrics
+ * at the INFO log level. 
+ * @param[in] name unique name of the ODE Heat-Mapper to call on.
+ * @return DSL_RESULT_SUCCESS on success, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_metrics_log(const wchar_t* name);
+
+/**
+ * @brief Calls on an ODE Heat-Mapper to write its current heat-map metrics to file.
+ * @param[in] name unique name of the ODE Heat-Mapper to call on.
+ * @param[in] file_path absolute or relative file path of the output file to use
+ * The file will be created if one does exists, or opened/used if found.
+ * @param[in] mode file open/write mode, one of DSL_EVENT_FILE_MODE_* options
+ * @param[in] format one of the DSL_EVENT_FILE_FORMAT_* options
+ * @return DSL_RESULT_SUCCESS on success, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_metrics_file(const wchar_t* name,
+    const wchar_t* file_path, uint mode, uint format);
+
+/**
+ * @brief Deletes a uniquely named ODE Heat-Mapper. The call will fail if 
+ * the ODE Heat-Mapper is currently in use.
+ * @brief[in] name unique name of the ODE Heat-Mapper to delete
+ * @return DSL_RESULT_SUCCESS on successful delete, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_delete(const wchar_t* name);
+
+/**
+ * @brief Deletes a Null terminated list of ODE Heat-Mappers. The call will fail 
+ * if any of the ODE Heat-Mappers are currently in use.
+ * @brief[in] names Null terminated list of ODE Heat-Mapper names to delete
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_delete_many(const wchar_t** names);
+
+/**
+ * @brief Deletes all ODE Heat-Mappers. The call will fail if any of the 
+ * ODE Heat-Mappers are currently in use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_delete_all();
+
+/**
+ * @brief Returns the size of the list of ODE Heat-Mappers.
+ * @return the number of ODE Heat-Mapper in the list.
+ */
+uint dsl_ode_heat_mapper_list_size();
 
 /**
  * @brief creates a new, uniquely named Handler component

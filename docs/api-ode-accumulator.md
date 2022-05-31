@@ -97,7 +97,7 @@ retval = dsl_ode_accumulator_delete('my-accumulator')
 ```C++
 DslReturnType dsl_ode_accumulator_delete_many(const wchar_t** names);
 ```
-This destructor deletes multiple uniquely named ODE Accumulators. Each name is checked for existence with the function returning on first failure. The destructor will fail if one of the Actions is currently `in-use` by one or more ODE Triggers
+This destructor deletes multiple uniquely named ODE Accumulators. Each name is checked for existence with the function returning on first failure. The destructor will fail if one of the Accumulators is currently `in-use` by one or more ODE Triggers
 
 **Parameters**
 * `names` - [in] a NULL terminated array of uniquely named ODE Accumulators to delete.
@@ -130,7 +130,7 @@ retval = dsl_ode_accumulator_delete_all()
 
 ---
 
-## Methods
+## Methods  
 ### *dsl_ode_accumulator_action_add*
 ```c++
 DslReturnType dsl_ode_accumulator_action_add(const wchar_t* name, 
@@ -182,7 +182,7 @@ DslReturnType dsl_ode_accumulator_action_remove(const wchar_t* name,
     const wchar_t* action);
 ```
 
-This service removes a named ODE Action from a named ODE Accumulator. The services will fail if the Action is not currently in-use by the named Accumulator
+This service removes a named ODE Action from a named ODE Accumulator. The services will fail if the Action is not currently in-use by the named Accumulator.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Accumulator to update.
@@ -279,6 +279,7 @@ size = dsl_ode_accumulator_list_size()
 * **ODE Accumulator**
 * [ODE Action](/docs/api-ode-action.md)
 * [ODE Area](/docs/api-ode-area.md)
+* [ODE Heat-Mapper](/docs/api-ode-heat-mapper.md)
 * [Display Types](/docs/api-display-types.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)

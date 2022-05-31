@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2022, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -131,6 +131,11 @@ namespace DSL
     #define DSL_ODE_ACTION_MESSAGE_META_ADD_NEW(name) \
         std::shared_ptr<MessageMetaAddOdeAction>(new MessageMetaAddOdeAction(name))
 
+    #define DSL_ODE_ACTION_MONITOR_PTR std::shared_ptr<MonitorOdeAction>
+    #define DSL_ODE_ACTION_MONITOR_NEW(name, clientMonitor, clientData) \
+        std::shared_ptr<MonitorOdeAction>(new MonitorOdeAction(name, \
+            clientMonitor, clientData))
+
     #define DSL_ODE_ACTION_PAUSE_PTR std::shared_ptr<PauseOdeAction>
     #define DSL_ODE_ACTION_PAUSE_NEW(name, pipeline) \
         std::shared_ptr<PauseOdeAction>(new PauseOdeAction(name, pipeline))
@@ -224,7 +229,7 @@ namespace DSL
     public: 
     
         /**
-         * @brief ctor for the ODE virtual base class
+         * @brief ctor for the ODE Action virtual base class
          * @param[in] name unique name for the ODE Action
          */
         OdeAction(const char* name);
@@ -279,7 +284,7 @@ namespace DSL
         ~FormatBBoxOdeAction();
 
         /**
-         * @brief Handles the ODE occurrence by calling the client handler
+         * @brief Handles the ODE occurrence by formating the bounding box of pObjectMeta
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
          * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
@@ -899,6 +904,56 @@ namespace DSL
          */
         uint m_metaType;
     
+    };
+
+    // ********************************************************************
+
+    /**
+     * @class MonitorOdeAction
+     * @brief Monitor ODE Action class
+     */
+    class MonitorOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Monitor ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] clientMonitor client callback function to call on ODE
+         * @param[in] clientData opaque pointer to client data t return on callback
+         */
+        MonitorOdeAction(const char* name, 
+            dsl_ode_monitor_occurrence_cb clientMonitor, void* clientData);
+        
+        /**
+         * @brief dtor for the ODE Monitor Action class
+         */
+        ~MonitorOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by calling the client handler
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief Client Callback function to call on ODE occurrence
+         */
+        dsl_ode_monitor_occurrence_cb m_clientMonitor;
+        
+        /**
+         * @brief pointer to client's data returned on callback
+         */ 
+        void* m_clientData;
+
     };
         
     // ********************************************************************

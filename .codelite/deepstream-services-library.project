@@ -98,6 +98,9 @@
     <File Name="../src/DslOdeAccumulator.h"/>
     <File Name="../src/DslOdeAccumulator.cpp"/>
     <File Name="../src/DslServicesOdeAccumulator.cpp"/>
+    <File Name="../src/DslOdeHeatMapper.h"/>
+    <File Name="../src/DslOdeHeatMapper.cpp"/>
+    <File Name="../src/DslServicesOdeHeatMapper.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="api">
@@ -140,6 +143,8 @@
       <File Name="../test/api/DslImageSourceBehaviorTest.cpp"/>
       <File Name="../test/api/DslCrossTriggerExampleTest.cpp"/>
       <File Name="../test/api/DslOdeAccumulatorApiTest.cpp"/>
+      <File Name="../test/api/DslOdeHeatMapperApiTest.cpp"/>
+      <File Name="../test/unit/DslOdeActionUnitTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDemuxerAndTeeUnitTest.cpp"/>
@@ -152,7 +157,6 @@
       <File Name="../test/unit/DslMsgSinkUnitTest.cpp"/>
       <File Name="../test/unit/DslMultiSinksUnitTest.cpp"/>
       <File Name="../test/unit/DslNodetrUnitTest.cpp"/>
-      <File Name="../test/unit/DslOdeActionUnitTest.cpp"/>
       <File Name="../test/unit/DslOdeAreaUnitTest.cpp"/>
       <File Name="../test/unit/DslOdeTriggerUnitTest.cpp"/>
       <File Name="../test/unit/DslOfvUnitTest.cpp"/>
@@ -173,6 +177,7 @@
       <File Name="../test/unit/DslTrackerUnitTest.cpp"/>
       <File Name="../test/unit/DslOdeTrackedObjectUnitTest.cpp"/>
       <File Name="../test/unit/DslOdeAccumulatorUnitTest.cpp"/>
+      <File Name="../test/unit/DslOdeHeatMapperUnitTest.cpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="root">
@@ -241,6 +246,8 @@
       <File Name="../examples/python/message_broker_azure_module_client.py"/>
       <File Name="../examples/python/1image_jpeg_pgie_osd_window.py"/>
       <File Name="../examples/python/ode_line_cross_object_capture_overlay_image.py"/>
+      <File Name="../examples/python/ode_occurrence_trigger_with_heat_mapper.py"/>
+      <File Name="../examples/python/ode_occurrence_trigger_with_monitor_action.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>

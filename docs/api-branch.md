@@ -234,6 +234,7 @@ retval = dsl_branch_component_remove_all('my-branch')
 * [ODE Accumulator](/docs/api-ode-accumulator.md)
 * [ODE Acton](/docs/api-ode-action.md)
 * [ODE Area](/docs/api-ode-area.md)
+* [ODE Heat-Mapper](/docs/api-ode-heat-mapper.md)
 * [Display Type](/docs/api-display-type.md)
 * **Branch**
 * [Component](/docs/api-component.md)

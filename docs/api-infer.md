@@ -403,6 +403,7 @@ retval = dsl_infer_primary_pph_remove('my-primary-gie', 'my-pph-handler', `DSL_P
 * [ODE Accumulator](/docs/api-ode-accumulator.md)
 * [ODE Acton](/docs/api-ode-action.md)
 * [ODE Area](/docs/api-ode-area.md)
+* [ODE Heat-Mapper](/docs/api-ode-heat-mapper.md)
 * [Display Types](/docs/api-display-types.md)
 * [branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)

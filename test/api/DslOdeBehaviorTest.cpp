@@ -70,6 +70,9 @@ static const uint limit_10(10);
 
 static const std::wstring ode_action_name(L"print");
 
+static const std::wstring color_palette_name(L"spectral-color-palette");
+static const std::wstring ode_heat_mapper_name(L"ode-heat-mapper");
+
 static const std::wstring vehicle_occurrence_name(L"vehicle-occurence");
 static const std::wstring first_vehicle_occurrence_name(L"first-vehicle-occurrence");
 static const std::wstring vehicle_summation_name(L"vehicle-summation");
@@ -1827,3 +1830,88 @@ SCENARIO( "A new Pipeline with a Cross ODE Trigger using an ODE Polygon Area can
         }
     }
 }
+
+SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Print ODE Action, \
+    and ODE Heat-Mapper can play", "[temp]" )
+{
+    GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Print ODE Action" ) 
+    {
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            infer_config_file.c_str(), model_engine_file.c_str(), 0) == 
+                DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), 
+            tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tiler_new(tiler_name.c_str(), width, height) == 
+            DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pph_ode_new(ode_pph_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_display_meta_alloc_size_set(
+            ode_pph_name.c_str(), 8) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), 
+            ode_pph_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
+            NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_print_new(ode_action_name.c_str(), 
+            false) == DSL_RESULT_SUCCESS );
+//        REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
+//            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_display_type_rgba_color_palette_predefined_new(
+            color_palette_name.c_str(), DSL_COLOR_PREDEFINED_PALETTE_SPECTRAL, 
+            0.5) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_ode_heat_mapper_new(ode_heat_mapper_name.c_str(),
+            64, 36, DSL_BBOX_POINT_SOUTH, color_palette_name.c_str()) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_ode_trigger_heat_mapper_add(ode_trigger_name.c_str(),
+            ode_heat_mapper_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_osd_new(osd_name.c_str(), false, false,
+            true, false) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", 
+            L"osd", L"window-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), components) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*20);
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_ode_heat_mapper_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_heat_mapper_list_size() == 0 );
+            }
+        }
+    }
+}
+

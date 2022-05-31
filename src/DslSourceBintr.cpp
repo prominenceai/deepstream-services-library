@@ -37,7 +37,7 @@ namespace DSL
     SourceBintr::SourceBintr(const char* name)
         : Bintr(name)
         , m_cudaDeviceProp{0}
-        , m_isLive(TRUE)
+        , m_isLive(true)
         , m_width(0)
         , m_height(0)
         , m_fpsN(0)

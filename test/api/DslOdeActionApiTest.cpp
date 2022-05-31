@@ -366,6 +366,40 @@ SCENARIO( "A new Custom ODE Action can be created and deleted", "[ode-action-api
     }
 }
 
+SCENARIO( "A new Monitor ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Monitor ODE Action" ) 
+    {
+        std::wstring action_name(L"custom-action");
+        dsl_ode_monitor_occurrence_cb client_monitor;
+
+        WHEN( "A new Monitor ODE Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_monitor_new(action_name.c_str(), 
+                client_monitor, NULL) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Monitor ODE Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_monitor_new(action_name.c_str(), 
+                client_monitor, NULL) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second custom of the same names fails to create" ) 
+            {
+                REQUIRE( dsl_ode_action_monitor_new(action_name.c_str(), 
+                    client_monitor, NULL) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new Frame Capture ODE Action can be created and deleted", "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Frame Capture ODE Action" ) 
@@ -1798,6 +1832,9 @@ SCENARIO( "The ODE Action API checks for NULL input parameters", "[ode-action-ap
             {
                 REQUIRE( dsl_ode_action_custom_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_custom_new(action_name.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_monitor_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_monitor_new(action_name.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_capture_frame_new(NULL, NULL, true) 
                     == DSL_RESULT_INVALID_INPUT_PARAM );

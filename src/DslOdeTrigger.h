@@ -241,6 +241,18 @@ namespace DSL
          */
         bool RemoveAccumulator();
         
+        /**
+         * @brief Adds a (one at most) ODE HeatMapper as a child to this OdeTrigger.
+         * @param[in] pChild pointer to ODE Heat-Mapper to add.
+         * @return true if successful, false otherwise
+         */
+        bool AddHeatMapper(DSL_BASE_PTR pHeatMapper);
+        
+        /**
+         * @brief Removes the child ODE Heat-Mapper from this OdeTrigger
+         * @return true if successful, false otherwise
+         */
+        bool RemoveHeatMapper();
         
         /**
          * @brief Resets the Trigger
@@ -533,6 +545,11 @@ namespace DSL
         DSL_BASE_PTR m_pAccumulator;
     
         /**
+         * @brief optional ODE Heat-Mapper owned by the ODE Trigger.
+         */
+        DSL_BASE_PTR m_pHeatMapper;
+    
+        /**
          * @brief auto-reset timeout in units of seconds
          */
         uint m_resetTimeout;
@@ -553,11 +570,6 @@ namespace DSL
          */
         std::map<dsl_ode_trigger_limit_event_listener_cb, 
             void*>m_limitEventListeners;
-        
-        /**
-         * @brief process interval, default = 0
-         */
-        uint m_interval;
         
         /**
          * @brief current number of frames in the current interval
@@ -660,6 +672,11 @@ namespace DSL
          */
         float m_maxHeight;
 
+        /**
+         * @brief process interval, default = 0
+         */
+        uint m_interval;
+        
         /**
          * @brief Minimum frame count numerator to trigger an ODE occurrence
          */

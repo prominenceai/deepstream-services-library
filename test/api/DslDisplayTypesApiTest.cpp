@@ -263,6 +263,48 @@ SCENARIO( "A new RGBA Color Palette can be created and deleted",
     }
 }
 
+SCENARIO( "A new RGBA Predefined Color Palette can be created and deleted", 
+    "[display-types-api]" )
+{
+    GIVEN( "Attributes for a new RGBA Predefined Color Palete" ) 
+    {
+        std::wstring colorName(L"my-color");
+        uint palette_id(DSL_COLOR_PREDEFINED_PALETTE_SPECTRAL);
+        double alpha(0.78);
+
+        REQUIRE( dsl_display_type_list_size() == 0 );
+        WHEN( "A new RGBA Predefined Color Palette is created" ) 
+        {
+            REQUIRE( dsl_display_type_rgba_color_palette_predefined_new(
+                colorName.c_str(), palette_id, alpha) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_display_type_list_size() == 1 );
+            
+            THEN( "The RGBA Predefined Color Palette can be deleted" ) 
+            {
+                REQUIRE( dsl_display_type_delete(colorName.c_str()) == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "A new RGBA Predefined Color Palette is created" ) 
+        {
+            REQUIRE( dsl_display_type_rgba_color_palette_predefined_new(
+                colorName.c_str(), palette_id, alpha) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second RGBA Predefined Color of the same name fails to create" ) 
+            {
+                REQUIRE( dsl_display_type_rgba_color_palette_predefined_new(
+                    colorName.c_str(), palette_id, alpha) == 
+                        DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE );
+
+                REQUIRE( dsl_display_type_delete(colorName.c_str()) == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new RGBA Random Color can be created and deleted", 
     "[display-types-api]" )
 {
