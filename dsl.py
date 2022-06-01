@@ -459,55 +459,6 @@ def dsl_display_type_rgba_color_predefined_new(name,
     return int(result)
 
 ##
-## dsl_display_type_rgba_color_palette_new()
-##
-# _dsl.dsl_display_type_rgba_color_palette_new.argtypes = [c_wchar_p, ???]
-_dsl.dsl_display_type_rgba_color_palette_new.restype = c_uint
-def dsl_display_type_rgba_color_palette_new(name, colors):
-    global _dsl
-    arr = (c_wchar_p * len(colors))()
-    arr[:] = colors
-    result =_dsl.dsl_display_type_rgba_color_palette_new(name, 
-        arr)
-    return int(result)
-
-##
-## dsl_display_type_rgba_color_palette_predefined_new()
-##
-_dsl.dsl_display_type_rgba_color_palette_predefined_new.argtypes = [c_wchar_p,
-    c_uint, c_double]
-_dsl.dsl_display_type_rgba_color_palette_predefined_new.restype = c_uint
-def dsl_display_type_rgba_color_palette_predefined_new(name, palette_id, alpha):
-    global _dsl
-    result =_dsl.dsl_display_type_rgba_color_palette_predefined_new(name, 
-        palette_id, alpha)
-    return int(result)
-
-##
-## dsl_display_type_rgba_color_palette_index_get()
-##
-_dsl.dsl_display_type_rgba_color_palette_index_get.argtypes = [c_wchar_p, 
-    POINTER(c_uint)]
-_dsl.dsl_display_type_rgba_color_palette_index_get.restype = c_uint
-def dsl_display_type_rgba_color_palette_index_get(name):
-    global _dsl
-    index = c_uint(0)
-    result =_dsl.dsl_display_type_rgba_color_palette_index_get(name, 
-        DSL_UINT_P(index))
-    return int(result), index.value
-
-##
-## dsl_display_type_rgba_color_palette_index_set()
-##
-_dsl.dsl_display_type_rgba_color_palette_index_set.argtypes = [c_wchar_p, 
-    c_uint]
-_dsl.dsl_display_type_rgba_color_palette_index_set.restype = c_uint
-def dsl_display_type_rgba_color_palette_index_set(name, index):
-    global _dsl
-    result =_dsl.dsl_display_type_rgba_color_palette_index_set(name, index)
-    return int(result)
-
-##
 ## dsl_display_type_rgba_color_random_new()
 ##
 _dsl.dsl_display_type_rgba_color_random_new.argtypes = [c_wchar_p, 
@@ -534,6 +485,68 @@ def dsl_display_type_rgba_color_on_demand_new(name, provider, client_data):
     clientdata.append(c_client_data)
     result = _dsl.dsl_display_type_rgba_color_on_demand_new(name, 
         c_provider, c_client_data)
+    return int(result)
+
+##
+## dsl_display_type_rgba_color_palette_new()
+##
+# _dsl.dsl_display_type_rgba_color_palette_new.argtypes = [c_wchar_p, ???]
+_dsl.dsl_display_type_rgba_color_palette_new.restype = c_uint
+def dsl_display_type_rgba_color_palette_new(name, colors):
+    global _dsl
+    arr = (c_wchar_p * len(colors))()
+    arr[:] = colors
+    result =_dsl.dsl_display_type_rgba_color_palette_new(name, 
+        arr)
+    return int(result)
+
+##
+## dsl_display_type_rgba_color_palette_predefined_new()
+##
+_dsl.dsl_display_type_rgba_color_palette_predefined_new.argtypes = [c_wchar_p,
+    c_uint, c_double]
+_dsl.dsl_display_type_rgba_color_palette_predefined_new.restype = c_uint
+def dsl_display_type_rgba_color_palette_predefined_new(name, palette_id, alpha):
+    global _dsl
+    result =_dsl.dsl_display_type_rgba_color_palette_predefined_new(name, 
+        palette_id, alpha)
+    return int(result)
+
+##
+## dsl_display_type_rgba_color_palette_random_new()
+##
+_dsl.dsl_display_type_rgba_color_palette_random_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_uint, c_double, c_uint]
+_dsl.dsl_display_type_rgba_color_palette_random_new.restype = c_uint
+def dsl_display_type_rgba_color_palette_random_new(name, 
+    size, hue, luminosity, alpha, seed):
+    global _dsl
+    result =_dsl.dsl_display_type_rgba_color_palette_random_new(name, 
+        size, hue, luminosity, alpha, seed)
+    return int(result)
+
+##
+## dsl_display_type_rgba_color_palette_index_get()
+##
+_dsl.dsl_display_type_rgba_color_palette_index_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_display_type_rgba_color_palette_index_get.restype = c_uint
+def dsl_display_type_rgba_color_palette_index_get(name):
+    global _dsl
+    index = c_uint(0)
+    result =_dsl.dsl_display_type_rgba_color_palette_index_get(name, 
+        DSL_UINT_P(index))
+    return int(result), index.value
+
+##
+## dsl_display_type_rgba_color_palette_index_set()
+##
+_dsl.dsl_display_type_rgba_color_palette_index_set.argtypes = [c_wchar_p, 
+    c_uint]
+_dsl.dsl_display_type_rgba_color_palette_index_set.restype = c_uint
+def dsl_display_type_rgba_color_palette_index_set(name, index):
+    global _dsl
+    result =_dsl.dsl_display_type_rgba_color_palette_index_set(name, index)
     return int(result)
 
 ##

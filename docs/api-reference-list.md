@@ -542,6 +542,8 @@
 * [dsl_display_type_rgba_color_random_new](/docs/api-display-type.md#dsl_display_type_rgba_color_random_new)
 * [dsl_display_type_rgba_color_on_demand_new](/docs/api-display-type.md#dsl_display_type_rgba_color_on_demand_new)
 * [dsl_display_type_rgba_color_palette_new](/docs/api-display-type.md#dsl_display_type_rgba_color_palette_new)
+* [dsl_display_type_rgba_color_palette_predefined_new](/docs/api-display-type.md#dsl_display_type_rgba_color_palette_predefined_new)
+* [dsl_display_type_rgba_color_palette_random_new](/docs/api-display-type.md#dsl_display_type_rgba_color_palette_random_new)
 * [dsl_display_type_rgba_font_new](/docs/api-display-type.md#dsl_display_type_rgba_font_new)
 * [dsl_display_type_rgba_text_new](/docs/api-display-type.md#dsl_display_type_rgba_text_new)
 * [dsl_display_type_rgba_line_new](/docs/api-display-type.md#dsl_display_type_rgba_line_new)

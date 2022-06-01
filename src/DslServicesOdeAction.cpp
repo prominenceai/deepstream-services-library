@@ -690,10 +690,10 @@ namespace DSL
             if (borderWidth)
             {
                 DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, borderColor);
-                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, 
-                    borderColor, RgbaColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(m_displayTypes, borderColor);
 
-                pBorderColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[borderColor]);
+                pBorderColor = std::dynamic_pointer_cast<RgbaColor>
+                    (m_displayTypes[borderColor]);
             }
             else
             {
@@ -705,10 +705,10 @@ namespace DSL
             if (hasBgColor)
             {
                 DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, 
-                    bgColor, RgbaColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(m_displayTypes, bgColor);
 
-                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>
+                    (m_displayTypes[bgColor]);
             }
             else
             {
@@ -767,8 +767,7 @@ namespace DSL
             if (hasBgColor)
             {
                 DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, 
-                    bgColor, RgbaColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(m_displayTypes, bgColor);
 
                 pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
             }

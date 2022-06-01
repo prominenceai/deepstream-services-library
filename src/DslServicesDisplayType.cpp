@@ -136,170 +136,6 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::DisplayTypeRgbaColorPaletteNew(const char* name, 
-        const char** colors, uint num_colors)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure type name uniqueness 
-            if (m_displayTypes.find(name) != m_displayTypes.end())
-            {   
-                LOG_ERROR("RGBA Color name '" << name << "' is not unique");
-                return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
-            }
-            std::shared_ptr<std::vector<DSL_RGBA_COLOR_PTR>> pColorPalette = 
-                std::shared_ptr<std::vector<DSL_RGBA_COLOR_PTR>>(
-                    new std::vector<DSL_RGBA_COLOR_PTR>);
-                    
-            for (uint i = 0; i < num_colors; i++)
-            {
-                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(m_displayTypes, colors[i]);
-
-                DSL_RGBA_COLOR_PTR pColor = 
-                    std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[colors[i]]);
-                    
-                pColorPalette->push_back(pColor);
-            }
-            m_displayTypes[name] = DSL_RGBA_COLOR_PALETTE_NEW(name, 
-                pColorPalette);
-
-            LOG_INFO("New RGBA Color Palette '" << name 
-                << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New RGBA Color Palette '" << name 
-                << "' threw exception on create");
-            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::DisplayTypeRgbaColorPalettePredefinedNew(const char* name,
-        uint paletteId, double alpha)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure type name uniqueness 
-            if (m_displayTypes.find(name) != m_displayTypes.end())
-            {   
-                LOG_ERROR("RGBA Predefined Color Palette name '" << name 
-                    << "' is not unique");
-                return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
-            }
-            if (paletteId > DSL_COLOR_PREDEFINED_PALETTE_GREY)
-            {
-                LOG_ERROR("Invalid palette_id value of " << paletteId 
-                    << " for New RGBA Predefined Color Palette '" << name << "'");
-                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
-            }
-            if ( alpha > 1.0)
-            {
-                LOG_ERROR("Invalid alpha parameter = " << alpha 
-                    << " greater than 1.0 for RGBA Color Palette'" << name << "'");
-                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
-            }
-            
-            std::shared_ptr<std::vector<DSL_RGBA_COLOR_PTR>> pColorPalette = 
-               std::shared_ptr<std::vector<DSL_RGBA_COLOR_PTR>>{
-                    new std::vector<DSL_RGBA_COLOR_PTR>};
-            
-            for (auto const& ivec: 
-                RgbaPredefinedColor::s_predefinedColorPalettes[paletteId])
-            {
-                DSL_RGBA_COLOR_PTR pColor = std::shared_ptr<RgbaColor>
-                    (new RgbaColor("", ivec));
-                pColor->alpha = alpha;
-                
-                pColorPalette->push_back(pColor);
-            }
-            
-            m_displayTypes[name] = DSL_RGBA_COLOR_PALETTE_NEW(name, 
-                pColorPalette);
-
-            LOG_INFO("New RGBA Predefined Color Palette'" << name 
-                << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New RGBA Predefined Color '" << name 
-                << "' threw exception on create");
-            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::DisplayTypeRgbaColorPaletteIndexGet(const char* name,
-        uint* index)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_displayTypes, 
-                name, RgbaColorPalette);
-            
-            DSL_RGBA_COLOR_PALETTE_PTR pColor = 
-                std::dynamic_pointer_cast<RgbaColorPalette>(m_displayTypes[name]);
-            
-            *index = pColor->GetIndex();
-            
-            LOG_INFO("RGBA Color Palette '" << name 
-                << "' returned index = " << *index << "correctly");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("RGBA Color Palette '" << name 
-                << "' threw exception on Get Index");
-            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::DisplayTypeRgbaColorPaletteIndexSet(const char* name,
-        uint index)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_displayTypes, 
-                name, RgbaColorPalette);
-            
-            DSL_RGBA_COLOR_PALETTE_PTR pColor = 
-                std::dynamic_pointer_cast<RgbaColorPalette>(m_displayTypes[name]);
-            
-            if (!pColor->SetIndex(index))
-            {
-                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
-            }
-            
-            LOG_INFO("RGBA Color Palette '" << name 
-                << "' set index = " << index << "correctly");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New RGBA Color Palette '" << name 
-                << "' threw exception on Set Index");
-            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
-        }
-    }
-
     DslReturnType Services::DisplayTypeRgbaColorRandomNew(const char* name, 
         uint hue, uint luminosity, double alpha, uint seed)
     {
@@ -375,6 +211,252 @@ namespace DSL
         {
             LOG_ERROR("New RGBA Color On-Demand '" << name 
                 << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeRgbaColorPaletteNew(const char* name, 
+        const char** colors, uint num_colors)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Color name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
+            }
+            std::shared_ptr<std::vector<DSL_RGBA_COLOR_PTR>> pColorPalette = 
+                std::shared_ptr<std::vector<DSL_RGBA_COLOR_PTR>>(
+                    new std::vector<DSL_RGBA_COLOR_PTR>);
+                    
+            for (uint i = 0; i < num_colors; i++)
+            {
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(m_displayTypes, colors[i]);
+
+                DSL_RGBA_COLOR_PTR pColor = 
+                    std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[colors[i]]);
+                    
+                pColorPalette->push_back(pColor);
+            }
+            m_displayTypes[name] = DSL_RGBA_COLOR_PALETTE_NEW(name, 
+                pColorPalette);
+
+            LOG_INFO("New RGBA Color Palette '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Color Palette '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeRgbaColorPalettePredefinedNew(const char* name,
+        uint paletteId, double alpha)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Predefined Color Palette name '" << name 
+                    << "' is not unique");
+                return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
+            }
+            if (paletteId > DSL_COLOR_PREDEFINED_PALETTE_GREY)
+            {
+                LOG_ERROR("Invalid palette_id value of " << paletteId 
+                    << " for New RGBA Predefined Color Palette '" << name << "'");
+                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
+            }
+            if ( alpha > 1.0)
+            {
+                LOG_ERROR("Invalid alpha parameter = " << alpha 
+                    << " greater than 1.0 for RGBA Color Palette'" << name << "'");
+                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
+            }
+            
+            // new shared pointer to an emptry vector of RGBA Color pointers to create
+            // a palette of Predefined colors to provide to the Color Palette constructor
+            std::shared_ptr<std::vector<DSL_RGBA_COLOR_PTR>> pColorPalette = 
+               std::shared_ptr<std::vector<DSL_RGBA_COLOR_PTR>>{
+                    new std::vector<DSL_RGBA_COLOR_PTR>};
+            
+            for (auto const& ivec: 
+                RgbaPredefinedColor::s_predefinedColorPalettes[paletteId])
+            {
+                DSL_RGBA_COLOR_PTR pColor = std::shared_ptr<RgbaColor>
+                    (new RgbaColor("", ivec));
+                pColor->alpha = alpha;
+                
+                pColorPalette->push_back(pColor);
+            }
+            
+            m_displayTypes[name] = DSL_RGBA_COLOR_PALETTE_NEW(name, 
+                pColorPalette);
+
+            LOG_INFO("New RGBA Predefined Color Palette '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Predefined Color Palette '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeRgbaColorPaletteRandomNew(const char* name, 
+            uint size, uint hue, uint luminosity, double alpha, uint seed)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Random Color Palette name '" << name 
+                    << "' is not unique");
+                return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
+            }
+            if (size < 2)
+            {
+                LOG_ERROR("Invalid size value of " << size 
+                    << " for New RGBA Random Color Palette '" << name << "'");
+                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
+            }
+            if (hue > DSL_COLOR_HUE_BROWN)
+            {
+                LOG_ERROR("Invalid hue value of " << hue 
+                    << " for New RGBA Random Color Palette '" << name << "'");
+                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
+            }
+            if (luminosity > DSL_COLOR_LUMINOSITY_RANDOM)
+            {
+                LOG_ERROR("Invalid luminosity value of " << luminosity 
+                    << " for New RGBA Random Color Palette '" << name << "'");
+                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
+            }
+            if ( alpha > 1.0)
+            {
+                LOG_ERROR("Invalid alpha parameter = " << alpha 
+                    << " greater than 1.0 for RGBA Color Palette '" << name << "'");
+                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
+            }
+            
+            // new shared pointer to an emptry vector of RGBA Color pointers to create
+            // a palette of Random colors to provide to the Color Palette constructor
+            std::shared_ptr<std::vector<DSL_RGBA_COLOR_PTR>> pColorPalette = 
+               std::shared_ptr<std::vector<DSL_RGBA_COLOR_PTR>>{
+                    new std::vector<DSL_RGBA_COLOR_PTR>};
+
+            // create a temporary Random RGBA color to generate a set of
+            // random colors for our Color Palette.
+            DSL_RGBA_COLOR_PTR pRandomColor= DSL_RGBA_RANDOM_COLOR_NEW("", 
+                hue, luminosity, alpha, seed);
+                
+            for (uint i=0; i<size; i++)
+            {
+                // create a new RGBA color from the Random color and add
+                // it to the vector or colors 
+                DSL_RGBA_COLOR_PTR pColor = std::shared_ptr<RgbaColor>
+                    (new RgbaColor("", *pRandomColor));
+                
+                pColorPalette->push_back(pColor);
+                
+                // Get the next random color
+                pRandomColor->SetNext();
+            }
+            
+            m_displayTypes[name] = DSL_RGBA_COLOR_PALETTE_NEW(name, 
+                pColorPalette);
+
+            LOG_INFO("New RGBA Random Color Palette '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Random Color Palette '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeRgbaColorPaletteIndexGet(const char* name,
+        uint* index)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_displayTypes, 
+                name, RgbaColorPalette);
+            
+            DSL_RGBA_COLOR_PALETTE_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColorPalette>(m_displayTypes[name]);
+            
+            *index = pColor->GetIndex();
+            
+            LOG_INFO("RGBA Color Palette '" << name 
+                << "' returned index = " << *index << "correctly");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RGBA Color Palette '" << name 
+                << "' threw exception on Get Index");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeRgbaColorPaletteIndexSet(const char* name,
+        uint index)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_displayTypes, 
+                name, RgbaColorPalette);
+            
+            DSL_RGBA_COLOR_PALETTE_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColorPalette>(m_displayTypes[name]);
+            
+            if (!pColor->SetIndex(index))
+            {
+                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
+            }
+            
+            LOG_INFO("RGBA Color Palette '" << name 
+                << "' set index = " << index << "correctly");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Color Palette '" << name 
+                << "' threw exception on Set Index");
             return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
         }
     }

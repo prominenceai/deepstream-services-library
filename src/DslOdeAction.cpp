@@ -86,11 +86,25 @@ namespace DSL
 
         if (m_enabled and pObjectMeta)
         {   
+            // if the provided border color is a color palette
+            if (m_pBorderColor->IsType(typeid(RgbaColorPalette)))
+            {
+                // set the palette index based on the object class-id
+                std::dynamic_pointer_cast<RgbaColorPalette>(m_pBorderColor)->SetIndex(
+                    pObjectMeta->class_id);
+            }
             pObjectMeta->rect_params.border_width = m_borderWidth;
             pObjectMeta->rect_params.border_color = *m_pBorderColor;
             
             if (m_hasBgColor)
             {
+                // if the provided background color is a color palette
+                if (m_pBgColor->IsType(typeid(RgbaColorPalette)))
+                {
+                    // set the palette index based on the object class-id
+                    std::dynamic_pointer_cast<RgbaColorPalette>(m_pBgColor)->SetIndex(
+                        pObjectMeta->class_id);
+                }
                 pObjectMeta->rect_params.has_bg_color = true;
                 pObjectMeta->rect_params.bg_color = *m_pBgColor;
             }
@@ -1814,6 +1828,13 @@ namespace DSL
             
             if (m_hasBgColor)
             {
+                // if the provided background color is a color palette
+                if (m_pBgColor->IsType(typeid(RgbaColorPalette)))
+                {
+                    // set the palette index based on the object class-id
+                    std::dynamic_pointer_cast<RgbaColorPalette>(m_pBgColor)->SetIndex(
+                        pObjectMeta->class_id);
+                }
                 pObjectMeta->text_params.set_bg_clr = true;
                 pObjectMeta->text_params.text_bg_clr = *m_pBgColor;
             }
