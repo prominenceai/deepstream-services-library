@@ -405,6 +405,7 @@ THE SOFTWARE.
         !types[name]->IsType(typeid(RgbaRandomColor)) and \
         !types[name]->IsType(typeid(RgbaPredefinedColor)) and \
         !types[name]->IsType(typeid(RgbaOnDemandColor)) and \
+        !types[name]->IsType(typeid(RgbaOnDemandColor)) and \
         !types[name]->IsType(typeid(RgbaColorPalette))) \
     { \
         LOG_ERROR("Display Type '" << name << "' is not color type"); \

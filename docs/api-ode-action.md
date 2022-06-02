@@ -764,6 +764,8 @@ DslReturnType dsl_ode_action_format_bbox_new(const wchar_t* name, uint border_wi
 ```
 The constructor creates a uniquely named **Format Bounding Box** ODE Action. When invoked, this Action updates an Object's RGBA bounding-box line width and color for display by a downstream On-Screen-Display (OSD) component. This action can be used to hide the Object's bounding-box from view.
 
+**Important:** Use a RGBA Color Palette to uniquely color the bounding box border or background color using the object's class id as the Palette index. Ensure that the Palette size is at least equal to the number of class-ids inferred on. See the [Display Type Reference](/docs/api-display-type.md) for more information.
+
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
 * `border_width` - [in] border_width border line-width for the object's bounding box. Use 0 to remove the border from view.
@@ -788,6 +790,8 @@ DslReturnType dsl_ode_action_format_label_new(const wchar_t* name,
     const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
 ```
 The constructor creates a uniquely named **Format Label** ODE Action. When invoked, this Action updates an Object's label font and color for display by a downstream On-Screen-Display (OSD) component. This action can be used to hide the Object's label from view.
+
+**Important:** Use a RGBA Color Palette to uniquely color the label's background color using the object's class id as the Palette index. Ensure that the Palette size is at least equal to the number of class-ids inferred on. See the [Display Type Reference](/docs/api-display-type.md) for more information.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.

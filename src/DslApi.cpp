@@ -59,6 +59,30 @@ DslReturnType dsl_display_type_rgba_color_predefined_new(const wchar_t* name,
         cstrName.c_str(), color_id, alpha);
 }
 
+DslReturnType dsl_display_type_rgba_color_random_new(const wchar_t* name, 
+    uint hue, uint luminosity, double alpha, uint seed)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->DisplayTypeRgbaColorRandomNew(
+        cstrName.c_str(), hue, luminosity, alpha, seed);
+}
+
+DslReturnType dsl_display_type_rgba_color_on_demand_new(const wchar_t* name, 
+    dsl_display_type_rgba_color_provider_cb provider, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->DisplayTypeRgbaColorOnDemandNew(
+        cstrName.c_str(), provider, client_data);
+}
+
 DslReturnType dsl_display_type_rgba_color_palette_new(const wchar_t* name, 
     const wchar_t** colors)
 {
@@ -102,6 +126,18 @@ DslReturnType dsl_display_type_rgba_color_palette_predefined_new(const wchar_t* 
         cstrName.c_str(), palette_id, alpha);
 }
 
+DslReturnType dsl_display_type_rgba_color_palette_random_new(const wchar_t* name, 
+    uint size, uint hue, uint luminosity, double alpha, uint seed)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->DisplayTypeRgbaColorPaletteRandomNew(
+        cstrName.c_str(), size, hue, luminosity, alpha, seed);
+}
+
 DslReturnType dsl_display_type_rgba_color_palette_index_get(const wchar_t* name, 
     uint* index)
 {
@@ -126,30 +162,6 @@ DslReturnType dsl_display_type_rgba_color_palette_index_set(const wchar_t* name,
         cstrName.c_str(), index);
 }
     
-DslReturnType dsl_display_type_rgba_color_random_new(const wchar_t* name, 
-    uint hue, uint luminosity, double alpha, uint seed)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->DisplayTypeRgbaColorRandomNew(
-        cstrName.c_str(), hue, luminosity, alpha, seed);
-}
-
-DslReturnType dsl_display_type_rgba_color_on_demand_new(const wchar_t* name, 
-    dsl_display_type_rgba_color_provider_cb provider, void* client_data)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->DisplayTypeRgbaColorOnDemandNew(
-        cstrName.c_str(), provider, client_data);
-}
-
 DslReturnType dsl_display_type_rgba_color_next_set(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
