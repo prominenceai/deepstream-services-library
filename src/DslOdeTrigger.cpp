@@ -1935,12 +1935,24 @@ namespace DSL
             
             // Get the trace vector for the testpoint defined for this Area
             DSL_RGBA_MULTI_LINE_PTR pTrace = 
-                pTrackedObject->GetTrace(testPoint, m_testMethod);
+                pTrackedObject->GetTrace(testPoint, m_testMethod, m_traceLineWidth);
 
+            // If the client has enabled object tracing
             if (m_traceEnabled)
             {
-                // Add the multi-line's meta to the Frame's display-meta
-                pTrace->line_width = m_traceLineWidth;
+                // If the object has a previous trace from a line cross event.
+                if (pTrackedObject->HasPreviousTrace())
+                {
+                    DSL_RGBA_MULTI_LINE_PTR pPreviousTrace = 
+                        pTrackedObject->GetPreviousTrace(testPoint, m_testMethod, 
+                            m_traceLineWidth);
+
+                    // Add the multi-line metadata to the Frame's display-meta for 
+                    // the previous trace
+                    pPreviousTrace->AddMeta(displayMetaData, pFrameMeta);
+                }
+                // Add the multi-line metadata to the Frame's display-meta for
+                // the current trace.
                 pTrace->AddMeta(displayMetaData, pFrameMeta);
                 pObjectMeta->rect_params.border_color = pTrace->color;
                 pObjectMeta->rect_params.border_width = pTrace->line_width;
@@ -2007,9 +2019,8 @@ namespace DSL
                         pBuffer, displayMetaData, pFrameMeta, pObjectMeta);
                 }
 
-                // Once triggered, delete the tracked object.
-                m_pTrackedObjectsPerSource->DeleteObject(pFrameMeta->source_id,
-                    pObjectMeta->object_id);
+                // Call on the tracked object to handle the occurrence as well.
+                pTrackedObject->HandleOccurrence();
                     
                 return true;
             }
