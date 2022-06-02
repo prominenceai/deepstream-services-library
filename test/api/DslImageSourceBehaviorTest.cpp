@@ -484,41 +484,41 @@ SCENARIO( "A new Pipeline with a Multi MJPEG Image Frame Source, Primary GIE, Ti
     }
 }
 
-SCENARIO( "A new Player with a Multi JPEG Image Source and Window Sink can play",
-    "[temp]" )
-{
-    GIVEN( "A Player with a Multi JPEG Source, Window Sink" ) 
-    {
-        uint fps_n(1), fps_d(1);
-
-        REQUIRE( dsl_component_list_size() == 0 );
-
-        REQUIRE( dsl_source_image_multi_new(source_name1.c_str(), 
-            jpeg_file_path_multi.c_str(), fps_n, fps_d) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
-            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
-
-        
-        const wchar_t* components[] = {L"image-source-1",
-            L"window-sink", NULL};
-        
-        WHEN( "When the Pipeline is Assembled" ) 
-        {
-            REQUIRE( dsl_player_new(player_name.c_str(), source_name1.c_str(),
-                window_sink_name.c_str()) == DSL_RESULT_SUCCESS );
-        
-            REQUIRE( dsl_player_termination_event_listener_add(player_name.c_str(), 
-                eos_event_listener, NULL) == DSL_RESULT_SUCCESS );
-                
-            THEN( "Pipeline is Able to LinkAll and Play" )
-            {
-                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
-                dsl_main_loop_run();
-                REQUIRE( dsl_player_stop(player_name.c_str()) == DSL_RESULT_SUCCESS );
-
-                dsl_delete_all();
-            }
-        }
-    }
-}
+//SCENARIO( "A new Player with a Multi JPEG Image Source and Window Sink can play",
+//    "[temp]" )
+//{
+//    GIVEN( "A Player with a Multi JPEG Source, Window Sink" ) 
+//    {
+//        uint fps_n(1), fps_d(1);
+//
+//        REQUIRE( dsl_component_list_size() == 0 );
+//
+//        REQUIRE( dsl_source_image_multi_new(source_name1.c_str(), 
+//            jpeg_file_path_multi.c_str(), fps_n, fps_d) == DSL_RESULT_SUCCESS );
+//
+//        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+//            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
+//
+//        
+//        const wchar_t* components[] = {L"image-source-1",
+//            L"window-sink", NULL};
+//        
+//        WHEN( "When the Pipeline is Assembled" ) 
+//        {
+//            REQUIRE( dsl_player_new(player_name.c_str(), source_name1.c_str(),
+//                window_sink_name.c_str()) == DSL_RESULT_SUCCESS );
+//        
+//            REQUIRE( dsl_player_termination_event_listener_add(player_name.c_str(), 
+//                eos_event_listener, NULL) == DSL_RESULT_SUCCESS );
+//                
+//            THEN( "Pipeline is Able to LinkAll and Play" )
+//            {
+//                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
+//                dsl_main_loop_run();
+//                REQUIRE( dsl_player_stop(player_name.c_str()) == DSL_RESULT_SUCCESS );
+//
+//                dsl_delete_all();
+//            }
+//        }
+//    }
+//}

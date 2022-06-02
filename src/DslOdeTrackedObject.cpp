@@ -37,6 +37,9 @@ namespace DSL
     {
         // No function log - avoid overhead.
         
+        m_pBboxTrace = std::shared_ptr<std::deque<std::shared_ptr<NvBbox_Coords>>>(
+            new std::deque<std::shared_ptr<NvBbox_Coords>>);
+        
         timeval creationTime;
         gettimeofday(&creationTime, NULL);
         m_creationTimeMs = creationTime.tv_sec*1000.0 + creationTime.tv_usec/1000.0;
@@ -77,13 +80,31 @@ namespace DSL
         // If maintaining bbox trace-point history
         if (m_maxHistory)
         {
-            // Maintain max queue depth
-            while (m_bboxTrace.size() >= m_maxHistory)
+            // if there's a previous trace, purge from this deque first.
+            if (m_pPrevBboxTrace)
             {
-               m_bboxTrace.pop_front();
+                // while there are elements to purge..
+                while (m_pPrevBboxTrace and 
+                    (m_pPrevBboxTrace->size() + m_pBboxTrace->size() >= m_maxHistory))
+                {
+                   m_pPrevBboxTrace->pop_front();
+                   
+                   // If we've emptied the previous trace deque then remove it.
+                   if (m_pPrevBboxTrace->empty())
+                   {
+                       m_pPrevBboxTrace = nullptr;
+                   }
+                }
+                
             }
-            
-            m_bboxTrace.push_back(pBboxCoords);
+            else
+            {
+                while (m_pBboxTrace->size() >= m_maxHistory)
+                {
+                   m_pBboxTrace->pop_front();
+                }
+            }            
+            m_pBboxTrace->push_back(pBboxCoords);
         }
     }
 
@@ -99,19 +120,19 @@ namespace DSL
     dsl_coordinate TrackedObject::GetFirstCoordinate(uint testPoint)
     {
         dsl_coordinate traceCoordinate{0};
-        getCoordinate(m_bboxTrace.front(), testPoint, traceCoordinate);
+        getCoordinate(m_pBboxTrace->front(), testPoint, traceCoordinate);
         return traceCoordinate;
     }
     
     dsl_coordinate TrackedObject::GetLastCoordinate(uint testPoint)
     {
         dsl_coordinate traceCoordinate{0};
-        getCoordinate(m_bboxTrace.back(), testPoint, traceCoordinate);
+        getCoordinate(m_pBboxTrace->back(), testPoint, traceCoordinate);
         return traceCoordinate;
     }
     
     DSL_RGBA_MULTI_LINE_PTR TrackedObject::GetTrace(
-        uint testPoint, uint method)
+        uint testPoint, uint method, uint lineWidth)
     {
         // No function log - avoid overhead.
         
@@ -122,25 +143,71 @@ namespace DSL
             
         if (method == DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS)
         {
-            getCoordinate(m_bboxTrace.front(), testPoint, traceCoordinate);
+            getCoordinate(m_pBboxTrace->front(), testPoint, traceCoordinate);
             traceCoordinates.push_back(traceCoordinate);
             
-            getCoordinate(m_bboxTrace.back(), testPoint, traceCoordinate);
+            getCoordinate(m_pBboxTrace->back(), testPoint, traceCoordinate);
             traceCoordinates.push_back(traceCoordinate);
         }
 
         else
         {
-            for (const auto& ideque: m_bboxTrace)
+            for (const auto& ideque: *m_pBboxTrace)
             {
                 getCoordinate(ideque, testPoint, traceCoordinate);
                 traceCoordinates.push_back(traceCoordinate);
             }
         }
         return DSL_RGBA_MULTI_LINE_NEW("", traceCoordinates.data(), 
-            traceCoordinates.size(), 5, m_pColor);
+            traceCoordinates.size(), lineWidth, m_pColor);
     }
 
+    DSL_RGBA_MULTI_LINE_PTR TrackedObject::GetPreviousTrace(
+        uint testPoint, uint method, uint lineWidth)
+    {
+        // No function log - avoid overhead.
+        
+        if (m_pPrevBboxTrace == nullptr)
+        {
+            return nullptr;
+        }
+        
+        // Create the trace - i.e. a vector of pre-sized blank coordinates
+        std::vector<dsl_coordinate> traceCoordinates;
+
+        dsl_coordinate traceCoordinate{0};
+            
+        if (method == DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS)
+        {
+            getCoordinate(m_pPrevBboxTrace->front(), testPoint, traceCoordinate);
+            traceCoordinates.push_back(traceCoordinate);
+            
+            getCoordinate(m_pPrevBboxTrace->back(), testPoint, traceCoordinate);
+            traceCoordinates.push_back(traceCoordinate);
+        }
+
+        else
+        {
+            for (const auto& ideque: *m_pPrevBboxTrace)
+            {
+                getCoordinate(ideque, testPoint, traceCoordinate);
+                traceCoordinates.push_back(traceCoordinate);
+            }
+        }
+        return DSL_RGBA_MULTI_LINE_NEW("", traceCoordinates.data(), 
+            traceCoordinates.size(), lineWidth, m_pColor);
+    }
+
+    void TrackedObject::HandleOccurrence()
+    {
+        m_pPrevBboxTrace = m_pBboxTrace;
+        m_pBboxTrace = std::shared_ptr<std::deque<std::shared_ptr<NvBbox_Coords>>>(
+            new std::deque<std::shared_ptr<NvBbox_Coords>>);
+
+        preEventFrameCount = 1;
+        onEventFrameCount = 0;
+    }
+    
     void TrackedObject::getCoordinate(std::shared_ptr<NvBbox_Coords> pBbox, 
         uint testPoint, dsl_coordinate& traceCoordinate)
     {

@@ -1485,7 +1485,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Custo
 }
 
 SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can play", 
-    "[ode-behavior]" )
+    "[temp]" )
 {
     GIVEN( "A Pipeline, ODE Handler, Cross ODE Trigger, Line ODE Area, and Fill ODE Action" ) 
     {
@@ -1536,8 +1536,8 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can p
             true, DSL_BBOX_POINT_SOUTH) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_cross_new(person_cross_name.c_str(), 
-            NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE, 2, 200, 
-            DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
+            NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE, 2, 40, 
+            DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_confidence_min_set(person_cross_name.c_str(), 
             0.40) == DSL_RESULT_SUCCESS );
@@ -1576,7 +1576,7 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can p
             THEN( "The Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*20);
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );

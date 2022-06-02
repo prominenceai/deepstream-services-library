@@ -62,7 +62,7 @@ SCENARIO( "A TrackedObject is created correctly", "[TrackedObject]" )
 
                 DSL_RGBA_MULTI_LINE_PTR pTrace = 
                     pTrackedObject->GetTrace(DSL_BBOX_POINT_NORTH_WEST,
-                        DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS);
+                        DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS, 5);
                     
                 REQUIRE( pTrace->coordinates[0].x == 10 );
                 REQUIRE( pTrace->coordinates[0].y == 10 );
@@ -133,7 +133,7 @@ SCENARIO( "A TrackedObject generates the correct trace", "[TrackedObject]" )
 
                 DSL_RGBA_MULTI_LINE_PTR pTrace = 
                     pTrackedObject->GetTrace(DSL_BBOX_POINT_NORTH_WEST,
-                        DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS);
+                        DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS, 5);
                     
                 std::vector<dsl_coordinate> expectedTrace = 
                     {{10,10},{20,20},{30,30},{40,40},{50,50}};
