@@ -4,31 +4,33 @@ Display Types are used to add display metadata to a video frame's collection of 
 Further control of Display Types can be achieved by enabling/disabling the Action or Trigger in a Client callback function when other events occur.  The start and end of a recording session to enable/disable display of a `REC` symbol for example.
 
 ### Construction and Destruction
-There are six base types used when creating other complete types for actual display.
-* **RGBA Custom Color** - a staic color defined with red, green, blue, and alpha color values.
+There are eight (8) base types used when creating other complete types for actual display, seven of which are RGBA Color Types.
+* **RGBA Custom Color** - a static color defined with red, green, blue, and alpha color values.
 * **RGBA Predefined Color** - a static color defined from one of twenty (20) predefined colors, plus alpha value.
 * **RGBA Random Color** - a dynamic color defined with optional hue and luminosity constraints, plus alpha value.
 * **RGBA On-Demand Color** - a dynamic color defined with a client callback function to provide RGBA color values on demand.
-* **RGBA Color Palette** - a dynamic color defined with two or more RGBA colors of any type.
+* **RGBA Color Palette** - a dynamic palette of colors defined with two or more RGBA colors of any type.
+* **RGBA Predefined Color Palette** - a dynamic palette of color defined from one of five (5) predefined color palettes, plus alpha value.
+* **RGBA Random Color Palette** - a dynamic palette of random colors defined with optional hue and luminosity constraints, plus alpha value.
 * **RGBA Font** - defined with tty font name, size, and RGBA color
 
 There are seven types for displaying text and shapes.
 * **RGBA Text** - defined with RGBA Font and optional RGBA background color.
 * **RGBA Line** - defined with x,y end-point coordinates, width, and RGBA color.
-* **RGBA Mulit-Line** - defined with a set of x,y coordinates for each connecting point on the multi-line shape, line-width, and RGBA Color.
+* **RGBA Multi-Line** - defined with a set of x,y coordinates for each connecting point on the multi-line shape, line-width, and RGBA Color.
 * **RGBA Arrow** - similar to RGBA Line, but with arrow head(s) defining direction.
 * **RGBA Rectangle** - defined with left, top, width, height, border-width, and RGBA colors.
 * **RGBA Polygon** - defined with a set of x,y coordinates for each connecting point on the polygon, border-width and RGBA Colors.
-* **RGBA Circle** - defined with with center point coordinates, radius, border-width, and RGBA Colors.
+* **RGBA Circle** - defined with center point coordinates, radius, border-width, and RGBA Colors.
 
 And three types for displaying source information on each frame.
 * **Source Number** - based on the order the sources are added to the Pipeline, defined with RGBA Font and optional RGBA background color.
-* **Source Name**  - assigned to each source when created, defined with RGBA Font and optional RGBA background color.
-* **Source Dimensions** - obtained from the frame dimensions in the frame metatdata, defined with RGBA Font and optional RGBA background color.
+* **Source Name** - assigned to each source when created, defined with RGBA Font and optional RGBA background color.
+* **Source Dimensions** - obtained from the frame dimensions in the frame metadata, defined with RGBA Font and optional RGBA background color.
 
 Display Types are created by calling their type specific [constructor](#constructors).
 
-Display Typess are deleted by calling [dsl_display_type_delete](#dsl_display_type_delete), [dsl_display_type_delete_many](#dsl_display_type_delete_many), or [dsl_display_type_delete_all](#dsl_display_type_delete_all).
+Display Types are deleted by calling [dsl_display_type_delete](#dsl_display_type_delete), [dsl_display_type_delete_many](#dsl_display_type_delete_many), or [dsl_display_type_delete_all](#dsl_display_type_delete_all).
 
 ### Adding to an ODE Action
 Display Types are added to a Display Action when the action is created by calling [dsl_ode_action_display_meta_add_new](/docs/api-ode-action.md#dsl_ode_action_display_meta_add_new) or [dsl_ode_action_display_meta_add_many_new](/docs/api-ode-action.md#dsl_ode_action_display_meta_add_many_new)
@@ -44,7 +46,7 @@ RGBA Lines and Polygons are used to define [ODE Areas](/docs/api-ode-area.md) as
 Dynamic RGBA colors can be used to uniquely color the bounding box and object trace of tracked objects as identified by a [Multi-object Tracker](/docs/api-tracker.md) when using any of the Tracking ODE Triggers; [Cross](/docs/api-ode-trigger.md#dsl_ode_trigger_track_cross_new), [Persistence](/docs/api-ode-trigger.md#dsl_ode_trigger_track_persistence_new), [Earliest](/docs/api-ode-trigger.md#dsl_ode_trigger_track_earliest_new), and [Latest](/docs/api-ode-trigger.md#dsl_ode_trigger_track_latest_new). See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and [dsl_ode_trigger_track_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_track_view_settings_set) for more information.
 
 ### Display Meta Memory Allocation
-Display meta structures, allocated from pool memory, are used to attach the Display Type's metadata to a frame's metadata. Each display meta structure can hold up to 16 display elements for each display type (lines, arrows, rectangles, etc. Note: polygons require a line for each segment). The default allocation size is one structure per frame.  See [dsl_pph_ode_display_meta_alloc_size_set](/docs/api-pph.md#dsl_pph_ode_display_meta_alloc_size_set) if more than one structure per frame is required. Meta data will be discarded if insufficient memory has been allocated. 
+Display meta structures, allocated from pool memory, are used to attach the Display Type's metadata to a frame's metadata. Each display meta structure can hold up to 16 display elements for each display type (lines, arrows, rectangles, etc. Note: polygons require a line for each segment). The default allocation size is one structure per frame.  See [dsl_pph_ode_display_meta_alloc_size_set](/docs/api-pph.md#dsl_pph_ode_display_meta_alloc_size_set) if more than one structure per frame is required. Meta data will be discarded if insufficient memory has been allocated.
 
 ## Using Display Types
 ### For static display on every frame:
@@ -65,7 +67,7 @@ retval = dsl_display_type_rgba_text_new('display-text', text='My Home Security',
 # Create an Action that will add the display text as metadata to the Frame's metadata
 retval = dsl_ode_action_display_meta_add_new('add-display-text', display_type='display-text')
 
-# new Always triger to add our display text on every frame, always
+# new Always trigger to add our display text on every frame, always
 retval = dsl_ode_trigger_always_new('always-trigger', when=DSL_ODE_PRE_OCCURRENCE_CHECK)
 
 # finally, add the "Add Display Meta" Action to our Always Trigger.
@@ -87,7 +89,7 @@ retval = dsl_display_type_rgba_rectangle_new('warning-rectangle', left=10, top=1
 # Create an Action that will add the Rectangle to the Frame's metadata
 retval = dsl_ode_action_display_meta_add_new('add-warning', display_type='warning-rectangle')
 
-# new Maximum Objects triger to invoke our 'add-warning' action when to many objects are detected
+# new Maximum Objects trigger to invoke our 'add-warning' action when to many objects are detected
 retval = dsl_ode_trigger_maximum_new('max-trigger', class_id=PGIE_CLASS_ID_PERSON, limit=0, maximum=10)
 
 # finally, add the "Add Display Meta" Action to our Max Objects Trigger.
@@ -110,6 +112,8 @@ retval = dsl_ode_trigger_action_add('max-trigger', action='overlay-warning')
 * [dsl_display_type_rgba_color_random_new](#dsl_display_type_rgba_color_random_new)
 * [dsl_display_type_rgba_color_on_demand_new](#dsl_display_type_rgba_color_on_demand_new)
 * [dsl_display_type_rgba_color_palette_new](#dsl_display_type_rgba_color_palette_new)
+* [dsl_display_type_rgba_color_palette_predefined_new](#dsl_display_type_rgba_color_palette_predefined_new)
+* [dsl_display_type_rgba_color_palette_random_new](#dsl_display_type_rgba_color_palette_random_new)
 * [dsl_display_type_rgba_font_new](#dsl_display_type_rgba_font_new)
 * [dsl_display_type_rgba_text_new](#dsl_display_type_rgba_text_new)
 * [dsl_display_type_rgba_line_new](#dsl_display_type_rgba_line_new)
@@ -151,7 +155,7 @@ The following return codes are used by the Display Type API
 The following symbolic constants are used by the Display Type API
 
 ### Predefined Color Ids
-Refering to the color palette below, predefined colors are defined from left to right, top row, then bottom.
+Referring to the color palette below, predefined colors are defined from left to right, top row, then bottom.
 
 ![](/Images/predefined-colors.png)
 
@@ -213,8 +217,18 @@ Constants used to constrain random colors to a specific luminosity. Use `DSL_COL
 ```
 ![](/Images/luminosity.png)
 
+### Predefined Color Palette Ids
+Constants used to identify the available predefined RGBA Color Palettes.
+```C
+#define DSL_COLOR_PREDEFINED_PALETTE_SPECTRAL                       0
+#define DSL_COLOR_PREDEFINED_PALETTE_RED                            1
+#define DSL_COLOR_PREDEFINED_PALETTE_GREEN                          2
+#define DSL_COLOR_PREDEFINED_PALETTE_BLUE                           3
+#define DSL_COLOR_PREDEFINED_PALETTE_GREY                           4
+```
+
 ### Arrow Head Identifiers
-The follwoing constants are used to define the direction of a RGBA Arrow Display Type.
+The following constants are used to define the direction of a RGBA Arrow Display Type.
 ```C
 #define DSL_ARROW_START_HEAD                                        0
 #define DSL_ARROW_END_HEAD                                          1
@@ -222,7 +236,7 @@ The follwoing constants are used to define the direction of a RGBA Arrow Display
 ```
 
 ### Maximum Coordinates
-Constants for the maximum number of coordinates when defining a Polygon or Mulit-Line Display Type.
+Constants for the maximum number of coordinates when defining a Polygon or Multi-Line Display Type.
 
 ```C
 #define DSL_MAX_POLYGON_COORDINATES                                 16
@@ -320,12 +334,12 @@ DslReturnType dsl_display_type_rgba_color_random_new(const wchar_t* name,
 ```
 The constructor creates a Dynamic RGBA Random Color Display Type. The RGBA Color is a base type used to create other RGBA types. The random RGB color values are regenerated when [dsl_display_type_rgba_color_next_set](#dsl_display_type_rgba_color_next_set) is called.
 
-**Important:** Random colors can be used to uniquely color tracked objects as identifed by a [Multi-object Tracker](/docs/api-tracker.md). See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and [dsl_ode_trigger_track_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_track_view_settings_set) for more information.
+**Important:** Random colors can be used to uniquely color tracked objects as identified by a [Multi-object Tracker](/docs/api-tracker.md). See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and [dsl_ode_trigger_track_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_track_view_settings_set) for more information.
 
 **Parameters**
 * `name` - [in] unique name for the Display Type to create.
-* `hue` - [in] one of the [Random Hue Color Constraint](#random-color-constraints) constants defined above. Use `DSL_COLOR_HUE_RANDOM` for no contraint.
-* `luminosity` - [in] one of the [Random Luminosity Color Constraint](#random-color-constraints) constants defined above. Use `DSL_COLOR_LUMINOSITY_RANDOM` for no contraint.
+* `hue` - [in] one of the [Random Hue Color Constraint](#random-color-constraints) constants defined above. Use `DSL_COLOR_HUE_RANDOM` for no constraint.
+* `luminosity` - [in] one of the [Random Luminosity Color Constraint](#random-color-constraints) constants defined above. Use `DSL_COLOR_LUMINOSITY_RANDOM` for no constraint.
 * `alpha` - [in] alpha level for the RGB color [0..1].
 * `seed` - [in] value to seed the random generator.
 
@@ -347,7 +361,7 @@ DslReturnType dsl_display_type_rgba_color_on_demand_new(const wchar_t* name,
 ```
 The constructor creates a Dynamic RGBA On-Demand Color Display Type. The RGBA Color is a base type used to create other RGBA types. The client provided callback is called on to provide RGBA color values on Display Type creation and when [dsl_display_type_rgba_color_next_set](#dsl_display_type_rgba_color_next_set) is called.
 
-**Important:** On-demand colors can be used to uniquely color tracked objects as identifed by a [Multi-object Tracker](/docs/api-tracker.md). See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and [dsl_ode_trigger_track_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_track_view_settings_set) for more information.
+**Important:** On-demand colors can be used to uniquely color tracked objects as identified by a [Multi-object Tracker](/docs/api-tracker.md). See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and [dsl_ode_trigger_track_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_track_view_settings_set) for more information.
 
 **Parameters**
 * `name` - [in] unique name for the Display Type to create.
@@ -372,9 +386,11 @@ DslReturnType dsl_display_type_rgba_color_palette_new(const wchar_t* name,
 ```
 The constructor creates a Dynamic RGBA Color Palette Display Type consisting of two or more RGBA Color Types. The RGBA Color is a base type used to create other RGBA types. The color's RGBA values are set to the next color in the palette when [dsl_display_type_rgba_color_next_set](#dsl_display_type_rgba_color_next_set) is called.
 
-**Important:** a Color Palette can be used to uniquely color tracked objects as identifed by a [Multi-object Tracker](/docs/api-tracker.md). See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and [dsl_ode_trigger_track_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_track_view_settings_set) for more information.
-
 The color palette index can be queried and updated with calls to [dsl_display_type_rgba_color_palette_index_get](#dsl_display_type_rgba_color_palette_index_get) and [dsl_display_type_rgba_color_palette_index_set](#dsl_display_type_rgba_color_palette_index_set) respectively.
+
+**Important:** a Color Palette can be used to uniquely color object bounding boxes and labels based on `class-id`. See the [ODE Action API Reference](/docs/api-ode-action.md) and the [dsl_ode_action_format_bbox_new](/docs/api-ode-action.md#dsl_ode_action_format_bbox_new) and [dsl_ode_action_format_label_new](/docs/api-ode-action.md#dsl_ode_action_format_label_new) services.
+
+**Important:** a Color Palette can be used to uniquely color tracked objects as identifed by a [Multi-object Tracker](/docs/api-tracker.md). See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and [dsl_ode_trigger_track_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_track_view_settings_set) for more information.
 
 **Parameters**
 * `name` - [in] unique name for the Display Type to create.
@@ -391,6 +407,67 @@ retval = dsl_display_type_rgba_color_palette_new('my-color-palette',
 
 <br>
 
+### *dsl_display_type_rgba_color_palette_predefined_new*
+```C
+DslReturnType dsl_display_type_rgba_color_palette_predefined_new(const wchar_t* name,
+    uint palette_id, double alpha);
+```
+The constructor creates a predefined Dynamic RGBA Color Palette Display Type . The RGBA Color is a base type used to create other RGBA types. The color's RGBA values are set to the next color in the palette when [dsl_display_type_rgba_color_next_set](#dsl_display_type_rgba_color_next_set) is called.
+
+The color palette index can be queried and updated with calls to [dsl_display_type_rgba_color_palette_index_get](#dsl_display_type_rgba_color_palette_index_get) and [dsl_display_type_rgba_color_palette_index_set](#dsl_display_type_rgba_color_palette_index_set) respectively.
+
+**Important:** a Color Palette can be used to uniquely color object bounding boxes and labels based on `class-id`. See the [ODE Action API Reference](/docs/api-ode-action.md) and the [dsl_ode_action_format_bbox_new](/docs/api-ode-action.md#dsl_ode_action_format_bbox_new) and [dsl_ode_action_format_label_new](/docs/api-ode-action.md#dsl_ode_action_format_label_new) services.
+
+**Important:** a Color Palette can be used to uniquely color tracked objects as identified by a [Multi-object Tracker](/docs/api-tracker.md). See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and [dsl_ode_trigger_track_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_track_view_settings_set) for more information.
+
+**Parameters**
+* `name` - [in] unique name for the Display Type to create.
+* `palette id` - [in] one of the [Predefined Color Palette Id](#predefined-color-palette-ids) constants defined above.
+* `alpha` - [in] alpha level for the RGB colors [0..1].
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_display_type_rgba_color_palette_predefined_new('my-spectral-color-palette',
+    DSL_COLOR_PREDEFINED_PALETTE_SPECTRAL, 0.4)
+```
+
+<br>
+
+### *dsl_display_type_rgba_color_palette_random_new*
+```C
+DslReturnType dsl_display_type_rgba_color_palette_random_new(const wchar_t* name,
+    uint size, uint hue, uint luminosity, double alpha, uint seed);
+```
+The constructor creates a Dynamic RGBA Random Color Palette Display Type. The RGBA Color is a base type used to create other RGBA types. The color's RGBA values are set to the next color in the palette when [dsl_display_type_rgba_color_next_set](#dsl_display_type_rgba_color_next_set) is called.
+
+The color palette index can be queried and updated with calls to [dsl_display_type_rgba_color_palette_index_get](#dsl_display_type_rgba_color_palette_index_get) and [dsl_display_type_rgba_color_palette_index_set](#dsl_display_type_rgba_color_palette_index_set) respectively.
+
+**Important:** a Color Palette can be used to uniquely color object bounding boxes and labels based on `class-id`. See the [ODE Action API Reference](/docs/api-ode-action.md) and the [dsl_ode_action_format_bbox_new](/docs/api-ode-action.md#dsl_ode_action_format_bbox_new) and [dsl_ode_action_format_label_new](/docs/api-ode-action.md#dsl_ode_action_format_label_new) services.
+
+**Important:** a Color Palette can be used to uniquely color tracked objects as identifed by a [Multi-object Tracker](/docs/api-tracker.md). See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and [dsl_ode_trigger_track_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_track_view_settings_set) for more information.
+
+**Parameters**
+* `name` - [in] unique name for the Display Type to create.
+* `size` - [in] size of the Color Palette to create
+* `hue` - [in] one of the [Random Hue Color Constraint](#random-color-constraints) constants defined above. Use `DSL_COLOR_HUE_RANDOM` for no constraint.
+* `luminosity` - [in] one of the [Random Luminosity Color Constraint](#random-color-constraints) constants defined above. Use `DSL_COLOR_LUMINOSITY_RANDOM` for no constraint.
+* `alpha` - [in] alpha level for the RGB colors [0..1].
+* `seed` - [in] value to seed the random generator.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_display_type_rgba_color_palette_random_new('my-spectral-color-palette',
+     10, DSL_COLOR_HUE_BLUE, DSL_COLOR_LUMINOSITY_DARK, 1.0, datetime.now())
+```
+
+<br>
+
 ### *dsl_display_type_rgba_font_new*
 ```C++
 DslReturnType dsl_display_type_rgba_font_new(const wchar_t* name,
@@ -400,7 +477,7 @@ The constructor creates an RGBA Font Display Type. The RGBA Font is a base type 
 
 **Parameters**
 * `name` - [in] unique name for the Display Type to create.
-* `fount` - [in] standard, unique string name of the actual font type (eg. 'arial').
+* `fount` - [in] standard, unique string name of the actual font type (e.g. 'arial').
 * `size` - [in] size of the font.
 * `color` - [in] name of the RGBA Color for the RGBA font.
  
@@ -426,7 +503,7 @@ The constructor creates a RGBA Text Display Type.
 * `text` - [in] text string to display
 * `x_offset` - [in] starting x positional offset
 * `y_offset` - [in] starting y positional offset
-* `font` [in] - RGBA font to use for the display dext
+* `font` [in] - RGBA font to use for the display text
 * `hasBgColor` - [in] set to true to enable background color, false otherwise
 * `bgColor` [in] RGBA Color for the Text background if set
 
@@ -449,10 +526,10 @@ The constructor creates an RGBA Line Display Type.
 
 **Parameters**
 * `name` - [in] unique name for the Display Type to create.
-* `x1` - [in] starting x positional offest.
-* `y1` - [in] starting y positional offest.
-* `x2` - [in] ending x positional offest.
-* `y2` - [in] ending y positional offest.
+* `x1` - [in] starting x positional offset.
+* `y1` - [in] starting y positional offset.
+* `x2` - [in] ending x positional offset.
+* `y2` - [in] ending y positional offset.
 * `width` - [in] width of the line in pixels.
 * `color` - [in] RGBA Color for the RGBA Line.
  
@@ -472,7 +549,7 @@ DslReturnType dsl_display_type_rgba_line_multi_new(const wchar_t* name,
     const dsl_coordinate* coordinates, uint num_coordinates, uint line_width,
     const wchar_t* color);
 ```
-The constructor creates a RGBA Multi Line Display Type. The Poloygon supports up to `DSL_MAX_MULTI_LINE_COORDINATES`. See the [Maximum Coordinates](#maximum-coordinates) constants defined above.
+The constructor creates a RGBA Multi Line Display Type. The Polygon supports up to `DSL_MAX_MULTI_LINE_COORDINATES`. See the [Maximum Coordinates](#maximum-coordinates) constants defined above.
 
 **Parameters**
 * `name` - [in] unique name for the Display Type to create.
@@ -506,10 +583,10 @@ The constructor creates a RGBA Arrow Display Type.
 
 **Parameters**
 * `name` - [in] unique name for the Display Type to create.
-* `x1` - [in] starting x positional offest.
-* `y1` - [in] starting y positional offest.
-* `x2` - [in] ending x positional offest.
-* `y2` - [in] ending y positional offest.
+* `x1` - [in] starting x positional offset.
+* `y1` - [in] starting y positional offset.
+* `x2` - [in] ending x positional offset.
+* `y2` - [in] ending y positional offset.
 * `width` - [in] width of the line in pixels.
 * `head` - [in] one of `DSL_ARROW_START_HEAD`, `DSL_ARROW_END_HEAD`, `DSL_ARROW_BOTH_HEAD`.
 * `color` - [in] RGBA Color for the RGBA Arrow.
@@ -535,8 +612,8 @@ The constructor creates a RGBA Rectangle Display Type.
 
 **Parameters**
 * `name` - [in] unique name for the Display Type to create.
-* `left` - [in] left positional offest.
-* `top` - [in] positional offest.
+* `left` - [in] left positional offset.
+* `top` - [in] positional offset.
 * `width` - [in] width of the rectangle in Pixels.
 * `height` - [in] height of the rectangle in Pixels.
 * `border_width` - [in] width of the rectangle border in pixels.
@@ -561,12 +638,12 @@ DslReturnType dsl_display_type_rgba_polygon_new(const wchar_t* name,
     const dsl_coordinate* coordinates, uint num_coordinates, uint border_width, const wchar_t* color);
 ```
 
-The constructor creates a RGBA Polygon Display Type. The Poloygon supports up to `DSL_MAX_POLYGON_COORDINATES`. See the [Maximum Coordinates](#maximum-coordinates) constants defined above.
+The constructor creates a RGBA Polygon Display Type. The Polygon supports up to `DSL_MAX_POLYGON_COORDINATES`. See the [Maximum Coordinates](#maximum-coordinates) constants defined above.
 
 **Parameters**
 * `name` - [in] unique name for the Display Type to create.
 * `coordinates` - [in] an array of positional coordinates defining the Polygon.
-* `num_coordinates` - [in] number of positioanl coordinates that make up the Polygon.
+* `num_coordinates` - [in] number of positional coordinates that make up the Polygon.
 * `border_width` - [in] width of the Polygon border in pixels.
 * `color` - [in] RGBA Color for this RGBA Polygon.
  
@@ -619,7 +696,7 @@ DslReturnType dsl_display_type_source_number_new(const wchar_t* name, uint x_off
     const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
 ```
 
-The constructor creates a uniquely name Source Nuumber Display Type.
+The constructor creates a uniquely name Source Number Display Type.
 
 **Parameters**
 * `name` - [in] unique name for the Display Type to create.
@@ -757,7 +834,7 @@ retval = dsl_display_type_delete_all()
 DslReturnType dsl_display_type_rgba_color_palette_index_get(const wchar_t* name,
     uint* index);
 ```
-This service gets the current index value for the active RGBA color for the named RGBA Color Palete Display Type.
+This service gets the current index value for the active RGBA color for the named RGBA Color Palette Display Type.
 
 **Parameters**
 * `name` - [in] unique name for the RGBA Color Palette to query.
@@ -778,7 +855,7 @@ retval, index = dsl_display_type_rgba_color_palette_index_get('my-color-palette'
 DslReturnType dsl_display_type_rgba_color_palette_index_get(const wchar_t* name,
     uint index);
 ```
-This service sets the index value for the active RGBA color for the named RGBA Color Palete Display Type. All Display Types created with the named RGBA Color Palette will be updated with the new color, visible on the next frame when displayed.
+This service sets the index value for the active RGBA color for the named RGBA Color Palette Display Type. All Display Types created with the named RGBA Color Palette will be updated with the new color, visible on the next frame when displayed.
 
 **Parameters**
 * `name` - [in] unique name for the RGBA Color Palette to query.
@@ -801,7 +878,7 @@ DslReturnType dsl_display_type_rgba_color_next_set(const wchar_t* name);
 This service sets a dynamic RGBA color type -- [Random](#dsl_display_type_rgba_color_random_new), [On-Demand](#dsl_display_type_rgba_color_on_demand_new), and [Color Palette](#dsl_display_type_rgba_color_palette_new) types -- to their next color. Random display types will generate a new color, On-Demand colors will call their client provided [callback function](dsl_display_type_rgba_color_provider_cb), and Color palettes will increment their color index to the next color.
 
 **Parameters**
-* `name` - [in] unique name for the dynamic RGBA Color to udpate.
+* `name` - [in] unique name for the dynamic RGBA Color to update.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
@@ -820,7 +897,7 @@ uint dsl_display_type_list_size();
 This service returns the size of the display_type container, i.e. the number of Display Types currently in memory.
 
 **Returns**
-* The size of the Display Types container
+* The size of the Display Types container.
 
 **Python Example**
 ```Python
