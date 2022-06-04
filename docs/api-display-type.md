@@ -4,15 +4,15 @@ Display Types are used to add display metadata to a video frame's collection of 
 Further control of Display Types can be achieved by enabling/disabling the Action or Trigger in a Client callback function when other events occur.  The start and end of a recording session to enable/disable display of a `REC` symbol for example.
 
 ### Construction and Destruction
-There are eight (8) base types used when creating other complete types for actual display, seven of which are RGBA Color Types.
+There are eight (8) base types used when creating other complete types for actual display, seven of which are RGBA Color Types. 
 * **RGBA Custom Color** - a static color defined with red, green, blue, and alpha color values.
 * **RGBA Predefined Color** - a static color defined from one of twenty (20) predefined colors, plus alpha value.
 * **RGBA Random Color** - a dynamic color defined with optional hue and luminosity constraints, plus alpha value.
 * **RGBA On-Demand Color** - a dynamic color defined with a client callback function to provide RGBA color values on demand.
 * **RGBA Color Palette** - a dynamic palette of colors defined with two or more RGBA colors of any type.
-* **RGBA Predefined Color Palette** - a dynamic palette of color defined from one of five (5) predefined color palettes, plus alpha value.
+* **RGBA Predefined Color Palette** - a dynamic palette of colors defined from one of five (5) predefined color palettes, plus alpha value.
 * **RGBA Random Color Palette** - a dynamic palette of random colors defined with optional hue and luminosity constraints, plus alpha value.
-* **RGBA Font** - defined with tty font name, size, and RGBA color
+* **RGBA Font** - defined with tty font name, size, and RGBA color.
 
 There are seven types for displaying text and shapes.
 * **RGBA Text** - defined with RGBA Font and optional RGBA background color.
@@ -40,16 +40,16 @@ Note: Adding a Base Display Type to an ODE Action will fail.
 ### Using Lines and Polygons to define ODE Areas
 RGBA Lines and Polygons are used to define [ODE Areas](/docs/api-ode-area.md) as event criteria for one or more [ODE Triggers](/docs/api-ode-trigger.md). RGBA Lines are used when calling [dsl_ode_area_line_new](/docs/api-od-area.md#dsl_ode_area_line_new) and [dsl_ode_area_line_multi_new](/docs/api-od-area.md#dsl_ode_area_line_multi_new). RGBA Polygons are used when calling [dsl_ode_area_inclusion_new](/docs/api-ode-area#dsl_ode_area_inclusion_new) and calling [dsl_ode_area_exclusion_new](/docs/api-ode-area#dsl_ode_area_exclusion_new)
 
-**Important:** The line width defined for the RGBA Lines and Polygons is used as hysteresis when tracking objects to determine if they cross over one of the Area's lines when used with an ODE Cross Trigger. A client specified point on the Object's bounding box must fully cross the line to trigger an ODE occurrence. See [dsl_ode_trigger_track_cross_new](/docs/api-ode-trigger-api.md#dsl_ode_trigger_track_cross_new) for more information.
+**Important:** The line width defined for the RGBA Lines and Polygons is used as hysteresis when tracking objects to determine if they cross over one of the Area's lines when used with an ODE Cross Trigger. A client specified point on the Object's bounding box must fully cross the line to trigger an ODE occurrence. See [dsl_ode_trigger_cross_new](/docs/api-ode-trigger-api.md#dsl_ode_trigger_cross_new) for more information.
 
 ### Coloring Tracked Objects
-Dynamic RGBA colors can be used to uniquely color the bounding box and object trace of tracked objects as identified by a [Multi-object Tracker](/docs/api-tracker.md) when using any of the Tracking ODE Triggers; [Cross](/docs/api-ode-trigger.md#dsl_ode_trigger_track_cross_new), [Persistence](/docs/api-ode-trigger.md#dsl_ode_trigger_track_persistence_new), [Earliest](/docs/api-ode-trigger.md#dsl_ode_trigger_track_earliest_new), and [Latest](/docs/api-ode-trigger.md#dsl_ode_trigger_track_latest_new). See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and [dsl_ode_trigger_track_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_track_view_settings_set) for more information.
+Dynamic RGBA colors can be used to uniquely color the bounding box and object trace of tracked objects as identified by a [Multi-object Tracker](/docs/api-tracker.md) when using an ODE Cross Trigger. See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and the [dsl_ode_trigger_cross_new](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_new) and [dsl_ode_trigger_cross_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_view_settings_set) services for more information.
 
 ### Display Meta Memory Allocation
-Display meta structures, allocated from pool memory, are used to attach the Display Type's metadata to a frame's metadata. Each display meta structure can hold up to 16 display elements for each display type (lines, arrows, rectangles, etc. Note: polygons require a line for each segment). The default allocation size is one structure per frame.  See [dsl_pph_ode_display_meta_alloc_size_set](/docs/api-pph.md#dsl_pph_ode_display_meta_alloc_size_set) if more than one structure per frame is required. Meta data will be discarded if insufficient memory has been allocated.
+Display meta structures, allocated from pool memory, are used to attach the Display Type's metadata to a frame's metadata. Each display meta structure can hold up to 16 display elements for each display type (lines, arrows, rectangles, etc. Note: polygons require a line for each segment). The default allocation size is one structure per frame.  See [dsl_pph_ode_display_meta_alloc_size_set](/docs/api-pph.md#dsl_pph_ode_display_meta_alloc_size_set) if more than one structure per frame is required. Meta data will be discarded if sufficient memory has not allocated.
 
 ## Using Display Types
-### For static display on every frame:
+### For display on every frame:
 To add static Display types to every frame, use a Display Meta Action -- [dsl_ode_action_display_meta_add_new](/docs/api-ode-action.md#dsl_ode_action_display_meta_add_new) -- added to an [Always ODE Trigger](/docs/api-ode-trigger.md).
 
 Using Python for example
@@ -74,7 +74,7 @@ retval = dsl_ode_trigger_always_new('always-trigger', when=DSL_ODE_PRE_OCCURRENC
 retval = dsl_ode_trigger_action_add('always-trigger', action='overlay-display-text')
 ```
 
-#### For static display on specific frames:
+#### For display on specific frames:
 Text or shapes can be used to indicate the occurrence of specific detection events.
 
 Using Python for example
@@ -285,7 +285,7 @@ Callback typedef for a client to provide RGBA color parameters on call from an [
 DslReturnType dsl_display_type_rgba_color_custom_new(const wchar_t* name,
     double red, double green, double blue, double alpha);
 ```
-The constructor creates a RGBA Custom Color Display Type. The RGBA Color is a base type used to create other RGBA types.
+The constructor creates a RGBA Custom Color Display Type. 
 
 **Parameters**
 * `name` - [in] unique name for the Display Type to create.
@@ -309,7 +309,7 @@ retval = dsl_display_type_rgba_color_custom_new('full-red', 1.0, 0.0, 0.0, 1.0)
 DslReturnType dsl_display_type_rgba_color_predefined_new(const wchar_t* name,
     uint color_id, double alpha);
 ```
-The constructor creates a RGBA Predefined Color Display Type. The RGBA Color is a base type used to create other RGBA types.
+The constructor creates a RGBA Predefined Color Display Type. 
 
 **Parameters**
 * `name` - [in] unique name for the Display Type to create.
@@ -332,9 +332,9 @@ retval = dsl_display_type_rgba_color_predefined_new('opaque-turquoise',
 DslReturnType dsl_display_type_rgba_color_random_new(const wchar_t* name,
     uint hue, uint luminosity, double alpha, uint seed);
 ```
-The constructor creates a Dynamic RGBA Random Color Display Type. The RGBA Color is a base type used to create other RGBA types. The random RGB color values are regenerated when [dsl_display_type_rgba_color_next_set](#dsl_display_type_rgba_color_next_set) is called.
+The constructor creates a Dynamic RGBA Random Color Display Type. The random RGB color values are regenerated when [dsl_display_type_rgba_color_next_set](#dsl_display_type_rgba_color_next_set) is called.
 
-**Important:** Random colors can be used to uniquely color tracked objects as identified by a [Multi-object Tracker](/docs/api-tracker.md). See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and [dsl_ode_trigger_track_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_track_view_settings_set) for more information.
+**Important:** Random colors can be used to uniquely color tracked objects as identified by a [Multi-object Tracker](/docs/api-tracker.md) when using an ODE Cross Trigger. See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and the [dsl_ode_trigger_cross_new](/docs/api-triger-api.md#dsl_ode_trigger_cross_new) and [dsl_ode_trigger_cross_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_view_settings_set) services for more information.
 
 **Parameters**
 * `name` - [in] unique name for the Display Type to create.
@@ -359,14 +359,14 @@ retval = dsl_display_type_rgba_color_random_new('random-dark-blue',
 DslReturnType dsl_display_type_rgba_color_on_demand_new(const wchar_t* name,
     dsl_display_type_rgba_color_provider_cb provider, void* client_data);
 ```
-The constructor creates a Dynamic RGBA On-Demand Color Display Type. The RGBA Color is a base type used to create other RGBA types. The client provided callback is called on to provide RGBA color values on Display Type creation and when [dsl_display_type_rgba_color_next_set](#dsl_display_type_rgba_color_next_set) is called.
+The constructor creates a Dynamic RGBA On-Demand Color Display Type. The client provided callback is called on to provide RGBA color values when the Display Type is created and when [dsl_display_type_rgba_color_next_set](#dsl_display_type_rgba_color_next_set) is called aftwards.
 
-**Important:** On-demand colors can be used to uniquely color tracked objects as identified by a [Multi-object Tracker](/docs/api-tracker.md). See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and [dsl_ode_trigger_track_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_track_view_settings_set) for more information.
+**Important:** On-demand colors can be used to uniquely color tracked objects as identified by a [Multi-object Tracker](/docs/api-tracker.md) when using an ODE Cross Trigger. See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and the [dsl_ode_trigger_cross_new](/docs/api-triger-api.md#dsl_ode_trigger_cross_new) and [dsl_ode_trigger_cross_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_view_settings_set) services for more information.
 
 **Parameters**
 * `name` - [in] unique name for the Display Type to create.
 * `provider` - [in] callback function of type [dsl_display_type_rgba_color_provider_cb](#dsl_display_type_rgba_color_provider_cb) to provide the next color values on demand.
-* `client_data` - [in] opaque pointer to the client's user data, passed back on calls made to provider.
+* `client_data` - [in] opaque pointer to the client's user data, passed back on calls made to `provider`.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -390,7 +390,7 @@ The color palette index can be queried and updated with calls to [dsl_display_ty
 
 **Important:** a Color Palette can be used to uniquely color object bounding boxes and labels based on `class-id`. See the [ODE Action API Reference](/docs/api-ode-action.md) and the [dsl_ode_action_format_bbox_new](/docs/api-ode-action.md#dsl_ode_action_format_bbox_new) and [dsl_ode_action_format_label_new](/docs/api-ode-action.md#dsl_ode_action_format_label_new) services.
 
-**Important:** a Color Palette can be used to uniquely color tracked objects as identifed by a [Multi-object Tracker](/docs/api-tracker.md). See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and [dsl_ode_trigger_track_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_track_view_settings_set) for more information.
+**Important:** a Color Palette can be used to uniquely color tracked objects as identifed by a [Multi-object Tracker](/docs/api-tracker.md) when using an ODE Cross Trigger. See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and the [dsl_ode_trigger_cross_new](/docs/api-triger-api.md#dsl_ode_trigger_cross_new) [dsl_ode_trigger_cross_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_view_settings_set) services for more information.
 
 **Parameters**
 * `name` - [in] unique name for the Display Type to create.
@@ -418,7 +418,7 @@ The color palette index can be queried and updated with calls to [dsl_display_ty
 
 **Important:** a Color Palette can be used to uniquely color object bounding boxes and labels based on `class-id`. See the [ODE Action API Reference](/docs/api-ode-action.md) and the [dsl_ode_action_format_bbox_new](/docs/api-ode-action.md#dsl_ode_action_format_bbox_new) and [dsl_ode_action_format_label_new](/docs/api-ode-action.md#dsl_ode_action_format_label_new) services.
 
-**Important:** a Color Palette can be used to uniquely color tracked objects as identified by a [Multi-object Tracker](/docs/api-tracker.md). See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and [dsl_ode_trigger_track_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_track_view_settings_set) for more information.
+**Important:** a Color Palette can be used to uniquely color tracked objects as identified by a [Multi-object Tracker](/docs/api-tracker.md) when using an ODE Cross Trigger. See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and the [dsl_ode_trigger_cross_new](/docs/api-triger-api.md#dsl_ode_trigger_cross_new) and [dsl_ode_trigger_cross_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_view_settings_set) services for more information.
 
 **Parameters**
 * `name` - [in] unique name for the Display Type to create.
@@ -447,7 +447,7 @@ The color palette index can be queried and updated with calls to [dsl_display_ty
 
 **Important:** a Color Palette can be used to uniquely color object bounding boxes and labels based on `class-id`. See the [ODE Action API Reference](/docs/api-ode-action.md) and the [dsl_ode_action_format_bbox_new](/docs/api-ode-action.md#dsl_ode_action_format_bbox_new) and [dsl_ode_action_format_label_new](/docs/api-ode-action.md#dsl_ode_action_format_label_new) services.
 
-**Important:** a Color Palette can be used to uniquely color tracked objects as identifed by a [Multi-object Tracker](/docs/api-tracker.md). See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and [dsl_ode_trigger_track_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_track_view_settings_set) for more information.
+**Important:** a Color Palette can be used to uniquely color tracked objects as identifed by a [Multi-object Tracker](/docs/api-tracker.md) when using an ODE Cross Trigger. See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and the [dsl_ode_trigger_cross_new](/docs/api-triger-api.md#dsl_ode_trigger_cross_new) and [dsl_ode_trigger_cross_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_view_settings_set) services for more information.
 
 **Parameters**
 * `name` - [in] unique name for the Display Type to create.
