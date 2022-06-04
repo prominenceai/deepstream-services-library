@@ -442,7 +442,7 @@
 * [dsl_ode_trigger_area_remove_all](/docs/api-ode-trigger.md#dsl_ode_trigger_area_remove_all)
 * [dsl_ode_trigger_accumulator_add](/docs/api-ode-trigger.md#dsl_ode_trigger_accumulator_add)
 * [dsl_ode_trigger_accumulator_remove](/docs/api-ode-trigger.md#dsl_ode_trigger_heat_mapper_remove)
-* [dsl_ode_trigger_heat_mapper_add](/docs/api-ode-trigger.md#dsl_ode_trigger_accumulator_add)
+* [dsl_ode_trigger_heat_mapper_add](/docs/api-ode-trigger.md#dsl_ode_trigger_heat_mapper_add)
 * [dsl_ode_trigger_heat_mapper_remove](/docs/api-ode-trigger.md#dsl_ode_trigger_heat_mapper_remove)
 * [dsl_ode_trigger_list_size](/docs/api-ode-trigger.md#dsl_ode_trigger_list_size)
 

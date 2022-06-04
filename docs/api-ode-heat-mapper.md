@@ -11,7 +11,7 @@ palette-index = round( vector[i][j] * (palette-size - 1) / most-occurrences )
 An ODE Heat-Mapper is created by calling [dsl_ode_heat_mapper_new](#dsl_ode_heat_mapper_new). Accumulators are deleted by calling [dsl_ode_heat_mapper_delete](#dsl_ode_heat_mapper_delete), [dsl_ode_heat_mapper_delete_many](#dsl_ode_heat_mapper_delete_many), or [dsl_ode_heat_mapper_delete_all](#dsl_ode_accumulator_delete_all).
 
 #### Displaying a Map Legend
-The Heat-Mapper can display a map legend derived from the RGBA Color Palette
+The Heat-Mapper can display a map legend derived from the RGBA Color Palette by calling [dsl_ode_heat_mapper_legend_settings_set](#dsl_ode_heat_mapper_legend_settings_set)
 
 #### Adding and Removing Heat-Mappers
 The relationship between ODE Triggers and ODE Heat-Mappers is one-to-one. A Trigger can have at most one Heat-Mapper and one Heat-mapper can be added to only on Trigger. An ODE Heat Mapper is added to an ODE Trigger by calling [dsl_ode_trigger_heat_mapper add](/docs/api-ode-trigger.md#dsl_ode_trigger_heat_mapper_add) and removed with [dsl_ode_trigger_heat_mapper_remove](docs/api-ode-trigger.md#dsl_ode_trigger_heat_mapper_remove).
@@ -108,7 +108,7 @@ DslReturnType dsl_ode_heat_mapper_new(const wchar_t* name,
     uint cols, uint rows, uint bbox_test_point, const wchar_t* color_palette);
 ```
 
-The constructor creates a new ODE Heat-Mapper, that when added to an ODE Trigger, accumulates the count of ODE occurrence for each mapped-location within the video frame; column by row. The Heat-Mapper calculates the Object's location in the frame using the bounding-box's position and dimensions (left, top, width, height) and the `bbox_test_point` parameter. The ODE Trigger, while post-processing each frame, calls on the ODE Heat-Mapper to add the two-dimensional map as a collection of [RGBA Rectangles](/docs/api-display-type.md) defined with the provided `color_palette`.
+The constructor creates a new ODE Heat-Mapper that when added to an ODE Trigger accumulates the count of ODE occurrence for each mapped-location within the video frame; column by row. The Heat-Mapper calculates the Object's location in the frame using the bounding-box's position and dimensions (left, top, width, height) and the `bbox_test_point` parameter. The ODE Trigger, while post-processing each frame, calls on the ODE Heat-Mapper to add the two-dimensional map as a collection of [RGBA Rectangles](/docs/api-display-type.md) defined with the provided `color_palette`.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Heat-Mapper to create.
@@ -433,7 +433,7 @@ size = dsl_ode_heat_mapper_list_size()
 * [Sink](/docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
-* [ODE Accumulator(/docs/api-ode-accumulator.md)
+* [ODE Accumulator](/docs/api-ode-accumulator.md)
 * [ODE Action](/docs/api-ode-action.md)
 * [ODE Area](/docs/api-ode-area.md)
 * **ODE Heat-Mapper**
