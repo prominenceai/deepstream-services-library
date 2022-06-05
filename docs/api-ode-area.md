@@ -1,19 +1,19 @@
 # ODE Area API Reference
-ODE Areas, derived from [RGBA Lines](/docs/api-display-type.md#dsl_display_type_rgba_line_new) and [RGBA Polygons](/docs/api-display-type.md#dsl_display_type_rgba_polygon_new) are added to [ODE Triggers](/docs/api-ode-trigger.md) as additional criteria for Object Detection Events (ODE) to occur. 
+ODE Areas -- derived from [RGBA Lines](/docs/api-display-type.md#dsl_display_type_rgba_line_new), [RGBA Multi-Lines](/docs/api-display-type.md#dsl_display_type_rgba_line_multi_new), and [RGBA Polygons](/docs/api-display-type.md#dsl_display_type_rgba_polygon_new) -- are added to [ODE Triggers](/docs/api-ode-trigger.md) as criteria for Object Detection Events (ODE) to occur.
 
 There are three types of Areas:
-* **Inclusion Areas** - criteria is met when a specific point on an object's bounding box - south, south-west, west, north-west, north, etc - is within the Polygon Area.
-* **Exclusion Areas** - criteria is met when a specific point on an object's bounding box is NOT within the Polygon Area. 
-* **Line Areas** - criteria is met when a specific edge of an object's bounding box - left, right, top, bottom - intersects with the Line Area
+* **Inclusion Areas** - when using an ODE Cross Trigger, criteria is met when a specific point of an object's bounding box - south, south-west, west, north-west, north, etc - fully crosses the one of the Polygon's segments. When using other types of Triggers, an ODE Occurrence Trigger for example, criteria is met when a specific point on an object's bounding box - south, south-west, west, north-west, north, etc - is within the Polygon Area.
+* **Exclusion Areas** - criteria is met when a specific point on an object's bounding box is NOT within the Polygon Area.
+* **Line Areas** - when using an ODE Cross Trigger, criteria is met when a specific point of an object's bounding box - south, south-west, west, north-west, north, etc - fully crosses the Trigger's Single or Multi-Line Area.
 
-The relationship between Triggers and Areas is many-to-many as multiple Areas can be added to one Trigger and one Area can be added to multiple Triggers.  Once added to an Trigger, if a Area's `display` setting is enabled, the Polygon's or Line's metadata will be added to each frame for a downstream On-Screen-Component to display.
+The relationship between Triggers and Areas is many-to-many as multiple Areas can be added to one Trigger and one Area can be added to multiple Triggers.  Once added to a Trigger, if an Area's `display` setting is enabled, the Polygon's or Line's metadata will be added to each frame for a downstream On-Screen-Component to display.
 
-If both Areas of Inclusion and Exclusion are added to an ODE Trigger, the order of addition determines the order of precedence. 
+If both Areas of Inclusion and Exclusion are added to an ODE Trigger, the order of addition determines the order of precedence.
 
-ODE Actions can be used to update a Trigger's container of ODE Areas on ODE occurrence. See [dsl_ode_action_area_add_new](/docs/api-ode-action.md#dsl_ode_action_area_add_new) and [dsl_ode_action_area_remove_new](/docs/api-ode-action.md#dsl_ode_action_area_remove_new). 
+ODE Actions can be used to update a Trigger's container of ODE Areas on ODE occurrence. See [dsl_ode_action_area_add_new](/docs/api-ode-action.md#dsl_ode_action_area_add_new) and [dsl_ode_action_area_remove_new](/docs/api-ode-action.md#dsl_ode_action_area_remove_new).
 
 #### ODE Area Construction and Destruction
-Areas are created by calling one of three type specific constructors: [dsl_ode_area_inclusion_new](#dsl_ode_area_inclusion_new), [dsl_ode_area_exclusion_new](#dsl_ode_area_exclusion_new), and [dsl_ode_area_line_new](#dsl_ode_area_line_new).
+Areas are created by calling one of four (4) type specific constructors: [dsl_ode_area_inclusion_new](#dsl_ode_area_inclusion_new), [dsl_ode_area_exclusion_new](#dsl_ode_area_exclusion_new), [dsl_ode_area_line_new](#dsl_ode_area_line_new), and [dsl_ode_area_line_multi_new](#dsl_ode_area_line_multi_new).
 
 #### Adding/Removing ODE Areas
 ODE Areas are added to to ODE Triggers by calling [dsl_ode_trigger_area_add](/docs/api-ode-trigger.md#dsl_ode_trigger_area_add) or [dsl_ode_trigger_area_add_many](/docs/api-ode-trigger.md#dsl_ode_trigger_area_add_many) and removed by [dsl_ode_trigger_area_remove](/docs/api-ode-trigger.md#dsl_ode_trigger_area_remove), [dsl_ode_trigger_area_remove_many](/docs/api-ode-trigger.md#dsl_ode_trigger_area_remove_many), or [dsl_ode_trigger_area_remove_all](/docs/api-ode-trigger.md#dsl_ode_trigger_area_remove_all).
@@ -24,6 +24,7 @@ ODE Areas are added to to ODE Triggers by calling [dsl_ode_trigger_area_add](/do
 * [dsl_ode_area_inclusion_new](#dsl_ode_area_inclusion_new)
 * [dsl_ode_area_exclusion_new](#dsl_ode_area_exclusion_new)
 * [dsl_ode_area_line_new](#dsl_ode_area_line_new)
+* [dsl_ode_area_line_multi_new](#dsl_ode_area_line_multi_new)
 
 **Destructors:**
 * [dsl_ode_area_delete](#dsl_ode_area_delete)
@@ -68,10 +69,12 @@ The following constants are used by the OSD Area API
 ## Constructors
 ### *dsl_ode_area_inclusion_new*
 ```C++
-DslReturnType dsl_ode_area_inclusion_new(const wchar_t* name, 
+DslReturnType dsl_ode_area_inclusion_new(const wchar_t* name,
     const wchar_t* polygon, boolean show, uint bbox_test_point);
 ```
 The constructor creates a uniquely named ODE **Area of Inclusion** using a uniquely named RGBA Polygon. Inclusion requires that a specified point on the Object's bounding box be within the Polygon Area to trigger ODE occurrence.
+
+When using an [ODE Cross Trigger](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_new), ODE occurrence is triggered when a specified point on the Object's bounding box fully crosses one of the Polygon's segments. The specified line-width for the RGBA Polygon is used as line-cross hysteresis.
 
 The Polygon can be shown (requires an [On-Screen Display](/docs/api-osd.md)) or left hidden.
 
@@ -93,10 +96,10 @@ retval = dsl_ode_area_inclusion_new('my-inclusion-area', 'my-polygon', True, DSL
 
 ### *dsl_ode_area_exclusion_new*
 ```C++
-DslReturnType dsl_ode_area_exclusion_new(const wchar_t* name, 
+DslReturnType dsl_ode_area_exclusion_new(const wchar_t* name,
     const wchar_t* polygon, boolean show, uint bbox_test_point);
 ```
-The constructor creates a uniquely named ODE **Area of Exclusion** using a uniquely named RGBA Polygon. Exclusion requires that that a specified point on the Object's bounding box is **not** within the Polygon Area to trigger ODE occurrence. 
+The constructor creates a uniquely named ODE **Area of Exclusion** using a uniquely named RGBA Polygon. Exclusion requires that a specified point on the Object's bounding box is **not** within the Polygon Area to trigger ODE occurrence.
 
 The Polygon can be shown (requires an [On-Screen Display](/docs/api-osd.md)) or left hidden.
 
@@ -121,21 +124,47 @@ retval = dsl_ode_area_exclusion_new('my-exclusion-area', 'my-polygon', True, DSL
 DslReturnType dsl_ode_area_line_new(const wchar_t* name,
     const wchar_t* line, boolean show, uint bbox_test_point);
 ```
-The constructor creates a uniquely named ODE **Line Area** using a uniquely named RGBA Line. ODE occurrence is triggered when a specified edge of the Object's bounding box crosses with the Line Area
+The constructor creates a uniquely named ODE **Line Area** using a uniquely named RGBA Line.  When using an [ODE Cross Trigger](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_new), ODE occurrence is triggered when a specified point on the Object's bounding box fully crosses the Line Area. The specified line-width for the RGBA Line is used as line-cross hysteresis.  
 
 The Line can be shown (requires an [On-Screen Display](/docs/api-osd.md)) or left hidden.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Line Area to create.
-* `line` - [in] unique name for the Line to use as coordinates and optionally display
+* `line` - [in] unique name for the Line to use for the Area's coordinates and for optional display
 * `show` - [in] if true, polygon metadata will be added to each structure of frame metadata.
-* `bbox_test_point` - [in] one of the [DSL_BBOX_EDGE Constants](#Constants) defining which point of a object's bounding box to use when testing for line crossing
+* `bbox_test_point` - [in] one of the [DSL_BBOX_POINT Constants](#Constants) defining which point of a object's bounding box to use when testing for line crossing
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_ode_area_line_new('my-line-area', 'my-line', True, DSL_BBOX_EDGE_BOTTOM)
+retval = dsl_ode_area_line_new('my-line-area',
+    'my-line', True, DSL_BBOX_POINT_SOUTH)
+```
+
+<br>
+
+### *dsl_ode_area_line_multi_new*
+```C++
+DslReturnType dsl_ode_area_line_multi_new(const wchar_t* name,
+    const wchar_t* multi_line, boolean show, uint bbox_test_point);
+```
+The constructor creates a uniquely named ODE **Muli-Line Area** using a uniquely named RGBA Multi-Line. When using an [ODE Cross Trigger](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_new), ODE occurrence is triggered when a specified point on the Object's bounding box fully crosses the Line Area. The specified line-width for the RGBA Multi-Line is used as line-cross hysteresis.  
+
+The Multi-Line Area can be shown (requires an [On-Screen Display](/docs/api-osd.md)) or left hidden.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Multi-Line Area to create.
+* `multi_line` - [in] unique name for the RGBA Multi-Line to use for the Area's coordinates and for optional display
+* `show` - [in] if true, the multi-line metadata will be added to each structure of frame metadata.
+* `bbox_test_point` - [in] one of the [DSL_BBOX_POINT Constants](#Constants) defining which point of an object's bounding box to use when testing for line crossing
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_area_line_multi_new('my-line-area',
+    'my-multi-line', True, DSL_BBOX_POINT_SOUTH)
 ```
 
 <br>
@@ -185,7 +214,7 @@ retval = dsl_ode_area_delete_many(['my-area-a', 'my-area-b', 'my-area-c', None])
 ```C++
 DslReturnType dsl_ode_area_delete_all();
 ```
-This destructor deletes all ODE Areas currently in memory. The destructor will fail if any one of the Areas is currently `in-use` by one or more ODE Triggers. 
+This destructor deletes all ODE Areas currently in memory. The destructor will fail if any one of the Areas is currently `in-use` by one or more ODE Triggers.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure.
@@ -205,7 +234,7 @@ retval = dsl_ode_area_delete_all()
 ```c++
 uint dsl_ode_area_list_size();
 ```
-This service returns the size of the ODE Area container, i.e. the number of Areas currently in memory. 
+This service returns the size of the ODE Area container, i.e. the number of Areas currently in memory.
 
 **Returns**
 * The size of the ODE Area container.
