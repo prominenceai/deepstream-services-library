@@ -497,6 +497,7 @@
 ## ODE Area:
 * [Overview](/docs/api-ode-area.md)
 * [dsl_ode_area_line_new](/docs/api-ode-area.md#dsl_ode_area_line_new)
+* [dsl_ode_area_line_multi_new](/docs/api-ode-area.md#dsl_ode_area_line_multi_new)
 * [dsl_ode_area_inclusion_new](/docs/api-ode-area.md#dsl_ode_area_inclusion_new)
 * [dsl_ode_area_exclusion_new](/docs/api-ode-area.md#dsl_ode_area_exclusion_new)
 * [dsl_ode_area_delete](/docs/api-ode-area.md#dsl_ode_area_delete)
