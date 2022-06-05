@@ -138,13 +138,13 @@
       <File Name="../test/api/DslTeeApiTest.cpp"/>
       <File Name="../test/api/DslTilerApiTest.cpp"/>
       <File Name="../test/api/DslTrackerApiTest.cpp"/>
-      <File Name="../test/api/DslInfoApiTest.cpp"/>
       <File Name="../test/api/DslImageSourceApiTest.cpp"/>
       <File Name="../test/api/DslImageSourceBehaviorTest.cpp"/>
       <File Name="../test/api/DslCrossTriggerExampleTest.cpp"/>
       <File Name="../test/api/DslOdeAccumulatorApiTest.cpp"/>
       <File Name="../test/api/DslOdeHeatMapperApiTest.cpp"/>
       <File Name="../test/unit/DslOdeActionUnitTest.cpp"/>
+      <File Name="../test/api/DslInfoApiTest.cpp.tmp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDemuxerAndTeeUnitTest.cpp"/>

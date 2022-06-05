@@ -1,4 +1,5 @@
 /*
+/*
 The MIT License
 
 Copyright (c) 2019-2021, Prominence AI, Inc.
@@ -976,7 +977,7 @@ namespace DSL
         }
         if (!IsLinkable())
         {
-            LOG_ERROR("Unable to Link ImageStreamSourceBintr '" << GetName() 
+            LOG_ERROR("Unable to Link ImageSourceBintr '" << GetName() 
                 << "' as its uri has not been set");
             return false;
         }
@@ -1237,6 +1238,11 @@ namespace DSL
         m_pCapsFilter->AddGhostPadToParent("src");
 
         g_mutex_init(&m_timeoutTimerMutex);
+
+        if(uri and !SetUri(uri))
+        {
+            throw;
+        }
     }
     
     ImageStreamSourceBintr::~ImageStreamSourceBintr()

@@ -371,7 +371,7 @@ int test()
         retval = dsl_pipeline_play(pipeline_name.c_str());
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*20);
+        std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
         dsl_pipeline_stop(pipeline_name.c_str());
         break;
     }

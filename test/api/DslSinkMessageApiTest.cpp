@@ -151,6 +151,8 @@ SCENARIO( "A Message Sink's Broker Settings can be updated", "[message-sink-api]
         const wchar_t* c_ret_connection_string;
         const wchar_t* c_ret_topic;
         
+        std::wstring init_connection_string;
+        
         // confirm the original settings first
         REQUIRE( dsl_sink_message_broker_settings_get(sink_name.c_str(),
             &c_ret_broker_config_file, &c_ret_protocol_lib,
@@ -163,12 +165,13 @@ SCENARIO( "A Message Sink's Broker Settings can be updated", "[message-sink-api]
 
         REQUIRE( ret_broker_config_file == broker_config_file );
         REQUIRE( ret_protocol_lib == protocol_lib );
-        REQUIRE( ret_connection_string == connection_string );
+        REQUIRE( ret_connection_string == init_connection_string );
         REQUIRE( ret_topic == topic );
         
         WHEN( "When new Message Converter settings are set" ) 
         {
-            std::wstring new_broker_config_file(L"./test/configs/cfg_kafka.txt");
+            std::wstring new_broker_config_file(
+                L"/opt/nvidia/deepstream/deepstream-6.0/sources/libs/kafka_protocol_adaptor/cfg_kafka.txt");
             std::wstring new_protocol_lib(NVDS_AZURE_EDGE_PROTO_LIB);
             std::wstring new_connection_string(
                 L"HostName=my-hub.azure-devices.net;DeviceId=6789;SharedAccessKey=efghi");
