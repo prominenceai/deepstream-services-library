@@ -373,7 +373,6 @@
 * [dsl_ode_trigger_occurrence_new](/docs/api-ode-trigger.md#dsl_ode_trigger_occurrence_new)
 * [dsl_ode_trigger_instance_new](/docs/api-ode-trigger.md#dsl_ode_trigger_instance_new)
 * [dsl_ode_trigger_summation_new](/docs/api-ode-trigger.md#dsl_ode_trigger_summation_new)
-* [dsl_ode_trigger_accumulation_new](/docs/api-ode-trigger.md#dsl_ode_trigger_accumulation_new)
 * [dsl_ode_trigger_distance_new](/docs/api-ode-trigger.md#dsl_ode_trigger_distance_new)
 * [dsl_ode_trigger_intersection_new](/docs/api-ode-trigger.md#dsl_ode_trigger_intersection_new)
 * [dsl_ode_trigger_count_new](/docs/api-ode-trigger.md#dsl_ode_trigger_count_new)
