@@ -338,6 +338,8 @@
 * [dsl_sink_message_converter_settings_set](/docs/api-sink.md#dsl_sink_message_converter_settings_set)
 * [dsl_sink_message_broker_settings_get](/docs/api-sink.md#dsl_sink_message_broker_settings_get)
 * [dsl_sink_message_broker_settings_set](/docs/api-sink.md#dsl_sink_message_broker_settings_set)
+* [dsl_sink_sync_enabled_get](/docs/api-sink.md#dsl_sink_sync_enabled_get)
+* [dsl_sink_sync_enabled_set](/docs/api-sink.md#dsl_sink_sync_enabled_set)
 * [dsl_sink_pph_add](/docs/api-sink.md#dsl_sink_pph_add)
 * [dsl_sink_pph_remove](/docs/api-sink.md#dsl_sink_pph_remove)
 * [dsl_sink_num_in_use_get](/docs/api-sink.md#dsl_sink_num_in_use_get)

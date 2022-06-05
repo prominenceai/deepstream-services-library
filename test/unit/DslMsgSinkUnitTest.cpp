@@ -54,10 +54,7 @@ SCENARIO( "A new MsgSinkBintr is created correctly",  "[MsgSinkBintr]" )
             
             THEN( "The correct attribute values are returned" )
             {
-                bool sync(true), async(true);
-                pSinkBintr->GetSyncSettings(&sync, &async);
-                REQUIRE( sync == true );
-                REQUIRE( async == false );
+                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
                 
                 REQUIRE( pSinkBintr->GetMetaType() == NVDS_EVENT_MSG_META);
                 const char* cRetConversionConfigFile;

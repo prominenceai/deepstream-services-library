@@ -288,18 +288,17 @@ namespace DSL
         return true;
     }
 
-    bool WebRtcSinkBintr::SetSyncSettings(bool sync, bool async)
+    bool WebRtcSinkBintr::SetSyncEnabled(bool enabled)
     {
         LOG_FUNC();
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set Sync/Async Settings for WebRtcSinkBintr '" 
-                << GetName() << "' as it's currently linked");
+            LOG_ERROR("Unable to set Sync enabled setting for WebRtcSinkBintr '" << GetName() 
+                << "' as it's currently linked");
             return false;
         }
         m_sync = sync;
-        m_async = async;
 
         // Nothing to set for webrtcbin??
         return true;

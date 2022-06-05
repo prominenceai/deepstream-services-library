@@ -5517,22 +5517,20 @@ DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler);
 DslReturnType dsl_sink_pph_remove(const wchar_t* name, const wchar_t* handler);
 
 /**
- * @brief Gets the current settings for the "sync" and "async" attributes for the named Sink
+ * @brief Gets the current settings for the "sync" attribute for the named Sink
  * @param[in] name unique name of the Sink to query
- * @param[out] sync the current setting for the Sink's "sync" attribute
- * @param[out] async the current setting for the Sink's "async" attribute
+ * @param[out] enabled the current setting for the Sink's "sync" attribute
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise
  */
-DslReturnType dsl_sink_sync_settings_get(const wchar_t* name, boolean* sync, boolean* async);
+DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled);
 
 /**
- * @brief Sets the "sync" and "async" attributes for the named Sink
+ * @brief Sets the "sync" attribute for the named Sink
  * @param[in] name unique name of the Sink to update
- * @param[in] sync the new setting for the Sink's "sync" attribute
- * @param[in] async the current setting for the Sink's "async" attribute
+ * @param[in] enabled set to true to enable the Sink's "sync" attribute, false otherwise.
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise
  */
-DslReturnType dsl_sink_sync_settings_set(const wchar_t* name, boolean sync, boolean async);
+DslReturnType dsl_sink_sync_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
  * @brief returns the number of Sinks currently in use by 
