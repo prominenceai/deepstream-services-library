@@ -72,6 +72,8 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_message_converter_settings_set](#dsl_sink_message_converter_settings_set)
 * [dsl_sink_message_broker_settings_get](#dsl_sink_message_broker_settings_get)
 * [dsl_sink_message_broker_settings_set](#dsl_sink_message_broker_settings_set)
+* [dsl_sink_sync_enabled_get](#dsl_sink_sync_enabled_get)
+* [dsl_sink_sync_enabled_set](#dsl_sink_sync_enabled_set)
 * [dsl_sink_pph_add](#dsl_sink_pph_add)
 * [dsl_sink_pph_remove](#dsl_sink_pph_remove)
 * [dsl_sink_num_in_use_get](#dsl_sink_num_in_use_get)
@@ -1119,12 +1121,12 @@ This service gets the current Message Converter settings in use by the named Mes
 **Important** refer to the Deepstream Plugin Guide for information on the [Message Converter](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvmsgconv.html#gst-nvmsgconv) configuration file settings.
 
 **Parameters**
-* `name` - [in] unique name of the Encode Sink to update.
+* `name` - [in] unique name of the Encode Sink to query.
 * `converter_config_file` - [out] absolute file-path to the current Message Converter config file in use.
 * `payload_type` - [out] the current payload schema type in use, one of the [Message Converter payload schema type constants](#message-converter-payload-schema-types) defined above.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1169,14 +1171,14 @@ This service gets the current Message Broker settings in use by the named Messag
 **Important** refer to the DeepStream Plugin Guide for information on the [Message Broker](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvmsgbroker.html) configuration file and connection string, and for information on configuration and use of the different Protocol Adapters.  
 
 **Parameters**
-* `name` - [in] unique name of the Encode Sink to update.
+* `name` - [in] unique name of the Message Sink to query.
 * `broker_config_file` - [out] absolute file-path to the current Message Broker config file in use.
 * `protocol_lib` - [out] absolute file-path to the current protocol adapter library in use.
 * `connection_string` - [out] current connection string in use.
 * `topic` - [out] (optional) current message topic in use.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1196,9 +1198,8 @@ This service sets the Message Broker settings to be used by the named Message Si
 
 **Important** refer to the DeepStream Plugin Guide for information on the [Message Broker](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvmsgbroker.html) configuration file and connection string, and for information on configuration and use of the different Protocol Adapters.  
 
-
 **Parameters**
-* `name` - [in] unique name of the Encode Sink to update.
+* `name` - [in] unique name of the Message Sink to update.
 * `broker_config_file` - [in] absolute or relative file-path to a new Message Broker config file tp use.
 * `protocol_lib` - [in] absolute or relative file-path to a new protocol adapter library to use.
 * `connection_string` - [in] new connection string to use.
@@ -1211,6 +1212,46 @@ This service sets the Message Broker settings to be used by the named Message Si
 ```Python
 retval = dsl_sink_message_broker_settings_get('my-message-sink',
     broker_config_file, protocol_lib, connection_string, new_topic)
+```
+
+<br>
+
+### *dsl_sink_sync_enabled_get*
+```C++
+DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled);
+```
+This service gets the current `sync` enabled setting in use by the named Sink.
+
+**Parameters**
+* `name` - [in] unique name of the Sink to query.
+* `enabled` - [out] true if the `sync` setting for the name Sink is enabled, fale otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, enabled = dsl_sink_sync_enabled_get('my-overlay-sink')
+```
+
+<br>
+
+### *dsl_sink_sync_enabled_set*
+```C++
+DslReturnType dsl_sink_sync_enabled_set(const wchar_t* name, boolean enabled);
+```
+This service sets the `sync` enabled setting in for the named Sink.
+
+**Parameters**
+* `name` - [in] unique name of the Message Sink to update.
+* `enabled` - [in] set to true to eanble the `sync` setting, false to disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_sync_enabled_set('my-overlay-sink', false)
 ```
 
 <br>
