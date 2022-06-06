@@ -166,7 +166,7 @@ SCENARIO( "The ODE Line can be created and deleted", "[ode-area-api]" )
     }
 }
 
-SCENARIO( "The ODE Line API checks for an invalid TestEdge parameter", "[ode-area-api]" )
+SCENARIO( "The ODE Line API checks for an invalid TestPoint parameter", "[ode-area-api]" )
 {
     GIVEN( "An RGBA Line" ) 
     {
@@ -190,12 +190,12 @@ SCENARIO( "The ODE Line API checks for an invalid TestEdge parameter", "[ode-are
 
         WHEN( "When an invalid TestEdge parameter is used" ) 
         {
-            uint invalid_test_edge(DSL_BBOX_EDGE_RIGHT+1);
+            uint invalid_test_point(DSL_BBOX_POINT_ANY+1);
             
             THEN( "The Area fails to create" ) 
             {
                 REQUIRE( dsl_ode_area_line_new(areaName.c_str(), lineName.c_str(), 
-                    true, invalid_test_edge) == DSL_RESULT_ODE_AREA_PARAMETER_INVALID );
+                    true, invalid_test_point) == DSL_RESULT_ODE_AREA_PARAMETER_INVALID );
                     
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );

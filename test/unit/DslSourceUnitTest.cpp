@@ -1032,9 +1032,6 @@ SCENARIO( "A new MultiImageSourceBintr is created correctly",  "[SourceBintr]" )
 {
     GIVEN( "Attributes for a new MultiImageSourceBintr" ) 
     {
-        char absolutePath[PATH_MAX+1];
-        std::string fullFillPath = realpath(jpgFilePath1.c_str(), absolutePath);
-
         WHEN( "The MultiImageSourceBintr is created " )
         {
             DSL_MULTI_IMAGE_SOURCE_PTR pSourceBintr = DSL_MULTI_IMAGE_SOURCE_NEW(
@@ -1052,7 +1049,7 @@ SCENARIO( "A new MultiImageSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->IsLive() == false );
                 
                 std::string returnedFilePath = pSourceBintr->GetUri();
-                REQUIRE( returnedFilePath == fullFillPath );
+                REQUIRE( returnedFilePath == multJpgFilePath );
             }
         }
     }

@@ -4306,25 +4306,24 @@ def dsl_sink_message_new(name, converter_config_file, payload_type,
     return int(result)
     
 ##
-## dsl_sink_sync_settings_get()
+## dsl_sink_sync_enabled_get()
 ##
-_dsl.dsl_sink_sync_settings_get.argtypes = [c_wchar_p, POINTER(c_bool), POINTER(c_bool)]
-_dsl.dsl_sink_sync_settings_get.restype = c_uint
-def dsl_sink_sync_settings_get(name):
+_dsl.dsl_sink_sync_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_sink_sync_enabled_get.restype = c_uint
+def dsl_sink_sync_enabled_get(name):
     global _dsl
     _sync = c_bool(0)
-    _async = c_bool(0)
-    result = _dsl.dsl_sink_sync_settings_get(name, DSL_BOOL_P(_sync), DSL_BOOL_P(_async))
-    return int(result), _sync.value, _async.value 
+    result = _dsl.dsl_sink_sync_enabled_get(name, DSL_BOOL_P(_sync))
+    return int(result), _sync.value
 
 ##
-## dsl_sink_sync_settings_set()
+## dsl_sink_sync_enabled_set()
 ##
-_dsl.dsl_sink_sync_settings_set.argtypes = [c_wchar_p, c_bool, c_bool]
-_dsl.dsl_sink_sync_settings_set.restype = c_uint
-def dsl_sink_sync_settings_set(name, _sync, _async):
+_dsl.dsl_sink_sync_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_sink_sync_enabled_set.restype = c_uint
+def dsl_sink_sync_enabled_set(name, _sync):
     global _dsl
-    result = _dsl.dsl_sink_sync_settings_set(name, _sync, _async)
+    result = _dsl.dsl_sink_sync_enabled_set(name, _sync)
     return int(result)
 
 ##

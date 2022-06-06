@@ -763,7 +763,7 @@ namespace DSL
         m_pFileSink = DSL_ELEMENT_NEW("filesink", name);
 
         m_pFileSink->SetAttribute("location", filepath);
-        m_pFileSink->SetAttribute("o-sync", m_sync);
+        m_pFileSink->SetAttribute("sync", m_sync);
         
         switch (container)
         {
@@ -844,7 +844,7 @@ namespace DSL
         }
         m_sync = enabled;
         
-        m_pFileSink->SetAttribute("o-sync", m_sync);
+        m_pFileSink->SetAttribute("sync", m_sync);
 
         return true;
     }

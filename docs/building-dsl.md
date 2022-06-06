@@ -100,7 +100,7 @@ Once the test executable has been built, it can be run with the command below.
 After completion, ensure that all tests have passed before submitting a pull request.
 ```
 ===============================================================================
-All tests passed (5199 assertions in 670 test cases)
+All tests passed (6405 assertions in 795 test cases)
 ```
 
 Note: the total passed assertions and test cases are subject to change.
