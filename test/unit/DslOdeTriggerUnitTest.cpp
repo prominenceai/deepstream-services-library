@@ -3028,13 +3028,11 @@ SCENARIO( "A LatestOdeTrigger Post Processes ODE Occurrences correctly", "[OdeTr
         
         WHEN( "The objects are tracked for for only one frame" )
         {
-            frameMeta.source_id = 1;
+            pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                 displayMetaData, &frameMeta, &objectMeta1) == true );
-            frameMeta.source_id = 2;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                 displayMetaData, &frameMeta, &objectMeta2) == true );
-            frameMeta.source_id = 3;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                 displayMetaData, &frameMeta, &objectMeta3) == true );
             
@@ -3046,13 +3044,11 @@ SCENARIO( "A LatestOdeTrigger Post Processes ODE Occurrences correctly", "[OdeTr
         }
         WHEN( "The objects are tracked for two frames" )
         {
-            frameMeta.source_id = 1;
+            pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                 displayMetaData, &frameMeta, &objectMeta1) == true );
-            frameMeta.source_id = 2;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                 displayMetaData, &frameMeta, &objectMeta2) == true );
-            frameMeta.source_id = 3;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                 displayMetaData, &frameMeta, &objectMeta3) == true );
             std::this_thread::sleep_for(std::chrono::milliseconds(1100));
@@ -3060,13 +3056,11 @@ SCENARIO( "A LatestOdeTrigger Post Processes ODE Occurrences correctly", "[OdeTr
                 displayMetaData, &frameMeta) == 0 );
 
             frameMeta.frame_num = 2;
-            frameMeta.source_id = 1;
+            pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                 displayMetaData, &frameMeta, &objectMeta1) == true );
-            frameMeta.source_id = 2;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                 displayMetaData, &frameMeta, &objectMeta2) == true );
-            frameMeta.source_id = 3;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                 displayMetaData, &frameMeta, &objectMeta3) == true );
 
@@ -3078,33 +3072,31 @@ SCENARIO( "A LatestOdeTrigger Post Processes ODE Occurrences correctly", "[OdeTr
         }
         WHEN( "when only one object is tracked for three frames" )
         {
-            frameMeta.source_id = 1;
+            pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                 displayMetaData, &frameMeta, &objectMeta1) == true );
-            frameMeta.source_id = 2;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                 displayMetaData, &frameMeta, &objectMeta2) == true );
-            frameMeta.source_id = 3;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                 displayMetaData, &frameMeta, &objectMeta3) == true );
             std::this_thread::sleep_for(std::chrono::milliseconds(1100));
             REQUIRE( pOdeTrigger->PostProcessFrame(NULL, 
                 displayMetaData, &frameMeta) == 0 );
+
             frameMeta.frame_num = 2;
-            frameMeta.source_id = 1;
+            pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                 displayMetaData, &frameMeta, &objectMeta1) == true );
-            frameMeta.source_id = 2;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                 displayMetaData, &frameMeta, &objectMeta2) == true );
             std::this_thread::sleep_for(std::chrono::milliseconds(1100));
             REQUIRE( pOdeTrigger->PostProcessFrame(NULL, 
                 displayMetaData, &frameMeta) == 1 );
+
             frameMeta.frame_num = 3;
-            frameMeta.source_id = 2;
+            pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                 displayMetaData, &frameMeta, &objectMeta2) == true );
-            frameMeta.source_id = 3;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                 displayMetaData, &frameMeta, &objectMeta3) == true );
 
@@ -3272,14 +3264,14 @@ SCENARIO( "A EarliestOdeTrigger Post Processes ODE Occurrences correctly", "[Ode
         NvDsObjectMeta objectMeta3 = {0};
         objectMeta3.class_id = classId;
         objectMeta3.object_id = 3;
+
+        frameMeta.source_id = 1;
         
         WHEN( "The objects are tracked for for only one frame" )
         {
-            frameMeta.source_id = 1;
+            pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, displayMetaData, &frameMeta, &objectMeta1) == true );
-            frameMeta.source_id = 2;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, displayMetaData, &frameMeta, &objectMeta2) == true );
-            frameMeta.source_id = 3;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, displayMetaData, &frameMeta, &objectMeta3) == true );
             
             THEN( "PostProcessFrame returns 0 occurrences" )
@@ -3289,49 +3281,41 @@ SCENARIO( "A EarliestOdeTrigger Post Processes ODE Occurrences correctly", "[Ode
         }
         WHEN( "The objects are tracked for two frames" )
         {
-            frameMeta.source_id = 1;
+            pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, displayMetaData, &frameMeta, &objectMeta1) == true );
-            frameMeta.source_id = 2;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, displayMetaData, &frameMeta, &objectMeta2) == true );
-            frameMeta.source_id = 3;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, displayMetaData, &frameMeta, &objectMeta3) == true );
             std::this_thread::sleep_for(std::chrono::milliseconds(1100));
             REQUIRE( pOdeTrigger->PostProcessFrame(NULL, displayMetaData, &frameMeta) == 0 );
 
             frameMeta.frame_num = 2;
-            frameMeta.source_id = 1;
+            pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, displayMetaData, &frameMeta, &objectMeta1) == true );
-            frameMeta.source_id = 2;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, displayMetaData, &frameMeta, &objectMeta2) == true );
-            frameMeta.source_id = 3;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, displayMetaData, &frameMeta, &objectMeta3) == true );
 
-            THEN( "PostProcessFrame returns 3 occurrences" )
+            THEN( "PostProcessFrame returns 1 occurrences" )
             {
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, displayMetaData, &frameMeta) == 1 );
             }
         }
         WHEN( "when only one object is tracked for three frames" )
         {
-            frameMeta.source_id = 1;
+            pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, displayMetaData, &frameMeta, &objectMeta1) == true );
-            frameMeta.source_id = 2;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, displayMetaData, &frameMeta, &objectMeta2) == true );
-            frameMeta.source_id = 3;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, displayMetaData, &frameMeta, &objectMeta3) == true );
             std::this_thread::sleep_for(std::chrono::milliseconds(1100));
             REQUIRE( pOdeTrigger->PostProcessFrame(NULL, displayMetaData, &frameMeta) == 0 );
             frameMeta.frame_num = 2;
-            frameMeta.source_id = 1;
+            pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, displayMetaData, &frameMeta, &objectMeta1) == true );
-            frameMeta.source_id = 2;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, displayMetaData, &frameMeta, &objectMeta2) == true );
             std::this_thread::sleep_for(std::chrono::milliseconds(1100));
             REQUIRE( pOdeTrigger->PostProcessFrame(NULL, displayMetaData, &frameMeta) == 1 );
+            pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
             frameMeta.frame_num = 3;
-            frameMeta.source_id = 2;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, displayMetaData, &frameMeta, &objectMeta2) == true );
-            frameMeta.source_id = 3;
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, displayMetaData, &frameMeta, &objectMeta3) == true );
 
             THEN( "PostProcessFrame returns 1 occurrences" )
