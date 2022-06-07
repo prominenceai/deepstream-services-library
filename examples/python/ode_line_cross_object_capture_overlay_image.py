@@ -434,11 +434,11 @@ def main(args):
         dsl_player_render_image_new(
             name = 'image-player',
             file_path = None,
-            render_type = DSL_RENDER_TYPE_OVERLAY,
+            render_type = DSL_RENDER_TYPE_WINDOW, # try DSL_RENDER_TYPE_OVERLAY
             offset_x = 700, 
             offset_y = 300, 
             zoom = 200,
-            timeout = 0) # show indefinetely, until new image is captured
+            timeout = 3) # show indefinetely, until new image is captured
 
         # Add the Termination listener callback to the Player 
         retval = dsl_player_termination_event_listener_add('image-player',
@@ -448,8 +448,8 @@ def main(args):
 
         # Add the Player to the Object Capture Action. The Action will add/queue
         # the file_path to each image file created during capture. 
-#        retval = dsl_ode_action_capture_image_player_add('person-capture-action', 
-#            player='image-player')
+        retval = dsl_ode_action_capture_image_player_add('person-capture-action', 
+            player='image-player')
 
         
         ############################################################################################

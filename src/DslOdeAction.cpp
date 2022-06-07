@@ -552,13 +552,6 @@ namespace DSL
                     if (state == GST_STATE_PLAYING or state == GST_STATE_PAUSED)
                     {
                         pImagePlayer->QueueFilePath(filespec.c_str());
-                        
-                        // If the Player's EOS timeout is not running, i.e the previous
-                        // image is being shown indefinetely - show next (i.e. this image)
-                        if (!pImagePlayer->GetTimeout())
-                        {
-                            pImagePlayer->Next();
-                        }
                     }
                     else
                     {

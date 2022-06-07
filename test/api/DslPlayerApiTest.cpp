@@ -72,99 +72,99 @@ SCENARIO( "A single Player is created and deleted correctly", "[player-api]" )
     }
 }
 
-//SCENARIO( "A single Player can Play, Pause, and Stop", "[player-api]" )
-//{
-//    GIVEN( "An empty list of Players" ) 
-//    {
-//        REQUIRE( dsl_source_file_new(source_name.c_str(), file_path.c_str(), 
-//            false) == DSL_RESULT_SUCCESS );
-//            
-//        REQUIRE( dsl_sink_window_new(sink_name.c_str(),
-//            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
-//        
-//        REQUIRE( dsl_player_list_size() == 0 );
-//
-//        WHEN( "A new Player is created" ) 
-//        {
-//            REQUIRE( dsl_player_new(player_name.c_str(),
-//                source_name.c_str(), sink_name.c_str()) == DSL_RESULT_SUCCESS );
-//
-//            THEN( "The list size and contents are updated correctly" ) 
-//            {
-//                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
-//                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-//                REQUIRE( dsl_player_pause(player_name.c_str()) == DSL_RESULT_SUCCESS );
-//                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-//                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
-//                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-//                REQUIRE( dsl_player_stop(player_name.c_str()) == DSL_RESULT_SUCCESS );
-//
-//                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
-//                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-//                REQUIRE( dsl_player_stop(player_name.c_str()) == DSL_RESULT_SUCCESS );
-//
-//                REQUIRE( dsl_player_delete(player_name.c_str()) == DSL_RESULT_SUCCESS );
-//                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-//            }
-//        }
-//    }
-//}
+SCENARIO( "A single Player can Play, Pause, and Stop", "[player-api]" )
+{
+    GIVEN( "An empty list of Players" ) 
+    {
+        REQUIRE( dsl_source_file_new(source_name.c_str(), file_path.c_str(), 
+            false) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_sink_window_new(sink_name.c_str(),
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_player_list_size() == 0 );
 
-//SCENARIO( "A File Render Player can Play, Pause, and Stop", "[player-api]" )
-//{
-//    GIVEN( "An empty list of Players" ) 
-//    {
-//        REQUIRE( dsl_player_list_size() == 0 );
-//
-//        WHEN( "A new Player is created" ) 
-//        {
-//            REQUIRE( dsl_player_render_video_new(player_name.c_str(),file_path.c_str(), 
-//                DSL_RENDER_TYPE_WINDOW, 10, 10, 75, false) == DSL_RESULT_SUCCESS );
-//
-//            THEN( "The list size and contents are updated correctly" ) 
-//            {
-//                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
-//                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-//                REQUIRE( dsl_player_pause(player_name.c_str()) == DSL_RESULT_SUCCESS );
-//                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-//                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
-//                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-//                REQUIRE( dsl_player_stop(player_name.c_str()) == DSL_RESULT_SUCCESS );
-//
-//                REQUIRE( dsl_player_delete(player_name.c_str()) == DSL_RESULT_SUCCESS );
-//                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-//            }
-//        }
-//    }
-//}
+        WHEN( "A new Player is created" ) 
+        {
+            REQUIRE( dsl_player_new(player_name.c_str(),
+                source_name.c_str(), sink_name.c_str()) == DSL_RESULT_SUCCESS );
 
-//SCENARIO( "An Image Render Player can Play, Pause, and Stop", "[player-api]" )
-//{
-//    GIVEN( "An empty list of Players" ) 
-//    {
-//        REQUIRE( dsl_player_list_size() == 0 );
-//
-//        WHEN( "A new Player is created" ) 
-//        {
-//            REQUIRE( dsl_player_render_image_new(player_name.c_str(),image_path1.c_str(), 
-//                DSL_RENDER_TYPE_WINDOW, 10, 10, 75, 0) == DSL_RESULT_SUCCESS );
-//
-//            THEN( "The list size and contents are updated correctly" ) 
-//            {
-//                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
-//                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-//                REQUIRE( dsl_player_pause(player_name.c_str()) == DSL_RESULT_SUCCESS );
-//                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-//                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
-//                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-//                REQUIRE( dsl_player_stop(player_name.c_str()) == DSL_RESULT_SUCCESS );
-//
-//                REQUIRE( dsl_player_delete(player_name.c_str()) == DSL_RESULT_SUCCESS );
-//                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-//            }
-//        }
-//    }
-//}
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_player_pause(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_player_stop(player_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_player_stop(player_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_player_delete(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A File Render Player can Play, Pause, and Stop", "[player-api]" )
+{
+    GIVEN( "An empty list of Players" ) 
+    {
+        REQUIRE( dsl_player_list_size() == 0 );
+
+        WHEN( "A new Player is created" ) 
+        {
+            REQUIRE( dsl_player_render_video_new(player_name.c_str(),file_path.c_str(), 
+                DSL_RENDER_TYPE_WINDOW, 10, 10, 75, false) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_player_pause(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_player_stop(player_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_player_delete(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "An Image Render Player can Play, Pause, and Stop", "[player-api]" )
+{
+    GIVEN( "An empty list of Players" ) 
+    {
+        REQUIRE( dsl_player_list_size() == 0 );
+
+        WHEN( "A new Player is created" ) 
+        {
+            REQUIRE( dsl_player_render_image_new(player_name.c_str(),image_path1.c_str(), 
+                DSL_RENDER_TYPE_WINDOW, 10, 10, 75, 0) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_player_pause(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_player_stop(player_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_player_delete(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
 
 SCENARIO( "An Image Render Player's Attributes are updated correctly'", "[player-api]" )
 {
