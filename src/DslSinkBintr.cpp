@@ -340,9 +340,10 @@ namespace DSL
         m_offsetX = offsetX;
         m_offsetY = offsetY;
 
-        LOG_ERROR("Offsets x=" << m_offsetX << " y=" << m_offsetY);
-//        m_pOverlay->SetAttribute("overlay-x", m_offsetX);
-//        m_pOverlay->SetAttribute("overlay-y", m_offsetY);
+        m_pOverlay->SetAttribute("overlay-x", 0);
+        m_pOverlay->SetAttribute("overlay-y", 0);
+        m_pOverlay->SetAttribute("overlay-x", m_offsetX);
+        m_pOverlay->SetAttribute("overlay-y", m_offsetY);
         
         return true;
     }
@@ -354,8 +355,10 @@ namespace DSL
         m_width = width;
         m_height = height;
 
-//        m_pOverlay->SetAttribute("overlay-w", m_width);
-//        m_pOverlay->SetAttribute("overlay-h", m_height);
+        m_pOverlay->SetAttribute("overlay-w", 0);
+        m_pOverlay->SetAttribute("overlay-h", 0);
+        m_pOverlay->SetAttribute("overlay-w", m_width);
+        m_pOverlay->SetAttribute("overlay-h", m_height);
         
         return true;
     }

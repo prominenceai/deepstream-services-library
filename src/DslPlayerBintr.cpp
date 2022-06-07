@@ -39,6 +39,7 @@ namespace DSL
         , m_pSource(pSource)
         , m_pSink(pSink)
         , m_inTermination(false)
+        , m_clearPlayNextMutex(false)
     {
         LOG_FUNC();
 
@@ -51,6 +52,7 @@ namespace DSL
         gst_caps_unref(pCaps);
 
         g_mutex_init(&m_asyncCommMutex);
+        g_mutex_init(&m_playNextMutex);
         
         AddChild(m_pQueue);
         AddChild(m_pConverter);
@@ -77,6 +79,7 @@ namespace DSL
         , PipelineStateMgr(m_pGstObj)
         , PipelineXWinMgr(m_pGstObj)
         , m_inTermination(false)
+        , m_clearPlayNextMutex(false)
     {
         LOG_FUNC();
 
@@ -89,7 +92,7 @@ namespace DSL
         gst_caps_unref(pCaps);
 
         g_mutex_init(&m_asyncCommMutex);
-        g_cond_init(&m_asyncCondition);
+        g_mutex_init(&m_playNextMutex);
 
         AddChild(m_pQueue);
         AddChild(m_pConverter);
@@ -110,7 +113,7 @@ namespace DSL
         }
         RemoveXWindowDeleteEventHandler(PlayerTerminate);
         g_mutex_clear(&m_asyncCommMutex);
-        g_cond_clear(&m_asyncCondition);
+        g_mutex_clear(&m_playNextMutex);
     }
 
     bool PlayerBintr::LinkAll()
@@ -177,7 +180,7 @@ namespace DSL
         GetState(currentState, 0);
         if (currentState == GST_STATE_PLAYING)
         {
-            LOG_ERROR("Unable to play Pipeline '" << GetName() 
+            LOG_ERROR("Unable to play Player '" << GetName() 
                 << "' as it's already in a state of playing");
             return false;
         }
@@ -195,9 +198,7 @@ namespace DSL
         // state of the Player in the Application's context. 
         if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
         {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
             g_timeout_add(1, PlayerPlay, this);
-//            g_cond_wait(&m_asyncCondition, &m_asyncCommMutex);
         }
         // Else, we are running under test without the mainloop
         else
@@ -210,6 +211,7 @@ namespace DSL
     bool PlayerBintr::HandlePlay()
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
 
         // m_pSource is of type DSL_BINTR_PTR - need to cast to DSL_SOURCE_PTR
         // for the source to be used as such
@@ -248,13 +250,21 @@ namespace DSL
             AddEosListener(PlayerHandleEos, this);
         }
 
+        // If the Play was invoked from a Play-Next cycle, clear the Mutex.
+        if (m_clearPlayNextMutex)
+        {
+            g_mutex_unlock(&m_playNextMutex);
+            m_clearPlayNextMutex = false;
+        }
+
         return true;
     }
     
     bool PlayerBintr::Pause()
     {
         LOG_FUNC();
-        
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+
         GstState state;
         GetState(state, 0);
         if (state != GST_STATE_PLAYING)
@@ -262,33 +272,14 @@ namespace DSL
             LOG_WARN("Player '" << GetName() << "' is not in a state of Playing");
             return false;
         }
-        // If the main loop is running -- normal case -- then we can't change the 
-        // state of the Player in the Application's context. 
-        if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
-        {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
-            g_timeout_add(1, PlayerPause, this);
-            g_cond_wait(&m_asyncCondition, &m_asyncCommMutex);
-        }
-        // Else, we are running under test without the mainloop
-        else
-        {
-            HandlePause();
-        }
-        return true;
-    }
-
-    void PlayerBintr::HandlePause()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
         
-        // Call the base class to Pause
+        // Call the base class to Pause the Player - can be called from any context.
         if (!SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
         {
             LOG_ERROR("Failed to Pause Player '" << GetName() << "'");
+            return false;
         }
-        g_cond_signal(&m_asyncCondition);
+        return true;
     }
 
     bool PlayerBintr::Stop()
@@ -300,26 +291,72 @@ namespace DSL
             LOG_INFO("PlayerBintr is not linked when called to stop");
             return false;
         }
+        GstState state;
+        GetState(state, 0);
+        if (state == GST_STATE_PAUSED)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+            LOG_INFO("Setting Player '" << GetName() 
+                << "' to PLAYING before setting to NULL");
+            // Call the base class to Play the Player - can be called from any context.
+            if (!SetState(GST_STATE_PLAYING, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
+            {
+                LOG_ERROR("Failed to set Player '" << GetName() 
+                    << "' to PLAYING before setting to NULL");
+                return false;
+            }
+        }
         
-        InitiateStop();
+        // Disable the EOS management
+        PrepareForEos();
+
+        // Need to check the context to see if we're running from either
+        // the XDisplay thread or the bus-watch fucntion
+        
+        // Try and lock the Display mutex first
+        if (!g_mutex_trylock(&m_displayMutex))
+        {
+            // lock-failed which means we are already in the XWindow thread context
+            // calling on a client handler function for Key release or xWindow delete. 
+            // Safe to stop the Player in this context.
+            LOG_INFO("dsl_player_stop called from XWindow display thread context");
+            HandleStop();
+            return true;
+        }
+        // Try the bus-watch mutex next
+        if (!g_mutex_trylock(&m_busWatchMutex))
+        {
+            // lock-failed which means we're in the bus-watch function context
+            // calling on a client listener or handler function. Safe to stop 
+            // the Player in this context. 
+            LOG_INFO("dsl_player_stop called from bus-watch-function thread context");
+            HandleStop();
+            g_mutex_unlock(&m_displayMutex);
+            return true;
+        }
 
         // If the main loop is running -- normal case -- then we can't change the 
         // state of the Player in the Application's context. 
         if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
         {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
-            g_timeout_add(1, PlayerStop, this);
-            g_cond_wait(&m_asyncCondition, &m_asyncCommMutex);
+            LOG_INFO("Sending application message to stop the player");
+            
+            gst_element_post_message(GetGstElement(),
+                gst_message_new_application(GetGstObject(),
+                    gst_structure_new_empty("stop-pipline")));
         }
-        // Else, we are running under test without the mainloop
+        // Else, client has stopped the main-loop or we are running under test 
+        // without the mainloop running - can't send a message so handle stop now.
         else
         {
             HandleStop();
         }
+        g_mutex_unlock(&m_displayMutex);
+        g_mutex_unlock(&m_busWatchMutex);
         return true;
     }
 
-    void PlayerBintr::InitiateStop()
+    void PlayerBintr::PrepareForEos()
     {
         LOG_FUNC();
 
@@ -327,16 +364,8 @@ namespace DSL
         // Stop function When we send the EOS message.
         RemoveEosListener(PlayerHandleEos);
 
-        DSL_SOURCE_PTR pSourceBintr = 
-            std::dynamic_pointer_cast<SourceBintr>(m_pSource);
+        std::dynamic_pointer_cast<SourceBintr>(m_pSource)->DisableEosConsumer();
 
-        // Call the source to disable its EOS consumer, before sending EOS
-        pSourceBintr->DisableEosConsumer();
-
-//        SendEos();
-        
-        // TODO use an EOS listener to synchronize the stop
-//        g_usleep(100000);
     }
     
     void PlayerBintr::HandleStop()
@@ -344,18 +373,36 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
 
-//        if (!SetState(GST_STATE_READY, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
+        // If the client is not stoping due to EOS, we must EOS the Player 
+        // to gracefully stop any recording in progress before changing the 
+        // Player's state to NULL, 
+        if (!m_eosFlag)
+        {
+            // Send an EOS event to the Pipline bin. 
+            SendEos();
+            
+            // once the EOS event has been received on all sink pads of all
+            // elements, an EOS message will be posted on the bus. We need to
+            // discard all bus messages while waiting for the EOS message.
+            GstMessage* msg = gst_bus_timed_pop_filtered(m_pGstBus, 
+                DSL_DEFAULT_WAIT_FOR_EOS_TIMEOUT_IN_SEC * GST_SECOND,
+                    (GstMessageType)(GST_MESSAGE_CLOCK_LOST | GST_MESSAGE_ERROR | 
+                        GST_MESSAGE_EOS));
+
+//            if (!msg or GST_MESSAGE_TYPE(msg) != GST_MESSAGE_EOS)
+//            {
+//                LOG_WARN("Player '" << GetName() 
+//                    << "' failed to receive final EOS message on ");
+//            }
+        }
+
         if (!SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
         {
             LOG_ERROR("Failed to Stop Player '" << GetName() << "'");
         }
-      
-        // Unlink All objects and elements
-        UnlinkAll();
         
-        // If we are running under the main loop, then this funtion was called from a timer
-        // thread while the client is blocked in the Stop() function on the async GCond
-        g_cond_signal(&m_asyncCondition);
+        m_eosFlag = false;
+        UnlinkAll();
         
         if (m_inTermination)
         {
@@ -392,9 +439,8 @@ namespace DSL
         // Can notifiy all Termination Listeners
         m_inTermination = true;
 
-        // by removing the EOS Listener, disabling the source's EOS handler, 
-        // and then sending an EOS event
-        InitiateStop();
+        // Remove the EOS Listener and disable the source's EOS handler, 
+        PrepareForEos();
         
         // Start asyn Stop timer to complete the stop, do not wait or block as we are
         // in the State Manager's bus watcher context - i.e. main loop.
@@ -636,6 +682,16 @@ namespace DSL
     bool RenderPlayerBintr::Next()
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+        
+        
+        // Lock the Play-Next mutex and set the flag
+        if (!g_mutex_trylock(&m_playNextMutex))
+        {
+            LOG_ERROR("Unable to Play next file path as the PlayerBintr '" 
+                << GetName() << "' is currently in a Transitioning state");
+        }
+        m_clearPlayNextMutex = true;
         
         GstState state;
         GetState(state, 0);
@@ -643,12 +699,16 @@ namespace DSL
         {
             LOG_ERROR("Unable to Play next file path as the PlayerBintr '" 
                 << GetName() << "' is not in a Paused or Playing state");
+
+            g_mutex_unlock(&m_playNextMutex);
+            m_clearPlayNextMutex = false;
             return false;
         }
-        // Need to initiate the stop process
-        InitiateStop();
         
-        // The process of playing next is the same as handling and EOS.
+        // Need to initiate the stop process
+        PrepareForEos();
+        
+        // The process of playing next is the same as handling an EOS.
         HandleEos();
         return true;
     }
@@ -847,14 +907,6 @@ namespace DSL
     static int PlayerPlay(gpointer pPlayer)
     {
         static_cast<PlayerBintr*>(pPlayer)->HandlePlay();
-        
-        // Return false to self destroy timer - one shot.
-        return false;
-    }
-    
-    static int PlayerPause(gpointer pPlayer)
-    {
-        static_cast<PlayerBintr*>(pPlayer)->HandlePause();
         
         // Return false to self destroy timer - one shot.
         return false;
