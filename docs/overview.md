@@ -562,7 +562,13 @@ The complete example script under [/examples/python](/examples/python) can be vi
 
 Refer to the [ODE Area API Reference](/docs/api-ode-area.md) for more information.
 
+---
+
 ### ODE Line Crossing Analytics
+
+![](/Images/line-cross-capture-overlay-object-image.png)
+
+---
 
 ### ODE Heat Mapping
 
