@@ -338,6 +338,8 @@
 * [dsl_sink_message_converter_settings_set](/docs/api-sink.md#dsl_sink_message_converter_settings_set)
 * [dsl_sink_message_broker_settings_get](/docs/api-sink.md#dsl_sink_message_broker_settings_get)
 * [dsl_sink_message_broker_settings_set](/docs/api-sink.md#dsl_sink_message_broker_settings_set)
+* [dsl_sink_sync_enabled_get](/docs/api-sink.md#dsl_sink_sync_enabled_get)
+* [dsl_sink_sync_enabled_set](/docs/api-sink.md#dsl_sink_sync_enabled_set)
 * [dsl_sink_pph_add](/docs/api-sink.md#dsl_sink_pph_add)
 * [dsl_sink_pph_remove](/docs/api-sink.md#dsl_sink_pph_remove)
 * [dsl_sink_num_in_use_get](/docs/api-sink.md#dsl_sink_num_in_use_get)
@@ -373,7 +375,6 @@
 * [dsl_ode_trigger_occurrence_new](/docs/api-ode-trigger.md#dsl_ode_trigger_occurrence_new)
 * [dsl_ode_trigger_instance_new](/docs/api-ode-trigger.md#dsl_ode_trigger_instance_new)
 * [dsl_ode_trigger_summation_new](/docs/api-ode-trigger.md#dsl_ode_trigger_summation_new)
-* [dsl_ode_trigger_accumulation_new](/docs/api-ode-trigger.md#dsl_ode_trigger_accumulation_new)
 * [dsl_ode_trigger_distance_new](/docs/api-ode-trigger.md#dsl_ode_trigger_distance_new)
 * [dsl_ode_trigger_intersection_new](/docs/api-ode-trigger.md#dsl_ode_trigger_intersection_new)
 * [dsl_ode_trigger_count_new](/docs/api-ode-trigger.md#dsl_ode_trigger_count_new)
@@ -442,7 +443,7 @@
 * [dsl_ode_trigger_area_remove_all](/docs/api-ode-trigger.md#dsl_ode_trigger_area_remove_all)
 * [dsl_ode_trigger_accumulator_add](/docs/api-ode-trigger.md#dsl_ode_trigger_accumulator_add)
 * [dsl_ode_trigger_accumulator_remove](/docs/api-ode-trigger.md#dsl_ode_trigger_heat_mapper_remove)
-* [dsl_ode_trigger_heat_mapper_add](/docs/api-ode-trigger.md#dsl_ode_trigger_accumulator_add)
+* [dsl_ode_trigger_heat_mapper_add](/docs/api-ode-trigger.md#dsl_ode_trigger_heat_mapper_add)
 * [dsl_ode_trigger_heat_mapper_remove](/docs/api-ode-trigger.md#dsl_ode_trigger_heat_mapper_remove)
 * [dsl_ode_trigger_list_size](/docs/api-ode-trigger.md#dsl_ode_trigger_list_size)
 
@@ -498,6 +499,7 @@
 ## ODE Area:
 * [Overview](/docs/api-ode-area.md)
 * [dsl_ode_area_line_new](/docs/api-ode-area.md#dsl_ode_area_line_new)
+* [dsl_ode_area_line_multi_new](/docs/api-ode-area.md#dsl_ode_area_line_multi_new)
 * [dsl_ode_area_inclusion_new](/docs/api-ode-area.md#dsl_ode_area_inclusion_new)
 * [dsl_ode_area_exclusion_new](/docs/api-ode-area.md#dsl_ode_area_exclusion_new)
 * [dsl_ode_area_delete](/docs/api-ode-area.md#dsl_ode_area_delete)

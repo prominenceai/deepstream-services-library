@@ -5557,7 +5557,8 @@ DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler)
     std::wstring wstrHandler(handler);
     std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    return DSL::Services::GetServices()->SinkPphAdd(cstrName.c_str(), cstrHandler.c_str());
+    return DSL::Services::GetServices()->SinkPphAdd(cstrName.c_str(), 
+        cstrHandler.c_str());
 }
 
 DslReturnType dsl_sink_pph_remove(const wchar_t* name,
@@ -5571,27 +5572,30 @@ DslReturnType dsl_sink_pph_remove(const wchar_t* name,
     std::wstring wstrHandler(handler);
     std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    return DSL::Services::GetServices()->SinkPphRemove(cstrName.c_str(), cstrHandler.c_str());
+    return DSL::Services::GetServices()->SinkPphRemove(cstrName.c_str(), 
+        cstrHandler.c_str());
 }
 
-DslReturnType dsl_sink_sync_settings_get(const wchar_t* name, boolean* sync, boolean* async)
+DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->SinkSyncSettingsGet(cstrName.c_str(), sync, async);
+    return DSL::Services::GetServices()->SinkSyncEnabledGet(cstrName.c_str(), 
+        enabled);
 }
     
-DslReturnType dsl_sink_sync_settings_set(const wchar_t* name, boolean sync, boolean async)
+DslReturnType dsl_sink_sync_enabled_set(const wchar_t* name, boolean enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->SinkSyncSettingsSet(cstrName.c_str(), sync, async);
+    return DSL::Services::GetServices()->SinkSyncEnabledSet(cstrName.c_str(), 
+        enabled);
 }
     
 uint dsl_sink_num_in_use_get()

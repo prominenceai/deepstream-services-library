@@ -16,7 +16,10 @@ Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can 
 As with Actions, multiple ODE areas can be added to an ODE Trigger and the same ODE Areas can be added to multiple Triggers. ODE Areas are added to an ODE Trigger by calling [dsl_ode_trigger_area_add](#dsl_ode_trigger_area_add) and [dsl_ode_trigger_area_add_many](#dsl_ode_trigger_area_add_many) and removed with [dsl_ode_trigger_action_remove](#dsl_ode_trigger_area_remove), [dsl_ode_trigger_area_remove_many](#dsl_ode_trigger_area_remove_many), and [dsl_ode_trigger_area_remove_all](#dsl_ode_trigger_area_remove_all).
 
 #### Adding and Removing an Accumulator
-A single ODE Accumulator can be added to an ODE Trigger and the same ODE Accumulator can be added to multiple Triggers. An ODE Accumulator is added to an ODE Trigger by calling [dsl_ode_trigger_accumulator_add](#dsl_ode_trigger_accumulator_add) and removed with [dsl_ode_trigger_accumulator_remove](#dsl_ode_trigger_accumulator_remove).
+A single ODE Accumulator can be added to an ODE Trigger and the same ODE Accumulator can be added to multiple Triggers. An ODE Accumulator is added to an ODE Trigger by calling [dsl_ode_trigger_accumulator_add](#dsl_ode_trigger_accumulator_add) and removed with [dsl_ode_trigger_accumulator_remove](#dsl_ode_trigger_accumulator_remove). See the [ODE Accumulator API Reference](/docs/api-ode-accumulator.md) for additional information.
+
+#### Adding and Removing a Heat Mapper
+A single ODE Heat-Mapper can be added to a single ODE Trigger. An ODE Heat-Mapper is added to an ODE Trigger by calling [dsl_ode_trigger_heat_mapper_add](#dsl_ode_trigger_heat_mapper_add) and removed with [dsl_ode_trigger_heat_mapper_remove](#dsl_ode_trigger_heat_mapper_remove). See the [ODE Heat-Mapper API Reference](/docs/api-ode-heat-mapper.md) for additional information.
 
 **Important** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as these operations can consume all available diskspace.
 
@@ -35,7 +38,6 @@ A single ODE Accumulator can be added to an ODE Trigger and the same ODE Accumul
 * [dsl_ode_trigger_occurrence_new](#dsl_ode_trigger_occurrence_new)
 * [dsl_ode_trigger_instance_new](#dsl_ode_trigger_instance_new)
 * [dsl_ode_trigger_summation_new](#dsl_ode_trigger_summation_new)
-* [dsl_ode_trigger_accumulation_new](#dsl_ode_trigger_accumulation_new)
 * [dsl_ode_trigger_distance_new](#dsl_ode_trigger_distance_new)
 * [dsl_ode_trigger_intersection_new](#dsl_ode_trigger_intersection_new)
 * [dsl_ode_trigger_count_new](#dsl_ode_trigger_count_new)
@@ -107,12 +109,15 @@ A single ODE Accumulator can be added to an ODE Trigger and the same ODE Accumul
 * [dsl_ode_trigger_area_remove_all](#dsl_ode_trigger_area_remove_all)
 * [dsl_ode_trigger_accumulator_add](#dsl_ode_trigger_accumulator_add)
 * [dsl_ode_trigger_accumulator_remove](#dsl_ode_trigger_accumulator_remove)
+* [dsl_ode_trigger_heat_mapper_add](#dsl_ode_trigger_heat_mapper_add)
+* [dsl_ode_trigger_heat_mapper_remove](#dsl_ode_trigger_heat_mapper_remove)
 * [dsl_ode_trigger_list_size](#dsl_ode_trigger_list_size)
 
 ---
 ## Return Values
 The following return codes are used by the ODE Trigger API
 ```C++
+#define DSL_RESULT_ODE_TRIGGER_RESULT                               0x000E0000
 #define DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE                      0x000E0001
 #define DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND                       0x000E0002
 #define DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION                      0x000E0003
@@ -125,11 +130,15 @@ The following return codes are used by the ODE Trigger API
 #define DSL_RESULT_ODE_TRIGGER_AREA_ADD_FAILED                      0x000E000A
 #define DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED                   0x000E000B
 #define DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE                      0x000E000C
-#define DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID              0x000E000D
-#define DSL_RESULT_ODE_TRIGGER_ALWAYS_WHEN_PARAMETER_INVALID        0x000E000E
+#define DSL_RESULT_ODE_TRIGGER_CALLBACK_ADD_FAILED                  0x000F000D
+#define DSL_RESULT_ODE_TRIGGER_CALLBACK_REMOVE_FAILED               0x000F000E
+#define DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID                    0x000E000F
 #define DSL_RESULT_ODE_TRIGGER_IS_NOT_AB_TYPE                       0x000E0010
-#define DSL_RESULT_ODE_TRIGGER_ACCUMULATOR_ADD_FAILED               0x000E0011
-#define DSL_RESULT_ODE_TRIGGER_ACCUMULATOR_REMOVE_FAILED            0x000E0012
+#define DSL_RESULT_ODE_TRIGGER_IS_NOT_TRACK_TRIGGER                 0x000E0011
+#define DSL_RESULT_ODE_TRIGGER_ACCUMULATOR_ADD_FAILED               0x000E0012
+#define DSL_RESULT_ODE_TRIGGER_ACCUMULATOR_REMOVE_FAILED            0x000E0013
+#define DSL_RESULT_ODE_TRIGGER_HEAT_MAPPER_ADD_FAILED               0x000E0014
+#define DSL_RESULT_ODE_TRIGGER_HEAT_MAPPER_REMOVE_FAILED            0x000E0015
 ```
 
 ---
@@ -403,34 +412,6 @@ Note: Adding Actions to a Summation Trigger that require Object metadata during 
 ```Python
 retval = dsl_ode_trigger_summation_new('my-summation-trigger', DSL_ODE_ANY_SOURCE,
     DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE)
-```
-
-<br>
-
-### *dsl_ode_trigger_accumulation_new*
-```C++
-DslReturnType dsl_ode_trigger_accumulation_new(const wchar_t* name,
-    const wchar_t* source, uint class_id, uint limit);  
-```
-This constructor creates a uniquely named Accumulation trigger that that checks for new instances of Objects that meet the Triggers criteria, while accumulating the number of occurrences over consecutive frames. New instance identification is based on Tracking Id, with the current accumulative occurrence value reported after each frame. The Trigger generates an ODE occurrence invoking all ODE Actions once for **per-frame** until the Trigger limit is reached.
-
-Note: Adding Actions to an Accumulation Trigger that require Object metadata during invocation - Object-Capture and Object-Fill as examples - will result in a non-action when invoked.
-
-**Parameters**
-* `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filter
-* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
-* `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
-
-**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_ode_trigger_accumulation_new('my-accumulation-trigger', 'source-1,
-    PERSON_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE)
 ```
 
 <br>
@@ -1961,7 +1942,7 @@ DslReturnType dsl_ode_trigger_accumulator_add(const wchar_t* name,
     const wchar_t* accumulator);
 ```
 
-This service adds a named ODE Accumulator to a named ODE Trigger. The Trigger can have at most one Accumulator. The same Accumulator can be added to multiple Triggers.
+This service adds a named ODE Accumulator to a named ODE Trigger. The Trigger can have at most one Accumulator. The same Accumulator can be added to multiple Triggers.  See the [ODE Accumulator API Reference](/docs/api-ode-accumulator.md) for additional information.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to update.
@@ -1982,17 +1963,59 @@ retval = dsl_ode_trigger_accumulator_add('my-trigger', 'my-accumulator')
 DslReturnType dsl_ode_trigger_accumulator_remove(const wchar_t* name);
 ```
 
-This service removes a named ODE Accumulator from a named ODE Trigger. The services will fail if the Accumulator is not currently in-use by the named Trigger
+This service removes an ODE Accumulator from a named ODE Trigger. The services will fail if an Accumulator is not currently in-use by the named Trigger. See the [ODE Accumulator API Reference](/docs/api-ode-accumulator.md) for additional information.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to update.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
 retval = dsl_ode_trigger_accumulator_remove('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_heat_mapper_add*
+```c++
+DslReturnType dsl_ode_trigger_heat_mapper_add(const wchar_t* name, 
+    const wchar_t* heat_mapper);
+```
+
+This service adds a named ODE Heat-Mapper to a named ODE Trigger. The Trigger to Heat-Mapper relationship is one-to-one. See the [ODE Heat-Mapper API Reference](/docs/api-ode-heat-mapper.md) for additional information.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to update.
+* `heat_mapper` - [in] unique name of the ODE Heat-Mapper to add
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_heat_mapper_add('my-trigger', 'my-heat-mapper')
+```
+
+<br>
+
+### *dsl_ode_trigger_heat_mapper_remove*
+```c++
+DslReturnType dsl_ode_trigger_heat_mapper_remove(const wchar_t* name);
+```
+
+This service removes an ODE Heat-Mapper from a named ODE Trigger. The services will fail if a Heat-Mapper is not currently in-use by the named Trigger. See the [ODE Heat-Mapper API Reference](/docs/api-ode-heat-mapper.md) for additional information.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to update.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_heat_mapper_remove('my-trigger')
 ```
 
 <br>

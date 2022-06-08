@@ -978,11 +978,9 @@ namespace DSL {
 
         DslReturnType SinkPphRemove(const char* name, const char* handler);
 
-        DslReturnType SinkSyncSettingsGet(const char* name,  
-            boolean* sync, boolean* async);
+        DslReturnType SinkSyncEnabledGet(const char* name, boolean* enabled);
 
-        DslReturnType SinkSyncSettingsSet(const char* name,  
-            boolean sync, boolean async);
+        DslReturnType SinkSyncEnabledSet(const char* name, boolean enabled);
 
         DslReturnType WebsocketServerPathAdd(const char* path);
         

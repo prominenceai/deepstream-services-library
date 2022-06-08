@@ -389,6 +389,8 @@ namespace DSL
         // Pipeline's state to NULL, 
         if (!m_eosFlag)
         {
+            m_eosFlag = true;
+            
             // Send an EOS event to the Pipline bin. 
             SendEos();
             
@@ -397,13 +399,16 @@ namespace DSL
             // discard all bus messages while waiting for the EOS message.
             GstMessage* msg = gst_bus_timed_pop_filtered(m_pGstBus, 
                 DSL_DEFAULT_WAIT_FOR_EOS_TIMEOUT_IN_SEC * GST_SECOND,
-                    (GstMessageType)(GST_MESSAGE_ERROR | GST_MESSAGE_EOS));
+                    (GstMessageType)(GST_MESSAGE_CLOCK_LOST | GST_MESSAGE_ERROR | 
+                        GST_MESSAGE_EOS));
 
-            if (!msg or GST_MESSAGE_TYPE(msg) != GST_MESSAGE_EOS)
-            {
-                LOG_WARN("Pipeline '" << GetName() 
-                    << "' failed to receive final EOS message on dsl_pipeline_stop");
-            }
+//            if (!msg or GST_MESSAGE_TYPE(msg) != GST_MESSAGE_EOS)
+//            {
+                // TODO - need to review why the 'HandleBusWatchMessage' cb
+                // is getting the message in some cases.
+//                LOG_WARN("Pipeline '" << GetName() 
+//                    << "' failed to receive final EOS message on dsl_pipeline_stop");
+//            }
         }
 
         if (!SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))

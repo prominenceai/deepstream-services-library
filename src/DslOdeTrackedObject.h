@@ -80,7 +80,7 @@ namespace DSL
          * @brief Gets the current size of the bounding box trace.
          * @return current size of the bbox trace.
          */
-        size_t BboxTraceSize(){return m_bboxTrace.size();};
+        size_t BboxTraceSize(){return m_pBboxTrace->size();};
         
         /**
          * @brief Gets the coordinates for a specific test-point for the 
@@ -103,9 +103,35 @@ namespace DSL
          * trace for a specfic test-point on the object's bounding box
          * @param[in] testPoint test-point to generate the trace with.
          * @param[in] method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants
+         * @param[in] lineWidth the width value to assign to the line.
          * @return shared pointer to a vector of coordinates.
          */
-        DSL_RGBA_MULTI_LINE_PTR GetTrace(uint testPoint, uint method);
+        DSL_RGBA_MULTI_LINE_PTR GetTrace(uint testPoint, uint method, 
+            uint lineWidth);
+            
+        /**
+         * @brief used to query if the tracked object has a previous Trace
+         * from a previous line cross event.
+         */
+        bool HasPreviousTrace(){return m_pPrevBboxTrace != nullptr;};
+
+        /**
+         * @brief Returns a vector of coordinates defining the TrackedObject's
+         * previous trace for a specfic test-point on the object's bounding box.
+         * @param[in] testPoint test-point to generate the trace with.
+         * @param[in] method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants
+         * @param[in] lineWidth the width value to assign to the line.
+         * @return shared pointer to a vector of coordinates.
+         */
+        DSL_RGBA_MULTI_LINE_PTR GetPreviousTrace(uint testPoint, uint method, 
+            uint lineWidth);
+            
+        /**
+         * @brief Handles an ODE Occurrence for this tracked object. The current
+         * m_pBboxTrace is moved to the m_pPreviousBboxTrace and a new/empty
+         * m_pBboxTrace is created.
+         */
+        void HandleOccurrence();
 
         /**
          * @brief unique tracking id for the tracked object.
@@ -152,9 +178,14 @@ namespace DSL
         uint m_maxHistory;
         
         /**
-         * @brief a fixed size queue of Rectangle Params.
+         * @brief a max sized queue of Rectangle Params.
          */
-        std::deque<std::shared_ptr<NvBbox_Coords>> m_bboxTrace;
+        std::shared_ptr<std::deque<std::shared_ptr<NvBbox_Coords>>> m_pBboxTrace;
+        
+        /**
+         * @brief a max sized queue of Rectangle Params.
+         */
+        std::shared_ptr<std::deque<std::shared_ptr<NvBbox_Coords>>> m_pPrevBboxTrace;
         
         /**
          * @brief used to identify the tracked object with an RGBA color.

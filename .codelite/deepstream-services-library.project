@@ -138,7 +138,6 @@
       <File Name="../test/api/DslTeeApiTest.cpp"/>
       <File Name="../test/api/DslTilerApiTest.cpp"/>
       <File Name="../test/api/DslTrackerApiTest.cpp"/>
-      <File Name="../test/api/DslInfoApiTest.cpp"/>
       <File Name="../test/api/DslImageSourceApiTest.cpp"/>
       <File Name="../test/api/DslImageSourceBehaviorTest.cpp"/>
       <File Name="../test/api/DslCrossTriggerExampleTest.cpp"/>
@@ -257,6 +256,7 @@
       <File Name="../examples/tkinter/tkapp.py"/>
       <File Name="../examples/tkinter/tkapp_window.py"/>
     </VirtualDirectory>
+    <File Name="../test/api/DslInfoApiTest.cpp.tmp"/>
   </VirtualDirectory>
   <Settings Type="Dynamic Library">
     <GlobalSettings>

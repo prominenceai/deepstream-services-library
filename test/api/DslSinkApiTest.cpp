@@ -41,10 +41,10 @@ SCENARIO( "The Components container is updated correctly on new Fake Sink", "[si
             THEN( "The list size is updated correctly" ) 
             {
                 REQUIRE( dsl_component_list_size() == 1 );
-                boolean sync(false), async(true);
-                REQUIRE( dsl_sink_sync_settings_get(sinkName.c_str(), &sync, &async) == DSL_RESULT_SUCCESS );
+                boolean sync(false);
+                REQUIRE( dsl_sink_sync_enabled_get(sinkName.c_str(), 
+                    &sync) == DSL_RESULT_SUCCESS );
                 REQUIRE( sync == true );
-                REQUIRE( async == false );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
@@ -83,16 +83,15 @@ SCENARIO( "A Fake Sink can update it Sync/Async attributes", "[sink-api]" )
 
         WHEN( "A the Fake Sink's attributes are updated from the default" ) 
         {
-            boolean newSync(false), newAsync(true);
-            REQUIRE( dsl_sink_sync_settings_set(sinkName.c_str(), newSync, newAsync) == DSL_RESULT_SUCCESS );
+            boolean newSync(false);
+            REQUIRE( dsl_sink_sync_enabled_set(sinkName.c_str(), newSync) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
             {
                 REQUIRE( dsl_component_list_size() == 1 );
-                boolean retSync(true), retAsync(false);
-                REQUIRE( dsl_sink_sync_settings_get(sinkName.c_str(), &retSync, &retAsync) == DSL_RESULT_SUCCESS );
+                boolean retSync(true);
+                REQUIRE( dsl_sink_sync_enabled_get(sinkName.c_str(), &retSync) == DSL_RESULT_SUCCESS );
                 REQUIRE( retSync == newSync );
-                REQUIRE( retAsync == newAsync );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
@@ -195,16 +194,17 @@ SCENARIO( "A Overlay Sink can update its Sync/Async attributes", "[sink-api]" )
 
             WHEN( "A the Window Sink's attributes are updated from the default" ) 
             {
-                boolean newSync(false), newAsync(true);
-                REQUIRE( dsl_sink_sync_settings_set(overlaySinkName.c_str(), newSync, newAsync) == DSL_RESULT_SUCCESS );
+                boolean newSync(false);
+                REQUIRE( dsl_sink_sync_enabled_set(overlaySinkName.c_str(),     
+                    newSync) == DSL_RESULT_SUCCESS );
 
                 THEN( "The list size is updated correctly" ) 
                 {
                     REQUIRE( dsl_component_list_size() == 1 );
-                    boolean retSync(true), retAsync(false);
-                    REQUIRE( dsl_sink_sync_settings_get(overlaySinkName.c_str(), &retSync, &retAsync) == DSL_RESULT_SUCCESS );
+                    boolean retSync(true);
+                    REQUIRE( dsl_sink_sync_enabled_get(overlaySinkName.c_str(), 
+                        &retSync) == DSL_RESULT_SUCCESS );
                     REQUIRE( retSync == newSync );
-                    REQUIRE( retAsync == newAsync );
                     REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 }
             }
@@ -534,16 +534,17 @@ SCENARIO( "A Window Sink can update its Sync/Async attributes", "[sink-api]" )
 
         WHEN( "A the Window Sink's attributes are updated from the default" ) 
         {
-            boolean newSync(false), newAsync(true);
-            REQUIRE( dsl_sink_sync_settings_set(windowSinkName.c_str(), newSync, newAsync) == DSL_RESULT_SUCCESS );
+            boolean newSync(false);
+            REQUIRE( dsl_sink_sync_enabled_set(windowSinkName.c_str(), 
+                newSync) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
             {
                 REQUIRE( dsl_component_list_size() == 1 );
-                boolean retSync(true), retAsync(false);
-                REQUIRE( dsl_sink_sync_settings_get(windowSinkName.c_str(), &retSync, &retAsync) == DSL_RESULT_SUCCESS );
+                boolean retSync(true);
+                REQUIRE( dsl_sink_sync_enabled_get(windowSinkName.c_str(), 
+                    &retSync) == DSL_RESULT_SUCCESS );
                 REQUIRE( retSync == newSync );
-                REQUIRE( retAsync == newAsync );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
@@ -1578,10 +1579,10 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
                 REQUIRE( dsl_sink_rtsp_new(sinkName.c_str(), NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_rtsp_server_settings_get(NULL, &udpPort, &rtspPort) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
-                REQUIRE( dsl_sink_pph_add(NULL, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_pph_add(sinkName.c_str(), NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_sync_settings_get(NULL, &sync, &async ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_sync_settings_set(NULL, sync, async ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_pph_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_pph_add(sinkName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_sync_enabled_get(NULL, &sync) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_sync_enabled_set(NULL, sync) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_list_size() == 0 );
             }
