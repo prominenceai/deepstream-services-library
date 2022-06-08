@@ -565,8 +565,88 @@ Refer to the [ODE Area API Reference](/docs/api-ode-area.md) for more informatio
 ---
 
 ### ODE Line Crossing Analytics
+The python example [ode_line_cross_object_capture_overlay_image.py](/examples/ode_line_cross_object_capture_overlay_image.py) demonstrates how an [ODE Cross Trigger](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_new) with an [ODE Line Area](/docs/api-ode-area.md#dsl_ode_area_line_new()) and [ODE Accumulator](/docs/api-ode-accumulator.md) can be used to perform line-crossing analytics.
+
+A Cross Trigger maintains a vector of historical bounding-box coordinates for each object tracked by its unique tracking id. The Trigger, using the bounding box history and the Area's defined Test Point (SOUTH, WEST, etc.), generates an Object Trace - vector of x,y coordinates - to test for line cross with the Area's line.
+
+An [ODE Accumulator](/docs/api-ode-accumulator.md) with an [ODE Display Action](/docs/api-ode-action.md#dsl_ode_action_display_new) is added to the Cross Trigger to accumulate and display the number of line-crossing occurrences in the IN and OUT directions as shown in the image below.
 
 ![](/Images/line-cross-capture-overlay-object-image.png)
+
+The Line Area is created with an [RGBA Line](/docs/api-display-type.md#dsl_display_type_rgba_line_new) with the line's width used as line-cross hysteresis.
+
+```Python
+# Create the RGBA Line Display Type with a width of 6 pixels for hysteresis
+retval = dsl_display_type_rgba_line_new('line',
+    x1=260, y1=680, x2=600, y2=660, width=6, color='opaque-red')
+
+# Create the ODE line area to use as criteria for ODE occurrence
+# Use the center point on the bounding box's bottom edge for testing
+retval = dsl_ode_area_line_new('line-area', line='line',
+    show=True, bbox_test_point=DSL_BBOX_POINT_SOUTH)    
+```
+
+Next, the example creates an ODE Cross Trigger with a `min_frame_count` and `max_trace_points` as criteria for a line-cross occurrence.
+```Python
+# New Cross Trigger filtering on PERSON class_id to track and trigger on
+# objects that fully cross the line. The person must be tracked for a minimum
+# of 5 frames prior to crossing the line to trigger an ODE occurrence.
+# The trigger can save/use up to a maximum of 200 frames of history to create
+# the object's historical trace to test for line-crossing. retval = dsl_ode_trigger_cross_new('person-crossing-line',
+retval = dsl_ode_trigger_cross_new('person-crossing-line',
+    source = DSL_ODE_ANY_SOURCE,
+    class_id = PGIE_CLASS_ID_PERSON,
+    limit = DSL_ODE_TRIGGER_LIMIT_NONE,
+    min_frame_count = 5,
+    max_trace_points = 200,
+    test_method = DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS)
+
+# Add the line area to the New Cross Trigger
+ retval = dsl_ode_trigger_area_add('person-crossing-line', area='line-area')  
+
+```
+Each Tracked Object historical trace can be added as display metadata for a downstream On-Screen Display to display.
+```Python
+# New RGBA Random Color to use for Object Trace and BBox    
+retval = dsl_display_type_rgba_color_random_new('random-color',
+    hue = DSL_COLOR_HUE_RANDOM,
+    luminosity = DSL_COLOR_LUMINOSITY_RANDOM,
+    alpha = 1.0,
+    seed = 0)
+
+# Set the Cross Trigger's view settings to enable display of the Object Trace
+retval = dsl_ode_trigger_cross_view_settings_set('person-crossing-line',
+    enabled=True, color='random-color', line_width=4)
+```
+The example then creates a new ODE Display Action and adds it to a new ODE Accumulator. It then adds the Accumulator to the Trigger to complete the setup.
+```Python
+# Create a new Display Action used to display the Accumulated ODE Occurrences.
+# Format the display string using the occurrences in and out tokens.
+retval = dsl_ode_action_display_new('display-cross-metrics-action',
+    format_string =
+        "In : %" + str(DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_IN) +
+        ", Out : %" + str(DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_OUT),  
+    offset_x = 1200,
+    offset_y = 100,
+    font = 'arial-16-yellow',
+    has_bg_color = False,
+    bg_color = None)
+           
+# Create an ODE Accumulator to add to the Cross Trigger. The Accumulator
+# will work with the Trigger to accumulate the IN and OUT occurrence metrics.
+retval = dsl_ode_accumulator_new('cross-accumulator')
+       
+# Add the Display Action to the Accumulator. The Accumulator will call on
+# the Display Action to display the new accumulative metrics after each frame.
+retval = dsl_ode_accumulator_action_add('cross-accumulator',
+    'display-cross-metrics-action')
+       
+# Add the Accumulator to the Line Cross Trigger.
+retval = dsl_ode_trigger_accumulator_add('person-crossing-line',
+    'cross-accumulator')
+   
+```
+See the [complete example](/examples/ode_line_cross_object_capture_overlay_image.py) and refer to the [ODE Trigger API Reference](/docs/api-ode-accumulator.md), [ODE Action API Reference](/docs/api-ode-action.md), [ODE Area API Reference](/docs/api-ode-area.md), and [ODE Accumulator API Reference](/docs/api-ode-accumulator.md) sections for more information.
 
 ---
 
