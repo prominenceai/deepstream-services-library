@@ -112,6 +112,7 @@ namespace DSL
     OdePadProbeHandler::OdePadProbeHandler(const char* name)
         : PadProbeHandler(name)
         , m_nextTriggerIndex(0)
+        , m_displayMetaAllocSize(1)
     {
         LOG_FUNC();
         
@@ -170,6 +171,19 @@ namespace DSL
         m_pChildrenIndexed.clear();
     }
 
+    uint OdePadProbeHandler::GetDisplayMetaAllocSize()
+    {
+        LOG_FUNC();
+        
+        return m_displayMetaAllocSize;
+    }
+    
+    void OdePadProbeHandler::SetDisplayMetaAllocSize(uint size)
+    {
+        LOG_FUNC();
+        
+        m_displayMetaAllocSize = size;
+    }
     
     GstPadProbeReturn OdePadProbeHandler::HandlePadData(GstPadProbeInfo* pInfo)
     {
@@ -182,24 +196,34 @@ namespace DSL
         NvDsBatchMeta* pBatchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
         
         // For each frame in the batched meta data
-        for (NvDsMetaList* pFrameMetaList = pBatchMeta->frame_meta_list; pFrameMetaList; pFrameMetaList = pFrameMetaList->next)
+        for (NvDsMetaList* pFrameMetaList = pBatchMeta->frame_meta_list; 
+            pFrameMetaList; pFrameMetaList = pFrameMetaList->next)
         {
             // Check for valid frame data
             NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta*) (pFrameMetaList->data);
             if (pFrameMeta != NULL)
             {
-                // Acquire new Display meta for this frame, with each Trigger/Action(s) adding meta as needed
-                NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(pBatchMeta);
+                std::vector<NvDsDisplayMeta*> displayMetaData;
                 
+                for (auto i=0; i<m_displayMetaAllocSize; i++)
+                {
+                    // Acquire new Display meta for this frame, with each Trigger/Action(s)
+                    // adding meta as needed
+                    NvDsDisplayMeta* pDisplayMeta = 
+                        nvds_acquire_display_meta_from_pool(pBatchMeta);
+                    displayMetaData.push_back(pDisplayMeta);
+                }
                 // Preprocess the frame
                 for (const auto &imap: m_pChildrenIndexed)
                 {
-                    DSL_ODE_TRIGGER_PTR pOdeTrigger = std::dynamic_pointer_cast<OdeTrigger>(imap.second);
-                    pOdeTrigger->PreProcessFrame(pBuffer, pDisplayMeta, pFrameMeta);
+                    DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                        std::dynamic_pointer_cast<OdeTrigger>(imap.second);
+                    pOdeTrigger->PreProcessFrame(pBuffer, displayMetaData, pFrameMeta);
                 }
 
                 // For each detected object in the frame.
-                for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; pMeta != NULL; pMeta = pMeta->next)
+                for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; 
+                    pMeta != NULL; pMeta = pMeta->next)
                 {
                     // Check for valid object data
                     NvDsObjectMeta* pObjectMeta = (NvDsObjectMeta*) (pMeta->data);
@@ -208,14 +232,17 @@ namespace DSL
                         // For each ODE Trigger owned by this ODE Manager, check for ODE
                         for (const auto &imap: m_pChildrenIndexed)
                         {
-                            DSL_ODE_TRIGGER_PTR pOdeTrigger = std::dynamic_pointer_cast<OdeTrigger>(imap.second);
+                            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                                std::dynamic_pointer_cast<OdeTrigger>(imap.second);
                             try
                             {
-                                pOdeTrigger->CheckForOccurrence(pBuffer, pDisplayMeta, pFrameMeta, pObjectMeta);
+                                pOdeTrigger->CheckForOccurrence(pBuffer, 
+                                    displayMetaData, pFrameMeta, pObjectMeta);
                             }
                             catch(...)
                             {
-                                LOG_ERROR("Trigger '" << pOdeTrigger->GetName() << "' threw exception");
+                                LOG_ERROR("Trigger '" << pOdeTrigger->GetName() 
+                                    << "' threw exception");
                             }                            
                         }
                     }
@@ -225,12 +252,16 @@ namespace DSL
                 // each frame for Absence events, Limit events, etc. (i.e. frame level events).
                 for (const auto &imap: m_pChildrenIndexed)
                 {
-                    DSL_ODE_TRIGGER_PTR pOdeTrigger = std::dynamic_pointer_cast<OdeTrigger>(imap.second);
-                    pOdeTrigger->PostProcessFrame(pBuffer, pDisplayMeta, pFrameMeta);
+                    DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                        std::dynamic_pointer_cast<OdeTrigger>(imap.second);
+                    pOdeTrigger->PostProcessFrame(pBuffer, displayMetaData, pFrameMeta);
                 }
                 
-                // Add the updated display data to the frame
-                nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
+                for (const auto & ivec: displayMetaData)
+                {
+                    // Add the updated display data to the frame
+                    nvds_add_display_meta_to_frame(pFrameMeta, ivec);
+                }
             }
         }
         return GST_PAD_PROBE_OK;
@@ -403,7 +434,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("MeterBatchMetaHandler '" << GetName() << "' threw an exception processing Pad Buffer");
+            LOG_ERROR("MeterBatchMetaHandler '" 
+                << GetName() << "' threw an exception processing Pad Buffer");
             return GST_PAD_PROBE_REMOVE;
         }
         return GST_PAD_PROBE_OK;
@@ -433,7 +465,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("MeterPadProbeHandler '" << GetName() << "' threw exception calling client callback... disabling!");
+            LOG_ERROR("MeterPadProbeHandler '" << GetName() 
+                << "' threw exception calling client callback... disabling!");
             return false;
         }
     }
@@ -571,7 +604,8 @@ namespace DSL
             }
             catch(...)
             {
-                LOG_ERROR("EosHandlerPadProbeEventHandler '" << GetName() << "' threw an exception processing Pad Buffer");
+                LOG_ERROR("EosHandlerPadProbeEventHandler '" << GetName() 
+                    << "' threw an exception processing Pad Buffer");
                 return GST_PAD_PROBE_REMOVE;
             }
         }

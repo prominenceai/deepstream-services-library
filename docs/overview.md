@@ -10,10 +10,13 @@
   * [Rendering and Encoding Sinks](#rendering-and-encoding-sinks)
   * [Tees and Branches](#tees-and-branches)
   * [Pad Probe Handlers](#pad-probe-handlers)
-    * [Pipeline Meter](#pipeline-meter-pad-probe-handler)
-    * [Object Detection Event Handler](#object-detection-event-pad-probe-handler)
-    * [Custom Handler](#custom-pad-probe-handler)
 * [Display Types](#display-types)
+* [Object Detection Event (ODE) Services](#object-detection-event-ode-services)
+  * [ODE Triggers](#ode-triggers)
+  * [ODE Actions](#ode-actions)
+  * [ODE Areas](#ode-areas)
+  * [ODE Line Crossing Analytics](#ode-line-crossing-analytics)
+  * [ODE Heat Mapping](#ode-heat-mapping)
 * [Smart Recording](#smart-recording)
 * [RTSP Stream Connection Management](#rtsp-stream-connection-management)
 * [X11 Window Services](#x11-window-services)
@@ -368,12 +371,78 @@ See the [Pad Probe Handler API](/docs/api-pph.md) reference section for addition
 The [Meter Pad Probe Handler](/docs/api-pph.md#pipeline-meter-pad-probe-handler) measures a Pipeline's throughput for each Source detected in the batched stream. When creating a Meter PPH, the client provides a callback function to be notified with new measurements at a specified interval. The notification includes the average frames-per-second over the last interval and over the current session, which can be stopped with new session started at any time. 
 
 ### Object Detection Event Pad Probe Handler
-The [Object Detection Event (ODE) Pad Probe Handler](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) manages an ordered collection of **Triggers**, each with an ordered collection of **Actions** and an optional collection of **Areas**. Triggers use settable criteria to process the Frame and Object metadata produced by the Primary and Secondary GIE's looking for specific detection events. When the criteria for the Trigger is met, the Trigger invokes all Actions in its ordered collection. Each unique Area and Action created can be added to multiple Triggers as shown in the diagram below. The ODE Handler has n Triggers, each Trigger has one shared Area and one unique Area, and one shared Action and one unique Action.
+The [Object Detection Event (ODE) Pad Probe Handler](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) manages an ordered collection of **Triggers**, each with an ordered collection of **Actions** and an optional collection of **Areas**. Together, the Triggers, Areas and Actions provide a full set of [Object Detection Event Services](#object-detection-event-ode-services). 
+
+
+### Custom Pad Probe Handler
+Client applications can create one or more [Custom Pad Probe Handlers](/docs/api-pph.md#custom-pad-probe-handler) with callback functions to be called with every buffer that flows over a component's pad.
+
+Using Python and [NVIDIA's python bindings](https://github.com/NVIDIA-AI-IOT/deepstream_python_apps) for example:
+
+```Python
+retval = dsl_pph_custom_new('custom-handler', client_handler=handle_buffer, client_data=my_client_data)
+```
+The callback function can 
+```Python
+def handle_buffer(buffer, client_data)
+
+    # retrieve the batch metadata from the gst_buffer using NVIDIA's python bindings.
+    batch_meta = pyds.gst_buffer_get_nvds_batch_meta(buffer)
+    
+    # cast the opaque client data back to a python object and dereference
+    py_client_data = cast(client_data, POINTER(py_object)).contents.value
+    
+    # process/update the batch_meta as desired. 
+    # ...
+    
+    # return true to continue processing or false to self-remove
+    return true
+```
+
+Refer to the [ODE Pad Probe Handler API Reference](/docs/api-pph.md) for more information.
+
+---
+
+## Display Types
+On-Screen Display Types -- RGBA text and shapes -- can be added to a frame's metadata to be shown by an [On-Screen Display](/docs/api-osd.md) component downstream. 
+There are eight base types used when creating other complete types for actual display. 
+* RGBA Costom Color
+* RGBA Predefined Color
+* RGBA Random Color
+* RGBA On-Demand Color
+* RGBA Custom Color Palette
+* RGBA Predefined Color Palette
+* RGBA Random Color Palette
+* RGBA Font
+
+There are six types for displaying text and shapes. 
+* RGBA Text
+* RGBA Line
+* RGBA Multi-Line
+* RGBA Arrow
+* RGBA Rectangle
+* RGBA Polygon
+* RGBA Circle
+
+And three types for displaying source information specific to each frame. 
+* Source Number
+* Source Name
+* Source Dimensions
+
+The [Add Display Meta ODE Action](/docs/api-ode-action.md#dsl_ode_action_display_meta_add_new) adds the data under control of one or more Triggers to render all types of video annotations.
+
+Refer to the [Display Type API](/docs/api-display-type.md)
+
+---
+
+## Object Detection Event (ODE) Services
+DSL Provides an extensive set of ODE Triggers -- to Trigger on specific detection events -- and ODE Actions -- to perform specific action when a detection event occurrs. Triggers use settable criteria to process the Frame and Object metadata produced by the Primary and Secondary GIE's looking for specific detection events. When the criteria for the Trigger is met, the Trigger invokes all Actions in its ordered collection. Each unique Area and Action created can be added to multiple Triggers as shown in the diagram below. The ODE Handler has n Triggers, each Trigger has one shared Area and one unique Area, and one shared Action and one unique Action.
 
 ![ODE Services](/Images/ode-services.png)
 
 The Handler can be added to the Pipeline before the On-Screen-Display (OSD) component allowing Actions to update the metadata for display. All Triggers can be enabled and re-enabled at runtime, either by an ODE Action, a client callback function, or directly by the application at any time.
 
+### ODE Triggers
 Current **ODE Triggers** supported:
 * **Always** - triggers on every frame. Once per-frame always.
 * **Absence** - triggers on the absence of objects within a frame. Once per-frame at most.
@@ -397,13 +466,17 @@ Triggers have optional, settable criteria and filters:
 * **Source** - filters on a unique Source name. Use `DSL_ODE_ANY_SOURCE` or NULL to disabled the filter
 * **Dimensions** - filters on an object's dimensions ensuring both width and height minimums and/or maximums are met. 
 * **Confidence** - filters on an object's GIE confidence requiring a minimum value.
-* **Inference Done** - filtering on the Object's inference-done flag
+* **Inference Component** - filters on inference metadata from a specific inference component.
+* **Inference Done** - filtering on the Object's inference-done flag.
 * **In-frame Areas** - filters on specific areas (see ODE Areas below) within the frame, with both areas of inclusion and exclusion supported.
 
+Refer to the [ODE Trigger API Reference](/docs/api-ode-trigger.md) for more information.
+
+### ODE Actions
 **ODE Actions** handle the occurrence of Object Detection Events each with a specific action under the categories below. 
 * **Actions on Buffers** - Capture Frames and Objects to JPEG images and save to file.
 * **Actions on Metadata** - Format Object Labels & Bounding Boxes, Fill-Frames and Objects with a color, add Text & Shapes to a Frame.
-* **Actions on ODE Data** - Print, Log, and Display ODE occurrence data on screen.
+* **Actions on ODE Data** - Monitor, Print, Log, and Display ODE occurrence data on screen.
 * **Actions on Recordings** - Start a new recording session for a Record Tap or Sink 
 * **Actions on Pipelines** - Pause Pipeline, Add/Remove Source, Add/Remove Sink, Disable ODE Handler
 * **Actions on Triggers** - Disable/Enable/Reset Triggers
@@ -414,6 +487,9 @@ The below screenshot, captured while running the python example [ode_persistence
 
 ![meta data](/Images/display-action-screenshot.png)
 
+Refer to the [ODE Action API Reference](/docs/api-ode-action.md) for more information.
+
+### ODE Areas
 **ODE Areas**, [Lines](/docs/api-display-type.md#dsl_display_type_rgba_line_new) and [Polygons](/docs/api-display-type.md#dsl_display_type_rgba_polygon_new) can be added to any number of Triggers as additional criteria. 
 
 * **Line Areas** - criteria is met when a specific edge of an object's bounding box - left, right, top, bottom - intersects with the Line Area
@@ -484,62 +560,120 @@ retval = dsl_tiler_pph_add('tiler', 'ode-handler', DSL_PAD_SINK)
 
 The complete example script under [/examples/python](/examples/python) can be viewed [here](/examples/python/ode_occurrence_polygon_area_inclussion_exclusion.py)
 
-See the below API Reference sections for more information
-* [ODE Pad Probe Handler API Reference](/docs/api-pph.md)
-* [ODE Trigger API Reference](/docs/api-ode-trigger.md)
-* [ODE Action API Reference](/docs/api-ode-action.md)
-* [ODE Area API Reference](/docs/api-ode-area.md)
-
-### Custom Pad Probe Handler
-Client applications can create one or more [Custom Pad Probe Handlers](/docs/api-pph.md#custom-pad-probe-handler) with callback functions to be called with every buffer that flows over a component's pad.
-
-Using Python and [NVIDIA's python bindings](https://github.com/NVIDIA-AI-IOT/deepstream_python_apps) for example:
-
-```Python
-retval = dsl_pph_custom_new('custom-handler', client_handler=handle_buffer, client_data=my_client_data)
-```
-The callback function can 
-```Python
-def handle_buffer(buffer, client_data)
-
-    # retrieve the batch metadata from the gst_buffer using NVIDIA's python bindings.
-    batch_meta = pyds.gst_buffer_get_nvds_batch_meta(buffer)
-    
-    # cast the opaque client data back to a python object and dereference
-    py_client_data = cast(client_data, POINTER(py_object)).contents.value
-    
-    # process/update the batch_meta as desired. 
-    # ...
-    
-    # return true to continue processing or false to self-remove
-    return true
-```
-
---- 
-
-## Display Types
-On-Screen Display Types, RGBA text and shapes, can be added to a frame's metadata to be shown by an [On-Screen Display](/docs/api-osd.md) component downstream. 
-There are two base types used when creating other complete types for actual display. 
-* RGBA Color
-* RGBA Font
-
-There are four types for displaying text and shapes. 
-* RGBA Line
-* RGBA Arrow
-* RGBA Rectangle
-* RGBA Polygon
-* RGBA Circle
-
-And three types for displaying source information specific to each frame. 
-* Source Number
-* Source Name
-* Source Dimensions
-
-The [Add Display Meta ODE Action](/docs/api-ode-action.md#dsl_ode_action_display_meta_add_new) adds the data under control of one or more Triggers to render all types of video annotations.
-
-Refer to the [Display Type API](/docs/api-display-type.md)
+Refer to the [ODE Area API Reference](/docs/api-ode-area.md) for more information.
 
 ---
+
+### ODE Line Crossing Analytics
+The Python example [ode_line_cross_object_capture_overlay_image.py](/examples/python/ode_line_cross_object_capture_overlay_image.py) demonstrates how an [ODE Cross Trigger](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_new) with an [ODE Line Area](/docs/api-ode-area.md#dsl_ode_area_line_new()) and [ODE Accumulator](/docs/api-ode-accumulator.md) can be used to perform line-crossing analytics. 
+
+**Important Note:** [Multi-Line Areas](/docs/api-ode-area.md#ode_area_line_multi_new) and [Polygon Inclusion Areas](/docs/api-ode-area.md#dsl_ode_area_inclusion_new) can be used as well. 
+
+A Cross Trigger maintains a vector of historical bounding-box coordinates for each object tracked by its unique tracking id. The Trigger, using the bounding box history and the Area's defined Test Point (SOUTH, WEST, etc.), generates an Object Trace - vector of x,y coordinates - to test for line cross with the Area's line. 
+
+There are two methods of testing and displaying the Object Trace:
+1. using `ALL` points in the vector to generate the trace to test for line-cross. 
+2. using just the `END` points (earlier and latest) to generate the trace to test for line-cross. 
+
+Note that using `ALL` points will add overhead to the processing of each detected object and considerable allocation/deallocation overhead and memory usage if displayed. `End` points are used in the example which is why the traces appear as straight lines. The camera angle and proximity to the objects should be considered when choosing which method to use as well.
+
+An [ODE Accumulator](/docs/api-ode-accumulator.md) with an [ODE Display Action](/docs/api-ode-action.md#dsl_ode_action_display_new) is added to the Cross Trigger to accumulate and display the number of line-crossing occurrences in the IN and OUT directions as shown in the image below.
+
+The example creates an [ODE Print Action](/docs/api-ode-action.md#dsl_ode_action_print_new) and an [ODE Capture Object Action](/docs/api-ode-action.md#dsl_ode_action_capture_object_new) with an [Image Render Player](/docs/api-player.md#dsl_player_render_image_new) to print each line-crossing occurrence to the console and to capture the object to an image file and display the image as an overlay, repectively.  
+
+**Important Note:** A reminder that other actions such as the [ODE File Action](/docs/api-ode-action.md#dsl_ode_action_file_new), [ODE Email Action](/docs/api-ode-action.md#dsl_ode_action_email_new), and the [ODE Add IOT Message Action](/docs/api-ode-action.md#dsl_ode_action_message_meta_add_new) can be leveraged with the ODE Cross Trigger as well.
+
+![](/Images/line-cross-capture-overlay-object-image.png)
+
+The Line Area is created with an [RGBA Line](/docs/api-display-type.md#dsl_display_type_rgba_line_new) with the line's width used as line-cross hysteresis.
+
+```Python
+# Create the RGBA Line Display Type with a width of 6 pixels for hysteresis
+retval = dsl_display_type_rgba_line_new('line',
+    x1=260, y1=680, x2=600, y2=660, width=6, color='opaque-red')
+
+# Create the ODE line area to use as criteria for ODE occurrence
+# Use the center point on the bounding box's bottom edge for testing
+retval = dsl_ode_area_line_new('line-area', line='line',
+    show=True, bbox_test_point=DSL_BBOX_POINT_SOUTH)    
+```
+
+The ODE Cross Trigger is created with a `min_frame_count` and `max_trace_points` as criteria for a line-cross occurrence.
+```Python
+# New Cross Trigger filtering on PERSON class_id to track and trigger on
+# objects that fully cross the line. The person must be tracked for a minimum
+# of 5 frames prior to crossing the line to trigger an ODE occurrence.
+# The trigger can save/use up to a maximum of 200 frames of history to create
+# the object's historical trace to test for line-crossing. retval = dsl_ode_trigger_cross_new('person-crossing-line',
+retval = dsl_ode_trigger_cross_new('person-crossing-line',
+    source = DSL_ODE_ANY_SOURCE,
+    class_id = PGIE_CLASS_ID_PERSON,
+    limit = DSL_ODE_TRIGGER_LIMIT_NONE,
+    min_frame_count = 5,
+    max_trace_points = 200,
+    test_method = DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS)
+
+# Add the line area to the New Cross Trigger
+ retval = dsl_ode_trigger_area_add('person-crossing-line', area='line-area')  
+
+```
+Each Tracked Object's historical trace can be added as display metadata for a downstream On-Screen Display to display.
+```Python
+# New RGBA Random Color to use for Object Trace and BBox    
+retval = dsl_display_type_rgba_color_random_new('random-color',
+    hue = DSL_COLOR_HUE_RANDOM,
+    luminosity = DSL_COLOR_LUMINOSITY_RANDOM,
+    alpha = 1.0,
+    seed = 0)
+
+# Set the Cross Trigger's view settings to enable display of the Object Trace
+retval = dsl_ode_trigger_cross_view_settings_set('person-crossing-line',
+    enabled=True, color='random-color', line_width=4)
+```
+The example creates a new ODE Display Action and adds it to a new ODE Accumulator. It then adds the Accumulator to the Trigger to complete the setup.
+```Python
+# Create a new Display Action used to display the Accumulated ODE Occurrences.
+# Format the display string using the occurrences in and out tokens.
+retval = dsl_ode_action_display_new('display-cross-metrics-action',
+    format_string =
+        "In : %" + str(DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_IN) +
+        ", Out : %" + str(DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_OUT),  
+    offset_x = 1200,
+    offset_y = 100,
+    font = 'arial-16-yellow',
+    has_bg_color = False,
+    bg_color = None)
+           
+# Create an ODE Accumulator to add to the Cross Trigger. The Accumulator
+# will work with the Trigger to accumulate the IN and OUT occurrence metrics.
+retval = dsl_ode_accumulator_new('cross-accumulator')
+       
+# Add the Display Action to the Accumulator. The Accumulator will call on
+# the Display Action to display the new accumulative metrics after each frame.
+retval = dsl_ode_accumulator_action_add('cross-accumulator',
+    'display-cross-metrics-action')
+       
+# Add the Accumulator to the Line Cross Trigger.
+retval = dsl_ode_trigger_accumulator_add('person-crossing-line',
+    'cross-accumulator')
+   
+```
+See the [complete example](/examples/python/ode_line_cross_object_capture_overlay_image.py) and refer to the [ODE Trigger API Reference](/docs/api-ode-accumulator.md), [ODE Action API Reference](/docs/api-ode-action.md), [ODE Area API Reference](/docs/api-ode-area.md), and [ODE Accumulator API Reference](/docs/api-ode-accumulator.md) sections for more information.
+
+---
+
+### ODE Heat Mapping
+[ODE Heat Mappers](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_new) are added to [ODE Triggers](/docs/api-md) to accumulate, map, and display the ODE Occurrences over time. The source frame is partitioned into a configurable number of rows and columns, with each rectangle colored with a specific RGBA color value based on the number of occurrences that were detected within corresponding area within the source frame.
+
+The client application can `get`, `print`, `log`, `file`, and `clear` the metric occurrence data at any time.
+
+The below image was created with the [ode_occurrence_trigger_with_heat_mapper.py](https://github.com/prominenceai/deepstream-services-library/blob/complete_examples/examples/python/ode_occurrence_trigger_with_heat_mapper.py) Python example.
+
+See the [ODE Heat-Mapper API Reference](/docs/api-ode-heat-mapper.md) for more information.
+
+![](/Images/spectral-person-heat-map.png)
+
+--- 
 
 ## Smart Recording
 As mentioned above, there are two components that provide cached-video-recording:
@@ -1126,8 +1260,10 @@ The [deepstream-services-library-docker](https://github.com/prominenceai/deepstr
 * [Sink](docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
+* [ODE Accumulator](/docs/api-ode-accumulator.md)
 * [ODE Action ](/docs/api-ode-action.md)
 * [ODE Area](/docs/api-ode-area.md)
+* [ODE Heat-Mapper](/docs/api-ode-heat-mapper.md)
 * [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)

@@ -64,6 +64,23 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define DSL_RETURN_IF_ODE_ACCUMULATOR_NAME_NOT_FOUND(events, name) do \
+{ \
+    if (events.find(name) == events.end()) \
+    { \
+        LOG_ERROR("ODE Accumulator name '" << name << "' was not found"); \
+        return DSL_RESULT_ODE_ACCUMULATOR_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+
+#define DSL_RETURN_IF_ODE_HEAT_MAPPER_NAME_NOT_FOUND(events, name) do \
+{ \
+    if (events.find(name) == events.end()) \
+    { \
+        LOG_ERROR("ODE Heat Mapper name '" << name << "' was not found"); \
+        return DSL_RESULT_ODE_HEAT_MAPPER_NAME_NOT_FOUND; \
+    } \
+}while(0); 
 
 #define DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(events, name) do \
 { \
@@ -165,6 +182,9 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(UriSourceBintr)) and  \
         !components[name]->IsType(typeid(FileSourceBintr)) and  \
         !components[name]->IsType(typeid(ImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(SingleImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(MultiImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(ImageStreamSourceBintr)) and  \
         !components[name]->IsType(typeid(RtspSourceBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Source"); \
@@ -178,7 +198,20 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(RtspSourceBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
-        return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE; \
+        return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_DECODE_SOURCE; \
+    } \
+}while(0); 
+
+#define DSL_RETURN_IF_COMPONENT_IS_NOT_FILE_SOURCE(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(FileSourceBintr)) and  \
+        !components[name]->IsType(typeid(ImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(SingleImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(MultiImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(ImageStreamSourceBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
+        return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_FILE_SOURCE; \
     } \
 }while(0); 
 
@@ -358,10 +391,25 @@ THE SOFTWARE.
 #define DSL_RETURN_IF_DISPLAY_TYPE_IS_BASE_TYPE(types, name) do \
 { \
     if (types[name]->IsType(typeid(RgbaColor)) or \
+        types[name]->IsType(typeid(RgbaRandomColor))or \
         types[name]->IsType(typeid(RgbaFont))) \
     { \
         LOG_ERROR("Display Type '" << name << "' is base type and can not be displayed"); \
         return DSL_RESULT_DISPLAY_TYPE_IS_BASE_TYPE; \
+    } \
+}while(0); 
+
+#define DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(types, name) do \
+{ \
+    if (!types[name]->IsType(typeid(RgbaColor)) and \
+        !types[name]->IsType(typeid(RgbaRandomColor)) and \
+        !types[name]->IsType(typeid(RgbaPredefinedColor)) and \
+        !types[name]->IsType(typeid(RgbaOnDemandColor)) and \
+        !types[name]->IsType(typeid(RgbaOnDemandColor)) and \
+        !types[name]->IsType(typeid(RgbaColorPalette))) \
+    { \
+        LOG_ERROR("Display Type '" << name << "' is not color type"); \
+        return DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE; \
     } \
 }while(0); 
 

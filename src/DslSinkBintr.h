@@ -89,7 +89,7 @@ namespace DSL
     {
     public: 
     
-        SinkBintr(const char* name, bool sync, bool async);
+        SinkBintr(const char* name, bool sync);
 
         ~SinkBintr();
   
@@ -114,18 +114,16 @@ namespace DSL
         bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
         
         /**
-         * @brief returns the current sync and async settings for the SinkBintr
-         * @param[in] sync current sync setting, true if set, false otherwise.
-         * @param[in] async current async setting, true if set, false otherwise.
+         * @brief returns the current sync enabled setting for the SinkBintr
+         * @return true if the sync attribute is enabled, false othewise
          */
-        void GetSyncSettings(bool* sync, bool* async);
+        bool GetSyncEnabled();
         
         /**
-         * @brief sets the current sync and async settings for the SinkBintr
-         * @param[in] sync current sync setting, true if set, false otherwise.
-         * @param[in] async current async setting, true if set, false otherwise.
+         * @brief sets the sync enabled setting for the SinkBintr
+         * @param[in] enabled current sync setting.
          */
-        virtual bool SetSyncSettings(bool sync, bool async) = 0;
+        virtual bool SetSyncEnabled(bool enabled) = 0;
         
     protected:
 
@@ -137,12 +135,7 @@ namespace DSL
         /**
          * @brief Sink element's current synchronous attribute setting.
          */
-        boolean m_sync;
-
-        /**
-         * @brief Sink element's current asynchronous attribute setting.
-         */
-        boolean m_async;
+        bool m_sync;
 
         /**
          * @brief Queue element as sink for all Sink Bintrs.
@@ -173,12 +166,10 @@ namespace DSL
         void UnlinkAll();
         
         /**
-         * @brief sets the current sync and async settings for the SinkBintr
-         * @param[in] sync current sync setting, true if set, false otherwise.
-         * @param[in] async current async setting, true if set, false otherwise.
-         * @return true is successful, false otherwise. 
+         * @brief sets the sync enabled setting for the SinkBintr
+         * @param[in] enabled current sync setting.
          */
-        bool SetSyncSettings(bool sync, bool async);
+        bool SetSyncEnabled(bool enabled);
 
     private:
 
@@ -197,7 +188,7 @@ namespace DSL
     public: 
     
         RenderSinkBintr(const char* name, 
-            uint offsetX, uint offsetY, uint width, uint height, bool sync, bool async);
+            uint offsetX, uint offsetY, uint width, uint height, bool sync);
 
         ~RenderSinkBintr();
         
@@ -314,12 +305,10 @@ namespace DSL
         bool SetDimensions(uint width, uint hieght);
 
         /**
-         * @brief sets the current sync and async settings for the OverlaySinkBintr
-         * @param[in] sync current sync setting, true if set, false otherwise.
-         * @param[in] async current async setting, true if set, false otherwise.
-         * @return true is successful, false otherwise. 
+         * @brief sets the sync enabled setting for the SinkBintr
+         * @param[in] enabled current sync setting.
          */
-        bool SetSyncSettings(bool sync, bool async);
+        bool SetSyncEnabled(bool enabled);
 
         /**
          * @brief static list of unique Overlay IDs to be used/recycled by all
@@ -385,12 +374,10 @@ namespace DSL
         bool SetDimensions(uint width, uint hieght);
 
         /**
-         * @brief sets the current sync and async settings for the SinkBintr
-         * @param[in] sync current sync setting, true if set, false otherwise.
-         * @param[in] async current async setting, true if set, false otherwise.
-         * @return true is successful, false otherwise. 
+         * @brief sets the sync enabled setting for the SinkBintr
+         * @param[in] enabled current sync setting.
          */
-        bool SetSyncSettings(bool sync, bool async);
+        bool SetSyncEnabled(bool enabled);
         
         /**
          * @brief Gets the current force-aspect-ratio setting for the WindowSinkBintr
@@ -507,14 +494,11 @@ namespace DSL
          */
         void UnlinkAll();
 
-
         /**
-         * @brief sets the current sync and async settings for the SinkBintr
-         * @param[in] sync current sync setting, true if set, false otherwise.
-         * @param[in] async current async setting, true if set, false otherwise.
-         * @return true is successful, false otherwise. 
+         * @brief sets the sync enabled setting for the SinkBintr
+         * @param[in] enabled current sync setting.
          */
-        bool SetSyncSettings(bool sync, bool async);
+        bool SetSyncEnabled(bool enabled);
         
     private:
 
@@ -549,12 +533,10 @@ namespace DSL
         void UnlinkAll();
 
         /**
-         * @brief sets the current sync and async settings for the SinkBintr
-         * @param[in] sync current sync setting, true if set, false otherwise.
-         * @param[in] async current async setting, true if set, false otherwise.
-         * @return true is successful, false otherwise. 
+         * @brief sets the sync enabled setting for the SinkBintr
+         * @param[in] enabled current sync setting.
          */
-        bool SetSyncSettings(bool sync, bool async);
+        bool SetSyncEnabled(bool enabled);
 
     private:
 
@@ -597,13 +579,10 @@ namespace DSL
         void GetServerSettings(uint* udpPort, uint* rtspPort);
 
         /**
-         * @brief sets the current sync and async settings for the SinkBintr
-         * @param[in] sync current sync setting, true if set, false otherwise.
-         * @param[in] async current async setting, true if set, false otherwise.
-         * @return true is successful, false otherwise. 
+         * @brief sets the sync enabled setting for the SinkBintr
+         * @param[in] enabled current sync setting.
          */
-        bool SetSyncSettings(bool sync, bool async);
-
+        bool SetSyncEnabled(bool enabled);
 
     private:
 
@@ -709,12 +688,10 @@ namespace DSL
             const char* connectionString, const char* topic);
 
         /**
-         * @brief sets the current sync and async settings for the SinkBintr
-         * @param[in] sync current sync setting, true if set, false otherwise.
-         * @param[in] async parameter is unused -- setting has no affect.
-         * @return true if successful, false otherwise. 
+         * @brief sets the sync enabled setting for the SinkBintr
+         * @param[in] enabled current sync setting.
          */
-        bool SetSyncSettings(bool sync, bool async);
+        bool SetSyncEnabled(bool enabled);
 
     private:
 

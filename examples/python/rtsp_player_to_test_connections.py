@@ -47,7 +47,7 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'R':    
         dsl_player_play('player')    
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':    
-        dsl_pipeline_stop('pipeline')
+        dsl_player_stop('player')
         dsl_main_loop_quit()
        
 def main(args):    
@@ -59,7 +59,6 @@ def main(args):
         retval = dsl_source_rtsp_new('rtsp-source',     
             uri = amcrest_rtsp_uri,     
             protocol = DSL_RTP_ALL,     
-            cudadec_mem_type = DSL_NVBUF_MEM_TYPE_DEFAULT,     
             intra_decode = False,     
             drop_frame_interval = 0,     
             latency=100,

@@ -1349,7 +1349,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SinkSyncSettingsGet(const char* name,  boolean* sync, boolean* async)
+    DslReturnType Services::SinkSyncEnabledGet(const char* name,  boolean* enabled)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1364,23 +1364,22 @@ namespace DSL
                 std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
 
             bool bSync(false), bAsync(false);
-            pSinkBintr->GetSyncSettings(&bSync, &bAsync);
-            *sync = bSync;
-            *async = bAsync;
+            *enabled = (boolean)pSinkBintr->GetSyncEnabled();
 
-            LOG_INFO("Sink '" << name << "' return Sync = " 
-                << *sync << " and Async = " << *async << " successfully");
+            LOG_INFO("Sink '" << name << "' returned Sync = " 
+                << *enabled  << " successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Sink '" << name << "' threw an exception getting  Sync/Async settings");
+            LOG_ERROR("Sink '" << name 
+                << "' threw an exception getting Sync enabled");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::SinkSyncSettingsSet(const char* name,  boolean sync, boolean async)
+    DslReturnType Services::SinkSyncEnabledSet(const char* name,  boolean enabled)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1393,19 +1392,20 @@ namespace DSL
             DSL_SINK_PTR pSinkBintr = 
                 std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
 
-            if (!pSinkBintr->SetSyncSettings(sync, async))
+            if (!pSinkBintr->SetSyncEnabled(enabled))
             {
-                LOG_ERROR("Sink '" << name << "' failed to set sync/async attributes");
-                return DSL_RESULT_SINK_HANDLER_REMOVE_FAILED;
+                LOG_ERROR("Sink '" << name << "' failed to set sync attribute");
+                return DSL_RESULT_SINK_SET_FAILED;
             }
             LOG_INFO("Sink '" << name << "' set Sync = " 
-                << sync << " and Async = " << async << " successfully");
+                << enabled  << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Sink '" << name << "' threw an exception setting sync/async settings");
+            LOG_ERROR("Sink '" << name 
+                << "' threw an exception setting sync enabled");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }

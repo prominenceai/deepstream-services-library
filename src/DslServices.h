@@ -30,6 +30,8 @@ THE SOFTWARE.
 #include "DslBase.h"
 #include "DslOdeAction.h"
 #include "DslOdeArea.h"
+#include "DslOdeAccumulator.h"
+#include "DslOdeHeatMapper.h"
 #include "DslOdeTrigger.h"
 #include "DslPipelineBintr.h"
 #include "DslMessageBroker.h"
@@ -63,11 +65,38 @@ namespace DSL {
         DslReturnType DisplayTypeRgbaColorNew(const char* name, 
             double red, double green, double blue, double alpha);
 
+        DslReturnType DisplayTypeRgbaColorPredefinedNew(const char* name, 
+            uint colorId, double alpha);
+
+        DslReturnType DisplayTypeRgbaColorRandomNew(const char* name, 
+            uint hue, uint luminosity, double alpha, uint seed);
+
+        DslReturnType DisplayTypeRgbaColorOnDemandNew(const char* name, 
+            dsl_display_type_rgba_color_provider_cb provider, void* clientData);
+
+        DslReturnType DisplayTypeRgbaColorPaletteNew(const char* name, 
+            const char** colors, uint num_colors);
+
+        DslReturnType DisplayTypeRgbaColorPalettePredefinedNew(const char* name, 
+            uint paletteId, double alpha);
+
+        DslReturnType DisplayTypeRgbaColorPaletteRandomNew(const char* name, 
+            uint size, uint hue, uint luminosity, double alpha, uint seed);
+
+        DslReturnType DisplayTypeRgbaColorPaletteIndexGet(const char* name, 
+            uint* index);
+
+        DslReturnType DisplayTypeRgbaColorPaletteIndexSet(const char* name, 
+            uint index);
+
+        DslReturnType DisplayTypeRgbaColorNextSet(const char* name);
+            
         DslReturnType DisplayTypeRgbaFontNew(const char* name, const char* font,
             uint size, const char* color);
             
         DslReturnType DisplayTypeRgbaTextNew(const char* name, const char* text, 
-            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
+            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, 
+            const char* bgColor);
 
         DslReturnType DisplayTypeRgbaLineNew(const char* name, 
             uint x1, uint y1, uint x2, uint y2, uint width, const char* color);
@@ -80,6 +109,10 @@ namespace DSL {
             bool hasBgColor, const char* bgColor);
     
         DslReturnType DisplayTypeRgbaPolygonNew(const char* name, 
+            const dsl_coordinate* coordinates, uint numCoordinates, 
+            uint borderWidth, const char* color);
+
+        DslReturnType DisplayTypeRgbaLineMultiNew(const char* name, 
             const dsl_coordinate* coordinates, uint numCoordinates, 
             uint borderWidth, const char* color);
 
@@ -161,6 +194,9 @@ namespace DSL {
 
         DslReturnType OdeActionMessageMetaTypeSet(const char* name,
             uint metaType);
+            
+        DslReturnType OdeActionMonitorNew(const char* name,
+            dsl_ode_monitor_occurrence_cb clientMonitor, void* clientData);
 
         DslReturnType OdeActionEmailNew(const char* name, 
             const char* mailer, const char* subject);
@@ -250,7 +286,10 @@ namespace DSL {
             const char* polygon, boolean display, uint bboxTestPoint);
 
         DslReturnType OdeAreaLineNew(const char* name, 
-            const char* line, boolean display, uint bboxTestEdge);
+            const char* line, boolean display, uint bboxTestPoint);
+
+        DslReturnType OdeAreaLineMultiNew(const char* name, 
+            const char* multiLine, boolean display, uint bboxTestPoint);
 
         DslReturnType OdeAreaDelete(const char* name);
         
@@ -267,9 +306,6 @@ namespace DSL {
         DslReturnType OdeTriggerAbsenceNew(const char* name, 
             const char* source, uint classId, uint limit);
 
-        DslReturnType OdeTriggerAccumulationNew(const char* name, 
-            const char* source, uint classId, uint limit);
-
         DslReturnType OdeTriggerInstanceNew(const char* name, 
             const char* source, uint classId, uint limit);
         
@@ -282,15 +318,6 @@ namespace DSL {
         DslReturnType OdeTriggerCustomNew(const char* name, const char* source, 
             uint classId, uint limit,  dsl_ode_check_for_occurrence_cb client_checker, 
             dsl_ode_post_process_frame_cb client_post_processor, void* client_data);
-
-        DslReturnType OdeTriggerPersistenceNew(const char* name, const char* source,
-            uint classId, uint limit, uint minimum, uint maximum);
-
-        DslReturnType OdeTriggerPersistenceRangeGet(const char* name, 
-            uint* minimum, uint* maximum);
-        
-        DslReturnType OdeTriggerPersistenceRangeSet(const char* name, 
-            uint minimum, uint maximum);
 
         DslReturnType OdeTriggerCountNew(const char* name, const char* source, 
             uint classId, uint limit, uint minimum, uint maximum);
@@ -323,18 +350,43 @@ namespace DSL {
         DslReturnType OdeTriggerLargestNew(const char* name, 
             const char* source, uint classId, uint limit);
 
-        DslReturnType OdeTriggerLatestNew(const char* name, 
-            const char* source, uint classId, uint limit);
-
-        DslReturnType OdeTriggerEarliestNew(const char* name, 
-            const char* source, uint classId, uint limit);
+        DslReturnType OdeTriggerNewLowNew(const char* name, 
+            const char* source, uint classId, uint limit, uint preset);
 
         DslReturnType OdeTriggerNewHighNew(const char* name, 
             const char* source, uint classId, uint limit, uint preset);
 
-        DslReturnType OdeTriggerNewLowNew(const char* name, 
-            const char* source, uint classId, uint limit, uint preset);
+        DslReturnType OdeTriggerCrossNew(const char* name, 
+            const char* source, uint classId, uint limit, 
+            uint minFrameCount, uint maxFrameCount, uint testMethod);
+            
+        DslReturnType OdeTriggerPersistenceNew(const char* name, 
+            const char* source, uint classId, uint limit, uint minimum, uint maximum);
 
+        DslReturnType OdeTriggerPersistenceRangeGet(const char* name, 
+            uint* minimum, uint* maximum);
+        
+        DslReturnType OdeTriggerPersistenceRangeSet(const char* name, 
+            uint minimum, uint maximum);
+
+        DslReturnType OdeTriggerEarliestNew(const char* name, 
+            const char* source, uint classId, uint limit);
+            
+        DslReturnType OdeTriggerLatestNew(const char* name, 
+            const char* source, uint classId, uint limit);
+            
+        DslReturnType OdeTriggerCrossTestSettingsGet(const char* name, 
+            uint* minFrameCount, uint* maxFrameCount, uint* testMethod);
+            
+        DslReturnType OdeTriggerCrossTestSettingsSet(const char* name, 
+            uint minFrameCount, uint maxFrameCount, uint testMethod);
+            
+        DslReturnType OdeTriggerCrossViewSettingsGet(const char* name, 
+            boolean* enabled, const char** color, uint* lineWidth);
+            
+        DslReturnType OdeTriggerCrossViewSettingsSet(const char* name, 
+            boolean enabled, const char* color, uint lineWidth);
+        
         DslReturnType OdeTriggerReset(const char* name);
 
         DslReturnType OdeTriggerResetTimeoutGet(const char* name, uint* timeout);
@@ -369,33 +421,51 @@ namespace DSL {
         
         DslReturnType OdeTriggerClassIdSet(const char* name, uint classId);
         
-        DslReturnType OdeTriggerClassIdABGet(const char* name, uint* classIdA, uint* classIdB);
+        DslReturnType OdeTriggerClassIdABGet(const char* name, 
+            uint* classIdA, uint* classIdB);
         
-        DslReturnType OdeTriggerClassIdABSet(const char* name, uint classIdA, uint classIdB);
+        DslReturnType OdeTriggerClassIdABSet(const char* name, 
+            uint classIdA, uint classIdB);
         
         DslReturnType OdeTriggerLimitGet(const char* name, uint* limit);
         
         DslReturnType OdeTriggerLimitSet(const char* name, uint limit);
         
-        DslReturnType OdeTriggerConfidenceMinGet(const char* name, float* minConfidence);
+        DslReturnType OdeTriggerConfidenceMinGet(const char* name, 
+            float* minConfidence);
         
-        DslReturnType OdeTriggerConfidenceMinSet(const char* name, float minConfidence);
+        DslReturnType OdeTriggerConfidenceMinSet(const char* name, 
+            float minConfidence);
         
-        DslReturnType OdeTriggerDimensionsMinGet(const char* name, float* min_width, float* min_height);
+        DslReturnType OdeTriggerTrackerConfidenceMinGet(const char* name, 
+            float* minConfidence);
         
-        DslReturnType OdeTriggerDimensionsMinSet(const char* name, float min_width, float min_height);
+        DslReturnType OdeTriggerTrackerConfidenceMinSet(const char* name, 
+            float minConfidence);
+        
+        DslReturnType OdeTriggerDimensionsMinGet(const char* name, 
+            float* min_width, float* min_height);
+        
+        DslReturnType OdeTriggerDimensionsMinSet(const char* name, 
+            float min_width, float min_height);
 
-        DslReturnType OdeTriggerDimensionsMaxGet(const char* name, float* max_width, float* max_height);
+        DslReturnType OdeTriggerDimensionsMaxGet(const char* name, 
+            float* max_width, float* max_height);
         
-        DslReturnType OdeTriggerDimensionsMaxSet(const char* name, float max_width, float max_height);
+        DslReturnType OdeTriggerDimensionsMaxSet(const char* name, 
+            float max_width, float max_height);
 
-        DslReturnType OdeTriggerFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d);
+        DslReturnType OdeTriggerFrameCountMinGet(const char* name, 
+            uint* min_count_n, uint* min_count_d);
 
-        DslReturnType OdeTriggerFrameCountMinSet(const char* name, uint min_count_n, uint min_count_d);
+        DslReturnType OdeTriggerFrameCountMinSet(const char* name, 
+            uint min_count_n, uint min_count_d);
         
-        DslReturnType OdeTriggerInferDoneOnlyGet(const char* name, boolean* inferDoneOnly);
+        DslReturnType OdeTriggerInferDoneOnlyGet(const char* name, 
+            boolean* inferDoneOnly);
         
-        DslReturnType OdeTriggerInferDoneOnlySet(const char* name, boolean inferDoneOnly);
+        DslReturnType OdeTriggerInferDoneOnlySet(const char* name, 
+            boolean inferDoneOnly);
         
         DslReturnType OdeTriggerIntervalGet(const char* name, uint* interval);
         
@@ -413,11 +483,68 @@ namespace DSL {
 
         DslReturnType OdeTriggerAreaRemoveAll(const char* name);
 
+        DslReturnType OdeTriggerAccumulatorAdd(const char* name, 
+            const char* accumulator);
+
+        DslReturnType OdeTriggerAccumulatorRemove(const char* name);
+
+        DslReturnType OdeTriggerHeatMapperAdd(const char* name, 
+            const char* heatMapper);
+
+        DslReturnType OdeTriggerHeatMapperRemove(const char* name);
+
         DslReturnType OdeTriggerDelete(const char* name);
         
         DslReturnType OdeTriggerDeleteAll();
         
         uint OdeTriggerListSize();
+
+        DslReturnType OdeAccumulatorNew(const char* name);
+
+        DslReturnType OdeAccumulatorActionAdd(const char* name, const char* action);
+
+        DslReturnType OdeAccumulatorActionRemove(const char* name, const char* action);
+
+        DslReturnType OdeAccumulatorActionRemoveAll(const char* name);
+
+        DslReturnType OdeAccumulatorDelete(const char* name);
+        
+        DslReturnType OdeAccumulatorDeleteAll();
+        
+        uint OdeAccumulatorListSize();
+
+        DslReturnType OdeHeatMapperNew(const char* name,
+            uint cols, uint rows, uint bboxTestPoint, const char* colorPalette);
+            
+        DslReturnType OdeHeatMapperColorPaletteGet(const char* name,
+            const char** colorPalette);
+        
+        DslReturnType OdeHeatMapperColorPaletteSet(const char* name,
+            const char* colorPalette);
+        
+        DslReturnType OdeHeatMapperLegendSettingsGet(const char* name,
+            boolean* enabled, uint* location, uint* width, uint* height);
+
+        DslReturnType OdeHeatMapperLegendSettingsSet(const char* name,
+            boolean enabled, uint location, uint width, uint height);
+
+        DslReturnType OdeHeatMapperMetricsClear(const char* name);
+
+        DslReturnType OdeHeatMapperMetricsGet(const char* name,
+            const uint64_t** buffer, uint* size);
+
+        DslReturnType OdeHeatMapperMetricsPrint(const char* name);
+
+        DslReturnType OdeHeatMapperMetricsLog(const char* name);
+
+        DslReturnType OdeHeatMapperMetricsFile(const char* name,
+            const char* filePath, uint mode, uint format);
+
+        DslReturnType OdeHeatMapperDelete(const char* name);
+        
+        DslReturnType OdeHeatMapperDeleteAll();
+        
+        uint OdeHeatMapperListSize();
 
         DslReturnType PphCustomNew(const char* name,
             dsl_pph_custom_client_handler_cb clientHandler, void* clientData);
@@ -436,6 +563,10 @@ namespace DSL {
         DslReturnType PphOdeTriggerRemove(const char* name, const char* trigger);
 
         DslReturnType PphOdeTriggerRemoveAll(const char* name);
+        
+        DslReturnType PphOdeDisplayMetaAllocSizeGet(const char* name, uint* size);
+
+        DslReturnType PphOdeDisplayMetaAllocSizeSet(const char* name, uint size);
 
         DslReturnType PphEnabledGet(const char* name, boolean* enabled);
         
@@ -467,16 +598,18 @@ namespace DSL {
     
         DslReturnType SourceFileRepeatEnabledSet(const char* name, boolean enabled);
             
-        DslReturnType SourceImageNew(const char* name, const char* filePath, 
+        DslReturnType SourceImageNew(const char* name, 
+            const char* filePath);
+
+        DslReturnType SourceImageMultiNew(const char* name, 
+            const char* filePath, uint fpsN, uint fpsD);
+
+        DslReturnType SourceImageStreamNew(const char* name, const char* filePath, 
             boolean isLive, uint fpsN, uint fpsD, uint timeout);
 
-        DslReturnType SourceImagePathGet(const char* name, const char** filePath);
-
-        DslReturnType SourceImagePathSet(const char* name, const char* filePath);
-
-        DslReturnType SourceImageTimeoutGet(const char* name, uint* timeout);
+        DslReturnType SourceImageStreamTimeoutGet(const char* name, uint* timeout);
     
-        DslReturnType SourceImageTimeoutSet(const char* name, uint timeout);
+        DslReturnType SourceImageStreamTimeoutSet(const char* name, uint timeout);
             
         DslReturnType SourceRtspNew(const char* name, const char* uri, uint protocol, 
             uint intraDecode, uint dropFrameInterval, uint latency, uint timeout);
@@ -845,11 +978,9 @@ namespace DSL {
 
         DslReturnType SinkPphRemove(const char* name, const char* handler);
 
-        DslReturnType SinkSyncSettingsGet(const char* name,  
-            boolean* sync, boolean* async);
+        DslReturnType SinkSyncEnabledGet(const char* name, boolean* enabled);
 
-        DslReturnType SinkSyncSettingsSet(const char* name,  
-            boolean sync, boolean async);
+        DslReturnType SinkSyncEnabledSet(const char* name, boolean enabled);
 
         DslReturnType WebsocketServerPathAdd(const char* path);
         
@@ -1361,6 +1492,16 @@ namespace DSL {
          * @brief map of all ODE Areas created by the client, key=name
          */
         std::map <std::string, DSL_ODE_AREA_PTR> m_odeAreas;
+        
+        /**
+         * @brief map of all ODE Accumlators created by the client, key=name
+         */
+        std::map <std::string, DSL_ODE_ACCUMULATOR_PTR> m_odeAccumulators;
+        
+        /**
+         * @brief map of all ODE Heat-Mappers created by the client, key=name
+         */
+        std::map <std::string, DSL_ODE_HEAT_MAPPER_PTR> m_odeHeatMappers;
         
         /**
          * @brief map of all ODE Triggers created by the client, key=name

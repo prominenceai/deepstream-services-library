@@ -6,7 +6,6 @@
     <File Name="../src/DslApi.cpp"/>
     <File Name="../src/DslBranchBintr.cpp"/>
     <File Name="../src/DslDewarperBintr.cpp"/>
-    <File Name="../src/DslDisplayTypes.cpp"/>
     <File Name="../src/DslGeosTypes.cpp"/>
     <File Name="../src/DslInferBintr.cpp"/>
     <File Name="../src/DslMailer.cpp"/>
@@ -93,6 +92,15 @@
     <File Name="../src/DslTilerBintr.h"/>
     <File Name="../src/DslTrackerBintr.h"/>
     <File Name="../src/DslServicesInfo.cpp"/>
+    <File Name="../src/DslOdeTrackedObject.h"/>
+    <File Name="../src/DslOdeTrackedObject.cpp"/>
+    <File Name="../src/DslDisplayTypes.cpp"/>
+    <File Name="../src/DslOdeAccumulator.h"/>
+    <File Name="../src/DslOdeAccumulator.cpp"/>
+    <File Name="../src/DslServicesOdeAccumulator.cpp"/>
+    <File Name="../src/DslOdeHeatMapper.h"/>
+    <File Name="../src/DslOdeHeatMapper.cpp"/>
+    <File Name="../src/DslServicesOdeHeatMapper.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="api">
@@ -115,7 +123,6 @@
       <File Name="../test/api/DslPipelineMgtApiTest.cpp"/>
       <File Name="../test/api/DslPipelinePlayComponentsTest.cpp"/>
       <File Name="../test/api/DslPipelinePlayTrackerTest.cpp"/>
-      <File Name="../test/api/DslPipelinePlayTritonTest.cpp"/>
       <File Name="../test/api/DslPipelineSourcesApiTest.cpp"/>
       <File Name="../test/api/DslPipelineStateMgt.cpp"/>
       <File Name="../test/api/DslPipelineStreamMuxerApiTest.cpp"/>
@@ -130,9 +137,13 @@
       <File Name="../test/api/DslTapApiTest.cpp"/>
       <File Name="../test/api/DslTeeApiTest.cpp"/>
       <File Name="../test/api/DslTilerApiTest.cpp"/>
-      <File Name="../test/api/DslTisApiTest.cpp"/>
       <File Name="../test/api/DslTrackerApiTest.cpp"/>
-      <File Name="../test/api/DslInfoApiTest.cpp"/>
+      <File Name="../test/api/DslImageSourceApiTest.cpp"/>
+      <File Name="../test/api/DslImageSourceBehaviorTest.cpp"/>
+      <File Name="../test/api/DslCrossTriggerExampleTest.cpp"/>
+      <File Name="../test/api/DslOdeAccumulatorApiTest.cpp"/>
+      <File Name="../test/api/DslOdeHeatMapperApiTest.cpp"/>
+      <File Name="../test/unit/DslOdeActionUnitTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDemuxerAndTeeUnitTest.cpp"/>
@@ -145,7 +156,6 @@
       <File Name="../test/unit/DslMsgSinkUnitTest.cpp"/>
       <File Name="../test/unit/DslMultiSinksUnitTest.cpp"/>
       <File Name="../test/unit/DslNodetrUnitTest.cpp"/>
-      <File Name="../test/unit/DslOdeActionUnitTest.cpp"/>
       <File Name="../test/unit/DslOdeAreaUnitTest.cpp"/>
       <File Name="../test/unit/DslOdeTriggerUnitTest.cpp"/>
       <File Name="../test/unit/DslOfvUnitTest.cpp"/>
@@ -157,15 +167,16 @@
       <File Name="../test/unit/DslPipelineUnitTest.cpp"/>
       <File Name="../test/unit/DslPlayerUnitTest.cpp"/>
       <File Name="../test/unit/DslPrimaryGieUnitTest.cpp"/>
-      <File Name="../test/unit/DslPrimaryTisUnitTest.cpp"/>
       <File Name="../test/unit/DslSecondaryGieUnitTest.cpp"/>
-      <File Name="../test/unit/DslSecondaryTisUnitTest.cpp"/>
       <File Name="../test/unit/DslSegVisualUnitTest.cpp"/>
       <File Name="../test/unit/DslSinkUnitTest.cpp"/>
       <File Name="../test/unit/DslSourceUnitTest.cpp"/>
       <File Name="../test/unit/DslTapUnitTest.cpp"/>
       <File Name="../test/unit/DslTilerUnitTest.cpp"/>
       <File Name="../test/unit/DslTrackerUnitTest.cpp"/>
+      <File Name="../test/unit/DslOdeTrackedObjectUnitTest.cpp"/>
+      <File Name="../test/unit/DslOdeAccumulatorUnitTest.cpp"/>
+      <File Name="../test/unit/DslOdeHeatMapperUnitTest.cpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="root">
@@ -182,6 +193,7 @@
       <File Name="../examples/cpp/ode_occurrence_4rtsp_start_record_tap_action.cpp"/>
       <File Name="../examples/cpp/player_play_all_mp4_files_found.cpp"/>
       <File Name="../examples/cpp/rtsp_player_to_test_connections.cpp"/>
+      <File Name="../examples/cpp/ode_cross_polygon_border_print_event.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
       <File Name="../examples/python/1csi_live_pgie_demuxer_osd_overlay_rtsp_h254.py"/>
@@ -197,7 +209,6 @@
       <File Name="../examples/python/1uri_file_pgie_ktl_tiler_osd_window_h264_mkv.py"/>
       <File Name="../examples/python/1uri_file_pgie_ktl_tiler_osd_window_h265_mp4.py"/>
       <File Name="../examples/python/1uri_https_tiler_window_dyn_overlay.py"/>
-      <File Name="../examples/python/1uri_jpeg_ptis_osd_window.py"/>
       <File Name="../examples/python/2rtsp_splitter_demuxer_pgie_ktl_tiler_osd_window_2_file.py"/>
       <File Name="../examples/python/2uri_file_pgie_ktl_3sgie_tiler_osd_bmh_window.py"/>
       <File Name="../examples/python/2uri_file_pgie_ktl_demuxer_1osd_1overlay_1window.py"/>
@@ -221,8 +232,6 @@
       <File Name="../examples/python/ode_new_high_new_low_triggers_fill_frame.py"/>
       <File Name="../examples/python/ode_occurrence_4rtsp_start_record_tap_action.py"/>
       <File Name="../examples/python/ode_occurrence_frame_capture_email_attachment.py"/>
-      <File Name="../examples/python/ode_occurrence_line_area_intersection.py"/>
-      <File Name="../examples/python/ode_occurrence_object_capture_overlay_image.py"/>
       <File Name="../examples/python/ode_occurrence_polygon_area_inclussion_exclusion.py"/>
       <File Name="../examples/python/ode_occurrence_record_sink_overlay_playback_send_email.py"/>
       <File Name="../examples/python/ode_occurrence_uri_send_smtp_mail.py"/>
@@ -234,6 +243,10 @@
       <File Name="../examples/python/rtsp_player_to_test_connections.py"/>
       <File Name="../examples/python/semantic_segmentation.py"/>
       <File Name="../examples/python/message_broker_azure_module_client.py"/>
+      <File Name="../examples/python/1image_jpeg_pgie_osd_window.py"/>
+      <File Name="../examples/python/ode_line_cross_object_capture_overlay_image.py"/>
+      <File Name="../examples/python/ode_occurrence_trigger_with_heat_mapper.py"/>
+      <File Name="../examples/python/ode_occurrence_trigger_with_monitor_action.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>
@@ -243,6 +256,7 @@
       <File Name="../examples/tkinter/tkapp.py"/>
       <File Name="../examples/tkinter/tkapp_window.py"/>
     </VirtualDirectory>
+    <File Name="../test/api/DslInfoApiTest.cpp.tmp"/>
   </VirtualDirectory>
   <Settings Type="Dynamic Library">
     <GlobalSettings>
@@ -333,4 +347,8 @@
       </Completion>
     </Configuration>
   </Settings>
+  <VirtualDirectory Name="thirdparty">
+    <File Name="../src/thirdparty/randomcolor.cpp"/>
+    <File Name="../src/thirdparty/randomcolor.h"/>
+  </VirtualDirectory>
 </CodeLite_Project>

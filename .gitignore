@@ -45,4 +45,8 @@
 *.tags
 *.db
 
+# files created running test
+*.csv
+*.txt
+
 # Directories

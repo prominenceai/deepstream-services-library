@@ -1,4 +1,5 @@
 /*
+/*
 The MIT License
 
 Copyright (c) 2019-2021, Prominence AI, Inc.
@@ -37,7 +38,7 @@ namespace DSL
     SourceBintr::SourceBintr(const char* name)
         : Bintr(name)
         , m_cudaDeviceProp{0}
-        , m_isLive(TRUE)
+        , m_isLive(true)
         , m_width(0)
         , m_height(0)
         , m_fpsN(0)
@@ -58,6 +59,11 @@ namespace DSL
     SourceBintr::~SourceBintr()
     {
         LOG_FUNC();
+
+        if (m_isLinked)
+        {    
+            UnlinkAll();
+        }
         
         Services::GetServices()->_sourceNameErase(GetCStrName());
     }
@@ -162,11 +168,6 @@ namespace DSL
     CsiSourceBintr::~CsiSourceBintr()
     {
         LOG_FUNC();
-
-        if (m_isLinked)
-        {    
-            UnlinkAll();
-        }
     }
     
     bool CsiSourceBintr::LinkAll()
@@ -219,7 +220,7 @@ namespace DSL
             m_pVidConv1 = DSL_ELEMENT_EXT_NEW("nvvideoconvert", name, "1");
             AddChild(m_pVidConv1);
         }
-        m_pVidConv2 = DSL_ELEMENT_EXT_NEW("nvvideoconvert", name, "1");
+        m_pVidConv2 = DSL_ELEMENT_EXT_NEW("nvvideoconvert", name, "2");
 
         GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
             "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
@@ -251,11 +252,6 @@ namespace DSL
     UsbSourceBintr::~UsbSourceBintr()
     {
         LOG_FUNC();
-
-        if (m_isLinked)
-        {    
-            UnlinkAll();
-        }
     }
 
     bool UsbSourceBintr::LinkAll()
@@ -681,11 +677,6 @@ namespace DSL
     UriSourceBintr::~UriSourceBintr()
     {
         LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            UnlinkAll();
-        }
     }
 
     bool UriSourceBintr::LinkAll()
@@ -881,7 +872,7 @@ namespace DSL
         if (IsLinked())
         {
             LOG_ERROR("Unable to set File Path for FileSourceBintr '" << GetName() 
-                << "' as it's currently in use");
+                << "' as it's currently linked");
             return false;
         }
         
@@ -917,10 +908,282 @@ namespace DSL
         m_repeatEnabled = enabled;
         return true;
     }
-    
+
     //*********************************************************************************
 
-    ImageSourceBintr::ImageSourceBintr(const char* name, 
+    ImageSourceBintr::ImageSourceBintr(const char* name, const char* uri, uint type)
+        : ResourceSourceBintr(name, uri)
+    {
+        LOG_FUNC();
+        
+        // override the default source attributes
+        m_isLive = False;
+
+        // Other components are created conditionaly by file type. 
+        if (m_uri.find("jpeg") != std::string::npos or
+            m_uri.find("jpg") != std::string::npos)
+        {
+            LOG_INFO("Setting file format to JPG for ImageSourceBintr '" 
+                << GetName() << "'");
+            m_format = DSL_IMAGE_FORMAT_JPG;
+            m_ext = DSL_IMAGE_EXT_JPG;
+            m_pParser = DSL_ELEMENT_NEW("jpegparse", name);
+            m_pDecoder = DSL_ELEMENT_NEW("nvv4l2decoder", name); 
+            
+            AddChild(m_pDecoder);
+            AddChild(m_pParser);
+            
+            // Source Ghost Pad for JPEG image sources
+            m_pDecoder->AddGhostPadToParent("src");
+            
+            // If it's an MJPG file or Multi JPG files
+            if (m_uri.find("mjpeg") != std::string::npos or
+                m_uri.find("mjpg") != std::string::npos or
+                type == DSL_IMAGE_TYPE_MULTI)
+            {
+                LOG_INFO("Setting decoder 'mjpeg' attribute for ImageSourceBintr '" 
+                    << GetName() << "'");
+                m_pDecoder->SetAttribute("mjpeg", true);
+            }
+            
+        }
+        else if (m_uri.find(".png") != std::string::npos)
+        {
+            LOG_ERROR("Unsuported file type (.png ) '" << m_uri 
+                << "' for new Image Source '" << name << "'");
+            throw;
+        }
+        else
+        {
+            LOG_ERROR("Invalid file type = '" << m_uri 
+                << "' for new Image Source '" << name << "'");
+            throw;
+        }
+    }
+    
+    ImageSourceBintr::~ImageSourceBintr()
+    {
+        LOG_FUNC();
+    }
+
+    bool ImageSourceBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("ImageSourceBintr '" << GetName() << "' is already in a linked state");
+            return false;
+        }
+        if (!IsLinkable())
+        {
+            LOG_ERROR("Unable to Link ImageSourceBintr '" << GetName() 
+                << "' as its uri has not been set");
+            return false;
+        }
+//        if (m_format == DSL_IMAGE_FORMAT_JPG)
+//        {
+            if (!m_pSourceElement->LinkToSink(m_pParser) or
+                !m_pParser->LinkToSink(m_pDecoder))
+            {
+                LOG_ERROR("ImageSourceBintr '" << GetName() << "' failed to LinkAll");
+                return false;
+            }
+//        }
+//        else
+//        {
+//            // TODO
+//        }
+        m_isLinked = true;
+        
+        return true;
+    }
+
+    void ImageSourceBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+
+        if (!m_isLinked)
+        {
+            LOG_ERROR("ImageSourceBintr '" << GetName() 
+                << "' is not in a linked state");
+            return;
+        }
+        
+        if (m_format == DSL_IMAGE_FORMAT_JPG)
+        {
+            if (!m_pSourceElement->UnlinkFromSink() or
+                !m_pParser->UnlinkFromSink())
+            {
+                LOG_ERROR("ImageSourceBintr '" << GetName() 
+                    << "' failed to UnlinkAll");
+                return;
+            }    
+        }
+        else
+        {
+            // TODO
+        }
+        m_isLinked = false;
+    }
+
+    //*********************************************************************************
+
+    SingleImageSourceBintr::SingleImageSourceBintr(const char* name, const char* uri)
+        : ImageSourceBintr(name, uri, DSL_IMAGE_TYPE_SINGLE)
+    {
+        LOG_FUNC();
+        
+        m_pSourceElement = DSL_ELEMENT_NEW("filesrc", name);
+        AddChild(m_pSourceElement);
+        
+        if (!SetUri(uri))
+        {
+            throw;
+        }
+
+    }
+    
+    SingleImageSourceBintr::~SingleImageSourceBintr()
+    {
+        LOG_FUNC();
+    }
+
+    bool SingleImageSourceBintr::SetUri(const char* uri)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set File Path for ImageFrameSourceBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        
+        std::string pathString(uri);
+        if (pathString.empty())
+        {
+            LOG_INFO("File Path for ImageFrameSourceBintr '" << GetName() 
+                << "' is empty. Source is in a non playable state");
+            return true;
+        }
+        
+        std::ifstream streamUriFile(uri);
+        if (!streamUriFile.good())
+        {
+            LOG_ERROR("Image Source'" << uri << "' Not found");
+            return false;
+        }
+        // File source, not live - setup full path
+        char absolutePath[PATH_MAX+1];
+        m_uri.assign(realpath(uri, absolutePath));
+
+        // Use OpenCV to determine the new image dimensions
+        cv::Mat image = imread(m_uri, cv::IMREAD_COLOR);
+        cv::Size imageSize = image.size();
+        m_width = imageSize.width;
+        m_height = imageSize.height;
+
+        // Set the filepath for the File Source Elementr
+        m_pSourceElement->SetAttribute("location", m_uri.c_str());
+
+        return true;
+            
+    }
+
+    //*********************************************************************************
+
+    MultiImageSourceBintr::MultiImageSourceBintr(const char* name, 
+        const char* uri, uint fpsN, uint fpsD)
+        : ImageSourceBintr(name, uri, DSL_IMAGE_TYPE_MULTI)
+    {
+        LOG_FUNC();
+        
+        // override the default source attributes
+        m_fpsN = fpsN;
+        m_fpsD = fpsD;
+
+        m_pSourceElement = DSL_ELEMENT_NEW("multifilesrc", name);
+        AddChild(m_pSourceElement);
+
+        if (!SetUri(uri))
+        {
+            throw;
+        }
+
+//        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
+//            "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
+//            "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
+//        GstCaps * pCaps = gst_caps_new_simple("image/jpeg", "framerate", 
+//            GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
+//        if (!pCaps)
+//        {
+//            LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
+//            throw;  
+//        }
+
+//        GstCapsFeatures *feature = NULL;
+//        feature = gst_caps_features_new("memory:NVMM", NULL);
+//        gst_caps_set_features(pCaps, 0, feature);
+
+//        m_pSourceElement->SetAttribute("caps", pCaps);
+//        
+//        gst_caps_unref(pCaps);        
+    }
+    
+    MultiImageSourceBintr::~MultiImageSourceBintr()
+    {
+        LOG_FUNC();
+    }
+
+    bool MultiImageSourceBintr::SetUri(const char* uri)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set File Path for ImageFrameSourceBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        
+        std::string pathString(uri);
+        if (pathString.empty())
+        {
+            LOG_INFO("File Path for ImageFrameSourceBintr '" << GetName() 
+                << "' is empty. Source is in a non playable state");
+            return true;
+        }
+        
+//        if (m_type == DSL_IMAGE_TYPE_SINGLE)
+//        {
+//            std::ifstream streamUriFile(uri);
+//            if (!streamUriFile.good())
+//            {
+//                LOG_ERROR("Image Source'" << uri << "' Not found");
+//                return false;
+//            }
+//            // File source, not live - setup full path
+//            char absolutePath[PATH_MAX+1];
+//            m_uri.assign(realpath(uri, absolutePath));
+//
+//            // Use OpenCV to determine the new image dimensions
+//            cv::Mat image = imread(m_uri, cv::IMREAD_COLOR);
+//            cv::Size imageSize = image.size();
+//            m_width = imageSize.width;
+//            m_height = imageSize.height;
+//        }
+        m_uri.assign(uri);
+        // Set the filepath for the File Source Elementr
+        m_pSourceElement->SetAttribute("location", m_uri.c_str());
+
+        return true;
+            
+    }
+
+    //*********************************************************************************
+
+    ImageStreamSourceBintr::ImageStreamSourceBintr(const char* name, 
         const char* uri, bool isLive, uint fpsN, uint fpsD, uint timeout)
         : ResourceSourceBintr(name, uri)
         , m_timeout(timeout)
@@ -934,50 +1197,76 @@ namespace DSL
         m_fpsD = fpsD;
 
         m_pSourceElement = DSL_ELEMENT_NEW("videotestsrc", name);
-        m_pSourceCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
+        m_pSourceCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "source");
         m_pImageOverlay = DSL_ELEMENT_NEW("gdkpixbufoverlay", name); 
+        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
+        m_pCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "sink");
 
-        if (!SetUri(uri))
-        {
-            throw;
-        }
         m_pSourceElement->SetAttribute("pattern", 2); // 2 = black
+
+
+//        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
+//            "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
+//            "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
+        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
+            "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
+        if (!pCaps)
+        {
+            LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
+            throw;  
+        }
+
+        GstCapsFeatures *feature = NULL;
+        feature = gst_caps_features_new("memory:NVMM", NULL);
+        gst_caps_set_features(pCaps, 0, feature);
+
+        m_pCapsFilter->SetAttribute("caps", pCaps);
+        
+        gst_caps_unref(pCaps);        
+        
+        m_pVidConv->SetAttribute("gpu-id", m_gpuId);
+        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
 
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
         AddChild(m_pSourceCapsFilter);
         AddChild(m_pImageOverlay);
+        AddChild(m_pVidConv);
+        AddChild(m_pCapsFilter);
         
-        // Source Ghost Pad for ImageSourceBintr
-        m_pImageOverlay->AddGhostPadToParent("src");
+        // Source Ghost Pad for ImageStreamSourceBintr
+        m_pCapsFilter->AddGhostPadToParent("src");
 
         g_mutex_init(&m_timeoutTimerMutex);
+
+        if(uri and !SetUri(uri))
+        {
+            throw;
+        }
     }
     
-    ImageSourceBintr::~ImageSourceBintr()
+    ImageStreamSourceBintr::~ImageStreamSourceBintr()
     {
         LOG_FUNC();
         
-        if (IsLinked())
-        {
-            UnlinkAll();
-        }
         g_mutex_clear(&m_timeoutTimerMutex);
     }
 
-    bool ImageSourceBintr::LinkAll()
+    bool ImageStreamSourceBintr::LinkAll()
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("ImageSourceBintr '" << GetName() << "' is already in a linked state");
+            LOG_ERROR("ImageStreamSourceBintr '" << GetName() << "' is already in a linked state");
             return false;
         }
         if (!m_pSourceElement->LinkToSink(m_pSourceCapsFilter) or
-            !m_pSourceCapsFilter->LinkToSink(m_pImageOverlay))
+            !m_pSourceCapsFilter->LinkToSink(m_pImageOverlay) or
+            !m_pImageOverlay->LinkToSink(m_pVidConv) or
+            !m_pVidConv->LinkToSink(m_pCapsFilter))
         {
-            LOG_ERROR("ImageSourceBintr '" << GetName() << "' failed to LinkAll");
+            LOG_ERROR("ImageStreamSourceBintr '" << GetName() << "' failed to LinkAll");
             return false;
         }
         m_isLinked = true;
@@ -991,13 +1280,13 @@ namespace DSL
         return true;
     }
 
-    void ImageSourceBintr::UnlinkAll()
+    void ImageStreamSourceBintr::UnlinkAll()
     {
         LOG_FUNC();
 
         if (!m_isLinked)
         {
-            LOG_ERROR("ImageSourceBintr '" << GetName() << "' is not in a linked state");
+            LOG_ERROR("ImageStreamSourceBintr '" << GetName() << "' is not in a linked state");
             return;
         }
         if (m_timeoutTimerId)
@@ -1008,15 +1297,17 @@ namespace DSL
         }
         
         if (!m_pSourceElement->UnlinkFromSink() or
-            !m_pSourceCapsFilter->UnlinkFromSink())
+            !m_pSourceCapsFilter->UnlinkFromSink() or
+            !m_pImageOverlay->UnlinkFromSink() or
+            !m_pVidConv->UnlinkFromSink())
         {
-            LOG_ERROR("ImageSourceBintr '" << GetName() << "' failed to UnlinkAll");
+            LOG_ERROR("ImageStreamSourceBintr '" << GetName() << "' failed to UnlinkAll");
             return;
         }    
         m_isLinked = false;
     }
     
-    int ImageSourceBintr::HandleDisplayTimeout()
+    int ImageStreamSourceBintr::HandleDisplayTimeout()
     {
         LOG_FUNC();
         
@@ -1030,20 +1321,20 @@ namespace DSL
         return 0;
     }
 
-    bool ImageSourceBintr::SetUri(const char* uri)
+    bool ImageStreamSourceBintr::SetUri(const char* uri)
     {
         LOG_FUNC();
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set File Path for ImageSourceBintr '" << GetName() 
+            LOG_ERROR("Unable to set File Path for ImageStreamSourceBintr '" << GetName() 
                 << "' as it's currently in use");
             return false;
         }
         std::string pathString(uri);
         if (pathString.empty())
         {
-            LOG_INFO("File Path for ImageSourceBintr '" << GetName() 
+            LOG_INFO("File Path for ImageStreamSourceBintr '" << GetName() 
                 << "' is empty. Source is in a non playable state");
             return true;
         }
@@ -1082,14 +1373,14 @@ namespace DSL
         return true;
     }
     
-    uint ImageSourceBintr::GetTimeout()
+    uint ImageStreamSourceBintr::GetTimeout()
     {
         LOG_FUNC();
         
         return m_timeout;
     }
 
-    bool ImageSourceBintr::SetTimeout(uint timeout)
+    bool ImageStreamSourceBintr::SetTimeout(uint timeout)
     {
         LOG_FUNC();
         
@@ -1180,10 +1471,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsLinked())
-        {
-            UnlinkAll();
-        }
         if (m_reconnectionManagerTimerId)
         {
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionManagerMutex);
@@ -1890,7 +2177,7 @@ namespace DSL
 
     static int ImageSourceDisplayTimeoutHandler(gpointer pSource)
     {
-        return static_cast<ImageSourceBintr*>(pSource)->
+        return static_cast<ImageStreamSourceBintr*>(pSource)->
             HandleDisplayTimeout();
     }
     

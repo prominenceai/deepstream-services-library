@@ -41,11 +41,11 @@ TILER_HEIGHT = STREAMMUX_HEIGHT
 WINDOW_WIDTH = STREAMMUX_WIDTH	
 WINDOW_HEIGHT = STREAMMUX_HEIGHT	
 
-# Filespecs for the Primary GIE	
+# Filespecs for the Primary GIE
 primary_infer_config_file = \
-    '../../test/configs/config_infer_primary_nano.txt'	
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
 primary_model_engine_file = \
-    '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'	
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
 # Define the Pipeline and component names
 PIPELINE = 'pipeline'

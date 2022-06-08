@@ -27,12 +27,14 @@ THE SOFTWARE.
 
 using namespace DSL;
 
+static const std::string dewarperName("dewarper");
+static const std::string defConfigFile(
+"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/config_dewarper.txt");
+
 SCENARIO( "A DewarperBintr is created correctly",  "[DewarperBintr]" )
 {
     GIVEN( "Attributes for a new Dewarper" ) 
     {
-        std::string dewarperName("dewarper");
-        std::string defConfigFile("./test/configs/config_dewarper.txt");
         uint GPUID0(0);
 
         WHEN( "The Dewarper is created" )
@@ -55,9 +57,6 @@ SCENARIO( "A DewarperBintr can LinkAll child Elementrs correctly",  "[DewarperBi
 {
     GIVEN( "A new DewarperBintr in memory" ) 
     {
-        std::string dewarperName("dewarper");
-        std::string defConfigFile("./test/configs/config_dewarper.txt");
-
         DSL_DEWARPER_PTR pDewarperBintr = 
             DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
 
@@ -77,9 +76,6 @@ SCENARIO( "A DewarperBintr can UnlinkAll child Elementrs correctly",  "[Dewarper
 {
     GIVEN( "A new DewarperBintr in memory" ) 
     {
-        std::string dewarperName("dewarper");
-        std::string defConfigFile("./test/configs/config_dewarper.txt");
-
         DSL_DEWARPER_PTR pDewarperBintr = 
             DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
 
@@ -101,9 +97,6 @@ SCENARIO( "A DewarperBintr can Get and Set it's GPU ID",  "[DewarperBintr]" )
 {
     GIVEN( "A new DewarperBintr in memory" ) 
     {
-        std::string dewarperName("dewarper");
-        std::string defConfigFile("./test/configs/config_dewarper.txt");
-        
         uint GPUID0(0);
         uint GPUID1(1);
 

@@ -45,9 +45,10 @@ SCENARIO( "A DCF Tracker is created correctly", "[TrackerBintr]" )
 
             THEN( "The DCF Tracker's lib is found, loaded, and returned correctly")
             {
-                std::string defPathSpec(NVDS_DCF_LIB);
-                std::string retPathSpec(pTrackerBintr->GetLibFile());
-                REQUIRE( retPathSpec == defPathSpec );
+                uint retWidth(0), retHeight(0);
+                pTrackerBintr->GetDimensions(&retWidth, &retHeight);
+                REQUIRE( retWidth == width );
+                REQUIRE( retHeight == height );
                 REQUIRE( pTrackerBintr->GetBatchProcessingEnabled() == batchProcessingEnabled );
                 REQUIRE( pTrackerBintr->GetPastFrameReportingEnabled() == pastFrameReportingEnabled );
             }
@@ -74,9 +75,10 @@ SCENARIO( "A DCF Tracker is created correctly with a config file", "[TrackerBint
 
             THEN( "The DCF Tracker's lib is found, loaded, and returned correctly")
             {
-                std::string defPathSpec(NVDS_DCF_LIB);
-                std::string retPathSpec(pTrackerBintr->GetLibFile());
-                REQUIRE( retPathSpec == defPathSpec );
+                uint retWidth(0), retHeight(0);
+                pTrackerBintr->GetDimensions(&retWidth, &retHeight);
+                REQUIRE( retWidth == width );
+                REQUIRE( retHeight == height );
                 REQUIRE( pTrackerBintr->GetBatchProcessingEnabled() == batchProcessingEnabled );
                 REQUIRE( pTrackerBintr->GetPastFrameReportingEnabled() == pastFrameReportingEnabled );
             }
@@ -164,9 +166,10 @@ SCENARIO( "A KTL Tracker is created correctly", "[TrackerBintr]" )
 
             THEN( "The KTL Tracker's lib is found, loaded, and returned correctly")
             {
-                std::string defPathSpec(NVDS_KLT_LIB);
-                std::string retPathSpec(pTrackerBintr->GetLibFile());
-                REQUIRE( retPathSpec == defPathSpec );
+                uint retWidth(0), retHeight(0);
+                pTrackerBintr->GetDimensions(&retWidth, &retHeight);
+                REQUIRE( retWidth == width );
+                REQUIRE( retHeight == height );
             }
         }
     }
@@ -179,7 +182,7 @@ SCENARIO( "An IOU Tracker is created correctly", "[TrackerBintr]" )
         std::string trackerName("iou-tracker");
         uint width(200);
         uint height(100);
-        std::string defConfigFile("./test/configs/iou_config.txt");
+        std::string defConfigFile("/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.ym");
 
         WHEN( "The IOU Tracker is created" )
         {
@@ -188,10 +191,11 @@ SCENARIO( "An IOU Tracker is created correctly", "[TrackerBintr]" )
 
             THEN( "The IOU Tracker's lib is found, loaded, and returned correctly")
             {
-                std::string defLibPathSpec(NVDS_IOU_LIB);
-                std::string retLibPathSpec(pTrackerBintr->GetLibFile());
+                uint retWidth(0), retHeight(0);
+                pTrackerBintr->GetDimensions(&retWidth, &retHeight);
+                REQUIRE( retWidth == width );
+                REQUIRE( retHeight == height );
                 std::string retConfigPathSpec(pTrackerBintr->GetConfigFile());
-                REQUIRE( retLibPathSpec == defLibPathSpec );
                 REQUIRE( retConfigPathSpec == defConfigFile );
             }
         }

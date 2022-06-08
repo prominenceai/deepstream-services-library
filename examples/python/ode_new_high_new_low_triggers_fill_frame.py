@@ -119,11 +119,11 @@ def main(args):
 
         #```````````````````````````````````````````````````````````````````````````````````
         # Create two new RGBA fill colors to fill the frame on new-high and new-low
-        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, green=0.0, blue=0.0, alpha=0.5)
+        retval = dsl_display_type_rgba_color_custom_new('opaque-red', red=1.0, green=0.0, blue=0.0, alpha=0.5)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_display_type_rgba_color_new('opaque-blue', red=0.0, green=0.0, blue=1.0, alpha=0.5)
+        retval = dsl_display_type_rgba_color_custom_new('opaque-blue', red=0.0, green=0.0, blue=1.0, alpha=0.5)
         if retval != DSL_RETURN_SUCCESS:
             break
             

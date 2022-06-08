@@ -100,7 +100,7 @@ Once the test executable has been built, it can be run with the command below.
 After completion, ensure that all tests have passed before submitting a pull request.
 ```
 ===============================================================================
-All tests passed (5199 assertions in 670 test cases)
+All tests passed (6405 assertions in 795 test cases)
 ```
 
 Note: the total passed assertions and test cases are subject to change.
@@ -127,8 +127,10 @@ Note: the total passed assertions and test cases are subject to change.
 * [Sink](/docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
+* [ODE Accumulator](/docs/api-ode-accumulator.md)
 * [ODE Action ](/docs/api-ode-action.md)
 * [ODE Area](/docs/api-ode-area.md)
+* [ODE Heat-Mapper](/docs/api-ode-heat-mapper.md)
 * [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)

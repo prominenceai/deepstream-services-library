@@ -65,6 +65,65 @@ DSL_STATE_PLAYING = 4
 DSL_STATE_CHANGE_ASYNC = 5
 DSL_STATE_UNKNOWN = int('7FFFFFFF',16)
 
+DSL_COLOR_PREDEFINED_BLACK = 0
+DSL_COLOR_PREDEFINED_GRAY_50 = 1
+DSL_COLOR_PREDEFINED_DARK_RED = 2
+DSL_COLOR_PREDEFINED_RED = 3
+DSL_COLOR_PREDEFINED_ORANGE = 4
+DSL_COLOR_PREDEFINED_YELLOW = 5
+DSL_COLOR_PREDEFINED_GREEN = 6
+DSL_COLOR_PREDEFINED_TURQUOISE = 7
+DSL_COLOR_PREDEFINED_INDIGO = 8
+DSL_COLOR_PREDEFINED_PURPLE = 9
+
+DSL_COLOR_PREDEFINED_WHITE = 10
+DSL_COLOR_PREDEFINED_GRAY_25 = 11
+DSL_COLOR_PREDEFINED_BROWN = 12
+DSL_COLOR_PREDEFINED_ROSE = 13
+DSL_COLOR_PREDEFINED_GOLD = 14
+DSL_COLOR_PREDEFINED_LIGHT_YELLOW = 15
+DSL_COLOR_PREDEFINED_LIME = 16
+DSL_COLOR_PREDEFINED_LIGHT_TURQUOISE = 17
+DSL_COLOR_PREDEFINED_BLUE_GRAY = 18
+DSL_COLOR_PREDEFINED_LAVENDER = 19
+
+DSL_COLOR_HUE_RED = 0
+DSL_COLOR_HUE_RED_ORANGE = 1
+DSL_COLOR_HUE_ORANGE = 2
+DSL_COLOR_HUE_ORANGE_YELLOW = 3
+DSL_COLOR_HUE_YELLOW = 4
+DSL_COLOR_HUE_YELLOW_GREEN = 5
+DSL_COLOR_HUE_GREEN = 6
+DSL_COLOR_HUE_GREEN_CYAN = 7
+DSL_COLOR_HUE_CYAN = 8
+DSL_COLOR_HUE_CYAN_BLUE = 9
+DSL_COLOR_HUE_BLUE = 10
+DSL_COLOR_HUE_BLUE_MAGENTA = 11
+DSL_COLOR_HUE_MAGENTA = 12
+DSL_COLOR_HUE_MAGENTA_PINK = 13
+DSL_COLOR_HUE_PINK = 14
+DSL_COLOR_HUE_PINK_RED = 15
+DSL_COLOR_HUE_RANDOM = 16
+DSL_COLOR_HUE_BLACK_AND_WHITE = 17
+DSL_COLOR_HUE_BROWN = 18
+
+DSL_COLOR_LUMINOSITY_DARK = 0
+DSL_COLOR_LUMINOSITY_NORMAL = 1
+DSL_COLOR_LUMINOSITY_LIGHT = 2
+DSL_COLOR_LUMINOSITY_BRIGHT = 3
+DSL_COLOR_LUMINOSITY_RANDOM = 4
+
+DSL_COLOR_PREDEFINED_PALETTE_SPECTRAL = 0
+DSL_COLOR_PREDEFINED_PALETTE_RED = 1
+DSL_COLOR_PREDEFINED_PALETTE_GREEN = 2
+DSL_COLOR_PREDEFINED_PALETTE_BLUE = 3
+DSL_COLOR_PREDEFINED_PALETTE_GREY = 4
+
+DSL_HEAT_MAP_LEGEND_LOCATION_TOP = 0
+DSL_HEAT_MAP_LEGEND_LOCATION_RIGHT = 1
+DSL_HEAT_MAP_LEGEND_LOCATION_BOTTOM = 2
+DSL_HEAT_MAP_LEGEND_LOCATION_LEFT = 3
+
 DSL_CAPTURE_TYPE_OBJECT = 0
 DSL_CAPTURE_TYPE_FRAME = 1
 
@@ -109,6 +168,9 @@ DSL_BBOX_EDGE_BOTTOM = 1
 DSL_BBOX_EDGE_LEFT   = 2
 DSL_BBOX_EDGE_RIGHT  = 3
 
+DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS = 0
+DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS = 1
+
 DSL_DISTANCE_METHOD_FIXED_PIXELS     = 0
 DSL_DISTANCE_METHOD_PERCENT_WIDTH_A  = 1
 DSL_DISTANCE_METHOD_PERCENT_WIDTH_B  = 2
@@ -127,14 +189,19 @@ DSL_EVENT_FILE_FORMAT_CSV    = 1
 DSL_WRITE_MODE_APPEND   = 0
 DSL_WRITE_MODE_TRUNCATE = 1
 
-DSL_METRIC_OBJECT_CLASS       = 0
-DSL_METRIC_OBJECT_TRACKING_ID = 1
-DSL_METRIC_OBJECT_LOCATION    = 2
-DSL_METRIC_OBJECT_DIMENSIONS  = 3
-DSL_METRIC_OBJECT_CONFIDENCE  = 4
-DSL_METRIC_OBJECT_PERSISTENCE = 5
+DSL_METRIC_OBJECT_CLASS                     = 0
+DSL_METRIC_OBJECT_TRACKING_ID               = 1
+DSL_METRIC_OBJECT_LOCATION                  = 2
+DSL_METRIC_OBJECT_DIMENSIONS                = 3
+DSL_METRIC_OBJECT_CONFIDENCE_INFERENCE      = 4
+DSL_METRIC_OBJECT_CONFIDENCE_TRACKER        = 5
+DSL_METRIC_OBJECT_PERSISTENCE               = 6
+DSL_METRIC_OBJECT_DIRECTION                 = 7
 
-DSL_METRIC_OBJECT_OCCURRENCES = 6
+DSL_METRIC_OBJECT_OCCURRENCES               = 8
+DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_IN  = 9
+DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_OUT = 10
+
 
 DSL_SOCKET_CONNECTION_STATE_CLOSED    = 0
 DSL_SOCKET_CONNECTION_STATE_INITIATED = 1
@@ -193,11 +260,67 @@ class dsl_webrtc_connection_data(Structure):
     _fields_ = [
         ('current_state', c_uint)]
 
+class dsl_ode_occurrence_source_info(Structure):
+    _fields_ = [
+        ('source_id', c_uint),
+        ('batch_id', c_uint),
+        ('pad_index', c_uint),
+        ('frame_num', c_uint),
+        ('frame_width', c_uint),
+        ('frame_height', c_uint),
+        ('inference_done', c_bool)]
+        
+class dsl_ode_occurrence_object_info(Structure):
+    _fields_ = [
+        ('class_id', c_uint),
+        ('inference_component_id', c_uint),
+        ('tracking_id', c_uint),
+        ('label', c_wchar_p),
+        ('persistence', c_uint),
+        ('direction', c_uint),
+        ('inference_confidence', c_float),
+        ('tracker_confidence', c_float),
+        ('left', c_uint),
+        ('top', c_uint),
+        ('width', c_uint),
+        ('height', c_uint)]
+        
+class dsl_ode_occurrence_accumulative_info(Structure):
+    _fields_ = [
+        ('occurrences_total', c_uint),
+        ('occurrences_in', c_uint),
+        ('occurrences_out', c_uint)]
+
+class dsl_ode_occurrence_criteria_info(Structure):
+    _fields_ = [
+        ('class_id', c_uint),
+        ('inference_component_id', c_uint),
+        ('min_inference_confidence', c_float),
+        ('min_tracker_confidence', c_float),
+        ('inference_done_only', c_bool),
+        ('min_width', c_uint),
+        ('min_height', c_uint),
+        ('max_width', c_uint),
+        ('max_height', c_uint),
+        ('interval', c_uint)]
+
+class dsl_ode_occurrence_info(Structure):
+    _fields_ = [
+        ('trigger_name', c_wchar_p),
+        ('unique_ode_id', c_uint64),
+        ('ntp_timestamp', c_uint64),
+        ('source_info', dsl_ode_occurrence_source_info),
+        ('is_object_occurrence', c_bool),
+        ('object_info', dsl_ode_occurrence_object_info),
+        ('accumulative_info', dsl_ode_occurrence_accumulative_info),
+        ('criteria_info', dsl_ode_occurrence_criteria_info)]
+
 ##
 ## Pointer Typedefs
 ##
 DSL_UINT_P = POINTER(c_uint)
 DSL_UINT64_P = POINTER(c_uint64)
+DSL_UINT64_PP = POINTER(DSL_UINT64_P)
 DSL_BOOL_P = POINTER(c_bool)
 DSL_WCHAR_PP = POINTER(c_wchar_p)
 DSL_LONG_P = POINTER(c_long)
@@ -208,28 +331,98 @@ DSL_RTSP_CONNECTION_DATA_P = POINTER(dsl_rtsp_connection_data)
 ##
 ## Callback Typedefs
 ##
-DSL_META_BATCH_HANDLER = CFUNCTYPE(c_bool, c_void_p, c_void_p)
-DSL_STATE_CHANGE_LISTENER = CFUNCTYPE(None, c_uint, c_uint, c_void_p)
-DSL_EOS_LISTENER = CFUNCTYPE(None, c_void_p)
-DSL_ERROR_MESSAGE_HANDLER = CFUNCTYPE(None, c_wchar_p, c_wchar_p, c_void_p)
-DSL_XWINDOW_KEY_EVENT_HANDLER = CFUNCTYPE(None, c_wchar_p, c_void_p)
-DSL_XWINDOW_BUTTON_EVENT_HANDLER = CFUNCTYPE(None, c_uint, c_int, c_int, c_void_p)
-DSL_XWINDOW_DELETE_EVENT_HANDLER = CFUNCTYPE(None, c_void_p)
-DSL_ODE_HANDLE_OCCURRENCE = CFUNCTYPE(None, c_uint, c_wchar_p, c_void_p, c_void_p, c_void_p, c_void_p, c_void_p)
-DSL_ODE_CHECK_FOR_OCCURRENCE = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p, c_void_p)
-DSL_ODE_POST_PROCESS_FRAME = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p)
-DSL_RECORD_CLIENT_LISTNER = CFUNCTYPE(c_void_p, POINTER(dsl_recording_info), c_void_p)
-DSL_PPH_CUSTOM_CLIENT_HANDLER = CFUNCTYPE(c_uint, c_void_p, c_void_p)
-DSL_PPH_METER_CLIENT_HANDLER = CFUNCTYPE(c_bool, DSL_DOUBLE_P, DSL_DOUBLE_P, c_uint, c_void_p)
-DSL_PLAYER_TERMINATION_EVENT_LISTENER = CFUNCTYPE(None, c_void_p)
-DSL_CAPTURE_COMPLETE_LISTENER = CFUNCTYPE(None, POINTER(dsl_capture_info), c_void_p)
-DSL_WEBSOCKET_SERVER_CLIENT_LISTENER = CFUNCTYPE(None, c_wchar_p, c_void_p)
-DSL_WEBRTC_SINK_CLIENT_LISTENER = CFUNCTYPE(None, POINTER(dsl_webrtc_connection_data), c_void_p)
-DSL_ODE_TRIGGER_LIMIT_EVENT_LISTENER = CFUNCTYPE(None, c_uint, c_uint, c_void_p)
-DSL_ODE_ENABLED_STATE_CHANGE_LISTENER = CFUNCTYPE(None, c_bool, c_void_p)
-DSL_MESSAGE_BROKER_CONNECTION_LISTENER = CFUNCTYPE(None, c_void_p, c_uint)
-DSL_MESSAGE_BROKER_SUBSCRIBER = CFUNCTYPE(None, c_void_p, c_uint, c_void_p, c_uint, c_wchar_p)
-DSL_MESSAGE_BROKER_SEND_RESULT_LISTENER = CFUNCTYPE(None, c_void_p, c_uint)
+
+# dsl_ode_handle_occurrence_cb
+DSL_ODE_HANDLE_OCCURRENCE = \
+    CFUNCTYPE(None, c_uint, c_wchar_p, c_void_p, c_void_p, c_void_p, c_void_p, c_void_p)
+    
+# dsl_ode_monitor_occurrence_cb    
+DSL_ODE_MONITOR_OCCURRENCE = \
+    CFUNCTYPE(None, POINTER(dsl_ode_occurrence_info), c_void_p)
+
+# dsl_ode_check_for_occurrence_cb
+DSL_ODE_CHECK_FOR_OCCURRENCE = \
+    CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p, c_void_p)
+
+# dsl_ode_post_process_frame_cb
+DSL_ODE_POST_PROCESS_FRAME = \
+    CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p)
+
+# dsl_ode_enabled_state_change_listener_cb
+DSL_ODE_ENABLED_STATE_CHANGE_LISTENER = \
+    CFUNCTYPE(None, c_bool, c_void_p)
+
+# dsl_ode_trigger_limit_event_listener_cb
+DSL_ODE_TRIGGER_LIMIT_EVENT_LISTENER = \
+    CFUNCTYPE(None, c_uint, c_uint, c_void_p)
+
+# dsl_pph_meter_client_handler_cb
+DSL_PPH_METER_CLIENT_HANDLER = \
+    CFUNCTYPE(c_bool, DSL_DOUBLE_P, DSL_DOUBLE_P, c_uint, c_void_p)
+
+# dsl_pph_custom_client_handler_cb
+DSL_PPH_CUSTOM_CLIENT_HANDLER = \
+    CFUNCTYPE(c_uint, c_void_p, c_void_p)
+
+# dsl_state_change_listener_cb
+DSL_STATE_CHANGE_LISTENER = \
+    CFUNCTYPE(None, c_uint, c_uint, c_void_p)
+
+# dsl_eos_listener_cb
+DSL_EOS_LISTENER = \
+    CFUNCTYPE(None, c_void_p)
+
+# dsl_error_message_handler_cb
+DSL_ERROR_MESSAGE_HANDLER = \
+    CFUNCTYPE(None, c_wchar_p, c_wchar_p, c_void_p)
+
+# dsl_xwindow_key_event_handler_cb
+DSL_XWINDOW_KEY_EVENT_HANDLER = \
+    CFUNCTYPE(None, c_wchar_p, c_void_p)
+
+# dsl_xwindow_button_event_handler_cb
+DSL_XWINDOW_BUTTON_EVENT_HANDLER = \
+    CFUNCTYPE(None, c_uint, c_int, c_int, c_void_p)
+
+# dsl_xwindow_delete_event_handler_cb
+DSL_XWINDOW_DELETE_EVENT_HANDLER = \
+    CFUNCTYPE(None, c_void_p)
+
+# dsl_record_client_listener_cb
+DSL_RECORD_CLIENT_LISTNER = \
+    CFUNCTYPE(c_void_p, POINTER(dsl_recording_info), c_void_p)
+
+# dsl_capture_complete_listener_cb
+DSL_CAPTURE_COMPLETE_LISTENER = \
+    CFUNCTYPE(None, POINTER(dsl_capture_info), c_void_p)
+
+# dsl_player_termination_event_listener_cb
+DSL_PLAYER_TERMINATION_EVENT_LISTENER = \
+    CFUNCTYPE(None, c_void_p)
+
+# dsl_websocket_server_client_listener_cb
+DSL_WEBSOCKET_SERVER_CLIENT_LISTENER = \
+    CFUNCTYPE(None, c_wchar_p, c_void_p)
+
+# dsl_sink_webrtc_client_listener_cb
+DSL_WEBRTC_SINK_CLIENT_LISTENER = \
+    CFUNCTYPE(None, POINTER(dsl_webrtc_connection_data), c_void_p)
+
+# dsl_message_broker_subscriber_cb
+DSL_MESSAGE_BROKER_SUBSCRIBER = \
+    CFUNCTYPE(None, c_void_p, c_uint, c_void_p, c_uint, c_wchar_p)
+
+# dsl_message_broker_connection_listener_cb
+DSL_MESSAGE_BROKER_CONNECTION_LISTENER = \
+    CFUNCTYPE(None, c_void_p, c_uint)
+    
+# dsl_message_broker_send_result_listener_cb
+DSL_MESSAGE_BROKER_SEND_RESULT_LISTENER = \
+    CFUNCTYPE(None, c_void_p, c_uint)
+
+# dsl_display_type_rgba_color_provider_cb
+DSL_DISPLAY_TYPE_RGBA_COLOR_PROVIDER = \
+    CFUNCTYPE(None, DSL_DOUBLE_P, DSL_DOUBLE_P, DSL_DOUBLE_P, DSL_DOUBLE_P, c_void_p)
 
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
@@ -240,19 +433,137 @@ callbacks = []
 clientdata = []
 
 ##
-## dsl_display_type_rgba_color_new()
+## dsl_display_type_rgba_color_custom_new()
 ##
-_dsl.dsl_display_type_rgba_color_new.argtypes = [c_wchar_p, c_double, c_double, c_double, c_double]
-_dsl.dsl_display_type_rgba_color_new.restype = c_uint
-def dsl_display_type_rgba_color_new(name, red, green, blue, alpha):
+_dsl.dsl_display_type_rgba_color_custom_new.argtypes = [c_wchar_p, 
+    c_double, c_double, c_double, c_double]
+_dsl.dsl_display_type_rgba_color_custom_new.restype = c_uint
+def dsl_display_type_rgba_color_custom_new(name, 
+    red, green, blue, alpha):
     global _dsl
-    result =_dsl.dsl_display_type_rgba_color_new(name, red, green, blue, alpha)
+    result =_dsl.dsl_display_type_rgba_color_custom_new(name, 
+        red, green, blue, alpha)
+    return int(result)
+
+##
+## dsl_display_type_rgba_color_predefined_new()
+##
+_dsl.dsl_display_type_rgba_color_predefined_new.argtypes = [c_wchar_p, 
+    c_uint, c_double]
+_dsl.dsl_display_type_rgba_color_predefined_new.restype = c_uint
+def dsl_display_type_rgba_color_predefined_new(name, 
+    color_id, alpha):
+    global _dsl
+    result =_dsl.dsl_display_type_rgba_color_predefined_new(name, 
+        color_id, alpha)
+    return int(result)
+
+##
+## dsl_display_type_rgba_color_random_new()
+##
+_dsl.dsl_display_type_rgba_color_random_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_double, c_uint]
+_dsl.dsl_display_type_rgba_color_random_new.restype = c_uint
+def dsl_display_type_rgba_color_random_new(name, 
+    hue, luminosity, alpha, seed):
+    global _dsl
+    result =_dsl.dsl_display_type_rgba_color_random_new(name, 
+        hue, luminosity, alpha, seed)
+    return int(result)
+
+##
+## dsl_display_type_rgba_color_on_demand_new()
+##
+_dsl.dsl_display_type_rgba_color_on_demand_new.argtypes = [c_wchar_p, 
+    DSL_DISPLAY_TYPE_RGBA_COLOR_PROVIDER, c_void_p]
+_dsl.dsl_display_type_rgba_color_on_demand_new.restype = c_uint
+def dsl_display_type_rgba_color_on_demand_new(name, provider, client_data):
+    global _dsl
+    c_provider = DSL_DISPLAY_TYPE_RGBA_COLOR_PROVIDER(provider)
+    callbacks.append(c_provider)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_display_type_rgba_color_on_demand_new(name, 
+        c_provider, c_client_data)
+    return int(result)
+
+##
+## dsl_display_type_rgba_color_palette_new()
+##
+# _dsl.dsl_display_type_rgba_color_palette_new.argtypes = [c_wchar_p, ???]
+_dsl.dsl_display_type_rgba_color_palette_new.restype = c_uint
+def dsl_display_type_rgba_color_palette_new(name, colors):
+    global _dsl
+    arr = (c_wchar_p * len(colors))()
+    arr[:] = colors
+    result =_dsl.dsl_display_type_rgba_color_palette_new(name, 
+        arr)
+    return int(result)
+
+##
+## dsl_display_type_rgba_color_palette_predefined_new()
+##
+_dsl.dsl_display_type_rgba_color_palette_predefined_new.argtypes = [c_wchar_p,
+    c_uint, c_double]
+_dsl.dsl_display_type_rgba_color_palette_predefined_new.restype = c_uint
+def dsl_display_type_rgba_color_palette_predefined_new(name, palette_id, alpha):
+    global _dsl
+    result =_dsl.dsl_display_type_rgba_color_palette_predefined_new(name, 
+        palette_id, alpha)
+    return int(result)
+
+##
+## dsl_display_type_rgba_color_palette_random_new()
+##
+_dsl.dsl_display_type_rgba_color_palette_random_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_uint, c_double, c_uint]
+_dsl.dsl_display_type_rgba_color_palette_random_new.restype = c_uint
+def dsl_display_type_rgba_color_palette_random_new(name, 
+    size, hue, luminosity, alpha, seed):
+    global _dsl
+    result =_dsl.dsl_display_type_rgba_color_palette_random_new(name, 
+        size, hue, luminosity, alpha, seed)
+    return int(result)
+
+##
+## dsl_display_type_rgba_color_palette_index_get()
+##
+_dsl.dsl_display_type_rgba_color_palette_index_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_display_type_rgba_color_palette_index_get.restype = c_uint
+def dsl_display_type_rgba_color_palette_index_get(name):
+    global _dsl
+    index = c_uint(0)
+    result =_dsl.dsl_display_type_rgba_color_palette_index_get(name, 
+        DSL_UINT_P(index))
+    return int(result), index.value
+
+##
+## dsl_display_type_rgba_color_palette_index_set()
+##
+_dsl.dsl_display_type_rgba_color_palette_index_set.argtypes = [c_wchar_p, 
+    c_uint]
+_dsl.dsl_display_type_rgba_color_palette_index_set.restype = c_uint
+def dsl_display_type_rgba_color_palette_index_set(name, index):
+    global _dsl
+    result =_dsl.dsl_display_type_rgba_color_palette_index_set(name, index)
+    return int(result)
+
+##
+## dsl_display_type_rgba_color_next_set()
+##
+_dsl.dsl_display_type_rgba_color_next_set.argtypes = [c_wchar_p]
+_dsl.dsl_display_type_rgba_color_next_set.restype = c_uint
+def dsl_display_type_rgba_color_next_set(name):
+    global _dsl
+    result =_dsl.dsl_display_type_rgba_color_next_set(name)
     return int(result)
 
 ##
 ## dsl_display_type_rgba_font_new()
 ##
-_dsl.dsl_display_type_rgba_font_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_wchar_p]
+_dsl.dsl_display_type_rgba_font_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_wchar_p]
 _dsl.dsl_display_type_rgba_font_new.restype = c_uint
 def dsl_display_type_rgba_font_new(name, font, size, color):
     global _dsl
@@ -262,31 +573,39 @@ def dsl_display_type_rgba_font_new(name, font, size, color):
 ##
 ## dsl_display_type_rgba_text_new()
 ##
-_dsl.dsl_display_type_rgba_text_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_rgba_text_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
 _dsl.dsl_display_type_rgba_text_new.restype = c_uint
-def dsl_display_type_rgba_text_new(name, text, x_offset, y_offset, font, has_bg_color, bg_color):
+def dsl_display_type_rgba_text_new(name, 
+    text, x_offset, y_offset, font, has_bg_color, bg_color):
     global _dsl
-    result =_dsl.dsl_display_type_rgba_text_new(name, text, x_offset, y_offset, font, has_bg_color, bg_color)
+    result =_dsl.dsl_display_type_rgba_text_new(name, 
+        text, x_offset, y_offset, font, has_bg_color, bg_color)
     return int(result)
 
 ##
 ## dsl_display_type_rgba_line_new()
 ##
-_dsl.dsl_display_type_rgba_line_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_wchar_p]
+_dsl.dsl_display_type_rgba_line_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_uint, c_uint, c_uint, c_wchar_p]
 _dsl.dsl_display_type_rgba_line_new.restype = c_uint
 def dsl_display_type_rgba_line_new(name, x1, y1, x2, y2, width, color):
     global _dsl
-    result =_dsl.dsl_display_type_rgba_line_new(name, x1, y1, x2, y2, width, color)
+    result =_dsl.dsl_display_type_rgba_line_new(name, 
+        x1, y1, x2, y2, width, color)
     return int(result)
 
 ##
 ## dsl_display_type_rgba_rectangle_new()
 ##
-_dsl.dsl_display_type_rgba_rectangle_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_rgba_rectangle_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_uint, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
 _dsl.dsl_display_type_rgba_rectangle_new.restype = c_uint
-def dsl_display_type_rgba_rectangle_new(name, left, top, width, height, border_width, color, has_bg_color, bg_color):
+def dsl_display_type_rgba_rectangle_new(name, 
+    left, top, width, height, border_width, color, has_bg_color, bg_color):
     global _dsl
-    result =_dsl.dsl_display_type_rgba_rectangle_new(name, left, top, width, height, border_width, color, has_bg_color, bg_color)
+    result =_dsl.dsl_display_type_rgba_rectangle_new(name, 
+        left, top, width, height, border_width, color, has_bg_color, bg_color)
     return int(result)
 
 ##
@@ -299,6 +618,18 @@ def dsl_display_type_rgba_polygon_new(name, coordinates, num_coordinates, border
     arr = (dsl_coordinate * num_coordinates)()
     arr[:] = coordinates
     result =_dsl.dsl_display_type_rgba_polygon_new(name, arr, num_coordinates, border_width, color)
+    return int(result)
+
+##
+## dsl_display_type_rgba_line_multi_new()
+##
+#_dsl.dsl_display_type_rgba_line_multi_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_rgba_line_multi_new.restype = c_uint
+def dsl_display_type_rgba_line_multi_new(name, coordinates, num_coordinates, border_width, color):
+    global _dsl
+    arr = (dsl_coordinate * num_coordinates)()
+    arr[:] = coordinates
+    result =_dsl.dsl_display_type_rgba_line_multi_new(name, arr, num_coordinates, border_width, color)
     return int(result)
 
 ##
@@ -344,12 +675,12 @@ def dsl_display_type_source_dimensions_new(name, x_offset, y_offset, font, has_b
 ##
 ## dsl_display_type_meta_add()
 ##
-_dsl.dsl_display_type_meta_add.argtypes = [c_wchar_p, c_void_p, c_void_p]
-_dsl.dsl_display_type_meta_add.restype = c_uint
-def dsl_display_type_meta_add(name, display_meta, frame_meta):
-    global _dsl
-    result =_dsl.dsl_display_type_meta_add(name, display_meta, frame_meta)
-    return int(result)
+#_dsl.dsl_display_type_meta_add.argtypes = [c_wchar_p, c_void_p, c_void_p]
+#_dsl.dsl_display_type_meta_add.restype = c_uint
+#def dsl_display_type_meta_add(name, display_meta, frame_meta):
+#    global _dsl
+#    result =_dsl.dsl_display_type_meta_add(name, display_meta, frame_meta)
+#    return int(result)
 
 ##
 ## dsl_display_type_delete()
@@ -655,6 +986,20 @@ _dsl.dsl_ode_action_message_meta_add_new.restype = c_uint
 def dsl_ode_action_message_meta_add_new(name):
     global _dsl
     result =_dsl.dsl_ode_action_message_meta_add_new(name)
+    return int(result)
+
+##
+## dsl_ode_action_monitor_new()
+##
+_dsl.dsl_ode_action_monitor_new.argtypes = [c_wchar_p, DSL_ODE_MONITOR_OCCURRENCE, c_void_p]
+_dsl.dsl_ode_action_monitor_new.restype = c_uint
+def dsl_ode_action_monitor_new(name, client_monitor, client_data):
+    global _dsl
+    c_client_monitor= DSL_ODE_MONITOR_OCCURRENCE(client_monitor)
+    callbacks.append(c_client_monitor)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_ode_action_monitor_new(name, c_client_monitor, c_client_data)
     return int(result)
 
 ##
@@ -989,9 +1334,19 @@ def dsl_ode_area_exclusion_new(name, polygon, show, bbox_test_point):
 ##
 _dsl.dsl_ode_area_line_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint]
 _dsl.dsl_ode_area_line_new.restype = c_uint
-def dsl_ode_area_line_new(name, line, show, bbox_test_edge):
+def dsl_ode_area_line_new(name, line, show, bbox_test_point):
     global _dsl
-    result =_dsl.dsl_ode_area_line_new(name, line, show, bbox_test_edge)
+    result =_dsl.dsl_ode_area_line_new(name, line, show, bbox_test_point)
+    return int(result)
+
+##
+## dsl_ode_area_line_multi_new()
+##
+_dsl.dsl_ode_area_line_multi_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint]
+_dsl.dsl_ode_area_line_multi_new.restype = c_uint
+def dsl_ode_area_line_multi_new(name, multi_line, show, bbox_test_point):
+    global _dsl
+    result =_dsl.dsl_ode_area_line_multi_new(name, multi_line, show, bbox_test_point)
     return int(result)
 
 ##
@@ -1053,16 +1408,6 @@ _dsl.dsl_ode_trigger_absence_new.restype = c_uint
 def dsl_ode_trigger_absence_new(name, source, class_id, limit):
     global _dsl
     result =_dsl.dsl_ode_trigger_absence_new(name, source, class_id, limit)
-    return int(result)
-
-##
-## dsl_ode_trigger_accumulation_new()
-##
-_dsl.dsl_ode_trigger_accumulation_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
-_dsl.dsl_ode_trigger_accumulation_new.restype = c_uint
-def dsl_ode_trigger_accumulation_new(name, source, class_id, limit):
-    global _dsl
-    result =_dsl.dsl_ode_trigger_accumulation_new(name, source, class_id, limit)
     return int(result)
 
 ##
@@ -1137,13 +1482,85 @@ def dsl_ode_trigger_occurrence_new(name, source, class_id, limit):
     return int(result)
 
 ##
+## dsl_ode_trigger_cross_new()
+##
+_dsl.dsl_ode_trigger_cross_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint,
+    c_uint, c_uint, c_uint]
+_dsl.dsl_ode_trigger_cross_new.restype = c_uint
+def dsl_ode_trigger_cross_new(name, source, class_id, limit,
+    min_frame_count, max_trace_points, test_method):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_cross_new(name, source, class_id, limit,
+        min_frame_count, max_trace_points, test_method)
+    return int(result)
+
+##
+## dsl_ode_trigger_cross_test_settings_get()
+##
+_dsl.dsl_ode_trigger_cross_test_settings_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_ode_trigger_cross_test_settings_get.restype = c_uint
+def dsl_ode_trigger_cross_test_settings_get(name):
+    global _dsl
+    min_frame_count = c_uint(0) 
+    max_trace_points = c_uint(0)
+    test_method = c_uint(0)
+    result =_dsl.dsl_ode_trigger_cross_test_settings_get(name, 
+        DSL_UINT_P(min_frame_count), DSL_UINT_P(max_trace_points),
+        DSL_UINT_P(test_method))
+    return int(result), min_frame_count.value, max_trace_points.value, test_method.value
+    
+##
+## dsl_ode_trigger_cross_test_settings_set()
+##
+_dsl.dsl_ode_trigger_cross_test_settings_set.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_uint]
+_dsl.dsl_ode_trigger_cross_test_settings_set.restype = c_uint
+def dsl_ode_trigger_cross_test_settings_set(name,
+        min_frame_count, max_trace_points, test_method):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_cross_test_settings_set(name, 
+        min_frame_count, max_trace_points, test_method)
+    return int(result)
+
+##
+## dsl_ode_trigger_cross_view_settings_get()
+##
+_dsl.dsl_ode_trigger_cross_view_settings_get.argtypes = [c_wchar_p, 
+    POINTER(c_bool), POINTER(c_wchar_p), POINTER(c_uint)]
+_dsl.dsl_ode_trigger_cross_view_settings_get.restype = c_uint
+def dsl_ode_trigger_cross_view_settings_get(name):
+    global _dsl
+    enabled = c_bool(0) 
+    color = c_wchar_p(0)
+    line_width = c_uint(0)
+    result =_dsl.dsl_ode_trigger_cross_view_settings_get(name, 
+        DSL_BOOL_P(enabled), DSL_WCHAR_P(color), DSL_UINT_P(line_width))
+    return int(result), enabled.value, color.value, line_width.value
+
+##
+## dsl_ode_trigger_cross_view_settings_set()
+##
+_dsl.dsl_ode_trigger_cross_view_settings_set.argtypes = [c_wchar_p, 
+    c_bool, c_wchar_p, c_uint]
+_dsl.dsl_ode_trigger_cross_view_settings_set.restype = c_uint
+def dsl_ode_trigger_cross_view_settings_set(name, enabled, color, line_width):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_cross_view_settings_set(name, 
+        enabled, color, line_width)
+    return int(result) 
+
+##
 ## dsl_ode_trigger_persistence_new()
 ##
-_dsl.dsl_ode_trigger_persistence_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_ode_trigger_persistence_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_uint, c_uint, c_uint]
 _dsl.dsl_ode_trigger_persistence_new.restype = c_uint
-def dsl_ode_trigger_persistence_new(name, source, class_id, limit, minimum, maximum):
+def dsl_ode_trigger_persistence_new(name, 
+    source, class_id, limit, minimum, maximum):
     global _dsl
-    result =_dsl.dsl_ode_trigger_persistence_new(name, source, class_id, limit, minimum, maximum)
+    result =_dsl.dsl_ode_trigger_persistence_new(name, 
+        source, class_id, limit, minimum, maximum)
     return int(result)
 
 ##
@@ -1337,7 +1754,7 @@ _dsl.dsl_ode_trigger_reset_timeout_get.restype = c_uint
 def dsl_ode_trigger_reset_timeout_get(name):
     global _dsl
     timeout = c_uint(0)
-    result =_dsl.dsl_ode_trigger_reset_timeout_get(name, DSL_BOOL_P(c_uint))
+    result =_dsl.dsl_ode_trigger_reset_timeout_get(name, DSL_UINT_P(c_uint))
     return int(result), timeout.value
 
 ##
@@ -1543,7 +1960,8 @@ _dsl.dsl_ode_trigger_confidence_min_get.restype = c_uint
 def dsl_ode_trigger_confidence_min_get(name):
     global _dsl
     min_confidence = c_float(0)
-    result =_dsl.dsl_ode_trigger_confidence_min_get(name, DSL_FLOAT_P(min_confidence))
+    result =_dsl.dsl_ode_trigger_confidence_min_get(name, 
+        DSL_FLOAT_P(min_confidence))
     return int(result), min_confidence.value
 
 ##
@@ -1557,15 +1975,40 @@ def dsl_ode_trigger_confidence_min_set(name, min_confidence):
     return int(result)
 
 ##
+## dsl_ode_trigger_tracker_confidence_min_get()
+##
+_dsl.dsl_ode_trigger_tracker_confidence_min_get.argtypes = [c_wchar_p, 
+    POINTER(c_float)]
+_dsl.dsl_ode_trigger_tracker_confidence_min_get.restype = c_uint
+def dsl_ode_trigger_tracker_confidence_min_get(name):
+    global _dsl
+    min_confidence = c_float(0)
+    result =_dsl.dsl_ode_trigger_tracker_confidence_min_get(name, 
+        DSL_FLOAT_P(min_confidence))
+    return int(result), min_confidence.value
+
+##
+## dsl_ode_trigger_tracker_confidence_min_set()
+##
+_dsl.dsl_ode_trigger_tracker_confidence_min_set.argtypes = [c_wchar_p, c_float]
+_dsl.dsl_ode_trigger_tracker_confidence_min_set.restype = c_uint
+def dsl_ode_trigger_tracker_confidence_min_set(name, min_confidence):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_tracker_confidence_min_set(name, min_confidence)
+    return int(result)
+
+##
 ## dsl_ode_trigger_dimensions_min_get()
 ##
-_dsl.dsl_ode_trigger_dimensions_min_get.argtypes = [c_wchar_p, POINTER(c_float), POINTER(c_float)]
+_dsl.dsl_ode_trigger_dimensions_min_get.argtypes = [c_wchar_p, 
+    POINTER(c_float), POINTER(c_float)]
 _dsl.dsl_ode_trigger_dimensions_min_get.restype = c_uint
 def dsl_ode_trigger_dimensions_min_get(name):
     global _dsl
     min_width = c_uint(0)
     min_height = c_uint(0)
-    result = _dsl.dsl_ode_trigger_dimensions_min_get(name, DSL_FLOAT_P(min_width), DSL_FLOAT_P(min_height))
+    result = _dsl.dsl_ode_trigger_dimensions_min_get(name, 
+        DSL_FLOAT_P(min_width), DSL_FLOAT_P(min_height))
     return int(result), min_width.value, min_height.value 
 
 ##
@@ -1719,6 +2162,46 @@ def dsl_ode_trigger_area_add_many(name, areas):
     return int(result)
 
 ##
+## dsl_ode_trigger_accumulator_add()
+##
+_dsl.dsl_ode_trigger_accumulator_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_trigger_accumulator_add.restype = c_uint
+def dsl_ode_trigger_accumulator_add(name, accumulator):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_accumulator_add(name, accumulator)
+    return int(result)
+
+##
+## dsl_ode_trigger_accumulator_remove()
+##
+_dsl.dsl_ode_trigger_accumulator_remove.argtypes = [c_wchar_p]
+_dsl.dsl_ode_trigger_accumulator_remove.restype = c_uint
+def dsl_ode_trigger_accumulator_remove(name):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_accumulator_remove(name)
+    return int(result)
+
+##
+## dsl_ode_trigger_heat_mapper_add()
+##
+_dsl.dsl_ode_trigger_heat_mapper_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_trigger_heat_mapper_add.restype = c_uint
+def dsl_ode_trigger_heat_mapper_add(name, heat_mapper):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_heat_mapper_add(name, heat_mapper)
+    return int(result)
+
+##
+## dsl_ode_trigger_heat_mapper_remove()
+##
+_dsl.dsl_ode_trigger_heat_mapper_remove.argtypes = [c_wchar_p]
+_dsl.dsl_ode_trigger_heat_mapper_remove.restype = c_uint
+def dsl_ode_trigger_heat_mapper_remove(name):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_heat_mapper_remove(name)
+    return int(result)
+
+##
 ## dsl_ode_trigger_delete()
 ##
 _dsl.dsl_ode_trigger_delete.argtypes = [c_wchar_p]
@@ -1757,6 +2240,271 @@ _dsl.dsl_ode_trigger_list_size.restype = c_uint
 def dsl_ode_trigger_list_size():
     global _dsl
     result =_dsl.dsl_ode_trigger_list_size()
+    return int(result)
+
+##
+## dsl_ode_accumulator_new()
+##
+_dsl.dsl_ode_accumulator_new.argtypes = [c_wchar_p]
+_dsl.dsl_ode_accumulator_new.restype = c_uint
+def dsl_ode_accumulator_new(name):
+    global _dsl
+    result =_dsl.dsl_ode_accumulator_new(name)
+    return int(result)
+
+##
+## dsl_ode_accumulator_action_add()
+##
+_dsl.dsl_ode_accumulator_action_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_accumulator_action_add.restype = c_uint
+def dsl_ode_accumulator_action_add(name, action):
+    global _dsl
+    result =_dsl.dsl_ode_accumulator_action_add(name, action)
+    return int(result)
+
+##
+## dsl_ode_accumulator_action_add_many()
+##
+#_dsl.dsl_ode_accumulator_action_add_many.argtypes = [??]
+_dsl.dsl_ode_accumulator_action_add_many.restype = c_uint
+def dsl_ode_accumulator_action_add_many(name, actions):
+    global _dsl
+    arr = (c_wchar_p * len(actions))()
+    arr[:] = actions
+    result =_dsl.dsl_ode_accumulator_action_add_many(name, arr)
+    return int(result)
+
+##
+## dsl_ode_accumulator_action_remove()
+##
+_dsl.dsl_ode_accumulator_action_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_accumulator_action_remove.restype = c_uint
+def dsl_ode_accumulator_action_remove(name, action):
+    global _dsl
+    result =_dsl.dsl_ode_accumulator_action_remove(name, action)
+    return int(result)
+
+##
+## dsl_ode_accumulator_action_remove_many()
+##
+#_dsl.dsl_ode_accumulator_action_remove_many.argtypes = [??]
+_dsl.dsl_ode_accumulator_action_remove_many.restype = c_uint
+def dsl_ode_accumulator_action_remove_many(name, actions):
+    global _dsl
+    arr = (c_wchar_p * len(actions))()
+    arr[:] = actions
+    result =_dsl.dsl_ode_accumulator_action_remove_many(name, arr)
+    return int(result)
+
+##
+## dsl_ode_accumulator_action_remove_all()
+##
+_dsl.dsl_ode_accumulator_action_remove_all.argtypes = [c_wchar_p]
+_dsl.dsl_ode_accumulator_action_remove_all.restype = c_uint
+def dsl_ode_accumulator_action_remove_all(name):
+    global _dsl
+    result =_dsl.dsl_ode_accumulator_action_remove_all(name)
+    return int(result)
+
+##
+## dsl_ode_accumulator_delete()
+##
+_dsl.dsl_ode_accumulator_delete.argtypes = [c_wchar_p]
+_dsl.dsl_ode_accumulator_delete.restype = c_uint
+def dsl_ode_accumulator_delete(name):
+    global _dsl
+    result =_dsl.dsl_ode_accumulator_delete(name)
+    return int(result)
+
+##
+## dsl_ode_accumulator_delete_many()
+##
+#_dsl.dsl_ode_accumulator_delete_many.argtypes = [??]
+_dsl.dsl_ode_accumulator_delete_many.restype = c_uint
+def dsl_ode_accumulator_delete_many(names):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    result =_dsl.dsl_ode_accumulator_delete_many(arr)
+    return int(result)
+
+##
+## dsl_ode_accumulator_delete_all()
+##
+_dsl.dsl_ode_accumulator_delete_all.argtypes = []
+_dsl.dsl_ode_accumulator_delete_all.restype = c_uint
+def dsl_ode_accumulator_delete_all():
+    global _dsl
+    result =_dsl.dsl_ode_accumulator_delete_all()
+    return int(result)
+
+##
+## dsl_ode_accumulator_list_size()
+##
+_dsl.dsl_ode_accumulator_list_size.restype = c_uint
+def dsl_ode_accumulator_list_size():
+    global _dsl
+    result =_dsl.dsl_ode_accumulator_list_size()
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_new()
+##
+_dsl.dsl_ode_heat_mapper_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_uint, c_wchar_p]
+_dsl.dsl_ode_heat_mapper_new.restype = c_uint
+def dsl_ode_heat_mapper_new(name, cols, rows, bbox_test_point, color_palette):
+    global _dsl
+    result =_dsl.dsl_ode_heat_mapper_new(name, 
+        cols, rows, bbox_test_point, color_palette)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_legend_settings_get()
+##
+_dsl.dsl_ode_heat_mapper_legend_settings_get.argtypes = [c_wchar_p, 
+    POINTER(c_bool), POINTER(c_uint), POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_ode_heat_mapper_legend_settings_get.restype = c_uint
+def dsl_ode_heat_mapper_legend_settings_get(name):
+    global _dsl 
+    enabled = c_bool(0)
+    location = c_uint(0)
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_ode_heat_mapper_legend_settings_get(name, DSL_BOOL_P(enabled), 
+        DSL_UINT_P(location), DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), enabled.value, location.value, width.value, height.value 
+
+##
+## dsl_ode_heat_mapper_legend_settings_set()
+##
+_dsl.dsl_ode_heat_mapper_legend_settings_set.argtypes = [c_wchar_p, 
+    c_bool, c_uint, c_uint, c_uint]
+_dsl.dsl_ode_heat_mapper_legend_settings_set.restype = c_uint
+def dsl_ode_heat_mapper_legend_settings_set(name, enabled, location, width, height):
+    global _dsl
+    result = _dsl.dsl_ode_heat_mapper_legend_settings_set(name, 
+        enabled, location, width, height)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_color_palette_get()
+##
+_dsl.dsl_ode_heat_mapper_color_palette_get.argtypes = [c_wchar_p, 
+    POINTER(c_wchar_p)]
+_dsl.dsl_ode_heat_mapper_color_palette_get.restype = c_uint
+def dsl_ode_heat_mapper_color_palette_get(name):
+    global _dsl 
+    color_palette = c_wchar_p(0)
+    result = _dsl.dsl_ode_heat_mapper_color_palette_get(name,
+        DSL_WCHAR_P(color_palette))
+    return int(result), color_palette.value
+
+##
+## dsl_ode_heat_mapper_color_palette_set()
+##
+_dsl.dsl_ode_heat_mapper_color_palette_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_heat_mapper_color_palette_set.restype = c_uint
+def dsl_ode_heat_mapper_color_palette_set(name, color_palette):
+    global _dsl
+    result = _dsl.dsl_ode_heat_mapper_color_palette_set(name, color_palette)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_metrics_clear()
+##
+_dsl.dsl_ode_heat_mapper_metrics_clear.argtypes = [c_wchar_p]
+_dsl.dsl_ode_heat_mapper_metrics_clear.restype = c_uint
+def dsl_ode_heat_mapper_metrics_clear(name):
+    global _dsl
+    result = _dsl.dsl_ode_heat_mapper_metrics_clear(name)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_metrics_get()
+##
+_dsl.dsl_ode_heat_mapper_metrics_get.argtypes = [c_wchar_p, 
+    POINTER(DSL_UINT64_P), POINTER(c_uint)]
+_dsl.dsl_ode_heat_mapper_metrics_get.restype = c_uint
+def dsl_ode_heat_mapper_metrics_get(name):
+    global _dsl 
+    buffer = POINTER(c_uint64)()
+    size = c_uint(0)
+    result = _dsl.dsl_ode_heat_mapper_metrics_get(name,
+        byref(buffer), DSL_UINT_P(size))
+    print (buffer[0])
+    return int(result), buffer, size.value
+
+##
+## dsl_ode_heat_mapper_metrics_print()
+##
+_dsl.dsl_ode_heat_mapper_metrics_print.argtypes = [c_wchar_p]
+_dsl.dsl_ode_heat_mapper_metrics_print.restype = c_uint
+def dsl_ode_heat_mapper_metrics_print(name):
+    global _dsl
+    result = _dsl.dsl_ode_heat_mapper_metrics_print(name)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_metrics_log()
+##
+_dsl.dsl_ode_heat_mapper_metrics_log.argtypes = [c_wchar_p]
+_dsl.dsl_ode_heat_mapper_metrics_log.restype = c_uint
+def dsl_ode_heat_mapper_metrics_log(name):
+    global _dsl
+    result = _dsl.dsl_ode_heat_mapper_metrics_log(name)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_metrics_file()
+##
+_dsl.dsl_ode_heat_mapper_metrics_file.argtypes = [c_wchar_p,
+    c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_heat_mapper_metrics_file.restype = c_uint
+def dsl_ode_heat_mapper_metrics_file(name, file_path, mode, format):
+    global _dsl
+    result = _dsl.dsl_ode_heat_mapper_metrics_file(name, file_path, mode, format)
+    return int(result)
+    
+##
+## dsl_ode_heat_mapper_delete()
+##
+_dsl.dsl_ode_heat_mapper_delete.argtypes = [c_wchar_p]
+_dsl.dsl_ode_heat_mapper_delete.restype = c_uint
+def dsl_ode_heat_mapper_delete(name):
+    global _dsl
+    result =_dsl.dsl_ode_heat_mapper_delete(name)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_delete_many()
+##
+#_dsl.dsl_ode_heat_mapper_delete_many.argtypes = [??]
+_dsl.dsl_ode_heat_mapper_delete_many.restype = c_uint
+def dsl_ode_heat_mapper_delete_many(names):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    result =_dsl.dsl_ode_heat_mapper_delete_many(arr)
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_delete_all()
+##
+_dsl.dsl_ode_heat_mapper_delete_all.argtypes = []
+_dsl.dsl_ode_heat_mapper_delete_all.restype = c_uint
+def dsl_ode_heat_mapper_delete_all():
+    global _dsl
+    result =_dsl.dsl_ode_heat_mapper_delete_all()
+    return int(result)
+
+##
+## dsl_ode_heat_mapper_list_size()
+##
+_dsl.dsl_ode_heat_mapper_list_size.restype = c_uint
+def dsl_ode_heat_mapper_list_size():
+    global _dsl
+    result =_dsl.dsl_ode_heat_mapper_list_size()
     return int(result)
 
 ##
@@ -1821,6 +2569,27 @@ _dsl.dsl_pph_ode_trigger_remove_all.restype = c_uint
 def dsl_pph_ode_trigger_remove_all(name):
     global _dsl
     result =_dsl.dsl_pph_ode_trigger_remove_all(name)
+    return int(result)
+
+##
+## dsl_pph_ode_display_meta_alloc_size_get()
+##
+_dsl.dsl_pph_ode_display_meta_alloc_size_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_pph_ode_display_meta_alloc_size_get.restype = c_uint
+def dsl_pph_ode_display_meta_alloc_size_get(name):
+    global _dsl
+    size = c_uint(0)
+    result =_dsl.dsl_pph_ode_display_meta_alloc_size_get(name, DSL_UINT_P(size))
+    return int(result), size.value
+
+##
+## dsl_pph_ode_display_meta_alloc_size_set()
+##
+_dsl.dsl_pph_ode_display_meta_alloc_size_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_pph_ode_display_meta_alloc_size_set.restype = c_uint
+def dsl_pph_ode_display_meta_alloc_size_set(name, size):
+    global _dsl
+    result =_dsl.dsl_pph_ode_display_meta_alloc_size_set(name, size)
     return int(result)
 
 ##
@@ -2021,53 +2790,42 @@ def dsl_source_file_repeat_enabled_set(name, enabled):
 ##
 ## dsl_source_image_new()
 ##
-_dsl.dsl_source_image_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint, c_uint, c_uint]
+_dsl.dsl_source_image_new.argtypes = [c_wchar_p, c_wchar_p]
 _dsl.dsl_source_image_new.restype = c_uint
-def dsl_source_image_new(name, file_path, is_live, fps_n, fps_d, timeout):
+def dsl_source_image_new(name, file_path):
     global _dsl
-    result = _dsl.dsl_source_image_new(name, file_path, is_live, fps_n, fps_d, timeout)
+    result = _dsl.dsl_source_image_new(name, file_path)
     return int(result)
 
 ##
-## dsl_source_image_path_get()
+## dsl_source_image_stream_new()
 ##
-_dsl.dsl_source_image_path_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
-_dsl.dsl_source_image_path_get.restype = c_uint
-def dsl_source_image_path_get(name):
+_dsl.dsl_source_image_stream_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint, c_uint, c_uint]
+_dsl.dsl_source_image_stream_new.restype = c_uint
+def dsl_source_image_stream_new(name, file_path, is_live, fps_n, fps_d, timeout):
     global _dsl
-    file_path = c_wchar_p(0)
-    result = _dsl.dsl_source_image_path_get(name, DSL_WCHAR_PP(file_path))
-    return int(result), file_path.value 
-
-##
-## dsl_source_image_path_set()
-##
-_dsl.dsl_source_image_path_set.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_source_image_path_set.restype = c_uint
-def dsl_source_image_path_set(name, file_path):
-    global _dsl
-    result = _dsl.dsl_source_image_path_set(name, file_path)
+    result = _dsl.dsl_source_image_stream_new(name, file_path, is_live, fps_n, fps_d, timeout)
     return int(result)
 
 ##
-## dsl_source_image_timeout_get()
+## dsl_source_image_stream_timeout_get()
 ##
-_dsl.dsl_source_image_timeout_get.argtypes = [c_wchar_p, POINTER(c_uint)]
-_dsl.dsl_source_image_timeout_get.restype = c_uint
-def dsl_source_image_timeout_get(name):
+_dsl.dsl_source_image_stream_timeout_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_source_image_stream_timeout_get.restype = c_uint
+def dsl_source_image_stream_timeout_get(name):
     global _dsl
     timeout = c_uint(0)
-    result = _dsl.dsl_source_image_timeout_get(name, DSL_UINT_P(timeout))
+    result = _dsl.dsl_source_image_stream_timeout_get(name, DSL_UINT_P(timeout))
     return int(result), timeout.value 
 
 ##
-## dsl_source_image_timeout_set()
+## dsl_source_image_stream_timeout_set()
 ##
-_dsl.dsl_source_image_timeout_set.argtypes = [c_wchar_p, c_uint]
-_dsl.dsl_source_image_timeout_set.restype = c_uint
-def dsl_source_image_timeout_set(name, timeout):
+_dsl.dsl_source_image_stream_timeout_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_source_image_stream_timeout_set.restype = c_uint
+def dsl_source_image_stream_timeout_set(name, timeout):
     global _dsl
-    result = _dsl.dsl_source_image_timeout_set(name, timeout)
+    result = _dsl.dsl_source_image_stream_timeout_set(name, timeout)
     return int(result)
 
 ##
@@ -3548,25 +4306,24 @@ def dsl_sink_message_new(name, converter_config_file, payload_type,
     return int(result)
     
 ##
-## dsl_sink_sync_settings_get()
+## dsl_sink_sync_enabled_get()
 ##
-_dsl.dsl_sink_sync_settings_get.argtypes = [c_wchar_p, POINTER(c_bool), POINTER(c_bool)]
-_dsl.dsl_sink_sync_settings_get.restype = c_uint
-def dsl_sink_sync_settings_get(name):
+_dsl.dsl_sink_sync_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_sink_sync_enabled_get.restype = c_uint
+def dsl_sink_sync_enabled_get(name):
     global _dsl
     _sync = c_bool(0)
-    _async = c_bool(0)
-    result = _dsl.dsl_sink_sync_settings_get(name, DSL_BOOL_P(_sync), DSL_BOOL_P(_async))
-    return int(result), _sync.value, _async.value 
+    result = _dsl.dsl_sink_sync_enabled_get(name, DSL_BOOL_P(_sync))
+    return int(result), _sync.value
 
 ##
-## dsl_sink_sync_settings_set()
+## dsl_sink_sync_enabled_set()
 ##
-_dsl.dsl_sink_sync_settings_set.argtypes = [c_wchar_p, c_bool, c_bool]
-_dsl.dsl_sink_sync_settings_set.restype = c_uint
-def dsl_sink_sync_settings_set(name, _sync, _async):
+_dsl.dsl_sink_sync_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_sink_sync_enabled_set.restype = c_uint
+def dsl_sink_sync_enabled_set(name, _sync):
     global _dsl
-    result = _dsl.dsl_sink_sync_settings_set(name, _sync, _async)
+    result = _dsl.dsl_sink_sync_enabled_set(name, _sync)
     return int(result)
 
 ##

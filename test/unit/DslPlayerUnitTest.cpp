@@ -252,7 +252,7 @@ SCENARIO( "A New PlayerBintr with a File Source and Window Sink can Play and Sto
     }
 }
 
-SCENARIO( "A New PlayerBintr with ImageSourceBintr and OverlaySinkBintr can Play and Stop correctly", "[PlayerBintr]" )
+SCENARIO( "A New PlayerBintr with ImageStreamSourceBintr and OverlaySinkBintr can Play and Stop correctly", "[PlayerBintr]" )
 {
     GIVEN( "A new PlayerBintr" ) 
     {
@@ -269,7 +269,7 @@ SCENARIO( "A New PlayerBintr with ImageSourceBintr and OverlaySinkBintr can Play
         uint sinkH(0);
 
 
-        DSL_IMAGE_SOURCE_PTR pSourceBintr = DSL_IMAGE_SOURCE_NEW(
+        DSL_IMAGE_STREAM_SOURCE_PTR pSourceBintr = DSL_IMAGE_STREAM_SOURCE_NEW(
             sourceName.c_str(), jpgFilePath1.c_str(), false, 1, 1, 0);
 
         // use the image size for the Window sink dimensions
@@ -295,7 +295,7 @@ SCENARIO( "A New PlayerBintr with ImageSourceBintr and OverlaySinkBintr can Play
     }
 }
 
-SCENARIO( "A New PlayerBintr with ImageSourceBintr and WindowSinkBintr can Play and Stop correctly", "[PlayerBintr]" )
+SCENARIO( "A New PlayerBintr with ImageStreamSourceBintr and WindowSinkBintr can Play and Stop correctly", "[PlayerBintr]" )
 {
     GIVEN( "A new PipelineBintr" ) 
     {
@@ -309,7 +309,7 @@ SCENARIO( "A New PlayerBintr with ImageSourceBintr and WindowSinkBintr can Play 
         uint sinkW(0);
         uint sinkH(0);
 
-        DSL_IMAGE_SOURCE_PTR pSourceBintr = DSL_IMAGE_SOURCE_NEW(
+        DSL_IMAGE_STREAM_SOURCE_PTR pSourceBintr = DSL_IMAGE_STREAM_SOURCE_NEW(
             sourceName.c_str(), jpgFilePath1.c_str(), false, 1, 1, 0);
 
         // use the image size for the Window sink dimensions

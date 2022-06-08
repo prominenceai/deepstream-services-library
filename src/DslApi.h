@@ -81,9 +81,11 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_TAP_ADD_FAILED                            0x0002000E
 #define DSL_RESULT_SOURCE_TAP_REMOVE_FAILED                         0x0002000F
 #define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x00020010
-#define DSL_RESULT_SOURCE_CALLBACK_ADD_FAILED                       0x00020011
-#define DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED                    0x00020012
-#define DSL_RESULT_SOURCE_SET_FAILED                                0x00020013
+#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_DECODE_SOURCE            0x00020011
+#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_FILE_SOURCE              0x00020012
+#define DSL_RESULT_SOURCE_CALLBACK_ADD_FAILED                       0x00020013
+#define DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED                    0x00020014
+#define DSL_RESULT_SOURCE_SET_FAILED                                0x00020015
 
 
 /**
@@ -297,6 +299,12 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_TRIGGER_CALLBACK_REMOVE_FAILED               0x000F000E
 #define DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID                    0x000E000F
 #define DSL_RESULT_ODE_TRIGGER_IS_NOT_AB_TYPE                       0x000E0010
+#define DSL_RESULT_ODE_TRIGGER_IS_NOT_TRACK_TRIGGER                 0x000E0011
+#define DSL_RESULT_ODE_TRIGGER_ACCUMULATOR_ADD_FAILED               0x000E0012
+#define DSL_RESULT_ODE_TRIGGER_ACCUMULATOR_REMOVE_FAILED            0x000E0013
+#define DSL_RESULT_ODE_TRIGGER_HEAT_MAPPER_ADD_FAILED               0x000E0014
+#define DSL_RESULT_ODE_TRIGGER_HEAT_MAPPER_REMOVE_FAILED            0x000E0015
+
 /**
  * ODE Action API Return Values
  */
@@ -336,20 +344,7 @@ THE SOFTWARE.
 #define DSL_RESULT_DISPLAY_TYPE_IN_USE                              0x00200004
 #define DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE                0x00200005
 #define DSL_RESULT_DISPLAY_TYPE_IS_BASE_TYPE                        0x00200006
-#define DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE               0x00200007
-#define DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE                0x00200008
-#define DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE                0x00200009
-#define DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE                0x0020000A
-#define DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE               0x0020000B
-#define DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID                  0x0020000C
-#define DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE           0x0020000D
-#define DSL_RESULT_DISPLAY_RGBA_POLYGON_NAME_NOT_UNIQUE             0x0020000E
-#define DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE              0x0020000F
-#define DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE            0x00200010
-#define DSL_RESULT_DISPLAY_SOURCE_NAME_NAME_NOT_UNIQUE              0x00200011
-#define DSL_RESULT_DISPLAY_SOURCE_DIMENSIONS_NAME_NOT_UNIQUE        0x00200012
-#define DSL_RESULT_DISPLAY_SOURCE_FRAMERATE_NAME_NOT_UNIQUE         0x00200013
-#define DSL_RESULT_DISPLAY_PARAMETER_INVALID                        0x00200014
+#define DSL_RESULT_DISPLAY_PARAMETER_INVALID                        0x00200008
 
 
 /**
@@ -444,6 +439,33 @@ THE SOFTWARE.
 #define DSL_RESULT_BROKER_DISCONNECT_FAILED                         0x0080000E
 #define DSL_RESULT_BROKER_MESSAGE_SEND_FAILED                       0x0080000F
 
+/**
+ * ODE Accumulator API Return Values
+ */
+#define DSL_RESULT_ODE_ACCUMULATOR_RESULT                           0x00900000
+#define DSL_RESULT_ODE_ACCUMULATOR_NAME_NOT_UNIQUE                  0x00900001
+#define DSL_RESULT_ODE_ACCUMULATOR_NAME_NOT_FOUND                   0x00900002
+#define DSL_RESULT_ODE_ACCUMULATOR_THREW_EXCEPTION                  0x00900003
+#define DSL_RESULT_ODE_ACCUMULATOR_IN_USE                           0x00900004
+#define DSL_RESULT_ODE_ACCUMULATOR_SET_FAILED                       0x00900005
+#define DSL_RESULT_ODE_ACCUMULATOR_IS_NOT_ODE_ACCUMULATOR           0x00900006
+#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_ADD_FAILED                0x00900007
+#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_REMOVE_FAILED             0x00900008
+#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_NOT_IN_USE                0x00900009
+
+/**
+ * ODE Heat-Mapper API Return Values
+ */
+#define DSL_RESULT_ODE_HEAT_MAPPER_RESULT                           0x00A00000
+#define DSL_RESULT_ODE_HEAT_MAPPER_NAME_NOT_UNIQUE                  0x00A00001
+#define DSL_RESULT_ODE_HEAT_MAPPER_NAME_NOT_FOUND                   0x00A00002
+#define DSL_RESULT_ODE_HEAT_MAPPER_THREW_EXCEPTION                  0x00A00003
+#define DSL_RESULT_ODE_HEAT_MAPPER_IN_USE                           0x00A00004
+#define DSL_RESULT_ODE_HEAT_MAPPER_SET_FAILED                       0x00A00005
+#define DSL_RESULT_ODE_HEAT_MAPPER_IS_NOT_ODE_HEAT_MAPPER           0x00A00006
+#define DSL_RESULT_ODE_HEAT_MAPPER_ACTION_ADD_FAILED                0x00A00007
+#define DSL_RESULT_ODE_HEAT_MAPPER_ACTION_REMOVE_FAILED             0x00A00008
+#define DSL_RESULT_ODE_HEAT_MAPPER_ACTION_NOT_IN_USE                0x00A00009
 
 /**
  * GPU Types
@@ -521,6 +543,85 @@ THE SOFTWARE.
  */
 #define DSL_RTSP_RECONNECTION_TIMEOUT_S                             30
 
+/**
+ * @brief Predefined Color Constants - rows 1 and 2.
+ */
+#define DSL_COLOR_PREDEFINED_BLACK                                  0
+#define DSL_COLOR_PREDEFINED_GRAY_50                                1
+#define DSL_COLOR_PREDEFINED_DARK_RED                               2
+#define DSL_COLOR_PREDEFINED_RED                                    3
+#define DSL_COLOR_PREDEFINED_ORANGE                                 4
+#define DSL_COLOR_PREDEFINED_YELLOW                                 5
+#define DSL_COLOR_PREDEFINED_GREEN                                  6
+#define DSL_COLOR_PREDEFINED_TURQUOISE                              7
+#define DSL_COLOR_PREDEFINED_INDIGO                                 8
+#define DSL_COLOR_PREDEFINED_PURPLE                                 9
+
+#define DSL_COLOR_PREDEFINED_WHITE                                  10
+#define DSL_COLOR_PREDEFINED_GRAY_25                                11
+#define DSL_COLOR_PREDEFINED_BROWN                                  12
+#define DSL_COLOR_PREDEFINED_ROSE                                   13
+#define DSL_COLOR_PREDEFINED_GOLD                                   14
+#define DSL_COLOR_PREDEFINED_LIGHT_YELLOW                           15
+#define DSL_COLOR_PREDEFINED_LIME                                   16
+#define DSL_COLOR_PREDEFINED_LIGHT_TURQUOISE                        17
+#define DSL_COLOR_PREDEFINED_BLUE_GRAY                              18
+#define DSL_COLOR_PREDEFINED_LAVENDER                               19
+
+/**
+ * @brief Hue constants used to define random RGB colors.
+ */
+#define DSL_COLOR_HUE_RED                                           0
+#define DSL_COLOR_HUE_RED_ORANGE                                    1
+#define DSL_COLOR_HUE_ORANGE                                        2
+#define DSL_COLOR_HUE_ORANGE_YELLOW                                 3
+#define DSL_COLOR_HUE_YELLOW                                        4
+#define DSL_COLOR_HUE_YELLOW_GREEN                                  5
+#define DSL_COLOR_HUE_GREEN                                         6
+#define DSL_COLOR_HUE_GREEN_CYAN                                    7
+#define DSL_COLOR_HUE_CYAN                                          8
+#define DSL_COLOR_HUE_CYAN_BLUE                                     9
+#define DSL_COLOR_HUE_BLUE                                          10
+#define DSL_COLOR_HUE_BLUE_MAGENTA                                  11
+#define DSL_COLOR_HUE_MAGENTA                                       12
+#define DSL_COLOR_HUE_MAGENTA_PINK                                  13
+#define DSL_COLOR_HUE_PINK                                          14
+#define DSL_COLOR_HUE_PINK_RED                                      15
+#define DSL_COLOR_HUE_RANDOM                                        16
+#define DSL_COLOR_HUE_BLACK_AND_WHITE                               17
+#define DSL_COLOR_HUE_BROWN                                         18
+
+/**
+ * @brief Luminosity constants used to create predefined and random RGB colors.
+ */
+#define DSL_COLOR_LUMINOSITY_DARK                                   0
+#define DSL_COLOR_LUMINOSITY_NORMAL                                 1
+#define DSL_COLOR_LUMINOSITY_LIGHT                                  2
+#define DSL_COLOR_LUMINOSITY_BRIGHT                                 3
+#define DSL_COLOR_LUMINOSITY_RANDOM                                 4
+
+/**
+ * @brief Predefined Color Palette constants used to create a predefined 
+ * RGB color palette.
+ */
+#define DSL_COLOR_PREDEFINED_PALETTE_SPECTRAL                       0
+#define DSL_COLOR_PREDEFINED_PALETTE_RED                            1
+#define DSL_COLOR_PREDEFINED_PALETTE_GREEN                          2
+#define DSL_COLOR_PREDEFINED_PALETTE_BLUE                           3
+#define DSL_COLOR_PREDEFINED_PALETTE_GREY                           4
+
+
+/**
+ * @brief On-Screen Heat-Map legend locations.
+ */
+#define DSL_HEAT_MAP_LEGEND_LOCATION_TOP                            0
+#define DSL_HEAT_MAP_LEGEND_LOCATION_RIGHT                          1
+#define DSL_HEAT_MAP_LEGEND_LOCATION_BOTTOM                         2
+#define DSL_HEAT_MAP_LEGEND_LOCATION_LEFT                           3
+ 
+/**
+ * @brief On-Screen Heat-Map legend locations.
+ */
 #define DSL_CAPTURE_TYPE_OBJECT                                     0
 #define DSL_CAPTURE_TYPE_FRAME                                      1
 
@@ -551,7 +652,25 @@ THE SOFTWARE.
 
 #define DSL_AREA_TYPE_INCLUSION                                     0
 #define DSL_AREA_TYPE_EXCLUSION                                     1
-#define DSL_AREA_TYPE_LINE                                          3                         
+#define DSL_AREA_TYPE_LINE                                          3     
+
+#define DSL_AREA_CROSS_DIRECTION_NONE                               0
+#define DSL_AREA_CROSS_DIRECTION_IN                                 1
+#define DSL_AREA_CROSS_DIRECTION_OUT                                2
+
+/**
+ * @brief Defines a Point's location relative to an ODE Area.
+ */
+#define DSL_AREA_POINT_LOCATION_ON_LINE                             0
+#define DSL_AREA_POINT_LOCATION_INSIDE                              1
+#define DSL_AREA_POINT_LOCATION_OUTSIDE                             2
+
+/**
+ * @brief Defines the ODE Area Line Cross directions.
+ */
+#define DSL_AREA_CROSS_DIRECTION_NONE                               0
+#define DSL_AREA_CROSS_DIRECTION_IN                                 1
+#define DSL_AREA_CROSS_DIRECTION_OUT                                2
 
 // Must match NvOSD_Arrow_Head_Direction
 #define DSL_ARROW_START_HEAD                                        0
@@ -567,6 +686,26 @@ THE SOFTWARE.
 
 #define DSL_DEFAULT_SOURCE_IN_USE_MAX                               8
 #define DSL_DEFAULT_SINK_IN_USE_MAX                                 8
+
+/**
+ * @brief Image Source Type constants
+ */
+#define DSL_IMAGE_TYPE_SINGLE                                       0
+#define DSL_IMAGE_TYPE_MULTI                                        1
+#define DSL_IMAGE_TYPE_STREAM                                       2
+
+/**
+ * @brief Image Source File Format constants
+ */
+#define DSL_IMAGE_FORMAT_JPG                                        0
+#define DSL_IMAGE_FORMAT_PNG                                        1
+
+/**
+ * @brief Image Source File Extention constants
+ */
+#define DSL_IMAGE_EXT_JPG                                           "jpg"
+#define DSL_IMAGE_EXT_PNG                                           "png"
+
 
 #define DSL_DEFAULT_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE             DSL_NVBUF_MEM_TYPE_DEFAULT
 #define DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT                         40000
@@ -605,10 +744,20 @@ THE SOFTWARE.
 #define DSL_DISTANCE_METHOD_PERCENT_HEIGHT_A                        3
 #define DSL_DISTANCE_METHOD_PERCENT_HEIGHT_B                        4
 
+#define DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS                     0
+#define DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS                     1
+
 /**
- * @brief the maximum number of coordinates when defining a Polygon
+ * @brief the maximum number of coordinates when defining a Display Type
  */
 #define DSL_MAX_POLYGON_COORDINATES                                 16
+#define DSL_MAX_MULTI_LINE_COORDINATES                              16
+
+/**
+ * @brief default maximum number of bbox frames for an ODE Tracking
+ * Trigger to maintain as an object trace / history
+ */
+#define DSL_DEFAULT_TRACKING_TRIGGER_MAX_TRACE_POINTS               10
 
 /**
  * @brief the maximum number of messages that can be queued up
@@ -661,13 +810,15 @@ THE SOFTWARE.
 /**
  * @brief Metric Content Options for Object Label customization
  * and Display Action string formatting
- */
+  */
 #define DSL_METRIC_OBJECT_CLASS                                     0
 #define DSL_METRIC_OBJECT_TRACKING_ID                               1
 #define DSL_METRIC_OBJECT_LOCATION                                  2
 #define DSL_METRIC_OBJECT_DIMENSIONS                                3
-#define DSL_METRIC_OBJECT_CONFIDENCE                                4
-#define DSL_METRIC_OBJECT_PERSISTENCE                               5
+#define DSL_METRIC_OBJECT_CONFIDENCE_INFERENCE                      4
+#define DSL_METRIC_OBJECT_CONFIDENCE_TRACKER                        5
+#define DSL_METRIC_OBJECT_PERSISTENCE                               6
+#define DSL_METRIC_OBJECT_DIRECTION                                 7
 
 /**
  * @brief Metric Content Options for Trigger Output customization
@@ -678,7 +829,10 @@ THE SOFTWARE.
  * frame. For most other Triggers, this value will always be 1.
  * For the Absence Trigger, occurrences will always be 0. 
  */
-#define DSL_METRIC_OBJECT_OCCURRENCES                               6
+#define DSL_METRIC_OBJECT_OCCURRENCES                               8
+
+#define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_IN                  9
+#define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_OUT                 10
 
 /**
  * @brief Message converter payload schema types used by all Message Sinks.
@@ -867,10 +1021,263 @@ typedef struct _dsl_coordinate
 } dsl_coordinate;
 
 /**
- *
+ * @struct dsl_ode_occurrence_source_info
+ * @brief Video Source information for the ODE Occurrence provided to the 
+ * client on callback.
+ */
+typedef struct _dsl_ode_occurrence_source_info
+{
+    /**
+     * @brief unique source id for this ODE occurrence.
+     */
+    uint source_id;
+    
+    /**
+     * @brief the location of the frame in the batch for this ODE occurrence 
+     */
+    uint batch_id;
+    
+    /**
+     * @brief pad or port index of the Gst-streammux plugin for this ODE occurrence
+     */
+    uint pad_index;
+    
+    /**
+     * @brief current frame number of the source for this ODE occurrence.
+     */
+    uint frame_num;
+    
+    /**
+     * @brief width of the frame at input to Gst-streammux for this ODE occurrence.
+     */
+    uint frame_width;
+    
+    /**
+     * @brief height of the frame at input to Gst-streammux for this ODE occurrence.
+     */
+    uint frame_height;
+    
+    /**
+     * @brief true if inference was done on the frame for this ODE occurrence.
+     */
+    boolean inference_done;
+    
+} dsl_ode_occurrence_source_info;
+
+/**
+ * @struct dsl_ode_occurrence_object_info
+ * @brief Detected Object information for the ODE Occurrence provided to the 
+ * client on callback.
+ */
+typedef struct _dsl_ode_occurrence_object_info
+{
+    /**
+     * @brief class id for the detected object
+     */
+    uint class_id;
+    
+    /**
+     * @brief unique id of the inference component that generated the object data.
+     */
+    uint inference_component_id;
+    
+    /**
+     * @brief unique tracking id as assigned by the multi-object-tracker (MOT)
+     */
+    uint tracking_id;
+    
+    /**
+     * @brief unique label for the detected object
+     */
+    const wchar_t* label;
+    
+    /**
+     * @brief current "time in frame" if tracked - Persistence and Cross Triggers
+     */
+    uint persistence;
+    
+    /**
+     * @brief direction of the Object if line cross event - Cross Trigger only.
+     */
+    uint direction;
+    
+    /**
+     * @brief inference confidence as calculated by the last detector.
+     */
+    float inference_confidence;
+    
+    /**
+     * @brief tracker confidence if current frame was not inferred on.
+     */
+    float tracker_confidence;
+
+    /**
+     * @brief the Object's bounding box left coordinate in pixels.
+     */
+    uint left;
+    
+    /**
+     * @brief the Object's bounding box top coordinate in pixels.
+     */
+    uint top;
+    
+    /**
+     * @brief the Object's bounding box width in pixels.
+     */
+    uint width;
+    
+    /**
+     * @brief the Object's bounding box height in pixels.
+     */
+    uint height;
+    
+} dsl_ode_occurrence_object_info;
+
+/**
+ * @struct _dsl_ode_occurrence_accumulative_info
+ * @brief Accumulative ODE Occurrence metrics provided to the 
+ * client on callback.
+ */
+typedef struct _dsl_ode_occurrence_accumulative_info
+{
+    /**
+     * @brief the total number of object detection occurrences for the 
+     * frame-level ODE occurrence - Count, New-High, New-Low Triggers
+     * or from an ODE accumulator.
+     */
+    uint occurrences_total;
+    
+    /**
+     * @brief the number of Line-Cross ODE occurrences in the "in-direction".
+     * Requires an ODE Cross-Trigger with ODE Accumulator
+     */
+    uint occurrences_in;
+
+    /**
+     * @brief the number of Line-Cross ODE occurrences in the "out-direction".
+     * Requires an ODE Cross-Trigger with ODE Accumulator
+     */
+    uint occurrences_out;
+
+} dsl_ode_occurrence_accumulative_info;
+
+
+/**
+ * @struct dsl_ode_occurrence_criteria_info
+ * @brief ODE Trigger Criteria used for the ODE Occurrence.
+ */
+typedef struct _dsl_ode_occurrence_criteria_info
+{
+    /**
+     * @brief class id filter for ODE occurrence
+     */
+    uint class_id;
+    
+    /**
+     * @brief inference id filter for ODE occurrence
+     */
+    uint inference_component_id;
+    
+    /**
+     * @brief the minimum inference confidence to trigger an ODE occurrence.
+     */
+    float min_inference_confidence;
+    
+    /**
+     * @brief the minimum tracker confidence to trigger an ODE occurrence.
+     */
+    float min_tracker_confidence;
+    
+    /**
+     * @brief inference must be performed to trigger an ODE occurrence.
+     */
+    boolean inference_done_only;
+     
+    /**
+     * @brief the minimum bounding box width to trigger an ODE occurrence.
+     */
+    uint min_width;
+    
+    /**
+     * @brief the minimum bounding box height to trigger an ODE occurrence.
+     */
+    uint min_height;
+    
+    /**
+     * @brief the maximum bounding box width to trigger an ODE occurrence.
+     */
+    uint max_width;
+    
+    /**
+     * @brief the maximum bounding box height to trigger an ODE occurrence.
+     */
+    uint max_height;
+    
+    /**
+     * @brief the interval for checking for an ODE occurrence.
+     */
+    uint interval;
+    
+} dsl_ode_occurrence_criteria_info;
+
+/**
+ * @struct dsl_ode_occurrence_info
+ * @brief ODE Occurrence information provided to the client on callback
+ */
+typedef struct _dsl_ode_occurrence_info
+{
+    /**
+     * @brief the unique name of the ODE Trigger that triggered the occurrence
+     */
+    const wchar_t* trigger_name;
+    
+    /**
+     * @brief unique occurrence Id for this occurrence.
+     */
+    uint64_t unique_ode_id;
+    
+    /**
+     * @brief Network Time for this event.
+     */
+    uint64_t ntp_timestamp;
+    
+    /**
+     * @brief Video Source information this ODE Occurrence
+     */
+    dsl_ode_occurrence_source_info source_info;
+
+    /**
+     * @brief true if the ODE occurrence information is for a specific object,
+     * false for frame-level multi-object events. (absence, new-high count, etc.). 
+     */
+    boolean is_object_occurrence;
+    
+    // NOTE: object_info and accumulative_info are mutually exclusive
+    // determined by the boolean is_object_occurrence flag above.
+    
+    /**
+     * @brief Object information if object_occurrence == true
+     */
+    dsl_ode_occurrence_object_info object_info;
+    
+    /**
+     * @brief Accumulative information if object_occurrence == false
+     */
+    dsl_ode_occurrence_accumulative_info accumulative_info;
+    
+    /**
+     * @brief Trigger Criteria information for this ODE occurrence.
+     */
+    dsl_ode_occurrence_criteria_info criteria_info;
+       
+} dsl_ode_occurrence_info;
+
+//------------------------------------------------------------------------------------
+
+/**
  * @brief Callback typedef for a client ODE occurrence handler function. 
- * Once registered by calling dsl_ode_action_custom_new, the function will 
- * be called on ODE occurrence. 
+ * Once registered by calling dsl_ode_action_custom_new, the function will be called 
+ * on ODE occurrence with the full set of parameters received by the ODE Action. 
  * @param[in] event_id unique ODE occurrence ID, numerically ordered by occurrence.
  * @param[in] trigger unique name of the ODE Event Trigger that triggered the occurrence.
  * @param[in] buffer pointer to the frame buffer of type GstBuffer.
@@ -883,6 +1290,17 @@ typedef struct _dsl_coordinate
  */
 typedef void (*dsl_ode_handle_occurrence_cb)(uint64_t event_id, const wchar_t* trigger,
     void* buffer, void* display_meta, void* frame_meta, void* object_meta, void* client_data);
+
+/**
+ * @brief Callback typedef for a client ODE occurrence monitor function. 
+ * Once registered by calling dsl_ode_action_monitor_new, the function will be called 
+ * on ODE occurrence with all occurrence information using the dsl_ode_occurrence_info
+ * structure. 
+ * @param[in] occurrence_info occurrence information on ODE occurrence.
+ * @param[in] client_data opaque pointer to client's user data
+ */    
+typedef void (*dsl_ode_monitor_occurrence_cb)(dsl_ode_occurrence_info* occurrence_info,
+    void* client_data);    
 
 /**
  * @brief Callback typedef for a client ODE Custom Trigger check-for-occurrence function. Once 
@@ -1061,8 +1479,8 @@ typedef void (*dsl_sink_webrtc_client_listener_cb)(dsl_webrtc_connection_data* i
  * @param[in] message pointer to the message received.
  * @param[in] length length of the message received in bytes.
  */
-typedef void (*dsl_message_broker_subscriber_cb)(void* client_data, uint status, void* message, 
-    uint length, const wchar_t* topic);
+typedef void (*dsl_message_broker_subscriber_cb)(void* client_data, 
+    uint status, void* message, uint length, const wchar_t* topic);
     
 /**
  * @brief callback typedef for a client to receive and handle
@@ -1070,7 +1488,8 @@ typedef void (*dsl_message_broker_subscriber_cb)(void* client_data, uint status,
  * @param[in] client_data opaque pointer to client's user data.
  * @param[in] status status code returned by the Message Broker
  */
-typedef void (*dsl_message_broker_connection_listener_cb)(void* client_data, uint status);
+typedef void (*dsl_message_broker_connection_listener_cb)(void* client_data, 
+    uint status);
 
 /**
  * @brief callback typedef for a client to receive an asynchronus result
@@ -1078,195 +1497,356 @@ typedef void (*dsl_message_broker_connection_listener_cb)(void* client_data, uin
  * @param[in] client_data opaque pointer to client's user data.
  * @param[in] status status code returned by the Message Broker
  */
-typedef void (*dsl_message_broker_send_result_listener_cb)(void* client_data, uint status);
+typedef void (*dsl_message_broker_send_result_listener_cb)(void* client_data, 
+    uint status);
 
 /**
- * @brief creates a uniquely named RGBA Display Color
- * @param[in] name unique name for the RGBA Color
- * @param[in] red red level for the RGB color [0..1]
- * @param[in] blue blue level for the RGB color [0..1]
- * @param[in] green green level for the RGB color [0..1]
- * @param[in] alpha alpha level for the RGB color [0..1]
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ * @brief callback typedef for a client to provide RGBA color parameters
+ * on demand from an RGBA On-Demand Color Display Type.
+ * @param[out] red red level for the RGB color [0..1].
+ * @param[out] blue blue level for the RGB color [0..1].
+ * @param[out] green green level for the RGB color [0..1].
+ * @param[out] alpha alpha level for the RGB color [0..1].
+ * @param[in] client_data opaque pointer to client's user data.
  */
-DslReturnType dsl_display_type_rgba_color_new(const wchar_t* name, 
+typedef void (*dsl_display_type_rgba_color_provider_cb)(double* red, 
+    double* green, double* blue, double* alpha, void* client_data);
+
+// -----------------------------------------------------------------------------------
+// Start of DSL Services 
+
+/**
+ * @brief Creates a uniquely named Custom RGBA Display Color.
+ * Note: this is a static color for the life of the color object. 
+ * @param[in] name unique name for the RGBA Color.
+ * @param[in] red red level for the RGB color [0..1].
+ * @param[in] blue blue level for the RGB color [0..1].
+ * @param[in] green green level for the RGB color [0..1].
+ * @param[in] alpha alpha level for the RGB color [0..1].
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_color_custom_new(const wchar_t* name, 
     double red, double green, double blue, double alpha);
 
 /**
- * @brief creates a uniquely named RGBA Display Font
- * @param[in] name unique name for the RGBA Font
- * @param[in] fount standard, unique string name of the actual font type (eg. 'arial')
- * @param[in] size size of the font
- * @param[in] color name of the RGBA Color for the RGBA font
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ * @brief Creates a uniquely named RGBA Predefined Display Color. 
+ * Note: this is a static color for the life of the color object. 
+ * @param[in] name unique name for the RGBA Predefined Color.
+ * @param[in] color_id one of the DSL_COLOR_PREDEFINED_* contants.
+ * @param[in] alpha alpha level for the RGBA color [0..1].
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_color_predefined_new(const wchar_t* name, 
+    uint color_id, double alpha);
+
+/**
+ * @brief Creates a uniquely named RGBA Random Display Color.
+ * Note: this is a dynamic color that regenerates on on new instance events.
+ * @param[in] name unique name for the RGBA Random Color.
+ * @param[in] hue one of the DSL_COLOR_HUE_* constants, use DSL_COLOR_HUE_RANDOM
+ * for a full random color spectrum.
+ * @param[in] luminosity one of the DSL_LUMINOSITY_* constants, use 
+ * DSL_LUMINOSITY_RANDOM for random luminosity.
+ * @param[in] alpha alpha level for the RGB Random color [0..1].
+ * @param[in] seed value to seed the random generator.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_color_random_new(const wchar_t* name, 
+    uint hue, uint luminosity, double alpha, uint seed);
+
+/**
+ * @brief Creates a uniquely named RGBA On Demand Color. 
+ * Note: this is a dynamic color that calls on the client color provider
+ * callback funtion on new instance events.
+ * @param[in] name unique name for the RGBA On-Demand Color.
+ * @param[in] provider client callback function to provide RGBA color 
+ * values on next color needed.
+ * @param[in] client_data opaque pointer to client's user data.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_color_on_demand_new(const wchar_t* name, 
+    dsl_display_type_rgba_color_provider_cb provider, void* client_data);
+
+/**
+ * @brief Creates a uniquely named RGBA Display Color Palette. The palette can
+ * constist of a combination of Client defined and predefined static RGBA colors.
+ * Note: this is a dynamic color that cycles through the provided palette 
+ * of colors on new instance events.
+ * @param[in] name unique name for the RGBA Color Palette.
+ * @param[in] colors a null terminated list of RGBA Colors. 
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_color_palette_new(const wchar_t* name, 
+    const wchar_t** colors);
+
+/**
+ * @brief Creates a uniquely named Predefined RGBA Display Color Palette.
+ * Note: this is a dynamic color that cycles through the provided palette 
+ * of colors on new instance events. 
+ * @param[in] name unique name for the RGBA Color Palette.
+ * @param[in] palette_id one of the DSL_COLOR_PREDEFINED_PALETTE* constants. 
+ * @param[in] alpha alpha level for the RGBA Predefined Color Palette.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_color_palette_predefined_new(const wchar_t* name, 
+    uint palette_id, double alpha);
+
+
+/**
+ * @brief Creates a uniquely named Random RGBA Display Color Palette.
+ * Note: this is a dynamic color that cycles through the palette of random
+ * colors on new instance events. 
+ * @param[in] name unique name for the RGBA Random Color Palette.
+ * @param[in] size size of the color palette to create. 
+ * @param[in] hue one of the DSL_COLOR_HUE_* constants, use DSL_COLOR_HUE_RANDOM
+ * for a full random color spectrum.
+ * @param[in] luminosity one of the DSL_LUMINOSITY_* constants, use 
+ * DSL_LUMINOSITY_RANDOM for random luminosity.
+ * @param[in] alpha alpha level for the RGB Random color [0..1].
+ * @param[in] seed value to seed the random generator.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_color_palette_random_new(const wchar_t* name, 
+    uint size, uint hue, uint luminosity, double alpha, uint seed);
+    
+/**
+ * @brief Gets the current index value for the named RGBA Color Palette 
+ * @param[in] name unique name of the RGBA Color Palette to query
+ * @param[out] index current index into the Color Palette's set of colors.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_color_palette_index_get(const wchar_t* name, 
+    uint* index);
+
+/**
+ * @brief Sets the index value for the named RGBA Color Palette 
+ * @param[in] name unique name of the RGBA Color Palette to update
+ * @param[in] index new index into for the Color Palette's set of colors.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_color_palette_index_set(const wchar_t* name, 
+    uint index);
+
+/**
+ * @brief Sets a Dynamic RGBA Color Type to its next color. For Palette,
+ * Random, and On-Demand RGBA Colors.
+ * @param[in] name unique name of the dynamic RGBA Color to update.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_color_next_set(const wchar_t* name);
+
+/**
+ * @brief Creates a uniquely named RGBA Display Font.
+ * @param[in] name unique name for the RGBA Font.
+ * @param[in] fount standard, unique string name of the actual font type (eg. 'arial').
+ * @param[in] size size of the font.
+ * @param[in] color name of the RGBA Color for the RGBA font.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_display_type_rgba_font_new(const wchar_t* name, 
     const wchar_t* font, uint size, const wchar_t* color);
 
 /**
- * @brief creates a uniquely named RGBA Display Text
- * @param[in] name unique name of the RGBA Text
- * @param[in] text text string to display
- * @param[in] x_offset starting x positional offset
- * @param[in] y_offset starting y positional offset
- * @param[in] font RGBA font to use for the display text
- * @param[in] has_bg_color set to true to enable background color, false otherwise
- * @param[in] bg_color RGBA Color for the Text background if set
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ * @brief Creates a uniquely named RGBA Display Text.
+ * @param[in] name unique name of the RGBA Text.
+ * @param[in] text text string to display.
+ * @param[in] x_offset starting x positional offset.
+ * @param[in] y_offset starting y positional offset.
+ * @param[in] font RGBA font to use for the display text.
+ * @param[in] has_bg_color set to true to enable background color, false otherwise.
+ * @param[in] bg_color RGBA Color for the Text background if set.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_display_type_rgba_text_new(const wchar_t* name, 
     const wchar_t* text, uint x_offset, uint y_offset, const wchar_t* font, 
     boolean has_bg_color, const wchar_t* bg_color);
     
 /**
- * @brief creates a uniquely named RGBA Display Line
- * @param[in] name unique name for the RGBA LIne
- * @param[in] x1 starting x positional offest
- * @param[in] y1 starting y positional offest
- * @param[in] x2 ending x positional offest
- * @param[in] y2 ending y positional offest
- * @param[in] width width of the line in pixels
- * @param[in] color RGBA Color for thIS RGBA Line
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ * @brief Creates a uniquely named RGBA Display Line.
+ * @param[in] name unique name for the RGBA LIne.
+ * @param[in] x1 starting x positional offest.
+ * @param[in] y1 starting y positional offest.
+ * @param[in] x2 ending x positional offest.
+ * @param[in] y2 ending y positional offest.
+ * @param[in] width width of the line in pixels.
+ * @param[in] color RGBA Color for thIS RGBA Line.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_display_type_rgba_line_new(const wchar_t* name, 
     uint x1, uint y1, uint x2, uint y2, uint width, const wchar_t* color);
 
 /**
- * @brief creates a uniquely named RGBA Display Arrow
- * @param[in] name unique name for the RGBA Arrow
- * @param[in] x1 starting x positional offest
- * @param[in] y1 starting y positional offest
- * @param[in] x2 ending x positional offest
- * @param[in] y2 ending y positional offest
- * @param[in] width width of the Arrow in pixels
+ * @brief Creates a uniquely named RGBA Display Arrow.
+ * @param[in] name unique name for the RGBA Arrow.
+ * @param[in] x1 starting x positional offest.
+ * @param[in] y1 starting y positional offest.
+ * @param[in] x2 ending x positional offest.
+ * @param[in] y2 ending y positional offest.
+ * @param[in] width width of the Arrow in pixels.
  * @param[in] head DSL_ARROW_START_HEAD, DSL_ARROW_END_HEAD, DSL_ARROW_BOTH_HEAD
- * @param[in] color RGBA Color for thIS RGBA Line
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ * @param[in] color RGBA Color for thIS RGBA Line.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_display_type_rgba_arrow_new(const wchar_t* name, 
     uint x1, uint y1, uint x2, uint y2, uint width, uint head, const wchar_t* color);
 
 /**
- * @brief creates a uniquely named RGBA Rectangle
- * @param[in] name unique name for the RGBA Rectangle
- * @param[in] left left positional offest
- * @param[in] top positional offest
- * @param[in] width width of the rectangle in Pixels
- * @param[in] height height of the rectangle in Pixels
- * @param[in] border_width width of the rectangle border in pixels
- * @param[in] color RGBA Color for thIS RGBA Line
- * @param[in] hasBgColor set to true to enable bacground color, false otherwise
- * @param[in] bgColor RGBA Color for the Circle background if set
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ * @brief Creates a uniquely named RGBA Rectangle.
+ * @param[in] name unique name for the RGBA Rectangle.
+ * @param[in] left left positional offest.
+ * @param[in] top positional offest.
+ * @param[in] width width of the rectangle in Pixels.
+ * @param[in] height height of the rectangle in Pixels.
+ * @param[in] border_width width of the rectangle border in pixels.
+ * @param[in] color RGBA Color for thIS RGBA Line.
+ * @param[in] hasBgColor set to true to enable bacground color, false otherwise.
+ * @param[in] bgColor RGBA Color for the Circle background if set.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, 
     uint left, uint top, uint width, uint height, uint border_width, const wchar_t* color, 
     bool has_bg_color, const wchar_t* bg_color);
 
 /**
- * @brief creates a uniquely named RGBA Polygon
- * @param[in] name unique name for the RGBA Polygon
- * @param[in] coordinate an array of dsl_coordinate structures 
- * @param[in] num_coordinates the number of xy coordinates in the array
- * @param[in] border_width width of the polygon border in pixels
- * @param[in] color RGBA Color for the polygon border
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ * @brief Creates a uniquely named RGBA Polygon.
+ * @param[in] name unique name for the RGBA Polygon.
+ * @param[in] coordinate an array of dsl_coordinate structures.
+ * @param[in] num_coordinates the number of xy coordinates in the array.
+ * @param[in] border_width width of the polygon border in pixels.
+ * @param[in] color RGBA Color for the polygon border.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_display_type_rgba_polygon_new(const wchar_t* name, 
     const dsl_coordinate* coordinates, uint num_coordinates, uint border_width, 
     const wchar_t* color);
 
 /**
- * @brief creates a uniquely named RGBA Circle
- * @param[in] name unique name for the RGBA Circle
- * @param[in] x_center X positional offset to center of Circle
- * @param[in] y_center y positional offset to center of Circle
- * @param[in] radius radius of the RGBA Circle in pixels 
- * @param[in] color RGBA Color for the RGBA Circle
- * @param[in] hasBgColor set to true to enable bacground color, false otherwise
- * @param[in] bgColor RGBA Color for the Circle background if set
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ * @brief Creates a uniquely named RGBA Multi-Line.
+ * @param[in] name unique name for the RGBA Multi-Line.
+ * @param[in] coordinate an array of dsl_coordinate structures.
+ * @param[in] num_coordinates the number of xy coordinates in the array.
+ * @param[in] border_width width of the multi-line in pixels.
+ * @param[in] color RGBA Color for the multi-line.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_line_multi_new(const wchar_t* name, 
+    const dsl_coordinate* coordinates, uint num_coordinates, uint border_width, 
+    const wchar_t* color);
+
+/**
+ * @brief Creates a uniquely named RGBA Circle.
+ * @param[in] name unique name for the RGBA Circle.
+ * @param[in] x_center X positional offset to center of Circle.
+ * @param[in] y_center y positional offset to center of Circle.
+ * @param[in] radius radius of the RGBA Circle in pixels.
+ * @param[in] color RGBA Color for the RGBA Circle.
+ * @param[in] hasBgColor set to true to enable bacground color, false otherwise.
+ * @param[in] bgColor RGBA Color for the Circle background if set.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, 
     uint x_center, uint y_center, uint radius, const wchar_t* color, bool has_bg_color, 
     const wchar_t* bg_color);
 
 /**
- * @brief creates a uniquely named Source Number Display Type
- * @param[in] name unique name of the Display Type
- * @param[in] x_offset starting x positional offset
- * @param[in] y_offset starting y positional offset
- * @param[in] font RGBA font to use for the display text
- * @param[in] hasBgColor set to true to enable bacground color, false otherwise
- * @param[in] bgColor RGBA Color for the Text background if set
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ * @brief Creates a uniquely named Source Number Display Type.
+ * @param[in] name unique name of the Display Type.
+ * @param[in] x_offset starting x positional offset.
+ * @param[in] y_offset starting y positional offset.
+ * @param[in] font RGBA font to use for the display text.
+ * @param[in] hasBgColor set to true to enable bacground color, false otherwise.
+ * @param[in] bgColor RGBA Color for the Text background if set.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_display_type_source_number_new(const wchar_t* name, 
     uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
     const wchar_t* bg_color);
     
 /**
- * @brief creates a uniquely named Source Name Display Type
- * @param[in] name unique name of the Display Type
- * @param[in] x_offset starting x positional offset
- * @param[in] y_offset starting y positional offset
- * @param[in] font RGBA font to use for the display text
- * @param[in] hasBgColor set to true to enable bacground color, false otherwise
- * @param[in] bgColor RGBA Color for the Text background if set
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ * @brief Creates a uniquely named Source Name Display Type.
+ * @param[in] name unique name of the Display Type.
+ * @param[in] x_offset starting x positional offset.
+ * @param[in] y_offset starting y positional offset.
+ * @param[in] font RGBA font to use for the display text.
+ * @param[in] hasBgColor set to true to enable bacground color, false otherwise.
+ * @param[in] bgColor RGBA Color for the Text background if set.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_display_type_source_name_new(const wchar_t* name, 
     uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
     const wchar_t* bg_color);
     
 /**
- * @brief creates a uniquely named Source Dimensions Display Type
- * @param[in] name unique name of the Display Type
- * @param[in] x_offset starting x positional offset
- * @param[in] y_offset starting y positional offset
- * @param[in] font RGBA font to use for the display text
- * @param[in] hasBgColor set to true to enable bacground color, false otherwise
- * @param[in] bgColor RGBA Color for the Text background if set
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ * @brief Creates a uniquely named Source Dimensions Display Type.
+ * @param[in] name unique name of the Display Type.
+ * @param[in] x_offset starting x positional offset.
+ * @param[in] y_offset starting y positional offset.
+ * @param[in] font RGBA font to use for the display text.
+ * @param[in] hasBgColor set to true to enable bacground color, false otherwise.
+ * @param[in] bgColor RGBA Color for the Text background if set.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_display_type_source_dimensions_new(const wchar_t* name, 
     uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
     const wchar_t* bg_color);
 
-/**
- * @brief Adds a named Display Type (text/shape) to a frames's display metadata, The caller 
- * is responsible for aquiring the display metadata for the current frame.
- * @param name unique name of the Display Type to overlay
- * @param display_meta opaque pointer to the aquired display meta to to add the Display Type to
- * @param frame_meta opaque pointer to a Frame's meta data to add the Display Type
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
- */
-DslReturnType dsl_display_type_meta_add(const wchar_t* name, void* buffer, void* frame_meta);
+///**
+// * @brief Adds a named Display Type (text/shape) to a frames's display metadata, The caller 
+// * is responsible for aquiring the display metadata for the current frame.
+// * @param name unique name of the Display Type to overlay
+// * @param display_meta opaque pointer to the aquired display meta to to add the Display Type to
+// * @param frame_meta opaque pointer to a Frame's meta data to add the Display Type
+// * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+// */
+//DslReturnType dsl_display_type_meta_add(const wchar_t* name, void* buffer, void* frame_meta);
     
 /**
- * @brief deletes a uniquely named Display Type of any type
- * @param[in] name unique name for the Display Type to delete
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ * @brief Deletes a uniquely named Display Type of any type.
+ * @param[in] name unique name for the Display Type to delete.
+ * @return DSL_RESULT_SUCCESS on successful deletion, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_display_type_delete(const wchar_t* name);
 
 /**
- * @brief Deletes a Null terminated array of Display Types of any type
- * @param[in] names Null ternimated array of unique names to delete
- * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_DISPLAY_RESULT otherwise.
+ * @brief Deletes a Null terminated array of Display Types of any type.
+ * @param[in] names Null ternimated array of unique names to delete.
+ * @return DSL_RESULT_SUCCESS on successful deletion, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_display_type_delete_many(const wchar_t** names);
 
 /**
- * @brief deletes all Display Types currently in memory
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ * @brief Deletes all Display Types currently in memory.
+ * @return DSL_RESULT_SUCCESS on successful deletion, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_display_type_delete_all();
 
 /**
- * @brief Returns the size of the list of Display Types
- * @return the number of Display Types in the list
+ * @brief Returns the size of the list of Display Types.
+ * @return the number of Display Types in the list.
  */
 uint dsl_display_type_list_size();
 
@@ -1548,6 +2128,16 @@ DslReturnType dsl_ode_action_message_meta_add_new(const wchar_t* name);
 // */
 //DslReturnType dsl_ode_action_message_meta_type_set(const wchar_t* name,
 //    uint meta_type);
+
+/**
+ * @brief Creates a uniquely named Monitor ODE Action.
+ * @param[in] name unique name for the Monitor ODE Action. 
+ * @param[in] client_monitor function to call on ODE occurrence. 
+ * @param[in] client_data opaue pointer to client's user data, returned on callback.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_monitor_new(const wchar_t* name, 
+    dsl_ode_monitor_occurrence_cb client_monitor, void* client_data);
 
 /**
  * @brief Creates a uniquely named Pause ODE Action
@@ -1842,12 +2432,25 @@ DslReturnType dsl_ode_area_exclusion_new(const wchar_t* name,
  * @param[in] name unique name of the ODE Line Area to create
  * @param[in] line name of an RGBA Line used to define location, dimensions, color
  * @param[in] show set to true to show (overlay) the line on each frame
- * @param[in] bbox_test_edge one of DSL_BBOX_EDGE values defining which edge of a
- * object's bounding box to use when testing for lines crossing
+ * @param[in] bbox_test_point one of DSL_BBOX_POINT values defining which point of a
+ * object's bounding box to use when testing for line crossing
  * @return DSL_RESULT_SUCCESS on successful create, DSL_RESULT_ODE_AREA_RESULT otherwise.
  */
 DslReturnType dsl_ode_area_line_new(const wchar_t* name,
-    const wchar_t* line, boolean show, uint bbox_test_edge);
+    const wchar_t* line, boolean show, uint bbox_test_point);
+
+/**
+ * @brief Creates a uniquely named ODE Multi-Line Area
+ * @param[in] name unique name of the ODE Multi Line Area to create
+ * @param[in] multi_line name of an RGBA Multi-Line used to define location, 
+ * dimensions, color
+ * @param[in] show set to true to show (overlay) the line on each frame
+ * @param[in] bbox_test_point one of DSL_BBOX_POINT values defining which point of a
+ * object's bounding box to use when testing for line crossing
+ * @return DSL_RESULT_SUCCESS on successful create, DSL_RESULT_ODE_AREA_RESULT otherwise.
+ */
+DslReturnType dsl_ode_area_line_multi_new(const wchar_t* name,
+    const wchar_t* multi_line, boolean show, uint bbox_test_point);
 
 /**
  * @brief Deletes an ODE Area
@@ -1905,21 +2508,6 @@ DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name,
     const wchar_t* source, uint class_id, uint limit);
 
 /**
- * @brief Accumulation trigger that checks for new instances of Objects for a specified
- * source and object class_id accumulating the occurrences over consecutive frames. 
- * The current accumulative occurrence value is reported after each frame. New instance 
- * identification is based on Tracking Id.
- * Note: the accumulative occurrence value is cleared on trigger reset.
- * @param[in] name unique name for the ODE Trigger
- * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
- * @param[in] class_id class id filter for this ODE Trigger
- * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_accumulation_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit);
-    
-/**
  * @brief Count trigger that checks for the occurrence of Objects within a frame
  * and tests if the count is within a specified range.
  * @param[in] name unique name for the ODE Trigger
@@ -1954,7 +2542,7 @@ DslReturnType dsl_ode_trigger_count_range_get(const wchar_t* name,
  */
 DslReturnType dsl_ode_trigger_count_range_set(const wchar_t* name, 
     uint minimum, uint maximum);
-    
+
 /**
  * @brief Occurence trigger that checks for a new instance of an Object for a 
  * specified source and object class_id. Instance identification is based on Tracking Id
@@ -2014,47 +2602,6 @@ DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name,
     const wchar_t* source, uint class_id, uint limit);
 
 /**
- * @brief Persistence trigger that checks for the persistence of Objects tracked 
- * for a specified source and object class_id. Each object tracked for ">= minimum 
- * and <= maximum time will trigger an ODE occurrence.
- * @param[in] name unique name for the ODE Trigger
- * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
- * @param[in] class_id class id filter for this ODE Trigger
- * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @param[in] minimum the minimum amount of time a unique object must remain detected 
- * before triggering an ODE occurrence - in units of seconds. 0 = no minimum
- * @param[in] maximum the maximum amount of time a unique object can remain detected 
- * before triggering an ODE occurrence - in units of seconds. 0 = no maximum
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_persistence_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit, uint minimum, uint maximum);
-
-/**
- * @brief Gets the current minimum and maximum time settings in use 
- * by the named Persistence Trigger
- * @param[in] name unique name of the Persistence Trigger to query
- * @param[out] minimum the minimum amount of time a unique object must remain detected 
- * before triggering an ODE occurrence - in units of seconds. 0 = no minimum
- * @param[out] maximum the maximum amount of time a unique object can remain detected 
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_persistence_range_get(const wchar_t* name, 
-    uint* minimum, uint* maximum);
-
-/**
- * @brief Sets the minimum and maximum time settings to use for a 
- * named Persistence Trigger
- * @param[in] name unique name of the Persitence Trigger to update
- * @param[in] minimum the minimum amount of time a unique object must remain detected 
- * before triggering an ODE occurrence - in units of seconds. 0 = no minimum
- * @param[in] maximum the maximum amount of time a unique object can remain detected 
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_persistence_range_set(const wchar_t* name, 
-    uint minimum, uint maximum);
-    
-/**
  * @brief Smallest trigger that checks for the occurrence of Objects within a frame
  * and if at least one is found, Triggers on the Object with smallest rectangle area.
  * @param[in] name unique name for the ODE Trigger
@@ -2076,32 +2623,6 @@ DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit);
-
-/**
- * @brief Latest Trigger that checks for the persistence of Objects tracked 
- * and will trigger on the Object with the least time of persistence (latest)
- * if at least one is found.
- * @param[in] name unique name for the ODE Trigger
- * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE.
- * @param[in] class_id class id filter for this ODE Trigger.
- * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_latest_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit);
-
-/**
- * @brief Earliest Trigger that checks for the persistence of Objects tracked 
- * and will trigger on the Object with the greatest time of persistence (earliest) 
- * if at least one is found.
- * @param[in] name unique name for the ODE Trigger.
- * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE.
- * @param[in] class_id class id filter for this ODE Trigger.
- * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_earliest_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit);
 
 /**
@@ -2213,6 +2734,140 @@ DslReturnType dsl_ode_trigger_distance_test_params_get(const wchar_t* name,
  */
 DslReturnType dsl_ode_trigger_distance_test_params_set(const wchar_t* name, 
     uint test_point, uint test_method);    
+
+/**
+ * @brief Cross trigger that tracks Objects and triggers on the occurrence that an 
+ * object crosses the trigger's Line or Polygon Area.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
+ * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @param[in] min_frame_count setting for the minimum number of past 
+ * consective frames on both sides of a line (line or polygon area) to trigger an ODE.
+ * @param[in] max_frame_count maximum number of past (non-consecutive) frames to 
+ * maintain for each tracked objects. 
+ * @param[in] test_method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_cross_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit, uint min_frame_count, 
+    uint max_frame_count, uint test_method);
+
+/**
+ * @brief Persistence trigger that checks for the persistence of Objects tracked 
+ * for a specified source and object class_id. Each object tracked for ">= minimum 
+ * and <= maximum time will trigger an ODE occurrence.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
+ * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @param[in] minimum the minimum amount of time a unique object must remain detected 
+ * before triggering an ODE occurrence - in units of seconds. 0 = no minimum
+ * @param[in] maximum the maximum amount of time a unique object can remain detected 
+ * before triggering an ODE occurrence - in units of seconds. 0 = no maximum
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_persistence_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit, uint minimum, uint maximum);
+
+/**
+ * @brief Gets the current minimum and maximum time settings in use 
+ * by the named Persistence Trigger
+ * @param[in] name unique name of the Persistence Trigger to query
+ * @param[out] minimum the minimum amount of time a unique object must remain detected 
+ * before triggering an ODE occurrence - in units of seconds. 0 = no minimum
+ * @param[out] maximum the maximum amount of time a unique object can remain detected 
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_persistence_range_get(const wchar_t* name, 
+    uint* minimum, uint* maximum);
+
+/**
+ * @brief Sets the minimum and maximum time settings to use for a 
+ * named Persistence Trigger
+ * @param[in] name unique name of the Persitence Trigger to update
+ * @param[in] minimum the minimum amount of time a unique object must remain detected 
+ * before triggering an ODE occurrence - in units of seconds. 0 = no minimum
+ * @param[in] maximum the maximum amount of time a unique object can remain detected 
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_persistence_range_set(const wchar_t* name, 
+    uint minimum, uint maximum);
+    
+/**
+ * @brief Latest Trigger that checks for the persistence of Objects tracked 
+ * and will trigger on the Object with the least time of persistence (latest)
+ * if at least one is found.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE.
+ * @param[in] class_id class id filter for this ODE Trigger.
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_latest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
+
+/**
+ * @brief Earliest Trigger that checks for the persistence of Objects tracked 
+ * and will trigger on the Object with the greatest time of persistence (earliest) 
+ * if at least one is found.
+ * @param[in] name unique name for the ODE Trigger.
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE.
+ * @param[in] class_id class id filter for this ODE Trigger.
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_earliest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
+
+/**
+ * @brief Gets the current test settings for the named cross trigger.
+ * @param[in] name unique name for the ODE Trigger to query
+ * @param[out] min_frame_count current setting for the minimum number of past 
+ * consective frames on both sides of a line (line or polygon area) to trigger an ODE.
+ * @param[out] max_trace_points current setting for the maximum number of past 
+ * trace points to maintain for each tracked objects. 
+ * @param[out] test_method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_cross_test_settings_get(const wchar_t* name, 
+    uint* min_frame_count, uint* max_trace_points, uint* test_method);
+    
+/**
+ * @brief Sets the max trace-points setting for the named cross trigger.
+ * @param[in] name unique name for the ODE Trigger to update
+ * @param[in] min_frame_count new setting for the minimum number of past 
+ * consective frames on both sides of a line (line or polygon area) to trigger an ODE.
+ * @param[in] max_trace_points new setting for the maximum number of past 
+ * trace points to maintain for each tracked objects. 
+ * @param[in] test_method one of the DSL_OBJECT_TRACE_TEST_METHOD_* constants.
+* @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_cross_test_settings_set(const wchar_t* name, 
+    uint min_frame_count, uint max_trace_points, uint test_method);
+    
+/**
+ * @brief Gets the current trace settings for the named cross trigger.
+ * @param[in] name unique name for the ODE Trigger to query
+ * @param[out] enabled true if object trace display is enabled, default = disabled 
+ * @param[out] color name of the color to use for object trace display, default = no-color.
+ * @param[out] line_width width of the object trace if display is enabled.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_cross_view_settings_get(const wchar_t* name, 
+    boolean* enabled, const wchar_t** color, uint* line_width);
+    
+/**
+ * @brief Sets the trace settings for the named cross trigger.
+ * @param[in] name unique name for the ODE Trigger to update
+ * @param[in] enabled set to true to enable object trace display, false otherwise
+ * @param[in] color name of the color to use for object trace display.
+ * @param[in] line_width width of the object trace if display is enabled.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_cross_view_settings_set(const wchar_t* name, 
+    boolean enabled, const wchar_t* color, uint line_width);
+    
 
 /**
  * @brief Resets the a named ODE Trigger, setting it's triggered count to 0
@@ -2393,16 +3048,40 @@ DslReturnType dsl_ode_trigger_limit_set(const wchar_t* name, uint limit);
  * @param[out] min_confidence current minimum confidence criteria
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, float* min_confidence);
+DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, 
+    float* min_confidence);
 
 /**
- * @brief Sets the enabled setting for the ODE Trigger
+ * @brief Sets the minimum confidence setting for the ODE Trigger.
  * Setting the value of 0.0 indicates the minimum confidence criteria is disabled
+ * Note: the confidence level is only checked with the reported value is > 0.0
  * @param[in] name unique name of the ODE Trigger to update
- * @param[in] min_confidence minimum confidence to trigger an ODE occurrnce
+ * @param[in] min_confidence minimum confidence to trigger an ODE occurrence
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, float min_confidence);
+DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, 
+    float min_confidence);
+
+/**
+ * @brief Gets the current minimum Tracker confidence setting for the ODE Trigger
+ * A value of 0.0 (default) indicates the minimum Tracker confidence criteria is disabled
+ * @param[in] name unique name of the ODE Trigger to query
+ * @param[out] min_confidence current minimum Tracker confidence criteria
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_tracker_confidence_min_get(const wchar_t* name, 
+    float* min_confidence);
+
+/**
+ * @brief Sets the minimum Tracker confidence setting for the ODE Trigger
+ * Set the value of 0.0 to disable minimum Tracker confidence criteria.
+ * Note: the confidence level is only checked with the reported value is > 0.0
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] min_confidence minimum Tracker confidence to trigger an ODE occurrence
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_tracker_confidence_min_set(const wchar_t* name, 
+    float min_confidence);
 
 /**
  * @brief Gets the current minimum rectangle width and height values for the ODE Trigger
@@ -2412,7 +3091,8 @@ DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, float min_
  * @param[out] min_height returns the current minimun frame hight in use
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, float* min_width, float* min_height);
+DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, 
+    float* min_width, float* min_height);
 
 /**
  * @brief Sets the current minimum rectangle width and height values for the ODE Trigger
@@ -2422,7 +3102,8 @@ DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, float* min
  * @param[in] min_height the new minimun frame hight to use
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, float min_width, float min_height);
+DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, 
+    float min_width, float min_height);
 
 /**
  * @brief Gets the current maximum rectangle width and height values for the ODE Trigger
@@ -2432,7 +3113,8 @@ DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, float min_
  * @param[out] max_height returns the current maximun frame hight in use
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_dimensions_max_get(const wchar_t* name, float* max_width, float* max_height);
+DslReturnType dsl_ode_trigger_dimensions_max_get(const wchar_t* name, 
+    float* max_width, float* max_height);
 
 /**
  * @brief Sets the current maximum rectangle width and height values for the ODE Trigger
@@ -2442,7 +3124,8 @@ DslReturnType dsl_ode_trigger_dimensions_max_get(const wchar_t* name, float* max
  * @param[in] max_height the new maximun frame hight to use
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_dimensions_max_set(const wchar_t* name, float max_width, float max_height);
+DslReturnType dsl_ode_trigger_dimensions_max_set(const wchar_t* name, 
+    float max_width, float max_height);
 
 /**
  * @brief Gets the current Inferrence-Done-Only setting for the named trigger
@@ -2569,32 +3252,73 @@ DslReturnType dsl_ode_trigger_area_remove(const wchar_t* name, const wchar_t* ar
  * @param[in] areas Null terminated list of unique names of the ODE Areas to remove
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_area_remove_many(const wchar_t* name, const wchar_t** areas);
+DslReturnType dsl_ode_trigger_area_remove_many(const wchar_t* name, 
+    const wchar_t** areas);
 
 /**
  * @brief Removes a named ODE Area from a named ODE Trigger
  * @param[in] name unique name of the ODE Trigger to update
  * @param[in] area unique name of the ODE Area to Remove
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_area_remove_all(const wchar_t* name);
 
 /**
- * @brief Deletes a uniquely named Trigger. The call will fail if the event is currently in use
+ * @brief Adds a named ODE Accumulator to a named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] accumulator unique name of the ODE Accumulator to add
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_accumulator_add(const wchar_t* name, 
+    const wchar_t* accumulator);
+
+/**
+ * @brief Removes the ODE Accumulator from a named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_accumulator_remove(const wchar_t* name);
+
+/**
+ * @brief Adds a named ODE Heat-Mapper to a named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] heat_mapper unique name of the ODE Heat-Mapper to add
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_heat_mapper_add(const wchar_t* name, 
+    const wchar_t* heat_mapper);
+
+/**
+ * @brief Removes the ODE Heat-Mapper from a named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_heat_mapper_remove(const wchar_t* name);
+
+/**
+ * @brief Deletes a uniquely named Trigger. The call will fail if the Triggers is 
+ * currently in use
  * @brief[in] name unique name of the event to delte
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_delete(const wchar_t* name);
 
 /**
- * @brief Deletes a Null terminated list of Triggers. The call will fail if any of the events are currently in use
+ * @brief Deletes a Null terminated list of Triggers. The call will fail if any of 
+ * the Triggers are currently in use
  * @brief[in] names Null terminaed list of event names to delte
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_delete_many(const wchar_t** names);
 
 /**
- * @brief Deletes all Triggers. The call will fail if any of the events are currently in use
+ * @brief Deletes all Triggers. The call will fail if any of the Triggers are 
+ * currently in use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_delete_all();
@@ -2604,6 +3328,244 @@ DslReturnType dsl_ode_trigger_delete_all();
  * @return the number of Triggers in the list
  */
 uint dsl_ode_trigger_list_size();
+
+/**
+ * @brief Creates a new ODE Accumulator that when added to an ODE Trigger, accumulates
+ * the count(s) of ODE Occurrence and calls on all actions during the Trigger's post 
+ * processing of each frame.
+ * @param[in] name unique name for the ODE Accumulator
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
+ */
+DslReturnType dsl_ode_accumulator_new(const wchar_t* name);
+
+/**
+ * @brief Adds a named ODE Action to a named ODE Accumulator
+ * @param[in] name unique name of the ODE Accumulator to update
+ * @param[in] action unique name of the ODE Action to Add
+ * @return DSL_RESULT_SUCCESS on successful update, D
+ * SL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
+ */
+DslReturnType dsl_ode_accumulator_action_add(const wchar_t* name, 
+    const wchar_t* action);
+
+/**
+ * @brief Adds a Null terminated list of named ODE Actions to a named ODE Accumulator
+ * @param[in] name unique name of the ODE Accumulator to update
+ * @param[in] actions Null terminated list of unique names of the ODE Actions to add
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
+ */
+DslReturnType dsl_ode_accumulator_action_add_many(const wchar_t* name, 
+    const wchar_t** actions);
+
+/**
+ * @brief Removes a named ODE Action from a named ODE Accumulator
+ * @param[in] name unique name of the ODE Accumulator to update
+ * @param[in] action unique name of the ODE Action to Remove
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
+ */
+DslReturnType dsl_ode_accumulator_action_remove(const wchar_t* name, 
+    const wchar_t* action);
+
+/**
+ * @brief Removes a Null terminated list of named ODE Actions from a named 
+ * ODE Accumulator
+ * @param[in] name unique name of the ODE Accumulator to update
+ * @param[in] actions Null terminated list of unique names of the 
+ * ODE Actions to remove
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
+ */
+DslReturnType dsl_ode_accumulator_action_remove_many(const wchar_t* name, 
+    const wchar_t** actions);
+
+/**
+ * @brief Removes a named ODE Action from a named ODE Accumulator
+ * @param[in] name unique name of the ODE Accumulator to update
+ * @param[in] action unique name of the ODE Action to Remove
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
+ */
+DslReturnType dsl_ode_accumulator_action_remove_all(const wchar_t* name);
+
+/**
+ * @brief Deletes a uniquely named ODE Accumulator. The call will fail if 
+ * the ODE Accumulator is currently in use
+ * @brief[in] name unique name of the ODE Accumulator to delete
+ * @return DSL_RESULT_SUCCESS on successful delete, 
+ * DSL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
+ */
+DslReturnType dsl_ode_accumulator_delete(const wchar_t* name);
+
+/**
+ * @brief Deletes a Null terminated list of ODE Accumulator. The call will fail 
+ * if any of the ODE Accumulators are currently in use
+ * @brief[in] names Null terminaed list of ODE Accumulator names to delete
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
+ */
+DslReturnType dsl_ode_accumulator_delete_many(const wchar_t** names);
+
+/**
+ * @brief Deletes all ODE Accumulators. The call will fail if any of the 
+ * ODE Accumulators are currently in use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_ACCUMULATOR_RESULT otherwise.
+ */
+DslReturnType dsl_ode_accumulator_delete_all();
+
+/**
+ * @brief Returns the size of the list of ODE Accumulators
+ * @return the number of ODE Accumulators in the list
+ */
+uint dsl_ode_accumulator_list_size();
+
+/**
+ * @brief Creates a new ODE Heat-Mapper that when added to an ODE Trigger, maps the
+ * bounding-box test point for objects that trigger an ODE Occurrence over time. 
+ * The source-frame, with width and height, is partitioned into a two-dimensional grid of 
+ * rectangles as defined by the input parameters cols and rows. A color value from the
+ * provided RGBA Color Palette is assigned to each rectangle based on the percentage
+ * of test-points per rectangle. The RGBA Display Metadata is added to the Frame's metadata
+ *  when the Trigger post processes each frame.
+ * @param[in] name unique name for the ODE Heat-Mapper
+ * @param[in] cols number of columns for the two-dimensional map.
+ * @param[in] rows number of rows for the two-dimensional map
+ * @param[in] bbox_test_point one of DSL_BBOX_POINT values defining which point of a
+ * object's bounding box to use as coordinates for mapping.
+ * @param[in] color_palette a palette of RGBA Colors to assign to the grid rectangles
+ * based on the percentage of center-points per-square.  
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_new(const wchar_t* name, 
+    uint cols, uint rows, uint bbox_test_point, const wchar_t* color_palette);
+
+/**
+ * @brief Gets the RGBA Color Palette in use by the named ODE Heat-Mapper
+ * @param[in] name unique name of the ODE Heat-Mapper to query
+ * @param[out] color_palette name of the RGBA Color Palette in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_color_palette_get(const wchar_t* name, 
+    const wchar_t** color_palette);
+
+/**
+ * @brief Sets the the RGBA Color Palette to use by the named ODE Heat-Mapper
+ * @param[in] name unique name of the ODE Heat-Mapper to update
+ * @param[in] color_palette name of the RGBA Color Palette to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_color_palette_set(const wchar_t* name, 
+    const wchar_t* color_palette);
+
+/**
+ * @brief Gets the current Legend settings for the named ODE Heat-Mapper.
+ * @param[in] name unique name of the ODE Heat-Mapper to query.
+ * @param[out] enabled true if display is enabled, false otherwise.
+ * @param[out] location current frame location, one of DSL_HEAT_MAP_LEGEND_LOCATION_*
+ * @param[out] width width of each entry in the legend in units of columns.
+ * @param[out] height height of each entry in the legend in units of rows.
+ * @return DSL_RESULT_SUCCESS on successful query, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_legend_settings_get(const wchar_t* name, 
+    boolean* enabled, uint* location, uint* width, uint* height);
+
+/**
+ * @brief Gets the current Legend settings for the named ODE Heat-Mapper.
+ * @param[in] name unique name of the ODE Heat-Mapper to update.
+ * @param[in] enabled set to true to enable display, false to disable.
+ * @param[in] location frame location, one of DSL_HEAT_MAP_LEGEND_LOCATION_*
+ * @param[in] width width of each entry in the legend in units of columns.
+ * @param[in] height height of each entry in the legend in units of rows.
+ * @return DSL_RESULT_SUCCESS on successful query, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_legend_settings_set(const wchar_t* name, 
+    boolean enabled, uint location, uint width, uint height);
+
+/**
+ * @brief Calls on an ODE Heat-Mapper to clear its current heat-map metrics
+ * returning the map to its initial all-zero state. 
+ * @param[in] name unique name of the ODE Heat-Mapper to call on.
+ * @return DSL_RESULT_SUCCESS on success, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_metrics_clear(const wchar_t* name);
+
+/**
+ * @brief Get the current heat-map metrics from an ODE Heat-Mapper
+ * @param[in] name unique name of the ODE Heat-Mapper to query.
+ * @param[out] buffer a linear buffer of metric map data. Each row or 
+ * map data is serialized to a single buffer of size cols*rows. 
+ * Each element in the buffer indicates the total number of occurrences
+ * accumulated for the position in the map.
+ * @param[out] size size of buffer - cols*rows.
+ * @return DSL_RESULT_SUCCESS on success, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_metrics_get(const wchar_t* name,
+    const uint64_t** buffer, uint* size);
+
+/**
+ * @brief Calls on an ODE Heat-Mapper to print its current heat-map metrics
+ * to the console. 
+ * @param[in] name unique name of the ODE Heat-Mapper to call on.
+ * @return DSL_RESULT_SUCCESS on success, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_metrics_print(const wchar_t* name);
+
+/**
+ * @brief Calls on an ODE Heat-Mapper to log its current heat-map metrics
+ * at the INFO log level. 
+ * @param[in] name unique name of the ODE Heat-Mapper to call on.
+ * @return DSL_RESULT_SUCCESS on success, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_metrics_log(const wchar_t* name);
+
+/**
+ * @brief Calls on an ODE Heat-Mapper to write its current heat-map metrics to file.
+ * @param[in] name unique name of the ODE Heat-Mapper to call on.
+ * @param[in] file_path absolute or relative file path of the output file to use
+ * The file will be created if one does exists, or opened/used if found.
+ * @param[in] mode file open/write mode, one of DSL_EVENT_FILE_MODE_* options
+ * @param[in] format one of the DSL_EVENT_FILE_FORMAT_* options
+ * @return DSL_RESULT_SUCCESS on success, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_metrics_file(const wchar_t* name,
+    const wchar_t* file_path, uint mode, uint format);
+
+/**
+ * @brief Deletes a uniquely named ODE Heat-Mapper. The call will fail if 
+ * the ODE Heat-Mapper is currently in use.
+ * @brief[in] name unique name of the ODE Heat-Mapper to delete
+ * @return DSL_RESULT_SUCCESS on successful delete, 
+ * DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_delete(const wchar_t* name);
+
+/**
+ * @brief Deletes a Null terminated list of ODE Heat-Mappers. The call will fail 
+ * if any of the ODE Heat-Mappers are currently in use.
+ * @brief[in] names Null terminated list of ODE Heat-Mapper names to delete
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_delete_many(const wchar_t** names);
+
+/**
+ * @brief Deletes all ODE Heat-Mappers. The call will fail if any of the 
+ * ODE Heat-Mappers are currently in use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HEAT_MAPPER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_heat_mapper_delete_all();
+
+/**
+ * @brief Returns the size of the list of ODE Heat-Mappers.
+ * @return the number of ODE Heat-Mapper in the list.
+ */
+uint dsl_ode_heat_mapper_list_size();
 
 /**
  * @brief creates a new, uniquely named Handler component
@@ -2650,6 +3612,28 @@ DslReturnType dsl_pph_ode_trigger_remove_many(const wchar_t* name, const wchar_t
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
 DslReturnType dsl_pph_ode_trigger_remove_all(const wchar_t* name);
+
+/**
+ * @brief Gets the current setting for the number of Display Meta structures that
+ * are allocated for each frame. Each structure can hold up to 16 display elements
+ * for each display type (lines, arrows, rectangles, etc.). The default size is one.
+ * Note: each allocation adds overhead to the processing of each frame. 
+ * @param[in] name unique name of the ODE Handler to query.
+ * @param[out] count current count of Display Meta structures allocated per frame
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ */
+DslReturnType dsl_pph_ode_display_meta_alloc_size_get(const wchar_t* name, uint* size);
+
+/**
+ * @brief Sets the current setting for the number of Display Meta structures that
+ * are allocated for each frame. Each structure can hold up to 16 display elements
+ * for each display type (lines, arrows, rectangles, etc.). The default size is one.
+ * Note: each allocation adds overhead to the processing of each frame. 
+ * @param[in] name unique name of the ODE Handler to update.
+ * @param[in] size number of Display Meta structures allocated per frame
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ */
+DslReturnType dsl_pph_ode_display_meta_alloc_size_set(const wchar_t* name, uint size);
 
 /**
  * @brief creates a new, uniquely named Custom pad-probe-handler to process a buffer
@@ -2814,6 +3798,30 @@ DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name, boolean en
 
 /**
  * @brief creates a new, uniquely named Image Source component that
+ * decodes a single image producing a single frame followed by EOS
+ * @param[in] name Unique name for the Image Source
+ * @param[in] file_path absolute or relative path to the image file to play
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_image_new(const wchar_t* name, 
+    const wchar_t* file_path);
+
+/**
+ * @brief creates a new, uniquely named Multi Image Source component that
+ * decodes multiple images specified by folder/filename-pattern.
+ * @param[in] name Unique name for the Image Frame Source
+ * @param[in] file_path use the printf style %d in the absolute or relative path. 
+ * Eample: "./my_images/image.%d04.mjpg", where the files in "./my_images/"
+ * are named "image.0000.mjpg", "image.0001.mjpg", "image.0002.mjpg" etc.
+ * @param[in] fps-n frames/second fraction numerator
+ * @param[in] fps-d frames/second fraction denominator
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_image_multi_new(const wchar_t* name, 
+    const wchar_t* file_path, uint fps_n, uint fps_d);
+
+/**
+ * @brief creates a new, uniquely named Image Stream Source component that
  * streams an image at a specified framerate
  * @param[in] name Unique name for the Image Source
  * @param[in] file_path absolute or relative path to the image file to play
@@ -2823,41 +3831,25 @@ DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name, boolean en
  * @param[in] timeout source will send an EOS event on timeout, set to 0 to disable
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_image_new(const wchar_t* name, 
+DslReturnType dsl_source_image_stream_new(const wchar_t* name, 
     const wchar_t* file_path, boolean is_live, uint fps_n, uint fps_d, uint timeout);
 
 /**
- * @brief Gets the current File Path in use by the named JPEG Image Source
- * @param[in] name name of the Image Source to query
- * @param[out] FilePath in use by the Image Source
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_image_path_get(const wchar_t* name, const wchar_t** file_path);
-
-/**
- * @brief Sets the current File Path for the named JPEG Image Source to use
- * @param[in] name name of the Image Source to update
- * @param[in] file_path new file path to use by the Image Source
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_image_path_set(const wchar_t* name, const wchar_t* file_path);
-
-/**
- * @brief Gets the current Timeout setting for the Image Source
+ * @brief Gets the current Timeout setting for the Image Stream Source
  * @param[in] name name of the Image Source to query
  * @param[out] timeout current timeout value for the EOS Timer, 0 means the
  * timer is disabled
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_image_timeout_get(const wchar_t* name, uint* timeout);
+DslReturnType dsl_source_image_stream_timeout_get(const wchar_t* name, uint* timeout);
 
 /**
- * @brief Sets the current Timeout setting for the Image Source
+ * @brief Sets the current Timeout setting for the Image Stream Source
  * @param[in] name name of the Image Source to update
  * @param[in] timeout new timeout value for the EOS Timer (in seconds), 0 to disable. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_image_timeout_set(const wchar_t* name, uint timeout);
+DslReturnType dsl_source_image_stream_timeout_set(const wchar_t* name, uint timeout);
     
 /**
  * @brief creates a new, uniquely named RTSP Source component
@@ -4525,22 +5517,20 @@ DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler);
 DslReturnType dsl_sink_pph_remove(const wchar_t* name, const wchar_t* handler);
 
 /**
- * @brief Gets the current settings for the "sync" and "async" attributes for the named Sink
+ * @brief Gets the current settings for the "sync" attribute for the named Sink
  * @param[in] name unique name of the Sink to query
- * @param[out] sync the current setting for the Sink's "sync" attribute
- * @param[out] async the current setting for the Sink's "async" attribute
+ * @param[out] enabled the current setting for the Sink's "sync" attribute
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise
  */
-DslReturnType dsl_sink_sync_settings_get(const wchar_t* name, boolean* sync, boolean* async);
+DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled);
 
 /**
- * @brief Sets the "sync" and "async" attributes for the named Sink
+ * @brief Sets the "sync" attribute for the named Sink
  * @param[in] name unique name of the Sink to update
- * @param[in] sync the new setting for the Sink's "sync" attribute
- * @param[in] async the current setting for the Sink's "async" attribute
+ * @param[in] enabled set to true to enable the Sink's "sync" attribute, false otherwise.
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise
  */
-DslReturnType dsl_sink_sync_settings_set(const wchar_t* name, boolean sync, boolean async);
+DslReturnType dsl_sink_sync_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
  * @brief returns the number of Sinks currently in use by 

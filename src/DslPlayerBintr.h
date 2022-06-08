@@ -104,12 +104,6 @@ namespace DSL
         bool Pause();
 
         /**
-         * @brief Pauses the Player by setting its state to GST_STATE_PAUSED
-         * Import: must be called in the mainloop's context, i.e. timer callback
-         */
-        void HandlePause();
-
-        /**
          * @brief Schedules a Timer Callback to call HandleStop in the mainloop context
          * @return true if HandleStop schedule correctly, false otherwise 
          */
@@ -152,10 +146,10 @@ namespace DSL
     protected:
 
         /**
-         * @brief Function to initiate the stop process by removing the TerminationEventListener,
-         * disabling the source's EOS handler, and then sending an EOS event.
+         * @brief Function to initiate the stop process by removing the 
+         * TerminationEventListener and disabling the source's EOS handler
          */
-        void InitiateStop();
+        void PrepareForEos();
         
         /**
          * @brief Asynchronous comm flag for the Termination handler to communication
@@ -197,11 +191,16 @@ namespace DSL
         GMutex m_asyncCommMutex;
         
         /**
-         * @brief Condition used to block the application context while waiting
-         * for a Pipeline change of state to be completed in the mainloop context
+         * @brief Mutex to support reentrency of the Play-Next process
          */
-        GCond m_asyncCondition;
-
+        GMutex m_playNextMutex;
+        
+        /**
+         * @brief flag to tell the HandlePlay function to clear the Play-Next
+         * mutext on completion.
+         */
+        bool m_clearPlayNextMutex;
+        
         /**
          * @brief map of all currently registered Termination event listeners
          * callback functions mapped with the user provided data
@@ -213,7 +212,7 @@ namespace DSL
     /**
      * @class RenderPlayerBintr
      * @file DslPlayerBintr.h
-     * @brief Implements a PlayerBintr with a FileSourceBintr or ImageSourceBintr
+     * @brief Implements a PlayerBintr with a FileSourceBintr or ImageStreamSourceBintr
      * and OverlaySink or WindowSinkBintr
      */
     class RenderPlayerBintr : public PlayerBintr
@@ -394,7 +393,7 @@ namespace DSL
     /**
      * @class ImageRenderPlayerBintr
      * @file DslPlayerBintr.h
-     * @brief Implements a PlayerBintr with an ImageSourceBintr
+     * @brief Implements a PlayerBintr with an ImageStreamSourceBintr
      * and OverlaySink or WindowSinkBintr
      */
     class ImageRenderPlayerBintr : public RenderPlayerBintr
@@ -427,14 +426,6 @@ namespace DSL
     };
 
     static int PlayerPlay(gpointer pPlayer);
-    
-    /**
-     * @brief Timer callback function to Pause a Player in the mainloop context.  
-     * @param pPlayer shared pointer to the Player that started the timer to 
-     * schedule the pause
-     * @return false always to self destroy the on-shot timer.
-     */
-    static int PlayerPause(gpointer pPlayer);
     
     /**
      * @brief Timer callback function to Stop a Player in the mainloop context.  

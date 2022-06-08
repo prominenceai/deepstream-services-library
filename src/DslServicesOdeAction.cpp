@@ -690,10 +690,10 @@ namespace DSL
             if (borderWidth)
             {
                 DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, borderColor);
-                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, 
-                    borderColor, RgbaColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(m_displayTypes, borderColor);
 
-                pBorderColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[borderColor]);
+                pBorderColor = std::dynamic_pointer_cast<RgbaColor>
+                    (m_displayTypes[borderColor]);
             }
             else
             {
@@ -705,10 +705,10 @@ namespace DSL
             if (hasBgColor)
             {
                 DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, 
-                    bgColor, RgbaColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(m_displayTypes, bgColor);
 
-                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>
+                    (m_displayTypes[bgColor]);
             }
             else
             {
@@ -767,8 +767,7 @@ namespace DSL
             if (hasBgColor)
             {
                 DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, 
-                    bgColor, RgbaColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(m_displayTypes, bgColor);
 
                 pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
             }
@@ -1002,6 +1001,33 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::OdeActionMonitorNew(const char* name,
+        dsl_ode_monitor_occurrence_cb clientMonitor, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_MONITOR_NEW(name, 
+                clientMonitor, clientData);
+
+            LOG_INFO("New ODE Monitor Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Monitor Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
     
     DslReturnType Services::OdeActionPauseNew(const char* name, const char* pipeline)
     {

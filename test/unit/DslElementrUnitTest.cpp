@@ -32,6 +32,7 @@ SCENARIO( "An Elementr is constructed correctly", "[Elementr]" )
     GIVEN( "A name for a new Elementr in memory" )
     {
         std::string elementName  = "test-element";
+        std::string giveElementName = "test-element-queue";
 
         WHEN( "A child Elmentr is created" )
         {
@@ -39,7 +40,7 @@ SCENARIO( "An Elementr is constructed correctly", "[Elementr]" )
             
             THEN( "Its member variables are initialized correctly" )
             {
-                REQUIRE( pElementr->GetName() == elementName );
+                REQUIRE( pElementr->GetName() == giveElementName );
                 REQUIRE( pElementr->GetParentState() == GST_STATE_NULL );
             }
         }

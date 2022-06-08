@@ -35,12 +35,14 @@ std::wstring src_url_3 = L"rtsp://user:pwd!@192.168.1.66:554/Streaming/Channels/
 std::wstring src_url_4 = L"rtsp://user:pwd!@192.168.1.67:554/Streaming/Channels/101";
 
    
-// These must be set to point to the location of these files on your network.  
-// Examples for your use can often be found in your Deepstream install, i.e. /opt/nvidia/deepstream/deepstream-6.0/samples
 // Filespecs for the Primary GIE    
-std::wstring primary_infer_config_file = L"./test/configs/config_infer_primary_nano.txt";    
-std::wstring primary_model_engine_file = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine";
-std::wstring tracker_config_file = L"./test/configs/iou_config.txt";
+std::wstring primary_infer_config_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
+std::wstring primary_model_engine_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+std::wstring tracker_config_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
+
 
 int TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH;
 int TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT;
@@ -135,13 +137,13 @@ DslReturnType create_display_types()
 
     // ````````````````````````````````````````````````````````````````````````````````````````````````````````    
     // Create new RGBA color types    
-    retval = dsl_display_type_rgba_color_new(L"full-red", 1.0f, 0.0f, 0.0f, 1.0f);    
+    retval = dsl_display_type_rgba_color_custom_new(L"full-red", 1.0f, 0.0f, 0.0f, 1.0f);    
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
-    retval = dsl_display_type_rgba_color_new(L"full-white", 1.0f, 1.0f, 1.0f, 1.0f);    
+    retval = dsl_display_type_rgba_color_custom_new(L"full-white", 1.0f, 1.0f, 1.0f, 1.0f);    
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
-    retval = dsl_display_type_rgba_color_new(L"opaque-black", 0.0f, 0.0f, 0.0f, 0.8f);
+    retval = dsl_display_type_rgba_color_custom_new(L"opaque-black", 0.0f, 0.0f, 0.0f, 0.8f);
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
     retval = dsl_display_type_rgba_font_new(L"impact-20-white", L"impact", 20, L"full-white");    

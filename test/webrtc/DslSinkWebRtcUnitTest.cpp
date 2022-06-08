@@ -77,10 +77,7 @@ SCENARIO( "A new WebRtcSinkBintr is created correctly",  "[WebRtcSinkBintr]" )
                 REQUIRE( retStunServer == stunServer);
                 REQUIRE( retTurnServer == turnServer);
 
-                bool sync(false), async(false);
-                pSinkBintr->GetSyncSettings(&sync, &async);
-                REQUIRE( sync == true );
-                REQUIRE( async == false );
+                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
 
                 uint retCodec(99), retBitrate(99), retInterval(99);
                 pSinkBintr->GetEncoderSettings(&retCodec, &retBitrate, &retInterval);

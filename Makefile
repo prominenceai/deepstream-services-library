@@ -34,7 +34,7 @@ TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 USER_SITE = "`python3 -m site --user-site`"
 
 CXX_VERSION:=c++17
-DSL_VERSION:='L"v0.23.alpha"'
+DSL_VERSION:='L"v0.24.alpha"'
 GLIB_VERSION:=2.0
 GSTREAMER_VERSION:=1.0
 GSTREAMER_SUB_VERSION:=14
@@ -48,11 +48,13 @@ INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources/includes
 LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/lib
 
 SRCS+= $(wildcard ./src/*.cpp)
+SRCS+= $(wildcard ./src/thirdparty/*.cpp)
 SRCS+= $(wildcard ./test/*.cpp)
 SRCS+= $(wildcard ./test/api/*.cpp)
 SRCS+= $(wildcard ./test/unit/*.cpp)
 
 INCS+= $(wildcard ./src/*.h)
+INCS+= $(wildcard ./src/thirdparty/*.h)
 INCS+= $(wildcard ./test/*.hpp)
 
 ifeq ($(GSTREAMER_SUB_VERSION),18)
@@ -81,6 +83,7 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-I/usr/lib/$(TARGET_DEVICE)-linux-gnu/glib-$(GLIB_VERSION)/include \
 	-I/usr/local/cuda/targets/$(TARGET_DEVICE)-linux/include \
 	-I./src \
+	-I./src/thirdparty \
 	-I./test \
 	-I./test/api \
 	-DDSL_VERSION=$(DSL_VERSION) \
@@ -110,6 +113,7 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-laprutil-1 \
 	-lapr-1 \
 	-lX11 \
+	-lcuda \
 	-L/usr/lib/$(TARGET_DEVICE)-linux-gnu \
 	-lgeos_c \
 	-lcurl \

@@ -359,6 +359,13 @@ namespace DSL
     {
         LOG_INFO("EOS message recieved");
         
+        // If the EOS event was sent from HandleStop
+        if (m_eosFlag)
+        {
+            return;
+        }
+        
+        // Action EOS so set the flag
         m_eosFlag = true;
         
         // iterate through the map of EOS-listeners calling each

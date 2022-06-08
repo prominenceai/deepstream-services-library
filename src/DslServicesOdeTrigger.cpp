@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c)   2021, Prominence AI, Inc.
+Copyright (c)   2021-2022, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,6 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslServices.h"
 #include "DslServicesValidate.h"
-#include "DslOdeArea.h"
 
 namespace DSL
 {
@@ -122,36 +121,6 @@ namespace DSL
         }
     }
     
-    
-    DslReturnType Services::OdeTriggerAccumulationNew(const char* name, 
-        const char* source, uint classId, uint limit)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure event name uniqueness 
-            if (m_odeTriggers.find(name) != m_odeTriggers.end())
-            {   
-                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
-            }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_ACCUMULATION_NEW(name, 
-                source, classId, limit);
-            
-            LOG_INFO("New Accumulation ODE Trigger '" << name 
-                << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Accumulation ODE Trigger '" << name 
-                << "' threw exception on create");
-            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
-        }
-    }
     
     DslReturnType Services::OdeTriggerInstanceNew(const char* name, 
         const char* source, uint classId, uint limit)
@@ -269,97 +238,6 @@ namespace DSL
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
-
-    DslReturnType Services::OdeTriggerPersistenceNew(const char* name, const char* source, 
-        uint classId, uint limit, uint minimum, uint maximum)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure event name uniqueness 
-            if (m_odeTriggers.find(name) != m_odeTriggers.end())
-            {   
-                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
-            }
-            // check for no maximum
-            maximum = (maximum == 0) ? UINT32_MAX : maximum;
-
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_PERSISTENCE_NEW(name, 
-                source, classId, limit, minimum, maximum);
-            
-            LOG_INFO("New Persistence ODE Trigger '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Persistence ODE Trigger '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::OdeTriggerPersistenceRangeGet(const char* name, 
-        uint* minimum, uint* maximum)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, PersistenceOdeTrigger);
-            
-            DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
-                std::dynamic_pointer_cast<PersistenceOdeTrigger>(m_odeTriggers[name]);
-
-            pOdeTrigger->GetRange(minimum, maximum);
-            
-            // check for no maximum
-            *maximum = (*maximum == UINT32_MAX) ? 0 : *maximum;
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Persistence Trigger '" << name 
-                << "' threw exception getting range");
-            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
-        }
-    }                
-    
-    DslReturnType Services::OdeTriggerPersistenceRangeSet(const char* name, 
-        uint minimum, uint maximum)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, PersistenceOdeTrigger);
-            
-            DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
-                std::dynamic_pointer_cast<PersistenceOdeTrigger>(m_odeTriggers[name]);
-
-            // check for no maximum
-            maximum = (maximum == 0) ? UINT32_MAX : maximum;
-         
-            pOdeTrigger->SetRange(minimum, maximum);
-            
-            LOG_INFO("ODE Persistence Trigger '" << name << "' set new range from mimimum " 
-                << minimum << " to maximum " << maximum << " successfully");
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Persistence Trigger '" << name 
-                << "' threw exception setting range");
-            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
-        }
-    }                
 
     DslReturnType Services::OdeTriggerCountNew(const char* name, const char* source, 
         uint classId, uint limit, uint minimum, uint maximum)
@@ -664,61 +542,6 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeTriggerLatestNew(const char* name, 
-        const char* source, uint classId, uint limit)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure event name uniqueness 
-            if (m_odeTriggers.find(name) != m_odeTriggers.end())
-            {   
-                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
-            }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_LATEST_NEW(name, source, classId, limit);
-            
-            LOG_INFO("New Latest ODE Trigger '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Latest ODE Trigger '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::OdeTriggerEarliestNew(const char* name, 
-        const char* source, uint classId, uint limit)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure event name uniqueness 
-            if (m_odeTriggers.find(name) != m_odeTriggers.end())
-            {   
-                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
-            }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_EARLIEST_NEW(name, source, classId, limit);
-            
-            LOG_INFO("New Earliest ODE Trigger '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Earliest ODE Trigger '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
-        }
-    }
-
-
     DslReturnType Services::OdeTriggerNewHighNew(const char* name, 
         const char* source, uint classId, uint limit, uint preset)
     {
@@ -772,6 +595,350 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New New-Low ODE Trigger '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeTriggerCrossNew(const char* name, 
+        const char* source, uint classId, uint limit, 
+        uint minFrameCount, uint maxFrameCount, uint testMethod)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+            if (testMethod > DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS)
+            {
+                LOG_ERROR("Invalid test method = " << testMethod 
+                    << " for ODE Cross Trigger '" << name << "'");
+                return DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID;
+            }
+            if (minFrameCount >= maxFrameCount)
+            {
+                LOG_ERROR("Invalid parameters - max_trace_points = " << maxFrameCount 
+                    << "must be greater than min_frame_count = " << minFrameCount
+                    << "for ODE Cross Trigger '" << name << "'");
+                return DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID;
+            }
+            DSL_RGBA_COLOR_PTR pColor = std::dynamic_pointer_cast<RgbaColor>
+                (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
+            
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_CROSS_NEW(name, 
+                source, classId, limit, minFrameCount, maxFrameCount, 
+                testMethod, pColor);
+            
+            LOG_INFO("New Cross ODE Trigger '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Cross ODE Trigger '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeTriggerCrossTestSettingsGet(const char* name, 
+        uint* minFrameCount, uint* maxFrameCount, uint* testMethod)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, 
+                CrossOdeTrigger);
+            
+            DSL_ODE_TRIGGER_CROSS_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<CrossOdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->GetTestSettings(minFrameCount, 
+                maxFrameCount, testMethod);
+
+            LOG_INFO("ODE Tracking Trigger '" << name 
+                << "' returned test settings successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Tracking Trigger '" << name 
+                << "' threw exception getting test settings");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::OdeTriggerCrossTestSettingsSet(const char* name, 
+        uint minFrameCount, uint maxFrameCount, uint testMethod)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, 
+                CrossOdeTrigger);
+            
+            if (testMethod > DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS)
+            {
+                LOG_ERROR("Invalid test method = " << testMethod 
+                    << " for ODE Tracking Trigger '" << name << "'");
+                return DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID;
+            }
+            if (minFrameCount >= maxFrameCount)
+            {
+                LOG_ERROR("Invalid parameters - max_frame_count = " << maxFrameCount
+                    << "must be greater than min_frame_count = " << minFrameCount
+                    << "for ODE Cross Trigger '" << name << "'");
+                return DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID;
+            }
+            DSL_ODE_TRIGGER_CROSS_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<CrossOdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->SetTestSettings(minFrameCount, 
+                maxFrameCount, testMethod);
+
+            LOG_INFO("ODE Cross Trigger '" << name 
+                << "' set test settings successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Cross Trigger '" << name 
+                << "' threw exception getting test settings");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::OdeTriggerCrossViewSettingsGet(const char* name, 
+        boolean* enabled, const char** color, uint* lineWidth)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, 
+                CrossOdeTrigger);
+            
+            DSL_ODE_TRIGGER_CROSS_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<CrossOdeTrigger>(m_odeTriggers[name]);
+
+            bool bEnabled;
+            pOdeTrigger->GetViewSettings(&bEnabled, color, lineWidth);
+            *enabled = bEnabled;
+
+            LOG_INFO("ODE Tracking Trigger '" << name 
+                << "' returned view settings successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Tracking Trigger '" << name 
+                << "' threw exception getting view settings");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::OdeTriggerCrossViewSettingsSet(const char* name, 
+        boolean enabled, const char* color, uint lineWidth)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, 
+                CrossOdeTrigger);
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(m_displayTypes, color);
+            
+            DSL_ODE_TRIGGER_CROSS_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<CrossOdeTrigger>(m_odeTriggers[name]);
+                
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+
+            pOdeTrigger->SetViewSettings(enabled, pColor, lineWidth);
+
+            LOG_INFO("ODE Track Trigger '" << name 
+                << "' set view settings successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Track Trigger '" << name 
+                << "' threw exception setting view settings");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerPersistenceNew(const char* name, const char* source, 
+        uint classId, uint limit, uint minimum, uint maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+            // check for no maximum
+            maximum = (maximum == 0) ? UINT32_MAX : maximum;
+
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_PERSISTENCE_NEW(name, 
+                source, classId, limit, minimum, maximum);
+            
+            LOG_INFO("New Persistence ODE Trigger '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Persistence ODE Trigger '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeTriggerPersistenceRangeGet(const char* name, 
+        uint* minimum, uint* maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, 
+                PersistenceOdeTrigger);
+            
+            DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<PersistenceOdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->GetRange(minimum, maximum);
+            
+            // check for no maximum
+            *maximum = (*maximum == UINT32_MAX) ? 0 : *maximum;
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Persistence Trigger '" << name 
+                << "' threw exception getting range");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::OdeTriggerPersistenceRangeSet(const char* name, 
+        uint minimum, uint maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, 
+                PersistenceOdeTrigger);
+            
+            DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<PersistenceOdeTrigger>(m_odeTriggers[name]);
+
+            // check for no maximum
+            maximum = (maximum == 0) ? UINT32_MAX : maximum;
+         
+            pOdeTrigger->SetRange(minimum, maximum);
+            
+            LOG_INFO("ODE Persistence Trigger '" << name << "' set new range from mimimum " 
+                << minimum << " to maximum " << maximum << " successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Persistence Trigger '" << name 
+                << "' threw exception setting range");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerLatestNew(const char* name, 
+        const char* source, uint classId, uint limit)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_LATEST_NEW(name, 
+                source, classId, limit);
+            
+            LOG_INFO("New Latest ODE Trigger '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Latest ODE Trigger '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeTriggerEarliestNew(const char* name, 
+        const char* source, uint classId, uint limit)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_EARLIEST_NEW(name, 
+                source, classId, limit);
+            
+            LOG_INFO("New Earliest ODE Trigger '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Earliest ODE Trigger '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
@@ -1158,7 +1325,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting class id");
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting class id");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -1184,7 +1352,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting class id");
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting class id");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -1212,7 +1381,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting class id");
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting class id");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -1240,7 +1410,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting class id");
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting class id");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -1265,7 +1436,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting limit");
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting limit");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -1294,8 +1466,10 @@ namespace DSL
             LOG_ERROR("ODE Trigger '" << name << "' threw exception getting limit");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
-    }                
-    DslReturnType Services::OdeTriggerConfidenceMinGet(const char* name, float* minConfidence)
+    }    
+            
+    DslReturnType Services::OdeTriggerConfidenceMinGet(const char* 
+        name, float* minConfidence)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1309,19 +1483,21 @@ namespace DSL
          
             *minConfidence = pOdeTrigger->GetMinConfidence();
             
-            LOG_INFO("Trigger '" << name << "' returned Min Confidence = " 
+            LOG_INFO("Trigger '" << name << "' returned minimum confidence = " 
                 << *minConfidence << " successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting minimum confidence");
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting minimum confidence");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
-    DslReturnType Services::OdeTriggerConfidenceMinSet(const char* name, float minConfidence)
+    DslReturnType Services::OdeTriggerConfidenceMinSet(const char* name, 
+        float minConfidence)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1335,19 +1511,77 @@ namespace DSL
 
             pOdeTrigger->SetMinConfidence(minConfidence);
 
-            LOG_INFO("Trigger '" << name << "' set Min Confidence = " 
+            LOG_INFO("Trigger '" << name << "' set minimum confidence = " 
                 << minConfidence << " successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting minimum confidence");
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting minimum confidence");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
-    DslReturnType Services::OdeTriggerDimensionsMinGet(const char* name, float* minWidth, float* minHeight)
+    DslReturnType Services::OdeTriggerTrackerConfidenceMinGet(const char* 
+        name, float* minConfidence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            *minConfidence = pOdeTrigger->GetMinTrackerConfidence();
+            
+            LOG_INFO("Trigger '" << name << "' returned minimum Tracker confidence = " 
+                << *minConfidence << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting minimum Tracker confidence");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerTrackerConfidenceMinSet(const char* name, 
+        float minConfidence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->SetMinTrackerConfidence(minConfidence);
+
+            LOG_INFO("Trigger '" << name << "' set minimum Tracker confidence = " 
+                << minConfidence << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting minimum Tracker confidence");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerDimensionsMinGet(const char* name, 
+        float* minWidth, float* minHeight)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1362,18 +1596,21 @@ namespace DSL
             pOdeTrigger->GetMinDimensions(minWidth, minHeight);
             
             LOG_INFO("Trigger '" << name << "' returned Minimum Width = " 
-                << *minWidth << " and Minimum Height = " << *minHeight << " successfully");
+                << *minWidth << " and Minimum Height = " 
+                    << *minHeight << " successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting minimum dimensions");
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting minimum dimensions");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
-    DslReturnType Services::OdeTriggerDimensionsMinSet(const char* name, float minWidth, float minHeight)
+    DslReturnType Services::OdeTriggerDimensionsMinSet(const char* name, 
+        float minWidth, float minHeight)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1395,12 +1632,14 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception setting minimum dimensions");
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception setting minimum dimensions");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
-    DslReturnType Services::OdeTriggerDimensionsMaxGet(const char* name, float* maxWidth, float* maxHeight)
+    DslReturnType Services::OdeTriggerDimensionsMaxGet(const char* name, 
+        float* maxWidth, float* maxHeight)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1415,18 +1654,21 @@ namespace DSL
             pOdeTrigger->GetMaxDimensions(maxWidth, maxHeight);
             
             LOG_INFO("Trigger'" << name << "' returned Maximim Width = " 
-                << *maxWidth << " and Minimum Height = " << *maxHeight << " successfully");
+                << *maxWidth << " and Minimum Height = " 
+                    << *maxHeight << " successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting maximum dimensions");
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting maximum dimensions");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
-    DslReturnType Services::OdeTriggerDimensionsMaxSet(const char* name, float maxWidth, float maxHeight)
+    DslReturnType Services::OdeTriggerDimensionsMaxSet(const char* name, 
+        float maxWidth, float maxHeight)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1442,19 +1684,22 @@ namespace DSL
             pOdeTrigger->SetMaxDimensions(maxWidth, maxHeight);
 
             LOG_INFO("Trigger '" << name << "' set Maximim Width = " 
-                << maxWidth << " and Minimum Height = " << maxHeight << " successfully");
+                << maxWidth << " and Minimum Height = " 
+                    << maxHeight << " successfully");
             
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception setting maximum dimensions");
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception setting maximum dimensions");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
-    DslReturnType Services::OdeTriggerFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d)
+    DslReturnType Services::OdeTriggerFrameCountMinGet(const char* name, 
+        uint* min_count_n, uint* min_count_d)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1472,12 +1717,14 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting minimum frame count");
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting minimum frame count");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
-    DslReturnType Services:: OdeTriggerFrameCountMinSet(const char* name, uint min_count_n, uint min_count_d)
+    DslReturnType Services:: OdeTriggerFrameCountMinSet(const char* name, 
+        uint min_count_n, uint min_count_d)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1496,12 +1743,14 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting minimum frame count");
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting minimum frame count");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
-    DslReturnType Services::OdeTriggerInferDoneOnlyGet(const char* name, boolean* inferDoneOnly)
+    DslReturnType Services::OdeTriggerInferDoneOnlyGet(const char* name, 
+        boolean* inferDoneOnly)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1528,7 +1777,8 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::OdeTriggerInferDoneOnlySet(const char* name, boolean inferDoneOnly)
+    DslReturnType Services::OdeTriggerInferDoneOnlySet(const char* name, 
+        boolean inferDoneOnly)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1781,6 +2031,124 @@ namespace DSL
         {
             LOG_ERROR("ODE Trigger '" << name 
                 << "' threw an exception removing All ODE Areas");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeTriggerAccumulatorAdd(const char* name, 
+        const char* accumulator)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_ACCUMULATOR_NAME_NOT_FOUND(m_odeAccumulators, 
+                accumulator);
+
+            // check for in-use
+
+            if (!m_odeTriggers[name]->AddAccumulator(m_odeAccumulators[accumulator]))
+            {
+                LOG_ERROR("ODE Trigger '" << name
+                    << "' failed to add ODE Accumulator '" << accumulator << "'");
+                return DSL_RESULT_ODE_TRIGGER_ACCUMULATOR_ADD_FAILED;
+            }
+            LOG_INFO("ODE Accumulator '" << accumulator
+                << "' was added to ODE Trigger '" << name << "' successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name
+                << "' threw exception adding ODE Accumulator '" << accumulator << "'");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeTriggerAccumulatorRemove(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+
+            if (!m_odeTriggers[name]->RemoveAccumulator())
+            {
+                LOG_ERROR("ODE Trigger '" << name
+                    << "' failed to remove ODE Accumulator");
+                return DSL_RESULT_ODE_TRIGGER_ACCUMULATOR_REMOVE_FAILED;
+            }
+            LOG_INFO("ODE Accumulator was removed from ODE Trigger '" 
+                << name << "' successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name
+                << "' threw exception removing ODE Accumulator");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeTriggerHeatMapperAdd(const char* name, 
+        const char* heatMapper)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_ODE_HEAT_MAPPER_NAME_NOT_FOUND(m_odeHeatMappers, 
+                heatMapper);
+
+            // check for in-use
+
+            if (!m_odeTriggers[name]->AddHeatMapper(m_odeHeatMappers[heatMapper]))
+            {
+                LOG_ERROR("ODE Trigger '" << name
+                    << "' failed to add ODE Heat-Mapper '" << heatMapper << "'");
+                return DSL_RESULT_ODE_TRIGGER_HEAT_MAPPER_ADD_FAILED;
+            }
+            LOG_INFO("ODE Heat-Mapper '" << heatMapper
+                << "' was added to ODE Trigger '" << name << "' successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name
+                << "' threw exception adding ODE Heat-Mapper '" << heatMapper << "'");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeTriggerHeatMapperRemove(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+
+            if (!m_odeTriggers[name]->RemoveHeatMapper())
+            {
+                LOG_ERROR("ODE Trigger '" << name
+                    << "' failed to remove ODE Heat-Mapper");
+                return DSL_RESULT_ODE_TRIGGER_HEAT_MAPPER_REMOVE_FAILED;
+            }
+            LOG_INFO("ODE Heat-Mapper was removed from ODE Trigger '" 
+                << name << "' successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name
+                << "' threw exception removing ODE Heat-Mapper");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }

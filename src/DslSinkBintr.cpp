@@ -30,10 +30,9 @@ namespace DSL
 {
 
     SinkBintr::SinkBintr(const char* name, 
-        bool sync, bool async)
+        bool sync)
         : Bintr(name)
         , m_sync(sync)
-        , m_async(async)
         , m_cudaDeviceProp{0}
     {
         LOG_FUNC();
@@ -83,18 +82,17 @@ namespace DSL
             RemoveSinkBintr(std::dynamic_pointer_cast<SinkBintr>(shared_from_this()));
     }
 
-    void SinkBintr::GetSyncSettings(bool* sync, bool* async)
+    bool SinkBintr::GetSyncEnabled()
     {
         LOG_FUNC();
         
-        *sync = m_sync;
-        *async = m_async;
+        return m_sync;
     }
 
     //-------------------------------------------------------------------------
 
     FakeSinkBintr::FakeSinkBintr(const char* name)
-        : SinkBintr(name, true, false)
+        : SinkBintr(name, true)
         , m_qos(false)
     {
         LOG_FUNC();
@@ -103,7 +101,7 @@ namespace DSL
         m_pFakeSink->SetAttribute("enable-last-sample", false);
         m_pFakeSink->SetAttribute("max-lateness", -1);
         m_pFakeSink->SetAttribute("sync", m_sync);
-        m_pFakeSink->SetAttribute("async", m_async);
+        m_pFakeSink->SetAttribute("async", false);
         m_pFakeSink->SetAttribute("qos", m_qos);
         
         AddChild(m_pFakeSink);
@@ -149,21 +147,19 @@ namespace DSL
         m_isLinked = false;
     }
 
-    bool FakeSinkBintr::SetSyncSettings(bool sync, bool async)
+    bool FakeSinkBintr::SetSyncEnabled(bool enabled)
     {
         LOG_FUNC();
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set Sync/Async Settings for OverlaySinkBintr '" << GetName() 
+            LOG_ERROR("Unable to set Sync enabled setting for FakeSinkBintr '" << GetName() 
                 << "' as it's currently linked");
             return false;
         }
-        m_sync = sync;
-        m_async = async;
+        m_sync = enabled;
         
         m_pFakeSink->SetAttribute("sync", m_sync);
-        m_pFakeSink->SetAttribute("async", m_async);
         
         return true;
     }
@@ -171,8 +167,8 @@ namespace DSL
     //-------------------------------------------------------------------------
 
     RenderSinkBintr::RenderSinkBintr(const char* name, 
-        uint offsetX, uint offsetY, uint width, uint height, bool sync, bool async)
-        : SinkBintr(name, sync, async)
+        uint offsetX, uint offsetY, uint width, uint height, bool sync)
+        : SinkBintr(name, sync)
         , m_offsetX(offsetX)
         , m_offsetY(offsetY)
         , m_width(width)
@@ -207,7 +203,7 @@ namespace DSL
 
     OverlaySinkBintr::OverlaySinkBintr(const char* name, uint displayId, 
         uint depth, uint offsetX, uint offsetY, uint width, uint height)
-        : RenderSinkBintr(name, offsetX, offsetY, width, height, true, false) // sync, async
+        : RenderSinkBintr(name, offsetX, offsetY, width, height, true)
         , m_qos(FALSE)
         , m_displayId(displayId)
         , m_depth(depth)
@@ -220,13 +216,24 @@ namespace DSL
             LOG_ERROR("Overlay Sink is only supported on the aarch64 Platform'");
             throw;
         }
-        // Reset to create
-        if (!Reset())
+        
+        // Find the first available unique Id
+        while(std::find(s_uniqueIds.begin(), s_uniqueIds.end(), m_uniqueId) != s_uniqueIds.end())
         {
-            LOG_ERROR("Failed to create Overlay element for SinkBintr '" 
-                << GetName() << "'");
-            throw;
+            m_uniqueId++;
         }
+        s_uniqueIds.push_back(m_uniqueId);
+        
+        m_pOverlay = DSL_ELEMENT_NEW("nvoverlaysink", GetCStrName());
+        
+        m_pOverlay->SetAttribute("overlay", m_uniqueId);
+        m_pOverlay->SetAttribute("display-id", m_displayId);
+        m_pOverlay->SetAttribute("max-lateness", -1);
+        m_pOverlay->SetAttribute("sync", m_sync);
+        m_pOverlay->SetAttribute("async", false);
+        m_pOverlay->SetAttribute("qos", m_qos);
+        
+        AddChild(m_pOverlay);
     }
     
     bool OverlaySinkBintr::Reset()
@@ -240,39 +247,19 @@ namespace DSL
             return false;
         }
 
-        // If first time call - from the constructor
-        if (m_pOverlay == nullptr)
-        {
-            // Find the first available unique Id
-            while(std::find(s_uniqueIds.begin(), s_uniqueIds.end(), m_uniqueId) != s_uniqueIds.end())
-            {
-                m_uniqueId++;
-            }
-            s_uniqueIds.push_back(m_uniqueId);
-        }
-        // Else, this is an actual reset/recreate
-        else
-        {
-            // Remove the existing element from the objects bin
-            gst_element_set_state(m_pOverlay->GetGstElement(), GST_STATE_NULL);
-            RemoveChild(m_pOverlay);
-        }
-        
-        m_pOverlay = DSL_ELEMENT_NEW("nvoverlaysink", GetCStrName());
-        
-        m_pOverlay->SetAttribute("overlay", m_uniqueId);
-        m_pOverlay->SetAttribute("display-id", m_displayId);
-        m_pOverlay->SetAttribute("max-lateness", -1);
-        m_pOverlay->SetAttribute("sync", m_sync);
-        m_pOverlay->SetAttribute("async", m_async);
-        m_pOverlay->SetAttribute("qos", m_qos);
+        // Need to clear and then reset the Overlay attributes. Note this is
+        // a workaround see 
+        // https://forums.developer.nvidia.com/t/nvoverlaysink-ignores-properties-when-pipeline-is-restarted/179379
+        m_pOverlay->SetAttribute("overlay-x", 0);
+        m_pOverlay->SetAttribute("overlay-y", 0);
+        m_pOverlay->SetAttribute("overlay-w", 0);
+        m_pOverlay->SetAttribute("overlay-h", 0);
+
         m_pOverlay->SetAttribute("overlay-x", m_offsetX);
         m_pOverlay->SetAttribute("overlay-y", m_offsetY);
         m_pOverlay->SetAttribute("overlay-w", m_width);
         m_pOverlay->SetAttribute("overlay-h", m_height);
-        
-        AddChild(m_pOverlay);
-        
+
         return true;
     }
     
@@ -294,6 +281,11 @@ namespace DSL
             return false;
         }
 
+        if (!Reset())
+        {
+            LOG_ERROR("Failed to create/reset Overlay pluggin");
+            return false;
+        }
         if (!m_pQueue->LinkToSink(m_pOverlay))
         {
             return false;
@@ -348,6 +340,8 @@ namespace DSL
         m_offsetX = offsetX;
         m_offsetY = offsetY;
 
+        m_pOverlay->SetAttribute("overlay-x", 0);
+        m_pOverlay->SetAttribute("overlay-y", 0);
         m_pOverlay->SetAttribute("overlay-x", m_offsetX);
         m_pOverlay->SetAttribute("overlay-y", m_offsetY);
         
@@ -361,27 +355,27 @@ namespace DSL
         m_width = width;
         m_height = height;
 
+        m_pOverlay->SetAttribute("overlay-w", 0);
+        m_pOverlay->SetAttribute("overlay-h", 0);
         m_pOverlay->SetAttribute("overlay-w", m_width);
         m_pOverlay->SetAttribute("overlay-h", m_height);
         
         return true;
     }
 
-    bool OverlaySinkBintr::SetSyncSettings(bool sync, bool async)
+    bool OverlaySinkBintr::SetSyncEnabled(bool enabled)
     {
         LOG_FUNC();
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set Sync/Async Settings for OverlaySinkBintr '" << GetName() 
+            LOG_ERROR("Unable to set Sync enabled setting for OverlaySinkBintr '" << GetName() 
                 << "' as it's currently linked");
             return false;
         }
-        m_sync = sync;
-        m_async = async;
+        m_sync = enabled;
         
         m_pOverlay->SetAttribute("sync", m_sync);
-        m_pOverlay->SetAttribute("async", m_async);
 
         return true;
     }
@@ -390,7 +384,7 @@ namespace DSL
 
     WindowSinkBintr::WindowSinkBintr(const char* name, 
         guint offsetX, guint offsetY, guint width, guint height)
-        : RenderSinkBintr(name, offsetX, offsetY, width, height, true, false)
+        : RenderSinkBintr(name, offsetX, offsetY, width, height, true)
         , m_qos(false)
         , m_forceAspectRatio(false)
     {
@@ -470,7 +464,7 @@ namespace DSL
         
         m_pEglGles->SetAttribute("max-lateness", -1);
         m_pEglGles->SetAttribute("sync", m_sync);
-        m_pEglGles->SetAttribute("async", m_async);
+        m_pEglGles->SetAttribute("async", false);
         m_pEglGles->SetAttribute("qos", m_qos);
         
         AddChild(m_pEglGles);
@@ -567,21 +561,19 @@ namespace DSL
         return true;
     }
 
-    bool WindowSinkBintr::SetSyncSettings(bool sync, bool async)
+    bool WindowSinkBintr::SetSyncEnabled(bool enabled)
     {
         LOG_FUNC();
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set Sync/Async Settings for WindowSinkBintr '" << GetName() 
+            LOG_ERROR("Unable to set Sync enabled setting for WindowSinkBintr '" << GetName() 
                 << "' as it's currently linked");
             return false;
         }
-        m_sync = sync;
-        m_async = async;
+        m_sync = enabled;
         
         m_pEglGles->SetAttribute("sync", m_sync);
-        m_pEglGles->SetAttribute("async", m_async);
 
         return true;
     }
@@ -660,7 +652,7 @@ namespace DSL
     
     EncodeSinkBintr::EncodeSinkBintr(const char* name,
         uint codec, uint bitrate, uint interval)
-        : SinkBintr(name, true, false)
+        : SinkBintr(name, true)
         , m_codec(codec)
         , m_bitrate(bitrate)
         , m_interval(interval)
@@ -775,7 +767,6 @@ namespace DSL
 
         m_pFileSink->SetAttribute("location", filepath);
         m_pFileSink->SetAttribute("sync", m_sync);
-        m_pFileSink->SetAttribute("async", m_async);
         
         switch (container)
         {
@@ -844,21 +835,19 @@ namespace DSL
         m_isLinked = false;
     }
 
-    bool FileSinkBintr::SetSyncSettings(bool sync, bool async)
+    bool FileSinkBintr::SetSyncEnabled(bool enabled)
     {
         LOG_FUNC();
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set Sync/Async Settings for FileSinkBintr '" << GetName() 
+            LOG_ERROR("Unable to set Sync enabled setting for FileSinkBintr '" << GetName() 
                 << "' as it's currently linked");
             return false;
         }
-        m_sync = sync;
-        m_async = async;
+        m_sync = enabled;
         
         m_pFileSink->SetAttribute("sync", m_sync);
-        m_pFileSink->SetAttribute("async", m_async);
 
         return true;
     }
@@ -952,18 +941,17 @@ namespace DSL
     }
 
     
-    bool RecordSinkBintr::SetSyncSettings(bool sync, bool async)
+    bool RecordSinkBintr::SetSyncEnabled(bool enabled)
     {
         LOG_FUNC();
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set Sync/Async Settings for RecordSinkBintr '" << GetName() 
+            LOG_ERROR("Unable to set Sync enabled setting for RecordSinkBintr '" << GetName() 
                 << "' as it's currently linked");
             return false;
         }
-        m_sync = sync;
-        m_async = async;
+        m_sync = enabled;
 
         // TODO set sync/async for file element owned by context??
         return true;
@@ -1003,7 +991,7 @@ namespace DSL
         m_pUdpSink->SetAttribute("host", m_host.c_str());
         m_pUdpSink->SetAttribute("port", m_udpPort);
         m_pUdpSink->SetAttribute("sync", m_sync);
-        m_pUdpSink->SetAttribute("async", m_async);
+        m_pUdpSink->SetAttribute("async", false);
 
         // aarch_64
         if (m_cudaDeviceProp.integrated)
@@ -1114,21 +1102,19 @@ namespace DSL
         *rtspPort = m_rtspPort;
     }
     
-    bool RtspSinkBintr::SetSyncSettings(bool sync, bool async)
+    bool RtspSinkBintr::SetSyncEnabled(bool enabled)
     {
         LOG_FUNC();
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set Sync/Async Settings for RtspSinkBintr '" << GetName() 
+            LOG_ERROR("Unable to set Sync enabled setting for RtspSinkBintr '" << GetName() 
                 << "' as it's currently linked");
             return false;
         }
-        m_sync = sync;
-        m_async = async;
+        m_sync = enabled;
         
         m_pUdpSink->SetAttribute("sync", m_sync);
-        m_pUdpSink->SetAttribute("async", m_async);
 
         return true;
     }
@@ -1136,7 +1122,7 @@ namespace DSL
     MessageSinkBintr::MessageSinkBintr(const char* name, const char* converterConfigFile, 
         uint payloadType, const char* brokerConfigFile, const char* protocolLib, 
         const char* connectionString, const char* topic)
-        : SinkBintr(name, true, false) // used for fake sink only
+        : SinkBintr(name, true) // used for fake sink only
         , m_metaType(NVDS_EVENT_MSG_META)
         , m_converterConfigFile(converterConfigFile)
         , m_payloadType(payloadType)
@@ -1166,7 +1152,7 @@ namespace DSL
         m_pFakeSink->SetAttribute("enable-last-sample", false);
         m_pFakeSink->SetAttribute("max-lateness", -1);
         m_pFakeSink->SetAttribute("sync", m_sync);
-        m_pFakeSink->SetAttribute("async", m_async);
+        m_pFakeSink->SetAttribute("async", false);
         m_pFakeSink->SetAttribute("qos", m_qos);
         
         if (brokerConfigFile)
@@ -1236,18 +1222,17 @@ namespace DSL
         m_isLinked = false;
     }
     
-    bool MessageSinkBintr::SetSyncSettings(bool sync, bool async)
+    bool MessageSinkBintr::SetSyncEnabled(bool enabled)
     {
         LOG_FUNC();
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set Sync/Async Settings for MessageSinkBintr '" << GetName() 
+            LOG_ERROR("Unable to set Sync enabled setting for MessageSinkBintr '" << GetName() 
                 << "' as it's currently linked");
             return false;
         }
-        m_sync = sync;
-        m_async = async;
+        m_sync = enabled;
 
         m_pMsgBroker->SetAttribute("sink", m_sync);
         return true;

@@ -79,18 +79,32 @@ namespace DSL
     }
 
     void FormatBBoxOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
         if (m_enabled and pObjectMeta)
         {   
+            // if the provided border color is a color palette
+            if (m_pBorderColor->IsType(typeid(RgbaColorPalette)))
+            {
+                // set the palette index based on the object class-id
+                std::dynamic_pointer_cast<RgbaColorPalette>(m_pBorderColor)->SetIndex(
+                    pObjectMeta->class_id);
+            }
             pObjectMeta->rect_params.border_width = m_borderWidth;
             pObjectMeta->rect_params.border_color = *m_pBorderColor;
             
             if (m_hasBgColor)
             {
+                // if the provided background color is a color palette
+                if (m_pBgColor->IsType(typeid(RgbaColorPalette)))
+                {
+                    // set the palette index based on the object class-id
+                    std::dynamic_pointer_cast<RgbaColorPalette>(m_pBgColor)->SetIndex(
+                        pObjectMeta->class_id);
+                }
                 pObjectMeta->rect_params.has_bg_color = true;
                 pObjectMeta->rect_params.bg_color = *m_pBgColor;
             }
@@ -114,7 +128,7 @@ namespace DSL
     }
     
     void CustomOdeAction::HandleOccurrence(DSL_BASE_PTR pBase, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -125,9 +139,15 @@ namespace DSL
         }
         try
         {
-            DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pBase);
-            m_clientHandler(pTrigger->s_eventCount, pTrigger->m_wName.c_str(), pBuffer,
-                pDisplayMeta, pFrameMeta, pObjectMeta, m_clientData);
+            NvDsDisplayMeta* pDisplayMeta(NULL);
+            if (displayMetaData.size())
+            {
+                pDisplayMeta = displayMetaData.at(0);
+            }
+            DSL_ODE_TRIGGER_PTR pTrigger 
+                = std::dynamic_pointer_cast<OdeTrigger>(pBase);
+            m_clientHandler(pTrigger->s_eventCount, pTrigger->m_wName.c_str(), 
+                pBuffer, pDisplayMeta, pFrameMeta, pObjectMeta, m_clientData);
         }
         catch(...)
         {
@@ -175,7 +195,8 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
         
-        if (m_captureCompleteListeners.find(listener) != m_captureCompleteListeners.end())
+        if (m_captureCompleteListeners.find(listener) != 
+            m_captureCompleteListeners.end())
         {   
             LOG_ERROR("ODE Capture Action '" << GetName() 
                 << "' - Complete listener is not unique");
@@ -192,7 +213,8 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
         
-        if (m_captureCompleteListeners.find(listener) == m_captureCompleteListeners.end())
+        if (m_captureCompleteListeners.find(listener) == 
+            m_captureCompleteListeners.end())
         {   
             LOG_ERROR("ODE Capture Action '" << GetName() 
                 << "'  - Complete listener not found");
@@ -208,7 +230,8 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
         
-        if (m_imagePlayers.find(pPlayer->GetName()) != m_imagePlayers.end())
+        if (m_imagePlayers.find(pPlayer->GetName()) != 
+            m_imagePlayers.end())
         {   
             LOG_ERROR("ODE Capture Action '" << GetName() 
                 << "'  - Image Player is not unique");
@@ -224,7 +247,8 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
         
-        if (m_imagePlayers.find(pPlayer->GetCStrName()) == m_imagePlayers.end())
+        if (m_imagePlayers.find(pPlayer->GetCStrName()) == 
+            m_imagePlayers.end())
         {   
             LOG_ERROR("ODE Capture Action '" << GetName() 
                 << "' - Image Player not found");
@@ -249,7 +273,8 @@ namespace DSL
         }
         // combine all input parameters as MailerSpecs and add
         std::shared_ptr<MailerSpecs> pMailerSpecs = 
-            std::shared_ptr<MailerSpecs>(new MailerSpecs(pMailer, subject, attach));
+            std::shared_ptr<MailerSpecs>(new MailerSpecs(
+                pMailer, subject, attach));
             
         m_mailers[pMailer->GetName()] = pMailerSpecs;
         
@@ -327,7 +352,7 @@ namespace DSL
     }
 
     void CaptureOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -349,7 +374,8 @@ namespace DSL
 
         NvBufSurfaceMemType transformMemType = pMappedBuffer->pSurface->memType;
 
-        LOG_INFO("Creating new mono-surface with memory type " << transformMemType);
+        LOG_INFO("Creating new mono-surface with memory type " 
+            << transformMemType);
 
         // Transforming only one frame in the batch, so create a copy of the single 
         // surface ... becoming our new source surface. This creates a new mono (non-batched) 
@@ -526,13 +552,6 @@ namespace DSL
                     if (state == GST_STATE_PLAYING or state == GST_STATE_PAUSED)
                     {
                         pImagePlayer->QueueFilePath(filespec.c_str());
-                        
-                        // If the Player's EOS timeout is not running, i.e the previous
-                        // image is being shown indefinetely - show next (i.e. this image)
-                        if (!pImagePlayer->GetTimeout())
-                        {
-                            pImagePlayer->Next();
-                        }
                     }
                     else
                     {
@@ -631,7 +650,8 @@ namespace DSL
 
     // ********************************************************************
 
-    DisableHandlerOdeAction::DisableHandlerOdeAction(const char* name, const char* handler)
+    DisableHandlerOdeAction::DisableHandlerOdeAction(const char* name, 
+        const char* handler)
         : OdeAction(name)
         , m_handler(handler)
     {
@@ -644,7 +664,7 @@ namespace DSL
     }
     
     void DisableHandlerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -686,9 +706,9 @@ namespace DSL
         m_contentTypes.assign(contentTypes.begin(), contentTypes.end());
     }
 
-        void CustomizeLabelOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    void CustomizeLabelOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+    GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+    NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
@@ -698,7 +718,8 @@ namespace DSL
             
             // Free up the existing label memory, and reallocate to ensure suffcient size
             g_free(pObjectMeta->text_params.display_text);
-            pObjectMeta->text_params.display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
+            pObjectMeta->text_params.display_text = 
+                (gchar*) g_malloc0(MAX_DISPLAY_LEN);
 
             for (auto const &iter: m_contentTypes)
             {
@@ -724,9 +745,13 @@ namespace DSL
                     label.append("x");
                     label.append(std::to_string(lrint(pObjectMeta->rect_params.height)));
                     break;
-                case DSL_METRIC_OBJECT_CONFIDENCE :
-                    label.append(((label.size()) ? " | C:" : "C:"));
+                case DSL_METRIC_OBJECT_CONFIDENCE_INFERENCE :
+                    label.append(((label.size()) ? " | IC:" : "IC:"));
                     label.append(std::to_string(pObjectMeta->confidence));
+                    break;
+                case DSL_METRIC_OBJECT_CONFIDENCE_TRACKER :
+                    label.append(((label.size()) ? " | TC:" : "TC:"));
+                    label.append(std::to_string(pObjectMeta->tracker_confidence));
                     break;
                 case DSL_METRIC_OBJECT_PERSISTENCE :
                     label.append(((label.size()) ? " | T:" : "T:"));
@@ -766,25 +791,46 @@ namespace DSL
     }
 
     void DisplayOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
-        if (m_enabled)
+        if (m_enabled and displayMetaData.size())
         {
-            DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+            DSL_ODE_TRIGGER_PTR pTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+
+            // check to see if we're adding meta data - client can disable
+            // by setting the PPH ODE display meta alloc size to 0.
+            // and ensure we have available space in the vector of meta structs.
+            NvDsDisplayMeta* pDisplayMeta(NULL);
+            for (const auto& ivec: displayMetaData)
+            {
+                if (ivec->num_labels < MAX_ELEMENTS_IN_DISPLAY_META)
+                {
+                    pDisplayMeta = ivec;
+                    break;
+                }
+            }
+            if (!pDisplayMeta)
+            {
+                return;
+            }
             
-            NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
+            NvOSD_TextParams *pTextParams = 
+                &displayMetaData.at(0)->text_params[pDisplayMeta->num_labels++];
             pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
             
             std::string text(m_formatString.c_str());
             
             if (pObjectMeta)
             {
-                std::string location = std::to_string(lrint(pObjectMeta->rect_params.left)) +
+                std::string location = 
+                    std::to_string(lrint(pObjectMeta->rect_params.left)) +
                     "," + std::to_string(lrint(pObjectMeta->rect_params.top));
-                std::string dimensions = std::to_string(lrint(pObjectMeta->rect_params.width)) +
+                std::string dimensions = 
+                    std::to_string(lrint(pObjectMeta->rect_params.width)) +
                     "x" + std::to_string(lrint(pObjectMeta->rect_params.height));
                 
                 text = std::regex_replace(text, std::regex("\%0"), 
@@ -796,13 +842,29 @@ namespace DSL
                 text = std::regex_replace(text, std::regex("\%4"), 
                     std::to_string(pObjectMeta->confidence));
                 text = std::regex_replace(text, std::regex("\%5"), 
+                    std::to_string(pObjectMeta->tracker_confidence));
+                text = std::regex_replace(text, std::regex("\%6"), 
                     std::to_string(pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE]));
             }
             else
             {
-                text = std::regex_replace(text, std::regex("\%6"), 
-                    std::to_string(pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES]));
-                    
+                if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
+                    DSL_FRAME_INFO_OCCURRENCES)
+                {
+                    text = std::regex_replace(text, std::regex("\%8"), 
+                        std::to_string(pFrameMeta->misc_frame_info[
+                            DSL_FRAME_INFO_OCCURRENCES]));
+                }
+                else if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
+                    DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN)
+                {
+                    text = std::regex_replace(text, std::regex("\%9"), 
+                        std::to_string(pFrameMeta->misc_frame_info[
+                            DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN]));
+                    text = std::regex_replace(text, std::regex("\%10"), 
+                        std::to_string(pFrameMeta->misc_frame_info[
+                            DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT]));
+                }
             }
             text.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
 
@@ -814,14 +876,15 @@ namespace DSL
             // Font, font-size, font-color
             pTextParams->font_params = *m_pFont;
             pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
-            m_pFont->m_fontName.copy(pTextParams->font_params.font_name, MAX_DISPLAY_LEN, 0);
+            m_pFont->m_fontName.copy(
+                pTextParams->font_params.font_name, MAX_DISPLAY_LEN, 0);
             
 
             // Text background color
             pTextParams->set_bg_clr = m_hasBgColor;
             pTextParams->text_bg_clr = *m_pBgColor;
             
-            nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
+            nvds_add_display_meta_to_frame(pFrameMeta, displayMetaData.at(0));
         }
     }
     
@@ -842,96 +905,121 @@ namespace DSL
     }
 
     void EmailOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
         if (m_enabled)
         {
-            DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+            DSL_ODE_TRIGGER_PTR pTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
             
             std::vector<std::string> body;
             
-            body.push_back(std::string("Trigger Name    : " 
+            body.push_back(std::string("Trigger Name        : " 
                 + pTrigger->GetName() + "<br>"));
-            body.push_back(std::string("  Unique ODE Id : " 
+            body.push_back(std::string("  Unique ODE Id     : " 
                 + std::to_string(pTrigger->s_eventCount) + "<br>"));
-            body.push_back(std::string("  NTP Timestamp : " 
+            body.push_back(std::string("  NTP Timestamp     : " 
                 +  Ntp2Str(pFrameMeta->ntp_timestamp) + "<br>"));
-            body.push_back(std::string("  Source Data   : ------------------------<br>"));
+            body.push_back(std::string("  Source Data       : ------------------------<br>"));
             if (pFrameMeta->bInferDone)
             {
-                body.push_back(std::string("    Inference   : Yes<br>"));
+                body.push_back(std::string("    Inference       : Yes<br>"));
             }
             else
             {
-                body.push_back(std::string("    Inference   : No<br>"));
+                body.push_back(std::string("    Inference       : No<br>"));
             }
-            body.push_back(std::string("    Source Id   : " 
+            body.push_back(std::string("    Source Id       : " 
                 +  std::to_string(pFrameMeta->source_id) + "<br>"));
-            body.push_back(std::string("    Batch Id    : " 
+            body.push_back(std::string("    Batch Id        : " 
                 +  std::to_string(pFrameMeta->batch_id) + "<br>"));
-            body.push_back(std::string("    Pad Index   : " 
+            body.push_back(std::string("    Pad Index       : " 
                 +  std::to_string(pFrameMeta->pad_index) + "<br>"));
-            body.push_back(std::string("    Frame       : " 
+            body.push_back(std::string("    Frame           : " 
                 +  std::to_string(pFrameMeta->frame_num) + "<br>"));
-            body.push_back(std::string("    Width       : " 
+            body.push_back(std::string("    Width           : " 
                 +  std::to_string(pFrameMeta->source_frame_width) + "<br>"));
-            body.push_back(std::string("    Heigh       : " 
+            body.push_back(std::string("    Heigh           : " 
                 +  std::to_string(pFrameMeta->source_frame_height) + "<br>"));
-            body.push_back(std::string("  Object Data   : ------------------------<br>"));
-            body.push_back(std::string("    Occurrences : " 
+            body.push_back(std::string("  Object Data       : ------------------------<br>"));
+            body.push_back(std::string("    Occurrences     : " 
                 +  std::to_string(pTrigger->m_occurrences) + "<br>"));
 
             if (pObjectMeta)
             {
-                body.push_back(std::string("    Obj ClassId : " 
+                body.push_back(std::string("    Obj ClassId     : " 
                     +  std::to_string(pObjectMeta->class_id) + "<br>"));
-                body.push_back(std::string("    Tracking Id : " 
+                body.push_back(std::string("    Tracking Id     : " 
                     +  std::to_string(pObjectMeta->object_id) + "<br>"));
-                body.push_back(std::string("    Label       : " 
+                body.push_back(std::string("    Label           : " 
                     +  std::string(pObjectMeta->obj_label) + "<br>"));
-                body.push_back(std::string("    Persistence       : " 
+                body.push_back(std::string("    Persistence     : " 
                     + std::to_string(pObjectMeta->
                         misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE]) + "<br>"));
-                body.push_back(std::string("    Confidence  : " 
+                body.push_back(std::string("    Direction       : " 
+                    + std::to_string(pObjectMeta->
+                        misc_obj_info[DSL_OBJECT_INFO_DIRECTION]) + "<br>"));
+                body.push_back(std::string("    Infer Conf      : " 
                     +  std::to_string(pObjectMeta->confidence) + "<br>"));
-                body.push_back(std::string("    Left        : " 
+                body.push_back(std::string("    Track Conf      : " 
+                    +  std::to_string(pObjectMeta->tracker_confidence) + "<br>"));
+                body.push_back(std::string("    Left            : " 
                     +  std::to_string(lrint(pObjectMeta->rect_params.left)) + "<br>"));
-                body.push_back(std::string("    Top         : " 
+                body.push_back(std::string("    Top             : " 
                     +  std::to_string(lrint(pObjectMeta->rect_params.top)) + "<br>"));
-                body.push_back(std::string("    Width       : " 
+                body.push_back(std::string("    Width           : " 
                     +  std::to_string(lrint(pObjectMeta->rect_params.width)) + "<br>"));
-                body.push_back(std::string("    Height      : " 
+                body.push_back(std::string("    Height          : " 
                     +  std::to_string(lrint(pObjectMeta->rect_params.height)) + "<br>"));
-            }
-
-            body.push_back(std::string("  Criteria      : ------------------------<br>"));
-            body.push_back(std::string("    Class Id    : " 
-                +  std::to_string(pTrigger->m_classId) + "<br>"));
-            body.push_back(std::string("    Frame Count : " 
-                +  std::to_string(pTrigger->m_minFrameCountN) + " out of " 
-                +  std::to_string(pTrigger->m_minFrameCountD) + "<br>"));
-            body.push_back(std::string("    Min Width   : " 
-                +  std::to_string(lrint(pTrigger->m_minWidth)) + "<br>"));
-            body.push_back(std::string("    Min Height  : " 
-                +  std::to_string(lrint(pTrigger->m_minHeight)) + "<br>"));
-            body.push_back(std::string("    Max Width   : " 
-                +  std::to_string(lrint(pTrigger->m_maxWidth)) + "<br>"));
-            body.push_back(std::string("    Max Height  : " 
-                +  std::to_string(lrint(pTrigger->m_maxHeight)) + "<br>"));
-            body.push_back(std::string("    Confidence  : " 
-                +  std::to_string(pTrigger->m_minConfidence) + "<br>"));
-
-            if (pTrigger->m_inferDoneOnly)
-            {
-                body.push_back(std::string("    Inference   : Yes<br>"));
             }
             else
             {
-                body.push_back(std::string("    Inference   : No<br>"));
+                if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
+                    DSL_FRAME_INFO_OCCURRENCES)
+                {
+                    body.push_back(std::string("    Occurrences     : " 
+                        +  std::to_string(pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES]) + "<br>"));
+                }
+                else if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
+                    DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN)
+                {
+                    body.push_back(std::string("    Occurrences In  : " 
+                        +  std::to_string(pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN]) + "<br>"));
+                    body.push_back(std::string("    Occurrences Out : " 
+                        +  std::to_string(pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT]) + "<br>"));
+                }
+
             }
+
+            body.push_back(std::string("  Criteria          : ------------------------<br>"));
+            body.push_back(std::string("    Class Id        : " 
+                +  std::to_string(pTrigger->m_classId) + "<br>"));
+            if (pTrigger->m_inferDoneOnly)
+            {
+                body.push_back(std::string("    Infer Done Only       : Yes<br>"));
+            }
+            else
+            {
+                body.push_back(std::string("    Inference       : No<br>"));
+            }
+            body.push_back(std::string("    Min Infer Conf  : " 
+                +  std::to_string(pTrigger->m_minConfidence) + "<br>"));
+            body.push_back(std::string("    Min Track Conf  : " 
+                +  std::to_string(pTrigger->m_minConfidence) + "<br>"));
+            body.push_back(std::string("    Min Frame Count : " 
+                +  std::to_string(pTrigger->m_minFrameCountN) + " out of " 
+                +  std::to_string(pTrigger->m_minFrameCountD) + "<br>"));
+            body.push_back(std::string("    Min Width       : " 
+                +  std::to_string(lrint(pTrigger->m_minWidth)) + "<br>"));
+            body.push_back(std::string("    Min Height      : " 
+                +  std::to_string(lrint(pTrigger->m_minHeight)) + "<br>"));
+            body.push_back(std::string("    Max Width       : " 
+                +  std::to_string(lrint(pTrigger->m_maxWidth)) + "<br>"));
+            body.push_back(std::string("    Max Height      : " 
+                +  std::to_string(lrint(pTrigger->m_maxHeight)) + "<br>"));
             
             std::dynamic_pointer_cast<Mailer>(m_pMailer)->QueueMessage(m_subject, body);
         }
@@ -984,7 +1072,8 @@ namespace DSL
             struct tm currentTm;
             localtime_r(&seconds, &currentTm);
 
-            strftime(dateTime, DATE_BUFF_LENGTH, "%a, %d %b %Y %H:%M:%S %z", &currentTm);
+            strftime(dateTime, DATE_BUFF_LENGTH, "%a, %d %b %Y %H:%M:%S %z", 
+                &currentTm);
             std::string dateTimeStr(dateTime);
             
             m_ostream << "-------------------------------------------------------------------" << "\n";
@@ -1010,17 +1099,21 @@ namespace DSL
             m_ostream << "Object Id,";
             m_ostream << "Label,";
             m_ostream << "Persistence,";
-            m_ostream << "Confidence,";
+            m_ostream << "Direction In,";
+            m_ostream << "Direction Out,";
+            m_ostream << "Infer Conf,";
+            m_ostream << "Tracker Conf,";
             m_ostream << "Left,";
             m_ostream << "Top,";
             m_ostream << "Width,";
             m_ostream << "Height,";
             m_ostream << "Class Id Filter,";
+            m_ostream << "Min Infer Conf,";
+            m_ostream << "Min Track Conf,";
             m_ostream << "Min Width,";
             m_ostream << "Min Height,";
             m_ostream << "Max Width,";
             m_ostream << "Max Height,";
-            m_ostream << "Min Confidence,";
             m_ostream << "Inference Done Only\n";
         }
     
@@ -1062,7 +1155,7 @@ namespace DSL
     }
 
     void FileOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1072,55 +1165,93 @@ namespace DSL
         {
             return;
         }
-        DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+        DSL_ODE_TRIGGER_PTR pTrigger = 
+            std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
         
         if (m_format == DSL_EVENT_FILE_FORMAT_TEXT)
         {
-            m_ostream << "Trigger Name    : " << pTrigger->GetName() << "\n";
-            m_ostream << "  Unique ODE Id : " << pTrigger->s_eventCount << "\n";
-            m_ostream << "  NTP Timestamp : " << Ntp2Str(pFrameMeta->ntp_timestamp) << "\n";
-            m_ostream << "  Source Data   : ------------------------" << "\n";
+            m_ostream << "Trigger Name        : " << pTrigger->GetName() << "\n";
+            m_ostream << "  Unique ODE Id     : " << pTrigger->s_eventCount << "\n";
+            m_ostream << "  NTP Timestamp     : " << Ntp2Str(pFrameMeta->ntp_timestamp) << "\n";
+            m_ostream << "  Source Data       : ------------------------" << "\n";
             if (pFrameMeta->bInferDone)
             {
-                m_ostream << "    Inference   : Yes\n";
+                m_ostream << "    Inference       : Yes\n";
             }
             else
             {
-                m_ostream << "    Inference   : No\n";
+                m_ostream << "    Inference       : No\n";
             }
-            m_ostream << "    Source Id   : " << pFrameMeta->source_id << "\n";
-            m_ostream << "    Batch Id    : " << pFrameMeta->batch_id << "\n";
-            m_ostream << "    Pad Index   : " << pFrameMeta->pad_index << "\n";
-            m_ostream << "    Frame       : " << pFrameMeta->frame_num << "\n";
-            m_ostream << "    Width       : " << pFrameMeta->source_frame_width << "\n";
-            m_ostream << "    Heigh       : " << pFrameMeta->source_frame_height << "\n";
-            m_ostream << "  Object Data   : ------------------------" << "\n";
-            m_ostream << "    Occurrences : " << pTrigger->m_occurrences << "\n";
+            m_ostream << "    Source Id       : " << pFrameMeta->source_id << "\n";
+            m_ostream << "    Batch Id        : " << pFrameMeta->batch_id << "\n";
+            m_ostream << "    Pad Index       : " << pFrameMeta->pad_index << "\n";
+            m_ostream << "    Frame           : " << pFrameMeta->frame_num << "\n";
+            m_ostream << "    Width           : " << pFrameMeta->source_frame_width << "\n";
+            m_ostream << "    Heigh           : " << pFrameMeta->source_frame_height << "\n";
+            m_ostream << "  Object Data       : ------------------------" << "\n";
 
             if (pObjectMeta)
             {
-                m_ostream << "    Obj ClassId : " << pObjectMeta->class_id << "\n";
-                m_ostream << "    Infer Id    : " << pObjectMeta->unique_component_id << "\n";
-                m_ostream << "    Tracking Id : " << pObjectMeta->object_id << "\n";
-                m_ostream << "    Label       : " << pObjectMeta->obj_label << "\n";
-                m_ostream << "    Persistence : " << pObjectMeta->
-                    misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] + "\n";
-                m_ostream << "    Confidence  : " << pObjectMeta->confidence << "\n";
-                m_ostream << "    Left        : " << lrint(pObjectMeta->rect_params.left) << "\n";
-                m_ostream << "    Top         : " << lrint(pObjectMeta->rect_params.top) << "\n";
-                m_ostream << "    Width       : " << lrint(pObjectMeta->rect_params.width) << "\n";
-                m_ostream << "    Height      : " << lrint(pObjectMeta->rect_params.height) << "\n";
+                m_ostream << "    Occurrences     : " << pTrigger->m_occurrences << "\n";
+                m_ostream << "    Obj ClassId     : " << pObjectMeta->class_id << "\n";
+                m_ostream << "    Infer Id        : " << pObjectMeta->unique_component_id << "\n";
+                m_ostream << "    Tracking Id     : " << pObjectMeta->object_id << "\n";
+                m_ostream << "    Label           : " << pObjectMeta->obj_label << "\n";
+                m_ostream << "    Persistence     : " << pObjectMeta->
+                    misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] << "\n";
+                if (pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_DIRECTION] == 
+                    DSL_AREA_CROSS_DIRECTION_NONE)
+                {
+                    m_ostream << "    Direction In    : " << "No\n";
+                    m_ostream << "    Direction Out   : " << "No\n";
+                }
+                else if (pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_DIRECTION] == 
+                    DSL_AREA_CROSS_DIRECTION_IN)
+                {
+                    m_ostream << "    Direction In    : " << "Yes\n";
+                    m_ostream << "    Direction Out   : " << "No\n";
+                }
+                else
+                {
+                    m_ostream << "    Direction In    : " << "No\n";
+                    m_ostream << "    Direction Out   : " << "Yes\n";
+                }
+                    
+                m_ostream << "    Infer Conf      : " << pObjectMeta->confidence << "\n";
+                m_ostream << "    Track Conf      : " << pObjectMeta->tracker_confidence << "\n";
+                m_ostream << "    Left            : " << lrint(pObjectMeta->rect_params.left) << "\n";
+                m_ostream << "    Top             : " << lrint(pObjectMeta->rect_params.top) << "\n";
+                m_ostream << "    Width           : " << lrint(pObjectMeta->rect_params.width) << "\n";
+                m_ostream << "    Height          : " << lrint(pObjectMeta->rect_params.height) << "\n";
+            }
+            else
+            {
+                if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
+                    DSL_FRAME_INFO_OCCURRENCES)
+                {
+                    m_ostream << "    Occurrences     : " 
+                        << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] << "\n";
+                }
+                else if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
+                    DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN)
+                {
+                    m_ostream << "    Occurrences In  : " 
+                        << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN] << "\n";
+                    m_ostream << "    Occurrences Out : " 
+                        << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT] << "\n";
+                }
             }
 
-            m_ostream << "  Criteria      : ------------------------" << "\n";
-            m_ostream << "    Class Id    : " << pTrigger->m_classId << "\n";
-            m_ostream << "    Confidence  : " << pTrigger->m_minConfidence << "\n";
-            m_ostream << "    Frame Count : " << pTrigger->m_minFrameCountN
+            m_ostream << "  Criteria          : ------------------------" << "\n";
+            m_ostream << "    Class Id        : " << pTrigger->m_classId << "\n";
+            m_ostream << "    Min Infer Conf  : " << pTrigger->m_minConfidence << "\n";
+            m_ostream << "    Min Track Conf  : " << pTrigger->m_minTrackerConfidence << "\n";
+            m_ostream << "    Min Frame Count : " << pTrigger->m_minFrameCountN
                 << " out of " << pTrigger->m_minFrameCountD << "\n";
-            m_ostream << "    Min Width   : " << lrint(pTrigger->m_minWidth) << "\n";
-            m_ostream << "    Min Height  : " << lrint(pTrigger->m_minHeight) << "\n";
-            m_ostream << "    Max Width   : " << lrint(pTrigger->m_maxWidth) << "\n";
-            m_ostream << "    Max Height  : " << lrint(pTrigger->m_maxHeight) << "\n";
+            m_ostream << "    Min Width       : " << lrint(pTrigger->m_minWidth) << "\n";
+            m_ostream << "    Min Height      : " << lrint(pTrigger->m_minHeight) << "\n";
+            m_ostream << "    Max Width       : " << lrint(pTrigger->m_maxWidth) << "\n";
+            m_ostream << "    Max Height      : " << lrint(pTrigger->m_maxHeight) << "\n";
 
             if (pTrigger->m_inferDoneOnly)
             {
@@ -1159,8 +1290,26 @@ namespace DSL
                 m_ostream << pObjectMeta->object_id << ",";
                 m_ostream << pObjectMeta->obj_label << ",";
                 m_ostream << pObjectMeta->confidence << ",";
+                m_ostream << pObjectMeta->tracker_confidence << ",";
                 m_ostream << pObjectMeta->
                     misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] + ",";
+                if (pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_DIRECTION] == 
+                    DSL_AREA_CROSS_DIRECTION_NONE)
+                {
+                    m_ostream << "No,";
+                    m_ostream << "No,";
+                }
+                else if (pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_DIRECTION] == 
+                    DSL_AREA_CROSS_DIRECTION_IN)
+                {
+                    m_ostream << "Yes,";
+                    m_ostream << "No,";
+                }
+                else
+                {
+                    m_ostream << "No,";
+                    m_ostream << "Yes,";
+                }
                 m_ostream << lrint(pObjectMeta->rect_params.left) << ",";
                 m_ostream << lrint(pObjectMeta->rect_params.top) << ",";
                 m_ostream << lrint(pObjectMeta->rect_params.width) << ",";
@@ -1168,7 +1317,9 @@ namespace DSL
             }
             else
             {
-                m_ostream << "0,0,0,0,0,0,0,0,0,0";
+                m_ostream << "0,0,0,0,0,0,0";
+                
+                m_ostream << "0,0,0,0,0";
             }
 
             m_ostream << pTrigger->m_classId << ",";
@@ -1177,6 +1328,7 @@ namespace DSL
             m_ostream << lrint(pTrigger->m_maxWidth) << ",";
             m_ostream << lrint(pTrigger->m_maxHeight) << ",";
             m_ostream << pTrigger->m_minConfidence << ",";
+            m_ostream << pTrigger->m_minTrackerConfidence << ",";
 
             if (pTrigger->m_inferDoneOnly)
             {
@@ -1229,12 +1381,12 @@ namespace DSL
     }
 
     void FillSurroundingsOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
-        if (m_enabled and pObjectMeta)
+        if (m_enabled and pObjectMeta and displayMetaData.size())
         {
             
             uint x1(roundf(pObjectMeta->rect_params.left));
@@ -1245,32 +1397,34 @@ namespace DSL
             
             std::string leftRectName("left-rect");
             
-            DSL_RGBA_RECTANGLE_PTR pLeftRect = DSL_RGBA_RECTANGLE_NEW(leftRectName.c_str(), 
+            DSL_RGBA_RECTANGLE_PTR pLeftRect = 
+                DSL_RGBA_RECTANGLE_NEW(leftRectName.c_str(), 
                 0, 0, x1, pFrameMeta->source_frame_height, 0, m_pColor, true, m_pColor);
                 
-            pLeftRect->AddMeta(pDisplayMeta, pFrameMeta);
+            pLeftRect->AddMeta(displayMetaData, pFrameMeta);
 
             std::string rightRectName("right-rect");
             
-            DSL_RGBA_RECTANGLE_PTR pRightRect = DSL_RGBA_RECTANGLE_NEW(rightRectName.c_str(), 
+            DSL_RGBA_RECTANGLE_PTR pRightRect = 
+                DSL_RGBA_RECTANGLE_NEW(rightRectName.c_str(), 
                 x2, 0, pFrameMeta->source_frame_width, pFrameMeta->source_frame_height, 
                     0, m_pColor, true, m_pColor);
     
-            pRightRect->AddMeta(pDisplayMeta, pFrameMeta);
+            pRightRect->AddMeta(displayMetaData, pFrameMeta);
 
             std::string topRectName("top-rect");
             
             DSL_RGBA_RECTANGLE_PTR pTopRect = DSL_RGBA_RECTANGLE_NEW(topRectName.c_str(), 
                 x1, 0, rWidth, y1, 0, m_pColor, true, m_pColor);
                 
-            pTopRect->AddMeta(pDisplayMeta, pFrameMeta);
+            pTopRect->AddMeta(displayMetaData, pFrameMeta);
 
             std::string bottomRectName("bottom-rect");
             
             DSL_RGBA_RECTANGLE_PTR pBottomRect = DSL_RGBA_RECTANGLE_NEW(bottomRectName.c_str(), 
                 x1, y2, rWidth, pFrameMeta->source_frame_height, 0, m_pColor, true, m_pColor);
                 
-            pBottomRect->AddMeta(pDisplayMeta, pFrameMeta);
+            pBottomRect->AddMeta(displayMetaData, pFrameMeta);
         }
     }
 
@@ -1291,12 +1445,12 @@ namespace DSL
     }
 
     void FillFrameOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
-        if (m_enabled)
+        if (m_enabled and displayMetaData.size())
         {
             NvOSD_RectParams rectParams{0};
             rectParams.left = 0;
@@ -1307,7 +1461,7 @@ namespace DSL
             rectParams.has_bg_color = true;
             rectParams.bg_color = *m_pColor;
             
-            pDisplayMeta->rect_params[pDisplayMeta->num_rects++] = rectParams;
+            displayMetaData.at(0)->rect_params[displayMetaData.at(0)->num_rects++] = rectParams;
         }
     }
 
@@ -1325,69 +1479,91 @@ namespace DSL
     }
 
     void LogOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
         if (m_enabled)
         {
-            DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+            DSL_ODE_TRIGGER_PTR pTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
             
-            LOG_INFO("Trigger Name    : " << pTrigger->GetName());
-            LOG_INFO("  Unique ODE Id : " << pTrigger->s_eventCount);
-            LOG_INFO("  NTP Timestamp : " << Ntp2Str(pFrameMeta->ntp_timestamp));
-            LOG_INFO("  Source Data   : ------------------------");
+            LOG_INFO("Trigger Name        : " << pTrigger->GetName());
+            LOG_INFO("  Unique ODE Id     : " << pTrigger->s_eventCount);
+            LOG_INFO("  NTP Timestamp     : " << Ntp2Str(pFrameMeta->ntp_timestamp));
+            LOG_INFO("  Source Data       : ------------------------");
             
             if (pFrameMeta->bInferDone)
             {
-                LOG_INFO("    Inference   : Yes");
+                LOG_INFO("    Inference       : Yes");
             }
             else
             {
-                LOG_INFO("    Inference   : No");
+                LOG_INFO("    Inference       : No");
             }
-            LOG_INFO("    Source Id   : " << pFrameMeta->source_id);
-            LOG_INFO("    Batch Id    : " << pFrameMeta->batch_id);
-            LOG_INFO("    Pad Index   : " << pFrameMeta->pad_index);
-            LOG_INFO("    Frame       : " << pFrameMeta->frame_num);
-            LOG_INFO("    Width       : " << pFrameMeta->source_frame_width);
-            LOG_INFO("    Heigh       : " << pFrameMeta->source_frame_height );
-            LOG_INFO("  Object Data   : ------------------------");
-            LOG_INFO("    Occurrences : " << pTrigger->m_occurrences );
+            LOG_INFO("    Source Id       : " << pFrameMeta->source_id);
+            LOG_INFO("    Batch Id        : " << pFrameMeta->batch_id);
+            LOG_INFO("    Pad Index       : " << pFrameMeta->pad_index);
+            LOG_INFO("    Frame           : " << pFrameMeta->frame_num);
+            LOG_INFO("    Width           : " << pFrameMeta->source_frame_width);
+            LOG_INFO("    Heigh           : " << pFrameMeta->source_frame_height );
+            LOG_INFO("  Object Data       : ------------------------");
             
             if (pObjectMeta)
             {
-                LOG_INFO("    Obj ClassId : " << pObjectMeta->class_id);
-                LOG_INFO("    Infer Id    : " << pObjectMeta->unique_component_id);
-                LOG_INFO("    Tracking Id : " << pObjectMeta->object_id);
-                LOG_INFO("    Label       : " << pObjectMeta->obj_label);
-                LOG_INFO("    Confidence  : " << pObjectMeta->confidence);
-                LOG_INFO("    Persistence : " << pObjectMeta->
+                LOG_INFO("    Occurrences     : " << pTrigger->m_occurrences );
+                LOG_INFO("    Obj ClassId     : " << pObjectMeta->class_id);
+                LOG_INFO("    Infer Id        : " << pObjectMeta->unique_component_id);
+                LOG_INFO("    Tracking Id     : " << pObjectMeta->object_id);
+                LOG_INFO("    Label           : " << pObjectMeta->obj_label);
+                LOG_INFO("    Persistence     : " << pObjectMeta->
                     misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE]);
-                LOG_INFO("    Left        : " << pObjectMeta->rect_params.left);
-                LOG_INFO("    Top         : " << pObjectMeta->rect_params.top);
-                LOG_INFO("    Width       : " << pObjectMeta->rect_params.width);
-                LOG_INFO("    Height      : " << pObjectMeta->rect_params.height);
-            }
-            LOG_INFO("  Criteria      : ------------------------");
-            LOG_INFO("    Class Id    : " << pTrigger->m_classId );
-            LOG_INFO("    Infer Id    : " << pTrigger->m_inferId );
-            LOG_INFO("    Confidence  : " << pTrigger->m_minConfidence);
-            LOG_INFO("    Frame Count : " << pTrigger->m_minFrameCountN
-                << " out of " << pTrigger->m_minFrameCountD);
-            LOG_INFO("    Min Width   : " << pTrigger->m_minWidth);
-            LOG_INFO("    Min Height  : " << pTrigger->m_minHeight);
-            LOG_INFO("    Max Width   : " << pTrigger->m_maxWidth);
-            LOG_INFO("    Max Height  : " << pTrigger->m_maxHeight);
-            
-            if (pTrigger->m_inferDoneOnly)
-            {
-                LOG_INFO("    Inference   : Yes");
+                LOG_INFO("    Direction       : " << pObjectMeta->
+                    misc_obj_info[DSL_OBJECT_INFO_DIRECTION]);
+                LOG_INFO("    Infer Conf      : " << pObjectMeta->confidence);
+                LOG_INFO("    Track Conf      : " << pObjectMeta->tracker_confidence);
+                LOG_INFO("    Left            : " << pObjectMeta->rect_params.left);
+                LOG_INFO("    Top             : " << pObjectMeta->rect_params.top);
+                LOG_INFO("    Width           : " << pObjectMeta->rect_params.width);
+                LOG_INFO("    Height          : " << pObjectMeta->rect_params.height);
             }
             else
             {
-                LOG_INFO("    Inference   : No");
+                if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
+                    DSL_FRAME_INFO_OCCURRENCES)
+                {
+                    LOG_INFO("    Occurrences         : " 
+                        << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES]);
+                }
+                else if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
+                    DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN)
+                {
+                    LOG_INFO("    Occurrences In      : " 
+                        << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN]);
+                    LOG_INFO("    Occurrences Out     : " 
+                        << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT]);
+                }
+            }
+            LOG_INFO("  Criteria          : ------------------------");
+            LOG_INFO("    Class Id        : " << pTrigger->m_classId );
+            LOG_INFO("    Min Infer Id    : " << pTrigger->m_inferId );
+            LOG_INFO("    Min Infer Conf  : " << pTrigger->m_minConfidence);
+            LOG_INFO("    Min Track Conf  : " << pTrigger->m_minTrackerConfidence);
+            LOG_INFO("    Frame Count     : " << pTrigger->m_minFrameCountN
+                << " out of " << pTrigger->m_minFrameCountD);
+            LOG_INFO("    Min Width       : " << pTrigger->m_minWidth);
+            LOG_INFO("    Min Height      : " << pTrigger->m_minHeight);
+            LOG_INFO("    Max Width       : " << pTrigger->m_maxWidth);
+            LOG_INFO("    Max Height      : " << pTrigger->m_maxHeight);
+            
+            if (pTrigger->m_inferDoneOnly)
+            {
+                LOG_INFO("    Inference       : Yes");
+            }
+            else
+            {
+                LOG_INFO("    Inference       : No");
             }
         }
     }
@@ -1435,7 +1611,7 @@ namespace DSL
     }
 
     void MessageMetaAddOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1447,7 +1623,8 @@ namespace DSL
          
             pMsgMeta->sensorId = pFrameMeta->source_id;
             const char* sourceName;
-            Services::GetServices()->SourceNameGet(pFrameMeta->source_id, &sourceName);
+            Services::GetServices()->SourceNameGet(pFrameMeta->source_id, 
+                &sourceName);
             pMsgMeta->sensorStr = g_strdup(sourceName);
             pMsgMeta->frameId = pFrameMeta->frame_num;
             pMsgMeta->ts = g_strdup(Ntp2Str(pFrameMeta->ntp_timestamp).c_str());
@@ -1501,6 +1678,119 @@ namespace DSL
         
         m_metaType = metaType;
     }
+    
+    // ********************************************************************
+
+    MonitorOdeAction::MonitorOdeAction(const char* name, 
+        dsl_ode_monitor_occurrence_cb clientMonitor, void* clientData)
+        : OdeAction(name)
+        , m_clientMonitor(clientMonitor)
+        , m_clientData(clientData)
+    {
+        LOG_FUNC();
+    }
+
+    MonitorOdeAction::~MonitorOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void MonitorOdeAction::HandleOccurrence(DSL_BASE_PTR pBase, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        if (!m_enabled)
+        {
+            return;
+        }
+        try
+        {
+            DSL_ODE_TRIGGER_PTR pTrigger 
+                = std::dynamic_pointer_cast<OdeTrigger>(pBase);
+                
+            dsl_ode_occurrence_info info{0};
+            
+            // convert the Trigger Name to wchar string type (client format)
+            std::wstring wstrTriggerName(pTrigger->GetName().begin(), 
+                pTrigger->GetName().end());
+            info.trigger_name = wstrTriggerName.c_str();
+            info.unique_ode_id = pTrigger->s_eventCount;
+            info.ntp_timestamp = pFrameMeta->ntp_timestamp;
+            info.source_info.inference_done = pFrameMeta->bInferDone;
+            info.source_info.source_id = pFrameMeta->source_id;
+            info.source_info.batch_id = pFrameMeta->batch_id;
+            info.source_info.pad_index = pFrameMeta->pad_index;
+            info.source_info.frame_num = pFrameMeta->frame_num;
+            info.source_info.frame_width = pFrameMeta->source_frame_width;
+            info.source_info.frame_height = pFrameMeta->source_frame_height;
+            
+            // Automatic varaible needs to be valid for call to the client callback
+            // Create here at higher scope - in case it is used for Object metadata.
+            std::wstring wstrLabel;
+            
+            // true if the ODE occurrence information is for a specific object,
+            // false for frame-level multi-object events. (absence, new-high count, etc.). 
+            if (pObjectMeta)
+            {
+                // set the object-occurrence flag indicating that the 
+                // "info.object_info" structure is poplulated.
+                info.is_object_occurrence = true;
+                
+                info.object_info.class_id = pObjectMeta->class_id;
+                info.object_info.inference_component_id = pObjectMeta->unique_component_id;
+                info.object_info.tracking_id = pObjectMeta->object_id;
+
+                std::string strLabel(pObjectMeta->obj_label);
+                wstrLabel.assign(strLabel.begin(), strLabel.end());
+                info.object_info.label = wstrLabel.c_str();
+
+                info.object_info.persistence = pObjectMeta->
+                    misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE];
+                info.object_info.direction =  pObjectMeta->
+                    misc_obj_info[DSL_OBJECT_INFO_DIRECTION];
+
+                info.object_info.inference_confidence =  pObjectMeta->confidence;
+                info.object_info.tracker_confidence =  pObjectMeta->tracker_confidence;
+                
+                info.object_info.left = round(pObjectMeta->rect_params.left);
+                info.object_info.top = round(pObjectMeta->rect_params.top);
+                info.object_info.width = round(pObjectMeta->rect_params.width);
+                info.object_info.height = round(pObjectMeta->rect_params.height);
+            }
+            else
+            {
+                info.accumulative_info.occurrences_total = 
+                    pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES];
+                info.accumulative_info.occurrences_in = 
+                    pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN];
+                info.accumulative_info.occurrences_out =
+                    pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT];
+            }
+            
+            // Trigger criteria set for this ODE occurrence.
+            info.criteria_info.class_id =  pTrigger->m_classId;
+            info.criteria_info.inference_done_only = pTrigger->m_inferDoneOnly;
+            info.criteria_info.inference_component_id = pTrigger->m_inferId;
+            info.criteria_info.min_inference_confidence = pTrigger->m_minConfidence;
+            info.criteria_info.min_tracker_confidence = pTrigger->m_minTrackerConfidence;
+            info.criteria_info.min_width = pTrigger->m_minWidth;
+            info.criteria_info.min_height = pTrigger->m_minHeight;
+            info.criteria_info.max_width = pTrigger->m_maxWidth;
+            info.criteria_info.max_height = pTrigger->m_maxHeight;
+            info.criteria_info.interval = pTrigger->m_interval;
+            
+            // Call the Client's monitor callback with the info and client-data
+            m_clientMonitor(&info, m_clientData);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Monitor ODE Action '" << GetName() 
+                << "' threw exception calling client callback");
+        }
+    }
+    
     // ********************************************************************
 
     FormatLabelOdeAction::FormatLabelOdeAction(const char* name, 
@@ -1520,7 +1810,7 @@ namespace DSL
     }
 
     void FormatLabelOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1531,6 +1821,13 @@ namespace DSL
             
             if (m_hasBgColor)
             {
+                // if the provided background color is a color palette
+                if (m_pBgColor->IsType(typeid(RgbaColorPalette)))
+                {
+                    // set the palette index based on the object class-id
+                    std::dynamic_pointer_cast<RgbaColorPalette>(m_pBgColor)->SetIndex(
+                        pObjectMeta->class_id);
+                }
                 pObjectMeta->text_params.set_bg_clr = true;
                 pObjectMeta->text_params.text_bg_clr = *m_pBgColor;
             }
@@ -1559,19 +1856,18 @@ namespace DSL
         
         m_pDisplayTypes.push_back(pDisplayType);
     }
-
     
     void AddDisplayMetaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
-        if (m_enabled)
+        if (m_enabled and displayMetaData.size())
         {
             for (const auto &ivec: m_pDisplayTypes)
             {
-                ivec->AddMeta(pDisplayMeta, pFrameMeta);
+                ivec->AddMeta(displayMetaData, pFrameMeta);
             }
         }
     }
@@ -1591,7 +1887,7 @@ namespace DSL
     }
     
     void PauseOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1628,7 +1924,7 @@ namespace DSL
     }
 
     void PrintOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1637,61 +1933,83 @@ namespace DSL
         {
             return;
         }
-        DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+        DSL_ODE_TRIGGER_PTR pTrigger = 
+            std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
         
-        std::cout << "Trigger Name    : " << pTrigger->GetName() << "\n";
-        std::cout << "  Unique ODE Id : " << pTrigger->s_eventCount << "\n";
-        std::cout << "  NTP Timestamp : " << Ntp2Str(pFrameMeta->ntp_timestamp) << "\n";
-        std::cout << "  Source Data   : ------------------------" << "\n";
+        std::cout << "Trigger Name        : " << pTrigger->GetName() << "\n";
+        std::cout << "  Unique ODE Id     : " << pTrigger->s_eventCount << "\n";
+        std::cout << "  NTP Timestamp     : " << Ntp2Str(pFrameMeta->ntp_timestamp) << "\n";
+        std::cout << "  Source Data       : ------------------------" << "\n";
         if (pFrameMeta->bInferDone)
         {
-            std::cout << "    Inference   : Yes\n";
+            std::cout << "    Inference       : Yes\n";
         }
         else
         {
-            std::cout << "    Inference   : No\n";
+            std::cout << "    Inference       : No\n";
         }
-        std::cout << "    Source Id   : " << pFrameMeta->source_id << "\n";
-        std::cout << "    Batch Id    : " << pFrameMeta->batch_id << "\n";
-        std::cout << "    Pad Index   : " << pFrameMeta->pad_index << "\n";
-        std::cout << "    Frame       : " << pFrameMeta->frame_num << "\n";
-        std::cout << "    Width       : " << pFrameMeta->source_frame_width << "\n";
-        std::cout << "    Heigh       : " << pFrameMeta->source_frame_height << "\n";
-        std::cout << "  Object Data   : ------------------------" << "\n";
-        std::cout << "    Occurrences : " << pTrigger->m_occurrences << "\n";
+        std::cout << "    Source Id       : " << pFrameMeta->source_id << "\n";
+        std::cout << "    Batch Id        : " << pFrameMeta->batch_id << "\n";
+        std::cout << "    Pad Index       : " << pFrameMeta->pad_index << "\n";
+        std::cout << "    Frame           : " << pFrameMeta->frame_num << "\n";
+        std::cout << "    Width           : " << pFrameMeta->source_frame_width << "\n";
+        std::cout << "    Heigh           : " << pFrameMeta->source_frame_height << "\n";
+        std::cout << "  Object Data       : ------------------------" << "\n";
 
         if (pObjectMeta)
         {
-            std::cout << "    Obj ClassId : " << pObjectMeta->class_id << "\n";
-            std::cout << "    Infer Id    : " << pObjectMeta->unique_component_id << "\n";
-            std::cout << "    Tracking Id : " << pObjectMeta->object_id << "\n";
-            std::cout << "    Label       : " << pObjectMeta->obj_label << "\n";
-            std::cout << "    Confidence  : " << pObjectMeta->confidence << "\n";
-            std::cout << "    Persistence : " << pObjectMeta->
+            std::cout << "    Obj ClassId     : " << pObjectMeta->class_id << "\n";
+            std::cout << "    Infer Id        : " << pObjectMeta->unique_component_id << "\n";
+            std::cout << "    Tracking Id     : " << pObjectMeta->object_id << "\n";
+            std::cout << "    Label           : " << pObjectMeta->obj_label << "\n";
+            std::cout << "    Infer Conf      : " << pObjectMeta->confidence << "\n";
+            std::cout << "    Track Conf      : " << pObjectMeta->tracker_confidence << "\n";
+            std::cout << "    Persistence     : " << pObjectMeta->
                 misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] << "\n";
-            std::cout << "    Left        : " << lrint(pObjectMeta->rect_params.left) << "\n";
-            std::cout << "    Top         : " << lrint(pObjectMeta->rect_params.top) << "\n";
-            std::cout << "    Width       : " << lrint(pObjectMeta->rect_params.width) << "\n";
-            std::cout << "    Height      : " << lrint(pObjectMeta->rect_params.height) << "\n";
-        }
-
-        std::cout << "  Criteria      : ------------------------" << "\n";
-        std::cout << "    Class Id    : " << pTrigger->m_classId << "\n";
-        std::cout << "    Frame Count : " << pTrigger->m_minFrameCountN
-            << " out of " << pTrigger->m_minFrameCountD << "\n";
-        std::cout << "    Min Width   : " << lrint(pTrigger->m_minWidth) << "\n";
-        std::cout << "    Min Height  : " << lrint(pTrigger->m_minHeight) << "\n";
-        std::cout << "    Max Width   : " << lrint(pTrigger->m_maxWidth) << "\n";
-        std::cout << "    Max Height  : " << lrint(pTrigger->m_maxHeight) << "\n";
-        std::cout << "    Confidence  : " << pTrigger->m_minConfidence << "\n";
-
-        if (pTrigger->m_inferDoneOnly)
-        {
-            std::cout << "    Inference   : Yes\n\n";
+            std::cout << "    Direction       : " << pObjectMeta->
+                misc_obj_info[DSL_OBJECT_INFO_DIRECTION] << "\n";
+            std::cout << "    Left            : " << lrint(pObjectMeta->rect_params.left) << "\n";
+            std::cout << "    Top             : " << lrint(pObjectMeta->rect_params.top) << "\n";
+            std::cout << "    Width           : " << lrint(pObjectMeta->rect_params.width) << "\n";
+            std::cout << "    Height          : " << lrint(pObjectMeta->rect_params.height) << "\n";
         }
         else
         {
-            std::cout << "    Inference   : No\n\n";
+            if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
+                DSL_FRAME_INFO_OCCURRENCES)
+            {
+                std::cout << "    Occurrences     : " << pFrameMeta->
+                    misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] << "\n";
+            }
+            else if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
+                DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN)
+            {
+                std::cout << "    Occurrences In  : " << pFrameMeta->
+                    misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN] << "\n";
+                std::cout << "    Occurrences Out : " << pFrameMeta->
+                    misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT] << "\n";
+            }
+
+        }
+
+        std::cout << "  Criteria          : ------------------------" << "\n";
+        std::cout << "    Class Id        : " << pTrigger->m_classId << "\n";
+        std::cout << "    Min Infer Conf  : " << pTrigger->m_minConfidence << "\n";
+        std::cout << "    Min Track Conf  : " << pTrigger->m_minTrackerConfidence << "\n";
+        std::cout << "    Min Frame Count : " << pTrigger->m_minFrameCountN
+            << " out of " << pTrigger->m_minFrameCountD << "\n";
+        std::cout << "    Min Width       : " << lrint(pTrigger->m_minWidth) << "\n";
+        std::cout << "    Min Height      : " << lrint(pTrigger->m_minHeight) << "\n";
+        std::cout << "    Max Width       : " << lrint(pTrigger->m_maxWidth) << "\n";
+        std::cout << "    Max Height      : " << lrint(pTrigger->m_maxHeight) << "\n";
+
+        if (pTrigger->m_inferDoneOnly)
+        {
+            std::cout << "    Inference       : Yes\n\n";
+        }
+        else
+        {
+            std::cout << "    Inference       : No\n\n";
         }
 
         // If we're force flushing the stream and the flush
@@ -1733,7 +2051,8 @@ namespace DSL
 
     }
 
-    void RedactOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+    void RedactOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1772,14 +2091,16 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void AddSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void AddSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
         if (m_enabled)
         {
-            Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), m_sink.c_str());
+            Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), 
+                m_sink.c_str());
         }
     }
 
@@ -1799,7 +2120,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RemoveSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void RemoveSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1807,7 +2129,8 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), m_sink.c_str());
+            Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), 
+                m_sink.c_str());
         }
     }
 
@@ -1827,7 +2150,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void AddSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void AddSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1835,7 +2159,8 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), m_source.c_str());
+            Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), 
+                m_source.c_str());
         }
     }
 
@@ -1855,7 +2180,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RemoveSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void RemoveSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1863,7 +2189,8 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), m_source.c_str());
+            Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), 
+                m_source.c_str());
         }
     }
 
@@ -1881,7 +2208,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void ResetTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void ResetTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1896,7 +2224,8 @@ namespace DSL
 
     // ********************************************************************
 
-    DisableTriggerOdeAction::DisableTriggerOdeAction(const char* name, const char* trigger)
+    DisableTriggerOdeAction::DisableTriggerOdeAction(const char* name, 
+        const char* trigger)
         : OdeAction(name)
         , m_trigger(trigger)
     {
@@ -1908,7 +2237,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void DisableTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void DisableTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1922,7 +2252,8 @@ namespace DSL
 
     // ********************************************************************
 
-    EnableTriggerOdeAction::EnableTriggerOdeAction(const char* name, const char* trigger)
+    EnableTriggerOdeAction::EnableTriggerOdeAction(const char* name, 
+        const char* trigger)
         : OdeAction(name)
         , m_trigger(trigger)
     {
@@ -1934,7 +2265,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void EnableTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void EnableTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1948,7 +2280,8 @@ namespace DSL
 
     // ********************************************************************
 
-    DisableActionOdeAction::DisableActionOdeAction(const char* name, const char* action)
+    DisableActionOdeAction::DisableActionOdeAction(const char* name, 
+        const char* action)
         : OdeAction(name)
         , m_action(action)
     {
@@ -1960,7 +2293,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void DisableActionOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void DisableActionOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -1986,7 +2320,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void EnableActionOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void EnableActionOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2014,7 +2349,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void AddAreaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void AddAreaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2022,7 +2358,8 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->OdeTriggerAreaAdd(m_trigger.c_str(), m_area.c_str());
+            Services::GetServices()->OdeTriggerAreaAdd(m_trigger.c_str(), 
+                m_area.c_str());
         }
     }
     
@@ -2042,7 +2379,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RemoveAreaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void RemoveAreaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2072,7 +2410,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RecordSinkStartOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void RecordSinkStartOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2100,7 +2439,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RecordSinkStopOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void RecordSinkStopOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2108,7 +2448,8 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            std::dynamic_pointer_cast<RecordSinkBintr>(m_pRecordSink)->StopSession(false);
+            std::dynamic_pointer_cast<RecordSinkBintr>
+                (m_pRecordSink)->StopSession(false);
         }
     }
 
@@ -2130,7 +2471,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RecordTapStartOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void RecordTapStartOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2158,7 +2500,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RecordTapStopOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void RecordTapStopOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2171,7 +2514,8 @@ namespace DSL
     }
     // ********************************************************************
 
-    TilerShowSourceOdeAction::TilerShowSourceOdeAction(const char* name, const char* tiler, uint timeout, bool hasPrecedence)
+    TilerShowSourceOdeAction::TilerShowSourceOdeAction(const char* name, 
+        const char* tiler, uint timeout, bool hasPrecedence)
         : OdeAction(name)
         , m_tiler(tiler)
         , m_timeout(timeout)
@@ -2185,7 +2529,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void TilerShowSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void TilerShowSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2193,7 +2538,8 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value,
-            Services::GetServices()->TilerSourceShowSet(m_tiler.c_str(), pFrameMeta->source_id, m_timeout, m_hasPrecedence);
+            Services::GetServices()->TilerSourceShowSet(m_tiler.c_str(), 
+                pFrameMeta->source_id, m_timeout, m_hasPrecedence);
         }
     }
 }    
