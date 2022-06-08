@@ -211,19 +211,24 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
+        # Create the RGBA Line Display Type with a width of 6 pixels for hystesis    
         retval = dsl_display_type_rgba_line_new('line', 
             x1=260, y1=680, x2=600, y2=660, width=6, color='opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # create the ODE line area to use as criteria for ODE occurence
+        # Create the ODE line area to use as criteria for ODE occurence.
+        # Use the center point on the bounding box's bottom edge for testing
         retval = dsl_ode_area_line_new('line-area', line='line', 
             show=True, bbox_test_point=DSL_BBOX_POINT_SOUTH)    
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Occurrence Trigger, filtering on PERSON class_id, for our capture object action
-        # with a limit of one which will be reset in the capture-complete callback
+        # New Cross Trigger filtering on PERSON class_id to track and trigger on
+        # objects that fully cross the line. The person must be tracked for a minimum 
+        # of 5 frames prior to crossing the line to trigger an ODE occurrence.
+        # The trigger can save/use up to a maximum of 200 frames of history to create 
+        # the object's historical trace to test for line-crossing. 
         retval = dsl_ode_trigger_cross_new('person-crossing-line', 
             source = DSL_ODE_ANY_SOURCE,
             class_id = PGIE_CLASS_ID_PERSON, 
@@ -250,12 +255,13 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Set the Cross Trigger's view settings to enable display of the Object Trace
         retval = dsl_ode_trigger_cross_view_settings_set('person-crossing-line',
             enabled=True, color='random-color', line_width=4)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Using the same Inclusion area as the New Occurrence Trigger
+        # Add the line area to the New Cross Trigger
         retval = dsl_ode_trigger_area_add('person-crossing-line', area='line-area')
         if retval != DSL_RETURN_SUCCESS:
             break
