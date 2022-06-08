@@ -55,6 +55,7 @@ void xwindow_key_event_handler(const wchar_t* in_key, void* client_data)
     } else if (key == "R"){
         dsl_player_play(L"player");   
     } else if (key == "Q"){
+        dsl_player_stop(L"player")
         dsl_main_loop_quit();
     }
 }
@@ -67,8 +68,8 @@ int main(int argc, char** argv)
     while(true){    
 
         // # For each camera, create a new RTSP Source for the specific RTSP URI    
-        retval = dsl_source_rtsp_new(L"rtsp-source", rtsp_uri_1.c_str(), DSL_RTP_ALL, DSL_NVBUF_MEM_TYPE_DEFAULT,     
-                                    false, 0, 100, 2);
+        retval = dsl_source_rtsp_new(L"rtsp-source", rtsp_uri_1.c_str(), DSL_RTP_ALL,     
+            false, 0, 100, 2);
         if (retval != DSL_RESULT_SUCCESS)    
             return retval;
 
