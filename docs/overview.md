@@ -565,7 +565,7 @@ Refer to the [ODE Area API Reference](/docs/api-ode-area.md) for more informatio
 ---
 
 ### ODE Line Crossing Analytics
-The python example [ode_line_cross_object_capture_overlay_image.py](/examples/ode_line_cross_object_capture_overlay_image.py) demonstrates how an [ODE Cross Trigger](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_new) with an [ODE Line Area](/docs/api-ode-area.md#dsl_ode_area_line_new()) and [ODE Accumulator](/docs/api-ode-accumulator.md) can be used to perform line-crossing analytics.
+The python example [ode_line_cross_object_capture_overlay_image.py](/examples/python/ode_line_cross_object_capture_overlay_image.py) demonstrates how an [ODE Cross Trigger](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_new) with an [ODE Line Area](/docs/api-ode-area.md#dsl_ode_area_line_new()) and [ODE Accumulator](/docs/api-ode-accumulator.md) can be used to perform line-crossing analytics.
 
 A Cross Trigger maintains a vector of historical bounding-box coordinates for each object tracked by its unique tracking id. The Trigger, using the bounding box history and the Area's defined Test Point (SOUTH, WEST, etc.), generates an Object Trace - vector of x,y coordinates - to test for line cross with the Area's line.
 
@@ -646,7 +646,7 @@ retval = dsl_ode_trigger_accumulator_add('person-crossing-line',
     'cross-accumulator')
    
 ```
-See the [complete example](/examples/ode_line_cross_object_capture_overlay_image.py) and refer to the [ODE Trigger API Reference](/docs/api-ode-accumulator.md), [ODE Action API Reference](/docs/api-ode-action.md), [ODE Area API Reference](/docs/api-ode-area.md), and [ODE Accumulator API Reference](/docs/api-ode-accumulator.md) sections for more information.
+See the [complete example](/examples/python/ode_line_cross_object_capture_overlay_image.py) and refer to the [ODE Trigger API Reference](/docs/api-ode-accumulator.md), [ODE Action API Reference](/docs/api-ode-action.md), [ODE Area API Reference](/docs/api-ode-area.md), and [ODE Accumulator API Reference](/docs/api-ode-accumulator.md) sections for more information.
 
 ---
 
