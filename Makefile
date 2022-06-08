@@ -113,6 +113,7 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-laprutil-1 \
 	-lapr-1 \
 	-lX11 \
+	-lcuda \
 	-L/usr/lib/$(TARGET_DEVICE)-linux-gnu \
 	-lgeos_c \
 	-lcurl \
