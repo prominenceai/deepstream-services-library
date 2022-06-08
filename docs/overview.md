@@ -565,11 +565,23 @@ Refer to the [ODE Area API Reference](/docs/api-ode-area.md) for more informatio
 ---
 
 ### ODE Line Crossing Analytics
-The python example [ode_line_cross_object_capture_overlay_image.py](/examples/python/ode_line_cross_object_capture_overlay_image.py) demonstrates how an [ODE Cross Trigger](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_new) with an [ODE Line Area](/docs/api-ode-area.md#dsl_ode_area_line_new()) and [ODE Accumulator](/docs/api-ode-accumulator.md) can be used to perform line-crossing analytics.
+The Python example [ode_line_cross_object_capture_overlay_image.py](/examples/python/ode_line_cross_object_capture_overlay_image.py) demonstrates how an [ODE Cross Trigger](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_new) with an [ODE Line Area](/docs/api-ode-area.md#dsl_ode_area_line_new()) and [ODE Accumulator](/docs/api-ode-accumulator.md) can be used to perform line-crossing analytics. 
 
-A Cross Trigger maintains a vector of historical bounding-box coordinates for each object tracked by its unique tracking id. The Trigger, using the bounding box history and the Area's defined Test Point (SOUTH, WEST, etc.), generates an Object Trace - vector of x,y coordinates - to test for line cross with the Area's line.
+**Important Note:** [Multi-Line Areas](/docs/api-ode-area.md#ode_area_line_multi_new) and [Polygon Inclusion Areas](/docs/api-ode-area.md#dsl_ode_area_inclusion_new) can be used as well. 
+
+A Cross Trigger maintains a vector of historical bounding-box coordinates for each object tracked by its unique tracking id. The Trigger, using the bounding box history and the Area's defined Test Point (SOUTH, WEST, etc.), generates an Object Trace - vector of x,y coordinates - to test for line cross with the Area's line. 
+
+There are two methods of testing and displaying the Object Trace:
+1. using `ALL` points in the vector to generate the trace to test for line-cross. 
+2. using just the `END` points (earlier and latest) to generate the trace to test for line-cross. 
+
+Note that using `ALL` points will add overhead to the processing of each detected object and considerable allocation/deallocation overhead and memory usage if displayed. `End` points are used in the example which is why the traces appear as straight lines. The camera angle and proximity to the objects should be considered when choosing which method to use as well.
 
 An [ODE Accumulator](/docs/api-ode-accumulator.md) with an [ODE Display Action](/docs/api-ode-action.md#dsl_ode_action_display_new) is added to the Cross Trigger to accumulate and display the number of line-crossing occurrences in the IN and OUT directions as shown in the image below.
+
+The example creates an [ODE Print Action](/docs/api-ode-action.md#dsl_ode_action_print_new) and an [ODE Capture Object Action](/docs/api-ode-action.md#dsl_ode_action_capture_object_new) with an [Image Render Player](/docs/api-player.md#dsl_player_render_image_new) to print each line-crossing occurrence to the console and to capture the object to an image file and display the image as an overlay, repectively.  
+
+**Important Note:** A reminder that other actions such as the [ODE File Action](/docs/api-ode-action.md#dsl_ode_action_file_new), [ODE Email Action](/docs/api-ode-action.md#dsl_ode_action_email_new), and the [ODE Add IOT Message Action](/docs/api-ode-action.md#dsl_ode_action_message_meta_add_new) can be leveraged with the ODE Cross Trigger as well.
 
 ![](/Images/line-cross-capture-overlay-object-image.png)
 
@@ -586,7 +598,7 @@ retval = dsl_ode_area_line_new('line-area', line='line',
     show=True, bbox_test_point=DSL_BBOX_POINT_SOUTH)    
 ```
 
-Next, the example creates an ODE Cross Trigger with a `min_frame_count` and `max_trace_points` as criteria for a line-cross occurrence.
+The ODE Cross Trigger is created with a `min_frame_count` and `max_trace_points` as criteria for a line-cross occurrence.
 ```Python
 # New Cross Trigger filtering on PERSON class_id to track and trigger on
 # objects that fully cross the line. The person must be tracked for a minimum
@@ -605,7 +617,7 @@ retval = dsl_ode_trigger_cross_new('person-crossing-line',
  retval = dsl_ode_trigger_area_add('person-crossing-line', area='line-area')  
 
 ```
-Each Tracked Object historical trace can be added as display metadata for a downstream On-Screen Display to display.
+Each Tracked Object's historical trace can be added as display metadata for a downstream On-Screen Display to display.
 ```Python
 # New RGBA Random Color to use for Object Trace and BBox    
 retval = dsl_display_type_rgba_color_random_new('random-color',
@@ -618,7 +630,7 @@ retval = dsl_display_type_rgba_color_random_new('random-color',
 retval = dsl_ode_trigger_cross_view_settings_set('person-crossing-line',
     enabled=True, color='random-color', line_width=4)
 ```
-The example then creates a new ODE Display Action and adds it to a new ODE Accumulator. It then adds the Accumulator to the Trigger to complete the setup.
+The example creates a new ODE Display Action and adds it to a new ODE Accumulator. It then adds the Accumulator to the Trigger to complete the setup.
 ```Python
 # Create a new Display Action used to display the Accumulated ODE Occurrences.
 # Format the display string using the occurrences in and out tokens.
@@ -651,10 +663,15 @@ See the [complete example](/examples/python/ode_line_cross_object_capture_overla
 ---
 
 ### ODE Heat Mapping
+[ODE Heat Mappers](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_new) are added to [ODE Triggers](/docs/api-md) to accumulate, map, and display the ODE Occurrences over time. The source frame is partitioned into a configurable number of rows and columns, with each rectangle colored with a specific RGBA color value based on the number of occurrences that were detected within corresponding area within the source frame.
+
+The client application can `get`, `print`, `log`, `file`, and `clear` the metric occurrence data at any time.
+
+The below image was created with the [ode_occurrence_trigger_with_heat_mapper.py](https://github.com/prominenceai/deepstream-services-library/blob/complete_examples/examples/python/ode_occurrence_trigger_with_heat_mapper.py) Python example.
+
+See the [ODE Heat-Mapper API Reference](/docs/api-ode-heat-mapper.md) for more information.
 
 ![](/Images/spectral-person-heat-map.png)
-
-api-ode-heat-mapper.md
 
 --- 
 
