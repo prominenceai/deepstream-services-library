@@ -201,7 +201,7 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // ********** IMPORT **********  need to set a minimum confidence level to
-        // avoid false triggers when the bounding box coordinates are accurate - 40%.
+        // avoid false triggers when the bounding box coordinates are inaccurate.
         retval = dsl_ode_trigger_confidence_min_set(person_cross_trigger.c_str(), 
             0.40);
         if (retval != DSL_RESULT_SUCCESS) break;
@@ -240,7 +240,7 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         retval = dsl_pph_ode_display_meta_alloc_size_set(
-            ode_pph_name.c_str(), 2);
+            ode_pph_name.c_str(), 3);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Create a list of our trigger names to add to the ODE PPH

@@ -22,6 +22,17 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+# ------------------------------------------------------------------------------------
+# This example demonstrates the use of an ODE Monitor Action -- added to an 
+# ODE Occurrence Trigger with the below criteria -- to monitor all 
+# ODE Occurrences
+#   - class id            = PGIE_CLASS_ID_PERSON
+#   - inference-done-only = TRUE
+#   - minimum confidience = PERSON_MIN_CONFIDENCE
+#   - minimum width       = PERSON_MIN_WIDTH
+#   - minimum height      = PERSON_MIN_HEIGHT
+
+
 #!/usr/bin/env python
 
 import sys
@@ -49,16 +60,6 @@ PERSON_MIN_CONFIDENCE = 0.4 # 40%
 
 PERSON_MIN_WIDTH = 120
 PERSON_MIN_HEIGHT = 320
-
-# ------------------------------------------------------------------------------------
-# This example demonstrates the use of an ODE Monitor Action -- added to an 
-# ODE Occurrence Trigger with the below criteria -- to monitor all 
-# ODE Occurrences
-#   - class id            = PGIE_CLASS_ID_PERSON
-#   - inference-done-only = TRUE
-#   - minimum confidience = PERSON_MIN_CONFIDENCE
-#   - minimum width       = PERSON_MIN_WIDTH
-#   - minimum height      = PERSON_MIN_HEIGHT
 
 ## 
 # Function to be called on XWindow KeyRelease event
