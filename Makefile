@@ -34,7 +34,7 @@ TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 USER_SITE = "`python3 -m site --user-site`"
 
 CXX_VERSION:=c++17
-DSL_VERSION:='L"v0.24.alpha"'
+DSL_VERSION:='L"v0.25.alpha"'
 GLIB_VERSION:=2.0
 GSTREAMER_VERSION:=1.0
 GSTREAMER_SUB_VERSION:=14
