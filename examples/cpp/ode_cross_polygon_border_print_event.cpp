@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include <gst/gst.h>
 #include <iostream> 
+#include <glib.h>
 
 #include "DslApi.h"
 
@@ -271,8 +271,7 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New On-Screen Display (OSD) to display bounding boxes and object traces.
-        REQUIRE( dsl_osd_new(osd_name.c_str(), false, false,
-            true, false) == DSL_RESULT_SUCCESS );
+        retval = dsl_osd_new(osd_name.c_str(), false, false, true, false);
         if (retval != DSL_RESULT_SUCCESS) break;
         
         // ** IMPORT ** add the ODE PPH created above to the Sink Pad of the OSD.

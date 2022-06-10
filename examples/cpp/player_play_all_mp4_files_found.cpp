@@ -32,7 +32,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 
 // set path to your video files
-std::string dir_path = "/root/Videos";
+std::string dir_path = "/opt/nvidia/deepstream/deepstream/samples/streams";
 
 // Find all files in the given path that have the given extension
 std::vector<std::string> FindAllFiles(std::string path, std::string type){
