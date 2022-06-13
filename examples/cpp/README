@@ -22,20 +22,19 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
-This folder contains all of the DSL CPP examples. Each .cpp file can be
-built - one at a time - with the following command:
+This folder contains all of the DSL CPP examples. Each example is built
+into an executable of the same name. Use the standard make commands
+to clean and make all executables.
 
-    $ make [debug] EXAMPLE=<example-source-file>
-    
-e.g.
-
-    $ make EXAMPLE=./ode_cross_polygon_border_print_event.cpp
-
-Clean with:
-
+To clean    
     $ make clean
     
-To run the example:
-
-    $ ./dsl-example-app.exe
+To make:
+    $ make [debug]
+    
+To run an example:
+    $ ./<example-name>.exe
+    
+To enable DSL logging:
+    $ export GST_DEBUG=1,DSL:4
     

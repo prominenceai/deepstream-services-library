@@ -55,7 +55,7 @@ void xwindow_key_event_handler(const wchar_t* in_key, void* client_data)
     } else if (key == "R"){
         dsl_player_play(L"player");   
     } else if (key == "Q"){
-        dsl_player_stop(L"player")
+        dsl_player_stop(L"player");
         dsl_main_loop_quit();
     }
 }
