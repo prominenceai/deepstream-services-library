@@ -36,9 +36,9 @@
 #
 ################################################################################
 
-APP:= dsl-example-app.exe
-
+.PHONY: all clean
 CXX = g++
+SRCS = $(wildcard *.cpp)
 
 TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 
@@ -47,13 +47,13 @@ GLIB_VERSION:=2.0
 
 INC_INSTALL_DIR?=../../src/
 
-SRCS+= $(EXAMPLE)
 INCS+= $(wildcard ../../src/*.h)
 
 OBJS:= $(SRCS:.c=.o)
 OBJS:= $(OBJS:.cpp=.o)
+APP:= $(patsubst %.cpp,%.exe,$(SRCS))
 
-CFLAGS+= -std=$(CXX_VERSION) \
+CXXFLAGS+= -std=$(CXX_VERSION) \
 	-I$(INC_INSTALL_DIR) \
 	-I/usr/include/glib-$(GLIB_VERSION) \
 	-I/usr/include/glib-$(GLIB_VERSION)/glib
@@ -63,34 +63,17 @@ LIBS+= -ldsl \
 
 PKGS:= glib-$(GLIB_VERSION)
 
-CFLAGS+= `pkg-config --cflags $(PKGS)`
+CXXFLAGS+= `pkg-config --cflags $(PKGS)`
 
 LIBS+= `pkg-config --libs $(PKGS)`
 
 all: $(APP)
 	
-debug: CFLAGS += -DDEBUG -g
+debug: CXXFLAGS += -DDEBUG -g
 debug: $(APP)
 
-%.o: %.cpp $(INCS) Makefile
-	$(CXX) -c -o $@ $(CFLAGS) $<
-
-$(APP):	$(OBJS) Makefile
-	@echo $(SRCS)
-	$(CXX) -o $(APP) $(OBJS) $(LIBS)
+%.exe : %.cpp $(INCS)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LIBS)
 
 clean:
-	rm -rf $(OBJS) $(APP)
-
-# Check that given variables are set and all have non-empty values,
-# die with an error otherwise.
-#
-# Params:
-#   1. Variable name(s) to test.
-#   2. (optional) Error message to print.
-check_defined = \
-    $(strip $(foreach 1,$1, \
-        $(call __check_defined,$1,$(strip $(value 2)))))
-__check_defined = \
-    $(if $(value $1),, \
-      $(error Undefined $1$(if $2, ($2))))
+	rm -rf $(APP)
