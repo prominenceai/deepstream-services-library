@@ -286,7 +286,6 @@ namespace DSL
             // The Timer's Cycle Source setting should remain as is.
             return true;
         }
-        LOG_INFO("Counter = " << m_showSourceCounter);
         if (--m_showSourceCounter == 0)
         {
             // if we are cycling through sources

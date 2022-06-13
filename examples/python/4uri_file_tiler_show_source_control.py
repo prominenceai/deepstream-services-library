@@ -24,12 +24,25 @@
 
 #!/usr/bin/env python
 
+################################################################################
+# This example demonstrates how to manually control -- using key release and 
+# button press events -- the 2D Tiler's output stream to: 
+#   - show a specific source on key input (source No.) or mouse click on tile.
+#   - to return to showing all sources on 'A' key input, mouse click, or timeout.
+#   - to cycle through all sources on 'C' input showing each for timeout.
+# 
+# Note: timeout is controled with the global variable SHOW_SOURCE_TIMEOUT 
+################################################################################
+
 import sys
 import time
 
 from dsl import *
 
-uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+file_path1 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+file_path2 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4"
+file_path3 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_ride_bike.mov"
+file_path4 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_walk.mov"
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = \
@@ -37,7 +50,11 @@ primary_infer_config_file = \
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
+tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
+# Window Sink Dimensions - used to create the sink, however, in this
+# example the Pipeline XWindow service is called to enabled full-sreen
 TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
 TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
 
@@ -87,7 +104,7 @@ def xwindow_key_event_handler(key_string, client_data):
         dsl_pipeline_play('pipeline')
         
     # Q or Esc = quit application
-    elif key_string.upper() == 'Q' or key_string == '':
+    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
         dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
         
@@ -126,48 +143,73 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        retval = dsl_display_type_rgba_color_custom_new('full-white', red=1.0, green=1.0, blue=1.0, alpha = 1.0)
+        # Create two predefined RGBA colors, white and black, that will be
+        # used to create text to display the source number on each stream. 
+        retval = dsl_display_type_rgba_color_predefined_new('full-white', 
+            color_id = DSL_COLOR_PREDEFINED_WHITE, alpha = 1.0)
         if retval != DSL_RETURN_SUCCESS:
             return retval
 
-        retval = dsl_display_type_rgba_font_new('arial-14-white', font='arial', size=14, color='full-white')
+        retval = dsl_display_type_rgba_color_predefined_new('full-black', 
+            color_id = DSL_COLOR_PREDEFINED_BLACK, alpha = 1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+
+        retval = dsl_display_type_rgba_font_new('arial-18-white', 
+            font='arial', size=18, color='full-white')
         if retval != DSL_RETURN_SUCCESS:
             return retval
             
+        # Create a new "source-number" display-type using the new RGBA
+        # colors and font created above.
         retval = dsl_display_type_source_number_new('source-number', 
-            x_offset=15, y_offset=20, font='arial-14-white', has_bg_color=False, bg_color='full-white')
+            x_offset=15, y_offset=20, font='arial-18-white', 
+            has_bg_color=True, bg_color='full-black')
         if retval != DSL_RETURN_SUCCESS:
             return retval
             
-        # Create a new Action to display all the Source Info
-        retval = dsl_ode_action_display_meta_add_new('add-source-info', display_type='source-number')
+        # Create a new Action to add the display-type's metadata
+        # to a frame's meta on invocation.
+        retval = dsl_ode_action_display_meta_add_new('add-souce-number', 
+            display_type='source-number')
         if retval != DSL_RETURN_SUCCESS:
             return retval
 
-        # Create an Always triger to overlay our Display Info on every frame
-        retval = dsl_ode_trigger_always_new('always-trigger', source=DSL_ODE_ANY_SOURCE, when=DSL_ODE_PRE_OCCURRENCE_CHECK)
+        # Create an ODE Always triger to call the "add-meta" Action to display
+        # the source number on every frame for each source. 
+        retval = dsl_ode_trigger_always_new('always-trigger', 
+            source=DSL_ODE_ANY_SOURCE, when=DSL_ODE_PRE_OCCURRENCE_CHECK)
         if retval != DSL_RETURN_SUCCESS:
             return retval
 
-        retval = dsl_ode_trigger_action_add('always-trigger', action='add-source-info')
+        retval = dsl_ode_trigger_action_add('always-trigger', 
+            action='add-souce-number')
         if retval != DSL_RETURN_SUCCESS:
             return retval
             
-        # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
+        # Create a new ODE Pad Probe Handler (PPH) to add to the Tiler's Src Pad
         retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
+            
+        # Add the Trigger to the ODE PPH which will be added to the Tiler below.
         retval = dsl_pph_ode_trigger_add('ode-handler', trigger='always-trigger')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New URI File Source
-        retval = dsl_source_uri_new('uri-source-1', uri_h265, False, False, 1)
+        # 4 new File Sources
+        retval = dsl_source_file_new('file-source-1', file_path1, True)
         if retval != DSL_RETURN_SUCCESS:
             break
-        dsl_source_uri_new('uri-source-2', uri_h265, False, False, 1)
-        dsl_source_uri_new('uri-source-3', uri_h265, False, False, 1)
-        dsl_source_uri_new('uri-source-4', uri_h265, False, False, 1)
+        dsl_source_file_new('file-source-2', file_path2, True)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        dsl_source_file_new('file-source-3', file_path3, True)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        dsl_source_file_new('file-source-4', file_path4, True)
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # New Primary GIE using the filespecs above, with interval and Id
         retval = dsl_infer_gie_primary_new('primary-gie', 
@@ -175,12 +217,14 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New KTL Tracker, setting max width and height of input frame
-        retval = dsl_tracker_ktl_new('ktl-tracker', 480, 272)
+        # New IOU Tracker, setting max width and height of input frame
+        retval = dsl_tracker_iou_new('iou-tracker', 
+            tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Tiler, setting width and height, use default cols/rows set by source count
+        # New Tiler, setting width and height, use default cols/rows set by 
+        # the number of sources
         retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -191,8 +235,8 @@ def main(args):
             break
 
         # New OSD with text, clock and bbox display all enabled. 
-        retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+        retval = dsl_osd_new('on-screen-display', text_enabled=True, 
+            clock_enabled=True, bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -202,9 +246,9 @@ def main(args):
             break
 
         # Add all the components to our pipeline
-        retval = dsl_pipeline_new_component_add_many('pipeline',
-            ['uri-source-1', 'uri-source-2', 'uri-source-3', 'uri-source-4', 
-            'primary-gie', 'ktl-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
+        retval = dsl_pipeline_new_component_add_many('pipeline', ['file-source-1', 
+            'file-source-2', 'file-source-3', 'file-source-4', 'primary-gie', 
+            'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -217,13 +261,16 @@ def main(args):
         retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_xwindow_key_event_handler_add('pipeline', xwindow_key_event_handler, None)
+        retval = dsl_pipeline_xwindow_key_event_handler_add('pipeline', 
+            xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_xwindow_button_event_handler_add('pipeline', xwindow_button_event_handler, None)
+        retval = dsl_pipeline_xwindow_button_event_handler_add('pipeline', 
+            xwindow_button_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add('pipeline', xwindow_delete_event_handler, None)
+        retval = dsl_pipeline_xwindow_delete_event_handler_add('pipeline', 
+            xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -232,14 +279,14 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Start and join the main-loop
         dsl_main_loop_run()
         break
 
     # Print out the final result
     print(dsl_return_value_to_string(retval))
 
-    dsl_pipeline_delete_all()
-    dsl_component_delete_all()
+    dsl_delete_all()
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
