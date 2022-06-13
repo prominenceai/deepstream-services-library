@@ -197,6 +197,7 @@
       <File Name="../examples/cpp/Makefile"/>
       <File Name="../examples/cpp/README"/>
       <File Name="../examples/cpp/4uri_file_tiler_show_source_control.cpp"/>
+      <File Name="../examples/cpp/ode_occurrence_trigger_with_monitor_action.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
       <File Name="../examples/python/1csi_live_pgie_demuxer_osd_overlay_rtsp_h254.py"/>

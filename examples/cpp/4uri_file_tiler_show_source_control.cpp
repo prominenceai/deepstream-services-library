@@ -40,20 +40,20 @@ THE SOFTWARE.
 #include "DslApi.h"
 
 // File path for the single File Source
-static const std::wstring file_path1(
+std::wstring file_path1(
     L"/opt/nvidia/deepstream/deepstream-6.0/samples/streams/sample_1080p_h265.mp4");
-static const std::wstring file_path2(
+std::wstring file_path2(
     L"/opt/nvidia/deepstream/deepstream-6.0/samples/streams/sample_qHD.mp4");
-static const std::wstring file_path3(
+std::wstring file_path3(
     L"/opt/nvidia/deepstream/deepstream-6.0/samples/streams/sample_ride_bike.mov");
-static const std::wstring file_path4(
+std::wstring file_path4(
     L"/opt/nvidia/deepstream/deepstream-6.0/samples/streams/sample_walk.mov");
 
-static const std::wstring primary_infer_config_file(
+std::wstring primary_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-static const std::wstring primary_model_engine_file(
+std::wstring primary_model_engine_file(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
-static const std::wstring tracker_config_file(
+std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
 // File name for .dot file output
@@ -235,8 +235,8 @@ int main(int argc, char** argv)
         retval = dsl_tiler_pph_add(L"tiler", L"ode-handler", DSL_PAD_SINK);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // New OSD with text, clock and bbox display all enabled. 
-        retval = dsl_osd_new(L"on-screen-display", true, false, true, true);
+        // New OSD with text and bbox display enabled. 
+        retval = dsl_osd_new(L"on-screen-display", true, false, true, false);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
