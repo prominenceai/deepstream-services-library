@@ -24,18 +24,6 @@
 #
 ################################################################################
 
-################################################################################
-#
-# This Makefile can be used to build each of the example cpp files -- one 
-# at a time -- in a standalone example app called dsl-example-app.exe
-#
-# Usage: $ makefile <target> EXAMPLE=<example-cpp-file>
-#
-# eg:
-#      $ makefile debug EXAMPLE=./multiple_pipelines.cpp
-#
-################################################################################
-
 .PHONY: all clean
 CXX = g++
 SRCS = $(wildcard *.cpp)
