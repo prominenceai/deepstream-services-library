@@ -1,23 +1,23 @@
 {
-    "configurations": [
-        {
-            "name": "Linux",
-            "includePath": [
-                "/usr/lib/aarch64-linux-gnu/glib-2.0/include",
-                "/usr/include/glib-2.0/**",
-                "/usr/include/gstreamer-1.0/**",
-                "/usr/include/opencv4/**",
-                "/usr/local/cuda-10.2/targets/aarch64-linux/include",
-                "/opt/nvidia/deepstream/deepstream-5.0/sources/includes",
-                "/opt/nvidia/deepstream/deepstream-5.0/sources/apps/apps-common/includes",
-                "${workspaceFolder}/**"
-            ],
-            "defines": [],
-            "compilerPath": "/usr/bin/gcc",
-            "cStandard": "gnu11",
-            "cppStandard": "gnu++14",
-            "intelliSenseMode": "clang-x64"
-        }
-    ],
-    "version": 4
+  "configurations": [
+    {
+      "name": "Linux",
+      "includePath": [
+        "/usr/lib/aarch64-linux-gnu/glib-2.0/include",
+        "/usr/include/glib-2.0/**",
+        "/usr/include/gstreamer-1.0/**",
+        "/usr/include/opencv4/**",
+        "/usr/local/cuda-10.2/targets/aarch64-linux/include",
+        "/opt/nvidia/deepstream/deepstream/sources/includes",
+        "/opt/nvidia/deepstream/deepstream/sources/apps/apps-common/includes",
+        "${workspaceFolder}/**"
+      ],
+      "defines": [],
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "c11",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "linux-gcc-arm64"
+    }
+  ],
+  "version": 4
 }

@@ -1,34 +1,53 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"type": "shell",
-			"label": "build:debug",
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
-			"command": "make debug && make so_lib",
-			"args": [],
-			"options": {
-				"cwd": "${workspaceFolder}"
-			},
-			"problemMatcher": [
-				"$gcc"
-			]
-		},
-		{
-			"type": "shell",
-			"label": "build:test",
-			"group": "build",
-			"command": "make && make lib",
-			"args": [],
-			"options": {
-				"cwd": "${workspaceFolder}"
-			},
-			"problemMatcher": [
-				"$gcc"
-			]
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "shell",
+      "label": "build:lib:debug",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "command": "make -j$(nproc) debug && make -j$(nproc) debug_lib",
+      "args": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "type": "shell",
+      "label": "build:test-app:debug",
+      "group": "build",
+      "command": "make -j$(nproc) debug",
+      "args": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "type": "shell",
+      "label": "build:cpp-examples:debug",
+      "group": "build",
+      "command": "make -j$(nproc) debug",
+      "args": [],
+      "options": {
+        "cwd": "${workspaceFolder}/examples/cpp"
+      },
+      "problemMatcher": ["$gcc"],
+      "dependsOn": ["build:lib:debug"]
+    },
+    {
+      "type": "shell",
+      "label": "build:lib",
+      "group": "build",
+      "command": "make clean && make -j$(nproc) && sudo make install",
+      "args": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": ["$gcc"]
+    }
+  ]
 }
