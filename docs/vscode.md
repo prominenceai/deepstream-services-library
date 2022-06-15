@@ -30,18 +30,33 @@ This repository includes files/configurations to build/debug DSL and your C/C++/
 
 *Start Debugging by pressing F5. Depending on the selected configuration, the required builds tasks will be performed after which the debug session will be started*
 
+*To set a breakpoint, either:*
+- *In a code file, click to the left of the line number for the code file*
+- *Press `F9` on the line*
+
+---
+
 - To debug C++ Example
-  - Open C++ example file (`/examples/cpp)
-  - Place breakpoint (`F9`)
+  - Open C++ example file (`/examples/cpp`)
+  - Place breakpoint(s) in *.cpp file
   - Choose `CPP: Current Example` config
   - Press F5
-- To debug C++ using Python file:
-  - Place breakpoints in C++ files
+- To debug DSL C++ unit tests
+  - Place breakpoint(s) in *.cpp unit test file(s) (`/test/**/*.cpp`)
+  - Choose `CPP: Test App` config
+  - Press F5
+  - **Optional** Limit unit tests by passing tags
+    - Modify the `args` property of the `CPP: Test App` launch config in `./vscode/launch.json`
+      ```json
+      "args": ["[OdeAction]"],
+      ```
+- To debug DSL C++ using Python file:
+  - Place breakpoint(s) in *.cpp file
   - Open Python file
   - Choose `CPP: Current Python File` config
   - Press F5
-- To debug Python:
-  - Open Python file
-  - Place breakpoint
+- To debug Python Example:
+  - Open Python example file (`/examples/python`)
+  - Place breakpoint(s) in *.py file
   - Choose `Python: Current File` config
   - Press F5
