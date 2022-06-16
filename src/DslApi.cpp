@@ -403,7 +403,8 @@ DslReturnType dsl_display_type_source_dimensions_new(const wchar_t* name,
 // TODO: leaving this implementation as is without including in the header file for now.
 // Needs to be completed and tested for all source types.
 DslReturnType dsl_display_type_source_frame_rate_new(const wchar_t* name, 
-    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
+    const wchar_t* bg_color)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(font);
@@ -425,14 +426,31 @@ DslReturnType dsl_display_type_source_frame_rate_new(const wchar_t* name,
         x_offset, y_offset, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
 }
 
-DslReturnType dsl_display_type_meta_add(const wchar_t* name, void* display_meta, void* frame_meta)
+DslReturnType dsl_display_type_rgba_text_shadow_add(const wchar_t* name, 
+    uint x_offset, uint y_offset, const wchar_t* color)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(color);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrColor(color);
+    std::string cstrColor(wstrColor.begin(), wstrColor.end());
+
+    return DSL::Services::GetServices()->DisplayRgbaTextShadowAdd(cstrName.c_str(), 
+        x_offset, y_offset, cstrColor.c_str());
+}
+    
+DslReturnType dsl_display_type_meta_add(const wchar_t* name, 
+    void* display_meta, void* frame_meta)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->DisplayTypeMetaAdd(cstrName.c_str(), display_meta, frame_meta);
+    return DSL::Services::GetServices()->DisplayTypeMetaAdd(cstrName.c_str(), 
+        display_meta, frame_meta);
 }
     
 DslReturnType dsl_display_type_delete(const wchar_t* name)
