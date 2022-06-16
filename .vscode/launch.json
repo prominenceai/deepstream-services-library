@@ -1,66 +1,92 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "CPP: Current Example",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/examples/cpp/${fileBasenameNoExtension}.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [
+        { "name": "DISPLAY", "value": ":0" },
+        { "name": "GST_DEBUG", "value": "1,DSL:4" },
+        { "name": "LD_LIBRARY_PATH", "value": "${workspaceFolder}"}
+      ],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
         {
-            "name": "(gdb) Launch",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/dsl-test-app",
-            "args": ["[test]"],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/examples/cpp",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ]
-        },
-        {
-            "name": "Python: Current File",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/examples/python",
-            "env": {
-                "DISPLAY": ":1"
-            }
-        },
-        {
-            "name": "CPP: Current Python File",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "/usr/bin/python3",
-            "args": [
-                "${file}"
-            ],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/examples/python",
-            "environment": [
-                {
-                    "name": "DISPLAY",
-                    "value": ":1"
-                }
-            ],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "preLaunchTask": "build:debug",
-            "miDebuggerPath": "/usr/bin/gdb"
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
         }
-    ]
+      ],
+      "preLaunchTask": "build:cpp-examples:debug"
+    },
+    {
+      "name": "CPP: Test App",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/dsl-test-app.exe",
+      "args": [
+        /*"[OdeAction]"*/
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [
+        { "name": "DISPLAY", "value": ":0" },
+        { "name": "GST_DEBUG", "value": "1,DSL:4" }
+      ],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "build:test-app:debug"
+    },
+    {
+      "name": "CPP: Current Python File",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "/usr/bin/python3",
+      "args": ["${file}"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/examples/python",
+      "environment": [
+        { "name": "DISPLAY", "value": ":0" },
+        { "name": "GST_DEBUG", "value": "1,DSL:4" }
+      ],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "build:lib:debug"
+    },
+    {
+      "name": "Python: Current File",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/examples/python",
+      "env": {
+        "DISPLAY": ":0",
+        "GST_DEBUG": "1,DSL:4"
+      }
+    }
+  ]
 }
