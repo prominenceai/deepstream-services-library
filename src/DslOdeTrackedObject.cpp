@@ -204,6 +204,10 @@ namespace DSL
         m_pBboxTrace = std::shared_ptr<std::deque<std::shared_ptr<NvBbox_Coords>>>(
             new std::deque<std::shared_ptr<NvBbox_Coords>>);
 
+        // Add last point of previous trace as first point to current trace to ensure
+        // a continuous line (line segment between previous-trace-end and current-trace-start) 
+        m_pBboxTrace->push_back(m_pPrevBboxTrace->back());
+
         preEventFrameCount = 1;
         onEventFrameCount = 0;
     }
