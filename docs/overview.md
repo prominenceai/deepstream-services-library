@@ -429,6 +429,8 @@ And three types for displaying source information specific to each frame.
 * Source Name
 * Source Dimensions
 
+<br>
+
 The image below provides examples of the Display Types listed above.
 
 ![RGBA Display Types](/Images/display-types.png)
