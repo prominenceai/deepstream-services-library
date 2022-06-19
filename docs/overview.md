@@ -415,7 +415,7 @@ There are eight base types used when creating other complete types for actual di
 * RGBA Random Color Palette
 * RGBA Font
 
-There are six types for displaying text and shapes. 
+There are seven types for displaying text and shapes. 
 * RGBA Text
 * RGBA Line
 * RGBA Multi-Line
@@ -429,9 +429,11 @@ And three types for displaying source information specific to each frame.
 * Source Name
 * Source Dimensions
 
-The [Add Display Meta ODE Action](/docs/api-ode-action.md#dsl_ode_action_display_meta_add_new) adds the data under control of one or more Triggers to render all types of video annotations.
+The image below provides examples of the Display Types listed above.
 
-Refer to the [Display Type API](/docs/api-display-type.md)
+![RGBA Display Types](/Images/display-types.png)
+
+Refer to the [Display Type API Reference](/docs/api-display-type.md) for more information.
 
 ---
 
