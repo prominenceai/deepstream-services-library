@@ -563,7 +563,8 @@
 * [dsl_display_type_rgba_color_palette_index_get](/docs/api-display-type.md#dsl_display_type_rgba_color_palette_index_get)
 * [dsl_display_type_rgba_color_palette_index_set](/docs/api-display-type.md#dsl_display_type_rgba_color_palette_index_set)
 * [dsl_display_type_rgba_color_next_set](/docs/api-display-type.md#dsl_display_type_rgba_color_next_set)
-* [dsl_display_type_list_size](/docs/api-display-type.md/docs/api-display-type.md#dsl_display_type_list_size)
+* [dsl_display_type_rgba_text_shadow_add](/docs/api-display-type.md#dsl_display_type_rgba_text_shadow_add)
+* [dsl_display_type_list_size](/docs/api-display-type.md#dsl_display_type_list_size)
 
 ## Component API:
 * [Overview](/docs/api-component.md)
