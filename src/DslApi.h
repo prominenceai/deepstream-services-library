@@ -1773,7 +1773,7 @@ DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name,
  * @param[in] y_offset starting y positional offset.
  * @param[in] font RGBA font to use for the display text.
  * @param[in] hasBgColor set to true to enable bacground color, false otherwise.
- * @param[in] bgColor RGBA Color for the Text background if set.
+ * @param[in] bg_color RGBA Color for the Text background if set.
  * @return DSL_RESULT_SUCCESS on successful creation, one of 
  * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
@@ -1788,7 +1788,7 @@ DslReturnType dsl_display_type_source_number_new(const wchar_t* name,
  * @param[in] y_offset starting y positional offset.
  * @param[in] font RGBA font to use for the display text.
  * @param[in] hasBgColor set to true to enable bacground color, false otherwise.
- * @param[in] bgColor RGBA Color for the Text background if set.
+ * @param[in] bg_color RGBA Color for the Text background if set.
  * @return DSL_RESULT_SUCCESS on successful creation, one of 
  * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
@@ -1803,7 +1803,7 @@ DslReturnType dsl_display_type_source_name_new(const wchar_t* name,
  * @param[in] y_offset starting y positional offset.
  * @param[in] font RGBA font to use for the display text.
  * @param[in] hasBgColor set to true to enable bacground color, false otherwise.
- * @param[in] bgColor RGBA Color for the Text background if set.
+ * @param[in] bg_color RGBA Color for the Text background if set.
  * @return DSL_RESULT_SUCCESS on successful creation, one of 
  * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
@@ -1811,6 +1811,18 @@ DslReturnType dsl_display_type_source_dimensions_new(const wchar_t* name,
     uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
     const wchar_t* bg_color);
 
+/**
+ * @brief Adds a shadow to the Text Display Type creating a raised effect.
+ * @param[in] name unique name of the Text or Source-Info Display Type.
+ * @param[in] x_offset shadow offset in the x direction.
+ * @param[in] y_offset shadow offset in the y direction.
+ * @param[in] color RGBA Color for the text shadow.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_text_shadow_add(const wchar_t* name, 
+    uint x_offset, uint y_offset, const wchar_t* color);
+    
 ///**
 // * @brief Adds a named Display Type (text/shape) to a frames's display metadata, The caller 
 // * is responsible for aquiring the display metadata for the current frame.

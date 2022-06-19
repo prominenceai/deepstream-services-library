@@ -404,6 +404,9 @@ namespace DSL
         , m_pBgColor(pBgColor)
         , NvOSD_TextParams{NULL, x_offset, y_offset, 
             *pFont, hasBgColor, *pBgColor}
+        , m_shadowEnabled(false)
+        , m_shadowXOffset(0)
+        , m_shadowYOffset(0)
     {
         LOG_FUNC();
     }
@@ -426,11 +429,29 @@ namespace DSL
         m_pFont->Unlock();
         m_pBgColor->Unlock();
     }
-
+    
+    bool RgbaText::AddShadow(uint xOffset, uint yOffset, DSL_RGBA_COLOR_PTR pColor)
+    {
+        LOG_FUNC();
+        
+        if (m_shadowEnabled)
+        {
+            LOG_ERROR("Shadow is already enabled for RgbaText '" << 
+                GetName() << "'");
+        }
+        m_shadowEnabled = true;
+        m_shadowXOffset = xOffset;
+        m_shadowYOffset = yOffset;
+        m_pShadowColor = pColor;
+        
+        m_pShadowFont = DSL_RGBA_FONT_NEW("", 
+            m_pFont->m_fontName.c_str(), m_pFont->font_size, m_pShadowColor);
+    }
+    
     void RgbaText::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta) 
     {
-        LOG_FUNC();
+//        LOG_FUNC();
 
         // check to see if we're adding meta data - client can disable
         // by setting the PPH ODE display meta alloc size to 0.
@@ -447,6 +468,29 @@ namespace DSL
         if (!pDisplayMeta)
         {
             return;
+        }
+        if (m_shadowEnabled)
+        {
+            NvOSD_TextParams *pTextParams = &pDisplayMeta->
+                text_params[pDisplayMeta->num_labels++];
+            
+            
+            pTextParams->x_offset = x_offset + m_shadowXOffset;
+            pTextParams->y_offset = y_offset + m_shadowYOffset;
+            
+            pTextParams->set_bg_clr = true;
+            pTextParams->text_bg_clr = *m_pShadowColor;
+
+            // need to allocate storage for actual text, then copy.
+            pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
+            m_text.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
+
+            pTextParams->font_params = *m_pShadowFont;
+            // Font, font-size, font-color
+            pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
+            m_pShadowFont->m_fontName.copy(pTextParams->font_params.font_name, 
+                MAX_DISPLAY_LEN, 0);
+                
         }
         NvOSD_TextParams *pTextParams = &pDisplayMeta->
             text_params[pDisplayMeta->num_labels++];
@@ -485,7 +529,7 @@ namespace DSL
     void RgbaLine::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta) 
     {
-        LOG_FUNC();
+//        LOG_FUNC();
 
         // check to see if we're adding meta data - client can disable
         // by setting the PPH ODE display meta alloc size to 0.
@@ -530,7 +574,7 @@ namespace DSL
     void RgbaArrow::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta) 
     {
-        LOG_FUNC();
+//        LOG_FUNC();
 
         // check to see if we're adding meta data - client can disable
         // by setting the PPH ODE display meta alloc size to 0.
@@ -577,7 +621,7 @@ namespace DSL
     void RgbaRectangle::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta) 
     {
-        LOG_FUNC();
+//        LOG_FUNC();
 
         // check to see if we're adding meta data - client can disable
         // by setting the PPH ODE display meta alloc size to 0.
@@ -632,7 +676,7 @@ namespace DSL
     void RgbaPolygon::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta) 
     {
-        LOG_FUNC();
+//        LOG_FUNC();
 
         m_pColor->Lock();
         color = *m_pColor;
@@ -696,7 +740,7 @@ namespace DSL
     void RgbaMultiLine::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta) 
     {
-        LOG_FUNC();
+//        LOG_FUNC();
 
         m_pColor->Lock();
         color = *m_pColor;
@@ -751,7 +795,7 @@ namespace DSL
     void RgbaCircle::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta) 
     {
-        LOG_FUNC();
+//        LOG_FUNC();
 
         // check to see if we're adding meta data - client can disable
         // by setting the PPH ODE display meta alloc size to 0.
@@ -775,11 +819,7 @@ namespace DSL
     SourceDimensions::SourceDimensions(const char* name, 
         uint x_offset, uint y_offset, 
         DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
-        : DisplayType(name)
-        , m_pFont(pFont)
-        , m_pBgColor(pBgColor)
-        , NvOSD_TextParams{NULL, x_offset, y_offset, 
-            *pFont, hasBgColor, *pBgColor}
+        : RgbaText(name, "", x_offset, y_offset, pFont, hasBgColor, pBgColor)
     {
         LOG_FUNC();
     }
@@ -792,37 +832,11 @@ namespace DSL
     void SourceDimensions::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta) 
     {
-        LOG_FUNC();
-
-        // check to see if we're adding meta data - client can disable
-        // by setting the PPH ODE display meta alloc size to 0.
-        if (displayMetaData.empty())
-        {
-            return;
-        }
-        NvOSD_TextParams *pTextParams = 
-            &displayMetaData.at(0)->text_params[displayMetaData.at(0)->num_labels++];
-            
-        m_pFont->Lock();
-        font_params = *m_pFont;
-        m_pFont->Unlock();
-        m_pBgColor->Lock();
-        text_bg_clr = *m_pBgColor;
-        m_pBgColor->Unlock();
-
-        // copy over our text params, display_text currently == NULL
-        *pTextParams = *this;
-        
-        std::string text = std::to_string(pFrameMeta->source_frame_width) + " x " + 
+//        LOG_FUNC();
+        m_text = std::to_string(pFrameMeta->source_frame_width) + " x " + 
             std::to_string(pFrameMeta->source_frame_height);
 
-        // need to allocate storage for actual text, then copy.
-        pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
-        text.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
-        
-        // Font, font-size, font-color
-        pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
-        m_pFont->m_fontName.copy(pTextParams->font_params.font_name, MAX_DISPLAY_LEN, 0);
+        RgbaText::AddMeta(displayMetaData, pFrameMeta);
     }
 
     // ********************************************************************
@@ -830,11 +844,7 @@ namespace DSL
     SourceFrameRate::SourceFrameRate(const char* name, 
         uint x_offset, uint y_offset, DSL_RGBA_FONT_PTR pFont, 
         bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
-        : DisplayType(name)
-        , m_pFont(pFont)
-        , m_pBgColor(pBgColor)
-        , NvOSD_TextParams{NULL, x_offset, y_offset, 
-            *pFont, hasBgColor, *pBgColor}
+        : RgbaText(name, "", x_offset, y_offset, pFont, hasBgColor, pBgColor)
     {
         LOG_FUNC();
     }
@@ -847,49 +857,20 @@ namespace DSL
     void SourceFrameRate::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta) 
     {
-        LOG_FUNC();
+//        LOG_FUNC();
 
-        // check to see if we're adding meta data - client can disable
-        // by setting the PPH ODE display meta alloc size to 0.
-        if (displayMetaData.empty())
-        {
-            return;
-        }
-        NvOSD_TextParams *pTextParams = 
-            &displayMetaData.at(0)->text_params[displayMetaData.at(0)->num_labels++];
+//        m_text = std::to_string(pFrameMeta->source_frame_width) + " x " + 
+//            std::to_string(pFrameMeta->source_frame_height);
 
-        m_pFont->Lock();
-        font_params = *m_pFont;
-        m_pFont->Unlock();
-        m_pBgColor->Lock();
-        text_bg_clr = *m_pBgColor;
-        m_pBgColor->Unlock();
-
-        // copy over our text params, display_text currently == NULL
-        *pTextParams = *this;
-        
-        std::string text = std::to_string(pFrameMeta->source_frame_width) + " x " + 
-            std::to_string(pFrameMeta->source_frame_height);
-
-        // need to allocate storage for actual text, then copy.
-        pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
-        text.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
-        
-        // Font, font-size, font-color
-        pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
-        m_pFont->m_fontName.copy(pTextParams->font_params.font_name, 
-            MAX_DISPLAY_LEN, 0);
+        RgbaText::AddMeta(displayMetaData, pFrameMeta);
     }
     
     // ********************************************************************
 
-    SourceNumber::SourceNumber(const char* name, uint x_offset, uint y_offset, 
-        DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
-        : DisplayType(name)
-        , m_pFont(pFont)
-        , m_pBgColor(pBgColor)
-        , NvOSD_TextParams{NULL, x_offset, y_offset, 
-            *pFont, hasBgColor, *pBgColor}
+    SourceNumber::SourceNumber(const char* name, 
+        uint x_offset, uint y_offset, DSL_RGBA_FONT_PTR pFont, 
+        bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
+        : RgbaText(name, "", x_offset, y_offset, pFont, hasBgColor, pBgColor)
     {
         LOG_FUNC();
     }
@@ -902,47 +883,18 @@ namespace DSL
     void SourceNumber::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta) 
     {
-        LOG_FUNC();
+//        LOG_FUNC();
 
-        // check to see if we're adding meta data - client can disable
-        // by setting the PPH ODE display meta alloc size to 0.
-        if (displayMetaData.empty())
-        {
-            return;
-        }
-        NvOSD_TextParams *pTextParams = 
-            &displayMetaData.at(0)->text_params[displayMetaData.at(0)->num_labels++];
+        m_text = std::to_string(pFrameMeta->source_id);
 
-        m_pFont->Lock();
-        font_params = *m_pFont;
-        m_pFont->Unlock();
-        m_pBgColor->Lock();
-        text_bg_clr = *m_pBgColor;
-        m_pBgColor->Unlock();
-
-        // copy over our text params, display_text currently == NULL
-        *pTextParams = *this;
-        
-        std::string numberString(std::to_string(pFrameMeta->source_id));
-        // need to allocate storage for actual text, then copy.
-        pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
-        numberString.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
-        
-        // Font, font-size, font-color
-        pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
-        m_pFont->m_fontName.copy(pTextParams->font_params.font_name, MAX_DISPLAY_LEN, 0);
-        
+        RgbaText::AddMeta(displayMetaData, pFrameMeta);
     }
 
     // ********************************************************************
 
     SourceName::SourceName(const char* name, uint x_offset, uint y_offset, 
         DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
-        : DisplayType(name)
-        , m_pFont(pFont)
-        , m_pBgColor(pBgColor)
-        , NvOSD_TextParams{NULL, x_offset, y_offset, 
-            *pFont, hasBgColor, *pBgColor}
+        : RgbaText(name, "", x_offset, y_offset, pFont, hasBgColor, pBgColor)
     {
         LOG_FUNC();
     }
@@ -955,41 +907,16 @@ namespace DSL
     void SourceName::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta) 
     {
-        LOG_FUNC();
-
-        // check to see if we're adding meta data - client can disable
-        // by setting the PPH ODE display meta alloc size to 0.
-        if (displayMetaData.empty())
-        {
-            return;
-        }
-        NvOSD_TextParams *pTextParams = 
-            &displayMetaData.at(0)->text_params[displayMetaData.at(0)->num_labels++];
-
-        m_pFont->Lock();
-        font_params = *m_pFont;
-        m_pFont->Unlock();
-        m_pBgColor->Lock();
-        text_bg_clr = *m_pBgColor;
-        m_pBgColor->Unlock();
-
-        // copy over our text params, display_text currently == NULL
-        *pTextParams = *this;
+//        LOG_FUNC();
         
         const char* name;
         
         if (Services::GetServices()->SourceNameGet(pFrameMeta->source_id, &name) == 
             DSL_RESULT_SUCCESS)
         {
-            std::string nameString(name);
-            // need to allocate storage for actual text, then copy.
-            pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
-            nameString.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
-            
-            // Font, font-size, font-color
-            pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
-            m_pFont->m_fontName.copy(pTextParams->font_params.font_name, 
-                MAX_DISPLAY_LEN, 0);
+            m_text.assign(name);
+
+            RgbaText::AddMeta(displayMetaData, pFrameMeta);
         }
         
     }

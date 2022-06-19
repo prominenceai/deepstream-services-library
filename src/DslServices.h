@@ -116,22 +116,31 @@ namespace DSL {
             const dsl_coordinate* coordinates, uint numCoordinates, 
             uint borderWidth, const char* color);
 
-        DslReturnType DisplayTypeRgbaCircleNew(const char* name, uint xCenter, uint yCenter, uint radius,
+        DslReturnType DisplayTypeRgbaCircleNew(const char* name, 
+            uint xCenter, uint yCenter, uint radius,
             const char* color, bool hasBgColor, const char* bgColor);
     
         DslReturnType DisplayTypeSourceNumberNew(const char* name, 
-            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
+            uint xOffset, uint yOffset, const char* font, 
+            boolean hasBgColor, const char* bgColor);
 
         DslReturnType DisplayTypeSourceNameNew(const char* name, 
-            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
+            uint xOffset, uint yOffset, const char* font, 
+            boolean hasBgColor, const char* bgColor);
 
         DslReturnType DisplayTypeSourceDimensionsNew(const char* name, 
-            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
+            uint xOffset, uint yOffset, const char* font, 
+            boolean hasBgColor, const char* bgColor);
 
         DslReturnType DisplayTypeSourceFrameRateNew(const char* name, 
-            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
+            uint xOffset, uint yOffset, const char* font, 
+            boolean hasBgColor, const char* bgColor);
 
-        DslReturnType DisplayTypeMetaAdd(const char* name, void* pDisplayMeta, void* pFrameMeta);
+        DslReturnType DisplayRgbaTextShadowAdd(const char* name, 
+            uint xOffset, uint yOffset, const char* color);
+            
+        DslReturnType DisplayTypeMetaAdd(const char* name, 
+        void* pDisplayMeta, void* pFrameMeta);
         
         DslReturnType DisplayTypeDelete(const char* name);
         

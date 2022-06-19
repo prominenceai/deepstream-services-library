@@ -413,6 +413,18 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_TEXT(types, name) do \
+{ \
+    if (!types[name]->IsType(typeid(RgbaText)) and \
+        !types[name]->IsType(typeid(SourceDimensions)) and \
+        !types[name]->IsType(typeid(SourceNumber)) and \
+        !types[name]->IsType(typeid(SourceName))) \
+    { \
+        LOG_ERROR("Display Type '" << name << "' is not color type"); \
+        return DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE; \
+    } \
+}while(0); 
+
 #define DSL_RETURN_IF_PPH_NAME_NOT_FOUND(handlers, name) do \
 { \
     if (handlers.find(name) == handlers.end()) \
