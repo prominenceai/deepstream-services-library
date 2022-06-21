@@ -32,7 +32,6 @@
     <File Name="../src/DslServicesInfer.cpp"/>
     <File Name="../src/DslServicesMailer.cpp"/>
     <File Name="../src/DslServicesMessageBroker.cpp"/>
-    <File Name="../src/DslServicesOdeAction.cpp"/>
     <File Name="../src/DslServicesOdeArea.cpp"/>
     <File Name="../src/DslServicesOdeTrigger.cpp"/>
     <File Name="../src/DslServicesOsd.cpp"/>
@@ -144,7 +143,6 @@
       <File Name="../test/api/DslCrossTriggerExampleTest.cpp"/>
       <File Name="../test/api/DslOdeAccumulatorApiTest.cpp"/>
       <File Name="../test/api/DslOdeHeatMapperApiTest.cpp"/>
-      <File Name="../test/unit/DslOdeActionUnitTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDemuxerAndTeeUnitTest.cpp"/>
@@ -178,6 +176,8 @@
       <File Name="../test/unit/DslOdeTrackedObjectUnitTest.cpp"/>
       <File Name="../test/unit/DslOdeAccumulatorUnitTest.cpp"/>
       <File Name="../test/unit/DslOdeHeatMapperUnitTest.cpp"/>
+      <File Name="../src/DslServicesOdeAction.cpp"/>
+      <File Name="../test/unit/DslOdeActionUnitTest.cpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="root">
@@ -198,6 +198,7 @@
       <File Name="../examples/cpp/README"/>
       <File Name="../examples/cpp/4uri_file_tiler_show_source_control.cpp"/>
       <File Name="../examples/cpp/ode_occurrence_trigger_with_monitor_action.cpp"/>
+      <File Name="../examples/cpp/ode_occurrence_trigger_with_mot_challenge_file_action.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
       <File Name="../examples/python/1csi_live_pgie_demuxer_osd_overlay_rtsp_h254.py"/>

@@ -1,8 +1,7 @@
-
 /*
 The MIT License
 
-Copyright (c) 2021-2022, Prominence AI, Inc.
+Copyright (c) 2022, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +20,17 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+*/
+
+/* ------------------------------------------------------------------------------------
+ This example demonstrates the use of an ODE Monitor Action -- added to an 
+ ODE Occurrence Trigger with the below criteria -- to monitor all 
+ ODE Occurrences
+   - class id            = PGIE_CLASS_ID_PERSON
+   - inference-done-only = TRUE
+   - minimum confidience = PERSON_MIN_CONFIDENCE
+   - minimum width       = PERSON_MIN_WIDTH
+   - minimum height      = PERSON_MIN_HEIGHT
 */
 
 #include <iostream>

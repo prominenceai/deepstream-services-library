@@ -1028,13 +1028,233 @@ namespace DSL
     // ********************************************************************
 
     FileOdeAction::FileOdeAction(const char* name,
-        const char* filePath, uint mode, uint format, bool forceFlush)
+        const char* filePath, uint mode, bool forceFlush)
         : OdeAction(name)
         , m_filePath(filePath)
         , m_mode(mode)
-        , m_format(format)
         , m_forceFlush(forceFlush)
         , m_flushThreadFunctionId(0)
+    {
+        LOG_FUNC();
+    
+        g_mutex_init(&m_ostreamMutex);
+    }
+
+    FileOdeAction::~FileOdeAction()
+    {
+        LOG_FUNC();
+        
+        if (!m_ostream.is_open())
+        {
+            return;
+        }
+        
+        if (m_flushThreadFunctionId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_ostreamMutex);
+            g_source_remove(m_flushThreadFunctionId);
+        }
+            
+        m_ostream.close();
+        g_mutex_clear(&m_ostreamMutex);
+    }
+    
+    bool FileOdeAction::Flush()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_ostreamMutex);
+        
+        m_ostream.flush();
+        
+        // end the thread
+        m_flushThreadFunctionId = 0;
+        return false;
+    }
+
+    static gboolean FileActionFlush(gpointer pAction)
+    {
+        return static_cast<FileOdeAction*>(pAction)->Flush();
+    }
+
+    FileTextOdeAction::FileTextOdeAction(const char* name,
+        const char* filePath, uint mode, bool forceFlush)
+        : FileOdeAction(name, filePath, mode, forceFlush)
+    {
+        LOG_FUNC();
+
+        // determine if new or existing file
+        std::ifstream streamUriFile(filePath);
+        bool fileExists(streamUriFile.good());
+        
+        try
+        {
+            if (m_mode == DSL_WRITE_MODE_APPEND)
+            {
+                m_ostream.open(m_filePath, std::fstream::out | std::fstream::app);
+            }
+            else
+            {
+                m_ostream.open(m_filePath, std::fstream::out | std::fstream::trunc);
+            }
+        }
+        catch(...) 
+        {
+            LOG_ERROR("New FileTextOdeAction '" << name << "' failed to open");
+            throw;
+        }
+    
+        char dateTime[DATE_BUFF_LENGTH] = {0};
+        time_t seconds = time(NULL);
+        struct tm currentTm;
+        localtime_r(&seconds, &currentTm);
+
+        strftime(dateTime, DATE_BUFF_LENGTH, "%a, %d %b %Y %H:%M:%S %z", 
+            &currentTm);
+        std::string dateTimeStr(dateTime);
+        
+        m_ostream << "-------------------------------------------------------------------" << "\n";
+        m_ostream << " File opened: " << dateTimeStr.c_str() << "\n";
+        m_ostream << "-------------------------------------------------------------------" << "\n";
+    }
+
+    FileTextOdeAction::~FileTextOdeAction()
+    {
+        LOG_FUNC();
+        
+        if (!m_ostream.is_open())
+        {
+            return;
+        }
+        
+        char dateTime[DATE_BUFF_LENGTH] = {0};
+        time_t seconds = time(NULL);
+        struct tm currentTm;
+        localtime_r(&seconds, &currentTm);
+
+        strftime(dateTime, DATE_BUFF_LENGTH, "%a, %d %b %Y %H:%M:%S %z", &currentTm);
+        std::string dateTimeStr(dateTime);
+
+        m_ostream << "-------------------------------------------------------------------" << "\n";
+        m_ostream << " File closed: " << dateTimeStr.c_str() << "\n";
+        m_ostream << "-------------------------------------------------------------------" << "\n";
+    }
+
+    void FileTextOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        LOCK_2ND_MUTEX_FOR_CURRENT_SCOPE(&m_ostreamMutex);
+
+        if (!m_enabled)
+        {
+            return;
+        }
+        DSL_ODE_TRIGGER_PTR pTrigger = 
+            std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+        
+        m_ostream << "Trigger Name        : " << pTrigger->GetName() << "\n";
+        m_ostream << "  Unique ODE Id     : " << pTrigger->s_eventCount << "\n";
+        m_ostream << "  NTP Timestamp     : " << Ntp2Str(pFrameMeta->ntp_timestamp) << "\n";
+        m_ostream << "  Source Data       : ------------------------" << "\n";
+        if (pFrameMeta->bInferDone)
+        {
+            m_ostream << "    Inference       : Yes\n";
+        }
+        else
+        {
+            m_ostream << "    Inference       : No\n";
+        }
+        m_ostream << "    Source Id       : " << pFrameMeta->source_id << "\n";
+        m_ostream << "    Batch Id        : " << pFrameMeta->batch_id << "\n";
+        m_ostream << "    Pad Index       : " << pFrameMeta->pad_index << "\n";
+        m_ostream << "    Frame           : " << pFrameMeta->frame_num << "\n";
+        m_ostream << "    Width           : " << pFrameMeta->source_frame_width << "\n";
+        m_ostream << "    Heigh           : " << pFrameMeta->source_frame_height << "\n";
+        m_ostream << "  Object Data       : ------------------------" << "\n";
+
+        if (pObjectMeta)
+        {
+            m_ostream << "    Occurrences     : " << pTrigger->m_occurrences << "\n";
+            m_ostream << "    Obj ClassId     : " << pObjectMeta->class_id << "\n";
+            m_ostream << "    Infer Id        : " << pObjectMeta->unique_component_id << "\n";
+            m_ostream << "    Tracking Id     : " << pObjectMeta->object_id << "\n";
+            m_ostream << "    Label           : " << pObjectMeta->obj_label << "\n";
+            m_ostream << "    Persistence     : " << pObjectMeta->
+                misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] << "\n";
+            if (pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_DIRECTION] == 
+                DSL_AREA_CROSS_DIRECTION_NONE)
+            {
+                m_ostream << "    Direction In    : " << "No\n";
+                m_ostream << "    Direction Out   : " << "No\n";
+            }
+            else if (pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_DIRECTION] == 
+                DSL_AREA_CROSS_DIRECTION_IN)
+            {
+                m_ostream << "    Direction In    : " << "Yes\n";
+                m_ostream << "    Direction Out   : " << "No\n";
+            }
+            else
+            {
+                m_ostream << "    Direction In    : " << "No\n";
+                m_ostream << "    Direction Out   : " << "Yes\n";
+            }
+                
+            m_ostream << "    Infer Conf      : " << pObjectMeta->confidence << "\n";
+            m_ostream << "    Track Conf      : " << pObjectMeta->tracker_confidence << "\n";
+            m_ostream << "    Left            : " << lrint(pObjectMeta->rect_params.left) << "\n";
+            m_ostream << "    Top             : " << lrint(pObjectMeta->rect_params.top) << "\n";
+            m_ostream << "    Width           : " << lrint(pObjectMeta->rect_params.width) << "\n";
+            m_ostream << "    Height          : " << lrint(pObjectMeta->rect_params.height) << "\n";
+        }
+        else
+        {
+            if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
+                DSL_FRAME_INFO_OCCURRENCES)
+            {
+                m_ostream << "    Occurrences     : " 
+                    << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] << "\n";
+            }
+            else if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
+                DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN)
+            {
+                m_ostream << "    Occurrences In  : " 
+                    << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN] << "\n";
+                m_ostream << "    Occurrences Out : " 
+                    << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT] << "\n";
+            }
+        }
+
+        m_ostream << "  Criteria          : ------------------------" << "\n";
+        m_ostream << "    Class Id        : " << pTrigger->m_classId << "\n";
+        m_ostream << "    Min Infer Conf  : " << pTrigger->m_minConfidence << "\n";
+        m_ostream << "    Min Track Conf  : " << pTrigger->m_minTrackerConfidence << "\n";
+        m_ostream << "    Min Frame Count : " << pTrigger->m_minFrameCountN
+            << " out of " << pTrigger->m_minFrameCountD << "\n";
+        m_ostream << "    Min Width       : " << lrint(pTrigger->m_minWidth) << "\n";
+        m_ostream << "    Min Height      : " << lrint(pTrigger->m_minHeight) << "\n";
+        m_ostream << "    Max Width       : " << lrint(pTrigger->m_maxWidth) << "\n";
+        m_ostream << "    Max Height      : " << lrint(pTrigger->m_maxHeight) << "\n";
+
+        if (pTrigger->m_inferDoneOnly)
+        {
+            m_ostream << "    Inference   : Yes\n\n";
+        }
+        else
+        {
+            m_ostream << "    Inference   : No\n\n";
+        }
+        
+        // If we're force flushing the stream and the flush
+        // handler is not currently added to the idle thread
+        if (m_forceFlush and !m_flushThreadFunctionId)
+        {
+            m_flushThreadFunctionId = g_idle_add(FileActionFlush, this);
+        }
+    }
+
+    FileCsvOdeAction::FileCsvOdeAction(const char* name,
+        const char* filePath, uint mode, bool forceFlush)
+        : FileOdeAction(name, filePath, mode, forceFlush)
     {
         LOG_FUNC();
 
@@ -1061,28 +1281,11 @@ namespace DSL
         }
         catch(...) 
         {
-            LOG_ERROR("New FileOdeAction '" << name << "' failed to open");
+            LOG_ERROR("New FileCsvOdeAction '" << name << "' failed to open");
             throw;
         }
     
-        if (m_format == DSL_EVENT_FILE_FORMAT_TEXT)
-        {
-            char dateTime[DATE_BUFF_LENGTH] = {0};
-            time_t seconds = time(NULL);
-            struct tm currentTm;
-            localtime_r(&seconds, &currentTm);
-
-            strftime(dateTime, DATE_BUFF_LENGTH, "%a, %d %b %Y %H:%M:%S %z", 
-                &currentTm);
-            std::string dateTimeStr(dateTime);
-            
-            m_ostream << "-------------------------------------------------------------------" << "\n";
-            m_ostream << " File opened: " << dateTimeStr.c_str() << "\n";
-            m_ostream << "-------------------------------------------------------------------" << "\n";
-        }
-        
-        // Else it's CSV format, so add header if new/empty file
-        else if (addCsvHeader)
+        if (addCsvHeader)
         {
             m_ostream << "Trigger Name,";
             m_ostream << "Event Id,";
@@ -1116,45 +1319,14 @@ namespace DSL
             m_ostream << "Max Height,";
             m_ostream << "Inference Done Only\n";
         }
-    
-        g_mutex_init(&m_ostreamMutex);
     }
 
-    FileOdeAction::~FileOdeAction()
+    FileCsvOdeAction::~FileCsvOdeAction()
     {
         LOG_FUNC();
-        
-        if (!m_ostream.is_open())
-        {
-            return;
-        }
-        
-        if (m_flushThreadFunctionId)
-        {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_ostreamMutex);
-            g_source_remove(m_flushThreadFunctionId);
-        }
-
-        if (m_format == DSL_EVENT_FILE_FORMAT_TEXT)
-        {
-            char dateTime[DATE_BUFF_LENGTH] = {0};
-            time_t seconds = time(NULL);
-            struct tm currentTm;
-            localtime_r(&seconds, &currentTm);
-
-            strftime(dateTime, DATE_BUFF_LENGTH, "%a, %d %b %Y %H:%M:%S %z", &currentTm);
-            std::string dateTimeStr(dateTime);
-
-            m_ostream << "-------------------------------------------------------------------" << "\n";
-            m_ostream << " File closed: " << dateTimeStr.c_str() << "\n";
-            m_ostream << "-------------------------------------------------------------------" << "\n";
-        }
-            
-        m_ostream.close();
-        g_mutex_clear(&m_ostreamMutex);
     }
 
-    void FileOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+    void FileCsvOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
         GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
@@ -1168,176 +1340,79 @@ namespace DSL
         DSL_ODE_TRIGGER_PTR pTrigger = 
             std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
         
-        if (m_format == DSL_EVENT_FILE_FORMAT_TEXT)
+        m_ostream << pTrigger->GetName() << ",";
+        m_ostream << pTrigger->s_eventCount << ",";
+        m_ostream << pFrameMeta->ntp_timestamp << ",";
+        if (pFrameMeta->bInferDone)
         {
-            m_ostream << "Trigger Name        : " << pTrigger->GetName() << "\n";
-            m_ostream << "  Unique ODE Id     : " << pTrigger->s_eventCount << "\n";
-            m_ostream << "  NTP Timestamp     : " << Ntp2Str(pFrameMeta->ntp_timestamp) << "\n";
-            m_ostream << "  Source Data       : ------------------------" << "\n";
-            if (pFrameMeta->bInferDone)
-            {
-                m_ostream << "    Inference       : Yes\n";
-            }
-            else
-            {
-                m_ostream << "    Inference       : No\n";
-            }
-            m_ostream << "    Source Id       : " << pFrameMeta->source_id << "\n";
-            m_ostream << "    Batch Id        : " << pFrameMeta->batch_id << "\n";
-            m_ostream << "    Pad Index       : " << pFrameMeta->pad_index << "\n";
-            m_ostream << "    Frame           : " << pFrameMeta->frame_num << "\n";
-            m_ostream << "    Width           : " << pFrameMeta->source_frame_width << "\n";
-            m_ostream << "    Heigh           : " << pFrameMeta->source_frame_height << "\n";
-            m_ostream << "  Object Data       : ------------------------" << "\n";
-
-            if (pObjectMeta)
-            {
-                m_ostream << "    Occurrences     : " << pTrigger->m_occurrences << "\n";
-                m_ostream << "    Obj ClassId     : " << pObjectMeta->class_id << "\n";
-                m_ostream << "    Infer Id        : " << pObjectMeta->unique_component_id << "\n";
-                m_ostream << "    Tracking Id     : " << pObjectMeta->object_id << "\n";
-                m_ostream << "    Label           : " << pObjectMeta->obj_label << "\n";
-                m_ostream << "    Persistence     : " << pObjectMeta->
-                    misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] << "\n";
-                if (pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_DIRECTION] == 
-                    DSL_AREA_CROSS_DIRECTION_NONE)
-                {
-                    m_ostream << "    Direction In    : " << "No\n";
-                    m_ostream << "    Direction Out   : " << "No\n";
-                }
-                else if (pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_DIRECTION] == 
-                    DSL_AREA_CROSS_DIRECTION_IN)
-                {
-                    m_ostream << "    Direction In    : " << "Yes\n";
-                    m_ostream << "    Direction Out   : " << "No\n";
-                }
-                else
-                {
-                    m_ostream << "    Direction In    : " << "No\n";
-                    m_ostream << "    Direction Out   : " << "Yes\n";
-                }
-                    
-                m_ostream << "    Infer Conf      : " << pObjectMeta->confidence << "\n";
-                m_ostream << "    Track Conf      : " << pObjectMeta->tracker_confidence << "\n";
-                m_ostream << "    Left            : " << lrint(pObjectMeta->rect_params.left) << "\n";
-                m_ostream << "    Top             : " << lrint(pObjectMeta->rect_params.top) << "\n";
-                m_ostream << "    Width           : " << lrint(pObjectMeta->rect_params.width) << "\n";
-                m_ostream << "    Height          : " << lrint(pObjectMeta->rect_params.height) << "\n";
-            }
-            else
-            {
-                if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
-                    DSL_FRAME_INFO_OCCURRENCES)
-                {
-                    m_ostream << "    Occurrences     : " 
-                        << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] << "\n";
-                }
-                else if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
-                    DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN)
-                {
-                    m_ostream << "    Occurrences In  : " 
-                        << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN] << "\n";
-                    m_ostream << "    Occurrences Out : " 
-                        << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT] << "\n";
-                }
-            }
-
-            m_ostream << "  Criteria          : ------------------------" << "\n";
-            m_ostream << "    Class Id        : " << pTrigger->m_classId << "\n";
-            m_ostream << "    Min Infer Conf  : " << pTrigger->m_minConfidence << "\n";
-            m_ostream << "    Min Track Conf  : " << pTrigger->m_minTrackerConfidence << "\n";
-            m_ostream << "    Min Frame Count : " << pTrigger->m_minFrameCountN
-                << " out of " << pTrigger->m_minFrameCountD << "\n";
-            m_ostream << "    Min Width       : " << lrint(pTrigger->m_minWidth) << "\n";
-            m_ostream << "    Min Height      : " << lrint(pTrigger->m_minHeight) << "\n";
-            m_ostream << "    Max Width       : " << lrint(pTrigger->m_maxWidth) << "\n";
-            m_ostream << "    Max Height      : " << lrint(pTrigger->m_maxHeight) << "\n";
-
-            if (pTrigger->m_inferDoneOnly)
-            {
-                m_ostream << "    Inference   : Yes\n\n";
-            }
-            else
-            {
-                m_ostream << "    Inference   : No\n\n";
-            }
+            m_ostream << "Yes,";
         }
         else
         {
-            m_ostream << pTrigger->GetName() << ",";
-            m_ostream << pTrigger->s_eventCount << ",";
-            m_ostream << pFrameMeta->ntp_timestamp << ",";
-            if (pFrameMeta->bInferDone)
+            m_ostream << "No,";
+        }
+        m_ostream << pFrameMeta->source_id << ",";
+        m_ostream << pFrameMeta->batch_id << ",";
+        m_ostream << pFrameMeta->pad_index << ",";
+        m_ostream << pFrameMeta->frame_num << ",";
+        m_ostream << pFrameMeta->source_frame_width << ",";
+        m_ostream << pFrameMeta->source_frame_height << ",";
+        m_ostream << pTrigger->m_occurrences << ",";
+
+        if (pObjectMeta)
+        {
+            m_ostream << pObjectMeta->class_id << ",";
+            m_ostream << pObjectMeta->unique_component_id << ",";
+            m_ostream << pObjectMeta->object_id << ",";
+            m_ostream << pObjectMeta->obj_label << ",";
+            m_ostream << pObjectMeta->confidence << ",";
+            m_ostream << pObjectMeta->tracker_confidence << ",";
+            m_ostream << pObjectMeta->
+                misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] + ",";
+            if (pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_DIRECTION] == 
+                DSL_AREA_CROSS_DIRECTION_NONE)
+            {
+                m_ostream << "No,";
+                m_ostream << "No,";
+            }
+            else if (pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_DIRECTION] == 
+                DSL_AREA_CROSS_DIRECTION_IN)
             {
                 m_ostream << "Yes,";
+                m_ostream << "No,";
             }
             else
             {
                 m_ostream << "No,";
+                m_ostream << "Yes,";
             }
-            m_ostream << pFrameMeta->source_id << ",";
-            m_ostream << pFrameMeta->batch_id << ",";
-            m_ostream << pFrameMeta->pad_index << ",";
-            m_ostream << pFrameMeta->frame_num << ",";
-            m_ostream << pFrameMeta->source_frame_width << ",";
-            m_ostream << pFrameMeta->source_frame_height << ",";
-            m_ostream << pTrigger->m_occurrences << ",";
+            m_ostream << lrint(pObjectMeta->rect_params.left) << ",";
+            m_ostream << lrint(pObjectMeta->rect_params.top) << ",";
+            m_ostream << lrint(pObjectMeta->rect_params.width) << ",";
+            m_ostream << lrint(pObjectMeta->rect_params.height) << ",";
+        }
+        else
+        {
+            m_ostream << "0,0,0,0,0,0,0";
+            
+            m_ostream << "0,0,0,0,0";
+        }
 
-            if (pObjectMeta)
-            {
-                m_ostream << pObjectMeta->class_id << ",";
-                m_ostream << pObjectMeta->unique_component_id << ",";
-                m_ostream << pObjectMeta->object_id << ",";
-                m_ostream << pObjectMeta->obj_label << ",";
-                m_ostream << pObjectMeta->confidence << ",";
-                m_ostream << pObjectMeta->tracker_confidence << ",";
-                m_ostream << pObjectMeta->
-                    misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] + ",";
-                if (pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_DIRECTION] == 
-                    DSL_AREA_CROSS_DIRECTION_NONE)
-                {
-                    m_ostream << "No,";
-                    m_ostream << "No,";
-                }
-                else if (pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_DIRECTION] == 
-                    DSL_AREA_CROSS_DIRECTION_IN)
-                {
-                    m_ostream << "Yes,";
-                    m_ostream << "No,";
-                }
-                else
-                {
-                    m_ostream << "No,";
-                    m_ostream << "Yes,";
-                }
-                m_ostream << lrint(pObjectMeta->rect_params.left) << ",";
-                m_ostream << lrint(pObjectMeta->rect_params.top) << ",";
-                m_ostream << lrint(pObjectMeta->rect_params.width) << ",";
-                m_ostream << lrint(pObjectMeta->rect_params.height) << ",";
-            }
-            else
-            {
-                m_ostream << "0,0,0,0,0,0,0";
-                
-                m_ostream << "0,0,0,0,0";
-            }
+        m_ostream << pTrigger->m_classId << ",";
+        m_ostream << lrint(pTrigger->m_minWidth) << ",";
+        m_ostream << lrint(pTrigger->m_minHeight) << ",";
+        m_ostream << lrint(pTrigger->m_maxWidth) << ",";
+        m_ostream << lrint(pTrigger->m_maxHeight) << ",";
+        m_ostream << pTrigger->m_minConfidence << ",";
+        m_ostream << pTrigger->m_minTrackerConfidence << ",";
 
-            m_ostream << pTrigger->m_classId << ",";
-            m_ostream << lrint(pTrigger->m_minWidth) << ",";
-            m_ostream << lrint(pTrigger->m_minHeight) << ",";
-            m_ostream << lrint(pTrigger->m_maxWidth) << ",";
-            m_ostream << lrint(pTrigger->m_maxHeight) << ",";
-            m_ostream << pTrigger->m_minConfidence << ",";
-            m_ostream << pTrigger->m_minTrackerConfidence << ",";
-
-            if (pTrigger->m_inferDoneOnly)
-            {
-                m_ostream << "Yes\n";
-            }
-            else
-            {
-                m_ostream << "No\n";
-            }
+        if (pTrigger->m_inferDoneOnly)
+        {
+            m_ostream << "Yes\n";
+        }
+        else
+        {
+            m_ostream << "No\n";
         }
         
         // If we're force flushing the stream and the flush
@@ -1348,22 +1423,72 @@ namespace DSL
         }
     }
     
-    bool FileOdeAction::Flush()
+    FileMotcOdeAction::FileMotcOdeAction(const char* name,
+        const char* filePath, uint mode, bool forceFlush)
+        : FileOdeAction(name, filePath, mode, forceFlush)
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_ostreamMutex);
+        LOG_FUNC();
+
+        // determine if new or existing file
+        std::ifstream streamUriFile(filePath);
+        bool fileExists(streamUriFile.good());
         
-        m_ostream.flush();
-        
-        // end the thread
-        m_flushThreadFunctionId = 0;
-        return false;
+        try
+        {
+            if (m_mode == DSL_WRITE_MODE_APPEND)
+            {
+                m_ostream.open(m_filePath, std::fstream::out | std::fstream::app);
+            }
+            else
+            {
+                m_ostream.open(m_filePath, std::fstream::out | std::fstream::trunc);
+            }
+        }
+        catch(...) 
+        {
+            LOG_ERROR("New FileMotcOdeAction '" << name << "' failed to open");
+            throw;
+        }
     }
 
-    static gboolean FileActionFlush(gpointer pAction)
+    FileMotcOdeAction::~FileMotcOdeAction()
     {
-        return static_cast<FileOdeAction*>(pAction)->Flush();
+        LOG_FUNC();
     }
 
+    void FileMotcOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        LOCK_2ND_MUTEX_FOR_CURRENT_SCOPE(&m_ostreamMutex);
+
+        if (!m_enabled or !pObjectMeta)
+        {
+            return;
+        }
+        DSL_ODE_TRIGGER_PTR pTrigger = 
+            std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+        
+        m_ostream << pFrameMeta->frame_num << ", ";
+        m_ostream << pObjectMeta->class_id << ", ";
+        m_ostream << pObjectMeta->rect_params.left << ", ";
+        m_ostream << pObjectMeta->rect_params.top << ", ";
+        m_ostream << pObjectMeta->rect_params.width << ", ";
+        m_ostream << pObjectMeta->rect_params.height << ", ";
+        m_ostream << pObjectMeta->tracker_confidence << ", ";
+        m_ostream << "-1, -1, -1" << std::endl;
+            
+        
+        // If we're force flushing the stream and the flush
+        // handler is not currently added to the idle thread
+        if (m_forceFlush and !m_flushThreadFunctionId)
+        {
+            m_flushThreadFunctionId = g_idle_add(FileActionFlush, this);
+        }
+    }
+    
+    
     // ********************************************************************
 
     FillSurroundingsOdeAction::FillSurroundingsOdeAction(const char* name, 
