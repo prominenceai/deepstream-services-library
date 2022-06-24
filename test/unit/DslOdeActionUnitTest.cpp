@@ -769,13 +769,12 @@ SCENARIO( "A new Text FileOdeAction is created correctly", "[OdeAction]" )
         std::string actionName("ode-action");
         std::string filePath("./event-file.txt");
         uint mode(DSL_WRITE_MODE_APPEND);
-        uint format(DSL_EVENT_FILE_FORMAT_TEXT);
         bool forceFlush(true);
 
         WHEN( "A new OdeAction is created" )
         {
-            DSL_ODE_ACTION_FILE_PTR pAction = DSL_ODE_ACTION_FILE_NEW(
-                actionName.c_str(), filePath.c_str(), mode, format, forceFlush);
+            DSL_ODE_ACTION_FILE_TEXT_PTR pAction = DSL_ODE_ACTION_FILE_TEXT_NEW(
+                actionName.c_str(), filePath.c_str(), mode, forceFlush);
 
             THEN( "The Action's members are setup and returned correctly" )
             {
@@ -791,7 +790,6 @@ SCENARIO( "A new CSV FileOdeAction is created correctly", "[OdeAction]" )
     GIVEN( "Attributes for a new FileOdeAction" ) 
     {
         std::string actionName("ode-action");
-        uint format(DSL_EVENT_FILE_FORMAT_CSV);
         bool forceFlush(true);
 
         WHEN( "A new CSV FileOdeAction is created in APPEND mode" )
@@ -801,14 +799,14 @@ SCENARIO( "A new CSV FileOdeAction is created correctly", "[OdeAction]" )
 
             // create the action and CSV file once
             {
-                DSL_ODE_ACTION_FILE_PTR pAction = DSL_ODE_ACTION_FILE_NEW(
-                    actionName.c_str(), filePath.c_str(), mode, format, forceFlush);
+                DSL_ODE_ACTION_FILE_CSV_PTR pAction = DSL_ODE_ACTION_FILE_CSV_NEW(
+                    actionName.c_str(), filePath.c_str(), mode, forceFlush);
                     
                 REQUIRE( pAction != nullptr );
             }
             // create the action and CSV file a second time 
-            DSL_ODE_ACTION_FILE_PTR pAction = DSL_ODE_ACTION_FILE_NEW(
-                actionName.c_str(), filePath.c_str(), mode, format, forceFlush);
+            DSL_ODE_ACTION_FILE_CSV_PTR pAction = DSL_ODE_ACTION_FILE_CSV_NEW(
+                actionName.c_str(), filePath.c_str(), mode, forceFlush);
 
             // ***************************************************
             // NOTE: requires manual verification to ensure header is only added once.
@@ -823,8 +821,31 @@ SCENARIO( "A new CSV FileOdeAction is created correctly", "[OdeAction]" )
             std::string filePath("./event-file-truncate.csv");
             uint mode(DSL_WRITE_MODE_TRUNCATE);
             
-            DSL_ODE_ACTION_FILE_PTR pAction = DSL_ODE_ACTION_FILE_NEW(
-                actionName.c_str(), filePath.c_str(), mode, format, forceFlush);
+            DSL_ODE_ACTION_FILE_CSV_PTR pAction = DSL_ODE_ACTION_FILE_CSV_NEW(
+                actionName.c_str(), filePath.c_str(), mode, forceFlush);
+
+            THEN( "The Action's members are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new MOT Challenge FileOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new FileOdeAction" ) 
+    {
+        std::string actionName("ode-action");
+        std::string filePath("./event-file.txt");
+        uint mode(DSL_WRITE_MODE_TRUNCATE);
+        bool forceFlush(true);
+
+        WHEN( "A new OdeAction is created" )
+        {
+            DSL_ODE_ACTION_FILE_MOTC_PTR pAction = DSL_ODE_ACTION_FILE_MOTC_NEW(
+                actionName.c_str(), filePath.c_str(), mode, forceFlush);
 
             THEN( "The Action's members are setup and returned correctly" )
             {
@@ -846,15 +867,14 @@ SCENARIO( "A FileOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
         
         std::string actionName("action");
         std::string filePath("./my-file.txt");
-        uint mode(DSL_WRITE_MODE_APPEND);
-        uint format(DSL_EVENT_FILE_FORMAT_CSV);
+        uint mode(DSL_WRITE_MODE_TRUNCATE);
         bool forceFlush(false);
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
-        DSL_ODE_ACTION_FILE_PTR pAction = DSL_ODE_ACTION_FILE_NEW(
-            actionName.c_str(), filePath.c_str(), mode, format, forceFlush);
+        DSL_ODE_ACTION_FILE_TEXT_PTR pAction = DSL_ODE_ACTION_FILE_TEXT_NEW(
+            actionName.c_str(), filePath.c_str(), mode, forceFlush);
 
         WHEN( "A new ODE is created" )
         {
@@ -871,6 +891,60 @@ SCENARIO( "A FileOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
     }
 }
 
+SCENARIO( "A MotcOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new FileOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        std::string source;
+        uint classId(1);
+        uint objectId(4);
+        uint limit(1);
+        
+        std::string actionName("action");
+        std::string filePath("./my-file.txt");
+        uint mode(DSL_WRITE_MODE_TRUNCATE);
+        bool forceFlush(false);
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_FILE_MOTC_PTR pAction = DSL_ODE_ACTION_FILE_MOTC_NEW(
+            actionName.c_str(), filePath.c_str(), mode, forceFlush);
+
+        WHEN( "A new ODE is created" )
+        {
+            // Frame Meta test data
+            NvDsFrameMeta frameMeta =  {0};
+            frameMeta.frame_num = 1;
+
+            // Object Meta test data
+            NvDsObjectMeta objectMeta1 = {0};
+            objectMeta1.class_id = classId; // must match ODE Trigger's classId
+            objectMeta1.rect_params.left = 10.123;
+            objectMeta1.rect_params.top = 10.456;
+            objectMeta1.rect_params.width = 200.789;
+            objectMeta1.rect_params.height = 100.1;
+            
+            // Object Meta test data
+            NvDsObjectMeta objectMeta2 = {0};
+            objectMeta2.class_id = classId; // must match ODE Trigger's classId
+            objectMeta2.rect_params.left = 44.444;
+            objectMeta2.rect_params.top = 33.333;
+            objectMeta2.rect_params.width = 100.987;
+            objectMeta2.rect_params.height = 200.1;
+            
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta1);
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta2);
+            }
+        }
+    }
+}
+
 SCENARIO( "A FileOdeAction with forceFlush set flushes the stream correctly", "[OdeAction]" )
 {
     GIVEN( "A new FileOdeAction" ) 
@@ -878,7 +952,6 @@ SCENARIO( "A FileOdeAction with forceFlush set flushes the stream correctly", "[
         std::string triggerName("first-occurence");
         std::string source;
         uint mode(DSL_WRITE_MODE_APPEND);
-        uint format(DSL_EVENT_FILE_FORMAT_CSV);
         uint classId(1);
         uint limit(1);
         
@@ -889,8 +962,8 @@ SCENARIO( "A FileOdeAction with forceFlush set flushes the stream correctly", "[
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
-        DSL_ODE_ACTION_FILE_PTR pAction = DSL_ODE_ACTION_FILE_NEW(
-            actionName.c_str(), filePath.c_str(), mode, format, forceFlush);
+        DSL_ODE_ACTION_FILE_CSV_PTR pAction = DSL_ODE_ACTION_FILE_CSV_NEW(
+            actionName.c_str(), filePath.c_str(), mode, forceFlush);
 
         WHEN( "A new ODE is created" )
         {

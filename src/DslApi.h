@@ -798,6 +798,7 @@ THE SOFTWARE.
  */
 #define DSL_EVENT_FILE_FORMAT_TEXT                                  0
 #define DSL_EVENT_FILE_FORMAT_CSV                                   1
+#define DSL_EVENT_FILE_FORMAT_MOTC                                  2
 
 /**
  * @brief File Open/Write Mode Options when saving Event Data 
