@@ -23,6 +23,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+/* ------------------------------------------------------------------------------------
+ This example demonstrates the use of an ODE File Action to write the Object
+ Detection Event (ODE) occurrences to a text file in MOT Challenge Format.
+
+ <frame>, <id>, <bb_left>, <bb_top>, <bb_width>, <bb_height>, <conf>, <x>, <y>, <z>
+
+ see https://github.com/JonathonLuiten/TrackEval/blob/master/docs/MOTChallenge-format.txt
+ for more details. 
+*/
+
 #include <iostream>
 #include <glib.h>
 
