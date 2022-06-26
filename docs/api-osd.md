@@ -1,4 +1,4 @@
-# On-Screen Display Reference
+# On-Screen Display API Reference
 The On-Screen Display (OSD) component provides visualization of object detection, classification, and tracking. OSDs display bounding boxes and labels for objects detected in the video stream. Bounding boxes and labels are defined using meta-data added to each frame by the Inference and Tracker components. All [RGBA Display Types](/docs/api-display-type.md) added upstream from the OSD will be displayed as well.
 
 As with all components, OSDs must be uniquely named from all other components created.
@@ -443,6 +443,7 @@ retval = dsl_osd_pph_remove('my-osd', 'my-pph-handler', `DSL_PAD_SINK`)
 * [Player](/docs/api-player.md)
 * [Source](/docs/api-source.md)
 * [Dewarper](/docs/api-dewarper.md)
+* [Preprocessor](/docs/api-preproc.md)
 * [Inference Engine and Server](/docs/api-infer.md)
 * [Tracker](/docs/api-tracker.md)
 * [Segmentation Visualizer](/docs/api-segvisual.md)
