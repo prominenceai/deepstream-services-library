@@ -162,6 +162,7 @@ retval = dsl_segvisual_pph_remove('my-segvisual', 'my-pph-handler')
 * [Source](/docs/api-source.md)
 * [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
+* [Preprocessor](/docs/api-preproc.md)
 * [Inference Engine and Server](/docs/api-infer.md)
 * [Tracker](/docs/api-tracker.md)
 * **Segmentation Visualizer**
