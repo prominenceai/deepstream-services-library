@@ -438,7 +438,7 @@ size = dsl_ode_heat_mapper_list_size()
 * [ODE Action](/docs/api-ode-action.md)
 * [ODE Area](/docs/api-ode-area.md)
 * **ODE Heat-Mapper**
-* [Display Types](/docs/api-display-types.md)
+* [Display Types](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
 * [Mailer](/docs/api-mailer.md)  
