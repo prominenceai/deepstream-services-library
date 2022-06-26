@@ -272,7 +272,7 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new(L"window-sink", 720, 100, WINDOW_WIDTH, WINDOW_HEIGHT);
+        retval = dsl_sink_window_new(L"window-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
     
         // Create a list of Pipeline Components to add to the new Pipeline.

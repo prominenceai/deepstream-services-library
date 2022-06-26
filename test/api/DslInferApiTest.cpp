@@ -359,8 +359,10 @@ SCENARIO( "A Secondary GIE can Set and Get its Infer Config and Model Engine Fil
 
 SCENARIO( "A Primary GIE returns its unique id correctly",  "[infer-api]" )
 {
-    GIVEN( "A new Primary GIE in memory" ) 
+    GIVEN( "Attributes for a new Primary GIE" ) 
     {
+        // Defined at the top of the file
+        
         WHEN( "When a new The Primary GIE is created" )
         {
             REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 

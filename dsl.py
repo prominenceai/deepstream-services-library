@@ -3255,6 +3255,67 @@ def dsl_tap_record_mailer_remove(name, mailer):
     return int(result)
 
 ##
+## dsl_preproc_new()
+##
+_dsl.dsl_preproc_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
+_dsl.dsl_preproc_new.restype = c_uint
+def dsl_preproc_new(name, config_file, enabled):
+    global _dsl
+    result = _dsl.dsl_preproc_new(name, config_file, enabled)
+    return int(result)
+
+##
+## dsl_preproc_config_file_get()
+##
+_dsl.dsl_preproc_config_file_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_preproc_config_file_get.restype = c_uint
+def dsl_preproc_config_file_get(name):
+    global _dsl
+    config_file = c_wchar_p(0)
+    result = _dsl.dsl_preproc_config_file_get(name, DSL_WCHAR_PP(config_file))
+    return int(result), config_file.value 
+
+##
+## dsl_preproc_config_file_set()
+##
+_dsl.dsl_preproc_config_file_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_preproc_config_file_set.restype = c_uint
+def dsl_preproc_config_file_set(name, config_file):
+    global _dsl
+    result = _dsl.dsl_preproc_config_file_set(name, config_file)
+    return int(result)
+
+## dsl_preproc_enabled_get()
+##
+_dsl.dsl_preproc_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_preproc_enabled_get.restype = c_uint
+def dsl_preproc_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_preproc_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_preproc_enabled_set()
+##
+_dsl.dsl_preproc_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_preproc_enabled_set.restype = c_uint
+def dsl_preproc_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_preproc_enabled_set(name, enabled)
+    return int(result)
+
+## dsl_preproc_unique_id_get()
+##
+_dsl.dsl_preproc_unique_id_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_preproc_unique_id_get.restype = c_uint
+def dsl_preproc_unique_id_get(name):
+    global _dsl
+    id = c_uint(0)
+    result = _dsl.dsl_preproc_unique_id_get(name, DSL_UINT_P(id))
+    return int(result), id.value
+
+##
 ## dsl_infer_gie_primary_new()
 ##
 _dsl.dsl_infer_gie_primary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_uint]

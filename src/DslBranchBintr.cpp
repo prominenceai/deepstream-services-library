@@ -36,6 +36,49 @@ namespace DSL
         LOG_FUNC();
     }
 
+    bool BranchBintr::AddPreprocBintr(DSL_BASE_PTR pPreprocBintr)
+    {
+        LOG_FUNC();
+        
+        if (m_pPreprocBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' has an exisiting PreprocBintr '" 
+                << m_pPreprocBintr->GetName());
+            return false;
+        }
+        m_pPreprocBintr = std::dynamic_pointer_cast<PreprocBintr>(pPreprocBintr);
+        
+        return AddChild(pPreprocBintr);
+    }
+
+    bool BranchBintr::RemovePreprocBintr(DSL_BASE_PTR pPreprocBintr)
+    {
+        LOG_FUNC();
+        
+        if (!m_pPreprocBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' has no PreprocBintr to remove'");
+            return false;
+        }
+        if (m_pPreprocBintr != pPreprocBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' does not own PreprocBintr' " 
+                << pPreprocBintr->GetName() << "'");
+            return false;
+        }
+        if (IsLinked())
+        {
+            LOG_ERROR("PreprocBintr cannot be removed from Branch '" << GetName() 
+                << "' as it is currently linked");
+            return false;
+        }
+        m_pPreprocBintr = nullptr;
+        
+        LOG_INFO("Removing PreprocBintr '"<< pPreprocBintr->GetName() 
+            << "' from Branch '" << GetName() << "'");
+        return RemoveChild(pPreprocBintr);
+    }
+
     bool BranchBintr::AddPrimaryInferBintr(DSL_BASE_PTR pPrimaryInferBintr)
     {
         LOG_FUNC();
@@ -55,7 +98,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (!pPrimaryInferBintr)
+        if (!m_pPrimaryInferBintr)
         {
             LOG_ERROR("Branch '" << GetName() << "' has no Primary Infer to remove'");
             return false;
@@ -332,6 +375,12 @@ namespace DSL
                 << "' has no Demuxer, Splitter or Sink - and is unable to link");
             return false;
         }
+        if (m_pPreprocBintr and !m_pPrimaryInferBintr)
+        {
+            LOG_ERROR("Pipline '" << GetName() 
+                << "' has a PreprocBintr and no PrimaryInferBintr - and is unable to link");
+            return false;
+        }
         if (m_pTrackerBintr and !m_pPrimaryInferBintr)
         {
             LOG_ERROR("Pipline '" << GetName() 
@@ -349,6 +398,22 @@ namespace DSL
             LOG_ERROR("Pipline '" << GetName() 
                 << "' has a SecondayInferbintr with no PrimaryInferBintr - and is unable to link");
             return false;
+        }
+        
+        if (m_pPreprocBintr)
+        {
+            // Set the SecondarInferBintrs batch size to the current stream muxer batch size, 
+            // then LinkAll PrimaryInfer Elementrs and add as the next component in the Branch
+            m_pPreprocBintr->SetBatchSize(m_batchSize);
+            if (!m_pPreprocBintr->LinkAll() or
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pPreprocBintr)))
+            {
+                return false;
+            }
+            m_linkedComponents.push_back(m_pPreprocBintr);
+            LOG_INFO("Branch '" << GetName() << "' Linked up PreprocBintr '" << 
+                m_pPreprocBintr->GetName() << "' successfully");
         }
         
         if (m_pPrimaryInferBintr)
