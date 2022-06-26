@@ -65,6 +65,7 @@ Come join us on [Discord](https://discord.gg/MJvY9jjpAK), an informal place to c
   * [Source](/docs/api-source.md)
   * [Tap](/docs/api-tap.md)
   * [Video Dewarper](/docs/api-dewarper.md)
+  * [Preprocessor](/docs/api-preproc.md)
   * [Inference Engines and Servers](/docs/api-infer.md)
   * [Multi-Object Tracker](/docs/api-tracker.md)
   * [Segmentation Visualizer](/docs/api-segvisual.md)

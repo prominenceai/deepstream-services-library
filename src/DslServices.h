@@ -719,6 +719,24 @@ namespace DSL {
         DslReturnType TapRecordMailerRemove(const char* name,
             const char* mailer);
 
+        DslReturnType PreprocNew(const char* name, 
+            const char* configFile, boolean enabled);
+        
+        DslReturnType PreprocConfigFileGet(const char* name, 
+            const char** configFile);
+            
+        DslReturnType PreprocConfigFileSet(const char* name, 
+            const char* configFile);
+            
+        DslReturnType PreprocEnabledGet(const char* name, 
+            boolean* enabled);
+            
+        DslReturnType PreprocEnabledSet(const char* name, 
+            boolean enabled);
+            
+        DslReturnType PreprocUniqueIdGet(const char* name, 
+            uint* uniqueId);
+
         DslReturnType SegVisualNew(const char* name, uint width, uint height);
         
         DslReturnType SegVisualDimensionsGet(const char* name, uint* width, uint* height);

@@ -3738,6 +3738,98 @@ DslReturnType dsl_tap_record_mailer_remove(const wchar_t* name,
         cstrName.c_str(), cstrMailer.c_str());
 }
 
+DslReturnType dsl_preproc_new(const wchar_t* name, 
+    const wchar_t* config_file, boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(config_file);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrConfigFile(config_file);
+    std::string cstrConfigFile(wstrConfigFile.begin(), wstrConfigFile.end());
+
+    return DSL::Services::GetServices()->PreprocNew(
+        cstrName.c_str(), cstrConfigFile.c_str(), enabled);
+}
+
+DslReturnType dsl_preproc_config_file_get(const wchar_t* name, 
+    const wchar_t** config_file)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(config_file);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cConfig;
+    static std::string cstrConfig;
+    static std::wstring wcstrConfig;
+    
+    uint retval = DSL::Services::GetServices()->PreprocConfigFileGet(cstrName.c_str(), 
+        &cConfig);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrConfig.assign(cConfig);
+        wcstrConfig.assign(cstrConfig.begin(), cstrConfig.end());
+        *config_file = wcstrConfig.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_preproc_config_file_set(const wchar_t* name, 
+    const wchar_t* config_file)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(config_file);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrConfig(config_file);
+    std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
+
+    return DSL::Services::GetServices()->PreprocConfigFileSet(cstrName.c_str(), 
+        cstrConfig.c_str());
+}
+
+DslReturnType dsl_preproc_enabled_get(const wchar_t* name, 
+    boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PreprocEnabledGet(cstrName.c_str(), 
+        enabled);
+}
+
+DslReturnType dsl_preproc_enabled_set(const wchar_t* name, 
+    boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PreprocEnabledSet(cstrName.c_str(), 
+        enabled);
+}
+
+DslReturnType dsl_preproc_unique_id_get(const wchar_t* name, 
+    uint* id)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(id);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PreprocUniqueIdGet(cstrName.c_str(), 
+        id);
+}
+
 DslReturnType dsl_segvisual_new(const wchar_t* name, uint width, uint height)
 {
     RETURN_IF_PARAM_IS_NULL(name);

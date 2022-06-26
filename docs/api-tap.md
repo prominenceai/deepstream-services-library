@@ -505,6 +505,7 @@ retval = dsl_tap_record_mailer_remove('my-record-tap', 'my-mailer')
 * [Source](/docs/api-source.md)
 * **TAP**
 * [Dewarper](/docs/api-dewarper.md)
+* [Preprocessor](/docs/api-preproc.md)
 * [Inference Engine and Server](/docs/api-infer.md)
 * [Tracker](/docs/api-tracker.md)
 * [Segmentation Visualizer](/docs/api-segvisual.md)
