@@ -391,6 +391,7 @@ retval = dsl_infer_primary_pph_remove('my-primary-gie', 'my-pph-handler', `DSL_P
 * [Source](/docs/api-source.md)
 * [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
+* [Preprocessor](/docs/api-preproc.md)
 * **Primary and Secondary Inference**
 * [Tracker](/docs/api-tracker.md)
 * [Segmentation Visualizer](/docs/api-segvisual.md)
