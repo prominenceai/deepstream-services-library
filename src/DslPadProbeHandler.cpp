@@ -306,7 +306,6 @@ namespace DSL
             LOG_ERROR("CustomPadProbeHandler '" << GetName() << "' threw an exception processing Pad Buffer");
             return GST_PAD_PROBE_REMOVE;
         }
-        return GST_PAD_PROBE_OK;
     }
     
     //----------------------------------------------------------------------------------------------

@@ -747,27 +747,29 @@ namespace DSL {
 
         DslReturnType SegVisualPphRemove(const char* name, const char* handler);
 
-        DslReturnType PrimaryGieNew(const char* name, const char* inferConfigFile,
+        DslReturnType InferPrimaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, uint interval);
 
-        DslReturnType PrimaryTisNew(const char* name, 
+        DslReturnType InferPrimaryTisNew(const char* name, 
             const char* inferConfigFile, uint interval);
 
-        DslReturnType SecondaryGieNew(const char* name, const char* inferConfigFile,
+        DslReturnType InferSecondaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, const char* inferOnGieName, uint interval);
 
-        DslReturnType SecondaryTisNew(const char* name, const char* inferConfigFile,
+        DslReturnType InferSecondaryTisNew(const char* name, const char* inferConfigFile,
             const char* inferOnGieName, uint interval);
+
+        DslReturnType InferBatchSizeSet(const char* name, uint size);
 
         DslReturnType InferUniqueIdGet(const char* name, uint* id);
 
-        DslReturnType PrimaryInferPphAdd(const char* name, const char* handler, uint pad);
+        DslReturnType InferPrimaryPphAdd(const char* name, const char* handler, uint pad);
 
-        DslReturnType PrimaryInferPphRemove(const char* name, const char* handler, uint pad);
+        DslReturnType InferPrimaryPphRemove(const char* name, const char* handler, uint pad);
 
-        DslReturnType GieModelEngineFileGet(const char* name, const char** modelEngineFile);
+        DslReturnType InferGieModelEngineFileGet(const char* name, const char** modelEngineFile);
 
-        DslReturnType GieModelEngineFileSet(const char* name, const char* modelEngineFile);
+        DslReturnType InferGieModelEngineFileSet(const char* name, const char* modelEngineFile);
 
         DslReturnType InferConfigFileGet(const char* name, const char** inferConfigFile);
 
@@ -776,6 +778,12 @@ namespace DSL {
         DslReturnType InferRawOutputEnabledSet(const char* name, boolean enabled,
             const char* path);
             
+        DslReturnType InferGieTensorMetaSettingsGet(const char* name, 
+            boolean* inputEnabled, boolean* outputEnabled);
+            
+        DslReturnType InferGieTensorMetaSettingsSet(const char* name, 
+            boolean inputEnabled, boolean outputEnabled);
+            
         DslReturnType InferIntervalGet(const char* name, uint* interval);
 
         DslReturnType InferIntervalSet(const char* name, uint interval);
@@ -783,6 +791,8 @@ namespace DSL {
         DslReturnType InferNameGet(int inferId, const char** name);
 
         DslReturnType InferIdGet(const char* name, int* inferId);
+    
+        DslReturnType _inferIdGet(const char* name, int* inferId);
     
         DslReturnType _inferNameSet(uint inferId, const char* name);
     

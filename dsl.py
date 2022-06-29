@@ -3412,24 +3412,24 @@ def dsl_infer_config_file_set(name, infer_config_file):
     return int(result)
 
 ##
-## dsl_gie_model_engine_file_get()
+## dsl_infer_gie_model_engine_file_get()
 ##
-_dsl.dsl_gie_model_engine_file_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
-_dsl.dsl_gie_model_engine_file_get.restype = c_uint
-def dsl_gie_model_engine_file_get(name):
+_dsl.dsl_infer_gie_model_engine_file_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_infer_gie_model_engine_file_get.restype = c_uint
+def dsl_infer_gie_model_engine_file_get(name):
     global _dsl
     file = c_wchar_p(0)
-    result = _dsl.dsl_gie_model_engine_file_get(name, DSL_WCHAR_PP(file))
+    result = _dsl.dsl_infer_gie_model_engine_file_get(name, DSL_WCHAR_PP(file))
     return int(result), file.value 
 
 ##
-## dsl_gie_model_engine_file_set()
+## dsl_infer_gie_model_engine_file_set()
 ##
-_dsl.dsl_gie_model_engine_file_set.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_gie_model_engine_file_set.restype = c_uint
-def dsl_gie_model_engine_file_set(name, model_engine_file):
+_dsl.dsl_infer_gie_model_engine_file_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_infer_gie_model_engine_file_set.restype = c_uint
+def dsl_infer_gie_model_engine_file_set(name, model_engine_file):
     global _dsl
-    result = _dsl.dsl_gie_model_engine_file_set(name, model_engine_file)
+    result = _dsl.dsl_infer_gie_model_engine_file_set(name, model_engine_file)
     return int(result)
 
 ##

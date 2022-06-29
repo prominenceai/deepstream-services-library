@@ -32,6 +32,11 @@ TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 
 CXX_VERSION:=c++17
 GLIB_VERSION:=2.0
+GSTREAMER_VERSION:=1.0
+
+DS_SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources
+DS_INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources/includes
+DS_LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/lib
 
 INC_INSTALL_DIR?=../../src/
 
@@ -41,15 +46,24 @@ OBJS:= $(SRCS:.c=.o)
 OBJS:= $(OBJS:.cpp=.o)
 APP:= $(patsubst %.cpp,%.exe,$(SRCS))
 
-CXXFLAGS+= -std=$(CXX_VERSION) \
+CXXFLAGS+= -I$(DS_INC_INSTALL_DIR) \
+	-std=$(CXX_VERSION) \
 	-I$(INC_INSTALL_DIR) \
+	-I$(DS_SRC_INSTALL_DIR)/gst-plugins/gst-nvdspreprocess/include \
+	-I/usr/include/gstreamer-$(GSTREAMER_VERSION) \
 	-I/usr/include/glib-$(GLIB_VERSION) \
 	-I/usr/include/glib-$(GLIB_VERSION)/glib
 	
-LIBS+= -ldsl \
-	-lglib-$(GLIB_VERSION)
+LIBS+= -L$(DS_LIB_INSTALL_DIR) \
+	-ldsl \
+	-lnvdsgst_meta \
+	-lnvds_meta \
+	-lglib-$(GLIB_VERSION) \
+	-lgstreamer-$(GSTREAMER_VERSION)
 
-PKGS:= glib-$(GLIB_VERSION)
+
+PKGS:= gstreamer-$(GSTREAMER_VERSION) \
+	glib-$(GLIB_VERSION)
 
 CXXFLAGS+= `pkg-config --cflags $(PKGS)`
 

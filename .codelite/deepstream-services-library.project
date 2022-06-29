@@ -145,7 +145,6 @@
       <File Name="../test/api/DslCrossTriggerExampleTest.cpp"/>
       <File Name="../test/api/DslOdeAccumulatorApiTest.cpp"/>
       <File Name="../test/api/DslOdeHeatMapperApiTest.cpp"/>
-      <File Name="../test/api/DslActionRecognitionBehaviorTest.cpp"/>
       <File Name="../test/api/DslPreprocApiText.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">

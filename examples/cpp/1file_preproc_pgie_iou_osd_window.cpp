@@ -27,22 +27,24 @@ THE SOFTWARE.
 // ******************************************************************
 #include <iostream>
 #include <glib.h>
+#include <gst/gst.h>
+#include <gstnvdsmeta.h>
+#include <nvdspreprocess_meta.h>
 
 #include "DslApi.h"
 
 std::wstring uri_h265(
     L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 
-// *** NOTE! config file for Action Recognition
 std::wstring preproc_config(
-    L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-3d-action-recognition/config_preprocess_2d_custom.txt");
+    L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-preprocess-test/config_preprocess.txt");
 
 
 // *** NOTE! these are the wrong Filespecs for Action Recognition.
 std::wstring primary_infer_config_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
+    L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-preprocess-test/config_infer.txt");
 std::wstring primary_model_engine_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b4_gpu0_fp16.engine");
 std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
@@ -104,7 +106,6 @@ void state_change_listener(uint old_state, uint new_state, void* client_data)
         << ", new state = " << dsl_state_value_to_string(new_state) << std::endl;
 }
 
-
 int main(int argc, char** argv)
 {
     DslReturnType retval = DSL_RESULT_FAILURE;
@@ -123,7 +124,17 @@ int main(int argc, char** argv)
 
         // New Primary GIE using the filespecs defined above, with interval and Id
         retval = dsl_infer_gie_primary_new(L"primary-gie", 
-            primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 4);
+            primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 0);
+        if (retval != DSL_RESULT_SUCCESS) break;
+        
+        // **** IMPORTANT! we must explicity set the GIE's batch-size to the number
+        // of ROI's defined in the Preprocessor configuraton file.
+        retval = dsl_infer_batch_size_set(L"primary-gie", 2);
+        if (retval != DSL_RESULT_SUCCESS) break;
+        
+        // **** IMPORTANT! we must set the input-meta-tensor setting to true
+        retval = dsl_infer_gie_tensor_meta_settings_set(L"primary-gie",
+            true, false);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New IOU Tracker, setting max width and height of input frame

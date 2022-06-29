@@ -516,6 +516,14 @@ THE SOFTWARE.
 #define DSL_PAD_SINK                                                0
 #define DSL_PAD_SRC                                                 1
 
+// Must match GstPadProbeReturn values
+#define DSL_PAD_PROBE_DROP                                          0
+#define DSL_PAD_PROBE_OK                                            1
+#define DSL_PAD_PROBE_REMOVE                                        2
+#define DSL_PAD_PROBE_PASS                                          3
+#define DSL_PAD_PROBE_HANDLED                                       4
+
+
 #define DSL_RTP_TCP                                                 0x04
 #define DSL_RTP_ALL                                                 0x07
 
@@ -688,13 +696,6 @@ THE SOFTWARE.
 #define DSL_ARROW_START_HEAD                                        0
 #define DSL_ARROW_END_HEAD                                          1
 #define DSL_ARROW_BOTH_HEAD                                         2
-
-// Must match GstPadProbeReturn values
-#define DSL_PAD_PROBE_DROP                                          0
-#define DSL_PAD_PROBE_OK                                            1
-#define DSL_PAD_PROBE_REMOVE                                        2
-#define DSL_PAD_PROBE_PASS                                          3
-#define DSL_PAD_PROBE_HANDLED                                       4
 
 #define DSL_DEFAULT_SOURCE_IN_USE_MAX                               8
 #define DSL_DEFAULT_SINK_IN_USE_MAX                                 8
@@ -4382,8 +4383,8 @@ DslReturnType dsl_segvisual_pph_remove(const wchar_t* name, const wchar_t* handl
  * @param[in] interval frame interval to infer on. 0 = every frame, 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_infer_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
-    const wchar_t* model_engine_file, uint interval);
+DslReturnType dsl_infer_gie_primary_new(const wchar_t* name, 
+    const wchar_t* infer_config_file, const wchar_t* model_engine_file, uint interval);
 
 /**
  * @brief creates a new, uniquely named Primary Triton Inference Server (TIS) object
@@ -4392,8 +4393,8 @@ DslReturnType dsl_infer_gie_primary_new(const wchar_t* name, const wchar_t* infe
  * @param[in] interval frame interval to infer on. 0 = every frame, 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TIS_RESULT otherwise.
  */
-DslReturnType dsl_infer_tis_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
-    uint interval);
+DslReturnType dsl_infer_tis_primary_new(const wchar_t* name, 
+    const wchar_t* infer_config_file, uint interval);
 
 /**
  * @brief creates a new, uniquely named Secondary GIE object
@@ -4406,8 +4407,9 @@ DslReturnType dsl_infer_tis_primary_new(const wchar_t* name, const wchar_t* infe
  * @param[in] interval frame interval to infer on. 0 = every frame, 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_infer_gie_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
-    const wchar_t* model_engine_file, const wchar_t* infer_on_gie, uint interval);
+DslReturnType dsl_infer_gie_secondary_new(const wchar_t* name, 
+    const wchar_t* infer_config_file, const wchar_t* model_engine_file, 
+    const wchar_t* infer_on_gie, uint interval);
 
 /**
  * @brief creates a new, uniquely named Secondary TIS object
@@ -4417,14 +4419,24 @@ DslReturnType dsl_infer_gie_secondary_new(const wchar_t* name, const wchar_t* in
  * @param[in] interval frame interval to infer on. 0 = every frame, 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_infer_tis_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
-    const wchar_t* infer_on_tis, uint interval);
+DslReturnType dsl_infer_tis_secondary_new(const wchar_t* name, 
+    const wchar_t* infer_config_file, const wchar_t* infer_on_tis, uint interval);
+
+/**
+ * @brief Sets the batch-size setting for the named GIE or TIS
+ * @param[in] name unique name of the GIE or TIS to update.
+ * @param[in] size value to set the batch-size setting for the named GIE or TIS
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_INFER_RESULT on failure. 
+ */
+DslReturnType dsl_infer_batch_size_set(const wchar_t* name, uint size);
 
 /**
  * @brief Queries a GIE or TIS for its unique Id 
  * @param[in] name unique name of the GIE or TIS to query.
  * @param[out] id unique id for the named GIE or TIS.
- * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_INFER_RESULT on failure. 
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_INFER_RESULT on failure. 
  */
 DslReturnType dsl_infer_unique_id_get(const wchar_t* name, uint* id);
 
@@ -4436,7 +4448,8 @@ DslReturnType dsl_infer_unique_id_get(const wchar_t* name, uint* id);
  * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
  */
-DslReturnType dsl_infer_primary_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
+DslReturnType dsl_infer_primary_pph_add(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
 
 /**
  * @brief Removes a pad-probe-handler from the Primary GIE
@@ -4445,39 +4458,70 @@ DslReturnType dsl_infer_primary_pph_add(const wchar_t* name, const wchar_t* hand
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
  */
-DslReturnType dsl_infer_primary_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
+DslReturnType dsl_infer_primary_pph_remove(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
 
 /**
  * @brief Gets the current Infer Config File in use by the named Primary or Secondary GIE
- * @param[in] name of Primary or Secondary GIE to query
+ * @param[in] name unique name of Primary or Secondary GIE to query
  * @param[out] infer_config_file Infer Config file currently in use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_infer_config_file_get(const wchar_t* name, const wchar_t** infer_config_file);
+DslReturnType dsl_infer_config_file_get(const wchar_t* name, 
+    const wchar_t** infer_config_file);
 
 /**
  * @brief Sets the Infer Config File to use by the named Primary or Secondary GIE
- * @param[in] name of Primary or Secondary GIE to update
+ * @param[in] name unique name of Primary or Secondary GIE to update
  * @param[in] infer_config_file new Infer Config file to use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_infer_config_file_set(const wchar_t* name, const wchar_t* infer_config_file);
+DslReturnType dsl_infer_config_file_set(const wchar_t* name, 
+    const wchar_t* infer_config_file);
 
 /**
  * @brief Gets the current Model Engine File in use by the named Primary or Secondary GIE
- * @param[in] name of Primary or Secondary GIE to query
+ * @param[in] name unique name of Primary or Secondary GIE to query
  * @param[out] model_engi_file Model Engine file currently in use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_gie_model_engine_file_get(const wchar_t* name, const wchar_t** model_engine_file);
+DslReturnType dsl_infer_gie_model_engine_file_get(const wchar_t* name, 
+    const wchar_t** model_engine_file);
 
 /**
  * @brief Sets the Model Engine File to use by the named Primary or Secondary GIE
- * @param[in] name of Primary or Secondary GIE to update
+ * @param[in] name unique name of Primary or Secondary GIE to update
  * @param[in] model_engine_file new Model Engine file to use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_gie_model_engine_file_set(const wchar_t* name, const wchar_t* model_engine_file);
+DslReturnType dsl_infer_gie_model_engine_file_set(const wchar_t* name, 
+    const wchar_t* model_engine_file);
+
+/**
+ * @brief Gets the current input amd output tensor-meta settings in use by the 
+ * named Primary or Secondary GIE.
+ * @param[in] name unique name of Primary or Secondary GIE to query.
+ * @param[out] input_enabled if true preprocessing input tensors attached as 
+ * metadata instead of preprocessing inside the plugin, false otherwise.
+ * @param[out] output_enabled if true tensor outputs will be attached as 
+ * meta on GstBuffer.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
+ */
+DslReturnType dsl_infer_gie_tensor_meta_settings_get(const wchar_t* name, 
+    boolean* input_enabled, boolean* output_enabled);
+
+/**
+ * @brief Sets the current input amd output tensor-meta settings for the 
+ * named Primary or Secondary GIE to use.
+ * @param[in] name unique name of Primary or Secondary GIE to query
+ * @param[in] input_enabled set to true preprocess input tensors attached as 
+ * metadata instead of preprocessing inside the plugin, false otherwise.
+ * @param[in] output_enabled set to true to attach tensor outputs as 
+ * meta on GstBuffer.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
+ */
+DslReturnType dsl_infer_gie_tensor_meta_settings_set(const wchar_t* name, 
+    boolean input_enabled, boolean output_enabled);
 
 /**
  * @brief Gets the current Infer Interval in use by the named Primary or Secondary GIE
