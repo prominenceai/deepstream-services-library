@@ -32,11 +32,11 @@ namespace DSL
     // Initilize the unique id list for all PreprocBintrs 
     std::list<uint> PreprocBintr::s_uniqueIds;
 
-    PreprocBintr::PreprocBintr(const char* name, const char* configFile, bool enabled)
+    PreprocBintr::PreprocBintr(const char* name, const char* configFile)
         : Bintr(name)
         , m_uniqueId(0)
         , m_configFile(configFile)
-        , m_enabled(enabled)
+        , m_enabled(true) // enabled by default.
     {
         LOG_FUNC();
 

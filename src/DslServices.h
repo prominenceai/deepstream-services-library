@@ -719,8 +719,7 @@ namespace DSL {
         DslReturnType TapRecordMailerRemove(const char* name,
             const char* mailer);
 
-        DslReturnType PreprocNew(const char* name, 
-            const char* configFile, boolean enabled);
+        DslReturnType PreprocNew(const char* name, const char* configFile);
         
         DslReturnType PreprocConfigFileGet(const char* name, 
             const char** configFile);
@@ -758,6 +757,8 @@ namespace DSL {
 
         DslReturnType InferSecondaryTisNew(const char* name, const char* inferConfigFile,
             const char* inferOnGieName, uint interval);
+
+        DslReturnType InferBatchSizeGet(const char* name, uint* size);
 
         DslReturnType InferBatchSizeSet(const char* name, uint size);
 

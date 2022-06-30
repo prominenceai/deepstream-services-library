@@ -31,7 +31,7 @@ namespace DSL
 {
 
     DslReturnType Services::PreprocNew(const char* name, 
-        const char* configFile, boolean enabled)
+        const char* configFile)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -58,7 +58,7 @@ namespace DSL
                 }
             }
             m_components[name] = DSL_PREPROC_NEW(
-                name, configFile, enabled);
+                name, configFile);
 
             LOG_INFO("New Preprocessor '" << name << "' created successfully");
 

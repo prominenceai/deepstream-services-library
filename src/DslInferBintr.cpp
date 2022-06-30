@@ -197,6 +197,11 @@ namespace DSL
                 << "' as it's currently linked");
             return false;
         }
+        if (!batchSize)
+        {
+            m_batchSizeSetByClient = false;
+            return true;
+        }
         m_batchSizeSetByClient = true;
         
         m_pInferEngine->SetAttribute("batch-size", batchSize);
@@ -222,6 +227,7 @@ namespace DSL
         m_pInferEngine->SetAttribute("batch-size", batchSize);
         return Bintr::SetBatchSize(batchSize);
     }
+    
     bool InferBintr::SetInterval(uint interval)
     {
         LOG_FUNC();

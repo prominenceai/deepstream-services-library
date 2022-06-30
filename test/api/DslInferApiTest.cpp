@@ -357,6 +357,67 @@ SCENARIO( "A Secondary GIE can Set and Get its Infer Config and Model Engine Fil
     }
 }
 
+SCENARIO( "A Primary GIE can Set and Get its tensor-meta settings correctly",  "[infer-api]" )
+{
+    GIVEN( "A new Primary GIE in memory" ) 
+    {
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
+            model_engine_file.c_str(), interval) == DSL_RESULT_SUCCESS );
+
+        boolean input_enabled(true), output_enabled(false);
+        REQUIRE( dsl_infer_gie_tensor_meta_settings_get(primary_gie_name.c_str(), 
+            &input_enabled, &output_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( input_enabled == false );
+        REQUIRE( output_enabled == false );
+        
+        WHEN( "The PrimaryGieBintr's tensor-meta settings are set" )
+        {
+            
+            REQUIRE( dsl_infer_gie_tensor_meta_settings_set(primary_gie_name.c_str(), 
+                true, true) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct Files are returned on get" )
+            {
+                REQUIRE( dsl_infer_gie_tensor_meta_settings_get(primary_gie_name.c_str(), 
+                    &input_enabled, &output_enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( input_enabled == true );
+                REQUIRE( output_enabled == true );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Primary GIE can Set and Get its batch-size settings correctly",  "[infer-api]" )
+{
+    GIVEN( "A new Primary GIE in memory" ) 
+    {
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
+            model_engine_file.c_str(), interval) == DSL_RESULT_SUCCESS );
+
+        uint batch_size(99);
+        REQUIRE( dsl_infer_batch_size_get(primary_gie_name.c_str(), 
+            &batch_size) == DSL_RESULT_SUCCESS );
+        REQUIRE( batch_size == 0 );
+        
+        WHEN( "The PrimaryGieBintr's batch-size is set" )
+        {
+            REQUIRE( dsl_infer_batch_size_set(primary_gie_name.c_str(), 
+                5) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct Files are returned on get" )
+            {
+                REQUIRE( dsl_infer_batch_size_get(primary_gie_name.c_str(), 
+                    &batch_size) == DSL_RESULT_SUCCESS );
+                REQUIRE( batch_size == 5 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 SCENARIO( "A Primary GIE returns its unique id correctly",  "[infer-api]" )
 {
     GIVEN( "Attributes for a new Primary GIE" ) 
@@ -387,6 +448,8 @@ SCENARIO( "The GIE API checks for NULL input parameters", "[infer-api]" )
     GIVEN( "An empty list of Components" ) 
     {
         uint retId(0);
+        uint batch_size(1);
+        boolean input(false), output(false);
         
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -396,14 +459,19 @@ SCENARIO( "The GIE API checks for NULL input parameters", "[infer-api]" )
             {
                 REQUIRE( dsl_infer_gie_primary_new(NULL, infer_config_file.c_str(), 
                     model_engine_file.c_str(), 1) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), NULL, model_engine_file.c_str(), 
+                REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                    NULL, model_engine_file.c_str(), 
                     1) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_infer_gie_secondary_new(NULL, infer_config_file.c_str(), 
-                    model_engine_file.c_str(), primary_gie_name.c_str(), 1) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_infer_gie_secondary_new(primary_gie_name.c_str(),   NULL, model_engine_file.c_str(), 
+                    model_engine_file.c_str(), primary_gie_name.c_str(), 1) == 
+                        DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_infer_gie_secondary_new(primary_gie_name.c_str(), 
+                    NULL, model_engine_file.c_str(), 
                     primary_gie_name.c_str(), 1) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_infer_gie_secondary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
-                    model_engine_file.c_str(), NULL, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_infer_gie_secondary_new(primary_gie_name.c_str(), 
+                    infer_config_file.c_str(), 
+                    model_engine_file.c_str(), NULL, 1) == 
+                        DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_infer_primary_pph_add(NULL, NULL, 
                     DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_infer_primary_pph_add(primary_gie_name.c_str(), NULL, 
@@ -416,19 +484,43 @@ SCENARIO( "The GIE API checks for NULL input parameters", "[infer-api]" )
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
                 REQUIRE( dsl_infer_config_file_get(primary_gie_name.c_str(), 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
-                REQUIRE( dsl_infer_config_file_set(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_config_file_set(NULL, NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );                
                 REQUIRE( dsl_infer_config_file_set(primary_gie_name.c_str(), 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
-                REQUIRE( dsl_infer_gie_model_engine_file_get(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_gie_model_engine_file_get(NULL, NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );                
                 REQUIRE( dsl_infer_gie_model_engine_file_get(primary_gie_name.c_str(), 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
-                REQUIRE( dsl_infer_gie_model_engine_file_set(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
-                REQUIRE( dsl_infer_gie_model_engine_file_set(primary_gie_name.c_str(), NULL) == 
+                REQUIRE( dsl_infer_gie_model_engine_file_set(NULL, NULL) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );                
-                REQUIRE( dsl_infer_interval_get(NULL, &interval) == DSL_RESULT_INVALID_INPUT_PARAM );                
-                REQUIRE( dsl_infer_interval_set(NULL, interval) == DSL_RESULT_INVALID_INPUT_PARAM );    
+                REQUIRE( dsl_infer_gie_model_engine_file_set(primary_gie_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_interval_get(NULL, &interval) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_interval_get(primary_gie_name.c_str(), NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_interval_set(NULL, interval) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );    
 
-                REQUIRE( dsl_infer_unique_id_get(NULL, &retId) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_batch_size_get(NULL, &batch_size) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_batch_size_get(primary_gie_name.c_str(), NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_batch_size_set(NULL, batch_size) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );    
+
+                REQUIRE( dsl_infer_gie_tensor_meta_settings_get(NULL, &input, &output) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_gie_tensor_meta_settings_get(primary_gie_name.c_str(), 
+                    NULL, &output) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_gie_tensor_meta_settings_get(primary_gie_name.c_str(), 
+                    &input, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_gie_tensor_meta_settings_set(NULL, input, output) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );                
+
+                REQUIRE( dsl_infer_unique_id_get(NULL, &retId) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );                
 
                 REQUIRE( dsl_component_list_size() == 0 );
             }

@@ -265,3 +265,81 @@ SCENARIO( "A PrimaryGieBintr in a Linked state fails to Set its Interval",  "[Pr
     }
 }
 
+SCENARIO( "A PrimaryGieBintr in a Linked state fails to Set its tensor-meta settings correctly",  
+    "[PrimaryGieBintr]" )
+{
+    GIVEN( "A new PrimaryGieBintr in memory" ) 
+    {
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+
+        bool inputEnabled(true), outputEnabled(true);
+        
+        pPrimaryGieBintr->GetTensorMetaSettings(&inputEnabled, 
+            &outputEnabled);
+            
+        REQUIRE( inputEnabled == false );
+        REQUIRE( outputEnabled == false );
+        
+        WHEN( "The PrimaryGieBintr is Linked" )
+        {
+            pPrimaryGieBintr->SetBatchSize(1);
+            REQUIRE( pPrimaryGieBintr->LinkAll() == true );
+
+            inputEnabled = true;
+            outputEnabled = true;
+
+            THEN( "The PrimaryGieBintr fails on SetInterval" )
+            {
+                REQUIRE( pPrimaryGieBintr->SetTensorMetaSettings(
+                    inputEnabled, outputEnabled) == false );
+
+                pPrimaryGieBintr->GetTensorMetaSettings(&inputEnabled, 
+                    &outputEnabled);
+                    
+                REQUIRE( inputEnabled == false );
+                REQUIRE( outputEnabled == false );
+
+                pPrimaryGieBintr->UnlinkAll();
+                REQUIRE( pPrimaryGieBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A PrimaryGieBintr manages its batch-size settings correctly", 
+    "[PrimaryGieBintr]" )
+{
+    GIVEN( "A new PrimaryGieBintr in memory" ) 
+    {
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+
+        WHEN( "The Client sets the PrimaryGieBintr's batch-size" )
+        {
+            uint clientBatchSize = 5;
+            REQUIRE( pPrimaryGieBintr->SetBatchSizeByClient(clientBatchSize) == true );
+
+            THEN( "The batch-size is not updated on internal/pipeline call" )
+            {
+                REQUIRE( pPrimaryGieBintr->SetBatchSize(10) == true );
+                REQUIRE( pPrimaryGieBintr->GetBatchSize() == clientBatchSize );
+            }
+        }
+        WHEN( "The Client sets and then clears the PrimaryGieBintr's batch-size" )
+        {
+            REQUIRE( pPrimaryGieBintr->SetBatchSizeByClient(10) == true );
+            REQUIRE( pPrimaryGieBintr->SetBatchSizeByClient(0) == true );
+
+            THEN( "The batch-size is correctly updated on internal/pipeline call" )
+            {
+                uint newBatchSize(2);
+                REQUIRE( pPrimaryGieBintr->SetBatchSize(newBatchSize) == true );
+                REQUIRE( pPrimaryGieBintr->GetBatchSize() == newBatchSize );
+            }
+        }
+    }
+}
+

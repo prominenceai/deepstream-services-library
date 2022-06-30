@@ -22,9 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-// ******************************************************************
-// WARNING! THIS SCRIPT IS A WORK IN PROGRESS
-// ******************************************************************
 #include <iostream>
 #include <glib.h>
 #include <gst/gst.h>
@@ -36,15 +33,17 @@ THE SOFTWARE.
 std::wstring uri_h265(
     L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 
+// Config file used with the Preprocessor
 std::wstring preproc_config(
     L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-preprocess-test/config_preprocess.txt");
 
-
-// *** NOTE! these are the wrong Filespecs for Action Recognition.
+// Config and model-engine files 
 std::wstring primary_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-preprocess-test/config_infer.txt");
 std::wstring primary_model_engine_file(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b4_gpu0_fp16.engine");
+
+// Config file used by the IOU Tracker    
 std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
@@ -119,7 +118,7 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Preprocessor component using the config filespec defined above.
-        retval = dsl_preproc_new(L"preprocessor", preproc_config.c_str(), true);
+        retval = dsl_preproc_new(L"preprocessor", preproc_config.c_str());
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Primary GIE using the filespecs defined above, with interval and Id
@@ -127,12 +126,13 @@ int main(int argc, char** argv)
             primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 0);
         if (retval != DSL_RESULT_SUCCESS) break;
         
-        // **** IMPORTANT! we must explicity set the GIE's batch-size to the number
-        // of ROI's defined in the Preprocessor configuraton file.
+        // **** IMPORTANT! for best performace we explicity set the GIE's batch-size 
+        // to the number of ROI's defined in the Preprocessor configuraton file.
         retval = dsl_infer_batch_size_set(L"primary-gie", 2);
         if (retval != DSL_RESULT_SUCCESS) break;
         
-        // **** IMPORTANT! we must set the input-meta-tensor setting to true
+        // **** IMPORTANT! we must set the input-meta-tensor setting to true when
+        // using the preprocessor, otherwise the GIE will use its own preprocessor.
         retval = dsl_infer_gie_tensor_meta_settings_set(L"primary-gie",
             true, false);
         if (retval != DSL_RESULT_SUCCESS) break;

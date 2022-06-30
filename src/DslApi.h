@@ -4267,12 +4267,9 @@ DslReturnType dsl_tap_record_mailer_remove(const wchar_t* name,
  * @param[in] name unique name for the new Tracker
  * @param[in] config_file relative or absolute pathspec to 
  * the Preprocessor config text file to use
- * @param[in] enabled set to true to enable Preprocessing, false
- * to set the Preprocessor into passthrough mode.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PREPROC_RESULT otherwise.
  */
-DslReturnType dsl_preproc_new(const wchar_t* name, 
-    const wchar_t* config_file, boolean enabled);
+DslReturnType dsl_preproc_new(const wchar_t* name, const wchar_t* config_file);
 
 /**
  * @brief Gets the current Config File in use by the named Preprocessor
@@ -4423,7 +4420,24 @@ DslReturnType dsl_infer_tis_secondary_new(const wchar_t* name,
     const wchar_t* infer_config_file, const wchar_t* infer_on_tis, uint interval);
 
 /**
- * @brief Sets the batch-size setting for the named GIE or TIS
+ * @brief Gets the client defined batch-size setting for the named GIE or TIS. If
+ * not set (0), the Pipeline will set the batch-size to the same as the Streammux 
+ * batch-size which - by default - is derived from the number of sources when the 
+ * Pipeline is called to play. The Streammux batch-size can be set (overridden)
+ * by the client as well.
+ * @param[in] name unique name of the GIE or TIS to update.
+ * @param[in] size value to set the batch-size setting for the named GIE or TIS
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_INFER_RESULT on failure. 
+ */
+DslReturnType dsl_infer_batch_size_get(const wchar_t* name, uint* size);
+
+/**
+ * @brief Sets (overides) the batch-size setting for the named GIE or TIS. If
+ * not set (0), the Pipeline will set the batch-size to the same as the Streammux 
+ * batch-size which - by default - is derived from the number of sources when the 
+ * Pipeline is called to play. The Streammux batch-size can be set (overridden)
+ * by the client as well.
  * @param[in] name unique name of the GIE or TIS to update.
  * @param[in] size value to set the batch-size setting for the named GIE or TIS
  * @return DSL_RESULT_SUCCESS on successful update, one of 

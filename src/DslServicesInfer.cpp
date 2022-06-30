@@ -217,6 +217,34 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::InferBatchSizeGet(const char* name, uint* size)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
+            
+            DSL_INFER_PTR pInferBintr = 
+                std::dynamic_pointer_cast<InferBintr>(m_components[name]);
+
+            *size = pInferBintr->GetBatchSize();
+
+            LOG_INFO("InferBintr '" << name << "' returned batch-size = "
+                << *size << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("InferBintr '" << name 
+                << "' threw an exception getting batch-size");
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::InferBatchSizeSet(const char* name, uint size)
     {
         LOG_FUNC();

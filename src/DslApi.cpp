@@ -3739,7 +3739,7 @@ DslReturnType dsl_tap_record_mailer_remove(const wchar_t* name,
 }
 
 DslReturnType dsl_preproc_new(const wchar_t* name, 
-    const wchar_t* config_file, boolean enabled)
+    const wchar_t* config_file)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(config_file);
@@ -3750,7 +3750,7 @@ DslReturnType dsl_preproc_new(const wchar_t* name,
     std::string cstrConfigFile(wstrConfigFile.begin(), wstrConfigFile.end());
 
     return DSL::Services::GetServices()->PreprocNew(
-        cstrName.c_str(), cstrConfigFile.c_str(), enabled);
+        cstrName.c_str(), cstrConfigFile.c_str());
 }
 
 DslReturnType dsl_preproc_config_file_get(const wchar_t* name, 
@@ -3974,6 +3974,17 @@ DslReturnType dsl_infer_tis_secondary_new(const wchar_t* name,
         cstrConfig.c_str(), cstrInferOnTis.c_str(), interval);
 }
 
+DslReturnType dsl_infer_batch_size_get(const wchar_t* name, uint* size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(size);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->InferBatchSizeGet(cstrName.c_str(), size);
+}
+
 DslReturnType dsl_infer_batch_size_set(const wchar_t* name, uint size)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4106,6 +4117,8 @@ DslReturnType dsl_infer_gie_tensor_meta_settings_get(const wchar_t* name,
     boolean* input_enabled, boolean* output_enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(input_enabled);
+    RETURN_IF_PARAM_IS_NULL(output_enabled);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -4129,6 +4142,7 @@ DslReturnType dsl_infer_gie_tensor_meta_settings_set(const wchar_t* name,
 DslReturnType dsl_infer_interval_get(const wchar_t* name, uint* interval)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(interval);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());

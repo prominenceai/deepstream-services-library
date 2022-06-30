@@ -30,7 +30,7 @@ using namespace DSL;
 static const std::string preprocName("preprocessor");
 
 static const std::string configFile1(
-    "/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-3d-action-recognition/config_preprocess_2d_custom.txt");
+    "/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-preprocess-test/config_preprocess.txt");
 
 static const std::string configFile2(
     "/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-3d-action-recognition/config_preprocess_3d_custom.txt");
@@ -39,18 +39,16 @@ SCENARIO( "A PreprocBintr is created correctly", "[PreprocBintr]" )
 {
     GIVEN( "Attributes for a new PreprocBintr" ) 
     {
-        bool enabled(true);
-
         WHEN( "The PreprocBintr is created" )
         {
             DSL_PREPROC_PTR pPreprocBintr = 
-                DSL_PREPROC_NEW(preprocName.c_str(), configFile1.c_str(), enabled);
+                DSL_PREPROC_NEW(preprocName.c_str(), configFile1.c_str());
 
             THEN( "The PreprocBintr's parameters are set and returned correctly")
             {
                 std::string retConfigFile = pPreprocBintr->GetConfigFile();
                 REQUIRE( retConfigFile == configFile1 );
-                REQUIRE( pPreprocBintr->GetEnabled() == enabled );
+                REQUIRE( pPreprocBintr->GetEnabled() == true );
                 REQUIRE( pPreprocBintr->GetUniqueId() == 0 );
             }
         }
@@ -61,10 +59,8 @@ SCENARIO( "A PreprocBintr's config file can be set/get correctly", "[PreprocBint
 {
     GIVEN( "A new PreprocBintr in memory" ) 
     {
-        bool enabled(true);
-
         DSL_PREPROC_PTR pPreprocBintr = 
-            DSL_PREPROC_NEW(preprocName.c_str(), configFile1.c_str(), enabled);
+            DSL_PREPROC_NEW(preprocName.c_str(), configFile1.c_str());
 
         std::string retConfigFile = pPreprocBintr->GetConfigFile();
         REQUIRE( retConfigFile == configFile1 );
@@ -77,6 +73,29 @@ SCENARIO( "A PreprocBintr's config file can be set/get correctly", "[PreprocBint
             {
                 std::string retConfigFile = pPreprocBintr->GetConfigFile();
                 REQUIRE( retConfigFile == configFile2 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A PreprocBintr's enabled setting can be set/get correctly", "[PreprocBintr]" )
+{
+    GIVEN( "A new PreprocBintr in memory" ) 
+    {
+        DSL_PREPROC_PTR pPreprocBintr = 
+            DSL_PREPROC_NEW(preprocName.c_str(), configFile1.c_str());
+
+        bool retEnabled = pPreprocBintr->GetEnabled();
+        REQUIRE( retEnabled == true );
+
+        WHEN( "The PreprocBintr is disabled" )
+        {
+            REQUIRE( pPreprocBintr->SetEnabled(false) == true );
+
+            THEN( "The PreprocBintr's new config file is returned on Get")
+            {
+                retEnabled = pPreprocBintr->GetEnabled();
+                REQUIRE( retEnabled == false );
             }
         }
     }

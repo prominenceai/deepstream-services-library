@@ -27,24 +27,27 @@
 import sys
 from dsl import *
 
-# Import NVIDIA's OSD Sink Pad Buffer Probe (pyds) example
-from nvidia_osd_sink_pad_buffer_probe import osd_sink_pad_buffer_probe
-
 uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
+# Config file used with the Preprocessor
+preproc_config_file = \
+    '/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-preprocess-test/config_preprocess.txt'
+    
 # Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+    '/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-preprocess-test/config_infer.txt'
+
+# IMPORTANT! ensure that the model-engine was generated with the config from the Preprocessing example
+#  - apps/sample_apps/deepstream-preprocess-test/config_infer.txt
 primary_model_engine_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b4_gpu0_fp16.engine'
 tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 
-TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
-TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
+
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
@@ -92,44 +95,48 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # New Preprocessor component using the config filespec defined above.
+        retval = dsl_preproc_new('preprocessor', preproc_config_file)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
         # New Primary GIE using the filespecs above with interval = 0
         retval = dsl_infer_gie_primary_new('primary-gie', 
             primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # **** IMPORTANT! for best performace we explicity set the GIE's batch-size 
+        # to the number of ROI's defined in the Preprocessor configuraton file.
+        retval = dsl_infer_batch_size_set('primary-gie', 2)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # **** IMPORTANT! we must set the input-meta-tensor setting to true when
+        # using the preprocessor, otherwise the GIE will use its own preprocessor.
+        retval = dsl_infer_gie_tensor_meta_settings_set('primary-gie',
+            input_enabled=True, output_enabled=False);
+
         # New KTL Tracker, setting max width and height of input frame
         retval = dsl_tracker_iou_new('iou-tracker', tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Tiled Display, setting width and height, use default cols/rows set by source count
-        retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
-        if retval != DSL_RETURN_SUCCESS:
-            break
- 
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
             text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Custom Pad Probe Handler to call Nvidia's example callback for handling the Batched Meta Data
-        retval = dsl_pph_custom_new('custom-pph', client_handler=osd_sink_pad_buffer_probe, client_data=None)
-        
-        # Add the custom PPH to the Sink pad of the OSD
-        retval = dsl_osd_pph_add('on-screen-display', handler='custom-pph', pad=DSL_PAD_SINK)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
         retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add all the components to our pipeline
-        retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
+        retval = dsl_pipeline_new_component_add_many('pipeline', components=[
+            'uri-source', 'preprocessor', 'primary-gie', 'iou-tracker', 
+            'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
