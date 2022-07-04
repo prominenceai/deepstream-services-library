@@ -21,8 +21,10 @@ GIEs support the specification of a pre-built **Model Engine File**, or one can 
 ### Inference Batch Size
 **IMPORTANT!** DSL sets the inference batch size overriding the parameter in the inference config file. The batch size for each GIE/TIS can be set explicitly by calling [dsl_infer_batch_size_set](#dsl_infer_batch_size_set). If not set (0-default), the Pipeline will set the batch-size to the same value as the Streammux batch-size which - by default - is derived from the number of sources when the Pipeline is called to play. The Streammux batch-size can be set (overridden) by calling [dsl_pipeline_streammux_batch_properties_set](/docs/api-pipeline.md#dsl_pipeline_streammux_batch_properties_set).
 
-### Adding and Removing to/from a Pipeline
+### Adding and Removing
 GIEs/TISs are added to a Pipeline by calling [dsl_pipeline_component_add](/docs/api-pipeline.md#dsl_pipeline_component_add) and [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed by calling [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove) and [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many).
+
+A similar set of Services are used when adding/removing a GIE/TIS to/from a branch: [dsl_branch_component_add](api-branch.md#dsl_branch_component_add), [dsl_branch_component_add_many](/docs/api-branch.md#dsl_branch_component_add_many), [dsl_branch_component_remove](/docs/api-branch.md#dsl_branch_component_remove), [dsl_branch_component_remove_many](/docs/api-branch.md#dsl_branch_component_remove_many), and [dsl_branch_component_remove_all](/docs/api-branch.md#dsl_branch_component_remove_all).
 
 Primary and Secondary GIEs/TISs are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_delete_all](/docs/overview.md#dsl_delete_all).
 
