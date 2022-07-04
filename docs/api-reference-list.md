@@ -204,6 +204,7 @@
 * [dsl_dwarper_config_file_set](/docs/api-dewarper.md#dsl_dwarper_config_file_set)
 
 ## Preprocessor:
+* [Overview](/docs/api-preproc.md)
 * [dsl_preproc_new](/docs/api-preproc.md#dsl_preproc_new)
 * [dsl_preproc_config_file_get](/docs/api-preproc.md#dsl_preproc_config_file_get)
 * [dsl_preproc_config_file_set](/docs/api-preproc.md#dsl_preproc_config_file_get)
