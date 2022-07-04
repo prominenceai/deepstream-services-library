@@ -38,9 +38,9 @@ namespace DSL
      * @brief convenience macros for shared pointer abstraction
      */
     #define DSL_PREPROC_PTR std::shared_ptr<PreprocBintr>
-    #define DSL_PREPROC_NEW(name, configFile, enabled) \
+    #define DSL_PREPROC_NEW(name, configFile) \
         std::shared_ptr<PreprocBintr>(new PreprocBintr(name, \
-            configFile, enabled))
+            configFile))
 
     /**
      * @class PreprocBintr
@@ -55,10 +55,8 @@ namespace DSL
          * @param[in] name name to give the new PreprocBintr
          * @param[in] configFile absolute or relative path to the Pre-Process 
          * config text file.
-         * @param[in] enabled set to true to enabled the Pre-Process plugin, 
-         * false to set to passthrough mode.
          */
-        PreprocBintr(const char* name, const char* configFile, bool enabled);
+        PreprocBintr(const char* name, const char* configFile);
 
         /**
          * @brief dtor for the PreprocBintr class

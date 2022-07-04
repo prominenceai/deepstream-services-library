@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 
 static const std::wstring preproc_config(
-    L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-3d-action-recognition/config_preprocess_2d_custom.txt");
+    L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-preprocess-test/config_preprocess.txt");
 
 static const std::wstring pipeline_name(L"test-pipeline");
 
@@ -38,15 +38,12 @@ SCENARIO( "The Components container is updated correctly on new Preprocessor",
 {
     GIVEN( "An empty list of Components" ) 
     {
-        
-
         REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "A new Preprocessor is created" ) 
         {
-
             REQUIRE( dsl_preproc_new(preproc_name.c_str(), 
-                preproc_config.c_str(), true) == DSL_RESULT_SUCCESS );
+                preproc_config.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
@@ -64,7 +61,7 @@ SCENARIO( "The Components container is updated correctly on Preprocessor delete"
     {
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( dsl_preproc_new(preproc_name.c_str(), 
-            preproc_config.c_str(), true) == DSL_RESULT_SUCCESS );
+            preproc_config.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
 
         WHEN( "The new Preprocessor is created" ) 
@@ -86,7 +83,7 @@ SCENARIO( "An Preprocessor in use can't be deleted",
     GIVEN( "A new Preprocessor and new pPipeline" ) 
     {
         REQUIRE( dsl_preproc_new(preproc_name.c_str(), 
-            preproc_config.c_str(), true) == DSL_RESULT_SUCCESS );
+            preproc_config.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
         REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 1 );
@@ -115,7 +112,7 @@ SCENARIO( "An Preprocessor, once removed from a Pipeline, can be deleted",
     GIVEN( "A new pPipeline with a child Preprocessor" ) 
     {
         REQUIRE( dsl_preproc_new(preproc_name.c_str(), 
-            preproc_config.c_str(), true) == DSL_RESULT_SUCCESS );
+            preproc_config.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
         REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 1 );
@@ -150,7 +147,7 @@ SCENARIO( "An Preprocessor in use can't be added to a second Pipeline",
         std::wstring preproc_name(L"preprocessor");
 
         REQUIRE( dsl_preproc_new(preproc_name.c_str(), 
-            preproc_config.c_str(), true) == DSL_RESULT_SUCCESS );
+            preproc_config.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipeline_name1.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipeline_name2.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -177,7 +174,7 @@ SCENARIO( "A Preprocessor can Set and Get its Config File correctly",
     GIVEN( "A new Preprocessor and new pPipeline" ) 
     {
         REQUIRE( dsl_preproc_new(preproc_name.c_str(), 
-            preproc_config.c_str(), true) == DSL_RESULT_SUCCESS );
+            preproc_config.c_str()) == DSL_RESULT_SUCCESS );
 
         const wchar_t* pRetConfigFile;
         REQUIRE( dsl_preproc_config_file_get(preproc_name.c_str(), 
@@ -211,7 +208,7 @@ SCENARIO( "A Preprocessor can be disabled correctly",
     GIVEN( "A new Preprocessor and new pPipeline" ) 
     {
         REQUIRE( dsl_preproc_new(preproc_name.c_str(), 
-            preproc_config.c_str(), true) == DSL_RESULT_SUCCESS );
+            preproc_config.c_str()) == DSL_RESULT_SUCCESS );
 
         // check default state first
         boolean enabled(false);
@@ -245,7 +242,7 @@ SCENARIO( "A Preprocessor returns its unique id correctly",  "[preproc-api]" )
         WHEN( "When a new Preprocess is created" )
         {
         REQUIRE( dsl_preproc_new(preproc_name.c_str(), 
-            preproc_config.c_str(), true) == DSL_RESULT_SUCCESS );
+            preproc_config.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct unique id is returned" )
             {
@@ -276,9 +273,9 @@ SCENARIO( "The Preprocessor API checks for NULL input parameters", "[preproc-api
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
                 REQUIRE( dsl_preproc_new(NULL, 
-                    preproc_config.c_str(), true) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    preproc_config.c_str()) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_preproc_new(preproc_name.c_str(), 
-                    NULL, true) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_preproc_config_file_get(NULL, 
                     &pRetConfigFile) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_preproc_config_file_get(preproc_name.c_str(), 

@@ -29,20 +29,33 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    // Initilize the unique id list for all PreprocBintrs 
+    std::list<uint> InferBintr::s_uniqueIds;
+
     InferBintr::InferBintr(const char* name, uint processMode, 
         const char* inferConfigFile, const char* modelEngineFile, 
         uint interval, uint inferType)
         : Bintr(name)
+        , m_uniqueId(1) // must start at 1 not 0
         , m_inferType(inferType)
         , m_processMode(processMode)
         , m_interval(interval)
-        , m_uniqueId(CreateUniqueIdFromName(name))
+        , m_batchSizeSetByClient(false)
         , m_inferConfigFile(inferConfigFile)
         , m_modelEngineFile(modelEngineFile)
         , m_rawOutputEnabled(false)
         , m_rawOutputFrameNumber(0)
+        , m_inputTensorMetaEnabled(false)
+        , m_outputTensorMetaEnabled(false)
     {
         LOG_FUNC();
+
+        // Find the first available unique Id
+        while(std::find(s_uniqueIds.begin(), s_uniqueIds.end(), m_uniqueId) != s_uniqueIds.end())
+        {
+            m_uniqueId++;
+        }
+        s_uniqueIds.push_back(m_uniqueId);
         
         std::ifstream streamInferConfigFile(inferConfigFile);
         if (!streamInferConfigFile.good())
@@ -98,6 +111,7 @@ namespace DSL
         LOG_FUNC();
         
         Services::GetServices()->_inferNameErase(m_uniqueId);
+        s_uniqueIds.remove(m_uniqueId);
     }
 
     uint InferBintr::GetInferType()
@@ -173,6 +187,27 @@ namespace DSL
         return true;
     }
     
+    bool InferBintr::SetBatchSizeByClient(uint batchSize)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Batch size for InferBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        if (!batchSize)
+        {
+            m_batchSizeSetByClient = false;
+            return true;
+        }
+        m_batchSizeSetByClient = true;
+        
+        m_pInferEngine->SetAttribute("batch-size", batchSize);
+        return Bintr::SetBatchSize(batchSize);
+    }
+
     bool InferBintr::SetBatchSize(uint batchSize)
     {
         LOG_FUNC();
@@ -183,10 +218,16 @@ namespace DSL
                 << "' as it's currently linked");
             return false;
         }
+        if (m_batchSizeSetByClient)
+        {
+            LOG_INFO("Batch size for InferBintr '" << GetName() 
+                << "' explicitely set by client will not be updated.");
+            return true;
+        }
         m_pInferEngine->SetAttribute("batch-size", batchSize);
         return Bintr::SetBatchSize(batchSize);
     }
-
+    
     bool InferBintr::SetInterval(uint interval)
     {
         LOG_FUNC();
@@ -217,20 +258,38 @@ namespace DSL
         return m_uniqueId;
     }
     
-    int InferBintr::CreateUniqueIdFromName(const char* name)
+    void InferBintr::GetTensorMetaSettings(bool* inputEnabled, bool* outputEnabled)
     {
         LOG_FUNC();
+    
+        *inputEnabled = m_inputTensorMetaEnabled;
+        *outputEnabled = m_outputTensorMetaEnabled;
+    }    
+
+    bool InferBintr::SetTensorMetaSettings(bool inputEnabled, bool outputEnabled)
+    {
+        LOG_FUNC();
+    
+        if (m_inferType != DSL_INFER_TYPE_GIE)
+        {
+            LOG_ERROR("Unable to set tensor-meta settings for InferBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set tensor-meta settings for InferBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_inputTensorMetaEnabled = inputEnabled;
+        m_outputTensorMetaEnabled = outputEnabled;
         
-        // TODO this is a temporary work-around for the fact that the
-        // Infer Engine "unique-id" is unsigned (guit), but the "infer-on-gie-id"
-        // is a signed (gint), and fails on negative values. Need to use a static 
-        // hash table, or try and get the parameter type changed ?? or some means 
-        // of eliminating the possible collision that can come from below
+        m_pInferEngine->SetAttribute("input-tensor-meta", m_inputTensorMetaEnabled);
+        m_pInferEngine->SetAttribute("output-tensor-meta", m_outputTensorMetaEnabled);
         
-        // generate a unique Id based on name, and ensure positive signed integer
-        int id = std::hash<std::string>{}(name);
-        return (id < 0) ? id*-1 : id;
-    }
+        return true;
+    }    
 
     bool InferBintr::SetRawOutputEnabled(bool enabled, const char* path)
     {
@@ -597,8 +656,15 @@ namespace DSL
             return false;
             
         }
+        if (Services::GetServices()->_inferIdGet(name, 
+            &m_inferOnUniqueId) != DSL_RESULT_SUCCESS)
+        {
+            LOG_ERROR("SecondaryInferBintr '" << GetName() 
+                << "' failed to Get unique Id for PrimaryInferBintr '" 
+                << name << "'");
+            return false;
+        }   
         m_inferOn.assign(name);
-        m_inferOnUniqueId = CreateUniqueIdFromName(name);
         
         LOG_INFO("Setting infer-on-id for SecondaryInferBintr '" 
             << GetName() << "' to " << m_inferOnUniqueId);

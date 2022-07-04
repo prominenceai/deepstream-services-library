@@ -145,7 +145,6 @@
       <File Name="../test/api/DslCrossTriggerExampleTest.cpp"/>
       <File Name="../test/api/DslOdeAccumulatorApiTest.cpp"/>
       <File Name="../test/api/DslOdeHeatMapperApiTest.cpp"/>
-      <File Name="../test/api/DslActionRecognitionBehaviorTest.cpp"/>
       <File Name="../test/api/DslPreprocApiText.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
@@ -259,6 +258,7 @@
       <File Name="../examples/python/ode_line_cross_object_capture_overlay_image.py"/>
       <File Name="../examples/python/ode_occurrence_trigger_with_heat_mapper.py"/>
       <File Name="../examples/python/ode_occurrence_trigger_with_monitor_action.py"/>
+      <File Name="../examples/python/1file_preproc_pgie_iou_osd_window.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>

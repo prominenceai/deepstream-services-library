@@ -30,7 +30,7 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    DslReturnType Services::PrimaryGieNew(const char* name, const char* inferConfigFile,
+    DslReturnType Services::InferPrimaryGieNew(const char* name, const char* inferConfigFile,
         const char* modelEngineFile, uint interval)
     {
         LOG_FUNC();
@@ -50,7 +50,8 @@ namespace DSL
             std::ifstream configFile(inferConfigFile);
             if (!configFile.good())
             {
-                LOG_ERROR("Infer Config File not found");
+                LOG_ERROR("Infer Config File not found for Primary GIE InferBintr '" 
+                        << name << "'");
                 return DSL_RESULT_INFER_CONFIG_FILE_NOT_FOUND;
             }
             
@@ -62,7 +63,8 @@ namespace DSL
                 std::ifstream modelFile(modelEngineFile);
                 if (!modelFile.good())
                 {
-                    LOG_ERROR("Model Engine File not found");
+                    LOG_ERROR("Model Engine File not found for Primary GIE InferBintr '" 
+                        << name << "'");
                     return DSL_RESULT_INFER_MODEL_FILE_NOT_FOUND;
                 }
             }
@@ -79,7 +81,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::PrimaryTisNew(const char* name, 
+    DslReturnType Services::InferPrimaryTisNew(const char* name, 
         const char* inferConfigFile, uint interval)
     {
         LOG_FUNC();
@@ -90,7 +92,8 @@ namespace DSL
             // ensure component name uniqueness 
             if (m_components.find(name) != m_components.end())
             {   
-                LOG_ERROR("TIS name '" << name << "' is not unique");
+                LOG_ERROR("Primary Tis InferBintr name '" 
+                    << name << "' is not unique");
                 return DSL_RESULT_INFER_NAME_NOT_UNIQUE;
             }
             
@@ -99,24 +102,27 @@ namespace DSL
             std::ifstream configFile(inferConfigFile);
             if (!configFile.good())
             {
-                LOG_ERROR("Infer Config File not found");
+                LOG_ERROR("Infer Config File not found for Primary TIS InferBintr '" 
+                    << name << "'");
                 return DSL_RESULT_INFER_CONFIG_FILE_NOT_FOUND;
             }
             
             m_components[name] = DSL_PRIMARY_TIS_NEW(name, 
                 inferConfigFile, interval);
-            LOG_INFO("New Primary TIS '" << name << "' created successfully");
+            LOG_INFO("New Primary TIS InferBintr '" << name 
+                << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Primary TIS '" << name << "' threw exception on create");
+            LOG_ERROR("New Primary TIS InferBintr '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::SecondaryGieNew(const char* name, const char* inferConfigFile,
+    DslReturnType Services::InferSecondaryGieNew(const char* name, const char* inferConfigFile,
         const char* modelEngineFile, const char* inferOnGieName, uint interval)
     {
         LOG_FUNC();
@@ -127,7 +133,8 @@ namespace DSL
             // ensure component name uniqueness 
             if (m_components.find(name) != m_components.end())
             {   
-                LOG_ERROR("GIE name '" << name << "' is not unique");
+                LOG_ERROR("Secpmdary GIE InferBintr name '" 
+                    << name << "' is not unique");
                 return DSL_RESULT_INFER_NAME_NOT_UNIQUE;
             }
             
@@ -136,7 +143,8 @@ namespace DSL
             std::ifstream configFile(inferConfigFile);
             if (!configFile.good())
             {
-                LOG_ERROR("Infer Config File not found");
+                LOG_ERROR("Infer Config File not found for Secondary GIE InferBintr '" 
+                    << name << "'");
                 return DSL_RESULT_INFER_CONFIG_FILE_NOT_FOUND;
             }
             
@@ -148,7 +156,8 @@ namespace DSL
                 std::ifstream modelFile(modelEngineFile);
                 if (!modelFile.good())
                 {
-                    LOG_ERROR("Model Engine File not found");
+                    LOG_ERROR("Model Engine File not found for Secondary GIE InferBintr '" 
+                        << name << "'");
                     return DSL_RESULT_INFER_MODEL_FILE_NOT_FOUND;
                 }
             }
@@ -161,12 +170,13 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("New Primary GIE '" << name << "' threw exception on create");
+            LOG_ERROR("New Secondary GIE InferBintr '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::SecondaryTisNew(const char* name, const char* inferConfigFile,
+    DslReturnType Services::InferSecondaryTisNew(const char* name, const char* inferConfigFile,
         const char* inferOnTieName, uint interval)
     {
         LOG_FUNC();
@@ -177,7 +187,8 @@ namespace DSL
             // ensure component name uniqueness 
             if (m_components.find(name) != m_components.end())
             {   
-                LOG_ERROR("Secondary TIS name '" << name << "' is not unique");
+                LOG_ERROR("Secondary TIS InferBintr name '" 
+                    << name << "' is not unique");
                 return DSL_RESULT_INFER_NAME_NOT_UNIQUE;
             }
             
@@ -193,13 +204,75 @@ namespace DSL
             m_components[name] = DSL_SECONDARY_TIS_NEW(name, 
                 inferConfigFile, inferOnTieName, interval);
 
-            LOG_INFO("New Secondary TIS '" << name << "' created successfully");
+            LOG_INFO("New Secondary TIS InferBintr '" << name 
+                << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Secondary TIS '" << name << "' threw exception on create");
+            LOG_ERROR("New Secondary TIS InferBintr '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::InferBatchSizeGet(const char* name, uint* size)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
+            
+            DSL_INFER_PTR pInferBintr = 
+                std::dynamic_pointer_cast<InferBintr>(m_components[name]);
+
+            *size = pInferBintr->GetBatchSize();
+
+            LOG_INFO("InferBintr '" << name << "' returned batch-size = "
+                << *size << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("InferBintr '" << name 
+                << "' threw an exception getting batch-size");
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::InferBatchSizeSet(const char* name, uint size)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
+            
+            DSL_INFER_PTR pInferBintr = 
+                std::dynamic_pointer_cast<InferBintr>(m_components[name]);
+
+            if (!pInferBintr->SetBatchSizeByClient(size))
+            {
+                LOG_ERROR("InferBintr '" << name << "' failed to set batch-size");
+                return DSL_RESULT_INFER_SET_FAILED;
+            }
+
+            LOG_INFO("InferBintr '" << name << "' set batch-size = "
+                << size << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("InferBintr '" << name 
+                << "' threw an exception setting batch-size");
             return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
@@ -219,19 +292,21 @@ namespace DSL
 
             *id = pInferBintr->GetUniqueId();
 
-            LOG_INFO("Infer '" << name << "' returned Unique Id = "
+            LOG_INFO("InferBintr '" << name << "' returned Unique Id = "
                 << *id << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("GIE '" << name << "' threw an exception getting unique Id");
+            LOG_ERROR("InferBintr '" << name 
+                << "' threw an exception getting unique Id");
             return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::PrimaryInferPphAdd(const char* name, const char* handler, uint pad)
+    DslReturnType Services::InferPrimaryPphAdd(const char* name, 
+        const char* handler, uint pad)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -244,28 +319,32 @@ namespace DSL
 
             if (pad > DSL_PAD_SRC)
             {
-                LOG_ERROR("Invalid Pad type = " << pad << " for PrimaryInfer '" << name << "'");
+                LOG_ERROR("Invalid Pad type = " << pad << " for PrimaryInfer '" 
+                    << name << "'");
                 return DSL_RESULT_PPH_PAD_TYPE_INVALID;
             }
 
             // call on the Handler to add itself to the Tiler as a PadProbeHandler
             if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], pad))
             {
-                LOG_ERROR("Primary Infer'" << name << "' failed to add Pad Probe Handler");
+                LOG_ERROR("Primary InferBintr'" << name 
+                    << "' failed to add Pad Probe Handler");
                 return DSL_RESULT_INFER_HANDLER_ADD_FAILED;
             }
-            LOG_INFO("New Primary Infer '" << name << "' added Pad Probe Handler successfully");
+            LOG_INFO("New Primary InferBintr '" << name 
+                << "' added Pad Probe Handler successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Primary GIE '" << name << "' threw an exception adding Pad Probe Handler");
+            LOG_ERROR("Primary InferBintr '" << name 
+                << "' threw an exception adding Pad Probe Handler");
             return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
    
-    DslReturnType Services::PrimaryInferPphRemove(const char* name, const char* handler, uint pad) 
+    DslReturnType Services::InferPrimaryPphRemove(const char* name, const char* handler, uint pad) 
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -279,7 +358,7 @@ namespace DSL
 
             if (pad > DSL_PAD_SRC)
             {
-                LOG_ERROR("Invalid Pad type = " << pad << " for Primary GIE '" << name << "'");
+                LOG_ERROR("Invalid Pad type = " << pad << " for Primary InferBintr '" << name << "'");
                 return DSL_RESULT_PPH_PAD_TYPE_INVALID;
             }
 
@@ -287,15 +366,15 @@ namespace DSL
             if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], pad))
             {
                 LOG_ERROR("Pad Probe Handler '" << handler 
-                    << "' is not a child of Primary GIE '" << name << "'");
+                    << "' is not a child of Primary InferBintr '" << name << "'");
                 return DSL_RESULT_INFER_HANDLER_REMOVE_FAILED;
             }
-            LOG_INFO("New Primary Infer '" << name << "' added Pad Probe Handler successfully");
+            LOG_INFO("New Primary InferBintr '" << name << "' added Pad Probe Handler successfully");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Primary GIE '" << name << "' threw an exception removing Pad Probe Handler");
+            LOG_ERROR("Primary InferBintr '" << name << "' threw an exception removing Pad Probe Handler");
             return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
@@ -316,22 +395,24 @@ namespace DSL
                 
             if (!pInferBintr->SetRawOutputEnabled(enabled, path))
             {
-                LOG_ERROR("GIE '" << name << "' failed to enable raw output");
+                LOG_ERROR("InferBintr '" << name << "' failed to enable raw output");
                 return DSL_RESULT_INFER_OUTPUT_DIR_DOES_NOT_EXIST;
             }
-            LOG_INFO("Infer '" << name << "' set Raw Output Enabled = "
+            LOG_INFO("InferBintr '" << name << "' set Raw Output Enabled = "
                 << " successfully");
                 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("GIE '" << name << "' threw exception on raw output enabled set");
+            LOG_ERROR("InferBintr '" << name 
+                << "' threw exception on raw output enabled set");
             return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::InferConfigFileGet(const char* name, const char** inferConfigFile)
+    DslReturnType Services::InferConfigFileGet(const char* name, 
+        const char** inferConfigFile)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -346,14 +427,14 @@ namespace DSL
 
             *inferConfigFile = pInferBintr->GetInferConfigFile();
             
-            LOG_INFO("Infer '" << name << "' returned Config File = '"
+            LOG_INFO("InferBintr '" << name << "' returned Config File = '"
                 << *inferConfigFile << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("GIE '" << name << "' threw exception on Infer Config file get");
+            LOG_ERROR("InferBintr '" << name << "' threw exception on Infer Config file get");
             return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
@@ -373,22 +454,23 @@ namespace DSL
 
             if (!pInferBintr->SetInferConfigFile(inferConfigFile))
             {
-                LOG_ERROR("GIE '" << name << "' failed to set the Infer Config file");
+                LOG_ERROR("InferBintr '" << name 
+                    << "' failed to set the Infer Config file");
                 return DSL_RESULT_INFER_SET_FAILED;
             }
-            LOG_INFO("Infer '" << name << "' set Config File = '"
+            LOG_INFO("InferBintr '" << name << "' set Config File = '"
                 << inferConfigFile << "' successfully");
                 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("GIE '" << name << "' threw exception on Infer Config file get");
+            LOG_ERROR("InferBintr '" << name << "' threw exception on Infer Config file get");
             return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::GieModelEngineFileGet(const char* name, const char** modelEngineFile)
+    DslReturnType Services::InferGieModelEngineFileGet(const char* name, const char** modelEngineFile)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -403,19 +485,21 @@ namespace DSL
 
             *modelEngineFile = pGieBintr->GetModelEngineFile();
 
-            LOG_INFO("GIE Infer '" << name << "' returned Model Engine File = '"
+            LOG_INFO("GIE InferBintr '" << name << "' returned Model Engine File = '"
                 << *modelEngineFile << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("GIE '" << name << "' threw exception on Model Engine File get");
+            LOG_ERROR("GIE InferBintr '" << name 
+                << "' threw exception on Model Engine File get");
             return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::GieModelEngineFileSet(const char* name, const char* modelEngineFile)
+    DslReturnType Services::InferGieModelEngineFileSet(const char* name, 
+        const char* modelEngineFile)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -430,17 +514,89 @@ namespace DSL
 
             if (!pGieBintr->SetModelEngineFile(modelEngineFile))
             {
-                LOG_ERROR("GIE '" << name << "' failed to set the Model Engine file");
+                LOG_ERROR("GIE InferBintr '" << name 
+                    << "' failed to set the Model Engine file");
                 return DSL_RESULT_INFER_SET_FAILED;
             }
-            LOG_INFO("GIE Infer '" << name << "' set Model Engine File = '"
+            LOG_INFO("GIE InferBintr '" << name << "' set Model Engine File = '"
                 << modelEngineFile << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("GIE '" << name << "' threw exception on Model Engine file get");
+            LOG_ERROR("GIE InferBintr '" << name 
+                << "' threw exception on Model Engine file get");
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::InferGieTensorMetaSettingsGet(const char* name, 
+        boolean* inputEnabled, boolean* outputEnabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            
+            DSL_INFER_PTR pInferBintr = 
+                std::dynamic_pointer_cast<InferBintr>(m_components[name]);
+            
+            bool InputTensorMetaEnabled(false);
+            bool OutputTensorMetaEnabled(false);
+            
+            pInferBintr->GetTensorMetaSettings(&InputTensorMetaEnabled,
+                &OutputTensorMetaEnabled);
+            
+            *inputEnabled = InputTensorMetaEnabled;
+            *outputEnabled = OutputTensorMetaEnabled;
+
+            LOG_INFO("GIE InferBintr '" << name << "' returned input-tensor-meta = "
+                << *inputEnabled << " and output-tensor-meta = "
+                << *outputEnabled << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("InferBintr '" << name 
+                << "' threw an exception getting tensor-meta settings");
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::InferGieTensorMetaSettingsSet(const char* name, 
+        boolean inputEnabled, boolean outputEnabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            
+            DSL_INFER_PTR pInferBintr = 
+                std::dynamic_pointer_cast<InferBintr>(m_components[name]);
+
+            if (!pInferBintr->SetTensorMetaSettings(inputEnabled, outputEnabled))
+            {
+                LOG_ERROR("GIE InferBintr '" << name << "' failed to set new Interval");
+                return DSL_RESULT_INFER_SET_FAILED;
+            }
+            LOG_INFO("GIE InferBintr '" << name << "' set input-tensor-meta = "
+                << inputEnabled << " and output-tensor-meta = "
+                << outputEnabled << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("InferBintr '" << name 
+                << "' threw an exception setting Interval");
             return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
@@ -460,14 +616,15 @@ namespace DSL
 
             *interval = pInferBintr->GetInterval();
 
-            LOG_INFO("Infer '" << name << "' returned Interval = "
+            LOG_INFO("InferBintr '" << name << "' returned Interval = "
                 << *interval << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("GIE '" << name << "' threw an exception in Interval get");
+            LOG_ERROR("InferBintr '" << name 
+                << "' threw an exception in Interval get");
             return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
@@ -487,17 +644,18 @@ namespace DSL
 
             if (!pInferBintr->SetInterval(interval))
             {
-                LOG_ERROR("GIE '" << name << "' failed to set new Interval");
+                LOG_ERROR("InferBintr '" << name << "' failed to set new Interval");
                 return DSL_RESULT_INFER_SET_FAILED;
             }
-            LOG_INFO("Infer '" << name << "' set Interval = "
+            LOG_INFO("InferBintr '" << name << "' set Interval = "
                 << interval << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("GIE '" << name << "' threw an exception setting Interval");
+            LOG_ERROR("InferBintr '" << name 
+                << "' threw an exception setting Interval");
             return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
@@ -529,6 +687,22 @@ namespace DSL
         *inferId = -1;
         return DSL_RESULT_INFER_ID_NOT_FOUND;
     }
+
+    DslReturnType Services::_inferIdGet(const char* name, int* inferId)
+    {
+        LOG_FUNC();
+        
+        // called internally, do not lock mutex
+
+        if (m_inferIds.find(name) != m_inferIds.end())
+        {
+            *inferId = m_inferIds[name];
+            return DSL_RESULT_SUCCESS;
+        }
+        *inferId = -1;
+        return DSL_RESULT_INFER_ID_NOT_FOUND;
+    }
+
 
     DslReturnType Services::_inferNameSet(uint inferId, const char* name)
     {

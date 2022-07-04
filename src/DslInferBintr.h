@@ -138,7 +138,15 @@ namespace DSL
         bool SetModelEngineFile(const char* modelEngineFile);
         
         /**
-         * @brief sets the batch size for this Bintr
+         * @brief sets the batch size for this Bintr and sets m_batchSizeSetByClient
+         * to true. Once set, calls to SetBatchSize will have no effect.
+         * @param the new batchSize to use
+         */
+        bool SetBatchSizeByClient(uint batchSize);
+
+        /**
+         * @brief sets the batch size for this Bintr unless explicity set by
+         * the client. 
          * @param the new batchSize to use
          */
         bool SetBatchSize(uint batchSize);
@@ -160,7 +168,28 @@ namespace DSL
          * @return the current unique Id
          */
         int GetUniqueId();
-        
+
+        /**
+         * @brief Gets the current input and output tensor-meta setting in use 
+         * by this PrimaryGieBintr.
+         * @param[out] inputEnabled if true preprocessing input tensors attached as 
+         * metadata instead of preprocessing inside the plugin, false otherwise.
+         * @param[out] outputEnabled if true tensor outputs will be attached as 
+         * meta on GstBuffer.
+         */
+        void GetTensorMetaSettings(bool* inputEnabled, bool* outputEnabled);
+
+        /**
+         * @brief Gets the current input and output tensor-meta setting in use 
+         * by this PrimaryGieBintr.
+         * @param[in] input_enabled set to true preprocess input tensors attached as 
+         * metadata instead of preprocessing inside the plugin, false otherwise.
+         * @param[in] output_enabled set to true to attach tensor outputs as 
+         * meta on GstBuffer.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetTensorMetaSettings(bool inputEnabled, bool outputEnabled);
+
         /**
          * @brief Enables/disables raw NvDsInferLayerInfo to .bin file.
          * @param enabled true if info should be written to file, false to disable
@@ -180,16 +209,14 @@ namespace DSL
         void HandleOnRawOutputGeneratedCB(GstBuffer* pBuffer, NvDsInferNetworkInfo* pNetworkInfo, 
         NvDsInferLayerInfo *pLayersInfo, guint layersCount, guint batchSize);
         
+        /**
+         * @brief static list of unique Infer plugin IDs to be used/recycled by all
+         * InferBintrs ctor/dtor
+         */
+        static std::list<uint> s_uniqueIds;
 
     protected:
     
-        /**
-         * @brief helper function to generate a consistant Unique ID from string name
-         * @param name string to generate the Unique ID from
-         * @return numerical Unique ID
-         */
-        int CreateUniqueIdFromName(const char* name);
-
         /**
          * @breif either DSL_INFER_TYPE_GIE or DSL_INFER_TYPE_TIS
          */
@@ -204,6 +231,11 @@ namespace DSL
          * @brief pathspec to the model engine file used by this InferBintr
          */
         std::string m_modelEngineFile;
+        
+        /**
+         * @brief true if Client explicity set by client, false by default.
+         */
+        bool m_batchSizeSetByClient;
         
         /**
          * @brief current infer interval for the InferBintr
@@ -234,6 +266,18 @@ namespace DSL
          * @brief maintains the current frame number between callbacks
          */
         ulong m_rawOutputFrameNumber;
+        
+        /**
+         * @brief current input-temsor-meta enabled setting for this InferBintr.
+         * NOTE: only used by the GIE Binters at this time
+         */
+        bool m_inputTensorMetaEnabled;
+        
+        /**
+         * @brief current output-temsor-meta enabled setting for this InferBintr.
+         * NOTE: only used by the GIE Binters at this time
+         */
+        bool m_outputTensorMetaEnabled;
 
         /**
          * @brief Queue Elementr as Sink for this InferBintr
@@ -354,6 +398,7 @@ namespace DSL
          * @return true if successfully set, false otherwise.
          */
         bool SetGpuId(uint gpuId);
+        
     };
 
     // ***********************************************************************
