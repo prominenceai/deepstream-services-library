@@ -110,6 +110,10 @@ endif
 CFLAGS += `geos-config --cflags`	
 
 LIBS+= -L$(LIB_INSTALL_DIR) \
+	-L/usr/local/lib \
+	-lopencv_core \
+	-lopencv_imgproc \
+	-lopencv_highgui \
 	-laprutil-1 \
 	-lapr-1 \
 	-lX11 \
