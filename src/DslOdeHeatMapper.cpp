@@ -115,7 +115,7 @@ namespace DSL
             m_legendLeft = m_cols / 2 - m_pColorPalette->GetSize()/2*width;
             m_legendTop = (location == DSL_HEAT_MAP_LEGEND_LOCATION_TOP)
                 ? 1
-                : m_rows - 2;
+                : m_rows - 1 - height;
         }         
         if (location == DSL_HEAT_MAP_LEGEND_LOCATION_LEFT or
             location == DSL_HEAT_MAP_LEGEND_LOCATION_RIGHT)
@@ -157,8 +157,9 @@ namespace DSL
         getCoordinate(pObjectMeta, mapCoordinate);
 
         // determine the column and row that maps to the x, y coordinates
-        uint colPosition(mapCoordinate.x/m_gridRectWidth);
-        uint rowPosition(mapCoordinate.y/m_gridRectHeight);
+        // coordinates are 1-based, so subtract 1 pixel to keep within map.
+        uint colPosition((mapCoordinate.x-1)/m_gridRectWidth);
+        uint rowPosition((mapCoordinate.y-1)/m_gridRectHeight);
 
         // increment the running count of occurrences at this poisition
         m_heatMap[rowPosition][colPosition] += 1;
@@ -219,8 +220,8 @@ namespace DSL
             // and for each row, iterate through all columns.
             for (uint j=0; j < m_cols; j++)
             {
-                // if we have at least once occurrence at the current iteration
-                if (m_heatMap[i][j] > 1)
+                // if we have at least one occurrence at the current iteration
+                if (m_heatMap[i][j])
                 {
                     // Callculate the index into the color palette of size 10 as 
                     // a ratio of occurrences for the current position vs. the 

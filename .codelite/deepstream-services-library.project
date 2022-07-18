@@ -142,7 +142,6 @@
       <File Name="../test/api/DslTrackerApiTest.cpp"/>
       <File Name="../test/api/DslImageSourceApiTest.cpp"/>
       <File Name="../test/api/DslImageSourceBehaviorTest.cpp"/>
-      <File Name="../test/api/DslCrossTriggerExampleTest.cpp"/>
       <File Name="../test/api/DslOdeAccumulatorApiTest.cpp"/>
       <File Name="../test/api/DslOdeHeatMapperApiTest.cpp"/>
       <File Name="../test/api/DslPreprocApiText.cpp"/>
@@ -269,6 +268,7 @@
       <File Name="../examples/tkinter/tkapp_window.py"/>
     </VirtualDirectory>
     <File Name="../test/api/DslInfoApiTest.cpp.tmp"/>
+    <File Name="../test/api/DslCrossTriggerExampleTest.cpp"/>
   </VirtualDirectory>
   <Settings Type="Dynamic Library">
     <GlobalSettings>
