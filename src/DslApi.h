@@ -5841,17 +5841,17 @@ DslReturnType dsl_branch_component_remove_many(const wchar_t* name,
 
 /**
  * @brief creates a new, uniquely named Pipeline
- * @param[in] pipeline unique name for the new Pipeline
+ * @param[in] name unique name for the new Pipeline
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_new(const wchar_t* pipeline);
+DslReturnType dsl_pipeline_new(const wchar_t* name);
 
 /**
- * @brief creates a new Pipeline for each name pipelines array
- * @param[in] pipelines a NULL terminated array of unique Pipeline names
+ * @brief creates a new Pipeline for each name in the names array
+ * @param[in] names a NULL terminated array of unique Pipeline names
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_new_many(const wchar_t** pipelines);
+DslReturnType dsl_pipeline_new_many(const wchar_t** names);
 
 /**
  * @brief creates a new Pipeline and adds a list of components
@@ -5859,26 +5859,26 @@ DslReturnType dsl_pipeline_new_many(const wchar_t** pipelines);
  * @param[in] components NULL terminated array of component names to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_new_component_add_many(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_new_component_add_many(const wchar_t* name, 
     const wchar_t** components);
 
 /**
  * @brief deletes a Pipeline object by name.
- * @param[in] pipeline unique name of the Pipeline to delete.
+ * @param[in] name unique name of the Pipeline to delete.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
  * @info any/all components owned by the pipeline move
  * to a state of not-in-use.
  */
-DslReturnType dsl_pipeline_delete(const wchar_t* pipeline);
+DslReturnType dsl_pipeline_delete(const wchar_t* name);
 
 /**
  * @brief deletes a NULL terminated list of pipelines
- * @param[in] pipelines NULL terminated list of names to delete
+ * @param[in] names NULL terminated list of names to delete
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  * @info any/all components owned by the pipelines move
  * to a state of not-in-use.
  */
-DslReturnType dsl_pipeline_delete_many(const wchar_t** pipelines);
+DslReturnType dsl_pipeline_delete_many(const wchar_t** names);
 
 /**
  * @brief deletes all pipelines in memory
@@ -5896,11 +5896,11 @@ uint dsl_pipeline_list_size();
 
 /**
  * @brief adds a single components to a Pipeline 
- * @param[in] pipeline name of the pipeline to update
+ * @param[in] name name of the pipeline to update
  * @param[in] component component names to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_component_add(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_component_add(const wchar_t* name, 
     const wchar_t* component);
 
 /**
@@ -5909,370 +5909,405 @@ DslReturnType dsl_pipeline_component_add(const wchar_t* pipeline,
  * @param[in] components NULL terminated array of component names to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_component_add_many(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_component_add_many(const wchar_t* name, 
     const wchar_t** components);
 
 /**
  * @brief removes a Component from a Pipeline
- * @param[in] pipeline name of the Pipepline to update
+ * @param[in] name name of the Pipepline to update
  * @param[in] component name of the Component to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_component_remove(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_component_remove(const wchar_t* name, 
     const wchar_t* component);
 
 /**
  * @brief removes a list of Components from a Pipeline
- * @param[in] pipeline name of the Pipeline to update
+ * @param[in] name name of the Pipeline to update
  * @param[in] components NULL terminated array of component names to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_component_remove_many(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_component_remove_many(const wchar_t* name, 
     const wchar_t** components);
 
 /**
  * @brief Queries a Pipeline's stream-muxer for its current NVIDIA buffer memory type.
- * @param[in] pipeline name of the pipeline to query.
+ * @param[in] name name of the pipeline to query.
  * @param[out] type one of the DSL_NVBUF_MEM constant values.
- * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_PIPELINE_RESULT on failure. 
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
-DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_get(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_get(const wchar_t* name, 
     uint* type);
 
 /**
  * @brief Updates a Pipeline's stream-muxer with a new NVIDIA memory type to use
- * @param[in] pipeline name of the pipeline to update.
+ * @param[in] name name of the pipeline to update.
  * @param[in] type one of the DSL_NVBUF_MEM constant values.
- * @return DSL_RESULT_SUCCESS on successful update, one of DSL_RESULT_PIPELINE_RESULT on failure. 
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
-DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name, 
     uint type);
     
 /**
- * @brief Queryies the Pipeline's stream-muxer for its current batch properties
- * @param[in] pipeline name of the pipeline to query
+ * @brief Queryies the named Pipeline's stream-muxer for its current batch properties
+ * @param[in] name name of the pipeline to query
  * @param[out] batchSize the current batch size in use
  * @param[out] batchTimeout the current batch timeout in use
- * @return DSL_RESULT_SUCCESS on success, 
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
-DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name, 
     uint* batchSize, uint* batchTimeout);
 
 /**
- * @brief 
- * @param[in] pipeline name of the pipeline to update
- * @return DSL_RESULT_SUCCESS on success, 
+ * @brief Updates the named Pipeline's batch-size and batch-push-timeout properties
+ * @param[in] name name of the pipeline to update
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
-DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* name, 
     uint batchSize, uint batchTimeout);
 
 /**
- * @brief 
- * @param[in] pipeline name of the pipeline to query
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ * @brief Queries the named Pipeline's stream-muxer for its current output dimensions.
+ * @param[in] name name of the pipeline to query
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
-DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* name, 
     uint* width, uint* height);
 
 /**
- * @brief 
- * @param[in] pipeline name of the pipeline to update
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline, 
+ * @brief updates the named Pipeline's stream-muxer output dimensions.
+ * @param[in] name name of the pipeline to update
+  * @return DSL_RESULT_SUCCESS on successful update, one of 
+  * DSL_RESULT_PIPELINE_RESULT on failure. 
+*/
+DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* name, 
     uint width, uint height);
 
 /**
- * @brief returns the current setting, enabled/disabled, for the fixed-aspect-ratio 
- * attribute for the named Tiled Display
+ * @brief returns the current setting - enabled/disabled - for the Streammux padding
+ * property for the named Pipeline.
  * @param[in] name name of the Display to query
  * @param[out] enable true if the aspect ration is fixed, false if not
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name, boolean* enabled);
+DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name, 
+    boolean* enabled);
 
 /**
- * @brief updates the current setting - enabled/disabled - for the fixed-aspect-ratio 
- * attribute for the named Tiled Display
- * @param[in] name name of the Display to update
+ * @brief updates the current setting - enabled/disabled - for Streammux padding
+ * property for the name Pipeline.
+ * @param[in] name name of the Pipeline to update
  * @param[out] enable set true to fix the aspect ratio, false to disable
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
-DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* name, boolean enabled);
+DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* name, 
+    boolean enabled);
 
 /**
- * @brief returns the current num-surfaces-per-frame stream-muxer setting for the named Pipeline
- * @param[in] name name of the Display to query
- * @param[out] num number of surfaces per frame [1..4]
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @brief returns the current num-surfaces-per-frame stream-muxer setting 
+ * for the named Pipeline.
+ * @param[in] name name of the Pipeline to query.
+ * @param[out] num number of surfaces per frame [1..4].
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
-DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_get(const wchar_t* name, uint* num);
+DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_get(
+    const wchar_t* name, uint* num);
 
 /**
- * @brief sets the current num-surfaces-per-frame stream-muxer setting for the named Pipeline
- * @param[in] name name of the Display to update
+ * @brief sets the current num-surfaces-per-frame stream-muxer setting 
+ * for the named Pipeline.
+ * @param[in] name name of the Pipeline to update
  * @param[in] num number of surfaces per frame [1..4]
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
-DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_set(const wchar_t* name, uint num);
+DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_set(
+    const wchar_t* name, uint num);
+
+/**
+ * @brief adds a named Tiler to a named Pipeline's Stream-Muxer output.
+ * The Stream-Muxer can have at most one Tiler.
+ * @param[in] name name of the Pipeline to update.
+ * @param[in] tiler name of the Tiler to add.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_tiler_add(const wchar_t* name, 
+    const wchar_t* tiler);
+
+/**
+ * @brief removes a Tiler from a named Pipeline's Stream-Muxer output,
+ * previously added with dsl_pipeline_streammux_tiler_add
+ * @param[in] name name of the Pipeline to update
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_tiler_remove(const wchar_t* name);
 
 /**
  * @brief pauses a Pipeline if in a state of playing
- * @param[in] pipeline unique name of the Pipeline to pause.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT.
+ * @param[in] name unique name of the Pipeline to pause.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_pause(const wchar_t* pipeline);
+DslReturnType dsl_pipeline_pause(const wchar_t* name);
 
 /**
  * @brief plays a Pipeline if in a state of paused
- * @param[in] pipeline unique name of the Pipeline to play.
+ * @param[in] name unique name of the Pipeline to play.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_play(const wchar_t* pipeline);
+DslReturnType dsl_pipeline_play(const wchar_t* name);
 
 /**
  * @brief Stops a Pipeline if in a state of paused or playing
- * @param[in] pipeline unique name of the Pipeline to stop.
+ * @param[in] name unique name of the Pipeline to stop.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_stop(const wchar_t* pipeline);
+DslReturnType dsl_pipeline_stop(const wchar_t* name);
 
 /**
  * @brief gets the current state of a Pipeline
- * @param[in] pipeline unique name of the Pipeline to query
+ * @param[in] name unique name of the Pipeline to query
  * @param[out] state one of the DSL_STATE_* values representing the current state
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_state_get(const wchar_t* pipeline, uint* state);
+DslReturnType dsl_pipeline_state_get(const wchar_t* name, uint* state);
 
 /**
  * @brief gets the type of source(s) in use, live, or non-live 
- * @param pipeline unique name of the Pipeline to query
+ * @param name unique name of the Pipeline to query
  * @param is_live true if the Pipeline's sources are live, false otherwise
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_is_live(const wchar_t* pipeline, boolean* is_live);
+DslReturnType dsl_pipeline_is_live(const wchar_t* name, boolean* is_live);
 
 /**
  * @brief dumps a Pipeline's graph to dot file.
- * @param[in] pipeline unique name of the Pipeline to dump
+ * @param[in] name unique name of the Pipeline to dump
  * @param[in] filename name of the file without extention.
  * The caller is responsible for providing a correctly formated filename
  * The diretory location is specified by the GStreamer debug 
  * environment variable GST_DEBUG_DUMP_DOT_DIR
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */ 
-DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* pipeline, wchar_t* filename);
+DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* name, wchar_t* filename);
 
 /**
  * @brief dumps a Pipeline's graph to dot file prefixed
  * with the current timestamp.  
- * @param[in] pipeline unique name of the Pipeline to dump
+ * @param[in] name unique name of the Pipeline to dump
  * @param[in] filename name of the file without extention.
  * The caller is responsible for providing a correctly formated filename
  * The diretory location is specified by the GStreamer debug 
  * environment variable GST_DEBUG_DUMP_DOT_DIR
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */ 
-DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* pipeline, wchar_t* filename);
+DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* name, wchar_t* filename);
 
 /**
  * @brief adds a callback to be notified on End of Stream (EOS)
- * @param[in] pipeline name of the pipeline to update
+ * @param[in] name name of the pipeline to update
  * @param[in] listener pointer to the client's function to call on EOS
  * @param[in] client_data opaque pointer to client data passed into the listener function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_eos_listener_add(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_eos_listener_add(const wchar_t* name, 
     dsl_eos_listener_cb listener, void* client_data);
 
 /**
  * @brief removes a callback previously added with dsl_pipeline_eos_listener_add
- * @param[in] pipeline name of the pipeline to update
+ * @param[in] name name of the pipeline to update
  * @param[in] listener pointer to the client's function to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_eos_listener_remove(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_eos_listener_remove(const wchar_t* name, 
     dsl_eos_listener_cb listener);
 
 /**
  * @brief Adds a callback to be notified on the event of an error message received by
  * the Pipeline's bus-watcher. The callback is called from the mainloop context allowing
  * clients to change the state of, and components within, the Pipeline
- * @param[in] pipeline name of the pipeline to update
+ * @param[in] name name of the pipeline to update
  * @param[in] handler pointer to the client's callback function to add
  * @param[in] client_data opaque pointer to client data passed back to the handler function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_error_message_handler_add(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_error_message_handler_add(const wchar_t* name, 
     dsl_error_message_handler_cb handler, void* client_data);
 
 /**
  * @brief Removes a callback previously added with dsl_pipeline_error_message_handler_add
- * @param[in] pipeline name of the pipeline to update
+ * @param[in] name name of the pipeline to update
  * @param[in] handler pointer to the client's callback function to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_error_message_handler_remove(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_error_message_handler_remove(const wchar_t* name, 
     dsl_error_message_handler_cb handler);
 
 /**
  * @brief Gets the last error message received by the Pipeline's bus watcher
- * @param[in] pipeline name of the pipeline to query
+ * @param[in] name name of the pipeline to query
  * @param[out] source name of the GST object that was the source of the error message
  * @param[out] message error message sent from the source object
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_error_message_last_get(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_error_message_last_get(const wchar_t* name, 
     const wchar_t** source, const wchar_t** message);
 
 /**
  * @brief adds a callback to be notified on change of Pipeline state
- * @param[in] pipeline name of the pipeline to update
+ * @param[in] name name of the pipeline to update
  * @param[in] listener pointer to the client's function to call on state change
  * @param[in] client_data opaque pointer to client data passed into the listener function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* name, 
     dsl_state_change_listener_cb listener, void* client_data);
 
 /**
  * @brief removes a callback previously added with dsl_pipeline_state_change_listener_add
- * @param[in] pipeline name of the pipeline to update
+ * @param[in] name name of the pipeline to update
  * @param[in] listener pointer to the client's function to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* name, 
     dsl_state_change_listener_cb listener);
 
 /**
  * @brief gets the Pipeline's current XWindow handle. The handle will be NULL until one
  * is created on Pipeline play, or provided prior to play by calling xwindow handle set.
- * @param[in] pipeline name of the Pipeline to query
+ * @param[in] name name of the Pipeline to query
  * @param[out] xwindow XWindow handle currently in use. NULL if none 
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_PIPELINE_RESULT otherwise.
  */
-DslReturnType dsl_pipeline_xwindow_handle_get(const wchar_t* pipeline, uint64_t* xwindow);
+DslReturnType dsl_pipeline_xwindow_handle_get(const wchar_t* name, uint64_t* xwindow);
 
 /**
  * @brief gets the Pipeline's current XWindow handle. The handle will be NULL until one
  * is created on Pipeline play, or provided prior to play by calling xwindow handle set.
- * @param[in] pipeline name of the Pipeline to update
+ * @param[in] name name of the Pipeline to update
  * @param[in] xwindow XWindow handle to use on Pipeline play. Requires a Window Sink
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_PIPELINE_RESULT otherwise.
  */
-DslReturnType dsl_pipeline_xwindow_handle_set(const wchar_t* pipeline, uint64_t window);
+DslReturnType dsl_pipeline_xwindow_handle_set(const wchar_t* name, uint64_t window);
 
 /**
  * @brief clears the Pipeline's XWindow
- * @param[in] pipeline name of the pipeline to update
+ * @param[in] name name of the pipeline to update
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
  */
-DslReturnType dsl_pipeline_xwindow_clear(const wchar_t* pipeline);
+DslReturnType dsl_pipeline_xwindow_clear(const wchar_t* name);
 
 /**
  * @brief destroys the Pipeline's XWindow if one exists and was not provided by the
  * client with an earlier call to dsl_pipeline_xwindow_handle_set
- * @param[in] pipeline name of the pipeline to update
+ * @param[in] name name of the pipeline to update
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
  */
-DslReturnType dsl_pipeline_xwindow_destroy(const wchar_t* pipeline);
+DslReturnType dsl_pipeline_xwindow_destroy(const wchar_t* name);
 
 /**
  * @brief gets the current Pipeline XWindow Offsets. X and Y offsets will return 0
  * prior to window creation which occurs when the Pipeline is played. 
- * @param[in] pipeline name of the pipeline to query
+ * @param[in] name name of the pipeline to query
  * @param[out] x_offset offset in the x direction of the XWindow in pixels
  * @param[out] x_offset offset in the Y direction of the XWindow in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
  */
-DslReturnType dsl_pipeline_xwindow_offsets_get(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_xwindow_offsets_get(const wchar_t* name, 
     uint* x_offset, uint* y_offset);
 
 /**
  * @brief gets the current Pipeline XWindow dimensions. 
- * @param[in] pipeline name of the pipeline to query
+ * @param[in] name name of the pipeline to query
  * @param[out] width width of the XWindow in pixels
  * @param[out] heigth height of the Window in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
  */
-DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* name, 
     uint* width, uint* height);
 
 /**
  * @brief gets the current full-screen-enabled setting for the Pipeline's XWindow
- * @param[in] pipeline name of the pipeline to query
+ * @param[in] name name of the pipeline to query
  * @param[out] enabled true if full-screen-mode is currently enabled, false otherwise 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
  */
-DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_get(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_get(const wchar_t* name, 
     boolean* enabled);
 
 /**
  * @brief sets the full-screen-enabled setting for the Pipeline's XWindow
- * @param[in] pipeline name of the pipeline to update
+ * @param[in] name name of the pipeline to update
  * @param[in] enabled if true, sets the XWindow to full-screen on creation.
  * The service will fail if called after the XWindow has been created.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
  */
-DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_set(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_set(const wchar_t* name, 
     boolean enabled);
 
 /**
  * @brief adds a callback to be notified on XWindow KeyRelease Event
- * @param[in] pipeline name of the pipeline to update
+ * @param[in] name name of the pipeline to update
  * @param[in] handler pointer to the client's function to handle XWindow key events.
  * @param[in] client_data opaque pointer to client data passed into the handler function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_xwindow_key_event_handler_add(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_xwindow_key_event_handler_add(const wchar_t* name, 
     dsl_xwindow_key_event_handler_cb handler, void* client_data);
 
 /**
  * @brief removes a callback previously added with dsl_pipeline_xwindow_key_event_handler_add
- * @param[in] pipeline name of the pipeline to update
+ * @param[in] name name of the pipeline to update
  * @param[in] handler pointer to the client's function to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_xwindow_key_event_handler_remove(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_xwindow_key_event_handler_remove(const wchar_t* name, 
     dsl_xwindow_key_event_handler_cb handler);
 
 /**
  * @brief adds a callback to be notified on XWindow ButtonPress Event
- * @param[in] pipeline name of the pipeline to update
+ * @param[in] name name of the pipeline to update
  * @param[in] handler pointer to the client's function to call to handle XWindow button events.
  * @param[in] client_data opaque pointer to client data passed into the handler function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_xwindow_button_event_handler_add(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_xwindow_button_event_handler_add(const wchar_t* name, 
     dsl_xwindow_button_event_handler_cb handler, void* client_data);
 
 /**
  * @brief removes a callback previously added with dsl_pipeline_xwindow_button_event_handler_add
- * @param[in] pipeline name of the pipeline to update
+ * @param[in] name name of the pipeline to update
  * @param[in] handler pointer to the client's function to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const wchar_t* name, 
     dsl_xwindow_button_event_handler_cb handler);
 
 /**
  * @brief adds a callback to be notified on XWindow Delete Message Event
- * @param[in] pipeline name of the pipeline to update
+ * @param[in] name name of the pipeline to update
  * @param[in] handler pointer to the client's function to call to handle XWindow Delete event.
  * @param[in] client_data opaque pointer to client data passed into the handler function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* name, 
     dsl_xwindow_delete_event_handler_cb handler, void* client_data);
 
 /**
  * @brief removes a callback previously added with dsl_pipeline_xwindow_delete_event_handler_add
- * @param[in] pipeline name of the pipeline to update
+ * @param[in] name name of the pipeline to update
  * @param[in] handler pointer to the client's function to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* name, 
     dsl_xwindow_delete_event_handler_cb handler);
 
 /**

@@ -4849,7 +4849,6 @@ def dsl_pipeline_streammux_nvbuf_mem_type_set(name, type):
     result = _dsl.dsl_pipeline_streammux_nvbuf_mem_type_set(name, type)
     return int(result)
 
-
 ##
 ## dsl_pipeline_streammux_batch_properties_get()
 ##
@@ -4913,6 +4912,26 @@ _dsl.dsl_pipeline_streammux_padding_set.restype = c_uint
 def dsl_pipeline_streammux_padding_set(name, enabled):
     global _dsl
     result = _dsl.dsl_pipeline_streammux_padding_set(name, enabled)
+    return int(result)
+
+##
+## dsl_pipeline_streammux_tiler_add()
+##
+_dsl.dsl_pipeline_streammux_tiler_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_pipeline_streammux_tiler_add.restype = c_uint
+def dsl_pipeline_streammux_tiler_add(name, tiler):
+    global _dsl
+    result = _dsl.dsl_pipeline_streammux_tiler_add(name, tiler)
+    return int(result)
+
+##
+## dsl_pipeline_streammux_tiler_remove()
+##
+_dsl.dsl_pipeline_streammux_tiler_remove.argtypes = [c_wchar_p]
+_dsl.dsl_pipeline_streammux_tiler_remove.restype = c_uint
+def dsl_pipeline_streammux_tiler_remove(name):
+    global _dsl
+    result = _dsl.dsl_pipeline_streammux_tiler_remove(name)
     return int(result)
 
 ##

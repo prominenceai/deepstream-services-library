@@ -6032,26 +6032,26 @@ DslReturnType dsl_branch_component_remove_many(const wchar_t* name,
     return DSL_RESULT_SUCCESS;
 }
 
-DslReturnType dsl_pipeline_new(const wchar_t* pipeline)
+DslReturnType dsl_pipeline_new(const wchar_t* name)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineNew(cstrPipeline.c_str());
+    return DSL::Services::GetServices()->PipelineNew(cstrName.c_str());
 }
 
-DslReturnType dsl_pipeline_new_component_add_many(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_new_component_add_many(const wchar_t* name, 
     const wchar_t** components)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(components);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
     
-    DslReturnType retval = DSL::Services::GetServices()->PipelineNew(cstrPipeline.c_str());
+    DslReturnType retval = DSL::Services::GetServices()->PipelineNew(cstrName.c_str());
     if (retval != DSL_RESULT_SUCCESS)
     {
         return retval;
@@ -6060,7 +6060,7 @@ DslReturnType dsl_pipeline_new_component_add_many(const wchar_t* pipeline,
     {
         std::wstring wstrComponent(*component);
         std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
-        DslReturnType retval = DSL::Services::GetServices()->PipelineComponentAdd(cstrPipeline.c_str(), cstrComponent.c_str());
+        DslReturnType retval = DSL::Services::GetServices()->PipelineComponentAdd(cstrName.c_str(), cstrComponent.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -6069,15 +6069,15 @@ DslReturnType dsl_pipeline_new_component_add_many(const wchar_t* pipeline,
     return DSL_RESULT_SUCCESS;
 }
 
-DslReturnType dsl_pipeline_new_many(const wchar_t** pipelines)
+DslReturnType dsl_pipeline_new_many(const wchar_t** names)
 {
-    RETURN_IF_PARAM_IS_NULL(pipelines);
+    RETURN_IF_PARAM_IS_NULL(names);
 
-    for (const wchar_t** pipeline = pipelines; *pipeline; pipeline++)
+    for (const wchar_t** name = names; *name; name++)
     {
-        std::wstring wstrPipeline(*pipeline);
-        std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
-        DslReturnType retval = DSL::Services::GetServices()->PipelineNew(cstrPipeline.c_str());
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->PipelineNew(cstrName.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -6086,25 +6086,25 @@ DslReturnType dsl_pipeline_new_many(const wchar_t** pipelines)
     return DSL_RESULT_SUCCESS;
 }
 
-DslReturnType dsl_pipeline_delete(const wchar_t* pipeline)
+DslReturnType dsl_pipeline_delete(const wchar_t* name)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineDelete(cstrPipeline.c_str());
+    return DSL::Services::GetServices()->PipelineDelete(cstrName.c_str());
 }
 
-DslReturnType dsl_pipeline_delete_many(const wchar_t** pipelines)
+DslReturnType dsl_pipeline_delete_many(const wchar_t** names)
 {
-    RETURN_IF_PARAM_IS_NULL(pipelines);
+    RETURN_IF_PARAM_IS_NULL(names);
 
-    for (const wchar_t** pipeline = pipelines; *pipeline; pipeline++)
+    for (const wchar_t** name = names; *name; name++)
     {
-        std::wstring wstrPipeline(*pipeline);
-        std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
-        DslReturnType retval = DSL::Services::GetServices()->PipelineDelete(cstrPipeline.c_str());
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->PipelineDelete(cstrName.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -6123,34 +6123,34 @@ uint dsl_pipeline_list_size()
     return DSL::Services::GetServices()->PipelineListSize();
 }
 
-DslReturnType dsl_pipeline_component_add(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_component_add(const wchar_t* name, 
     const wchar_t* component)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(component);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrComponent(component);
     std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
 
-    return DSL::Services::GetServices()->PipelineComponentAdd(cstrPipeline.c_str(), cstrComponent.c_str());
+    return DSL::Services::GetServices()->PipelineComponentAdd(cstrName.c_str(), cstrComponent.c_str());
 }
 
-DslReturnType dsl_pipeline_component_add_many(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_component_add_many(const wchar_t* name, 
     const wchar_t** components)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(components);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
     
     for (const wchar_t** component = components; *component; component++)
     {
         std::wstring wstrComponent(*component);
         std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
-        DslReturnType retval = DSL::Services::GetServices()->PipelineComponentAdd(cstrPipeline.c_str(), cstrComponent.c_str());
+        DslReturnType retval = DSL::Services::GetServices()->PipelineComponentAdd(cstrName.c_str(), cstrComponent.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -6159,34 +6159,34 @@ DslReturnType dsl_pipeline_component_add_many(const wchar_t* pipeline,
     return DSL_RESULT_SUCCESS;
 }
 
-DslReturnType dsl_pipeline_component_remove(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_component_remove(const wchar_t* name, 
     const wchar_t* component)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(component);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrComponent(component);
     std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
 
-    return DSL::Services::GetServices()->PipelineComponentRemove(cstrPipeline.c_str(), cstrComponent.c_str());
+    return DSL::Services::GetServices()->PipelineComponentRemove(cstrName.c_str(), cstrComponent.c_str());
 }
 
-DslReturnType dsl_pipeline_component_remove_many(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_component_remove_many(const wchar_t* name, 
     const wchar_t** components)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(components);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
     
     for (const wchar_t** component = components; *component; component++)
     {
         std::wstring wstrComponent(*component);
         std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
-        DslReturnType retval = DSL::Services::GetServices()->PipelineComponentRemove(cstrPipeline.c_str(), cstrComponent.c_str());
+        DslReturnType retval = DSL::Services::GetServices()->PipelineComponentRemove(cstrName.c_str(), cstrComponent.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -6195,388 +6195,426 @@ DslReturnType dsl_pipeline_component_remove_many(const wchar_t* pipeline,
     return DSL_RESULT_SUCCESS;
 }
 
-DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_get(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_get(const wchar_t* name, 
     uint* type)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(type);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxNvbufMemTypeGet(cstrPipeline.c_str(),
+    return DSL::Services::GetServices()->PipelineStreamMuxNvbufMemTypeGet(cstrName.c_str(),
         type);
 }
 
-DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name, 
     uint type)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxNvbufMemTypeSet(cstrPipeline.c_str(),
+    return DSL::Services::GetServices()->PipelineStreamMuxNvbufMemTypeSet(cstrName.c_str(),
         type);
 }
 
-DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name, 
     uint* batchSize, uint* batchTimeout)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(batchSize);
     RETURN_IF_PARAM_IS_NULL(batchTimeout);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxBatchPropertiesGet(cstrPipeline.c_str(),
+    return DSL::Services::GetServices()->PipelineStreamMuxBatchPropertiesGet(cstrName.c_str(),
         batchSize, batchTimeout);
 }
 
-DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* name, 
     uint batchSize, uint batchTimeout)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxBatchPropertiesSet(cstrPipeline.c_str(),
-        batchSize, batchTimeout);
+    return DSL::Services::GetServices()->PipelineStreamMuxBatchPropertiesSet(
+        cstrName.c_str(), batchSize, batchTimeout);
 }
 
-DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* name, 
     uint* width, uint* height)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(width);
     RETURN_IF_PARAM_IS_NULL(height);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxDimensionsGet(cstrPipeline.c_str(),
-        width, height);
+    return DSL::Services::GetServices()->PipelineStreamMuxDimensionsGet(
+        cstrName.c_str(), width, height);
 }
 
-DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* name, 
     uint width, uint height)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxDimensionsSet(cstrPipeline.c_str(),
-        width, height);
+    return DSL::Services::GetServices()->PipelineStreamMuxDimensionsSet(
+        cstrName.c_str(), width, height);
 }    
 
-DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* pipeline, boolean* enabled)
+DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name, 
+    boolean* enabled)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(enabled);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxPaddingGet(cstrPipeline.c_str(), enabled);
+    return DSL::Services::GetServices()->PipelineStreamMuxPaddingGet(
+        cstrName.c_str(), enabled);
 }
 
-DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* pipeline, boolean enabled)
+DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* name, 
+    boolean enabled)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxPaddingSet(cstrPipeline.c_str(), enabled);
+    return DSL::Services::GetServices()->PipelineStreamMuxPaddingSet(
+        cstrName.c_str(), enabled);
 }
 
-DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_get(const wchar_t* pipeline, uint* num)
+DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_get(
+    const wchar_t* name, uint* num)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(num);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxNumSurfacesPerFrameGet(cstrPipeline.c_str(), num);
+    return DSL::Services::GetServices()->PipelineStreamMuxNumSurfacesPerFrameGet(
+        cstrName.c_str(), num);
 }
 
-DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_set(const wchar_t* pipeline, uint num)
+DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_set(
+    const wchar_t* name, uint num)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxNumSurfacesPerFrameSet(cstrPipeline.c_str(), num);
+    return DSL::Services::GetServices()->PipelineStreamMuxNumSurfacesPerFrameSet(
+        cstrName.c_str(), num);
 }
 
-DslReturnType dsl_pipeline_xwindow_handle_get(const wchar_t* pipeline, uint64_t* xwindow)
+DslReturnType dsl_pipeline_streammux_tiler_add(const wchar_t* name, 
+    const wchar_t* tiler)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(tiler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrTiler(tiler);
+    std::string cstrTiler(wstrTiler.begin(), wstrTiler.end());
+
+    return DSL::Services::GetServices()->PipelineStreamMuxTilerAdd(
+        cstrName.c_str(), cstrTiler.c_str());
+}
+    
+DslReturnType dsl_pipeline_streammux_tiler_remove(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreamMuxTilerRemove(
+        cstrName.c_str());
+}
+    
+DslReturnType dsl_pipeline_xwindow_handle_get(const wchar_t* name, 
+    uint64_t* xwindow)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(xwindow);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineXWindowHandleGet(cstrPipeline.c_str(), xwindow);
+    return DSL::Services::GetServices()->PipelineXWindowHandleGet(
+        cstrName.c_str(), xwindow);
 }
 
-DslReturnType dsl_pipeline_xwindow_handle_set(const wchar_t* pipeline, uint64_t xwindow)
+DslReturnType dsl_pipeline_xwindow_handle_set(const wchar_t* name, 
+    uint64_t xwindow)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineXWindowHandleSet(cstrPipeline.c_str(), xwindow);
+    return DSL::Services::GetServices()->PipelineXWindowHandleSet(
+        cstrName.c_str(), xwindow);
 }
 
-DslReturnType dsl_pipeline_xwindow_clear(const wchar_t* pipeline)
+DslReturnType dsl_pipeline_xwindow_clear(const wchar_t* name)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineXWindowClear(cstrPipeline.c_str());
+    return DSL::Services::GetServices()->PipelineXWindowClear(cstrName.c_str());
 }
  
-DslReturnType dsl_pipeline_xwindow_destroy(const wchar_t* pipeline)
+DslReturnType dsl_pipeline_xwindow_destroy(const wchar_t* name)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineXWindowDestroy(cstrPipeline.c_str());
+    return DSL::Services::GetServices()->PipelineXWindowDestroy(cstrName.c_str());
 }
  
-DslReturnType dsl_pipeline_xwindow_offsets_get(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_xwindow_offsets_get(const wchar_t* name, 
     uint* x_offset, uint* y_offset)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(x_offset);
     RETURN_IF_PARAM_IS_NULL(y_offset);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineXWindowOffsetsGet(cstrPipeline.c_str(),
+    return DSL::Services::GetServices()->PipelineXWindowOffsetsGet(cstrName.c_str(),
         x_offset, y_offset);
 }
 
-DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* name, 
     uint* width, uint* height)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(width);
     RETURN_IF_PARAM_IS_NULL(height);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineXWindowDimensionsGet(cstrPipeline.c_str(),
+    return DSL::Services::GetServices()->PipelineXWindowDimensionsGet(cstrName.c_str(),
         width, height);
 }
 
-DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_get(const wchar_t* pipeline, boolean* enabled)
+DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_get(const wchar_t* name, boolean* enabled)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(enabled);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineXWindowFullScreenEnabledGet(cstrPipeline.c_str(), enabled);
+    return DSL::Services::GetServices()->PipelineXWindowFullScreenEnabledGet(cstrName.c_str(), enabled);
 }
 
-DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_set(const wchar_t* pipeline, boolean enabled)
+DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_set(const wchar_t* name, boolean enabled)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineXWindowFullScreenEnabledSet(cstrPipeline.c_str(), enabled);
+    return DSL::Services::GetServices()->PipelineXWindowFullScreenEnabledSet(cstrName.c_str(), enabled);
 }
 
 
-DslReturnType dsl_pipeline_pause(const wchar_t* pipeline)
+DslReturnType dsl_pipeline_pause(const wchar_t* name)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelinePause(cstrPipeline.c_str());
+    return DSL::Services::GetServices()->PipelinePause(cstrName.c_str());
 }
 
-DslReturnType dsl_pipeline_play(const wchar_t* pipeline)
+DslReturnType dsl_pipeline_play(const wchar_t* name)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelinePlay(cstrPipeline.c_str());
+    return DSL::Services::GetServices()->PipelinePlay(cstrName.c_str());
 }
 
-DslReturnType dsl_pipeline_stop(const wchar_t* pipeline)
+DslReturnType dsl_pipeline_stop(const wchar_t* name)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStop(cstrPipeline.c_str());
+    return DSL::Services::GetServices()->PipelineStop(cstrName.c_str());
 }
 
-DslReturnType dsl_pipeline_state_get(const wchar_t* pipeline, uint* state)
+DslReturnType dsl_pipeline_state_get(const wchar_t* name, uint* state)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(state);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStateGet(cstrPipeline.c_str(), state);
+    return DSL::Services::GetServices()->PipelineStateGet(cstrName.c_str(), state);
 }
 
-DslReturnType dsl_pipeline_is_live(const wchar_t* pipeline, boolean* is_live)
+DslReturnType dsl_pipeline_is_live(const wchar_t* name, boolean* is_live)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(is_live);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineIsLive(cstrPipeline.c_str(), is_live);
+    return DSL::Services::GetServices()->PipelineIsLive(cstrName.c_str(), is_live);
 }
 
-DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* pipeline, wchar_t* filename)
+DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* name, wchar_t* filename)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(filename);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrFilename(filename);
     std::string cstrFilename(wstrFilename.begin(), wstrFilename.end());
 
-    return DSL::Services::GetServices()->PipelineDumpToDot(cstrPipeline.c_str(), 
+    return DSL::Services::GetServices()->PipelineDumpToDot(cstrName.c_str(), 
         const_cast<char*>(cstrFilename.c_str()));
 }
 
-DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* pipeline, wchar_t* filename)
+DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* name, wchar_t* filename)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(filename);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrFilename(filename);
     std::string cstrFilename(wstrFilename.begin(), wstrFilename.end());
 
-    return DSL::Services::GetServices()->PipelineDumpToDotWithTs(cstrPipeline.c_str(), 
+    return DSL::Services::GetServices()->PipelineDumpToDotWithTs(cstrName.c_str(), 
         const_cast<char*>(cstrFilename.c_str()));
 }
 
-DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* name, 
     dsl_state_change_listener_cb listener, void* client_data)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(listener);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->
-        PipelineStateChangeListenerAdd(cstrPipeline.c_str(), listener, client_data);
+        PipelineStateChangeListenerAdd(cstrName.c_str(), listener, client_data);
 }
 
-DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* name, 
     dsl_state_change_listener_cb listener)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(listener);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->
-        PipelineStateChangeListenerRemove(cstrPipeline.c_str(), listener);
+        PipelineStateChangeListenerRemove(cstrName.c_str(), listener);
 }
 
-DslReturnType dsl_pipeline_eos_listener_add(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_eos_listener_add(const wchar_t* name, 
     dsl_eos_listener_cb listener, void* client_data)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(listener);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->
-        PipelineEosListenerAdd(cstrPipeline.c_str(), listener, client_data);
+        PipelineEosListenerAdd(cstrName.c_str(), listener, client_data);
 }
 
-DslReturnType dsl_pipeline_eos_listener_remove(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_eos_listener_remove(const wchar_t* name, 
     dsl_eos_listener_cb listener)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(listener);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->
-        PipelineEosListenerRemove(cstrPipeline.c_str(), listener);
+        PipelineEosListenerRemove(cstrName.c_str(), listener);
 }
 
-DslReturnType dsl_pipeline_error_message_handler_add(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_error_message_handler_add(const wchar_t* name, 
     dsl_error_message_handler_cb handler, void* client_data)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(handler);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->
-        PipelineErrorMessageHandlerAdd(cstrPipeline.c_str(), handler, client_data);
+        PipelineErrorMessageHandlerAdd(cstrName.c_str(), handler, client_data);
 }
 
-DslReturnType dsl_pipeline_error_message_handler_remove(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_error_message_handler_remove(const wchar_t* name, 
     dsl_error_message_handler_cb handler)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(handler);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->
-        PipelineErrorMessageHandlerRemove(cstrPipeline.c_str(), handler);
+        PipelineErrorMessageHandlerRemove(cstrName.c_str(), handler);
 }
 
-DslReturnType dsl_pipeline_error_message_last_get(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_error_message_last_get(const wchar_t* name, 
     const wchar_t** source, const wchar_t** message)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(source);
     RETURN_IF_PARAM_IS_NULL(message);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
     
     static std::wstring wstrSource;
     static std::wstring wstrMessage;
     
-    uint retval = DSL::Services::GetServices()->PipelineErrorMessageLastGet(cstrPipeline.c_str(), wstrSource, wstrMessage);
+    uint retval = DSL::Services::GetServices()->PipelineErrorMessageLastGet(cstrName.c_str(), wstrSource, wstrMessage);
     if (retval ==  DSL_RESULT_SUCCESS)
     {
         
@@ -6586,82 +6624,82 @@ DslReturnType dsl_pipeline_error_message_last_get(const wchar_t* pipeline,
     return retval;
 }
     
-DslReturnType dsl_pipeline_xwindow_key_event_handler_add(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_xwindow_key_event_handler_add(const wchar_t* name, 
     dsl_xwindow_key_event_handler_cb handler, void* client_data)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(handler);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->
-        PipelineXWindowKeyEventHandlerAdd(cstrPipeline.c_str(), handler, client_data);
+        PipelineXWindowKeyEventHandlerAdd(cstrName.c_str(), handler, client_data);
 }    
 
-DslReturnType dsl_pipeline_xwindow_key_event_handler_remove(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_xwindow_key_event_handler_remove(const wchar_t* name, 
     dsl_xwindow_key_event_handler_cb handler)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(handler);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->
-        PipelineXWindowKeyEventHandlerRemove(cstrPipeline.c_str(), handler);
+        PipelineXWindowKeyEventHandlerRemove(cstrName.c_str(), handler);
 }
 
-DslReturnType dsl_pipeline_xwindow_button_event_handler_add(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_xwindow_button_event_handler_add(const wchar_t* name, 
     dsl_xwindow_button_event_handler_cb handler, void* client_data)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(handler);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->
-        PipelineXWindowButtonEventHandlerAdd(cstrPipeline.c_str(), handler, client_data);
+        PipelineXWindowButtonEventHandlerAdd(cstrName.c_str(), handler, client_data);
 }    
 
-DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const wchar_t* name, 
     dsl_xwindow_button_event_handler_cb handler)    
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(handler);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->
-        PipelineXWindowButtonEventHandlerRemove(cstrPipeline.c_str(), handler);
+        PipelineXWindowButtonEventHandlerRemove(cstrName.c_str(), handler);
 }
 
-DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* name, 
     dsl_xwindow_delete_event_handler_cb handler, void* client_data)
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(handler);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->
-        PipelineXWindowDeleteEventHandlerAdd(cstrPipeline.c_str(), handler, client_data);
+        PipelineXWindowDeleteEventHandlerAdd(cstrName.c_str(), handler, client_data);
 }    
 
-DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* name, 
     dsl_xwindow_delete_event_handler_cb handler)    
 {
-    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(handler);
 
-    std::wstring wstrPipeline(pipeline);
-    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->
-        PipelineXWindowDeleteEventHandlerRemove(cstrPipeline.c_str(), handler);
+        PipelineXWindowDeleteEventHandlerRemove(cstrName.c_str(), handler);
 }
 
 DslReturnType dsl_pipeline_main_loop_new(const wchar_t* name)
