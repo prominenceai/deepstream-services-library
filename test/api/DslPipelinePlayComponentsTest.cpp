@@ -35,6 +35,8 @@ static const std::wstring pipeline_name(L"test-pipeline");
 
 static const std::wstring source_name1(L"uri-source-1");
 static const std::wstring source_name2(L"uri-source-2");
+static const std::wstring source_name3(L"uri-source-3");
+static const std::wstring source_name4(L"uri-source-4");
 static const std::wstring uri(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 static const uint intr_decode(false);
 static const uint drop_frame_interval(0); 
@@ -1413,3 +1415,62 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Semantic Segmentation"
 //        }
 //    }
 //}
+
+SCENARIO( "A new Pipeline-Stream-Muxer with Tiler 4 URI Sources, Primary GIE, Window Sink", 
+    "[test]" )
+{
+    GIVEN( "A Pipeline, URI source, Primary GIE, Window Sink, and Tiled Display" ) 
+    {
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_source_uri_new(source_name2.c_str(), uri.c_str(), 
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_source_uri_new(source_name3.c_str(), uri.c_str(), 
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_source_uri_new(source_name4.c_str(), uri.c_str(), 
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
+            model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
+        
+        const wchar_t* components[] = {L"uri-source-1", L"uri-source-2", L"uri-source-3", L"uri-source-4", 
+            L"primary-gie", L"on-screen-display", L"window-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled and a Tiler is added to the output of the Stream-Muxer" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+            
+            REQUIRE( dsl_pipeline_streammux_tiler_add(pipeline_name.c_str(), 
+                tiler_name1.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+

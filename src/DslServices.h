@@ -1126,6 +1126,10 @@ namespace DSL {
 
         DslReturnType PipelineStreamMuxNumSurfacesPerFrameSet(const char* name, uint num);
 
+        DslReturnType PipelineStreamMuxTilerAdd(const char* name, const char* tiler);
+
+        DslReturnType PipelineStreamMuxTilerRemove(const char* name);
+
         DslReturnType PipelineXWindowHandleGet(const char* name, uint64_t* xwindow);
 
         DslReturnType PipelineXWindowHandleSet(const char* name, uint64_t xwindow);

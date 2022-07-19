@@ -49,7 +49,6 @@
     <File Name="../src/DslTilerBintr.cpp"/>
     <File Name="../src/DslTrackerBintr.cpp"/>
     <File Name="../src/Dsl.h"/>
-    <File Name="../src/DslApi.h"/>
     <File Name="../src/DslBase.h"/>
     <File Name="../src/DslBintr.h"/>
     <File Name="../src/DslBranchBintr.h"/>
@@ -103,6 +102,7 @@
     <File Name="../src/DslPreprocBintr.cpp"/>
     <File Name="../src/DslPreprocBintr.h"/>
     <File Name="../src/DslServicesPreproc.cpp"/>
+    <File Name="../src/DslApi.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="api">
@@ -204,6 +204,7 @@
       <File Name="../examples/cpp/ode_occurrence_trigger_with_mot_challenge_file_action.cpp"/>
       <File Name="../examples/cpp/1file_ptis_ktl_osd_window.cpp"/>
       <File Name="../examples/cpp/1file_preproc_pgie_iou_osd_window.cpp"/>
+      <File Name="../examples/cpp/4uri_file_streammux_with_tiled_output_pre_pgie.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
       <File Name="../examples/python/1csi_live_pgie_demuxer_osd_overlay_rtsp_h254.py"/>
