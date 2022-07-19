@@ -62,6 +62,8 @@
 * [dsl_pipeline_streammux_batch_properties_get](/docs/api-pipeline.md#dsl_pipeline_streammux_properties_get)
 * [dsl_pipeline_streammux_dimensions_get](/docs/api-pipeline.md#dsl_pipeline_streammux_dimensions_get)
 * [dsl_pipeline_streammux_dimensions_set](/docs/api-pipeline.md#dsl_pipeline_streammux_dimensions_set)
+* [dsl_pipeline_streammux_tiler_add](/docs/api-pipeline.md#dsl_pipeline_streammux_tiler_add)
+* [dsl_pipeline_streammux_tiler_remove](/docs/api-pipeline.md#dsl_pipeline_streammux_tiler_remove)
 * [dsl_pipeline_xwindow_dimensions_get](/docs/api-pipeline.md#dsl_pipeline_xwindow_dimensions_get)
 * [dsl_pipeline_xwindow_dimensions_set](/docs/api-pipeline.md#dsl_pipeline_xwindow_dimensions_set)
 * [dsl_pipeline_xwindow_handle_get](/docs/api-pipeline.md#dsl_pipeline_xwindow_handle_get)
