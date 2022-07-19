@@ -56,6 +56,8 @@ In the case that the Pipeline creates the XWindow, Clients can be notified of XW
 * [dsl_pipeline_streammux_batch_properties_set](#dsl_pipeline_streammux_batch_properties_set)
 * [dsl_pipeline_streammux_dimensions_get](#dsl_pipeline_streammux_dimensions_get)
 * [dsl_pipeline_streammux_dimensions_set](#dsl_pipeline_streammux_dimensions_set)
+* [dsl_pipeline_streammux_tiler_add](#dsl_pipeline_streammux_tiler_add)
+* [dsl_pipeline_streammux_tiler_remove](#dsl_pipeline_streammux_tiler_remove)
 * [dsl_pipeline_xwindow_handle_get](/docs/api-pipeline.md#dsl_pipeline_xwindow_handle_get)
 * [dsl_pipeline_xwindow_handle_set](/docs/api-pipeline.md#dsl_pipeline_xwindow_handle_set)
 * [dsl_pipeline_xwindow_dimensions_get](#dsl_pipeline_xwindow_dimensions_get)
@@ -559,6 +561,46 @@ This service sets the current Stream-Muxer output dimensions for the uniquely na
 **Python Example**
 ```Python
 retval = dsl_pipeline_streammux_dimensions_set('my-pipeline', 1280, 720)
+```
+<br>
+
+### *dsl_pipeline_streammux_tiler_add*
+```C++
+DslReturnType dsl_pipeline_streammux_tiler_add(const wchar_t* name, 
+    const wchar_t* tiler);
+```
+This service adds a named Tiler to a named Pipeline's Stream-Muxer output prior to any inference components added to the Pipeline.
+
+Note: A Stream-Muxer can have at most one Tiler.
+
+**Parameters**
+* `pipeline` - [in] unique name of the Pipeline to update.
+* `tiler` - [in] unique name of the Tiler to add.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_streammux_tiler_add('my-pipeline', 'my-tiler')
+```
+<br>
+
+### *dsl_pipeline_streammux_tiler_remove*
+```C++
+DslReturnType dsl_pipeline_streammux_tiler_remove(const wchar_t* name);
+```
+This service removes a named Tiler from a named Pipeline's Stream-Muxer previously added with [dsl_pipeline_streammux_tiler_add](#dsl_pipeline_streammux_tiler_add).
+
+**Parameters**
+* `pipeline` - [in] unique name of the Pipeline to update.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_streammux_tiler_remove('my-pipeline')
 ```
 <br>
 
