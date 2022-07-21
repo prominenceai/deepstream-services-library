@@ -116,15 +116,17 @@ There are seven categories of Components that can be added to a Pipeline, automa
 ## Streaming Sources
 Streaming sources are the head component(s) for all Pipelines and all Pipelines must have at least one Source (among other components) before they can transition to a state of Playing. All Pipelines have the ability to multiplex multiple streams -- using their own built-in Stream-Muxer -- as long as all Sources are of the same play-type; live vs. non-live with the ability to Pause. 
 
-There are currently six types of Source components, two live connected Camera Sources:
+There are seven types of Source components supported. 
+Two live connected Camera Sources:
 * Camera Serial Interface (CSI) Source - connected to one of the serial ports on the Jetson SOM
 * Universal Serial Bus (USB) Source
 
-Two live decode Sources that.
-* Universal Resource Identifier (URI) Source - supports non-live files as well.
+Three Decode Sources.
+* Universal Resource Identifier (URI) Source - supports files as well.
+* File Source
 * Real-time Streaming Protocol (RTSP) Source
 
-Two non-live Sources 
+Three Images Sources 
 * File Source that is derived from the URI Decode Source with some of the parameters fixed.
 * Image Source that overlays an Image on a mock/fake streaming source at a settable frame rate. The Image Source can mimic a live source allowing it to be batched with other live streaming sources.
 
