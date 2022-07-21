@@ -3,6 +3,7 @@
 * [Introduction](#introduction)
 * [Pipeline Components](#pipeline-components)
   * [Streaming Sources](#streaming-sources)
+  * [Preprocessor](#preprocessor)
   * [Inference Engines and Servers](#inference-engines-and-servers)
   * [Multi-Object Trackers](#multi-object-trackers)
   * [Multi-Source Tiler](#multi-source-tiler)
@@ -134,6 +135,16 @@ A Pipeline's Stream-Muxer has settable output dimensions with a decoded, batched
 A [Record-Tap](#smart-recording) (not show in the image above) can be added to a RTSP Source for cached pre-decode recording, triggered on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-pad-probe-handler).
 
 See the [Source API](/docs/api-source.md) reference section for more information.
+
+## Preprocessor
+The Preprocessor component provides a custom library interface for preprocessing on input streams. Each stream can have its own preprocessing requirements. (e.g. per stream ROIs - Region of Interests processing.) Streams with same preprocessing requirements are grouped and processed together. 
+
+NVIDIA's default plugin implementation and library (alpha in Deepstream 6.0) provide two functionalities.
+
+* Streams with predefined ROIs (Region of Interests) are scaled and format converted as per the network requirements for inference. Per stream ROIs are specified in a config file.
+* They prepares a raw tensor from the scaled & converted ROIs. The data is passed to the downstream components via user metadata. Downstream plugins can access this tensor for inference.
+
+See the [Preprocessor API](/docs/api-preproc.md) reference section for more information.
 
 ## Inference Engines and Servers
 NVIDIA's GStreamer Inference Engines (GIEs) and Triton Inference Servers (TISs), using pre-trained models, classify data to “infer” a result, e.g.: person, dog, car? A Pipeline may have at most one Primary Gst Inference Engine (PGIE) or Primary Triton Inference Server (PTIS) -- with a specified set of classification labels to infer-with -- and multiple Secondary Gst Inference Engines (SGIEs) or Secondary Triton Inference Servers (STISs) that can Infer-on the output of either the Primary or other Secondary GIEs/TISs. Although optional, a Primary Inference Engine or Server is required when adding a Multi-Object Tracker, Secondary Inference Engines or Servers, or On-Screen-Display to a Pipeline.
