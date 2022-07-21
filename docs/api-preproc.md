@@ -3,7 +3,7 @@ The DeepStream Services Library (DSL) provides services for NVIDIA's Gst-nvdspre
 
  *"The Gst-nvdspreprocess plugin is a customizable plugin which provides a custom library interface for preprocessing on input streams. Each stream can have its own preprocessing requirements. (e.g., per stream ROIs - Region of Interests processing)."* [Read more...](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvdspreprocess.html#gst-nvdspreprocess-alpha).
 
-**Note:​** The Gst-nvdsprerocessor plugin released with DeepStream 6.0 is in an "alpha" state and with only Primary GST Inference supported (detection only).
+**Note:​** The Gst-nvdsprerocessor plugin released with DeepStream 6.0 is in an "alpha" state and only the Primary GST Inference component can process input-tensor-meta from the Preprocessor.
  
 **IMPORTANT!** Raw tensor from the scaled & converted ROIs are passed to the downstream Primary GST Inference Engine (PGIE) via user metadata. You must enable the PGIE's `input-tensor-meta` setting by calling [dsl_infer_gie_tensor_meta_settings_set](/docs/api-infer.md#dsl_infer_gie_tensor_meta_settings_set) when adding a Preprocessor to a Pipeline. Refer to the [Inference API Reference](/docs/api-infer.md)
 
