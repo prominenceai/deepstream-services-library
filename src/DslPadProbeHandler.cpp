@@ -204,6 +204,7 @@ namespace DSL
             if (pFrameMeta != NULL)
             {
                 std::vector<NvDsDisplayMeta*> displayMetaData;
+                displayMetaData.reserve(m_displayMetaAllocSize);
                 
                 for (auto i=0; i<m_displayMetaAllocSize; i++)
                 {

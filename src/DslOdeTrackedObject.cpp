@@ -188,6 +188,7 @@ namespace DSL
 
         else
         {
+            traceCoordinates.reserve(m_pPrevBboxTrace->size());
             for (const auto& ideque: *m_pPrevBboxTrace)
             {
                 getCoordinate(ideque, testPoint, traceCoordinate);
