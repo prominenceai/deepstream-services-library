@@ -47,7 +47,7 @@ export GST_DEBUG=1,DSL:4
 ```
 execute the python script in the `deepstream-services-library` root folder.
 ```bash
-python3 make_caffemodel_engine_files.py
+sudo python3 make_caffemodel_engine_files.py
 ```
 **Note:** this script can take several minutes to run.
 
