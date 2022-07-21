@@ -27,6 +27,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
+#include "DslPreprocBintr.h"
 #include "DslInferBintr.h"
 #include "DslSegVisualBintr.h"
 #include "DslTrackerBintr.h"
@@ -59,6 +60,20 @@ namespace DSL
          */
         BranchBintr(const char* name, bool pipeline = false);
 
+        /**
+         * @brief adds a PreprocBintr to this Branch 
+         * @param[in] pPreprocBintr shared pointer to PreprocBintr to add
+         * @return true on successful add, false otherwise
+         */
+        bool AddPreprocBintr(DSL_BASE_PTR pPreprocBintr);
+
+        /**
+         * @brief removes a PreprocBintr from this Branch 
+         * @param[in] pPreprocBintr shared pointer to PreprocBintr to remove
+         * @return true on successful remove, false otherwise
+         */
+        bool RemovePreprocBintr(DSL_BASE_PTR pPreprocBintr);
+        
         /**
          * @brief adds a single GIE or TIS PrimaryInferBintr to this Branch 
          * @param[in] pPrimaryInferBintr shared pointer to PrmaryInferBintr to add
@@ -200,6 +215,11 @@ namespace DSL
     protected:
         
         std::vector<DSL_BINTR_PTR> m_linkedComponents;
+        
+        /**
+         * @brief optional, one at most PreprocBintr for this Branch
+         */
+        DSL_PREPROC_PTR m_pPreprocBintr;
         
         /**
          * @brief optional, one at most GIE or TIS PrimaryInferBintr for this Branch

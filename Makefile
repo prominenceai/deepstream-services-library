@@ -2,7 +2,7 @@
 # 
 # The MIT License
 # 
-# Copyright (c) 2019-2021, Prominence AI, Inc.
+# Copyright (c) 2019-2022, Prominence AI, Inc.
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 USER_SITE = "`python3 -m site --user-site`"
 
 CXX_VERSION:=c++17
-DSL_VERSION:='L"v0.24.alpha"'
+DSL_VERSION:='L"v0.25.alpha"'
 GLIB_VERSION:=2.0
 GSTREAMER_VERSION:=1.0
 GSTREAMER_SUB_VERSION:=14
@@ -110,6 +110,10 @@ endif
 CFLAGS += `geos-config --cflags`	
 
 LIBS+= -L$(LIB_INSTALL_DIR) \
+	-L/usr/local/lib \
+	-lopencv_core \
+	-lopencv_imgproc \
+	-lopencv_highgui \
 	-laprutil-1 \
 	-lapr-1 \
 	-lX11 \

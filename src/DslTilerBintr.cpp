@@ -286,7 +286,6 @@ namespace DSL
             // The Timer's Cycle Source setting should remain as is.
             return true;
         }
-        LOG_INFO("Counter = " << m_showSourceCounter);
         if (--m_showSourceCounter == 0)
         {
             // if we are cycling through sources
@@ -313,13 +312,13 @@ namespace DSL
         
         if (IsInUse())
         {
-            LOG_ERROR("Unable to set GPU ID for FileSinkBintr '" << GetName() 
+            LOG_ERROR("Unable to set GPU ID for TilerBintr '" << GetName() 
                 << "' as it's currently in use");
             return false;
         }
 
         m_gpuId = gpuId;
-        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for FileSinkBintr '" << m_name << "'");
+        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for TilerBintr '" << m_name << "'");
 
         m_pTiler->SetAttribute("gpu-id", m_gpuId);
         

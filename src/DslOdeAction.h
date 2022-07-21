@@ -144,10 +144,20 @@ namespace DSL
     #define DSL_ODE_ACTION_PRINT_NEW(name, forceFlush) \
         std::shared_ptr<PrintOdeAction>(new PrintOdeAction(name, forceFlush))
 
-    #define DSL_ODE_ACTION_FILE_PTR std::shared_ptr<FileOdeAction>
-    #define DSL_ODE_ACTION_FILE_NEW(name, filePath, mode, format, forceFlush) \
-        std::shared_ptr<FileOdeAction>(new FileOdeAction(name, \
-            filePath, mode, format, forceFlush))
+    #define DSL_ODE_ACTION_FILE_TEXT_PTR std::shared_ptr<FileTextOdeAction>
+    #define DSL_ODE_ACTION_FILE_TEXT_NEW(name, filePath, mode, forceFlush) \
+        std::shared_ptr<FileTextOdeAction>(new FileTextOdeAction(name, \
+            filePath, mode, forceFlush))
+        
+    #define DSL_ODE_ACTION_FILE_CSV_PTR std::shared_ptr<FileCsvOdeAction>
+    #define DSL_ODE_ACTION_FILE_CSV_NEW(name, filePath, mode, forceFlush) \
+        std::shared_ptr<FileCsvOdeAction>(new FileCsvOdeAction(name, \
+            filePath, mode, forceFlush))
+        
+    #define DSL_ODE_ACTION_FILE_MOTC_PTR std::shared_ptr<FileOdeAction>
+    #define DSL_ODE_ACTION_FILE_MOTC_NEW(name, filePath, mode, forceFlush) \
+        std::shared_ptr<FileMotcOdeAction>(new FileMotcOdeAction(name, \
+            filePath, mode, forceFlush))
         
     #define DSL_ODE_ACTION_REDACT_PTR std::shared_ptr<RedactOdeAction>
     #define DSL_ODE_ACTION_REDACT_NEW(name) \
@@ -1249,7 +1259,7 @@ namespace DSL
 
     /**
      * @brief Idle Thread Function to flush the stdout buffer
-     * @param pAction pointer to the File Action to call flush
+     * @param pAction pointer to the Print Action to call flush
      * @return false to unschedule always
      */
     static gboolean PrintActionFlush(gpointer pAction);
@@ -1257,45 +1267,34 @@ namespace DSL
     // ********************************************************************
 
     /**
-     * @class PrintOdeAction
-     * @brief Print ODE Action class
+     * @class FileOdeAction
+     * @brief File ODE Action class
      */
     class FileOdeAction : public OdeAction
     {
     public:
     
         /**
-         * @brief ctor for the ODE Print Action class
-         * @param[in] name unique name for the ODE Action
+         * @brief ctor for the ODE File Action class
+         * @param[in] filePath absolute or relative path to the output file.
+         * @param[in] mode open/write mode - truncate or append
+         * @param[in] forceFlush unique name for the ODE Action
          */
         FileOdeAction(const char* name, 
-            const char* filePath, uint mode, uint format, bool forceflush);
+            const char* filePath, uint mode, bool forceFlush);
         
         /**
-         * @brief dtor for the Print ODE Action class
+         * @brief dtor for the File ODE Action class
          */
         ~FileOdeAction();
         
-        /**
-         * @brief Handles the ODE occurrence by printing the  
-         * the occurrence data to the console
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
-         */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-            
         /**
          * @brief Flushes the ostream buffer. ** To be called by the idle thread only **.
          * @return false to unschedule always - single flush operation.
          */
         bool Flush();
 
-    private:
+    protected:
     
         /**
          * @brief relative or absolute path to the file to write to
@@ -1307,12 +1306,6 @@ namespace DSL
          * DSL_WRITE_MODE_OVERWRITE
          */
         uint m_mode;
-        
-        /**
-         * @brief specifies which data format to use, DSL_EVENT_FILE_FORMAT_TEXT or
-         * DSL_EVENT_FILE_FORMAT_CSV
-         */
-        uint m_format;
         
         /**
          * @brief output stream for all file writes
@@ -1341,6 +1334,114 @@ namespace DSL
      * @return false to unschedule always
      */
     static gboolean FileActionFlush(gpointer pAction);
+
+    /**
+     * @class FileTextOdeAction
+     * @brief Text File ODE Action class
+     */
+    class FileTextOdeAction : public FileOdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the ODE Text File Action class
+         * @param[in] filePath absolute or relative path to the output file.
+         * @param[in] mode open/write mode - truncate or append
+         * @param[in] forceFlush unique name for the ODE Action
+         */
+        FileTextOdeAction(const char* name, 
+            const char* filePath, uint mode, bool forceFlush);
+        
+        /**
+         * @brief dtor for the ODE Text Action class
+         */
+        ~FileTextOdeAction();
+        
+        /**
+         * @brief Handles the ODE occurrence by writing the occurrence data to file
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+    
+    };
+
+    /**
+     * @class FileCsvOdeAction
+     * @brief CSV File ODE Action class
+     */
+    class FileCsvOdeAction : public FileOdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the ODE Text File Action class
+         * @param[in] filePath absolute or relative path to the output file.
+         * @param[in] mode open/write mode - truncate or append
+         * @param[in] forceFlush unique name for the ODE Action
+         */
+        FileCsvOdeAction(const char* name, 
+            const char* filePath, uint mode, bool forceFlush);
+        
+        /**
+         * @brief dtor for the ODE Text Action class
+         */
+        ~FileCsvOdeAction();
+        
+        /**
+         * @brief Handles the ODE occurrence by writing the occurrence data to file
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+    
+    };
+
+    /**
+     * @class FileMotcOdeAction
+     * @brief MOT Challenge File ODE Action class
+     */
+    class FileMotcOdeAction : public FileOdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the ODE MOT Challenge File Action class
+         * @param[in] filePath absolute or relative path to the output file.
+         * @param[in] mode open/write mode - truncate or append
+         * @param[in] forceFlush unique name for the ODE Action
+         */
+        FileMotcOdeAction(const char* name, 
+            const char* filePath, uint mode, bool forceFlush);
+        
+        /**
+         * @brief dtor for the ODE MOT Challenge Action class
+         */
+        ~FileMotcOdeAction();
+        
+        /**
+         * @brief Handles the ODE occurrence by writing the occurrence data to file.
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event.
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event.
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event.
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+    
+    };
         
     // ********************************************************************
 

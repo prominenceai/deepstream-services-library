@@ -28,6 +28,14 @@ And three types for displaying source information on each frame.
 * **Source Name** - assigned to each source when created, defined with RGBA Font and optional RGBA background color.
 * **Source Dimensions** - obtained from the frame dimensions in the frame metadata, defined with RGBA Font and optional RGBA background color.
 
+<br>
+
+The image below provides examples of the Display Types listed above.
+
+![RGBA Display Types](/Images/display-types.png)
+
+<br>
+
 Display Types are created by calling their type specific [constructor](#constructors).
 
 Display Types are deleted by calling [dsl_display_type_delete](#dsl_display_type_delete), [dsl_display_type_delete_many](#dsl_display_type_delete_many), or [dsl_display_type_delete_all](#dsl_display_type_delete_all).
@@ -135,6 +143,7 @@ retval = dsl_ode_trigger_action_add('max-trigger', action='overlay-warning')
 * [dsl_display_type_rgba_color_palette_index_get](#dsl_display_type_rgba_color_palette_index_get)
 * [dsl_display_type_rgba_color_palette_index_set](#dsl_display_type_rgba_color_palette_index_set)
 * [dsl_display_type_rgba_color_next_set](#dsl_display_type_rgba_color_next_set)
+* [dsl_display_type_rgba_text_shadow_add](#dsl_display_type_rgba_text_shadow_add)
 * [dsl_display_type_list_size](#dsl_display_type_list_size)
 * [dsl_display_type_meta_add](#dsl_display_type_meta_add)
 
@@ -890,6 +899,30 @@ retval = dsl_display_type_rgba_color_next_set('my-random-color')
 
 <br>
 
+### *dsl_display_type_rgba_text_shadow_add*
+```C++
+DslReturnType dsl_display_type_rgba_text_shadow_add(const wchar_t* name, 
+    uint x_offset, uint y_offset, const wchar_t* color);
+```
+This service adds a shadow to any one of the text-based Display Types - by duplicating and underlaying the text at an x, y offset - creating a raised effect. This service applies to the [RGBA Text](#dsl_display_type_rgba_text_new), [Source Number](#dsl_display_type_source_number_new), [Source Name](#dsl_display_type_source_name_new), and [Source Dimensions](#dsl_display_type_source_dimensions_new) Display Types.
+
+**Parameters**
+* `name` - [in] unique name for the RGBA Color Palette to query.
+* `x_offset` - [in] shadow offset in the x direction in units of pixels.
+* `y_offset` - [in] shadow offset in the y direction in units of pixels.
+* `color` - [in] name of the RGBA Color to use for the text shadow.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_display_type_rgba_text_shadow_add('my-rgba-text', 
+    10, 10, 'my-opaque-black')
+```
+
+<br>
+
 ### *dsl_display_type_list_size*
 ```c++
 uint dsl_display_type_list_size();
@@ -936,6 +969,7 @@ retval = dsl_display_type_meta_add('blue-circle', buffer, frame_meta)
 * [Source](/docs/api-source.md)
 * [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
+* [Preprocessor](/docs/api-preproc.md)
 * [Inference Engine and Server](/docs/api-infer.md)
 * [Tracker](/docs/api-tracker.md)
 * [Segmentation Visualizer](/docs/api-segvisual.md)

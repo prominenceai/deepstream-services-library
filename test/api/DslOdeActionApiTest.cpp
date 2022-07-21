@@ -942,7 +942,7 @@ SCENARIO( "A new Add Many Display Meta ODE Action can be created and deleted", "
     }
 }
 
-SCENARIO( "A new File ODE Action can be created and deleted", "[ode-action-api]" )
+SCENARIO( "A new Text File ODE Action can be created and deleted", "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new File ODE Action" ) 
     {
@@ -950,6 +950,82 @@ SCENARIO( "A new File ODE Action can be created and deleted", "[ode-action-api]"
         std::wstring file_path(L"./file-action.txt");
         uint mode(DSL_WRITE_MODE_TRUNCATE);
         uint format(DSL_EVENT_FILE_FORMAT_TEXT);
+        boolean force_flush(true);
+
+        WHEN( "A new File Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_file_new(action_name.c_str(),
+                file_path.c_str(), mode, format, force_flush) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The File Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+        WHEN( "A new File Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_file_new(action_name.c_str(),
+                file_path.c_str(), mode, format, force_flush) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second File Action of the same names fails to create" ) 
+            {
+                REQUIRE( dsl_ode_action_file_new(action_name.c_str(),
+                    file_path.c_str(), mode, format, force_flush) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new CSV File ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new File ODE Action" ) 
+    {
+        std::wstring action_name(L"file-action");
+        std::wstring file_path(L"./file-action.txt");
+        uint mode(DSL_WRITE_MODE_TRUNCATE);
+        uint format(DSL_EVENT_FILE_FORMAT_CSV);
+        boolean force_flush(true);
+
+        WHEN( "A new File Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_file_new(action_name.c_str(),
+                file_path.c_str(), mode, format, force_flush) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The File Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+        WHEN( "A new File Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_file_new(action_name.c_str(),
+                file_path.c_str(), mode, format, force_flush) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second File Action of the same names fails to create" ) 
+            {
+                REQUIRE( dsl_ode_action_file_new(action_name.c_str(),
+                    file_path.c_str(), mode, format, force_flush) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new MOT Challenge File ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new File ODE Action" ) 
+    {
+        std::wstring action_name(L"file-action");
+        std::wstring file_path(L"./file-action.txt");
+        uint mode(DSL_WRITE_MODE_TRUNCATE);
+        uint format(DSL_EVENT_FILE_FORMAT_MOTC);
         boolean force_flush(true);
 
         WHEN( "A new File Action is created" ) 
@@ -1004,7 +1080,7 @@ SCENARIO( "Parameters for a new File ODE Action are checked on construction", "[
         WHEN( "The format parameter is out of range" ) 
         {
             uint mode(DSL_WRITE_MODE_TRUNCATE);
-            uint format(DSL_EVENT_FILE_FORMAT_CSV+1);
+            uint format(DSL_EVENT_FILE_FORMAT_MOTC+1);
             
             THEN( "The File Action fails to create" ) 
             {

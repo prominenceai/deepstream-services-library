@@ -204,6 +204,20 @@ namespace DSL
         bool SetStreamMuxNumSurfacesPerFrame(uint num);
         
         /**
+         * @brief Adds a TilerBintr to be added to the Stream-muxers output
+         * on link and play.
+         * @param[in] pTilerBintr shared pointer to the tiler to add.
+         * @return true if the Tiler was successfully added, false otherwise.
+         */
+        bool AddStreamMuxTiler(DSL_BASE_PTR pTilerBintr);
+        
+        /**
+         * @brief Removes a TilerBintr previously added with AddStreamMuxTiler.
+         * @return true if the TileBintr was successfully removed, false otherwise.
+         */
+        bool RemoveStreamMuxTiler();
+        
+        /**
          * @brief dumps a Pipeline's graph to dot file.
          * @param[in] filename name of the file without extention.
          * The caller is responsible for providing a correctly formated filename
@@ -241,6 +255,12 @@ namespace DSL
          * @brief parent bin for all Source bins in this Pipeline
          */
         DSL_PIPELINE_SOURCES_PTR m_pPipelineSourcesBintr;
+        
+        
+        /**
+         * @brief optional Tiler for the Stream-muxer's output
+         */
+        DSL_TILER_PTR m_pStreamMuxTilerBintr;
         
         
     }; // Pipeline

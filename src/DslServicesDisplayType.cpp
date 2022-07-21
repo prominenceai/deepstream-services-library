@@ -1048,6 +1048,42 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::DisplayRgbaTextShadowAdd(const char* name, 
+        uint xOffset, uint yOffset, const char* color)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, name);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_TEXT(m_displayTypes, name);
+
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(m_displayTypes, color);
+
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+
+            DSL_RGBA_TEXT_PTR pText = 
+                std::dynamic_pointer_cast<RgbaText>(m_displayTypes[name]);
+            
+            pText->AddShadow(xOffset, yOffset, pColor);
+            
+            LOG_INFO("Shadow added to RGBA Text '" << name 
+                << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RGBA Text '" << name 
+                << "' threw exception adding shadow");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+            
+            
     DslReturnType Services::DisplayTypeMetaAdd(const char* name, 
         void* pDisplayMeta, void* pFrameMeta)
     {

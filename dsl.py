@@ -3255,6 +3255,67 @@ def dsl_tap_record_mailer_remove(name, mailer):
     return int(result)
 
 ##
+## dsl_preproc_new()
+##
+_dsl.dsl_preproc_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_preproc_new.restype = c_uint
+def dsl_preproc_new(name, config_file):
+    global _dsl
+    result = _dsl.dsl_preproc_new(name, config_file)
+    return int(result)
+
+##
+## dsl_preproc_config_file_get()
+##
+_dsl.dsl_preproc_config_file_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_preproc_config_file_get.restype = c_uint
+def dsl_preproc_config_file_get(name):
+    global _dsl
+    config_file = c_wchar_p(0)
+    result = _dsl.dsl_preproc_config_file_get(name, DSL_WCHAR_PP(config_file))
+    return int(result), config_file.value 
+
+##
+## dsl_preproc_config_file_set()
+##
+_dsl.dsl_preproc_config_file_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_preproc_config_file_set.restype = c_uint
+def dsl_preproc_config_file_set(name, config_file):
+    global _dsl
+    result = _dsl.dsl_preproc_config_file_set(name, config_file)
+    return int(result)
+
+## dsl_preproc_enabled_get()
+##
+_dsl.dsl_preproc_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_preproc_enabled_get.restype = c_uint
+def dsl_preproc_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_preproc_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_preproc_enabled_set()
+##
+_dsl.dsl_preproc_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_preproc_enabled_set.restype = c_uint
+def dsl_preproc_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_preproc_enabled_set(name, enabled)
+    return int(result)
+
+## dsl_preproc_unique_id_get()
+##
+_dsl.dsl_preproc_unique_id_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_preproc_unique_id_get.restype = c_uint
+def dsl_preproc_unique_id_get(name):
+    global _dsl
+    id = c_uint(0)
+    result = _dsl.dsl_preproc_unique_id_get(name, DSL_UINT_P(id))
+    return int(result), id.value
+
+##
 ## dsl_infer_gie_primary_new()
 ##
 _dsl.dsl_infer_gie_primary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_uint]
@@ -3351,24 +3412,70 @@ def dsl_infer_config_file_set(name, infer_config_file):
     return int(result)
 
 ##
-## dsl_gie_model_engine_file_get()
+## dsl_infer_gie_model_engine_file_get()
 ##
-_dsl.dsl_gie_model_engine_file_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
-_dsl.dsl_gie_model_engine_file_get.restype = c_uint
-def dsl_gie_model_engine_file_get(name):
+_dsl.dsl_infer_gie_model_engine_file_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_infer_gie_model_engine_file_get.restype = c_uint
+def dsl_infer_gie_model_engine_file_get(name):
     global _dsl
     file = c_wchar_p(0)
-    result = _dsl.dsl_gie_model_engine_file_get(name, DSL_WCHAR_PP(file))
+    result = _dsl.dsl_infer_gie_model_engine_file_get(name, DSL_WCHAR_PP(file))
     return int(result), file.value 
 
 ##
-## dsl_gie_model_engine_file_set()
+## dsl_infer_gie_model_engine_file_set()
 ##
-_dsl.dsl_gie_model_engine_file_set.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_gie_model_engine_file_set.restype = c_uint
-def dsl_gie_model_engine_file_set(name, model_engine_file):
+_dsl.dsl_infer_gie_model_engine_file_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_infer_gie_model_engine_file_set.restype = c_uint
+def dsl_infer_gie_model_engine_file_set(name, model_engine_file):
     global _dsl
-    result = _dsl.dsl_gie_model_engine_file_set(name, model_engine_file)
+    result = _dsl.dsl_infer_gie_model_engine_file_set(name, model_engine_file)
+    return int(result)
+
+##
+## dsl_infer_gie_tensor_meta_settings_get()
+##
+_dsl.dsl_infer_gie_tensor_meta_settings_get.argtypes = [c_wchar_p, 
+    POINTER(c_bool), POINTER(c_bool)]
+_dsl.dsl_infer_gie_tensor_meta_settings_get.restype = c_uint
+def dsl_infer_gie_tensor_meta_settings_get(name):
+    global _dsl
+    input_enabled = c_bool(0)
+    output_enabled = c_bool(0)
+    result = _dsl.dsl_infer_gie_tensor_meta_settings_get(name, 
+        DSL_BOOL_P(input_enabled), DSL_BOOL_P(output_enabled))
+    return int(result), input_enabled.value, output_enabled.value
+
+##
+## dsl_infer_gie_tensor_meta_settings_set()
+##
+_dsl.dsl_infer_gie_tensor_meta_settings_set.argtypes = [c_wchar_p, c_bool, c_bool]
+_dsl.dsl_infer_gie_tensor_meta_settings_set.restype = c_uint
+def dsl_infer_gie_tensor_meta_settings_set(name, input_enabled, output_enabled):
+    global _dsl
+    result = _dsl.dsl_infer_gie_tensor_meta_settings_set(name, 
+        input_enabled, output_enabled)
+    return int(result)
+
+##
+## dsl_infer_batch_size_get()
+##
+_dsl.dsl_infer_batch_size_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_infer_batch_size_get.restype = c_uint
+def dsl_infer_batch_size_get(name):
+    global _dsl
+    batch_size = c_uint(0)
+    result = _dsl.dsl_gie_model_batch_size_get(name, DSL_UINT_P(batch_size))
+    return int(result), batch_size.value 
+
+##
+## dsl_infer_batch_size_set()
+##
+_dsl.dsl_infer_batch_size_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_infer_batch_size_set.restype = c_uint
+def dsl_infer_batch_size_set(name, batch_size):
+    global _dsl
+    result = _dsl.dsl_infer_batch_size_set(name, batch_size)
     return int(result)
 
 ##
@@ -4742,7 +4849,6 @@ def dsl_pipeline_streammux_nvbuf_mem_type_set(name, type):
     result = _dsl.dsl_pipeline_streammux_nvbuf_mem_type_set(name, type)
     return int(result)
 
-
 ##
 ## dsl_pipeline_streammux_batch_properties_get()
 ##
@@ -4806,6 +4912,26 @@ _dsl.dsl_pipeline_streammux_padding_set.restype = c_uint
 def dsl_pipeline_streammux_padding_set(name, enabled):
     global _dsl
     result = _dsl.dsl_pipeline_streammux_padding_set(name, enabled)
+    return int(result)
+
+##
+## dsl_pipeline_streammux_tiler_add()
+##
+_dsl.dsl_pipeline_streammux_tiler_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_pipeline_streammux_tiler_add.restype = c_uint
+def dsl_pipeline_streammux_tiler_add(name, tiler):
+    global _dsl
+    result = _dsl.dsl_pipeline_streammux_tiler_add(name, tiler)
+    return int(result)
+
+##
+## dsl_pipeline_streammux_tiler_remove()
+##
+_dsl.dsl_pipeline_streammux_tiler_remove.argtypes = [c_wchar_p]
+_dsl.dsl_pipeline_streammux_tiler_remove.restype = c_uint
+def dsl_pipeline_streammux_tiler_remove(name):
+    global _dsl
+    result = _dsl.dsl_pipeline_streammux_tiler_remove(name)
     return int(result)
 
 ##

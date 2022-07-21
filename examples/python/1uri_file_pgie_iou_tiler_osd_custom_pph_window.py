@@ -55,6 +55,7 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
  
 ## 
@@ -62,6 +63,7 @@ def xwindow_key_event_handler(key_string, client_data):
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -69,6 +71,7 @@ def xwindow_delete_event_handler(client_data):
 ## 
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 

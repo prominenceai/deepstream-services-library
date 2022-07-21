@@ -204,6 +204,7 @@ namespace DSL
             if (pFrameMeta != NULL)
             {
                 std::vector<NvDsDisplayMeta*> displayMetaData;
+                displayMetaData.reserve(m_displayMetaAllocSize);
                 
                 for (auto i=0; i<m_displayMetaAllocSize; i++)
                 {
@@ -306,7 +307,6 @@ namespace DSL
             LOG_ERROR("CustomPadProbeHandler '" << GetName() << "' threw an exception processing Pad Buffer");
             return GST_PAD_PROBE_REMOVE;
         }
-        return GST_PAD_PROBE_OK;
     }
     
     //----------------------------------------------------------------------------------------------

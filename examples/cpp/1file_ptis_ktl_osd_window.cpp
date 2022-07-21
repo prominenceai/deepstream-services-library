@@ -2,7 +2,7 @@
 /*
 The MIT License
 
-Copyright (c) 2021, Prominence AI, Inc.
+Copyright (c) 2021-2022, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@ THE SOFTWARE.
 */
 
 #include <iostream>
-#include <gst/gst.h>
+#include <glib.h>
 
 #include "DslApi.h"
 
@@ -56,6 +56,7 @@ void xwindow_key_event_handler(const wchar_t* in_key, void* client_data)
     } else if (key == "R"){
         dsl_pipeline_play(L"pipeline");
     } else if (key == "Q"){
+        dsl_pipeline_stop(L"pipeline");
         dsl_main_loop_quit();
     }
 }
@@ -66,6 +67,8 @@ void xwindow_key_event_handler(const wchar_t* in_key, void* client_data)
 void xwindow_delete_event_handler(void* client_data)
 {
     std::cout<<"delete window event"<<std::endl;
+
+    dsl_pipeline_stop(L"pipeline");
     dsl_main_loop_quit();
 }
     
@@ -74,6 +77,8 @@ void xwindow_delete_event_handler(void* client_data)
 void eos_event_listener(void* client_data)
 {
     std::cout<<"Pipeline EOS event"<<std::endl;
+    
+    dsl_pipeline_stop(L"pipeline");
     dsl_main_loop_quit();
 }
     
@@ -151,9 +156,7 @@ int main(int argc, char** argv)
     // # Print out the final result
     std::cout << dsl_return_value_to_string(retval) << std::endl;
 
-    dsl_pipeline_delete_all();
-    dsl_component_delete_all();
-
+    dsl_delete_all();
 
     std::cout<<"Goodbye!"<<std::endl;  
     return 0;

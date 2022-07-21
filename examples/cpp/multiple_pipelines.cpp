@@ -23,7 +23,7 @@ THE SOFTWARE.
 */
 
 #include <iostream> 
-#include <gst/gst.h>
+#include <glib.h>
 
 #include "DslApi.h"
 

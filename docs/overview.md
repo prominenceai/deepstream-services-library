@@ -3,6 +3,7 @@
 * [Introduction](#introduction)
 * [Pipeline Components](#pipeline-components)
   * [Streaming Sources](#streaming-sources)
+  * [Preprocessor](#preprocessor)
   * [Inference Engines and Servers](#inference-engines-and-servers)
   * [Multi-Object Trackers](#multi-object-trackers)
   * [Multi-Source Tiler](#multi-source-tiler)
@@ -115,15 +116,17 @@ There are seven categories of Components that can be added to a Pipeline, automa
 ## Streaming Sources
 Streaming sources are the head component(s) for all Pipelines and all Pipelines must have at least one Source (among other components) before they can transition to a state of Playing. All Pipelines have the ability to multiplex multiple streams -- using their own built-in Stream-Muxer -- as long as all Sources are of the same play-type; live vs. non-live with the ability to Pause. 
 
-There are currently six types of Source components, two live connected Camera Sources:
+There are seven types of Source components supported. 
+Two live connected Camera Sources:
 * Camera Serial Interface (CSI) Source - connected to one of the serial ports on the Jetson SOM
 * Universal Serial Bus (USB) Source
 
-Two live decode Sources that.
-* Universal Resource Identifier (URI) Source - supports non-live files as well.
+Three Decode Sources.
+* Universal Resource Identifier (URI) Source - supports files as well.
+* File Source
 * Real-time Streaming Protocol (RTSP) Source
 
-Two non-live Sources 
+Three Images Sources 
 * File Source that is derived from the URI Decode Source with some of the parameters fixed.
 * Image Source that overlays an Image on a mock/fake streaming source at a settable frame rate. The Image Source can mimic a live source allowing it to be batched with other live streaming sources.
 
@@ -134,6 +137,16 @@ A Pipeline's Stream-Muxer has settable output dimensions with a decoded, batched
 A [Record-Tap](#smart-recording) (not show in the image above) can be added to a RTSP Source for cached pre-decode recording, triggered on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-pad-probe-handler).
 
 See the [Source API](/docs/api-source.md) reference section for more information.
+
+## Preprocessor
+The Preprocessor component provides a custom library interface for preprocessing on input streams. Each stream can have its own preprocessing requirements. (e.g. per stream ROIs - Region of Interests processing.) Streams with same preprocessing requirements are grouped and processed together. 
+
+NVIDIA's default plugin implementation and library (alpha in Deepstream 6.0) provide two functionalities.
+
+* Streams with predefined ROIs (Region of Interests) are scaled and format converted as per the network requirements for inference. Per stream ROIs are specified in a config file.
+* They prepares a raw tensor from the scaled & converted ROIs. The data is passed to the downstream components via user metadata. Downstream plugins can access this tensor for inference.
+
+See the [Preprocessor API](/docs/api-preproc.md) reference section for more information.
 
 ## Inference Engines and Servers
 NVIDIA's GStreamer Inference Engines (GIEs) and Triton Inference Servers (TISs), using pre-trained models, classify data to “infer” a result, e.g.: person, dog, car? A Pipeline may have at most one Primary Gst Inference Engine (PGIE) or Primary Triton Inference Server (PTIS) -- with a specified set of classification labels to infer-with -- and multiple Secondary Gst Inference Engines (SGIEs) or Secondary Triton Inference Servers (STISs) that can Infer-on the output of either the Primary or other Secondary GIEs/TISs. Although optional, a Primary Inference Engine or Server is required when adding a Multi-Object Tracker, Secondary Inference Engines or Servers, or On-Screen-Display to a Pipeline.
@@ -415,7 +428,7 @@ There are eight base types used when creating other complete types for actual di
 * RGBA Random Color Palette
 * RGBA Font
 
-There are six types for displaying text and shapes. 
+There are seven types for displaying text and shapes. 
 * RGBA Text
 * RGBA Line
 * RGBA Multi-Line
@@ -429,9 +442,13 @@ And three types for displaying source information specific to each frame.
 * Source Name
 * Source Dimensions
 
-The [Add Display Meta ODE Action](/docs/api-ode-action.md#dsl_ode_action_display_meta_add_new) adds the data under control of one or more Triggers to render all types of video annotations.
+<br>
 
-Refer to the [Display Type API](/docs/api-display-type.md)
+The image below provides examples of the Display Types listed above.
+
+![RGBA Display Types](/Images/display-types.png)
+
+Refer to the [Display Type API Reference](/docs/api-display-type.md) for more information.
 
 ---
 
@@ -1251,6 +1268,7 @@ The [deepstream-services-library-docker](https://github.com/prominenceai/deepstr
 * [Source](/docs/api-source.md)
 * [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
+* [Preprocessor](/docs/api-preproc.md)
 * [Inference Engine and Server](/docs/api-infer.md)
 * [Tracker](/docs/api-tracker.md)
 * [Segmentation Visualizer](/docs/api-segvisual.md)

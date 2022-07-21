@@ -237,3 +237,134 @@ SCENARIO( "The NVIDIA buffer memory type for a Pipeline's Streammuxer can be rea
         }
     }
 }
+
+SCENARIO( "A Tiler can be added to and removed from a Pipeline's Streammuxer output", 
+    "[pipeline-streammux]" )
+{
+    GIVEN( "A new Pipeline with its built-in streammuxer and new Tiler" ) 
+    {
+        std::wstring pipelineName  = L"test-pipeline";
+
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+        std::wstring tilerName  = L"tiler";
+
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), DSL_DEFAULT_STREAMMUX_WIDTH,
+            DSL_DEFAULT_STREAMMUX_HEIGHT) == DSL_RESULT_SUCCESS );
+
+        // chech that a removal attempt after pipeline creation fails
+        REQUIRE( dsl_pipeline_streammux_tiler_remove(pipelineName.c_str()) 
+            == DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED );
+        
+        WHEN( "A Tiler is added to a Pipeline's Streammuxer output" ) 
+        {
+            REQUIRE( dsl_pipeline_streammux_tiler_add(pipelineName.c_str(), 
+                tilerName.c_str()) == DSL_RESULT_SUCCESS );
+
+            // second call must fail
+            REQUIRE( dsl_pipeline_streammux_tiler_add(pipelineName.c_str(), 
+                tilerName.c_str()) == DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED );
+
+            THEN( "The Tiler can be successfully removed" )
+            {
+                REQUIRE( dsl_pipeline_streammux_tiler_remove(pipelineName.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                
+                // second call must fail
+                REQUIRE( dsl_pipeline_streammux_tiler_remove(pipelineName.c_str()) 
+                    == DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED );
+                
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "An a non-tiler component is passed as input" ) 
+        {
+            std::wstring fakeSinkName(L"fake-sink");
+            
+            REQUIRE( dsl_sink_fake_new(fakeSinkName.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Streammuxer NVIDIA buffer memory type is unchanged" )
+            {
+                REQUIRE( dsl_pipeline_streammux_tiler_add(pipelineName.c_str(), 
+                    fakeSinkName.c_str()) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
+                
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "The Pipeline Streammux API checks for NULL input parameters", "[pipeline-streammux]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring pipelineName  = L"test-pipeline";
+        
+        uint batch_size(0);
+        uint width(0);
+
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        WHEN( "When NULL pointers are used as input" ) 
+        {
+            THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
+            {
+                REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_get(pipelineName.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_set(NULL, 
+                    1) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_pipeline_streammux_batch_properties_get(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), 
+                    &batch_size, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_batch_properties_set(NULL, 
+                    1, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_pipeline_streammux_dimensions_get(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_dimensions_get(pipelineName.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_dimensions_get(pipelineName.c_str(), 
+                    &batch_size, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_dimensions_set(NULL, 
+                    1, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_pipeline_streammux_padding_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_padding_get(pipelineName.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_padding_set(NULL, 
+                    true) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_pipeline_streammux_num_surfaces_per_frame_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_num_surfaces_per_frame_get(pipelineName.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_num_surfaces_per_frame_set(NULL, 
+                    1) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_pipeline_streammux_tiler_add(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_tiler_add(pipelineName.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_tiler_remove(NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+            }
+        }
+    }
+}

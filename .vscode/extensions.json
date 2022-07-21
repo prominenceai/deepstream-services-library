@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "ms-vscode.cpptools",
+    "eamodio.gitlens",
+    "mhutchie.git-graph",
+    "esbenp.prettier-vscode",
+    "ms-python.python"
+  ]
+}

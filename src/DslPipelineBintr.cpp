@@ -217,6 +217,42 @@ namespace DSL
         return true;
     }
     
+    bool PipelineBintr::AddStreamMuxTiler(DSL_BASE_PTR pTilerBintr)
+    {
+        if (m_pStreamMuxTilerBintr)
+        {
+            LOG_INFO("Pipeline '" << GetName() 
+                << "' already has a Tiler attached to the Stream-Muxer's ouput");
+            return false;
+        }
+        if (m_isLinked)
+        {
+            LOG_INFO("Can't add a Tiler to the Stream-Muxer output for Pipeline '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_pStreamMuxTilerBintr = std::dynamic_pointer_cast<TilerBintr>(pTilerBintr);
+        return AddChild(m_pStreamMuxTilerBintr);
+    }
+    
+    bool PipelineBintr::RemoveStreamMuxTiler()
+    {
+        if (!m_pStreamMuxTilerBintr)
+        {
+            LOG_INFO("Pipeline '" << GetName() 
+                << "' does not have a Tiler attached to the Stream-Muxer's ouput");
+            return false;
+        }
+        if (m_isLinked)
+        {
+            LOG_INFO("Can't remove a Tiler from the Stream-Muxer output for Pipeline '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        RemoveChild(m_pStreamMuxTilerBintr);
+        m_pStreamMuxTilerBintr = nullptr;
+        return true;
+    }
     
     bool PipelineBintr::LinkAll()
     {
@@ -250,6 +286,21 @@ namespace DSL
 
         uint batchTimeout(0);
         GetStreamMuxBatchProperties(&m_batchSize, &batchTimeout);
+
+        if (m_pStreamMuxTilerBintr)
+        {
+            // Link All Tiler Elementrs and add as the next component in the Branch
+            m_pStreamMuxTilerBintr->SetBatchSize(m_batchSize);
+            if (!m_pStreamMuxTilerBintr->LinkAll() or
+                !m_linkedComponents.back()->LinkToSink(m_pStreamMuxTilerBintr))
+            {
+                return false;
+            }
+            m_linkedComponents.push_back(m_pStreamMuxTilerBintr);
+            LOG_INFO("Pipeline '" << GetName() << "' Linked up Tiler '" << 
+                m_pStreamMuxTilerBintr->GetName() 
+                << "' to the Streammuxer output successfully");
+        }
 
         // call the base class to Link all remaining components.
         return BranchBintr::LinkAll();

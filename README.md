@@ -2,6 +2,7 @@
 [![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/prominenceai/deepstream-services-library/blob/master/LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/ansicolortags/badge/?version=latest)](https://github.com/prominenceai/deepstream-services-library/blob/master/docs/overview.md)
 [![Ask Me Anything!](https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg)](https://github.com/prominenceai/deepstream-services-library/issues/new/choose)
+[![Discord](https://img.shields.io/discord/750454524849684540)](https://discord.gg/MJvY9jjpAK)
 
 ![](/Images/under-construction.png)
 
@@ -65,6 +66,7 @@ Come join us on [Discord](https://discord.gg/MJvY9jjpAK), an informal place to c
   * [Source](/docs/api-source.md)
   * [Tap](/docs/api-tap.md)
   * [Video Dewarper](/docs/api-dewarper.md)
+  * [Preprocessor](/docs/api-preproc.md)
   * [Inference Engines and Servers](/docs/api-infer.md)
   * [Multi-Object Tracker](/docs/api-tracker.md)
   * [Segmentation Visualizer](/docs/api-segvisual.md)

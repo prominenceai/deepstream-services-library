@@ -47,7 +47,7 @@ export GST_DEBUG=1,DSL:4
 ```
 execute the python script in the `deepstream-services-library` root folder.
 ```bash
-python3 make_caffemodel_engine_files.py
+sudo python3 make_caffemodel_engine_files.py
 ```
 **Note:** this script can take several minutes to run.
 
@@ -118,6 +118,7 @@ Note: the total passed assertions and test cases are subject to change.
 * [Source](/docs/api-source.md)
 * [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
+* [Preprocessor](/docs/api-preproc.md)
 * [Inference Engine and Server](/docs/api-infer.md)
 * [Tracker](/docs/api-tracker.md)
 * [Segmentation Visualizer](/docs/api-segvisual.md)

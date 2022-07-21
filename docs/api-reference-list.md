@@ -62,6 +62,8 @@
 * [dsl_pipeline_streammux_batch_properties_get](/docs/api-pipeline.md#dsl_pipeline_streammux_properties_get)
 * [dsl_pipeline_streammux_dimensions_get](/docs/api-pipeline.md#dsl_pipeline_streammux_dimensions_get)
 * [dsl_pipeline_streammux_dimensions_set](/docs/api-pipeline.md#dsl_pipeline_streammux_dimensions_set)
+* [dsl_pipeline_streammux_tiler_add](/docs/api-pipeline.md#dsl_pipeline_streammux_tiler_add)
+* [dsl_pipeline_streammux_tiler_remove](/docs/api-pipeline.md#dsl_pipeline_streammux_tiler_remove)
 * [dsl_pipeline_xwindow_dimensions_get](/docs/api-pipeline.md#dsl_pipeline_xwindow_dimensions_get)
 * [dsl_pipeline_xwindow_dimensions_set](/docs/api-pipeline.md#dsl_pipeline_xwindow_dimensions_set)
 * [dsl_pipeline_xwindow_handle_get](/docs/api-pipeline.md#dsl_pipeline_xwindow_handle_get)
@@ -203,15 +205,28 @@
 * [dsl_dwarper_config_file_get](/docs/api-dewarper.md#dsl_dwarper_config_file_get)
 * [dsl_dwarper_config_file_set](/docs/api-dewarper.md#dsl_dwarper_config_file_set)
 
+## Preprocessor:
+* [Overview](/docs/api-preproc.md)
+* [dsl_preproc_new](/docs/api-preproc.md#dsl_preproc_new)
+* [dsl_preproc_config_file_get](/docs/api-preproc.md#dsl_preproc_config_file_get)
+* [dsl_preproc_config_file_set](/docs/api-preproc.md#dsl_preproc_config_file_get)
+* [dsl_preproc_enabled_get](/docs/api-preproc.md#dsl_preproc_enabled_get)
+* [dsl_preproc_enabled_set](/docs/api-preproc.md#dsl_preproc_enabled_set)
+* [dsl_preproc_unique_id_get](/docs/api-preproc.md#dsl_preproc_unique_id_get)
+
 ## Primary and Secondary Inference API:
 * [Overview](/docs/api-gie.md)
 * [dsl_infer_gie_primary_new](/docs/api-gie.md#dsl_infer_gie_primary_new)
 * [dsl_infer_gie_secondary_new](/docs/api-gie.md#dsl_infer_gie_secondary_new)
 * [dsl_infer_tis_primary_new](/docs/api-gie.md#dsl_infer_tis_primary_new)
 * [dsl_infer_tis_secondary_new](/docs/api-gie.md#dsl_infer_tis_secondary_new)
+* [dsl_infer_batch_size_get](/docs/api-gie.md#dsl_infer_batch_size_get)
+* [dsl_infer_batch_size_set](/docs/api-gie.md#dsl_infer_batch_size_set)
 * [dsl_infer_unique_id_get](/docs/api-gie.md#dsl_infer_unique_id_get)
 * [dsl_infer_gie_model_engine_file_get](/docs/api-gie.md#dsl_infer_gie_model_engine_file_get)
 * [dsl_infer_gie_model_engine_file_set](/docs/api-gie.md#dsl_infer_gie_model_engine_file_set)
+* [dsl_infer_gie_tensor_meta_settings_get](/docs/api-gie.md#dsl_infer_gie_tensor_meta_settings_get)
+* [dsl_infer_gie_tensor_meta_settings_set](/docs/api-gie.md#dsl_infer_gie_tensor_meta_settings_set)
 * [dsl_infer_config_file_get](/docs/api-gie.md#dsl_infer_config_file_get)
 * [dsl_infer_config_file_set](/docs/api-gie.md#dsl_infer_config_file_set)
 * [dsl_infer_interval_get](/docs/api-gie.md#dsl_infer_interval_get)
@@ -563,7 +578,8 @@
 * [dsl_display_type_rgba_color_palette_index_get](/docs/api-display-type.md#dsl_display_type_rgba_color_palette_index_get)
 * [dsl_display_type_rgba_color_palette_index_set](/docs/api-display-type.md#dsl_display_type_rgba_color_palette_index_set)
 * [dsl_display_type_rgba_color_next_set](/docs/api-display-type.md#dsl_display_type_rgba_color_next_set)
-* [dsl_display_type_list_size](/docs/api-display-type.md/docs/api-display-type.md#dsl_display_type_list_size)
+* [dsl_display_type_rgba_text_shadow_add](/docs/api-display-type.md#dsl_display_type_rgba_text_shadow_add)
+* [dsl_display_type_list_size](/docs/api-display-type.md#dsl_display_type_list_size)
 
 ## Component API:
 * [Overview](/docs/api-component.md)

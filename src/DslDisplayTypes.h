@@ -474,6 +474,14 @@ namespace DSL
          * @brief Unlocks the DisplayType's property mutex
          */
         inline void Unlock();
+        
+        /**
+         * @brief Enables addition of a dropped shadow for the text background.
+         * @param xOffset[in] x-offset for the shadow in units of pixels.
+         * @param yOffset[in] y-offset for the shadow in units of pixels.
+         * @param pColor[in] RGBA Color for the Text background shadow.
+         */
+        bool AddShadow(uint xOffset, uint yOffset, DSL_RGBA_COLOR_PTR pColor);
 
         /**
          * @brief Adds the Display Type's meta to the provided displayMetaData
@@ -498,7 +506,31 @@ namespace DSL
          * @breif shared pointer to a RGBA Color Type for this RGBA Text
          */
         DSL_RGBA_COLOR_PTR m_pBgColor;
+        
+        /**
+         * @brief true if the text has a dropped shadow, false (default) otherwise.
+         */
+        bool m_shadowEnabled;
+
+        /**
+         * @brief x-offset for the text shadow if enabled. 
+         */
+        uint m_shadowXOffset;
     
+        /**
+         * @brief y-offset for the text shadow if enabled. 
+         */
+        uint m_shadowYOffset;
+
+        /**
+         * @breif shared pointer to a RGBA Font Type for the shadow if enabled.
+         */
+        DSL_RGBA_FONT_PTR m_pShadowFont;
+    
+        /**
+         * @breif shared pointer to a RGBA Color Type for the shadow if enabled.
+         */
+        DSL_RGBA_COLOR_PTR m_pShadowColor;
     };
     
     // ********************************************************************
@@ -810,7 +842,7 @@ namespace DSL
 
     // ********************************************************************
 
-    class SourceDimensions : public DisplayType, public NvOSD_TextParams
+    class SourceDimensions : public RgbaText
     {
     public:
 
@@ -853,7 +885,7 @@ namespace DSL
  
     // ********************************************************************
 
-    class SourceFrameRate : public DisplayType, public NvOSD_TextParams
+    class SourceFrameRate : public RgbaText
     {
     public:
 
@@ -896,7 +928,7 @@ namespace DSL
 
     // ********************************************************************
 
-    class SourceNumber : public DisplayType, public NvOSD_TextParams
+    class SourceNumber : public RgbaText
     {
     public:
 
@@ -939,7 +971,7 @@ namespace DSL
 
     // ********************************************************************
 
-    class SourceName : public DisplayType, public NvOSD_TextParams
+    class SourceName : public RgbaText
     {
     public:
 

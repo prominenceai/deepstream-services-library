@@ -114,6 +114,7 @@ Constants used by the [ODE File Action](#dsl_ode_action_file_new)
 ```C
 #define DSL_EVENT_FILE_FORMAT_TEXT                                  0
 #define DSL_EVENT_FILE_FORMAT_CSV                                   1
+#define DSL_EVENT_FILE_FORMAT_MOTC                                  2
 
 #define DSL_WRITE_MODE_APPEND                                       0
 #define DSL_WRITE_MODE_TRUNCATE                                     1
@@ -217,7 +218,7 @@ Note: `dsl_ode_occurrence_source_info` is defined as a substructure for the [dsl
 **Fields**
 
 * `source_id` - unique source id for this ODE occurrence.
-* `batch_id` -  the location of the frame in the batch for this ODE occurrence 
+* `batch_id` -  the location of the frame in the batch for this ODE occurrence
 * `pad_index` -  pad or port index of the Gst-streammux plugin for this ODE occurrence
 * `frame_num` - current frame number of the source for this ODE occurrence.
 * `frame_width` - width of the frame at input to Gst-streammux for this ODE occurrence.
@@ -310,7 +311,7 @@ Note: `dsl_ode_occurrence_criteria_info` is defined as a substructure for the [d
 * `min_inference_confidence` - the minimum inference confidence to trigger an ODE occurrence.
 * `min_tracker_confidence` - the minimum tracker confidence to trigger an ODE occurrence.
 * `inference_done_only` - inference must be performed to trigger an ODE occurrence.
-* `min_width`-  the minimum bounding box width to trigger an ODE occurrence.
+* `min_width` - the minimum bounding box width to trigger an ODE occurrence.
 * `max_width` - the minimum bounding box height to trigger an ODE occurrence.
 * `max_width` - the maximum bounding box width to trigger an ODE occurrence.
 * `max_height` - the maximum bounding box height to trigger an ODE occurrence.
@@ -335,11 +336,11 @@ typedef struct _dsl_ode_occurrence_info
 ODE Occurrence information provided to the client on callback to the client's [dsl_ode_monitor_occurrence_cb](#dsl_ode_monitor_occurrence_cb).
 
 **Fields**
-* `trigger_name`-  the unique name of the ODE Trigger that triggered the occurrence
+* `trigger_name` - the unique name of the ODE Trigger that triggered the occurrence
 * `unique_ode_id` - unique occurrence Id for this occurrence.
 * `ntp_timestamp` - Network Time for this event.
 * `source_info` - Video Source information for this ODE Occurrence - see [dsl_ode_occurrence_source_info](#dsl_ode_occurrence_source_info)
-* `is_object_occurrence` - true if the ODE occurrence information is for a specific object, false for frame-level multi-object events. (absence, new-high count, etc.). 
+* `is_object_occurrence` - true if the ODE occurrence information is for a specific object, false for frame-level multi-object events. (absence, new-high count, etc.).
 * `object_info` - Object information if object_occurrence == true - see [dsl_ode_occurrence_object_info](#dsl_ode_occurrence_object_info)
 * `accumulative_info` - Accumulative information if object_occurrence == false - see [dsl_ode_occurrence_accumulative_info](#dsl_ode_occurrence_accumulative_info)
 * `criteria_info` - Trigger Criteria information for this ODE occurrence.
@@ -382,7 +383,7 @@ Callback typedef for a client ODE occurrence handler function. Once registered, 
 ### *dsl_ode_monitor_occurrence_cb*
 ```C++
 typedef void (*dsl_ode_monitor_occurrence_cb)(dsl_ode_occurrence_info* occurrence_info,
-    void* client_data); 
+    void* client_data);
 ```
 Callback typedef for a client ODE occurrence monitor function. Once registered, by calling [dsl_ode_action_monitor_new](#dsl_ode_action_monitor_new), the function will be called on ODE occurrence.
 
@@ -402,7 +403,7 @@ Defines a Callback typedef for a client listener function. Once added to an ODE 
 
 **Parameters**
 * `enabled` - [in] true if the Action has been enabled, false if disabled.
-* `client_data` - [in] opque point to client user data provided by the client on callback add.
+* `client_data` - [in] opaque point to client user data provided by the client on callback add.
 
 <br>
 
@@ -546,7 +547,7 @@ DslReturnType dsl_ode_action_custom_new(const wchar_t* name,
 ```
 The constructor creates a uniquely named **Custom** ODE Action. When invoked, this Action will call the Client provided callback function with the Frame Meta and Object Meta that triggered the ODE occurrence.
 
-**IMPORTANT:** This services is only available through the C/C++ API. Python users, needing to parse the Frame and Object level metadata, must use a [Custom Pad Probe Handler](/docs/api-pph.md) along with NVIDIA's Python bindings available here: https://github.com/NVIDIA-AI-IOT/deepstream_python_apps/tree/master/bindings . Read more about Pyds API [here]. See the Python example [1uri_file_pgie_iou_tiler_osd_custom_pph_window.py](/examples/python/1uri_file_pgie_iou_tiler_osd_custom_pph_window.py) which uses the python module [nvidia_osd_sink_pad_buffer_probe.py](/examples/python/nvidia_osd_sink_pad_buffer_probe.py).
+**IMPORTANT:** This service is only available through the C/C++ API. Python users, needing to parse the Frame and Object level metadata, must use a [Custom Pad Probe Handler](/docs/api-pph.md) along with NVIDIA's Python bindings available here: https://github.com/NVIDIA-AI-IOT/deepstream_python_apps/tree/master/bindings . Read more about Pyds API [here]. See the Python example [1uri_file_pgie_iou_tiler_osd_custom_pph_window.py](/examples/python/1uri_file_pgie_iou_tiler_osd_custom_pph_window.py) which uses the python module [nvidia_osd_sink_pad_buffer_probe.py](/examples/python/nvidia_osd_sink_pad_buffer_probe.py).
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
@@ -691,14 +692,20 @@ DslReturnType dsl_ode_action_file_new(const wchar_t* name,
 ```
 The constructor creates a uniquely named **File** ODE Action. When invoked, this Action will write the Frame/Object and Trigger Criteria information for the ODE occurrence that triggered the event to a specified file. The file will be created if one does exist. Existing file can be opened in either append or truncate modes.
 
-Event data can be saved in one of two formats; formatted text or comma separated values (CSV). Click on the image below to view the CSV column headers and example data.
+Event data can be saved in one of three formats; formatted text, comma separated values (CSV), or in MOT Challenge format. Click on the image below to view the CSV column headers and example data.
 
 ![CSV Event File Format](/Images/csv-file.png)
 
+The MOT challenge format is as follows:
+```
+<frame>, <id>, <bb_left>, <bb_top>, <bb_width>, <bb_height>, <conf>, <x>, <y>, <z>
+```
+Values `x`, `y`, and `z` will be set to `-1` for 2D detection. See [Jonathon Luiten's TrackEval repository](https://github.com/JonathonLuiten/TrackEval) and the [MOT Challenge Format Doc](https://github.com/JonathonLuiten/TrackEval/blob/master/docs/MOTChallenge-format.txt) for more information.
+
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
-* `mode` - [in] file open mode, either DSL_EVENT_FILE_MODE_APPEND or DSL_EVENT_FILE_MODE_TRUNCATE
-* `format` - [in] file format, either DSL_EVENT_FILE_FORMAT_TEXT or DSL_EVENT_FILE_FORMAT_CSV
+* `mode` - [in] file open mode, either `DSL_EVENT_FILE_MODE_APPEND` or `DSL_EVENT_FILE_MODE_TRUNCATE`
+* `format` - [in] file format; `DSL_EVENT_FILE_FORMAT_TEXT`, `DSL_EVENT_FILE_FORMAT_CSV` or `DSL_EVENT_FILE_FORMAT_MOTC`
 * `file_path` - [in] absolute or relative file path specification of the output file to use.
 * `force_flush` - [in] if set, the action will schedule a flush buffer operation to be performed by the idle thread.  
 
@@ -745,7 +752,7 @@ The constructor creates a uniquely named **Fill Surroundings** ODE Action. When 
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
-* `color` - [in] RGBA Color Display Type to fill the object backround with.
+* `color` - [in] RGBA Color Display Type to fill the object background with.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -877,14 +884,14 @@ retval = dsl_ode_action_message_meta_add_new('my-add-message-meta-action')
 
 ### *dsl_ode_action_monitor_new*
 ```C++
-DslReturnType dsl_ode_action_monitor_new(const wchar_t* name, 
+DslReturnType dsl_ode_action_monitor_new(const wchar_t* name,
     dsl_ode_monitor_occurrence_cb client_monitor, void* client_data);
 ```
 The constructor creates a uniquely named **Monitor Occurrence** ODE Action. When invoked, this Action will call the `client_monitor` callback function with a pointer to a structure of ODE occurrence information.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
-* `client_monitor` - [in] function to call on ODE occurrence. 
+* `client_monitor` - [in] function to call on ODE occurrence.
 * `client_data` - [in]  opaue pointer to client's user data, returned on callback.
 
 **Returns**
@@ -1574,6 +1581,7 @@ size = dsl_ode_action_list_size()
 * [Source](/docs/api-source.md)
 * [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
+* [Preprocessor](/docs/api-preproc.md)
 * [Inference Engine and Server](/docs/api-infer.md)
 * [Tracker](/docs/api-tracker.md)
 * [Segmentation Visualizer](/docs/api-segvisual.md)

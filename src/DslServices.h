@@ -116,22 +116,31 @@ namespace DSL {
             const dsl_coordinate* coordinates, uint numCoordinates, 
             uint borderWidth, const char* color);
 
-        DslReturnType DisplayTypeRgbaCircleNew(const char* name, uint xCenter, uint yCenter, uint radius,
+        DslReturnType DisplayTypeRgbaCircleNew(const char* name, 
+            uint xCenter, uint yCenter, uint radius,
             const char* color, bool hasBgColor, const char* bgColor);
     
         DslReturnType DisplayTypeSourceNumberNew(const char* name, 
-            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
+            uint xOffset, uint yOffset, const char* font, 
+            boolean hasBgColor, const char* bgColor);
 
         DslReturnType DisplayTypeSourceNameNew(const char* name, 
-            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
+            uint xOffset, uint yOffset, const char* font, 
+            boolean hasBgColor, const char* bgColor);
 
         DslReturnType DisplayTypeSourceDimensionsNew(const char* name, 
-            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
+            uint xOffset, uint yOffset, const char* font, 
+            boolean hasBgColor, const char* bgColor);
 
         DslReturnType DisplayTypeSourceFrameRateNew(const char* name, 
-            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
+            uint xOffset, uint yOffset, const char* font, 
+            boolean hasBgColor, const char* bgColor);
 
-        DslReturnType DisplayTypeMetaAdd(const char* name, void* pDisplayMeta, void* pFrameMeta);
+        DslReturnType DisplayRgbaTextShadowAdd(const char* name, 
+            uint xOffset, uint yOffset, const char* color);
+            
+        DslReturnType DisplayTypeMetaAdd(const char* name, 
+        void* pDisplayMeta, void* pFrameMeta);
         
         DslReturnType DisplayTypeDelete(const char* name);
         
@@ -710,6 +719,23 @@ namespace DSL {
         DslReturnType TapRecordMailerRemove(const char* name,
             const char* mailer);
 
+        DslReturnType PreprocNew(const char* name, const char* configFile);
+        
+        DslReturnType PreprocConfigFileGet(const char* name, 
+            const char** configFile);
+            
+        DslReturnType PreprocConfigFileSet(const char* name, 
+            const char* configFile);
+            
+        DslReturnType PreprocEnabledGet(const char* name, 
+            boolean* enabled);
+            
+        DslReturnType PreprocEnabledSet(const char* name, 
+            boolean enabled);
+            
+        DslReturnType PreprocUniqueIdGet(const char* name, 
+            uint* uniqueId);
+
         DslReturnType SegVisualNew(const char* name, uint width, uint height);
         
         DslReturnType SegVisualDimensionsGet(const char* name, uint* width, uint* height);
@@ -720,27 +746,31 @@ namespace DSL {
 
         DslReturnType SegVisualPphRemove(const char* name, const char* handler);
 
-        DslReturnType PrimaryGieNew(const char* name, const char* inferConfigFile,
+        DslReturnType InferPrimaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, uint interval);
 
-        DslReturnType PrimaryTisNew(const char* name, 
+        DslReturnType InferPrimaryTisNew(const char* name, 
             const char* inferConfigFile, uint interval);
 
-        DslReturnType SecondaryGieNew(const char* name, const char* inferConfigFile,
+        DslReturnType InferSecondaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, const char* inferOnGieName, uint interval);
 
-        DslReturnType SecondaryTisNew(const char* name, const char* inferConfigFile,
+        DslReturnType InferSecondaryTisNew(const char* name, const char* inferConfigFile,
             const char* inferOnGieName, uint interval);
+
+        DslReturnType InferBatchSizeGet(const char* name, uint* size);
+
+        DslReturnType InferBatchSizeSet(const char* name, uint size);
 
         DslReturnType InferUniqueIdGet(const char* name, uint* id);
 
-        DslReturnType PrimaryInferPphAdd(const char* name, const char* handler, uint pad);
+        DslReturnType InferPrimaryPphAdd(const char* name, const char* handler, uint pad);
 
-        DslReturnType PrimaryInferPphRemove(const char* name, const char* handler, uint pad);
+        DslReturnType InferPrimaryPphRemove(const char* name, const char* handler, uint pad);
 
-        DslReturnType GieModelEngineFileGet(const char* name, const char** modelEngineFile);
+        DslReturnType InferGieModelEngineFileGet(const char* name, const char** modelEngineFile);
 
-        DslReturnType GieModelEngineFileSet(const char* name, const char* modelEngineFile);
+        DslReturnType InferGieModelEngineFileSet(const char* name, const char* modelEngineFile);
 
         DslReturnType InferConfigFileGet(const char* name, const char** inferConfigFile);
 
@@ -749,6 +779,12 @@ namespace DSL {
         DslReturnType InferRawOutputEnabledSet(const char* name, boolean enabled,
             const char* path);
             
+        DslReturnType InferGieTensorMetaSettingsGet(const char* name, 
+            boolean* inputEnabled, boolean* outputEnabled);
+            
+        DslReturnType InferGieTensorMetaSettingsSet(const char* name, 
+            boolean inputEnabled, boolean outputEnabled);
+            
         DslReturnType InferIntervalGet(const char* name, uint* interval);
 
         DslReturnType InferIntervalSet(const char* name, uint interval);
@@ -756,6 +792,8 @@ namespace DSL {
         DslReturnType InferNameGet(int inferId, const char** name);
 
         DslReturnType InferIdGet(const char* name, int* inferId);
+    
+        DslReturnType _inferIdGet(const char* name, int* inferId);
     
         DslReturnType _inferNameSet(uint inferId, const char* name);
     
@@ -1087,6 +1125,10 @@ namespace DSL {
         DslReturnType PipelineStreamMuxNumSurfacesPerFrameGet(const char* name, uint* num);
 
         DslReturnType PipelineStreamMuxNumSurfacesPerFrameSet(const char* name, uint num);
+
+        DslReturnType PipelineStreamMuxTilerAdd(const char* name, const char* tiler);
+
+        DslReturnType PipelineStreamMuxTilerRemove(const char* name);
 
         DslReturnType PipelineXWindowHandleGet(const char* name, uint64_t* xwindow);
 

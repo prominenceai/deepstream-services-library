@@ -577,14 +577,25 @@ namespace DSL
                     << " is invalid for ODE Action '" << name << "'");
                 return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
             }
-            if (format > DSL_EVENT_FILE_FORMAT_CSV)
+            switch (format)
             {
+            case DSL_EVENT_FILE_FORMAT_TEXT :
+                m_odeActions[name] = DSL_ODE_ACTION_FILE_TEXT_NEW(name, 
+                    filePath, mode, forceFlush);
+                break;
+            case DSL_EVENT_FILE_FORMAT_CSV :
+                m_odeActions[name] = DSL_ODE_ACTION_FILE_CSV_NEW(name, 
+                    filePath, mode, forceFlush);
+                break;
+            case DSL_EVENT_FILE_FORMAT_MOTC :
+                m_odeActions[name] = DSL_ODE_ACTION_FILE_MOTC_NEW(name, 
+                    filePath, mode, forceFlush);
+                break;
+            default :
                 LOG_ERROR("File format " << format 
                     << " is invalid for ODE Action '" << name << "'");
                 return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_FILE_NEW(name, 
-                filePath, mode, format, forceFlush);
 
             LOG_INFO("New ODE File Action '" << name << "' created successfully");
 

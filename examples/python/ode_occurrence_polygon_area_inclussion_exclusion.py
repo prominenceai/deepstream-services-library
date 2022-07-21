@@ -135,7 +135,7 @@ def main(args):
             break
 
         # create a list of X,Y coordinates defining the points of the Polygon.
-        # Polygon can have a minimum of 3, maximum of 8 points (sides)
+        # Polygon can have a minimum of 3, maximum of 16 points (sides)
         coordinates = [dsl_coordinate(365,600), dsl_coordinate(580,620), 
             dsl_coordinate(600, 770), dsl_coordinate(180,750)]
             

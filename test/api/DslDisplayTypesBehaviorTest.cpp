@@ -57,6 +57,12 @@ static const boolean clock_enabled(false);
 static const boolean bbox_enabled(true);
 static const boolean mask_enabled(false);
 
+static const uint PGIE_CLASS_ID_VEHICLE = 0;
+static const uint PGIE_CLASS_ID_BICYCLE = 1;
+static const uint PGIE_CLASS_ID_PERSON = 2;
+static const uint PGIE_CLASS_ID_ROADSIGN = 3;
+
+
 static const std::wstring ode_pph_name(L"ode-handler");
 
 static const std::wstring pipeline_name(L"test-pipeline");
@@ -72,25 +78,10 @@ SCENARIO( "All DisplayTypes can be displayed by an ODE Action", "[display-types-
         std::wstring odeDisplayMetaActionName(L"display-meta");
         
         uint limit(0);
-        
-        std::wstring lineName(L"line");
-        uint x1(300), y1(600), x2(600), y2(620);
-        uint line_width(5);
 
-        std::wstring polygonName(L"polygon");
-        std::wstring multiLineName(L"multi-line");
-        dsl_coordinate coordinates1[4] = {{100,100},{210,110},{220,300},{110,330}};
-        dsl_coordinate coordinates2[4] = {{100,400},{210,410},{220,500},{110,530}};
-        uint num_coordinates(4);
-        uint border_width(3);
 
-        std::wstring colorName(L"opaque-white");
-        double red(1.0), green(1.0), blue(1.0), alpha(1.0);
-        
-        REQUIRE( dsl_component_list_size() == 0 );
-
-        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(),
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(source_name.c_str(), uri.c_str(),
+            true) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
             infer_config_file.c_str(), model_engine_file.c_str(), 
@@ -98,58 +89,255 @@ SCENARIO( "All DisplayTypes can be displayed by an ODE Action", "[display-types-
         
         REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), 
             tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_tiler_new(tiler_name.c_str(), 
-            width, height) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_pph_ode_new(ode_pph_name.c_str()) == DSL_RESULT_SUCCESS );
+
+        // ------------------------------------------------------------------------
         
-        REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), 
-            ode_pph_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_display_type_rgba_color_custom_new(L"red-50", 
+            1.0, 0.2, 0.3, 0.5) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_color_custom_new(colorName.c_str(), 
-            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_display_type_rgba_color_predefined_new(L"dark-red", 
+            DSL_COLOR_PREDEFINED_DARK_RED, 1.0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_line_new(lineName.c_str(), 
-            x1, y1, x2, y2, line_width, colorName.c_str())== DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_display_type_rgba_color_custom_new(L"green", 
+            0.2, 1.0, 0.3, 0.5) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_predefined_new(L"purple", 
+            DSL_COLOR_PREDEFINED_PURPLE, 1.0) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_predefined_new(L"turquoise", 
+            DSL_COLOR_PREDEFINED_TURQUOISE, 1.0) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), 
-            coordinates1, num_coordinates, border_width, 
-            colorName.c_str())== DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_display_type_rgba_color_predefined_new(L"indigo", 
+            DSL_COLOR_PREDEFINED_INDIGO, 1.0) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_display_type_rgba_line_multi_new(multiLineName.c_str(), 
-            coordinates2, num_coordinates, border_width, 
-            colorName.c_str())== DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_display_type_rgba_color_predefined_new(L"white", 
+            DSL_COLOR_PREDEFINED_WHITE, 1.0) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_color_predefined_new(L"black", 
+            DSL_COLOR_PREDEFINED_BLACK, 1.0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_trigger_always_new(odeAlwaysTriggerName.c_str(), 
-            NULL, DSL_ODE_PRE_OCCURRENCE_CHECK) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_display_type_rgba_color_predefined_new(L"yellow", 
+            DSL_COLOR_PREDEFINED_LIGHT_YELLOW, 1.0) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_color_predefined_new(L"orange", 
+            DSL_COLOR_PREDEFINED_ORANGE, 1.0) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_color_predefined_new(L"black-50", 
+            DSL_COLOR_PREDEFINED_BLACK, 0.5) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_color_random_new(L"random-magenta", 
+            DSL_COLOR_HUE_MAGENTA, DSL_COLOR_LUMINOSITY_DARK, 
+            1.0, 0) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_color_random_new(L"random-magenta-pink", 
+            DSL_COLOR_HUE_MAGENTA_PINK, DSL_COLOR_LUMINOSITY_DARK, 
+            0.5, 0) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_color_random_new(L"random-green", 
+            DSL_COLOR_HUE_GREEN, DSL_COLOR_LUMINOSITY_LIGHT, 
+            1.0, 0) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_color_random_new(L"random-cyan", 
+            DSL_COLOR_HUE_CYAN, DSL_COLOR_LUMINOSITY_LIGHT, 
+            1.0, 0) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_color_random_new(L"random-red", 
+            DSL_COLOR_HUE_RED, DSL_COLOR_LUMINOSITY_DARK, 
+            0.8, 0) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_color_predefined_new(L"white-65", 
+            DSL_COLOR_PREDEFINED_WHITE, 0.65) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_color_custom_new(L"dark-blue", 
+            0.2, 0.0, 1.0, 1.0) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* display_types[] = {L"line", L"polygon", L"multi-line", NULL};
+        REQUIRE( dsl_display_type_rgba_color_custom_new(L"dark-grey", 
+            0.2, 0.2, 0.2, 1.0) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_random_new(L"random-color", 
+            DSL_COLOR_HUE_RANDOM, DSL_COLOR_LUMINOSITY_BRIGHT, 
+            1.0, 200) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_font_new(L"arial-bold-purple", 
+            L"arial bold", 32, L"purple") == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_font_new(L"arial-bold-dark-grey", 
+            L"arial bold", 32, L"dark-grey") == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_font_new(L"verdana-italic", 
+            L"verdana italic bold", 36, L"dark-red") == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_font_new(L"georgia", 
+            L"georgia bold", 32, L"white") == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_font_new(L"verdana-bold", 
+            L"verdana bold", 32, L"yellow") == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_font_new(L"impact", 
+            L"impact bold", 32, L"dark-blue") == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_text_new(L"colors", L"COLORS", 
+            140, 100, L"arial-bold-purple", true, L"yellow") == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_text_new(L"fonts", L"Fonts", 
+            385, 95, L"verdana-italic", false, NULL) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_text_new(L"text", L"Text with background!", 
+            605, 95, L"georgia", true, L"black-50") == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_text_new(L"shadows", L"shadows", 
+            1225, 95, L"verdana-bold", true, L"black-50") == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_text_shadow_add(L"shadows", 
+            10, 10,  L"black-50") == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_text_new(L"shapes", L"SHAPES", 
+            1520, 96, L"impact", true, L"white-65") == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_line_new(L"line", 
+            200, 300, 380, 300, 10, L"turquoise")== DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_arrow_new(L"arrow", 
+            460, 300, 640, 300, 10, DSL_ARROW_END_HEAD, L"indigo")== DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_text_new(L"source", L"Camera / Location", 
+            40, 980, L"arial-bold-dark-grey", true, L"yellow") == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_rgba_text_shadow_add(L"source", 
+            10, 10,  L"black-50") == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_display_type_source_dimensions_new(L"dimensions", 
+            1610, 980, L"arial-bold-dark-grey", true, L"yellow") == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_text_shadow_add(L"dimensions", 
+            10, 10,  L"black-50") == DSL_RESULT_SUCCESS );
+            
+        dsl_coordinate coordinates1[] = 
+            {{710,280},{750,320},{790,280},{830,320},{870,280}};
+            
+        REQUIRE( dsl_display_type_rgba_line_multi_new(L"multi-line", 
+            coordinates1, 5, 10, L"orange")== DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_rectangle_new(L"rectangle", 
+            980, 260, 180, 80, 10, L"random-magenta", 
+            true, L"random-magenta-pink")== DSL_RESULT_SUCCESS );
+
+        dsl_coordinate coordinates2[] = 
+            {{1240,280},{1330,230},{1420,280},{1380,370},{1280,370}};
+
+        REQUIRE( dsl_display_type_rgba_polygon_new(L"polygon", 
+            coordinates2, 5, 10, L"white")== DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_circle_new(L"circle", 
+            1580, 300, 60, L"random-cyan", false, NULL)== DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_line_new(L"line-area", 
+            355, 605, 570, 610, 8, L"green")== DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_text_new(L"ode-areas", L"ODE Areas",
+            800, 780, L"arial-bold-dark-grey", true, L"yellow") == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_arrow_new(L"arrow-1", 
+            585, 625, 795, 775, 5, DSL_ARROW_START_HEAD, L"white")== DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_arrow_new(L"arrow-2", 
+            625, 747, 795, 775, 5, DSL_ARROW_START_HEAD, L"white")== DSL_RESULT_SUCCESS );
+
+        const wchar_t* display_types[] = {
+            L"colors", L"fonts", L"text", L"shadows", L"shapes", L"line", L"arrow", 
+            L"multi-line", L"rectangle", L"polygon", L"circle", L"source", L"dimensions", 
+            L"line-area", L"ode-areas", L"arrow-1", L"arrow-2", NULL
+        };
 
         REQUIRE( dsl_ode_action_display_meta_add_many_new(odeDisplayMetaActionName.c_str(), 
             display_types) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_always_new(odeAlwaysTriggerName.c_str(), 
+            NULL, DSL_ODE_PRE_OCCURRENCE_CHECK) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_action_add(odeAlwaysTriggerName.c_str(), 
             odeDisplayMetaActionName.c_str()) == DSL_RESULT_SUCCESS );
+
+
+        REQUIRE( dsl_ode_action_format_label_new(L"format-label-action",  
+            NULL, false, NULL) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_occurrence_new(L"every-object-trigger", 
+            NULL, DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_action_format_bbox_new(L"format-bbox-action1",  
+            0, NULL, false, NULL) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_action_add(L"every-object-trigger", 
+            L"format-label-action") == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_action_add(L"every-object-trigger", 
+            L"format-bbox-action1") == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_action_format_bbox_new(L"format-bbox-action2",  
+            3, L"dark-blue", false, NULL) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_occurrence_new(L"every-vehicle-trigger", 
+            NULL, PGIE_CLASS_ID_VEHICLE, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_action_add(L"every-vehicle-trigger", 
+            L"format-bbox-action2") == DSL_RESULT_SUCCESS );
+
+        dsl_coordinate coordinates3[] = {{300,650},{580,660},{605, 740},{190,725}};
+
+        REQUIRE( dsl_display_type_rgba_polygon_new(L"polygon-shape", 
+            coordinates3, 4, 8, L"red-50")== DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_area_inclusion_new(L"polygon-area", L"polygon-shape", 
+            true, DSL_BBOX_POINT_SOUTH) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_cross_new(L"person-cross-trigger", 
+            NULL, PGIE_CLASS_ID_PERSON, DSL_ODE_TRIGGER_LIMIT_NONE, 2, 200, 
+            DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_confidence_min_set(L"person-cross-trigger", 
+            0.40) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_ode_trigger_cross_view_settings_set(L"person-cross-trigger",
+            true, L"random-color", 4) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_area_add(L"person-cross-trigger", 
+            L"polygon-area") == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
-            odeAlwaysTriggerName.c_str()) == DSL_RESULT_SUCCESS );
+        const wchar_t* triggers[] = {
+            odeAlwaysTriggerName.c_str(), L"every-object-trigger", 
+            L"every-vehicle-trigger", L"person-cross-trigger", NULL
+        };
+        
+        REQUIRE( dsl_pph_ode_trigger_add_many(ode_pph_name.c_str(), 
+            triggers) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_osd_new(osd_name.c_str(), 
             text_enabled, clock_enabled, bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_osd_pph_add(osd_name.c_str(), 
+            ode_pph_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"ktl-tracker", L"osd", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
+            REQUIRE( dsl_pph_ode_display_meta_alloc_size_set(ode_pph_name.c_str(), 
+                70) == DSL_RESULT_SUCCESS );
+
             REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
         
             REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
                 components) == DSL_RESULT_SUCCESS );
+                
+            REQUIRE( dsl_pipeline_xwindow_fullscreen_enabled_set(
+                pipeline_name.c_str(), true) == DSL_RESULT_SUCCESS );
 
             THEN( "The Pipeline is Able to LinkAll and Play" )
             {
@@ -167,6 +355,8 @@ SCENARIO( "All DisplayTypes can be displayed by an ODE Action", "[display-types-
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
                 REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_ode_area_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_area_list_size() == 0 );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_list_size() == 0 );
             }
@@ -197,6 +387,8 @@ SCENARIO( "All DisplayTypes can be displayed by an ODE Action", "[display-types-
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
                 REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_ode_area_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_area_list_size() == 0 );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_list_size() == 0 );
             }

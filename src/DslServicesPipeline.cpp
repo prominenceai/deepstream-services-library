@@ -489,6 +489,65 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::PipelineStreamMuxTilerAdd(const char* name,
+        const char* tiler)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, tiler);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, tiler, TilerBintr)
+            
+            if (!m_pipelines[name]->AddStreamMuxTiler(m_components[tiler]))
+            {
+                LOG_ERROR("Pipeline '" << name << "' failed to add Tiler '" 
+                    << tiler << "' to the Stream-Muxer's output");
+                return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
+            }
+            LOG_INFO("Pipeline '" << name << "' added Tiler '" 
+                << tiler << "' to the Stream-Muxer's output successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception adding a Tiler to Stream-Muxer's output");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::PipelineStreamMuxTilerRemove(const char* name)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            if (!m_pipelines[name]->RemoveStreamMuxTiler())
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to remove a Tiler from the Stream-Muxer's output");
+                return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
+            }
+            LOG_INFO("Pipeline '" << name 
+                << "' removed Tiler from to the Stream-Muxer's output successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception removing a Tiler from Stream-Muxer's output");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::PipelineXWindowHandleGet(const char* name, uint64_t* xwindow) 
     {
         LOG_FUNC();

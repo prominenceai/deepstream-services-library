@@ -253,6 +253,15 @@ THE SOFTWARE.
 }while(0);
 #endif
 
+#define DSL_RETURN_IF_PREPROC_NAME_NOT_FOUND(events, name) do \
+{ \
+    if (events.find(name) == events.end()) \
+    { \
+        LOG_ERROR("Preprocessor name '" << name << "' was not found"); \
+        return DSL_RESULT_PREPROC_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_GIE(components, name) do \
 { \
     if (!components[name]->IsType(typeid(PrimaryGieBintr)) and  \
@@ -407,6 +416,18 @@ THE SOFTWARE.
         !types[name]->IsType(typeid(RgbaOnDemandColor)) and \
         !types[name]->IsType(typeid(RgbaOnDemandColor)) and \
         !types[name]->IsType(typeid(RgbaColorPalette))) \
+    { \
+        LOG_ERROR("Display Type '" << name << "' is not color type"); \
+        return DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE; \
+    } \
+}while(0); 
+
+#define DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_TEXT(types, name) do \
+{ \
+    if (!types[name]->IsType(typeid(RgbaText)) and \
+        !types[name]->IsType(typeid(SourceDimensions)) and \
+        !types[name]->IsType(typeid(SourceNumber)) and \
+        !types[name]->IsType(typeid(SourceName))) \
     { \
         LOG_ERROR("Display Type '" << name << "' is not color type"); \
         return DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE; \
