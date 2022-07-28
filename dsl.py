@@ -220,6 +220,9 @@ DSL_STATUS_BROKER_ERROR         = 1
 DSL_STATUS_BROKER_RECONNECTING  = 2
 DSL_STATUS_BROKER_NOT_SUPPORTED = 3
 
+DSL_NMS_MATCH_METHOD_IOU = 0
+DSL_NMS_MATCH_METHOD_IOS = 1
+
 class dsl_coordinate(Structure):
     _fields_ = [
         ('x', c_uint),
@@ -2639,6 +2642,16 @@ _dsl.dsl_pph_meter_interval_set.restype = c_uint
 def dsl_pph_meter_interval_set(name, interval):
     global _dsl
     result =_dsl.dsl_pph_meter_interval_set(name, interval)
+    return int(result)
+
+##
+## dsl_pph_nms_new()
+##
+_dsl.dsl_pph_nms_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_float]
+_dsl.dsl_pph_nms_new.restype = c_uint
+def dsl_pph_nms_new(name, label_file, match_method, match_threshold):
+    global _dsl
+    result =_dsl.dsl_pph_nms_new(name, label_file, match_method, match_threshold)
     return int(result)
 
 ##

@@ -3000,6 +3000,126 @@ DslReturnType dsl_pph_ode_display_meta_alloc_size_set(const wchar_t* name, uint 
         cstrName.c_str(), size);
 }
 
+DslReturnType dsl_pph_nms_new(const wchar_t* name, const wchar_t* label_file,
+    uint match_method, float match_threshold)
+{
+#if !defined(BUILD_NMS_PPH)
+    #error "BUILD_NMS_PPH must be defined"
+#elif BUILD_NMS_PPH != true
+    LOG_ERROR("To use the NMS PPH services, set BUILD_NMS_PPH=true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrLabelFile;
+    if (label_file != NULL)
+    {
+        std::wstring wstrLabelFile(label_file);
+        cstrLabelFile.assign(wstrLabelFile.begin(), wstrLabelFile.end());
+    }
+
+    return DSL::Services::GetServices()->PphNmsNew(cstrName.c_str(),
+        cstrLabelFile.c_str(), match_method, match_threshold);
+#endif  
+}
+
+DslReturnType dsl_pph_nms_label_file_get(const wchar_t* name, 
+     const wchar_t** label_file)
+{
+#if !defined(BUILD_NMS_PPH)
+    #error "BUILD_NMS_PPH must be defined"
+#elif BUILD_NMS_PPH != true
+    LOG_ERROR("To use the NMS PPH services, set BUILD_NMS_PPH=true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(label_file);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cLabelFile;
+    static std::string cstrLabelFile;
+    static std::wstring wcstrLabelFile;
+    
+    uint retval = DSL::Services::GetServices()->PphNmsLabelFileGet(
+        cstrName.c_str(), &cLabelFile);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrLabelFile.assign(cLabelFile);
+        wcstrLabelFile.assign(cstrLabelFile.begin(), cstrLabelFile.end());
+        *label_file = wcstrLabelFile.c_str();
+    }
+    return retval;
+#endif    
+}
+ 
+DslReturnType dsl_pph_nms_label_file_set(const wchar_t* name, 
+     const wchar_t* label_file)
+{
+#if !defined(BUILD_NMS_PPH)
+    #error "BUILD_NMS_PPH must be defined"
+#elif BUILD_NMS_PPH != true
+    LOG_ERROR("To use the NMS PPH services, set BUILD_NMS_PPH=true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(name);
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrLabelFile;
+    if (label_file != NULL)
+    {
+        std::wstring wstrLabelFile(label_file);
+        cstrLabelFile.assign(wstrLabelFile.begin(), wstrLabelFile.end());
+    }
+
+    return DSL::Services::GetServices()->PphNmsLabelFileSet(
+        cstrName.c_str(), cstrLabelFile.c_str());
+#endif
+}
+     
+DslReturnType dsl_pph_nms_match_settings_get(const wchar_t* name,
+    uint* match_method, float* match_threshold)
+{
+#if !defined(BUILD_NMS_PPH)
+    #error "BUILD_NMS_PPH must be defined"
+#elif BUILD_NMS_PPH != true
+    LOG_ERROR("To use the NMS PPH services, set BUILD_NMS_PPH=true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->PphNmsMatchSettingsGet(
+        cstrName.c_str(), match_method, match_threshold);
+#endif    
+}
+     
+DslReturnType dsl_pph_nms_match_settings_set(const wchar_t* name,
+    uint match_method, float match_threshold)
+{
+#if !defined(BUILD_NMS_PPH)
+    #error "BUILD_NMS_PPH must be defined"
+#elif BUILD_NMS_PPH != true
+    LOG_ERROR("To use the NMS PPH services, set BUILD_NMS_PPH=true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->PphNmsMatchSettingsSet(
+        cstrName.c_str(), match_method, match_threshold);
+#endif    
+}
+     
 DslReturnType dsl_pph_enabled_get(const wchar_t* name, boolean* enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);

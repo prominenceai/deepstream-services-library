@@ -122,7 +122,7 @@ int main(int argc, char** argv)
 
         // # Add all the components to a new pipeline
         const wchar_t* components[] = { L"uri-source",L"primary-tis",
-            L"ktl-tracker",L"on-screen-display",L"window-sind",nullptr};
+            L"ktl-tracker",L"on-screen-display",L"window-sink",nullptr};
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);            
         if (retval != DSL_RESULT_SUCCESS) break;
 

@@ -863,6 +863,11 @@ THE SOFTWARE.
 #define DSL_STATUS_BROKER_RECONNECTING                              2
 #define DSL_STATUS_BROKER_NOT_SUPPORTED                             3
 
+/**
+ * @brief Non Maximim Suppression (NMS) object match determination methods
+ */
+#define DSL_NMS_MATCH_METHOD_IOU                                    0
+#define DSL_NMS_MATCH_METHOD_IOS                                    1
 
 EXTERN_C_BEGIN
 
@@ -3594,9 +3599,9 @@ DslReturnType dsl_ode_heat_mapper_delete_all();
 uint dsl_ode_heat_mapper_list_size();
 
 /**
- * @brief creates a new, uniquely named Handler component
+ * @brief creates a new, uniquely named Object Detection Event (ODE) PPH component
  * @param[in] name unique name for the new Handler
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
  */
 DslReturnType dsl_pph_ode_new(const wchar_t* name);
 
@@ -3604,7 +3609,7 @@ DslReturnType dsl_pph_ode_new(const wchar_t* name);
  * @brief Adds a named ODE Trigger to a named ODE Handler Component
  * @param[in] name unique name of the ODE Handler to update
  * @param[in] trigger unique name of the Trigger to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
  */
 DslReturnType dsl_pph_ode_trigger_add(const wchar_t* name, const wchar_t* trigger);
 
@@ -3612,7 +3617,7 @@ DslReturnType dsl_pph_ode_trigger_add(const wchar_t* name, const wchar_t* trigge
  * @brief Adds a Null terminated listed of named ODE Triggers to a named ODE Handler Component
  * @param[in] name unique name of the ODE Handler to update
  * @param[in] triggers Null terminated list of Trigger names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
  */
 DslReturnType dsl_pph_ode_trigger_add_many(const wchar_t* name, const wchar_t** triggers);
 
@@ -3620,7 +3625,7 @@ DslReturnType dsl_pph_ode_trigger_add_many(const wchar_t* name, const wchar_t** 
  * @brief Removes a named ODE Trigger from a named ODE Handler Component
  * @param[in] name unique name of the ODE Handler to update
  * @param[in] odeType unique name of the Trigger to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
  */
 DslReturnType dsl_pph_ode_trigger_remove(const wchar_t* name, const wchar_t* trigger);
 
@@ -3628,14 +3633,14 @@ DslReturnType dsl_pph_ode_trigger_remove(const wchar_t* name, const wchar_t* tri
  * @brief Removes a Null terminated listed of named ODE Triggers from a named ODE Handler Component
  * @param[in] name unique name of the ODE Handler to update
  * @param[in] triggers Null terminated list of Trigger names to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
  */
 DslReturnType dsl_pph_ode_trigger_remove_many(const wchar_t* name, const wchar_t** triggers);
 
 /**
  * @brief Removes all ODE Triggers from a named ODE Handler Component
  * @param[in] name unique name of the ODE Handler to update
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
  */
 DslReturnType dsl_pph_ode_trigger_remove_all(const wchar_t* name);
 
@@ -3646,7 +3651,7 @@ DslReturnType dsl_pph_ode_trigger_remove_all(const wchar_t* name);
  * Note: each allocation adds overhead to the processing of each frame. 
  * @param[in] name unique name of the ODE Handler to query.
  * @param[out] count current count of Display Meta structures allocated per frame
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
  */
 DslReturnType dsl_pph_ode_display_meta_alloc_size_get(const wchar_t* name, uint* size);
 
@@ -3657,7 +3662,7 @@ DslReturnType dsl_pph_ode_display_meta_alloc_size_get(const wchar_t* name, uint*
  * Note: each allocation adds overhead to the processing of each frame. 
  * @param[in] name unique name of the ODE Handler to update.
  * @param[in] size number of Display Meta structures allocated per frame
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
  */
 DslReturnType dsl_pph_ode_display_meta_alloc_size_set(const wchar_t* name, uint size);
 
@@ -3699,6 +3704,67 @@ DslReturnType dsl_pph_meter_interval_get(const wchar_t* name, uint* interval);
 DslReturnType dsl_pph_meter_interval_set(const wchar_t* name, uint interval);
 
 /**
+ * @brief Creates a new, uniquely named Non-Maximum Suppression (NMS) Pad 
+ * Probe Handler (PPH) component.
+ * @param[in] name unique name for the new Pad Probe Handler.
+ * @param[in] label_file absolute or relative path to inference model label file.
+ * Set "label_file" to NULL to perform class agnostic NMS.
+ * @param[in] match_method method for object match determination, either 
+ * DSL_NMS_MATCH_METHOD_IOU or DSL_NMS_MATCH_METHOD_IOS.
+ * @param[in] match_threshold threshold for object match determination.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
+ */
+DslReturnType dsl_pph_nms_new(const wchar_t* name, const wchar_t* label_file,
+    uint match_method, float match_threshold);
+
+/**
+ * @brief Gets the current inference model label file in use by the Non-Maximum 
+ * Suppression (NMS) Pad Probe Handler component.  
+ * @param[in] name unique name of the Pad Probe Handler to query.
+ * @param[out] label_file path to the inference model label file in use. NULL
+ * indicates class agnostic NMS. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
+ */
+DslReturnType dsl_pph_nms_label_file_get(const wchar_t* name, 
+     const wchar_t** label_file);
+
+/**
+ * @brief Sets the inference model label file for the Non-Maximum 
+ * Suppression (NMS) Pad Probe Handler component to use.  
+ * @param[in] name unique name of the Pad Probe Handler to update.
+ * @param[in] label_file absolute or relative path to the inference model 
+ * label file to use. Set "label_file" to NULL to perform class agnostic NMS.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
+ */
+DslReturnType dsl_pph_nms_label_file_set(const wchar_t* name, 
+     const wchar_t* label_file);
+
+/**
+ * @brief Gets the current match settings in use by the named Non-Maximum 
+ * Suppression (NMS) Pad Probe Handler component.
+ * @param[in] name unique name of the Pad Probe Handler to query.
+ * @param[out] match_method current method of object match determination, 
+ * either DSL_NMS_MATCH_METHOD_IOU or DSL_NMS_MATCH_METHOD_IOS.
+ * @param[out] match_threshold current threshold for object match determination
+ * currently in use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
+ */
+DslReturnType dsl_pph_nms_match_settings_get(const wchar_t* name,
+    uint* match_method, float* match_threshold);
+
+/**
+ * @brief Sets the match settings for the named Non-Maximum Suppression (NMS)
+ * Pad Probe Handler component to use.
+ * @param[in] name unique name of the Pad Probe Handler to update.
+ * @param[in] match_method new method for object match determination, either 
+ * DSL_NMS_MATCH_METHOD_IOU or DSL_NMS_MATCH_METHOD_IOS.
+ * @param[in] match_threshold new threshold for object match determination.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
+ */
+DslReturnType dsl_pph_nms_match_settings_set(const wchar_t* name,
+    uint match_method, float match_threshold);
+
+/**
  * @brief gets the current enabled setting for the named Pad Probe Handler
  * @param[in] name unique name of the Handler to query
  * @param[out] enabled true if the Handler is enabled, false otherwise
@@ -3720,7 +3786,7 @@ DslReturnType dsl_pph_enabled_set(const wchar_t* name, boolean enabled);
 /**
  * @brief Deletes a uniquely named Pad Probe Handler. The call will fail if the Handler is currently in use
  * @brief[in] name unique name of the Handler to delte
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
  */
 DslReturnType dsl_pph_delete(const wchar_t* name);
 
@@ -3728,7 +3794,7 @@ DslReturnType dsl_pph_delete(const wchar_t* name);
  * @brief Deletes a Null terminated list of Pad Probe Handlers. 
  * The call will fail if any of the Handlers are currently in use
  * @brief[in] names Null terminaed list of Handler names to delte
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
  */
 DslReturnType dsl_pph_delete_many(const wchar_t** names);
 
