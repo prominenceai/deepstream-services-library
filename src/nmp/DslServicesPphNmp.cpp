@@ -253,6 +253,12 @@ namespace DSL
                     " for NMP Pad Probe handler '" << name << "'");
                 return DSL_RESULT_PPH_SET_FAILED;
             }
+            if (matchThreshold > 1.0)
+            {
+                LOG_ERROR("Invalid match threshold = " << matchThreshold <<
+                    " for NMP Pad Probe handler '" << name << "'");
+                return DSL_RESULT_PPH_SET_FAILED;
+            }
             pNmpPph->SetMatchSettings(matchMethod, matchThreshold);
 
             LOG_INFO("NMP Pad Probe handler '" << name 
@@ -270,3 +276,4 @@ namespace DSL
         }
     }
 }
+

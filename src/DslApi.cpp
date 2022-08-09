@@ -3050,8 +3050,15 @@ DslReturnType dsl_pph_nmp_label_file_get(const wchar_t* name,
     if (retval ==  DSL_RESULT_SUCCESS)
     {
         cstrLabelFile.assign(cLabelFile);
-        wcstrLabelFile.assign(cstrLabelFile.begin(), cstrLabelFile.end());
-        *label_file = wcstrLabelFile.c_str();
+        if (cstrLabelFile.size())
+        {
+            wcstrLabelFile.assign(cstrLabelFile.begin(), cstrLabelFile.end());
+            *label_file = wcstrLabelFile.c_str();
+        }
+        else
+        {
+            *label_file = NULL;
+        }
     }
     return retval;
 #endif    
@@ -3092,6 +3099,7 @@ DslReturnType dsl_pph_nmp_process_method_get(const wchar_t* name,
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(process_method);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -3130,6 +3138,8 @@ DslReturnType dsl_pph_nmp_match_settings_get(const wchar_t* name,
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(match_method);
+    RETURN_IF_PARAM_IS_NULL(match_threshold);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
