@@ -35,34 +35,42 @@ namespace DSL
     /**
      * @brief convenience macros for shared pointer abstraction
      */
-    #define DSL_PPH_NMS_PTR std::shared_ptr<NmsPadProbeHandler>
-    #define DSL_PPH_NMS_NEW(name, labelFile, matchMethod, matchThreshold) \
-        std::shared_ptr<NmsPadProbeHandler>(new NmsPadProbeHandler(name, \
-            labelFile, matchMethod, matchThreshold))
+    #define DSL_PPH_NMP_PTR std::shared_ptr<NmpPadProbeHandler>
+    #define DSL_PPH_NMP_NEW(name, labelFile, processMethod, matchMethod, \
+        matchThreshold) \
+        std::shared_ptr<NmpPadProbeHandler>(new NmpPadProbeHandler(name, \
+            labelFile, processMethod, matchMethod, matchThreshold))
 
     //----------------------------------------------------------------------------------------------
 
     /**
-     * @class NmsPadProbeHandler
-     * @brief Pad Probe Handler to Perform Non-Maximum-Suppression on all bbox
-     * perditions for a specified class(s) using one of two methods. IoU, IoS
+     * @class NmpPadProbeHandler
+     * @brief Pad Probe Handler to Perform Non-Maximum-Processing -- either '
+     * suppression or merging on all bbox predictions for a specified class(s) 
+     * using one of two methods. IoU, IoS.
      */
-    class NmsPadProbeHandler : public PadProbeHandler
+    class NmpPadProbeHandler : public PadProbeHandler
     {
     public: 
     
         /**
          * @brief ctor for the NMS Pad Probe Handler
-         * @param[in] name unique name for the PPH
-         * @param[in] 
+         * @param[in] name unique name for the new Pad Probe Handler.
+         * @param[in] label_file absolute or relative path to inference model 
+         * label file. Set "label_file" to NULL to perform class agnostic NMP.
+         * @param[in] process_method method of processing non-maximum predictions. 
+         * One of DSL_NMP_PROCESS_METHOD_SUPRESS or DSL_NMP_PROCESS_METHOD_MERGE. 
+         * @param[in] match_method method for object match determination, either 
+         * DSL_NMP_MATCH_METHOD_IOU or DSL_NMP_MATCH_METHOD_IOS.
+         * @param[in] match_threshold threshold for object match determination.
          */
-        NmsPadProbeHandler(const char* name, const char* labelFile, 
-            uint matchMethod, float matchThreshold);
+        NmpPadProbeHandler(const char* name, const char* labelFile, 
+            uint processMethod, uint matchMethod, float matchThreshold);
 
         /**
          * @brief dtor for the NMS Pad Probe Handler
          */
-        ~NmsPadProbeHandler();
+        ~NmpPadProbeHandler();
         
         /**
          * @brief Gets the current model label file in use by the Pad Probe Handler.
@@ -82,6 +90,19 @@ namespace DSL
          * @return number of class labels in the provided model label file.
          */
         uint GetNumLabels();
+        
+        /**
+         * @brief Gets the current non-maximum processing method.
+         * @return Either DSL_NMP_PROCESS_METHOD_SUPRESS or DSL_NMP_PROCESS_METHOD_MERGE.
+         */
+        uint GetProcessMethod();
+        
+        /**
+         * @brief Sets the the non-maximum process method to use
+         * @param[in] process_method method of processing non-maximum predictions. 
+         * One of DSL_NMP_PROCESS_METHOD_SUPRESS or DSL_NMP_PROCESS_METHOD_MERGE. 
+         */
+        void SetProcessMethod(uint processMode);
 
         /**
          * @brief Gets the current object match determination settings in use
@@ -114,6 +135,36 @@ namespace DSL
     private:
     
         /**
+         * @brief inline function to add (store) the object meta to the 
+         * m_objectMetaArray and m_predictionsArray containers.
+         * @param[in] pObjectMeta pointer to object meta structure to store.
+         */
+        void _storeObjectMetaAndPrediction(NvDsObjectMeta* pObjectMeta);
+        
+        /**
+         * @brief inline function to process all non-maximum predictions
+         * according to the current settings for m_processMethod, m_matchMethod,
+         * and m_matchThreshold.
+         * @param[in] pFrameMeta frame-meta the contains all of the object-meta
+         * structions to suppressed or merged.
+         */
+        void _processNonMaximumObjectMeta(NvDsFrameMeta* pFrameMeta);
+        
+        /**
+         * @brief inline function to clear the m_objectMetaArray and m_predictionsArray containers.
+         */
+        void _clearObjectMetaAndPredictions();
+        
+        /**
+         * @brief inline function to calculate the union of two bounding boxes.
+         * @param[in] box1 first box coordinates to use for union calculation.
+         * @param[in] box2 second box coordinates to use for union calculation.
+         * @return bbox coordinates for the union of the two input boxes.
+         */
+        std::vector<float> _calculateBoxUnion(
+            const std::vector<float> &box1, const std::vector<float> &box2);
+    
+        /**
          * @brief absolute or relative path to the inference model label file to use.
          * If Empty string, NMS will be class agnostic NMS
          */
@@ -131,6 +182,12 @@ namespace DSL
         uint m_numLabels;
         
         /**
+         * @brief method of processing non-maximum predictions. 
+         * One of DSL_NMP_PROCESS_METHOD_SUPRESS or DSL_NMP_PROCESS_METHOD_MERGE. 
+         */
+        uint m_processMethod;
+        
+        /**
          * @brief method for object match determination, either DSL_NMS_MATCH_METHOD_IOU 
          * or DSL_NMS_MATCH_METHOD_IOS.
          */
@@ -140,6 +197,18 @@ namespace DSL
          * @brief threshold for object match determination.
          */
         float m_matchThreshold;
+        
+        /**
+         * @brief stores the object-meta parsed from a single frame.
+         */
+        std::vector<std::vector<NvDsObjectMeta*>> m_objectMetaArray;
+        
+        /**
+         * @brief stores the object meta coordinates as predictions 
+         * in a 2-dimensional array, 1 array for each class id. 
+         */
+        std::vector<std::vector<std::vector<float>>> m_predictionsArray;
+        
     };
         
 }

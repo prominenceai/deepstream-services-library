@@ -44,6 +44,10 @@ std::wstring primary_model_engine_file(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
 std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
+    
+std::wstring label_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/labels.txt");
+    
 
 uint PGIE_CLASS_ID_VEHICLE = 0;
 uint PGIE_CLASS_ID_BICYCLE = 1;
@@ -164,8 +168,9 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         //```````````````````````````````````````````````````````````````````````````````````
-        // Create a new Non Maximum Suppression (NMS) Pad Probe Handler (PPH). 
-        retval = dsl_pph_nms_new(L"nms-pph", NULL, DSL_NMS_MATCH_METHOD_IOU, 0.5);
+        // Create a new Non Maximum Processor (NMP) Pad Probe Handler (PPH). 
+        retval = dsl_pph_nmp_new(L"nmp-pph", label_file.c_str(), 
+            DSL_NMP_PROCESS_METHOD_MERGE, DSL_NMP_MATCH_METHOD_IOU, 0.5);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         //----------------------------------------------------------------------------
@@ -185,8 +190,8 @@ int main(int argc, char** argv)
             tracker_config_file.c_str(), 480, 272);
         if (retval != DSL_RESULT_SUCCESS) break;
         
-        // Add the custom PPH to the source pad of the Tracker
-        retval = dsl_tracker_pph_add(L"iou-tracker", L"nms-pph", DSL_PAD_SINK);
+        // Add the NMP PPH to the source pad of the Tracker
+        retval = dsl_tracker_pph_add(L"iou-tracker", L"nmp-pph", DSL_PAD_SINK);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New OSD with text, clock and bbox display all enabled. 

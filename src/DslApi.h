@@ -864,10 +864,16 @@ THE SOFTWARE.
 #define DSL_STATUS_BROKER_NOT_SUPPORTED                             3
 
 /**
- * @brief Non Maximim Suppression (NMS) object match determination methods
+ * @brief Non Maximim Processor (NMP) process methods
  */
-#define DSL_NMS_MATCH_METHOD_IOU                                    0
-#define DSL_NMS_MATCH_METHOD_IOS                                    1
+#define DSL_NMP_PROCESS_METHOD_SUPRESS                              0
+#define DSL_NMP_PROCESS_METHOD_MERGE                                1
+
+/**
+ * @brief Non Maximim Processor (NMP) object match determination methods
+ */
+#define DSL_NMP_MATCH_METHOD_IOU                                    0
+#define DSL_NMP_MATCH_METHOD_IOS                                    1
 
 EXTERN_C_BEGIN
 
@@ -3704,64 +3710,88 @@ DslReturnType dsl_pph_meter_interval_get(const wchar_t* name, uint* interval);
 DslReturnType dsl_pph_meter_interval_set(const wchar_t* name, uint interval);
 
 /**
- * @brief Creates a new, uniquely named Non-Maximum Suppression (NMS) Pad 
+ * @brief Creates a new, uniquely named Non-Maximum Processor (NMP) Pad 
  * Probe Handler (PPH) component.
  * @param[in] name unique name for the new Pad Probe Handler.
  * @param[in] label_file absolute or relative path to inference model label file.
- * Set "label_file" to NULL to perform class agnostic NMS.
+ * Set "label_file" to NULL to perform class agnostic NMP.
+ * @param[in] process_method method of processing non-maximum predictions. One
+ * of DSL_NMP_PROCESS_METHOD_SUPRESS or DSL_NMP_PROCESS_METHOD_MERGE. 
  * @param[in] match_method method for object match determination, either 
- * DSL_NMS_MATCH_METHOD_IOU or DSL_NMS_MATCH_METHOD_IOS.
+ * DSL_NMP_MATCH_METHOD_IOU or DSL_NMP_MATCH_METHOD_IOS.
  * @param[in] match_threshold threshold for object match determination.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
  */
-DslReturnType dsl_pph_nms_new(const wchar_t* name, const wchar_t* label_file,
-    uint match_method, float match_threshold);
+DslReturnType dsl_pph_nmp_new(const wchar_t* name, const wchar_t* label_file,
+    uint process_method, uint match_method, float match_threshold);
 
 /**
  * @brief Gets the current inference model label file in use by the Non-Maximum 
- * Suppression (NMS) Pad Probe Handler component.  
+ * Processor (NMP) Pad Probe Handler component.  
  * @param[in] name unique name of the Pad Probe Handler to query.
  * @param[out] label_file path to the inference model label file in use. NULL
- * indicates class agnostic NMS. 
+ * indicates class agnostic NMP. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
  */
-DslReturnType dsl_pph_nms_label_file_get(const wchar_t* name, 
+DslReturnType dsl_pph_nmp_label_file_get(const wchar_t* name, 
      const wchar_t** label_file);
 
 /**
  * @brief Sets the inference model label file for the Non-Maximum 
- * Suppression (NMS) Pad Probe Handler component to use.  
+ * Processor (NMP) Pad Probe Handler component to use.  
  * @param[in] name unique name of the Pad Probe Handler to update.
  * @param[in] label_file absolute or relative path to the inference model 
- * label file to use. Set "label_file" to NULL to perform class agnostic NMS.
+ * label file to use. Set "label_file" to NULL to perform class agnostic NMP.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
  */
-DslReturnType dsl_pph_nms_label_file_set(const wchar_t* name, 
+DslReturnType dsl_pph_nmp_label_file_set(const wchar_t* name, 
      const wchar_t* label_file);
 
 /**
+ * @brief Gets the current process mode in use by the Non-Maximum 
+ * Processor (NMP) Pad Probe Handler component.  
+ * @param[in] name unique name of the Pad Probe Handler to query.
+ * @param[out] process_method current method of processing non-maximum predictions. 
+ * One of DSL_NMP_PROCESS_METHOD_SUPRESS or DSL_NMP_PROCESS_METHOD_MERGE. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
+ */
+DslReturnType dsl_pph_nmp_process_method_get(const wchar_t* name, 
+     uint* process_method);
+
+/**
+ * @brief Sets the process mode for the Non-Maximum Processor (NMP) 
+ * Pad Probe Handler component to use.  
+ * @param[in] name unique name of the Pad Probe Handler to update.
+ * @param[in] process_method new method of processing non-maximum predictions. 
+ * One of DSL_NMP_PROCESS_METHOD_SUPRESS or DSL_NMP_PROCESS_METHOD_MERGE. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
+ */
+DslReturnType dsl_pph_nmp_process_method_set(const wchar_t* name, 
+     uint process_method);
+
+/**
  * @brief Gets the current match settings in use by the named Non-Maximum 
- * Suppression (NMS) Pad Probe Handler component.
+ * Processor (NMP) Pad Probe Handler component.
  * @param[in] name unique name of the Pad Probe Handler to query.
  * @param[out] match_method current method of object match determination, 
- * either DSL_NMS_MATCH_METHOD_IOU or DSL_NMS_MATCH_METHOD_IOS.
+ * either DSL_NMP_MATCH_METHOD_IOU or DSL_NMP_MATCH_METHOD_IOS.
  * @param[out] match_threshold current threshold for object match determination
  * currently in use.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
  */
-DslReturnType dsl_pph_nms_match_settings_get(const wchar_t* name,
+DslReturnType dsl_pph_nmp_match_settings_get(const wchar_t* name,
     uint* match_method, float* match_threshold);
 
 /**
- * @brief Sets the match settings for the named Non-Maximum Suppression (NMS)
+ * @brief Sets the match settings for the named Non-Maximum Processor (NMP)
  * Pad Probe Handler component to use.
  * @param[in] name unique name of the Pad Probe Handler to update.
  * @param[in] match_method new method for object match determination, either 
- * DSL_NMS_MATCH_METHOD_IOU or DSL_NMS_MATCH_METHOD_IOS.
+ * DSL_NMP_MATCH_METHOD_IOU or DSL_NMP_MATCH_METHOD_IOS.
  * @param[in] match_threshold new threshold for object match determination.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
  */
-DslReturnType dsl_pph_nms_match_settings_set(const wchar_t* name,
+DslReturnType dsl_pph_nmp_match_settings_set(const wchar_t* name,
     uint match_method, float match_threshold);
 
 /**

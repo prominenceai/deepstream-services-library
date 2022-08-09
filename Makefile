@@ -43,19 +43,19 @@ GSTREAMER_WEBRTC_VERSION:=1.0
 LIBSOUP_VERSION:=2.4
 JSON_GLIB_VERSION:=1.0
 
-# To enable the Non Maximum Suppression (NMS) Pad Probe Handler (PPH)
-# - set BUILD_NMS_PPH:=true and NUM_CPP_PATH:=<path-to-numcpp-include-folder>
-BUILD_NMS_PPH:=false
-NUM_CPP_PATH:=
+# To enable the Non Maximum Processor (NMP) Pad Probe Handler (PPH)
+# - set BUILD_NMP_PPH:=true and NUM_CPP_PATH:=<path-to-numcpp-include-folder>
+BUILD_NMP_PPH:=true
+NUM_CPP_PATH:=../NumCpp/include
 
 SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources
 INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources/includes
 LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/lib
 
-ifeq ($(BUILD_NMS_PPH),true)
-SRCS+= $(wildcard ./src/nms/*.cpp)
-SRCS+= $(wildcard ./test/nms/*.cpp)
-INCS+= $(wildcard ./src/nms/*.h)
+ifeq ($(BUILD_NMP_PPH),true)
+SRCS+= $(wildcard ./src/nmp/*.cpp)
+SRCS+= $(wildcard ./test/nmp/*.cpp)
+INCS+= $(wildcard ./src/nmp/*.h)
 endif
 
 SRCS+= $(wildcard ./src/*.cpp)
@@ -79,8 +79,8 @@ TEST_OBJS+= $(wildcard ./test/unit/*.o)
 ifeq ($(GSTREAMER_SUB_VERSION),18)
 TEST_OBJS+= $(wildcard ./test/webrtc/*.o)
 endif
-ifeq ($(BUILD_NMS_PPH),true)
-TEST_OBJS+= $(wildcard ./test/nms/*.o)
+ifeq ($(BUILD_NMP_PPH),true)
+TEST_OBJS+= $(wildcard ./test/nmp/*.o)
 endif
 
 OBJS:= $(SRCS:.c=.o)
@@ -103,7 +103,7 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-DDSL_VERSION=$(DSL_VERSION) \
 	-DDSL_LOGGER_IMP='"DslLogGst.h"'\
 	-DGSTREAMER_SUB_VERSION=$(GSTREAMER_SUB_VERSION) \
-	-DBUILD_NMS_PPH=$(BUILD_NMS_PPH) \
+	-DBUILD_NMP_PPH=$(BUILD_NMP_PPH) \
 	-DBUILD_MESSAGE_SINK=$(BUILD_MESSAGE_SINK) \
 	-DNVDS_DCF_LIB='"$(LIB_INSTALL_DIR)/libnvds_nvdcf.so"' \
 	-DNVDS_KLT_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_klt.so"' \
@@ -122,8 +122,8 @@ CFLAGS+= -I/usr/include/libsoup-$(LIBSOUP_VERSION) \
 	-I./src/webrtc
 endif	
 
-ifeq ($(BUILD_NMS_PPH),true)
-CFLAGS+= -I./src/nms \
+ifeq ($(BUILD_NMP_PPH),true)
+CFLAGS+= -I./src/nmp \
 	-I$(NUM_CPP_PATH) \
 	-DNUMCPP_NO_USE_BOOST
 endif	

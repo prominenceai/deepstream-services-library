@@ -26,12 +26,12 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslServices.h"
 #include "DslServicesValidate.h"
-#include "DslPadProbeHandlerNms.h"
+#include "DslPadProbeHandlerNmp.h"
 
 namespace DSL
 {
-    DslReturnType Services::PphNmsNew(const char* name, 
-        const char* labelFile, uint matchMethod, float matchThreshold)
+    DslReturnType Services::PphNmpNew(const char* name, const char* labelFile, 
+        uint processMethod, uint matchMethod, float matchThreshold)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -41,27 +41,27 @@ namespace DSL
             // ensure handler name uniqueness 
             if (m_padProbeHandlers.find(name) != m_padProbeHandlers.end())
             {   
-                LOG_ERROR("NMS Pad Probe Handler name '" << name 
+                LOG_ERROR("NMP Pad Probe Handler name '" << name 
                     << "' is not unique");
                 return DSL_RESULT_PPH_NAME_NOT_UNIQUE;
             }
-            m_padProbeHandlers[name] = DSL_PPH_NMS_NEW(name, labelFile, 
-                matchMethod, matchThreshold);
+            m_padProbeHandlers[name] = DSL_PPH_NMP_NEW(name, labelFile, 
+                processMethod, matchMethod, matchThreshold);
 
-            LOG_INFO("New NMS Pad Probe Handler '" << name 
+            LOG_INFO("New NMP Pad Probe Handler '" << name 
                 << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New NMS Pad Probe handler '" << name 
+            LOG_ERROR("New NMP Pad Probe handler '" << name 
                 << "' threw exception on create");
             return DSL_RESULT_PPH_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::PphNmsLabelFileGet(const char* name, 
+    DslReturnType Services::PphNmpLabelFileGet(const char* name, 
         const char** labelFile)
     {
         LOG_FUNC();
@@ -71,15 +71,15 @@ namespace DSL
         {
             DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, 
-                NmsPadProbeHandler);
+                NmpPadProbeHandler);
             
-            DSL_PPH_NMS_PTR pNmsPph = 
-                std::dynamic_pointer_cast<NmsPadProbeHandler>(
+            DSL_PPH_NMP_PTR pNmpPph = 
+                std::dynamic_pointer_cast<NmpPadProbeHandler>(
                     m_padProbeHandlers[name]);
 
-            *labelFile = pNmsPph->GetLabelFile();
+            *labelFile = pNmpPph->GetLabelFile();
 
-            LOG_INFO("NMS Pad Probe handler '" << name 
+            LOG_INFO("NMP Pad Probe handler '" << name 
                 << "' returned label file = '"
                 << *labelFile << "' successfully");
 
@@ -87,13 +87,13 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("NMS Pad Probe handler '" << name 
+            LOG_ERROR("NMP Pad Probe handler '" << name 
                 << "' threw exception getting label file");
             return DSL_RESULT_PPH_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::PphNmsLabelFileSet(const char* name, 
+    DslReturnType Services::PphNmpLabelFileSet(const char* name, 
         const char* labelFile)
     {
         LOG_FUNC();
@@ -103,19 +103,19 @@ namespace DSL
         {
             DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, 
-                NmsPadProbeHandler);
+                NmpPadProbeHandler);
             
-            DSL_PPH_NMS_PTR pNmsPph = 
-                std::dynamic_pointer_cast<NmsPadProbeHandler>(
+            DSL_PPH_NMP_PTR pNmpPph = 
+                std::dynamic_pointer_cast<NmpPadProbeHandler>(
                     m_padProbeHandlers[name]);
 
-            if (!pNmsPph->SetLabelFile(labelFile))
+            if (!pNmpPph->SetLabelFile(labelFile))
             {
-                LOG_ERROR("NMS Pad Probe handler '" << name 
+                LOG_ERROR("NMP Pad Probe handler '" << name 
                     << "' failed to set the lable file");
                 return DSL_RESULT_PPH_SET_FAILED;
             }
-            LOG_INFO("NMS Pad Probe handler '" << name 
+            LOG_INFO("NMP Pad Probe handler '" << name 
                 << "' set label file = '"
                 << labelFile << "' successfully");
 
@@ -123,13 +123,82 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("NMS Pad Probe handler '" << name 
+            LOG_ERROR("NMP Pad Probe handler '" << name 
                 << "' threw exception setting label file");
             return DSL_RESULT_PPH_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::PphNmsMatchSettingsGet(const char* name, 
+    DslReturnType Services::PphNmpProcessMethodSet(const char* name, 
+            uint processMethod)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, 
+                NmpPadProbeHandler);
+            
+            DSL_PPH_NMP_PTR pNmpPph = 
+                std::dynamic_pointer_cast<NmpPadProbeHandler>(
+                    m_padProbeHandlers[name]);
+
+            if (processMethod > DSL_NMP_PROCESS_METHOD_MERGE)
+            {
+                LOG_ERROR("Invalid process method = " << processMethod <<
+                    " for NMP Pad Probe handler '" << name << "'");
+                return DSL_RESULT_PPH_SET_FAILED;
+            }
+            pNmpPph->SetProcessMethod(processMethod);
+
+            LOG_INFO("NMP Pad Probe handler '" << name 
+                << "' set process method = " << processMethod 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("NMP Pad Probe handler '" << name 
+                << "' threw exception setting process method");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PphNmpProcessMethodGet(const char* name, uint* processMethod)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, 
+                NmpPadProbeHandler);
+            
+            DSL_PPH_NMP_PTR pNmpPph = 
+                std::dynamic_pointer_cast<NmpPadProbeHandler>(
+                    m_padProbeHandlers[name]);
+
+            *processMethod = pNmpPph->GetProcessMethod();
+
+            LOG_INFO("NMP Pad Probe handler '" << name 
+                << "' returned process method = " << *processMethod 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("NMP Pad Probe handler '" << name 
+                << "' threw exception getting process method");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PphNmpMatchSettingsGet(const char* name, 
             uint* matchMethod, float* matchThreshold)
     {
         LOG_FUNC();
@@ -139,15 +208,15 @@ namespace DSL
         {
             DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, 
-                NmsPadProbeHandler);
+                NmpPadProbeHandler);
             
-            DSL_PPH_NMS_PTR pNmsPph = 
-                std::dynamic_pointer_cast<NmsPadProbeHandler>(
+            DSL_PPH_NMP_PTR pNmpPph = 
+                std::dynamic_pointer_cast<NmpPadProbeHandler>(
                     m_padProbeHandlers[name]);
 
-            pNmsPph->GetMatchSettings(matchMethod, matchThreshold);
+            pNmpPph->GetMatchSettings(matchMethod, matchThreshold);
 
-            LOG_INFO("NMS Pad Probe handler '" << name 
+            LOG_INFO("NMP Pad Probe handler '" << name 
                 << "' returned match method = " << *matchMethod 
                 << " and match threshold = " << *matchThreshold 
                 << " successfully");
@@ -156,13 +225,13 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("NMS Pad Probe handler '" << name 
+            LOG_ERROR("NMP Pad Probe handler '" << name 
                 << "' threw exception getting match settings");
             return DSL_RESULT_PPH_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::PphNmsMatchSettingsSet(const char* name, 
+    DslReturnType Services::PphNmpMatchSettingsSet(const char* name, 
             uint matchMethod, float matchThreshold)
     {
         LOG_FUNC();
@@ -172,21 +241,21 @@ namespace DSL
         {
             DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, 
-                NmsPadProbeHandler);
+                NmpPadProbeHandler);
             
-            DSL_PPH_NMS_PTR pNmsPph = 
-                std::dynamic_pointer_cast<NmsPadProbeHandler>(
+            DSL_PPH_NMP_PTR pNmpPph = 
+                std::dynamic_pointer_cast<NmpPadProbeHandler>(
                     m_padProbeHandlers[name]);
 
-            if (matchMethod > DSL_NMS_MATCH_METHOD_IOS)
+            if (matchMethod > DSL_NMP_MATCH_METHOD_IOS)
             {
                 LOG_ERROR("Invalid match method = " << matchMethod <<
-                    " for NMS Pad Probe handler '" << name << "'");
+                    " for NMP Pad Probe handler '" << name << "'");
                 return DSL_RESULT_PPH_SET_FAILED;
             }
-            pNmsPph->SetMatchSettings(matchMethod, matchThreshold);
+            pNmpPph->SetMatchSettings(matchMethod, matchThreshold);
 
-            LOG_INFO("NMS Pad Probe handler '" << name 
+            LOG_INFO("NMP Pad Probe handler '" << name 
                 << "' set match method = " << matchMethod 
                 << " and match threshold = " << matchThreshold 
                 << " successfully");
@@ -195,7 +264,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("NMS Pad Probe handler '" << name 
+            LOG_ERROR("NMP Pad Probe handler '" << name 
                 << "' threw exception setting match settings");
             return DSL_RESULT_PPH_THREW_EXCEPTION;
         }

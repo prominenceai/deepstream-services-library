@@ -3000,13 +3000,13 @@ DslReturnType dsl_pph_ode_display_meta_alloc_size_set(const wchar_t* name, uint 
         cstrName.c_str(), size);
 }
 
-DslReturnType dsl_pph_nms_new(const wchar_t* name, const wchar_t* label_file,
-    uint match_method, float match_threshold)
+DslReturnType dsl_pph_nmp_new(const wchar_t* name, const wchar_t* label_file,
+    uint process_method, uint match_method, float match_threshold)
 {
-#if !defined(BUILD_NMS_PPH)
-    #error "BUILD_NMS_PPH must be defined"
-#elif BUILD_NMS_PPH != true
-    LOG_ERROR("To use the NMS PPH services, set BUILD_NMS_PPH=true in the Makefile");
+#if !defined(BUILD_NMP_PPH)
+    #error "BUILD_NMP_PPH must be defined"
+#elif BUILD_NMP_PPH != true
+    LOG_ERROR("To use the NMS PPH services, set BUILD_NMP_PPH=true in the Makefile");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(name);
@@ -3021,18 +3021,18 @@ DslReturnType dsl_pph_nms_new(const wchar_t* name, const wchar_t* label_file,
         cstrLabelFile.assign(wstrLabelFile.begin(), wstrLabelFile.end());
     }
 
-    return DSL::Services::GetServices()->PphNmsNew(cstrName.c_str(),
-        cstrLabelFile.c_str(), match_method, match_threshold);
+    return DSL::Services::GetServices()->PphNmpNew(cstrName.c_str(),
+        cstrLabelFile.c_str(), process_method, match_method, match_threshold);
 #endif  
 }
 
-DslReturnType dsl_pph_nms_label_file_get(const wchar_t* name, 
+DslReturnType dsl_pph_nmp_label_file_get(const wchar_t* name, 
      const wchar_t** label_file)
 {
-#if !defined(BUILD_NMS_PPH)
-    #error "BUILD_NMS_PPH must be defined"
-#elif BUILD_NMS_PPH != true
-    LOG_ERROR("To use the NMS PPH services, set BUILD_NMS_PPH=true in the Makefile");
+#if !defined(BUILD_NMP_PPH)
+    #error "BUILD_NMP_PPH must be defined"
+#elif BUILD_NMP_PPH != true
+    LOG_ERROR("To use the NMS PPH services, set BUILD_NMP_PPH=true in the Makefile");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(name);
@@ -3045,7 +3045,7 @@ DslReturnType dsl_pph_nms_label_file_get(const wchar_t* name,
     static std::string cstrLabelFile;
     static std::wstring wcstrLabelFile;
     
-    uint retval = DSL::Services::GetServices()->PphNmsLabelFileGet(
+    uint retval = DSL::Services::GetServices()->PphNmpLabelFileGet(
         cstrName.c_str(), &cLabelFile);
     if (retval ==  DSL_RESULT_SUCCESS)
     {
@@ -3057,13 +3057,13 @@ DslReturnType dsl_pph_nms_label_file_get(const wchar_t* name,
 #endif    
 }
  
-DslReturnType dsl_pph_nms_label_file_set(const wchar_t* name, 
+DslReturnType dsl_pph_nmp_label_file_set(const wchar_t* name, 
      const wchar_t* label_file)
 {
-#if !defined(BUILD_NMS_PPH)
-    #error "BUILD_NMS_PPH must be defined"
-#elif BUILD_NMS_PPH != true
-    LOG_ERROR("To use the NMS PPH services, set BUILD_NMS_PPH=true in the Makefile");
+#if !defined(BUILD_NMP_PPH)
+    #error "BUILD_NMP_PPH must be defined"
+#elif BUILD_NMP_PPH != true
+    LOG_ERROR("To use the NMS PPH services, set BUILD_NMP_PPH=true in the Makefile");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(name);
@@ -3077,18 +3077,18 @@ DslReturnType dsl_pph_nms_label_file_set(const wchar_t* name,
         cstrLabelFile.assign(wstrLabelFile.begin(), wstrLabelFile.end());
     }
 
-    return DSL::Services::GetServices()->PphNmsLabelFileSet(
+    return DSL::Services::GetServices()->PphNmpLabelFileSet(
         cstrName.c_str(), cstrLabelFile.c_str());
 #endif
 }
      
-DslReturnType dsl_pph_nms_match_settings_get(const wchar_t* name,
-    uint* match_method, float* match_threshold)
+DslReturnType dsl_pph_nmp_process_method_get(const wchar_t* name, 
+     uint* process_method)
 {
-#if !defined(BUILD_NMS_PPH)
-    #error "BUILD_NMS_PPH must be defined"
-#elif BUILD_NMS_PPH != true
-    LOG_ERROR("To use the NMS PPH services, set BUILD_NMS_PPH=true in the Makefile");
+#if !defined(BUILD_NMP_PPH)
+    #error "BUILD_NMP_PPH must be defined"
+#elif BUILD_NMP_PPH != true
+    LOG_ERROR("To use the NMS PPH services, set BUILD_NMP_PPH=true in the Makefile");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(name);
@@ -3096,18 +3096,56 @@ DslReturnType dsl_pph_nms_match_settings_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->PphNmsMatchSettingsGet(
+    return DSL::Services::GetServices()->PphNmpProcessMethodGet(
+        cstrName.c_str(), process_method);
+#endif    
+}
+     
+DslReturnType dsl_pph_nmp_process_method_set(const wchar_t* name, 
+     uint process_method)
+{
+#if !defined(BUILD_NMP_PPH)
+    #error "BUILD_NMP_PPH must be defined"
+#elif BUILD_NMP_PPH != true
+    LOG_ERROR("To use the NMS PPH services, set BUILD_NMP_PPH=true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->PphNmpProcessMethodSet(
+        cstrName.c_str(), process_method);
+#endif    
+}
+     
+DslReturnType dsl_pph_nmp_match_settings_get(const wchar_t* name,
+    uint* match_method, float* match_threshold)
+{
+#if !defined(BUILD_NMP_PPH)
+    #error "BUILD_NMP_PPH must be defined"
+#elif BUILD_NMP_PPH != true
+    LOG_ERROR("To use the NMS PPH services, set BUILD_NMP_PPH=true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->PphNmpMatchSettingsGet(
         cstrName.c_str(), match_method, match_threshold);
 #endif    
 }
      
-DslReturnType dsl_pph_nms_match_settings_set(const wchar_t* name,
+DslReturnType dsl_pph_nmp_match_settings_set(const wchar_t* name,
     uint match_method, float match_threshold)
 {
-#if !defined(BUILD_NMS_PPH)
-    #error "BUILD_NMS_PPH must be defined"
-#elif BUILD_NMS_PPH != true
-    LOG_ERROR("To use the NMS PPH services, set BUILD_NMS_PPH=true in the Makefile");
+#if !defined(BUILD_NMP_PPH)
+    #error "BUILD_NMP_PPH must be defined"
+#elif BUILD_NMP_PPH != true
+    LOG_ERROR("To use the NMS PPH services, set BUILD_NMP_PPH=true in the Makefile");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(name);
@@ -3115,7 +3153,7 @@ DslReturnType dsl_pph_nms_match_settings_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->PphNmsMatchSettingsSet(
+    return DSL::Services::GetServices()->PphNmpMatchSettingsSet(
         cstrName.c_str(), match_method, match_threshold);
 #endif    
 }

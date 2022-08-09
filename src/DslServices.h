@@ -577,17 +577,21 @@ namespace DSL {
 
         DslReturnType PphOdeDisplayMetaAllocSizeSet(const char* name, uint size);
 
-        DslReturnType PphNmsNew(const char* name, const char* labelFile,
-            uint matchMethod, float matchThreshold);
+        DslReturnType PphNmpNew(const char* name, const char* labelFile,
+            uint processMethod, uint matchMethod, float matchThreshold);
             
-        DslReturnType PphNmsLabelFileGet(const char* name, const char** labelFile);
+        DslReturnType PphNmpLabelFileGet(const char* name, const char** labelFile);
         
-        DslReturnType PphNmsLabelFileSet(const char* name, const char* labelFile);
+        DslReturnType PphNmpLabelFileSet(const char* name, const char* labelFile);
 
-        DslReturnType PphNmsMatchSettingsGet(const char* name, 
+        DslReturnType PphNmpProcessMethodGet(const char* name, uint* processMethod);
+        
+        DslReturnType PphNmpProcessMethodSet(const char* name, uint processMethod);
+        
+        DslReturnType PphNmpMatchSettingsGet(const char* name, 
             uint* matchMethod, float* matchThreshold);
         
-        DslReturnType PphNmsMatchSettingsSet(const char* name, 
+        DslReturnType PphNmpMatchSettingsSet(const char* name, 
             uint matchMethod, float matchThreshold);
         
         DslReturnType PphEnabledGet(const char* name, boolean* enabled);

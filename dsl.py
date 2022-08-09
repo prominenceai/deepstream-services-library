@@ -2645,13 +2645,56 @@ def dsl_pph_meter_interval_set(name, interval):
     return int(result)
 
 ##
-## dsl_pph_nms_new()
+## dsl_pph_nmp_new()
 ##
-_dsl.dsl_pph_nms_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_float]
-_dsl.dsl_pph_nms_new.restype = c_uint
-def dsl_pph_nms_new(name, label_file, match_method, match_threshold):
+_dsl.dsl_pph_nmp_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_float]
+_dsl.dsl_pph_nmp_new.restype = c_uint
+def dsl_pph_nmp_new(name, label_file, process_method, match_method, match_threshold):
     global _dsl
-    result =_dsl.dsl_pph_nms_new(name, label_file, match_method, match_threshold)
+    result =_dsl.dsl_pph_nmp_new(name, label_file, 
+        process_method, match_method, match_threshold)
+    return int(result)
+
+##
+## dsl_pph_nmp_label_file_get()
+##
+_dsl.dsl_pph_nmp_label_file_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_pph_nmp_label_file_get.restype = c_uint
+def dsl_pph_nmp_label_file_get(name):
+    global _dsl
+    file = c_wchar_p(0)
+    result = _dsl.dsl_pph_nmp_label_file_get(name, DSL_WCHAR_PP(file))
+    return int(result), file.value 
+
+##
+## dsl_pph_nmp_label_file_set()
+##
+_dsl.dsl_pph_nmp_label_file_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_pph_nmp_label_file_set.restype = c_uint
+def dsl_pph_nmp_label_file_set(name, label_file):
+    global _dsl
+    result = _dsl.dsl_pph_nmp_label_file_set(name, label_file)
+    return int(result)
+
+##
+## dsl_pph_nmp_process_method_get()
+##
+_dsl.dsl_pph_nmp_process_method_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_pph_nmp_process_method_get.restype = c_uint
+def dsl_pph_nmp_process_method_get(name):
+    global _dsl
+    process_mode = c_uint(0)
+    result = _dsl.dsl_pph_nmp_process_method_get(name, DSL_UINT_P(process_mode))
+    return int(result), process_mode.value 
+
+##
+## dsl_pph_nmp_process_method_set()
+##
+_dsl.dsl_pph_nmp_process_method_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_pph_nmp_process_method_set.restype = c_uint
+def dsl_pph_nmp_process_method_set(name, process_mode):
+    global _dsl
+    result = _dsl.dsl_pph_nmp_process_method_set(name, process_mode)
     return int(result)
 
 ##

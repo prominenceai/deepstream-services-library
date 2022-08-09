@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 #include "catch.hpp"
 #include "DslServices.h"
-#include "DslPadProbeHandlerNms.h"
+#include "DslPadProbeHandlerNmp.h"
 
 static std::string name("nms-pph");
 
@@ -39,15 +39,16 @@ using namespace DSL;
 SCENARIO( "A new Non Maximum Suppression PPH is created correctly", 
     "[NmsPph]" )
 {
-    GIVEN( "Attributes for a new NMS PPH" )
+    GIVEN( "Attributes for a new NMP PPH" )
     {
-        uint matchMethod(DSL_NMS_MATCH_METHOD_IOS);
+        uint processMethod(DSL_NMP_PROCESS_METHOD_SUPRESS);
+        uint matchMethod(DSL_NMP_MATCH_METHOD_IOS);
         float matchThreshold(0.5);
 
-        WHEN( "When the NMS PPH is created with a lableFile - 1 label per line" )
+        WHEN( "When the NMP PPH is created with a lableFile - 1 label per line" )
         {
-            DSL_PPH_NMS_PTR pNmsPph = DSL_PPH_NMS_NEW(name.c_str(), 
-                labelFile1.c_str(), matchMethod, matchThreshold);
+            DSL_PPH_NMP_PTR pNmsPph = DSL_PPH_NMP_NEW(name.c_str(), 
+                labelFile1.c_str(), processMethod, matchMethod, matchThreshold);
 
             THEN( "All members are setup correctly" )
             {
@@ -64,10 +65,10 @@ SCENARIO( "A new Non Maximum Suppression PPH is created correctly",
                 REQUIRE( retMatchThreshold == matchThreshold );
             }
         }
-        WHEN( "When the NMS PPH is created with a lableFile - all labels on 1 line" )
+        WHEN( "When the NMP PPH is created with a lableFile - all labels on 1 line" )
         {
-            DSL_PPH_NMS_PTR pNmsPph = DSL_PPH_NMS_NEW(name.c_str(), 
-                labelFile2.c_str(), matchMethod, matchThreshold);
+            DSL_PPH_NMP_PTR pNmsPph = DSL_PPH_NMP_NEW(name.c_str(), 
+                labelFile2.c_str(), processMethod, matchMethod, matchThreshold);
 
             THEN( "All members are setup correctly" )
             {
@@ -78,11 +79,11 @@ SCENARIO( "A new Non Maximum Suppression PPH is created correctly",
                 REQUIRE( pNmsPph->GetNumLabels() == 12 );
             }
         }
-        WHEN( "When the NMS PPH is created without a lableFile" )
+        WHEN( "When the NMP PPH is created without a lableFile" )
         {
             std::string noLabelFile;
-            DSL_PPH_NMS_PTR pNmsPph = DSL_PPH_NMS_NEW(name.c_str(), 
-                noLabelFile.c_str(), matchMethod, matchThreshold);
+            DSL_PPH_NMP_PTR pNmsPph = DSL_PPH_NMP_NEW(name.c_str(), 
+                noLabelFile.c_str(), processMethod, matchMethod, matchThreshold);
 
             THEN( "All members are setup correctly" )
             {
