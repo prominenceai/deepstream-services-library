@@ -33,6 +33,17 @@ THE SOFTWARE.
 namespace DSL
 {
     /**
+     * @brief Callback typedef used to abstract NVIDIA's Object Meta API
+     * nvds_remove_obj_meta_from_frame(). See @a _processNonMaximumObjectMeta
+     * @param[in] frame_meta A pointer to frame meta from which @a obj_meta
+     * is to be removed.
+     * @param[in] obj_meta A pointer to the object meta to be removed from
+     * @a frame_meta
+     */
+    typedef void (*remove_obj_meta_from_frame_cb)(NvDsFrameMeta * frame_meta,
+        NvDsObjectMeta *obj_meta);
+    
+    /**
      * @brief convenience macros for shared pointer abstraction
      */
     #define DSL_PPH_NMP_PTR std::shared_ptr<NmpPadProbeHandler>
@@ -86,12 +97,6 @@ namespace DSL
         bool SetLabelFile(const char* labelFile);
         
         /**
-         * @brief Gets the current number of labels found in the label file.
-         * @return number of class labels in the provided model label file.
-         */
-        uint GetNumLabels();
-        
-        /**
          * @brief Gets the current non-maximum processing method.
          * @return Either DSL_NMP_PROCESS_METHOD_SUPRESS or DSL_NMP_PROCESS_METHOD_MERGE.
          */
@@ -132,8 +137,6 @@ namespace DSL
          */
         GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo);
         
-    private:
-    
         /**
          * @brief inline function to add (store) the object meta to the 
          * m_objectMetaArray and m_predictionsArray containers.
@@ -145,10 +148,14 @@ namespace DSL
          * @brief inline function to process all non-maximum predictions
          * according to the current settings for m_processMethod, m_matchMethod,
          * and m_matchThreshold.
+         * @param[in] removeObj callback funtion to be called on to remove
+         * each non-maximum occurrence. Using a callback allows the unit test code
+         * to provide a test stub removing the dependency on the DeepStream function.
          * @param[in] pFrameMeta frame-meta the contains all of the object-meta
          * structions to suppressed or merged.
          */
-        void _processNonMaximumObjectMeta(NvDsFrameMeta* pFrameMeta);
+        void _processNonMaximumObjectMeta(remove_obj_meta_from_frame_cb removeObj,
+            NvDsFrameMeta* pFrameMeta);
         
         /**
          * @brief inline function to clear the m_objectMetaArray and m_predictionsArray containers.
@@ -163,6 +170,36 @@ namespace DSL
          */
         std::vector<float> _calculateBoxUnion(
             const std::vector<float> &box1, const std::vector<float> &box2);
+            
+        /**
+         * @brief inline "test" function to get the current number of labels 
+         * found in the label file. 1 if class-id agnostic.
+         * @return number of class labels in the provided model label file.
+         */
+        uint _getNumLabels()
+        {
+            return m_numLabels;
+        }
+        
+        /**
+         * @brief inline "test" function to retrieve the object metata array
+         * for test verification puposes only.
+         */
+        std::vector<std::vector<NvDsObjectMeta*>> _getObjectMetaArray()
+        {
+            return m_objectMetaArray;
+        }
+
+        /**
+         * @brief inline "test" function to retrieve the predictions array
+         * for test verification puposes only.
+         */
+        std::vector<std::vector<std::vector<float>>> _getPredictionsArray()
+        {
+            return m_predictionsArray;
+        }
+
+    private:
     
         /**
          * @brief absolute or relative path to the inference model label file to use.

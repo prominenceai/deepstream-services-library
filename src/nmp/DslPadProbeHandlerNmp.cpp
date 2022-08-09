@@ -166,13 +166,6 @@ namespace DSL
         return true;
     }
 
-    uint NmpPadProbeHandler::GetNumLabels()
-    {
-        LOG_FUNC();
-
-        return m_numLabels;
-    }
-
     uint NmpPadProbeHandler::GetProcessMethod()
     {
         LOG_FUNC();
@@ -231,10 +224,20 @@ namespace DSL
                 for (NvDsMetaList* pObjectMetaList = pFrameMeta->obj_meta_list; 
                     pObjectMetaList; pObjectMetaList = pObjectMetaList->next)
                 {
+                    // Store the object metadata and it bbox coordinates as 
+                    // a unique prediction. 
                     _storeObjectMetaAndPrediction((NvDsObjectMeta*)
                         (pObjectMetaList->data));
                 }
-                _processNonMaximumObjectMeta(pFrameMeta);
+                // Note: we pass in the nvidia DS remove object function here. The 
+                // unit test code will test/call the _processNonMaximumObjectMeta 
+                // function using a test stub. This removes the dependecy on the 
+                // nvidia function when called under test (calling the nvida function
+                // with test object meta will result in a SIGSEGV
+                _processNonMaximumObjectMeta(nvds_remove_obj_meta_from_frame,
+                    pFrameMeta);
+                    
+                // Clear the 
                 _clearObjectMetaAndPredictions();
             }
         }
@@ -250,7 +253,7 @@ namespace DSL
             return;
         }
         // if class agnostic
-        if (m_numLabels = 1) {
+        if (m_numLabels == 1) {
             m_objectMetaArray[0].emplace_back(pObjectMeta);
             m_predictionsArray[0].emplace_back(std::vector<float>
             {
@@ -274,7 +277,8 @@ namespace DSL
         }
     }     
 
-    inline void NmpPadProbeHandler::_processNonMaximumObjectMeta(NvDsFrameMeta* pFrameMeta)
+    inline void NmpPadProbeHandler::_processNonMaximumObjectMeta(
+        remove_obj_meta_from_frame_cb removeObj, NvDsFrameMeta* pFrameMeta)
     {
         for (int lb=0; lb<m_numLabels; lb++)
         {
@@ -431,7 +435,7 @@ namespace DSL
             }
             for (auto &x: remove) 
             {
-                nvds_remove_obj_meta_from_frame(pFrameMeta, m_objectMetaArray[lb][x]);
+                removeObj(pFrameMeta, m_objectMetaArray[lb][x]);
             }
         }
     }    
