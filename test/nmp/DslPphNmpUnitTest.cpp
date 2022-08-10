@@ -39,7 +39,7 @@ static std::string noLabelFile;
 using namespace DSL;
 
 SCENARIO( "A new Non Maximum Processor PPH is created correctly", 
-    "[NmsPph]" )
+    "[NmpPph]" )
 {
     GIVEN( "Attributes for a new NMP PPH" )
     {
@@ -101,7 +101,7 @@ SCENARIO( "A new Non Maximum Processor PPH is created correctly",
 }
 
 SCENARIO( "A new Non Maximum Processor PPH can store/clear object metadata and predictions correctly", 
-    "[NmsPph]" )
+    "[NmpPph]" )
 {
     GIVEN( "A new Non Maximum Processor PPH and 3 instances of object metadata" )
     {
@@ -205,7 +205,7 @@ SCENARIO( "A new Non Maximum Processor PPH can store/clear object metadata and p
 }
 
 SCENARIO( "A new Non Maximum Processor PPH can calculate the union of two bounding boxes", 
-    "[NmsPph]" )
+    "[NmpPph]" )
 {
     GIVEN( "A new Non Maximum PPH" )
     {
@@ -260,10 +260,10 @@ static void remove_obj_meta_from_frame(NvDsFrameMeta * frame_meta,
     std::cout << std::endl;
 }
 
-SCENARIO( "A new Non Maximum Processor PPH can supress non maximum object meta", 
-    "[NmsPph]" )
+SCENARIO( "A new Non Maximum Processor PPH supresses all non maximum predictions", 
+    "[NmpPph]" )
 {
-    GIVEN( "A new Non Maximum Processor PPH and 3 instances of object metadata" )
+    GIVEN( "A new Non Maximum Processor PPH and 3 instances of object metadata - clustered" )
     {
         uint processMethod(DSL_NMP_PROCESS_METHOD_SUPRESS);
         float matchThreshold(0.5);
@@ -300,14 +300,22 @@ SCENARIO( "A new Non Maximum Processor PPH can supress non maximum object meta",
                 labelFile1.c_str(), processMethod, DSL_NMP_MATCH_METHOD_IOU, 
                 matchThreshold);
                 
-            THEN( "The object metadata and predictions can be stored and cleared correctly" )
+            THEN( "The object metadata and non maximum predictions are processed correctly" )
             {
                 pNmsPph->_storeObjectMetaAndPrediction(&objectMeta1);
                 pNmsPph->_storeObjectMetaAndPrediction(&objectMeta2);
                 pNmsPph->_storeObjectMetaAndPrediction(&objectMeta3);
                 
+                // Requires visual (console) verification. remove-obj callback must be
+                // called twice to remove object-meta 2 and 3
                 pNmsPph->_processNonMaximumObjectMeta(remove_obj_meta_from_frame,
                     &frameMeta);
+
+                // verify that the objectMeta1 rectangle parameters have not been merged.
+                REQUIRE( objectMeta1.rect_params.left == 10.0 );
+                REQUIRE( objectMeta1.rect_params.top == 10.0 );
+                REQUIRE( objectMeta1.rect_params.width == 100.0 );
+                REQUIRE( objectMeta1.rect_params.height == 100.0 );
             }
         }
         WHEN( "The NMS PPH is created without a label file and match method = IOU" )
@@ -316,14 +324,22 @@ SCENARIO( "A new Non Maximum Processor PPH can supress non maximum object meta",
                 noLabelFile.c_str(), processMethod, DSL_NMP_MATCH_METHOD_IOU, 
                 matchThreshold);
                 
-            THEN( "The object metadata and predictions can be stored and cleared correctly" )
+            THEN( "The object metadata and non maximum predictions are processed correctly" )
             {
                 pNmsPph->_storeObjectMetaAndPrediction(&objectMeta1);
                 pNmsPph->_storeObjectMetaAndPrediction(&objectMeta2);
                 pNmsPph->_storeObjectMetaAndPrediction(&objectMeta3);
 
+                // Requires visual (console) verification. remove-obj callback must be
+                // called twice to remove object-meta 2 and 3
                 pNmsPph->_processNonMaximumObjectMeta(remove_obj_meta_from_frame,
                     &frameMeta);
+
+                // verify that the objectMeta1 rectangle parameters have not been merged.
+                REQUIRE( objectMeta1.rect_params.left == 10.0 );
+                REQUIRE( objectMeta1.rect_params.top == 10.0 );
+                REQUIRE( objectMeta1.rect_params.width == 100.0 );
+                REQUIRE( objectMeta1.rect_params.height == 100.0 );
             }
         }
         WHEN( "The NMS PPH is created with a valid label file and match method = IOS" )
@@ -332,14 +348,22 @@ SCENARIO( "A new Non Maximum Processor PPH can supress non maximum object meta",
                 labelFile1.c_str(), processMethod, DSL_NMP_MATCH_METHOD_IOS, 
                 matchThreshold);
                 
-            THEN( "The object metadata and predictions can be stored and cleared correctly" )
+            THEN( "The object metadata and non maximum predictions are processed correctly" )
             {
                 pNmsPph->_storeObjectMetaAndPrediction(&objectMeta1);
                 pNmsPph->_storeObjectMetaAndPrediction(&objectMeta2);
                 pNmsPph->_storeObjectMetaAndPrediction(&objectMeta3);
                 
+                // Requires visual (console) verification. remove-obj callback must be
+                // called twice to remove object-meta 2 and 3
                 pNmsPph->_processNonMaximumObjectMeta(remove_obj_meta_from_frame,
                     &frameMeta);
+
+                // verify that the objectMeta1 rectangle parameters have not been merged.
+                REQUIRE( objectMeta1.rect_params.left == 10.0 );
+                REQUIRE( objectMeta1.rect_params.top == 10.0 );
+                REQUIRE( objectMeta1.rect_params.width == 100.0 );
+                REQUIRE( objectMeta1.rect_params.height == 100.0 );
             }
         }
         WHEN( "The NMS PPH is created without a label file and match method = IOS" )
@@ -348,14 +372,353 @@ SCENARIO( "A new Non Maximum Processor PPH can supress non maximum object meta",
                 noLabelFile.c_str(), processMethod, DSL_NMP_MATCH_METHOD_IOS, 
                 matchThreshold);
                 
-            THEN( "The object metadata and predictions can be stored and cleared correctly" )
+            THEN( "The object metadata and non maximum predictions are processed correctly" )
             {
                 pNmsPph->_storeObjectMetaAndPrediction(&objectMeta1);
                 pNmsPph->_storeObjectMetaAndPrediction(&objectMeta2);
                 pNmsPph->_storeObjectMetaAndPrediction(&objectMeta3);
 
+                // Requires visual (console) verification. remove-obj callback must be
+                // called twice to remove object-meta 2 and 3
                 pNmsPph->_processNonMaximumObjectMeta(remove_obj_meta_from_frame,
                     &frameMeta);
+
+                // verify that the objectMeta1 rectangle parameters have not been merged.
+                REQUIRE( objectMeta1.rect_params.left == 10.0 );
+                REQUIRE( objectMeta1.rect_params.top == 10.0 );
+                REQUIRE( objectMeta1.rect_params.width == 100.0 );
+                REQUIRE( objectMeta1.rect_params.height == 100.0 );
+            }
+        }
+        WHEN( "The NMS PPH is created without a label file and match method = IOS " )
+        {
+            DSL_PPH_NMP_PTR pNmsPph = DSL_PPH_NMP_NEW(name.c_str(), 
+                noLabelFile.c_str(), processMethod, DSL_NMP_MATCH_METHOD_IOS, 
+                matchThreshold);
+                
+            THEN( "The object metadata and non maximum predictions are processed correctly" )
+            {
+                // Test that agnostic processing removes non-maximum predictions
+                // Set each object-meta with unique class id. 
+                objectMeta2.class_id = 1; 
+                objectMeta3.class_id = 2; 
+
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta1);
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta2);
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta3);
+
+                // Requires visual (console) verification. remove-obj callback must be
+                // called twice to remove object-meta 2 and 3
+                pNmsPph->_processNonMaximumObjectMeta(remove_obj_meta_from_frame,
+                    &frameMeta);
+
+                // verify that the objectMeta1 rectangle parameters have not been merged.
+                REQUIRE( objectMeta1.rect_params.left == 10.0 );
+                REQUIRE( objectMeta1.rect_params.top == 10.0 );
+                REQUIRE( objectMeta1.rect_params.width == 100.0 );
+                REQUIRE( objectMeta1.rect_params.height == 100.0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Non Maximum Processor PPH retains all maximum predictions", 
+    "[NmpPph]" )
+{
+    GIVEN( "A new Non Maximum Processor PPH and 3 instances of object metadata - all maximum" )
+    {
+        uint processMethod(DSL_NMP_PROCESS_METHOD_SUPRESS);
+        float matchThreshold(0.5);
+
+        NvDsFrameMeta frameMeta =  {0};
+
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = 0; 
+        objectMeta1.rect_params.left = 10;
+        objectMeta1.rect_params.top = 10;
+        objectMeta1.rect_params.width = 100;
+        objectMeta1.rect_params.height = 100;
+        objectMeta1.confidence = 0.9;
+
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = 0; 
+        objectMeta2.rect_params.left = 100;
+        objectMeta2.rect_params.top = 100;
+        objectMeta2.rect_params.width = 100;
+        objectMeta2.rect_params.height = 100;
+        objectMeta2.confidence = 0.8;
+
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = 0; 
+        objectMeta3.rect_params.left = 200;
+        objectMeta3.rect_params.top = 200;
+        objectMeta3.rect_params.width = 100;
+        objectMeta3.rect_params.height = 100;
+        objectMeta3.confidence = 0.7;
+            
+        WHEN( "The NMS PPH is created with a valid label file and match method = IOU" )
+        {
+            DSL_PPH_NMP_PTR pNmsPph = DSL_PPH_NMP_NEW(name.c_str(), 
+                labelFile1.c_str(), processMethod, DSL_NMP_MATCH_METHOD_IOU, 
+                matchThreshold);
+                
+            THEN( "The object metadata and non maximum predictions are processed correctly" )
+            {
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta1);
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta2);
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta3);
+                
+                // Requires visual (console) verification. remove-obj callback must 
+                // NOT be called.
+                pNmsPph->_processNonMaximumObjectMeta(remove_obj_meta_from_frame,
+                    &frameMeta);
+
+
+                // verify that the objectMeta1 rectangle parameters have not been merged.
+                REQUIRE( objectMeta1.rect_params.left == 10.0 );
+                REQUIRE( objectMeta1.rect_params.top == 10.0 );
+                REQUIRE( objectMeta1.rect_params.width == 100.0 );
+                REQUIRE( objectMeta1.rect_params.height == 100.0 );
+            }
+        }
+        WHEN( "The NMS PPH is created without a label file and match method = IOU" )
+        {
+            DSL_PPH_NMP_PTR pNmsPph = DSL_PPH_NMP_NEW(name.c_str(), 
+                noLabelFile.c_str(), processMethod, DSL_NMP_MATCH_METHOD_IOU, 
+                matchThreshold);
+                
+            THEN( "The object metadata and non maximum predictions are processed correctly" )
+            {
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta1);
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta2);
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta3);
+
+                // Requires visual (console) verification. remove-obj callback must 
+                // NOT be called.
+                pNmsPph->_processNonMaximumObjectMeta(remove_obj_meta_from_frame,
+                    &frameMeta);
+
+                // verify that the objectMeta1 rectangle parameters have not been merged.
+                REQUIRE( objectMeta1.rect_params.left == 10.0 );
+                REQUIRE( objectMeta1.rect_params.top == 10.0 );
+                REQUIRE( objectMeta1.rect_params.width == 100.0 );
+                REQUIRE( objectMeta1.rect_params.height == 100.0 );
+            }
+        }
+        WHEN( "The NMS PPH is created with a valid label file and match method = IOS" )
+        {
+            DSL_PPH_NMP_PTR pNmsPph = DSL_PPH_NMP_NEW(name.c_str(), 
+                labelFile1.c_str(), processMethod, DSL_NMP_MATCH_METHOD_IOS, 
+                matchThreshold);
+                
+            THEN( "The object metadata and non maximum predictions are processed correctly" )
+            {
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta1);
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta2);
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta3);
+                
+                // Requires visual (console) verification. remove-obj callback must 
+                // NOT be called.
+                pNmsPph->_processNonMaximumObjectMeta(remove_obj_meta_from_frame,
+                    &frameMeta);
+
+                // verify that the objectMeta1 rectangle parameters have not been merged.
+                REQUIRE( objectMeta1.rect_params.left == 10.0 );
+                REQUIRE( objectMeta1.rect_params.top == 10.0 );
+                REQUIRE( objectMeta1.rect_params.width == 100.0 );
+                REQUIRE( objectMeta1.rect_params.height == 100.0 );
+            }
+        }
+        WHEN( "The NMS PPH is created without a label file and match method = IOS" )
+        {
+            DSL_PPH_NMP_PTR pNmsPph = DSL_PPH_NMP_NEW(name.c_str(), 
+                noLabelFile.c_str(), processMethod, DSL_NMP_MATCH_METHOD_IOS, 
+                matchThreshold);
+                
+            THEN( "The object metadata and non maximum predictions are processed correctly" )
+            {
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta1);
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta2);
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta3);
+
+                // Requires visual (console) verification. remove-obj callback must 
+                // NOT be called.
+                pNmsPph->_processNonMaximumObjectMeta(remove_obj_meta_from_frame,
+                    &frameMeta);
+
+
+                // verify that the objectMeta1 rectangle parameters have not been merged.
+                REQUIRE( objectMeta1.rect_params.left == 10.0 );
+                REQUIRE( objectMeta1.rect_params.top == 10.0 );
+                REQUIRE( objectMeta1.rect_params.width == 100.0 );
+                REQUIRE( objectMeta1.rect_params.height == 100.0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Non Maximum Processor PPH merges all non maximum predictions", 
+    "[NmpPph]" )
+{
+    GIVEN( "A new Non Maximum Processor PPH and 3 instances of object metadata - clustered" )
+    {
+        uint processMethod(DSL_NMP_PROCESS_METHOD_MERGE);
+        float matchThreshold(0.5);
+
+        NvDsFrameMeta frameMeta =  {0};
+
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = 0; 
+        objectMeta1.rect_params.left = 10;
+        objectMeta1.rect_params.top = 10;
+        objectMeta1.rect_params.width = 100;
+        objectMeta1.rect_params.height = 100;
+        objectMeta1.confidence = 0.9;
+
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = 0; 
+        objectMeta2.rect_params.left = 11;
+        objectMeta2.rect_params.top = 11;
+        objectMeta2.rect_params.width = 100;
+        objectMeta2.rect_params.height = 100;
+        objectMeta2.confidence = 0.8;
+
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = 0; 
+        objectMeta3.rect_params.left = 12;
+        objectMeta3.rect_params.top = 12;
+        objectMeta3.rect_params.width = 100;
+        objectMeta3.rect_params.height = 100;
+        objectMeta3.confidence = 0.7;
+            
+        WHEN( "The NMS PPH is created with a valid label file and match method = IOU" )
+        {
+            DSL_PPH_NMP_PTR pNmsPph = DSL_PPH_NMP_NEW(name.c_str(), 
+                labelFile1.c_str(), processMethod, DSL_NMP_MATCH_METHOD_IOU, 
+                matchThreshold);
+                
+            THEN( "The object metadata and non maximum predictions are processed correctly" )
+            {
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta1);
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta2);
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta3);
+                
+                // Requires visual (console) verification. remove-obj callback must be
+                // called twice to remove object-meta 2 and 3
+                pNmsPph->_processNonMaximumObjectMeta(remove_obj_meta_from_frame,
+                    &frameMeta);
+                
+                // verify that the objectMeta1 rectangle parameters have been merged
+                // with objectMeta2 and objectMeta3 
+                REQUIRE( objectMeta1.rect_params.left == 10.0 );
+                REQUIRE( objectMeta1.rect_params.top == 10.0 );
+                REQUIRE( objectMeta1.rect_params.width == 102.0 );
+                REQUIRE( objectMeta1.rect_params.height == 102.0 );
+            }
+        }
+        WHEN( "The NMS PPH is created without a label file and match method = IOU" )
+        {
+            DSL_PPH_NMP_PTR pNmsPph = DSL_PPH_NMP_NEW(name.c_str(), 
+                noLabelFile.c_str(), processMethod, DSL_NMP_MATCH_METHOD_IOU, 
+                matchThreshold);
+                
+            THEN( "The object metadata and non maximum predictions are processed correctly" )
+            {
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta1);
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta2);
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta3);
+
+                // Requires visual (console) verification. remove-obj callback must be
+                // called twice to remove object-meta 2 and 3
+                pNmsPph->_processNonMaximumObjectMeta(remove_obj_meta_from_frame,
+                    &frameMeta);
+
+                // verify that the objectMeta1 rectangle parameters have been merged
+                // with objectMeta2 and objectMeta3 
+                REQUIRE( objectMeta1.rect_params.left == 10.0 );
+                REQUIRE( objectMeta1.rect_params.top == 10.0 );
+                REQUIRE( objectMeta1.rect_params.width == 102.0 );
+                REQUIRE( objectMeta1.rect_params.height == 102.0 );
+            }
+        }
+        WHEN( "The NMS PPH is created with a valid label file and match method = IOS" )
+        {
+            DSL_PPH_NMP_PTR pNmsPph = DSL_PPH_NMP_NEW(name.c_str(), 
+                labelFile1.c_str(), processMethod, DSL_NMP_MATCH_METHOD_IOS, 
+                matchThreshold);
+                
+            THEN( "The object metadata and non maximum predictions are processed correctly" )
+            {
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta1);
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta2);
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta3);
+                
+                // Requires visual (console) verification. remove-obj callback must be
+                // called twice to remove object-meta 2 and 3
+                pNmsPph->_processNonMaximumObjectMeta(remove_obj_meta_from_frame,
+                    &frameMeta);
+
+                // verify that the objectMeta1 rectangle parameters have been merged
+                // with objectMeta2 and objectMeta3 
+                REQUIRE( objectMeta1.rect_params.left == 10.0 );
+                REQUIRE( objectMeta1.rect_params.top == 10.0 );
+                REQUIRE( objectMeta1.rect_params.width == 102.0 );
+                REQUIRE( objectMeta1.rect_params.height == 102.0 );
+            }
+        }
+        WHEN( "The NMS PPH is created without a label file and match method = IOS" )
+        {
+            DSL_PPH_NMP_PTR pNmsPph = DSL_PPH_NMP_NEW(name.c_str(), 
+                noLabelFile.c_str(), processMethod, DSL_NMP_MATCH_METHOD_IOS, 
+                matchThreshold);
+                
+            THEN( "The object metadata and non maximum predictions are processed correctly" )
+            {
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta1);
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta2);
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta3);
+
+                // Requires visual (console) verification. remove-obj callback must be
+                // called twice to remove object-meta 2 and 3
+                pNmsPph->_processNonMaximumObjectMeta(remove_obj_meta_from_frame,
+                    &frameMeta);
+
+                // verify that the objectMeta1 rectangle parameters have been merged
+                // with objectMeta2 and objectMeta3 
+                REQUIRE( objectMeta1.rect_params.left == 10.0 );
+                REQUIRE( objectMeta1.rect_params.top == 10.0 );
+                REQUIRE( objectMeta1.rect_params.width == 102.0 );
+                REQUIRE( objectMeta1.rect_params.height == 102.0 );
+            }
+        }
+        WHEN( "The NMS PPH is created without a label file and match method = IOS " )
+        {
+            DSL_PPH_NMP_PTR pNmsPph = DSL_PPH_NMP_NEW(name.c_str(), 
+                noLabelFile.c_str(), processMethod, DSL_NMP_MATCH_METHOD_IOS, 
+                matchThreshold);
+                
+            THEN( "The object metadata and non maximum predictions are processed correctly" )
+            {
+                // Test that agnostic processing removes non-maximum predictions
+                // Set each object-meta with unique class id. 
+                objectMeta2.class_id = 1; 
+                objectMeta3.class_id = 2; 
+
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta1);
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta2);
+                pNmsPph->_storeObjectMetaAndPrediction(&objectMeta3);
+
+                // Requires visual (console) verification. remove-obj callback must be
+                // called twice to remove object-meta 2 and 3
+                pNmsPph->_processNonMaximumObjectMeta(remove_obj_meta_from_frame,
+                    &frameMeta);
+
+                // verify that the objectMeta1 rectangle parameters have been merged
+                // with objectMeta2 and objectMeta3 
+                REQUIRE( objectMeta1.rect_params.left == 10.0 );
+                REQUIRE( objectMeta1.rect_params.top == 10.0 );
+                REQUIRE( objectMeta1.rect_params.width == 102.0 );
+                REQUIRE( objectMeta1.rect_params.height == 102.0 );
             }
         }
     }
