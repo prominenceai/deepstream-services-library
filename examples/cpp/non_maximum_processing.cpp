@@ -37,7 +37,7 @@ std::wstring uri_h265(
     L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 
 // Filespecs for the Primary GIE
-// The file below is simply a file that changed cluster-mode=4 (which means that post-process sets None) from "/opt/nvidia/deepstream/samples/config/deepstream-app/config_infer_primary_nano.txt"
+// The file below is simply a file that changed cluster-mode=4 (which means that post-process sets None) from "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt"
 std::wstring primary_infer_config_file(
     L"../../test/configs/config_infer_primary_nano_nms_test.txt");
 std::wstring primary_model_engine_file(

@@ -44,7 +44,7 @@ INCS+= $(wildcard ../../src/*.h)
 
 OBJS:= $(SRCS:.c=.o)
 OBJS:= $(OBJS:.cpp=.o)
-APP:= $(patsubst %.cpp,%.exe,$(SRCS))
+APP:= $(patsubst %.cpp,%.out,$(SRCS))
 
 CXXFLAGS+= -I$(DS_INC_INSTALL_DIR) \
 	-std=$(CXX_VERSION) \
@@ -74,7 +74,7 @@ all: $(APP)
 debug: CXXFLAGS += -DDEBUG -g
 debug: $(APP)
 
-%.exe : %.cpp $(INCS)
+%.out: %.cpp $(INCS)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LIBS)
 
 clean:
