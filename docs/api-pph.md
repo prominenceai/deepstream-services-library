@@ -15,7 +15,11 @@ The Pipeline Meter PPH measures a Pipeline's throughput in frames-per-second. Ad
 The ODE PPH manages an ordered collection of [ODE Triggers](/docs/api-ode-trigger.md), each with their own ordered collections of [ODE Actions](/docs/api-ode-action.md) and (optional) [ODE Areas](/docs/api-ode-area.md). The Handler installs a pad-probe callback to handle each GST Buffer flowing over either the Sink (Input) Pad or the Source (output) pad of the named component; a 2D Tiler or On-Screen-Display as examples. The handler extracts the Frame and Object metadata iterating through its collection of ODE Triggers. Triggers, created with specific purpose and criteria, check for the occurrence of specific Object Detection Events (ODEs). On ODE occurrence, the Trigger iterates through its ordered collection of ODE Actions invoking their `handle-ode-occurrence` service. ODE Areas can be added to Triggers as additional criteria for ODE occurrence. Both Actions and Areas can be shared, or co-owned, by multiple Triggers. All options/settings can be updated at runtime while the Pipeline is playing.
 
 ### Non-Maximum Processor (NMP) Pad Probe Handler
-The NMP PPH implements two inference cluster algorithms providing more functional and controlable options over the default NMS cluster algorithm performed by the NVIDIA Inference plugin. With the default post-processing disabled, the Primary GIE will add object metadata for every prediction above a specified confidence level producing clusters of overlaping bounding boxes for each individual object. The cluster algorithms attempt to detect which of the predictions match the same object and which of the matching predictions has the maximum confidence. All non-maximum predictions are either suppressed or merged with the maximum depending on the algorithm used.
+The NMP PPH implements an inference cluster algorithm providing more options over the default non-maximum suppression (NMS) cluster algorithm performed by the NVIDIA Inference plugin. With the default post-processing disabled, the [Primary GIE](/docs/api-infer.md) will add object metadata for every prediction above a specified confidence level producing clusters of overlaping bounding boxes for each individual object. The image below illustrates the differrences in PGIE output between the default and disabled settings.
+
+![gst-infer cluster mode comparison](/Images/gie_cluster_mode_comparison.png)
+
+To post-process the PGIE output, add the NMP PPH to either the source pad of the [PGIE](/docs/api-infer.md) or sink pad of the [Multi-object Tracker (MOT)](/docs/api-tracker.md). Once added, the Handler installs a pad-probe callback to process each GST Buffer flowing over the parent component's pad. When processing the metadata from each buffer, the callback's cluster algorithm detects which of the predictions match the same object and which of the matching predictions has the maximum confidence. All non-maximum predictions are either suppressed or merged with the maximum depending on the process method selected.
 
 The NMP PPH supports:
 * two methods of non-maximum processing - non-maximum suppression (NMS) and non-maximum merge (NMM).
@@ -25,9 +29,12 @@ The NMP PPH supports:
 
 All options/settings can be updated at runtime while the Pipeline is playing.
 
-Credit and thanks to [@youngjae-avikus](https://github.com/youngjae-avikus) for developing the cluster algorithms.
+#### Input Source Slicing and Non-Maximum Merge.
+TODO...
 
-**Note:** The Non-Maximum Processor is an optional build component - disabled by default - requiring additional setup steps to be included. See the [Installing Dependencies](/docs/installing-dependencies.md) documentation for more information.
+Credit and thanks to [@youngjae-avikus](https://github.com/youngjae-avikus) for developing the cluster algorithm.
+
+**Note:** The Non-Maximum Processor PPH is an optional build component and is disabled/excluded by default.  See the [Installing NumCpp](/docs/installing-dependencies.md#installing-numcpp) under the [Installing Dependencies](/docs/installing-dependencies.md) documentation for more information.
 
 **Important:** The Primary GIE's `cluster-mode` configuration property must be set to `4` to disable the default processing.
 
@@ -39,7 +46,7 @@ Pad Probe Handlers are created by calling their type specific constructor.  Hand
 The Pad Probe Handler's name must be unique from all other components. The relationship between Pipeline Components and Pad Probe Handlers is one-to-many and a Handler must be removed from a Pipeline/Branch before it can be used with another.
 
 ### Adding to a Pipeline Component
-Pad Probe handlers are added to a Pipeline Component by calling the components `dsl_<component>_pph_add()` and removed with `dsl_<component>_pph_remove()`.
+Pad Probe handlers are added to a Pipeline Component by calling the component's `dsl_<component>_pph_add` service and removed with `dsl_<component>_pph_remove`. Using the Tracker component for example; [dsl_tracker_pph_add](/docs/api-tracker.md#dsl_tracker_pph_add) and [dsl_tracker_pph_remove](/docs/api-tracker.md#dsl_tracker_pph_remove)
 
 ### Adding and Removing Triggers to/from an ODE Pad Probe handler
 ODE Triggers are added to an ODE Pad Probe Handler by calling [dsl_pph_ode_trigger_add](#dsl_pph_ode_trigger_add) or [dsl_pph_ode_trigger_add_many](#dsl_pph_ode_trigger_add_many) and removed with [dsl_pph_ode_trigger_remove](#dsl_pph_ode_trigger_remove), [dsl_pph_ode_trigger_remove_many](#dsl_pph_ode_trigger_remove_many), or [dsl_pph_ode_trigger_remove_all](#dsl_pph_ode_trigger_remove_all).
