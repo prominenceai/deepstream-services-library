@@ -15,7 +15,17 @@ The Pipeline Meter PPH measures a Pipeline's throughput in frames-per-second. Ad
 The ODE PPH manages an ordered collection of [ODE Triggers](/docs/api-ode-trigger.md), each with their own ordered collections of [ODE Actions](/docs/api-ode-action.md) and (optional) [ODE Areas](/docs/api-ode-area.md). The Handler installs a pad-probe callback to handle each GST Buffer flowing over either the Sink (Input) Pad or the Source (output) pad of the named component; a 2D Tiler or On-Screen-Display as examples. The handler extracts the Frame and Object metadata iterating through its collection of ODE Triggers. Triggers, created with specific purpose and criteria, check for the occurrence of specific Object Detection Events (ODEs). On ODE occurrence, the Trigger iterates through its ordered collection of ODE Actions invoking their `handle-ode-occurrence` service. ODE Areas can be added to Triggers as additional criteria for ODE occurrence. Both Actions and Areas can be shared, or co-owned, by multiple Triggers. All options/settings can be updated at runtime while the Pipeline is playing.
 
 ### Non-Maximum Processor (NMP) Pad Probe Handler
-The NMP PPH implements two inference cluster algorithms - non maximum suppression (NMS) and non-maximum merge (NMM) - offering more options and control over the default NMS cluster algorithm performed by the Inference Engine. The algorithm supports two methods of object prediction matching; Intersection over Union (IOU) and Intersection over Smallest (IOS). The matching threshold for the IOU and IOS results is specified by the client as well.  All options/settings can be updated at runtime while the Pipeline is playing.
+The NMP PPH implements two inference cluster algorithms providing more functional and controlable options over the default NMS cluster algorithm performed by the NVIDIA Inference plugin. With the default post-processing disabled, the Primary GIE will add object metadata for every prediction above a specified confidence level producing clusters of overlaping bounding boxes for each individual object. The cluster algorithms attempt to detect which of the predictions match the same object and which of the matching predictions has the maximum confidence. All non-maximum predictions are either suppressed or merged with the maximum depending on the algorithm used.
+
+The NMP PPH supports:
+* two methods of non-maximum processing - non-maximum suppression (NMS) and non-maximum merge (NMM).
+* two methods of sorting object predictions - class specific and class agnostic
+* two methods of matching object predictions - intersection over union (IOU) and intersection over smallest (IOS).
+* a definable matching threshold for the IOU/IOS results.
+
+All options/settings can be updated at runtime while the Pipeline is playing.
+
+Credit and thanks to [@youngjae-avikus](https://github.com/youngjae-avikus) for developing the cluster algorithms.
 
 **Note:** The Non-Maximum Processor is an optional build component - disabled by default - requiring additional setup steps to be included. See the [Installing Dependencies](/docs/installing-dependencies.md) documentation for more information.
 
