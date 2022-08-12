@@ -49,7 +49,7 @@ Steps to include in DSL:
 
 1. clone the NumCpp repository git clone https://github.com/dpilger26/NumCpp.git
 2. set the [makefile](/Makefile) include variable to true - `BUILD_NMP_PPH:=true`
-3. set the makefile path variable to the NumCpp root directory - `NUM_CPP_PATH:=<path-to-numcpp>`
+3. set the makefile path variable to the NumCpp `/include` folder - `NUM_CPP_PATH:=<path-to-numcpp-include-folder>`
 
 ### Pad Probe Handler Construction and Destruction
 Pad Probe Handlers are created by calling their type specific constructor.  Handlers are deleted by calling [dsl_pph_delete](#dsl_pph_delete), [dsl_pph_delete_many](#dsl_pph_delete_many), or [dsl_pph_delete_all](#dsl_pph_delete_all).
