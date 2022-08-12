@@ -103,6 +103,11 @@
     <File Name="../src/DslPreprocBintr.h"/>
     <File Name="../src/DslServicesPreproc.cpp"/>
     <File Name="../src/DslApi.h"/>
+    <VirtualDirectory Name="nmp">
+      <File Name="../src/nmp/DslPadProbeHandlerNmp.cpp"/>
+      <File Name="../src/nmp/DslPadProbeHandlerNmp.h"/>
+      <File Name="../src/nmp/DslServicesPphNmp.cpp"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="api">
@@ -182,6 +187,10 @@
       <File Name="../test/unit/DslOdeActionUnitTest.cpp"/>
       <File Name="../test/unit/DslPreprocUnitTest.cpp"/>
     </VirtualDirectory>
+    <VirtualDirectory Name="nmp">
+      <File Name="../test/nmp/DslPphNmpUnitTest.cpp"/>
+      <File Name="../test/nmp/DslPphNmpApiTest.cpp"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="root">
     <File Name="../dsl.py"/>
@@ -197,14 +206,15 @@
       <File Name="../examples/cpp/player_play_all_mp4_files_found.cpp"/>
       <File Name="../examples/cpp/rtsp_player_to_test_connections.cpp"/>
       <File Name="../examples/cpp/ode_cross_polygon_border_print_event.cpp"/>
-      <File Name="../examples/cpp/Makefile"/>
       <File Name="../examples/cpp/README"/>
       <File Name="../examples/cpp/4uri_file_tiler_show_source_control.cpp"/>
       <File Name="../examples/cpp/ode_occurrence_trigger_with_monitor_action.cpp"/>
       <File Name="../examples/cpp/ode_occurrence_trigger_with_mot_challenge_file_action.cpp"/>
-      <File Name="../examples/cpp/1file_ptis_ktl_osd_window.cpp"/>
       <File Name="../examples/cpp/1file_preproc_pgie_iou_osd_window.cpp"/>
       <File Name="../examples/cpp/4uri_file_streammux_with_tiled_output_pre_pgie.cpp"/>
+      <File Name="../examples/cpp/1file_ptis_ktl_osd_window.cpp"/>
+      <File Name="../examples/cpp/non_maximum_processing.cpp"/>
+      <File Name="../examples/cpp/Makefile"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
       <File Name="../examples/python/1csi_live_pgie_demuxer_osd_overlay_rtsp_h254.py"/>

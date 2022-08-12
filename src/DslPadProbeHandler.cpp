@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2022, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -96,6 +96,7 @@ namespace DSL
     bool PadProbeHandler::SetEnabled(bool enabled)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
 
         if (m_isEnabled == enabled)
         {
@@ -136,6 +137,7 @@ namespace DSL
         {
             return false;
         }
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
         
         // increment next index, assign to the Trigger
         pChild->SetIndex(++m_nextTriggerIndex);
@@ -154,6 +156,7 @@ namespace DSL
         {
             return false;
         }
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
         
         // Remove the the child from Indexed map
         m_pChildrenIndexed.erase(pChild->GetIndex());
@@ -166,6 +169,7 @@ namespace DSL
         LOG_FUNC();
         
         Base::RemoveAllChildren();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
         
         // Remove all children from Indexed map
         m_pChildrenIndexed.clear();
@@ -181,12 +185,15 @@ namespace DSL
     void OdePadProbeHandler::SetDisplayMetaAllocSize(uint size)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
         
         m_displayMetaAllocSize = size;
     }
     
     GstPadProbeReturn OdePadProbeHandler::HandlePadData(GstPadProbeInfo* pInfo)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+        
         if (!m_isEnabled)
         {
             return GST_PAD_PROBE_OK;
@@ -292,6 +299,7 @@ namespace DSL
     
     GstPadProbeReturn CustomPadProbeHandler::HandlePadData(GstPadProbeInfo* pInfo)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
         if (!m_isEnabled)
         {
             return GST_PAD_PROBE_OK;

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2022, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_ODE_HANDLER_H
-#define _DSL_ODE_HANDLER_H
+#ifndef _DSL_PAD_PROBE_HANDLER_H
+#define _DSL_PAD_PROBE_HANDLER_H
 
 #include "Dsl.h"
 #include "DslApi.h"
@@ -606,4 +606,4 @@ namespace DSL
 
 }
 
-#endif // _DSL_ODE_HANDLER_H
+#endif // _DSL_PAD_PROBE_HANDLER_H
