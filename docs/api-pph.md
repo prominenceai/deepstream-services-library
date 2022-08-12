@@ -15,11 +15,17 @@ The Pipeline Meter PPH measures a Pipeline's throughput in frames-per-second. Ad
 The ODE PPH manages an ordered collection of [ODE Triggers](/docs/api-ode-trigger.md), each with their own ordered collections of [ODE Actions](/docs/api-ode-action.md) and (optional) [ODE Areas](/docs/api-ode-area.md). The Handler installs a pad-probe callback to handle each GST Buffer flowing over either the Sink (Input) Pad or the Source (output) pad of the named component; a 2D Tiler or On-Screen-Display as examples. The handler extracts the Frame and Object metadata iterating through its collection of ODE Triggers. Triggers, created with specific purpose and criteria, check for the occurrence of specific Object Detection Events (ODEs). On ODE occurrence, the Trigger iterates through its ordered collection of ODE Actions invoking their `handle-ode-occurrence` service. ODE Areas can be added to Triggers as additional criteria for ODE occurrence. Both Actions and Areas can be shared, or co-owned, by multiple Triggers. All options/settings can be updated at runtime while the Pipeline is playing.
 
 ### Non-Maximum Processor (NMP) Pad Probe Handler
-The NMP PPH implements an inference cluster algorithm providing more options over the default non-maximum suppression (NMS) cluster algorithm performed by the NVIDIA Inference plugin. With the default post-processing disabled, the [Primary GIE](/docs/api-infer.md) will add object metadata for every prediction above a specified confidence level producing clusters of overlaping bounding boxes for each individual object. The image below illustrates the differrences in PGIE output between the default and disabled settings.
+The NMP PPH implements an inference cluster algorithm providing a more flexible alternative to the default non-maximum suppression (NMS) cluster algorithm performed by the NVIDIA Inference plugin. 
+
+**Important:** The Primary GIE's `cluster-mode` configuration property must be set to `4` to disable the default processing.
+
+See the [NVIDIA Gst-nvinfer plugin documentation](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvinfer.html#gst-nvinfer) for details on the configuration property and more [cluster mode information](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvinfer.html#cluster-mode-info).
+
+With the default post-processing disabled, the [Primary GIE](/docs/api-infer.md) will add object metadata for every prediction above a specified confidence level producing clusters of overlaping bounding boxes for each individual object. The image below illustrates the differrences in PGIE output between the default and disabled settings.
 
 ![gst-infer cluster mode comparison](/Images/gie_cluster_mode_comparison.png)
 
-To post-process the PGIE output, add the NMP PPH to either the source pad of the [PGIE](/docs/api-infer.md) or sink pad of the [Multi-object Tracker (MOT)](/docs/api-tracker.md). Once added, the Handler installs a pad-probe callback to process each GST Buffer flowing over the parent component's pad. When processing the metadata from each buffer, the callback's cluster algorithm detects which of the predictions match the same object and which of the matching predictions has the maximum confidence. All non-maximum predictions are either suppressed or merged with the maximum depending on the process method selected.
+The PGIE output is post-processed by adding the NMP PPH to either the source pad of the [PGIE](/docs/api-infer.md) or sink pad of the [Multi-object Tracker (MOT)](/docs/api-tracker.md). Once added, the Handler installs a pad-probe callback to process each GST Buffer flowing over the parent component's pad. When processing the metadata from each buffer, the callback's cluster algorithm detects which of the predictions match the same object and which of the matching predictions has the maximum confidence. All non-maximum predictions are either suppressed or merged with the maximum depending on the process method selected.
 
 The NMP PPH supports:
 * two methods of non-maximum processing - non-maximum suppression (NMS) and non-maximum merge (NMM).
@@ -29,16 +35,21 @@ The NMP PPH supports:
 
 All options/settings can be updated at runtime while the Pipeline is playing.
 
+#### Class Agnostic Non-Maximum Processing
+TODO...
+
 #### Input Source Slicing and Non-Maximum Merge.
 TODO...
 
 Credit and thanks to [@youngjae-avikus](https://github.com/youngjae-avikus) for developing the cluster algorithm.
 
-**Note:** The Non-Maximum Processor PPH is an optional build component and is disabled/excluded by default.  See the [Installing NumCpp](/docs/installing-dependencies.md#installing-numcpp) under the [Installing Dependencies](/docs/installing-dependencies.md) documentation for more information.
+**Important:** The Non-Maximum Processor PPH is dependent on third-party source code - [NumCpp: A Templatized Header Only C++ Implementation of the Python NumPy Library](https://github.com/dpilger26/NumCpp). For this reason the NMP PPH is released as an optional build component - disabled/excluded by default. 
 
-**Important:** The Primary GIE's `cluster-mode` configuration property must be set to `4` to disable the default processing.
+Steps to include in DSL:
 
-See the [NVIDIA Gst-nvinfer plugin documentation](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvinfer.html#gst-nvinfer) for details on the configuration property and more [cluster mode information](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvinfer.html#cluster-mode-info).
+1. clone the NumCpp repository git clone https://github.com/dpilger26/NumCpp.git
+2. set the [makefile](/Makefile) include variable to true - `BUILD_NMP_PPH:=true`
+3. set the makefile path variable to the NumCpp root directory - `NUM_CPP_PATH:=<path-to-numcpp>`
 
 ### Pad Probe Handler Construction and Destruction
 Pad Probe Handlers are created by calling their type specific constructor.  Handlers are deleted by calling [dsl_pph_delete](#dsl_pph_delete), [dsl_pph_delete_many](#dsl_pph_delete_many), or [dsl_pph_delete_all](#dsl_pph_delete_all).
