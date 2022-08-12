@@ -198,7 +198,6 @@
     <File Name="../Makefile"/>
     <File Name="../README.md"/>
     <File Name="../.gitignore"/>
-    <File Name="../examples/cpp/Makefile"/>
   </VirtualDirectory>
   <VirtualDirectory Name="examples">
     <VirtualDirectory Name="cpp">
@@ -215,6 +214,7 @@
       <File Name="../examples/cpp/4uri_file_streammux_with_tiled_output_pre_pgie.cpp"/>
       <File Name="../examples/cpp/1file_ptis_ktl_osd_window.cpp"/>
       <File Name="../examples/cpp/non_maximum_processing.cpp"/>
+      <File Name="../examples/cpp/Makefile"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
       <File Name="../examples/python/1csi_live_pgie_demuxer_osd_overlay_rtsp_h254.py"/>

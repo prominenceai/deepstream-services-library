@@ -45,8 +45,8 @@ JSON_GLIB_VERSION:=1.0
 
 # To enable the Non Maximum Processor (NMP) Pad Probe Handler (PPH)
 # - set BUILD_NMP_PPH:=true and NUM_CPP_PATH:=<path-to-numcpp-include-folder>
-BUILD_NMP_PPH:=true
-NUM_CPP_PATH:=../NumCpp/include
+BUILD_NMP_PPH:=false
+NUM_CPP_PATH:=
 
 SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources
 INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources/includes
