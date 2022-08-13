@@ -220,7 +220,7 @@ int test()
         if (retval != DSL_RESULT_SUCCESS) return retval;
 
         // Create the format bounding box action to add to the every occurrence trigger.
-        retval = dsl_ode_action_format_bbox_new(exclude_bbox_action.c_str(), 0,
+        retval = dsl_ode_action_bbox_format_new(exclude_bbox_action.c_str(), 0,
             NULL, false, NULL);
         if (retval != DSL_RESULT_SUCCESS) return retval;
 

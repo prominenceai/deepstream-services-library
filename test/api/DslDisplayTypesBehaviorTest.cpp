@@ -261,13 +261,13 @@ SCENARIO( "All DisplayTypes can be displayed by an ODE Action", "[display-types-
             odeDisplayMetaActionName.c_str()) == DSL_RESULT_SUCCESS );
 
 
-        REQUIRE( dsl_ode_action_format_label_new(L"format-label-action",  
+        REQUIRE( dsl_ode_action_label_format_new(L"format-label-action",  
             NULL, false, NULL) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_occurrence_new(L"every-object-trigger", 
             NULL, DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_format_bbox_new(L"format-bbox-action1",  
+        REQUIRE( dsl_ode_action_bbox_format_new(L"format-bbox-action1",  
             0, NULL, false, NULL) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_action_add(L"every-object-trigger", 
@@ -276,7 +276,7 @@ SCENARIO( "All DisplayTypes can be displayed by an ODE Action", "[display-types-
         REQUIRE( dsl_ode_trigger_action_add(L"every-object-trigger", 
             L"format-bbox-action1") == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_format_bbox_new(L"format-bbox-action2",  
+        REQUIRE( dsl_ode_action_bbox_format_new(L"format-bbox-action2",  
             3, L"dark-blue", false, NULL) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_occurrence_new(L"every-vehicle-trigger", 
@@ -897,7 +897,7 @@ SCENARIO( "A Format BBox ODE Action works correctly with a Random Color Palette"
 
         REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
             NULL, DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_action_format_bbox_new(ode_action_name.c_str(), border_width, 
+        REQUIRE( dsl_ode_action_bbox_format_new(ode_action_name.c_str(), border_width, 
             border_color_name.c_str(), has_bg_color, 
             bg_color_name.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
@@ -971,7 +971,7 @@ SCENARIO( "A Format Label ODE Action works correctly with a Random Color Palette
         REQUIRE( dsl_display_type_rgba_font_new(font_name.c_str(), 
             font.c_str(), size, font_color_name.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_format_label_new(ode_action_name.c_str(),  
+        REQUIRE( dsl_ode_action_label_format_new(ode_action_name.c_str(),  
             font_name.c_str(), has_bg_color, bg_color_name.c_str()) 
                 == DSL_RESULT_SUCCESS );
 

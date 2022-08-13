@@ -491,7 +491,7 @@ uint dsl_display_type_list_size()
     return DSL::Services::GetServices()->DisplayTypeListSize();
 }
 
-DslReturnType dsl_ode_action_format_bbox_new(const wchar_t* name, uint border_width, 
+DslReturnType dsl_ode_action_bbox_format_new(const wchar_t* name, uint border_width, 
     const wchar_t* border_color, boolean has_bg_color, const wchar_t* bg_color)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -515,11 +515,11 @@ DslReturnType dsl_ode_action_format_bbox_new(const wchar_t* name, uint border_wi
         cstrBgColor.assign(wstrBgColor.begin(), wstrBgColor.end());
     }
     
-    return DSL::Services::GetServices()->OdeActionFormatBBoxNew(cstrName.c_str(), 
+    return DSL::Services::GetServices()->OdeActionBBoxFormatNew(cstrName.c_str(), 
         border_width, cstrBorderColor.c_str(), has_bg_color, cstrBgColor.c_str());
 }
 
-DslReturnType dsl_ode_action_format_label_new(const wchar_t* name, 
+DslReturnType dsl_ode_action_label_format_new(const wchar_t* name, 
     const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -542,7 +542,7 @@ DslReturnType dsl_ode_action_format_label_new(const wchar_t* name,
         cstrBgColor.assign(wstrBgColor.begin(), wstrBgColor.end());
     }
     
-    return DSL::Services::GetServices()->OdeActionFormatLabelNew(cstrName.c_str(), 
+    return DSL::Services::GetServices()->OdeActionLabelFormatNew(cstrName.c_str(), 
         cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
 }
     
@@ -678,7 +678,7 @@ DslReturnType dsl_ode_action_capture_mailer_remove(const wchar_t* name,
         cstrName.c_str(), cstrMailer.c_str());
 }
 
-DslReturnType dsl_ode_action_customize_label_new(const wchar_t* name,  
+DslReturnType dsl_ode_action_label_customize_new(const wchar_t* name,  
     const uint* content_types, uint size)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -687,11 +687,11 @@ DslReturnType dsl_ode_action_customize_label_new(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeActionCustomizeLabelNew(
+    return DSL::Services::GetServices()->OdeActionLabelCustomizeNew(
         cstrName.c_str(), content_types, size);
 }    
 
-DslReturnType dsl_ode_action_customize_label_get(const wchar_t* name,  
+DslReturnType dsl_ode_action_label_customize_get(const wchar_t* name,  
     uint* content_types, uint* size)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -701,11 +701,11 @@ DslReturnType dsl_ode_action_customize_label_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeActionCustomizeLabelGet(
+    return DSL::Services::GetServices()->OdeActionLabelCustomizeGet(
         cstrName.c_str(), content_types, size);
 }    
     
-DslReturnType dsl_ode_action_customize_label_set(const wchar_t* name,  
+DslReturnType dsl_ode_action_label_customize_set(const wchar_t* name,  
     const uint* content_types, uint size)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -713,7 +713,7 @@ DslReturnType dsl_ode_action_customize_label_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeActionCustomizeLabelSet(
+    return DSL::Services::GetServices()->OdeActionLabelCustomizeSet(
         cstrName.c_str(), content_types, size);
 }    
     

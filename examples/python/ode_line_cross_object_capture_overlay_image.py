@@ -184,7 +184,7 @@ def main(args):
 
         # Create a new Action to remove the bounding box by default.
         # The bounding box will be reformatted by the ODE Cross Trigger
-        retval = dsl_ode_action_format_bbox_new('remove-bbox',
+        retval = dsl_ode_action_bbox_format_new('remove-bbox',
             border_width = 0,
             border_color = None,
             has_bg_color = False,
@@ -194,7 +194,7 @@ def main(args):
            
         # Create a new Action to remove the Object labels by default.
         # The bounding box will be reformatted by the ODE Cross Trigger
-        retval = dsl_ode_action_format_label_new('remove-label',
+        retval = dsl_ode_action_label_format_new('remove-label',
             font=None, has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break

@@ -106,7 +106,7 @@ def main(args):
         # Create a Format Label Action to remove the label.
         # This action will be added to an Occurrence Trigger to clear
         # remove all labels of all content for every Object. 
-        retval = dsl_ode_action_format_label_new('remove-label', 
+        retval = dsl_ode_action_label_format_new('remove-label', 
             font=None, has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -114,7 +114,7 @@ def main(args):
             break
 
         # Create a Format Bounding Box Action to remove the box border from view
-        retval = dsl_ode_action_format_bbox_new('remove-border', border_width=0,
+        retval = dsl_ode_action_bbox_format_new('remove-border', border_width=0,
             border_color=None, has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -179,7 +179,7 @@ def main(args):
 
         # Create a Customize Label Action to add the Tracking Id and Persistence 
         # time value to each object that is tracked across two consecutive frames
-        retval = dsl_ode_action_customize_label_new('customize-label', 
+        retval = dsl_ode_action_label_customize_new('customize-label', 
             content_types = [DSL_METRIC_OBJECT_TRACKING_ID,
                 DSL_METRIC_OBJECT_PERSISTENCE], 
             size = 2)
@@ -187,7 +187,7 @@ def main(args):
             break
             
         # Create a Format Label Action to
-        retval = dsl_ode_action_format_label_new('format-label', 
+        retval = dsl_ode_action_label_format_new('format-label', 
             font = 'verdana-bold-16-white', 
             has_bg_color = True, 
             bg_color = 'opaque-black')
@@ -196,14 +196,14 @@ def main(args):
 
         # Create Format Bounding Box Action to custom the box border 
         # for all Vehicles tracked - to be added with the custom label
-        retval = dsl_ode_action_format_bbox_new('format-bbox-green', border_width=3,
+        retval = dsl_ode_action_bbox_format_new('format-bbox-green', border_width=3,
             border_color='full-green', has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Create Format Bounding Box Action to custom the box border 
         # for the Earliest tracked Vehicles - to be added with the custom label
-        retval = dsl_ode_action_format_bbox_new('format-bbox-blue', border_width=5,
+        retval = dsl_ode_action_bbox_format_new('format-bbox-blue', border_width=5,
             border_color='light-blue', has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break

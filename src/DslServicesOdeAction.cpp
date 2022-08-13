@@ -328,7 +328,7 @@ namespace DSL
         }
     }
 
-    DslReturnType  Services::OdeActionCustomizeLabelNew(const char* name, 
+    DslReturnType  Services::OdeActionLabelCustomizeNew(const char* name, 
         const uint* contentTypes, uint size)
     {
         LOG_FUNC();
@@ -382,7 +382,7 @@ namespace DSL
         
     }
 
-    DslReturnType  Services::OdeActionCustomizeLabelGet(const char* name, 
+    DslReturnType  Services::OdeActionLabelCustomizeGet(const char* name, 
         uint* contentTypes, uint* size)
     {
         LOG_FUNC();
@@ -421,7 +421,7 @@ namespace DSL
         }
     }
 
-    DslReturnType  Services::OdeActionCustomizeLabelSet(const char* name, 
+    DslReturnType  Services::OdeActionLabelCustomizeSet(const char* name, 
         const uint* contentTypes, uint size)
     {
         LOG_FUNC();
@@ -682,7 +682,7 @@ namespace DSL
     }
 
 
-    DslReturnType Services::OdeActionFormatBBoxNew(const char* name,
+    DslReturnType Services::OdeActionBBoxFormatNew(const char* name,
         uint borderWidth, const char* borderColor, boolean hasBgColor, const char* bgColor)  
     {
         LOG_FUNC();
@@ -743,7 +743,7 @@ namespace DSL
     }
     
 
-    DslReturnType Services::OdeActionFormatLabelNew(const char* name,
+    DslReturnType Services::OdeActionLabelFormatNew(const char* name,
         const char* font, boolean hasBgColor, const char* bgColor)  
     {
         LOG_FUNC();
