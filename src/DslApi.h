@@ -1978,39 +1978,6 @@ DslReturnType dsl_ode_action_custom_new(const wchar_t* name,
     dsl_ode_handle_occurrence_cb client_handler, void* client_data);
 
 /**
- * @brief Creates a uniquely named "Customize Object Label" ODE Action that updates 
- * an Object's label to display specific content.
- * @param[in] name unique name for the "Customize Object Label ODE Action. 
- * @param[in] content_types an array of DSL_OBJECT_LABEL_<type> constants.
- * @param[in] size of the content_types array 
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_customize_label_new(const wchar_t* name,  
-    const uint* content_types, uint size);
-
-/**
- * @brief Gets the current content_types, size and write mode settings for the 
- * "Customize Object Label" ODE Action 
- * @param[in] name unique name for the "Customize Object Label ODE Action to query. 
- * @param[out] content_types an array of DSL_OBJECT_LABEL_<type> constants.
- * @param[inout] size max size of the content_types array on call, actual size on return
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_customize_label_get(const wchar_t* name,  
-    uint* content_types, uint* size);
-    
-/**
- * @brief Sets the content_types, size and write mode settings for the 
- * "Customize Object Label" ODE Action,
- * @param[in] name unique name for the "Customize Object Label ODE Action. 
- * @param[in] content_types an array of DSL_OBJECT_LABEL_<type> constants.
- * @param[in] size of the content_types array 
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_customize_label_set(const wchar_t* name,  
-    const uint* content_types, uint size);
-    
-/**
  * @brief Creates a uniquely named Display ODE Action
  * @param[in] name unique name for the ODE Display Action 
  * @param[in] format_string string with format tokens for display
@@ -2106,21 +2073,8 @@ DslReturnType dsl_ode_action_fill_surroundings_new(const wchar_t* name, const wc
  * @param[in] bg_color RGBA Color for the Text background if set
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_format_bbox_new(const wchar_t* name, uint border_width, 
+DslReturnType dsl_ode_action_bbox_format_new(const wchar_t* name, uint border_width, 
     const wchar_t* border_color, boolean has_bg_color, const wchar_t* bg_color);
-
-/**
- * @brief Creates a uniquely named "Format Label" ODE Action that updates 
- * an Object's RGBA Label Font
- * @param[in] name unique name for the Format Label ODE Action 
- * @param[in] font RGBA font to use for the object's label
- * @param[in] has_bg_color set to true to enable background color, false otherwise
- * @param[in] bg_color RGBA Color for the Text background if has_bg_color = true
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_format_label_new(const wchar_t* name, 
-    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
-    
 
 /**
  * @brief Creates a uniquely named Disable Handler Action that disables
@@ -2131,6 +2085,51 @@ DslReturnType dsl_ode_action_format_label_new(const wchar_t* name,
  */
 DslReturnType dsl_ode_action_handler_disable_new(const wchar_t* name, const wchar_t* handler);
 
+/**
+ * @brief Creates a uniquely named "Format Label" ODE Action that updates 
+ * an Object's RGBA Label Font
+ * @param[in] name unique name for the Format Label ODE Action 
+ * @param[in] font RGBA font to use for the object's label
+ * @param[in] has_bg_color set to true to enable background color, false otherwise
+ * @param[in] bg_color RGBA Color for the Text background if has_bg_color = true
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_label_format_new(const wchar_t* name, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+    
+/**
+ * @brief Creates a uniquely named "Customize Object Label" ODE Action that updates 
+ * an Object's label to display specific content.
+ * @param[in] name unique name for the "Customize Object Label ODE Action. 
+ * @param[in] content_types an array of DSL_OBJECT_LABEL_<type> constants.
+ * @param[in] size of the content_types array 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_label_customize_new(const wchar_t* name,  
+    const uint* content_types, uint size);
+
+/**
+ * @brief Gets the current content_types, size and write mode settings for the 
+ * "Customize Object Label" ODE Action 
+ * @param[in] name unique name for the "Customize Object Label ODE Action to query. 
+ * @param[out] content_types an array of DSL_OBJECT_LABEL_<type> constants.
+ * @param[inout] size max size of the content_types array on call, actual size on return
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_label_customize_get(const wchar_t* name,  
+    uint* content_types, uint* size);
+    
+/**
+ * @brief Sets the content_types, size and write mode settings for the 
+ * "Customize Object Label" ODE Action,
+ * @param[in] name unique name for the "Customize Object Label ODE Action. 
+ * @param[in] content_types an array of DSL_OBJECT_LABEL_<type> constants.
+ * @param[in] size of the content_types array 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_label_customize_set(const wchar_t* name,  
+    const uint* content_types, uint size);
+    
 /**
  * @brief Creates a uniquely named Log ODE Action
  * @param[in] name unique name for the Log ODE Action 

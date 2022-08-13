@@ -727,15 +727,15 @@ def dsl_display_type_list_size():
     return int(result)
 
 ##
-## dsl_ode_action_format_bbox_new()
+## dsl_ode_action_bbox_format_new()
 ##
-_dsl.dsl_ode_action_format_bbox_new.argtypes = [c_wchar_p, 
+_dsl.dsl_ode_action_bbox_format_new.argtypes = [c_wchar_p, 
     c_uint, c_wchar_p, c_bool, c_wchar_p]
-_dsl.dsl_ode_action_format_bbox_new.restype = c_uint
-def dsl_ode_action_format_bbox_new(name, 
+_dsl.dsl_ode_action_bbox_format_new.restype = c_uint
+def dsl_ode_action_bbox_format_new(name, 
     border_width, border_color, has_bg_color, bg_color):
     global _dsl
-    result =_dsl.dsl_ode_action_format_bbox_new(name, 
+    result =_dsl.dsl_ode_action_bbox_format_new(name, 
         border_width, border_color, has_bg_color, bg_color)
     return int(result)
 
@@ -844,12 +844,12 @@ def dsl_ode_action_capture_mailer_remove(name, mailer):
     return int(result)
 
 ##
-## dsl_ode_action_customize_label_new()
+## dsl_ode_action_label_customize_new()
 ##
-#_dsl.dsl_ode_action_customize_label_new.argtypes = [c_wchar_p, 
+#_dsl.dsl_ode_action_label_customize_new.argtypes = [c_wchar_p, 
 #    c_uint, c_uint]
-_dsl.dsl_ode_action_customize_label_new.restype = c_uint
-def dsl_ode_action_customize_label_new(name, 
+_dsl.dsl_ode_action_label_customize_new.restype = c_uint
+def dsl_ode_action_label_customize_new(name, 
     content_types, size):
     global _dsl
     if content_types is None:
@@ -857,33 +857,33 @@ def dsl_ode_action_customize_label_new(name,
     else:
         arr = (c_int * size)()
         arr[:] = content_types
-    result =_dsl.dsl_ode_action_customize_label_new(name, 
+    result =_dsl.dsl_ode_action_label_customize_new(name, 
         arr, size)
     return int(result)
 
 ##
-## dsl_ode_action_customize_label_get()
+## dsl_ode_action_label_customize_get()
 ##
-_dsl.dsl_ode_action_customize_label_get.argtypes = [c_wchar_p]
-_dsl.dsl_ode_action_customize_label_get.restype = c_uint
-def dsl_ode_action_customize_label_get(name):
+_dsl.dsl_ode_action_label_customize_get.argtypes = [c_wchar_p]
+_dsl.dsl_ode_action_label_customize_get.restype = c_uint
+def dsl_ode_action_label_customize_get(name):
     global _dsl
     content_types = [0,0,0,0,0,0]
     size = c_uint(len(content_types))
     arr = (c_int * len(content_types))()
     arr[:] = content_types
-    result =_dsl.dsl_ode_action_customize_label_set(name, 
+    result =_dsl.dsl_ode_action_label_customize_set(name, 
         arr, DSL_UINT_P(size))
     return int(result), arr[:], size.value
 
 
 ##
-## dsl_ode_action_customize_label_set()
+## dsl_ode_action_label_customize_set()
 ##
-#_dsl.dsl_ode_action_customize_label_set.argtypes = [c_wchar_p, 
+#_dsl.dsl_ode_action_label_customize_set.argtypes = [c_wchar_p, 
 #    c_uint_p, c_uint]
-_dsl.dsl_ode_action_customize_label_set.restype = c_uint
-def dsl_ode_action_customize_label_set(name, 
+_dsl.dsl_ode_action_label_customize_set.restype = c_uint
+def dsl_ode_action_label_customize_set(name, 
     content_types, size):
     global _dsl
     if content_types is None:
@@ -891,7 +891,7 @@ def dsl_ode_action_customize_label_set(name,
     else:
         arr = (c_int * size)()
         arr[:] = content_types
-    result =_dsl.dsl_ode_action_customize_label_set(name, 
+    result =_dsl.dsl_ode_action_label_customize_set(name, 
         arr, size)
     return int(result)
 
@@ -949,15 +949,15 @@ def dsl_ode_action_fill_surroundings_new(name, color):
     return int(result)
 
 ##
-## dsl_ode_action_format_label_new()
+## dsl_ode_action_label_format_new()
 ##
-_dsl.dsl_ode_action_format_label_new.argtypes = [c_wchar_p, 
+_dsl.dsl_ode_action_label_format_new.argtypes = [c_wchar_p, 
     c_wchar_p, c_bool, c_wchar_p]
-_dsl.dsl_ode_action_format_label_new.restype = c_uint
-def dsl_ode_action_format_label_new(name, 
+_dsl.dsl_ode_action_label_format_new.restype = c_uint
+def dsl_ode_action_label_format_new(name, 
     font, has_bg_color, bg_color):
     global _dsl
-    result =_dsl.dsl_ode_action_format_label_new(name, 
+    result =_dsl.dsl_ode_action_label_format_new(name, 
         font, has_bg_color, bg_color)
     return int(result)
 

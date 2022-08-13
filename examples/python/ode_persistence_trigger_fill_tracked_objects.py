@@ -100,13 +100,13 @@ def main(args):
         #```````````````````````````````````````````````````````````````````````````````````
         # Create a Format Label Action to remove the Object Label from view
         # Note: the label can be disabled with the OSD API as well. 
-        retval = dsl_ode_action_format_label_new('remove-label', 
+        retval = dsl_ode_action_label_format_new('remove-label', 
             font=None, has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break
             
         # Create a Format Bounding Box Action to remove the box border from view
-        retval = dsl_ode_action_format_bbox_new('remove-border', border_width=0,
+        retval = dsl_ode_action_bbox_format_new('remove-border', border_width=0,
             border_color=None, has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -137,21 +137,21 @@ def main(args):
             
         #```````````````````````````````````````````````````````````````````````````````````
         # Create three new Actions to fill the bounding boxes, one for each Persistence Trigger
-        retval = dsl_ode_action_format_bbox_new('fill-opaque-green',
+        retval = dsl_ode_action_bbox_format_new('fill-opaque-green',
             border_width = 0,
             border_color = None,
             has_bg_color = True,
             bg_color = 'opaque-green')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_action_format_bbox_new('fill-opaque-yellow',
+        retval = dsl_ode_action_bbox_format_new('fill-opaque-yellow',
             border_width = 0,
             border_color = None,
             has_bg_color = True,
             bg_color = 'opaque-yellow')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_action_format_bbox_new('fill-opaque-red',
+        retval = dsl_ode_action_bbox_format_new('fill-opaque-red',
             border_width = 0,
             border_color = None,
             has_bg_color = True,
