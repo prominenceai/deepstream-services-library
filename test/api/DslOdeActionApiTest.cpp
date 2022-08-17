@@ -618,7 +618,7 @@ SCENARIO( "A Mailer can be added and removed from a Capture Action", "[ode-actio
 
 SCENARIO( "A new Customize Label ODE Action can be created and deleted", "[ode-action-api]" )
 {
-    GIVEN( "Attributes for a new Display ODE Action" ) 
+    GIVEN( "Attributes for a new Customize Lable ODE Action" ) 
     {
         std::wstring action_name(L"customize-label-action");
         uint label_types[] = {DSL_METRIC_OBJECT_LOCATION,
@@ -637,6 +637,36 @@ SCENARIO( "A new Customize Label ODE Action can be created and deleted", "[ode-a
                 label_types, size) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
             
             THEN( "The Customize Label can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+
+                // second attempt must fail
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == 
+                    DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+                
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Offset Label ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Offset Label ODE Action" ) 
+    {
+        std::wstring action_name(L"customize-label-action");
+        int offset_x(-5), offset_y(-5);
+
+        WHEN( "A new Offset Label is created" ) 
+        {
+            REQUIRE( dsl_ode_action_label_offset_new(action_name.c_str(),
+                offset_x, offset_y) == DSL_RESULT_SUCCESS );
+
+            // second attempt must fail
+            REQUIRE( dsl_ode_action_label_offset_new(action_name.c_str(),
+                offset_x, offset_y) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+            
+            THEN( "The Offset Label can be deleted" ) 
             {
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );

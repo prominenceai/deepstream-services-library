@@ -716,6 +716,18 @@ DslReturnType dsl_ode_action_label_customize_set(const wchar_t* name,
     return DSL::Services::GetServices()->OdeActionLabelCustomizeSet(
         cstrName.c_str(), content_types, size);
 }    
+
+DslReturnType dsl_ode_action_label_offset_new(const wchar_t* name,  
+    int offset_x, int offset_y)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionLabelOffsetNew(
+        cstrName.c_str(), offset_x, offset_y);
+}    
     
 DslReturnType dsl_ode_action_display_new(const wchar_t* name, 
     const wchar_t* format_string, uint offset_x, uint offset_y, 

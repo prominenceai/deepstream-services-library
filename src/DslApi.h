@@ -2129,6 +2129,19 @@ DslReturnType dsl_ode_action_label_customize_get(const wchar_t* name,
  */
 DslReturnType dsl_ode_action_label_customize_set(const wchar_t* name,  
     const uint* content_types, uint size);
+
+/**
+ * @brief Creates a uniquely named "Customize Object Label" ODE Action that offsets 
+ * an Object's label from the default location. 
+ * @param[in] name unique name for the "Customize Object Label ODE Action. 
+ * @param[in] offset_x horizontal offset from the default top left bounding box corner. 
+ * Use a negative value to move left, positive to move right  in units of pixels.
+ * @param[in] offset_y vertical offset from the default top left bounding box corner. 
+ * Use a negative value to move up, positive to move down in units of pixels.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_label_offset_new(const wchar_t* name,  
+    int offset_x, int offset_y);
     
 /**
  * @brief Creates a uniquely named Log ODE Action

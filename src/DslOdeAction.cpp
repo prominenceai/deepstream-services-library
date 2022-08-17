@@ -1961,6 +1961,67 @@ namespace DSL
 
     // ********************************************************************
 
+    OffsetLabelOdeAction::OffsetLabelOdeAction(const char* name, 
+        int offsetX, int offsetY)
+        : OdeAction(name)
+        , m_offsetX(offsetX)
+        , m_offsetY(offsetY)
+    {
+        LOG_FUNC();
+    }
+
+    OffsetLabelOdeAction::~OffsetLabelOdeAction()
+    {
+        LOG_FUNC();
+    }
+
+    void OffsetLabelOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled and pObjectMeta)
+        {   
+            int originalOffsetX(pObjectMeta->text_params.x_offset);
+            int originalOffsetY(pObjectMeta->text_params.y_offset);
+            
+            // if off-setting to the left
+            if (m_offsetX < 0)
+            {
+                // need to ensure that the offset stays within the frame, min 0 
+                 pObjectMeta->text_params.x_offset = (originalOffsetX > -m_offsetX)
+                    ? originalOffsetX + m_offsetX
+                    : 0;
+            }
+            // else we're off-setting to the right
+            else
+            {
+                // need to ensure that the offset stays within the frame, max X pixel  
+                 pObjectMeta->text_params.x_offset = std::min(originalOffsetX + 
+                    m_offsetX, (int)pFrameMeta->source_frame_width-1);
+            }
+            // if off-setting upwards
+            if (m_offsetY < 0)
+            {
+                // need to ensure that the offset stays within the frame, min 0 
+                 pObjectMeta->text_params.y_offset = (originalOffsetY > -m_offsetY)
+                    ? originalOffsetY + m_offsetY
+                    : 0;
+            }
+            // else, off-setting downwards
+            else
+            {
+                // need to ensure that the offset stays within the frame, max Y pixel  
+                 pObjectMeta->text_params.y_offset = std::min(originalOffsetY + 
+                    m_offsetY, (int)pFrameMeta->source_frame_height-1);
+            }
+        }
+    }
+
+
+    // ********************************************************************
+
     AddDisplayMetaOdeAction::AddDisplayMetaOdeAction(const char* name, 
         DSL_DISPLAY_TYPE_PTR pDisplayType)
         : OdeAction(name)
