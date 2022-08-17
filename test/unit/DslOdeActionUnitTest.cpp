@@ -225,8 +225,8 @@ SCENARIO( "A new FormatLabelOdeAction is created correctly", "[OdeAction]" )
 
         WHEN( "A new FormatLabelOdeAction is created" )
         {
-            DSL_ODE_ACTION_FORMAT_LABEL_PTR pAction = 
-                DSL_ODE_ACTION_FORMAT_LABEL_NEW(actionName.c_str(), 
+            DSL_ODE_ACTION_LABEL_FORMAT_PTR pAction = 
+                DSL_ODE_ACTION_LABEL_FORMAT_NEW(actionName.c_str(), 
                     pFont, hasBgColor, pBgColor);
 
             THEN( "The Action's members are setup and returned correctly" )
@@ -271,8 +271,8 @@ SCENARIO( "A FormatLabelOdeAction handles an ODE Occurence correctly", "[OdeActi
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
-        DSL_ODE_ACTION_FORMAT_LABEL_PTR pAction = 
-            DSL_ODE_ACTION_FORMAT_LABEL_NEW(actionName.c_str(), 
+        DSL_ODE_ACTION_LABEL_FORMAT_PTR pAction = 
+            DSL_ODE_ACTION_LABEL_FORMAT_NEW(actionName.c_str(), 
                 pFont, hasBgColor, pBgColor);
 
         WHEN( "A new ODE is created" )
@@ -593,7 +593,7 @@ SCENARIO( "A new CustomLabelOdeAction is created correctly", "[OdeAction]" )
 
         WHEN( "A new OdeAction is created with an array of content types" )
         {
-            DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR pAction = DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(
+            DSL_ODE_ACTION_LABEL_CUSTOMIZE_PTR pAction = DSL_ODE_ACTION_LABEL_CUSTOMIZE_NEW(
                 actionName.c_str(), label_types);
 
             THEN( "The Action's members are setup and returned correctly" )
@@ -602,11 +602,11 @@ SCENARIO( "A new CustomLabelOdeAction is created correctly", "[OdeAction]" )
                 REQUIRE( actionName == retName );
             }
         }
-        WHEN( "A new OdeAction is created with an array of content types" )
+        WHEN( "A new OdeAction is created with an empty array of content types" )
         {
             std::vector<uint> label_types;
             
-            DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR pAction = DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(
+            DSL_ODE_ACTION_LABEL_CUSTOMIZE_PTR pAction = DSL_ODE_ACTION_LABEL_CUSTOMIZE_NEW(
                 actionName.c_str(), label_types);
 
             THEN( "The Action's members are setup and returned correctly" )
@@ -657,7 +657,7 @@ SCENARIO( "A CustomLabelOdeAction handles an ODE Occurence correctly", "[OdeActi
 
         WHEN( "A the Action is created with content types" )
         {
-            DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR pAction = DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(
+            DSL_ODE_ACTION_LABEL_CUSTOMIZE_PTR pAction = DSL_ODE_ACTION_LABEL_CUSTOMIZE_NEW(
                 actionName.c_str(), label_types);
 
             THEN( "The OdeAction can Handle the Occurrence" )
@@ -674,7 +674,7 @@ SCENARIO( "A CustomLabelOdeAction handles an ODE Occurence correctly", "[OdeActi
         {
             std::vector<uint> label_types;
             
-            DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR pAction = DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(
+            DSL_ODE_ACTION_LABEL_CUSTOMIZE_PTR pAction = DSL_ODE_ACTION_LABEL_CUSTOMIZE_NEW(
                 actionName.c_str(), label_types);
 
             THEN( "The OdeAction can Handle the Occurrence" )
@@ -685,6 +685,145 @@ SCENARIO( "A CustomLabelOdeAction handles an ODE Occurence correctly", "[OdeActi
                     displayMetaData, &frameMeta, &objectMeta);
                 std::string actualLabel(objectMeta.text_params.display_text);
                 REQUIRE( actualLabel == expectedLabel );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new OffsetLabelOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new OffsetLabelOdeAction" ) 
+    {
+        std::string actionName("ode-action");
+        int offsetX(-5), offsetY(-5);
+
+        WHEN( "A new OdeAction is created with an array of content types" )
+        {
+            DSL_ODE_ACTION_LABEL_OFFSET_PTR pAction = DSL_ODE_ACTION_LABEL_OFFSET_NEW(
+                actionName.c_str(), offsetX, offsetY);
+
+            THEN( "The Action's members are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A OffsetLabelOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new OffsetLabelOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        std::string source;
+        uint classId(1);
+        uint limit(1);
+        
+        std::string actionName("ode-action");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
+
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match Trigger's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.rect_params.left = 20;
+        objectMeta.rect_params.top = 20;
+        objectMeta.rect_params.width = 200;
+        objectMeta.rect_params.height = 100;
+        
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  // required to process
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+        frameMeta.source_frame_width = DSL_DEFAULT_STREAMMUX_WIDTH;
+        frameMeta.source_frame_height = DSL_DEFAULT_STREAMMUX_HEIGHT;
+
+        WHEN( "offsets are defined negative and in-frame" )
+        {
+            int offsetX(-5), offsetY(-5);
+
+            DSL_ODE_ACTION_LABEL_OFFSET_PTR pAction = DSL_ODE_ACTION_LABEL_OFFSET_NEW(
+                actionName.c_str(), offsetX, offsetY);
+
+            objectMeta.text_params.x_offset = 20;
+            objectMeta.text_params.y_offset = 10;
+                
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                uint exp_x_offset(15), exp_y_offset(5);
+                
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
+                    
+                REQUIRE( objectMeta.text_params.x_offset == exp_x_offset );
+                REQUIRE( objectMeta.text_params.y_offset == exp_y_offset );
+            }
+        }
+        WHEN( "offsets are defined negative and out-of-frame" )
+        {
+            int offsetX(-25), offsetY(-15);
+
+            DSL_ODE_ACTION_LABEL_OFFSET_PTR pAction = DSL_ODE_ACTION_LABEL_OFFSET_NEW(
+                actionName.c_str(), offsetX, offsetY);
+
+            objectMeta.text_params.x_offset = 20;
+            objectMeta.text_params.y_offset = 10;
+                
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                uint exp_x_offset(0), exp_y_offset(0);
+                
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
+                    
+                REQUIRE( objectMeta.text_params.x_offset == exp_x_offset );
+                REQUIRE( objectMeta.text_params.y_offset == exp_y_offset );
+            }
+        }
+        WHEN( "offsets are defined positive and in-frame" )
+        {
+            int offsetX(5), offsetY(5);
+
+            DSL_ODE_ACTION_LABEL_OFFSET_PTR pAction = DSL_ODE_ACTION_LABEL_OFFSET_NEW(
+                actionName.c_str(), offsetX, offsetY);
+
+            objectMeta.text_params.x_offset = 20;
+            objectMeta.text_params.y_offset = 10;
+                
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                uint exp_x_offset(25), exp_y_offset(15);
+                
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
+                    
+                REQUIRE( objectMeta.text_params.x_offset == exp_x_offset );
+                REQUIRE( objectMeta.text_params.y_offset == exp_y_offset );
+            }
+        }
+        WHEN( "offsets are defined positive and out-of-frame" )
+        {
+            int offsetX(25), offsetY(15);
+
+            DSL_ODE_ACTION_LABEL_OFFSET_PTR pAction = DSL_ODE_ACTION_LABEL_OFFSET_NEW(
+                actionName.c_str(), offsetX, offsetY);
+
+            objectMeta.text_params.x_offset = DSL_DEFAULT_STREAMMUX_WIDTH-10;
+            objectMeta.text_params.y_offset = DSL_DEFAULT_STREAMMUX_HEIGHT-10;;
+                
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                uint exp_x_offset(DSL_DEFAULT_STREAMMUX_WIDTH-1), 
+                    exp_y_offset(DSL_DEFAULT_STREAMMUX_HEIGHT-1);
+                
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
+                    
+                REQUIRE( objectMeta.text_params.x_offset == exp_x_offset );
+                REQUIRE( objectMeta.text_params.y_offset == exp_y_offset );
             }
         }
     }

@@ -365,7 +365,7 @@ namespace DSL
                 contentTypesCopy.push_back(*contentType);
                 count--;
             }    
-            m_odeActions[name] = DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(
+            m_odeActions[name] = DSL_ODE_ACTION_LABEL_CUSTOMIZE_NEW(
                 name, contentTypesCopy);
 
             LOG_INFO("New ODE Customize Label Action '" << name 
@@ -394,7 +394,7 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeActions, 
                 name, CustomizeLabelOdeAction);
             
-            DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR pOdeAction = 
+            DSL_ODE_ACTION_LABEL_CUSTOMIZE_PTR pOdeAction = 
                 std::dynamic_pointer_cast<CustomizeLabelOdeAction>(m_odeActions[name]);
                 
             std::vector <uint> contentTypesCopy = pOdeAction->Get();
@@ -455,7 +455,7 @@ namespace DSL
                 contentTypesCopy.push_back(*contentType);
                 count--;
             }
-            DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR pOdeAction = 
+            DSL_ODE_ACTION_LABEL_CUSTOMIZE_PTR pOdeAction = 
                 std::dynamic_pointer_cast<CustomizeLabelOdeAction>(m_odeActions[name]);
                 
             pOdeAction->Set(contentTypesCopy);
@@ -471,6 +471,38 @@ namespace DSL
                 << "' threw exception on set");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
+    }
+
+    DslReturnType Services::OdeActionLabelOffsetNew(const char* name, 
+        int offsetX, int offsetY)
+{
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            
+            m_odeActions[name] = DSL_ODE_ACTION_LABEL_OFFSET_NEW(name,
+                offsetX, offsetY);
+
+            LOG_INFO("New ODE Offset Label Action '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Offset Label Action '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+        
     }
     
     DslReturnType Services::OdeActionDisplayNew(const char* name, 
@@ -787,7 +819,7 @@ namespace DSL
                 pBgColor = std::dynamic_pointer_cast<RgbaColor>
                     (m_intrinsicDisplayTypes[DISPLAY_TYPE_NO_COLOR.c_str()]);
             }
-            m_odeActions[name] = DSL_ODE_ACTION_FORMAT_LABEL_NEW(name, 
+            m_odeActions[name] = DSL_ODE_ACTION_LABEL_FORMAT_NEW(name, 
                 pFont, hasBgColor, pBgColor);
                 
             LOG_INFO("New Format Label ODE Action '" << name << "' created successfully");

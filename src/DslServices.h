@@ -191,6 +191,9 @@ namespace DSL {
         DslReturnType OdeActionLabelCustomizeSet(const char* name, 
             const uint* contentTypes, uint size);
         
+        DslReturnType OdeActionLabelOffsetNew(const char* name, 
+            int offset_x, int offset_y);
+        
         DslReturnType OdeActionLabelFormatNew(const char* name,
             const char* font, boolean hasBgColor, const char* bgColor);
         
