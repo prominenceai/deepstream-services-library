@@ -3423,6 +3423,88 @@ DslReturnType dsl_source_image_stream_timeout_set(const wchar_t* name, uint time
         timeout);
 }
 
+DslReturnType dsl_source_inter_pipe_new(const wchar_t* name, 
+    const wchar_t* listen_to, boolean is_live,
+    boolean accept_eos, boolean accept_events)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listen_to);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrListenTo(listen_to);
+    std::string cstrListenTo(wstrListenTo.begin(), wstrListenTo.end());
+
+    return DSL::Services::GetServices()->SourceInterPipeNew(cstrName.c_str(), 
+        cstrListenTo.c_str(), is_live, accept_eos, accept_events);
+}
+
+DslReturnType dsl_source_inter_pipe_listen_to_get(const wchar_t* name, 
+    const wchar_t** listen_to)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listen_to);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cListenTo;
+    static std::string cstrListenTo;
+    static std::wstring wcstrListenTo;
+    
+    uint retval = DSL::Services::GetServices()->SourceInterPipeListenToGet(cstrName.c_str(), 
+        &cListenTo);
+
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrListenTo.assign(cListenTo);
+        wcstrListenTo.assign(cstrListenTo.begin(), cstrListenTo.end());
+        *listen_to = wcstrListenTo.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_source_inter_pipe_listen_to_set(const wchar_t* name, 
+    const wchar_t* listen_to)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listen_to);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrListenTo(listen_to);
+    std::string cstrListenTo(wstrListenTo.begin(), wstrListenTo.end());
+
+    return DSL::Services::GetServices()->SourceInterPipeListenToSet(cstrName.c_str(), 
+        cstrListenTo.c_str());
+}    
+
+DslReturnType dsl_source_inter_pipe_accept_settings_get(const wchar_t* name,
+    boolean* accept_eos, boolean* accept_events)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(accept_eos);
+    RETURN_IF_PARAM_IS_NULL(accept_events);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceInterPipeAcceptSettingsGet(
+        cstrName.c_str(), accept_eos, accept_events);        
+}
+
+DslReturnType dsl_source_inter_pipe_accept_settings_set(const wchar_t* name,
+    boolean accept_eos, boolean accept_events)    
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceInterPipeAcceptSettingsSet(
+        cstrName.c_str(), accept_eos, accept_events);        
+}
+    
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol, 
     uint intra_decode, uint dropFrameInterval, uint latency, uint timeout)
 {
@@ -5477,6 +5559,42 @@ DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
         udpPort, rtspPort);
 }    
 
+DslReturnType dsl_sink_inter_pipe_new(const wchar_t* name,
+    boolean forward_eos, boolean forward_events)
+{    
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkInterPipeNew(cstrName.c_str(),
+        forward_eos, forward_events);
+}    
+
+DslReturnType dsl_sink_inter_pipe_forward_settings_get(const wchar_t* name,
+    boolean* forward_eos, boolean* forward_events)
+{    
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkInterPipeForwardSettingsGet(
+        cstrName.c_str(), forward_eos, forward_events);
+}    
+    
+DslReturnType dsl_sink_inter_pipe_forward_settings_set(const wchar_t* name,
+    boolean forward_eos, boolean forward_events)
+{    
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkInterPipeForwardSettingsSet(
+        cstrName.c_str(), forward_eos, forward_events);
+}    
+    
 // NOTE: the WebRTC Sink implementation requires DS 1.18.0 or later
 DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_server,
     const wchar_t* turn_server, uint codec, uint bitrate, uint interval)

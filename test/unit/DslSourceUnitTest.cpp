@@ -1096,3 +1096,27 @@ SCENARIO( "An MultiImageSourceBintr can UnlinkAll all child Elementrs correctly"
     }
 }
 
+SCENARIO( "A new InterPipeSourceBintr is created correctly",  "[temp]" )
+{
+    GIVEN( "Attributes for a new InterPipeSourceBintr" ) 
+    {
+        WHEN( "The InterPipeSourceBintr is created " )
+        {
+            std::string interPipeSinkName("inter-pipe-sink");
+            bool isLive(true), acceptEos(false), acceptEvents(false);
+            
+            DSL_INTER_PIPE_SOURCE_PTR pSourceBintr = DSL_INTER_PIPE_SOURCE_NEW(
+                sourceName.c_str(), interPipeSinkName.c_str(), isLive,
+                acceptEos, acceptEvents);
+
+            THEN( "All memeber variables are initialized correctly" )
+            {
+                REQUIRE( pSourceBintr->IsInUse() == false );
+                
+                // Must reflect use of file stream
+                REQUIRE( pSourceBintr->IsLive() == true );
+            }
+        }
+    }
+}
+

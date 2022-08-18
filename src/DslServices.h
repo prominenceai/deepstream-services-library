@@ -640,6 +640,19 @@ namespace DSL {
     
         DslReturnType SourceImageStreamTimeoutSet(const char* name, uint timeout);
             
+        DslReturnType SourceInterPipeNew(const char* name, const char* listenTo,
+            boolean isLive, boolean acceptEos, boolean acceptEvents);
+            
+        DslReturnType SourceInterPipeListenToGet(const char* name, const char** listenTo);
+            
+        DslReturnType SourceInterPipeListenToSet(const char* name, const char* listenTo);
+        
+        DslReturnType SourceInterPipeAcceptSettingsGet(const char* name,
+            boolean* acceptEos, boolean* acceptEvents);
+            
+        DslReturnType SourceInterPipeAcceptSettingsSet(const char* name,
+            boolean acceptEos, boolean acceptEvents);
+            
         DslReturnType SourceRtspNew(const char* name, const char* uri, uint protocol, 
             uint intraDecode, uint dropFrameInterval, uint latency, uint timeout);
             
@@ -1014,6 +1027,15 @@ namespace DSL {
             
         DslReturnType SinkRtspServerSettingsGet(const char* name, 
             uint* updPort, uint* rtspPort);
+            
+        DslReturnType SinkInterPipeNew(const char* name,
+            boolean forward_eos, boolean forward_events);
+
+        DslReturnType SinkInterPipeForwardSettingsGet(const char* name,
+            boolean* forward_eos, boolean* forward_events);
+
+        DslReturnType SinkInterPipeForwardSettingsSet(const char* name,
+            boolean forward_eos, boolean forward_events);
 
         DslReturnType SinkWebRtcNew(const char* name, const char* stunServer, 
             const char* turnServer, uint codec, uint bitrate, uint interval);

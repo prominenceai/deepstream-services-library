@@ -3986,8 +3986,65 @@ DslReturnType dsl_source_image_stream_timeout_get(const wchar_t* name, uint* tim
 DslReturnType dsl_source_image_stream_timeout_set(const wchar_t* name, uint timeout);
     
 /**
+ * @brief creates a new, uniquely named Inter-Pipe Source component to listen to
+ * an Inter-Pipe Sink Component. Supports dynamic switching between Inter-Pipe Sinks.
+ * @param[in] name unique name for the new Inter-Pipe Source
+ * @param[in] listen_to unique name of the Inter-Pipe Sink to listen to.
+ * @param[in] is_live set to true to act as live source, false otherwise
+ * @param[in] accept_eos set to true to accept EOS events from the Inter-Pipe Sink,
+ * false otherwise.
+ * @param[in] accept_event set to true to accept events (except EOS event) from 
+ * the Inter-Pipe Sink, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_inter_pipe_new(const wchar_t* name, 
+    const wchar_t* listen_to, boolean is_live, 
+    boolean accept_eos, boolean accept_events);
+
+/**
+ * @brief gets the current name of the Inter-Pipe Sink the Inter-Pipe Source 
+ * component is listening to.
+ * @param[in] name unique name of Inter-Pipe Source to query
+ * @param[out] listen_to unique name of the Inter-Pipe Sink the Source is listening to.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_inter_pipe_listen_to_get(const wchar_t* name, 
+    const wchar_t** listen_to);
+
+/**
+ * @brief sets the name of the Inter-Pipe Sink the named Inter-Pipe Source 
+ * component is to listening to.
+ * @param[in] name unique name of Inter-Pipe Source to update
+ * @param[in] listen_to unique name of the Inter-Pipe Sink to listen to.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_inter_pipe_listen_to_set(const wchar_t* name, 
+    const wchar_t* listen_to);
+
+/**
+ * @brief Gets the current accept settings in use by the named Inter-Pipe Source.
+ * @param[out] accept_eos if true, the Source accepts EOS events from the Inter-Pipe Sink.
+ * @param[out] accept_event if true, the Source accepts events (except EOS event) from 
+ * the Inter-Pipe Sink.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_inter_pipe_accept_settings_get(const wchar_t* name,
+    boolean* accept_eos, boolean* accept_events);
+
+/**
+ * @brief Sets the accept settings for the named Inter-Pipe Source to use
+ * @param[in] accept_eos set to true to accept EOS events from the Inter-Pipe Sink,
+ * false otherwise.
+ * @param[in] accept_event set to true to accept events (except EOS event) from 
+ * the Inter-Pipe Sink, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_inter_pipe_accept_settings_set(const wchar_t* name,
+    boolean accept_eos, boolean accept_events);
+    
+/**
  * @brief creates a new, uniquely named RTSP Source component
- * @param[in] name Unique Resource Identifier (file or live)
+ * @param[in] name Unique for the new RTSP Source.
  * @param[in] protocol one of the constant protocol values [ DSL_RTP_TCP | DSL_RTP_ALL ]
  * @param[in] intra_decode set to True to enable, false to disable.
  * @param[in] drop_frame_interval, set to 0 to decode every frame.
@@ -5542,6 +5599,51 @@ DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host,
  */
 DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
     uint* udpPort, uint* rtspPort);
+
+/**
+ * @brief creates a new, uniquely named Inter-Pipe Sink component.
+ * @param[in] name unique coomponent name for the new Inter-Pipe Sink
+ * @param[in] forward_eos set to true to forward the EOS event to all the 
+ * listeners. False to not forward.
+ * @param[in] forward_events set to true to forward downstream events to 
+ * all the listeners (except for EOS). False to not forward.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_inter_pipe_new(const wchar_t* name,
+    boolean forward_eos, boolean forward_events);
+
+/**
+ * @brief gets the current forward settings for named Inter-Pipe Sink component.
+ * @param[in] name unique coomponent name of the Inter-Pipe Sink to query.
+ * @param[in] forward_eos if true the EOS event will be forwarded to all the 
+ * listeners. False otherwise.
+ * @param[in] forward_events if true all downstream events will be forwarded 
+ * to all the listeners (except for EOS). False otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_inter_pipe_forward_settings_get(const wchar_t* name,
+    boolean* forward_eos, boolean* forward_events);    
+
+/**
+ * @brief sets the forward settings for named Inter-Pipe Sink component.
+ * @param[in] name unique coomponent name of the Inter-Pipe Sink to update.
+ * @param[in] forward_eos set to true to forward the EOS event to all the 
+ * listeners. False to not forward.
+ * @param[in] forward_events set to true to forward downstream events to 
+ * all the listeners (except for EOS). False to not forward.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_inter_pipe_forward_settings_set(const wchar_t* name,
+    boolean forward_eos, boolean forward_events);    
+    
+/**
+ * @brief gets the current number of Inter-Pipe Sources listening to 
+ * the named Inter-Pipe Sink component.
+ * @param[out] num_listeners current number of Inter-Pipe Sources listening.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */ 
+DslReturnType dsl_sink_inter_pipe_num_listeners_get(const wchar_t* name,
+    uint* num_listeners);
 
 /**
  * @brief creates a new, uniquely named WebRTC Sink component

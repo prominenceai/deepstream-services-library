@@ -357,7 +357,8 @@ namespace DSL
     
     void PipelineStateMgr::HandleEosMessage(GstMessage* pMessage)
     {
-        LOG_INFO("EOS message recieved");
+        LOG_INFO("EOS message recieved for Pipeline '" 
+            << gst_object_get_name(m_pGstPipeline) << "'");
         
         // If the EOS event was sent from HandleStop
         if (m_eosFlag)
