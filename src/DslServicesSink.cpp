@@ -1122,6 +1122,36 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SinkInterPipeNumListenersGet(const char* name,
+        uint* numListeners)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                InterPipeSinkBintr);
+            
+            DSL_INTER_PIPE_SINK_PTR interPipeSinkBintr = 
+                std::dynamic_pointer_cast<InterPipeSinkBintr>(m_components[name]);
+
+            *numListeners = interPipeSinkBintr->GetNumListeners();
+
+            LOG_INFO("Inter-Pipe Sink '" << name << "' returned num-listeners = " 
+                << *numListeners  << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Inter-Pipe Sink '" << name 
+                << "' threw an exception getting num-listeners");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+            
     DslReturnType Services::SinkMessageNew(const char* name, 
         const char* converterConfigFile, uint payloadType, 
         const char* brokerConfigFile, const char* protocolLib,

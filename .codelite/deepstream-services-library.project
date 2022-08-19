@@ -150,7 +150,6 @@
       <File Name="../test/api/DslOdeAccumulatorApiTest.cpp"/>
       <File Name="../test/api/DslOdeHeatMapperApiTest.cpp"/>
       <File Name="../test/api/DslPreprocApiText.cpp"/>
-      <File Name="../test/api/DslInterPipeBehaviorTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDemuxerAndTeeUnitTest.cpp"/>
@@ -191,6 +190,13 @@
     <VirtualDirectory Name="nmp">
       <File Name="../test/nmp/DslPphNmpUnitTest.cpp"/>
       <File Name="../test/nmp/DslPphNmpApiTest.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="interpipe">
+      <File Name="../test/interpipe/DslSourceInterPipeUnitTest.cpp"/>
+      <File Name="../test/interpipe/DslInterPipeBehaviorTest.cpp"/>
+      <File Name="../test/interpipe/DslSinkInterPipeUnitTest.cpp"/>
+      <File Name="../test/interpipe/DslSinkInterPipeApiTest.cpp"/>
+      <File Name="../test/interpipe/DslSourceInterPipeApiTest.cpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="root">

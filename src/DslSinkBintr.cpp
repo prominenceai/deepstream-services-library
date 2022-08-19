@@ -1412,6 +1412,16 @@ namespace DSL
         
         return true;
     }
+    
+    uint InterPipeSinkBintr::GetNumListeners()
+    {
+        LOG_FUNC();
+        
+        uint numListeners;
+        m_pSinkElement->GetAttribute("num-listeners", &numListeners);
+        
+        return numListeners;
+    }
 
     bool InterPipeSinkBintr::SetSyncEnabled(bool enabled)
     {

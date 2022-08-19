@@ -814,6 +814,13 @@ namespace DSL
          * @returns ture on succesful update, false otherwise.
          */
         bool SetForwardSettings(bool forwardEos, bool forwardEvents);
+        
+        /**
+         * @brief Gets the current numer of Inter-Pipe Sources listening
+         * to this SinkBintr.
+         * @return number of Sources currently listening.
+         */
+        uint GetNumListeners();
 
         /**
          * @brief sets the sync enabled setting for the SinkBintr

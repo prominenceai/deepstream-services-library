@@ -594,7 +594,7 @@ namespace DSL
             DSL_INTER_PIPE_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<InterPipeSourceBintr>(m_components[name]);
          
-            if (pSourceBintr->SetAcceptSettings(acceptEos, acceptEvents))
+            if (!pSourceBintr->SetAcceptSettings(acceptEos, acceptEvents))
             {
                 LOG_ERROR("Inter-Pipe Source '" << name 
                     << "' failed to set Accept settings");

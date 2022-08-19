@@ -1037,6 +1037,9 @@ namespace DSL {
         DslReturnType SinkInterPipeForwardSettingsSet(const char* name,
             boolean forward_eos, boolean forward_events);
 
+        DslReturnType SinkInterPipeNumListenersGet(const char* name,
+            uint* numListeners);
+        
         DslReturnType SinkWebRtcNew(const char* name, const char* stunServer, 
             const char* turnServer, uint codec, uint bitrate, uint interval);
 
