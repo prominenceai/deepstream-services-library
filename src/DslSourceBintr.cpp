@@ -1420,6 +1420,7 @@ namespace DSL
         m_pSourceElement->SetAttribute("listen-to", m_listenToFullName.c_str());
         m_pSourceElement->SetAttribute("accept-eos-event", m_acceptEos);
         m_pSourceElement->SetAttribute("accept-events", m_acceptEvents);
+        m_pSourceElement->SetAttribute("allow-renegotiation", true);
 
         // Add the new Elementr as a Child to the SourceBintr
         AddChild(m_pSourceElement);

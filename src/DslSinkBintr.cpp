@@ -1326,7 +1326,7 @@ namespace DSL
 
     InterPipeSinkBintr::InterPipeSinkBintr(const char* name,
         bool forwardEos, bool forwardEvents)
-        : SinkBintr(name, false)
+        : SinkBintr(name, true)
         , m_forwardEos(forwardEos)
         , m_forwardEvents(forwardEvents)
     {

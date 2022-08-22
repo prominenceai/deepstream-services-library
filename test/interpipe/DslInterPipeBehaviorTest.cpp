@@ -39,14 +39,13 @@ static const std::wstring pipeline_name4(L"test-pipeline-4");
 static const std::wstring source_name1(L"uri-source-1");
 static const std::wstring source_name2(L"uri-source-2");
 static const std::wstring source_name3(L"uri-source-3");
-static const std::wstring source_name4(L"uri-source-4");
-static const std::wstring uri(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
+static const std::wstring source_name4(L"uri-source-4"); 
+static const std::wstring uri1(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_run.mov");
+static const std::wstring uri2(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_push.mov");
+static const std::wstring uri3(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_ride_bike.mov");
+static const std::wstring uri4(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_walk.mov");
 static const uint intr_decode(false);
 static const uint drop_frame_interval(0); 
-
-static const std::wstring inter_pipe_source_name1(L"inter-pipe-source-1");
-static const std::wstring inter_pipe_source_name2(L"inter-pipe-source-2");
-static const std::wstring inter_pipe_source_name3(L"inter-pipe-source-3");
 
 static const std::wstring primary_gie_name(L"primary-gie");
 static std::wstring infer_config_file(
@@ -75,11 +74,25 @@ static const uint sink_height(720);
 
 static const std::wstring window_sink_name(L"window-sink");
 
+static const std::wstring inter_pipe_source_name1(L"inter-pipe-source-1");
+static const std::wstring inter_pipe_source_name2(L"inter-pipe-source-2");
+static const std::wstring inter_pipe_source_name3(L"inter-pipe-source-3");
+static const std::wstring inter_pipe_source_name4(L"inter-pipe-source-4");
+
 static const std::wstring inter_pipe_sink_name1(L"inter-pipe-sink-1");
 static const std::wstring inter_pipe_sink_name2(L"inter-pipe-sink-2");
 static const std::wstring inter_pipe_sink_name3(L"inter-pipe-sink-3");
-static const boolean forward_eos(false);
-static const boolean forward_events(false);
+static const std::wstring inter_pipe_sink_name4(L"inter-pipe-sink-4");
+
+static const std::wstring player_name1(L"player-1");
+static const std::wstring player_name2(L"player-2");
+static const std::wstring player_name3(L"player-3");
+static const std::wstring player_name4(L"player-4");
+
+static const boolean forward_eos(true);
+static const boolean forward_events(true);
+static const boolean accept_eos(true);
+static const boolean accept_events(true);
 
 
 SCENARIO( "Two Pipelines, one with Inter-Pipe Sink, the other with Inter-Pipe Src, can play ", 
@@ -89,7 +102,7 @@ SCENARIO( "Two Pipelines, one with Inter-Pipe Sink, the other with Inter-Pipe Sr
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
+        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri1.c_str(), 
             false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_inter_pipe_new(inter_pipe_sink_name1.c_str(),
@@ -99,7 +112,8 @@ SCENARIO( "Two Pipelines, one with Inter-Pipe Sink, the other with Inter-Pipe Sr
             inter_pipe_sink_name1.c_str(), NULL};
 
         REQUIRE( dsl_source_inter_pipe_new(inter_pipe_source_name1.c_str(), 
-            inter_pipe_sink_name1.c_str(), false, false, false) == DSL_RESULT_SUCCESS );
+            inter_pipe_sink_name1.c_str(), false, accept_eos, accept_events) == 
+            DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -131,6 +145,114 @@ SCENARIO( "Two Pipelines, one with Inter-Pipe Sink, the other with Inter-Pipe Sr
                 
                 REQUIRE( dsl_pipeline_stop(pipeline_name1.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_stop(pipeline_name2.c_str()) == DSL_RESULT_SUCCESS );
+
+                dsl_delete_all();
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Pipeline with and Inter-Pipe Source can dynamically switch between four Inter-Pipe Sinks", 
+    "[temp]" )
+{
+    GIVEN( "Three pla" ) 
+    {
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_file_new(source_name1.c_str(), uri1.c_str(), 
+            true) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(source_name2.c_str(), uri2.c_str(), 
+            true) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(source_name3.c_str(), uri3.c_str(), 
+            true) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(source_name4.c_str(), uri4.c_str(), 
+            true) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_inter_pipe_new(inter_pipe_sink_name1.c_str(),
+            forward_eos, forward_events) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_sink_inter_pipe_new(inter_pipe_sink_name2.c_str(),
+            forward_eos, forward_events) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_sink_inter_pipe_new(inter_pipe_sink_name3.c_str(),
+            forward_eos, forward_events) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_sink_inter_pipe_new(inter_pipe_sink_name4.c_str(),
+            forward_eos, forward_events) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_source_inter_pipe_new(inter_pipe_source_name1.c_str(), 
+            inter_pipe_sink_name1.c_str(), false, accept_eos, accept_events) == 
+            DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
+            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components1[] = {inter_pipe_source_name1.c_str(), 
+            window_sink_name.c_str(), NULL};
+        
+        WHEN( "When the Players and Pipeline are Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name1.c_str(), 
+                components1) == DSL_RESULT_SUCCESS );
+                
+            REQUIRE( dsl_player_new(player_name1.c_str(),
+                source_name1.c_str(), inter_pipe_sink_name1.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_player_new(player_name2.c_str(),
+                source_name2.c_str(), inter_pipe_sink_name2.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_player_new(player_name3.c_str(),
+                source_name3.c_str(), inter_pipe_sink_name3.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_player_new(player_name4.c_str(),
+                source_name4.c_str(), inter_pipe_sink_name4.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_player_play(player_name1.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_player_play(player_name2.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_player_play(player_name3.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_player_play(player_name4.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_play(pipeline_name1.c_str()) == DSL_RESULT_SUCCESS );
+                
+                uint currentState(DSL_STATE_NULL);
+                REQUIRE( dsl_player_state_get(player_name1.c_str(), &currentState) == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( currentState == DSL_STATE_PLAYING );
+                REQUIRE( dsl_player_state_get(player_name2.c_str(), &currentState) == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( currentState == DSL_STATE_PLAYING );
+                REQUIRE( dsl_player_state_get(player_name3.c_str(), &currentState) == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( currentState == DSL_STATE_PLAYING );
+                REQUIRE( dsl_player_state_get(player_name4.c_str(), &currentState) == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( currentState == DSL_STATE_PLAYING );
+                
+                REQUIRE( dsl_pipeline_state_get(pipeline_name1.c_str(), &currentState) == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( currentState == DSL_STATE_PLAYING );
+                
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*2);
+
+                REQUIRE( dsl_source_inter_pipe_listen_to_set(inter_pipe_source_name1.c_str(),
+                    inter_pipe_sink_name2.c_str()) == DSL_RESULT_SUCCESS );
+                
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*2);
+
+                REQUIRE( dsl_source_inter_pipe_listen_to_set(inter_pipe_source_name1.c_str(),
+                    inter_pipe_sink_name3.c_str()) == DSL_RESULT_SUCCESS );
+                
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*2);
+
+                REQUIRE( dsl_source_inter_pipe_listen_to_set(inter_pipe_source_name1.c_str(),
+                    inter_pipe_sink_name4.c_str()) == DSL_RESULT_SUCCESS );
+
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*2);
+                
+                REQUIRE( dsl_player_stop(player_name1.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_player_stop(player_name2.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_player_stop(player_name3.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_player_stop(player_name4.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_stop(pipeline_name1.c_str()) == DSL_RESULT_SUCCESS );
 
                 dsl_delete_all();
                 REQUIRE( dsl_pipeline_list_size() == 0 );

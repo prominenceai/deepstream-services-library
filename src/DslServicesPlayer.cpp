@@ -799,7 +799,6 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
-            DSL_RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
             GstState gstState;
             m_players[name]->GetState(gstState, 0);
             *state = (uint)gstState;
