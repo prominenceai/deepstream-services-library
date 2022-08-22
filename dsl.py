@@ -2885,62 +2885,62 @@ def dsl_source_image_stream_timeout_set(name, timeout):
     return int(result)
 
 ##
-## dsl_source_inter_pipe_new()
+## dsl_source_interpipe_new()
 ##
-_dsl.dsl_source_inter_pipe_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, 
+_dsl.dsl_source_interpipe_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, 
     c_bool, c_bool]
-_dsl.dsl_source_inter_pipe_new.restype = c_uint
-def dsl_source_inter_pipe_new(name, listen_to, is_live, accept_eos, 
+_dsl.dsl_source_interpipe_new.restype = c_uint
+def dsl_source_interpipe_new(name, listen_to, is_live, accept_eos, 
     accept_events):
     global _dsl
-    result = _dsl.dsl_source_inter_pipe_new(name, 
+    result = _dsl.dsl_source_interpipe_new(name, 
         listen_to, is_live, accept_eos, accept_events)
     return int(result)
 
 ##
-## dsl_source_inter_pipe_listen_to_get()
+## dsl_source_interpipe_listen_to_get()
 ##
-_dsl.dsl_source_inter_pipe_listen_to_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
-_dsl.dsl_source_inter_pipe_listen_to_get.restype = c_uint
-def dsl_source_inter_pipe_listen_to_get(name):
+_dsl.dsl_source_interpipe_listen_to_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_source_interpipe_listen_to_get.restype = c_uint
+def dsl_source_interpipe_listen_to_get(name):
     global _dsl
     listen_to = c_wchar_p(0)
-    result = _dsl.dsl_source_inter_pipe_listen_to_get(name, DSL_WCHAR_PP(listen_to))
+    result = _dsl.dsl_source_interpipe_listen_to_get(name, DSL_WCHAR_PP(listen_to))
     return int(result), listen_to.value 
 
 ##
-## dsl_source_inter_pipe_listen_to_set()
+## dsl_source_interpipe_listen_to_set()
 ##
-_dsl.dsl_source_inter_pipe_listen_to_set.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_source_inter_pipe_listen_to_set.restype = c_uint
-def dsl_source_inter_pipe_listen_to_set(name, listen_to):
+_dsl.dsl_source_interpipe_listen_to_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_interpipe_listen_to_set.restype = c_uint
+def dsl_source_interpipe_listen_to_set(name, listen_to):
     global _dsl
-    result = _dsl.dsl_source_inter_pipe_listen_to_set(name, listen_to)
+    result = _dsl.dsl_source_interpipe_listen_to_set(name, listen_to)
     return int(result)
 
 ##
-## dsl_source_inter_pipe_accept_settings_get()
+## dsl_source_interpipe_accept_settings_get()
 ##
-_dsl.dsl_source_inter_pipe_accept_settings_get.argtypes = [c_wchar_p, 
+_dsl.dsl_source_interpipe_accept_settings_get.argtypes = [c_wchar_p, 
     POINTER(c_bool), POINTER(c_bool)]
-_dsl.dsl_source_inter_pipe_accept_settings_get.restype = c_uint
-def dsl_source_inter_pipe_accept_settings_get(name):
+_dsl.dsl_source_interpipe_accept_settings_get.restype = c_uint
+def dsl_source_interpipe_accept_settings_get(name):
     global _dsl
     accept_eos = c_bool_p(0)
     accept_events = c_bool_p(0)
-    result = _dsl.dsl_source_inter_pipe_accept_settings_get(name, 
+    result = _dsl.dsl_source_interpipe_accept_settings_get(name, 
         DSL_BOOL_P(accept_eos), DSL_BOOL_P(accept_events))
     return int(result), accept_eos.value, accept_events.value 
 
 ##
-## dsl_source_inter_pipe_accept_settings_set()
+## dsl_source_interpipe_accept_settings_set()
 ##
-_dsl.dsl_source_inter_pipe_accept_settings_set.argtypes = [c_wchar_p, 
+_dsl.dsl_source_interpipe_accept_settings_set.argtypes = [c_wchar_p, 
     c_bool, c_bool]
-_dsl.dsl_source_inter_pipe_accept_settings_set.restype = c_uint
-def dsl_source_inter_pipe_accept_settings_set(name, accept_eos, accept_events):
+_dsl.dsl_source_interpipe_accept_settings_set.restype = c_uint
+def dsl_source_interpipe_accept_settings_set(name, accept_eos, accept_events):
     global _dsl
-    result = _dsl.dsl_source_inter_pipe_accept_settings_set(name, 
+    result = _dsl.dsl_source_interpipe_accept_settings_set(name, 
         accept_eos, accept_events)
     return int(result)
 
@@ -4529,52 +4529,52 @@ def dsl_sink_message_new(name, converter_config_file, payload_type,
     return int(result)
 
 ##
-## dsl_sink_inter_pipe_new()
+## dsl_sink_interpipe_new()
 ##
-_dsl.dsl_sink_inter_pipe_new.argtypes = [c_wchar_p, c_bool, c_bool]
-_dsl.dsl_sink_inter_pipe_new.restype = c_uint
-def dsl_sink_inter_pipe_new(name, forward_eos, forward_events):
+_dsl.dsl_sink_interpipe_new.argtypes = [c_wchar_p, c_bool, c_bool]
+_dsl.dsl_sink_interpipe_new.restype = c_uint
+def dsl_sink_interpipe_new(name, forward_eos, forward_events):
     global _dsl
-    result =_dsl.dsl_sink_inter_pipe_new(name, 
+    result =_dsl.dsl_sink_interpipe_new(name, 
         forward_eos, forward_events)
     return int(result)
 
 ##
-## dsl_sink_inter_pipe_forward_settings_get()
+## dsl_sink_interpipe_forward_settings_get()
 ##
-_dsl.dsl_sink_inter_pipe_forward_settings_get.argtypes = [c_wchar_p, 
+_dsl.dsl_sink_interpipe_forward_settings_get.argtypes = [c_wchar_p, 
     POINTER(c_bool), POINTER(c_bool)]
-_dsl.dsl_sink_inter_pipe_forward_settings_get.restype = c_uint
-def dsl_sink_inter_pipe_forward_settings_get(name):
+_dsl.dsl_sink_interpipe_forward_settings_get.restype = c_uint
+def dsl_sink_interpipe_forward_settings_get(name):
     global _dsl
     forward_eos = c_bool_p(0)
     forward_events = c_bool_p(0)
-    result = _dsl.dsl_sink_inter_pipe_forward_settings_get(name, 
+    result = _dsl.dsl_sink_interpipe_forward_settings_get(name, 
         DSL_BOOL_P(forward_eos), DSL_BOOL_P(forward_events))
     return int(result), forward_eos.value, forward_events.value 
 
 ##
-## dsl_sink_inter_pipe_forward_settings_set()
+## dsl_sink_interpipe_forward_settings_set()
 ##
-_dsl.dsl_sink_inter_pipe_forward_settings_set.argtypes = [c_wchar_p, 
+_dsl.dsl_sink_interpipe_forward_settings_set.argtypes = [c_wchar_p, 
     c_bool, c_bool]
-_dsl.dsl_sink_inter_pipe_forward_settings_set.restype = c_uint
-def dsl_sink_inter_pipe_forward_settings_set(name, forward_eos, forward_events):
+_dsl.dsl_sink_interpipe_forward_settings_set.restype = c_uint
+def dsl_sink_interpipe_forward_settings_set(name, forward_eos, forward_events):
     global _dsl
-    result = _dsl.dsl_sink_inter_pipe_forward_settings_set(name, 
+    result = _dsl.dsl_sink_interpipe_forward_settings_set(name, 
         forward_eos, forward_events)
     return int(result)
 
 ##
-## dsl_sink_inter_pipe_num_listeners_get()
+## dsl_sink_interpipe_num_listeners_get()
 ##
-_dsl.dsl_sink_inter_pipe_num_listeners_get.argtypes = [c_wchar_p, 
+_dsl.dsl_sink_interpipe_num_listeners_get.argtypes = [c_wchar_p, 
     POINTER(c_uint)]
-_dsl.dsl_sink_inter_pipe_num_listeners_get.restype = c_uint
-def dsl_sink_inter_pipe_num_listeners_get(name):
+_dsl.dsl_sink_interpipe_num_listeners_get.restype = c_uint
+def dsl_sink_interpipe_num_listeners_get(name):
     global _dsl
     num_listeners = c_uint_p(0)
-    result = _dsl.dsl_sink_inter_pipe_num_listeners_get(name, 
+    result = _dsl.dsl_sink_interpipe_num_listeners_get(name, 
         DSL_UINT_P(num_listeners))
     return int(result), num_listeners.value
 

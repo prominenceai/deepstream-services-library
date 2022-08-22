@@ -1324,7 +1324,7 @@ namespace DSL
 
     //-------------------------------------------------------------------------
 
-    InterPipeSinkBintr::InterPipeSinkBintr(const char* name,
+    InterpipeSinkBintr::InterpipeSinkBintr(const char* name,
         bool forwardEos, bool forwardEvents)
         : SinkBintr(name, true)
         , m_forwardEos(forwardEos)
@@ -1344,7 +1344,7 @@ namespace DSL
         AddChild(m_pSinkElement);
     }
     
-    InterPipeSinkBintr::~InterPipeSinkBintr()
+    InterpipeSinkBintr::~InterpipeSinkBintr()
     {
         LOG_FUNC();
     
@@ -1354,13 +1354,13 @@ namespace DSL
         }
     }
 
-    bool InterPipeSinkBintr::LinkAll()
+    bool InterpipeSinkBintr::LinkAll()
     {
         LOG_FUNC();
         
         if (m_isLinked)
         {
-            LOG_ERROR("InterPipeSinkBintr '" << GetName() << "' is already linked");
+            LOG_ERROR("InterpipeSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
         if (!m_pQueue->LinkToSink(m_pSinkElement))
@@ -1371,20 +1371,20 @@ namespace DSL
         return true;
     }
     
-    void InterPipeSinkBintr::UnlinkAll()
+    void InterpipeSinkBintr::UnlinkAll()
     {
         LOG_FUNC();
         
         if (!m_isLinked)
         {
-            LOG_ERROR("InterPipeSinkBintr '" << GetName() << "' is not linked");
+            LOG_ERROR("InterpipeSinkBintr '" << GetName() << "' is not linked");
             return;
         }
         m_pQueue->UnlinkFromSink();
         m_isLinked = false;
     }
     
-    void InterPipeSinkBintr::GetForwardSettings(bool* forwardEos, 
+    void InterpipeSinkBintr::GetForwardSettings(bool* forwardEos, 
         bool* forwardEvents)
     {
         LOG_FUNC();
@@ -1393,14 +1393,14 @@ namespace DSL
         *forwardEvents = m_forwardEvents;
     }
 
-    bool InterPipeSinkBintr::SetForwardSettings(bool forwardEos, 
+    bool InterpipeSinkBintr::SetForwardSettings(bool forwardEos, 
         bool forwardEvents)
     {
         LOG_FUNC();
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set Forward setting for InterPipeSinkBintr '" 
+            LOG_ERROR("Unable to set Forward setting for InterpipeSinkBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
@@ -1413,7 +1413,7 @@ namespace DSL
         return true;
     }
     
-    uint InterPipeSinkBintr::GetNumListeners()
+    uint InterpipeSinkBintr::GetNumListeners()
     {
         LOG_FUNC();
         
@@ -1423,7 +1423,7 @@ namespace DSL
         return numListeners;
     }
 
-    bool InterPipeSinkBintr::SetSyncEnabled(bool enabled)
+    bool InterpipeSinkBintr::SetSyncEnabled(bool enabled)
     {
         LOG_FUNC();
         

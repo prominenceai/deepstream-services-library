@@ -640,17 +640,17 @@ namespace DSL {
     
         DslReturnType SourceImageStreamTimeoutSet(const char* name, uint timeout);
             
-        DslReturnType SourceInterPipeNew(const char* name, const char* listenTo,
+        DslReturnType SourceInterpipeNew(const char* name, const char* listenTo,
             boolean isLive, boolean acceptEos, boolean acceptEvents);
             
-        DslReturnType SourceInterPipeListenToGet(const char* name, const char** listenTo);
+        DslReturnType SourceInterpipeListenToGet(const char* name, const char** listenTo);
             
-        DslReturnType SourceInterPipeListenToSet(const char* name, const char* listenTo);
+        DslReturnType SourceInterpipeListenToSet(const char* name, const char* listenTo);
         
-        DslReturnType SourceInterPipeAcceptSettingsGet(const char* name,
+        DslReturnType SourceInterpipeAcceptSettingsGet(const char* name,
             boolean* acceptEos, boolean* acceptEvents);
             
-        DslReturnType SourceInterPipeAcceptSettingsSet(const char* name,
+        DslReturnType SourceInterpipeAcceptSettingsSet(const char* name,
             boolean acceptEos, boolean acceptEvents);
             
         DslReturnType SourceRtspNew(const char* name, const char* uri, uint protocol, 
@@ -1028,16 +1028,16 @@ namespace DSL {
         DslReturnType SinkRtspServerSettingsGet(const char* name, 
             uint* updPort, uint* rtspPort);
             
-        DslReturnType SinkInterPipeNew(const char* name,
+        DslReturnType SinkInterpipeNew(const char* name,
             boolean forward_eos, boolean forward_events);
 
-        DslReturnType SinkInterPipeForwardSettingsGet(const char* name,
+        DslReturnType SinkInterpipeForwardSettingsGet(const char* name,
             boolean* forward_eos, boolean* forward_events);
 
-        DslReturnType SinkInterPipeForwardSettingsSet(const char* name,
+        DslReturnType SinkInterpipeForwardSettingsSet(const char* name,
             boolean forward_eos, boolean forward_events);
 
-        DslReturnType SinkInterPipeNumListenersGet(const char* name,
+        DslReturnType SinkInterpipeNumListenersGet(const char* name,
             uint* numListeners);
         
         DslReturnType SinkWebRtcNew(const char* name, const char* stunServer, 

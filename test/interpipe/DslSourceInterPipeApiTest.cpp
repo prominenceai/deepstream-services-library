@@ -46,7 +46,7 @@ SCENARIO( "The Components container is updated correctly on new Inter-Pipe Sourc
 
         WHEN( "A new Inter-Pipe Source is created" ) 
         {
-            REQUIRE( dsl_source_inter_pipe_new(inter_pipe_source_name.c_str(), 
+            REQUIRE( dsl_source_interpipe_new(inter_pipe_source_name.c_str(), 
                 inter_pipe_sink_name.c_str(), is_live, accept_eos, 
                 accept_events) == DSL_RESULT_SUCCESS );
 
@@ -66,7 +66,7 @@ SCENARIO( "The Components container is updated correctly on Inter-Pipe Source de
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_inter_pipe_new(inter_pipe_source_name.c_str(), 
+        REQUIRE( dsl_source_interpipe_new(inter_pipe_source_name.c_str(), 
             inter_pipe_sink_name.c_str(), is_live, accept_eos, 
             accept_events) == DSL_RESULT_SUCCESS );
 
@@ -92,7 +92,7 @@ SCENARIO( "An Inter-Pipe Source can update its listen-to setting correctly",
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_inter_pipe_new(inter_pipe_source_name.c_str(), 
+        REQUIRE( dsl_source_interpipe_new(inter_pipe_source_name.c_str(), 
             inter_pipe_sink_name.c_str(), is_live, accept_eos, 
             accept_events) == DSL_RESULT_SUCCESS );
 
@@ -102,13 +102,13 @@ SCENARIO( "An Inter-Pipe Source can update its listen-to setting correctly",
         {
             std::wstring new_listen_to_name(L"new-inter-pipe-sink");
             
-            REQUIRE( dsl_source_inter_pipe_listen_to_set(inter_pipe_source_name.c_str(),
+            REQUIRE( dsl_source_interpipe_listen_to_set(inter_pipe_source_name.c_str(),
                 new_listen_to_name.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The correct setting is returned on get" )
             {
                 const wchar_t* c_listen_to_name;
-                REQUIRE( dsl_source_inter_pipe_listen_to_get(
+                REQUIRE( dsl_source_interpipe_listen_to_get(
                     inter_pipe_source_name.c_str(), &c_listen_to_name) == 
                     DSL_RESULT_SUCCESS );
                     
@@ -129,7 +129,7 @@ SCENARIO( "An Inter-Pipe Source can update its accept settings correctly",
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_inter_pipe_new(inter_pipe_source_name.c_str(), 
+        REQUIRE( dsl_source_interpipe_new(inter_pipe_source_name.c_str(), 
             inter_pipe_sink_name.c_str(), is_live, accept_eos, 
             accept_events) == DSL_RESULT_SUCCESS );
 
@@ -139,14 +139,14 @@ SCENARIO( "An Inter-Pipe Source can update its accept settings correctly",
         {
             boolean new_accept_eos(true), new_accept_events(true);
             
-            REQUIRE( dsl_source_inter_pipe_accept_settings_set(
+            REQUIRE( dsl_source_interpipe_accept_settings_set(
                 inter_pipe_source_name.c_str(), new_accept_eos,
                 new_accept_events) == DSL_RESULT_SUCCESS );
             
             THEN( "The correct settings are returned on get" )
             {
                 boolean ret_accept_eos(false), ret_accept_events(false);
-                REQUIRE( dsl_source_inter_pipe_accept_settings_get(
+                REQUIRE( dsl_source_interpipe_accept_settings_get(
                     inter_pipe_source_name.c_str(), &ret_accept_eos,
                     &ret_accept_events) == DSL_RESULT_SUCCESS );
                     
@@ -174,33 +174,33 @@ SCENARIO( "The Inter-Pipe Source API checks for NULL input parameters",
             
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
-                REQUIRE( dsl_source_inter_pipe_new(NULL, 
+                REQUIRE( dsl_source_interpipe_new(NULL, 
                     inter_pipe_sink_name.c_str(), 0, 0, 0) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_inter_pipe_new(inter_pipe_source_name.c_str(), 
+                REQUIRE( dsl_source_interpipe_new(inter_pipe_source_name.c_str(), 
                     NULL, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                     
-                REQUIRE( dsl_source_inter_pipe_listen_to_get(
+                REQUIRE( dsl_source_interpipe_listen_to_get(
                     NULL, &c_listen_to_name) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_inter_pipe_listen_to_get(
+                REQUIRE( dsl_source_interpipe_listen_to_get(
                     inter_pipe_source_name.c_str(), NULL) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_source_inter_pipe_listen_to_set(
+                REQUIRE( dsl_source_interpipe_listen_to_set(
                     NULL, inter_pipe_sink_name.c_str()) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_inter_pipe_listen_to_get(
+                REQUIRE( dsl_source_interpipe_listen_to_get(
                     inter_pipe_source_name.c_str(), NULL) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
                     
-                REQUIRE( dsl_source_inter_pipe_accept_settings_get(
+                REQUIRE( dsl_source_interpipe_accept_settings_get(
                     NULL, &ret_accept_eos,
                     &ret_accept_events) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_inter_pipe_accept_settings_get(
+                REQUIRE( dsl_source_interpipe_accept_settings_get(
                     inter_pipe_source_name.c_str(), NULL,
                     &ret_accept_events) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_inter_pipe_accept_settings_get(
+                REQUIRE( dsl_source_interpipe_accept_settings_get(
                     inter_pipe_source_name.c_str(), &ret_accept_eos,
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                     

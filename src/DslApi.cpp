@@ -3423,7 +3423,7 @@ DslReturnType dsl_source_image_stream_timeout_set(const wchar_t* name, uint time
         timeout);
 }
 
-DslReturnType dsl_source_inter_pipe_new(const wchar_t* name, 
+DslReturnType dsl_source_interpipe_new(const wchar_t* name, 
     const wchar_t* listen_to, boolean is_live,
     boolean accept_eos, boolean accept_events)
 {
@@ -3441,12 +3441,12 @@ DslReturnType dsl_source_inter_pipe_new(const wchar_t* name,
     std::wstring wstrListenTo(listen_to);
     std::string cstrListenTo(wstrListenTo.begin(), wstrListenTo.end());
 
-    return DSL::Services::GetServices()->SourceInterPipeNew(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SourceInterpipeNew(cstrName.c_str(), 
         cstrListenTo.c_str(), is_live, accept_eos, accept_events);
 #endif
 }
 
-DslReturnType dsl_source_inter_pipe_listen_to_get(const wchar_t* name, 
+DslReturnType dsl_source_interpipe_listen_to_get(const wchar_t* name, 
     const wchar_t** listen_to)
 {
 #if !defined(BUILD_INTER_PIPE)
@@ -3465,7 +3465,7 @@ DslReturnType dsl_source_inter_pipe_listen_to_get(const wchar_t* name,
     static std::string cstrListenTo;
     static std::wstring wcstrListenTo;
     
-    uint retval = DSL::Services::GetServices()->SourceInterPipeListenToGet(cstrName.c_str(), 
+    uint retval = DSL::Services::GetServices()->SourceInterpipeListenToGet(cstrName.c_str(), 
         &cListenTo);
 
     if (retval ==  DSL_RESULT_SUCCESS)
@@ -3478,7 +3478,7 @@ DslReturnType dsl_source_inter_pipe_listen_to_get(const wchar_t* name,
 #endif
 }
 
-DslReturnType dsl_source_inter_pipe_listen_to_set(const wchar_t* name, 
+DslReturnType dsl_source_interpipe_listen_to_set(const wchar_t* name, 
     const wchar_t* listen_to)
 {
 #if !defined(BUILD_INTER_PIPE)
@@ -3495,12 +3495,12 @@ DslReturnType dsl_source_inter_pipe_listen_to_set(const wchar_t* name,
     std::wstring wstrListenTo(listen_to);
     std::string cstrListenTo(wstrListenTo.begin(), wstrListenTo.end());
 
-    return DSL::Services::GetServices()->SourceInterPipeListenToSet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SourceInterpipeListenToSet(cstrName.c_str(), 
         cstrListenTo.c_str());
 #endif        
 }    
 
-DslReturnType dsl_source_inter_pipe_accept_settings_get(const wchar_t* name,
+DslReturnType dsl_source_interpipe_accept_settings_get(const wchar_t* name,
     boolean* accept_eos, boolean* accept_events)
 {
 #if !defined(BUILD_INTER_PIPE)
@@ -3516,12 +3516,12 @@ DslReturnType dsl_source_inter_pipe_accept_settings_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceInterPipeAcceptSettingsGet(
+    return DSL::Services::GetServices()->SourceInterpipeAcceptSettingsGet(
         cstrName.c_str(), accept_eos, accept_events);        
 #endif        
 }
 
-DslReturnType dsl_source_inter_pipe_accept_settings_set(const wchar_t* name,
+DslReturnType dsl_source_interpipe_accept_settings_set(const wchar_t* name,
     boolean accept_eos, boolean accept_events)    
 {
 #if !defined(BUILD_INTER_PIPE)
@@ -3535,7 +3535,7 @@ DslReturnType dsl_source_inter_pipe_accept_settings_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceInterPipeAcceptSettingsSet(
+    return DSL::Services::GetServices()->SourceInterpipeAcceptSettingsSet(
         cstrName.c_str(), accept_eos, accept_events);      
 #endif
 }
@@ -5594,7 +5594,7 @@ DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
         udpPort, rtspPort);
 }    
 
-DslReturnType dsl_sink_inter_pipe_new(const wchar_t* name,
+DslReturnType dsl_sink_interpipe_new(const wchar_t* name,
     boolean forward_eos, boolean forward_events)
 {    
 #if !defined(BUILD_INTER_PIPE)
@@ -5608,12 +5608,12 @@ DslReturnType dsl_sink_inter_pipe_new(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->SinkInterPipeNew(cstrName.c_str(),
+    return DSL::Services::GetServices()->SinkInterpipeNew(cstrName.c_str(),
         forward_eos, forward_events);
 #endif        
 }    
 
-DslReturnType dsl_sink_inter_pipe_forward_settings_get(const wchar_t* name,
+DslReturnType dsl_sink_interpipe_forward_settings_get(const wchar_t* name,
     boolean* forward_eos, boolean* forward_events)
 {    
 #if !defined(BUILD_INTER_PIPE)
@@ -5629,12 +5629,12 @@ DslReturnType dsl_sink_inter_pipe_forward_settings_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->SinkInterPipeForwardSettingsGet(
+    return DSL::Services::GetServices()->SinkInterpipeForwardSettingsGet(
         cstrName.c_str(), forward_eos, forward_events);
 #endif        
 }    
     
-DslReturnType dsl_sink_inter_pipe_forward_settings_set(const wchar_t* name,
+DslReturnType dsl_sink_interpipe_forward_settings_set(const wchar_t* name,
     boolean forward_eos, boolean forward_events)
 {    
 #if !defined(BUILD_INTER_PIPE)
@@ -5648,12 +5648,12 @@ DslReturnType dsl_sink_inter_pipe_forward_settings_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->SinkInterPipeForwardSettingsSet(
+    return DSL::Services::GetServices()->SinkInterpipeForwardSettingsSet(
         cstrName.c_str(), forward_eos, forward_events);
 #endif        
 }    
 
-DslReturnType dsl_sink_inter_pipe_num_listeners_get(const wchar_t* name,
+DslReturnType dsl_sink_interpipe_num_listeners_get(const wchar_t* name,
     uint* num_listeners)
 {
 #if !defined(BUILD_INTER_PIPE)
@@ -5668,7 +5668,7 @@ DslReturnType dsl_sink_inter_pipe_num_listeners_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->SinkInterPipeNumListenersGet(
+    return DSL::Services::GetServices()->SinkInterpipeNumListenersGet(
         cstrName.c_str(), num_listeners);
 #endif    
 }    

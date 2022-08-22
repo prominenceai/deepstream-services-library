@@ -85,10 +85,10 @@ namespace DSL
             converterConfigFile, payloadType, brokerConfigFile, \
             protocolLib, connectionString, topic))
         
-    #define DSL_INTER_PIPE_SINK_PTR std::shared_ptr<InterPipeSinkBintr>
-    #define DSL_INTER_PIPE_SINK_NEW(name, forwardEos, forwardEvents) \
-        std::shared_ptr<InterPipeSinkBintr>( \
-        new InterPipeSinkBintr(name, forwardEos, forwardEvents))
+    #define DSL_INTERPIPE_SINK_PTR std::shared_ptr<InterpipeSinkBintr>
+    #define DSL_INTERPIPE_SINK_NEW(name, forwardEos, forwardEvents) \
+        std::shared_ptr<InterpipeSinkBintr>( \
+        new InterpipeSinkBintr(name, forwardEos, forwardEvents))
 
 
     class SinkBintr : public Bintr
@@ -775,14 +775,14 @@ namespace DSL
 
     //-------------------------------------------------------------------------
 
-    class InterPipeSinkBintr : public SinkBintr
+    class InterpipeSinkBintr : public SinkBintr
     {
     public: 
     
-        InterPipeSinkBintr(const char* name, 
+        InterpipeSinkBintr(const char* name, 
             bool forwardEos, bool forwardEvents);
 
-        ~InterPipeSinkBintr();
+        ~InterpipeSinkBintr();
   
         /**
          * @brief Links all Child Elementrs owned by this Bintr
@@ -842,7 +842,7 @@ namespace DSL
         bool m_forwardEvents;
 
         /**
-         * @brief Inter-Pipe Sink element for the InterPipeSinkBintr.
+         * @brief Inter-Pipe Sink element for the InterpipeSinkBintr.
          */
         DSL_ELEMENT_PTR m_pSinkElement;
     };

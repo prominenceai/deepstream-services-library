@@ -44,7 +44,7 @@ SCENARIO( "A new InterPipeSourceBintr is created correctly",
         WHEN( "The InterPipeSourceBintr is created " )
         {
             
-            DSL_INTER_PIPE_SOURCE_PTR pSourceBintr = DSL_INTER_PIPE_SOURCE_NEW(
+            DSL_INTERPIPE_SOURCE_PTR pSourceBintr = DSL_INTERPIPE_SOURCE_NEW(
                 interPipeSourceName.c_str(), interPipeSinkName.c_str(), isLive,
                 acceptEos, acceptEvents);
 
@@ -71,7 +71,7 @@ SCENARIO( "A linked InterPipeSourceBintr can update its listen-to setting",
 {
     GIVEN( "A new InterPipeSourceBintr" ) 
     {
-        DSL_INTER_PIPE_SOURCE_PTR pSourceBintr = DSL_INTER_PIPE_SOURCE_NEW(
+        DSL_INTERPIPE_SOURCE_PTR pSourceBintr = DSL_INTERPIPE_SOURCE_NEW(
             interPipeSourceName.c_str(), interPipeSinkName.c_str(), isLive,
             acceptEos, acceptEvents);
 
@@ -96,7 +96,7 @@ SCENARIO( "A linked InterPipeSourceBintr fails to set Accept settings",
 {
     GIVEN( "A new InterPipeSourceBintr" ) 
     {
-        DSL_INTER_PIPE_SOURCE_PTR pSourceBintr = DSL_INTER_PIPE_SOURCE_NEW(
+        DSL_INTERPIPE_SOURCE_PTR pSourceBintr = DSL_INTERPIPE_SOURCE_NEW(
             interPipeSourceName.c_str(), interPipeSinkName.c_str(), isLive,
             acceptEos, acceptEvents);
 

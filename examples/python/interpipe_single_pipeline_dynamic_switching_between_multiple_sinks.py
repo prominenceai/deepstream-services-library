@@ -24,6 +24,7 @@
 
 # ------------------------------------------------------------------------------------
 # This example demonstrates interpipe dynamic switching
+# 
 
 
 #!/usr/bin/env python
@@ -55,24 +56,20 @@ def xwindow_key_event_handler(key_string, client_data):
     print('key released = ', key_string)
 
     if key_string == '1':
-        dsl_source_inter_pipe_listen_to_set('inter-pipe-source',
+        dsl_source_interpipe_listen_to_set('inter-pipe-source',
             listen_to='inter-pipe-sink-1')
     elif key_string == '2':
-        dsl_source_inter_pipe_listen_to_set('inter-pipe-source',
+        dsl_source_interpipe_listen_to_set('inter-pipe-source',
             listen_to='inter-pipe-sink-2')
     elif key_string == '3':
-        dsl_source_inter_pipe_listen_to_set('inter-pipe-source',
+        dsl_source_interpipe_listen_to_set('inter-pipe-source',
             listen_to='inter-pipe-sink-3')
     elif key_string == '4':
-        dsl_source_inter_pipe_listen_to_set('inter-pipe-source',
+        dsl_source_interpipe_listen_to_set('inter-pipe-source',
             listen_to='inter-pipe-sink-4')
             
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
         dsl_pipeline_stop('pipeline')
-        dsl_player_stop('player-1')
-        dsl_player_stop('player-2')
-        dsl_player_stop('player-3')
-        dsl_player_stop('player-4')
         dsl_main_loop_quit()
  
 ## 
@@ -81,10 +78,6 @@ def xwindow_key_event_handler(key_string, client_data):
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
     dsl_pipeline_stop('pipeline')
-    dsl_player_stop('player-1')
-    dsl_player_stop('player-2')
-    dsl_player_stop('player-3')
-    dsl_player_stop('player-4')
     dsl_main_loop_quit()
 
 ## 
@@ -116,19 +109,19 @@ def main(args):
             break
 
         # Four new inter-pipe sinks
-        retval = dsl_sink_inter_pipe_new('inter-pipe-sink-1', 
+        retval = dsl_sink_interpipe_new('inter-pipe-sink-1', 
             forward_eos=True, forward_events=True)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_inter_pipe_new('inter-pipe-sink-2', 
+        retval = dsl_sink_interpipe_new('inter-pipe-sink-2', 
             forward_eos=True, forward_events=True)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_inter_pipe_new('inter-pipe-sink-3', 
+        retval = dsl_sink_interpipe_new('inter-pipe-sink-3', 
             forward_eos=True, forward_events=True)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_inter_pipe_new('inter-pipe-sink-4', 
+        retval = dsl_sink_interpipe_new('inter-pipe-sink-4', 
             forward_eos=True, forward_events=True)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -152,7 +145,7 @@ def main(args):
         # dynamically switch between the four players and their inter-pipe sink
         
         # New inter-pipe source - listen to inter-pipe-sink-1 to start with.
-        retval = dsl_source_inter_pipe_new('inter-pipe-source',
+        retval = dsl_source_interpipe_new('inter-pipe-source',
             listen_to='inter-pipe-sink-1', is_live=False,
             accept_eos=True, accept_events=True)
         

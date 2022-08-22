@@ -454,7 +454,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceInterPipeNew(const char* name, 
+    DslReturnType Services::SourceInterpipeNew(const char* name, 
         const char* listenTo, boolean isLive, 
         boolean acceptEos, boolean acceptEvents)
     {
@@ -469,7 +469,7 @@ namespace DSL
                 LOG_ERROR("Source name '" << name << "' is not unique");
                 return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
             }
-            m_components[name] = DSL_INTER_PIPE_SOURCE_NEW(
+            m_components[name] = DSL_INTERPIPE_SOURCE_NEW(
                 name, listenTo, isLive, acceptEos, acceptEvents);
 
             LOG_INFO("New Inter-Pipe Source '" << name 
@@ -485,7 +485,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceInterPipeListenToGet(const char* name, 
+    DslReturnType Services::SourceInterpipeListenToGet(const char* name, 
         const char** listenTo)
     {
         LOG_FUNC();
@@ -495,10 +495,10 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                InterPipeSourceBintr);
+                InterpipeSourceBintr);
 
-            DSL_INTER_PIPE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<InterPipeSourceBintr>(m_components[name]);
+            DSL_INTERPIPE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<InterpipeSourceBintr>(m_components[name]);
          
             *listenTo = pSourceBintr->GetListenTo();
 
@@ -515,7 +515,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceInterPipeListenToSet(const char* name, 
+    DslReturnType Services::SourceInterpipeListenToSet(const char* name, 
         const char* listenTo)
     {
         LOG_FUNC();
@@ -525,10 +525,10 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                InterPipeSourceBintr);
+                InterpipeSourceBintr);
 
-            DSL_INTER_PIPE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<InterPipeSourceBintr>(m_components[name]);
+            DSL_INTERPIPE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<InterpipeSourceBintr>(m_components[name]);
          
             pSourceBintr->SetListenTo(listenTo);
             
@@ -545,7 +545,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceInterPipeAcceptSettingsGet(const char* name,
+    DslReturnType Services::SourceInterpipeAcceptSettingsGet(const char* name,
         boolean* acceptEos, boolean* acceptEvents)
     {
         LOG_FUNC();
@@ -555,10 +555,10 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                InterPipeSourceBintr);
+                InterpipeSourceBintr);
 
-            DSL_INTER_PIPE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<InterPipeSourceBintr>(m_components[name]);
+            DSL_INTERPIPE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<InterpipeSourceBintr>(m_components[name]);
          
             bool bAcceptEos(false), bAcceptEvents(false);
             pSourceBintr->GetAcceptSettings(&bAcceptEos, &bAcceptEvents);
@@ -579,7 +579,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceInterPipeAcceptSettingsSet(const char* name,
+    DslReturnType Services::SourceInterpipeAcceptSettingsSet(const char* name,
         boolean acceptEos, boolean acceptEvents)
     {
         LOG_FUNC();
@@ -589,10 +589,10 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                InterPipeSourceBintr);
+                InterpipeSourceBintr);
 
-            DSL_INTER_PIPE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<InterPipeSourceBintr>(m_components[name]);
+            DSL_INTERPIPE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<InterpipeSourceBintr>(m_components[name]);
          
             if (!pSourceBintr->SetAcceptSettings(acceptEos, acceptEvents))
             {

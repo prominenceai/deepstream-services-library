@@ -39,7 +39,7 @@ SCENARIO( "The Components container is updated correctly on new Inter-Pipe Sink"
 
         WHEN( "A new Inter-Pipe Sink is created" ) 
         {
-            REQUIRE( dsl_sink_inter_pipe_new(inter_pipe_sink_name.c_str(), 
+            REQUIRE( dsl_sink_interpipe_new(inter_pipe_sink_name.c_str(), 
                 forward_eos, forward_events) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
@@ -58,7 +58,7 @@ SCENARIO( "The Components container is updated correctly on Inter-Pipe Sink dele
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_sink_inter_pipe_new(inter_pipe_sink_name.c_str(), 
+        REQUIRE( dsl_sink_interpipe_new(inter_pipe_sink_name.c_str(), 
             forward_eos, forward_events) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_component_list_size() == 1 );
@@ -83,7 +83,7 @@ SCENARIO( "An Inter-Pipe Sink can update its forward settings correctly",
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_sink_inter_pipe_new(inter_pipe_sink_name.c_str(), 
+        REQUIRE( dsl_sink_interpipe_new(inter_pipe_sink_name.c_str(), 
             forward_eos, forward_events) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_component_list_size() == 1 );
@@ -92,14 +92,14 @@ SCENARIO( "An Inter-Pipe Sink can update its forward settings correctly",
         {
             boolean new_forward_eos(true), new_forward_events(true);
             
-            REQUIRE( dsl_sink_inter_pipe_forward_settings_set(
+            REQUIRE( dsl_sink_interpipe_forward_settings_set(
                 inter_pipe_sink_name.c_str(), new_forward_eos,
                 new_forward_events) == DSL_RESULT_SUCCESS );
             
             THEN( "The correct settings are returned on get" )
             {
                 boolean ret_forward_eos(false), ret_forward_events(false);
-                REQUIRE( dsl_sink_inter_pipe_forward_settings_get(
+                REQUIRE( dsl_sink_interpipe_forward_settings_get(
                     inter_pipe_sink_name.c_str(), &ret_forward_eos,
                     &ret_forward_events) == DSL_RESULT_SUCCESS );
                     
@@ -127,21 +127,21 @@ SCENARIO( "The Inter-Pipe Sink API checks for NULL input parameters",
             
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
-                REQUIRE( dsl_sink_inter_pipe_new(NULL, 0, 0) == 
+                REQUIRE( dsl_sink_interpipe_new(NULL, 0, 0) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
                     
-                REQUIRE( dsl_sink_inter_pipe_num_listeners_get(
+                REQUIRE( dsl_sink_interpipe_num_listeners_get(
                     NULL, &num_listeners) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_inter_pipe_num_listeners_get(
+                REQUIRE( dsl_sink_interpipe_num_listeners_get(
                     inter_pipe_sink_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_sink_inter_pipe_forward_settings_get(
+                REQUIRE( dsl_sink_interpipe_forward_settings_get(
                     NULL, &ret_forward_eos, &ret_forward_events) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_inter_pipe_forward_settings_get(
+                REQUIRE( dsl_sink_interpipe_forward_settings_get(
                     inter_pipe_sink_name.c_str(), NULL,
                     &ret_forward_events) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_inter_pipe_forward_settings_get(
+                REQUIRE( dsl_sink_interpipe_forward_settings_get(
                     inter_pipe_sink_name.c_str(), &ret_forward_eos,
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                     

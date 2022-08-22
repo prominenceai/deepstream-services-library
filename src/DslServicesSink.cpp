@@ -1021,7 +1021,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SinkInterPipeNew(const char* name,
+    DslReturnType Services::SinkInterpipeNew(const char* name,
         boolean forwardEos, boolean forwardEvents)
     {
         LOG_FUNC();
@@ -1036,7 +1036,7 @@ namespace DSL
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
 
-            m_components[name] = DSL_INTER_PIPE_SINK_NEW(name,
+            m_components[name] = DSL_INTERPIPE_SINK_NEW(name,
                 forwardEos, forwardEvents);
 
             LOG_INFO("New Inter-Pipe Sink '" << name 
@@ -1052,7 +1052,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SinkInterPipeForwardSettingsGet(const char* name, 
+    DslReturnType Services::SinkInterpipeForwardSettingsGet(const char* name, 
         boolean* forwardEos, boolean* forwardEvents)
     {
         LOG_FUNC();
@@ -1062,10 +1062,10 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                InterPipeSinkBintr);
+                InterpipeSinkBintr);
             
-            DSL_INTER_PIPE_SINK_PTR interPipeSinkBintr = 
-                std::dynamic_pointer_cast<InterPipeSinkBintr>(m_components[name]);
+            DSL_INTERPIPE_SINK_PTR interPipeSinkBintr = 
+                std::dynamic_pointer_cast<InterpipeSinkBintr>(m_components[name]);
 
             bool bForwardEos(false), bForwardEvents(false);
             interPipeSinkBintr->GetForwardSettings(&bForwardEos, &bForwardEvents);
@@ -1086,7 +1086,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SinkInterPipeForwardSettingsSet(const char* name, 
+    DslReturnType Services::SinkInterpipeForwardSettingsSet(const char* name, 
         boolean forwardEos, boolean forwardEvents)
     {
         LOG_FUNC();
@@ -1096,10 +1096,10 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                InterPipeSinkBintr);
+                InterpipeSinkBintr);
             
-            DSL_INTER_PIPE_SINK_PTR interPipeSinkBintr = 
-                std::dynamic_pointer_cast<InterPipeSinkBintr>(m_components[name]);
+            DSL_INTERPIPE_SINK_PTR interPipeSinkBintr = 
+                std::dynamic_pointer_cast<InterpipeSinkBintr>(m_components[name]);
 
             if (!interPipeSinkBintr->SetForwardSettings(forwardEos, forwardEvents))
             {
@@ -1122,7 +1122,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SinkInterPipeNumListenersGet(const char* name,
+    DslReturnType Services::SinkInterpipeNumListenersGet(const char* name,
         uint* numListeners)
     {
         LOG_FUNC();
@@ -1132,10 +1132,10 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                InterPipeSinkBintr);
+                InterpipeSinkBintr);
             
-            DSL_INTER_PIPE_SINK_PTR interPipeSinkBintr = 
-                std::dynamic_pointer_cast<InterPipeSinkBintr>(m_components[name]);
+            DSL_INTERPIPE_SINK_PTR interPipeSinkBintr = 
+                std::dynamic_pointer_cast<InterpipeSinkBintr>(m_components[name]);
 
             *numListeners = interPipeSinkBintr->GetNumListeners();
 

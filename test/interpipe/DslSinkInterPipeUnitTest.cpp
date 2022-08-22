@@ -40,7 +40,7 @@ SCENARIO( "A new InterPipeSinkBintr is created correctly",
         WHEN( "The InterPipeSinkBintr is created " )
         {
             
-            DSL_INTER_PIPE_SINK_PTR pSinkBintr = DSL_INTER_PIPE_SINK_NEW(
+            DSL_INTERPIPE_SINK_PTR pSinkBintr = DSL_INTERPIPE_SINK_NEW(
                 interPipeSinkName.c_str(), forwardEos, forwardEvents);
 
             THEN( "All member variables are initialized correctly" )
@@ -64,7 +64,7 @@ SCENARIO( "A linked InterPipeSinkBintr fails to set Forward settings",
 {
     GIVEN( "A new InterPipeSinkBintr" ) 
     {
-        DSL_INTER_PIPE_SINK_PTR pSinkBintr = DSL_INTER_PIPE_SINK_NEW(
+        DSL_INTERPIPE_SINK_PTR pSinkBintr = DSL_INTERPIPE_SINK_NEW(
             interPipeSinkName.c_str(), forwardEos, forwardEvents);
 
         WHEN( "The InterPipeSinkBintr is linked " )

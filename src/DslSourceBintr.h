@@ -79,9 +79,9 @@ namespace DSL
         std::shared_ptr<ImageStreamSourceBintr>(new ImageStreamSourceBintr(name, \
             filePath, isLive, fpsN, fpsD, timeout))
 
-    #define DSL_INTER_PIPE_SOURCE_PTR std::shared_ptr<InterPipeSourceBintr>
-    #define DSL_INTER_PIPE_SOURCE_NEW(name, listenTo, isLive, acceptEos, acceptEvents) \
-        std::shared_ptr<InterPipeSourceBintr>(new InterPipeSourceBintr(name, \
+    #define DSL_INTERPIPE_SOURCE_PTR std::shared_ptr<InterpipeSourceBintr>
+    #define DSL_INTERPIPE_SOURCE_NEW(name, listenTo, isLive, acceptEos, acceptEvents) \
+        std::shared_ptr<InterpipeSourceBintr>(new InterpipeSourceBintr(name, \
             listenTo, isLive, acceptEos, acceptEvents))
 
     #define DSL_RTSP_SOURCE_PTR std::shared_ptr<RtspSourceBintr>
@@ -805,29 +805,29 @@ namespace DSL
     //*********************************************************************************
 
     /**
-     * @class InterPipeSourceBintr
+     * @class InterpipeSourceBintr
      * @brief 
      */
-    class InterPipeSourceBintr : public SourceBintr
+    class InterpipeSourceBintr : public SourceBintr
     {
     public: 
     
         /**
          * @brief Ctor for the ImageStreamSourceBintr class
          * @param[in] name unique name to assign to the Source Bintr
-         * @param listenTo unique name of the InterPipeSinkBintr to listen to.
+         * @param listenTo unique name of the InterpipeSinkBintr to listen to.
          * @param acceptEos if true, accepts the EOS event received from the 
          * Inter-Pipe Sink.
          * @param acceptEvents if true, accepts the downstream events (except 
          * for EOS) from the Inter-Pipe Sink.
          */
-        InterPipeSourceBintr(const char* name, 
+        InterpipeSourceBintr(const char* name, 
             const char* listenTo, bool isLive, bool acceptEos, bool acceptEvents);
         
         /**
          * @brief Dtor for the ImageStreamSourceBintr class
          */
-        ~InterPipeSourceBintr();
+        ~InterpipeSourceBintr();
 
         /**
          * @brief Links all Child Elementrs owned by this Source Bintr
@@ -841,15 +841,15 @@ namespace DSL
         void UnlinkAll();
 
         /**
-         * @brief Gets the name of the InterPipeSinkBintr the Source Bintr 
+         * @brief Gets the name of the InterpipeSinkBintr the Source Bintr 
          * is listening to
-         * @return name of the InterPipeSinkBintr this Bintr is listening to.
+         * @return name of the InterpipeSinkBintr this Bintr is listening to.
          */
         const char* GetListenTo();
 
         /**
-         * @brief Sets the name of the InterPipeSinkBintr to listen to.
-         * @param listenTo unique name of the InterPipeSinkBintr to listen to.
+         * @brief Sets the name of the InterpipeSinkBintr to listen to.
+         * @param listenTo unique name of the InterpipeSinkBintr to listen to.
          */
         void SetListenTo(const char* listenTo);
         
@@ -875,12 +875,12 @@ namespace DSL
     private:
     
         /**
-         * @brief uniqune name of the InterPipeSinkBintr to listen to.
+         * @brief uniqune name of the InterpipeSinkBintr to listen to.
          */
         std::string m_listenTo;
 
         /**
-         * @brief uniqune name of the InterPipeSinkBintr's pluginto listen to.
+         * @brief uniqune name of the InterpipeSinkBintr's pluginto listen to.
          */
         std::string m_listenToFullName;
 

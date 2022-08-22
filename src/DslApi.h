@@ -3997,7 +3997,7 @@ DslReturnType dsl_source_image_stream_timeout_set(const wchar_t* name, uint time
  * the Inter-Pipe Sink, false otherwise.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_inter_pipe_new(const wchar_t* name, 
+DslReturnType dsl_source_interpipe_new(const wchar_t* name, 
     const wchar_t* listen_to, boolean is_live, 
     boolean accept_eos, boolean accept_events);
 
@@ -4008,7 +4008,7 @@ DslReturnType dsl_source_inter_pipe_new(const wchar_t* name,
  * @param[out] listen_to unique name of the Inter-Pipe Sink the Source is listening to.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_inter_pipe_listen_to_get(const wchar_t* name, 
+DslReturnType dsl_source_interpipe_listen_to_get(const wchar_t* name, 
     const wchar_t** listen_to);
 
 /**
@@ -4018,7 +4018,7 @@ DslReturnType dsl_source_inter_pipe_listen_to_get(const wchar_t* name,
  * @param[in] listen_to unique name of the Inter-Pipe Sink to listen to.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_inter_pipe_listen_to_set(const wchar_t* name, 
+DslReturnType dsl_source_interpipe_listen_to_set(const wchar_t* name, 
     const wchar_t* listen_to);
 
 /**
@@ -4028,7 +4028,7 @@ DslReturnType dsl_source_inter_pipe_listen_to_set(const wchar_t* name,
  * the Inter-Pipe Sink.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_inter_pipe_accept_settings_get(const wchar_t* name,
+DslReturnType dsl_source_interpipe_accept_settings_get(const wchar_t* name,
     boolean* accept_eos, boolean* accept_events);
 
 /**
@@ -4039,7 +4039,7 @@ DslReturnType dsl_source_inter_pipe_accept_settings_get(const wchar_t* name,
  * the Inter-Pipe Sink, false otherwise.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_inter_pipe_accept_settings_set(const wchar_t* name,
+DslReturnType dsl_source_interpipe_accept_settings_set(const wchar_t* name,
     boolean accept_eos, boolean accept_events);
     
 /**
@@ -5609,7 +5609,7 @@ DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
  * all the listeners (except for EOS). False to not forward.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_inter_pipe_new(const wchar_t* name,
+DslReturnType dsl_sink_interpipe_new(const wchar_t* name,
     boolean forward_eos, boolean forward_events);
 
 /**
@@ -5621,7 +5621,7 @@ DslReturnType dsl_sink_inter_pipe_new(const wchar_t* name,
  * to all the listeners (except for EOS). False otherwise.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_inter_pipe_forward_settings_get(const wchar_t* name,
+DslReturnType dsl_sink_interpipe_forward_settings_get(const wchar_t* name,
     boolean* forward_eos, boolean* forward_events);    
 
 /**
@@ -5633,7 +5633,7 @@ DslReturnType dsl_sink_inter_pipe_forward_settings_get(const wchar_t* name,
  * all the listeners (except for EOS). False to not forward.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_inter_pipe_forward_settings_set(const wchar_t* name,
+DslReturnType dsl_sink_interpipe_forward_settings_set(const wchar_t* name,
     boolean forward_eos, boolean forward_events);    
     
 /**
@@ -5642,7 +5642,7 @@ DslReturnType dsl_sink_inter_pipe_forward_settings_set(const wchar_t* name,
  * @param[out] num_listeners current number of Inter-Pipe Sources listening.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */ 
-DslReturnType dsl_sink_inter_pipe_num_listeners_get(const wchar_t* name,
+DslReturnType dsl_sink_interpipe_num_listeners_get(const wchar_t* name,
     uint* num_listeners);
 
 /**

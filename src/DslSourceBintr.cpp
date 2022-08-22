@@ -1397,7 +1397,7 @@ namespace DSL
     
     //*********************************************************************************
 
-    InterPipeSourceBintr::InterPipeSourceBintr(const char* name, 
+    InterpipeSourceBintr::InterpipeSourceBintr(const char* name, 
         const char* listenTo, bool isLive, bool acceptEos, bool acceptEvents)
         : SourceBintr(name)
         , m_listenTo(listenTo)
@@ -1428,19 +1428,19 @@ namespace DSL
         m_pSourceElement->AddGhostPadToParent("src");
     }
     
-    InterPipeSourceBintr::~InterPipeSourceBintr()
+    InterpipeSourceBintr::~InterpipeSourceBintr()
     {
         LOG_FUNC();
     }
 
-    const char* InterPipeSourceBintr::GetListenTo()
+    const char* InterpipeSourceBintr::GetListenTo()
     {
         LOG_FUNC();
         
         return m_listenTo.c_str();
     }
     
-    void InterPipeSourceBintr::SetListenTo(const char* listenTo)
+    void InterpipeSourceBintr::SetListenTo(const char* listenTo)
     {
         m_listenTo = listenTo;
         m_listenToFullName = m_listenTo + "-interpipesink";
@@ -1448,13 +1448,13 @@ namespace DSL
         m_pSourceElement->SetAttribute("listen-to", m_listenToFullName.c_str());
     }
     
-    bool InterPipeSourceBintr::LinkAll()
+    bool InterpipeSourceBintr::LinkAll()
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("InterPipeSourceBintr '" << GetName() 
+            LOG_ERROR("InterpipeSourceBintr '" << GetName() 
                 << "' is already in a linked state");
             return false;
         }
@@ -1463,13 +1463,13 @@ namespace DSL
         return true;
     }
 
-    void InterPipeSourceBintr::UnlinkAll()
+    void InterpipeSourceBintr::UnlinkAll()
     {
         LOG_FUNC();
 
         if (!m_isLinked)
         {
-            LOG_ERROR("InterPipeSourceBintr '" << GetName() 
+            LOG_ERROR("InterpipeSourceBintr '" << GetName() 
                 << "' is not in a linked state");
             return;
         }
@@ -1477,7 +1477,7 @@ namespace DSL
         m_isLinked = false;
     }
     
-    void InterPipeSourceBintr::GetAcceptSettings(bool* acceptEos, 
+    void InterpipeSourceBintr::GetAcceptSettings(bool* acceptEos, 
         bool* acceptEvents)
     {
         LOG_FUNC();
@@ -1486,14 +1486,14 @@ namespace DSL
         *acceptEvents = m_acceptEvents;
     }
 
-    bool InterPipeSourceBintr::SetAcceptSettings(bool acceptEos, 
+    bool InterpipeSourceBintr::SetAcceptSettings(bool acceptEos, 
         bool acceptEvents)
     {
         LOG_FUNC();
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set Accept setting for InterPipeSourceBintr '" 
+            LOG_ERROR("Unable to set Accept setting for InterpipeSourceBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
