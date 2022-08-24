@@ -22,6 +22,18 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+#-------------------------------------------------------------------------------------
+#
+# This script demonstrates how to run multple Pipelines, each with an Interpipe
+# Source, both listening to the same Interpipe Sink.
+#
+# A single Player is created with a File Source and Interpipe Sink. Two Inference
+# Pipelines are created to listen to the single Player - shared input stream. 
+# The two Pipelines can be created with different configs, models, and/or Trackers
+# for side-by-side comparison. Both Pipelines run in their own main-loop with their 
+# own main-context, and have their own Window Sink for viewing and external control.
+
+
 #!/usr/bin/env python
 
 import sys
@@ -31,15 +43,6 @@ import time
 from dsl import *
 from time import sleep
 import threading
-
-
-#-------------------------------------------------------------------------------------------
-#
-# This script demonstrates the running multple Pipelines, each in their own thread, 
-# and each with their own main-context and main-loop.
-#
-# After creating and starting each Pipelines, the script joins each of the threads
-# waiting for them to complete - either by EOS message, 'Q' key, or Delete Window
 
 # File path used for all File Sources
 file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4'
@@ -268,10 +271,11 @@ def main(args):
 
         # New Primary GIE using the first config file. 
         retval = dsl_infer_gie_primary_new(components_1.pgie,
-            primary_infer_config_file_2, primary_model_engine_file, 4)
+            primary_infer_config_file_1, primary_model_engine_file, 4)
         if retval != DSL_RETURN_SUCCESS:
             break
-        # New KTL Tracker, setting max width and height of input frame
+            
+        # New IOU Tracker, setting max width and height of input frame
         retval = dsl_tracker_iou_new(components_1.tracker, 
             tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:

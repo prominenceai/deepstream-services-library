@@ -65,8 +65,6 @@ class ComponentNames:
     def __init__(self, id):    
         self.pipeline = 'pipeline-' + str(id)
         self.source = 'source-' + str(id)
-        self.ptis = 'ptis-' + str(id)
-        self.osd = 'osd-' + str(id)
         self.sink = 'window-sink-' + str(id)
 
 ## 

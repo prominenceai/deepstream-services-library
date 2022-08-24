@@ -23,9 +23,14 @@
 ################################################################################
 
 # ------------------------------------------------------------------------------------
-# This example demonstrates interpipe dynamic switching
+# This example demonstrates interpipe dynamic switching. Four DSL Players
+# are created, each with a File Source and Interpipe Sink. A single
+# inference Pipeline with an Interpipe Source is created as the single listener
 # 
-
+# The Interpipe Source's "listen_to" setting is updated based on keyboard input.
+# The xwindow_key_event_handler (see below) is added to the Pipeline's Window Sink.
+# The handler, on key release, sets the "listen_to" setting to the Interpipe Sink
+# name that corresponds to the key value - 1 through 4.
 
 #!/usr/bin/env python
 
@@ -55,18 +60,9 @@ WINDOW_HEIGHT = 720
 def xwindow_key_event_handler(key_string, client_data):
     print('key released = ', key_string)
 
-    if key_string == '1':
+    if key_string >= '1' and key_string <= '4':
         dsl_source_interpipe_listen_to_set('inter-pipe-source',
-            listen_to='inter-pipe-sink-1')
-    elif key_string == '2':
-        dsl_source_interpipe_listen_to_set('inter-pipe-source',
-            listen_to='inter-pipe-sink-2')
-    elif key_string == '3':
-        dsl_source_interpipe_listen_to_set('inter-pipe-source',
-            listen_to='inter-pipe-sink-3')
-    elif key_string == '4':
-        dsl_source_interpipe_listen_to_set('inter-pipe-source',
-            listen_to='inter-pipe-sink-4')
+            listen_to='inter-pipe-sink-'+key_string)
             
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
         dsl_pipeline_stop('pipeline')
