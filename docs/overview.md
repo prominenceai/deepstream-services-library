@@ -711,9 +711,20 @@ BUILD_INTER_PIPE:=true
 There are two examples that cover two basic use cases; **Dynamic Switching** and **Multiple Listeners**. These cases can be combined and extended to achieve complex pipelines as illustrated by RidgeRun [here](https://developer.ridgerun.com/wiki/index.php/File:Complex_pipeline.png)
 
 ### Dynamic Switching
+The Interpipe Source's `listen_to` setting -- the name of the Interpipe Sink to listen to -- can be updated at any time. See the follow links for examples that implement the image below.
+* [interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.py](/examples/python/interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.py)
+* [interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.cpp](/examples/cpp/interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.cpp)
+
 ![interpipe dynamic switching](/Images/interpipe-dynamic-switching.png)
 
+```Python
+
+```
 ### Multiple Listeners
+Multiple Pipelines, each with their own Interpipe Source, can listen to the same Interpipe Sink. The following examples implement the multiple listeners use case as show in the image below.
+* [interpipe_multiple_pipelines_listening_to_single_sink.py](/examples/python/interpipe_multiple_pipelines_listening_to_single_sink.py)
+* [interpipe_multiple_pipelines_listening_to_single_sink.cpp](/examples/cpp/interpipe_multiple_pipelines_listening_to_single_sink.cpp)
+
 ![interpipe multiple listeners](/Images/interpipe-multiple-listeners.png)
 
 --- 
