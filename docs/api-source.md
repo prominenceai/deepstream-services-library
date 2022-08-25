@@ -16,7 +16,7 @@ Sources are the head components for all DSL Pipelines. Pipelines must have at le
 * Streaming Image ( single image streamed at a given frame rate )
 
 ### Interpipe Source:
-* Interpipe - requires additional install/build steps for the RidgeRun `gst-interpipe` plugins.
+* Interpipe - requires additional install/build steps for the RidgeRun `gst-interpipe` plugins. Refer to the [Inpterpipe Services](/docs/overview.md#interpipe-services) overview for more information.
 
 #### Source Construction and Destruction
 Sources are created using one of six type-specific [constructors](#constructors). As with all components, Streaming Sources must be uniquely named from all other Pipeline components created.
@@ -410,6 +410,8 @@ DslReturnType dsl_source_interpipe_new(const wchar_t* name,
     boolean accept_eos, boolean accept_events);
 ```
 This service creates a new, uniquely named Interpipe Source component to listen to an Interpipe Sink Component. The Sink to `listen_to` can be updated dynamically while in a playing state.
+
+Refer to the [Inpterpipe Services](/docs/overview.md#interpipe-services) overview for more information.
 
 **Parameters**
 * `name` - [in] unique name for the new Source
