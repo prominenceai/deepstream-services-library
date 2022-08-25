@@ -457,6 +457,8 @@ DslReturnType dsl_sink_interpipe_new(const wchar_t* name,
 ```
 The constructor creates a new, uniquely named Inter-Pipe Sink component. Construction will fail if the name is currently in use.
 
+Refer to the [Inpterpipe Services](/docs/overview.md#interpipe-services) overview for more information.
+
 **Parameters**
 * `name` - [in] unique name for the Interpipe Sink to create.
 * `forward_eos` - [in]  set to true to forward the EOS event to all listeners. False to not forward.
