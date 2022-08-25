@@ -76,7 +76,7 @@ namespace DSL
     #define DSL_RTSP_SINK_NEW(name, host, udpPort, rtspPort, codec, bitrate, interval) \
         std::shared_ptr<RtspSinkBintr>( \
         new RtspSinkBintr(name, host, udpPort, rtspPort, codec, bitrate, interval))
-
+        
     #define DSL_MESSAGE_SINK_PTR std::shared_ptr<MessageSinkBintr>
     #define DSL_MESSAGE_SINK_NEW(name, \
             converterConfigFile, payloadType, brokerConfigFile, \
@@ -85,6 +85,12 @@ namespace DSL
             converterConfigFile, payloadType, brokerConfigFile, \
             protocolLib, connectionString, topic))
         
+    #define DSL_INTERPIPE_SINK_PTR std::shared_ptr<InterpipeSinkBintr>
+    #define DSL_INTERPIPE_SINK_NEW(name, forwardEos, forwardEvents) \
+        std::shared_ptr<InterpipeSinkBintr>( \
+        new InterpipeSinkBintr(name, forwardEos, forwardEvents))
+
+
     class SinkBintr : public Bintr
     {
     public: 
@@ -131,6 +137,11 @@ namespace DSL
          * @brief Device Properties, used for aarch64/x86_64 conditional logic
          */
         cudaDeviceProp m_cudaDeviceProp;
+        
+        /**
+         * @brief Generate Quality-of-Service events upstream if true
+         */
+        bool m_qos;
 
         /**
          * @brief Sink element's current synchronous attribute setting.
@@ -172,8 +183,6 @@ namespace DSL
         bool SetSyncEnabled(bool enabled);
 
     private:
-
-        boolean m_qos;
         
         /**
          * @brief Fake Sink element for the Sink Bintr.
@@ -318,8 +327,6 @@ namespace DSL
         
     private:
 
-        boolean m_qos;
-        
         uint m_displayId;
         uint m_uniqueId;
         uint m_depth;
@@ -408,7 +415,6 @@ namespace DSL
 
     private:
 
-        boolean m_qos;
         bool m_forceAspectRatio;
 
         /**
@@ -598,7 +604,9 @@ namespace DSL
         DSL_ELEMENT_PTR m_pUdpSink;
     };
 
-/**
+    //-------------------------------------------------------------------------
+
+    /**
      * @class MessageSinkBintr 
      * @brief Implements a Message Sink Bin Container Class (Bintr)
      */
@@ -696,11 +704,6 @@ namespace DSL
     private:
 
         /**
-         * @brief qualitiy of service setting for the fake sink.
-         */
-        boolean m_qos;
-
-        /**
          * @brief defines the base_meta.meta_type id filter to use for
          * all message meta to convert and send. Default = NVDS_EVENT_MSG_META.
          * Custom values must be greater than NVDS_START_USER_META
@@ -769,7 +772,81 @@ namespace DSL
         DSL_ELEMENT_PTR m_pFakeSink;
 
     };
+
+    //-------------------------------------------------------------------------
+
+    class InterpipeSinkBintr : public SinkBintr
+    {
+    public: 
+    
+        InterpipeSinkBintr(const char* name, 
+            bool forwardEos, bool forwardEvents);
+
+        ~InterpipeSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
         
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+        
+        /**
+         * @brief Gets the current forward settings for this SinkBintr 
+         * @param[out] forwardEos if true, EOS event will be forwarded to 
+         * all listeners. 
+         * @param[out] forwardEvents if true, downstream events (except for 
+         * EOS) will be forwarded to all listeners.
+         */
+        void GetForwardSettings(bool* forwardEos, bool* forwardEvents);
+
+        /**
+         * @brief Gets the current forward settings for this SinkBintr 
+         * @param[in] forwardEos set to true to forward EOS event to 
+         * all listeners, false otherwise. 
+         * @param[in] forwardEvents set to true to forward downstream events
+         * (except for EOS) to all listeners, false otherwise.
+         * @returns ture on succesful update, false otherwise.
+         */
+        bool SetForwardSettings(bool forwardEos, bool forwardEvents);
+        
+        /**
+         * @brief Gets the current numer of Inter-Pipe Sources listening
+         * to this SinkBintr.
+         * @return number of Sources currently listening.
+         */
+        uint GetNumListeners();
+
+        /**
+         * @brief sets the sync enabled setting for the SinkBintr
+         * @param[in] enabled current sync setting.
+         */
+        bool SetSyncEnabled(bool enabled);
+
+    private:
+    
+        /**
+         * @brief forward the EOS event to all the listeners if true
+         */
+        bool m_forwardEos;
+        
+        /**
+         * @brief forward downstream events to all the listeners 
+         * (except for EOS) if true.
+         */
+        bool m_forwardEvents;
+
+        /**
+         * @brief Inter-Pipe Sink element for the InterpipeSinkBintr.
+         */
+        DSL_ELEMENT_PTR m_pSinkElement;
+    };
+
 }
 #endif // _DSL_SINK_BINTR_H
     

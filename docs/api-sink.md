@@ -1,5 +1,5 @@
 # Sink API Reference
-Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must have at least one sink in use, along with other certain components, to reach a state of Ready. DSL supports eight different types of Sinks:
+Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must have at least one sink in use, along with other certain components, to reach a state of Ready. DSL supports nine different types of Sinks:
 * Overlay Sink - renders/overlays video on a Parent display **(Jetson Platform Only)**
 * Window Sink - renders/overlays video on a Parent XWindow
 * File Sink - encodes video to a media container file
@@ -7,13 +7,14 @@ Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must ha
 * RTSP Sink - streams encoded video on a specified port
 * WebRTC Sink - streams encoded video to a web browser or mobile application. **(Requires GStreamer 1.18 or later)**
 * Message Sink - converts Object Detection Event (ODE) metadata into a message payload and sends it to the server using a specified communication protocol.
+* Interpipe Sink -  allows pipeline buffers and events to flow to other independent pipelines, each with an [Interpipe Source](/docs/api-source.md#dsl_source_interpipe_new).
 * Fake Sink - consumes/drops all data.
 
 Sinks are created by calling one of the eight type-specific constructors. As with all components, Sinks must be uniquely named from all other components created.
 
-Sinks are added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](api-pipeline.md#dsl_pipeline_component_remove_all).
+Sinks are added to a Pipeline by calling [dsl_pipeline_component_add](/docs/api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
 
-The relationship between Pipelines and Sinks is one-to-many. Once added to a Pipeline, a Sink must be removed before it can used with another. Sinks are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
+The relationship between Pipelines and Sinks is one-to-many. Once added to a Pipeline, a Sink must be removed before it can used with another. Sinks are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
 
 There is no (practical) limit to the number of Sinks that can be created, just to the number of Sinks that can be `in use` - a child of a Pipeline - at one time. The in-use limit is imposed by the Jetson Model in use.
 
@@ -35,6 +36,7 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_rtsp_new](#dsl_sink_rtsp_new)
 * [dsl_sink_webrtc_new](#dsl_sink_webrtc_new)
 * [dsl_sink_message_new](#dsl_sink_message_new)
+* [dsl_sink_interpipe_new](#dsl_sink_interpipe_new)
 * [dsl_sink_fake_new](#dsl_sink_fake_new)
 
 **Methods**
@@ -72,6 +74,9 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_message_converter_settings_set](#dsl_sink_message_converter_settings_set)
 * [dsl_sink_message_broker_settings_get](#dsl_sink_message_broker_settings_get)
 * [dsl_sink_message_broker_settings_set](#dsl_sink_message_broker_settings_set)
+* [dsl_sink_interpipe_forward_settings_get](#dsl_sink_interpipe_forward_settings_get)
+* [dsl_sink_interpipe_forward_settings_set](#dsl_sink_interpipe_forward_settings_set)
+* [dsl_sink_interpipe_num_listeners_get](#dsl_sink_interpipe_num_listeners_get)
 * [dsl_sink_sync_enabled_get](#dsl_sink_sync_enabled_get)
 * [dsl_sink_sync_enabled_set](#dsl_sink_sync_enabled_set)
 * [dsl_sink_pph_add](#dsl_sink_pph_add)
@@ -445,6 +450,31 @@ retval = dsl_sink_message_new('my-message-sink', converter_config_file, DSL_MSG_
 
 <br>
 
+### *dsl_sink_interpipe_new*
+```C++
+DslReturnType dsl_sink_interpipe_new(const wchar_t* name,
+    boolean forward_eos, boolean forward_events);
+```
+The constructor creates a new, uniquely named Inter-Pipe Sink component. Construction will fail if the name is currently in use.
+
+Refer to the [Inpterpipe Services](/docs/overview.md#interpipe-services) overview for more information.
+
+**Parameters**
+* `name` - [in] unique name for the Interpipe Sink to create.
+* `forward_eos` - [in]  set to true to forward the EOS event to all listeners. False to not forward.
+* `forward_events` - [in] set to true to forward downstream events to all listeners (except for EOS). False to not forward.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retVal = dsl_sink_interpipe_new('my-interpipe-sink',
+    True, True)
+```
+
+<br>
+
 ### *dsl_sink_fake_new*
 ```C++
 DslReturnType dsl_sink_fake_new(const wchar_t* name);
@@ -459,7 +489,7 @@ The constructor creates a uniquely named Fake Sink. Construction will fail if th
 
 **Python Example**
 ```Python
- retVal = dsl_sink_fake_new('my-fake-sink')
+retVal = dsl_sink_fake_new('my-fake-sink')
 ```
 
 <br>
@@ -1212,6 +1242,73 @@ This service sets the Message Broker settings to be used by the named Message Si
 ```Python
 retval = dsl_sink_message_broker_settings_get('my-message-sink',
     broker_config_file, protocol_lib, connection_string, new_topic)
+```
+
+<br>
+
+### *dsl_sink_interpipe_forward_settings_get*
+```C++
+DslReturnType dsl_sink_interpipe_forward_settings_get(const wchar_t* name,
+    boolean* forward_eos, boolean* forward_events); 
+```
+This service gets the current forward settings in use for the named Interpipe Sink component.
+
+**Parameters**
+* `name` - [in] unique name of the Interpipe Sink to query.
+* `forward_eos` - [out] if true, the EOS event will be forwarded to all listeners. False otherwise.
+* `forward_events` - [out] if true, all downstream events will be forwarded to all the listeners (except for EOS). False otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, forward_eos, forward_events = dsl_sink_interpipe_forward_settings_get(
+    'my-interpipe-sink')
+```
+
+<br>
+
+### *dsl_sink_interpipe_forward_settings_set*
+```C++
+DslReturnType dsl_sink_interpipe_forward_settings_set(const wchar_t* name,
+    boolean forward_eos, boolean forward_events); 
+```
+This service sets the forward settings for named Interpipe Sink component.
+
+**Parameters**
+* `name` - [in] unique name of the Interpipe Sink to update.
+* `forward_eos` - [in] set to true to forward the EOS event to all listeners. False to not forward.
+* `forward_events` - [in] set to true to forward downstream events to all listeners (except for EOS). False to not forward.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_interpipe_forward_settings_set('my-interpipe-sink',
+    True, True)
+```
+
+<br>
+
+### *dsl_sink_interpipe_num_listeners_get*
+```C++
+DslReturnType dsl_sink_interpipe_num_listeners_get(const wchar_t* name,
+    uint* num_listeners);
+```
+This service gets the current number of Interpipe Sources listening to the named Interpipe Sink component.
+
+**Parameters**
+* `name` - [in] unique name of the Interpipe Sink to query.
+* `num_listeners` - [out]  current number of Interpipe Sources listening.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, num_listeners = dsl_sink_interpipe_num_listeners_get('my-interpipe-sink')
 ```
 
 <br>

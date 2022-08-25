@@ -185,6 +185,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(SingleImageSourceBintr)) and  \
         !components[name]->IsType(typeid(MultiImageSourceBintr)) and  \
         !components[name]->IsType(typeid(ImageStreamSourceBintr)) and  \
+        !components[name]->IsType(typeid(InterpipeSourceBintr)) and  \
         !components[name]->IsType(typeid(RtspSourceBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Source"); \
@@ -325,6 +326,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(RecordSinkBintr)) and  \
         !components[name]->IsType(typeid(RtspSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
+        !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(BranchBintr)) and \
         !components[name]->IsType(typeid(DemuxerBintr)) and \
         !components[name]->IsType(typeid(BranchBintr))) \
@@ -345,7 +347,8 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and  \
         !components[name]->IsType(typeid(RtspSinkBintr)) and \
-        !components[name]->IsType(typeid(MessageSinkBintr))) \
+        !components[name]->IsType(typeid(MessageSinkBintr)) and \
+        !components[name]->IsType(typeid(InterpipeSinkBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Sink"); \
         return DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK; \
@@ -361,6 +364,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(RecordSinkBintr)) and  \
         !components[name]->IsType(typeid(RtspSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
+        !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(WebRtcSinkBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Sink"); \

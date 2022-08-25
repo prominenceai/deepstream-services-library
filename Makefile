@@ -43,6 +43,10 @@ GSTREAMER_WEBRTC_VERSION:=1.0
 LIBSOUP_VERSION:=2.4
 JSON_GLIB_VERSION:=1.0
 
+# To enable the InterPipe Sink and Source components
+# - set BUILD_INTER_PIPE:=true
+BUILD_INTER_PIPE:=false
+
 # To enable the Non Maximum Processor (NMP) Pad Probe Handler (PPH)
 # - set BUILD_NMP_PPH:=true and NUM_CPP_PATH:=<path-to-numcpp-include-folder>
 BUILD_NMP_PPH:=false
@@ -51,6 +55,10 @@ NUM_CPP_PATH:=
 SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources
 INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources/includes
 LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/lib
+
+ifeq ($(BUILD_INTER_PIPE),true)
+SRCS+= $(wildcard ./test/interpipe/*.cpp)
+endif
 
 ifeq ($(BUILD_NMP_PPH),true)
 SRCS+= $(wildcard ./src/nmp/*.cpp)
@@ -103,6 +111,7 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-DDSL_VERSION=$(DSL_VERSION) \
 	-DDSL_LOGGER_IMP='"DslLogGst.h"'\
 	-DGSTREAMER_SUB_VERSION=$(GSTREAMER_SUB_VERSION) \
+	-DBUILD_INTER_PIPE=$(BUILD_INTER_PIPE) \
 	-DBUILD_NMP_PPH=$(BUILD_NMP_PPH) \
 	-DBUILD_MESSAGE_SINK=$(BUILD_MESSAGE_SINK) \
 	-DNVDS_DCF_LIB='"$(LIB_INSTALL_DIR)/libnvds_nvdcf.so"' \

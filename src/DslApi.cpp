@@ -3423,6 +3423,123 @@ DslReturnType dsl_source_image_stream_timeout_set(const wchar_t* name, uint time
         timeout);
 }
 
+DslReturnType dsl_source_interpipe_new(const wchar_t* name, 
+    const wchar_t* listen_to, boolean is_live,
+    boolean accept_eos, boolean accept_events)
+{
+#if !defined(BUILD_INTER_PIPE)
+    #error "BUILD_INTER_PIPE must be defined"
+#elif BUILD_INTER_PIPE != true
+    LOG_ERROR("To use the Inter-Pipe services, set BUILD_INTER_PIPE=true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listen_to);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrListenTo(listen_to);
+    std::string cstrListenTo(wstrListenTo.begin(), wstrListenTo.end());
+
+    return DSL::Services::GetServices()->SourceInterpipeNew(cstrName.c_str(), 
+        cstrListenTo.c_str(), is_live, accept_eos, accept_events);
+#endif
+}
+
+DslReturnType dsl_source_interpipe_listen_to_get(const wchar_t* name, 
+    const wchar_t** listen_to)
+{
+#if !defined(BUILD_INTER_PIPE)
+    #error "BUILD_INTER_PIPE must be defined"
+#elif BUILD_INTER_PIPE != true
+    LOG_ERROR("To use the Inter-Pipe services, set BUILD_INTER_PIPE=true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listen_to);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cListenTo;
+    static std::string cstrListenTo;
+    static std::wstring wcstrListenTo;
+    
+    uint retval = DSL::Services::GetServices()->SourceInterpipeListenToGet(cstrName.c_str(), 
+        &cListenTo);
+
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrListenTo.assign(cListenTo);
+        wcstrListenTo.assign(cstrListenTo.begin(), cstrListenTo.end());
+        *listen_to = wcstrListenTo.c_str();
+    }
+    return retval;
+#endif
+}
+
+DslReturnType dsl_source_interpipe_listen_to_set(const wchar_t* name, 
+    const wchar_t* listen_to)
+{
+#if !defined(BUILD_INTER_PIPE)
+    #error "BUILD_INTER_PIPE must be defined"
+#elif BUILD_INTER_PIPE != true
+    LOG_ERROR("To use the Inter-Pipe services, set BUILD_INTER_PIPE=true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listen_to);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrListenTo(listen_to);
+    std::string cstrListenTo(wstrListenTo.begin(), wstrListenTo.end());
+
+    return DSL::Services::GetServices()->SourceInterpipeListenToSet(cstrName.c_str(), 
+        cstrListenTo.c_str());
+#endif        
+}    
+
+DslReturnType dsl_source_interpipe_accept_settings_get(const wchar_t* name,
+    boolean* accept_eos, boolean* accept_events)
+{
+#if !defined(BUILD_INTER_PIPE)
+    #error "BUILD_INTER_PIPE must be defined"
+#elif BUILD_INTER_PIPE != true
+    LOG_ERROR("To use the Inter-Pipe services, set BUILD_INTER_PIPE=true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(accept_eos);
+    RETURN_IF_PARAM_IS_NULL(accept_events);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceInterpipeAcceptSettingsGet(
+        cstrName.c_str(), accept_eos, accept_events);        
+#endif        
+}
+
+DslReturnType dsl_source_interpipe_accept_settings_set(const wchar_t* name,
+    boolean accept_eos, boolean accept_events)    
+{
+#if !defined(BUILD_INTER_PIPE)
+    #error "BUILD_INTER_PIPE must be defined"
+#elif BUILD_INTER_PIPE != true
+    LOG_ERROR("To use the Inter-Pipe services, set BUILD_INTER_PIPE=true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceInterpipeAcceptSettingsSet(
+        cstrName.c_str(), accept_eos, accept_events);      
+#endif
+}
+    
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol, 
     uint intra_decode, uint dropFrameInterval, uint latency, uint timeout)
 {
@@ -5475,6 +5592,85 @@ DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
     
     return DSL::Services::GetServices()->SinkRtspServerSettingsGet(cstrName.c_str(), 
         udpPort, rtspPort);
+}    
+
+DslReturnType dsl_sink_interpipe_new(const wchar_t* name,
+    boolean forward_eos, boolean forward_events)
+{    
+#if !defined(BUILD_INTER_PIPE)
+    #error "BUILD_INTER_PIPE must be defined"
+#elif BUILD_INTER_PIPE != true
+    LOG_ERROR("To use the Inter-Pipe services, set BUILD_INTER_PIPE=true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkInterpipeNew(cstrName.c_str(),
+        forward_eos, forward_events);
+#endif        
+}    
+
+DslReturnType dsl_sink_interpipe_forward_settings_get(const wchar_t* name,
+    boolean* forward_eos, boolean* forward_events)
+{    
+#if !defined(BUILD_INTER_PIPE)
+    #error "BUILD_INTER_PIPE must be defined"
+#elif BUILD_INTER_PIPE != true
+    LOG_ERROR("To use the Inter-Pipe services, set BUILD_INTER_PIPE=true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(forward_eos);
+    RETURN_IF_PARAM_IS_NULL(forward_events);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkInterpipeForwardSettingsGet(
+        cstrName.c_str(), forward_eos, forward_events);
+#endif        
+}    
+    
+DslReturnType dsl_sink_interpipe_forward_settings_set(const wchar_t* name,
+    boolean forward_eos, boolean forward_events)
+{    
+#if !defined(BUILD_INTER_PIPE)
+    #error "BUILD_INTER_PIPE must be defined"
+#elif BUILD_INTER_PIPE != true
+    LOG_ERROR("To use the Inter-Pipe services, set BUILD_INTER_PIPE=true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkInterpipeForwardSettingsSet(
+        cstrName.c_str(), forward_eos, forward_events);
+#endif        
+}    
+
+DslReturnType dsl_sink_interpipe_num_listeners_get(const wchar_t* name,
+    uint* num_listeners)
+{
+#if !defined(BUILD_INTER_PIPE)
+    #error "BUILD_INTER_PIPE must be defined"
+#elif BUILD_INTER_PIPE != true
+    LOG_ERROR("To use the Inter-Pipe services, set BUILD_INTER_PIPE=true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(num_listeners);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkInterpipeNumListenersGet(
+        cstrName.c_str(), num_listeners);
+#endif    
 }    
 
 // NOTE: the WebRTC Sink implementation requires DS 1.18.0 or later

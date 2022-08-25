@@ -79,6 +79,11 @@ namespace DSL
         std::shared_ptr<ImageStreamSourceBintr>(new ImageStreamSourceBintr(name, \
             filePath, isLive, fpsN, fpsD, timeout))
 
+    #define DSL_INTERPIPE_SOURCE_PTR std::shared_ptr<InterpipeSourceBintr>
+    #define DSL_INTERPIPE_SOURCE_NEW(name, listenTo, isLive, acceptEos, acceptEvents) \
+        std::shared_ptr<InterpipeSourceBintr>(new InterpipeSourceBintr(name, \
+            listenTo, isLive, acceptEos, acceptEvents))
+
     #define DSL_RTSP_SOURCE_PTR std::shared_ptr<RtspSourceBintr>
     #define DSL_RTSP_SOURCE_NEW(name, uri, protocol, \
         intraDecode, dropFrameInterval, latency, timeout) \
@@ -794,6 +799,101 @@ namespace DSL
 
         DSL_ELEMENT_PTR m_pCapsFilter;
         DSL_ELEMENT_PTR m_pVidConv;
+
+    };
+
+    //*********************************************************************************
+
+    /**
+     * @class InterpipeSourceBintr
+     * @brief 
+     */
+    class InterpipeSourceBintr : public SourceBintr
+    {
+    public: 
+    
+        /**
+         * @brief Ctor for the ImageStreamSourceBintr class
+         * @param[in] name unique name to assign to the Source Bintr
+         * @param listenTo unique name of the InterpipeSinkBintr to listen to.
+         * @param acceptEos if true, accepts the EOS event received from the 
+         * Inter-Pipe Sink.
+         * @param acceptEvents if true, accepts the downstream events (except 
+         * for EOS) from the Inter-Pipe Sink.
+         */
+        InterpipeSourceBintr(const char* name, 
+            const char* listenTo, bool isLive, bool acceptEos, bool acceptEvents);
+        
+        /**
+         * @brief Dtor for the ImageStreamSourceBintr class
+         */
+        ~InterpipeSourceBintr();
+
+        /**
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Source Bintr
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief Gets the name of the InterpipeSinkBintr the Source Bintr 
+         * is listening to
+         * @return name of the InterpipeSinkBintr this Bintr is listening to.
+         */
+        const char* GetListenTo();
+
+        /**
+         * @brief Sets the name of the InterpipeSinkBintr to listen to.
+         * @param listenTo unique name of the InterpipeSinkBintr to listen to.
+         */
+        void SetListenTo(const char* listenTo);
+        
+        /**
+         * @brief Gets the current Accept settings in use by the Source Bintr.
+         * @param[out] acceptEos if true, the Source accepts EOS events from 
+         * the Inter-Pipe Sink.
+         * @param[out] acceptEvent if true, the Source accepts events (except EOS event) from 
+         * the Inter-Pipe Sink.
+         */
+        void GetAcceptSettings(bool* acceptEos, bool* acceptEvents);
+
+        /**
+         * @brief Sets the Accept settings for the Source Bintr to use
+         * @param[in] acceptEos set to true to accept EOS events from the Inter-Pipe Sink,
+         * false otherwise.
+         * @param[in] acceptEvent set to true to accept events (except EOS event) from 
+         * the Inter-Pipe Sink, false otherwise.
+         * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+         */
+        bool SetAcceptSettings(bool acceptEos, bool acceptEvents);
+        
+    private:
+    
+        /**
+         * @brief uniqune name of the InterpipeSinkBintr to listen to.
+         */
+        std::string m_listenTo;
+
+        /**
+         * @brief uniqune name of the InterpipeSinkBintr's pluginto listen to.
+         */
+        std::string m_listenToFullName;
+
+        /**
+         * @brief if true, accepts the EOS event received from the Inter-Pipe Sink
+         */
+        bool m_acceptEos;
+
+        /**
+         * @brief if true, accepts the downstream events (except for EOS) from the 
+         * Inter-Pipe Sink.
+         */
+        bool m_acceptEvents;
 
     };
 

@@ -1,5 +1,5 @@
 # Source API Reference
-Sources are the head components for all DSL Pipelines. Pipelines must have at least one source in use - among other components - to transition to a state of playing. DSL supports 8 types of Sources, two Camera, three Decode, and three Image:
+Sources are the head components for all DSL Pipelines. Pipelines must have at least one source in use - among other components - to transition to a state of playing. DSL supports 8 types of Sources, two Camera, three Decode, three Image, and an Interpipe:
 
 ### Camera Sources:
 * Camera Serial Interface ( CSI )
@@ -14,6 +14,9 @@ Sources are the head components for all DSL Pipelines. Pipelines must have at le
 * Single Image ( single frame to EOS )
 * Multi Image ( streamed at one image file per frame )
 * Streaming Image ( single image streamed at a given frame rate )
+
+### Interpipe Source:
+* Interpipe - requires additional install/build steps for the RidgeRun `gst-interpipe` plugins. Refer to the [Inpterpipe Services](/docs/overview.md#interpipe-services) overview for more information.
 
 #### Source Construction and Destruction
 Sources are created using one of six type-specific [constructors](#constructors). As with all components, Streaming Sources must be uniquely named from all other Pipeline components created.
@@ -49,13 +52,9 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_image_new](#dsl_source_image_new)
 * [dsl_source_image_multi_new](#dsl_source_image_multi_new)
 * [dsl_source_image_stream_new](#dsl_source_image_stream_new)
+* [dsl_source_interpipe_new](#dsl_source_interpipe_new)
 
 **methods:**
-* [dsl_source_dimensions_get](#dsl_source_dimensions_get)
-* [dsl_source_framerate get](#dsl_source_framerate_get)
-* [dsl_source_is_live](#dsl_source_is_live)
-* [dsl_source_pause](#dsl_source_pause)
-* [dsl_source_resume](#dsl_source_resume)
 * [dsl_source_decode_uri_get](#dsl_source_decode_uri_get)
 * [dsl_source_decode_uri_set](#dsl_source_decode_uri_set)
 * [dsl_source_decode_drop_farme_interval_get](#dsl_source_decode_drop_farme_interval_get)
@@ -78,6 +77,15 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_file_repeat_enabled_set](#dsl_source_file_repeat_enabled_set)
 * [dsl_source_image_stream_timeout_get](#dsl_source_image_stream_timeout_get)
 * [dsl_source_image_stream_timeout_set](#dsl_source_image_stream_timeout_get)
+* [dsl_source_interpipe_listen_to_get](#dsl_source_interpipe_listen_to_get)
+* [dsl_source_interpipe_listen_to_set](#dsl_source_interpipe_listen_to_set)
+* [dsl_source_interpipe_accept_settings_get](#dsl_source_interpipe_accept_settings_get)
+* [dsl_source_interpipe_accept_settings_set](#dsl_source_interpipe_accept_settings_set)
+* [dsl_source_dimensions_get](#dsl_source_dimensions_get)
+* [dsl_source_framerate get](#dsl_source_framerate_get)
+* [dsl_source_is_live](#dsl_source_is_live)
+* [dsl_source_pause](#dsl_source_pause)
+* [dsl_source_resume](#dsl_source_resume)
 * [dsl_source_num_in_use_get](#dsl_source_num_in_use_get)
 * [dsl_source_num_in_use_max_get](#dsl_source_num_in_use_max_get)
 * [dsl_source_num_in_use_max_set](#dsl_source_num_in_use_max_set)
@@ -395,114 +403,38 @@ retval = dsl_source_image_stream_new('my-image-stream-source', './streams/image4
 
 <br>
 
+### *dsl_source_interpipe_new*
+```C
+DslReturnType dsl_source_interpipe_new(const wchar_t* name, 
+    const wchar_t* listen_to, boolean is_live, 
+    boolean accept_eos, boolean accept_events);
+```
+This service creates a new, uniquely named Interpipe Source component to listen to an Interpipe Sink Component. The Sink to `listen_to` can be updated dynamically while in a playing state.
+
+Refer to the [Inpterpipe Services](/docs/overview.md#interpipe-services) overview for more information.
+
+**Parameters**
+* `name` - [in] unique name for the new Source
+* `listen_to` - [in] unique name of the Interpipe Sink to listen to.
+* `is_live` - [in] set to true to act as live source, false otherwise.
+* `accept_eos` - [in] set to true to accept EOS events from the Interpipe Sink, false otherwise.
+* `accept_events` - [in] set to true to accept events (except EOS event) from the Inter-Pipe Sink, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_interpipe_new('my-interpipe-source', 'my-interpipe-sink',
+    false, true, true)
+```
+
+<br>
+
 ## Destructors
 As with all Pipeline components, Sources are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
 
 ## Methods
-
-### *dsl_source_dimensions_get*
-```C
-DslReturnType dsl_source_dimensions_get(const wchar_t* name, uint* width, uint* height);
-```
-This service returns the width and height values of a named source. CSI and USB Camera sources will return the values they were created with. URI and RTSP sources will return 0's while `not-in` and will be updated once the Source has transitioned to a state of `playing`.
-
-**Parameters**
-* `source` - [in] unique name of the Source to play
-* `width` - [out] width of the Source in pixels.
-* `height` - [out] height of the Source in pixels.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval, width, height = dsl_source_dimensions_get('my-uri-source')
-```
-
-<br>
-
-### *dsl_source_framerate_get*
-```C
-DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* fps_n);
-```
-This service returns the fractional frames per second as numerator and denominator for a named source. CSI and USB Camera sources will return the values they were created with. URI and RTSP sources will return 0's while `not-in` and will be updated once the Source has transitioned to a state of `playing`.
-
-**Parameters**
-* `source` - [in] unique name of the Source to play.
-* `fps_n` - [out] width of the Source in pixels.
-* `fps_d` - [out] height of the Source in pixels.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval, fps_n, fps_d = dsl_source_dimensions_get('my-uri-source')
-```
-
-<br>
-
-### *dsl_source_is_live*
-```C
-DslReturnType dsl_source_is_live(const wchar_t* name, boolean* is_live);
-```
-Returns `true` if the Source component's stream is live. CSI and USB Camera sources will always be return `True`.
-
-**Parameters**
-* `name` - [in] unique name of the Source to query
-* `is_live` - [out] `true` if the source is live, false otherwise
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval, is_live = dsl_source_is_live('my-uri-source')
-```
-
-<br>
-
-### *dsl_source_pause*
-```C
-DslReturnType dsl_source_pause(const wchar_t* name);
-```
-Sets the state of the Source component to Paused. This method tries to change the state of an `in-use` Source component to `GST_STATE_PAUSED`. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is).
-
-**Parameters**
-* `name` - unique name of the Source to pause
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful transition. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_source_play('my-source')
-```
-
-<br>
-
-### *dsl_source_resume*
-```C
-DslReturnType dsl_source_resume(const wchar_t* name);
-```
-Sets the state of a `paused` Source component to `playing`. This method tries to change the state of an `in-use` Source component to `DSL_STATE_PLAYING`. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is). The Pipeline, when transitioning to a state of `DSL_STATE_PLAYING`, will set each of its Sources'
-state to `DSL_STATE_PLAYING`. An individual Source, once playing, can be paused by calling [dsl_source_pause](#dsl_source_pause).
-
-<br>
-
-**Parameters**
-* `name` - unique name of the Source to play
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful transition. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_source_resume('my-source')
-```
-
-<br>
-
 
 ### *dsl_source_decode_uri_get*
 ```C
@@ -942,6 +874,193 @@ This service sets the File Path to use by the named Streaming Image source.
 **Python Example**
 ```Python
 retval = dsl_source_image_stream_timeout_set('my-image-source', 30)
+```
+
+<br>
+
+### *dsl_source_interpipe_listen_to_get*
+```C
+DslReturnType dsl_source_interpipe_listen_to_get(const wchar_t* name, 
+    const wchar_t** listen_to);
+```
+This service gets the name of the Interpipe Sink the named Interpipe Source component is currently listening to.
+
+**Parameters**
+* `name` - [in] unique name of the Interpipe Source to query
+* `listen_to` - [out]  unique name of the Interpipe Sink the Source is listening to.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, listen_to = dsl_source_interpipe_listen_to_get('my-interpipe-source')
+```
+<br>
+
+### *dsl_source_interpipe_listen_to_set*
+```C
+DslReturnType dsl_source_interpipe_listen_to_get(const wchar_t* name, 
+    const wchar_t* listen_to);
+```
+This service sets the name of the Interpipe Sink to listen to for the name Interpipe Source.
+
+**Parameters**
+* `name` - [in] unique name of the Interpipe Source to update.
+* `listen_to` - [out]  unique name of the Interpipe Sink listening to.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_interpipe_listen_to_set('my-interpipe-source', 'my-interpipe-sink-2')
+```
+<br>
+
+### *dsl_source_interpipe_accept_settings_get*
+```C
+DslReturnType dsl_source_interpipe_accept_settings_get(const wchar_t* name,
+    boolean* accept_eos, boolean* accept_events);
+```
+This service gets the current accept settings in use by the named Interpipe Source.
+
+**Parameters**
+* `name` - [in] unique name of the Interpipe Source to query
+* `accept_eos` - [out] if true, the Source accepts EOS events from the Interpipe Sink.
+* `accept_event` - [out] if true, the Source accepts events (except EOS event) from the Interpipe Sink.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, accept_eos, accept_events = dsl_source_interpipe_accept_settings_get(
+    'my-interpipe-source')
+```
+<br>
+
+### *dsl_source_interpipe_accept_settings_set*
+```C
+DslReturnType dsl_source_interpipe_accept_settings_get(const wchar_t* name,
+    boolean accept_eos, boolean accept_events);
+```
+This service sets the accept settings for the named Interpipe Source to use.
+
+**Parameters**
+* `name` - [in] unique name of the Interpipe Source to update
+* `accept_eos` - [in] set to true to accept EOS events from the Inter-Pipe Sink, false otherwise.
+* `accept_event` - [in] set to true to accept events (except EOS event) from the Inter-Pipe Sink, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_interpipe_accept_settings_get('my-interpipe-source',
+    ture, true)
+```
+<br>
+
+### *dsl_source_dimensions_get*
+```C
+DslReturnType dsl_source_dimensions_get(const wchar_t* name, uint* width, uint* height);
+```
+This service returns the width and height values of a named source. CSI and USB Camera sources will return the values they were created with. URI and RTSP sources will return 0's while `not-in` and will be updated once the Source has transitioned to a state of `playing`.
+
+**Parameters**
+* `source` - [in] unique name of the Source to play
+* `width` - [out] width of the Source in pixels.
+* `height` - [out] height of the Source in pixels.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, width, height = dsl_source_dimensions_get('my-uri-source')
+```
+
+<br>
+
+### *dsl_source_framerate_get*
+```C
+DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* fps_n);
+```
+This service returns the fractional frames per second as numerator and denominator for a named source. CSI and USB Camera sources will return the values they were created with. URI and RTSP sources will return 0's while `not-in` and will be updated once the Source has transitioned to a state of `playing`.
+
+**Parameters**
+* `source` - [in] unique name of the Source to play.
+* `fps_n` - [out] width of the Source in pixels.
+* `fps_d` - [out] height of the Source in pixels.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, fps_n, fps_d = dsl_source_dimensions_get('my-uri-source')
+```
+
+<br>
+
+### *dsl_source_is_live*
+```C
+DslReturnType dsl_source_is_live(const wchar_t* name, boolean* is_live);
+```
+Returns `true` if the Source component's stream is live. CSI and USB Camera sources will always be return `True`.
+
+**Parameters**
+* `name` - [in] unique name of the Source to query
+* `is_live` - [out] `true` if the source is live, false otherwise
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, is_live = dsl_source_is_live('my-uri-source')
+```
+
+<br>
+
+### *dsl_source_pause*
+```C
+DslReturnType dsl_source_pause(const wchar_t* name);
+```
+Sets the state of the Source component to Paused. This method tries to change the state of an `in-use` Source component to `GST_STATE_PAUSED`. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is).
+
+**Parameters**
+* `name` - unique name of the Source to pause
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful transition. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_play('my-source')
+```
+
+<br>
+
+### *dsl_source_resume*
+```C
+DslReturnType dsl_source_resume(const wchar_t* name);
+```
+Sets the state of a `paused` Source component to `playing`. This method tries to change the state of an `in-use` Source component to `DSL_STATE_PLAYING`. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is). The Pipeline, when transitioning to a state of `DSL_STATE_PLAYING`, will set each of its Sources'
+state to `DSL_STATE_PLAYING`. An individual Source, once playing, can be paused by calling [dsl_source_pause](#dsl_source_pause).
+
+<br>
+
+**Parameters**
+* `name` - unique name of the Source to play
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful transition. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_resume('my-source')
 ```
 
 <br>

@@ -1095,4 +1095,3 @@ SCENARIO( "An MultiImageSourceBintr can UnlinkAll all child Elementrs correctly"
         }
     }
 }
-

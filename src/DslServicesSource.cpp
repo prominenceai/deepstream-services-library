@@ -448,11 +448,173 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Image Stream Source '" << name << "' threw exception setting Timeout");
+            LOG_ERROR("Image Stream Source '" << name 
+                << "' threw exception setting Timeout");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
 
+    DslReturnType Services::SourceInterpipeNew(const char* name, 
+        const char* listenTo, boolean isLive, 
+        boolean acceptEos, boolean acceptEvents)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Source name '" << name << "' is not unique");
+                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = DSL_INTERPIPE_SOURCE_NEW(
+                name, listenTo, isLive, acceptEos, acceptEvents);
+
+            LOG_INFO("New Inter-Pipe Source '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Inter-Pipe Source '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceInterpipeListenToGet(const char* name, 
+        const char** listenTo)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                InterpipeSourceBintr);
+
+            DSL_INTERPIPE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<InterpipeSourceBintr>(m_components[name]);
+         
+            *listenTo = pSourceBintr->GetListenTo();
+
+            LOG_INFO("Inter-Pipe Source '" << name << "' returned listen_to = '" 
+                << *listenTo << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Inter-Pipe Source '" << name 
+                << "' threw exception getting listen-to setting");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceInterpipeListenToSet(const char* name, 
+        const char* listenTo)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                InterpipeSourceBintr);
+
+            DSL_INTERPIPE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<InterpipeSourceBintr>(m_components[name]);
+         
+            pSourceBintr->SetListenTo(listenTo);
+            
+            LOG_INFO("Inter-Pipe Source '" << name << "' set listen-to = '" 
+                << listenTo << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Inter-Pipe Source '" << name 
+                << "' threw exception setting listen-to");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceInterpipeAcceptSettingsGet(const char* name,
+        boolean* acceptEos, boolean* acceptEvents)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                InterpipeSourceBintr);
+
+            DSL_INTERPIPE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<InterpipeSourceBintr>(m_components[name]);
+         
+            bool bAcceptEos(false), bAcceptEvents(false);
+            pSourceBintr->GetAcceptSettings(&bAcceptEos, &bAcceptEvents);
+            *acceptEos = bAcceptEos;
+            *acceptEvents = bAcceptEvents;
+
+            LOG_INFO("Inter-Pipe Source '" << name << "' returned accept-eos = " 
+                << *acceptEos << ", accept-events = " << *acceptEvents 
+                << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Inter-Pipe Source '" << name 
+                << "' threw exception getting accept setting");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceInterpipeAcceptSettingsSet(const char* name,
+        boolean acceptEos, boolean acceptEvents)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                InterpipeSourceBintr);
+
+            DSL_INTERPIPE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<InterpipeSourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetAcceptSettings(acceptEos, acceptEvents))
+            {
+                LOG_ERROR("Inter-Pipe Source '" << name 
+                    << "' failed to set Accept settings");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("Inter-Pipe Source '" << name << "' set accept-eos = " 
+                << acceptEos << ", accept-events = " << acceptEvents 
+                << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Inter-Pipe Source '" << name 
+                << "' threw exception getting accept setting");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::SourceRtspNew(const char* name, const char* uri,  uint protocol, 
        uint intraDecode, uint dropFrameInterval, uint latency, uint timeout)
     {

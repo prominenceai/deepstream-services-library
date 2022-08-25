@@ -1021,6 +1021,137 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SinkInterpipeNew(const char* name,
+        boolean forwardEos, boolean forwardEvents)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+
+            m_components[name] = DSL_INTERPIPE_SINK_NEW(name,
+                forwardEos, forwardEvents);
+
+            LOG_INFO("New Inter-Pipe Sink '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Inter-Pipe Sink '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SinkInterpipeForwardSettingsGet(const char* name, 
+        boolean* forwardEos, boolean* forwardEvents)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                InterpipeSinkBintr);
+            
+            DSL_INTERPIPE_SINK_PTR interPipeSinkBintr = 
+                std::dynamic_pointer_cast<InterpipeSinkBintr>(m_components[name]);
+
+            bool bForwardEos(false), bForwardEvents(false);
+            interPipeSinkBintr->GetForwardSettings(&bForwardEos, &bForwardEvents);
+            *forwardEos = bForwardEos;
+            *forwardEvents = bForwardEvents;
+
+            LOG_INFO("Inter-Pipe Sink '" << name << "' returned forward-eos = " 
+                << *forwardEos << ", forward-events = " << *forwardEvents 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Inter-Pipe Sink '" << name 
+                << "' threw an exception getting forward settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkInterpipeForwardSettingsSet(const char* name, 
+        boolean forwardEos, boolean forwardEvents)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                InterpipeSinkBintr);
+            
+            DSL_INTERPIPE_SINK_PTR interPipeSinkBintr = 
+                std::dynamic_pointer_cast<InterpipeSinkBintr>(m_components[name]);
+
+            if (!interPipeSinkBintr->SetForwardSettings(forwardEos, forwardEvents))
+            {
+                LOG_ERROR("Inter-Pipe Sink '" << name 
+                    << "' failed to set Forward settings");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+
+            LOG_INFO("Inter-Pipe Sink '" << name << "' set forward-eos = " 
+                << forwardEos << ", forward-events = " << forwardEvents 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Inter-Pipe Sink '" << name 
+                << "' threw an exception setting Forward settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkInterpipeNumListenersGet(const char* name,
+        uint* numListeners)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                InterpipeSinkBintr);
+            
+            DSL_INTERPIPE_SINK_PTR interPipeSinkBintr = 
+                std::dynamic_pointer_cast<InterpipeSinkBintr>(m_components[name]);
+
+            *numListeners = interPipeSinkBintr->GetNumListeners();
+
+            LOG_INFO("Inter-Pipe Sink '" << name << "' returned num-listeners = " 
+                << *numListeners  << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Inter-Pipe Sink '" << name 
+                << "' threw an exception getting num-listeners");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+            
     DslReturnType Services::SinkMessageNew(const char* name, 
         const char* converterConfigFile, uint payloadType, 
         const char* brokerConfigFile, const char* protocolLib,

@@ -8,7 +8,7 @@
   * [Multi-Object Trackers](#multi-object-trackers)
   * [Multi-Source Tiler](#multi-source-tiler)
   * [On-Screen Display](#on-screen-display)
-  * [Rendering and Encoding Sinks](#rendering-and-encoding-sinks)
+  * [Rendering, Encoding, and Interpipe Sinks](#rendering-encoding-and-interpipe-sinks)
   * [Tees and Branches](#tees-and-branches)
   * [Pad Probe Handlers](#pad-probe-handlers)
 * [Display Types](#display-types)
@@ -18,6 +18,7 @@
   * [ODE Areas](#ode-areas)
   * [ODE Line Crossing Analytics](#ode-line-crossing-analytics)
   * [ODE Heat Mapping](#ode-heat-mapping)
+* [Interpipe Services](#interpipe-services)
 * [Smart Recording](#smart-recording)
 * [RTSP Stream Connection Management](#rtsp-stream-connection-management)
 * [X11 Window Services](#x11-window-services)
@@ -116,19 +117,23 @@ There are seven categories of Components that can be added to a Pipeline, automa
 ## Streaming Sources
 Streaming sources are the head component(s) for all Pipelines and all Pipelines must have at least one Source (among other components) before they can transition to a state of Playing. All Pipelines have the ability to multiplex multiple streams -- using their own built-in Stream-Muxer -- as long as all Sources are of the same play-type; live vs. non-live with the ability to Pause. 
 
-There are seven types of Source components supported. 
+There are nine (9) types of Source components supported. 
 Two live connected Camera Sources:
 * Camera Serial Interface (CSI) Source - connected to one of the serial ports on the Jetson SOM
 * Universal Serial Bus (USB) Source
 
 Three Decode Sources.
 * Universal Resource Identifier (URI) Source - supports files as well.
-* File Source
+* File Source - derived from the URI Decode Source with some of the parameters fixed.
 * Real-time Streaming Protocol (RTSP) Source
 
 Three Images Sources 
-* File Source that is derived from the URI Decode Source with some of the parameters fixed.
-* Image Source that overlays an Image on a mock/fake streaming source at a settable frame rate. The Image Source can mimic a live source allowing it to be batched with other live streaming sources.
+* Single Image Source -  single frame to EOS.
+* Multi Image Source -  streamed at one image file per frame.
+* Streaming Image - single image streamed at a given frame rate, indefinately or for a give duration. The Source can mimic a live source allowing it to be batched with other live streaming sources.
+
+Interpipe Source
+* Recievs buffers and events from an Interpipe Sink See [Interpipe Services](interpipe-services) for more information.
 
 All Sources have dimensions, width and height in pixels, and frame-rates expressed as a fractional numerator and denominator.  The URI Source component support multiple codec formats, including H.264, H.265, PNG, and JPEG. A [Dewarper Component](/docs/api-dewarper.md) (not show in the image above) capable of dewarping 360 degree camera streams can be added to both. 
 
@@ -194,7 +199,7 @@ OSDs are optional and a Pipeline (or Branch) can have at most one when using a T
 
 Clients of On-Screen Display components can add/remove one or more [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers -- with Metadata for each Frame and Detected-Object.
 
-## Rendering and Encoding Sinks
+## Rendering, Encoding, and Interpipe Sinks
 Sinks, as the end components in the Pipeline, are used to render the video stream for visual display or encode the streaming video to a file or network. All Pipelines require at least one Sink Component to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped. A case where the `batch-meta-data` produced from the components in the Pipeline is the only data of interest. There are currently six types of Sink Components that can be added.
 
 Clients can add/remove one or more [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers -- with Metadata for each Frame and Detected-Object -- on the input (sink pad) only.
@@ -206,7 +211,8 @@ Clients can add/remove one or more [Pad Probe Handlers](#pad-probe-handlers) to 
 5. RTSP Sink
 6. WebRTC Sink - Requires GStreamer 1.18 or later
 7. IoT Message Sink
-8. Fake Sink
+8. Interpipe Sink - see [Interpipe Services](interpipe-services) for more information.
+9. Fake Sink
 
 Overlay and Window Sinks have settable dimensions: width and height in pixels, and X and Y directional offsets that can be updated after creation. 
 
@@ -690,6 +696,37 @@ See the [ODE Heat-Mapper API Reference](/docs/api-ode-heat-mapper.md) for more i
 
 ![](/Images/spectral-person-heat-map.png)
 
+---
+
+## Interpipe Services
+DSL supports services for [RidgeRun's]() [Interpipe plugins](https://developer.ridgerun.com/wiki/index.php?title=GstInterpipe). From their website ***"GstInterpipe is a RidgeRun open source GStreamer plug-in that enables pipeline buffers and events to flow between two or more independent pipelines. It consists of two elements: interpipesink and interpipesrc. The interpipesrc connects with an interpipesink, from which it receives buffers and events.***
+
+The Interpipe Sink and Source are optional/conditional DSL components.  You will need to [build and install](https://developer.ridgerun.com/wiki/index.php/GstInterpipe_-_Building_and_Installation_Guide) the RidgeRun plugins. Then update the DSL Makefile to include/build the DSL Sink and Source components. Search for the following section and set `BUILD_INTER_PIPE` to `true`,
+```
+# To enable the InterPipe Sink and Source components
+# - set BUILD_INTER_PIPE:=true
+BUILD_INTER_PIPE:=true
+```
+
+There are two examples that cover two basic use cases; **Dynamic Switching** and **Multiple Listeners**. These cases can be combined and extended to achieve complex pipelines as illustrated by RidgeRun [here](https://developer.ridgerun.com/wiki/index.php/File:Complex_pipeline.png)
+
+### Dynamic Switching
+The Interpipe Source's `listen_to` setting -- the name of the Interpipe Sink to listen to -- can be updated at any time. See the follow links for examples that implement the image below.
+* [interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.py](/examples/python/interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.py)
+* [interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.cpp](/examples/cpp/interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.cpp)
+
+![interpipe dynamic switching](/Images/interpipe-dynamic-switching.png)
+
+```Python
+
+```
+### Multiple Listeners
+Multiple Pipelines, each with their own Interpipe Source, can listen to the same Interpipe Sink. The following examples implement the multiple listeners use case as show in the image below.
+* [interpipe_multiple_pipelines_listening_to_single_sink.py](/examples/python/interpipe_multiple_pipelines_listening_to_single_sink.py)
+* [interpipe_multiple_pipelines_listening_to_single_sink.cpp](/examples/cpp/interpipe_multiple_pipelines_listening_to_single_sink.cpp)
+
+![interpipe multiple listeners](/Images/interpipe-multiple-listeners.png)
+
 --- 
 
 ## Smart Recording
@@ -929,6 +966,7 @@ dsl_delete-all()
 Please refere to [ode_occurrence_4rtsp_start_record_tap_action.py](/examples/python/ode_occurrence_4rtsp_start_record_tap_action.py) for the complete example.
 
 ---
+
 ## RTSP Stream Connection Management
 RTSP Source Components have "built-in" stream connection management for detecting and resolving stream disconnections.   
 

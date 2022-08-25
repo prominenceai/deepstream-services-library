@@ -1396,6 +1396,117 @@ namespace DSL
     }
     
     //*********************************************************************************
+
+    InterpipeSourceBintr::InterpipeSourceBintr(const char* name, 
+        const char* listenTo, bool isLive, bool acceptEos, bool acceptEvents)
+        : SourceBintr(name)
+        , m_listenTo(listenTo)
+        , m_acceptEos(acceptEos)
+        , m_acceptEvents(acceptEvents)
+    {
+        LOG_FUNC();
+        
+        // we need to append the factory name to match the Inter-Pipe
+        // sinks element name. 
+        m_listenToFullName = m_listenTo + "-interpipesink";
+        
+        LOG_INFO("listen-to sink name = " << m_listenToFullName);
+        
+        // override the default settings.
+        m_isLive = isLive;
+        
+        m_pSourceElement = DSL_ELEMENT_NEW("interpipesrc", name);
+        
+        m_pSourceElement->SetAttribute("listen-to", m_listenToFullName.c_str());
+        m_pSourceElement->SetAttribute("accept-eos-event", m_acceptEos);
+        m_pSourceElement->SetAttribute("accept-events", m_acceptEvents);
+        m_pSourceElement->SetAttribute("allow-renegotiation", true);
+
+        // Add the new Elementr as a Child to the SourceBintr
+        AddChild(m_pSourceElement);
+        
+        m_pSourceElement->AddGhostPadToParent("src");
+    }
+    
+    InterpipeSourceBintr::~InterpipeSourceBintr()
+    {
+        LOG_FUNC();
+    }
+
+    const char* InterpipeSourceBintr::GetListenTo()
+    {
+        LOG_FUNC();
+        
+        return m_listenTo.c_str();
+    }
+    
+    void InterpipeSourceBintr::SetListenTo(const char* listenTo)
+    {
+        m_listenTo = listenTo;
+        m_listenToFullName = m_listenTo + "-interpipesink";
+        
+        m_pSourceElement->SetAttribute("listen-to", m_listenToFullName.c_str());
+    }
+    
+    bool InterpipeSourceBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("InterpipeSourceBintr '" << GetName() 
+                << "' is already in a linked state");
+            return false;
+        }
+        // Single element nothing to link
+        m_isLinked = true;
+        return true;
+    }
+
+    void InterpipeSourceBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+
+        if (!m_isLinked)
+        {
+            LOG_ERROR("InterpipeSourceBintr '" << GetName() 
+                << "' is not in a linked state");
+            return;
+        }
+        // Single element nothing to link
+        m_isLinked = false;
+    }
+    
+    void InterpipeSourceBintr::GetAcceptSettings(bool* acceptEos, 
+        bool* acceptEvents)
+    {
+        LOG_FUNC();
+        
+        *acceptEos = m_acceptEos;
+        *acceptEvents = m_acceptEvents;
+    }
+
+    bool InterpipeSourceBintr::SetAcceptSettings(bool acceptEos, 
+        bool acceptEvents)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Accept setting for InterpipeSourceBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_acceptEos = acceptEos;
+        m_acceptEvents = acceptEvents;
+        
+        m_pSourceElement->SetAttribute("accept-eos-event", m_acceptEos);
+        m_pSourceElement->SetAttribute("accept-events", m_acceptEvents);
+        
+        return true;
+    }
+    
+    //*********************************************************************************
     
     RtspSourceBintr::RtspSourceBintr(const char* name, const char* uri, 
         uint protocol, uint intraDecode, uint dropFrameInterval, 

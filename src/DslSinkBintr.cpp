@@ -34,6 +34,7 @@ namespace DSL
         : Bintr(name)
         , m_sync(sync)
         , m_cudaDeviceProp{0}
+        , m_qos(false)
     {
         LOG_FUNC();
 
@@ -74,7 +75,8 @@ namespace DSL
         
         if (!IsParent(pParentBintr))
         {
-            LOG_ERROR("Sink '" << GetName() << "' is not a child of Pipeline '" << pParentBintr->GetName() << "'");
+            LOG_ERROR("Sink '" << GetName() << "' is not a child of Pipeline '" 
+                << pParentBintr->GetName() << "'");
             return false;
         }
         // remove 'this' Sink from the Parent Pipeline 
@@ -93,7 +95,6 @@ namespace DSL
 
     FakeSinkBintr::FakeSinkBintr(const char* name)
         : SinkBintr(name, true)
-        , m_qos(false)
     {
         LOG_FUNC();
         
@@ -204,7 +205,6 @@ namespace DSL
     OverlaySinkBintr::OverlaySinkBintr(const char* name, uint displayId, 
         uint depth, uint offsetX, uint offsetY, uint width, uint height)
         : RenderSinkBintr(name, offsetX, offsetY, width, height, true)
-        , m_qos(FALSE)
         , m_displayId(displayId)
         , m_depth(depth)
         , m_uniqueId(1)
@@ -385,7 +385,6 @@ namespace DSL
     WindowSinkBintr::WindowSinkBintr(const char* name, 
         guint offsetX, guint offsetY, guint width, guint height)
         : RenderSinkBintr(name, offsetX, offsetY, width, height, true)
-        , m_qos(false)
         , m_forceAspectRatio(false)
     {
         LOG_FUNC();
@@ -1130,8 +1129,7 @@ namespace DSL
         , m_connectionString(connectionString)
         , m_protocolLib(protocolLib)
         , m_topic(topic)
-        , m_qos(false)
-{
+    {
         LOG_FUNC();
         
         m_pTee = DSL_ELEMENT_NEW("tee", name);
@@ -1323,5 +1321,124 @@ namespace DSL
         m_pMsgBroker->SetAttribute("topic", m_topic.c_str());
         return true;
     }
+
+    //-------------------------------------------------------------------------
+
+    InterpipeSinkBintr::InterpipeSinkBintr(const char* name,
+        bool forwardEos, bool forwardEvents)
+        : SinkBintr(name, true)
+        , m_forwardEos(forwardEos)
+        , m_forwardEvents(forwardEvents)
+    {
+        LOG_FUNC();
+        
+        m_pSinkElement = DSL_ELEMENT_NEW("interpipesink", name);
+        m_pSinkElement->SetAttribute("sync", m_sync);
+        m_pSinkElement->SetAttribute("async", true);
+        m_pSinkElement->SetAttribute("qos", m_qos);
+        m_pSinkElement->SetAttribute("forward-eos", m_forwardEos);
+        m_pSinkElement->SetAttribute("forward-events", m_forwardEvents);
+        
+        LOG_INFO("interpipesink full name = " << m_pSinkElement->GetName());
+        
+        AddChild(m_pSinkElement);
+    }
+    
+    InterpipeSinkBintr::~InterpipeSinkBintr()
+    {
+        LOG_FUNC();
+    
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool InterpipeSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("InterpipeSinkBintr '" << GetName() << "' is already linked");
+            return false;
+        }
+        if (!m_pQueue->LinkToSink(m_pSinkElement))
+        {
+            return false;
+        }
+        m_isLinked = true;
+        return true;
+    }
+    
+    void InterpipeSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("InterpipeSinkBintr '" << GetName() << "' is not linked");
+            return;
+        }
+        m_pQueue->UnlinkFromSink();
+        m_isLinked = false;
+    }
+    
+    void InterpipeSinkBintr::GetForwardSettings(bool* forwardEos, 
+        bool* forwardEvents)
+    {
+        LOG_FUNC();
+        
+        *forwardEos = m_forwardEos;
+        *forwardEvents = m_forwardEvents;
+    }
+
+    bool InterpipeSinkBintr::SetForwardSettings(bool forwardEos, 
+        bool forwardEvents)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Forward setting for InterpipeSinkBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_forwardEos = forwardEos;
+        m_forwardEvents = forwardEvents;
+        
+        m_pSinkElement->SetAttribute("forward-eos", m_forwardEos);
+        m_pSinkElement->SetAttribute("forward-events", m_forwardEvents);
+        
+        return true;
+    }
+    
+    uint InterpipeSinkBintr::GetNumListeners()
+    {
+        LOG_FUNC();
+        
+        uint numListeners;
+        m_pSinkElement->GetAttribute("num-listeners", &numListeners);
+        
+        return numListeners;
+    }
+
+    bool InterpipeSinkBintr::SetSyncEnabled(bool enabled)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Sync enabled setting for FakeSinkBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_sync = enabled;
+        
+        m_pSinkElement->SetAttribute("sync", m_sync);
+        
+        return true;
+    }
+
 
 }    
