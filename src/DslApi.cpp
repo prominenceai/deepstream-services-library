@@ -5064,6 +5064,8 @@ DslReturnType dsl_tiler_new(const wchar_t* name, uint width, uint height)
 DslReturnType dsl_tiler_dimensions_get(const wchar_t* name, uint* width, uint* height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(width);
+    RETURN_IF_PARAM_IS_NULL(height);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -5084,6 +5086,8 @@ DslReturnType dsl_tiler_dimensions_set(const wchar_t* name, uint width, uint hei
 DslReturnType dsl_tiler_tiles_get(const wchar_t* name, uint* cols, uint* rows)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(cols);
+    RETURN_IF_PARAM_IS_NULL(rows);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -5101,11 +5105,37 @@ DslReturnType dsl_tiler_tiles_set(const wchar_t* name, uint cols, uint rows)
     return DSL::Services::GetServices()->TilerTilesSet(cstrName.c_str(), cols, rows);
 }
 
+DslReturnType dsl_tiler_frame_numbering_enabled_get(const wchar_t* name,
+    boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TilerFrameNumberingEnabledGet(
+        cstrName.c_str(), enabled);
+}
+    
+DslReturnType dsl_tiler_frame_numbering_enabled_set(const wchar_t* name,
+    boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TilerFrameNumberingEnabledSet(
+        cstrName.c_str(), enabled);
+}
+    
 DslReturnType dsl_tiler_source_show_get(const wchar_t* name, 
     const wchar_t** source, uint* timeout)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(source);
+    RETURN_IF_PARAM_IS_NULL(timeout);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());

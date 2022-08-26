@@ -890,7 +890,13 @@ namespace DSL {
         DslReturnType TilerTilesGet(const char* name, uint* columns, uint* rows);
 
         DslReturnType TilerTilesSet(const char* name, uint columns, uint rows);
+        
+        DslReturnType TilerFrameNumberingEnabledGet(const char* name,
+            boolean* enabled);
 
+        DslReturnType TilerFrameNumberingEnabledSet(const char* name,
+            boolean enabled);
+            
         DslReturnType TilerSourceShowGet(const char* name, const char** source, uint* timeout);
 
         DslReturnType TilerSourceShowSet(const char* name, const char* source, uint timeout, bool hasPrecedence);

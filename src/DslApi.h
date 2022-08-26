@@ -5185,13 +5185,35 @@ DslReturnType dsl_tiler_dimensions_set(const wchar_t* name, uint width, uint hei
 DslReturnType dsl_tiler_tiles_get(const wchar_t* name, uint* cols, uint* rows);
 
 /**
- * @brief Sets the number of columns and rows for the named Tiled Display
+ * @brief Sets the number of columns and rows for the named Tiler.
  * @param[in] name name of the Display to update
  * @param[in] cols current number of colums for all Tiles
  * @param[in] rows current number of rows for all Tiles
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
  */
 DslReturnType dsl_tiler_tiles_set(const wchar_t* name, uint cols, uint rows);
+
+/**
+ * @brief Gets the current frame-numbering enabled setting for the named Tiler.
+ * @param[in] name unique name of the Tiler to query.
+ * @param[out] enabled if true, the Tiler will add an incrementing frame number
+ * to each frame metadata structure -- for each buffer flowing over the Tiler's 
+ * source pad -- overwriting the 0 value set by the NVIDIA Tiler plugin. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_tiler_frame_numbering_enabled_get(const wchar_t* name,
+    boolean* enabled);
+
+/**
+ * @brief Sets the frame-numbering enabled setting for the named Tiler.
+ * @param[in] name unique name of the Tiler to update.
+ * @param[in] enabled set to true to have the Tiler add an incrementing frame number
+ * to each frame metadata structure -- for each buffer flowing over the Tiler's 
+ * source pad -- overwriting the 0 value set by the NVIDIA Tiler plugin. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_tiler_frame_numbering_enabled_set(const wchar_t* name,
+    boolean enabled);
 
 /** 
  * @brief Gets the current Show Source setting for the named Tiler

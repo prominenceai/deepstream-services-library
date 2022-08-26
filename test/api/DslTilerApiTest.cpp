@@ -222,7 +222,7 @@ SCENARIO( "A Sink Pad Probe Handler can be added and removed from a Tiled Displa
     }
 }
 
-SCENARIO( "A Source Pad Probe Handler can be added and removed froma a Tiled Display", "[tiler-api]" )
+SCENARIO( "A Source Pad Probe Handler can be added and removed from a Tiled Display", "[tiler-api]" )
 {
     GIVEN( "A new Tiled Display and Custom PPH" ) 
     {
@@ -283,11 +283,20 @@ SCENARIO( "An invalid Tiler is caught by all Set and Get API calls", "[tiler-api
                 uint width(0), height(0);
                 uint rows(0), cols(0);
                 const wchar_t* config;
+                boolean enabled;
                 
-                REQUIRE( dsl_tiler_dimensions_get(fakeSinkName.c_str(), &width, &height) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
-                REQUIRE( dsl_tiler_dimensions_set(fakeSinkName.c_str(), 500, 300) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
-                REQUIRE( dsl_tiler_tiles_get(fakeSinkName.c_str(), &rows, &cols) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
-                REQUIRE( dsl_tiler_tiles_set(fakeSinkName.c_str(), 1, 1) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
+                REQUIRE( dsl_tiler_dimensions_get(fakeSinkName.c_str(), &width, &height) == 
+                    DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
+                REQUIRE( dsl_tiler_dimensions_set(fakeSinkName.c_str(), 500, 300) == 
+                    DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
+                REQUIRE( dsl_tiler_tiles_get(fakeSinkName.c_str(), &rows, &cols) == 
+                    DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
+                REQUIRE( dsl_tiler_tiles_set(fakeSinkName.c_str(), 1, 1) == 
+                    DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
+                REQUIRE( dsl_tiler_frame_numbering_enabled_get(fakeSinkName.c_str(), 
+                    &enabled) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
+                REQUIRE( dsl_tiler_frame_numbering_enabled_set(fakeSinkName.c_str(), 
+                    enabled) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
@@ -376,6 +385,20 @@ SCENARIO( "A Tiled Display can Set and Get all properties", "[tiler-api]" )
 //                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
 //            }
 //        }
+        WHEN( "A Tiler's Frame Numbering is enabled on set" ) 
+        {
+            boolean newEnabled(true), retEnabled(false);
+            REQUIRE( dsl_tiler_frame_numbering_enabled_set(tilerName.c_str(), 
+                newEnabled) == DSL_RESULT_SUCCESS);
+            
+            THEN( "The correct enabled value is returned on Get" ) 
+            {
+                REQUIRE( dsl_tiler_frame_numbering_enabled_get(tilerName.c_str(), 
+                    &retEnabled) == DSL_RESULT_SUCCESS);
+                REQUIRE( retEnabled == newEnabled );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
     }
 }
 
@@ -386,7 +409,10 @@ SCENARIO( "The Tiler API checks for NULL input parameters", "[tiler-api]" )
         std::wstring tilerName  = L"test-tiler";
         std::wstring otherName  = L"other";
         
+        const wchar_t* source;
         uint cols(0), rows(0), width(0), height(0), timeout(0);
+        
+        boolean enabled;
         
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -397,23 +423,50 @@ SCENARIO( "The Tiler API checks for NULL input parameters", "[tiler-api]" )
                 
                 REQUIRE( dsl_tiler_new(NULL, 0,  0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_tiler_dimensions_get(NULL, &width, &height) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tiler_dimensions_set(NULL, width, height) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_dimensions_get(NULL, &width, &height) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_dimensions_get(tilerName.c_str(), NULL, &height) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_dimensions_get(tilerName.c_str(), &width, NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_dimensions_set(NULL, width, height) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_tiler_tiles_get(NULL, &cols, &rows) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tiler_tiles_set(NULL, cols, rows) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_tiles_get(NULL, &cols, &rows) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_tiles_get(tilerName.c_str(), NULL, &rows) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_tiles_get(tilerName.c_str(), &cols, NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_tiles_set(NULL, cols, rows) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_tiler_source_show_get(NULL, NULL, &timeout) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tiler_source_show_get(tilerName.c_str(), NULL, &timeout) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_source_show_get(NULL, NULL, &timeout) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_source_show_get(tilerName.c_str(), NULL, &timeout) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_source_show_get(tilerName.c_str(),&source, NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_tiler_source_show_set(NULL, NULL, timeout, false) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tiler_source_show_set(tilerName.c_str(), NULL, timeout, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_source_show_set(NULL, NULL, timeout, false) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_source_show_set(tilerName.c_str(), NULL, timeout, false) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_tiler_source_show_select(NULL, 0, 0, 0, 0, timeout) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_source_show_select(NULL, 0, 0, 0, 0, timeout) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_tiler_source_show_cycle(NULL, timeout) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_source_show_cycle(NULL, timeout) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_tiler_source_show_all(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tiler_frame_numbering_enabled_get(NULL, 
+                    &enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_frame_numbering_enabled_get(tilerName.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_frame_numbering_enabled_set(NULL, 
+                    enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_list_size() == 0 );
             }
