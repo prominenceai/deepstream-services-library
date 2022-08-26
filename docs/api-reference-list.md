@@ -270,6 +270,8 @@
 * [dsl_tiler_dimensions_set](/docs/api-tiler.md#dsl_tiler_dimensions_set)
 * [dsl_tiler_tiles_get](/docs/api-tiler.md#dsl_display_tiles_get)
 * [dsl_tiler_tiles_set](/docs/api-tiler.md#dsl_display_tiles_set)
+* [dsl_tiler_frame_numbering_enabled_get](/docs/api-tiler.md#dsl_tiler_frame_numbering_enabled_get)
+* [dsl_tiler_frame_numbering_enabled_set](/docs/api-tiler.md#dsl_tiler_frame_numbering_enabled_set)
 * [dsl_tiler_source_show_get](/docs/api-tiler.md#dsl_tiler_source_show_get)
 * [dsl_tiler_source_show_set](/docs/api-tiler.md#dsl_tiler_source_show_set)
 * [dsl_tiler_source_show_select](/docs/api-tiler.md#dsl_tiler_source_show_select)
