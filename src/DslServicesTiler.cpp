@@ -176,6 +176,72 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::TilerFrameNumberingEnabledGet(const char* name,
+            boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                TilerBintr);
+
+            DSL_TILER_PTR tilerBintr = 
+                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            *enabled = tilerBintr->GetFrameNumberingEnabled();
+
+            LOG_INFO("Tiler '" << name 
+                << "' successfully return frame-number enabled = " <<
+                *enabled);
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiler '" << name 
+                << "' threw an exception getting frame-number enabled");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TilerFrameNumberingEnabledSet(const char* name,
+            boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                TilerBintr);
+
+            DSL_TILER_PTR tilerBintr = 
+                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!tilerBintr->SetFrameNumberingEnabled(enabled))
+            {
+                LOG_ERROR("Tiler '" << name << "' failed to set Tiles");
+                return DSL_RESULT_TILER_SET_FAILED;
+            }
+            LOG_INFO("Tiler '" << name 
+                << "' successfully set frame-number enable = " << enabled);
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiler '" << name 
+                << "' threw an exception setting frame-number enabled");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::TilerSourceShowGet(const char* name, 
         const char** source, uint* timeout)
     {

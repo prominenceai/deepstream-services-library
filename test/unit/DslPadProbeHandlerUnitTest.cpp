@@ -421,3 +421,21 @@ SCENARIO( "Multiple PadProbeHandlers can be added to the Source Pad of a Bintr",
     }
 }
 
+SCENARIO( "A new FrameNumberAdderPadProbeHandler is created correctly", "[PadProbeHandler]" )
+{
+    GIVEN( "Attributes for a new FrameNumberAdderPadProbeHandler" ) 
+    {
+        std::string adderHandlerName("adder-handler");
+
+        WHEN( "The PadProbeHandler is created " )
+        {
+            DSL_PPEH_FRAME_NUMBER_ADDER_PTR pPadProbeHandler = 
+                DSL_PPEH_FRAME_NUMBER_ADDER_NEW(adderHandlerName.c_str());
+                
+            THEN( "The correct attribute values are returned" )
+            {
+                REQUIRE( pPadProbeHandler->GetFrameNumber() == 0 );
+            }
+        }
+    }
+}

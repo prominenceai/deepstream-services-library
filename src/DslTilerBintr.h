@@ -96,7 +96,20 @@ namespace DSL
          * @return false if the TilerBintr is currently in Use. True otherwise
          */ 
         bool SetDimensions(uint width, uint hieght);
+        
+        /**
+         * @brief Get the current enabled state for Frame-Number Adder.
+         * @return current enabled state.
+         */
+        bool GetFrameNumberingEnabled();
 
+        /**
+         * @brief Set the enabled state for the Frame-Number Adder.
+         * @param enabled set to true to enabled, false to disable.
+         * @return true if the state was updated correctly.
+         */
+        bool SetFrameNumberingEnabled(bool enabled);
+        
         /**
          * @brief Gets the current show-source setting for the TilerBintr
          * @return the current show-source setting, -1 equals all sources/tiles shown
@@ -165,6 +178,20 @@ namespace DSL
          * @brief height of the TilerBintr in pixels
          */
         uint m_height;
+        
+        /**
+         * @brief true if the Frame-Number Adder has been enabled
+         * to add frame_numbers to each frame crossing the Source
+         * pad of the TilerBintr
+         */
+        bool m_frameNumberingEnabled;
+        
+        /**
+         * @brief Frame-Number Adder Pad Probe Handler
+         * to add frame_numbers to each frame crossing the Source
+         * pad of the TilerBintr - when endabled
+         */
+        DSL_PPEH_FRAME_NUMBER_ADDER_PTR m_pFrameNumberAdder;
         
         /**
          * @brief Queue Elementr as Sink for this TilerBintr

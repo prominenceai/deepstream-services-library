@@ -35,6 +35,7 @@ namespace DSL
         , m_columns(0)
         , m_width(width)
         , m_height(height)
+        , m_frameNumberingEnabled(false)
         , m_showSourceId(-1)
         , m_showSourceTimeout(0)
         , m_showSourceCounter(0)
@@ -60,6 +61,11 @@ namespace DSL
     
         m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("tiler-sink-pad-probe", "sink", m_pQueue);
         m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW("tiler-src-pad-probe", "src", m_pTiler);
+        
+        // temp solution to ensure PPH is always executed first - alphabetically
+        std::string adderName("___"); 
+        adderName += name;
+        m_pFrameNumberAdder = DSL_PPEH_FRAME_NUMBER_ADDER_NEW(adderName.c_str());
     
         g_mutex_init(&m_showSourceMutex);
     }
@@ -101,6 +107,8 @@ namespace DSL
         }
         m_pQueue->LinkToSink(m_pTiler);
         m_isLinked = true;
+        
+        m_pFrameNumberAdder->ResetFrameNumber();
         
         return true;
     }
@@ -165,6 +173,39 @@ namespace DSL
         
         return true;
     }
+
+    bool TilerBintr::GetFrameNumberingEnabled()
+    {
+        LOG_FUNC();
+        
+        return m_frameNumberingEnabled;
+    }
+
+    bool TilerBintr::SetFrameNumberingEnabled(bool enabled)
+    {
+        LOG_FUNC();
+        
+        if (m_frameNumberingEnabled and enabled)
+        {
+            LOG_ERROR("Can't enable frame-numbering for Tiler '" <<
+                GetName() << "' as it's already enabled ");
+            return false;
+        }
+        if (!m_frameNumberingEnabled and !enabled)
+        {
+            LOG_ERROR("Can't disabled frame-numbering for Tiler '" <<
+                GetName() << "' as it's already disabled ");
+            return false; 
+        }
+        m_frameNumberingEnabled = enabled;
+        
+        if(m_frameNumberingEnabled)
+        {
+            return AddPadProbeHandler(m_pFrameNumberAdder, DSL_PAD_SRC);
+        }
+        return RemovePadProbeHandler(m_pFrameNumberAdder, DSL_PAD_SRC);
+    }
+    
 
     void TilerBintr::GetShowSource(int* sourceId, uint* timeout)
     {
@@ -310,7 +351,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsInUse())
+        if (m_isLinked)
         {
             LOG_ERROR("Unable to set GPU ID for TilerBintr '" << GetName() 
                 << "' as it's currently in use");

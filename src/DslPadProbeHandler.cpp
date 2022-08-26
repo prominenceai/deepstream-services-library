@@ -54,6 +54,7 @@ namespace DSL
     bool PadProbeHandler::AddToParent(DSL_BASE_PTR pParent, uint pad)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
         
         DSL_BINTR_PTR pParentBintr = 
             std::dynamic_pointer_cast<Bintr>(pParent);
@@ -71,6 +72,7 @@ namespace DSL
     bool PadProbeHandler::RemoveFromParent(DSL_BASE_PTR pParent, uint pad)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
         
         DSL_BINTR_PTR pParentBintr = 
             std::dynamic_pointer_cast<Bintr>(pParent);
@@ -106,6 +108,70 @@ namespace DSL
         }
         m_isEnabled = enabled;
         return true;
+    }
+
+    //----------------------------------------------------------------------------------------------
+
+    FrameNumberAdderPadProbeEventHandler::FrameNumberAdderPadProbeEventHandler(const char* name)
+        : PadProbeHandler(name)
+        , m_currentFrameNumber(0)
+    {
+        LOG_FUNC();
+        
+        // Enable now
+        if (!SetEnabled(true))
+        {
+            throw;
+        }
+    }
+    
+    FrameNumberAdderPadProbeEventHandler::~FrameNumberAdderPadProbeEventHandler()
+    {
+        LOG_FUNC();
+    }
+
+    void FrameNumberAdderPadProbeEventHandler::ResetFrameNumber()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+
+        m_currentFrameNumber = 0;
+    }
+    
+    uint64_t FrameNumberAdderPadProbeEventHandler::GetFrameNumber()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+
+        return m_currentFrameNumber;
+    }
+
+    GstPadProbeReturn FrameNumberAdderPadProbeEventHandler::HandlePadData(
+        GstPadProbeInfo* pInfo)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+        
+        if (!m_isEnabled)
+        {
+            return GST_PAD_PROBE_OK;
+        }
+        GstBuffer* pBuffer = (GstBuffer*)pInfo->data;
+        
+        NvDsBatchMeta* pBatchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
+        
+        // For each frame in the batched meta data
+        for (NvDsMetaList* pFrameMetaList = pBatchMeta->frame_meta_list; 
+            pFrameMetaList; pFrameMetaList = pFrameMetaList->next)
+        {
+            // Check for valid frame data
+            NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta*) (pFrameMetaList->data);
+            if (pFrameMeta != NULL)
+            {
+                // Incremeant and add the frame number
+                pFrameMeta->frame_num = ++m_currentFrameNumber;
+            }
+        }
+        return GST_PAD_PROBE_OK;
     }
 
     //----------------------------------------------------------------------------------------------

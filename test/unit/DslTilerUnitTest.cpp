@@ -27,6 +27,33 @@ THE SOFTWARE.
 
 using namespace DSL;
 
+SCENARIO( "A new TilerBintr is created correctly",  "[TilerBintr]" )
+{
+    GIVEN( "Attribute for a new TilerBintr" ) 
+    {
+        std::string tilerName("tiled-display");
+        uint initWidth(200);
+        uint initHeight(100);
+
+        WHEN( "The Tiler's demensions are Set" )
+        {
+            DSL_TILER_PTR pTilerBintr = 
+                DSL_TILER_NEW(tilerName.c_str(), initWidth, initHeight);
+
+            THEN( "The Tiler's new demensions are returned on Get")
+            {
+                uint currWidth(0);
+                uint currHeight(0);
+
+                pTilerBintr->GetDimensions(&currWidth, &currHeight);
+                REQUIRE( currWidth == initWidth );
+                REQUIRE( currHeight == initHeight );
+                REQUIRE( pTilerBintr->GetFrameNumberingEnabled() == false );
+            }
+        }
+    }
+}
+
 SCENARIO( "A TilerBintr's dimensions can be updated",  "[TilerBintr]" )
 {
     GIVEN( "A new TilerBintr in memory" ) 
@@ -128,6 +155,38 @@ SCENARIO( "A TilerBintr can Get and Set its Show Source setting",  "[TilerBintr]
                 pTilerBintr->GetShowSource(&sourceId, &timeout);
                 REQUIRE( sourceId == batchSize-1 );
                 REQUIRE( timeout == newTimeout );
+            }
+        }
+    }
+}
+
+SCENARIO( "A TilerBintr can Get and Set its frame-numbering enabled setting",  "[TilerBintr]" )
+{
+    GIVEN( "A new TilerBintr in memory" ) 
+    {
+        std::string tilerName = "tiled-display";
+        uint width(1280);
+        uint height(720);
+
+        DSL_TILER_PTR pTilerBintr = 
+            DSL_TILER_NEW(tilerName.c_str(), width, height);
+
+        // must disabled by default
+        REQUIRE( pTilerBintr->GetFrameNumberingEnabled() == false );
+
+        // disabling when disabled must fail
+        REQUIRE( pTilerBintr->SetFrameNumberingEnabled(false) == false );
+        
+        WHEN( "The TilerBintr's frame-number enabled is set" )
+        {
+            REQUIRE( pTilerBintr->SetFrameNumberingEnabled(true) == true );
+
+            THEN( "The correct value is returned on get" )
+            {
+                REQUIRE( pTilerBintr->GetFrameNumberingEnabled() == true );
+
+                // enabling when enabled must fail
+                REQUIRE( pTilerBintr->SetFrameNumberingEnabled(true) == false );
             }
         }
     }

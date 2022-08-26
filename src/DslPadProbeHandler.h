@@ -41,11 +41,13 @@ namespace DSL
 
     #define DSL_PPH_CUSTOM_PTR std::shared_ptr<CustomPadProbeHandler>
     #define DSL_PPH_CUSTOM_NEW(name, clientHandler, clientData) \
-        std::shared_ptr<CustomPadProbeHandler>(new CustomPadProbeHandler(name, clientHandler, clientData))
+        std::shared_ptr<CustomPadProbeHandler>(new CustomPadProbeHandler(name, \
+            clientHandler, clientData))
         
     #define DSL_PPH_METER_PTR std::shared_ptr<MeterPadProbeHandler>
     #define DSL_PPH_METER_NEW(name, interval, clientHandler, clientData) \
-        std::shared_ptr<MeterPadProbeHandler>(new MeterPadProbeHandler(name, interval, clientHandler, clientData))
+        std::shared_ptr<MeterPadProbeHandler>(new MeterPadProbeHandler(name, \
+            interval, clientHandler, clientData))
         
     #define DSL_PPH_ODE_PTR std::shared_ptr<OdePadProbeHandler>
     #define DSL_PPH_ODE_NEW(name) \
@@ -57,22 +59,31 @@ namespace DSL
 
     #define DSL_PPEH_EOS_CONSUMER_PTR std::shared_ptr<EosConsumerPadProbeEventHandler>
     #define DSL_PPEH_EOS_CONSUMER_NEW(name) \
-        std::shared_ptr<EosConsumerPadProbeEventHandler>(new EosConsumerPadProbeEventHandler(name))
+        std::shared_ptr<EosConsumerPadProbeEventHandler>( \
+            new EosConsumerPadProbeEventHandler(name))
         
     #define DSL_PPEH_EOS_HANDLER_PTR std::shared_ptr<EosHandlerPadProbeEventHandler>
     #define DSL_PPEH_EOS_HANDLER_NEW(name, clientHandler, clientData) \
-        std::shared_ptr<EosHandlerPadProbeEventHandler>(new EosHandlerPadProbeEventHandler(name, clientHandler, clientData))
-        
+        std::shared_ptr<EosHandlerPadProbeEventHandler>( \
+            new EosHandlerPadProbeEventHandler(name, clientHandler, clientData))
+
+    #define DSL_PPEH_FRAME_NUMBER_ADDER_PTR std::shared_ptr \
+        <FrameNumberAdderPadProbeEventHandler>
+    #define DSL_PPEH_FRAME_NUMBER_ADDER_NEW(name) \
+        std::shared_ptr<FrameNumberAdderPadProbeEventHandler>( \
+            new FrameNumberAdderPadProbeEventHandler(name))
 
     #define DSL_PAD_PROBE_PTR std::shared_ptr<PadProbetr>
 
     #define DSL_PAD_BUFFER_PROBE_PTR std::shared_ptr<PadBufferProbetr>
     #define DSL_PAD_BUFFER_PROBE_NEW(name, factoryName, parentElement) \
-        std::shared_ptr<PadBufferProbetr>(new PadBufferProbetr(name, factoryName, parentElement))    
+        std::shared_ptr<PadBufferProbetr>(new PadBufferProbetr(name, \
+            factoryName, parentElement))    
 
     #define DSL_PAD_EVENT_DOWNSTREAM_PROBE_PTR std::shared_ptr<PadEventDownStreamProbetr>
     #define DSL_PAD_EVENT_DOWNSTREAM_PROBE_NEW(name, factoryName, parentElement) \
-        std::shared_ptr<PadEventDownStreamProbetr>(new PadEventDownStreamProbetr(name, factoryName, parentElement))    
+        std::shared_ptr<PadEventDownStreamProbetr>(new PadEventDownStreamProbetr( \
+            name, factoryName, parentElement))    
 
     /**
      * @brief Pad Probe Handler Callback type
@@ -247,6 +258,59 @@ namespace DSL
         
     };
 
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     * @class FrameNumberAdderPadProbeEventHandler
+     * @brief Pad Probe Handler to add an incremental/unique frame number
+     * to each frame_meta. This PPH will be (conditionally) added to the
+     * source pad of 2D Tiler component. Why? Because the Tiler sets every
+     * frame_muber to 0 removing any frame reference.
+     */
+    class FrameNumberAdderPadProbeEventHandler : public PadProbeHandler
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the Frame Number Adder Pad Probe Handler
+         * @param[in] name unique name for the PPH
+         */
+        FrameNumberAdderPadProbeEventHandler(const char* name);
+
+        /**
+         * @brief dtor for the Frame Number Adder Pad Probe Handler
+         */
+        ~FrameNumberAdderPadProbeEventHandler();
+        
+        /**
+         * @brief resets m_currentFrameNumber to 0.
+         */
+        void ResetFrameNumber();
+        
+        /**
+         * @brief gets the current value of m_currentFrameNumber;
+         * @return the value of m_currentFrameNumber;
+         */
+        uint64_t GetFrameNumber();
+
+        /**
+         * @brief ODE Pad Probe Handler
+         * @param[in] pBuffer Pad buffer
+         * @return GstPadProbeReturn see GST reference, one of [GST_PAD_PROBE_DROP, 
+         * GST_PAD_PROBE_OK, GST_PAD_PROBE_REMOVE, GST_PAD_PROBE_PASS, 
+         * GST_PAD_PROBE_HANDLED]
+         */
+        GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo);
+        
+    private:
+    
+        /**
+         * @brief current frame number to increment and assign to each
+         * frame within each batch-metadata received. 
+         */
+        uint64_t m_currentFrameNumber;
+    };
+    
     //----------------------------------------------------------------------------------------------
 
     /**
