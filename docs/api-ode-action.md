@@ -54,6 +54,7 @@ ODE Actions are added to an ODE Accumulator by calling [dsl_ode_accumulator_acti
 * [dsl_ode_action_area_add_new](#dsl_ode_action_area_add_new)
 * [dsl_ode_action_area_remove_new](#dsl_ode_action_area_remove_new)
 * [dsl_ode_action_bbox_format_new](#dsl_ode_action_bbox_format_new)
+* [dsl_ode_action_bbox_scale_new](#dsl_ode_action_bbox_scale_new)
 * [dsl_ode_action_capture_frame_new](#dsl_ode_action_capture_frame_new)
 * [dsl_ode_action_capture_object_new](#dsl_ode_action_capture_object_new)
 * [dsl_ode_action_custom_new](#dsl_ode_action_custom_new)
@@ -519,6 +520,26 @@ The constructor creates a uniquely named **Format Bounding Box** ODE Action. Whe
 ```Python
 retval = dsl_ode_action_bbox_format_new('my-format-bbox-action',
     4, 'my-custom-color, true, 'my-custom-bg-color')
+```
+
+<br>
+
+### *dsl_ode_action_bbox_scale_new*
+```C++
+DslReturnType dsl_ode_action_bbox_scale_new(const wchar_t* name, uint scale);
+```
+The constructor creates a uniquely named **Scale Bounding Box** ODE Action. When invoked, this Action scales an Object's bounding box by a given percentage.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `scale` - [in] scale factor in units of percent. value must be greater than 100%
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_bbox_scale_new('my-scale-bbox-action', 120)
 ```
 
 <br>
