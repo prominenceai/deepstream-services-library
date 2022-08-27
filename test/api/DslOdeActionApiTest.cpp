@@ -214,6 +214,42 @@ SCENARIO( "A new Format Bounding Box ODE Action verifies its input parameters co
     }
 }
 
+SCENARIO( "A new Scale Bounding Box ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Scale Bounding Box ODE Action" ) 
+    {
+        std::wstring action_name1(L"scale-bbox-action-1");
+        std::wstring action_name2(L"scale-bbox-action-2");
+
+        WHEN( "A new Format Bounding Box Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_bbox_scale_new(action_name1.c_str(), 120) == 
+                DSL_RESULT_SUCCESS );
+
+            // second attempt must fail
+            REQUIRE( dsl_ode_action_bbox_scale_new(action_name1.c_str(), 120) == 
+                DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+            
+            // invalid scale factor must faile
+            REQUIRE( dsl_ode_action_bbox_scale_new(action_name2.c_str(), 90) == 
+                DSL_RESULT_ODE_ACTION_PARAMETER_INVALID );
+            
+            THEN( "The Format Bounding Box Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name1.c_str()) == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                
+                // second attempt must fail
+                REQUIRE( dsl_ode_action_delete(action_name1.c_str()) == 
+                    DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+                
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new Format Object Label ODE Action can be created and deleted", "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Format Object Label ODE Action" ) 

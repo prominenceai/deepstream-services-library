@@ -107,11 +107,15 @@ namespace DSL
     #define DSL_ODE_ACTION_FILL_SURROUNDINGS_NEW(name, pColor) \
         std::shared_ptr<FillSurroundingsOdeAction>(new FillSurroundingsOdeAction(name, pColor))
 
-    #define DSL_ODE_ACTION_FORMAT_BBOX_PTR std::shared_ptr<FormatBBoxOdeAction>
-    #define DSL_ODE_ACTION_FORMAT_BBOX_NEW(name, \
+    #define DSL_ODE_ACTION_BBOX_FORMAT_PTR std::shared_ptr<FormatBBoxOdeAction>
+    #define DSL_ODE_ACTION_BBOX_FORMAT_NEW(name, \
         borderWidth, pBorderColor, hasBgColor, pBgColor) \
         std::shared_ptr<FormatBBoxOdeAction>(new FormatBBoxOdeAction(name, \
             borderWidth, pBorderColor, hasBgColor, pBgColor))
+
+    #define DSL_ODE_ACTION_BBOX_SCALE_PTR std::shared_ptr<ScaleBBoxOdeAction>
+    #define DSL_ODE_ACTION_BBOX_SCALE_NEW(name, scale) \
+        std::shared_ptr<ScaleBBoxOdeAction>(new ScaleBBoxOdeAction(name, scale))
 
     #define DSL_ODE_ACTION_LABEL_CUSTOMIZE_PTR std::shared_ptr<CustomizeLabelOdeAction>
     #define DSL_ODE_ACTION_LABEL_CUSTOMIZE_NEW(name, contentTypes) \
@@ -332,6 +336,49 @@ namespace DSL
          * @brief Background color used to Fill the object's bounding box
          */
         DSL_RGBA_COLOR_PTR m_pBgColor;
+
+    };
+
+    // ********************************************************************
+
+    /**
+     * @class ScaleBBoxOdeAction
+     * @brief Scale Bounding Box ODE Action class
+     */
+    class ScaleBBoxOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Scale BBox ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] scale scale factor to apply to each ObjectMeta
+         */
+        ScaleBBoxOdeAction(const char* name, uint scale);
+        
+        /**
+         * @brief dtor for the ODE Scale BBox Action class
+         */
+        ~ScaleBBoxOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by scalling the bounding box of pObjectMeta
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief scale factor to apply to each ObjectMeta 
+         */
+        uint m_scale;
 
     };
 

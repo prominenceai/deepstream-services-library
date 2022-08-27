@@ -519,6 +519,17 @@ DslReturnType dsl_ode_action_bbox_format_new(const wchar_t* name, uint border_wi
         border_width, cstrBorderColor.c_str(), has_bg_color, cstrBgColor.c_str());
 }
 
+DslReturnType dsl_ode_action_bbox_scale_new(const wchar_t* name, uint scale)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionBBoxScaleNew(cstrName.c_str(), 
+        scale);
+}
+
 DslReturnType dsl_ode_action_label_format_new(const wchar_t* name, 
     const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
 {
