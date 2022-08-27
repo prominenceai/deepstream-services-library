@@ -740,6 +740,16 @@ def dsl_ode_action_bbox_format_new(name,
     return int(result)
 
 ##
+## dsl_ode_action_bbox_scale_new()
+##
+_dsl.dsl_ode_action_bbox_scale_new.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_ode_action_bbox_scale_new.restype = c_uint
+def dsl_ode_action_bbox_scale_new(name, scale):
+    global _dsl
+    result =_dsl.dsl_ode_action_bbox_scale_new(name, scale)
+    return int(result)
+
+##
 ## dsl_ode_action_custom_new()
 ##
 _dsl.dsl_ode_action_custom_new.argtypes = [c_wchar_p, DSL_ODE_HANDLE_OCCURRENCE, c_void_p]

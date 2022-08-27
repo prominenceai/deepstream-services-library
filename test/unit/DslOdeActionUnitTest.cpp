@@ -132,8 +132,8 @@ SCENARIO( "A new FormatBBoxOdeAction is created correctly", "[OdeAction]" )
 
         WHEN( "A new FormatBBoxOdeAction is created" )
         {
-            DSL_ODE_ACTION_FORMAT_BBOX_PTR pAction = 
-                DSL_ODE_ACTION_FORMAT_BBOX_NEW(actionName.c_str(), 
+            DSL_ODE_ACTION_BBOX_FORMAT_PTR pAction = 
+                DSL_ODE_ACTION_BBOX_FORMAT_NEW(actionName.c_str(), 
                     borderWidth, pBorderColor, hasBgColor, pBgColor);
 
             THEN( "The Action's members are setup and returned correctly" )
@@ -169,8 +169,8 @@ SCENARIO( "A FormatBBoxOdeAction handles an ODE Occurence correctly", "[OdeActio
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
-        DSL_ODE_ACTION_FORMAT_BBOX_PTR pAction = 
-            DSL_ODE_ACTION_FORMAT_BBOX_NEW(actionName.c_str(), 
+        DSL_ODE_ACTION_BBOX_FORMAT_PTR pAction = 
+            DSL_ODE_ACTION_BBOX_FORMAT_NEW(actionName.c_str(), 
                 borderWidth, pBorderColor, hasBgColor, pBgColor);
 
         WHEN( "A new ODE is created" )
@@ -193,6 +193,143 @@ SCENARIO( "A FormatBBoxOdeAction handles an ODE Occurence correctly", "[OdeActio
             {
                 pAction->HandleOccurrence(pTrigger, NULL, 
                     displayMetaData, &frameMeta, &objectMeta);
+            }
+        }
+    }
+}
+
+SCENARIO( "A new ScaleBBoxOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new ScaleBBoxOdeAction" ) 
+    {
+        std::string actionName("ode-action");
+
+        WHEN( "A new OdeAction is created with a valid scale factor" )
+        {
+            DSL_ODE_ACTION_BBOX_SCALE_PTR pAction = DSL_ODE_ACTION_BBOX_SCALE_NEW(
+                actionName.c_str(), 110);
+
+            THEN( "The Action's members are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A ScaleBBoxOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new ScaleBBoxOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        std::string source;
+        uint classId(1);
+        uint limit(1);
+        
+        std::string actionName("ode-action");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
+
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match Trigger's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.rect_params.left = 20;
+        objectMeta.rect_params.top = 20;
+        objectMeta.rect_params.width = 200;
+        objectMeta.rect_params.height = 100;
+        objectMeta.text_params.x_offset = 20;
+        objectMeta.text_params.y_offset = 10;
+        
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+        frameMeta.source_frame_width = DSL_DEFAULT_STREAMMUX_WIDTH;
+        frameMeta.source_frame_height = DSL_DEFAULT_STREAMMUX_HEIGHT;
+
+        WHEN( "the scale factor stays within frame" )
+        {
+            uint scale(110);
+
+            DSL_ODE_ACTION_BBOX_SCALE_PTR pAction = DSL_ODE_ACTION_BBOX_SCALE_NEW(
+                actionName.c_str(), scale);
+                
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                
+                uint exp_x_offset(10), exp_y_offset(5);
+                float exp_left(10), exp_top(15);
+                float exp_width(220), exp_height(110);
+                
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
+                    
+                REQUIRE( objectMeta.text_params.x_offset == exp_x_offset );
+                REQUIRE( objectMeta.text_params.y_offset == exp_y_offset );
+                REQUIRE( objectMeta.rect_params.left == exp_left );
+                REQUIRE( objectMeta.rect_params.top == exp_top );
+                REQUIRE( objectMeta.rect_params.width == exp_width );
+                REQUIRE( objectMeta.rect_params.height == exp_height );
+            }
+        }
+        WHEN( "the scale factor exceeds top left corner of the frame" )
+        {
+            uint scale(200);
+
+            DSL_ODE_ACTION_BBOX_SCALE_PTR pAction = DSL_ODE_ACTION_BBOX_SCALE_NEW(
+                actionName.c_str(), scale);
+                
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                uint exp_x_offset(0), exp_y_offset(0);
+                float exp_left(0), exp_top(0);
+                float exp_width(320), exp_height(170);
+                
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
+                    
+                REQUIRE( objectMeta.text_params.x_offset == exp_x_offset );
+                REQUIRE( objectMeta.text_params.y_offset == exp_y_offset );
+                REQUIRE( objectMeta.rect_params.left == exp_left );
+                REQUIRE( objectMeta.rect_params.top == exp_top );
+                REQUIRE( objectMeta.rect_params.width == exp_width );
+                REQUIRE( objectMeta.rect_params.height == exp_height );
+            }
+        }
+        WHEN( "the scale factor exceeds bottom right corner of the frame" )
+        {
+            uint scale(200);
+
+            DSL_ODE_ACTION_BBOX_SCALE_PTR pAction = DSL_ODE_ACTION_BBOX_SCALE_NEW(
+                actionName.c_str(), scale);
+                
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                objectMeta.rect_params.left = 
+                    (DSL_DEFAULT_STREAMMUX_WIDTH-210);
+                objectMeta.rect_params.top = 
+                    (DSL_DEFAULT_STREAMMUX_HEIGHT-110);
+                objectMeta.text_params.x_offset = objectMeta.rect_params.left;
+                objectMeta.text_params.y_offset = objectMeta.rect_params.top-10;
+                
+                uint exp_x_offset(1610), exp_y_offset(910);
+                float exp_left(1610), exp_top(920);
+                
+                // width and height clipped to max dimensions
+                float exp_width(309), exp_height(159);
+                
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
+                    
+                REQUIRE( objectMeta.text_params.x_offset == exp_x_offset );
+                REQUIRE( objectMeta.text_params.y_offset == exp_y_offset );
+                REQUIRE( objectMeta.rect_params.left == exp_left );
+                REQUIRE( objectMeta.rect_params.top == exp_top );
+                REQUIRE( objectMeta.rect_params.width == exp_width );
+                REQUIRE( objectMeta.rect_params.height == exp_height );
             }
         }
     }

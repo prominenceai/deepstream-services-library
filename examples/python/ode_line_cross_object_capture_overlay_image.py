@@ -291,6 +291,12 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Create a new Scale BBox Action to increase the capture area for the capture
+        # action defined below. We scale up by a factor of percentage
+        retval = dsl_ode_action_bbox_scale_new('scale-bbox-action', scale=150)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
         # Create a new Capture Action to capture the object to jpeg image, and save to file.
         retval = dsl_ode_action_capture_object_new('person-capture-action', outdir="./")
         if retval != DSL_RETURN_SUCCESS:
@@ -306,12 +312,14 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_ode_trigger_action_add_many('person-crossing-line',
-            actions=['person-capture-action', 'print-action', None])
+        # Make sure to add the scale-bbox action first.
+        retval = dsl_ode_trigger_action_add_many('person-crossing-line', actions=[
+            'scale-bbox-action', 'person-capture-action', 'print-action', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create the Image Render Player with a NULL file_path to by updated by the Capture Action
+        # Create the Image Render Player with a NULL file_path to by updated by 
+        # the Capture Action
         dsl_player_render_image_new(
             name = 'image-player',
             file_path = None,

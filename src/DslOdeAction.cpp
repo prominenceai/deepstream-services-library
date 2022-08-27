@@ -113,6 +113,87 @@ namespace DSL
     
     // ********************************************************************
 
+    ScaleBBoxOdeAction::ScaleBBoxOdeAction(const char* name, 
+        uint scale)
+        : OdeAction(name)
+        , m_scale(scale)
+    {
+        LOG_FUNC();
+    }
+
+    ScaleBBoxOdeAction::~ScaleBBoxOdeAction()
+    {
+        LOG_FUNC();
+    }
+
+    void ScaleBBoxOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled and pObjectMeta)
+        {   
+            // calculate the proposed delta change in width and height
+            
+            int proposedWidth(round((pObjectMeta->rect_params.width*m_scale)/100));
+            int proposedHeight(round((pObjectMeta->rect_params.height*m_scale)/100));
+            
+            int deltaWidth(proposedWidth - pObjectMeta->rect_params.width);
+            int deltaHeight(proposedHeight - pObjectMeta->rect_params.height);
+
+            // calculate the proposed upper left corner
+            int proposedLeft(pObjectMeta->rect_params.left - round(deltaWidth/2));
+            int proposedTop(pObjectMeta->rect_params.top - round(deltaHeight/2));
+            
+            // calculate the new upper left corner while ensuring that 
+            // it still lies within the frame - min 0,0
+            int newLeft = std::max(0, proposedLeft);
+            int newTop = std::max(0, proposedTop);
+
+            // calculate the current lower right corner
+            int currentRight(pObjectMeta->rect_params.left + 
+                pObjectMeta->rect_params.width);
+            int currentBottom(pObjectMeta->rect_params.top + 
+                pObjectMeta->rect_params.height);
+            
+            // calculate the proposed lower right corner
+            int proposedRight(currentRight + (deltaWidth/2));
+            int proposedBottom(currentBottom + (deltaHeight/2));
+            
+            // calculate the new lower right corner while ensuring that
+            // it still falls within the frame.
+            int newRight(std::min(proposedRight, 
+                (int)pFrameMeta->source_frame_width-1));
+            int newBottom(std::min(proposedBottom, 
+                (int)pFrameMeta->source_frame_height-1));
+            
+            // finally, calcuate the new width and height from the
+            // new top left and bottom right corner coordinates.
+            int newWidth(newRight - newLeft);
+            int newHeight(newBottom - newTop);
+            
+            // update the object-meta with the new values
+            pObjectMeta->rect_params.left = (float)newLeft;
+            pObjectMeta->rect_params.top = (float)newTop;
+            pObjectMeta->rect_params.width = (float)newWidth;
+            pObjectMeta->rect_params.height = (float)newHeight;
+            
+            // need to offset the label as well according to the delta
+            int proposedOffsetX(pObjectMeta->text_params.x_offset - (deltaWidth/2));
+            int proposedOffsetY(pObjectMeta->text_params.y_offset - (deltaHeight/2));
+            
+            int newOffsetX(std::max(0, proposedOffsetX));
+            int newOffsetY(std::max(0, proposedOffsetY));
+            
+            // update the object-meta with the new values
+            pObjectMeta->text_params.x_offset = (float)newOffsetX;
+            pObjectMeta->text_params.y_offset = (float)newOffsetY;
+        }
+    }
+
+    // ********************************************************************
+
     CustomOdeAction::CustomOdeAction(const char* name, 
         dsl_ode_handle_occurrence_cb clientHandler, void* clientData)
         : OdeAction(name)

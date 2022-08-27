@@ -181,6 +181,8 @@ namespace DSL {
             
         DslReturnType OdeActionBBoxFormatNew(const char* name,
             uint borderWidth, const char* borderColor, boolean hasBgColor, const char* bgColor);
+            
+        DslReturnType OdeActionBBoxScaleNew(const char* name, uint scale);
 
         DslReturnType OdeActionLabelCustomizeNew(const char* name, 
             const uint* contentTypes, uint size);

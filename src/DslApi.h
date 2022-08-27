@@ -2075,6 +2075,15 @@ DslReturnType dsl_ode_action_fill_surroundings_new(const wchar_t* name, const wc
  */
 DslReturnType dsl_ode_action_bbox_format_new(const wchar_t* name, uint border_width, 
     const wchar_t* border_color, boolean has_bg_color, const wchar_t* bg_color);
+    
+/**
+ * @brief Creates a uniquely named "Scale Bounding Box" ODE Action that scales
+ * and Objects bounding box by a given percentage.
+ * @param[in] name unique name for the "Scale Bounding Box" ODE Action. 
+ * @param[in] scale scale factor in units of percent.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_bbox_scale_new(const wchar_t* name, uint scale);
 
 /**
  * @brief Creates a uniquely named Disable Handler Action that disables
