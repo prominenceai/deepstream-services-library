@@ -180,8 +180,7 @@ namespace DSL
         // every object in every frame.
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
 
-        // Note: batch size is 0 until Tiler is linked... calls will fail until then
-        if (sourceId < 0 or sourceId >= (int)m_batchSize)
+        if (sourceId < 0)
         {
             LOG_ERROR("Invalid source Id '" << sourceId << "' for TilerBintr '" << GetName());
             return false;
