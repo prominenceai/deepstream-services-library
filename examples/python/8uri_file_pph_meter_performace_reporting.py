@@ -39,7 +39,7 @@ modelEngineFile = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 tracker_config_file = '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
-TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
+TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
 TILER_HEIGHT = 720
 
 WINDOW_WIDTH = TILER_WIDTH

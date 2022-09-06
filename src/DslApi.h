@@ -719,12 +719,17 @@ THE SOFTWARE.
 #define DSL_IMAGE_EXT_JPG                                           "jpg"
 #define DSL_IMAGE_EXT_PNG                                           "png"
 
+#define DSL_STREAMMUX_4K_UHD_WIDTH                                  3840
+#define DSL_STREAMMUX_4K_UHD_HEIGHT                                 2160
+#define DSL_STREAMMUX_1K_HD_WIDTH                                   1920
+#define DSL_STREAMMUX_1K_HD_HEIGHT                                  1080
 
-#define DSL_DEFAULT_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE             DSL_NVBUF_MEM_TYPE_DEFAULT
-#define DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT                         40000
-#define DSL_DEFAULT_STREAMMUX_WIDTH                                 1920
-#define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
-#define DSL_DEFAULT_STREAMMUX_MAX_NUM_SERFACES_PER_FRAME            1
+#define DSL_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE                     DSL_NVBUF_MEM_TYPE_DEFAULT
+#define DSL_STREAMMUX_DEFAULT_BATCH_TIMEOUT                         40000
+#define DSL_STREAMMUX_DEFAULT_WIDTH                                 DSL_STREAMMUX_1K_HD_WIDTH
+#define DSL_STREAMMUX_DEFAULT_HEIGHT                                DSL_STREAMMUX_1K_HD_HEIGHT
+#define DSL_STREAMMUX_DEFAULT_MAX_NUM_SERFACES_PER_FRAME            1
+
 
 #define DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC                     10
 #define DSL_DEFAULT_WAIT_FOR_EOS_TIMEOUT_IN_SEC                     2

@@ -40,7 +40,7 @@ primary_infer_config_file = \
 # IMPORTANT! ensure that the model-engine was generated with the config from the Preprocessing example
 #  - apps/sample_apps/deepstream-preprocess-test/config_infer.txt
 primary_model_engine_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b4_gpu0_fp16.engine'
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
@@ -101,8 +101,10 @@ def main(args):
             break
         
         # New Primary GIE using the filespecs above with interval = 0
+#        retval = dsl_infer_gie_primary_new('primary-gie', 
+#            primary_infer_config_file, primary_model_engine_file, 0)
         retval = dsl_infer_gie_primary_new('primary-gie', 
-            primary_infer_config_file, primary_model_engine_file, 0)
+            primary_infer_config_file, None, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -117,7 +119,7 @@ def main(args):
         retval = dsl_infer_gie_tensor_meta_settings_set('primary-gie',
             input_enabled=True, output_enabled=False);
 
-        # New KTL Tracker, setting max width and height of input frame
+        # New IOU Tracker, setting max width and height of input frame
         retval = dsl_tracker_iou_new('iou-tracker', tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break

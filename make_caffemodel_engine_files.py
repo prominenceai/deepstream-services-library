@@ -54,8 +54,8 @@ sgie2_config_file = \
 sgie3_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt'
 
-TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
-TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
+TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
+TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
 
 ## 
 # Function to be called on End-of-Stream (EOS) event

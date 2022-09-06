@@ -55,8 +55,8 @@ tracker_config_file = \
 
 # Window Sink Dimensions - used to create the sink, however, in this
 # example the Pipeline XWindow service is called to enabled full-sreen
-TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
-TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
+TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
+TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
 
 #WINDOW_WIDTH = TILER_WIDTH
 #WINDOW_HEIGHT = TILER_HEIGHT

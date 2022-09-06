@@ -86,8 +86,8 @@ static const std::wstring ode_print_action_name(L"print-action");
 static const std::wstring window_sink_name(L"window-sink");
 static const uint offsetX(0);
 static const uint offsetY(0);
-static const uint sinkW(DSL_DEFAULT_STREAMMUX_WIDTH);
-static const uint sinkH(DSL_DEFAULT_STREAMMUX_HEIGHT);
+static const uint sinkW(DSL_STREAMMUX_DEFAULT_WIDTH);
+static const uint sinkH(DSL_STREAMMUX_DEFAULT_HEIGHT);
 
 #define TIME_TO_SLEEP_FOR std::chrono::milliseconds(2000)
 

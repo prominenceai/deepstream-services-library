@@ -32,8 +32,8 @@ import tkinter as tk
 rtsp_uri = 'rtsp://user:pswd@192.168.1.64:554/Streaming/Channels/101'	
 
 # define stream-muxer output dimensions - typically set to common source dimensions
-STREAMMUX_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
-STREAMMUX_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT	
+STREAMMUX_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
+STREAMMUX_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT	
 
 # Tiler and Sink Window dimensions default to the same. 
 TILER_WIDTH = STREAMMUX_WIDTH

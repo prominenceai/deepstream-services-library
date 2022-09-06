@@ -205,6 +205,8 @@
     <File Name="../Makefile"/>
     <File Name="../README.md"/>
     <File Name="../.gitignore"/>
+    <File Name="../../DeepStream-Yolo/yolov7.cfg"/>
+    <File Name="../../DeepStream-Yolo/yolov7-tiny.cfg"/>
   </VirtualDirectory>
   <VirtualDirectory Name="examples">
     <VirtualDirectory Name="cpp">
@@ -280,6 +282,7 @@
       <File Name="../examples/python/1file_preproc_pgie_iou_osd_window.py"/>
       <File Name="../examples/python/interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.py"/>
       <File Name="../examples/python/interpipe_multiple_pipelines_listening_to_single_sink.py"/>
+      <File Name="../examples/python/4K_input_source_slicing_with_non_maximum_merge.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>

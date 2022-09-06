@@ -247,8 +247,8 @@ SCENARIO( "A ScaleBBoxOdeAction handles an ODE Occurence correctly", "[OdeAction
         frameMeta.frame_num = 444;
         frameMeta.ntp_timestamp = INT64_MAX;
         frameMeta.source_id = 2;
-        frameMeta.source_frame_width = DSL_DEFAULT_STREAMMUX_WIDTH;
-        frameMeta.source_frame_height = DSL_DEFAULT_STREAMMUX_HEIGHT;
+        frameMeta.source_frame_width = DSL_STREAMMUX_DEFAULT_WIDTH;
+        frameMeta.source_frame_height = DSL_STREAMMUX_DEFAULT_HEIGHT;
 
         WHEN( "the scale factor stays within frame" )
         {
@@ -309,9 +309,9 @@ SCENARIO( "A ScaleBBoxOdeAction handles an ODE Occurence correctly", "[OdeAction
             THEN( "The OdeAction can Handle the Occurrence" )
             {
                 objectMeta.rect_params.left = 
-                    (DSL_DEFAULT_STREAMMUX_WIDTH-210);
+                    (DSL_STREAMMUX_DEFAULT_WIDTH-210);
                 objectMeta.rect_params.top = 
-                    (DSL_DEFAULT_STREAMMUX_HEIGHT-110);
+                    (DSL_STREAMMUX_DEFAULT_HEIGHT-110);
                 objectMeta.text_params.x_offset = objectMeta.rect_params.left;
                 objectMeta.text_params.y_offset = objectMeta.rect_params.top-10;
                 
@@ -875,8 +875,8 @@ SCENARIO( "A OffsetLabelOdeAction handles an ODE Occurence correctly", "[OdeActi
         frameMeta.frame_num = 444;
         frameMeta.ntp_timestamp = INT64_MAX;
         frameMeta.source_id = 2;
-        frameMeta.source_frame_width = DSL_DEFAULT_STREAMMUX_WIDTH;
-        frameMeta.source_frame_height = DSL_DEFAULT_STREAMMUX_HEIGHT;
+        frameMeta.source_frame_width = DSL_STREAMMUX_DEFAULT_WIDTH;
+        frameMeta.source_frame_height = DSL_STREAMMUX_DEFAULT_HEIGHT;
 
         WHEN( "offsets are defined negative and in-frame" )
         {
@@ -948,13 +948,13 @@ SCENARIO( "A OffsetLabelOdeAction handles an ODE Occurence correctly", "[OdeActi
             DSL_ODE_ACTION_LABEL_OFFSET_PTR pAction = DSL_ODE_ACTION_LABEL_OFFSET_NEW(
                 actionName.c_str(), offsetX, offsetY);
 
-            objectMeta.text_params.x_offset = DSL_DEFAULT_STREAMMUX_WIDTH-10;
-            objectMeta.text_params.y_offset = DSL_DEFAULT_STREAMMUX_HEIGHT-10;;
+            objectMeta.text_params.x_offset = DSL_STREAMMUX_DEFAULT_WIDTH-10;
+            objectMeta.text_params.y_offset = DSL_STREAMMUX_DEFAULT_HEIGHT-10;;
                 
             THEN( "The OdeAction can Handle the Occurrence" )
             {
-                uint exp_x_offset(DSL_DEFAULT_STREAMMUX_WIDTH-1), 
-                    exp_y_offset(DSL_DEFAULT_STREAMMUX_HEIGHT-1);
+                uint exp_x_offset(DSL_STREAMMUX_DEFAULT_WIDTH-1), 
+                    exp_y_offset(DSL_STREAMMUX_DEFAULT_HEIGHT-1);
                 
                 pAction->HandleOccurrence(pTrigger, NULL, 
                     displayMetaData, &frameMeta, &objectMeta);
