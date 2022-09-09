@@ -2,9 +2,10 @@
 
 <img src="/Images/0roi_3840x2160_full_frame.png" alt="0 ROIs" width="960">
 
-![source slicing inference pipeline diagram](/Images/input-source-slicing.png)
+## Initial Inference Pipeline
+![source slicing inference pipeline diagram](/Images/input-source-slicing-1.png)
 
-## Input Source Component
+### Input Source Component
 The example uses a [Streaming Image Source](/docs/api-source.md#dsl_source_image_stream_new) to continuously stream the image at a specified frame rate. This allows us to use a multi-object tracker (MOT) to uniquely identify the objects detected in the image.
 
 ```Python
@@ -16,18 +17,7 @@ retval = dsl_source_image_stream_new('image-source', file_path=image_file,
     is_live=False, fps_n=10, fps_d=1, timeout=0)
 ```
 
-## Preprocessor Component
-
-```Python
-# Preprocessor config file is located under "/deepstream-services-library/test/configs"
-preproc_config_file = \
-    '../../test/configs/config_preprocess_4k_input_slicing.txt'
-    
-# New Preprocessor component using the config filespec defined above.
-retval = dsl_preproc_new('preprocessor', preproc_config_file)
-```
-
-## Primary Gst-Inference Engine Component
+### Primary Gst-Inference Engine Component
 
 ```Python
 # Filespecs for the Primary GIE
@@ -41,18 +31,10 @@ primary_model_engine_file = \
 # New Primary GIE using the filespecs above with interval = 0
 retval = dsl_infer_gie_primary_new('primary-gie', 
     primary_infer_config_file, primary_model_engine_file, 0)
-
-# **** IMPORTANT! for best performace we explicity set the GIE's batch-size 
-# to the number of ROI's defined in the Preprocessor configuraton file.
-retval = dsl_infer_batch_size_set('primary-gie', 3)
-
-# **** IMPORTANT! we must set the input-meta-tensor setting to true when
-# using the preprocessor, otherwise the GIE will use its own preprocessor.
-retval = dsl_infer_gie_tensor_meta_settings_set('primary-gie',
-    input_enabled=True, output_enabled=False);
 ```
 
-## IOU Multi-Object Tracker Component
+### IOU Multi-Object Tracker Component
+An IOU Tracker is used to uniquely identify the objects detected. The yaml configuration file provided with the DeepStream distribution is used for this example.
 
 ```Python
 # Configuration file for the IOU Tracker
@@ -63,23 +45,23 @@ tracker_config_file = \
 retval = dsl_tracker_iou_new('iou-tracker', tracker_config_file, 640, 368)
 ```
 
-## On-Screen Display Component
-
+### On-Screen Display Component
+An On-Screen Display (OSD) is used for visual verification. The display text and bbound box settings are enabled on creation.
 ```Python
-# New OSD with text, clock and bbox display all enabled. 
+# New OSD with text and bbox display enabled. 
 retval = dsl_osd_new('on-screen-display', 
-    text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+    text_enabled=True, clock_enabled=False, bbox_enabled=True, mask_enabled=False)
 ```
 
-## Window Sink Component
-
+### Window Sink Component
+A Window Sink is used to render the stream downstream of the On-Screen Display. 
 ```Python
 # New Window Sink, 0 x/y offsets - transpose image to HD dimensions for viewing
 retval = dsl_sink_window_new('window-sink', 0, 0, width=1920, height=1080)
 ```
 
-## Inference Pipeline
-
+### Inference Pipeline
+A Pipeline with a built-in Streammuxer is created with all Components added. The Streammuxer's deminsions are then set to match the UHD source dimensions. 
 ```Python
 # Add all the components to our pipeline
 retval = dsl_pipeline_new_component_add_many('pipeline', components=[
@@ -91,7 +73,7 @@ retval = dsl_pipeline_streammux_dimensions_set('pipeline',
     width=DSL_STREAMMUX_4K_UHD_WIDTH, height= DSL_STREAMMUX_4K_UHD_HEIGHT)
 ```
 
-## Frame Capture and File Data ODE Acions
+### Frame Capture and Print to Console ODE Acions
 
 ```Python
 # New Capture Frame ODE Action to capture and save the frame to the current directory
@@ -106,7 +88,7 @@ retval = dsl_ode_action_file_new('file-action',
     format=DSL_EVENT_FILE_FORMAT_MOTC, force_flush=False)
 ```
 
-## Occurrence ODE Triggers
+### Occurrence ODE Triggers
 
 ```Python
 # Two new Occurrence Triggers, both filtering on PERSON class_id.
@@ -134,6 +116,37 @@ retval = dsl_pph_ode_new('ode-handler')
 retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
     'person-occurrence-trigger-1', 'person-occurrence-trigger-2', None])
 ```
+
+## Three 1280 x 720 ROIs with no overlap
+![source slicing inference pipeline diagram](/Images/input-source-slicing-2.png)
+
+### Preprocessor Component
+
+```Python
+# Preprocessor config file is located under "/deepstream-services-library/test/configs"
+preproc_config_file = \
+    '../../test/configs/config_preprocess_4k_input_slicing.txt'
+    
+# New Preprocessor component using the config filespec defined above.
+retval = dsl_preproc_new('preprocessor', preproc_config_file)
+```
+
+```Python
+# **** IMPORTANT! for best performace we explicity set the GIE's batch-size 
+# to the number of ROI's defined in the Preprocessor configuraton file.
+retval = dsl_infer_batch_size_set('primary-gie', 3)
+
+# **** IMPORTANT! we must set the input-meta-tensor setting to true when
+# using the preprocessor, otherwise the GIE will use its own preprocessor.
+retval = dsl_infer_gie_tensor_meta_settings_set('primary-gie',
+    input_enabled=True, output_enabled=False);
+```
+
+## Three 1328 x 747 ROIs with 72 pixels of overlap
+![source slicing inference pipeline diagram](/Images/input-source-slicing-3.png)
+
+## Non-Maximum Processing
+![source slicing inference pipeline diagram](/Images/input-source-slicing-4.png)
 
 <table>
   <th>
