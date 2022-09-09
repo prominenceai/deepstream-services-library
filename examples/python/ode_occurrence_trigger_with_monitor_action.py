@@ -197,7 +197,7 @@ def main(args):
             break
 
         # Set a minimum confidence level to avoid false positives.
-        retval = dsl_ode_trigger_confidence_min_set('person-occurrence-trigger',
+        retval = dsl_ode_trigger_infer_confidence_min_set('person-occurrence-trigger',
             min_confidence = PERSON_MIN_CONFIDENCE)
         if retval != DSL_RETURN_SUCCESS:
             break

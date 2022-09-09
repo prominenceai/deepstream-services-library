@@ -2153,7 +2153,7 @@ DslReturnType dsl_ode_trigger_infer_set(const wchar_t* name,
         cstrName.c_str(), cstrInfer.c_str());
 }
 
-DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_infer_confidence_min_get(const wchar_t* name, 
     float* min_confidence)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -2165,7 +2165,7 @@ DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name,
         cstrName.c_str(), min_confidence);
 }
 
-DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_infer_confidence_min_set(const wchar_t* name, 
     float min_confidence)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -2177,7 +2177,7 @@ DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name,
         cstrName.c_str(), min_confidence);
 }
 
-DslReturnType dsl_ode_trigger_confidence_max_get(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_infer_confidence_max_get(const wchar_t* name, 
     float* max_confidence)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -2189,7 +2189,7 @@ DslReturnType dsl_ode_trigger_confidence_max_get(const wchar_t* name,
         cstrName.c_str(), max_confidence);
 }
 
-DslReturnType dsl_ode_trigger_confidence_max_set(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_infer_confidence_max_set(const wchar_t* name, 
     float max_confidence)
 {
     RETURN_IF_PARAM_IS_NULL(name);

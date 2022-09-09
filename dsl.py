@@ -1982,47 +1982,47 @@ def dsl_ode_trigger_limit_set(name, limit):
     return int(result)
 
 ##
-## dsl_ode_trigger_confidence_min_get()
+## dsl_ode_trigger_infer_confidence_min_get()
 ##
-_dsl.dsl_ode_trigger_confidence_min_get.argtypes = [c_wchar_p, POINTER(c_float)]
-_dsl.dsl_ode_trigger_confidence_min_get.restype = c_uint
-def dsl_ode_trigger_confidence_min_get(name):
+_dsl.dsl_ode_trigger_infer_confidence_min_get.argtypes = [c_wchar_p, POINTER(c_float)]
+_dsl.dsl_ode_trigger_infer_confidence_min_get.restype = c_uint
+def dsl_ode_trigger_infer_confidence_min_get(name):
     global _dsl
     min_confidence = c_float(0)
-    result =_dsl.dsl_ode_trigger_confidence_min_get(name, 
+    result =_dsl.dsl_ode_trigger_infer_confidence_min_get(name, 
         DSL_FLOAT_P(min_confidence))
     return int(result), min_confidence.value
 
 ##
-## dsl_ode_trigger_confidence_min_set()
+## dsl_ode_trigger_infer_confidence_min_set()
 ##
-_dsl.dsl_ode_trigger_confidence_min_set.argtypes = [c_wchar_p, c_float]
-_dsl.dsl_ode_trigger_confidence_min_set.restype = c_uint
-def dsl_ode_trigger_confidence_min_set(name, min_confidence):
+_dsl.dsl_ode_trigger_infer_confidence_min_set.argtypes = [c_wchar_p, c_float]
+_dsl.dsl_ode_trigger_infer_confidence_min_set.restype = c_uint
+def dsl_ode_trigger_infer_confidence_min_set(name, min_confidence):
     global _dsl
-    result =_dsl.dsl_ode_trigger_confidence_min_set(name, min_confidence)
+    result =_dsl.dsl_ode_trigger_infer_confidence_min_set(name, min_confidence)
     return int(result)
 
 ##
-## dsl_ode_trigger_confidence_max_get()
+## dsl_ode_trigger_infer_confidence_max_get()
 ##
-_dsl.dsl_ode_trigger_confidence_max_get.argtypes = [c_wchar_p, POINTER(c_float)]
-_dsl.dsl_ode_trigger_confidence_max_get.restype = c_uint
-def dsl_ode_trigger_confidence_max_get(name):
+_dsl.dsl_ode_trigger_infer_confidence_max_get.argtypes = [c_wchar_p, POINTER(c_float)]
+_dsl.dsl_ode_trigger_infer_confidence_max_get.restype = c_uint
+def dsl_ode_trigger_infer_confidence_max_get(name):
     global _dsl
     max_confidence = c_float(0)
-    result =_dsl.dsl_ode_trigger_confidence_max_get(name, 
+    result =_dsl.dsl_ode_trigger_infer_confidence_max_get(name, 
         DSL_FLOAT_P(max_confidence))
     return int(result), max_confidence.value
 
 ##
-## dsl_ode_trigger_confidence_max_set()
+## dsl_ode_trigger_infer_confidence_max_set()
 ##
-_dsl.dsl_ode_trigger_confidence_max_set.argtypes = [c_wchar_p, c_float]
-_dsl.dsl_ode_trigger_confidence_max_set.restype = c_uint
-def dsl_ode_trigger_confidence_max_set(name, max_confidence):
+_dsl.dsl_ode_trigger_infer_confidence_max_set.argtypes = [c_wchar_p, c_float]
+_dsl.dsl_ode_trigger_infer_confidence_max_set.restype = c_uint
+def dsl_ode_trigger_infer_confidence_max_set(name, max_confidence):
     global _dsl
-    result =_dsl.dsl_ode_trigger_confidence_max_set(name, max_confidence)
+    result =_dsl.dsl_ode_trigger_infer_confidence_max_set(name, max_confidence)
     return int(result)
 
 ##

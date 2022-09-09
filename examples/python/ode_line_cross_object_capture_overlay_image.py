@@ -252,7 +252,7 @@ def main(args):
             break
 
         # Set a minimum confidence level to avoid false negatives.
-        retval = dsl_ode_trigger_confidence_min_set('person-crossing-line',
+        retval = dsl_ode_trigger_infer_confidence_min_set('person-crossing-line',
             min_confidence = PERSON_MIN_CONFIDENCE)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -388,7 +388,7 @@ def main(args):
             break
 
         # Use same criteria as Cross Trigger
-        retval = dsl_ode_trigger_confidence_min_set('objects-sumation-trigger',
+        retval = dsl_ode_trigger_infer_confidence_min_set('objects-sumation-trigger',
             min_confidence = PERSON_MIN_CONFIDENCE)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -436,7 +436,7 @@ def main(args):
             break
 
         # Use same criteria as Cross and Summation Triggers
-        retval = dsl_ode_trigger_confidence_min_set('new-instance-trigger',
+        retval = dsl_ode_trigger_infer_confidence_min_set('new-instance-trigger',
             min_confidence = PERSON_MIN_CONFIDENCE)
         if retval != DSL_RETURN_SUCCESS:
             break

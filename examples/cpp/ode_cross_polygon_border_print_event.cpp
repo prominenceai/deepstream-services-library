@@ -202,7 +202,7 @@ int main(int argc, char** argv)
 
         // ********** IMPORT **********  need to set a minimum confidence level to
         // avoid false triggers when the bounding box coordinates are inaccurate.
-        retval = dsl_ode_trigger_confidence_min_set(person_cross_trigger.c_str(), 
+        retval = dsl_ode_trigger_infer_confidence_min_set(person_cross_trigger.c_str(), 
             0.40);
         if (retval != DSL_RESULT_SUCCESS) break;
             

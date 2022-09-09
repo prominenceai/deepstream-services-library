@@ -211,7 +211,7 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Set a minimum confidence level to avoid false positives.
-        retval = dsl_ode_trigger_confidence_min_set(L"person-occurrence-trigger",
+        retval = dsl_ode_trigger_infer_confidence_min_set(L"person-occurrence-trigger",
             PERSON_MIN_CONFIDENCE);
         if (retval != DSL_RESULT_SUCCESS) break;
             

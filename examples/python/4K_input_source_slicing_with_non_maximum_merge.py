@@ -166,7 +166,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_ode_trigger_confidence_max_set('every-low-conf-person-trigger',
+        retval = dsl_ode_trigger_infer_confidence_max_set('every-low-conf-person-trigger',
             max_confidence=0.31)
 
         retval = dsl_ode_trigger_action_add('every-low-conf-person-trigger', 

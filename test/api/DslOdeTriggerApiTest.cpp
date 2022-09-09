@@ -145,7 +145,7 @@ SCENARIO( "An ODE Trigger's Mimimum Inference Confidence setting can be set/get"
 
         float ret_min_confidence(99.9);
         
-        REQUIRE( dsl_ode_trigger_confidence_min_get(odeTriggerName.c_str(), 
+        REQUIRE( dsl_ode_trigger_infer_confidence_min_get(odeTriggerName.c_str(), 
             &ret_min_confidence) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_min_confidence == 0.0 );
 
@@ -153,12 +153,12 @@ SCENARIO( "An ODE Trigger's Mimimum Inference Confidence setting can be set/get"
         {
             float new_min_confidence(0.4);
             
-            REQUIRE( dsl_ode_trigger_confidence_min_set(odeTriggerName.c_str(), 
+            REQUIRE( dsl_ode_trigger_infer_confidence_min_set(odeTriggerName.c_str(), 
                 new_min_confidence) == DSL_RESULT_SUCCESS );
             
             THEN( "The correct value is returned on get" ) 
             {
-                REQUIRE( dsl_ode_trigger_confidence_min_get(odeTriggerName.c_str(), 
+                REQUIRE( dsl_ode_trigger_infer_confidence_min_get(odeTriggerName.c_str(), 
                     &ret_min_confidence) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_min_confidence == new_min_confidence );
                 REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
@@ -182,7 +182,7 @@ SCENARIO( "An ODE Trigger's Maximum Inference Confidence setting can be set/get"
 
         float ret_max_confidence(99.9);
         
-        REQUIRE( dsl_ode_trigger_confidence_max_get(odeTriggerName.c_str(), 
+        REQUIRE( dsl_ode_trigger_infer_confidence_max_get(odeTriggerName.c_str(), 
             &ret_max_confidence) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_max_confidence == 0.0 );
 
@@ -190,12 +190,12 @@ SCENARIO( "An ODE Trigger's Maximum Inference Confidence setting can be set/get"
         {
             float new_max_confidence(0.4);
             
-            REQUIRE( dsl_ode_trigger_confidence_max_set(odeTriggerName.c_str(), 
+            REQUIRE( dsl_ode_trigger_infer_confidence_max_set(odeTriggerName.c_str(), 
                 new_max_confidence) == DSL_RESULT_SUCCESS );
             
             THEN( "The correct value is returned on get" ) 
             {
-                REQUIRE( dsl_ode_trigger_confidence_max_get(odeTriggerName.c_str(), 
+                REQUIRE( dsl_ode_trigger_infer_confidence_max_get(odeTriggerName.c_str(), 
                     &ret_max_confidence) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_max_confidence == new_max_confidence );
                 REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
@@ -1812,10 +1812,10 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
                 REQUIRE( dsl_ode_trigger_infer_get(NULL, &infer) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_infer_get(triggerName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_infer_set(NULL, infer) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_confidence_min_get(NULL, &confidence) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_confidence_min_set(NULL, confidence) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_confidence_max_get(NULL, &confidence) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_confidence_max_set(NULL, confidence) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_infer_confidence_min_get(NULL, &confidence) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_infer_confidence_min_set(NULL, confidence) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_infer_confidence_max_get(NULL, &confidence) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_infer_confidence_max_set(NULL, confidence) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_tracker_confidence_min_get(NULL, &confidence) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_tracker_confidence_min_set(NULL, confidence) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_tracker_confidence_max_get(NULL, &confidence) == DSL_RESULT_INVALID_INPUT_PARAM );

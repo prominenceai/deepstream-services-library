@@ -3119,7 +3119,7 @@ DslReturnType dsl_ode_trigger_limit_set(const wchar_t* name, uint limit);
  * @param[out] min_confidence current minimum confidence criteria
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_infer_confidence_min_get(const wchar_t* name, 
     float* min_confidence);
 
 /**
@@ -3130,7 +3130,7 @@ DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name,
  * @param[in] min_confidence minimum confidence to trigger an ODE occurrence
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_infer_confidence_min_set(const wchar_t* name, 
     float min_confidence);
 
 /**
@@ -3140,7 +3140,7 @@ DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name,
  * @param[out] max_confidence current maximum confidence criteria
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_confidence_max_get(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_infer_confidence_max_get(const wchar_t* name, 
     float* max_confidence);
 
 /**
@@ -3151,7 +3151,7 @@ DslReturnType dsl_ode_trigger_confidence_max_get(const wchar_t* name,
  * @param[in] max_confidence maximum confidence to trigger an ODE occurrence
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_confidence_max_set(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_infer_confidence_max_set(const wchar_t* name, 
     float max_confidence);
 
 /**
