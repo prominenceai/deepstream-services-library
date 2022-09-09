@@ -190,6 +190,7 @@ DSL_RECORDING_EVENT_END   = 1
 
 DSL_EVENT_FILE_FORMAT_TEXT   = 0
 DSL_EVENT_FILE_FORMAT_CSV    = 1
+DSL_EVENT_FILE_FORMAT_MOTC   = 2
 
 DSL_WRITE_MODE_APPEND   = 0
 DSL_WRITE_MODE_TRUNCATE = 1
@@ -1018,6 +1019,16 @@ def dsl_ode_action_monitor_new(name, client_monitor, client_data):
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
     result = _dsl.dsl_ode_action_monitor_new(name, c_client_monitor, c_client_data)
+    return int(result)
+
+##
+## dsl_ode_action_object_remove_new()
+##
+_dsl.dsl_ode_action_object_remove_new.argtypes = [c_wchar_p]
+_dsl.dsl_ode_action_object_remove_new.restype = c_uint
+def dsl_ode_action_object_remove_new(name):
+    global _dsl
+    result =_dsl.dsl_ode_action_object_remove_new(name)
     return int(result)
 
 ##
@@ -1990,6 +2001,28 @@ _dsl.dsl_ode_trigger_confidence_min_set.restype = c_uint
 def dsl_ode_trigger_confidence_min_set(name, min_confidence):
     global _dsl
     result =_dsl.dsl_ode_trigger_confidence_min_set(name, min_confidence)
+    return int(result)
+
+##
+## dsl_ode_trigger_confidence_max_get()
+##
+_dsl.dsl_ode_trigger_confidence_max_get.argtypes = [c_wchar_p, POINTER(c_float)]
+_dsl.dsl_ode_trigger_confidence_max_get.restype = c_uint
+def dsl_ode_trigger_confidence_max_get(name):
+    global _dsl
+    max_confidence = c_float(0)
+    result =_dsl.dsl_ode_trigger_confidence_max_get(name, 
+        DSL_FLOAT_P(max_confidence))
+    return int(result), max_confidence.value
+
+##
+## dsl_ode_trigger_confidence_max_set()
+##
+_dsl.dsl_ode_trigger_confidence_max_set.argtypes = [c_wchar_p, c_float]
+_dsl.dsl_ode_trigger_confidence_max_set.restype = c_uint
+def dsl_ode_trigger_confidence_max_set(name, max_confidence):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_confidence_max_set(name, max_confidence)
     return int(result)
 
 ##

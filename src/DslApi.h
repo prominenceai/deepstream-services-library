@@ -2203,6 +2203,14 @@ DslReturnType dsl_ode_action_monitor_new(const wchar_t* name,
     dsl_ode_monitor_occurrence_cb client_monitor, void* client_data);
 
 /**
+ * @brief Creates a uniquely named Remove Object ODE Action, that removes an
+ * object's metadata from the current frame's metadata.
+ * @param name unique name for the Remove Object ODE Action.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_object_remove_new(const wchar_t* name);
+
+/**
  * @brief Creates a uniquely named Pause ODE Action
  * @param[in] name unique name for the Pause ODE Action 
  * @param[in] pipeline unique name of the Pipeline to Pause on ODE occurrence
@@ -3126,6 +3134,27 @@ DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name,
     float min_confidence);
 
 /**
+ * @brief Gets the current maximum confidence setting for the ODE Trigger
+ * A value of 0.0 (default) indicates the maximum confidence criteria is disabled
+ * @param[in] name unique name of the ODE Trigger to query
+ * @param[out] max_confidence current maximum confidence criteria
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_confidence_max_get(const wchar_t* name, 
+    float* max_confidence);
+
+/**
+ * @brief Sets the maximum confidence setting for the ODE Trigger.
+ * Setting the value of 0.0 indicates the maximum confidence criteria is disabled
+ * Note: the confidence level is only checked with the reported value is > 0.0
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] max_confidence maximum confidence to trigger an ODE occurrence
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_confidence_max_set(const wchar_t* name, 
+    float max_confidence);
+
+/**
  * @brief Gets the current minimum Tracker confidence setting for the ODE Trigger
  * A value of 0.0 (default) indicates the minimum Tracker confidence criteria is disabled
  * @param[in] name unique name of the ODE Trigger to query
@@ -3145,6 +3174,27 @@ DslReturnType dsl_ode_trigger_tracker_confidence_min_get(const wchar_t* name,
  */
 DslReturnType dsl_ode_trigger_tracker_confidence_min_set(const wchar_t* name, 
     float min_confidence);
+
+/**
+ * @brief Gets the current maximum Tracker confidence setting for the ODE Trigger
+ * A value of 0.0 (default) indicates the maximum Tracker confidence criteria is disabled
+ * @param[in] name unique name of the ODE Trigger to query
+ * @param[out] max_confidence current maximum Tracker confidence criteria
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_tracker_confidence_max_get(const wchar_t* name, 
+    float* max_confidence);
+
+/**
+ * @brief Sets the maximum Tracker confidence setting for the ODE Trigger
+ * Set the value of 0.0 to disable maximum Tracker confidence criteria.
+ * Note: the confidence level is only checked with the reported value is > 0.0
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] max_confidence maximum Tracker confidence to trigger an ODE occurrence
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_tracker_confidence_max_set(const wchar_t* name, 
+    float max_confidence);
 
 /**
  * @brief Gets the current minimum rectangle width and height values for the ODE Trigger

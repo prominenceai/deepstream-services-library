@@ -27,13 +27,14 @@
 import sys
 from dsl import *
 
+# 4K example image is located under "/deepstream-services-library/test/streams"
 image_file = "../../test/streams/4K-image.jpg"
 
-# Config file used with the Preprocessor
+# Preprocessor config file is located under "/deepstream-services-library/test/configs"
 preproc_config_file = \
     '../../test/configs/config_preprocess_4k_input_slicing.txt'
     
-# Filespecs for the Primary GIE and IOU Trcaker
+# Filespecs for the Primary GIE
 primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-preprocess-test/config_infer.txt'
 
@@ -41,6 +42,7 @@ primary_infer_config_file = \
 #  - apps/sample_apps/deepstream-preprocess-test/config_infer.txt
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b3_gpu0_fp16.engine'
+    
 tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
@@ -106,32 +108,102 @@ def main(args):
     while True:
 
         # --------------------------------------------------------------------------------
-        # Create a new Capture Action to capture the Frame to jpeg image, and save to file. 
-        retval = dsl_ode_action_label_customize_new('customize-label-action', 
-            content_types=[DSL_METRIC_OBJECT_CLASS, DSL_METRIC_OBJECT_TRACKING_ID, 
-            DSL_METRIC_OBJECT_CONFIDENCE_INFERENCE], size=3)
+        
+        retval = dsl_ode_action_object_remove_new('remove-object-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        retval = dsl_display_type_rgba_color_custom_new('solid-blue', 
+            red=0.2, green=0.2, blue=1.0, alpha=1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # create a list of X,Y coordinates defining the points of the Polygon.
+        # Polygon can have a minimum of 3, maximum of 16 points (sides)
+        coordinates = [dsl_coordinate(3165,1520), dsl_coordinate(3245,1516), 
+            dsl_coordinate(3245,1540), dsl_coordinate(3165,1540)]
+            
+        # Create the Polygon display type 
+        retval = dsl_display_type_rgba_polygon_new('polygon1', 
+            coordinates=coordinates, num_coordinates=len(coordinates), 
+            border_width=2, color='solid-blue')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # create the ODE inclusion area to use as criteria for ODE occurrence
+        retval = dsl_ode_area_inclusion_new('tree-area', polygon='polygon1', 
+            show=True, bbox_test_point=DSL_BBOX_POINT_ANY)    
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Occurrence Trigger, filtering on PERSON class_id, 
         # and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_occurrence_new('person-occurrence-trigger-1',
+        retval = dsl_ode_trigger_occurrence_new('every-tree-trigger',
+            source = DSL_ODE_ANY_SOURCE,
+            class_id = PGIE_CLASS_ID_PERSON, 
+            limit = DSL_ODE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        retval = dsl_ode_trigger_area_add('every-tree-trigger', 
+            area='tree-area')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        retval = dsl_ode_trigger_action_add('every-tree-trigger', 
+            action='remove-object-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # --------------------------------------------------------------------------------
+
+        # New Occurrence Trigger, filtering on PERSON class_id, 
+        # and with no limit on the number of occurrences
+        retval = dsl_ode_trigger_occurrence_new('every-low-conf-person-trigger',
             source = DSL_ODE_ANY_SOURCE,
             class_id = PGIE_CLASS_ID_PERSON, 
             limit = DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_ode_trigger_action_add('person-occurrence-trigger-1', 
-            action='customize-label-action')
+        retval = dsl_ode_trigger_confidence_max_set('every-low-conf-person-trigger',
+            max_confidence=0.31)
+
+        retval = dsl_ode_trigger_action_add('every-low-conf-person-trigger', 
+            action='remove-object-action')
         if retval != DSL_RETURN_SUCCESS:
             break
-        # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
-        retval = dsl_pph_ode_new('ode-handler-1')
+
+        # --------------------------------------------------------------------------------
+
+        # New Print Action to print each object's details to the console
+        retval = dsl_ode_action_print_new('print-action', force_flush=False)        
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pph_ode_trigger_add_many('ode-handler-1', triggers=[
-            'person-occurrence-trigger-1',None])
+
+        # New Occurrence Trigger, filtering on PERSON class_id, 
+        # and with no limit on the number of occurrences
+        retval = dsl_ode_trigger_occurrence_new('every-person-trigger',
+            source = DSL_ODE_ANY_SOURCE,
+            class_id = PGIE_CLASS_ID_PERSON, 
+            limit = DSL_ODE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        retval = dsl_ode_trigger_action_add('every-person-trigger', 
+            action='print-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New ODE Handler to handle the every-person     
+        retval = dsl_pph_ode_new('ode-handler-pre-osd')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        retval = dsl_pph_ode_trigger_add_many('ode-handler-pre-osd', triggers=[
+            'every-low-conf-person-trigger', 
+            'every-tree-trigger', 
+            'every-person-trigger', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -145,32 +217,28 @@ def main(args):
 
         # New Occurrence Trigger, filtering on PERSON class_id, 
         # and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_occurrence_new('person-occurrence-trigger-2',
+        retval = dsl_ode_trigger_occurrence_new('first-person-trigger',
             source = DSL_ODE_ANY_SOURCE,
             class_id = PGIE_CLASS_ID_PERSON, 
             limit = DSL_ODE_TRIGGER_LIMIT_ONE)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_ode_trigger_action_add('person-occurrence-trigger-2', 
+        retval = dsl_ode_trigger_action_add('first-person-trigger', 
             action='frame-capture-action')
         if retval != DSL_RETURN_SUCCESS:
             break
+            
         # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
-        retval = dsl_pph_ode_new('ode-handler-2')
+        retval = dsl_pph_ode_new('ode-handler-post-osd')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pph_ode_trigger_add_many('ode-handler-2', triggers=[
-            'person-occurrence-trigger-2',None])
+        retval = dsl_pph_ode_trigger_add('ode-handler-post-osd', 
+            trigger='first-person-trigger')
         if retval != DSL_RETURN_SUCCESS:
             break
             
         # --------------------------------------------------------------------------------
-
-        # New URI File Source using the filespec defined above
-#        retval = dsl_source_image_new('image-source', image_file)
-#        if retval != DSL_RETURN_SUCCESS:
-#            break
 
         retval = dsl_source_image_stream_new('image-source', file_path=image_file,
             is_live=False, fps_n=10, fps_d=1, timeout=0)
@@ -210,11 +278,11 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_osd_pph_add('on-screen-display', 'ode-handler-1', DSL_PAD_SINK)
+        retval = dsl_osd_pph_add('on-screen-display', 'ode-handler-pre-osd', DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_osd_pph_add('on-screen-display', 'ode-handler-2', DSL_PAD_SRC)
+        retval = dsl_osd_pph_add('on-screen-display', 'ode-handler-post-osd', DSL_PAD_SRC)
         if retval != DSL_RETURN_SUCCESS:
             break
 

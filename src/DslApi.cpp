@@ -943,6 +943,16 @@ DslReturnType dsl_ode_action_monitor_new(const wchar_t* name,
         client_monitor, client_data);
 }
 
+DslReturnType dsl_ode_action_object_remove_new(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionObjectRemoveNew(cstrName.c_str());
+}
+
 DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipeline)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -2167,6 +2177,30 @@ DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name,
         cstrName.c_str(), min_confidence);
 }
 
+DslReturnType dsl_ode_trigger_confidence_max_get(const wchar_t* name, 
+    float* max_confidence)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerConfidenceMaxGet(
+        cstrName.c_str(), max_confidence);
+}
+
+DslReturnType dsl_ode_trigger_confidence_max_set(const wchar_t* name, 
+    float max_confidence)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerConfidenceMaxSet(
+        cstrName.c_str(), max_confidence);
+}
+
 DslReturnType dsl_ode_trigger_tracker_confidence_min_get(const wchar_t* name, 
     float* min_confidence)
 {
@@ -2189,6 +2223,30 @@ DslReturnType dsl_ode_trigger_tracker_confidence_min_set(const wchar_t* name,
 
     return DSL::Services::GetServices()->OdeTriggerTrackerConfidenceMinSet(
         cstrName.c_str(), min_confidence);
+}
+
+DslReturnType dsl_ode_trigger_tracker_confidence_max_get(const wchar_t* name, 
+    float* max_confidence)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerTrackerConfidenceMaxGet(
+        cstrName.c_str(), max_confidence);
+}
+
+DslReturnType dsl_ode_trigger_tracker_confidence_max_set(const wchar_t* name, 
+    float max_confidence)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerTrackerConfidenceMaxSet(
+        cstrName.c_str(), max_confidence);
 }
 
 DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, 

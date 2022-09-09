@@ -48,7 +48,9 @@ namespace DSL
         , m_occurrences(0)
         , m_occurrencesAccumulated(0)
         , m_minConfidence(0)
+        , m_maxConfidence(0)
         , m_minTrackerConfidence(0)
+        , m_maxTrackerConfidence(0)
         , m_minWidth(0)
         , m_minHeight(0)
         , m_maxWidth(0)
@@ -573,6 +575,21 @@ namespace DSL
         m_minConfidence = minConfidence;
     }
     
+    float OdeTrigger::GetMaxConfidence()
+    {
+        LOG_FUNC();
+        
+        return m_maxConfidence;
+    }
+    
+    void OdeTrigger::SetMaxConfidence(float maxConfidence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_maxConfidence = maxConfidence;
+    }
+    
     float OdeTrigger::GetMinTrackerConfidence()
     {
         LOG_FUNC();
@@ -586,6 +603,21 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         m_minTrackerConfidence = minConfidence;
+    }
+    
+    float OdeTrigger::GetMaxTrackerConfidence()
+    {
+        LOG_FUNC();
+        
+        return m_maxTrackerConfidence;
+    }
+    
+    void OdeTrigger::SetMaxTrackerConfidence(float maxConfidence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_maxTrackerConfidence = maxConfidence;
     }
     
     void OdeTrigger::GetMinDimensions(float* minWidth, float* minHeight)
@@ -775,9 +807,21 @@ namespace DSL
         {
             return false;
         }
+        // Ensure that the maximum Inference confidence has been reached
+        if (pObjectMeta->confidence > 0 and m_maxConfidence and
+            pObjectMeta->confidence > m_maxConfidence)
+        {
+            return false;
+        }
         // Ensure that the minimum Tracker confidence has been reached
         if (pObjectMeta->tracker_confidence > 0 and 
             pObjectMeta->tracker_confidence < m_minTrackerConfidence)
+        {
+            return false;
+        }
+        // Ensure that the maximum Tracker confidence has been reached
+        if (pObjectMeta->tracker_confidence > 0 and m_maxTrackerConfidence and
+            pObjectMeta->tracker_confidence > m_maxTrackerConfidence)
         {
             return false;
         }

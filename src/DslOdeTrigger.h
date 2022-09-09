@@ -378,16 +378,40 @@ namespace DSL
         void SetMinConfidence(float minConfidence);
         
         /**
+         * @brief Gets the Maximum Inference Confidence to trigger the event
+         * @return the current Maximum Confidence value in use [0..1.0]
+         */
+        float GetMaxConfidence();
+        
+        /**
+         * @brief Sets the Maximum Inference Confidence to trigger the event
+         * @param maxConfidence new Maximum Confidence value to use
+         */
+        void SetMaxConfidence(float maxConfidence);
+        
+        /**
          * @brief Gets the Minimuum Tracker Confidence to trigger the event
          * @return the current Minimum Confidence value in use [0..1.0]
          */
         float GetMinTrackerConfidence();
         
         /**
-         * @brief Sets the Minumum Tracker Confidence to trigger the event
+         * @brief Sets the Minimum Tracker Confidence to trigger the event
          * @param minConfidence new Minumum Confidence value to use
          */
         void SetMinTrackerConfidence(float minConfidence);
+        
+        /**
+         * @brief Gets the Maximum Tracker Confidence to trigger the event
+         * @return the current Maximum Confidence value in use [0..1.0]
+         */
+        float GetMaxTrackerConfidence();
+        
+        /**
+         * @brief Sets the Maximum Tracker Confidence to trigger the event
+         * @param minConfidence new Maximum Confidence value to use
+         */
+        void SetMaxTrackerConfidence(float maxConfidence);
         
         /**
          * @brief Gets the current Minimum rectangle width and height to trigger the event
@@ -648,9 +672,19 @@ namespace DSL
         float m_minConfidence;
         
         /**
+         * Maximum inference confidence to trigger an ODE occurrence [0.0..1.0]
+         */
+        float m_maxConfidence;
+        
+        /**
          * Mininum tracker confidence to trigger an ODE occurrence [0.0..1.0]
          */
         float m_minTrackerConfidence;
+        
+        /**
+         * Maximum tracker confidence to trigger an ODE occurrence [0.0..1.0]
+         */
+        float m_maxTrackerConfidence;
         
         /**
          * @brief Minimum rectangle width to trigger an ODE occurrence

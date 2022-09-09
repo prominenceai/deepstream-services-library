@@ -295,16 +295,24 @@ namespace DSL
                     pOdeTrigger->PreProcessFrame(pBuffer, displayMetaData, pFrameMeta);
                 }
 
+                NvDsMetaList* pNextMeta = pFrameMeta->obj_meta_list;
+                
                 // For each detected object in the frame.
-                for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; 
-                    pMeta != NULL; pMeta = pMeta->next)
+                while (pNextMeta != NULL)
                 {
-                    // Check for valid object data
-                    NvDsObjectMeta* pObjectMeta = (NvDsObjectMeta*) (pMeta->data);
-                    if (pObjectMeta != NULL)
+                    NvDsObjectMeta* pObjectMeta = (NvDsObjectMeta*) (pNextMeta->data);
+
+                    // We need to advance the pointer now in case the object is removed
+                    // from the frame meta by an action which will null the pObjectMeta 
+                    // making pNextMeta in an invalid state an unable to increment. 
+                    pNextMeta = pNextMeta->next;
+
+                    // For each ODE Trigger owned by this ODE Manager, check for ODE
+                    for (const auto &imap: m_pChildrenIndexed)
                     {
-                        // For each ODE Trigger owned by this ODE Manager, check for ODE
-                        for (const auto &imap: m_pChildrenIndexed)
+                        // check for valid object meta as it may have be nulled by
+                        // a trigger with a remove action
+                        if (pObjectMeta != NULL)
                         {
                             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                                 std::dynamic_pointer_cast<OdeTrigger>(imap.second);
@@ -317,7 +325,7 @@ namespace DSL
                             {
                                 LOG_ERROR("Trigger '" << pOdeTrigger->GetName() 
                                     << "' threw exception");
-                            }                            
+                            }
                         }
                     }
                 }

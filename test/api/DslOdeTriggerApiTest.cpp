@@ -167,7 +167,44 @@ SCENARIO( "An ODE Trigger's Mimimum Inference Confidence setting can be set/get"
     }
 }    
 
-SCENARIO( "An ODE Trigger's Mimimum Trackr Confidence setting can be set/get", 
+SCENARIO( "An ODE Trigger's Maximum Inference Confidence setting can be set/get", 
+    "[ode-trigger-api]" )
+{
+    GIVEN( "An ODE Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"occurrence");
+        
+        uint class_id(9);
+        uint limit(0);
+
+        REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName.c_str(), 
+            NULL, class_id, limit) == DSL_RESULT_SUCCESS );
+
+        float ret_max_confidence(99.9);
+        
+        REQUIRE( dsl_ode_trigger_confidence_max_get(odeTriggerName.c_str(), 
+            &ret_max_confidence) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_max_confidence == 0.0 );
+
+        WHEN( "When the ODE Trigger's maximum confidence setting is updated" )
+        {
+            float new_max_confidence(0.4);
+            
+            REQUIRE( dsl_ode_trigger_confidence_max_set(odeTriggerName.c_str(), 
+                new_max_confidence) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_ode_trigger_confidence_max_get(odeTriggerName.c_str(), 
+                    &ret_max_confidence) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_confidence == new_max_confidence );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "An ODE Trigger's Mimimum Tracker Confidence setting can be set/get", 
     "[ode-trigger-api]" )
 {
     GIVEN( "An ODE Trigger" ) 
@@ -198,6 +235,43 @@ SCENARIO( "An ODE Trigger's Mimimum Trackr Confidence setting can be set/get",
                 REQUIRE( dsl_ode_trigger_tracker_confidence_min_get(odeTriggerName.c_str(), 
                     &ret_min_confidence) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_min_confidence == new_min_confidence );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "An ODE Trigger's Maximum Tracker Confidence setting can be set/get", 
+    "[ode-trigger-api]" )
+{
+    GIVEN( "An ODE Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"occurrence");
+        
+        uint class_id(9);
+        uint limit(0);
+
+        REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName.c_str(), 
+            NULL, class_id, limit) == DSL_RESULT_SUCCESS );
+
+        float ret_max_confidence(99.9);
+        
+        REQUIRE( dsl_ode_trigger_tracker_confidence_max_get(odeTriggerName.c_str(), 
+            &ret_max_confidence) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_max_confidence == 0.0 );
+
+        WHEN( "When the ODE Trigger's maximum confidence setting is updated" )
+        {
+            float new_max_confidence(0.4);
+            
+            REQUIRE( dsl_ode_trigger_tracker_confidence_max_set(odeTriggerName.c_str(), 
+                new_max_confidence) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_ode_trigger_tracker_confidence_max_get(odeTriggerName.c_str(), 
+                    &ret_max_confidence) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_confidence == new_max_confidence );
                 REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
@@ -1740,6 +1814,12 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
                 REQUIRE( dsl_ode_trigger_infer_set(NULL, infer) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_confidence_min_get(NULL, &confidence) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_confidence_min_set(NULL, confidence) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_confidence_max_get(NULL, &confidence) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_confidence_max_set(NULL, confidence) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_tracker_confidence_min_get(NULL, &confidence) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_tracker_confidence_min_set(NULL, confidence) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_tracker_confidence_max_get(NULL, &confidence) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_tracker_confidence_max_set(NULL, confidence) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_dimensions_min_get(NULL, &min_width, &min_height) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_dimensions_min_set(NULL, min_width, min_height) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_dimensions_max_get(NULL, &max_width, &max_height) == DSL_RESULT_INVALID_INPUT_PARAM );

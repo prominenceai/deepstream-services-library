@@ -211,6 +211,8 @@ namespace DSL {
             
         DslReturnType OdeActionMonitorNew(const char* name,
             dsl_ode_monitor_occurrence_cb clientMonitor, void* clientData);
+            
+        DslReturnType OdeActionObjectRemoveNew(const char* name);
 
         DslReturnType OdeActionEmailNew(const char* name, 
             const char* mailer, const char* subject);
@@ -451,11 +453,23 @@ namespace DSL {
         DslReturnType OdeTriggerConfidenceMinSet(const char* name, 
             float minConfidence);
         
+        DslReturnType OdeTriggerConfidenceMaxGet(const char* name, 
+            float* maxConfidence);
+        
+        DslReturnType OdeTriggerConfidenceMaxSet(const char* name, 
+            float maxConfidence);
+        
         DslReturnType OdeTriggerTrackerConfidenceMinGet(const char* name, 
             float* minConfidence);
         
         DslReturnType OdeTriggerTrackerConfidenceMinSet(const char* name, 
             float minConfidence);
+        
+        DslReturnType OdeTriggerTrackerConfidenceMaxGet(const char* name, 
+            float* maxConfidence);
+        
+        DslReturnType OdeTriggerTrackerConfidenceMaxSet(const char* name, 
+            float maxConfidence);
         
         DslReturnType OdeTriggerDimensionsMinGet(const char* name, 
             float* min_width, float* min_height);

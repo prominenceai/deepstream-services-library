@@ -1524,6 +1524,62 @@ namespace DSL
         }
     }                
 
+    DslReturnType Services::OdeTriggerConfidenceMaxGet(const char* 
+        name, float* maxConfidence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            *maxConfidence = pOdeTrigger->GetMaxConfidence();
+            
+            LOG_INFO("Trigger '" << name << "' returned maximum confidence = " 
+                << *maxConfidence << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting maximum confidence");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerConfidenceMaxSet(const char* name, 
+        float maxConfidence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->SetMaxConfidence(maxConfidence);
+
+            LOG_INFO("Trigger '" << name << "' set maximum confidence = " 
+                << maxConfidence << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting minimum confidence");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
     DslReturnType Services::OdeTriggerTrackerConfidenceMinGet(const char* 
         name, float* minConfidence)
     {
@@ -1569,6 +1625,62 @@ namespace DSL
 
             LOG_INFO("Trigger '" << name << "' set minimum Tracker confidence = " 
                 << minConfidence << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting minimum Tracker confidence");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerTrackerConfidenceMaxGet(const char* 
+        name, float* maxConfidence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            *maxConfidence = pOdeTrigger->GetMaxTrackerConfidence();
+            
+            LOG_INFO("Trigger '" << name << "' returned maximum Tracker confidence = " 
+                << *maxConfidence << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting maximum Tracker confidence");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerTrackerConfidenceMaxSet(const char* name, 
+        float maxConfidence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->SetMaxTrackerConfidence(maxConfidence);
+
+            LOG_INFO("Trigger '" << name << "' set maximum Tracker confidence = " 
+                << maxConfidence << " successfully");
             
             return DSL_RESULT_SUCCESS;
         }

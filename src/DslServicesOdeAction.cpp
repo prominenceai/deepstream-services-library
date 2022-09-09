@@ -38,7 +38,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -76,7 +76,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -306,7 +306,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -335,7 +335,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -371,7 +371,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -516,7 +516,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -549,7 +549,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -601,7 +601,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -632,7 +632,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -684,7 +684,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -720,7 +720,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -757,7 +757,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -818,7 +818,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -876,7 +876,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -903,7 +903,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -929,7 +929,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1024,7 +1024,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1087,7 +1087,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1107,6 +1107,34 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::OdeActionObjectRemoveNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure action name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_OBJECT_REMOVE_NEW(name);
+
+            LOG_INFO("New ODE Remove Object Action '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Remove Object Action '" 
+                << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::OdeActionPauseNew(const char* name, const char* pipeline)
     {
         LOG_FUNC();
@@ -1114,7 +1142,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1141,7 +1169,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1167,7 +1195,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1194,7 +1222,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1221,7 +1249,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1248,7 +1276,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1283,7 +1311,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1318,7 +1346,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1345,7 +1373,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1372,7 +1400,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1407,7 +1435,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1440,7 +1468,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1466,7 +1494,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1493,7 +1521,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1519,7 +1547,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1545,7 +1573,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1571,7 +1599,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1598,7 +1626,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
@@ -1625,7 +1653,7 @@ namespace DSL
 
         try
         {
-            // ensure event name uniqueness 
+            // ensure action name uniqueness 
             if (m_odeActions.find(name) != m_odeActions.end())
             {   
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
