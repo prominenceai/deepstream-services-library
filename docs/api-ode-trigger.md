@@ -85,10 +85,14 @@ A single ODE Heat-Mapper can be added to a single ODE Trigger. An ODE Heat-Mappe
 * [dsl_ode_trigger_limit_set](#dsl_ode_trigger_limit_set)
 * [dsl_ode_trigger_limit_event_listener_add](#dsl_ode_trigger_limit_event_listener_add)
 * [dsl_ode_trigger_limit_event_listener_remove](#dsl_ode_trigger_limit_event_listener_remove)
-* [dsl_ode_trigger_confidence_min_get](#dsl_ode_trigger_confidence_min_get)
-* [dsl_ode_trigger_confidence_min_set](#dsl_ode_trigger_confidence_min_set)
+* [dsl_ode_trigger_infer_confidence_min_get](#dsl_ode_trigger_infer_confidence_min_get)
+* [dsl_ode_trigger_infer_confidence_min_set](#dsl_ode_trigger_infer_confidence_min_set)
+* [dsl_ode_trigger_infer_confidence_max_get](#dsl_ode_trigger_infer_confidence_max_get)
+* [dsl_ode_trigger_infer_confidence_max_set](#dsl_ode_trigger_infer_confidence_max_set)
 * [dsl_ode_trigger_tracker_confidence_min_get](#dsl_ode_trigger_tracker_confidence_min_get)
 * [dsl_ode_trigger_tracker_confidence_min_set](#dsl_ode_trigger_tracker_confidence_min_set)
+* [dsl_ode_trigger_tracker_confidence_max_get](#dsl_ode_trigger_tracker_confidence_max_get)
+* [dsl_ode_trigger_tracker_confidence_max_set](#dsl_ode_trigger_tracker_confidence_max_set)
 * [dsl_ode_trigger_dimensions_min_get](#dsl_ode_trigger_dimensions_min_get)
 * [dsl_ode_trigger_dimensions_min_set](#dsl_ode_trigger_dimensions_min_set)
 * [dsl_ode_trigger_dimensions_max_get](#dsl_ode_trigger_dimensions_max_get)
@@ -1473,12 +1477,13 @@ retval = dsl_ode_trigger_limit_event_listener_remove('my-occurrence-trigger',
 
 <br>
 
-### *dsl_ode_trigger_confidence_min_get*
+### *dsl_ode_trigger_infer_confidence_min_get*
 ```c++
-DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, double* min_confidence);
+DslReturnType dsl_ode_trigger_infer_confidence_min_get(const wchar_t* name, 
+    double* min_confidence);
 ```
 
-This service returns the current minimum Inference confidence criteria for the named ODE Trigger. A value of 0 (default) indicates that the criteria is disable and the detected object's Inference confidence value will not be used as criteria for ODE occurrence.
+This service returns the current minimum Inference confidence criteria for the named ODE Trigger. A value of 0 (default) indicates that the criteria is disable and the detected object's minimum Inference confidence value will not be used as criteria for ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
@@ -1489,17 +1494,18 @@ This service returns the current minimum Inference confidence criteria for the n
 
 **Python Example**
 ```Python
-retval, min_confidence = dsl_ode_trigger_confidence_min_get('my-trigger')
+retval, min_confidence = dsl_ode_trigger_infer_confidence_min_get('my-trigger')
 ```
 
 <br>
 
-### *dsl_ode_trigger_confidence_min_set*
+### *dsl_ode_trigger_infer_confidence_min_set*
 ```c++
-DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, double min_confidence);
+DslReturnType dsl_ode_trigger_infer_confidence_min_set(const wchar_t* name, 
+    double min_confidence);
 ```
 
-This service sets the minimum Inference confidence criteria for the named ODE Trigger. A value of 0 disables the filter and the Inference confidence level will not be used as criteria for ODE occurrence.
+This service sets the minimum Inference confidence criteria for the named ODE Trigger. A value of 0 disables the filter and the minimum Inference confidence level will not be used as criteria for ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
@@ -1510,7 +1516,51 @@ This service sets the minimum Inference confidence criteria for the named ODE Tr
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_confidence_min_set('my-trigger', min_confidence)
+retval = dsl_ode_trigger_infer_confidence_min_set('my-trigger', min_confidence)
+```
+
+<br>
+
+### *dsl_ode_trigger_infer_confidence_max_get*
+```c++
+DslReturnType dsl_ode_trigger_infer_confidence_max_get(const wchar_t* name, 
+    double* max_confidence);
+```
+
+This service returns the current maximum Inference confidence criteria for the named ODE Trigger. A value of 0 (default) indicates that the criteria is disable and the detected object's maximum Inference confidence value will not be used as criteria for ODE occurrence.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to query.
+* `max_confidence` - [out] current maximum confidence value between 0.0 and 1.0 for the ODE Trigger to filter on, 0 indicates disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, max_confidence = dsl_ode_trigger_infer_confidence_max_get('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_infer_confidence_max_set*
+```c++
+DslReturnType dsl_ode_trigger_infer_confidence_max_set(const wchar_t* name, 
+    double min_confidence);
+```
+
+This service sets the maximum Inference confidence criteria for the named ODE Trigger. A value of 0 disables the filter and the maximum Inference confidence level will not be used as criteria for ODE occurrence.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to query.
+* `max_confidence` - [in] new maximum confidence value as criteria for the ODE Trigger to filter on, or 0 to disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_infer_confidence_max_set('my-trigger', 0.30)
 ```
 
 <br>
@@ -1520,7 +1570,7 @@ retval = dsl_ode_trigger_confidence_min_set('my-trigger', min_confidence)
 DslReturnType dsl_ode_trigger_tracker_confidence_min_get(const wchar_t* name, double* min_confidence);
 ```
 
-This service returns the current minimum Tracker confidence criteria for the named ODE Trigger. A value of 0 (default) indicates that the criteria is disable and the detected object's Tracker confidence value will not be used as criteria for ODE occurrence.
+This service returns the current minimum Tracker confidence criteria for the named ODE Trigger. A value of 0 (default) indicates that the criteria is disable and the detected object's mimimum Tracker confidence value will not be used as criteria for ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
@@ -1541,7 +1591,7 @@ retval, min_confidence = dsl_ode_trigger_tracker_confidence_min_get('my-trigger'
 DslReturnType dsl_ode_trigger_tracker_confidence_min_set(const wchar_t* name, double min_confidence);
 ```
 
-This service sets the minimum Tracker confidence criteria for the named ODE Trigger. A value of 0 disables the filter and the Tracker confidence level will not be used as criteria for ODE occurrence.
+This service sets the minimum Tracker confidence criteria for the named ODE Trigger. A value of 0 disables the filter and the minimum Tracker confidence level will not be used as criteria for ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
@@ -1553,6 +1603,48 @@ This service sets the minimum Tracker confidence criteria for the named ODE Trig
 **Python Example**
 ```Python
 retval = dsl_ode_trigger_tracker_confidence_min_set('my-trigger', min_confidence)
+```
+
+<br>
+
+### *dsl_ode_trigger_tracker_confidence_max_get*
+```c++
+DslReturnType dsl_ode_trigger_tracker_confidence_max_get(const wchar_t* name, double* min_confidence);
+```
+
+This service returns the current maximum Tracker confidence criteria for the named ODE Trigger. A value of 0 (default) indicates that the criteria is disable and the detected object's maximum Tracker confidence value will not be used as criteria for ODE occurrence.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to query.
+* `max_confidence` - [out] current maximum confidence value between 0.0 and 1.0 for the ODE Trigger to filter on, 0 indicates disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, max_confidence = dsl_ode_trigger_tracker_confidence_max_get('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_tracker_confidence_max_set*
+```c++
+DslReturnType dsl_ode_trigger_tracker_confidence_max_set(const wchar_t* name, double min_confidence);
+```
+
+This service sets the maximum Tracker confidence criteria for the named ODE Trigger. A value of 0 disables the filter and the maximum Tracker confidence level will not be used as criteria for ODE occurrence.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to query.
+* `max_confidence` - [in] new maximum confidence value as criteria for the ODE Trigger to filter on, or 0 to disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_tracker_confidence_max _set('my-trigger', min_confidence)
 ```
 
 <br>
