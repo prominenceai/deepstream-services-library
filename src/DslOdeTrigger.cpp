@@ -92,47 +92,6 @@ namespace DSL
         g_mutex_clear(&m_resetTimerMutex);
     }
 
-    uint OdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
-        std::vector<NvDsDisplayMeta*>& displayMetaData,
-        NvDsFrameMeta* pFrameMeta)
-    {
-        // Note: function is called from the system (callback) context
-        // Gaurd against property updates from the client API
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
-        // Filter on skip-frame interval
-        if (!m_enabled or m_skipFrame)
-        {
-            return 0;
-        }
-
-        // If the client has added an accumulator, 
-        if (m_pAccumulator)
-        {
-            m_occurrencesAccumulated += m_occurrences;
-            
-            pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] = 
-                DSL_FRAME_INFO_OCCURRENCES;
-            pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] = 
-                m_occurrencesAccumulated;
-                
-            DSL_ODE_ACCUMULATOR_PTR pOdeAccumulator = 
-                std::dynamic_pointer_cast<OdeAccumulator>(m_pAccumulator);
-                
-            pOdeAccumulator->HandleOccurrences(shared_from_this(),
-                pBuffer, displayMetaData, pFrameMeta);
-        }
-        
-        // If the client has added a heat-mapper
-        if (m_pHeatMapper)
-        {
-            std::dynamic_pointer_cast<OdeHeatMapper>(m_pHeatMapper)->AddDisplayMeta(
-                displayMetaData);
-        }
-        
-        return m_occurrences;
-    }        
-    
     bool OdeTrigger::AddAction(DSL_BASE_PTR pChild)
     {
         LOG_FUNC();
@@ -417,7 +376,14 @@ namespace DSL
         
         // Else, if the Trigger has reached its limit and the 
         // client is setting a Timeout value, start the timer.
-        else if (m_eventLimit and m_triggered >= m_eventLimit and timeout)
+        else if (m_eventLimit and (m_triggered >= m_eventLimit) and timeout)
+        {
+            m_resetTimerId = g_timeout_add(1000*m_resetTimeout, 
+                TriggerResetTimeoutHandler, this);            
+        } 
+        // Else, if the Trigger has reached its frame limit and the 
+        // client is setting a Timeout value, start the timer.
+        else if (m_frameLimit and (m_frameCount >= m_frameLimit) and timeout)
         {
             m_resetTimerId = g_timeout_add(1000*m_resetTimeout, 
                 TriggerResetTimeoutHandler, this);            
@@ -807,20 +773,37 @@ namespace DSL
             }
         }
         m_skipFrame = false;
+    }
+
+    uint OdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+        std::vector<NvDsDisplayMeta*>& displayMetaData,
+        NvDsFrameMeta* pFrameMeta)
+    {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
-        // Don't start incrementing the frame-count until the Trigger has fired once.
-        if (!m_triggered)
+        // Filter on skip-frame interval
+        if (!m_enabled or m_skipFrame)
         {
-            return;
+            return 0;
         }
 
-        m_frameCount++;
+        // Don't start incrementing the frame-count until after the
+        // first ODE occurrence. 
+        if (m_triggered)
+        {
+            m_frameCount++;
+        }
+
+        // Check to see if frame limit is enabled and exceeded
         if (m_frameLimit and (m_frameCount > m_frameLimit))
         {
-            return;
+            return 0;
         }
 
-        if (m_frameCount == m_frameLimit)
+        // Else, if frame limit is enabled and reached in this frame
+        if (m_frameLimit and (m_frameCount == m_frameLimit))
         {
             // iterate through the map of limit-event-listeners calling each
             for(auto const& imap: m_limitStateChangeListeners)
@@ -841,8 +824,34 @@ namespace DSL
                     TriggerResetTimeoutHandler, this);            
             }
         }
-    }
 
+        // If the client has added an accumulator, 
+        if (m_pAccumulator)
+        {
+            m_occurrencesAccumulated += m_occurrences;
+            
+            pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] = 
+                DSL_FRAME_INFO_OCCURRENCES;
+            pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] = 
+                m_occurrencesAccumulated;
+                
+            DSL_ODE_ACCUMULATOR_PTR pOdeAccumulator = 
+                std::dynamic_pointer_cast<OdeAccumulator>(m_pAccumulator);
+                
+            pOdeAccumulator->HandleOccurrences(shared_from_this(),
+                pBuffer, displayMetaData, pFrameMeta);
+        }
+        
+        // If the client has added a heat-mapper
+        if (m_pHeatMapper)
+        {
+            std::dynamic_pointer_cast<OdeHeatMapper>(m_pHeatMapper)->AddDisplayMeta(
+                displayMetaData);
+        }
+        
+        return m_occurrences;
+    }        
+    
     bool OdeTrigger::CheckForMinCriteria(NvDsFrameMeta* pFrameMeta, 
         NvDsObjectMeta* pObjectMeta)
     {

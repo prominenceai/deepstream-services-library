@@ -381,7 +381,7 @@ SCENARIO( "An ODE Trigger's classId can be set/get", "[ode-trigger-api]" )
     }
 }    
 
-SCENARIO( "An ODE Trigger's limit can be set/get", "[ode-trigger-api]" )
+SCENARIO( "An ODE Trigger's event limit can be set/get", "[ode-trigger-api]" )
 {
     GIVEN( "An ODE Trigger" ) 
     {
@@ -412,6 +412,45 @@ SCENARIO( "An ODE Trigger's limit can be set/get", "[ode-trigger-api]" )
             THEN( "The correct value is returned on get" ) 
             {
                 REQUIRE( dsl_ode_trigger_limit_event_get(odeTriggerName.c_str(), 
+                    &ret_limit) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_limit == new_limit );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "An ODE Trigger's frame limit can be set/get", "[ode-trigger-api]" )
+{
+    GIVEN( "An ODE Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"occurrence");
+        
+        uint class_id(9);
+        uint limit(0);
+
+        REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName.c_str(), 
+            NULL, class_id, limit) == DSL_RESULT_SUCCESS );
+
+        uint ret_class_id(0);
+        REQUIRE( dsl_ode_trigger_class_id_get(odeTriggerName.c_str(), 
+            &ret_class_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_class_id == class_id );
+
+        uint ret_limit(99);
+        REQUIRE( dsl_ode_trigger_limit_frame_get(odeTriggerName.c_str(), 
+            &ret_limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_limit == 0 );
+
+        WHEN( "When the Trigger's limit is updated" )         
+        {
+            uint new_limit(44);
+            REQUIRE( dsl_ode_trigger_limit_frame_set(odeTriggerName.c_str(), 
+                new_limit) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_ode_trigger_limit_frame_get(odeTriggerName.c_str(), 
                     &ret_limit) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_limit == new_limit );
                 REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
@@ -1796,6 +1835,13 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
                 REQUIRE( dsl_ode_trigger_reset(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_limit_state_change_listener_add(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_limit_state_change_listener_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_trigger_limit_event_get(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_limit_event_get(triggerName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_limit_event_set(NULL, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_limit_frame_get(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_limit_frame_get(triggerName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_limit_frame_set(NULL, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
                 REQUIRE( dsl_ode_trigger_enabled_get(NULL, &enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_enabled_set(NULL, enabled) == DSL_RESULT_INVALID_INPUT_PARAM );

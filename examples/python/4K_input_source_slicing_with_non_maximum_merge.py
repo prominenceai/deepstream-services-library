@@ -202,6 +202,8 @@ def main(args):
         # the same Image at a set framerate to constant tracking and viewing.
         retval = dsl_ode_trigger_limit_frame_set('every-person-trigger',
             DSL_ODE_TRIGGER_LIMIT_ONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # New Print Action to print each details of each ODE to the console.
         retval = dsl_ode_action_print_new('print-action', force_flush=False)        

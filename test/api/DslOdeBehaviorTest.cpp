@@ -1584,7 +1584,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Offse
 }
 
 SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Scale BBox Action can play", 
-    "[temp]" )
+    "[ode-behavior]" )
 {
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Scale Action" ) 
     {
