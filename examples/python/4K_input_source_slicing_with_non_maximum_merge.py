@@ -108,138 +108,10 @@ def main(args):
     while True:
 
         # --------------------------------------------------------------------------------
-        
-        retval = dsl_ode_action_object_remove_new('remove-object-action')
-        if retval != DSL_RETURN_SUCCESS:
-            break
+        # Step 1: We build the (final stage) Inference Pipeline with an Image-Source,
+        # Preprocessor, Primary GIE, IOU Tracker, On-Screen Display, and Window Sink.
 
-        retval = dsl_display_type_rgba_color_custom_new('solid-blue', 
-            red=0.2, green=0.2, blue=1.0, alpha=1.0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # create a list of X,Y coordinates defining the points of the Polygon.
-        # Polygon can have a minimum of 3, maximum of 16 points (sides)
-        coordinates = [dsl_coordinate(3165,1520), dsl_coordinate(3245,1516), 
-            dsl_coordinate(3245,1540), dsl_coordinate(3165,1540)]
-            
-        # Create the Polygon display type 
-        retval = dsl_display_type_rgba_polygon_new('polygon1', 
-            coordinates=coordinates, num_coordinates=len(coordinates), 
-            border_width=2, color='solid-blue')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # create the ODE inclusion area to use as criteria for ODE occurrence
-        retval = dsl_ode_area_inclusion_new('tree-area', polygon='polygon1', 
-            show=True, bbox_test_point=DSL_BBOX_POINT_ANY)    
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New Occurrence Trigger, filtering on PERSON class_id, 
-        # and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_occurrence_new('every-tree-trigger',
-            source = DSL_ODE_ANY_SOURCE,
-            class_id = PGIE_CLASS_ID_PERSON, 
-            limit = DSL_ODE_TRIGGER_LIMIT_NONE)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        retval = dsl_ode_trigger_area_add('every-tree-trigger', 
-            area='tree-area')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_ode_trigger_action_add('every-tree-trigger', 
-            action='remove-object-action')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # --------------------------------------------------------------------------------
-
-        # New Occurrence Trigger, filtering on PERSON class_id, 
-        # and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_occurrence_new('every-low-conf-person-trigger',
-            source = DSL_ODE_ANY_SOURCE,
-            class_id = PGIE_CLASS_ID_PERSON, 
-            limit = DSL_ODE_TRIGGER_LIMIT_NONE)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_ode_trigger_infer_confidence_max_set('every-low-conf-person-trigger',
-            max_confidence=0.31)
-
-        retval = dsl_ode_trigger_action_add('every-low-conf-person-trigger', 
-            action='remove-object-action')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # --------------------------------------------------------------------------------
-
-        # New Print Action to print each object's details to the console
-        retval = dsl_ode_action_print_new('print-action', force_flush=False)        
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New Occurrence Trigger, filtering on PERSON class_id, 
-        # and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_occurrence_new('every-person-trigger',
-            source = DSL_ODE_ANY_SOURCE,
-            class_id = PGIE_CLASS_ID_PERSON, 
-            limit = DSL_ODE_TRIGGER_LIMIT_NONE)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_ode_trigger_action_add('every-person-trigger', 
-            action='print-action')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New ODE Handler to handle the every-person     
-        retval = dsl_pph_ode_new('ode-handler-pre-osd')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        retval = dsl_pph_ode_trigger_add_many('ode-handler-pre-osd', triggers=[
-            'every-low-conf-person-trigger', 
-            'every-tree-trigger', 
-            'every-person-trigger', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # --------------------------------------------------------------------------------
-        # Create a new Capture Action to capture the Frame to jpeg image, and save to file. 
-        retval = dsl_ode_action_capture_frame_new('frame-capture-action',
-            outdir = "./",
-            annotate = False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New Occurrence Trigger, filtering on PERSON class_id, 
-        # and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_occurrence_new('first-person-trigger',
-            source = DSL_ODE_ANY_SOURCE,
-            class_id = PGIE_CLASS_ID_PERSON, 
-            limit = DSL_ODE_TRIGGER_LIMIT_ONE)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_ode_trigger_action_add('first-person-trigger', 
-            action='frame-capture-action')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
-        retval = dsl_pph_ode_new('ode-handler-post-osd')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pph_ode_trigger_add('ode-handler-post-osd', 
-            trigger='first-person-trigger')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # --------------------------------------------------------------------------------
-
+        # Create a new streaming image source to stream the UHD file at 10 frames/sec
         retval = dsl_source_image_stream_new('image-source', file_path=image_file,
             is_live=False, fps_n=10, fps_d=1, timeout=0)
         if retval != DSL_RETURN_SUCCESS:
@@ -258,6 +130,7 @@ def main(args):
 
         # **** IMPORTANT! for best performace we explicity set the GIE's batch-size 
         # to the number of ROI's defined in the Preprocessor configuraton file.
+        # Otherwise, the Pipeline will set the GIE's batch size to the number of sources.
         retval = dsl_infer_batch_size_set('primary-gie', 3)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -272,17 +145,9 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New OSD with text, clock and bbox display all enabled. 
+        # New OSD with text and bbox display enabled. 
         retval = dsl_osd_new('on-screen-display', 
             text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        retval = dsl_osd_pph_add('on-screen-display', 'ode-handler-pre-osd', DSL_PAD_SINK)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_osd_pph_add('on-screen-display', 'ode-handler-post-osd', DSL_PAD_SRC)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -318,6 +183,193 @@ def main(args):
         retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
+
+        # --------------------------------------------------------------------------------
+        # Step 2:
+
+        # New Occurrence Trigger, filtering on PERSON class_id, and with no limit on
+        # the number of occurrences. The Trigger will be added to an ODE Handler
+        # that is added to the source pad (output) of the On-Screen Display. 
+        retval = dsl_ode_trigger_occurrence_new('every-person-trigger',
+            source = DSL_ODE_ANY_SOURCE,
+            class_id = PGIE_CLASS_ID_PERSON, 
+            limit = DSL_ODE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Set the Trigger's frame-limit to 1. We only need/want to print out the
+        # ODE Data for all objects detected in one frame. Image source streams
+        # the same Image at a set framerate to constant tracking and viewing.
+        retval = dsl_ode_trigger_limit_frame_set('every-person-trigger',
+            DSL_ODE_TRIGGER_LIMIT_ONE)
+
+        # New Print Action to print each details of each ODE to the console.
+        retval = dsl_ode_action_print_new('print-action', force_flush=False)        
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the Print Action to the Every Person Trigger
+        retval = dsl_ode_trigger_action_add('every-person-trigger', 
+            action='print-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # --------------------------------------------------------------------------------
+        # Step 3:
+
+        # New Occurrence Trigger, filtering on PERSON class_id, with a limit of 1
+        # The Trigger will be added to an ODE Handler that is added to the source 
+        # pad (output) of the On-Screen Display. 
+        retval = dsl_ode_trigger_occurrence_new('first-person-trigger',
+            source = DSL_ODE_ANY_SOURCE,
+            class_id = PGIE_CLASS_ID_PERSON, 
+            limit = DSL_ODE_TRIGGER_LIMIT_ONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        # Create a new Capture Action to capture the Frame to jpeg image, and save 
+        # to file. The Action will be called once by the Trigger (trigger limit of 1).
+        # Note: this call will fail if the output directory "outdir" does not exist.
+        retval = dsl_ode_action_capture_frame_new('frame-capture-action',
+            outdir = "./",
+            annotate = False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the Capture Action to the First Person Trigger
+        retval = dsl_ode_trigger_action_add('first-person-trigger', 
+            action='frame-capture-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # --------------------------------------------------------------------------------
+        # Step 4:
+
+        # New ODE Handler to handle the Every-Person and First Person Triggers
+        retval = dsl_pph_ode_new('ode-handler-on-osd-src')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Add the Every-Person and First-Person Triggers to the ODE Handler
+        retval = dsl_pph_ode_trigger_add_many('ode-handler-on-osd-src', 
+            triggers = ['every-person-trigger', 'first-person-trigger', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the ODE Handler to the Source pad (output) of the On-Screen Display
+        retval = dsl_osd_pph_add('on-screen-display', 
+            'ode-handler-on-osd-src', DSL_PAD_SRC)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # --------------------------------------------------------------------------------
+        # Step 5: Create a Remove Object Action to remove an object (remove metadata)
+        # from the current frame. The Action will be used by multiple Triggers.
+        retval = dsl_ode_action_object_remove_new('remove-object-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # --------------------------------------------------------------------------------
+        # Step 6: Remove the false positive person-objects caused by the tree. 
+        #
+        # Ths is done by creating Polygon Display type that will be used to create
+        # an ODE Area of Inclusion - the Polygon will cover a small portion of the
+        # tree, which is too high up to be a person, where the false positives occur.
+        # Any object that touches or overlaps the ODE Area will be removed. 
+        
+        # New custom RGBA color that will be used to create an RGBA Polygon
+        retval = dsl_display_type_rgba_color_custom_new('solid-blue', 
+            red=0.2, green=0.2, blue=1.0, alpha=1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Create a list of X,Y coordinates defining the points of the Polygon.
+        # Polygon can have a minimum of 3, maximum of 16 points (sides).
+        # This is done imperically by looking at the object data that is
+        # printed to the cosole by the Every-Person Trigger and Print Action.
+        coordinates = [dsl_coordinate(3165,1520), dsl_coordinate(3245,1516), 
+            dsl_coordinate(3245,1540), dsl_coordinate(3165,1540)]
+            
+        # Create the Polygon display type using the coordinates and RGBA color.
+        retval = dsl_display_type_rgba_polygon_new('polygon1', 
+            coordinates=coordinates, num_coordinates=len(coordinates), 
+            border_width=2, color='solid-blue')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Create the ODE inclusion area to use as criteria for ODE occurrence
+        retval = dsl_ode_area_inclusion_new('tree-area', polygon='polygon1', 
+            show=True, bbox_test_point=DSL_BBOX_POINT_ANY)    
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New Occurrence Trigger, filtering on PERSON class_id, and with no limit 
+        # on the number of occurrences. The Trigger will be added to an ODE Handler
+        # which will be added to the Sink Pad (input) of the IOU Tracker
+        retval = dsl_ode_trigger_occurrence_new('every-tree-trigger',
+            source = DSL_ODE_ANY_SOURCE,
+            class_id = PGIE_CLASS_ID_PERSON, 
+            limit = DSL_ODE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the Inclusion Area to the Trigger as occurrence criteria.
+        retval = dsl_ode_trigger_area_add('every-tree-trigger', 
+            area='tree-area')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the Remove Object Action to the Every-Tree Trigger
+        retval = dsl_ode_trigger_action_add('every-tree-trigger', 
+            action='remove-object-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # --------------------------------------------------------------------------------
+        # Step 7: Remove the person-objects with low inference confidence.
+
+        # New Occurrence Trigger, filtering on PERSON class_id, and with no limit on 
+        # the number of occurrences. The Trigger will use the Remove Object Action
+        # to remove each object with low inference confidence.
+        retval = dsl_ode_trigger_occurrence_new('every-low-conf-person-trigger',
+            source = DSL_ODE_ANY_SOURCE,
+            class_id = PGIE_CLASS_ID_PERSON, 
+            limit = DSL_ODE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Set the Max Inference confidence as criteria for ODE occurrence.
+        retval = dsl_ode_trigger_infer_confidence_max_set('every-low-conf-person-trigger',
+            max_confidence=0.31)
+
+        # Add the Remove Object
+        retval = dsl_ode_trigger_action_add('every-low-conf-person-trigger', 
+            action='remove-object-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # --------------------------------------------------------------------------------
+        # Step 8: Add the Trigger for removing false positives to a new ODE Handler.
+        # The Handler will then be added to the Sink Pad (input) of the IOU Tracker.
+
+        # New ODE Handler to handle the every-person     
+        retval = dsl_pph_ode_new('ode-handler-on-iou-sink-pad')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        retval = dsl_pph_ode_trigger_add_many('ode-handler-on-iou-sink-pad', triggers=[
+            'every-low-conf-person-trigger', 'every-tree-trigger', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the ODE Handler to the Sink Pad (input) of the IOU Tracker
+        retval = dsl_tracker_pph_add('iou-tracker', 
+            'ode-handler-on-iou-sink-pad', DSL_PAD_SRC)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # --------------------------------------------------------------------------------
+        # Step 9: Play the Inference Pipeline and join the main loop.
 
         # Play the pipeline
         retval = dsl_pipeline_play('pipeline')

@@ -108,7 +108,7 @@ SCENARIO( "A new OdeOccurreceTrigger is created correctly", "[OdeTrigger]" )
             {
                 REQUIRE( pOdeTrigger->GetEnabled() == true );
                 REQUIRE( pOdeTrigger->GetClassId() == classId );
-                REQUIRE( pOdeTrigger->GetLimit() == limit );
+                REQUIRE( pOdeTrigger->GetEventLimit() == limit );
                 REQUIRE( pOdeTrigger->GetSource() == NULL );
                 REQUIRE( pOdeTrigger->GetResetTimeout() == 0 );
                 REQUIRE( pOdeTrigger->GetInterval() == 0 );
@@ -473,10 +473,10 @@ SCENARIO( "An OdeOccurrenceTrigger notifies its limit-state-listeners", "[OdeTri
         objectMeta.rect_params.width = 200;
         objectMeta.rect_params.height = 100;
 
-        REQUIRE( pOdeTrigger->AddLimitEventListener(
+        REQUIRE( pOdeTrigger->AddLimitStateChangeListener(
             limit_event_listener_1, NULL) == true );
 
-        REQUIRE( pOdeTrigger->AddLimitEventListener(
+        REQUIRE( pOdeTrigger->AddLimitStateChangeListener(
             limit_event_listener_2, NULL) == true );
         
         WHEN( "When an ODE occures and the Trigger reaches its limit" )
@@ -491,10 +491,10 @@ SCENARIO( "An OdeOccurrenceTrigger notifies its limit-state-listeners", "[OdeTri
                 
                 pOdeTrigger->Reset();
                 
-                REQUIRE( pOdeTrigger->RemoveLimitEventListener(
+                REQUIRE( pOdeTrigger->RemoveLimitStateChangeListener(
                     limit_event_listener_1) == true );
 
-                REQUIRE( pOdeTrigger->RemoveLimitEventListener(
+                REQUIRE( pOdeTrigger->RemoveLimitStateChangeListener(
                     limit_event_listener_2) == true );
             }
         }
@@ -3670,7 +3670,7 @@ SCENARIO( "A new OdeDistanceTrigger is created correctly", "[OdeTrigger]" )
                 pOdeTrigger->GetTestParams(&retTestPoint, &retTestMethod);
                 REQUIRE( retTestPoint == testPoint );
                 REQUIRE( retTestMethod == testMethod );
-                REQUIRE( pOdeTrigger->GetLimit() == limit );
+                REQUIRE( pOdeTrigger->GetEventLimit() == limit );
                 REQUIRE( pOdeTrigger->GetSource() == NULL );
                 float minWidth(123), minHeight(123);
                 pOdeTrigger->GetMinDimensions(&minWidth, &minHeight);

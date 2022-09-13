@@ -284,20 +284,20 @@ namespace DSL
         bool IsResetTimerRunning();
         
         /**
-         * @brief Adds a "limit event listener" function to be notified
-         * on Trigger LIMIT_REACHED, LIMIT_CHANGED, and COUNT_RESET.
+         * @brief Adds a "limit state-change listener" function to be notified
+         * on Trigger LIMIT_REACHED, LIMIT_CHANGED, and COUNTS_RESET.
          * @return ture if the listener function was successfully added, false otherwise.
          */
-        bool AddLimitEventListener(
-            dsl_ode_trigger_limit_event_listener_cb listener, void* clientData);
+        bool AddLimitStateChangeListener(
+            dsl_ode_trigger_limit_state_change_listener_cb listener, void* clientData);
 
         /**
          * @brief Removes a "limit event listener" function previously added
-         * with a call to AddLimitEventListener.
+         * with a call to AddLimitStateChangeListener.
          * @return true if the listener function was successfully removed, false otherwise.
          */
-        bool RemoveLimitEventListener(
-            dsl_ode_trigger_limit_event_listener_cb listener);
+        bool RemoveLimitStateChangeListener(
+            dsl_ode_trigger_limit_state_change_listener_cb listener);
         
         /**
          * @brief Gets the ClassId filter used for Object detection 
@@ -312,16 +312,28 @@ namespace DSL
         void SetClassId(uint classId);
         
         /**
-         * @brief Gets the trigger limit for this ODE Trigger 
-         * @return the current limit value
+         * @brief Gets the trigger event limit for this ODE Trigger 
+         * @return the current frame limit value
          */
-        uint GetLimit();
+        uint GetEventLimit();
         
         /**
-         * @brief Sets the ClassId filter for Object detection 
-         * @param[in] limit new trigger limit value to use
+         * @brief Sets the event limit for Object detection.
+         * @param[in] limit new trigger frame limit value to use.
          */
-        void SetLimit(uint limit);
+        void SetEventLimit(uint limit);
+        
+        /**
+         * @brief Gets the trigger frame limit for this ODE Trigger.
+         * @return the current frame limit value.
+         */
+        uint GetFrameLimit();
+        
+        /**
+         * @brief Sets the frame limit for Object detection.
+         * @param[in] limit new trigger frame limit value to use.
+         */
+        void SetFrameLimit(uint limit);
         
         /**
          * @brief Gets the source filter used for Object detection
@@ -592,8 +604,8 @@ namespace DSL
          * @brief map of all currently registered limit-state-change-listeners
          * callback functions mapped with the user provided data
          */
-        std::map<dsl_ode_trigger_limit_event_listener_cb, 
-            void*>m_limitEventListeners;
+        std::map<dsl_ode_trigger_limit_state_change_listener_cb, 
+            void*>m_limitStateChangeListeners;
         
         /**
          * @brief current number of frames in the current interval
@@ -620,9 +632,19 @@ namespace DSL
         uint64_t m_triggered;    
     
         /**
-         * @brief trigger limit, once reached, actions will no longer be invoked
+         * @brief trigger event limit, once reached, actions will no longer be invoked
          */
-        uint m_limit;
+        uint m_eventLimit;
+
+        /**
+         * @brief number of Frames the trigger has processed.
+         */
+        uint64_t m_frameCount;
+        
+        /**
+         * @brief trigger frame limit, once reached, actions will no longer be invoked
+         */
+        uint m_frameLimit;
 
         /**
          * @brief number of occurrences for the current frame, 

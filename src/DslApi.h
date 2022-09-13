@@ -660,9 +660,11 @@ THE SOFTWARE.
 /**
  * @brief ODE Trigger limit state values - for Triggers with limits
  */
-#define DSL_ODE_TRIGGER_LIMIT_EVENT_LIMIT_REACHED                   0
-#define DSL_ODE_TRIGGER_LIMIT_EVENT_LIMIT_CHANGED                   1
-#define DSL_ODE_TRIGGER_LIMIT_EVENT_COUNT_RESET                     2
+#define DSL_ODE_TRIGGER_LIMIT_EVENT_REACHED                   0
+#define DSL_ODE_TRIGGER_LIMIT_EVENT_CHANGED                   1
+#define DSL_ODE_TRIGGER_LIMIT_FRAME_REACHED                   2
+#define DSL_ODE_TRIGGER_LIMIT_FRAME_CHANGED                   3
+#define DSL_ODE_TRIGGER_LIMIT_COUNTS_RESET                    4
 
 /**
  * @brief Unique class relational identifiers for Class A/B testing
@@ -1373,12 +1375,12 @@ typedef boolean (*dsl_ode_post_process_frame_cb)(void* buffer,
 /**
  * @brief Callback typedef for a client listener function. Once added to an
  * ODE Trigger, this function will be called on every Trigger Limit event;
- * LIMIT_REACHED, LIMIT_CHANGED, and COUNT_RESET
+ * LIMIT_REACHED, LIMIT_CHANGED, and COUNTS_RESET
  * @param[in] event one of the DSL_ODE_TRIGGER_LIMIT_EVENT constants.
  * @param[in] limit the current, or new limit for the Trigger.
  * @param[in] client_data opaque pointer to client's user data.
  */
- typedef void (*dsl_ode_trigger_limit_event_listener_cb)
+ typedef void (*dsl_ode_trigger_limit_state_change_listener_cb)
     (uint event, uint limit, void* client_data);
 
 /**
@@ -2974,18 +2976,18 @@ DslReturnType dsl_ode_trigger_reset_timeout_set(const wchar_t* name, uint timeou
  * @param[in] client_data opaque pointer to client data passed into the listener function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_limit_event_listener_add(const wchar_t* name,
-    dsl_ode_trigger_limit_event_listener_cb listener, void* client_data);
+DslReturnType dsl_ode_trigger_limit_state_change_listener_add(const wchar_t* name,
+    dsl_ode_trigger_limit_state_change_listener_cb listener, void* client_data);
 
 /**
  * @brief Removes a callback previously added with a call to
- * dsl_ode_trigger_limit_event_listener_add.
+ * dsl_ode_trigger_limit_state_change_listener_add.
  * @param[in] name name of the ODE Trigger to update.
  * @param[in] listener pointer to the client's function to remove.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_limit_event_listener_remove(const wchar_t* name,
-    dsl_ode_trigger_limit_event_listener_cb listener);
+DslReturnType dsl_ode_trigger_limit_state_change_listener_remove(const wchar_t* name,
+    dsl_ode_trigger_limit_state_change_listener_cb listener);
 
 /**
  * @brief Gets the current enabled setting for the ODE Trigger.
@@ -3095,22 +3097,42 @@ DslReturnType dsl_ode_trigger_class_id_ab_set(const wchar_t* name,
     uint class_id_a, uint class_id_b);
 
 /**
- * @brief Gets the current limit setting for the ODE Trigger
+ * @brief Gets the current event limit setting for the named ODE Trigger
  * @param[in] name unique name of the ODE Trigger to query
- * @param[out] limit returns the current trigger_limit in use
+ * @param[out] limit returns the current trigger event limit in use
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_limit_get(const wchar_t* name, uint* limit);
+DslReturnType dsl_ode_trigger_limit_event_get(const wchar_t* name, uint* limit);
 
 /**
- * @brief Sets the limit for the ODE Trigger
- * @param[in] name unique name of the ODE Trigger to update
- * @param[in] limit new limit to use. Setting the limit to a 
- * value less that the current trigger count will effectively 
+ * @brief Sets the event limit for the named ODE Trigger to use.
+ * @param[in] name unique name of the ODE Trigger to update.
+ * @param[in] limit new event limit to use. Setting the limit to a 
+ * value less that the current trigger event count will effectively 
  * disable the trigger until reset.
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_limit_set(const wchar_t* name, uint limit);
+DslReturnType dsl_ode_trigger_limit_event_set(const wchar_t* name, uint limit);
+
+/**
+ * @brief Gets the current frame limit setting for the named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to query
+ * @param[out] limit returns the current trigger frame limit in use
+ * @return DSL_RESULT_SUCCESS on successful query, 
+ * DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_limit_frame_get(const wchar_t* name, uint* limit);
+
+/**
+ * @brief Sets the frame limit for the named ODE Trigger to use.
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] limit new frame limit to use. Setting the limit to a 
+ * value less that the current trigger frame count will effectively 
+ * disable the trigger until reset.
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_limit_frame_set(const wchar_t* name, uint limit);
 
 /**
  * @brief Gets the current minimum confidence setting for the ODE Trigger

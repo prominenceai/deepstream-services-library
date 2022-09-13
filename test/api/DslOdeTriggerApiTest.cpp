@@ -399,19 +399,19 @@ SCENARIO( "An ODE Trigger's limit can be set/get", "[ode-trigger-api]" )
         REQUIRE( ret_class_id == class_id );
 
         uint ret_limit(0);
-        REQUIRE( dsl_ode_trigger_limit_get(odeTriggerName.c_str(), 
+        REQUIRE( dsl_ode_trigger_limit_event_get(odeTriggerName.c_str(), 
             &ret_limit) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_limit == limit );
 
         WHEN( "When the Trigger's limit is updated" )         
         {
             uint new_limit(44);
-            REQUIRE( dsl_ode_trigger_limit_set(odeTriggerName.c_str(), 
+            REQUIRE( dsl_ode_trigger_limit_event_set(odeTriggerName.c_str(), 
                 new_limit) == DSL_RESULT_SUCCESS );
             
             THEN( "The correct value is returned on get" ) 
             {
-                REQUIRE( dsl_ode_trigger_limit_get(odeTriggerName.c_str(), 
+                REQUIRE( dsl_ode_trigger_limit_event_get(odeTriggerName.c_str(), 
                     &ret_limit) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_limit == new_limit );
                 REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
@@ -1599,21 +1599,21 @@ SCENARIO( "An ODE Trigger can add/remove a limit-state-change-listener",
 
         WHEN( "When a limit-state-change-listener is added" )         
         {
-            REQUIRE( dsl_ode_trigger_limit_event_listener_add(odeTriggerName.c_str(),
+            REQUIRE( dsl_ode_trigger_limit_state_change_listener_add(odeTriggerName.c_str(),
                 limit_event_listener, NULL) == DSL_RESULT_SUCCESS );
 
             // second call must fail
-            REQUIRE( dsl_ode_trigger_limit_event_listener_add(odeTriggerName.c_str(),
+            REQUIRE( dsl_ode_trigger_limit_state_change_listener_add(odeTriggerName.c_str(),
                 limit_event_listener, NULL) == 
                 DSL_RESULT_ODE_TRIGGER_CALLBACK_ADD_FAILED );
             
             THEN( "The same listener function can be removed" ) 
             {
-                REQUIRE( dsl_ode_trigger_limit_event_listener_remove(odeTriggerName.c_str(),
+                REQUIRE( dsl_ode_trigger_limit_state_change_listener_remove(odeTriggerName.c_str(),
                     limit_event_listener) == DSL_RESULT_SUCCESS );
 
                 // second call fail
-                REQUIRE( dsl_ode_trigger_limit_event_listener_remove(odeTriggerName.c_str(),
+                REQUIRE( dsl_ode_trigger_limit_state_change_listener_remove(odeTriggerName.c_str(),
                     limit_event_listener) == DSL_RESULT_ODE_TRIGGER_CALLBACK_REMOVE_FAILED );
                     
                 REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
@@ -1635,13 +1635,13 @@ SCENARIO( "An ODE Trigger notifies its limit-event-listener on limit change",
         REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName.c_str(), 
             NULL, class_id, limit) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_trigger_limit_event_listener_add(odeTriggerName.c_str(),
+        REQUIRE( dsl_ode_trigger_limit_state_change_listener_add(odeTriggerName.c_str(),
             limit_event_listener, NULL) == DSL_RESULT_SUCCESS );
 
         WHEN( "When the trigger limit is updated" )         
         {
             // second call must fail
-            REQUIRE( dsl_ode_trigger_limit_set(odeTriggerName.c_str(),
+            REQUIRE( dsl_ode_trigger_limit_event_set(odeTriggerName.c_str(),
                 DSL_ODE_TRIGGER_LIMIT_ONE) == DSL_RESULT_SUCCESS );
             
             THEN( "The limit-event-listener is notified" ) 
@@ -1794,8 +1794,8 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
                 REQUIRE( dsl_ode_trigger_new_high_new(NULL, NULL, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_trigger_reset(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_limit_event_listener_add(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_limit_event_listener_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_limit_state_change_listener_add(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_limit_state_change_listener_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
                 REQUIRE( dsl_ode_trigger_enabled_get(NULL, &enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_enabled_set(NULL, enabled) == DSL_RESULT_INVALID_INPUT_PARAM );

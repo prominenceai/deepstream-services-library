@@ -150,6 +150,7 @@
       <File Name="../test/api/DslOdeAccumulatorApiTest.cpp"/>
       <File Name="../test/api/DslOdeHeatMapperApiTest.cpp"/>
       <File Name="../test/api/DslPreprocApiText.cpp"/>
+      <File Name="../test/api/DslInfoApiTest.cpp.tmp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDemuxerAndTeeUnitTest.cpp"/>
@@ -226,6 +227,7 @@
       <File Name="../examples/cpp/Makefile"/>
       <File Name="../examples/cpp/interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.cpp"/>
       <File Name="../examples/cpp/interpipe_multiple_pipelines_listening_to_single_sink.cpp"/>
+      <File Name="../test/api/DslCrossTriggerExampleTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
       <File Name="../examples/python/1csi_live_pgie_demuxer_osd_overlay_rtsp_h254.py"/>
@@ -292,8 +294,6 @@
       <File Name="../examples/tkinter/tkapp.py"/>
       <File Name="../examples/tkinter/tkapp_window.py"/>
     </VirtualDirectory>
-    <File Name="../test/api/DslInfoApiTest.cpp.tmp"/>
-    <File Name="../test/api/DslCrossTriggerExampleTest.cpp"/>
   </VirtualDirectory>
   <Settings Type="Dynamic Library">
     <GlobalSettings>

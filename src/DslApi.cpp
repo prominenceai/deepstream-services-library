@@ -1930,27 +1930,27 @@ DslReturnType dsl_ode_trigger_reset_timeout_set(const wchar_t* name, uint timeou
         cstrName.c_str(), timeout);
 }
 
-DslReturnType dsl_ode_trigger_limit_event_listener_add(const wchar_t* name,
-    dsl_ode_trigger_limit_event_listener_cb listener, void* client_data)
+DslReturnType dsl_ode_trigger_limit_state_change_listener_add(const wchar_t* name,
+    dsl_ode_trigger_limit_state_change_listener_cb listener, void* client_data)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerLimitEventListenerAdd(
+    return DSL::Services::GetServices()->OdeTriggerLimitStateChangeListenerAdd(
         cstrName.c_str(), listener, client_data);
 }
 
-DslReturnType dsl_ode_trigger_limit_event_listener_remove(const wchar_t* name,
-    dsl_ode_trigger_limit_event_listener_cb listener)
+DslReturnType dsl_ode_trigger_limit_state_change_listener_remove(const wchar_t* name,
+    dsl_ode_trigger_limit_state_change_listener_cb listener)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerLimitEventListenerRemove(
+    return DSL::Services::GetServices()->OdeTriggerLimitStateChangeListenerRemove(
         cstrName.c_str(), listener);
 }
     
@@ -2044,24 +2044,50 @@ DslReturnType dsl_ode_trigger_class_id_ab_set(const wchar_t* name,
         class_id_a, class_id_b);
 }
 
-DslReturnType dsl_ode_trigger_limit_get(const wchar_t* name, uint* limit)
+DslReturnType dsl_ode_trigger_limit_event_get(const wchar_t* name, uint* limit)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(limit);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerLimitGet(cstrName.c_str(), limit);
+    return DSL::Services::GetServices()->OdeTriggerLimitEventGet(cstrName.c_str(),
+        limit);
 }
 
-DslReturnType dsl_ode_trigger_limit_set(const wchar_t* name, uint limit)
+DslReturnType dsl_ode_trigger_limit_event_set(const wchar_t* name, uint limit)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerLimitSet(cstrName.c_str(), limit);
+    return DSL::Services::GetServices()->OdeTriggerLimitEventSet(cstrName.c_str(),
+        limit);
+}
+
+DslReturnType dsl_ode_trigger_limit_frame_get(const wchar_t* name, uint* limit)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(limit);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerLimitFrameGet(cstrName.c_str(),
+        limit);
+}
+
+DslReturnType dsl_ode_trigger_limit_frame_set(const wchar_t* name, uint limit)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerLimitFrameSet(cstrName.c_str(),
+        limit);
 }
 
 DslReturnType dsl_ode_trigger_source_get(const wchar_t* name, const wchar_t** source)

@@ -409,11 +409,11 @@ namespace DSL {
 
         DslReturnType OdeTriggerResetTimeoutSet(const char* name, uint timeout);
         
-        DslReturnType OdeTriggerLimitEventListenerAdd(const char* name,
-            dsl_ode_trigger_limit_event_listener_cb listener, void* clientData);
+        DslReturnType OdeTriggerLimitStateChangeListenerAdd(const char* name,
+            dsl_ode_trigger_limit_state_change_listener_cb listener, void* clientData);
 
-        DslReturnType OdeTriggerLimitEventListenerRemove(const char* name,
-            dsl_ode_trigger_limit_event_listener_cb listener);
+        DslReturnType OdeTriggerLimitStateChangeListenerRemove(const char* name,
+            dsl_ode_trigger_limit_state_change_listener_cb listener);
 
         DslReturnType OdeTriggerEnabledGet(const char* name, boolean* enabled);
 
@@ -443,9 +443,13 @@ namespace DSL {
         DslReturnType OdeTriggerClassIdABSet(const char* name, 
             uint classIdA, uint classIdB);
         
-        DslReturnType OdeTriggerLimitGet(const char* name, uint* limit);
+        DslReturnType OdeTriggerLimitEventGet(const char* name, uint* limit);
         
-        DslReturnType OdeTriggerLimitSet(const char* name, uint limit);
+        DslReturnType OdeTriggerLimitEventSet(const char* name, uint limit);
+        
+        DslReturnType OdeTriggerLimitFrameGet(const char* name, uint* limit);
+        
+        DslReturnType OdeTriggerLimitFrameSet(const char* name, uint limit);
         
         DslReturnType OdeTriggerConfidenceMinGet(const char* name, 
             float* minConfidence);

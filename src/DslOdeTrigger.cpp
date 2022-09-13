@@ -44,7 +44,9 @@ namespace DSL
         , m_inferId(-1)
         , m_classId(classId)
         , m_triggered(0)
-        , m_limit(limit)
+        , m_eventLimit(limit)
+        , m_frameCount(0)
+        , m_frameLimit(0)
         , m_occurrences(0)
         , m_occurrencesAccumulated(0)
         , m_minConfidence(0)
@@ -319,13 +321,15 @@ namespace DSL
         m_triggered = 0;
         m_occurrencesAccumulated = 0;
         
+        m_frameCount = 0;
+        
         // iterate through the map of limit-event-listeners calling each
-        for(auto const& imap: m_limitEventListeners)
+        for(auto const& imap: m_limitStateChangeListeners)
         {
             try
             {
-                imap.first(DSL_ODE_TRIGGER_LIMIT_EVENT_COUNT_RESET, 
-                    m_limit, imap.second);
+                imap.first(DSL_ODE_TRIGGER_LIMIT_COUNTS_RESET, 
+                    m_eventLimit, imap.second);
             }
             catch(...)
             {
@@ -341,19 +345,19 @@ namespace DSL
         
         m_triggered++;
         
-        if (m_triggered >= m_limit)
+        if (m_triggered >= m_eventLimit)
         {
             // iterate through the map of limit-event-listeners calling each
-            for(auto const& imap: m_limitEventListeners)
+            for(auto const& imap: m_limitStateChangeListeners)
             {
                 try
                 {
-                    imap.first(DSL_ODE_TRIGGER_LIMIT_EVENT_LIMIT_REACHED, 
-                        m_limit, imap.second);
+                    imap.first(DSL_ODE_TRIGGER_LIMIT_EVENT_REACHED, 
+                        m_eventLimit, imap.second);
                 }
                 catch(...)
                 {
-                    LOG_ERROR("Exception calling Client Limit-Event-Lister");
+                    LOG_ERROR("Exception calling Client Limit State-Change Lister");
                 }
             }
             if (m_resetTimeout)
@@ -413,7 +417,7 @@ namespace DSL
         
         // Else, if the Trigger has reached its limit and the 
         // client is setting a Timeout value, start the timer.
-        else if (m_limit and m_triggered >= m_limit and timeout)
+        else if (m_eventLimit and m_triggered >= m_eventLimit and timeout)
         {
             m_resetTimerId = g_timeout_add(1000*m_resetTimeout, 
                 TriggerResetTimeoutHandler, this);            
@@ -429,36 +433,36 @@ namespace DSL
         return m_resetTimerId;
     }
     
-    bool OdeTrigger::AddLimitEventListener(
-        dsl_ode_trigger_limit_event_listener_cb listener, void* clientData)
+    bool OdeTrigger::AddLimitStateChangeListener(
+        dsl_ode_trigger_limit_state_change_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
-        if (m_limitEventListeners.find(listener) != 
-            m_limitEventListeners.end())
+        if (m_limitStateChangeListeners.find(listener) != 
+            m_limitStateChangeListeners.end())
         {   
             LOG_ERROR("Limit state change listener is not unique");
             return false;
         }
-        m_limitEventListeners[listener] = clientData;
+        m_limitStateChangeListeners[listener] = clientData;
 
         return true;
     }
     
-    bool OdeTrigger::RemoveLimitEventListener(
-        dsl_ode_trigger_limit_event_listener_cb listener)
+    bool OdeTrigger::RemoveLimitStateChangeListener(
+        dsl_ode_trigger_limit_state_change_listener_cb listener)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
-        if (m_limitEventListeners.find(listener) == 
-            m_limitEventListeners.end())
+        if (m_limitStateChangeListeners.find(listener) == 
+            m_limitStateChangeListeners.end())
         {   
             LOG_ERROR("Limit state change listener was not found");
             return false;
         }
-        m_limitEventListeners.erase(listener);
+        m_limitStateChangeListeners.erase(listener);
 
         return true;
     }        
@@ -478,28 +482,58 @@ namespace DSL
         m_classId = classId;
     }
 
-    uint OdeTrigger::GetLimit()
+    uint OdeTrigger::GetEventLimit()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
-        return m_limit;
+        return m_eventLimit;
     }
     
-    void OdeTrigger::SetLimit(uint limit)
+    void OdeTrigger::SetEventLimit(uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
-        m_limit = limit;
+        m_eventLimit = limit;
         
         // iterate through the map of limit-event-listeners calling each
-        for(auto const& imap: m_limitEventListeners)
+        for(auto const& imap: m_limitStateChangeListeners)
         {
             try
             {
-                imap.first(DSL_ODE_TRIGGER_LIMIT_EVENT_LIMIT_CHANGED, 
-                    m_limit, imap.second);
+                imap.first(DSL_ODE_TRIGGER_LIMIT_EVENT_CHANGED, 
+                    m_eventLimit, imap.second);
+            }
+            catch(...)
+            {
+                LOG_ERROR("Exception calling Client Limit-State-Change-Lister");
+            }
+        }
+    }
+
+    uint OdeTrigger::GetFrameLimit()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        return m_frameLimit;
+    }
+    
+    void OdeTrigger::SetFrameLimit(uint limit)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_frameLimit = limit;
+        
+        // iterate through the map of limit-event-listeners calling each
+        for(auto const& imap: m_limitStateChangeListeners)
+        {
+            try
+            {
+                imap.first(DSL_ODE_TRIGGER_LIMIT_FRAME_CHANGED, 
+                    m_frameLimit, imap.second);
             }
             catch(...)
             {
@@ -773,6 +807,40 @@ namespace DSL
             }
         }
         m_skipFrame = false;
+        
+        // Don't start incrementing the frame-count until the Trigger has fired once.
+        if (!m_triggered)
+        {
+            return;
+        }
+
+        m_frameCount++;
+        if (m_frameLimit and (m_frameCount > m_frameLimit))
+        {
+            return;
+        }
+
+        if (m_frameCount == m_frameLimit)
+        {
+            // iterate through the map of limit-event-listeners calling each
+            for(auto const& imap: m_limitStateChangeListeners)
+            {
+                try
+                {
+                    imap.first(DSL_ODE_TRIGGER_LIMIT_FRAME_REACHED, 
+                        m_frameLimit, imap.second);
+                }
+                catch(...)
+                {
+                    LOG_ERROR("Exception calling Client Limit State-Change Lister");
+                }
+            }
+            if (m_resetTimeout)
+            {
+                m_resetTimerId = g_timeout_add(1000*m_resetTimeout, 
+                    TriggerResetTimeoutHandler, this);            
+            }
+        }
     }
 
     bool OdeTrigger::CheckForMinCriteria(NvDsFrameMeta* pFrameMeta, 
@@ -784,8 +852,13 @@ namespace DSL
             return false;
         }
         
-        // Ensure enabled, and that the limit has not been exceeded
-        if (m_limit and m_triggered >= m_limit) 
+        // Ensure that the event limit has not been exceeded
+        if (m_eventLimit and m_triggered >= m_eventLimit) 
+        {
+            return false;
+        }
+        // Ensure that the frame limit has not been exceeded
+        if (m_frameLimit and m_frameCount >= m_frameLimit) 
         {
             return false;
         }
@@ -1048,7 +1121,8 @@ namespace DSL
             // Gaurd against property updates from the client API
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
             
-            if (!m_enabled or (m_limit and m_triggered >= m_limit) or m_occurrences) 
+            if (!m_enabled or (m_eventLimit and m_triggered >= m_eventLimit) 
+                or m_occurrences) 
             {
                 return 0;
             }        
@@ -1212,7 +1286,7 @@ namespace DSL
             // Gaurd against property updates from the client API
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
             
-            if (!m_enabled or m_skipFrame or (m_limit and m_triggered >= m_limit))
+            if (!m_enabled or m_skipFrame or (m_eventLimit and m_triggered >= m_eventLimit))
             {
                 return 0;
             }
@@ -1425,7 +1499,7 @@ namespace DSL
             // Gaurd against property updates from the client API
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
             
-            if (!m_enabled or m_skipFrame or (m_limit and m_triggered >= m_limit) or
+            if (!m_enabled or m_skipFrame or (m_eventLimit and m_triggered >= m_eventLimit) or
                 (m_occurrences < m_minimum) or (m_occurrences > m_maximum))
             {
                 return 0;
@@ -2735,7 +2809,7 @@ namespace DSL
                                 pOdeAction->HandleOccurrence(shared_from_this(), 
                                     pBuffer, displayMetaData, pFrameMeta, m_occurrenceMetaListA[j]);
                             }
-                            if (m_limit and m_triggered >= m_limit)
+                            if (m_eventLimit and m_triggered >= m_eventLimit)
                             {
                                 m_occurrenceMetaListA.clear();
                                 break;
@@ -2806,7 +2880,7 @@ namespace DSL
                                     pOdeAction->HandleOccurrence(shared_from_this(), 
                                         pBuffer, displayMetaData, pFrameMeta, iterB);
                                 }
-                                if (m_limit and m_triggered >= m_limit)
+                                if (m_eventLimit and m_triggered >= m_eventLimit)
                                 {
                                     m_occurrenceMetaListA.clear();
                                     m_occurrenceMetaListB.clear();
@@ -2997,7 +3071,7 @@ namespace DSL
                                 pOdeAction->HandleOccurrence(shared_from_this(), 
                                     pBuffer, displayMetaData, pFrameMeta, m_occurrenceMetaListA[j]);
                             }
-                            if (m_limit and m_triggered >= m_limit)
+                            if (m_eventLimit and m_triggered >= m_eventLimit)
                             {
                                 m_occurrenceMetaListA.clear();
                                 return m_occurrences;
@@ -3070,7 +3144,7 @@ namespace DSL
                                     pOdeAction->HandleOccurrence(shared_from_this(), 
                                         pBuffer, displayMetaData, pFrameMeta, iterB);
                                 }
-                                if (m_limit and m_triggered >= m_limit)
+                                if (m_eventLimit and m_triggered >= m_eventLimit)
                                 {
                                     m_occurrenceMetaListA.clear();
                                     m_occurrenceMetaListB.clear();
