@@ -211,6 +211,8 @@ namespace DSL {
             
         DslReturnType OdeActionMonitorNew(const char* name,
             dsl_ode_monitor_occurrence_cb clientMonitor, void* clientData);
+            
+        DslReturnType OdeActionObjectRemoveNew(const char* name);
 
         DslReturnType OdeActionEmailNew(const char* name, 
             const char* mailer, const char* subject);
@@ -407,11 +409,11 @@ namespace DSL {
 
         DslReturnType OdeTriggerResetTimeoutSet(const char* name, uint timeout);
         
-        DslReturnType OdeTriggerLimitEventListenerAdd(const char* name,
-            dsl_ode_trigger_limit_event_listener_cb listener, void* clientData);
+        DslReturnType OdeTriggerLimitStateChangeListenerAdd(const char* name,
+            dsl_ode_trigger_limit_state_change_listener_cb listener, void* clientData);
 
-        DslReturnType OdeTriggerLimitEventListenerRemove(const char* name,
-            dsl_ode_trigger_limit_event_listener_cb listener);
+        DslReturnType OdeTriggerLimitStateChangeListenerRemove(const char* name,
+            dsl_ode_trigger_limit_state_change_listener_cb listener);
 
         DslReturnType OdeTriggerEnabledGet(const char* name, boolean* enabled);
 
@@ -441,9 +443,13 @@ namespace DSL {
         DslReturnType OdeTriggerClassIdABSet(const char* name, 
             uint classIdA, uint classIdB);
         
-        DslReturnType OdeTriggerLimitGet(const char* name, uint* limit);
+        DslReturnType OdeTriggerLimitEventGet(const char* name, uint* limit);
         
-        DslReturnType OdeTriggerLimitSet(const char* name, uint limit);
+        DslReturnType OdeTriggerLimitEventSet(const char* name, uint limit);
+        
+        DslReturnType OdeTriggerLimitFrameGet(const char* name, uint* limit);
+        
+        DslReturnType OdeTriggerLimitFrameSet(const char* name, uint limit);
         
         DslReturnType OdeTriggerConfidenceMinGet(const char* name, 
             float* minConfidence);
@@ -451,11 +457,23 @@ namespace DSL {
         DslReturnType OdeTriggerConfidenceMinSet(const char* name, 
             float minConfidence);
         
+        DslReturnType OdeTriggerConfidenceMaxGet(const char* name, 
+            float* maxConfidence);
+        
+        DslReturnType OdeTriggerConfidenceMaxSet(const char* name, 
+            float maxConfidence);
+        
         DslReturnType OdeTriggerTrackerConfidenceMinGet(const char* name, 
             float* minConfidence);
         
         DslReturnType OdeTriggerTrackerConfidenceMinSet(const char* name, 
             float minConfidence);
+        
+        DslReturnType OdeTriggerTrackerConfidenceMaxGet(const char* name, 
+            float* maxConfidence);
+        
+        DslReturnType OdeTriggerTrackerConfidenceMaxSet(const char* name, 
+            float maxConfidence);
         
         DslReturnType OdeTriggerDimensionsMinGet(const char* name, 
             float* min_width, float* min_height);

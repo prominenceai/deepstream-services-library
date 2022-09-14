@@ -81,14 +81,20 @@ A single ODE Heat-Mapper can be added to a single ODE Trigger. An ODE Heat-Mappe
 * [dsl_ode_trigger_class_id_set](#dsl_ode_trigger_class_id_set)
 * [dsl_ode_trigger_class_id_ab_get](#dsl_ode_trigger_class_id_ab_get)
 * [dsl_ode_trigger_class_id_ab_set](#dsl_ode_trigger_class_id_ab_set)
-* [dsl_ode_trigger_limit_get](#dsl_ode_trigger_limit_get)
-* [dsl_ode_trigger_limit_set](#dsl_ode_trigger_limit_set)
-* [dsl_ode_trigger_limit_event_listener_add](#dsl_ode_trigger_limit_event_listener_add)
-* [dsl_ode_trigger_limit_event_listener_remove](#dsl_ode_trigger_limit_event_listener_remove)
-* [dsl_ode_trigger_confidence_min_get](#dsl_ode_trigger_confidence_min_get)
-* [dsl_ode_trigger_confidence_min_set](#dsl_ode_trigger_confidence_min_set)
+* [dsl_ode_trigger_limit_event_get](#dsl_ode_trigger_limit_event_get)
+* [dsl_ode_trigger_limit_event_set](#dsl_ode_trigger_limit_event_set)
+* [dsl_ode_trigger_limit_frame_get](#dsl_ode_trigger_limit_frame_get)
+* [dsl_ode_trigger_limit_frame_set](#dsl_ode_trigger_limit_frame_set)
+* [dsl_ode_trigger_limit_state_change_listener_add](#dsl_ode_trigger_limit_state_change_listener_add)
+* [dsl_ode_trigger_limit_state_change_listener_remove](#dsl_ode_trigger_limit_state_change_listener_remove)
+* [dsl_ode_trigger_infer_confidence_min_get](#dsl_ode_trigger_infer_confidence_min_get)
+* [dsl_ode_trigger_infer_confidence_min_set](#dsl_ode_trigger_infer_confidence_min_set)
+* [dsl_ode_trigger_infer_confidence_max_get](#dsl_ode_trigger_infer_confidence_max_get)
+* [dsl_ode_trigger_infer_confidence_max_set](#dsl_ode_trigger_infer_confidence_max_set)
 * [dsl_ode_trigger_tracker_confidence_min_get](#dsl_ode_trigger_tracker_confidence_min_get)
 * [dsl_ode_trigger_tracker_confidence_min_set](#dsl_ode_trigger_tracker_confidence_min_set)
+* [dsl_ode_trigger_tracker_confidence_max_get](#dsl_ode_trigger_tracker_confidence_max_get)
+* [dsl_ode_trigger_tracker_confidence_max_set](#dsl_ode_trigger_tracker_confidence_max_set)
 * [dsl_ode_trigger_dimensions_min_get](#dsl_ode_trigger_dimensions_min_get)
 * [dsl_ode_trigger_dimensions_min_set](#dsl_ode_trigger_dimensions_min_set)
 * [dsl_ode_trigger_dimensions_max_get](#dsl_ode_trigger_dimensions_max_get)
@@ -156,9 +162,11 @@ The following symbolic constants are used by the ODE Trigger API
 
 #### ODE Trigger limit state values - for Triggers with limits
 ```C
-#define DSL_ODE_TRIGGER_LIMIT_EVENT_LIMIT_REACHED                   0
-#define DSL_ODE_TRIGGER_LIMIT_EVENT_LIMIT_CHANGED                   1
-#define DSL_ODE_TRIGGER_LIMIT_EVENT_COUNT_RESET                     2
+#define DSL_ODE_TRIGGER_LIMIT_EVENT_REACHED                         0
+#define DSL_ODE_TRIGGER_LIMIT_EVENT_CHANGED                         1
+#define DSL_ODE_TRIGGER_LIMIT_FRAME_REACHED                         2
+#define DSL_ODE_TRIGGER_LIMIT_FRAME_CHANGED                         3
+#define DSL_ODE_TRIGGER_LIMIT_COUNTS_RESET                          4
 ```
 
 #### Constants that define a Point's location relative to an ODE Area.
@@ -1383,12 +1391,12 @@ retval = dsl_ode_trigger_class_id_ab_set('my-trigger',
 
 <br>
 
-### *dsl_ode_trigger_limit_get*
+### *dsl_ode_trigger_limit_event_get*
 ```c++
-DslReturnType dsl_ode_trigger_limit_get(const wchar_t* name, uint* limit);
+DslReturnType dsl_ode_trigger_limit_event_get(const wchar_t* name, uint* limit);
 ```
 
-This service returns the current Trigger limit setting for the named ODE Trigger. A value of zero indicates NO Limit
+This service returns the current Trigger event limit setting for the named ODE Trigger. A value of zero indicates NO Limit
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
@@ -1399,17 +1407,17 @@ This service returns the current Trigger limit setting for the named ODE Trigger
 
 **Python Example**
 ```Python
-retval, limit = dsl_ode_trigger_limit_get('my-trigger')
+retval, limit = dsl_ode_trigger_limit_event_get('my-trigger')
 ```
 
 <br>
 
-### *dsl_ode_trigger_limit_set*
+### *dsl_ode_trigger_limit_event_set*
 ```c++
-DslReturnType dsl_ode_trigger_limit_set(const wchar_t* name, uint limit);
+DslReturnType dsl_ode_trigger_limit_event_set(const wchar_t* name, uint limit);
 ```
 
-This service sets the current limit setting for the named ODE Trigger. Setting the limit to zero disables the limit check, i.e. no limit.
+This service sets the event limit setting for the named ODE Trigger. Setting the limit to zero disables the limit check, i.e. no limit.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
@@ -1420,17 +1428,63 @@ This service sets the current limit setting for the named ODE Trigger. Setting t
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_limit_set('my-trigger', 0)
+retval = dsl_ode_trigger_limit_event_set('my-trigger', 0)
 ```
 
 <br>
 
-### *dsl_ode_trigger_limit_event_listener_add*
+### *dsl_ode_trigger_limit_frame_get*
+```c++
+DslReturnType dsl_ode_trigger_limit_frame_get(const wchar_t* name, uint* limit);
+```
+
+This service returns the current Trigger frame limit setting for the named ODE Trigger. A value of zero indicates NO Limit.
+
+Each Trigger counts the frames that occur - starting with the frame with the first ODE occurrence - and will stop checking for ODE occurrence once the frame limit is reached. Resetting the Trigger will reset the frame count.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to query.
+* `limit` - [out] current limit setting for the ODE Trigger.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure..
+
+**Python Example**
+```Python
+retval, limit = dsl_ode_trigger_limit_frame_get('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_limit_frame_set*
+```c++
+DslReturnType dsl_ode_trigger_limit_frame_set(const wchar_t* name, uint limit);
+```
+
+This service sets the frame limit setting for the named ODE Trigger. Setting the limit to zero disables the limit check, i.e. no limit.
+
+Each Trigger counts the frames that occur - starting with the frame with the first ODE occurrence - and will stop checking for ODE occurrence once the frame limit is reached. Resetting the Trigger will reset the frame count.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to query.
+* `limit` - [in] new limit for the ODE Trigger to filter on, 0 to indicate no limit.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_limit_frame_set('my-trigger', 0)
+```
+
+<br>
+
+### *dsl_ode_trigger_limit_state_change_listener_add*
 ```C++
-DslReturnType dsl_ode_trigger_limit_event_listener_add(const wchar_t* name,
+DslReturnType dsl_ode_trigger_limit_state_change_listener_add(const wchar_t* name,
     dsl_ode_trigger_limit_event_listener_cb listener, void* client_data);
 ```
-This service adds a callback function of type [dsl_ode_trigger_limit_event_listener_cb](#dsl_ode_trigger_limit_event_listener_cb) to an ODE Trigger identified by its unique name. The function will be called on every limit-event -- `LIMIT_REACHED`, `LIMIT_CHANGED`, and `COUNT_RESET` -- that occurs. Multiple callback functions can be registered with one Trigger, and one callback function can be registered with multiple Triggers.
+This service adds a callback function of type [dsl_ode_trigger_limit_event_listener_cb](#dsl_ode_trigger_limit_event_listener_cb) to an ODE Trigger identified by its unique name. The function will be called on every limit state-change -- `LIMIT_REACHED`, `LIMIT_CHANGED`, and `COUNTS_RESET` -- that occurs. Listeners will be notified on both [event-limit](#dsl_ode_trigger_limit_event_set) and [frame limit](#dsl_ode_trigger_limit_frame_set) state changes. Multiple callback functions can be registered with one Trigger, and one callback function can be registered with multiple Triggers.
 
 **Parameters**
 * `name` - [in] unique name of the Trigger to update.
@@ -1445,15 +1499,15 @@ This service adds a callback function of type [dsl_ode_trigger_limit_event_liste
 def limit_event_listener(event, client_data):
     print('event = ', event)
    
-retval = dsl_ode_trigger_limit_event_listener_add('my-occurrence-trigger',
+retval = dsl_ode_trigger_limit_state_change_listener_add('my-occurrence-trigger',
     limit_event_listener, None)
 ```
 
 <br>
 
-### *dsl_ode_trigger_limit_event_listener_remove*
+### *dsl_ode_trigger_limit_state_change_listener_remove*
 ```C++
-DslReturnType dsl_ode_trigger_limit_event_listener_remove(const wchar_t* name,
+DslReturnType dsl_ode_trigger_limit_state_change_listener_remove(const wchar_t* name,
     dsl_ode_trigger_limit_event_listener_cb listener, void* client_data);
 ```
 This service removes a callback function of type [dsl_ode_trigger_limit_event_listener_cb](#dsl_ode_trigger_limit_event_listener_cb) from an ODE Trigger identified by its unique name.
@@ -1467,18 +1521,19 @@ This service removes a callback function of type [dsl_ode_trigger_limit_event_li
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_limit_event_listener_remove('my-occurrence-trigger',
+retval = dsl_ode_trigger_limit_state_change_listener_remove('my-occurrence-trigger',
     limit_event_listener)
 ```
 
 <br>
 
-### *dsl_ode_trigger_confidence_min_get*
+### *dsl_ode_trigger_infer_confidence_min_get*
 ```c++
-DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, double* min_confidence);
+DslReturnType dsl_ode_trigger_infer_confidence_min_get(const wchar_t* name, 
+    double* min_confidence);
 ```
 
-This service returns the current minimum Inference confidence criteria for the named ODE Trigger. A value of 0 (default) indicates that the criteria is disable and the detected object's Inference confidence value will not be used as criteria for ODE occurrence.
+This service returns the current minimum Inference confidence criteria for the named ODE Trigger. A value of 0 (default) indicates that the criteria is disable and the detected object's minimum Inference confidence value will not be used as criteria for ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
@@ -1489,17 +1544,18 @@ This service returns the current minimum Inference confidence criteria for the n
 
 **Python Example**
 ```Python
-retval, min_confidence = dsl_ode_trigger_confidence_min_get('my-trigger')
+retval, min_confidence = dsl_ode_trigger_infer_confidence_min_get('my-trigger')
 ```
 
 <br>
 
-### *dsl_ode_trigger_confidence_min_set*
+### *dsl_ode_trigger_infer_confidence_min_set*
 ```c++
-DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, double min_confidence);
+DslReturnType dsl_ode_trigger_infer_confidence_min_set(const wchar_t* name, 
+    double min_confidence);
 ```
 
-This service sets the minimum Inference confidence criteria for the named ODE Trigger. A value of 0 disables the filter and the Inference confidence level will not be used as criteria for ODE occurrence.
+This service sets the minimum Inference confidence criteria for the named ODE Trigger. A value of 0 disables the filter and the minimum Inference confidence level will not be used as criteria for ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
@@ -1510,7 +1566,51 @@ This service sets the minimum Inference confidence criteria for the named ODE Tr
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_confidence_min_set('my-trigger', min_confidence)
+retval = dsl_ode_trigger_infer_confidence_min_set('my-trigger', min_confidence)
+```
+
+<br>
+
+### *dsl_ode_trigger_infer_confidence_max_get*
+```c++
+DslReturnType dsl_ode_trigger_infer_confidence_max_get(const wchar_t* name, 
+    double* max_confidence);
+```
+
+This service returns the current maximum Inference confidence criteria for the named ODE Trigger. A value of 0 (default) indicates that the criteria is disable and the detected object's maximum Inference confidence value will not be used as criteria for ODE occurrence.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to query.
+* `max_confidence` - [out] current maximum confidence value between 0.0 and 1.0 for the ODE Trigger to filter on, 0 indicates disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, max_confidence = dsl_ode_trigger_infer_confidence_max_get('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_infer_confidence_max_set*
+```c++
+DslReturnType dsl_ode_trigger_infer_confidence_max_set(const wchar_t* name, 
+    double min_confidence);
+```
+
+This service sets the maximum Inference confidence criteria for the named ODE Trigger. A value of 0 disables the filter and the maximum Inference confidence level will not be used as criteria for ODE occurrence.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to query.
+* `max_confidence` - [in] new maximum confidence value as criteria for the ODE Trigger to filter on, or 0 to disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_infer_confidence_max_set('my-trigger', 0.30)
 ```
 
 <br>
@@ -1520,7 +1620,7 @@ retval = dsl_ode_trigger_confidence_min_set('my-trigger', min_confidence)
 DslReturnType dsl_ode_trigger_tracker_confidence_min_get(const wchar_t* name, double* min_confidence);
 ```
 
-This service returns the current minimum Tracker confidence criteria for the named ODE Trigger. A value of 0 (default) indicates that the criteria is disable and the detected object's Tracker confidence value will not be used as criteria for ODE occurrence.
+This service returns the current minimum Tracker confidence criteria for the named ODE Trigger. A value of 0 (default) indicates that the criteria is disable and the detected object's mimimum Tracker confidence value will not be used as criteria for ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
@@ -1541,7 +1641,7 @@ retval, min_confidence = dsl_ode_trigger_tracker_confidence_min_get('my-trigger'
 DslReturnType dsl_ode_trigger_tracker_confidence_min_set(const wchar_t* name, double min_confidence);
 ```
 
-This service sets the minimum Tracker confidence criteria for the named ODE Trigger. A value of 0 disables the filter and the Tracker confidence level will not be used as criteria for ODE occurrence.
+This service sets the minimum Tracker confidence criteria for the named ODE Trigger. A value of 0 disables the filter and the minimum Tracker confidence level will not be used as criteria for ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
@@ -1553,6 +1653,48 @@ This service sets the minimum Tracker confidence criteria for the named ODE Trig
 **Python Example**
 ```Python
 retval = dsl_ode_trigger_tracker_confidence_min_set('my-trigger', min_confidence)
+```
+
+<br>
+
+### *dsl_ode_trigger_tracker_confidence_max_get*
+```c++
+DslReturnType dsl_ode_trigger_tracker_confidence_max_get(const wchar_t* name, double* min_confidence);
+```
+
+This service returns the current maximum Tracker confidence criteria for the named ODE Trigger. A value of 0 (default) indicates that the criteria is disable and the detected object's maximum Tracker confidence value will not be used as criteria for ODE occurrence.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to query.
+* `max_confidence` - [out] current maximum confidence value between 0.0 and 1.0 for the ODE Trigger to filter on, 0 indicates disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, max_confidence = dsl_ode_trigger_tracker_confidence_max_get('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_tracker_confidence_max_set*
+```c++
+DslReturnType dsl_ode_trigger_tracker_confidence_max_set(const wchar_t* name, double min_confidence);
+```
+
+This service sets the maximum Tracker confidence criteria for the named ODE Trigger. A value of 0 disables the filter and the maximum Tracker confidence level will not be used as criteria for ODE occurrence.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to query.
+* `max_confidence` - [in] new maximum confidence value as criteria for the ODE Trigger to filter on, or 0 to disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_tracker_confidence_max _set('my-trigger', min_confidence)
 ```
 
 <br>

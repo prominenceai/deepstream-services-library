@@ -2141,6 +2141,32 @@ namespace DSL
 
     // ********************************************************************
 
+    RemoveObjectOdeAction::RemoveObjectOdeAction(const char* name)
+        : OdeAction(name)
+    {
+        LOG_FUNC();
+    }
+
+    RemoveObjectOdeAction::~RemoveObjectOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void RemoveObjectOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled)
+        {
+            nvds_remove_obj_meta_from_frame(pFrameMeta, pObjectMeta);
+            pObjectMeta = nullptr;
+        }
+    }
+
+    // ********************************************************************
+
     PauseOdeAction::PauseOdeAction(const char* name, const char* pipeline)
         : OdeAction(name)
         , m_pipeline(pipeline)

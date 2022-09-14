@@ -1584,7 +1584,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Offse
 }
 
 SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Scale BBox Action can play", 
-    "[temp]" )
+    "[ode-behavior]" )
 {
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Scale Action" ) 
     {
@@ -1706,7 +1706,7 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can p
             NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE, 2, 40, 
             DSL_OBJECT_TRACE_TEST_METHOD_ALL_POINTS) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_trigger_confidence_min_set(person_cross_name.c_str(), 
+        REQUIRE( dsl_ode_trigger_infer_confidence_min_set(person_cross_name.c_str(), 
             0.40) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_ode_trigger_cross_view_settings_set(person_cross_name.c_str(),
@@ -1822,7 +1822,7 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Multi-Line Area
             NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE, 2, 200, 
             DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_trigger_confidence_min_set(person_cross_name.c_str(), 
+        REQUIRE( dsl_ode_trigger_infer_confidence_min_set(person_cross_name.c_str(), 
             0.40) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_ode_trigger_cross_view_settings_set(person_cross_name.c_str(),
@@ -1941,7 +1941,7 @@ SCENARIO( "A new Pipeline with a Cross ODE Trigger using an ODE Polygon Area can
             NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE, 2, 200, 
             DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_trigger_confidence_min_set(person_cross_name.c_str(), 
+        REQUIRE( dsl_ode_trigger_infer_confidence_min_set(person_cross_name.c_str(), 
             0.40) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_ode_trigger_cross_view_settings_set(person_cross_name.c_str(),

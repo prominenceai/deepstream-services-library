@@ -297,7 +297,7 @@ SCENARIO( "All DisplayTypes can be displayed by an ODE Action", "[display-types-
             NULL, PGIE_CLASS_ID_PERSON, DSL_ODE_TRIGGER_LIMIT_NONE, 2, 200, 
             DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_trigger_confidence_min_set(L"person-cross-trigger", 
+        REQUIRE( dsl_ode_trigger_infer_confidence_min_set(L"person-cross-trigger", 
             0.40) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_ode_trigger_cross_view_settings_set(L"person-cross-trigger",

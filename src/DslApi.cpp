@@ -943,6 +943,16 @@ DslReturnType dsl_ode_action_monitor_new(const wchar_t* name,
         client_monitor, client_data);
 }
 
+DslReturnType dsl_ode_action_object_remove_new(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionObjectRemoveNew(cstrName.c_str());
+}
+
 DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipeline)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -1920,27 +1930,27 @@ DslReturnType dsl_ode_trigger_reset_timeout_set(const wchar_t* name, uint timeou
         cstrName.c_str(), timeout);
 }
 
-DslReturnType dsl_ode_trigger_limit_event_listener_add(const wchar_t* name,
-    dsl_ode_trigger_limit_event_listener_cb listener, void* client_data)
+DslReturnType dsl_ode_trigger_limit_state_change_listener_add(const wchar_t* name,
+    dsl_ode_trigger_limit_state_change_listener_cb listener, void* client_data)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerLimitEventListenerAdd(
+    return DSL::Services::GetServices()->OdeTriggerLimitStateChangeListenerAdd(
         cstrName.c_str(), listener, client_data);
 }
 
-DslReturnType dsl_ode_trigger_limit_event_listener_remove(const wchar_t* name,
-    dsl_ode_trigger_limit_event_listener_cb listener)
+DslReturnType dsl_ode_trigger_limit_state_change_listener_remove(const wchar_t* name,
+    dsl_ode_trigger_limit_state_change_listener_cb listener)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerLimitEventListenerRemove(
+    return DSL::Services::GetServices()->OdeTriggerLimitStateChangeListenerRemove(
         cstrName.c_str(), listener);
 }
     
@@ -2034,24 +2044,50 @@ DslReturnType dsl_ode_trigger_class_id_ab_set(const wchar_t* name,
         class_id_a, class_id_b);
 }
 
-DslReturnType dsl_ode_trigger_limit_get(const wchar_t* name, uint* limit)
+DslReturnType dsl_ode_trigger_limit_event_get(const wchar_t* name, uint* limit)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(limit);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerLimitGet(cstrName.c_str(), limit);
+    return DSL::Services::GetServices()->OdeTriggerLimitEventGet(cstrName.c_str(),
+        limit);
 }
 
-DslReturnType dsl_ode_trigger_limit_set(const wchar_t* name, uint limit)
+DslReturnType dsl_ode_trigger_limit_event_set(const wchar_t* name, uint limit)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTriggerLimitSet(cstrName.c_str(), limit);
+    return DSL::Services::GetServices()->OdeTriggerLimitEventSet(cstrName.c_str(),
+        limit);
+}
+
+DslReturnType dsl_ode_trigger_limit_frame_get(const wchar_t* name, uint* limit)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(limit);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerLimitFrameGet(cstrName.c_str(),
+        limit);
+}
+
+DslReturnType dsl_ode_trigger_limit_frame_set(const wchar_t* name, uint limit)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerLimitFrameSet(cstrName.c_str(),
+        limit);
 }
 
 DslReturnType dsl_ode_trigger_source_get(const wchar_t* name, const wchar_t** source)
@@ -2143,7 +2179,7 @@ DslReturnType dsl_ode_trigger_infer_set(const wchar_t* name,
         cstrName.c_str(), cstrInfer.c_str());
 }
 
-DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_infer_confidence_min_get(const wchar_t* name, 
     float* min_confidence)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -2155,7 +2191,7 @@ DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name,
         cstrName.c_str(), min_confidence);
 }
 
-DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_infer_confidence_min_set(const wchar_t* name, 
     float min_confidence)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -2165,6 +2201,30 @@ DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name,
 
     return DSL::Services::GetServices()->OdeTriggerConfidenceMinSet(
         cstrName.c_str(), min_confidence);
+}
+
+DslReturnType dsl_ode_trigger_infer_confidence_max_get(const wchar_t* name, 
+    float* max_confidence)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerConfidenceMaxGet(
+        cstrName.c_str(), max_confidence);
+}
+
+DslReturnType dsl_ode_trigger_infer_confidence_max_set(const wchar_t* name, 
+    float max_confidence)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerConfidenceMaxSet(
+        cstrName.c_str(), max_confidence);
 }
 
 DslReturnType dsl_ode_trigger_tracker_confidence_min_get(const wchar_t* name, 
@@ -2189,6 +2249,30 @@ DslReturnType dsl_ode_trigger_tracker_confidence_min_set(const wchar_t* name,
 
     return DSL::Services::GetServices()->OdeTriggerTrackerConfidenceMinSet(
         cstrName.c_str(), min_confidence);
+}
+
+DslReturnType dsl_ode_trigger_tracker_confidence_max_get(const wchar_t* name, 
+    float* max_confidence)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerTrackerConfidenceMaxGet(
+        cstrName.c_str(), max_confidence);
+}
+
+DslReturnType dsl_ode_trigger_tracker_confidence_max_set(const wchar_t* name, 
+    float max_confidence)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerTrackerConfidenceMaxSet(
+        cstrName.c_str(), max_confidence);
 }
 
 DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, 

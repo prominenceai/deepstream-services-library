@@ -54,8 +54,8 @@ uint PGIE_CLASS_ID_BICYCLE = 1;
 uint PGIE_CLASS_ID_PERSON = 2;
 uint PGIE_CLASS_ID_ROADSIGN = 3;
 
-uint WINDOW_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH/4;
-uint WINDOW_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT/4;
+uint WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH/4;
+uint WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT/4;
 
 // Minimum Inference confidence level to Trigger ODE Occurrence
 float PERSON_MIN_CONFIDENCE = 0.4; // 40%
@@ -211,7 +211,7 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Set a minimum confidence level to avoid false positives.
-        retval = dsl_ode_trigger_confidence_min_set(L"person-occurrence-trigger",
+        retval = dsl_ode_trigger_infer_confidence_min_set(L"person-occurrence-trigger",
             PERSON_MIN_CONFIDENCE);
         if (retval != DSL_RESULT_SUCCESS) break;
             

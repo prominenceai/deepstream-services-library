@@ -145,6 +145,10 @@ namespace DSL
         std::shared_ptr<MonitorOdeAction>(new MonitorOdeAction(name, \
             clientMonitor, clientData))
 
+    #define DSL_ODE_ACTION_OBJECT_REMOVE_PTR std::shared_ptr<PauseOdeAction>
+    #define DSL_ODE_ACTION_OBJECT_REMOVE_NEW(name) \
+        std::shared_ptr<RemoveObjectOdeAction>(new RemoveObjectOdeAction(name))
+        
     #define DSL_ODE_ACTION_PAUSE_PTR std::shared_ptr<PauseOdeAction>
     #define DSL_ODE_ACTION_PAUSE_NEW(name, pipeline) \
         std::shared_ptr<PauseOdeAction>(new PauseOdeAction(name, pipeline))
@@ -1264,6 +1268,44 @@ namespace DSL
         int m_offsetY;
 
     };
+    
+    // ********************************************************************
+
+    /**
+     * @class RemoveObjectOdeAction
+     * @brief Remove Object ODE Action class
+     */
+    class RemoveObjectOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Remove Object ODE Action class
+         * @param[in] name unique name for the ODE Action
+         */
+        RemoveObjectOdeAction(const char* name);
+        
+        /**
+         * @brief dtor for the Pause ODE Action class
+         */
+        ~RemoveObjectOdeAction();
+        
+        /**
+         * @brief Handles the ODE occurrence by removing pObjectMeta from pFrameMeta
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+    private:
+    
+    };
+        
     // ********************************************************************
 
     /**

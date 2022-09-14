@@ -204,7 +204,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         # Set the minimum Inference Confidence required to Trigger ODE occurrence.
-        retval = dsl_ode_trigger_confidence_min_set('bicycle-occurrence', min_confidence=0.05)
+        retval = dsl_ode_trigger_infer_confidence_min_set('bicycle-occurrence', min_confidence=0.05)
         if retval != DSL_RETURN_SUCCESS:
             break
         # Set the infer-done-only criteria for the bicycle occurrence as well

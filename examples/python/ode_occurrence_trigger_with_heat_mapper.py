@@ -41,10 +41,10 @@ PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
-TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
-WINDOW_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
-WINDOW_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
+TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
+TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
+WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
+WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
 
 # Minimum Inference confidence level to Trigger ODE Occurrence
 PERSON_MIN_CONFIDENCE = 0.4 # 40%
@@ -182,7 +182,7 @@ def main(args):
             break
 
         # Set a minimum confidence level to avoid false positives.
-        retval = dsl_ode_trigger_confidence_min_set('person-occurrence-trigger',
+        retval = dsl_ode_trigger_infer_confidence_min_set('person-occurrence-trigger',
             min_confidence = PERSON_MIN_CONFIDENCE)
         if retval != DSL_RETURN_SUCCESS:
             break

@@ -59,8 +59,8 @@ std::wstring tracker_config_file(
 // File name for .dot file output
 static const std::wstring dot_file = L"state-playing";
 
-int TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH;
-int TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT;
+int TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH;
+int TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT;
 
 
 // Window Sink Dimensions - used to create the sink, however, in this

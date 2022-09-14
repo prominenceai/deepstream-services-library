@@ -30,9 +30,14 @@ _dsl = CDLL('/usr/local/lib/libdsl.so')
 
 DSL_RETURN_SUCCESS = 0
 
-DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT = 4000000
-DSL_DEFAULT_STREAMMUX_WIDTH = 1920
-DSL_DEFAULT_STREAMMUX_HEIGHT = 1080
+DSL_STREAMMUX_4K_UHD_WIDTH          = 3840
+DSL_STREAMMUX_4K_UHD_HEIGHT         = 2160
+DSL_STREAMMUX_1K_HD_WIDTH           = 1920
+DSL_STREAMMUX_1K_HD_HEIGHT          = 1080
+
+DSL_STREAMMUX_DEFAULT_BATCH_TIMEOUT = 4000000
+DSL_STREAMMUX_DEFAULT_WIDTH         = DSL_STREAMMUX_1K_HD_WIDTH
+DSL_STREAMMUX_DEFAULT_HEIGHT        = DSL_STREAMMUX_1K_HD_HEIGHT
 
 DSL_PAD_SINK = 0
 DSL_PAD_SRC = 1
@@ -185,6 +190,7 @@ DSL_RECORDING_EVENT_END   = 1
 
 DSL_EVENT_FILE_FORMAT_TEXT   = 0
 DSL_EVENT_FILE_FORMAT_CSV    = 1
+DSL_EVENT_FILE_FORMAT_MOTC   = 2
 
 DSL_WRITE_MODE_APPEND   = 0
 DSL_WRITE_MODE_TRUNCATE = 1
@@ -355,8 +361,8 @@ DSL_ODE_POST_PROCESS_FRAME = \
 DSL_ODE_ENABLED_STATE_CHANGE_LISTENER = \
     CFUNCTYPE(None, c_bool, c_void_p)
 
-# dsl_ode_trigger_limit_event_listener_cb
-DSL_ODE_TRIGGER_LIMIT_EVENT_LISTENER = \
+# dsl_ode_trigger_limit_state_change_listener_cb
+DSL_ODE_TRIGGER_LIMIT_STATE_CHANGE_LISTENER = \
     CFUNCTYPE(None, c_uint, c_uint, c_void_p)
 
 # dsl_pph_meter_client_handler_cb
@@ -1013,6 +1019,16 @@ def dsl_ode_action_monitor_new(name, client_monitor, client_data):
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
     result = _dsl.dsl_ode_action_monitor_new(name, c_client_monitor, c_client_data)
+    return int(result)
+
+##
+## dsl_ode_action_object_remove_new()
+##
+_dsl.dsl_ode_action_object_remove_new.argtypes = [c_wchar_p]
+_dsl.dsl_ode_action_object_remove_new.restype = c_uint
+def dsl_ode_action_object_remove_new(name):
+    global _dsl
+    result =_dsl.dsl_ode_action_object_remove_new(name)
     return int(result)
 
 ##
@@ -1781,31 +1797,31 @@ def dsl_ode_trigger_reset_timeout_set(name, timeout):
     return int(result)
 
 ##
-## dsl_ode_trigger_limit_event_listener_add()
+## dsl_ode_trigger_limit_state_change_listener_add()
 ##
-_dsl.dsl_ode_trigger_limit_event_listener_add.argtypes = [ 
-    DSL_ODE_TRIGGER_LIMIT_EVENT_LISTENER, c_void_p]
-_dsl.dsl_ode_trigger_limit_event_listener_add.restype = c_uint
-def dsl_ode_trigger_limit_event_listener_add(client_listener, client_data):
+_dsl.dsl_ode_trigger_limit_state_change_listener_add.argtypes = [ 
+    DSL_ODE_TRIGGER_LIMIT_STATE_CHANGE_LISTENER, c_void_p]
+_dsl.dsl_ode_trigger_limit_state_change_listener_add.restype = c_uint
+def dsl_ode_trigger_limit_state_change_listener_add(client_listener, client_data):
     global _dsl
-    c_client_listener = DSL_ODE_TRIGGER_LIMIT_EVENT_LISTENER(client_listener)
+    c_client_listener = DSL_ODE_TRIGGER_LIMIT_STATE_CHANGE_LISTENER(client_listener)
     callbacks.append(c_client_listener)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
-    result = _dsl.dsl_ode_trigger_limit_event_listener_add(
+    result = _dsl.dsl_ode_trigger_limit_state_change_listener_add(
         c_client_listener, c_client_data)
     return int(result)
     
 ##
-## dsl_ode_trigger_limit_event_listener_remove()
+## dsl_ode_trigger_limit_state_change_listener_remove()
 ##
-_dsl.dsl_ode_trigger_limit_event_listener_remove.argtypes = [
-    DSL_ODE_TRIGGER_LIMIT_EVENT_LISTENER]
-_dsl.dsl_ode_trigger_limit_event_listener_remove.restype = c_uint
-def dsl_ode_trigger_limit_event_listener_remove(client_listener):
+_dsl.dsl_ode_trigger_limit_state_change_listener_remove.argtypes = [
+    DSL_ODE_TRIGGER_LIMIT_STATE_CHANGE_LISTENER]
+_dsl.dsl_ode_trigger_limit_state_change_listener_remove.restype = c_uint
+def dsl_ode_trigger_limit_state_change_listener_remove(client_listener):
     global _dsl
-    c_client_listener = DSL_ODE_TRIGGER_LIMIT_EVENT_LISTENER(client_listener)
-    result = _dsl.dsl_ode_trigger_limit_event_listener_remove(c_client_listener)
+    c_client_listener = DSL_ODE_TRIGGER_LIMIT_STATE_CHANGE_LISTENER(client_listener)
+    result = _dsl.dsl_ode_trigger_limit_state_change_listener_remove(c_client_listener)
     return int(result)
 
 ##
@@ -1945,46 +1961,89 @@ def dsl_ode_trigger_class_id_ab_set(name, class_id_a, class_id_b):
     return int(result)
 
 ##
-## dsl_ode_trigger_limit_get()
+## dsl_ode_trigger_limit_event_get()
 ##
-_dsl.dsl_ode_trigger_limit_get.argtypes = [c_wchar_p, POINTER(c_uint)]
-_dsl.dsl_ode_trigger_limit_get.restype = c_uint
-def dsl_ode_trigger_limit_get(name):
+_dsl.dsl_ode_trigger_limit_event_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_ode_trigger_limit_event_get.restype = c_uint
+def dsl_ode_trigger_limit_event_get(name):
     global _dsl
     limit = c_uint(0)
-    result =_dsl.dsl_ode_trigger_limit_get(name, DSL_UINT_P(limit))
+    result =_dsl.dsl_ode_trigger_limit_event_get(name, DSL_UINT_P(limit))
     return int(result), limit.value
 
 ##
-## dsl_ode_trigger_limit_set()
+## dsl_ode_trigger_limit_event_set()
 ##
-_dsl.dsl_ode_trigger_limit_set.argtypes = [c_wchar_p, c_uint]
-_dsl.dsl_ode_trigger_limit_set.restype = c_uint
-def dsl_ode_trigger_limit_set(name, limit):
+_dsl.dsl_ode_trigger_limit_event_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_ode_trigger_limit_event_set.restype = c_uint
+def dsl_ode_trigger_limit_event_set(name, limit):
     global _dsl
-    result =_dsl.dsl_ode_trigger_limit_set(name, limit)
+    result =_dsl.dsl_ode_trigger_limit_event_set(name, limit)
     return int(result)
 
 ##
-## dsl_ode_trigger_confidence_min_get()
+## dsl_ode_trigger_limit_frame_get()
 ##
-_dsl.dsl_ode_trigger_confidence_min_get.argtypes = [c_wchar_p, POINTER(c_float)]
-_dsl.dsl_ode_trigger_confidence_min_get.restype = c_uint
-def dsl_ode_trigger_confidence_min_get(name):
+_dsl.dsl_ode_trigger_limit_frame_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_ode_trigger_limit_frame_get.restype = c_uint
+def dsl_ode_trigger_limit_frame_get(name):
+    global _dsl
+    limit = c_uint(0)
+    result =_dsl.dsl_ode_trigger_limit_frame_get(name, DSL_UINT_P(limit))
+    return int(result), limit.value
+
+##
+## dsl_ode_trigger_limit_frame_set()
+##
+_dsl.dsl_ode_trigger_limit_frame_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_ode_trigger_limit_frame_set.restype = c_uint
+def dsl_ode_trigger_limit_frame_set(name, limit):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_limit_frame_set(name, limit)
+    return int(result)
+
+##
+## dsl_ode_trigger_infer_confidence_min_get()
+##
+_dsl.dsl_ode_trigger_infer_confidence_min_get.argtypes = [c_wchar_p, POINTER(c_float)]
+_dsl.dsl_ode_trigger_infer_confidence_min_get.restype = c_uint
+def dsl_ode_trigger_infer_confidence_min_get(name):
     global _dsl
     min_confidence = c_float(0)
-    result =_dsl.dsl_ode_trigger_confidence_min_get(name, 
+    result =_dsl.dsl_ode_trigger_infer_confidence_min_get(name, 
         DSL_FLOAT_P(min_confidence))
     return int(result), min_confidence.value
 
 ##
-## dsl_ode_trigger_confidence_min_set()
+## dsl_ode_trigger_infer_confidence_min_set()
 ##
-_dsl.dsl_ode_trigger_confidence_min_set.argtypes = [c_wchar_p, c_float]
-_dsl.dsl_ode_trigger_confidence_min_set.restype = c_uint
-def dsl_ode_trigger_confidence_min_set(name, min_confidence):
+_dsl.dsl_ode_trigger_infer_confidence_min_set.argtypes = [c_wchar_p, c_float]
+_dsl.dsl_ode_trigger_infer_confidence_min_set.restype = c_uint
+def dsl_ode_trigger_infer_confidence_min_set(name, min_confidence):
     global _dsl
-    result =_dsl.dsl_ode_trigger_confidence_min_set(name, min_confidence)
+    result =_dsl.dsl_ode_trigger_infer_confidence_min_set(name, min_confidence)
+    return int(result)
+
+##
+## dsl_ode_trigger_infer_confidence_max_get()
+##
+_dsl.dsl_ode_trigger_infer_confidence_max_get.argtypes = [c_wchar_p, POINTER(c_float)]
+_dsl.dsl_ode_trigger_infer_confidence_max_get.restype = c_uint
+def dsl_ode_trigger_infer_confidence_max_get(name):
+    global _dsl
+    max_confidence = c_float(0)
+    result =_dsl.dsl_ode_trigger_infer_confidence_max_get(name, 
+        DSL_FLOAT_P(max_confidence))
+    return int(result), max_confidence.value
+
+##
+## dsl_ode_trigger_infer_confidence_max_set()
+##
+_dsl.dsl_ode_trigger_infer_confidence_max_set.argtypes = [c_wchar_p, c_float]
+_dsl.dsl_ode_trigger_infer_confidence_max_set.restype = c_uint
+def dsl_ode_trigger_infer_confidence_max_set(name, max_confidence):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_infer_confidence_max_set(name, max_confidence)
     return int(result)
 
 ##

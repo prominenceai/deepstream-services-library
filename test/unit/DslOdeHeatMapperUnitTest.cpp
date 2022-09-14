@@ -103,8 +103,8 @@ SCENARIO( "A new OdeHeatMapper can HandleOccurrence correctly", "[OdeHeatMapper]
         WHEN( "The OdeHeatMapper is called to HandleOccurrence" )
         {
             NvDsFrameMeta frameMeta =  {0};
-            frameMeta.source_frame_width = DSL_DEFAULT_STREAMMUX_WIDTH;
-            frameMeta.source_frame_height = DSL_DEFAULT_STREAMMUX_HEIGHT;
+            frameMeta.source_frame_width = DSL_STREAMMUX_DEFAULT_WIDTH;
+            frameMeta.source_frame_height = DSL_STREAMMUX_DEFAULT_HEIGHT;
 
             NvDsObjectMeta objectMeta = {0};
             objectMeta.rect_params.left = 10;
@@ -114,8 +114,8 @@ SCENARIO( "A new OdeHeatMapper can HandleOccurrence correctly", "[OdeHeatMapper]
             
             pOdeHeatMapper->HandleOccurrence(&frameMeta, &objectMeta);
 
-            objectMeta.rect_params.left = DSL_DEFAULT_STREAMMUX_WIDTH-30;
-            objectMeta.rect_params.top = DSL_DEFAULT_STREAMMUX_HEIGHT-30;
+            objectMeta.rect_params.left = DSL_STREAMMUX_DEFAULT_WIDTH-30;
+            objectMeta.rect_params.top = DSL_STREAMMUX_DEFAULT_HEIGHT-30;
             
             pOdeHeatMapper->HandleOccurrence(&frameMeta, &objectMeta);
 
@@ -158,8 +158,8 @@ SCENARIO( "A new OdeHeatMapper can clear metrics correctly", "[OdeHeatMapper]" )
                 cols, rows, DSL_BBOX_POINT_SOUTH, pPredefinedColorPalette);
 
         NvDsFrameMeta frameMeta =  {0};
-        frameMeta.source_frame_width = DSL_DEFAULT_STREAMMUX_WIDTH;
-        frameMeta.source_frame_height = DSL_DEFAULT_STREAMMUX_HEIGHT;
+        frameMeta.source_frame_width = DSL_STREAMMUX_DEFAULT_WIDTH;
+        frameMeta.source_frame_height = DSL_STREAMMUX_DEFAULT_HEIGHT;
 
         NvDsObjectMeta objectMeta = {0};
         objectMeta.rect_params.left = 10;
@@ -213,8 +213,8 @@ SCENARIO( "A new OdeHeatMapper can Get metrics correctly", "[OdeHeatMapper]" )
                 cols, rows, DSL_BBOX_POINT_SOUTH, pPredefinedColorPalette);
 
         NvDsFrameMeta frameMeta =  {0};
-        frameMeta.source_frame_width = DSL_DEFAULT_STREAMMUX_WIDTH;
-        frameMeta.source_frame_height = DSL_DEFAULT_STREAMMUX_HEIGHT;
+        frameMeta.source_frame_width = DSL_STREAMMUX_DEFAULT_WIDTH;
+        frameMeta.source_frame_height = DSL_STREAMMUX_DEFAULT_HEIGHT;
 
         NvDsObjectMeta objectMeta = {0};
         objectMeta.rect_params.left = 10;
@@ -224,8 +224,8 @@ SCENARIO( "A new OdeHeatMapper can Get metrics correctly", "[OdeHeatMapper]" )
         
         pOdeHeatMapper->HandleOccurrence(&frameMeta, &objectMeta);
 
-        objectMeta.rect_params.left = DSL_DEFAULT_STREAMMUX_WIDTH - 30;
-        objectMeta.rect_params.top = DSL_DEFAULT_STREAMMUX_HEIGHT - 30;
+        objectMeta.rect_params.left = DSL_STREAMMUX_DEFAULT_WIDTH - 30;
+        objectMeta.rect_params.top = DSL_STREAMMUX_DEFAULT_HEIGHT - 30;
         objectMeta.rect_params.width = 20;
         objectMeta.rect_params.height = 20;
         
@@ -289,8 +289,8 @@ SCENARIO( "A new OdeHeatMapper can File metrics correctly", "[OdeHeatMapper]" )
                 cols, rows, DSL_BBOX_POINT_SOUTH, pPredefinedColorPalette);
 
         NvDsFrameMeta frameMeta =  {0};
-        frameMeta.source_frame_width = DSL_DEFAULT_STREAMMUX_WIDTH;
-        frameMeta.source_frame_height = DSL_DEFAULT_STREAMMUX_HEIGHT;
+        frameMeta.source_frame_width = DSL_STREAMMUX_DEFAULT_WIDTH;
+        frameMeta.source_frame_height = DSL_STREAMMUX_DEFAULT_HEIGHT;
 
         NvDsObjectMeta objectMeta = {0};
         objectMeta.rect_params.left = 10;

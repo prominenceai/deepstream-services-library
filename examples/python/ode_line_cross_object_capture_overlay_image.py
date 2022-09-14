@@ -56,8 +56,8 @@ PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-WINDOW_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
-WINDOW_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
+WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
+WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
 
 # Minimum Inference confidence level to Trigger ODE Occurrence
 # Used for all ODE Triggers
@@ -252,7 +252,7 @@ def main(args):
             break
 
         # Set a minimum confidence level to avoid false negatives.
-        retval = dsl_ode_trigger_confidence_min_set('person-crossing-line',
+        retval = dsl_ode_trigger_infer_confidence_min_set('person-crossing-line',
             min_confidence = PERSON_MIN_CONFIDENCE)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -388,7 +388,7 @@ def main(args):
             break
 
         # Use same criteria as Cross Trigger
-        retval = dsl_ode_trigger_confidence_min_set('objects-sumation-trigger',
+        retval = dsl_ode_trigger_infer_confidence_min_set('objects-sumation-trigger',
             min_confidence = PERSON_MIN_CONFIDENCE)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -436,7 +436,7 @@ def main(args):
             break
 
         # Use same criteria as Cross and Summation Triggers
-        retval = dsl_ode_trigger_confidence_min_set('new-instance-trigger',
+        retval = dsl_ode_trigger_infer_confidence_min_set('new-instance-trigger',
             min_confidence = PERSON_MIN_CONFIDENCE)
         if retval != DSL_RETURN_SUCCESS:
             break

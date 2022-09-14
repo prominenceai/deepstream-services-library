@@ -34,8 +34,8 @@ namespace DSL
         : Bintr(name)
         , m_isPaddingEnabled(false)
         , m_areSourcesLive(false)
-        , m_nvbufMemType(DSL_DEFAULT_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE)
-        , m_batchTimeout(DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT)
+        , m_nvbufMemType(DSL_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE)
+        , m_batchTimeout(DSL_STREAMMUX_DEFAULT_BATCH_TIMEOUT)
     {
         LOG_FUNC();
 
@@ -45,9 +45,9 @@ namespace DSL
         m_pStreamMux = DSL_ELEMENT_NEW("nvstreammux", name);
 
         // Setup all default properties
-        //SetStreamMuxNvbufMemType(DSL_DEFAULT_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE);
-        SetStreamMuxDimensions(DSL_DEFAULT_STREAMMUX_WIDTH, DSL_DEFAULT_STREAMMUX_HEIGHT);
-        SetStreamMuxNumSurfacesPerFrame(DSL_DEFAULT_STREAMMUX_MAX_NUM_SERFACES_PER_FRAME);
+        //SetStreamMuxNvbufMemType(DSL_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE);
+        SetStreamMuxDimensions(DSL_STREAMMUX_DEFAULT_WIDTH, DSL_STREAMMUX_DEFAULT_HEIGHT);
+        SetStreamMuxNumSurfacesPerFrame(DSL_STREAMMUX_DEFAULT_MAX_NUM_SERFACES_PER_FRAME);
 
         AddChild(m_pStreamMux);
 

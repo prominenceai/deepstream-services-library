@@ -40,8 +40,8 @@ modelEngineFile = \
 tracker_config_file = '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 # Best to keep Tiler dimensions the same as Streamux/Source
-TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
-TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
+TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
+TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
 
 WINDOW_WIDTH = TILER_WIDTH
 WINDOW_HEIGHT = TILER_HEIGHT

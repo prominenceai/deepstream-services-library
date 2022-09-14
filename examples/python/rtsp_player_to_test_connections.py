@@ -34,8 +34,8 @@ amcrest_rtsp_uri = 'rtsp://username:password@192.168.1.108:554/cam/realmonitor?c
 # RTSP Source URI for HIKVISION Camera    
 hikvision_rtsp_uri = 'rtsp://username:password@192.168.0.14:554/Streaming/Channels/101'    
 
-WINDOW_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH    
-WINDOW_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT    
+WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH    
+WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT    
 
 ##     
 # Function to be called on XWindow KeyRelease event    

@@ -61,18 +61,18 @@ static void ode_occurrence_handler_cb_3(uint64_t event_id, const wchar_t* name,
     std::cout << "Custom Action callback 3. called\n";
 }    
 
-static void limit_event_listener_1(uint event, uint limit, void* client_data)
+static void limit_state_change_listener_1(uint event_id, uint limit, void* client_data)
 {
     std::cout 
-        << "Limit event listener 1 callback called, event = " 
-        << event << ", limit = " << limit << "\n";
+        << "Limit state change listener 1 callback called, event = " 
+        << event_id << ", limit = " << limit << "\n";
 }
 
-static void limit_event_listener_2(uint event, uint limit, void* client_data)
+static void limit_state_change_listener_2(uint event_id, uint limit, void* client_data)
 {
     std::cout 
-        << "Limit event listener 2 callback called, event = " 
-        << event << ", limit = " << limit << "\n";
+        << "Limit state change listener 2 callback called, event = " 
+        << event_id << ", limit = " << limit << "\n";
 }
 
 static void enabled_state_change_listener_1(boolean enabled, void* client_data)
@@ -108,7 +108,8 @@ SCENARIO( "A new OdeOccurreceTrigger is created correctly", "[OdeTrigger]" )
             {
                 REQUIRE( pOdeTrigger->GetEnabled() == true );
                 REQUIRE( pOdeTrigger->GetClassId() == classId );
-                REQUIRE( pOdeTrigger->GetLimit() == limit );
+                REQUIRE( pOdeTrigger->GetEventLimit() == limit );
+                REQUIRE( pOdeTrigger->GetFrameLimit() == 0  );
                 REQUIRE( pOdeTrigger->GetSource() == NULL );
                 REQUIRE( pOdeTrigger->GetResetTimeout() == 0 );
                 REQUIRE( pOdeTrigger->GetInterval() == 0 );
@@ -319,7 +320,7 @@ SCENARIO( "An OdeOccurrenceTrigger executes its ODE Actions in the correct order
     }
 }
 
-SCENARIO( "An OdeOccurrenceTrigger handles a timed reset correctly", "[OdeTrigger]" )
+SCENARIO( "An OdeOccurrenceTrigger handles a timed reset on event limit correctly", "[OdeTrigger]" )
 {
     GIVEN( "A new OdeTrigger with default criteria" ) 
     {
@@ -436,6 +437,74 @@ SCENARIO( "An OdeOccurrenceTrigger handles a timed reset correctly", "[OdeTrigge
     }
 }
 
+SCENARIO( "An OdeOccurrenceTrigger handles a timed reset on frame limit correctly", "[temp]" )
+{
+    GIVEN( "A new OdeTrigger with default criteria" ) 
+    {
+        std::string odeTriggerName("occurence");
+        uint classId(1);
+        uint limit(DSL_ODE_TRIGGER_LIMIT_NONE); 
+        uint reset_timeout(1);
+
+        std::string source;
+
+        std::string odeActionName("print-action");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+            
+        // Setting a frame limit of one.
+        pOdeTrigger->SetFrameLimit(1);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        // Frame Meta test data
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  
+        frameMeta.frame_num = 1;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        // Object Meta test data
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match ODE Trigger's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.rect_params.left = 10;
+        objectMeta.rect_params.top = 10;
+        objectMeta.rect_params.width = 200;
+        objectMeta.rect_params.height = 100;
+
+        // Ensure correct defaults
+        REQUIRE( pOdeTrigger->GetResetTimeout() == 0 );
+        REQUIRE( pOdeTrigger->IsResetTimerRunning() == false);
+        
+        WHEN( "The ODE Trigger's ResetTimeout is set when frame limit has been reached" )
+        {
+            // First occurrence will reach the Trigger's limit of one
+            pOdeTrigger->PreProcessFrame(NULL, 
+                displayMetaData, &frameMeta);
+
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                displayMetaData, &frameMeta, &objectMeta) == true );
+
+            REQUIRE( pOdeTrigger->PostProcessFrame(NULL, 
+                displayMetaData, &frameMeta) == 1 );
+
+            // Limit has been reached
+            pOdeTrigger->SetResetTimeout(reset_timeout);
+            
+            THEN( "The correct timeout and is-running values are returned" )
+            {
+                REQUIRE( pOdeTrigger->GetResetTimeout() == reset_timeout );
+                REQUIRE( pOdeTrigger->IsResetTimerRunning() == true);
+            }
+        }
+    }
+}
+
 SCENARIO( "An OdeOccurrenceTrigger notifies its limit-state-listeners", "[OdeTrigger]" )
 {
     GIVEN( "A new OdeTrigger with default criteria" ) 
@@ -473,11 +542,11 @@ SCENARIO( "An OdeOccurrenceTrigger notifies its limit-state-listeners", "[OdeTri
         objectMeta.rect_params.width = 200;
         objectMeta.rect_params.height = 100;
 
-        REQUIRE( pOdeTrigger->AddLimitEventListener(
-            limit_event_listener_1, NULL) == true );
+        REQUIRE( pOdeTrigger->AddLimitStateChangeListener(
+            limit_state_change_listener_1, NULL) == true );
 
-        REQUIRE( pOdeTrigger->AddLimitEventListener(
-            limit_event_listener_2, NULL) == true );
+        REQUIRE( pOdeTrigger->AddLimitStateChangeListener(
+            limit_state_change_listener_2, NULL) == true );
         
         WHEN( "When an ODE occures and the Trigger reaches its limit" )
         {
@@ -491,11 +560,11 @@ SCENARIO( "An OdeOccurrenceTrigger notifies its limit-state-listeners", "[OdeTri
                 
                 pOdeTrigger->Reset();
                 
-                REQUIRE( pOdeTrigger->RemoveLimitEventListener(
-                    limit_event_listener_1) == true );
+                REQUIRE( pOdeTrigger->RemoveLimitStateChangeListener(
+                    limit_state_change_listener_1) == true );
 
-                REQUIRE( pOdeTrigger->RemoveLimitEventListener(
-                    limit_event_listener_2) == true );
+                REQUIRE( pOdeTrigger->RemoveLimitStateChangeListener(
+                    limit_state_change_listener_2) == true );
             }
         }
     }
@@ -573,6 +642,78 @@ SCENARIO( "An ODE Occurrence Trigger checks its minimum inference confidence cor
     }
 }
 
+SCENARIO( "An ODE Occurrence Trigger checks its maximum inference confidence correctly", 
+    "[OdeTrigger]" )
+{
+    GIVEN( "A new OdeTrigger with default criteria" ) 
+    {
+        std::string odeTriggerName("occurence");
+        std::string source;
+        uint classId(1);
+        uint limit(0); // not limit
+
+        std::string odeActionName("print-action");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), 
+                source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        // Frame Meta test data
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  
+        frameMeta.frame_num = 1;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        // Object Meta test data
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match ODE Trigger's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.rect_params.left = 10;
+        objectMeta.rect_params.top = 10;
+        objectMeta.rect_params.width = 200;
+        objectMeta.rect_params.height = 100;
+        
+        objectMeta.confidence = 0.5;
+        
+        WHEN( "The ODE Trigger's maximum confidence is less than the Object's confidence" )
+        {
+            pOdeTrigger->SetMaxConfidence(0.4999);
+            
+            THEN( "The ODE is NOT triggered" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta) == false );
+            }
+        }
+        WHEN( "The ODE Trigger's maximum confidence is equal to the Object's confidence" )
+        {
+            pOdeTrigger->SetMaxConfidence(0.5);
+            
+            THEN( "The ODE is triggered" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The ODE Trigger's maximum confidence is greater than the Object's confidence" )
+        {
+            pOdeTrigger->SetMaxConfidence(0.5001);
+            
+            THEN( "The ODE is triggered" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta) == true );
+            }
+        }
+    }
+}
+
 SCENARIO( "An ODE Occurrence Trigger checks its minimum tracker confidence correctly", 
     "[OdeTrigger]" )
 {
@@ -640,6 +781,78 @@ SCENARIO( "An ODE Occurrence Trigger checks its minimum tracker confidence corre
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                     displayMetaData, &frameMeta, &objectMeta) == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "An ODE Occurrence Trigger checks its maximum tracker confidence correctly", 
+    "[OdeTrigger]" )
+{
+    GIVEN( "A new OdeTrigger with default criteria" ) 
+    {
+        std::string odeTriggerName("occurence");
+        std::string source;
+        uint classId(1);
+        uint limit(0); // not limit
+
+        std::string odeActionName("print-action");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), 
+                source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        // Frame Meta test data
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  
+        frameMeta.frame_num = 1;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        // Object Meta test data
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match ODE Trigger's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.rect_params.left = 10;
+        objectMeta.rect_params.top = 10;
+        objectMeta.rect_params.width = 200;
+        objectMeta.rect_params.height = 100;
+        
+        objectMeta.tracker_confidence = 0.5;
+        
+        WHEN( "The ODE Trigger's maximum confidence is less than the Object's confidence" )
+        {
+            pOdeTrigger->SetMaxTrackerConfidence(0.4999);
+            
+            THEN( "The ODE is NOT triggered" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta) == false );
+            }
+        }
+        WHEN( "The ODE Trigger's maximum confidence is equal to the Object's confidence" )
+        {
+            pOdeTrigger->SetMaxTrackerConfidence(0.5);
+            
+            THEN( "The ODE is triggered" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The ODE Trigger's maximum confidence is greater tahn the Object's confidence" )
+        {
+            pOdeTrigger->SetMaxTrackerConfidence(0.5001);
+            
+            THEN( "The ODE is triggered" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
+                    displayMetaData, &frameMeta, &objectMeta) == true );
             }
         }
     }
@@ -3526,7 +3739,8 @@ SCENARIO( "A new OdeDistanceTrigger is created correctly", "[OdeTrigger]" )
                 pOdeTrigger->GetTestParams(&retTestPoint, &retTestMethod);
                 REQUIRE( retTestPoint == testPoint );
                 REQUIRE( retTestMethod == testMethod );
-                REQUIRE( pOdeTrigger->GetLimit() == limit );
+                REQUIRE( pOdeTrigger->GetEventLimit() == limit );
+                REQUIRE( pOdeTrigger->GetFrameLimit() == 0 );
                 REQUIRE( pOdeTrigger->GetSource() == NULL );
                 float minWidth(123), minHeight(123);
                 pOdeTrigger->GetMinDimensions(&minWidth, &minHeight);

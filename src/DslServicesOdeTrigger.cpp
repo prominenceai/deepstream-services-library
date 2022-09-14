@@ -1020,8 +1020,8 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::OdeTriggerLimitEventListenerAdd(const char* name,
-        dsl_ode_trigger_limit_event_listener_cb listener, void* clientData)
+    DslReturnType Services::OdeTriggerLimitStateChangeListenerAdd(const char* name,
+        dsl_ode_trigger_limit_state_change_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1033,27 +1033,27 @@ namespace DSL
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
          
-            if (!pOdeTrigger->AddLimitEventListener(listener, clientData))
+            if (!pOdeTrigger->AddLimitStateChangeListener(listener, clientData))
             {
                 LOG_ERROR("ODE Trigger '" << name 
-                    << "' failed to add a Limit Event Listener");
+                    << "' failed to add a Limit State Change Listener");
                 return DSL_RESULT_ODE_TRIGGER_CALLBACK_ADD_FAILED;
             }
             LOG_INFO("ODE Trigger '" << name 
-                << "' successfully added a Limit Event Listener");
+                << "' successfully added a Limit State Change Listener");
                 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("ODE Trigger '" << name 
-                << "' threw exception adding a Limit Event Listener");
+                << "' threw exception adding a Limit State Change Listener");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::OdeTriggerLimitEventListenerRemove(const char* name,
-        dsl_ode_trigger_limit_event_listener_cb listener)
+    DslReturnType Services::OdeTriggerLimitStateChangeListenerRemove(const char* name,
+        dsl_ode_trigger_limit_state_change_listener_cb listener)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1065,14 +1065,14 @@ namespace DSL
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
          
-            if (!pOdeTrigger->RemoveLimitEventListener(listener))
+            if (!pOdeTrigger->RemoveLimitStateChangeListener(listener))
             {
                 LOG_ERROR("ODE Trigger '" << name 
-                    << "' failed to remove a Limit Event Listener");
+                    << "' failed to remove a Limit State Change Listener");
                 return DSL_RESULT_ODE_TRIGGER_CALLBACK_REMOVE_FAILED;
             }
             LOG_INFO("ODE Trigger '" << name 
-                << "' successfully removed a Limit Event Listener");
+                << "' successfully removed a Limit State Change Listener");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -1415,7 +1415,7 @@ namespace DSL
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
-    DslReturnType Services::OdeTriggerLimitGet(const char* name, uint* limit)
+    DslReturnType Services::OdeTriggerLimitEventGet(const char* name, uint* limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1427,9 +1427,9 @@ namespace DSL
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
          
-            *limit = pOdeTrigger->GetLimit();
+            *limit = pOdeTrigger->GetEventLimit();
 
-            LOG_INFO("Trigger '" << name << "' returned Limit = " 
+            LOG_INFO("Trigger '" << name << "' returned Event Limit = " 
                 << *limit << " successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -1437,12 +1437,12 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("ODE Trigger '" << name 
-                << "' threw exception getting limit");
+                << "' threw exception getting Event Limit");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
-    DslReturnType Services::OdeTriggerLimitSet(const char* name, uint limit)
+    DslReturnType Services::OdeTriggerLimitEventSet(const char* name, uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1454,9 +1454,63 @@ namespace DSL
             DSL_ODE_TRIGGER_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
          
-            pOdeTrigger->SetLimit(limit);
+            pOdeTrigger->SetEventLimit(limit);
             
-            LOG_INFO("Trigger '" << name << "' set Limit = " 
+            LOG_INFO("Trigger '" << name << "' set Evemt Limit = " 
+                << limit << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting Event Limit");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }    
+            
+    DslReturnType Services::OdeTriggerLimitFrameGet(const char* name, uint* limit)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            *limit = pOdeTrigger->GetFrameLimit();
+
+            LOG_INFO("Trigger '" << name << "' returned Frame Limit = " 
+                << *limit << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting Frame Limit");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerLimitFrameSet(const char* name, uint limit)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            pOdeTrigger->SetFrameLimit(limit);
+            
+            LOG_INFO("Trigger '" << name << "' set Frame Limit = " 
                 << limit << " successfully");
             
             return DSL_RESULT_SUCCESS;
@@ -1524,6 +1578,62 @@ namespace DSL
         }
     }                
 
+    DslReturnType Services::OdeTriggerConfidenceMaxGet(const char* 
+        name, float* maxConfidence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            *maxConfidence = pOdeTrigger->GetMaxConfidence();
+            
+            LOG_INFO("Trigger '" << name << "' returned maximum confidence = " 
+                << *maxConfidence << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting maximum confidence");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerConfidenceMaxSet(const char* name, 
+        float maxConfidence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->SetMaxConfidence(maxConfidence);
+
+            LOG_INFO("Trigger '" << name << "' set maximum confidence = " 
+                << maxConfidence << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting minimum confidence");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
     DslReturnType Services::OdeTriggerTrackerConfidenceMinGet(const char* 
         name, float* minConfidence)
     {
@@ -1569,6 +1679,62 @@ namespace DSL
 
             LOG_INFO("Trigger '" << name << "' set minimum Tracker confidence = " 
                 << minConfidence << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting minimum Tracker confidence");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerTrackerConfidenceMaxGet(const char* 
+        name, float* maxConfidence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            *maxConfidence = pOdeTrigger->GetMaxTrackerConfidence();
+            
+            LOG_INFO("Trigger '" << name << "' returned maximum Tracker confidence = " 
+                << *maxConfidence << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name 
+                << "' threw exception getting maximum Tracker confidence");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerTrackerConfidenceMaxSet(const char* name, 
+        float maxConfidence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->SetMaxTrackerConfidence(maxConfidence);
+
+            LOG_INFO("Trigger '" << name << "' set maximum Tracker confidence = " 
+                << maxConfidence << " successfully");
             
             return DSL_RESULT_SUCCESS;
         }
