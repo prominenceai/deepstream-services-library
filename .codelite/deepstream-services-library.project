@@ -81,7 +81,6 @@
     <File Name="../src/DslSegVisualBintr.h"/>
     <File Name="../src/DslServices.h"/>
     <File Name="../src/DslServicesValidate.h"/>
-    <File Name="../src/DslSinkBintr.h"/>
     <File Name="../src/DslSourceBintr.h"/>
     <File Name="../src/DslSourceMeter.h"/>
     <File Name="../src/DslStateChange.h"/>
@@ -286,6 +285,7 @@
       <File Name="../examples/python/interpipe_multiple_pipelines_listening_to_single_sink.py"/>
       <File Name="../examples/python/4K_input_source_slicing_with_non_maximum_merge.py"/>
       <File Name="../test/api/DslInferApiTest.cpp"/>
+      <File Name="../src/DslSinkBintr.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>
