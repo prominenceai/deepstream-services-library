@@ -377,7 +377,7 @@ namespace DSL
         uint m_displayMetaAllocSize;
         
         /**
-         * @brief Index variable to incremment/assign on ODE Action add.
+         * @brief Index variable to incremment/assign on ODE Trigger add.
          */
         uint m_nextTriggerIndex;
         
@@ -597,6 +597,16 @@ namespace DSL
          * @brief Static Pad to attach the Probe to
          */
         GstPad* m_pStaticPad;
+
+        /**
+         * @brief Index variable to incremment/assign on PadProbeHandler add.
+         */
+        uint m_nextHanlderIndex;
+
+        /**
+         * @brief Map of child PadProbeHandlers indexed by their add-order for execution
+         */
+        std::map <uint, DSL_BASE_PTR> m_pChildrenIndexed; 
 
     };
 
