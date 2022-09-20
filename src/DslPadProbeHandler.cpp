@@ -704,6 +704,7 @@ namespace DSL
         , m_padProbeId(0)
         , m_padProbeType(padProbeType)
         , m_pStaticPad(NULL)
+        , m_nextHanlderIndex(0)
     {
         LOG_FUNC();
         
@@ -733,6 +734,7 @@ namespace DSL
     bool PadProbetr::AddPadProbeHandler(DSL_BASE_PTR pPadProbeHandler)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padProbeMutex);
         
         if (IsChild(pPadProbeHandler))
         {
@@ -754,12 +756,25 @@ namespace DSL
                 PadProbeCB, this, NULL);
         }
         
-        return AddChild(pPadProbeHandler);
+        if (!AddChild(pPadProbeHandler))
+        {
+            return false;
+        }
+        
+        // increment next index, assign to the Trigger
+        pPadProbeHandler->SetIndex(++m_nextHanlderIndex);
+
+        // Add the child to the Indexed map 
+        m_pChildrenIndexed[m_nextHanlderIndex] = pPadProbeHandler;
+        
+        return true;
+        
     }
     
     bool PadProbetr::RemovePadProbeHandler(DSL_BASE_PTR pPadProbeHandler)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padProbeMutex);
         
         if (!IsChild(pPadProbeHandler))
         {
@@ -767,7 +782,12 @@ namespace DSL
             return false;
         }
         
-        return RemoveChild(pPadProbeHandler);
+        if (!RemoveChild(pPadProbeHandler))
+        {
+            return false;
+        }
+        m_pChildrenIndexed.erase(pPadProbeHandler->GetIndex());
+        return true;
     }
 
     //----------------------------------------------------------------------------------------------
@@ -786,32 +806,49 @@ namespace DSL
 
     GstPadProbeReturn PadBufferProbetr::HandlePadProbe(GstPad* pPad, GstPadProbeInfo* pInfo)
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padProbeMutex);
-        
         if ((pInfo->type & GST_PAD_PROBE_TYPE_BUFFER))
         {
-            if (!(GstBuffer*)pInfo->data)
+            // list of Pad Probe Handler names that need removal after processing.
+            std::vector <DSL_PPH_PTR> removalList;
             {
-                LOG_WARN("Unable to get data buffer for PadProbetr '" << m_name << "'");
-                return GST_PAD_PROBE_OK;
-            }
+                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padProbeMutex);
         
-            for (auto const& imap: m_pChildren)
-            {
-                DSL_PPH_PTR pPadProbeHandler = std::dynamic_pointer_cast<PadProbeHandler>(imap.second);
-                try
+                if (!(GstBuffer*)pInfo->data)
                 {
-                    if (pPadProbeHandler->HandlePadData(pInfo) == GST_PAD_PROBE_REMOVE)
+                    LOG_WARN("Unable to get data buffer for PadProbetr '" << m_name << "'");
+                    return GST_PAD_PROBE_OK;
+                }
+            
+                for (auto const& imap: m_pChildrenIndexed)
+                {
+                    DSL_PPH_PTR pPadProbeHandler = std::dynamic_pointer_cast<PadProbeHandler>(imap.second);
+                    
+                    GstPadProbeReturn retval;
+                    try
                     {
-                        LOG_INFO("Removing Pad Probe Handler from PadProbetr '" << m_name << "'");
-                        RemovePadProbeHandler(pPadProbeHandler);
+                        retval = pPadProbeHandler->HandlePadData(pInfo);
+                    }
+                    catch(...)
+                    {
+                        LOG_ERROR("Exception calling Pad Probe Handler for PadProbetr '" << m_name 
+                            << "' - removing Pad Probe Handler");
+                        removalList.push_back(pPadProbeHandler);
+                    }
+                    if (retval > DSL_PAD_PROBE_REMOVE)
+                    {
+                        LOG_ERROR("Invalid return from Pad Probe Handler for PadProbetr '" << m_name 
+                            << "' - removing Pad Probe Handler");
+                        removalList.push_back(pPadProbeHandler);
+                    }
+                    if (retval == GST_PAD_PROBE_REMOVE)
+                    {
+                        removalList.push_back(pPadProbeHandler);
                     }
                 }
-                catch(...)
-                {
-                    LOG_INFO("Removing Pad Probe Handler for PadProbetr '" << m_name << "'");
-                    RemovePadProbeHandler(pPadProbeHandler);
-                }
+            }
+            for (auto const& ivec: removalList)
+            {
+                RemovePadProbeHandler(ivec);
             }
         }
         return GST_PAD_PROBE_OK;
@@ -835,32 +872,42 @@ namespace DSL
     {
         if (pInfo->type & GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM)
         {
-            if (!(GstEvent*)pInfo->data)
+            // list of Pad Probe Handler names that need removal after processing.
+            std::vector <DSL_PPH_PTR> removalList;
             {
-                LOG_WARN("Unable to get Event for PadProbetr '" << m_name << "'");
-                return GST_PAD_PROBE_OK;
+                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padProbeMutex);
+                if (!(GstEvent*)pInfo->data)
+                {
+                    LOG_WARN("Unable to get event for PadProbetr '" << m_name << "'");
+                    return GST_PAD_PROBE_OK;
+                }
+                
+                for (auto const& imap: m_pChildrenIndexed)
+                {
+                    DSL_PPH_PTR pPadProbeHandler = std::dynamic_pointer_cast<PadProbeHandler>(imap.second);
+                    try
+                    {
+                        GstPadProbeReturn retval = pPadProbeHandler->HandlePadData(pInfo);
+                        if (retval == GST_PAD_PROBE_REMOVE)
+                        {
+                            LOG_INFO("Removing Pad Probe Handler from PadProbetr '" << m_name << "'");
+                            removalList.push_back(pPadProbeHandler);
+                        }
+                        else if (retval == GST_PAD_PROBE_DROP)
+                        {
+                            return retval;
+                        }
+                    }
+                    catch(...)
+                    {
+                        LOG_INFO("Removing Pad Probe Handler for PadProbetr '" << m_name << "'");
+                        removalList.push_back(pPadProbeHandler);
+                    }
+                }
             }
-            for (auto const& imap: m_pChildren)
+            for (auto const& ivec: removalList)
             {
-                DSL_PPH_PTR pPadProbeHandler = std::dynamic_pointer_cast<PadProbeHandler>(imap.second);
-                try
-                {
-                    GstPadProbeReturn retval = pPadProbeHandler->HandlePadData(pInfo);
-                    if (retval == GST_PAD_PROBE_REMOVE)
-                    {
-                        LOG_INFO("Removing Pad Probe Handler from PadProbetr '" << m_name << "'");
-                        RemovePadProbeHandler(pPadProbeHandler);
-                    }
-                    else if (retval == GST_PAD_PROBE_DROP)
-                    {
-                        return retval;
-                    }
-                }
-                catch(...)
-                {
-                    LOG_INFO("Removing Pad Probe Handler for PadProbetr '" << m_name << "'");
-                    RemovePadProbeHandler(pPadProbeHandler);
-                }
+                RemovePadProbeHandler(ivec);
             }
         }
         return GST_PAD_PROBE_OK;        

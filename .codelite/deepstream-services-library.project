@@ -115,7 +115,6 @@
       <File Name="../test/api/DslComponentMgt.cpp"/>
       <File Name="../test/api/DslDisplayTypesApiTest.cpp"/>
       <File Name="../test/api/DslDisplayTypesBehaviorTest.cpp"/>
-      <File Name="../test/api/DslInferApiTest.cpp"/>
       <File Name="../test/api/DslMailerApiTest.cpp"/>
       <File Name="../test/api/DslMessageBrokerApiTest.cpp"/>
       <File Name="../test/api/DslMessageSinkBehaviorTest.cpp"/>
@@ -151,6 +150,7 @@
       <File Name="../test/api/DslOdeHeatMapperApiTest.cpp"/>
       <File Name="../test/api/DslPreprocApiText.cpp"/>
       <File Name="../test/api/DslInfoApiTest.cpp.tmp"/>
+      <File Name="../test/api/DslPphBehaviorTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDemuxerAndTeeUnitTest.cpp"/>
@@ -285,6 +285,7 @@
       <File Name="../examples/python/interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.py"/>
       <File Name="../examples/python/interpipe_multiple_pipelines_listening_to_single_sink.py"/>
       <File Name="../examples/python/4K_input_source_slicing_with_non_maximum_merge.py"/>
+      <File Name="../test/api/DslInferApiTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>

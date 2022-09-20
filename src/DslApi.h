@@ -520,9 +520,6 @@ THE SOFTWARE.
 #define DSL_PAD_PROBE_DROP                                          0
 #define DSL_PAD_PROBE_OK                                            1
 #define DSL_PAD_PROBE_REMOVE                                        2
-#define DSL_PAD_PROBE_PASS                                          3
-#define DSL_PAD_PROBE_HANDLED                                       4
-
 
 #define DSL_RTP_TCP                                                 0x04
 #define DSL_RTP_ALL                                                 0x07
