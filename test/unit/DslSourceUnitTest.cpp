@@ -48,7 +48,7 @@ static std::string jpgFilePath1("/opt/nvidia/deepstream/deepstream/samples/strea
 static std::string jpgFilePath2("/opt/nvidia/deepstream/deepstream/samples/streams/yoga.jpg");
 static std::string multJpgFilePath("./test/streams/sample_720p.%04d.mjpeg");
 
-static uint width(1920), height(1080), fpsN(30), fpsD(1);
+static uint width(1920), height(1080), fps_n(30), fps_d(1);
 
 using namespace DSL;
 
@@ -60,7 +60,7 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[SourceBintr]" )
         {
         
             DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
-                sourceName.c_str(), width, height, fpsN, fpsD);
+                sourceName.c_str(), width, height, fps_n, fps_d);
 
             THEN( "All memeber variables are initialized correctly" )
             {
@@ -76,8 +76,8 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[SourceBintr]" )
                 pSourceBintr->GetFrameRate(&retFpsN, &retFpsD);
                 REQUIRE( width == retWidth );
                 REQUIRE( height == retHeight );
-                REQUIRE( fpsN == retFpsN );
-                REQUIRE( fpsD == retFpsD );
+                REQUIRE( fps_n == retFpsN );
+                REQUIRE( fps_d == retFpsD );
             }
         }
     }
@@ -87,13 +87,6 @@ SCENARIO( "A CsiSourceBintr can LinkAll child Elementrs correctly",  "[SourceBin
 {
     GIVEN( "A new CsiSourceBintr in memory" ) 
     {
-        uint width(1280);
-        uint height(720);
-        uint fps_n(30);
-        uint fps_d(1);
-        std::string sourceName("test-csi-source");
-        int sensorId = 1;
-
         DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
             sourceName.c_str(), width, height, fps_n, fps_d);
 
@@ -113,12 +106,6 @@ SCENARIO( "A CsiSourceBintr can UnlinkAll all child Elementrs correctly",  "[Sou
 {
     GIVEN( "A new, linked CsiSourceBintr " ) 
     {
-        uint width(1280);
-        uint height(720);
-        uint fps_n(30);
-        uint fps_d(1);
-        std::string sourceName("test-csi-source");
-
         DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
             sourceName.c_str(), width, height, fps_n, fps_d);
 
@@ -141,17 +128,14 @@ SCENARIO( "A new UsbSourceBintr is created correctly",  "[SourceBintr]" )
 {
     GIVEN( "A name for a new UsbSourceBintr" ) 
     {
-        uint width(1280);
-        uint height(720);
-        uint fpsN(30);
-        uint fpsD(1);
-        std::string sourceName("usb-source");
+
+        static std::string defDeviceLocation("/dev/video0");
 
         WHEN( "The UsbSourceBintr is created " )
         {
         
             DSL_USB_SOURCE_PTR pSourceBintr = DSL_USB_SOURCE_NEW(
-                sourceName.c_str(), width, height, fpsN, fpsD);
+                sourceName.c_str(), width, height, fps_n, fps_d);
 
             THEN( "All memeber variables are initialized correctly" )
             {
@@ -160,13 +144,16 @@ SCENARIO( "A new UsbSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == true );
                 
+                std::string retDeviceLocaton = pSourceBintr->GetDeviceLocation();
+                REQUIRE( retDeviceLocaton == defDeviceLocation );
+                
                 uint retWidth, retHeight, retFpsN, retFpsD;
                 pSourceBintr->GetDimensions(&retWidth, &retHeight);
                 pSourceBintr->GetFrameRate(&retFpsN, &retFpsD);
                 REQUIRE( width == retWidth );
                 REQUIRE( height == retHeight );
-                REQUIRE( fpsN == retFpsN );
-                REQUIRE( fpsD == retFpsD );
+                REQUIRE( fps_n == retFpsN );
+                REQUIRE( fps_d == retFpsD );
             }
         }
     }

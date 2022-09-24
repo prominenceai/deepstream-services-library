@@ -632,6 +632,12 @@ namespace DSL {
         
         DslReturnType SourceUsbNew(const char* name, 
             uint width, uint height, uint fpsN, uint fpsD);
+
+        DslReturnType SourceUsbDeviceLocationGet(const char* name, 
+            const char** deviceLocation);
+        
+        DslReturnType SourceUsbDeviceLocationSet(const char* name, 
+            const char* deviceLocation);
         
         DslReturnType SourceUriNew(const char* name, const char* uri, 
             boolean isLive, uint intraDecode, uint dropFrameInterval);

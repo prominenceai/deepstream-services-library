@@ -2849,6 +2849,27 @@ def dsl_source_usb_new(name, width, height, fps_n, fps_d):
     return int(result)
 
 ##
+## dsl_source_usb_device_location_get()
+##
+_dsl.dsl_source_usb_device_location_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_source_usb_device_location_get.restype = c_uint
+def dsl_source_usb_device_location_get(name):
+    global _dsl
+    device_location = c_wchar_p(0)
+    result = _dsl.dsl_source_usb_device_location_get(name, DSL_WCHAR_PP(device_location))
+    return int(result), device_location.value 
+
+##
+## dsl_source_usb_device_location_set()
+##
+_dsl.dsl_source_usb_device_location_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_usb_device_location_set.restype = c_uint
+def dsl_source_usb_device_location_set(name, device_location):
+    global _dsl
+    result = _dsl.dsl_source_usb_device_location_set(name, device_location)
+    return int(result)
+
+##
 ## dsl_source_uri_new()
 ##
 _dsl.dsl_source_uri_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint, c_uint]
