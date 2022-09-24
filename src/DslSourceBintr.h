@@ -268,6 +268,19 @@ namespace DSL
          * @brief Unlinks all Child Elementrs owned by this Source Bintr
          */
         void UnlinkAll();
+
+        /**
+         * @brief Gets the current device location setting for the Source Bintr
+         * @return current device location. Default = /dev/video0
+         */
+        const char* GetDeviceLocation();
+        
+        /**
+         * @brief Sets the device location setting for the Source Bintr.
+         * @param[in] new device location for the Source Bintr to use.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetDeviceLocation(const char* deviceLocation);
         
         /**
          * @brief Sets the GPU ID for all Elementrs
@@ -278,22 +291,22 @@ namespace DSL
     private:
 
         /**
-         * @brief Unique sensor ID for this USB Source
+         * @brief current device location for the USB Source
          */
-        uint m_sensorId;
-        
+        std::string m_deviceLocation;
+
         /**
-         * @brief
+         * @brief Caps Filter for the USB Source
          */
         DSL_ELEMENT_PTR m_pCapsFilter;
         
         /**
-         * @brief
+         * @brief Video converter, first of two, for the USB Source
          */
         DSL_ELEMENT_PTR m_pVidConv1;
 
         /**
-         * @brief
+         * @brief Video converter, second of two, for the USB Source
          */
         DSL_ELEMENT_PTR m_pVidConv2;
     }; 

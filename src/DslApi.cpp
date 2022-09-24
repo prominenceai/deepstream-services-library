@@ -3356,6 +3356,46 @@ DslReturnType dsl_source_usb_new(const wchar_t* name,
         width, height, fps_n, fps_d);
 }
 
+DslReturnType dsl_source_usb_device_location_get(const wchar_t* name,
+    const wchar_t** device_location)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_location);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cDeviceLocation;
+    static std::string cstrDeviceLocation;
+    static std::wstring wcstrDeviceLocation;
+    
+    uint retval = DSL::Services::GetServices()->SourceUsbDeviceLocationGet(cstrName.c_str(), 
+        &cDeviceLocation);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrDeviceLocation.assign(cDeviceLocation);
+        wcstrDeviceLocation.assign(cstrDeviceLocation.begin(), cstrDeviceLocation.end());
+        *device_location = wcstrDeviceLocation.c_str();
+    }
+    return retval;
+}
+    
+
+DslReturnType dsl_source_usb_device_location_set(const wchar_t* name,
+    const wchar_t* device_location)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_location);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrDeviceLocation(device_location);
+    std::string cstrDeviceLocation(wstrDeviceLocation.begin(), wstrDeviceLocation.end());
+    
+    return DSL::Services::GetServices()->SourceUsbDeviceLocationSet(
+        cstrName.c_str(), cstrDeviceLocation.c_str());
+}
+
 DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, 
     boolean is_live, uint intra_decode, uint dropFrameInterval)
 {

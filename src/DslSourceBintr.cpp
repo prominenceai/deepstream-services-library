@@ -203,7 +203,6 @@ namespace DSL
     UsbSourceBintr::UsbSourceBintr(const char* name, 
         guint width, guint height, guint fpsN, guint fpsD)
         : SourceBintr(name)
-        , m_sensorId(0)
     {
         LOG_FUNC();
 
@@ -214,6 +213,11 @@ namespace DSL
         
         m_pSourceElement = DSL_ELEMENT_NEW("v4l2src", name);
         m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
+
+        // Get the default device location - should be "/dev/video0"
+        const char* deviceLocation;
+        m_pSourceElement->GetAttribute("device", &deviceLocation);
+        m_deviceLocation = deviceLocation;
 
         if (!m_cudaDeviceProp.integrated)
         {
@@ -305,6 +309,28 @@ namespace DSL
         m_pVidConv2->UnlinkFromSink();
         m_pSourceElement->UnlinkFromSink();
         m_isLinked = false;
+    }
+
+    const char* UsbSourceBintr::GetDeviceLocation()
+    {
+        LOG_FUNC();
+
+        return m_deviceLocation.c_str();
+    }
+    
+    bool UsbSourceBintr::SetDeviceLocation(const char* deviceLocation)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set device-location for UsbSourceBintr '" << GetName() 
+                << "' as it is currently in a linked state");
+            return false;
+        }
+        m_deviceLocation = deviceLocation;
+        m_pSourceElement->SetAttribute("device", deviceLocation);
+        return true;
     }
     
     bool UsbSourceBintr::SetGpuId(uint gpuId)

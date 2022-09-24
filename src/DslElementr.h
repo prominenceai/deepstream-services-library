@@ -106,15 +106,43 @@ namespace DSL
         /**
          * @brief Gets a GST Element's attribute of type int, owned by this Elementr
          * @param[in] name name of the attribute to set
-         * @param[out] value unsigned integer value to set the attribute
+         * @param[out] value signed integer value to set the attribute
          */
         void GetAttribute(const char* name, int* value)
         {
             LOG_FUNC();
             
-            LOG_DEBUG("Setting attribute '" << name << "' to uint value '" << value << "'");
+            g_object_get(GetGObject(), name, value, NULL);
+
+            LOG_DEBUG("Attribute '" << name << "' returned int '" << *value << "'");
+        }
+
+        /**
+         * @brief Gets a GST Element's attribute of type int, owned by this Elementr
+         * @param[in] name name of the attribute to set
+         * @param[out] value unsigned integer value to set the attribute
+         */
+        void GetAttribute(const char* name, uint* value)
+        {
+            LOG_FUNC();
             
             g_object_get(GetGObject(), name, value, NULL);
+
+            LOG_DEBUG("Attribute '" << name << "' returned uint '" << *value << "'");
+        }
+
+        /**
+         * @brief Gets a GST Element's attribute of type int, owned by this Elementr
+         * @param[in] name name of the attribute to set
+         * @param[out] value unsigned integer value to set the attribute
+         */
+        void GetAttribute(const char* name, const char** value)
+        {
+            LOG_FUNC();
+            
+            g_object_get(GetGObject(), name, value, NULL);
+
+            LOG_DEBUG("Attribute '" << name << "' returned string '" << *value << "'");
         }
 
         /**
@@ -129,20 +157,6 @@ namespace DSL
             LOG_DEBUG("Setting attribute '" << name << "' to uint value '" << value << "'");
             
             g_object_set(GetGObject(), name, value, NULL);
-        }
-        
-        /**
-         * @brief Gets a GST Element's attribute of type uint, owned by this Elementr
-         * @param[in] name name of the attribute to set
-         * @param[out] value unsigned integer value to set the attribute
-         */
-        void GetAttribute(const char* name, uint* value)
-        {
-            LOG_FUNC();
-            
-            LOG_DEBUG("Setting attribute '" << name << "' to uint value '" << value << "'");
-            
-            g_object_get(GetGObject(), name, value, NULL);
         }
 
         /**

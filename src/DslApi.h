@@ -3960,6 +3960,25 @@ DslReturnType dsl_source_usb_new(const wchar_t* name,
     uint width, uint height, uint fps_n, uint fps_d);
 
 /**
+ * @brief Gets the device location setting for the named USB Source.
+ * @param[in] name unique name of the USB Source to query.
+ * @param[out] device_location current device location setting. Default: /dev/video0.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_usb_device_location_get(const wchar_t* name,
+    const wchar_t** device_location);
+    
+/**
+ * @brief Sets the device location setting for the named USB Source.
+ * @param[in] name unique name of the USB Source to update.
+ * @param[in] device_location new device location setting to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_usb_device_location_set(const wchar_t* name,
+    const wchar_t* device_location);
+    
+
+/**
  * @brief creates a new, uniquely named URI Source component
  * @param[in] name unique name for the new URI Source
  * @param[in] uri Unique Resource Identifier (file or live)

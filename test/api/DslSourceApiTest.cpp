@@ -60,6 +60,9 @@ static std::wstring rtsp_uri(L"rtsp://username:password@192.168.0.14:554");
 
 static boolean is_live(false);
 
+static std::wstring def_device_location(L"/dev/video0");
+
+
 SCENARIO( "The Components container is updated correctly on new source", "[source-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -198,14 +201,54 @@ SCENARIO( "A new USB Camera Source returns the correct attribute values", "[sour
             THEN( "The list size and contents are updated correctly" ) 
             {
                 uint ret_width(0), ret_height(0), ret_fps_n(0), ret_fps_d(0);
-                REQUIRE( dsl_source_dimensions_get(source_name.c_str(), &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
+                const wchar_t* device_location;
+                REQUIRE( dsl_source_usb_device_location_get(source_name.c_str(), 
+                    &device_location) == DSL_RESULT_SUCCESS );
+                std::wstring ret_device_location(device_location);
+                REQUIRE( ret_device_location == def_device_location );
+                REQUIRE( dsl_source_dimensions_get(source_name.c_str(), 
+                    &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), 
+                    &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_width == width );
                 REQUIRE( ret_height == height );
                 REQUIRE( ret_fps_n == fps_n );
                 REQUIRE( ret_fps_d == fps_d );
                 REQUIRE( dsl_source_is_live(source_name.c_str()) == 0 );
 
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A new USB Camera Source set/get its device location correctly", "[source-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_usb_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+        WHEN( "The USB Source's device-location is set" ) 
+        {
+            // Check default first
+            const wchar_t* device_location;
+            REQUIRE( dsl_source_usb_device_location_get(source_name.c_str(), 
+                &device_location) == DSL_RESULT_SUCCESS );
+            std::wstring ret_device_location(device_location);
+            REQUIRE( ret_device_location == def_device_location );
+            
+            std::wstring new_device_location(L"/dev/video1");
+            REQUIRE( dsl_source_usb_device_location_set(source_name.c_str(), 
+                new_device_location.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct updated value is returned on get" ) 
+            {
+                REQUIRE( dsl_source_usb_device_location_get(source_name.c_str(), 
+                    &device_location) == DSL_RESULT_SUCCESS );
+                ret_device_location = device_location;
+                REQUIRE( ret_device_location == new_device_location );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
@@ -795,6 +838,11 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
             {
                 REQUIRE( dsl_source_csi_new( NULL, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_usb_new( NULL, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_usb_device_location_get( NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_usb_device_location_get( source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_usb_device_location_set( NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_usb_device_location_set( source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                
                 REQUIRE( dsl_source_uri_new( NULL, NULL, false, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_uri_new( source_name.c_str(), NULL, false, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_rtsp_new( NULL, NULL, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );

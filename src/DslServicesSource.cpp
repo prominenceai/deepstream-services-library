@@ -85,6 +85,72 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::SourceUsbDeviceLocationGet(const char* name, 
+            const char** deviceLocation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                UsbSourceBintr);
+
+
+            DSL_USB_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<UsbSourceBintr>(m_components[name]);
+
+            *deviceLocation = pSourceBintr->GetDeviceLocation();
+
+            LOG_INFO("USB Source '" << name << "' returned device-location = '" 
+                << *deviceLocation << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("USB Source '" << name 
+                << "' threw exception getting device-location");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::SourceUsbDeviceLocationSet(const char* name, 
+            const char* deviceLocation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                UsbSourceBintr);
+
+            DSL_USB_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<UsbSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->SetDeviceLocation(deviceLocation))
+            {
+                LOG_ERROR("Failed to set device-location '" 
+                    << deviceLocation << "' for USB Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("USB Source '" << name << "' set device-location = '" 
+                << deviceLocation << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("USB Source '" << name 
+                << "' threw exception setting device-location");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::SourceUriNew(const char* name, const char* uri, 
         boolean isLive, uint intraDecode, uint dropFrameInterval)
     {
