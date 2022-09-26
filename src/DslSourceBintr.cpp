@@ -119,6 +119,8 @@ namespace DSL
     }
 
     //*********************************************************************************
+        // Initilize the unique id list for all CsiSourceBintrs 
+    std::list<uint> CsiSourceBintr::s_uniqueSensorIds;
 
     CsiSourceBintr::CsiSourceBintr(const char* name, 
         guint width, guint height, guint fpsN, guint fpsD)
@@ -131,6 +133,16 @@ namespace DSL
         m_height = height;
         m_fpsN = fpsN;
         m_fpsD = fpsD;
+
+        // Find the first available unique sensor-id
+        while(std::find(s_uniqueSensorIds.begin(), s_uniqueSensorIds.end(), 
+            m_sensorId) != s_uniqueSensorIds.end())
+        {
+            m_sensorId++;
+        }
+        s_uniqueSensorIds.push_back(m_sensorId);
+        LOG_INFO("Setting sensor-id = " << m_sensorId 
+            << "for CsiSourceBintr '" << name << "'");
         
         m_pSourceElement = DSL_ELEMENT_NEW("nvarguscamerasrc", name);
         m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
@@ -147,7 +159,8 @@ namespace DSL
             "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
         if (!pCaps)
         {
-            LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
+            LOG_ERROR("Failed to create new Simple Capabilities for '" 
+                << name << "'");
             throw;  
         }
 
@@ -168,6 +181,8 @@ namespace DSL
     CsiSourceBintr::~CsiSourceBintr()
     {
         LOG_FUNC();
+        
+        s_uniqueSensorIds.remove(m_sensorId);
     }
     
     bool CsiSourceBintr::LinkAll()
@@ -196,6 +211,48 @@ namespace DSL
         }
         m_pSourceElement->UnlinkFromSink();
         m_isLinked = false;
+    }
+    
+    uint CsiSourceBintr::GetSensorId()
+    {
+        LOG_FUNC();
+
+        return m_sensorId;
+    }
+
+    bool CsiSourceBintr::SetSensorId(uint sensorId)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set sensor-id for CsiSourceBintr '" << GetName() 
+                << "' as it is currently in a linked state");
+            return false;
+        }
+        if (m_sensorId == sensorId)
+        {
+            LOG_WARN("sensor-id for CsiSourceBintr '" << GetName()
+                << "' is already set to " << sensorId);
+        }
+        // Ensure that the sensor-id is unique.
+        if(std::find(s_uniqueSensorIds.begin(), s_uniqueSensorIds.end(), 
+            sensorId) != s_uniqueSensorIds.end())
+        {
+            LOG_ERROR("Can't set sensor-id = " << sensorId 
+                << " for CsiSourceBintr '" << GetName() 
+                << "'. The id is not unqiue");
+            return false;
+        }
+
+        // remove the old sensor-id from the uiniue id list before updating
+        s_uniqueSensorIds.remove(m_sensorId);
+
+        m_sensorId = sensorId;
+        s_uniqueSensorIds.push_back(m_sensorId);
+        m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
+        
+        return true;
     }
 
     //*********************************************************************************

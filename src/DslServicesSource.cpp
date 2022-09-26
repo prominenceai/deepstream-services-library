@@ -30,7 +30,6 @@ THE SOFTWARE.
 
 namespace DSL
 {
-
     DslReturnType Services::SourceCsiNew(const char* name,
         uint width, uint height, uint fpsN, uint fpsD)
     {
@@ -54,6 +53,72 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New CSI Source '" << name << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceCsiSensorIdGet(const char* name, 
+            uint* sensorId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                CsiSourceBintr);
+
+
+            DSL_CSI_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<CsiSourceBintr>(m_components[name]);
+
+            *sensorId = pSourceBintr->GetSensorId();
+
+            LOG_INFO("CSI Source '" << name << "' returned sensor-id = '" 
+                << *sensorId << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("CSI Source '" << name 
+                << "' threw exception getting sensor-id");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::SourceCsiSensorIdSet(const char* name, 
+            uint sensorId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                CsiSourceBintr);
+
+            DSL_CSI_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<CsiSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->SetSensorId(sensorId))
+            {
+                LOG_ERROR("Failed to set sensor-id '" 
+                    << sensorId << "' for CSI Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("CSI Source '" << name << "' set sensor-id = '" 
+                << sensorId << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("CSI Source '" << name 
+                << "' threw exception setting sensor-id");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }

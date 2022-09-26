@@ -3948,6 +3948,24 @@ DslReturnType dsl_source_csi_new(const wchar_t* name,
     uint width, uint height, uint fps_n, uint fps_d);
 
 /**
+ * @brief Gets the sensor-id setting for the named CSI Source.
+ * @param[in] name unique name of the CSI Source to query.
+ * @param[out] sensor_id current sensor-id setting. Default: 0.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_csi_sensor_id_get(const wchar_t* name,
+    uint* sensor_id);
+    
+/**
+ * @brief Sets the sensor-id setting for the named CSI Source.
+ * @param[in] name unique name of the CSI Source to update.
+ * @param[in] sensor_id new sensor-id setting to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_csi_sensor_id_set(const wchar_t* name,
+    uint sensor_id);
+
+/**
  * @brief creates a new, uniquely named USB Camera Source component
  * @param[in] name unique name for the new Source
  * @param[in] width width of the source in pixels
@@ -3976,7 +3994,6 @@ DslReturnType dsl_source_usb_device_location_get(const wchar_t* name,
  */
 DslReturnType dsl_source_usb_device_location_set(const wchar_t* name,
     const wchar_t* device_location);
-    
 
 /**
  * @brief creates a new, uniquely named URI Source component

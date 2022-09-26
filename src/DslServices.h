@@ -629,6 +629,12 @@ namespace DSL {
         
         DslReturnType SourceCsiNew(const char* name, 
             uint width, uint height, uint fpsN, uint fpsD);
+            
+        DslReturnType SourceCsiSensorIdGet(const char* name, 
+            uint* sensorId);
+        
+        DslReturnType SourceCsiSensorIdSet(const char* name, 
+            uint sensorId);
         
         DslReturnType SourceUsbNew(const char* name, 
             uint width, uint height, uint fpsN, uint fpsD);
