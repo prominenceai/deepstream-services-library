@@ -2,7 +2,7 @@
 Sources are the head components for all DSL Pipelines. Pipelines must have at least one source in use - among other components - to transition to a state of playing. DSL supports 8 types of Sources, two Camera, three Decode, three Image, and an Interpipe:
 
 ### Camera Sources:
-* Camera Serial Interface ( CSI )
+* Camera Serial Interface ( CSI ) - Jetson platform only.
 * Universal Serial Bus ( USB )
 
 ### Decode Sources:
@@ -55,6 +55,10 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_interpipe_new](#dsl_source_interpipe_new)
 
 **methods:**
+* [dsl_source_csi_sensor_id_get](#dsl_source_csi_sensor_id_get)
+* [dsl_source_csi_sensor_id_set](#dsl_source_csi_sensor_id_set)
+* [dsl_source_usb_device_location_get](#dsl_source_usb_device_location_get)
+* [dsl_source_usb_device_location_set](#dsl_source_usb_device_location_set)
 * [dsl_source_decode_uri_get](#dsl_source_decode_uri_get)
 * [dsl_source_decode_uri_set](#dsl_source_decode_uri_set)
 * [dsl_source_decode_drop_farme_interval_get](#dsl_source_decode_drop_farme_interval_get)
@@ -105,14 +109,18 @@ Streaming Source Methods use the following return codes, in addition to the gene
 #define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x00020009
 #define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x0002000A
 #define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000B
+#define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000B
 #define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000C
 #define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x0002000D
 #define DSL_RESULT_SOURCE_TAP_ADD_FAILED                            0x0002000E
 #define DSL_RESULT_SOURCE_TAP_REMOVE_FAILED                         0x0002000F
 #define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x00020010
-#define DSL_RESULT_SOURCE_CALLBACK_ADD_FAILED                       0x00020011
-#define DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED                    0x00020012
-#define DSL_RESULT_SOURCE_SET_FAILED                                0x00020013
+#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_DECODE_SOURCE            0x00020011
+#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_FILE_SOURCE              0x00020012
+#define DSL_RESULT_SOURCE_CALLBACK_ADD_FAILED                       0x00020013
+#define DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED                    0x00020014
+#define DSL_RESULT_SOURCE_SET_FAILED                                0x00020015
+#define DSL_RESULT_SOURCE_CSI_NOT_SUPPORTED                         0x00020016
 ```
 
 ## DSL State Values
@@ -210,7 +218,9 @@ Callback typedef for a client state-change listener. Functions of this type are 
 DslReturnType dsl_source_csi_new(const wchar_t* source,
     uint width, uint height, uint fps_n, uint fps_d);
 ```
-Creates a new, uniquely named CSI Camera Source object.
+Creates a new, uniquely named CSI Camera Source component.
+
+**Important:** A unique sensor-id is assigned to each CSI Source on creation, starting with 0. The default setting can be overridden by calling [dsl_source_decode_uri_set](#dsl_source_decode_uri_set). The call will fail if the given sensor-id is not unique. If a source is deleted, the sensor-id will be re-assigned to a new CSI Source if one is created.
 
 **Parameters**
 * `source` - [in] unique name for the new Source
@@ -234,7 +244,9 @@ retval = dsl_source_csi_new('my-csi-source', 1280, 720, 30, 1)
 DslReturnType dsl_source_usb_new(const wchar_t* name,
     uint width, uint height, uint fps_n, uint fps_d);
 ```
-Creates a new, uniquely named USB Camera Source object.
+Creates a new, uniquely named USB Camera Source component.
+
+**Important:** A unique device-location is assigned to each USB Source on creation, starting with `/dev/video0`, followed by `/dev/video1`, and so on. The default assignment can be overridden by calling [dsl_source_usb_device_location_set](#dsl_source_usb_device_location_set). The call will fail if the given device-location is not unique. If a source is deleted, the device-location will be re-assigned to a new USB Source if one is created.
 
 **Parameters**
 * `source` - [in] unique name for the new Source
@@ -405,8 +417,8 @@ retval = dsl_source_image_stream_new('my-image-stream-source', './streams/image4
 
 ### *dsl_source_interpipe_new*
 ```C
-DslReturnType dsl_source_interpipe_new(const wchar_t* name, 
-    const wchar_t* listen_to, boolean is_live, 
+DslReturnType dsl_source_interpipe_new(const wchar_t* name,
+    const wchar_t* listen_to, boolean is_live,
     boolean accept_eos, boolean accept_events);
 ```
 This service creates a new, uniquely named Interpipe Source component to listen to an Interpipe Sink Component. The Sink to `listen_to` can be updated dynamically while in a playing state.
@@ -432,19 +444,102 @@ retval = dsl_source_interpipe_new('my-interpipe-source', 'my-interpipe-sink',
 <br>
 
 ## Destructors
-As with all Pipeline components, Sources are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
+As with all Pipeline components, Sources are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
 
 ## Methods
+
+### *dsl_source_csi_sensor_id_get*
+```C
+DslReturnType dsl_source_csi_sensor_id_get(const wchar_t* name,
+    uint* sensor_id);
+```
+This service gets the sensor-id setting for the named CSI Source. A unique sensor-id is assigned to each CSI Source on creation, starting with 0. The default setting can be overridden by calling [dsl_source_decode_uri_set](#dsl_source_decode_uri_set). The call will fail if the given sensor-id is not unique. If a source is deleted, the sensor-id will be re-assigned to a new CSI Source if one is created.
+
+**Parameters**
+* `name` - [in] unique name of the Source to query.
+* `sensor_id` - [out] unique sensor-id in use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, sensor_id = dsl_source_csi_sensor_id_get('my-csi-source')
+```
+<br>
+
+### *dsl_source_csi_sensor_id_set*
+```C
+DslReturnType dsl_source_csi_sensor_id_set(const wchar_t* name,
+    uint sensor_id);
+```
+This service sets the sensor-id setting for the named CSI Source to use. A unique sensor-id is assigned to each CSI Source on creation, starting with 0. This service will fail if the given sensor-id is not unique. If a source is deleted, the sensor-id will be re-assigned to a new CSI Source if one is created.
+
+**Parameters**
+* `name` - [in] unique name of the Source to update.
+* `sensor_id` - [in] unique sensor-id for the Source to use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_csi_sensor_id_set('my-csi-source', 1)
+```
+
+<br>
+
+### *dsl_source_usb_device_location_get*
+```C
+DslReturnType dsl_source_usb_device_location_get(const wchar_t* name,
+    const wchar_t** device_location);
+```
+This service gets the device-location setting for the named USB Source. A unique device-location is assigned to each USB Source on creation, starting with `/dev/video0`, followed by `/dev/video1`, and so on. The default assignment can be overridden by calling [dsl_source_usb_device_location_set](#dsl_source_usb_device_location_set). The call will fail if the given device-location is not unique. If a source is deleted, the device-location will be re-assigned to a new USB Source if one is created.
+
+
+**Parameters**
+* `name` - [in] unique name of the Source to query.
+* `device_location` - [out] device location string in use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, device_location = dsl_source_usb_device_location_get()
+```
+<br>
+
+### *dsl_source_usb_device_location_set*
+```C
+DslReturnType dsl_source_usb_device_location_set(const wchar_t* name,
+    const wchar_t* device_location);
+```
+This service sets the sensor-id setting for the named CSI Source to use.  A unique device-location is assigned to each USB Source on creation, starting with `/dev/video0`, followed by `/dev/video1`, and so on. This service will fail if the given device-location is not unique. If a source is deleted, the device-location will be re-assigned to a new USB Source if one is created.
+
+**Parameters**
+* `name` - [in] unique name of the Source to update.
+* `device_location` - [in] unique device-location for the Source to use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_usb_device_location_set('my-usb-source', '/dev/video1')
+```
+
+<br>
 
 ### *dsl_source_decode_uri_get*
 ```C
 DslReturnType dsl_source_decode_uri_get(const wchar_t* name, const wchar_t** uri);
 ```
-This service gets the current URI in use for the named URI or RTSP source
+This service gets the current URI in use for the named URI or RTSP source.
 
 **Parameters**
-* `name` - [in] unique name of the Source to update
-* `uri` - [out] unique resource identifier in use
+* `name` - [in] unique name of the Source to query.
+* `uri` - [out] unique resource identifier in use.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
@@ -462,8 +557,8 @@ DslReturnType dsl_source_decode_uri_set(const wchar_t* name, const wchar_t* uri)
 This service sets the URI to use by the named URI or RTSP source.
 
 **Parameters**
-* `name` - [in] unique name of the Source to update
-* `uri` - [out] unique resouce identifier in use
+* `name` - [in] unique name of the Source to update.
+* `uri` - [in] unique resource identifier for the Source to use.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
@@ -477,7 +572,8 @@ retval = dsl_source_decode_uri_set('my-uri-source', '../../test/streams/sample_1
 
 ### *dsl_source_decode_drop_farme_interval_get*
 ```C
-DslReturnType dsl_source_decode_drop_farme_interval_get(const wchar_t* name, uint* interval)
+DslReturnType dsl_source_csi_sensor_id_set(const wchar_t* name,
+    uint sensor_id);
 ```
 This service gets the current drop frame interval in use by the named URI or RTSP source
 
@@ -880,7 +976,7 @@ retval = dsl_source_image_stream_timeout_set('my-image-source', 30)
 
 ### *dsl_source_interpipe_listen_to_get*
 ```C
-DslReturnType dsl_source_interpipe_listen_to_get(const wchar_t* name, 
+DslReturnType dsl_source_interpipe_listen_to_get(const wchar_t* name,
     const wchar_t** listen_to);
 ```
 This service gets the name of the Interpipe Sink the named Interpipe Source component is currently listening to.
@@ -900,7 +996,7 @@ retval, listen_to = dsl_source_interpipe_listen_to_get('my-interpipe-source')
 
 ### *dsl_source_interpipe_listen_to_set*
 ```C
-DslReturnType dsl_source_interpipe_listen_to_get(const wchar_t* name, 
+DslReturnType dsl_source_interpipe_listen_to_get(const wchar_t* name,
     const wchar_t* listen_to);
 ```
 This service sets the name of the Interpipe Sink to listen to for the name Interpipe Source.
