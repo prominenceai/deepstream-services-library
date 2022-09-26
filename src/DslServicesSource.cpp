@@ -38,6 +38,15 @@ namespace DSL
 
         try
         {
+            // Get the Device properties
+            cudaDeviceProp deviceProp;
+            cudaGetDeviceProperties(&deviceProp, 0);
+            
+            if (!deviceProp.integrated)
+            {
+                LOG_ERROR("CSI Source is not supported on dGPU x86_64 builds");
+                return DSL_RESULT_SOURCE_CSI_NOT_SUPPORTED;
+            }
             // ensure component name uniqueness 
             if (m_components.find(name) != m_components.end())
             {   

@@ -147,12 +147,8 @@ namespace DSL
         m_pSourceElement = DSL_ELEMENT_NEW("nvarguscamerasrc", name);
         m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
 
-        // aarch64
-        if (m_cudaDeviceProp.integrated)
-        {
-            m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
-            m_pSourceElement->SetAttribute("bufapi-version", TRUE);
-        }
+        m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
+        m_pSourceElement->SetAttribute("bufapi-version", TRUE);
         
         GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
             "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 

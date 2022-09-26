@@ -86,6 +86,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_CALLBACK_ADD_FAILED                       0x00020013
 #define DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED                    0x00020014
 #define DSL_RESULT_SOURCE_SET_FAILED                                0x00020015
+#define DSL_RESULT_SOURCE_CSI_NOT_SUPPORTED                         0x00020016
 
 
 /**
