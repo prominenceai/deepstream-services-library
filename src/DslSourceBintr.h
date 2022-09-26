@@ -313,6 +313,24 @@ namespace DSL
     private:
 
         /**
+         * @brief static list of unique device IDs to be used/recycled by all
+         * UsbSourceBintrs
+         */
+        static std::list<uint> s_uniqueDeviceIds;
+
+        /**
+         * @brief static list of unique device locations to be used/recycled by all
+         * UsbSourceBintrs
+         */
+        static std::list<std::string> s_deviceLocations;
+        
+        /**
+         * @brief unique device-id for the UsbSourceBintr starting with 0. The
+         * device-id is used as the numeric sufix for the device-location.
+         */
+        uint m_deviceId;
+        
+        /**
          * @brief current device location for the USB Source
          */
         std::string m_deviceLocation;
