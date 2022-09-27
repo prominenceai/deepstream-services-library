@@ -1518,7 +1518,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Offse
     {
         std::wstring ode_action_name(L"offset-label-action");
 
-        int offset_x(-25), offset_y(-25);
+        int offset_x(0), offset_y(20);
 
         REQUIRE( dsl_ode_action_label_offset_new(ode_action_name.c_str(),  
             offset_x, offset_y) == DSL_RESULT_SUCCESS );
@@ -1537,7 +1537,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Offse
         REQUIRE( dsl_pph_ode_new(ode_pph_name.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), 
-            ode_pph_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+            ode_pph_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
             NULL, class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
@@ -1633,7 +1633,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Scale
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*20);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );

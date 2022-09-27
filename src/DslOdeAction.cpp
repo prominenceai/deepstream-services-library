@@ -2071,7 +2071,7 @@ namespace DSL
             if (m_offsetX < 0)
             {
                 // need to ensure that the offset stays within the frame, min 0 
-                 pObjectMeta->text_params.x_offset = (originalOffsetX > -m_offsetX)
+                pObjectMeta->text_params.x_offset = (originalOffsetX > -m_offsetX)
                     ? originalOffsetX + m_offsetX
                     : 0;
             }
@@ -2079,23 +2079,20 @@ namespace DSL
             else
             {
                 // need to ensure that the offset stays within the frame, max X pixel  
-                 pObjectMeta->text_params.x_offset = std::min(originalOffsetX + 
-                    m_offsetX, (int)pFrameMeta->source_frame_width-1);
+                pObjectMeta->text_params.x_offset = originalOffsetX + m_offsetX;
             }
             // if off-setting upwards
             if (m_offsetY < 0)
             {
                 // need to ensure that the offset stays within the frame, min 0 
-                 pObjectMeta->text_params.y_offset = (originalOffsetY > -m_offsetY)
+                pObjectMeta->text_params.y_offset = (originalOffsetY > -m_offsetY)
                     ? originalOffsetY + m_offsetY
                     : 0;
             }
             // else, off-setting downwards
             else
             {
-                // need to ensure that the offset stays within the frame, max Y pixel  
-                 pObjectMeta->text_params.y_offset = std::min(originalOffsetY + 
-                    m_offsetY, (int)pFrameMeta->source_frame_height-1);
+                pObjectMeta->text_params.y_offset = originalOffsetY + m_offsetY;
             }
         }
     }

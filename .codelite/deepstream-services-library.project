@@ -107,6 +107,7 @@
       <File Name="../src/nmp/DslPadProbeHandlerNmp.h"/>
       <File Name="../src/nmp/DslServicesPphNmp.cpp"/>
     </VirtualDirectory>
+    <File Name="../src/DslServicesOdeAction.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="api">
@@ -183,7 +184,6 @@
       <File Name="../test/unit/DslOdeTrackedObjectUnitTest.cpp"/>
       <File Name="../test/unit/DslOdeAccumulatorUnitTest.cpp"/>
       <File Name="../test/unit/DslOdeHeatMapperUnitTest.cpp"/>
-      <File Name="../src/DslServicesOdeAction.cpp"/>
       <File Name="../test/unit/DslOdeActionUnitTest.cpp"/>
       <File Name="../test/unit/DslPreprocUnitTest.cpp"/>
     </VirtualDirectory>
