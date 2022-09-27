@@ -188,6 +188,37 @@ SCENARIO( "A new CSI Camera Source returns the correct attribute values", "[sour
     }
 }    
 
+SCENARIO( "A new CIS Camera Source set/get its sensor-id correctly", "[source-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+        WHEN( "The USB Source's device-location is set" ) 
+        {
+            // Check default first
+            uint sensor_id;
+            REQUIRE( dsl_source_csi_sensor_id_get(source_name.c_str(), 
+                &sensor_id) == DSL_RESULT_SUCCESS );
+            REQUIRE( sensor_id == 0 );
+            
+            uint new_sensor_id(5);
+            REQUIRE( dsl_source_csi_sensor_id_set(source_name.c_str(), 
+                new_sensor_id) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct updated value is returned on get" ) 
+            {
+                REQUIRE( dsl_source_csi_sensor_id_get(source_name.c_str(), 
+                    &sensor_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( sensor_id == new_sensor_id );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
 SCENARIO( "A new USB Camera Source returns the correct attribute values", "[source-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -836,38 +867,42 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
         {
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
-                REQUIRE( dsl_source_csi_new( NULL, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_usb_new( NULL, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_usb_device_location_get( NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_usb_device_location_get( source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_usb_device_location_set( NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_usb_device_location_set( source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_csi_new(NULL, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_csi_sensor_id_get(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_csi_sensor_id_get(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_csi_sensor_id_set(NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_usb_new(NULL, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_usb_device_location_get(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_usb_device_location_get(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_usb_device_location_set(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_usb_device_location_set(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
-                REQUIRE( dsl_source_uri_new( NULL, NULL, false, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_uri_new( source_name.c_str(), NULL, false, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_rtsp_new( NULL, NULL, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_rtsp_new( source_name.c_str(), NULL, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_file_new( NULL, NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_uri_new(NULL, NULL, false, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_uri_new(source_name.c_str(), NULL, false, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_new(NULL, NULL, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_new(source_name.c_str(), NULL, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_file_new(NULL, NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
                 // Note NULL file_path is valid for File and Image Sources
 
-                REQUIRE( dsl_source_dimensions_get( NULL, &width, &height ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_frame_rate_get( NULL, &fps_n, &fps_d ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_dimensions_get(NULL, &width, &height) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_frame_rate_get(NULL, &fps_n, &fps_d) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_source_decode_uri_get( NULL, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_decode_uri_get( source_name.c_str(), NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_decode_uri_set( NULL, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_decode_uri_set( source_name.c_str(), NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_decode_uri_get(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_decode_uri_get(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_decode_uri_set(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_decode_uri_set(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_source_decode_dewarper_add( NULL, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_decode_dewarper_add( source_name.c_str(), NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_decode_dewarper_remove( NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_decode_dewarper_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_decode_dewarper_add(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_decode_dewarper_remove(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_source_rtsp_tap_add( NULL, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_rtsp_tap_add( source_name.c_str(), NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_rtsp_tap_remove( NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_tap_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_tap_add(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_tap_remove(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_source_pause( NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_resume( NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_pause(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_resume(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_list_size() == 0 );
             }

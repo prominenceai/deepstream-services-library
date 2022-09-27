@@ -86,6 +86,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_CALLBACK_ADD_FAILED                       0x00020013
 #define DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED                    0x00020014
 #define DSL_RESULT_SOURCE_SET_FAILED                                0x00020015
+#define DSL_RESULT_SOURCE_CSI_NOT_SUPPORTED                         0x00020016
 
 
 /**
@@ -3936,7 +3937,11 @@ DslReturnType dsl_pph_delete_all();
 uint dsl_pph_list_size();
 
 /**
- * @brief creates a new, uniquely named CSI Camera Source component
+ * @brief creates a new, uniquely named CSI Camera Source component. A unique 
+ * sensor-id is assigned to each CSI Source on creation, starting with 0. The 
+ * default setting can be overridden by calling dsl_source_decode_uri_set. The 
+ * call will fail if the given sensor-id is not unique. If a source is deleted, 
+ * the sensor-id will be re-assigned to a new CSI Source if one is created.
  * @param[in] name unique name for the new Source
  * @param[in] width width of the source in pixels
  * @param[in] height height of the source in pixels
@@ -3948,7 +3953,37 @@ DslReturnType dsl_source_csi_new(const wchar_t* name,
     uint width, uint height, uint fps_n, uint fps_d);
 
 /**
- * @brief creates a new, uniquely named USB Camera Source component
+ * @brief Gets the sensor-id setting for the named CSI Source. A unique 
+ * sensor-id is assigned to each CSI Source on creation, starting with 0. The 
+ * default setting can be overridden by calling dsl_source_decode_uri_set. The 
+ * call will fail if the given sensor-id is not unique. If a source is deleted, 
+ * the sensor-id will be re-assigned to a new CSI Source if one is created.
+ * @param[in] name unique name of the CSI Source to query.
+ * @param[out] sensor_id current sensor-id setting. Default: 0.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_csi_sensor_id_get(const wchar_t* name,
+    uint* sensor_id);
+    
+/**
+ * @brief Sets the sensor-id setting for the named CSI Source. A unique 
+ * sensor-id is assigned to each CSI Source on creation, starting with 0. This 
+ * service will fail if the given sensor-id is not unique. If a source is deleted, 
+ * the sensor-id will be re-assigned to a new CSI Source if one is created.
+ * @param[in] name unique name of the CSI Source to update.
+ * @param[in] sensor_id new sensor-id setting to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_csi_sensor_id_set(const wchar_t* name,
+    uint sensor_id);
+
+/**
+ * @brief creates a new, uniquely named USB Camera Source component.  A unique 
+ * device-location is assigned to each USB Source on creation, starting with 
+ * "/dev/video0", followed by "/dev/video1", and so on. The default assignment 
+ * can be overridden by calling dsl_source_usb_device_location_set. The call 
+ * will fail if the given device-location is not unique. If a source is deleted, 
+ * the device-location will be re-assigned to a new USB Source if one is created.
  * @param[in] name unique name for the new Source
  * @param[in] width width of the source in pixels
  * @param[in] height height of the source in pixels
@@ -3960,7 +3995,12 @@ DslReturnType dsl_source_usb_new(const wchar_t* name,
     uint width, uint height, uint fps_n, uint fps_d);
 
 /**
- * @brief Gets the device location setting for the named USB Source.
+ * @brief Gets the device location setting for the named USB Source. A unique 
+ * device-location is assigned to each USB Source on creation, starting with 
+ * "/dev/video0", followed by "/dev/video1", and so on. The default assignment 
+ * can be overridden by calling dsl_source_usb_device_location_set. The call 
+ * will fail if the given device-location is not unique. If a source is deleted, 
+ * the device-location will be re-assigned to a new USB Source if one is created.
  * @param[in] name unique name of the USB Source to query.
  * @param[out] device_location current device location setting. Default: /dev/video0.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
@@ -3969,14 +4009,17 @@ DslReturnType dsl_source_usb_device_location_get(const wchar_t* name,
     const wchar_t** device_location);
     
 /**
- * @brief Sets the device location setting for the named USB Source.
+ * @brief Sets the device location setting for the named USB Source. A unique 
+ * device-location is assigned to each USB Source on creation, starting with 
+ * "/dev/video0", followed by "/dev/video1", and so on. The service will 
+ * fail if the given device-location is not unique. If a source is deleted, 
+ * the device-location will be re-assigned to a new USB Source if one is created.
  * @param[in] name unique name of the USB Source to update.
  * @param[in] device_location new device location setting to use.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_usb_device_location_set(const wchar_t* name,
     const wchar_t* device_location);
-    
 
 /**
  * @brief creates a new, uniquely named URI Source component

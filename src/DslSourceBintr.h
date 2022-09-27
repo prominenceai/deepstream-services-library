@@ -224,22 +224,44 @@ namespace DSL
         ~CsiSourceBintr();
 
         /**
-         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @brief Links all Child Elementrs owned by this CsiSourceBintr
          * @return True success, false otherwise
          */
         bool LinkAll();
         
         /**
-         * @brief Unlinks all Child Elementrs owned by this Source Bintr
+         * @brief Unlinks all Child Elementrs owned by this CsiSourceBintr
          */
         void UnlinkAll();
         
+        /**
+         * @brief Gets the current sensor-id for the CsiSourceBintr
+         * @return current unqiue sensor-id starting with 0
+         */
+        uint GetSensorId();
+        
+        /**
+         * @brief Sets the sensor-id
+         * @param[in] sensorId new sensor-id for the CsiSourceBintr
+         * @return true if successfull, false otherwise.
+         */
+        bool SetSensorId(uint sensorId);
+        
     private:
+
+        /**
+         * @brief static list of unique sersor IDs to be used/recycled by all
+         * CsiSourceBintrs
+         */
+        static std::list<uint> s_uniqueSensorIds;
     
+        /**
+         * @brief unique sensorId for the CsiSourceBintr starting with 0
+         */
         uint m_sensorId;
         
         /**
-         * @brief
+         * @brief Caps Filter for the CsiSourceBintr
          */
         DSL_ELEMENT_PTR m_pCapsFilter;
     };    
@@ -290,6 +312,24 @@ namespace DSL
 
     private:
 
+        /**
+         * @brief static list of unique device IDs to be used/recycled by all
+         * UsbSourceBintrs
+         */
+        static std::list<uint> s_uniqueDeviceIds;
+
+        /**
+         * @brief static list of unique device locations to be used/recycled by all
+         * UsbSourceBintrs
+         */
+        static std::list<std::string> s_deviceLocations;
+        
+        /**
+         * @brief unique device-id for the UsbSourceBintr starting with 0. The
+         * device-id is used as the numeric sufix for the device-location.
+         */
+        uint m_deviceId;
+        
         /**
          * @brief current device location for the USB Source
          */

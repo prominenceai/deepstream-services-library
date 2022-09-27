@@ -29,7 +29,7 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    // Initilize the unique id list for all PreprocBintrs 
+    // Initilize the unique id list for all InferBintrs 
     std::list<uint> InferBintr::s_uniqueIds;
 
     InferBintr::InferBintr(const char* name, uint processMode, 

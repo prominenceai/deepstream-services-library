@@ -119,6 +119,8 @@ namespace DSL
     }
 
     //*********************************************************************************
+    // Initilize the unique id list for all CsiSourceBintrs 
+    std::list<uint> CsiSourceBintr::s_uniqueSensorIds;
 
     CsiSourceBintr::CsiSourceBintr(const char* name, 
         guint width, guint height, guint fpsN, guint fpsD)
@@ -131,23 +133,30 @@ namespace DSL
         m_height = height;
         m_fpsN = fpsN;
         m_fpsD = fpsD;
+
+        // Find the first available unique sensor-id
+        while(std::find(s_uniqueSensorIds.begin(), s_uniqueSensorIds.end(), 
+            m_sensorId) != s_uniqueSensorIds.end())
+        {
+            m_sensorId++;
+        }
+        s_uniqueSensorIds.push_back(m_sensorId);
+        LOG_INFO("Setting sensor-id = " << m_sensorId 
+            << " for CsiSourceBintr '" << name << "'");
         
         m_pSourceElement = DSL_ELEMENT_NEW("nvarguscamerasrc", name);
         m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
 
-        // aarch64
-        if (m_cudaDeviceProp.integrated)
-        {
-            m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
-            m_pSourceElement->SetAttribute("bufapi-version", TRUE);
-        }
+        m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
+        m_pSourceElement->SetAttribute("bufapi-version", TRUE);
         
         GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
             "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
             "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
         if (!pCaps)
         {
-            LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
+            LOG_ERROR("Failed to create new Simple Capabilities for '" 
+                << name << "'");
             throw;  
         }
 
@@ -168,6 +177,8 @@ namespace DSL
     CsiSourceBintr::~CsiSourceBintr()
     {
         LOG_FUNC();
+        
+        s_uniqueSensorIds.remove(m_sensorId);
     }
     
     bool CsiSourceBintr::LinkAll()
@@ -197,12 +208,58 @@ namespace DSL
         m_pSourceElement->UnlinkFromSink();
         m_isLinked = false;
     }
+    
+    uint CsiSourceBintr::GetSensorId()
+    {
+        LOG_FUNC();
+
+        return m_sensorId;
+    }
+
+    bool CsiSourceBintr::SetSensorId(uint sensorId)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set sensor-id for CsiSourceBintr '" << GetName() 
+                << "' as it is currently in a linked state");
+            return false;
+        }
+        if (m_sensorId == sensorId)
+        {
+            LOG_WARN("sensor-id for CsiSourceBintr '" << GetName()
+                << "' is already set to " << sensorId);
+        }
+        // Ensure that the sensor-id is unique.
+        if(std::find(s_uniqueSensorIds.begin(), s_uniqueSensorIds.end(), 
+            sensorId) != s_uniqueSensorIds.end())
+        {
+            LOG_ERROR("Can't set sensor-id = " << sensorId 
+                << " for CsiSourceBintr '" << GetName() 
+                << "'. The id is not unqiue");
+            return false;
+        }
+
+        // remove the old sensor-id from the uiniue id list before updating
+        s_uniqueSensorIds.remove(m_sensorId);
+
+        m_sensorId = sensorId;
+        s_uniqueSensorIds.push_back(m_sensorId);
+        m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
+        
+        return true;
+    }
 
     //*********************************************************************************
+    // Initilize the unique device id list for all UsbSourceBintrs 
+    std::list<uint> UsbSourceBintr::s_uniqueDeviceIds;
+    std::list<std::string> UsbSourceBintr::s_deviceLocations;
 
     UsbSourceBintr::UsbSourceBintr(const char* name, 
         guint width, guint height, guint fpsN, guint fpsD)
         : SourceBintr(name)
+        , m_deviceId(0)
     {
         LOG_FUNC();
 
@@ -214,10 +271,20 @@ namespace DSL
         m_pSourceElement = DSL_ELEMENT_NEW("v4l2src", name);
         m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
 
-        // Get the default device location - should be "/dev/video0"
-        const char* deviceLocation;
-        m_pSourceElement->GetAttribute("device", &deviceLocation);
-        m_deviceLocation = deviceLocation;
+        // Find the first available unique device-id
+        while(std::find(s_uniqueDeviceIds.begin(), s_uniqueDeviceIds.end(), 
+            m_deviceId) != s_uniqueDeviceIds.end())
+        {
+            m_deviceId++;
+        }
+        s_uniqueDeviceIds.push_back(m_deviceId);
+        
+        // create the device-location by adding the device-id as suffex to /dev/video
+        m_deviceLocation = "/dev/video" + std::to_string(m_deviceId);
+        s_deviceLocations.push_back(m_deviceLocation);
+        
+        LOG_INFO("Setting device-location = '" << m_deviceLocation 
+            << "' for UsbSourceBintr '" << name << "'");
 
         if (!m_cudaDeviceProp.integrated)
         {
@@ -256,6 +323,11 @@ namespace DSL
     UsbSourceBintr::~UsbSourceBintr()
     {
         LOG_FUNC();
+        
+        // remove from lists so values can be reused by next
+        // new USB Source
+        s_uniqueDeviceIds.remove(m_deviceId);
+        s_deviceLocations.remove(m_deviceLocation);
     }
 
     bool UsbSourceBintr::LinkAll()
@@ -328,7 +400,48 @@ namespace DSL
                 << "' as it is currently in a linked state");
             return false;
         }
+        
+        // Ensure that the device-location is unique.
+        std::string newLocation(deviceLocation);
+        
+        if (newLocation.find("/dev/video") == std::string::npos)
+        {
+            LOG_ERROR("Can't set device-location = '" << deviceLocation 
+                << "' for UsbSourceBintr '" << GetName() 
+                << "'. The string is invalid");
+            return false;
+        }
+        uint newDeviceId(0);
+        try
+        {
+            newDeviceId = std::stoi(newLocation.substr(10, 
+                newLocation.size()-10));
+        }
+        catch(...)
+        {
+            LOG_ERROR("Can't set device-location = '" << deviceLocation 
+                << "' for UsbSourceBintr '" << GetName() 
+                << "'. The string is invalid");
+            return false;
+        }
+        
+        if(std::find(s_uniqueDeviceIds.begin(), s_uniqueDeviceIds.end(), 
+            newDeviceId) != s_uniqueDeviceIds.end())
+        {
+            LOG_ERROR("Can't set device-location = '" << deviceLocation 
+                << "' for UsbSourceBintr '" << GetName() 
+                << "'. The location string is not unqiue");
+            return false;
+        }
+        // remove the old device-id and location before updating
+        s_uniqueDeviceIds.remove(m_deviceId);
+        s_deviceLocations.remove(m_deviceLocation);
+
+        m_deviceId = newDeviceId;
         m_deviceLocation = deviceLocation;
+        s_uniqueDeviceIds.push_back(m_deviceId);
+        s_deviceLocations.push_back(m_deviceLocation);
+        
         m_pSourceElement->SetAttribute("device", deviceLocation);
         return true;
     }

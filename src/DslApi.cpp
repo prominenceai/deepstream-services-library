@@ -3344,6 +3344,31 @@ DslReturnType dsl_source_csi_new(const wchar_t* name,
         width, height, fps_n, fps_d);
 }
 
+DslReturnType dsl_source_csi_sensor_id_get(const wchar_t* name,
+    uint* sensor_id)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(sensor_id);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceCsiSensorIdGet(cstrName.c_str(), 
+        sensor_id);
+}
+
+DslReturnType dsl_source_csi_sensor_id_set(const wchar_t* name,
+    uint sensor_id)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceCsiSensorIdSet(cstrName.c_str(), 
+        sensor_id);
+}
+    
 DslReturnType dsl_source_usb_new(const wchar_t* name, 
     uint width, uint height, uint fps_n, uint fps_d)
 {
