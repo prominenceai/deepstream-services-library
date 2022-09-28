@@ -2,7 +2,7 @@
 ODE Actions implement their own "action-specific" event-handler that gets invoked by an [ODE Trigger](/docs/api-ode-trigger.md) or [ODE Accumulator](/docs/api-ode-accumulator.md) on the occurrence of an Object Detection Event (ODE). The relationship between ODE Triggers and ODE Actions is many-to-many. Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can be added to multiple ODE Triggers. The same is true for ODE Accumulators.
 
 #### Actions on Metadata
-Several ODE Actions can be created to update the Frame and object Metadata to be rendered by a downstream [On-Screen-Display](/docs/api-osd.md) if added.  See [dsl_ode_action_bbox_format_new](#dsl_ode_action_bbox_format_new), [dsl_ode_action_label_format_new](#dsl_ode_action_label_format_new),  [dsl_ode_action_label_customize_new](#dsl_ode_action_label_customize_new), [dsl_ode_action_label_offset_new](#dsl_ode_action_label_offset_new).
+Several ODE Actions can be created to update the Frame and object Metadata to be rendered by a downstream [On-Screen-Display](/docs/api-osd.md) if added.  See [dsl_ode_action_object_remove_new](#dsl_ode_action_object_remove_new), [dsl_ode_action_bbox_format_new](#dsl_ode_action_bbox_format_new), [dsl_ode_action_bbox_scale_new](#dsl_ode_action_bbox_scale_new), [dsl_ode_action_label_format_new](#dsl_ode_action_label_format_new),  [dsl_ode_action_label_customize_new](#dsl_ode_action_label_customize_new), [dsl_ode_action_label_offset_new](#dsl_ode_action_label_offset_new).
 
 NVDS_EVENT_MSG_META data can be added on ODE occurrence to be converted to an IoT message and sent to an IoT hub by a downstream [Message-Sink](/docs/api-sink.md). See [dsl_ode_action_message_meta_add_new](#dsl_ode_action_message_meta_add_new).
 
@@ -72,6 +72,7 @@ ODE Actions are added to an ODE Accumulator by calling [dsl_ode_accumulator_acti
 * [dsl_ode_action_log_new](#dsl_ode_action_log_new)
 * [dsl_ode_action_message_meta_add_new](#dsl_ode_action_message_meta_add_new)
 * [dsl_ode_action_monitor_new](#dsl_ode_action_monitor_new)
+* [dsl_ode_action_object_remove_new](#dsl_ode_action_object_remove_new)
 * [dsl_ode_action_pause_new](#dsl_ode_action_pause_new)
 * [dsl_ode_action_print_new](#dsl_ode_action_print_new)
 * [dsl_ode_action_redact_new](#dsl_ode_action_redact_new)
@@ -945,6 +946,25 @@ The constructor creates a uniquely named **Monitor Occurrence** ODE Action. When
 ```Python
 retval = dsl_ode_action_monitor_new('my-monitor-action',
     occurrence_monitor_cb, None)
+```
+
+<br>
+
+### *dsl_ode_action_object_remove_new*
+```C++
+DslReturnType dsl_ode_action_object_remove_new(const wchar_t* name);
+```
+The constructor creates a uniquely named **Remove Object** ODE Action. When invoked, this Action will remove an object's metadata from the current frame's metadata.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_object_remove_new('my-remove-object-action')
 ```
 
 <br>
