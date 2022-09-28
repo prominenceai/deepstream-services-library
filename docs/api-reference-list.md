@@ -513,6 +513,8 @@
 * [dsl_ode_action_label_offset_new](/docs/api-ode-action.md#dsl_ode_action_label_offset_new)
 * [dsl_ode_action_log_new](/docs/api-ode-action.md#dsl_ode_action_log_new)
 * [dsl_ode_action_message_meta_add_new](/docs/api-ode-action.md#dsl_ode_action_message_meta_add_new)
+* [dsl_ode_action_monitor_new](/docs/api-ode-action.md#dsl_ode_action_monitor_new)
+* [dsl_ode_action_object_remove_new](/docs/api-ode-action.md#dsl_ode_action_object_remove_new)
 * [dsl_ode_action_pause_new](/docs/api-ode-action.md#dsl_ode_action_pause_new)
 * [dsl_ode_action_print_new](/docs/api-ode-action.md#dsl_ode_action_print_new)
 * [dsl_ode_action_redact_new](/docs/api-ode-action.md#dsl_ode_action_redact_new)
