@@ -286,6 +286,8 @@ namespace DSL
         LOG_INFO("Setting device-location = '" << m_deviceLocation 
             << "' for UsbSourceBintr '" << name << "'");
 
+        m_pSourceElement->SetAttribute("device", m_deviceLocation.c_str());
+
         if (!m_cudaDeviceProp.integrated)
         {
             m_pVidConv1 = DSL_ELEMENT_EXT_NEW("nvvideoconvert", name, "1");
