@@ -1541,6 +1541,16 @@ typedef void (*dsl_message_broker_send_result_listener_cb)(void* client_data,
  */
 typedef void (*dsl_display_type_rgba_color_provider_cb)(double* red, 
     double* green, double* blue, double* alpha, void* client_data);
+    
+/**
+ * @brief callback typedef for a client handler function. Once added to a 
+ * Pipeline Component, the client callback will be called if a new buffer
+ * is not received within a configurable amount of time.
+ * @param[in] timeout_in_ms time since the last buffer was recieved in milliseconds.
+ * @param[in] client_data opaque pointer to client's data
+ */
+typedef void (*dsl_buffer_timeout_handler_cb)(uint timeout_in_ms, void* client_data);
+    
 
 // -----------------------------------------------------------------------------------
 // Start of DSL Services 

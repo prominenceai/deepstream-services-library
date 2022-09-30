@@ -611,6 +611,86 @@ namespace DSL
 
     //----------------------------------------------------------------------------------------------
 
+    BufferTimerPadProbeHandler::BufferTimerPadProbeHandler(const char* name, uint timeoutInMs,
+        dsl_buffer_timeout_handler_cb handler, void* client_data)
+        : TimestampPadProbeHandler(name)
+        , m_timeoutInMs(timeoutInMs)
+        , m_handler(handler)
+        , m_clientData(client_data)
+        , m_bufferTimerId(0)
+    {
+        LOG_FUNC();
+        
+        // Enable now
+        if (!SetEnabled(true))
+        {
+            throw;
+        }
+
+    }
+
+    BufferTimerPadProbeHandler::~BufferTimerPadProbeHandler()
+    {
+        LOG_FUNC();
+        if (m_bufferTimerId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+            g_source_remove(m_bufferTimerId);
+        }
+        
+    }
+    
+    bool BufferTimerPadProbeHandler::SetEnabled(bool enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+
+        if (TimestampPadProbeHandler::SetEnabled(enabled))
+        {
+            return false;
+        }
+
+        if (m_isEnabled)
+        {
+            m_bufferTimerId = g_timeout_add(m_timeoutInMs, 
+            buffer_timer_cb, this);
+        }
+        else
+        {
+            g_source_remove(m_bufferTimerId);
+        }
+        return true;
+    }
+    
+    uint BufferTimerPadProbeHandler::GetTimeoutInMs()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+        
+        return m_timeoutInMs;
+    }
+    
+    void BufferTimerPadProbeHandler::SetTimeoutInMs(uint timeoutInMs)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+        
+        m_timeoutInMs = timeoutInMs;
+    }
+    
+    int BufferTimerPadProbeHandler::TimerHanlder()
+    {
+        return 1;
+    }
+
+    static int buffer_timer_cb(gpointer pPph)
+    {
+        return static_cast<BufferTimerPadProbeHandler*>(pPph)->
+            TimerHanlder();
+    }
+
+    //----------------------------------------------------------------------------------------------
+
     EosConsumerPadProbeEventHandler::EosConsumerPadProbeEventHandler(const char* name)
         : PadProbeHandler(name)
     {
