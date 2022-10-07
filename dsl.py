@@ -2944,6 +2944,16 @@ def dsl_source_image_new(name, file_path):
     return int(result)
 
 ##
+## dsl_source_image_multi_new()
+##
+_dsl.dsl_source_image_multi_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
+_dsl.dsl_source_image_multi_new.restype = c_uint
+def dsl_source_image_multi_new(name, file_path, fps_n, fps_d):
+    global _dsl
+    result = _dsl.dsl_source_image_multi_new(name, file_path, fps_n, fps_d)
+    return int(result)
+
+##
 ## dsl_source_image_stream_new()
 ##
 _dsl.dsl_source_image_stream_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint, c_uint, c_uint]
