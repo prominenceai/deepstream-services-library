@@ -58,8 +58,9 @@ namespace DSL
         std::shared_ptr<TimestampPadProbeHandler>(new TimestampPadProbeHandler(name))
 
     #define DSL_PPH_BUFFER_TIMEOUR_PTR std::shared_ptr<BufferTimeoutPadProbeHandler>
-    #define DSL_PPH_BUFFER_TIMEOUR_NEW(name) \
-        std::shared_ptr<BufferTimeoutPadProbeHandler>(new BufferTimeoutPadProbeHandler(name))
+    #define DSL_PPH_BUFFER_TIMEOUR_NEW(name, timeout, handler, clientData) \
+        std::shared_ptr<BufferTimeoutPadProbeHandler>(new BufferTimeoutPadProbeHandler( \
+            name, timeout, handler, clientData))
 
     #define DSL_PPEH_EOS_CONSUMER_PTR std::shared_ptr<EosConsumerPadProbeEventHandler>
     #define DSL_PPEH_EOS_CONSUMER_NEW(name) \
@@ -523,30 +524,31 @@ namespace DSL
     //----------------------------------------------------------------------------------------------
 
     /**
-     * @class BufferTimerPadProbeHandler
+     * @class BufferTimeoutPadProbeHandler
      * @brief implements a PPH that will call a client callback on new buffer timeout.
      */
-    class BufferTimerPadProbeHandler : public TimestampPadProbeHandler
+    class BufferTimeoutPadProbeHandler : public TimestampPadProbeHandler
     {
     public: 
     
         /**
-         * @brief ctor for the BufferTimerPadProbeHandler.
-         * @param[in] name unique name for the BufferTimerPadProbeHandler.
+         * @brief ctor for the BufferTimeoutPadProbeHandler.
+         * @param[in] name unique name for the BufferTimeoutPadProbeHandler.
          * @param[in] timeoutInMs timeout value is milliseconds.
          * @param[in] handler client handler function to call on timeout
          * @param[in] client_data to return to the client on callback
          */
-        BufferTimerPadProbeHandler(const char* name, uint timeoutInMs,
-            dsl_buffer_timeout_handler_cb handler, void* client_data);
+        BufferTimeoutPadProbeHandler(const char* name, uint timeout,
+            dsl_buffer_timeout_handler_cb handler, void* clientData);
 
         /**
-         * @brief dtor for the BufferTimerPadProbeHandler.
+         * @brief dtor for the BufferTimeoutPadProbeHandler.
          */
-        ~BufferTimerPadProbeHandler();
+        ~BufferTimeoutPadProbeHandler();
 
         /**
-         * @brief Enables or disables BufferTimerPadProbeHandlerthe The default state on creation is True
+         * @brief Enables or disables BufferTimeoutPadProbeHandler. The default state 
+         * on creation is True.
          * @param[in] enabled set to true if Handler is to be enabled, false otherwise
          * @return true if successfull, false otherwise.
          */
@@ -556,18 +558,13 @@ namespace DSL
          * @brief Gets the current timeout setting
          * @return timeout setting in milliseconds
          */
-        uint GetTimeoutInMs();
+        uint GetTimeout();
         
         /**
          * @brief Sets the timeout in milliseconds
          * @param timeoutInMs new timeout value to use
          */
-        void SetTimeoutInMs(uint timeoutInMs);
-        
-        /**
-         * @brief resets the one-shot buffer timeout
-         */
-        void Reset();
+        void SetTimeout(uint timeout);
         
         /**
          * @brief handles the timer experation to check for new buffer timeout
@@ -576,12 +573,12 @@ namespace DSL
         
     private:
     
-        uint m_timeoutInMs;
+        uint m_timeout;
     
         /**
          * @brief client handler to call on timeout
          */
-        dsl_buffer_timeout_handler_cb m_handler;
+        dsl_buffer_timeout_handler_cb m_clientHandler;
         
         /**
          * @breif opaque pointer to client data to return with callback
@@ -596,8 +593,8 @@ namespace DSL
     };
 
     /**
-     * @brief Timer callback for the BufferTimerPadProbeHandler.
-     * @param pPph shared pointer to BufferTimerPadProbeHandler.
+     * @brief Timer callback for the BufferTimeoutPadProbeHandler.
+     * @param pPph shared pointer to BufferTimeoutPadProbeHandler.
      * @return int true to continue, 0 to self remove
      */
     static int buffer_timer_cb(gpointer pPph);

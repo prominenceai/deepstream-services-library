@@ -617,6 +617,9 @@ namespace DSL {
         DslReturnType PphNmpMatchSettingsSet(const char* name, 
             uint matchMethod, float matchThreshold);
         
+        DslReturnType PphBufferTimeoutNew(const char* name,
+            uint timeout, dsl_buffer_timeout_handler_cb handler, void* clientData);
+    
         DslReturnType PphEnabledGet(const char* name, boolean* enabled);
         
         DslReturnType PphEnabledSet(const char* name, boolean enabled);

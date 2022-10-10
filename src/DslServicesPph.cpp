@@ -338,6 +338,39 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::PphBufferTimeoutNew(const char* name,
+        uint timeout, dsl_buffer_timeout_handler_cb handler, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {   
+            // ensure handler name uniqueness 
+            if (m_padProbeHandlers.find(name) != m_padProbeHandlers.end())
+            {   
+                LOG_ERROR("Buffer Timeout Pad Probe Handler name '" 
+                    << name << "' is not unique");
+                return DSL_RESULT_PPH_NAME_NOT_UNIQUE;
+            }
+            m_padProbeHandlers[name] = DSL_PPH_BUFFER_TIMEOUR_NEW(name,
+                timeout, handler, clientData);
+            
+            LOG_INFO("New Buffer Timeout Pad Probe Handler '" 
+                << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Buffer Timeout Pad Probe Handler '" 
+                << name << "' threw exception on create");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+        
+        
     DslReturnType Services::PphEnabledGet(const char* name, boolean* enabled)
     {
         LOG_FUNC();

@@ -3274,6 +3274,19 @@ DslReturnType dsl_pph_nmp_match_settings_set(const wchar_t* name,
         cstrName.c_str(), match_method, match_threshold);
 #endif    
 }
+
+DslReturnType dsl_pph_buffer_timeout_new(const wchar_t* name,
+    uint timeout, dsl_buffer_timeout_handler_cb handler, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PphBufferTimeoutNew(cstrName.c_str(), 
+        timeout, handler, client_data);
+}
      
 DslReturnType dsl_pph_enabled_get(const wchar_t* name, boolean* enabled)
 {

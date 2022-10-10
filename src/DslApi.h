@@ -1546,10 +1546,10 @@ typedef void (*dsl_display_type_rgba_color_provider_cb)(double* red,
  * @brief callback typedef for a client handler function. Once added to a 
  * Pipeline Component, the client callback will be called if a new buffer
  * is not received within a configurable amount of time.
- * @param[in] timeout_in_ms time since the last buffer was recieved in milliseconds.
+ * @param[in] timeout the timeout value that was exceeded, in units of seconds.
  * @param[in] client_data opaque pointer to client's data
  */
-typedef void (*dsl_buffer_timeout_handler_cb)(uint timeout_in_ms, void* client_data);
+typedef void (*dsl_buffer_timeout_handler_cb)(uint timeout, void* client_data);
     
 
 // -----------------------------------------------------------------------------------
@@ -3900,6 +3900,19 @@ DslReturnType dsl_pph_nmp_match_settings_get(const wchar_t* name,
 DslReturnType dsl_pph_nmp_match_settings_set(const wchar_t* name,
     uint match_method, float match_threshold);
 
+/**
+ * @brief Creates a new, uniquely named Buffer Timeout Pad Probe Handler (PPH). 
+ * @param[in] name unique name for the new Pad Probe Handler.
+ * @param[in] timeout maximum time to wait for a new buffer before calling
+ * the handler function. In units of seconds.
+ * @param[in] handler function to be called on new buffer timeout.
+ * @param[in] client_data opaque pointer to client data to be passed back
+ * into the handler function. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
+ */
+DslReturnType dsl_pph_buffer_timeout_new(const wchar_t* name,
+    uint timeout, dsl_buffer_timeout_handler_cb handler, void* client_data);
+    
 /**
  * @brief gets the current enabled setting for the named Pad Probe Handler
  * @param[in] name unique name of the Handler to query

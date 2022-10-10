@@ -611,12 +611,12 @@ namespace DSL
 
     //----------------------------------------------------------------------------------------------
 
-    BufferTimerPadProbeHandler::BufferTimerPadProbeHandler(const char* name, uint timeoutInMs,
-        dsl_buffer_timeout_handler_cb handler, void* client_data)
+    BufferTimeoutPadProbeHandler::BufferTimeoutPadProbeHandler(const char* name, 
+        uint timeout, dsl_buffer_timeout_handler_cb handler, void* clientData)
         : TimestampPadProbeHandler(name)
-        , m_timeoutInMs(timeoutInMs)
-        , m_handler(handler)
-        , m_clientData(client_data)
+        , m_timeout(timeout)
+        , m_clientHandler(handler)
+        , m_clientData(clientData)
         , m_bufferTimerId(0)
     {
         LOG_FUNC();
@@ -629,7 +629,7 @@ namespace DSL
 
     }
 
-    BufferTimerPadProbeHandler::~BufferTimerPadProbeHandler()
+    BufferTimeoutPadProbeHandler::~BufferTimeoutPadProbeHandler()
     {
         LOG_FUNC();
         if (m_bufferTimerId)
@@ -640,7 +640,7 @@ namespace DSL
         
     }
     
-    bool BufferTimerPadProbeHandler::SetEnabled(bool enabled)
+    bool BufferTimeoutPadProbeHandler::SetEnabled(bool enabled)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
@@ -652,8 +652,8 @@ namespace DSL
 
         if (m_isEnabled)
         {
-            m_bufferTimerId = g_timeout_add(m_timeoutInMs, 
-            buffer_timer_cb, this);
+            m_bufferTimerId = g_timeout_add(10, 
+                buffer_timer_cb, this);
         }
         else
         {
@@ -662,30 +662,75 @@ namespace DSL
         return true;
     }
     
-    uint BufferTimerPadProbeHandler::GetTimeoutInMs()
+    uint BufferTimeoutPadProbeHandler::GetTimeout()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
         
-        return m_timeoutInMs;
+        return m_timeout;
     }
     
-    void BufferTimerPadProbeHandler::SetTimeoutInMs(uint timeoutInMs)
+    void BufferTimeoutPadProbeHandler::SetTimeout(uint timeout)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
         
-        m_timeoutInMs = timeoutInMs;
+        m_timeout = timeout;
     }
     
-    int BufferTimerPadProbeHandler::TimerHanlder()
+    int BufferTimeoutPadProbeHandler::TimerHanlder()
     {
-        return 1;
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+
+        struct timeval currentTime;
+        gettimeofday(&currentTime, NULL);
+
+        // Get the last buffer time. This timer callback will not be called
+        // until after the timer is started on main-loop run after play 
+        // therefore the lastBufferTime should be non-zero once the first
+        // buffer is received
+        struct timeval lastBufferTime;
+        GetTime(lastBufferTime);
+        if (lastBufferTime.tv_sec == 0)
+        {
+            LOG_DEBUG("Waiting for first buffer before checking for timeout \\\
+                for Buffer Timer PPH '" << GetName() << "'");
+            return true;
+        }
+
+        double timeSinceLastBufferMs = 1000.0*(currentTime.tv_sec - lastBufferTime.tv_sec) + 
+            (currentTime.tv_usec - lastBufferTime.tv_usec) / 1000.0;
+
+        if (timeSinceLastBufferMs < (double)m_timeout*1000)
+        {
+            // Timeout has not been exceeded, so return true to sleep again
+            return true;
+        }
+        LOG_INFO("Buffer timeout of " << m_timeout << " seconds exceeded for PPH '" 
+            << GetName() << "'");
+
+        {
+            try
+            {
+                m_clientHandler(m_timeout, m_clientData);
+            }
+            catch(...)
+            {
+                LOG_ERROR("EosHandlerPadProbeEventHandler '" << GetName() 
+                    << "' threw an exception processing Pad Buffer");
+            }
+        }
+        // clear the timer id and set the enabled state disabling the pph.
+        m_bufferTimerId = 0;
+        m_isEnabled = false;
+
+        // return false to stop the timer.
+        return false;
     }
 
     static int buffer_timer_cb(gpointer pPph)
     {
-        return static_cast<BufferTimerPadProbeHandler*>(pPph)->
+        return static_cast<BufferTimeoutPadProbeHandler*>(pPph)->
             TimerHanlder();
     }
 
