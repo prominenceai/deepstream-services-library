@@ -620,6 +620,9 @@ namespace DSL {
         DslReturnType PphBufferTimeoutNew(const char* name,
             uint timeout, dsl_buffer_timeout_handler_cb handler, void* clientData);
     
+        DslReturnType PphEosNew(const char* name,
+            dsl_eos_handler_cb handler, void* clientData);
+    
         DslReturnType PphEnabledGet(const char* name, boolean* enabled);
         
         DslReturnType PphEnabledSet(const char* name, boolean enabled);
@@ -690,6 +693,10 @@ namespace DSL {
             
         DslReturnType SourceRtspNew(const char* name, const char* uri, uint protocol, 
             uint intraDecode, uint dropFrameInterval, uint latency, uint timeout);
+
+        DslReturnType SourcePphAdd(const char* name, const char* handler);
+
+        DslReturnType SourcePphRemove(const char* name, const char* handler);
             
         DslReturnType SourceDimensionsGet(const char* name, uint* width, uint* height);
         

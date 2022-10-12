@@ -783,6 +783,73 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SourcePphAdd(const char* name, const char* handler)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
+            // call on the Handler to add itself to the Source as a PadProbeHandler
+            if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], 
+                DSL_PAD_SRC))
+            {
+                LOG_ERROR("Source '" << name 
+                    << "' failed to add Pad Probe Handler '"
+                    << handler << "'");
+                return DSL_RESULT_SOURCE_HANDLER_ADD_FAILED;
+            }
+            LOG_INFO("Source '" << name << "' added Pad Probe Handler '"
+                << handler << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw an exception adding Pad Probe Handler '" 
+                << handler << "'");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+   
+    DslReturnType Services::SourcePphRemove(const char* name, const char* handler) 
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
+            // call on the Handler to remove itself from the Tee
+            if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], 
+                DSL_PAD_SRC))
+            {
+                LOG_ERROR("Pad Probe Handler '" << handler 
+                    << "' is not a child of Source '" << name << "'");
+                return DSL_RESULT_SOURCE_HANDLER_REMOVE_FAILED;
+            }
+            LOG_INFO("Source '" << name << "' removed Pad Probe Handler'" 
+                << handler << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw an exception removing Pad Probe Handler '" 
+                << handler << "'");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::SourceDimensionsGet(const char* name, uint* width, uint* height)
     {
         LOG_FUNC();

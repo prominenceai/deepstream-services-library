@@ -193,7 +193,7 @@ SCENARIO( "A new EosHandlerPadProbeEventHandler is created correctly", "[PadProb
     GIVEN( "Attributes for a new EosHandlerPadProbeEventHandler" ) 
     {
         std::string handlerName("eos-handler");
-        dsl_pph_client_handler_cb clientHandler;
+        dsl_eos_handler_cb clientHandler;
 
         WHEN( "The PadProbeHandler is created " )
         {

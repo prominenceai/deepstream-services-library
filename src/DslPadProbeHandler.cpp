@@ -620,12 +620,6 @@ namespace DSL
         , m_bufferTimerId(0)
     {
         LOG_FUNC();
-        
-        // Enable now
-        if (!SetEnabled(true))
-        {
-            throw;
-        }
 
     }
 
@@ -716,7 +710,7 @@ namespace DSL
             }
             catch(...)
             {
-                LOG_ERROR("EosHandlerPadProbeEventHandler '" << GetName() 
+                LOG_ERROR("Buffer Timeout Pad Probe Handler '" << GetName() 
                     << "' threw an exception processing Pad Buffer");
             }
         }
@@ -774,7 +768,7 @@ namespace DSL
     //----------------------------------------------------------------------------------------------
 
     EosHandlerPadProbeEventHandler::EosHandlerPadProbeEventHandler(const char* name, 
-        dsl_pph_custom_client_handler_cb clientHandler, void* clientData)
+        dsl_eos_handler_cb clientHandler, void* clientData)
         : PadProbeHandler(name)
         , m_clientHandler(clientHandler)
         , m_clientData(clientData)
@@ -807,11 +801,11 @@ namespace DSL
         {
             try
             {
-                return (GstPadProbeReturn)m_clientHandler(pEvent, m_clientData);
+                return (GstPadProbeReturn)m_clientHandler(m_clientData);
             }
             catch(...)
             {
-                LOG_ERROR("EosHandlerPadProbeEventHandler '" << GetName() 
+                LOG_ERROR("EOS Handler Pad Probe Event Handler '" << GetName() 
                     << "' threw an exception processing Pad Buffer");
                 return GST_PAD_PROBE_REMOVE;
             }

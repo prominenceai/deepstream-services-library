@@ -223,7 +223,7 @@ namespace DSL
 
     /**
      * @class EosHandlerPadProbeEventHandler
-     * @brief Pad Probe Handler to call a client handler callback function on downstream EOS event.
+     * @brief Pad Probe Handler to call a client handler callback function on EOS event.
      */
     class EosHandlerPadProbeEventHandler : public PadProbeHandler
     {
@@ -235,7 +235,8 @@ namespace DSL
          * @param[in] clientHandler client callback function to handle the EOS event
          * @param[in] clientData return to the client when the handler is called
          */
-        EosHandlerPadProbeEventHandler(const char* name, dsl_pph_client_handler_cb clientHandler, void* clientData);
+        EosHandlerPadProbeEventHandler(const char* name, 
+            dsl_eos_handler_cb clientHandler, void* clientData);
 
         /**
          * @brief dtor for the EOS Consumer Pad Probe Handler
@@ -245,8 +246,7 @@ namespace DSL
         /**
          * @brief Custom Pad Probe Handler
          * @param[in]pBuffer Pad buffer
-         * @return GstPadProbeReturn see GST reference, one of [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK,
-         * GST_PAD_PROBE_REMOVE, GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
+         * @return GstPadProbeReturn see GST reference, one of [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK]
          */
         GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo);
 
@@ -255,7 +255,7 @@ namespace DSL
         /**
          * @brief client callback funtion, called on End-of-Stream event
          */
-        dsl_pph_custom_client_handler_cb m_clientHandler;
+        dsl_eos_handler_cb m_clientHandler;
         
         /**
          * @brief opaue pointer to client data, returned on callback

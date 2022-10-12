@@ -177,6 +177,86 @@ SCENARIO( "A new ODE Handler can Add and Remove multiple ODE Triggers", "[pph-ap
     }
 }
 
+void buffer_timeout_handler_cb(uint timeout, void* client_data)
+{
+    
+}
+
+SCENARIO( "A Buffer Timeout Pad Probe Handler can be created and deleted", "[pph-api]" )
+{
+    GIVEN( "Atributes for a new Buffer Timeout Pad Probe Handler" ) 
+    {
+        std::wstring buffer_timeout_pph(L"pph");
+
+        REQUIRE( dsl_pph_list_size() == 0 );
+
+        WHEN( "The PPH is created" ) 
+        {
+            REQUIRE( dsl_pph_buffer_timeout_new(buffer_timeout_pph.c_str(),
+                1, buffer_timeout_handler_cb, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pph_list_size() == 1 );
+
+            // second call must fail
+            REQUIRE( dsl_pph_buffer_timeout_new(buffer_timeout_pph.c_str(),
+                1, buffer_timeout_handler_cb, NULL) == DSL_RESULT_PPH_NAME_NOT_UNIQUE );
+            
+            boolean enabled(0);
+            REQUIRE( dsl_pph_enabled_get(buffer_timeout_pph.c_str(), &enabled) 
+                == DSL_RESULT_SUCCESS);
+            REQUIRE( enabled == true );
+            
+            THEN( "The PPH can then be deleted" )
+            {
+                REQUIRE( dsl_pph_delete(buffer_timeout_pph.c_str()) == DSL_RESULT_SUCCESS );
+                
+                // second call must fail
+                REQUIRE( dsl_pph_delete(buffer_timeout_pph.c_str()) == DSL_RESULT_PPH_NAME_NOT_FOUND );
+                REQUIRE( dsl_pph_list_size() == 0 );
+            }
+        }
+    }
+}
+
+uint eos_handler_cb(void* client_data)
+{
+    return DSL_PAD_PROBE_DROP;
+}
+
+SCENARIO( "A EOS Pad Probe Handler can be created and deleted", "[pph-api]" )
+{
+    GIVEN( "Atributes for a new EOS Pad Probe Handler" ) 
+    {
+        std::wstring eos_pph(L"pph");
+
+        REQUIRE( dsl_pph_list_size() == 0 );
+
+        WHEN( "The PPH is created" ) 
+        {
+            REQUIRE( dsl_pph_eos_new(eos_pph.c_str(),
+                eos_handler_cb, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pph_list_size() == 1 );
+
+            // second call must fail
+            REQUIRE( dsl_pph_eos_new(eos_pph.c_str(),
+                eos_handler_cb, NULL) == DSL_RESULT_PPH_NAME_NOT_UNIQUE );
+            
+            boolean enabled(0);
+            REQUIRE( dsl_pph_enabled_get(eos_pph.c_str(), &enabled) 
+                == DSL_RESULT_SUCCESS);
+            REQUIRE( enabled == true );
+            
+            THEN( "The PPH can then be deleted" )
+            {
+                REQUIRE( dsl_pph_delete(eos_pph.c_str()) == DSL_RESULT_SUCCESS );
+                
+                // second call must fail
+                REQUIRE( dsl_pph_delete(eos_pph.c_str()) == DSL_RESULT_PPH_NAME_NOT_FOUND );
+                REQUIRE( dsl_pph_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "The Pad Probe Handler API checks for NULL input parameters", "[pph-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -212,6 +292,16 @@ SCENARIO( "The Pad Probe Handler API checks for NULL input parameters", "[pph-ap
 
                 REQUIRE( dsl_pph_meter_interval_get(NULL, &interval) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_pph_meter_interval_set(NULL, interval) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_pph_buffer_timeout_new(NULL, 1, NULL, NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pph_buffer_timeout_new(pphName.c_str(), 1, NULL, NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_pph_eos_new(NULL, NULL, NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pph_eos_new(pphName.c_str(), NULL, NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_pph_enabled_get(NULL, &enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_pph_enabled_set(NULL, enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
