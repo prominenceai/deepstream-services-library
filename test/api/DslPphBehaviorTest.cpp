@@ -33,10 +33,17 @@ THE SOFTWARE.
 
 static const std::wstring pipeline_name(L"test-pipeline");
 
-static const std::wstring source_name1(L"uri-source-1");
+static const std::wstring source_name1(L"source-1");
+static const std::wstring source_name2(L"source-2");
+static const std::wstring source_name3(L"source-3");
+static const std::wstring source_name4(L"source-4");
+
 static const std::wstring uri(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 static const uint intr_decode(false);
 static const uint drop_frame_interval(0); 
+
+static const std::wstring jpeg_file_path(
+    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg");
 
 static const std::wstring primary_gie_name(L"primary-gie");
 static std::wstring infer_config_file(
@@ -65,6 +72,11 @@ static std::wstring custom_ppm_name1(L"custom-ppm-1");
 static std::wstring custom_ppm_name2(L"custom-ppm-2");
 static std::wstring custom_ppm_name3(L"custom-ppm-3");
 static std::wstring custom_ppm_name4(L"custom-ppm-4");
+
+static std::wstring eos_ppm_name1(L"eos-ppm-1");
+static std::wstring eos_ppm_name2(L"eos-ppm-2");
+static std::wstring eos_ppm_name3(L"eos-ppm-3");
+static std::wstring eos_ppm_name4(L"eos-ppm-4");
 
 static boolean pad_probe_handler_cb1(void* buffer, void* user_data)
 {
@@ -104,7 +116,7 @@ SCENARIO( "Multiple Custom PPHs are called in the correct add order", "[pph-beha
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"window-sink", NULL};
+        const wchar_t* components[] = {L"source-1",L"primary-gie", L"window-sink", NULL};
         
         REQUIRE( dsl_pph_custom_new(custom_ppm_name1.c_str(), 
             pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
@@ -144,7 +156,7 @@ SCENARIO( "Multiple Custom PPHs are called in the correct add order", "[pph-beha
 
 SCENARIO( "A Custom PPH can remove be removed on return", "[pph-behavior]" )
 {
-    GIVEN( "A Pipeline, URI source, Primary GIE, Window Sink, and Tiled Display" ) 
+    GIVEN( "A Pipeline, URI source, Primary GIE, Window Sink" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -157,7 +169,7 @@ SCENARIO( "A Custom PPH can remove be removed on return", "[pph-behavior]" )
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"window-sink", NULL};
+        const wchar_t* components[] = {L"source-1",L"primary-gie", L"window-sink", NULL};
         
         REQUIRE( dsl_pph_custom_new(custom_ppm_name4.c_str(), 
             pad_probe_handler_cb4, NULL) == DSL_RESULT_SUCCESS );
@@ -187,3 +199,73 @@ SCENARIO( "A Custom PPH can remove be removed on return", "[pph-behavior]" )
     }
 }
 
+uint eos_probe_handler_cb(void* client_data)
+{
+    uint source = *(uint*)client_data;
+    
+    std::cout << "EOS PPH called for Source = " << source;
+}
+
+SCENARIO( "An EOS PPH calls its handler function correctly", "[temp]" )
+{
+    GIVEN( "A Pipeline with four Images Sources and a Window Sink" ) 
+    {
+        REQUIRE( dsl_component_list_size() == 0 );
+        
+        uint source_1(1), source_2(2), source_3(3), source_4(4);
+
+        REQUIRE( dsl_source_image_new(source_name1.c_str(), 
+            jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_eos_new(eos_ppm_name1.c_str(), 
+            eos_probe_handler_cb, &source_1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_pph_add(source_name1.c_str(), 
+            eos_ppm_name1.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_source_image_new(source_name2.c_str(), 
+            jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_eos_new(eos_ppm_name2.c_str(), 
+            eos_probe_handler_cb, &source_2) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_pph_add(source_name2.c_str(), 
+            eos_ppm_name2.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_source_image_new(source_name3.c_str(), 
+            jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_eos_new(eos_ppm_name3.c_str(), 
+            eos_probe_handler_cb, &source_3) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_pph_add(source_name3.c_str(), 
+            eos_ppm_name3.c_str()) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_source_image_new(source_name4.c_str(), 
+            jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_eos_new(eos_ppm_name4.c_str(), 
+            eos_probe_handler_cb, &source_4) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_pph_add(source_name4.c_str(), 
+            eos_ppm_name4.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {L"source-1", L"source-2", L"source-3", L"source-4", 
+            L"window-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), components) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                // Note: requires visual verification for single call and removal.
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
