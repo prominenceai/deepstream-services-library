@@ -172,6 +172,10 @@ namespace DSL
         AddChild(m_pCapsFilter);
         
         m_pCapsFilter->AddGhostPadToParent("src");
+
+        std::string padProbeName = GetName() + "-src-pad-probe";
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
+            "src", m_pCapsFilter);
     }
 
     CsiSourceBintr::~CsiSourceBintr()
@@ -320,6 +324,10 @@ namespace DSL
         AddChild(m_pVidConv2);
         
         m_pCapsFilter->AddGhostPadToParent("src");
+
+        std::string padProbeName = GetName() + "-src-pad-probe";
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
+            "src", m_pCapsFilter);
     }
 
     UsbSourceBintr::~UsbSourceBintr()
@@ -813,6 +821,10 @@ namespace DSL
         
         // Source Ghost Pad for Source Queue
         m_pSourceQueue->AddGhostPadToParent("src");
+
+        std::string padProbeName = GetName() + "-src-pad-probe";
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
+            "src", m_pSourceQueue);
     }
 
     UriSourceBintr::~UriSourceBintr()
@@ -1077,6 +1089,10 @@ namespace DSL
             // Source Ghost Pad for JPEG image sources
             m_pDecoder->AddGhostPadToParent("src");
             
+            std::string padProbeName = GetName() + "-src-pad-probe";
+            m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
+                "src", m_pDecoder);
+
             // If it's an MJPG file or Multi JPG files
             if (m_uri.find("mjpeg") != std::string::npos or
                 m_uri.find("mjpg") != std::string::npos or
@@ -1378,6 +1394,10 @@ namespace DSL
         // Source Ghost Pad for ImageStreamSourceBintr
         m_pCapsFilter->AddGhostPadToParent("src");
 
+        std::string padProbeName = GetName() + "-src-pad-probe";
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
+            "src", m_pCapsFilter);
+
         g_mutex_init(&m_timeoutTimerMutex);
 
         if(uri and !SetUri(uri))
@@ -1567,7 +1587,11 @@ namespace DSL
         AddChild(m_pSourceElement);
         
         m_pSourceElement->AddGhostPadToParent("src");
-    }
+        
+        std::string padProbeName = GetName() + "-src-pad-probe";
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
+            "src", m_pSourceElement);
+}
     
     InterpipeSourceBintr::~InterpipeSourceBintr()
     {

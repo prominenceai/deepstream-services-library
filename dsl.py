@@ -433,6 +433,14 @@ DSL_MESSAGE_BROKER_SEND_RESULT_LISTENER = \
 DSL_DISPLAY_TYPE_RGBA_COLOR_PROVIDER = \
     CFUNCTYPE(None, DSL_DOUBLE_P, DSL_DOUBLE_P, DSL_DOUBLE_P, DSL_DOUBLE_P, c_void_p)
 
+# dsl_buffer_timeout_handler_cb
+DSL_BUFFER_TIMEOUT_HANDLER = \
+    CFUNCTYPE(None, c_uint, c_void_p)
+
+# dsl_eos_listener_cb
+DSL_EOS_HANDLER = \
+    CFUNCTYPE(c_uint, c_void_p)
+
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
 ## the callback remove wrapper functions will work correctly.
@@ -2767,6 +2775,38 @@ def dsl_pph_nmp_process_method_set(name, process_mode):
     return int(result)
 
 ##
+## dsl_pph_buffer_timeout_new()
+##
+_dsl.dsl_pph_buffer_timeout_new.argtypes = [c_wchar_p, 
+    c_uint, DSL_BUFFER_TIMEOUT_HANDLER, c_void_p]
+_dsl.dsl_pph_buffer_timeout_new.restype = c_uint
+def dsl_pph_buffer_timeout_new(name, timeout, handler, client_data):
+    global _dsl
+    handler_cb = DSL_BUFFER_TIMEOUT_HANDLER(client_handler)
+    callbacks.append(handler_cb)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result =_dsl.dsl_pph_buffer_timeout_new(name, 
+        timeout, handler_cb, c_client_data)
+    return int(result)
+
+##
+## dsl_pph_eos_new()
+##
+_dsl.dsl_pph_eos_new.argtypes = [c_wchar_p, 
+    DSL_EOS_HANDLER, c_void_p]
+_dsl.dsl_pph_eos_new.restype = c_uint
+def dsl_pph_eos_new(name, handler, client_data):
+    global _dsl
+    handler_cb = DSL_EOS_HANDLER(client_handler)
+    callbacks.append(handler_cb)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result =_dsl.dsl_pph_eos_new(name, 
+        handler_cb, c_client_data)
+    return int(result)
+
+##
 ## dsl_pph_enabled_get()
 ##
 _dsl.dsl_pph_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
@@ -3057,6 +3097,26 @@ def dsl_source_name_get(source_id):
     name = c_wchar_p(0)
     result = _dsl.dsl_source_name_get(source_id, DSL_WCHAR_PP(name))
     return int(result), name.value 
+
+##
+## dsl_source_pph_add()
+##
+_dsl.dsl_source_pph_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_pph_add.restype = c_uint
+def dsl_source_pph_add(name, handler):
+    global _dsl
+    result = _dsl.dsl_source_pph_add(name, handler)
+    return int(result)
+
+##
+## dsl_source_pph_remove()
+##
+_dsl.dsl_source_pph_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_pph_remove.restype = c_uint
+def dsl_source_pph_remove(name, handler):
+    global _dsl
+    result = _dsl.dsl_source_pph_remove(name, handler)
+    return int(result)
 
 ##
 ## dsl_source_dimensions_get()

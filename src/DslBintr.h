@@ -215,16 +215,31 @@ namespace DSL
         {
             LOG_FUNC();
             
+            if (pPadProbeHandler->IsInUse())
+            {
+                LOG_ERROR("Can't add Pad Probe Handler = '" << pPadProbeHandler->GetName() 
+                    << "' as it is currently in use");
+                return false;
+            }
+            bool result(false);
+
             if (pad == DSL_PAD_SINK)
             {
-                return m_pSinkPadProbe->AddPadProbeHandler(pPadProbeHandler);
+                result = m_pSinkPadProbe->AddPadProbeHandler(pPadProbeHandler);
             }
-            if (pad == DSL_PAD_SRC)
+            else if (pad == DSL_PAD_SRC)
             {
-                return m_pSrcPadProbe->AddPadProbeHandler(pPadProbeHandler);
+                result = m_pSrcPadProbe->AddPadProbeHandler(pPadProbeHandler);
             }
-            LOG_ERROR("Invalid Pad type = " << pad << " for Bintr '" << GetName() << "'");
-            return false;
+            else
+            {
+                LOG_ERROR("Invalid Pad type = " << pad << " for Bintr '" << GetName() << "'");
+            }
+            if (result)
+            {
+                pPadProbeHandler->AssignParentName(GetName());
+            }
+            return result;
         }
             
         /**
@@ -236,15 +251,24 @@ namespace DSL
         {
             LOG_FUNC();
             
+            bool result(false);
+
             if (pad == DSL_PAD_SINK)
             {
-                return m_pSinkPadProbe->RemovePadProbeHandler(pPadProbeHandler);
+                result = m_pSinkPadProbe->RemovePadProbeHandler(pPadProbeHandler);
             }
-            if (pad == DSL_PAD_SRC)
+            else if (pad == DSL_PAD_SRC)
             {
-                return m_pSrcPadProbe->RemovePadProbeHandler(pPadProbeHandler);
+                result = m_pSrcPadProbe->RemovePadProbeHandler(pPadProbeHandler);
             }
-            LOG_ERROR("Invalid Pad type = " << pad << " for Bintr '" << GetName() << "'");
+            else
+            {
+                LOG_ERROR("Invalid Pad type = " << pad << " for Bintr '" << GetName() << "'");
+            }
+            if (result)
+            {
+                pPadProbeHandler->ClearParentName();
+            }
             return false;
         }
         
