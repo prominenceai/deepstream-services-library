@@ -649,7 +649,7 @@ namespace DSL
     public: 
     
         /**
-         * @brief ctor for the MultiImageSourceBintr
+         * @brief ctor for the ImageSourceBintr
          * @param[in] name unique name for the Image Source
          * @param[in] uri relative or absolute path to the input file source.
          * @param[in] type on of the DSL_IMAGE_TYPE_* constants
@@ -661,26 +661,12 @@ namespace DSL
          */
         ~ImageSourceBintr();
 
-        /**
-         * @brief Links all Child Elementrs owned by this Source Bintr
-         * @return True success, false otherwise
-         */
-        bool LinkAll();
-        
-        /**
-         * @brief Unlinks all Child Elementrs owned by this Source Bintr
-         */
-        void UnlinkAll();
-
     protected:
         /**
          * @brief one of the DSL_IMAGE_EXTENTION_* constants
          */
         std::string m_ext;
 
-
-    private:
-    
         /**
          * @brief one of the DSL_IMAGE_FORMAT_* constants
          */
@@ -709,7 +695,7 @@ namespace DSL
     public: 
     
         /**
-         * @brief ctor for the MultiImageSourceBintr
+         * @brief ctor for the SingleImageSourceBintr
          * @param[in] name unique name for the Image Source
          * @param[in] uri relative or absolute path to the input file source.
          */
@@ -719,6 +705,17 @@ namespace DSL
          * @brief dtor for the ImageSourceBintr
          */
         ~SingleImageSourceBintr();
+
+        /**
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Source Bintr
+         */
+        void UnlinkAll();
 
         /**
          * @brief Sets the URIs for ImageFrameSourceBintr 
@@ -751,19 +748,86 @@ namespace DSL
             const char* uri, uint fpsN, uint fpsD);
         
         /**
-         * @brief dtor for the ImageSourceBintr
+         * @brief dtor for the MultiImageSourceBintr
          */
         ~MultiImageSourceBintr();
 
         /**
-         * @brief Sets the URIs for MultiImageFrameSourceBintr 
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise.
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Source Bintr.
+         */
+        void UnlinkAll();
+        
+        /**
+         * @brief Sets the URIs for MultiImageSourceBintr 
          * @param uri relative or absolute path to the input file source.
          */
         bool SetUri(const char* uri);
         
-    private:
+        /**
+         * @brief Gets the current loop-enabled setting for the 
+         * MultiImageSourceBintr.
+         * @return true if loop is enabled, false otherwise.
+         */
+        bool GetLoopEnabled();
+        
+        /**
+         * @brief Sets the loop-enabled setting for the MultiImageSourceBintr.
+         * @param[in] loopEnabled set to true to enable, false otherwise.
+         * @return true on successful update, false otherwise.
+         */
+        bool SetLoopEnabled(bool loopEnabled);
 
-    };
+        /**
+         * @brief Gets the current start and stop index settings for the
+         * MultiImageSourceBintr
+         * @param[out] startIndex zero-based index to start on. Default = 0
+         * @param[out] stopIndex index to stop on. -1 = no stop, default.
+         */
+        void GetIndices(int* startIndex, int* stopIndex);
+        
+        /**
+         * @brief Sets the start and stop index settings for the
+         * MultiImageSourceBintr
+         * @param[in] startIndex zero-based index to start on.
+         * @param[in] stopIndex index to stop on. set to -1 for no stop.
+         */
+        bool SetIndices(int startIndex, int stopIndex);
+        
+    private:
+    
+        /**
+         * @brief Current loop-enabled setting for the MultiImageSourceBintr
+         */
+        bool m_loopEnabled;
+
+        /**
+         * @brief Current start index for the MultiImageSourceBintr
+         * Zero-base, default = 0
+         */
+        int m_startIndex;
+
+        /**
+         * @brief Current stop index for the MultiImageSourceBintr
+         * Default = -1, no stop.
+         */
+        int m_stopIndex;
+
+        /**
+         * @brief Caps Filter for the MultiImageSourceBintr
+         */
+        DSL_ELEMENT_PTR m_pCapsFilter;
+
+        /**
+         * @brief videorate element for the MultiImageSourceBintr
+         */
+        DSL_ELEMENT_PTR m_pVideoRate;
+};
 
     //*********************************************************************************
 

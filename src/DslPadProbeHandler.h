@@ -57,6 +57,11 @@ namespace DSL
     #define DSL_PPH_TIMESTAMP_NEW(name) \
         std::shared_ptr<TimestampPadProbeHandler>(new TimestampPadProbeHandler(name))
 
+    #define DSL_PPH_BUFFER_TIMEOUR_PTR std::shared_ptr<BufferTimeoutPadProbeHandler>
+    #define DSL_PPH_BUFFER_TIMEOUR_NEW(name, timeout, handler, clientData) \
+        std::shared_ptr<BufferTimeoutPadProbeHandler>(new BufferTimeoutPadProbeHandler( \
+            name, timeout, handler, clientData))
+
     #define DSL_PPEH_EOS_CONSUMER_PTR std::shared_ptr<EosConsumerPadProbeEventHandler>
     #define DSL_PPEH_EOS_CONSUMER_NEW(name) \
         std::shared_ptr<EosConsumerPadProbeEventHandler>( \
@@ -112,7 +117,8 @@ namespace DSL
         /**
          * @brief Sets the current state of the Handler enabled flag. 
          * The default state on creation is True
-         * @param[in] enabled set to true if Repororting is to be enabled, false otherwise
+         * @param[in] enabled set to true if Handler is to be enabled, false otherwise
+         * @return true if successfull, false otherwise.
          */
         virtual bool SetEnabled(bool enabled);
         
@@ -217,7 +223,7 @@ namespace DSL
 
     /**
      * @class EosHandlerPadProbeEventHandler
-     * @brief Pad Probe Handler to call a client handler callback function on downstream EOS event.
+     * @brief Pad Probe Handler to call a client handler callback function on EOS event.
      */
     class EosHandlerPadProbeEventHandler : public PadProbeHandler
     {
@@ -229,7 +235,8 @@ namespace DSL
          * @param[in] clientHandler client callback function to handle the EOS event
          * @param[in] clientData return to the client when the handler is called
          */
-        EosHandlerPadProbeEventHandler(const char* name, dsl_pph_client_handler_cb clientHandler, void* clientData);
+        EosHandlerPadProbeEventHandler(const char* name, 
+            dsl_eos_handler_cb clientHandler, void* clientData);
 
         /**
          * @brief dtor for the EOS Consumer Pad Probe Handler
@@ -239,8 +246,7 @@ namespace DSL
         /**
          * @brief Custom Pad Probe Handler
          * @param[in]pBuffer Pad buffer
-         * @return GstPadProbeReturn see GST reference, one of [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK,
-         * GST_PAD_PROBE_REMOVE, GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
+         * @return GstPadProbeReturn see GST reference, one of [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK]
          */
         GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo);
 
@@ -249,7 +255,7 @@ namespace DSL
         /**
          * @brief client callback funtion, called on End-of-Stream event
          */
-        dsl_pph_custom_client_handler_cb m_clientHandler;
+        dsl_eos_handler_cb m_clientHandler;
         
         /**
          * @brief opaue pointer to client data, returned on callback
@@ -515,6 +521,84 @@ namespace DSL
         
     };
     
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     * @class BufferTimeoutPadProbeHandler
+     * @brief implements a PPH that will call a client callback on new buffer timeout.
+     */
+    class BufferTimeoutPadProbeHandler : public TimestampPadProbeHandler
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the BufferTimeoutPadProbeHandler.
+         * @param[in] name unique name for the BufferTimeoutPadProbeHandler.
+         * @param[in] timeoutInMs timeout value is milliseconds.
+         * @param[in] handler client handler function to call on timeout
+         * @param[in] client_data to return to the client on callback
+         */
+        BufferTimeoutPadProbeHandler(const char* name, uint timeout,
+            dsl_buffer_timeout_handler_cb handler, void* clientData);
+
+        /**
+         * @brief dtor for the BufferTimeoutPadProbeHandler.
+         */
+        ~BufferTimeoutPadProbeHandler();
+
+        /**
+         * @brief Enables or disables BufferTimeoutPadProbeHandler. The default state 
+         * on creation is True.
+         * @param[in] enabled set to true if Handler is to be enabled, false otherwise
+         * @return true if successfull, false otherwise.
+         */
+        bool SetEnabled(bool enabled);
+        
+        /**
+         * @brief Gets the current timeout setting
+         * @return timeout setting in milliseconds
+         */
+        uint GetTimeout();
+        
+        /**
+         * @brief Sets the timeout in milliseconds
+         * @param timeoutInMs new timeout value to use
+         */
+        void SetTimeout(uint timeout);
+        
+        /**
+         * @brief handles the timer experation to check for new buffer timeout
+         */
+        int TimerHanlder();
+        
+    private:
+    
+        uint m_timeout;
+    
+        /**
+         * @brief client handler to call on timeout
+         */
+        dsl_buffer_timeout_handler_cb m_clientHandler;
+        
+        /**
+         * @breif opaque pointer to client data to return with callback
+         */
+        void* m_clientData;
+        
+        /**
+         * @brief gnome timer Id for buffer timeout management 
+         */
+        uint m_bufferTimerId;
+        
+    };
+
+    /**
+     * @brief Timer callback for the BufferTimeoutPadProbeHandler.
+     * @param pPph shared pointer to BufferTimeoutPadProbeHandler.
+     * @return int true to continue, 0 to self remove
+     */
+    static int buffer_timer_cb(gpointer pPph);
+
     //----------------------------------------------------------------------------------------------
     /**
      * @class PadProbetr

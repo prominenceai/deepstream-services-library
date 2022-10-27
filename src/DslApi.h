@@ -87,7 +87,8 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED                    0x00020014
 #define DSL_RESULT_SOURCE_SET_FAILED                                0x00020015
 #define DSL_RESULT_SOURCE_CSI_NOT_SUPPORTED                         0x00020016
-
+#define DSL_RESULT_SOURCE_HANDLER_ADD_FAILED                        0x00020017
+#define DSL_RESULT_SOURCE_HANDLER_REMOVE_FAILED                     0x00020018
 
 /**
  * Dewarper API Return Values
@@ -1541,6 +1542,27 @@ typedef void (*dsl_message_broker_send_result_listener_cb)(void* client_data,
  */
 typedef void (*dsl_display_type_rgba_color_provider_cb)(double* red, 
     double* green, double* blue, double* alpha, void* client_data);
+    
+/**
+ * @brief callback typedef for a client handler function to be used with a
+ * Buffer Timeout Pad Probe Handler (PPH). Once the PPH is added to a Component's
+ * Pad, the client callback will be called if a new buffer is not received within 
+ * a configurable amount of time.
+ * @param[in] timeout the timeout value that was exceeded, in units of seconds.
+ * @param[in] client_data opaque pointer to client's data
+ */
+typedef void (*dsl_buffer_timeout_handler_cb)(uint timeout, void* client_data);
+    
+/**
+ * @brief callback typedef for a client handler function to be used with a
+ * End of Stream (EOS) Pad Probe Handler (PPH). Once the PPH is added to a 
+ * Component's Pad, the client callback will be called if an End-of-Stream 
+ * event is received on the Pad.
+ * @param[in] client_data opaque pointer to client's data
+ * @return GST_PAD_PROBE_DROP to drop/consume the event, GST_PAD_PROBE_OK to  
+ * allow the event to continue to the next component. 
+ */
+typedef uint (*dsl_eos_handler_cb)(void* client_data);
 
 // -----------------------------------------------------------------------------------
 // Start of DSL Services 
@@ -3891,6 +3913,34 @@ DslReturnType dsl_pph_nmp_match_settings_set(const wchar_t* name,
     uint match_method, float match_threshold);
 
 /**
+ * @brief Creates a new, uniquely named Buffer Timeout Pad Probe Handler (PPH). 
+ * Once the PPH is added to a Component's Pad, the client callback will be called 
+ * if a new buffer is not received within configurable amount of time.
+ * @param[in] name unique name for the new Pad Probe Handler.
+ * @param[in] timeout maximum time to wait for a new buffer before calling
+ * the handler function. In units of seconds.
+ * @param[in] handler function to be called on new buffer timeout.
+ * @param[in] client_data opaque pointer to client data to be passed back
+ * into the handler function. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
+ */
+DslReturnType dsl_pph_buffer_timeout_new(const wchar_t* name,
+    uint timeout, dsl_buffer_timeout_handler_cb handler, void* client_data);
+    
+/**
+ * @brief Creates a new, uniquely named End of Stream (EOS) Pad Probe Handler (PPH).
+ * Once the PPH is added to a Component's Pad, the client callback will be called 
+ * if an end of stream event is received on the Pad.
+ * @param[in] name unique name for the new Pad Probe Handler.
+ * @param[in] handler function to be called on EOS event.
+ * @param[in] client_data opaque pointer to client data to be passed back
+ * into the handler function. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
+ */
+DslReturnType dsl_pph_eos_new(const wchar_t* name,
+    dsl_eos_handler_cb handler, void* client_data);
+    
+/**
  * @brief gets the current enabled setting for the named Pad Probe Handler
  * @param[in] name unique name of the Handler to query
  * @param[out] enabled true if the Handler is enabled, false otherwise
@@ -4100,6 +4150,51 @@ DslReturnType dsl_source_image_multi_new(const wchar_t* name,
     const wchar_t* file_path, uint fps_n, uint fps_d);
 
 /**
+ * @brief Gets the current loop-enabled setting for the named Multi Image 
+ * Source component.
+ * @param name unique name of the Multi-Image Source to query
+ * @param[out] enabled true if the loop is enabled, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_image_multi_loop_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+
+/**
+ * @brief Sets the loop-enabled setting for the named Multi Image Source component.
+ * @param name unique name of the Multi-Image Source to update
+ * @param[in] enabled set to true to enable, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_image_multi_loop_enabled_set(const wchar_t* name, 
+    boolean enabled);
+
+/**
+ * @brief Gets the current start and stop index settings for the named Multi Image 
+ * Source component.
+ * @param name unique name of the Multi-Image Source to query.
+ * @param[out] start_index index to start with. When the end of the loop is reached, 
+ * the current index will be set to the start-index
+ * will be reset to the start index. Default = 0.
+ * @param[out] stop_index index to stop on, Default = -1 (no stop)
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_image_multi_indices_get(const wchar_t* name, 
+    int* start_index, int* stop_index);
+    
+/**
+ * @brief Sets the start and stop index settings for the named Multi Image 
+ * Source component.
+ * @param name unique name of the Multi-Image Source to update.
+ * @param[in] start_index zero-based index to start with. 
+ * Note, the current index will be set to the start-index when the end of the 
+ * loop is reached if the loop setting is enabled. Default = 0.
+ * @param[in] stop_index index to stop on, Set to -1 for no stop.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_image_multi_indices_set(const wchar_t* name, 
+    int start_index, int stop_index);
+    
+/**
  * @brief creates a new, uniquely named Image Stream Source component that
  * streams an image at a specified framerate
  * @param[in] name Unique name for the Image Source
@@ -4202,9 +4297,25 @@ DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint 
     uint intra_decode, uint drop_frame_interval, uint latency, uint timeout);
 
 /**
+ * @brief Adds a pad-probe-handler to the Source Pad of a named Source. 
+ * @param[in] name unique name of the Source to update
+ * @param[in] handler unique name of the pad probe handler to add,
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
+ */
+DslReturnType dsl_source_pph_add(const wchar_t* name, const wchar_t* handler);
+
+/**
+ * @brief Removes a pad-probe-handler from the Source Pad of a named Source.
+ * @param[in] name unique name of the Source to update.
+ * @param[in] handler unique name of pad-probe-handler to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
+ */
+DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler);
+    
+/**
  * @brief returns the frame rate of the name source as a fraction
  * Camera sources will return the value used on source creation
- * URL and RTPS sources will return 0 until prior entering a state of play
+ * URL and RTPS sources will return 0 prior to entering a state of play
  * @param[in] name unique name of the source to query
  * @param[out] width of the source in pixels
  * @param[out] height of the source in pixels

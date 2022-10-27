@@ -49,6 +49,8 @@ static std::wstring defConfigFile(
 static std::wstring uri(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 static std::wstring image_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg");
 
+static std::wstring jpeg_file_path_multi(L"./test/streams/sample_720p.%d.jpg");
+
 static uint protocol(DSL_RTP_ALL);
 static uint latency(100);
 static uint timeout(0);
@@ -793,8 +795,84 @@ SCENARIO( "A File Source Component can Set/Get its Repeat Enabled setting", "[so
     }
 }
 
+SCENARIO( "A Multi-Image Source returns the correct attribute values", "[source-api]" )
+{
+    GIVEN( "Attributes for a new Multi Image Source" ) 
+    {
+        REQUIRE( dsl_component_list_size() == 0 );
 
-SCENARIO( "A new Image Source returns the correct attribute values", "[source-api]" )
+        WHEN( "A new Multi Image Source is created" ) 
+        {
+            REQUIRE( dsl_source_image_multi_new(source_name.c_str(), 
+                jpeg_file_path_multi.c_str(), fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                boolean loop_enabled(true);
+
+                REQUIRE( dsl_source_image_multi_loop_enabled_get(source_name.c_str(), 
+                    &loop_enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( loop_enabled == false );
+
+                int start_index(99), stop_index(99);
+                REQUIRE( dsl_source_image_multi_indices_get(source_name.c_str(), 
+                    &start_index, &stop_index) == DSL_RESULT_SUCCESS );
+                REQUIRE( start_index == 0 );
+                REQUIRE( stop_index == -1 );
+                
+                REQUIRE( dsl_source_is_live(source_name.c_str()) == false );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A Multi Image Source Component can Set/Get its settings correctly", "[source-api]" )
+{
+    GIVEN( "A new Multi-Image Source" )
+    {
+        REQUIRE( dsl_source_image_multi_new(source_name.c_str(), 
+            jpeg_file_path_multi.c_str(), fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+        WHEN( "The Source's loop-enabled setting is set" ) 
+        {
+            boolean new_loop_enabled(true);
+            REQUIRE( dsl_source_image_multi_loop_enabled_set(source_name.c_str(), 
+                new_loop_enabled) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" )
+            {
+                boolean ret_loop_enabled(false);
+
+                REQUIRE( dsl_source_image_multi_loop_enabled_get(source_name.c_str(), 
+                    &ret_loop_enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_loop_enabled == new_loop_enabled );
+                    
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "The Source's start and stop index setting is set" ) 
+        {
+            int new_start_index(4), new_stop_index(5);
+            REQUIRE( dsl_source_image_multi_indices_set(source_name.c_str(), 
+                new_start_index, new_stop_index) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" )
+            {
+                int ret_start_index(99), ret_stop_index(99);
+                REQUIRE( dsl_source_image_multi_indices_get(source_name.c_str(), 
+                    &ret_start_index, &ret_stop_index) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_start_index == new_start_index );
+                REQUIRE( ret_stop_index == new_stop_index );
+                    
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Image Stream Source returns the correct attribute values", "[source-api]" )
 {
     GIVEN( "Attributes for a new Image Source" ) 
     {
@@ -827,7 +905,7 @@ SCENARIO( "A new Image Source returns the correct attribute values", "[source-ap
     }
 }    
 
-SCENARIO( "A Image Source Component can Set/Get its Display Timeout setting", "[source-api]" )
+SCENARIO( "A Image Stream Source Component can Set/Get its Display Timeout setting", "[source-api]" )
 {
     GIVEN( "A new File Source" )
     {
@@ -862,6 +940,8 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
     GIVEN( "An empty list of Components" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
+        
+        int start_index(0);
 
         WHEN( "When NULL pointers are used as input" ) 
         {
@@ -900,6 +980,21 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_rtsp_tap_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_rtsp_tap_add(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_rtsp_tap_remove(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_image_multi_new(NULL, 
+                    NULL, fps_n, fps_d) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_image_multi_new(source_name.c_str(), 
+                    NULL, fps_n, fps_d) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_image_multi_loop_enabled_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_image_multi_loop_enabled_get(source_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_image_multi_loop_enabled_set(NULL, 
+                    false) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_image_multi_indices_get(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_image_multi_indices_get(source_name.c_str(), 
+                    &start_index, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_source_pause(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_resume(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );

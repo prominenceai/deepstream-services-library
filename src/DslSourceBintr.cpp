@@ -172,6 +172,10 @@ namespace DSL
         AddChild(m_pCapsFilter);
         
         m_pCapsFilter->AddGhostPadToParent("src");
+
+        std::string padProbeName = GetName() + "-src-pad-probe";
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
+            "src", m_pCapsFilter);
     }
 
     CsiSourceBintr::~CsiSourceBintr()
@@ -320,6 +324,10 @@ namespace DSL
         AddChild(m_pVidConv2);
         
         m_pCapsFilter->AddGhostPadToParent("src");
+
+        std::string padProbeName = GetName() + "-src-pad-probe";
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
+            "src", m_pCapsFilter);
     }
 
     UsbSourceBintr::~UsbSourceBintr()
@@ -813,6 +821,10 @@ namespace DSL
         
         // Source Ghost Pad for Source Queue
         m_pSourceQueue->AddGhostPadToParent("src");
+
+        std::string padProbeName = GetName() + "-src-pad-probe";
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
+            "src", m_pSourceQueue);
     }
 
     UriSourceBintr::~UriSourceBintr()
@@ -1074,9 +1086,10 @@ namespace DSL
             AddChild(m_pDecoder);
             AddChild(m_pParser);
             
-            // Source Ghost Pad for JPEG image sources
-            m_pDecoder->AddGhostPadToParent("src");
-            
+            std::string padProbeName = GetName() + "-src-pad-probe";
+            m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
+                "src", m_pDecoder);
+
             // If it's an MJPG file or Multi JPG files
             if (m_uri.find("mjpeg") != std::string::npos or
                 m_uri.find("mjpg") != std::string::npos or
@@ -1107,46 +1120,71 @@ namespace DSL
         LOG_FUNC();
     }
 
-    bool ImageSourceBintr::LinkAll()
+    //*********************************************************************************
+
+    SingleImageSourceBintr::SingleImageSourceBintr(const char* name, const char* uri)
+        : ImageSourceBintr(name, uri, DSL_IMAGE_TYPE_SINGLE)
+    {
+        LOG_FUNC();
+        
+        m_pSourceElement = DSL_ELEMENT_NEW("filesrc", name);
+        
+        if (!SetUri(uri))
+        {
+            throw;
+        }
+        AddChild(m_pSourceElement);
+
+        m_pDecoder->AddGhostPadToParent("src");
+    }
+    
+    SingleImageSourceBintr::~SingleImageSourceBintr()
+    {
+        LOG_FUNC();
+    }
+
+    bool SingleImageSourceBintr::LinkAll()
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("ImageSourceBintr '" << GetName() << "' is already in a linked state");
+            LOG_ERROR("SingleImageSourceBintr '" << GetName() 
+                << "' is already in a linked state");
             return false;
         }
         if (!IsLinkable())
         {
-            LOG_ERROR("Unable to Link ImageSourceBintr '" << GetName() 
+            LOG_ERROR("Unable to Link SingleImageSourceBintr '" << GetName() 
                 << "' as its uri has not been set");
             return false;
         }
-//        if (m_format == DSL_IMAGE_FORMAT_JPG)
-//        {
+        if (m_format == DSL_IMAGE_FORMAT_JPG)
+        {
             if (!m_pSourceElement->LinkToSink(m_pParser) or
                 !m_pParser->LinkToSink(m_pDecoder))
             {
-                LOG_ERROR("ImageSourceBintr '" << GetName() << "' failed to LinkAll");
+                LOG_ERROR("SingleImageSourceBintr '" << GetName() 
+                    << "' failed to LinkAll");
                 return false;
             }
-//        }
-//        else
-//        {
-//            // TODO
-//        }
+        }
+        else
+        {
+            // TODO
+        }
         m_isLinked = true;
         
         return true;
     }
 
-    void ImageSourceBintr::UnlinkAll()
+    void SingleImageSourceBintr::UnlinkAll()
     {
         LOG_FUNC();
 
         if (!m_isLinked)
         {
-            LOG_ERROR("ImageSourceBintr '" << GetName() 
+            LOG_ERROR("SingleImageSourceBintr '" << GetName() 
                 << "' is not in a linked state");
             return;
         }
@@ -1156,7 +1194,7 @@ namespace DSL
             if (!m_pSourceElement->UnlinkFromSink() or
                 !m_pParser->UnlinkFromSink())
             {
-                LOG_ERROR("ImageSourceBintr '" << GetName() 
+                LOG_ERROR("SingleImageSourceBintr '" << GetName() 
                     << "' failed to UnlinkAll");
                 return;
             }    
@@ -1166,28 +1204,6 @@ namespace DSL
             // TODO
         }
         m_isLinked = false;
-    }
-
-    //*********************************************************************************
-
-    SingleImageSourceBintr::SingleImageSourceBintr(const char* name, const char* uri)
-        : ImageSourceBintr(name, uri, DSL_IMAGE_TYPE_SINGLE)
-    {
-        LOG_FUNC();
-        
-        m_pSourceElement = DSL_ELEMENT_NEW("filesrc", name);
-        AddChild(m_pSourceElement);
-        
-        if (!SetUri(uri))
-        {
-            throw;
-        }
-
-    }
-    
-    SingleImageSourceBintr::~SingleImageSourceBintr()
-    {
-        LOG_FUNC();
     }
 
     bool SingleImageSourceBintr::SetUri(const char* uri)
@@ -1237,6 +1253,9 @@ namespace DSL
     MultiImageSourceBintr::MultiImageSourceBintr(const char* name, 
         const char* uri, uint fpsN, uint fpsD)
         : ImageSourceBintr(name, uri, DSL_IMAGE_TYPE_MULTI)
+        , m_loopEnabled(false)
+        , m_startIndex(0)
+        , m_stopIndex(-1)
     {
         LOG_FUNC();
         
@@ -1245,36 +1264,108 @@ namespace DSL
         m_fpsD = fpsD;
 
         m_pSourceElement = DSL_ELEMENT_NEW("multifilesrc", name);
-        AddChild(m_pSourceElement);
+        m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
+        m_pVideoRate = DSL_ELEMENT_NEW("videorate", name);
 
         if (!SetUri(uri))
         {
             throw;
         }
 
-//        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
-//            "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
-//            "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
-//        GstCaps * pCaps = gst_caps_new_simple("image/jpeg", "framerate", 
-//            GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
-//        if (!pCaps)
-//        {
-//            LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
-//            throw;  
-//        }
+        GstCaps * pCaps = gst_caps_new_simple("image/jpeg", "framerate", 
+            GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
+        if (!pCaps)
+        {
+            LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
+            throw;  
+        }
 
-//        GstCapsFeatures *feature = NULL;
-//        feature = gst_caps_features_new("memory:NVMM", NULL);
-//        gst_caps_set_features(pCaps, 0, feature);
+        m_pSourceElement->SetAttribute("caps", pCaps);
+        m_pSourceElement->SetAttribute("loop", m_loopEnabled);
+        m_pSourceElement->SetAttribute("start-index", m_startIndex);
+        m_pSourceElement->SetAttribute("stop-index", m_stopIndex);
+        
+        m_pCapsFilter->SetAttribute("caps", pCaps);
+        
+        gst_caps_unref(pCaps);        
 
-//        m_pSourceElement->SetAttribute("caps", pCaps);
-//        
-//        gst_caps_unref(pCaps);        
+        AddChild(m_pSourceElement);
+        AddChild(m_pCapsFilter);
+        AddChild(m_pVideoRate);
+        
+        m_pVideoRate->AddGhostPadToParent("src");
     }
     
     MultiImageSourceBintr::~MultiImageSourceBintr()
     {
         LOG_FUNC();
+    }
+
+    bool MultiImageSourceBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("MultiImageSourceBintr '" << GetName() 
+                << "' is already in a linked state");
+            return false;
+        }
+        if (!IsLinkable())
+        {
+            LOG_ERROR("Unable to Link MultiImageSourceBintr '" << GetName() 
+                << "' as its uri has not been set");
+            return false;
+        }
+        if (m_format == DSL_IMAGE_FORMAT_JPG)
+        {
+            if (!m_pSourceElement->LinkToSink(m_pCapsFilter) or
+                !m_pCapsFilter->LinkToSink(m_pParser) or
+                !m_pParser->LinkToSink(m_pDecoder) or
+                !m_pDecoder->LinkToSink(m_pVideoRate))
+            {
+                LOG_ERROR("MultiImageSourceBintr '" << GetName() 
+                    << "' failed to LinkAll");
+                return false;
+            }
+        }
+        else
+        {
+            // TODO
+        }
+        m_isLinked = true;
+        
+        return true;
+    }
+
+    void MultiImageSourceBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+
+        if (!m_isLinked)
+        {
+            LOG_ERROR("MultiImageSourceBintr '" << GetName() 
+                << "' is not in a linked state");
+            return;
+        }
+        
+        if (m_format == DSL_IMAGE_FORMAT_JPG)
+        {
+            if (!m_pSourceElement->UnlinkFromSink() or
+                !m_pCapsFilter->UnlinkFromSink() or
+                !m_pParser->UnlinkFromSink() or
+                !m_pDecoder->UnlinkFromSink())
+            {
+                LOG_ERROR("MultiImageSourceBintr '" << GetName() 
+                    << "' failed to UnlinkAll");
+                return;
+            }    
+        }
+        else
+        {
+            // TODO
+        }
+        m_isLinked = false;
     }
 
     bool MultiImageSourceBintr::SetUri(const char* uri)
@@ -1283,7 +1374,7 @@ namespace DSL
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set File Path for ImageFrameSourceBintr '" 
+            LOG_ERROR("Unable to set File Path for MultiImageSourceBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
@@ -1291,29 +1382,11 @@ namespace DSL
         std::string pathString(uri);
         if (pathString.empty())
         {
-            LOG_INFO("File Path for ImageFrameSourceBintr '" << GetName() 
+            LOG_INFO("File Path for MultiImageSourceBintr '" << GetName() 
                 << "' is empty. Source is in a non playable state");
             return true;
         }
         
-//        if (m_type == DSL_IMAGE_TYPE_SINGLE)
-//        {
-//            std::ifstream streamUriFile(uri);
-//            if (!streamUriFile.good())
-//            {
-//                LOG_ERROR("Image Source'" << uri << "' Not found");
-//                return false;
-//            }
-//            // File source, not live - setup full path
-//            char absolutePath[PATH_MAX+1];
-//            m_uri.assign(realpath(uri, absolutePath));
-//
-//            // Use OpenCV to determine the new image dimensions
-//            cv::Mat image = imread(m_uri, cv::IMREAD_COLOR);
-//            cv::Size imageSize = image.size();
-//            m_width = imageSize.width;
-//            m_height = imageSize.height;
-//        }
         m_uri.assign(uri);
         // Set the filepath for the File Source Elementr
         m_pSourceElement->SetAttribute("location", m_uri.c_str());
@@ -1322,6 +1395,53 @@ namespace DSL
             
     }
 
+    bool MultiImageSourceBintr::GetLoopEnabled()
+    {
+        LOG_FUNC();
+        
+        return m_loopEnabled;
+    }
+    
+    bool MultiImageSourceBintr::SetLoopEnabled(bool loopEnabled)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set loop-enabled for MultiImageSourceBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_loopEnabled = loopEnabled;
+        m_pSourceElement->SetAttribute("loop", m_loopEnabled);
+        return true;
+    }
+
+    void MultiImageSourceBintr::GetIndices(int* startIndex, int* stopIndex)
+    {
+        LOG_FUNC();
+        
+        *startIndex = m_startIndex;
+        *stopIndex = m_stopIndex;
+    }
+    
+    bool MultiImageSourceBintr::SetIndices(int startIndex, int stopIndex)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set indicies for MultiImageSourceBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_startIndex = startIndex;
+        m_stopIndex = stopIndex;
+        m_pSourceElement->SetAttribute("start-index", m_startIndex);
+        m_pSourceElement->SetAttribute("stop-index", m_stopIndex);
+        return true;
+    }
+        
     //*********************************************************************************
 
     ImageStreamSourceBintr::ImageStreamSourceBintr(const char* name, 
@@ -1377,6 +1497,10 @@ namespace DSL
         
         // Source Ghost Pad for ImageStreamSourceBintr
         m_pCapsFilter->AddGhostPadToParent("src");
+
+        std::string padProbeName = GetName() + "-src-pad-probe";
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
+            "src", m_pCapsFilter);
 
         g_mutex_init(&m_timeoutTimerMutex);
 
@@ -1567,7 +1691,11 @@ namespace DSL
         AddChild(m_pSourceElement);
         
         m_pSourceElement->AddGhostPadToParent("src");
-    }
+        
+        std::string padProbeName = GetName() + "-src-pad-probe";
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
+            "src", m_pSourceElement);
+}
     
     InterpipeSourceBintr::~InterpipeSourceBintr()
     {

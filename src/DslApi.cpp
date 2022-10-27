@@ -3274,6 +3274,32 @@ DslReturnType dsl_pph_nmp_match_settings_set(const wchar_t* name,
         cstrName.c_str(), match_method, match_threshold);
 #endif    
 }
+
+DslReturnType dsl_pph_buffer_timeout_new(const wchar_t* name,
+    uint timeout, dsl_buffer_timeout_handler_cb handler, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PphBufferTimeoutNew(cstrName.c_str(), 
+        timeout, handler, client_data);
+}
+
+DslReturnType dsl_pph_eos_new(const wchar_t* name,
+    dsl_eos_handler_cb handler, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PphEosNew(cstrName.c_str(), 
+        handler, client_data);
+}
      
 DslReturnType dsl_pph_enabled_get(const wchar_t* name, boolean* enabled)
 {
@@ -3546,6 +3572,57 @@ DslReturnType dsl_source_image_multi_new(const wchar_t* name,
         cstrFilePath.c_str(), fps_n, fps_d);
 }
 
+DslReturnType dsl_source_image_multi_loop_enabled_get(const wchar_t* name, 
+    boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceImageMultiLoopEnabledGet(
+        cstrName.c_str(), enabled);
+}
+    
+DslReturnType dsl_source_image_multi_loop_enabled_set(const wchar_t* name, 
+    boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceImageMultiLoopEnabledSet(
+        cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_source_image_multi_indices_get(const wchar_t* name, 
+    int* start_index, int* stop_index)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(start_index);
+    RETURN_IF_PARAM_IS_NULL(stop_index);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceImageMultiIndicesGet(
+        cstrName.c_str(), start_index, stop_index);
+}
+
+DslReturnType dsl_source_image_multi_indices_set(const wchar_t* name, 
+    int start_index, int stop_index)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceImageMultiIndicesSet(
+        cstrName.c_str(), start_index, stop_index);
+}
+    
 DslReturnType dsl_source_image_stream_new(const wchar_t* name, 
     const wchar_t* file_path, boolean is_live, uint fps_n, uint fps_d, uint timeout)
 {
@@ -3713,6 +3790,34 @@ DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint 
 
     return DSL::Services::GetServices()->SourceRtspNew(cstrName.c_str(), cstrUri.c_str(), 
         protocol, intra_decode, dropFrameInterval, latency, timeout);
+}
+
+DslReturnType dsl_source_pph_add(const wchar_t* name, const wchar_t* handler)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
+    
+    return DSL::Services::GetServices()->SourcePphAdd(cstrName.c_str(), 
+        cstrHandler.c_str());
+}
+
+DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
+    
+    return DSL::Services::GetServices()->SourcePphRemove(cstrName.c_str(), 
+        cstrHandler.c_str());
 }
 
 DslReturnType dsl_source_dimensions_get(const wchar_t* name, uint* width, uint* height)

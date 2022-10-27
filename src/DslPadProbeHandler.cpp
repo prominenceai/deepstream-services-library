@@ -611,6 +611,125 @@ namespace DSL
 
     //----------------------------------------------------------------------------------------------
 
+    BufferTimeoutPadProbeHandler::BufferTimeoutPadProbeHandler(const char* name, 
+        uint timeout, dsl_buffer_timeout_handler_cb handler, void* clientData)
+        : TimestampPadProbeHandler(name)
+        , m_timeout(timeout)
+        , m_clientHandler(handler)
+        , m_clientData(clientData)
+        , m_bufferTimerId(0)
+    {
+        LOG_FUNC();
+
+    }
+
+    BufferTimeoutPadProbeHandler::~BufferTimeoutPadProbeHandler()
+    {
+        LOG_FUNC();
+        if (m_bufferTimerId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+            g_source_remove(m_bufferTimerId);
+        }
+        
+    }
+    
+    bool BufferTimeoutPadProbeHandler::SetEnabled(bool enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+
+        if (TimestampPadProbeHandler::SetEnabled(enabled))
+        {
+            return false;
+        }
+
+        if (m_isEnabled)
+        {
+            m_bufferTimerId = g_timeout_add(10, 
+                buffer_timer_cb, this);
+        }
+        else
+        {
+            g_source_remove(m_bufferTimerId);
+        }
+        return true;
+    }
+    
+    uint BufferTimeoutPadProbeHandler::GetTimeout()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+        
+        return m_timeout;
+    }
+    
+    void BufferTimeoutPadProbeHandler::SetTimeout(uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+        
+        m_timeout = timeout;
+    }
+    
+    int BufferTimeoutPadProbeHandler::TimerHanlder()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+
+        struct timeval currentTime;
+        gettimeofday(&currentTime, NULL);
+
+        // Get the last buffer time. This timer callback will not be called
+        // until after the timer is started on main-loop run after play 
+        // therefore the lastBufferTime should be non-zero once the first
+        // buffer is received
+        struct timeval lastBufferTime;
+        GetTime(lastBufferTime);
+        if (lastBufferTime.tv_sec == 0)
+        {
+            LOG_DEBUG("Waiting for first buffer before checking for timeout \\\
+                for Buffer Timer PPH '" << GetName() << "'");
+            return true;
+        }
+
+        double timeSinceLastBufferMs = 1000.0*(currentTime.tv_sec - lastBufferTime.tv_sec) + 
+            (currentTime.tv_usec - lastBufferTime.tv_usec) / 1000.0;
+
+        if (timeSinceLastBufferMs < (double)m_timeout*1000)
+        {
+            // Timeout has not been exceeded, so return true to sleep again
+            return true;
+        }
+        LOG_INFO("Buffer timeout of " << m_timeout << " seconds exceeded for PPH '" 
+            << GetName() << "'");
+
+        {
+            try
+            {
+                m_clientHandler(m_timeout, m_clientData);
+            }
+            catch(...)
+            {
+                LOG_ERROR("Buffer Timeout Pad Probe Handler '" << GetName() 
+                    << "' threw an exception processing Pad Buffer");
+            }
+        }
+        // clear the timer id and set the enabled state disabling the pph.
+        m_bufferTimerId = 0;
+        m_isEnabled = false;
+
+        // return false to stop the timer.
+        return false;
+    }
+
+    static int buffer_timer_cb(gpointer pPph)
+    {
+        return static_cast<BufferTimeoutPadProbeHandler*>(pPph)->
+            TimerHanlder();
+    }
+
+    //----------------------------------------------------------------------------------------------
+
     EosConsumerPadProbeEventHandler::EosConsumerPadProbeEventHandler(const char* name)
         : PadProbeHandler(name)
     {
@@ -649,7 +768,7 @@ namespace DSL
     //----------------------------------------------------------------------------------------------
 
     EosHandlerPadProbeEventHandler::EosHandlerPadProbeEventHandler(const char* name, 
-        dsl_pph_custom_client_handler_cb clientHandler, void* clientData)
+        dsl_eos_handler_cb clientHandler, void* clientData)
         : PadProbeHandler(name)
         , m_clientHandler(clientHandler)
         , m_clientData(clientData)
@@ -682,11 +801,11 @@ namespace DSL
         {
             try
             {
-                return (GstPadProbeReturn)m_clientHandler(pEvent, m_clientData);
+                return (GstPadProbeReturn)m_clientHandler(m_clientData);
             }
             catch(...)
             {
-                LOG_ERROR("EosHandlerPadProbeEventHandler '" << GetName() 
+                LOG_ERROR("EOS Handler Pad Probe Event Handler '" << GetName() 
                     << "' threw an exception processing Pad Buffer");
                 return GST_PAD_PROBE_REMOVE;
             }
