@@ -480,12 +480,6 @@ namespace DSL
                 LOG_ERROR("Source name '" << name << "' is not unique");
                 return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
             }
-//            std::ifstream streamUriFile(filePath);
-//            if (!streamUriFile.good())
-//            {
-//                LOG_ERROR("Image Frame Source'" << filePath << "' Not found");
-//                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-//            }
             m_components[name] = DSL_MULTI_IMAGE_SOURCE_NEW(name, 
                 filePath, fpsN, fpsD);
 
@@ -498,6 +492,144 @@ namespace DSL
         {
             LOG_ERROR("New Multi Image Source '" << name 
                 << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceImageMultiLoopEnabledGet(const char* name,
+        boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                MultiImageSourceBintr);
+
+            DSL_MULTI_IMAGE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<MultiImageSourceBintr>(m_components[name]);
+         
+            *enabled = pSourceBintr->GetLoopEnabled();
+
+            LOG_INFO("Multi-Image Source '" << name << "' returned loop-enabled = '" 
+                << *enabled << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Source '" << name 
+                << "' threw exception getting the loop-enabled setting");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceImageMultiLoopEnabledSet(const char* name,
+        boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                MultiImageSourceBintr);
+
+            DSL_MULTI_IMAGE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<MultiImageSourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetLoopEnabled(enabled))
+            {
+                LOG_ERROR("Failed to set the loop-enabled setting for \\\
+                    Multi-Image Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("Multi-Image Source '" << name << "' set loop-enabled = '" 
+                << enabled << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Source '" << name 
+                << "' threw exception updating the loop-enabled setting");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceImageMultiIndicesGet(const char* name,
+        int* startIndex, int* stopIndex)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                MultiImageSourceBintr);
+
+            DSL_MULTI_IMAGE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<MultiImageSourceBintr>(m_components[name]);
+         
+            pSourceBintr->GetIndices(startIndex, stopIndex);
+
+            LOG_INFO("Multi-Image Source '" << name << "' returned start-index = '" 
+                << *startIndex << "' and stop-index = '" << *stopIndex
+                << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Source '" << name 
+                << "' threw exception getting the loop-enabled setting");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceImageMultiIndicesSet(const char* name,
+        int startIndex, int stopIndex)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                MultiImageSourceBintr);
+
+            DSL_MULTI_IMAGE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<MultiImageSourceBintr>(m_components[name]);
+         
+            if (startIndex < 0)
+            {
+                LOG_ERROR("Invalid start-index = '" << startIndex 
+                    << "' for Multi-Image Source '" << name 
+                    << "'. Index is zero-based");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+                
+            if (!pSourceBintr->SetIndices(startIndex, stopIndex))
+            {
+                LOG_ERROR("Failed to set the indices for \\\
+                    Multi-Image Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("Multi-Image Source '" << name << "' set start-index = '" 
+                << startIndex << "' and stop-index = '" << stopIndex
+                << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Source '" << name 
+                << "' threw exception updating the loop-enabled setting");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }

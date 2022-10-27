@@ -4150,6 +4150,51 @@ DslReturnType dsl_source_image_multi_new(const wchar_t* name,
     const wchar_t* file_path, uint fps_n, uint fps_d);
 
 /**
+ * @brief Gets the current loop-enabled setting for the named Multi Image 
+ * Source component.
+ * @param name unique name of the Multi-Image Source to query
+ * @param[out] enabled true if the loop is enabled, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_image_multi_loop_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+
+/**
+ * @brief Sets the loop-enabled setting for the named Multi Image Source component.
+ * @param name unique name of the Multi-Image Source to update
+ * @param[in] enabled set to true to enable, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_image_multi_loop_enabled_set(const wchar_t* name, 
+    boolean enabled);
+
+/**
+ * @brief Gets the current start and stop index settings for the named Multi Image 
+ * Source component.
+ * @param name unique name of the Multi-Image Source to query.
+ * @param[out] start_index index to start with. When the end of the loop is reached, 
+ * the current index will be set to the start-index
+ * will be reset to the start index. Default = 0.
+ * @param[out] stop_index index to stop on, Default = -1 (no stop)
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_image_multi_indices_get(const wchar_t* name, 
+    int* start_index, int* stop_index);
+    
+/**
+ * @brief Sets the start and stop index settings for the named Multi Image 
+ * Source component.
+ * @param name unique name of the Multi-Image Source to update.
+ * @param[in] start_index zero-based index to start with. 
+ * Note, the current index will be set to the start-index when the end of the 
+ * loop is reached if the loop setting is enabled. Default = 0.
+ * @param[in] stop_index index to stop on, Set to -1 for no stop.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_image_multi_indices_set(const wchar_t* name, 
+    int start_index, int stop_index);
+    
+/**
  * @brief creates a new, uniquely named Image Stream Source component that
  * streams an image at a specified framerate
  * @param[in] name Unique name for the Image Source

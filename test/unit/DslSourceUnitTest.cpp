@@ -1097,7 +1097,7 @@ SCENARIO( "A new SingleImageSourceBintr is created correctly",  "[SourceBintr]" 
         char absolutePath[PATH_MAX+1];
         std::string fullFillPath = realpath(jpgFilePath1.c_str(), absolutePath);
 
-        WHEN( "The MultiImageSourceBintr is created " )
+        WHEN( "The SingleImageSourceBintr is created " )
         {
             DSL_SINGLE_IMAGE_SOURCE_PTR pSourceBintr = DSL_SINGLE_IMAGE_SOURCE_NEW(
                 sourceName.c_str(), jpgFilePath1.c_str());
@@ -1180,6 +1180,13 @@ SCENARIO( "A new MultiImageSourceBintr is created correctly",  "[SourceBintr]" )
                 
                 // Must reflect use of file stream
                 REQUIRE( pSourceBintr->IsLive() == false );
+
+                REQUIRE( pSourceBintr->GetLoopEnabled() == false );
+                int startIndex(99), stopIndex(99);
+
+                pSourceBintr->GetIndices(&startIndex, &stopIndex);
+                REQUIRE( startIndex == 0 );
+                REQUIRE( stopIndex == -1 );
                 
                 std::string returnedFilePath = pSourceBintr->GetUri();
                 REQUIRE( returnedFilePath == multJpgFilePath );

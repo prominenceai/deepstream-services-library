@@ -40,10 +40,10 @@ static const std::wstring source_name3(L"image-source-3");
 static const std::wstring source_name4(L"image-source-4");
 static const std::wstring jpeg_file_path(
     L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg");
-static const std::wstring jpeg_file_path_multi(L"/home/prominenceai1/prominenceai/deepstream-services-library/test/streams/sample_720p.%d.jpg");
+static const std::wstring jpeg_file_path_multi(L"./test/streams/sample_720p.%d.jpg");
 static const std::wstring mjpeg_file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.mjpeg");
 static const std::wstring mjpeg_file_path_multi(
-    L"/home/prominenceai1/prominenceai/deepstream-services-library/test/streams/sample_720p.%d.mjpeg");
+    L"./test/streams/sample_720p.%d.mjpeg");
 
 static const std::wstring png_file_path(L"./test/streams/sample_720p.png");
 
@@ -358,9 +358,9 @@ SCENARIO( "A new Pipeline with a Image Stream Source, Primary GIE, Tiled Display
 
 SCENARIO( "A new Pipeline with a Multi JPG Image Frame Source, Primary GIE, Tiled Display, \
     Window Sink, ODE Trigger and Action can play",
-    "[image-source-play]" )
+    "[new]" )
 {
-    GIVEN( "A Pipeline, URI source, Primary GIE, Tiled Display, Window Sink" ) 
+    GIVEN( "A Pipeline, URI source, Primary GIE, Window Sink" ) 
     {
         uint fps_n(1), fps_d(1);
 

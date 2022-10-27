@@ -670,6 +670,18 @@ namespace DSL {
 
         DslReturnType SourceImageMultiNew(const char* name, 
             const char* filePath, uint fpsN, uint fpsD);
+            
+        DslReturnType SourceImageMultiLoopEnabledGet(const char* name,
+            boolean* enabled);
+        
+        DslReturnType SourceImageMultiLoopEnabledSet(const char* name,
+            boolean enabled);
+        
+        DslReturnType SourceImageMultiIndicesGet(const char* name,
+            int* startIndex, int* stopIndex);
+        
+        DslReturnType SourceImageMultiIndicesSet(const char* name,
+            int startIndex, int stopIndex);
 
         DslReturnType SourceImageStreamNew(const char* name, const char* filePath, 
             boolean isLive, uint fpsN, uint fpsD, uint timeout);
