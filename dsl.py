@@ -327,6 +327,7 @@ class dsl_ode_occurrence_info(Structure):
 ##
 ## Pointer Typedefs
 ##
+DSL_INT_P = POINTER(c_int)
 DSL_UINT_P = POINTER(c_uint)
 DSL_UINT64_P = POINTER(c_uint64)
 DSL_UINT64_PP = POINTER(DSL_UINT64_P)
@@ -2960,7 +2961,7 @@ _dsl.dsl_source_file_repeat_enabled_get.restype = c_uint
 def dsl_source_file_repeat_enabled_get(name):
     global _dsl
     enabled = c_bool(False)
-    result = _dsl.dsl_source_decode_repeat_enabled_get(name, DSL_BOOL_P(enabled))
+    result = _dsl.dsl_source_file_repeat_enabled_get(name, DSL_BOOL_P(enabled))
     return int(result), enabled.value 
 
 ##
@@ -2991,6 +2992,52 @@ _dsl.dsl_source_image_multi_new.restype = c_uint
 def dsl_source_image_multi_new(name, file_path, fps_n, fps_d):
     global _dsl
     result = _dsl.dsl_source_image_multi_new(name, file_path, fps_n, fps_d)
+    return int(result)
+
+##
+## dsl_source_image_multi_loop_enabled_get()
+##
+_dsl.dsl_source_image_multi_loop_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_source_image_multi_loop_enabled_get.restype = c_uint
+def dsl_source_image_multi_loop_enabled_get(name):
+    global _dsl
+    enabled = c_bool(False)
+    result = _dsl.dsl_source_image_multi_loop_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value 
+
+##
+## dsl_source_image_multi_loop_enabled_set()
+##
+_dsl.dsl_source_image_multi_loop_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_source_image_multi_loop_enabled_set.restype = c_uint
+def dsl_source_image_multi_loop_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_source_image_multi_loop_enabled_set(name, enabled)
+    return int(result)
+
+##
+## dsl_source_image_multi_indices_get()
+##
+_dsl.dsl_source_image_multi_indices_get.argtypes = [c_wchar_p, 
+    POINTER(c_int), POINTER(c_int)]
+_dsl.dsl_source_image_multi_indices_get.restype = c_uint
+def dsl_source_image_multi_indices_get(name):
+    global _dsl
+    start_index = c_int(0)
+    stop_index = c_int(0)
+    result = _dsl.dsl_source_image_multi_indices_get(name, 
+        DSL_INT_P(stop_index), DSL_INT_P(stop_index))
+    return int(result), start_index.value, stop_index.value 
+
+##
+## dsl_source_image_multi_indices_set()
+##
+_dsl.dsl_source_image_multi_indices_set.argtypes = [c_wchar_p, c_int, c_int]
+_dsl.dsl_source_image_multi_indices_set.restype = c_uint
+def dsl_source_image_multi_indices_set(name, start_index, stop_index):
+    global _dsl
+    result = _dsl.dsl_source_image_multi_indices_set(name, 
+        start_index, stop_index)
     return int(result)
 
 ##
