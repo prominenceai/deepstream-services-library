@@ -356,9 +356,9 @@ SCENARIO( "A new Pipeline with a Image Stream Source, Primary GIE, Tiled Display
     }
 }
 
-SCENARIO( "A new Pipeline with a Multi JPG Image Frame Source, Primary GIE, Tiled Display, \
+SCENARIO( "A new Pipeline with a Multi Image Source, Primary GIE, Tiled Display, \
     Window Sink, ODE Trigger and Action can play",
-    "[new]" )
+    "[image-source-play]" )
 {
     GIVEN( "A Pipeline, URI source, Primary GIE, Window Sink" ) 
     {
@@ -368,6 +368,75 @@ SCENARIO( "A new Pipeline with a Multi JPG Image Frame Source, Primary GIE, Tile
 
         REQUIRE( dsl_source_image_multi_new(source_name1.c_str(), 
             jpeg_file_path_multi.c_str(), fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            infer_config_file.c_str(), model_engine_file.c_str(), 
+            0) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
+            tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_action_print_new(print_action_name.c_str(), false)  == 
+            DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_ode_trigger_summation_new(summation_trigger_name.c_str(),
+            DSL_ODE_ANY_SOURCE, DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE) ==
+            DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(summation_trigger_name.c_str(), 
+            print_action_name.c_str()) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_pph_ode_new(ode_handler_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_trigger_add(ode_handler_name.c_str(), 
+            summation_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_tiler_pph_add(tiler_name1.c_str(), ode_handler_name.c_str(), 
+            DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+        
+        const wchar_t* components[] = {L"image-source-1",L"primary-gie", L"tiler", 
+            L"window-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_pipeline_eos_listener_add(pipeline_name.c_str(), 
+                eos_event_listener, NULL) == DSL_RESULT_SUCCESS );
+                
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                dsl_pipeline_dump_to_dot(pipeline_name.c_str(), 
+                    const_cast<wchar_t*>(pipeline_graph_name.c_str()));
+                dsl_main_loop_run();
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                dsl_delete_all();
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Pipeline with a Multi Image Source with start and stop indices can play",
+    "[image-source-play]" )
+{
+    GIVEN( "A Pipeline, URI source, Primary GIE, Window Sink" ) 
+    {
+        uint fps_n(1), fps_d(1);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_image_multi_new(source_name1.c_str(), 
+            jpeg_file_path_multi.c_str(), fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_source_image_multi_indices_set(source_name1.c_str(), 
+            1, 4) == DSL_RESULT_SUCCESS );
+            
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
             infer_config_file.c_str(), model_engine_file.c_str(), 
