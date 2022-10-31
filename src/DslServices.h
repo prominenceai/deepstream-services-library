@@ -324,6 +324,12 @@ namespace DSL {
 
         DslReturnType OdeTriggerInstanceNew(const char* name, 
             const char* source, uint classId, uint limit);
+            
+        DslReturnType OdeTriggerInstanceCountSettingsGet(const char* name,
+            uint* instanceCount, uint* suppressionCount);
+        
+        DslReturnType OdeTriggerInstanceCountSettingsSet(const char* name,
+            uint instanceCount, uint suppressionCount);
         
         DslReturnType OdeTriggerIntersectionNew(const char* name, 
             const char* source, uint classIdA, uint classIdB, uint limit);

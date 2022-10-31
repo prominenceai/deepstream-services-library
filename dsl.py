@@ -1459,6 +1459,33 @@ def dsl_ode_trigger_instance_new(name, source, class_id, limit):
     return int(result)
 
 ##
+## dsl_ode_trigger_instance_count_settings_get()
+##
+_dsl.dsl_ode_trigger_instance_count_settings_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_ode_trigger_instance_count_settings_get.restype = c_uint
+def dsl_ode_trigger_instance_count_settings_get(name):
+    global _dsl
+    instance_count = c_uint(0)
+    suppression_count = c_uint(0)
+    result =_dsl.dsl_ode_trigger_instance_count_settings_get(name, 
+        DSL_UINT_P(instance_count), DSL_UINT_P(suppression_count))
+    return int(result), instance_count.value, suppression_count.value
+
+##
+## dsl_ode_trigger_instance_count_settings_set()
+##
+_dsl.dsl_ode_trigger_instance_count_settings_set.argtypes = [c_wchar_p, 
+    c_uint, c_uint]
+_dsl.dsl_ode_trigger_instance_count_settings_set.restype = c_uint
+def dsl_ode_trigger_instance_count_settings_set(name, 
+    instance_count, suppression_count):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_instance_count_settings_set(name, 
+        instance_count, suppression_count)
+    return int(result)
+
+##
 ## dsl_ode_trigger_custom_new()
 ##
 _dsl.dsl_ode_trigger_custom_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, 

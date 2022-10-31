@@ -1162,7 +1162,9 @@ namespace DSL
 
     InstanceOdeTrigger::InstanceOdeTrigger(const char* name, 
         const char* source, uint classId, uint limit)
-        : OdeTrigger(name, source, classId, limit)
+        : TrackingOdeTrigger(name, source, classId, limit, 0)
+        , m_instanceCount(1)
+        , m_suppressionCount(0)
     {
         LOG_FUNC();
     }
@@ -1172,6 +1174,24 @@ namespace DSL
         LOG_FUNC();
     }
 
+    void InstanceOdeTrigger::GetCountSettings(uint* instanceCount, 
+        uint* suppressionCount)
+    {
+        LOG_FUNC();
+        
+        *instanceCount = m_instanceCount;
+        *suppressionCount = m_suppressionCount;
+    }
+    
+    void InstanceOdeTrigger::SetCountSettings(uint instanceCount, uint suppressionCount)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        m_instanceCount = instanceCount;
+        m_suppressionCount = suppressionCount;
+    }
+    
     void InstanceOdeTrigger::Reset()
     {
         LOG_FUNC();
@@ -1200,51 +1220,66 @@ namespace DSL
             return false;
         }
 
-        std::string sourceAndClassId = std::to_string(pFrameMeta->source_id) + "_" 
-            + std::to_string(pObjectMeta->class_id);
-            
-        // If this is the first time seeing an object of "class_id" for "source_id".
-        if (m_instances.find(sourceAndClassId) == m_instances.end())
+        std::shared_ptr<TrackedObject> pTrackedObject;
+        
+        // if this is the first occurrence of this object for this source
+        if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
+            pObjectMeta->object_id))
         {
-            // Initialize the frame number for the new source
-            m_instances[sourceAndClassId] = 0;
+            // Create a new Tracked object and return without occurence
+            pTrackedObject = m_pTrackedObjectsPerSource->Track(pFrameMeta, 
+                pObjectMeta, nullptr);
         }
-        if (m_instances[sourceAndClassId] < pObjectMeta->object_id)
+        else
         {
-            // Update the running instance
-            m_instances[sourceAndClassId] = pObjectMeta->object_id;
-            
+            pTrackedObject = m_pTrackedObjectsPerSource->GetObject(
+                pFrameMeta->source_id, pObjectMeta->object_id);
+                    
+            pTrackedObject->Update(pFrameMeta->frame_num, 
+                (NvBbox_Coords*)&pObjectMeta->rect_params);
+        }
+
+        LOG_DEBUG("Tracked object with id = " 
+            << pObjectMeta->object_id << " for source = " 
+            << pFrameMeta->source_id << " with frame-count = " 
+            << pTrackedObject->frameCount);
+
+        if (pTrackedObject->frameCount <= m_instanceCount)
+        {
+            // event has been triggered
             IncrementAndCheckTriggerCount();
             m_occurrences++;
-            
+
             // update the total event count static variable
             s_eventCount++;
 
+            // If the client has added a heat mapper, call to add the occurrence data
             if (m_pHeatMapper)
             {
                 std::dynamic_pointer_cast<OdeHeatMapper>(m_pHeatMapper)->HandleOccurrence(
                     pFrameMeta, pObjectMeta);
             }
 
-            // set the primary metric to the new instance occurrence for this frame
+            // set the primary metric as the current occurrence for this frame
             pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = m_occurrences;
-
+                
             for (const auto &imap: m_pOdeActionsIndexed)
             {
                 DSL_ODE_ACTION_PTR pOdeAction = 
                     std::dynamic_pointer_cast<OdeAction>(imap.second);
-                try
-                {
-                    pOdeAction->HandleOccurrence(shared_from_this(), pBuffer, 
-                        displayMetaData, pFrameMeta, pObjectMeta);
-                }
-                catch(...)
-                {
-                    LOG_ERROR("Trigger '" << GetName() << "' => Action '" 
-                        << pOdeAction->GetName() << "' threw exception");
-                }
+                pOdeAction->HandleOccurrence(shared_from_this(), 
+                    pBuffer, displayMetaData, pFrameMeta, pObjectMeta);
             }
             return true;
+        }
+        // if suppressing and we've reached the total number of frames to supress 
+        if (m_suppressionCount and 
+            pTrackedObject->frameCount >= (m_instanceCount + m_suppressionCount))
+        {
+            // delete the object so that the instance/suppression cycle can start again
+            // of the object is detected in the next frame.
+            m_pTrackedObjectsPerSource->DeleteObject(pFrameMeta->source_id,
+                pObjectMeta->object_id);
         }
         return false;
     }
@@ -2318,7 +2353,7 @@ namespace DSL
             return false;
         }
 
-        // if this is the first occurrence of any object for this source
+        // if this is the first occurrence of this object for this source
         if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
             pObjectMeta->object_id))
         {
@@ -2428,7 +2463,7 @@ namespace DSL
             return false;
         }
 
-        // if this is the first occurrence of any object for this source
+        // if this is the first occurrence of this object for this source
         if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
             pObjectMeta->object_id))
         {
@@ -2545,7 +2580,7 @@ namespace DSL
             return false;
         }
 
-        // if this is the first occurrence of any object for this source
+        // if this is the first occurrence of this object for this source
         if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
             pObjectMeta->object_id)) 
         {

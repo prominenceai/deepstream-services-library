@@ -2637,8 +2637,8 @@ DslReturnType dsl_ode_trigger_count_range_set(const wchar_t* name,
     uint minimum, uint maximum);
 
 /**
- * @brief Occurence trigger that checks for a new instance of an Object for a 
- * specified source and object class_id. Instance identification is based on Tracking Id
+ * @brief Instance trigger that checks for new instancec of Objects for a specified
+ * source and object class_id. Instance identification is based on Tracking Id.
  * @param[in] name unique name for the ODE Trigger
  * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] class_id class id filter for this ODE Trigger
@@ -2647,6 +2647,34 @@ DslReturnType dsl_ode_trigger_count_range_set(const wchar_t* name,
  */
 DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit);
+
+/**
+ * @brief Gets the current instance and suppression count settings for the named 
+ * ODE Instance Trigger.
+ * @param name unique name of the ODE Instance Trigger to query.
+ * @param instance_count[out] the number of consecutive instances to trigger ODE
+ * occurrence. Default = 1.
+ * @param suppression_count[out] the number of consecutive instances to suppress
+ * ODE occurrence once the instance_count has been reached. Default = 0 (suppress 
+ * indefinitely).
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_instance_count_settings_get(const wchar_t* name,
+    uint* instance_count, uint* suppression_count);
+
+/**
+ * @brief Sets the instance and suppression count settings for the named 
+ * ODE Instance Trigger to use.
+ * @param name unique name of the ODE Instance Trigger to query.
+ * @param instance_count[in] the number of consecutive instances to trigger ODE
+ * occurrence. Default = 1.
+ * @param suppression_count[in] the number of consecutive instances to suppress
+ * ODE occurrence once the instance_count has been reached. Default = 0 (suppress 
+ * indefinitely).
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_instance_count_settings_set(const wchar_t* name,
+    uint instance_count, uint suppression_count);
 
 /**
  * @brief Intersection trigger that checks for the intersection of detected Objects 

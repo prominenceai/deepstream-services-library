@@ -108,6 +108,7 @@
       <File Name="../src/nmp/DslServicesPphNmp.cpp"/>
     </VirtualDirectory>
     <File Name="../src/DslServicesOdeAction.cpp"/>
+    <File Name="../src/DslSinkBintr.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="api">
@@ -151,6 +152,7 @@
       <File Name="../test/api/DslPreprocApiText.cpp"/>
       <File Name="../test/api/DslInfoApiTest.cpp.tmp"/>
       <File Name="../test/api/DslPphBehaviorTest.cpp"/>
+      <File Name="../test/api/DslInferApiTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDemuxerAndTeeUnitTest.cpp"/>
@@ -205,8 +207,6 @@
     <File Name="../Makefile"/>
     <File Name="../README.md"/>
     <File Name="../.gitignore"/>
-    <File Name="../../DeepStream-Yolo/yolov7.cfg"/>
-    <File Name="../../DeepStream-Yolo/yolov7-tiny.cfg"/>
   </VirtualDirectory>
   <VirtualDirectory Name="examples">
     <VirtualDirectory Name="cpp">
@@ -251,7 +251,6 @@
       <File Name="../examples/python/8uri_file_pph_meter_performace_reporting.py"/>
       <File Name="../examples/python/dyn_uri_file_pgie_ktl_tiler_osd_window.py"/>
       <File Name="../examples/python/industrial_segmentation.py"/>
-      <File Name="../examples/python/libdsl.so"/>
       <File Name="../examples/python/message_broker_azure_device_client.py"/>
       <File Name="../examples/python/multiple_pipelines.py"/>
       <File Name="../examples/python/nvidia_osd_sink_pad_buffer_probe.py"/>
@@ -284,8 +283,6 @@
       <File Name="../examples/python/interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.py"/>
       <File Name="../examples/python/interpipe_multiple_pipelines_listening_to_single_sink.py"/>
       <File Name="../examples/python/4K_input_source_slicing_with_non_maximum_merge.py"/>
-      <File Name="../test/api/DslInferApiTest.cpp"/>
-      <File Name="../src/DslSinkBintr.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>

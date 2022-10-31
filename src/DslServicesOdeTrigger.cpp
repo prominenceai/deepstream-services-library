@@ -152,6 +152,73 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::OdeTriggerInstanceCountSettingsGet(const char* name,
+        uint* instanceCount, uint* suppressionCount)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, 
+                InstanceOdeTrigger);
+            
+            DSL_ODE_TRIGGER_INSTANCE_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<InstanceOdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->GetCountSettings(instanceCount, suppressionCount);
+            
+            LOG_INFO("ODE Instance Trigger '" << name 
+                << "' returned instance-count = " << *instanceCount 
+                << " and suppression-count = " << *suppressionCount << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Instance Trigger '" << name 
+                << "' threw exception getting count settings");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::OdeTriggerInstanceCountSettingsSet(const char* name,
+        uint instanceCount, uint suppressionCount)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeTriggers, name, 
+                InstanceOdeTrigger);
+            
+            DSL_ODE_TRIGGER_INSTANCE_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<InstanceOdeTrigger>(m_odeTriggers[name]);
+
+            if (instanceCount == 0)
+            {
+                LOG_ERROR("Instance count must be greater than 0'");
+                return DSL_RESULT_ODE_TRIGGER_SET_FAILED;
+            }
+         
+            pOdeTrigger->SetCountSettings(instanceCount, suppressionCount);
+            
+            LOG_INFO("ODE Instance Trigger '" << name 
+                << "' set instance-count = " << instanceCount 
+                << " and suppression-count = " << suppressionCount << " successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Count Trigger '" << name 
+                << "' threw exception setting range");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+    
     DslReturnType Services::OdeTriggerIntersectionNew(const char* name, 
         const char* source, uint classIdA, uint classIdB, uint limit)
     {

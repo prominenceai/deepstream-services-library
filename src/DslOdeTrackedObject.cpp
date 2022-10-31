@@ -32,6 +32,7 @@ namespace DSL
         uint maxHistory)
         : trackingId(trackingId)
         , m_maxHistory(maxHistory)
+        , frameCount(0)
         , preEventFrameCount(1)
         , onEventFrameCount(0)
     {
@@ -44,6 +45,7 @@ namespace DSL
         gettimeofday(&creationTime, NULL);
         m_creationTimeMs = creationTime.tv_sec*1000.0 + creationTime.tv_usec/1000.0;
         
+        // update will increment the frameCount to 1
         Update(frameNumber, pCoordinates);
         
         if (pColor)
@@ -67,6 +69,9 @@ namespace DSL
         const NvBbox_Coords* pCoordinates)
     {
         // No function log - avoid overhead.
+        
+        // increment the total number of tracked frames
+        frameCount++;
         
         // update the tracked object's frame number - the filter used for purging.
         frameNumber = currentFrameNumber;

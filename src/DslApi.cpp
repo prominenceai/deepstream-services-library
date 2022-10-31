@@ -1494,6 +1494,32 @@ DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name,
         cstrSource.c_str(), class_id, limit);
 }
 
+DslReturnType dsl_ode_trigger_instance_count_settings_get(const wchar_t* name,
+    uint* instance_count, uint* suppression_count)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(instance_count);
+    RETURN_IF_PARAM_IS_NULL(suppression_count);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerInstanceCountSettingsGet(
+        cstrName.c_str(), instance_count, suppression_count);
+}
+    
+DslReturnType dsl_ode_trigger_instance_count_settings_set(const wchar_t* name,
+    uint instance_count, uint suppression_count)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerInstanceCountSettingsSet(
+        cstrName.c_str(), instance_count, suppression_count);
+}
+    
 DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, 
     const wchar_t* source, uint class_id_a, uint class_id_b, uint limit)
 {

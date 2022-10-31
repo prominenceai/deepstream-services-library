@@ -1002,7 +1002,7 @@ namespace DSL
     
     };
     
-    class InstanceOdeTrigger : public OdeTrigger
+    class InstanceOdeTrigger : public TrackingOdeTrigger
     {
     public:
     
@@ -1010,6 +1010,28 @@ namespace DSL
             const char* source, uint classId, uint limit);
         
         ~InstanceOdeTrigger();
+        
+        /**
+         * @brief Gets the current instance and suppression count settings for the
+         * InstanceOdeTrigger.
+         * @param instanceCount[out] the number of consecutive instances to trigger ODE
+         * occurrence. Default = 1.
+         * @param suppressionCount[out] the number of consecutive instances to suppress
+         * ODE occurrence once the instance_count has been reached. Default = 0 (suppress 
+         * indefinitely).
+         */
+        void GetCountSettings(uint* instanceCount, uint* suppressionCount);
+        
+        /**
+         * @brief Sets the instance and suppression count settings for the
+         * InstanceOdeTrigger to use.
+         * @param instanceCount[in] the number of consecutive instances to trigger ODE
+         * occurrence. Default = 1.
+         * @param suppressionCount[in] the number of consecutive instances to suppress
+         * ODE occurrence once the instance_count has been reached. Default = 0 (suppress 
+         * indefinitely).
+         */
+        void SetCountSettings(uint instanceCount, uint suppressionCount);
 
         /**
          * @brief Overrides the base Reset in order to clear m_instances
@@ -1028,10 +1050,23 @@ namespace DSL
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
+    
         /**
          * @brief map of last Tracking Ids per unique source_id-class_id combination
          */
         std::map <std::string, uint64_t> m_instances;
+        
+        /**
+         * @brief the number of consecutive instances to trigger an ODE occurrence
+         * before suppressing.
+         */
+        uint m_instanceCount;
+        
+        /**
+         * @brief the number of consecutive instances to suppressing ODE occurrence
+         * once instanceCount has been reached. Default = 0 = suppress indefinitely
+         */
+        uint m_suppressionCount;
     
     };
     
