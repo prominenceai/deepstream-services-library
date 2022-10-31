@@ -688,6 +688,49 @@ SCENARIO( "A new Instance Trigger can be created and deleted correctly",
     }
 }    
 
+SCENARIO( "A new Instance Trigger can be set/get it count settings correctly", 
+    "[ode-trigger-api]" )
+{
+    GIVEN( "An Instance Trigger with default count settings" ) 
+    {
+        std::wstring odeTriggerName(L"instance");
+        uint class_id(0);
+        uint limit(0);
+
+        REQUIRE( dsl_ode_trigger_instance_new(odeTriggerName.c_str(), 
+            NULL, class_id, limit) == DSL_RESULT_SUCCESS );
+
+        uint instance_count(99), suppression_count(99);
+        
+        REQUIRE( dsl_ode_trigger_instance_count_settings_get(odeTriggerName.c_str(), 
+            &instance_count, &suppression_count) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( instance_count == 1 );
+        REQUIRE( suppression_count == 0 );
+
+        WHEN( "When the Trigger's count settings are updated" ) 
+        {
+            uint new_instance_count(5), new_suppression_count(9);
+            
+            REQUIRE( dsl_ode_trigger_instance_count_settings_set(odeTriggerName.c_str(), 
+                new_instance_count, new_suppression_count) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct values are returned on get" ) 
+            {
+                REQUIRE( dsl_ode_trigger_instance_count_settings_get(odeTriggerName.c_str(), 
+                    &instance_count, &suppression_count) == DSL_RESULT_SUCCESS );
+                    
+                REQUIRE( instance_count == new_instance_count );
+                REQUIRE( suppression_count == new_suppression_count );
+
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+            }
+        }
+    }
+}    
+
 SCENARIO( "A new Always Trigger can be created and deleted correctly",
     "[ode-trigger-api]" )
 {
@@ -1779,6 +1822,7 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
         uint minimum(0), maximum(0), 
             test_point(DSL_BBOX_POINT_CENTER), test_method(DSL_DISTANCE_METHOD_PERCENT_HEIGHT_A);
         dsl_ode_check_for_occurrence_cb callback;
+        uint instance_count(0);
         
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -1788,7 +1832,17 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
             {
                 REQUIRE( dsl_ode_trigger_always_new(NULL, NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_occurrence_new(NULL, NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+
                 REQUIRE( dsl_ode_trigger_instance_new(NULL, NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_instance_count_settings_get(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_instance_count_settings_get(triggerName.c_str(), 
+                    &instance_count, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_instance_count_settings_get(triggerName.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_instance_count_settings_set(NULL, 
+                    0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                
                 REQUIRE( dsl_ode_trigger_absence_new(NULL, NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_intersection_new(NULL, NULL, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_summation_new(NULL, NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );

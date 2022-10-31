@@ -441,6 +441,8 @@
 * [dsl_ode_trigger_cross_test_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_test_settings_set)
 * [dsl_ode_trigger_cross_view_settings_get](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_view_settings_get)
 * [dsl_ode_trigger_cross_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_view_settings_set)
+* [dsl_ode_trigger_instance_count_settings_get](/docs/api-ode-trigger.md#dsl_ode_trigger_instance_count_settings_get)
+* [dsl_ode_trigger_instance_count_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_instance_count_settings_set)
 * [dsl_ode_trigger_persistence_range_get](/docs/api-ode-trigger.md#dsl_ode_trigger_persistence_range_get)
 * [dsl_ode_trigger_persistence_range_set](/docs/api-ode-trigger.md#dsl_ode_trigger_persistence_range_set)
 * [dsl_ode_trigger_reset](/docs/api-ode-trigger.md#dsl_ode_trigger_reset)
