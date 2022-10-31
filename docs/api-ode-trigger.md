@@ -66,6 +66,8 @@ A single ODE Heat-Mapper can be added to a single ODE Trigger. An ODE Heat-Mappe
 * [dsl_ode_trigger_cross_test_settings_set](#dsl_ode_trigger_cross_test_settings_set)
 * [dsl_ode_trigger_cross_view_settings_get](#dsl_ode_trigger_cross_view_settings_get)
 * [dsl_ode_trigger_cross_view_settings_set](#dsl_ode_trigger_cross_view_settings_set)
+* [dsl_ode_trigger_instance_count_settings_get](#dsl_ode_trigger_instance_count_settings_get)
+* [dsl_ode_trigger_instance_count_settings_set](#dsl_ode_trigger_instance_count_settings_set)
 * [dsl_ode_trigger_persistence_range_get](#dsl_ode_trigger_persistence_range_get)
 * [dsl_ode_trigger_persistence_range_set](#dsl_ode_trigger_persistence_range_set)
 * [dsl_ode_trigger_reset](#dsl_ode_trigger_reset)
@@ -375,7 +377,9 @@ DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name,
     const wchar_t* source, uint class_id, uint limit);
 ```
 
-The constructor creates an Instance trigger that checks for new instances of Objects based on the `object_id` provided by the [Object Tracker](/docs/api-tracker.md) over consecutive frames. Each new `object_id` detected generates an ODE occurrence invoking all ODE Actions.
+The constructor creates an Instance trigger that checks for new instances of Objects based on the `object_id` provided by the [Object Tracker](/docs/api-tracker.md) over consecutive frames. Each new `object_id` detected generates an ODE occurrence invoking all ODE Actions. 
+
+**Import** the Instance Trigger's default behavior of generating a single ODE occurrence for each object can be modified with the [dsl_ode_trigger_instance_count_settings_set](#dsl_ode_trigger_instance_count_settings_set) service.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
@@ -1063,6 +1067,51 @@ retval = dsl_ode_trigger_cross_view_settings_set('my-trigger',
 
 <br>
 
+### *dsl_ode_trigger_instance_count_settings_get*
+```c++
+DslReturnType dsl_ode_trigger_instance_count_settings_get(const wchar_t* name,
+    uint* instance_count, uint* suppression_count);
+```
+
+This service gets the current instance and suppression count settings for the named ODE Instance Trigger.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Instance Trigger to query.
+* `instance_count` - [out] the number of consecutive instances to trigger an ODE occurrence. Default = 1.
+* `suppression_count` - [out] the number of consecutive instances to suppress ODE occurrence once the instance_count has been reached. Default = 0 (suppress indefinitely). If set, the cycle of generated instances followed by suppressed instances will repeat as long as the same object is detected through successive frames.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, instance_count, suppression_count = dsl_ode_trigger_instance_count_settings_get('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_instance_count_settings_set*
+```c++
+DslReturnType dsl_ode_trigger_instance_count_settings_set(const wchar_t* name,
+    uint instance_count, uint suppression_count);
+```
+
+This service sets the instance and suppression count settings for the named ODE Instance Trigger to use.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Instance Trigger to update.
+* `instance_count` - [in] the number of consecutive instances to trigger an ODE occurrence. Default = 1.
+* `suppression_count` - [in] the number of consecutive instances to suppress ODE occurrence once the instance_count has been reached. Default = 0 (suppress 
+indefinitely).  If set, the cycle of generated instances followed by suppressed instances will repeat as long as the same object is detected through successive frames.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_instance_count_settings_set('my-trigger', 2, 900)
+```
+
 ### *dsl_ode_trigger_persistence_range_get*
 ```c++
 DslReturnType dsl_ode_trigger_persistence_range_get(const wchar_t* name, 
@@ -1073,8 +1122,8 @@ This service gets the current minimum and maximum time settings in use by the na
 
 **Parameters**
 * `name` - [in] unique name of the ODE Persistence Trigger to query.
-* `minimum` - [in] the minimum amount of time a unique object must remain detected before triggering an ODE occurrence - in units of seconds. 0 = no minimum
-* `maximum` - [in] the maximum amount of time a unique object can remain detected before triggering an ODE occurrence - in units of seconds. 0 = no maximum
+* `minimum` - [out] the minimum amount of time a unique object must remain detected before triggering an ODE occurrence - in units of seconds. 0 = no minimum
+* `maximum` - [out] the maximum amount of time a unique object can remain detected before triggering an ODE occurrence - in units of seconds. 0 = no maximum
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
