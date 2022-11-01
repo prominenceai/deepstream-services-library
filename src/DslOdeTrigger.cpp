@@ -1284,6 +1284,28 @@ namespace DSL
         return false;
     }
 
+    uint InstanceOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+        std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
+    {
+        // create scope so the property-mutex can be unlocked before
+        // calling the base-class PostProcessFrame which locks the mutex.
+        {
+            // Note: function is called from the system (callback) context
+            // Gaurd against property updates from the client API
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            if (!m_enabled or m_skipFrame or m_pTrackedObjectsPerSource->IsEmpty())
+            {
+                return 0;
+            }
+            // purge all tracked objects, for all sources that are not in the current frame.
+            m_pTrackedObjectsPerSource->Purge(pFrameMeta->frame_num);
+        }
+        // mutext unlocked - safe to call base class
+        return OdeTrigger::PostProcessFrame(pBuffer,
+            displayMetaData, pFrameMeta);
+    }
+
 
     // *****************************************************************************
     

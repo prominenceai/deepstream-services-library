@@ -158,11 +158,20 @@ def main(args):
             class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
-            
+
         retval = dsl_ode_trigger_instance_new('vehicle-instance-trigger', source='uri-source-1',
             class_id=PGIE_CLASS_ID_VEHICLE, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
+
+        # Override the default behavior of the instance triggers to trigger for 10 consecutive 
+        # ODE occurrences... suppression-count=0 (defualt) means suppress indefinitely once 
+        # the instance-count has been reached. 
+        retval = dsl_ode_trigger_instance_count_settings_set('person-instance-trigger', 
+            instance_count=10, suppression_count=0)
+
+        retval = dsl_ode_trigger_instance_count_settings_set('person-instance-trigger', 
+            instance_count=10, suppression_count=0)
 
         #```````````````````````````````````````````````````````````````````````````````````
         # Next, we add our Actions to our Triggers
