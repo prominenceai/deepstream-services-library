@@ -1049,6 +1049,17 @@ namespace DSL
             std::vector<NvDsDisplayMeta*>& displayMetaData,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
+        /**
+         * @brief Function to post process the frame and purge all tracked objects, 
+         * for all sources that are not in the current frame.
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, 
+            std::vector<NvDsDisplayMeta*>& displayMetaData, 
+            NvDsFrameMeta* pFrameMeta);
+            
     private:
     
         /**
