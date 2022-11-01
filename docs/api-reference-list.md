@@ -7,6 +7,7 @@
 * [dsl_ode_enabled_state_change_listener_cb](/docs/api-ode-trigger.md#dsl_ode_enabled_state_change_listener_cb)
 * [dsl_ode_trigger_limit_event_listener_cb](/docs/api-ode-trigger.md#dsl_ode_trigger_limit_event_listener_cb)
 * [dsl_pph_custom_client_handler_cb](/docs/api-pph.md#dsl_pph_custom_client_handler_cb)
+* [dsl_pph_buffer_timeout_handler_cb](/docs/api-pph.md#dsl_pph_buffer_timeout_handler_cb)
 * [dsl_pph_meter_client_handler_cb](/docs/api-pph.md#dsl_pph_meter_client_handler_cb)
 * [dsl_record_client_listner_cb](/docs/api-tap/md#dsl_record_client_listner_cb)
 * [dsl_state_change_listener_cb](/docs/api-pipeline.md#dsl_state_change_listener_cb)
@@ -383,6 +384,7 @@
 ## Pad Probe Handler:
 * [Overview](/docs/api-pph.md)
 * [dsl_pph_custom_new](/docs/api-pph.md#dsl_pph_custom_new)
+* [dsl_pph_buffer_timeout_new](/docs/api-pph.md#dsl_pph_buffer_timeout_new)
 * [dsl_pph_meter_new](/docs/api-pph.md#dsl_pph_meter_new)
 * [dsl_pph_ode_new](/docs/api-pph.md#dsl_pph_ode_new)
 * [dsl_pph_nmp_new](/docs/api-pph.md#dsl_pph_nmp_new)
