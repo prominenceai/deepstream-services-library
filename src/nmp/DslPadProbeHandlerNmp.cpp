@@ -320,8 +320,10 @@ namespace DSL
                 
                 // order.pop_back();
                 nd_order = nd_order(0, nc::Slice(0,-1));
-                if (nc::shape(nd_order).size() == 0) 
-                    break;    
+                if (nc::shape(nd_order).size() == 0) {
+                    keep_to_merge_list[idx].emplace_back(idx);        
+                    break;      
+                }   
                 
                 // select coordinates of BBoxes according to
                 // the indices in order
