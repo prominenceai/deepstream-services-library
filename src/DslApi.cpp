@@ -3302,7 +3302,7 @@ DslReturnType dsl_pph_nmp_match_settings_set(const wchar_t* name,
 }
 
 DslReturnType dsl_pph_buffer_timeout_new(const wchar_t* name,
-    uint timeout, dsl_buffer_timeout_handler_cb handler, void* client_data)
+    uint timeout, dsl_pph_buffer_timeout_handler_cb handler, void* client_data)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(handler);
@@ -3315,7 +3315,7 @@ DslReturnType dsl_pph_buffer_timeout_new(const wchar_t* name,
 }
 
 DslReturnType dsl_pph_eos_new(const wchar_t* name,
-    dsl_eos_handler_cb handler, void* client_data)
+    dsl_pph_eos_handler_cb handler, void* client_data)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(handler);

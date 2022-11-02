@@ -624,10 +624,10 @@ namespace DSL {
             uint matchMethod, float matchThreshold);
         
         DslReturnType PphBufferTimeoutNew(const char* name,
-            uint timeout, dsl_buffer_timeout_handler_cb handler, void* clientData);
+            uint timeout, dsl_pph_buffer_timeout_handler_cb handler, void* clientData);
     
         DslReturnType PphEosNew(const char* name,
-            dsl_eos_handler_cb handler, void* clientData);
+            dsl_pph_eos_handler_cb handler, void* clientData);
     
         DslReturnType PphEnabledGet(const char* name, boolean* enabled);
         

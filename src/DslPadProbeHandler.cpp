@@ -612,7 +612,7 @@ namespace DSL
     //----------------------------------------------------------------------------------------------
 
     BufferTimeoutPadProbeHandler::BufferTimeoutPadProbeHandler(const char* name, 
-        uint timeout, dsl_buffer_timeout_handler_cb handler, void* clientData)
+        uint timeout, dsl_pph_buffer_timeout_handler_cb handler, void* clientData)
         : TimestampPadProbeHandler(name)
         , m_timeout(timeout)
         , m_clientHandler(handler)
@@ -768,7 +768,7 @@ namespace DSL
     //----------------------------------------------------------------------------------------------
 
     EosHandlerPadProbeEventHandler::EosHandlerPadProbeEventHandler(const char* name, 
-        dsl_eos_handler_cb clientHandler, void* clientData)
+        dsl_pph_eos_handler_cb clientHandler, void* clientData)
         : PadProbeHandler(name)
         , m_clientHandler(clientHandler)
         , m_clientData(clientData)

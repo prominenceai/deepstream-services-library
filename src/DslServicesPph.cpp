@@ -339,7 +339,7 @@ namespace DSL
     }
 
     DslReturnType Services::PphBufferTimeoutNew(const char* name,
-        uint timeout, dsl_buffer_timeout_handler_cb handler, void* clientData)
+        uint timeout, dsl_pph_buffer_timeout_handler_cb handler, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -370,7 +370,7 @@ namespace DSL
     }
 
     DslReturnType Services::PphEosNew(const char* name,
-        dsl_eos_handler_cb handler, void* clientData)
+        dsl_pph_eos_handler_cb handler, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);

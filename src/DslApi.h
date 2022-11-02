@@ -1551,7 +1551,7 @@ typedef void (*dsl_display_type_rgba_color_provider_cb)(double* red,
  * @param[in] timeout the timeout value that was exceeded, in units of seconds.
  * @param[in] client_data opaque pointer to client's data
  */
-typedef void (*dsl_buffer_timeout_handler_cb)(uint timeout, void* client_data);
+typedef void (*dsl_pph_buffer_timeout_handler_cb)(uint timeout, void* client_data);
     
 /**
  * @brief callback typedef for a client handler function to be used with a
@@ -1562,7 +1562,7 @@ typedef void (*dsl_buffer_timeout_handler_cb)(uint timeout, void* client_data);
  * @return GST_PAD_PROBE_DROP to drop/consume the event, GST_PAD_PROBE_OK to  
  * allow the event to continue to the next component. 
  */
-typedef uint (*dsl_eos_handler_cb)(void* client_data);
+typedef uint (*dsl_pph_eos_handler_cb)(void* client_data);
 
 // -----------------------------------------------------------------------------------
 // Start of DSL Services 
@@ -3953,7 +3953,7 @@ DslReturnType dsl_pph_nmp_match_settings_set(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
  */
 DslReturnType dsl_pph_buffer_timeout_new(const wchar_t* name,
-    uint timeout, dsl_buffer_timeout_handler_cb handler, void* client_data);
+    uint timeout, dsl_pph_buffer_timeout_handler_cb handler, void* client_data);
     
 /**
  * @brief Creates a new, uniquely named End of Stream (EOS) Pad Probe Handler (PPH).
@@ -3966,7 +3966,7 @@ DslReturnType dsl_pph_buffer_timeout_new(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
  */
 DslReturnType dsl_pph_eos_new(const wchar_t* name,
-    dsl_eos_handler_cb handler, void* client_data);
+    dsl_pph_eos_handler_cb handler, void* client_data);
     
 /**
  * @brief gets the current enabled setting for the named Pad Probe Handler
