@@ -269,7 +269,7 @@ namespace DSL
             {
                 pPadProbeHandler->ClearParentName();
             }
-            return false;
+            return result;
         }
         
         

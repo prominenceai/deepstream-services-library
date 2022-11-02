@@ -434,7 +434,7 @@ DSL_MESSAGE_BROKER_SEND_RESULT_LISTENER = \
 DSL_DISPLAY_TYPE_RGBA_COLOR_PROVIDER = \
     CFUNCTYPE(None, DSL_DOUBLE_P, DSL_DOUBLE_P, DSL_DOUBLE_P, DSL_DOUBLE_P, c_void_p)
 
-# dsl_buffer_timeout_handler_cb
+# dsl_pph_buffer_timeout_handler_cb
 DSL_BUFFER_TIMEOUT_HANDLER = \
     CFUNCTYPE(None, c_uint, c_void_p)
 

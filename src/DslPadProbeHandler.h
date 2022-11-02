@@ -236,7 +236,7 @@ namespace DSL
          * @param[in] clientData return to the client when the handler is called
          */
         EosHandlerPadProbeEventHandler(const char* name, 
-            dsl_eos_handler_cb clientHandler, void* clientData);
+            dsl_pph_eos_handler_cb clientHandler, void* clientData);
 
         /**
          * @brief dtor for the EOS Consumer Pad Probe Handler
@@ -255,7 +255,7 @@ namespace DSL
         /**
          * @brief client callback funtion, called on End-of-Stream event
          */
-        dsl_eos_handler_cb m_clientHandler;
+        dsl_pph_eos_handler_cb m_clientHandler;
         
         /**
          * @brief opaue pointer to client data, returned on callback
@@ -539,7 +539,7 @@ namespace DSL
          * @param[in] client_data to return to the client on callback
          */
         BufferTimeoutPadProbeHandler(const char* name, uint timeout,
-            dsl_buffer_timeout_handler_cb handler, void* clientData);
+            dsl_pph_buffer_timeout_handler_cb handler, void* clientData);
 
         /**
          * @brief dtor for the BufferTimeoutPadProbeHandler.
@@ -578,7 +578,7 @@ namespace DSL
         /**
          * @brief client handler to call on timeout
          */
-        dsl_buffer_timeout_handler_cb m_clientHandler;
+        dsl_pph_buffer_timeout_handler_cb m_clientHandler;
         
         /**
          * @breif opaque pointer to client data to return with callback

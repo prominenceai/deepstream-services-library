@@ -1,12 +1,16 @@
 # Pad Probe Handler API Reference
-Data flowing over a Pipeline Component’s Pads – link points between components – can be monitored and updated using a Pad Probe Handler. There are four types of Handlers supported in the current release.
+Data flowing over a Pipeline Component’s Pads – link points between components – can be monitored and updated using a Pad Probe Handler. There are five types of Handlers supported in the current release.
 * Custom PPH
+* New Buffer Timeout PPH
 * Source Meter PPH
 * Object Detection Event PPH
 * Non-Maximum Processor PPH
 
 ### Custom Pad Probe Handler
 The Custom PPH allows the client to add a custom callback function to a Pipeline Component's sink or source pad. The custom callback will be called with each buffer that crosses over the Component's pad.
+
+### New Buffer Timeout Pad Probe Handler
+The Buffer Timeout PPH allows the client to add a callback function to a Component's Pad to be notified in the event that a new buffer is not received within a specified time limit. When using multiple Source Components, you can add a PPH to each Source's sink pad to be notified of individual Source stream timeouts. See [dsl_source_pph_add](/docs/api-source.md#dsl_source_pph_add).
 
 ### Pipeline Meter Pad Probe Handler
 The Pipeline Meter PPH measures a Pipeline's throughput in frames-per-second. Adding the Meter to the Tiler's sink-pad -- or any pad after the Stream-muxer and before the Tiler -- will measure all sources. Adding the Meter to the Tiler's source-pad -- or any component downstream of the Tiler -- will measure the throughput of the single tiled stream.
@@ -21,7 +25,7 @@ The NMP PPH implements an inference cluster algorithm providing a more flexible 
 
 See the [NVIDIA Gst-nvinfer plugin documentation](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvinfer.html#gst-nvinfer) for details on the configuration property and more [cluster mode information](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvinfer.html#cluster-mode-info).
 
-With the default post-processing disabled, the [Primary GIE](/docs/api-infer.md) will add object metadata for every prediction above a specified confidence level producing clusters of overlaping bounding boxes for each individual object. The image below illustrates the differrences in PGIE output between the default and disabled settings.
+With the default post-processing disabled, the [Primary GIE](/docs/api-infer.md) will add object metadata for every prediction above a specified confidence level producing clusters of overlapping bounding boxes for each individual object. The image below illustrates the differences in PGIE output between the default and disabled settings.
 
 ![gst-infer cluster mode comparison](/Images/gie_cluster_mode_comparison.png)
 
@@ -67,10 +71,12 @@ ODE Triggers are added to an ODE Pad Probe Handler by calling [dsl_pph_ode_trigg
 ## ODE Handler API
 **Callback Types:**
 * [dsl_pph_custom_client_handler_cb](#dsl_pph_custom_client_handler_cb)
+* [dsl_pph_buffer_timeout_handler_cb](#dsl_pph_buffer_timeout_handler_cb)
 * [dsl_pph_meter_client_handler_cb](#dsl_pph_meter_client_handler_cb)
 
 **Constructors:**
 * [dsl_pph_custom_new](#dsl_pph_custom_new)
+* [dsl_pph_buffer_timeout_new](#dsl_pph_buffer_timeout_new)
 * [dsl_pph_meter_new](#dsl_pph_meter_new)
 * [dsl_pph_ode_new](#dsl_pph_ode_new)
 * [dsl_pph_nmp_new](#dsl_pph_nmp_new)
@@ -184,6 +190,23 @@ def my_custom_pph_callback(buffer, client_data):
 
 <br>
 
+### *dsl_pph_buffer_timeout_handler_cb*
+```c++
+typedef void (*dsl_pph_buffer_timeout_handler_cb)(uint timeout, void* client_data);
+```
+
+This Type defines a Client Callback function that is added to a New Buffer Timeout Pad Probe Handler during handler construction (see [dsl_pph_buffer_timeout_new](#dsl_pph_buffer_timeout_new)). The same function can be added to multiple Pad Probe Handlers. Once the PPH is added to a Component's Pad and the Pipeline is playing, the client callback will be called if a new buffer is not received within a configurable amount of time.
+
+**Parameters**
+* `timeout` - [in] the timeout value that was exceeded, in units of seconds.
+* `client_data` - [in] opaque pointer to the client's data, provided on Buffer Timeout PPH construction.
+
+**Python Example**
+```Python
+```
+
+<br>
+
 ### *dsl_pph_meter_client_handler_cb*
 ```c++
 typedef boolean (*dsl_pph_meter_client_handler_cb)(double* session_fps_averages, double* interval_fps_averages,
@@ -212,7 +235,7 @@ class ReportData:
     self.m_header_interval = header_interval
    
 ##
-# Source Meter client callback funtion
+# Source Meter client callback function
 ##
 def meter_pph_client_callback(session_avgs, interval_avgs, source_count, client_data):
 
@@ -264,6 +287,34 @@ The constructor creates a uniquely named Custom Pad Probe Handler with a client 
 **Python Example**
 ```Python
 retval = dsl_pph_custom_new('my-custom-handler', my_client_callback, my_client_data)
+```
+
+<br>
+
+### *dsl_pph_buffer_timeout_new*
+```C++
+DslReturnType dsl_pph_buffer_timeout_new(const wchar_t* name,
+    uint timeout, dsl_pph_buffer_timeout_handler_cb handler, void* client_data);
+```
+The constructor creates a uniquely named Buffer Timeout Pad Probe Handler (PPH). Once the PPH is added to a Component's Pad and the Pipeline is playing, the client callback will be called if a new buffer is not received within a specified amount of time.
+
+**Note** When using multiple Source Components, you can add a PPH to each Source's sink pad to be notified of individual Source stream timeouts. See [dsl_source_pph_add](/docs/api-source.md#dsl_source_pph_add).
+
+**Important** The PPH will be disabled after calling the client callback on buffer timeout. The client must call [dsl_pph_enabled_set](#dsl_pph_enabled_set) to reenable.
+
+**Parameters**
+* `name` - [in] unique name for the Buffer Timeout Pad Probe Handler to create.
+* `timeout` - [in] maximum time to wait for a new buffer before calling the handler function. In units of seconds.
+* `client_handler` - [in] client callback function of type [dsl_pph_buffer_timeout_handler_cb](#dsl_pph_buffer_timeout_handler_cb).
+* `client_data` - [in] opaque pointer to the client's data.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_pph_buffer_timeout_new('my-buffer-timeout-handler', 
+    2, my_client_callback, my_client_data)
 ```
 
 <br>
@@ -836,7 +887,9 @@ This service returns the size of the current list of Pad Probe Handlers in memor
 pph_count = dsl_pph_list_size()
 ```
 
-<br>---
+<br>
+
+---
 
 ## API Reference
 * [List of all Services](/docs/api-reference-list.md)
