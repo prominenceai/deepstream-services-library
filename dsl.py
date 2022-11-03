@@ -435,7 +435,7 @@ DSL_DISPLAY_TYPE_RGBA_COLOR_PROVIDER = \
     CFUNCTYPE(None, DSL_DOUBLE_P, DSL_DOUBLE_P, DSL_DOUBLE_P, DSL_DOUBLE_P, c_void_p)
 
 # dsl_pph_buffer_timeout_handler_cb
-DSL_BUFFER_TIMEOUT_HANDLER = \
+DSL_PPH_BUFFER_TIMEOUT_HANDLER = \
     CFUNCTYPE(None, c_uint, c_void_p)
 
 # dsl_eos_listener_cb
@@ -2806,11 +2806,11 @@ def dsl_pph_nmp_process_method_set(name, process_mode):
 ## dsl_pph_buffer_timeout_new()
 ##
 _dsl.dsl_pph_buffer_timeout_new.argtypes = [c_wchar_p, 
-    c_uint, DSL_BUFFER_TIMEOUT_HANDLER, c_void_p]
+    c_uint, DSL_PPH_BUFFER_TIMEOUT_HANDLER, c_void_p]
 _dsl.dsl_pph_buffer_timeout_new.restype = c_uint
 def dsl_pph_buffer_timeout_new(name, timeout, handler, client_data):
     global _dsl
-    handler_cb = DSL_BUFFER_TIMEOUT_HANDLER(client_handler)
+    handler_cb = DSL_PPH_BUFFER_TIMEOUT_HANDLER(client_handler)
     callbacks.append(handler_cb)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)

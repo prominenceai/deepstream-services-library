@@ -77,10 +77,10 @@ static std::wstring custom_ppm_name2(L"custom-ppm-2");
 static std::wstring custom_ppm_name3(L"custom-ppm-3");
 static std::wstring custom_ppm_name4(L"custom-ppm-4");
 
-static std::wstring eos_ppm_name_1(L"eos-ppm-1");
-static std::wstring eos_ppm_name_2(L"eos-ppm-2");
-static std::wstring eos_ppm_name_3(L"eos-ppm-3");
-static std::wstring eos_ppm_name_4(L"eos-ppm-4");
+static std::wstring buffer_timeout_name_1(L"buffer-timeout-ppm-1");
+static std::wstring buffer_timeout_name_2(L"buffer-timeout-ppm-2");
+static std::wstring buffer_timeout_name_3(L"buffer-timeout-ppm-3");
+static std::wstring buffer_timeout_name_4(L"buffer-timeout-ppm-4");
 
 static boolean pad_probe_handler_cb1(void* buffer, void* user_data)
 {
@@ -203,13 +203,20 @@ SCENARIO( "A Custom PPH can remove be removed on return", "[pph-behavior]" )
     }
 }
 
-static uint eos_handler_cb(void* client_data)
+static void buffer_timeout_handler_cb(uint timeout, void* client_data)
 {
-    std::cout << "EOS Handeler called";
-    return 0;
+    static uint count(0);
+    
+    std::cout << "Buffer Timeout Handeler called with timeout = " 
+        << timeout << std::endl;
+        
+    if (++count >=3)
+    {
+        dsl_main_loop_quit();
+    }
 }
 
-SCENARIO( "An EOS PPH calls its handler function correctly ", "[temp]" )
+SCENARIO( "A Buffer Timeout PPH calls its handler function correctly ", "[temp]" )
 {
     GIVEN( "A Pipeline, four images source, and Window Sink" ) 
     {
@@ -217,39 +224,31 @@ SCENARIO( "An EOS PPH calls its handler function correctly ", "[temp]" )
 
         REQUIRE( dsl_source_image_new(source_name1.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
-//        REQUIRE( dsl_source_uri_new(source_name1.c_str(), mov_uri.c_str(), 
-//            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pph_eos_new(eos_ppm_name_1.c_str(), 
-            eos_handler_cb, NULL) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_buffer_timeout_new(buffer_timeout_name_1.c_str(), 
+            1, buffer_timeout_handler_cb, NULL) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_pph_add(source_name1.c_str(), 
-            eos_ppm_name_1.c_str()) == DSL_RESULT_SUCCESS );
+            buffer_timeout_name_1.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_image_new(source_name2.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
-//        REQUIRE( dsl_source_uri_new(source_name2.c_str(), mov_uri.c_str(), 
-//            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pph_eos_new(eos_ppm_name_2.c_str(), 
-            eos_handler_cb, NULL) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_buffer_timeout_new(buffer_timeout_name_2.c_str(), 
+            1, buffer_timeout_handler_cb, NULL) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_pph_add(source_name2.c_str(), 
-            eos_ppm_name_2.c_str()) == DSL_RESULT_SUCCESS );
+            buffer_timeout_name_2.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_image_new(source_name3.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
-//        REQUIRE( dsl_source_uri_new(source_name3.c_str(), mov_uri.c_str(), 
-//            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pph_eos_new(eos_ppm_name_3.c_str(), 
-            eos_handler_cb, NULL) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_buffer_timeout_new(buffer_timeout_name_3.c_str(), 
+            1, buffer_timeout_handler_cb, NULL) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_pph_add(source_name3.c_str(), 
-            eos_ppm_name_3.c_str()) == DSL_RESULT_SUCCESS );
+            buffer_timeout_name_3.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_image_new(source_name4.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
-//        REQUIRE( dsl_source_uri_new(source_name4.c_str(), mov_uri.c_str(), 
-//            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pph_eos_new(eos_ppm_name_4.c_str(), 
-            eos_handler_cb, NULL) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_buffer_timeout_new(buffer_timeout_name_4.c_str(), 
+            1, buffer_timeout_handler_cb, NULL) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_pph_add(source_name4.c_str(), 
-            eos_ppm_name_4.c_str()) == DSL_RESULT_SUCCESS );
+            buffer_timeout_name_4.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name.c_str(),
             DSL_STREAMMUX_DEFAULT_WIDTH, DSL_STREAMMUX_DEFAULT_HEIGHT) == DSL_RESULT_SUCCESS );
@@ -271,8 +270,24 @@ SCENARIO( "An EOS PPH calls its handler function correctly ", "[temp]" )
             {
                 // Note: requires visual verification for single call and removal.
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*20);
+                dsl_main_loop_run();
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                boolean enabled(true);
+                REQUIRE( dsl_pph_enabled_get(buffer_timeout_name_1.c_str(), 
+                    &enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( enabled == false);
+                enabled = true;
+                REQUIRE( dsl_pph_enabled_get(buffer_timeout_name_2.c_str(), 
+                    &enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( enabled == false);
+                enabled = true;
+                REQUIRE( dsl_pph_enabled_get(buffer_timeout_name_3.c_str(), 
+                    &enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( enabled == false);
+                enabled = true;
+                REQUIRE( dsl_pph_enabled_get(buffer_timeout_name_4.c_str(), 
+                    &enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( enabled == false);
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_list_size() == 0 );

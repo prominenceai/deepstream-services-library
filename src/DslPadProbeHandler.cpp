@@ -620,6 +620,15 @@ namespace DSL
         , m_bufferTimerId(0)
     {
         LOG_FUNC();
+        
+        // Disable, then reenable to start timer.
+        m_isEnabled = false;
+
+        // Enable now
+        if (!SetEnabled(true))
+        {
+            throw;
+        }
 
     }
 
@@ -631,27 +640,28 @@ namespace DSL
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
             g_source_remove(m_bufferTimerId);
         }
-        
     }
     
     bool BufferTimeoutPadProbeHandler::SetEnabled(bool enabled)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
 
-        if (TimestampPadProbeHandler::SetEnabled(enabled))
+        if (!TimestampPadProbeHandler::SetEnabled(enabled))
         {
             return false;
         }
+
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
 
         if (m_isEnabled)
         {
             m_bufferTimerId = g_timeout_add(10, 
                 buffer_timer_cb, this);
         }
-        else
+        else if (m_bufferTimerId)
         {
             g_source_remove(m_bufferTimerId);
+            m_bufferTimerId = 0;
         }
         return true;
     }
@@ -674,8 +684,6 @@ namespace DSL
     
     int BufferTimeoutPadProbeHandler::TimerHanlder()
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
-
         struct timeval currentTime;
         gettimeofday(&currentTime, NULL);
 
@@ -685,6 +693,9 @@ namespace DSL
         // buffer is received
         struct timeval lastBufferTime;
         GetTime(lastBufferTime);
+
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+
         if (lastBufferTime.tv_sec == 0)
         {
             LOG_DEBUG("Waiting for first buffer before checking for timeout \\\
