@@ -94,6 +94,8 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_is_live](#dsl_source_is_live)
 * [dsl_source_pause](#dsl_source_pause)
 * [dsl_source_resume](#dsl_source_resume)
+* [dsl_source_pph_add](#dsl_source_pph_add)
+* [dsl_source_pph_remove](#dsl_source_pph_remove)
 * [dsl_source_num_in_use_get](#dsl_source_num_in_use_get)
 * [dsl_source_num_in_use_max_get](#dsl_source_num_in_use_max_get)
 * [dsl_source_num_in_use_max_set](#dsl_source_num_in_use_max_set)
@@ -1284,6 +1286,50 @@ state to `DSL_STATE_PLAYING`. An individual Source, once playing, can be paused 
 **Python Example**
 ```Python
 retval = dsl_source_resume('my-source')
+```
+
+<br>
+
+### *dsl_source_pph_add*
+```C++
+DslReturnType dsl_source_pph_add(const wchar_t* name, const wchar_t* handler);
+```
+
+This service adds a [Pad Probe Handler](/docs/api-pph.md) -- typically a [New Buffer Timeout PPH](/docs/api-pph.md#dsl_pph_buffer_timeout_new) --- to the Source pad (only) of the named Source Component. 
+
+**Important Note** Adding an [Object Detection Event PPH](/docs/api-pph.md#dsl_pph_ode_new) or an [Non-Maximum Processor PPH](/docs/api-pph.md#dsl_pph_nmp_new) will result in a NOP as there is no batch-metadata attached to the buffers for these PPHs to process. The initial frame level batch-metadata is added to the buffers by the Pipelines's Stream-muxer downstream of the Source. 
+
+**Parameters**
+* `name` - [in] unique name of the Source Component to update.
+* `handler` - [in] unique name of Pad Probe Handler to add
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+
+```Python
+retval = dsl_source_pph_add('my-csi-source-1', 'my-buffer-timeout-pph-1')
+```
+
+<br>
+
+### *dsl_source_pph_remove*
+```C++
+DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler);
+```
+This service removes a [Pad Probe Handler](/docs/api-pph.md) from the Source pad of the named Source Component. The service will fail if the named handler is not owned by the named source.
+
+**Parameters**
+* `name` - [in] unique name of the Source Component to update.
+* `handler` - [in] unique name of Pad Probe Handler to remove
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_pph_remove('my-csi-source-1', 'my-buffer-timeout-pph-1')
 ```
 
 <br>
