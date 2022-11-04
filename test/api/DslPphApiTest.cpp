@@ -257,6 +257,51 @@ SCENARIO( "A EOS Pad Probe Handler can be created and deleted", "[pph-api]" )
     }
 }
 
+static void bt_handler_cb(uint timeout, void* client_data)
+{
+}
+
+SCENARIO( "A Buffer Timeout Handler's Enabled Setting can be disabled and re-enabled", "[pph-api]" )
+{
+    GIVEN( "A new ODE Handler with Enabled Setting set to true by default" ) 
+    {
+        std::wstring bufferTimeoutPphName(L"pph");
+
+        REQUIRE( dsl_pph_buffer_timeout_new(bufferTimeoutPphName.c_str(),
+            2, bt_handler_cb, NULL) == DSL_RESULT_SUCCESS );
+
+        boolean preDisabled(false);
+        REQUIRE(dsl_pph_enabled_get(bufferTimeoutPphName.c_str(), &preDisabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( preDisabled == true );
+
+        // test negative case first - can't enable when already enabled
+        REQUIRE( dsl_pph_enabled_set(bufferTimeoutPphName.c_str(), true) == DSL_RESULT_PPH_SET_FAILED );
+        
+        WHEN( "The PPH is Disabled" ) 
+        {
+            boolean enabled(false);
+            REQUIRE( dsl_pph_enabled_set(bufferTimeoutPphName.c_str(), enabled) == DSL_RESULT_SUCCESS );
+            enabled = true;
+            REQUIRE( dsl_pph_enabled_get(bufferTimeoutPphName.c_str(), &enabled) == DSL_RESULT_SUCCESS );
+            REQUIRE( enabled == false );
+            
+            THEN( "The PPH can be Re-enabled" ) 
+            {
+                // test negative case first - can't disable when already disabled
+                REQUIRE( dsl_pph_enabled_set(bufferTimeoutPphName.c_str(), false) == DSL_RESULT_PPH_SET_FAILED );
+                
+                enabled = true;
+                REQUIRE( dsl_pph_enabled_set(bufferTimeoutPphName.c_str(), enabled) == DSL_RESULT_SUCCESS );
+                enabled = false;
+                REQUIRE( dsl_pph_enabled_get(bufferTimeoutPphName.c_str(), &enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( enabled == true );
+
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 SCENARIO( "The Pad Probe Handler API checks for NULL input parameters", "[pph-api]" )
 {
     GIVEN( "An empty list of Components" ) 
