@@ -190,6 +190,8 @@
 * [dsl_source_pause](/docs/api-source.md#dsl_source_pause)
 * [dsl_source_resume](/docs/api-source.md#dsl_source_resume)
 * [dsl_source_name_get](/docs/api-source.md#dsl_source_name_get)
+* [dsl_source_pph_add](/docs/api-source.md#dsl_source_pph_add)
+* [dsl_source_pph_remove](/docs/api-source.md#dsl_source_pph_remove)
 * [dsl_source_num_in_use_get](/docs/api-source.md#dsl_source_num_in_use_get)
 * [dsl_source_num_in_use_max_get](/docs/api-source.md#dsl_source_num_in_use_max_get)
 * [dsl_source_num_in_use_max_set](/docs/api-source.md#dsl_source_num_in_use_max_set)

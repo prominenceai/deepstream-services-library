@@ -998,6 +998,11 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
 
                 REQUIRE( dsl_source_pause(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_resume(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                
+                REQUIRE( dsl_source_pph_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_pph_add(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_pph_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_pph_remove(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_list_size() == 0 );
             }

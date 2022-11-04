@@ -620,6 +620,19 @@ namespace DSL
         , m_bufferTimerId(0)
     {
         LOG_FUNC();
+        
+        // Note: although this works, it is less than ideal. Need to refactor this
+        // when the PadProbetr gets refactored to suport the EOS PPH in the future.
+        
+        // The super class TimestampPadProbeHandler will enabled at base level.
+        // We need to disable the flag and then reenable to start timer.
+        m_isEnabled = false;
+
+        // Enable now
+        if (!SetEnabled(true))
+        {
+            throw;
+        }
 
     }
 
@@ -631,27 +644,28 @@ namespace DSL
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
             g_source_remove(m_bufferTimerId);
         }
-        
     }
     
     bool BufferTimeoutPadProbeHandler::SetEnabled(bool enabled)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
 
-        if (TimestampPadProbeHandler::SetEnabled(enabled))
+        if (!TimestampPadProbeHandler::SetEnabled(enabled))
         {
             return false;
         }
+
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
 
         if (m_isEnabled)
         {
             m_bufferTimerId = g_timeout_add(10, 
                 buffer_timer_cb, this);
         }
-        else
+        else if (m_bufferTimerId)
         {
             g_source_remove(m_bufferTimerId);
+            m_bufferTimerId = 0;
         }
         return true;
     }
@@ -674,17 +688,21 @@ namespace DSL
     
     int BufferTimeoutPadProbeHandler::TimerHanlder()
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
-
-        struct timeval currentTime;
-        gettimeofday(&currentTime, NULL);
-
+        // Note - wait to lock the mutex as GetTime will lock it.
+        
         // Get the last buffer time. This timer callback will not be called
         // until after the timer is started on main-loop run after play 
         // therefore the lastBufferTime should be non-zero once the first
         // buffer is received
         struct timeval lastBufferTime;
         GetTime(lastBufferTime);
+
+        // Now ok to lock
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+
+        struct timeval currentTime;
+        gettimeofday(&currentTime, NULL);
+
         if (lastBufferTime.tv_sec == 0)
         {
             LOG_DEBUG("Waiting for first buffer before checking for timeout \\\
