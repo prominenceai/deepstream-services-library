@@ -53,8 +53,11 @@ static const std::wstring stis_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_secondary_plan_engine_carcolor.txt");
 
     
-static const std::wstring dcf_tracker_config_file(
+static const std::wstring iou_tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
+
+static const std::wstring dcf_perf_tracker_config_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_NvDCF_perf.yml");
 
 static const std::wstring file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 
@@ -87,10 +90,11 @@ static const uint sink_height(720);
 
 
 SCENARIO( "A new Pipeline with a Primary GIE, DCF Tracker with its Batch Processing \
-    and Past Frame Reporting enabled", "[tracker-play]" )
+    and Past Frame Reporting enabled", "[now]" )
 {
     GIVEN( "A Pipeline, File source, Primary GIE, KTL Tracker, OSD, and Overlay Sink" ) 
     {
+        
         boolean inference_interval(4);
         boolean batch_processing_enabled(true);
         boolean past_frame_reporting_enabled(true);
@@ -110,9 +114,15 @@ SCENARIO( "A new Pipeline with a Primary GIE, DCF Tracker with its Batch Process
             primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 
             0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tracker_dcf_new(dcf_tracker_name.c_str(), NULL, tracker_width, tracker_height,
-            batch_processing_enabled, past_frame_reporting_enabled) 
+        REQUIRE( dsl_tracker_new(dcf_tracker_name.c_str(), 
+            dcf_perf_tracker_config_file.c_str(), tracker_width, tracker_height)
             == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tracker_batch_processing_enabled_set(dcf_tracker_name.c_str(), 
+            batch_processing_enabled) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tracker_past_frame_reporting_enabled_set(dcf_tracker_name.c_str(), 
+            past_frame_reporting_enabled) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
 
@@ -145,7 +155,8 @@ SCENARIO( "A new Pipeline with a Primary GIE, DCF Tracker with its Batch Process
     }
 }
 
-SCENARIO( "A new Pipeline with a Primary GIE, DCF Tracker with its Batch Processing and Past Frame Reporting disabled", "[tracker-play]" )
+SCENARIO( "A new Pipeline with a Primary GIE, DCF Tracker with its Batch Processing and \
+    Past Frame Reporting disabled", "[tracker-play]" )
 {
     GIVEN( "A Pipeline, File source, Primary GIE, KTL Tracker, OSD, and Overlay Sink" ) 
     {
@@ -162,9 +173,15 @@ SCENARIO( "A new Pipeline with a Primary GIE, DCF Tracker with its Batch Process
             primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 
             0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tracker_dcf_new(dcf_tracker_name.c_str(), NULL, tracker_width, tracker_height,
-            batch_processing_enabled, past_frame_reporting_enabled) 
+        REQUIRE( dsl_tracker_new(dcf_tracker_name.c_str(), 
+            dcf_perf_tracker_config_file.c_str(), tracker_width, tracker_height) 
             == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tracker_batch_processing_enabled_set(dcf_tracker_name.c_str(), 
+            batch_processing_enabled) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tracker_past_frame_reporting_enabled_set(dcf_tracker_name.c_str(), 
+            past_frame_reporting_enabled) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
@@ -194,9 +211,10 @@ SCENARIO( "A new Pipeline with a Primary GIE, DCF Tracker with its Batch Process
     }
 }
 
-SCENARIO( "A new Pipeline with a Primary GIE, DCF Tracker and optional config file", "[tracker-play]" )
+SCENARIO( "A new Pipeline with a Primary GIE, IOU Tracker and optional \
+    config file", "[tracker-play]" )
 {
-    GIVEN( "A Pipeline, File source, Primary GIE, KTL Tracker, OSD, and Overlay Sink" ) 
+    GIVEN( "A Pipeline, File source, Primary GIE, IOU Tracker, OSD, and Overlay Sink" ) 
     {
         boolean inference_interval(4);
         boolean batch_processing_enabled(true);
@@ -217,8 +235,8 @@ SCENARIO( "A new Pipeline with a Primary GIE, DCF Tracker and optional config fi
             primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 
             0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tracker_dcf_new(dcf_tracker_name.c_str(), dcf_tracker_config_file.c_str(), tracker_width, tracker_height,
-            batch_processing_enabled, past_frame_reporting_enabled) 
+        REQUIRE( dsl_tracker_new(dcf_tracker_name.c_str(), 
+            iou_tracker_config_file.c_str(), tracker_width, tracker_height) 
             == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );

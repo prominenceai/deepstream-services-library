@@ -44,7 +44,7 @@ static const std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
 // Tracker name and input dimensions.
-static const std::wstring tracker_name(L"ktl-tracker");
+static const std::wstring tracker_name(L"iou-tracker");
 static const uint tracker_width(480);
 static const uint tracker_height(272);
 
@@ -313,8 +313,8 @@ int test()
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Multi Object Tracker - required when using a Cross Trigger
-        retval = dsl_tracker_ktl_new(tracker_name.c_str(), 
-            tracker_width, tracker_height);
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
+            tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New On-Screen Display (OSD) to display bounding boxes and object traces.
@@ -334,7 +334,7 @@ int test()
 
         // Create a list of Pipeline Components to add to the new Pipeline.
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"ktl-tracker", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"osd", L"window-sink", NULL};
         
         // Create a new Pipeline and add the above components in the next call.
         retval = dsl_pipeline_new_component_add_many(

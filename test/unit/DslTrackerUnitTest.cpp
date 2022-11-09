@@ -39,9 +39,8 @@ SCENARIO( "A DCF Tracker is created correctly", "[TrackerBintr]" )
 
         WHEN( "The DCF Tracker is created" )
         {
-            DSL_DCF_TRACKER_PTR pTrackerBintr = 
-                DSL_DCF_TRACKER_NEW(trackerName.c_str(), "", width, height,
-                    batchProcessingEnabled, pastFrameReportingEnabled);
+            DSL_TRACKER_PTR pTrackerBintr = 
+                DSL_TRACKER_NEW(trackerName.c_str(), "", width, height);
 
             THEN( "The DCF Tracker's lib is found, loaded, and returned correctly")
             {
@@ -65,13 +64,12 @@ SCENARIO( "A DCF Tracker is created correctly with a config file", "[TrackerBint
         uint width(32);
         uint height(32);
         bool batchProcessingEnabled(true);
-        bool pastFrameReportingEnabled(true);
+        bool pastFrameReportingEnabled(false);
 
         WHEN( "The DCF Tracker is created" )
         {
-            DSL_DCF_TRACKER_PTR pTrackerBintr = 
-                DSL_DCF_TRACKER_NEW(trackerName.c_str(), configFile.c_str(), width, height,
-                    batchProcessingEnabled, pastFrameReportingEnabled);
+            DSL_TRACKER_PTR pTrackerBintr = 
+                DSL_TRACKER_NEW(trackerName.c_str(), configFile.c_str(), width, height);
 
             THEN( "The DCF Tracker's lib is found, loaded, and returned correctly")
             {
@@ -86,35 +84,38 @@ SCENARIO( "A DCF Tracker is created correctly with a config file", "[TrackerBint
     }
 }
 
-SCENARIO( "A DCF Tracker's enable-patch-processing and enable-past-frame settings can be updated", "[TrackerBintr]" )
+SCENARIO( "A Tracker's enable-patch-processing and enable-past-frame settings can be updated", "[TrackerBintr]" )
 {
     GIVEN( "A new Tracker in memory" ) 
     {
-        std::string trackerName("dcf-tracker");
+        std::string trackerName("tracker");
         uint width(64);
         uint height(64);
         bool batchProcessingEnabled(true);
         bool pastFrameReportingEnabled(true);
 
-        DSL_DCF_TRACKER_PTR pTrackerBintr = 
-            DSL_DCF_TRACKER_NEW(trackerName.c_str(), "", width, height,
-                batchProcessingEnabled, pastFrameReportingEnabled);
+        DSL_TRACKER_PTR pTrackerBintr = 
+            DSL_TRACKER_NEW(trackerName.c_str(), "", width, height);
+
+        // check the defaults
+        REQUIRE( pTrackerBintr->GetBatchProcessingEnabled() == true );
+        REQUIRE( pTrackerBintr->GetPastFrameReportingEnabled() == false );
 
         WHEN( "The Trackers's demensions are Set" )
         {
             REQUIRE( pTrackerBintr->SetBatchProcessingEnabled(false) == true );
-            REQUIRE( pTrackerBintr->SetPastFrameReportingEnabled(false) == true );
+            REQUIRE( pTrackerBintr->SetPastFrameReportingEnabled(true) == true );
 
             THEN( "The Display's new demensions are returned on Get")
             {
                 REQUIRE( pTrackerBintr->GetBatchProcessingEnabled() == false );
-                REQUIRE( pTrackerBintr->GetPastFrameReportingEnabled() == false );
+                REQUIRE( pTrackerBintr->GetPastFrameReportingEnabled() == true );
             }
         }
     }
 }
 
-SCENARIO( "A DCF Tracker's generates a warning if enable-patch-processing is false and batch-size > 1", "[TrackerBintr]" )
+SCENARIO( "A Tracker generates a warning if enable-patch-processing is false and batch-size > 1", "[TrackerBintr]" )
 {
     GIVEN( "A new Tracker in memory" ) 
     {
@@ -124,9 +125,8 @@ SCENARIO( "A DCF Tracker's generates a warning if enable-patch-processing is fal
         bool batchProcessingEnabled(true);
         bool pastFrameReportingEnabled(true);
 
-        DSL_DCF_TRACKER_PTR pTrackerBintr = 
-            DSL_DCF_TRACKER_NEW(trackerName.c_str(), "", width, height,
-                batchProcessingEnabled, pastFrameReportingEnabled);
+        DSL_TRACKER_PTR pTrackerBintr = 
+            DSL_TRACKER_NEW(trackerName.c_str(), "", width, height);
 
         WHEN( "The Trackers's batch-processing is enabled when batch-size is set > 1" )
         {
@@ -151,30 +151,6 @@ SCENARIO( "A DCF Tracker's generates a warning if enable-patch-processing is fal
     }
 }
 
-SCENARIO( "A KTL Tracker is created correctly", "[TrackerBintr]" )
-{
-    GIVEN( "Attributes for a new KTL Tracker" ) 
-    {
-        std::string trackerName("ktl-tracker");
-        uint width(200);
-        uint height(100);
-
-        WHEN( "The KTL Tracker is created" )
-        {
-            DSL_KTL_TRACKER_PTR pTrackerBintr = 
-                DSL_KTL_TRACKER_NEW(trackerName.c_str(), width, height);
-
-            THEN( "The KTL Tracker's lib is found, loaded, and returned correctly")
-            {
-                uint retWidth(0), retHeight(0);
-                pTrackerBintr->GetDimensions(&retWidth, &retHeight);
-                REQUIRE( retWidth == width );
-                REQUIRE( retHeight == height );
-            }
-        }
-    }
-}
-
 SCENARIO( "An IOU Tracker is created correctly", "[TrackerBintr]" )
 {
     GIVEN( "Attributes for a new IOU Tracker" ) 
@@ -186,8 +162,8 @@ SCENARIO( "An IOU Tracker is created correctly", "[TrackerBintr]" )
 
         WHEN( "The IOU Tracker is created" )
         {
-            DSL_IOU_TRACKER_PTR pTrackerBintr = 
-                DSL_IOU_TRACKER_NEW(trackerName.c_str(), defConfigFile.c_str(), width, height);
+            DSL_TRACKER_PTR pTrackerBintr = 
+                DSL_TRACKER_NEW(trackerName.c_str(), defConfigFile.c_str(), width, height);
 
             THEN( "The IOU Tracker's lib is found, loaded, and returned correctly")
             {
@@ -206,12 +182,12 @@ SCENARIO( "A Tracker's dimensions can be updated", "[TrackerBintr]" )
 {
     GIVEN( "A new Tracker in memory" ) 
     {
-        std::string trackerName("ktl-tracker");
+        std::string trackerName("tracker");
         uint initWidth(200);
         uint initHeight(100);
 
-        DSL_KTL_TRACKER_PTR pTrackerBintr = 
-            DSL_KTL_TRACKER_NEW(trackerName.c_str(), initWidth, initHeight);
+        DSL_TRACKER_PTR pTrackerBintr = 
+            DSL_TRACKER_NEW(trackerName.c_str(), "", initWidth, initHeight);
             
         uint currWidth(0);
         uint currHeight(0);

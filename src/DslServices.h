@@ -892,13 +892,7 @@ namespace DSL {
     
         DslReturnType _inferNameErase(uint inferId);
 
-        DslReturnType TrackerDcfNew(const char* name, 
-            const char* configFile, uint width, uint height,
-            boolean batch_processing_enabled, boolean past_frame_reporting_enabled);
-        
-        DslReturnType TrackerKtlNew(const char* name, uint width, uint height);
-        
-        DslReturnType TrackerIouNew(const char* name, 
+        DslReturnType TrackerNew(const char* name, 
             const char* configFile, uint width, uint height);
 
         DslReturnType TrackerConfigFileGet(const char* name, const char** inferConfigFile);
@@ -909,16 +903,16 @@ namespace DSL {
         
         DslReturnType TrackerDimensionsSet(const char* name, uint width, uint height);
         
-        DslReturnType TrackerDcfBatchProcessingEnabledGet(const char* name, 
+        DslReturnType TrackerBatchProcessingEnabledGet(const char* name, 
             boolean* enabled);
         
-        DslReturnType TrackerDcfBatchProcessingEnabledSet(const char* name, 
+        DslReturnType TrackerBatchProcessingEnabledSet(const char* name, 
             boolean enabled);
 
-        DslReturnType TrackerDcfPastFrameReportingEnabledGet(const char* name, 
+        DslReturnType TrackerPastFrameReportingEnabledGet(const char* name, 
             boolean* enabled);
 
-        DslReturnType TrackerDcfPastFrameReportingEnabledSet(const char* name, 
+        DslReturnType TrackerPastFrameReportingEnabledSet(const char* name, 
             boolean enabled);
         
         DslReturnType TrackerPphAdd(const char* name, const char* handler, uint pad);

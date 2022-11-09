@@ -55,11 +55,13 @@ static std::wstring infer_config_file(
 static std::wstring model_engine_file(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
         
-static const std::wstring tracker_name1(L"ktl-tracker-1");
-static const std::wstring tracker_name2(L"ktl-tracker-2");
+static const std::wstring tracker_name1(L"iou-tracker-1");
+static const std::wstring tracker_name2(L"iou-tracker-2");
 
 static const uint tracker_width(480);
 static const uint tracker_height(272);
+static const std::wstring tracker_config_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
 static const std::wstring tiler_name(L"tiler");
 static const uint width(1280);
@@ -292,7 +294,7 @@ SCENARIO( "Two Pipelines with and Inter-Pipe Sources can listen to a single Inte
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name1.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 4) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_tracker_ktl_new(tracker_name1.c_str(), 
+        REQUIRE( dsl_tracker_new(tracker_name1.c_str(), tracker_config_file.c_str(),
             tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_osd_new(osd_name1.c_str(), text_enabled, clock_enabled,
