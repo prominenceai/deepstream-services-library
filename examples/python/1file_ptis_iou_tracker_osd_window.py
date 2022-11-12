@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2021, Prominence AI, Inc.
+# Copyright (c) 2021, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -25,16 +25,32 @@
 #!/usr/bin/env python
 
 import sys
+import time
+
 from dsl import *
-from nvidia_osd_sink_pad_buffer_probe import osd_sink_pad_buffer_probe
 
-uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+#-------------------------------------------------------------------------------------------
+#
+# This script demonstrates the use of a Primary Triton Inference Server (PTIS). The PTIS
+# requires a unique name, TIS inference config file, and inference interval when created.
+#
+# The PTIS is added to a new Pipeline with a single File Source, KTL Tracker, 
+# On-Screen-Display (OSD), and Window Sink with 1280x720 dimensions.
 
-# Filespecs for the Primary GIE and IOU Trcaker
+# File path for the single File Source
+file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4'
+
+# Filespecs for the Primary Triton Inference Server (PTIS)
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
-primary_model_engine_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_plan_engine_primary.txt'
+
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+
+# Window Sink Dimensions
+sink_width = 1280
+sink_height = 720
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -76,49 +92,35 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # New URI File Source using the filespec defined above
-        retval = dsl_source_uri_new('uri-source', uri_file, False, False, 0)
+        # New File Source using the file path specified above, repeat diabled.
+        retval = dsl_source_file_new('file-source', file_path, False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # New Primary TIS using the filespec specified above, with interval = 0
+        retval = dsl_infer_tis_primary_new('primary-tis', primary_infer_config_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Primary GIE using the filespecs above with interval = 0
-        retval = dsl_infer_gie_primary_new('primary-gie', 
-            primary_infer_config_file, primary_model_engine_file, 0)
+        # New IOU Tracker, setting operational width and height.
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New KTL Tracker, setting max width and height of input frame
-        retval = dsl_tracker_ktl_new('ktl-tracker', 480, 272)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New Tiled Display, setting width and height, use default cols/rows set by source count
-        retval = dsl_tiler_new('tiler', 1280, 720)
-        if retval != DSL_RETURN_SUCCESS:
-            break
- 
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
             text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Custom Pad Probe Handler to call Nvidia's example callback for handling the Batched Meta Data
-        retval = dsl_pph_custom_new('custom-pph', client_handler=osd_sink_pad_buffer_probe, client_data=None)
-        
-        # Add the custom PPH to the Sink pad of the OSD
-        retval = dsl_osd_pph_add('on-screen-display', handler='custom-pph', pad=DSL_PAD_SINK)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
-        ## New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
+        # New Window Sink, 0 x/y offsets and dimensions 
+        retval = dsl_sink_window_new('window-sink', 0, 0, sink_width, sink_height)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to our pipeline
+        # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'ktl-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
+            ['file-source', 'primary-tis', 'iou-tracker', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -143,6 +145,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Join with main loop until released - blocking call
         dsl_main_loop_run()
         retval = DSL_RETURN_SUCCESS
         break

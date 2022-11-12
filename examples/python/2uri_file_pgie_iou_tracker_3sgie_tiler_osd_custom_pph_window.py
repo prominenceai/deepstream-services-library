@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2021, Prominence AI, Inc.
+# Copyright (c) 2019-2021, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -25,38 +25,37 @@
 #!/usr/bin/env python
 
 import sys
-import time
-
 from dsl import *
+from nvidia_osd_sink_pad_buffer_probe import osd_sink_pad_buffer_probe
 
-#-------------------------------------------------------------------------------------------
-#
-# This script demonstrates the use of a Primary Triton Inference Server (PTIS), and three 
-# Secondary Triton Inference Servers (STIS). All Inference Servers require a unique name, 
-# TIS inference config file, and inference interval when created. The STIS requires an
-# additional "infer_on_tis" name parameter, which in this scenario is the name of PTIS. 
-#
-# The PTIS and 3 STISs are added to a new Pipeline with a single File Source, KTL Tracker, 
-# On-Screen-Display (OSD), and Window Sink with 1280x720 dimensions.
+uri_h264 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
-# File path for the single File Source
-file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4'
-
-# Filespecs for the Primary Triton Inference Server (PTIS)
+# Filespecs for the Primary GIE
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_plan_engine_primary.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
-# Filespecs for the Three Secondary Triton Inference Servers (STIS)
-secondary_infer_config_file1 = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_secondary_plan_engine_carcolor.txt'
-secondary_infer_config_file2 = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_secondary_plan_engine_carmake.txt'
-secondary_infer_config_file3 = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_secondary_plan_engine_vehicletypes.txt'
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
-# Window Sink Dimensions
-sink_width = 1280
-sink_height = 720
+# Filespecs for the Secondary GIE
+sgie1_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carcolor.txt'
+sgie1_model_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine'
+
+sgie2_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carmake.txt'
+sgie2_model_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_fp16.engine'
+
+sgie3_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt'
+sgie3_model_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18.caffemodel_b8_gpu0_fp16.engine'
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -68,6 +67,7 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
  
 ## 
@@ -75,11 +75,13 @@ def xwindow_key_event_handler(key_string, client_data):
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 # Function to be called on End-of-Stream (EOS) event
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -95,50 +97,64 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # New File Source using the file path specified above, repeat diabled.
-        retval = dsl_source_file_new('file-source', file_path, False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # New Primary TIS using the filespec specified above, with interval = 4
-        retval = dsl_infer_tis_primary_new('primary-tis', primary_infer_config_file, 4)
+        # 2 New URI File Sourcea using the filespeca defined above
+        retval = dsl_source_uri_new('uri-h264', uri_h264, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Three New Secondary TISs using the filespec specified above, with interval = 0
-        retval = dsl_infer_tis_secondary_new('secondary-tis-1', 
-            secondary_infer_config_file1, 'primary-tis', 0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_infer_tis_secondary_new('secondary-tis-2', 
-            secondary_infer_config_file2, 'primary-tis', 0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_infer_tis_secondary_new('secondary-tis-3', 
-            secondary_infer_config_file3, 'primary-tis', 0)
+        retval = dsl_source_uri_new('uri-h265', uri_h265, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New KTL Tracker, setting output width and height of tracked objects
-        retval = dsl_tracker_ktl_new('ktl-tracker', 480, 272)
+        # New Primary GIE using the filespecs above with interval = 0
+        retval = dsl_infer_gie_primary_new('pgie', 
+            primary_infer_config_file, primary_model_engine_file, 3)
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # New Secondary GIEs using the filespecs above with interval = 0
+        retval = dsl_infer_gie_secondary_new('carcolor-sgie', sgie1_config_file, sgie1_model_file, 'pgie', 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_infer_gie_secondary_new('carmake-sgie', sgie2_config_file, sgie2_model_file, 'pgie', 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_infer_gie_secondary_new('vehicletype-sgie', sgie3_config_file, sgie3_model_file, 'pgie', 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New IOU Tracker, setting operational width and hieght
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New Tiled Display, setting width and height, use default cols/rows set by source count
+        retval = dsl_tiler_new('tiler', 1920, 720)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+ 
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
             text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, 0 x/y offsets and dimensions 
-        retval = dsl_sink_window_new('window-sink', 0, 0, sink_width, sink_height)
+        # New Custom Pad Probe Handler to call Nvidia's example callback for handling the Batched Meta Data
+        retval = dsl_pph_custom_new('custom-pph', client_handler=osd_sink_pad_buffer_probe, client_data=None)
+        
+        # Add the custom PPH to the Sink pad of the OSD
+        retval = dsl_osd_pph_add('on-screen-display', handler='custom-pph', pad=DSL_PAD_SINK)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        ## New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
+        retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to a new pipeline
-        retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['file-source', 'primary-tis', 'ktl-tracker', 'secondary-tis-1', 'secondary-tis-2', 
-            'secondary-tis-3', 'on-screen-display', 'window-sink', None])
+        # Add all the components to our pipeline
+        retval = dsl_pipeline_new_component_add_many('pipeline', ['uri-h264', 'uri-h265', 'pgie', 'iou-tracker', 
+            'carcolor-sgie', 'carmake-sgie', 'vehicletype-sgie', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -163,13 +179,12 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Join with main loop until released - blocking call
         dsl_main_loop_run()
         retval = DSL_RETURN_SUCCESS
         break
 
-    # Print out the final result
-    print(dsl_return_value_to_string(retval))
+        # Print out the final result
+        print(dsl_return_value_to_string(retval))
 
     dsl_pipeline_delete_all()
     dsl_component_delete_all()

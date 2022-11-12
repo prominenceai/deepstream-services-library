@@ -43,7 +43,8 @@ primary_infer_config_file = \
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b3_gpu0_fp16.engine'
     
-tracker_config_file = \
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 PGIE_CLASS_ID_VEHICLE = 0
@@ -140,8 +141,8 @@ def main(args):
         retval = dsl_infer_gie_tensor_meta_settings_set('primary-gie',
             input_enabled=True, output_enabled=False);
 
-        # New IOU Tracker, setting max width and height of input frame
-        retval = dsl_tracker_iou_new('iou-tracker', tracker_config_file, 640, 368)
+        # New IOU Tracker, setting operational width and height
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 640, 368)
         if retval != DSL_RETURN_SUCCESS:
             break
 

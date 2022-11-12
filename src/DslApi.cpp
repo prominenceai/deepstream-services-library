@@ -4768,7 +4768,6 @@ DslReturnType dsl_tracker_new(const wchar_t* name,
     const wchar_t* config_file, uint width, uint height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(config_file);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());

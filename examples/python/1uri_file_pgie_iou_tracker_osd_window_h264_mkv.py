@@ -29,14 +29,31 @@ import time
 
 from dsl import *
 
-uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
-# Filespecs for the Primary GIE
+# Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+
+## 
+# Function to be called on XWindow KeyRelease event
+## 
+def xwindow_key_event_handler(key_string, client_data):
+    print('key released = ', key_string)
+    if key_string.upper() == 'P':
+        dsl_pipeline_pause('pipeline')
+    elif key_string.upper() == 'R':
+        dsl_pipeline_play('pipeline')
+    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
+        dsl_main_loop_quit()
+ 
 ## 
 # Function to be called on XWindow Delete event
 ## 
@@ -45,71 +62,76 @@ def xwindow_delete_event_handler(client_data):
     dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
-## 
 # Function to be called on End-of-Stream (EOS) event
-## 
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
     dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
+
+## 
+# Function to be called on every change of Pipeline state
+## 
+def state_change_listener(old_state, new_state, client_data):
+    print('previous state = ', old_state, ', new state = ', new_state)
+    if new_state == DSL_STATE_PLAYING:
+        dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # Two URI File Sources - using the same file.
-        retval = dsl_source_uri_new('uri-source-1', uri_h265, False, False, 0)
+        ## First new URI File Source
+        retval = dsl_source_uri_new('uri-source', uri_file, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_source_uri_new('uri-source-2', uri_h265, False, False, 0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New Primary GIE using the filespecs above, with infer interval
-        retval = dsl_infer_gie_primary_new('primary-gie',
+            
+        ## New Primary GIE using the filespecs above with interval = 0
+        retval = dsl_infer_gie_primary_new('primary-gie', 
             primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Overlay Sink with id, display, depth, x/y offsets and Dimensions
-        retval = dsl_sink_overlay_new('overlay-sink', 0, 0, 100, 100, 360, 180)  
+        # New IOU Tracker, setting operational width and hieght
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
-            
+
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
             text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, with x/y offsets and dimensions
-        retval = dsl_sink_window_new('window-sink', 0, 0, 720, 360)
+        ## New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
+        retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Branch for the PGIE, OSD and Window Sink
-        retval = dsl_branch_new_component_add_many('branch1', ['on-screen-display', 'window-sink', None])
+        ## New File Sink with H264 Codec type and MKV conatiner muxer, and bit-rate and iframe interval
+        retval = dsl_sink_file_new('file-sink', "./output.mkv", DSL_CODEC_H264, DSL_CONTAINER_MKV, 2000000, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add Branch1 and the overlay-sink as Branch2
-        retVal = dsl_tee_demuxer_new_branch_add_many('demuxer', ['branch1', 'overlay-sink', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Add the sources the components to our pipeline
+        # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source-1', 'uri-source-2', 'primary-gie', 'demuxer', None])
+            ['uri-source', 'primary-gie', 'iou-tracker', 'on-screen-display', 'window-sink', 'file-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the window delete handler and EOS listener callbacks to the Pipeline
-        retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
+        ## Add the XWindow event handler functions defined above
+        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-            
         retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        ## Add the listener callback functions defined above
+        retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -118,6 +140,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Join with main loop until released - blocking call
         dsl_main_loop_run()
         retval = DSL_RETURN_SUCCESS
         break

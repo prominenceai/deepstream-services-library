@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2021, Prominence AI, Inc.
+# Copyright (c) 2019-2021, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -29,29 +29,23 @@ import time
 
 from dsl import *
 
-#-------------------------------------------------------------------------------------------
-#
-# This script demonstrates the use of a Primary Triton Inference Server (PTIS). The PTIS
-# requires a unique name, TIS inference config file, and inference interval when created.
-#
-# The PTIS is added to a new Pipeline with a single File Source, KTL Tracker, 
-# On-Screen-Display (OSD), and Window Sink with 1280x720 dimensions.
-
-# File path for the single File Source
-file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4'
-
-# Filespecs for the Primary Triton Inference Server (PTIS)
+# Filespecs for the Primary GIE
+# Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_plan_engine_primary.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
-# Window Sink Dimensions
-sink_width = 1280
-sink_height = 720
+source_uri = 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
+
+MAX_OVERLAY_COUNT = 2 # hardware limited
+cur_overlay_count = 0
 
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
 def xwindow_key_event_handler(key_string, client_data):
+    global MAX_OVERLAY_COUNT, cur_overlay_count
     print('key released = ', key_string)
     if key_string.upper() == 'P':
         dsl_pipeline_pause('pipeline')
@@ -60,6 +54,24 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
         dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
+
+    # Add a new overlay sink
+    elif key_string == '+': 
+        if cur_overlay_count < MAX_OVERLAY_COUNT:
+            cur_overlay_count += 1
+            sink_name = 'overlay-sink-' + str(cur_overlay_count)
+            print('adding sink ', sink_name)
+            dsl_sink_overlay_new(sink_name, 0, 0, 100*cur_overlay_count, 100*cur_overlay_count, 360, 180)
+            dsl_pipeline_component_add('pipeline', sink_name)
+
+    # Remove the last sink added
+    elif key_string == '-': 
+        if cur_overlay_count > 0:
+            sink_name = 'overlay-sink-' + str(cur_overlay_count)
+            print('removing sink ', sink_name)
+            dsl_pipeline_component_remove('pipeline', sink_name)
+            dsl_component_delete(sink_name)
+            cur_overlay_count -= 1
  
 ## 
 # Function to be called on XWindow Delete event
@@ -83,44 +95,34 @@ def state_change_listener(old_state, new_state, client_data):
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
+
 def main(args):
+
+    print('*******************************************************')
+    print(' Press + to add new Overlay Sink')
+    print(' Press - to remove last added Overlay Sink')
+    print('*******************************************************')
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # New File Source using the file path specified above, repeat diabled.
-        retval = dsl_source_file_new('file-source', file_path, False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # New Primary TIS using the filespec specified above, with interval = 0
-        retval = dsl_infer_tis_primary_new('primary-tis', primary_infer_config_file, 0)
+        ## First new URI File Source
+        retval = dsl_source_uri_new('uri-source', source_uri, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New KTL Tracker, setting output width and height of tracked objects
-        retval = dsl_tracker_ktl_new('ktl-tracker', 480, 272)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New OSD with text, clock and bbox display all enabled. 
-        retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New Window Sink, 0 x/y offsets and dimensions 
-        retval = dsl_sink_window_new('window-sink', 0, 0, sink_width, sink_height)
+        ## New Window Sink, same dimensions as tiler
+        retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['file-source', 'primary-tis', 'ktl-tracker', 'on-screen-display', 'window-sink', None])
+            ['uri-source', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the XWindow event handler functions defined above
+        ## Add the XWindow event handler functions defined above
         retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -128,7 +130,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the listener callback functions defined above
+        ## Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break

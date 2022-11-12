@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2021, Prominence AI, Inc.
+# Copyright (c) 2019-2021, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -25,32 +25,29 @@
 #!/usr/bin/env python
 
 import sys
-import time
-
 from dsl import *
 
-#-------------------------------------------------------------------------------------------
-#
-# This script demonstrates the use of a Primary Triton Inference Server (PTIS). The PTIS
-# requires a unique name, TIS inference config file, and inference interval when created.
-#
-# The PTIS is added to a new Pipeline with a single File Source, NcDCF Low Level Tracker, 
-# On-Screen-Display (OSD), and Window Sink with 1280x720 dimensions.
+uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
-# File path for the single File Source
-file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4'
-
-# Filespec for the Primary Triton Inference Server (PTIS) config file
+# Config file used with the Preprocessor
+preproc_config_file = \
+    '/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-preprocess-test/config_preprocess.txt'
+    
+# Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_plan_engine_primary.txt'
+    '/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-preprocess-test/config_infer.txt'
 
-# Filespec for the NvDCF Tracker config file
-dcf_tracker_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_NvDCF_accuracy.yml'
+# IMPORTANT! ensure that the model-engine was generated with the config from the Preprocessing example
+#  - apps/sample_apps/deepstream-preprocess-test/config_infer.txt
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+    
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
-# Window Sink Dimensions
-sink_width = 1280
-sink_height = 720
+WINDOW_WIDTH = 1280
+WINDOW_HEIGHT = 720
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -62,6 +59,7 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
  
 ## 
@@ -69,11 +67,15 @@ def xwindow_key_event_handler(key_string, client_data):
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
+## 
 # Function to be called on End-of-Stream (EOS) event
+## 
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -89,26 +91,37 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # New File Source using the file path specified above, repeat diabled.
-        retval = dsl_source_file_new('file-source', file_path, False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # New Primary TIS using the filespec specified above, with interval = 3
-        # Note: need to set the interval to greater than 1 as the DCF Tracker
-        # add a medimum level GPU computational load vs. the KTL and IOU CPU Trackers.
-        retval = dsl_infer_tis_primary_new('primary-tis', primary_infer_config_file, 3)
+        # New URI File Source using the filespec defined above
+        retval = dsl_source_uri_new('uri-source', uri_file, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New NvDCF Tracker, setting output width and height of tracked objects
-        # NOTE: width and height paramaters must be multiples of 32
-        retval = dsl_tracker_dcf_new('dcf-tracker', 
-            config_file = dcf_tracker_config_file,
-            width = 640, 
-            height = 384,
-            batch_processing_enabled = True, # only matters when using multiple source
-            past_frame_reporting_enabled = False) 
+        # New Preprocessor component using the config filespec defined above.
+        retval = dsl_preproc_new('preprocessor', preproc_config_file)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        # New Primary GIE using the filespecs above with interval = 0
+#        retval = dsl_infer_gie_primary_new('primary-gie', 
+#            primary_infer_config_file, primary_model_engine_file, 0)
+        retval = dsl_infer_gie_primary_new('primary-gie', 
+            primary_infer_config_file, None, 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # **** IMPORTANT! for best performace we explicity set the GIE's batch-size 
+        # to the number of ROI's defined in the Preprocessor configuraton file.
+        retval = dsl_infer_batch_size_set('primary-gie', 2)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # **** IMPORTANT! we must set the input-meta-tensor setting to true when
+        # using the preprocessor, otherwise the GIE will use its own preprocessor.
+        retval = dsl_infer_gie_tensor_meta_settings_set('primary-gie',
+            input_enabled=True, output_enabled=False);
+
+        # New IOU Tracker, setting operational frame width and height.
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -118,14 +131,15 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, 0 x/y offsets and dimensions 
-        retval = dsl_sink_window_new('window-sink', 0, 0, sink_width, sink_height)
+        # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
+        retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to a new pipeline
-        retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['file-source', 'primary-tis', 'dcf-tracker', 'on-screen-display', 'window-sink', None])
+        # Add all the components to our pipeline
+        retval = dsl_pipeline_new_component_add_many('pipeline', components=[
+            'uri-source', 'preprocessor', 'primary-gie', 'iou-tracker', 
+            'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -137,7 +151,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the listener callback functions defined above
+        ## Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -150,7 +164,6 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Join with main loop until released - blocking call
         dsl_main_loop_run()
         retval = DSL_RETURN_SUCCESS
         break

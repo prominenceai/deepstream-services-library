@@ -44,7 +44,7 @@ std::wstring primary_model_engine_file(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b4_gpu0_fp16.engine");
 
 // Config file used by the IOU Tracker    
-std::wstring tracker_config_file(
+std::wstring iou_tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
 
@@ -137,8 +137,9 @@ int main(int argc, char** argv)
             true, false);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // New IOU Tracker, setting max width and height of input frame
-        retval = dsl_tracker_new(L"iou-tracker", tracker_config_file.c_str(), 480, 272);
+        // New IOU Tracker, setting operational width and height of input frame
+        retval = dsl_tracker_new(L"iou-tracker", 
+            iou_tracker_config_file.c_str(), 480, 272);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New OSD with text, clock and bbox display all enabled. 

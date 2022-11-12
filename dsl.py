@@ -3860,23 +3860,13 @@ def dsl_infer_raw_output_enabled_set(name, enabled, path):
     return int(result)
 
 ##
-## dsl_tracker_ktl_new()
+## dsl_tracker_new()
 ##
-_dsl.dsl_tracker_ktl_new.argtypes = [c_wchar_p, c_uint, c_uint]
-_dsl.dsl_tracker_ktl_new.restype = c_uint
-def dsl_tracker_ktl_new(name, width, height):
+_dsl.dsl_tracker_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
+_dsl.dsl_tracker_new.restype = c_uint
+def dsl_tracker_new(name, config_file, width, height):
     global _dsl
-    result = _dsl.dsl_tracker_ktl_new(name, width, height)
-    return int(result)
-
-##
-## dsl_tracker_iou_new()
-##
-_dsl.dsl_tracker_iou_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
-_dsl.dsl_tracker_iou_new.restype = c_uint
-def dsl_tracker_iou_new(name, config_file, width, height):
-    global _dsl
-    result = _dsl.dsl_tracker_iou_new(name, config_file, width, height)
+    result = _dsl.dsl_tracker_new(name, config_file, width, height)
     return int(result)
 
 ##
@@ -3902,45 +3892,45 @@ def dsl_tracker_dimensions_set(name, width, height):
     return int(result)
 
 ##
-## dsl_tracker_dcf_batch_processing_enabled_get()
+## dsl_tracker_batch_processing_enabled_get()
 ##
-_dsl.dsl_tracker_dcf_batch_processing_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
-_dsl.dsl_tracker_dcf_batch_processing_enabled_get.restype = c_uint
-def dsl_tracker_dcf_batch_processing_enabled_get(name):
+_dsl.dsl_tracker_batch_processing_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_tracker_batch_processing_enabled_get.restype = c_uint
+def dsl_tracker_batch_processing_enabled_get(name):
     global _dsl
     enabled = c_bool(0)
-    result = _dsl.dsl_tracker_dcf_batch_processing_enabled_get(name, DSL_BOOL_P(enabled))
+    result = _dsl.dsl_tracker_batch_processing_enabled_get(name, DSL_BOOL_P(enabled))
     return int(result), enabled.value
 
 ##
-## dsl_tracker_dcf_batch_processing_enabled_set()
+## dsl_tracker_batch_processing_enabled_set()
 ##
-_dsl.dsl_tracker_dcf_batch_processing_enabled_set.argtypes = [c_wchar_p, c_bool]
-_dsl.dsl_tracker_dcf_batch_processing_enabled_set.restype = c_uint
-def dsl_tracker_dcf_batch_processing_enabled_set(name, enabled):
+_dsl.dsl_tracker_batch_processing_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_tracker_batch_processing_enabled_set.restype = c_uint
+def dsl_tracker_batch_processing_enabled_set(name, enabled):
     global _dsl
-    result = _dsl.dsl_tracker_dcf_batch_processing_enabled_set(name, enabled)
+    result = _dsl.dsl_tracker_batch_processing_enabled_set(name, enabled)
     return int(result)
 
 ##
-## dsl_tracker_dcf_past_frame_reporting_enabled_get()
+## dsl_tracker_past_frame_reporting_enabled_get()
 ##
-_dsl.dsl_tracker_dcf_past_frame_reporting_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
-_dsl.dsl_tracker_dcf_past_frame_reporting_enabled_get.restype = c_uint
-def dsl_tracker_dcf_past_frame_reporting_enabled_get(name):
+_dsl.dsl_tracker_past_frame_reporting_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_tracker_past_frame_reporting_enabled_get.restype = c_uint
+def dsl_tracker_past_frame_reporting_enabled_get(name):
     global _dsl
     enabled = c_bool(0)
-    result = _dsl.dsl_tracker_dcf_past_frame_reporting_enabled_get(name, DSL_BOOL_P(enabled))
+    result = _dsl.dsl_tracker_past_frame_reporting_enabled_get(name, DSL_BOOL_P(enabled))
     return int(result), enabled.value
 
 ##
-## dsl_tracker_dcf_past_frame_reporting_enabled_set()
+## dsl_tracker_past_frame_reporting_enabled_set()
 ##
-_dsl.dsl_tracker_dcf_past_frame_reporting_enabled_set.argtypes = [c_wchar_p, c_uint, c_bool]
-_dsl.dsl_tracker_dcf_past_frame_reporting_enabled_set.restype = c_uint
-def dsl_tracker_dcf_past_frame_reporting_enabled_set(name, enabled):
+_dsl.dsl_tracker_past_frame_reporting_enabled_set.argtypes = [c_wchar_p, c_uint, c_bool]
+_dsl.dsl_tracker_past_frame_reporting_enabled_set.restype = c_uint
+def dsl_tracker_past_frame_reporting_enabled_set(name, enabled):
     global _dsl
-    result = _dsl.dsl_tracker_dcf_past_frame_reporting_enabled_set(name, enabled)
+    result = _dsl.dsl_tracker_past_frame_reporting_enabled_set(name, enabled)
     return int(result)
 
 ##

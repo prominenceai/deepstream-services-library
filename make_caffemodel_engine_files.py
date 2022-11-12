@@ -40,11 +40,11 @@ uri = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4'
 
 
 # Config file for the Primary GIE
-
-# inferConfigFile = \
-#     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
 inferConfigFile = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+    
+tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 # Config files for the Secondary GIEs
 sgie1_config_file = \
@@ -107,7 +107,7 @@ def main(args):
         # at a time, but it's easier to create both and just update the Pipeline assembly below as needed.
 
         # New KTL Tracker, setting max width and height of input frame
-        retval = dsl_tracker_ktl_new('ktl-tracker', 480, 288)
+        retval = dsl_tracker_new('tracker', tracker_config_file, 480, 288)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -128,7 +128,7 @@ def main(args):
         # Note: *** change 'iou-tracker' to 'ktl-tracker' to try both. KTL => higher CPU load 
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['Camera 1', 'Camera 2', 'Camera 3', 'Camera 4', 'Camera 5', 'Camera 6',  
-            'Camera 7', 'Camera 8', 'primary-gie', 'ktl-tracker', 'carcolor-sgie', 
+            'Camera 7', 'Camera 8', 'primary-gie', 'tracker', 'carcolor-sgie', 
             'carmake-sgie', 'vehicletype-sgie', 'tiler', 'fake-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
