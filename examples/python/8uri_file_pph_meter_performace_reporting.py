@@ -172,10 +172,6 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #----------------------------------------------------------------------------------------------------
-        # Create one of each Tracker Types, KTL and IOU, to test with each. We will only add one
-        # at a time, but it's easier to create both and just update the Pipeline assembly below as needed.
-
         # New IOU Tracker, setting operational width and hieght
         retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
