@@ -407,8 +407,10 @@ SCENARIO( "An invalid Tracker is caught by all Set and Get API calls", "[tracker
                 uint width(0), height(0);
                 const wchar_t* config;
                 
-                REQUIRE( dsl_tracker_dimensions_get(fakeSinkName.c_str(), &width, &height) == DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER);
-                REQUIRE( dsl_tracker_dimensions_set(fakeSinkName.c_str(), 500, 300) == DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER);
+                REQUIRE( dsl_tracker_dimensions_get(fakeSinkName.c_str(), &width, &height) == 
+                    DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
+                REQUIRE( dsl_tracker_dimensions_set(fakeSinkName.c_str(), 500, 300) == 
+                    DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
@@ -436,10 +438,16 @@ SCENARIO( "The Tracker API checks for NULL input parameters", "[tracker-api]" )
                 
                 REQUIRE( dsl_tracker_new(NULL, NULL, 0,  0) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tracker_new( tracker_name.c_str(), NULL, 0,  0) == 
+
+                REQUIRE( dsl_tracker_lib_file_get(NULL, NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tracker_lib_file_get(tracker_name.c_str(), NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tracker_lib_file_set(NULL, NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tracker_lib_file_set(tracker_name.c_str(), NULL) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
 
-                // TODO - have yet to be implemented.
                 REQUIRE( dsl_tracker_config_file_get(NULL, NULL) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_tracker_config_file_get(tracker_name.c_str(), NULL) == 

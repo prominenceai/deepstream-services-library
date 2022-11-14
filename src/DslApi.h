@@ -114,7 +114,6 @@ THE SOFTWARE.
 #define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00030008
 #define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x00030009
 #define DSL_RESULT_TRACKER_PAD_TYPE_INVALID                         0x0003000A
-#define DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER                 0x0003000B
 
 /**
  * Sink API Return Values
@@ -5026,6 +5025,44 @@ DslReturnType dsl_tracker_new(const wchar_t* name,
     const wchar_t* config_file, uint width, uint height);
 
 /**
+ * @brief returns the current low-level tracker library file in use by the 
+ * named Tracker object. Default is $(LIB_INSTALL_DIR)/libnvds_nvmultiobjecttracker.so
+ * @param[in] name unique name of the Tracker to query
+ * @param[out] lib_file absolute pathspec to the low-level library file in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_lib_file_get(const wchar_t* name, 
+    const wchar_t** lib_file);
+
+/**
+ * @brief sets the low-level tracker library file for the named Tracker object to use.
+ * @param[in] name unique name of the Tracker to Update
+ * @param[in] lib_file absolute or relative pathspec to the new low-level libary
+ * file to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_lib_file_set(const wchar_t* name, 
+    const wchar_t* lib_file);
+
+/**
+ * @brief returns the current config file in use by the named Tracker object
+ * @param[in] name unique name of the Tracker to query
+ * @param[out] config_file absolute pathspec to the config file in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_config_file_get(const wchar_t* name, 
+    const wchar_t** config_file);
+
+/**
+ * @brief sets the config file to use by named Tracker object.
+ * @param[in] name unique name of the Tracker to Update
+ * @param[in] config_file absolute or relative pathspec to the new config file to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_config_file_set(const wchar_t* name, 
+    const wchar_t* config_file);
+
+/**
  * @brief returns the current frame width and height settings for the named 
  * or Tracker component
  * @param[in] name unique name of the Tracker to query
@@ -5088,25 +5125,6 @@ DslReturnType dsl_tracker_past_frame_reporting_enabled_get(const wchar_t* name,
  */
 DslReturnType dsl_tracker_past_frame_reporting_enabled_set(const wchar_t* name, 
     boolean enabled);
-
-/**
- * @brief returns the current config file in use by the named Tracker object
- * @param[in] name unique name of the Tracker to query
- * @param[out] config_file absolute or relative pathspec to the new config file to use
- * Note: the config_file is an optional setting. An empty string will be returned if omitted
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
- */
-DslReturnType dsl_tracker_config_file_get(const wchar_t* name, const wchar_t** config_file);
-
-/**
- * @brief sets the config file to use by named IOU of DCF Tracker object. Calling this
- * service on a KTL Tracker will have no affect.
- * @param[in] name unique name of the Tracker to Update
- * @param[in] config_file absolute or relative pathspec to the new config file to use
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
- */
-DslReturnType dsl_tracker_config_file_set(const wchar_t* name, 
-    const wchar_t* config_file);
 
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.

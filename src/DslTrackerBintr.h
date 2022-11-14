@@ -87,20 +87,27 @@ namespace DSL
         void UnlinkAll();
         
         /**
-         * @brief gets the name of the Tracker Lib File in use by this TrackerBintr
-         * @return fully qualified patspec used to create this TrackerBintr
+         * @brief Gets the path to the low-level library in use by this TrackerBintr.
+         * @return absolute path to the library file in use.
          */
         const char* GetLibFile();
 
         /**
-         * @brief gets the name of the Tracker Config File in use by this TrackerBintr
-         * @return fully qualified patspec used to create this TrackerBintr
+         * @brief Sets the low-level library file to use for this TrackerBintr
+         * @param[in] libFile fully absolute or relative path to the Lib file to use
+         * @return true on successful update, false otherwise
+         */
+        bool SetLibFile(const char* libFile);
+
+        /**
+         * @brief Gets the path to the the config file in use by this TrackerBintr.
+         * @return absolute path to the config file in use
          */
         const char* GetConfigFile();
         
         /**
-         * @brief sets the name of the Tracker Config File to use for this TrackerBintr
-         * @fully qualified patspec to use
+         * @brief sets the config file to use for this TrackerBintr
+         * @param[in] configFile fully absolute or relative path to the Lib file to use
          * @return true on successful update, false otherwise
          */
         bool SetConfigFile(const char* configFile);

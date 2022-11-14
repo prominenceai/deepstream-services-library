@@ -895,9 +895,13 @@ namespace DSL {
         DslReturnType TrackerNew(const char* name, 
             const char* configFile, uint width, uint height);
 
-        DslReturnType TrackerConfigFileGet(const char* name, const char** inferConfigFile);
+        DslReturnType TrackerLibFileGet(const char* name, const char** libFile);
 
-        DslReturnType TrackerConfigFileSet(const char* name, const char* inferConfigFile);
+        DslReturnType TrackerLibFileSet(const char* name, const char* libFile);
+        
+        DslReturnType TrackerConfigFileGet(const char* name, const char** configFile);
+
+        DslReturnType TrackerConfigFileSet(const char* name, const char* configFile);
         
         DslReturnType TrackerDimensionsGet(const char* name, uint* width, uint* height);
         

@@ -4783,6 +4783,84 @@ DslReturnType dsl_tracker_new(const wchar_t* name,
         cstrCfgFile.c_str(), width, height);
 }
 
+DslReturnType dsl_tracker_lib_file_get(const wchar_t* name, 
+    const wchar_t** lib_file)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(lib_file);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cLib;
+    static std::string cstrLib;
+    static std::wstring wcstrLib;
+    
+    uint retval = DSL::Services::GetServices()->TrackerLibFileGet(
+        cstrName.c_str(), &cLib);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrLib.assign(cLib);
+        wcstrLib.assign(cstrLib.begin(), cstrLib.end());
+        *lib_file = wcstrLib.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_tracker_lib_file_set(const wchar_t* name, 
+    const wchar_t* lib_file)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(lib_file);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrLib(lib_file);
+    std::string cstrLib(wstrLib.begin(), wstrLib.end());
+
+    return DSL::Services::GetServices()->TrackerLibFileSet(
+        cstrName.c_str(), cstrLib.c_str());
+}
+
+DslReturnType dsl_tracker_config_file_get(const wchar_t* name, 
+    const wchar_t** config_file)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(config_file);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cConfig;
+    static std::string cstrConfig;
+    static std::wstring wcstrConfig;
+    
+    uint retval = DSL::Services::GetServices()->TrackerConfigFileGet(
+        cstrName.c_str(), &cConfig);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrConfig.assign(cConfig);
+        wcstrConfig.assign(cstrConfig.begin(), cstrConfig.end());
+        *config_file = wcstrConfig.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_tracker_config_file_set(const wchar_t* name, 
+    const wchar_t* config_file)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(config_file);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrConfig(config_file);
+    std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
+
+    return DSL::Services::GetServices()->TrackerConfigFileSet(
+        cstrName.c_str(), cstrConfig.c_str());
+}
+
 DslReturnType dsl_tracker_dimensions_get(const wchar_t* name, 
     uint* width, uint* height)
 {
@@ -4805,45 +4883,6 @@ DslReturnType dsl_tracker_dimensions_set(const wchar_t* name,
 
     return DSL::Services::GetServices()->TrackerDimensionsSet(cstrName.c_str(), 
         width, height);
-}
-
-DslReturnType dsl_tracker_config_file_get(const wchar_t* name, 
-    const wchar_t** infer_config_file)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(infer_config_file);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    const char* cConfig;
-    static std::string cstrConfig;
-    static std::wstring wcstrConfig;
-    
-    uint retval = DSL::Services::GetServices()->TrackerConfigFileGet(
-        cstrName.c_str(), &cConfig);
-    if (retval ==  DSL_RESULT_SUCCESS)
-    {
-        cstrConfig.assign(cConfig);
-        wcstrConfig.assign(cstrConfig.begin(), cstrConfig.end());
-        *infer_config_file = wcstrConfig.c_str();
-    }
-    return retval;
-}
-
-DslReturnType dsl_tracker_config_file_set(const wchar_t* name, 
-    const wchar_t* infer_config_file)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(infer_config_file);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrConfig(infer_config_file);
-    std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
-
-    return DSL::Services::GetServices()->TrackerConfigFileSet(
-        cstrName.c_str(), cstrConfig.c_str());
 }
 
 DslReturnType dsl_tracker_batch_processing_enabled_get(const wchar_t* name, 

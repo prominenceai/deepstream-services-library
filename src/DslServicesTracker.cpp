@@ -72,6 +72,81 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::TrackerLibFileGet(const char* name, 
+        const char** libFile)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, TrackerBintr);
+            
+            DSL_TRACKER_PTR pTrackerBintr = 
+                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
+
+            *libFile = pTrackerBintr->GetLibFile();
+
+            LOG_INFO("Tracker '" << name << "' returned Lib File = '"
+                << *libFile << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tracker '" << name 
+                << "' threw exception getting the Lib File pathspec");
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TrackerLibFileSet(const char* name, 
+        const char* libFile)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, TrackerBintr);
+
+            std::string testPath(libFile);
+            if (testPath.size())
+            {
+                LOG_INFO("Tracker lib file: " << libFile);
+                
+                std::ifstream streamLibFile(libFile);
+                if (!streamLibFile.good())
+                {
+                    LOG_ERROR("Tracker Lib File not found");
+                    return DSL_RESULT_TRACKER_CONFIG_FILE_NOT_FOUND;
+                }
+            }
+            
+            DSL_TRACKER_PTR pTrackerBintr = 
+                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
+
+            if (!pTrackerBintr->SetLibFile(libFile))
+            {
+                LOG_ERROR("Tracker '" << name << "' failed to set the Lib file");
+                return DSL_RESULT_INFER_SET_FAILED;
+            }
+            LOG_INFO("Tracker '" << name << "' set Lib File = '"
+                << libFile << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("GIE '" << name << "' threw exception setting Lib file");
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::TrackerConfigFileGet(const char* name, 
         const char** configFile)
     {
@@ -147,7 +222,6 @@ namespace DSL
         }
     }
 
-   
     DslReturnType Services::TrackerDimensionsGet(const char* name, uint* width, uint* height)
     {
         LOG_FUNC();

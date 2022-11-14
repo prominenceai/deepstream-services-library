@@ -126,6 +126,21 @@ namespace DSL
         return m_llLibFile.c_str();
     }
     
+    bool TrackerBintr::SetLibFile(const char* libFile)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set library file for TrackerBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_llLibFile.assign(libFile);
+        m_pTracker->SetAttribute("ll-lib-file", libFile);
+        return true;
+    }
+    
     const char* TrackerBintr::GetConfigFile()
     {
         LOG_FUNC();
@@ -143,6 +158,7 @@ namespace DSL
                 << "' as it's currently linked");
             return false;
         }
+        m_llConfigFile.assign(configFile);
         m_pTracker->SetAttribute("ll-config-file", configFile);
         return true;
     }
