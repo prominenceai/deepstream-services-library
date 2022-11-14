@@ -50,6 +50,10 @@ file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4'
 primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_plan_engine_primary.txt'
 
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+
 # Window Sink Dimensions
 sink_width = 1280
 sink_height = 720
@@ -332,8 +336,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New KTL Tracker, setting output width and height of tracked objects
-        retval = dsl_tracker_ktl_new('ktl-tracker', 480, 272)
+        # New IOU Tracker, setting operational width and hieght
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -355,7 +359,7 @@ def main(args):
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-tis', 'ktl-tracker', 'on-screen-display', 'window-sink', None])
+            ['uri-source', 'primary-tis', 'iou-tracker', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

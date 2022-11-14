@@ -237,7 +237,6 @@
       <File Name="../examples/python/4uri_file_pgie_ktl_tiler_osd_overlay.py"/>
       <File Name="../examples/python/4uri_file_tiler_show_source_control.py"/>
       <File Name="../examples/python/8uri_file_pph_meter_performace_reporting.py"/>
-      <File Name="../examples/python/industrial_segmentation.py"/>
       <File Name="../examples/python/message_broker_azure_device_client.py"/>
       <File Name="../examples/python/multiple_pipelines.py"/>
       <File Name="../examples/python/nvidia_osd_sink_pad_buffer_probe.py"/>
@@ -257,10 +256,8 @@
       <File Name="../examples/python/ode_occurrence_uri_start_record_sink_action.py"/>
       <File Name="../examples/python/ode_persistence_and_earliest_triggers_custom_labels.py"/>
       <File Name="../examples/python/ode_persistence_trigger_fill_tracked_objects.py"/>
-      <File Name="../examples/python/ode_trigger_criteria.py"/>
       <File Name="../examples/python/player_play_all_mp4_files_found.py"/>
       <File Name="../examples/python/rtsp_player_to_test_connections.py"/>
-      <File Name="../examples/python/semantic_segmentation.py"/>
       <File Name="../examples/python/message_broker_azure_module_client.py"/>
       <File Name="../examples/python/1image_jpeg_pgie_osd_window.py"/>
       <File Name="../examples/python/ode_line_cross_object_capture_overlay_image.py"/>
@@ -282,6 +279,8 @@
       <File Name="../examples/python/2uri_file_pgie_iou_tracker_3sgie_tiler_osd_custom_pph_window.py"/>
       <File Name="../examples/python/2uri_file_pgie_iou_tracker_demuxer_1osd_1overlay_1window.py"/>
       <File Name="../examples/python/dyn_uri_file_pgie_iou_tracker_tiler_osd_window.py"/>
+      <File Name="../examples/python/segmentation_industrial.py"/>
+      <File Name="../examples/python/segmentation_semantic.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>
