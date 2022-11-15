@@ -58,7 +58,7 @@ static const std::string primaryModelEngineFile(
     "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
     
 static const std::string demuxerName("demuxer");
-static const std::string trackerName("ktl-tracker");
+static const std::string trackerName("iou-tracker");
 static const uint trackerW(300);
 static const uint trackerH(150);
 
@@ -382,8 +382,8 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, O
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
 
-        DSL_KTL_TRACKER_PTR pTrackerBintr = 
-            DSL_KTL_TRACKER_NEW(trackerName.c_str(), trackerW, trackerH);
+        DSL_TRACKER_PTR pTrackerBintr = 
+            DSL_TRACKER_NEW(trackerName.c_str(), "", trackerW, trackerH);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
             DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
@@ -428,8 +428,8 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with all Optional Compone
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
 
-        DSL_KTL_TRACKER_PTR pTrackerBintr = 
-            DSL_KTL_TRACKER_NEW(trackerName.c_str(), trackerW, trackerH);
+        DSL_TRACKER_PTR pTrackerBintr = 
+            DSL_TRACKER_NEW(trackerName.c_str(), "", trackerW, trackerH);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
             DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
@@ -506,11 +506,11 @@ SCENARIO( "A Pipeline can have at most one TrackerBintr", "[PipelineBintr]" )
         std::string trackerName1("tracker-1");
         std::string trackerName2("tracker-2");
 
-        DSL_KTL_TRACKER_PTR pTrackerBintr1 = 
-            DSL_KTL_TRACKER_NEW(trackerName1.c_str(), trackerW, trackerH);
+        DSL_TRACKER_PTR pTrackerBintr1 = 
+            DSL_TRACKER_NEW(trackerName1.c_str(), "", trackerW, trackerH);
 
-        DSL_KTL_TRACKER_PTR pTrackerBintr2 = 
-            DSL_KTL_TRACKER_NEW(trackerName2.c_str(), trackerW, trackerH);
+        DSL_TRACKER_PTR pTrackerBintr2 = 
+            DSL_TRACKER_NEW(trackerName2.c_str(), "", trackerW, trackerH);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -863,8 +863,8 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
             DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
             primaryModelEngineFile.c_str(), interval);
 
-        DSL_KTL_TRACKER_PTR pTrackerBintr = 
-            DSL_KTL_TRACKER_NEW(trackerName.c_str(), trackerW, trackerH);
+        DSL_TRACKER_PTR pTrackerBintr = 
+            DSL_TRACKER_NEW(trackerName.c_str(), "", trackerW, trackerH);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -911,8 +911,8 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
             DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), secondaryInferConfigFile.c_str(), 
             secondaryModelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
-        DSL_KTL_TRACKER_PTR pTrackerBintr = 
-            DSL_KTL_TRACKER_NEW(trackerName.c_str(), trackerW, trackerH);
+        DSL_TRACKER_PTR pTrackerBintr = 
+            DSL_TRACKER_NEW(trackerName.c_str(), "", trackerW, trackerH);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             

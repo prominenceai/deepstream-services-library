@@ -38,18 +38,24 @@ inferConfigFile = \
 modelEngineFile = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+
 MAX_SOURCE_COUNT = 4
 cur_source_count = 0
 
 # Function to be called on End-of-Stream (EOS) event
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 # Function to be called on XWindow Delete event
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -63,6 +69,7 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
 
     # Add a new source
@@ -101,13 +108,13 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Tiled Display, setting width and height, use default cols/rows set by source count
-        retval = dsl_tiler_new('tiler', 1280, 720)
+        # New IOU Tracker, setting operational width and hieght
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New KTL Tracker, setting max width and height of input frame
-        retval = dsl_tracker_ktl_new('ktl-tracker', 480, 272)
+        # New Tiled Display, setting width and height, use default cols/rows set by source count
+        retval = dsl_tiler_new('tiler', 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -124,7 +131,7 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['source-1' , 'primary-gie', 'ktl-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
+            ['source-1' , 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
         cur_source_count = 1

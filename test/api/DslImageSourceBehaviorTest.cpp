@@ -53,7 +53,7 @@ static std::wstring infer_config_file(
 static std::wstring model_engine_file(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
 
-static const std::wstring tracker_name(L"ktl-tracker");
+static const std::wstring tracker_name(L"iou-tracker");
 static const uint tracker_width(480);
 static const uint tracker_height(272);
 

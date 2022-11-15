@@ -46,6 +46,10 @@ file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4'
 primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_plan_engine_primary.txt'
 
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+
 # Filespecs for the Three Secondary Triton Inference Servers (STIS)
 secondary_infer_config_file1 = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_secondary_plan_engine_carcolor.txt'
@@ -68,6 +72,7 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
  
 ## 
@@ -75,11 +80,13 @@ def xwindow_key_event_handler(key_string, client_data):
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 # Function to be called on End-of-Stream (EOS) event
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -119,8 +126,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New KTL Tracker, setting output width and height of tracked objects
-        retval = dsl_tracker_ktl_new('ktl-tracker', 480, 272)
+        # New IOU Tracker, setting operational width and height.
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -137,7 +144,7 @@ def main(args):
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['file-source', 'primary-tis', 'ktl-tracker', 'secondary-tis-1', 'secondary-tis-2', 
+            ['file-source', 'primary-tis', 'iou-tracker', 'secondary-tis-1', 'secondary-tis-2', 
             'secondary-tis-3', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break

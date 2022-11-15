@@ -68,9 +68,12 @@ static const std::wstring seg_visual_name(L"segvisual");
 static const uint seg_visual_width(512);
 static const uint seg_visual_height(512);
 
-static const std::wstring tracker_name(L"ktl-tracker");
+static const std::wstring tracker_name(L"iou-tracker");
 static const uint tracker_width(480);
 static const uint tracker_height(272);
+
+static const std::wstring tracker_config_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
 static const std::wstring secondary_gie_name1(L"secondary-gie-1");
 static const std::wstring sgie_infer_config_file1(
@@ -386,14 +389,15 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Window Si
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
+            tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
         
-        const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"ktl-tracker", L"tiler-1", L"window-sink", NULL};
+        const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"iou-tracker", L"tiler-1", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -431,7 +435,8 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Window Si
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
+            tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -441,7 +446,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Window Si
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
         
-        const wchar_t* components[] = {L"uri-source-1", L"primary-gie", L"ktl-tracker", 
+        const wchar_t* components[] = {L"uri-source-1", L"primary-gie", L"iou-tracker", 
             L"tiler-1", L"on-screen-display", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
@@ -707,7 +712,8 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, \
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
+            tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name1.c_str(), sgie_infer_config_file1.c_str(), 
             sgie_model_engine_file1.c_str(), primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -720,7 +726,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, \
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
         
-        const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"ktl-tracker", 
+        const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"iou-tracker", 
             L"secondary-gie-1", L"tiler-1", L"on-screen-display", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
@@ -759,7 +765,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), 
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
             tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name1.c_str(), sgie_infer_config_file1.c_str(), 
@@ -779,7 +785,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, 
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
         
-        const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"ktl-tracker", 
+        const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"iou-tracker", 
             L"secondary-gie-1", L"secondary-gie-2", L"secondary-gie-3", L"tiler-1", L"on-screen-display", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 

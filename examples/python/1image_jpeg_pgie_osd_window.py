@@ -89,8 +89,7 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # New URI Image Source using the files path defined above, not simulating
-        # a live source, stream at 15 hz, and generate EOS after 10 seconds.
+        # New URI Image Source - single frame to End of Stream.
         retval = dsl_source_image_new('image-source', 
             file_path = file_path)
         if retval != DSL_RETURN_SUCCESS:
@@ -99,11 +98,6 @@ def main(args):
         # New Primary GIE using the filespecs above with interval = 0
         retval = dsl_infer_gie_primary_new('primary-gie', 
             primary_infer_config_file, primary_model_engine_file, 0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New KTL Tracker, setting output width and height of tracked objects
-        retval = dsl_tracker_ktl_new('ktl-tracker', 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -120,7 +114,7 @@ def main(args):
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['image-source', 'primary-gie', 'ktl-tracker', 'on-screen-display', 'window-sink', None])
+            ['image-source', 'primary-gie', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

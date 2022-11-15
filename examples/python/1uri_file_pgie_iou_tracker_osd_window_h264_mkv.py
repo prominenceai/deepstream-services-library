@@ -37,6 +37,10 @@ primary_infer_config_file = \
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
@@ -77,24 +81,19 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # First new URI File Source
+        ## First new URI File Source
         retval = dsl_source_uri_new('uri-source', uri_file, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # New Primary GIE using the filespecs above with interval = 0
+        ## New Primary GIE using the filespecs above with interval = 0
         retval = dsl_infer_gie_primary_new('primary-gie', 
             primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New KTL Tracker, setting max width and height of input frame
-        retval = dsl_tracker_ktl_new('ktl-tracker', 480, 272)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New Tiled Display, setting width and height, use default cols/rows set by source count
-        retval = dsl_tiler_new('tiler', 1280, 720)
+        # New IOU Tracker, setting operational width and hieght
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -104,23 +103,23 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
+        ## New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
         retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New File Sink with H265 Codec type and MPEG4 conatiner muxer, and bit-rate and iframe interval
-        retval = dsl_sink_file_new('file-sink', "./output.mp4", DSL_CODEC_H265, DSL_CONTAINER_MP4, 2000000, 0)
+        ## New File Sink with H264 Codec type and MKV conatiner muxer, and bit-rate and iframe interval
+        retval = dsl_sink_file_new('file-sink', "./output.mkv", DSL_CODEC_H264, DSL_CONTAINER_MKV, 2000000, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'ktl-tracker', 'tiler', 'on-screen-display', 'window-sink', 'file-sink', None])
+            ['uri-source', 'primary-gie', 'iou-tracker', 'on-screen-display', 'window-sink', 'file-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the XWindow event handler functions defined above
+        ## Add the XWindow event handler functions defined above
         retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -128,7 +127,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the listener callback functions defined above
+        ## Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -149,8 +148,7 @@ def main(args):
     # Print out the final result
     print(dsl_return_value_to_string(retval))
 
-    dsl_pipeline_delete_all()
-    dsl_component_delete_all()
+    dsl_delete_all()
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))

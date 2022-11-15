@@ -114,7 +114,6 @@ THE SOFTWARE.
 #define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00030008
 #define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x00030009
 #define DSL_RESULT_TRACKER_PAD_TYPE_INVALID                         0x0003000A
-#define DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER                 0x0003000B
 
 /**
  * Sink API Return Values
@@ -5013,46 +5012,59 @@ DslReturnType dsl_infer_raw_output_enabled_set(const wchar_t* name,
     boolean enabled, const wchar_t* path);
 
 /**
- * @brief creates a new, uniquely named DCF Tracker object
+ * @brief creates a new, uniquely named Multi-Object Tracker (MOT) object. The
+ * type of tracker is specifed by the configuration file used.
  * @param[in] name unique name for the new Tracker
  * @param[in] config_file (optional) relative or absolute pathspec to 
- * the NvDCF Lib config text file
- * @param[in] width operational frame width for Tracker
- * @param[in] height operational frame height for the Tracker
- * @param[in] batch_processing_enabled set to true to enable batch_mode 
- * processing, false for single stream mode
- * @param[in] past_frame_reporting_enabled set to true to enable 
- * reporting of past frame data when available, false otherwise.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
- */
-DslReturnType dsl_tracker_dcf_new(const wchar_t* name, 
-    const wchar_t* config_file, uint width, uint height,
-    boolean batch_processing_enabled, boolean past_frame_reporting_enabled);
-
-/**
- * @brief creates a new, uniquely named KTL Tracker object
- * @param[in] name unique name for the new for Tracker
- * @param[in] width operational frame width for Tracker
- * @param[in] height operational frame height for the Tracker
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
- */
-DslReturnType dsl_tracker_ktl_new(const wchar_t* name, uint width, uint height);
-
-/**
- * @brief creates a new, uniquely named IOU Tracker object
- * @param[in] name unique name for the new Tracker
- * @param[in] config_file (optional) relative or absolute pathspec to 
- * the IOU Lib config text file
+ * the config yaml file. If omitted, the Tracker will use default IOU settings.
  * @param[in] width operational frame width for the Tracker
  * @param[in] height operational frame height for the Tracker
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_iou_new(const wchar_t* name, 
+DslReturnType dsl_tracker_new(const wchar_t* name, 
     const wchar_t* config_file, uint width, uint height);
 
 /**
- * @brief returns the current frame width and height settings for the named KTL 
- * or IOU Tracker
+ * @brief returns the current low-level tracker library file in use by the 
+ * named Tracker object. Default is $(LIB_INSTALL_DIR)/libnvds_nvmultiobjecttracker.so
+ * @param[in] name unique name of the Tracker to query
+ * @param[out] lib_file absolute pathspec to the low-level library file in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_lib_file_get(const wchar_t* name, 
+    const wchar_t** lib_file);
+
+/**
+ * @brief sets the low-level tracker library file for the named Tracker object to use.
+ * @param[in] name unique name of the Tracker to Update
+ * @param[in] lib_file absolute or relative pathspec to the new low-level libary
+ * file to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_lib_file_set(const wchar_t* name, 
+    const wchar_t* lib_file);
+
+/**
+ * @brief returns the current config file in use by the named Tracker object
+ * @param[in] name unique name of the Tracker to query
+ * @param[out] config_file absolute pathspec to the config file in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_config_file_get(const wchar_t* name, 
+    const wchar_t** config_file);
+
+/**
+ * @brief sets the config file to use by named Tracker object.
+ * @param[in] name unique name of the Tracker to Update
+ * @param[in] config_file absolute or relative pathspec to the new config file to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_config_file_set(const wchar_t* name, 
+    const wchar_t* config_file);
+
+/**
+ * @brief returns the current frame width and height settings for the named 
+ * or Tracker component
  * @param[in] name unique name of the Tracker to query
  * @param[in] width operational frame width for the Tracker
  * @param[in] height operational frame height for the Tracker
@@ -5061,76 +5073,58 @@ DslReturnType dsl_tracker_iou_new(const wchar_t* name,
 DslReturnType dsl_tracker_dimensions_get(const wchar_t* name, uint* width, uint* height);
 
 /**
- * @brief sets the frame width and height settings for the named KTL or IOU Tracker
+ * @brief sets the frame width and height settings for the named Tracker
+ * component to use
  * @param[in] name unique name of the Tracker to update
- * @param[in] width output frame width for GIEs and TISs to work on
- * @param[in] height output frame height for GIEs and TIS to work on
+ * @param[in] width operational frame width for the Tracker
+ * @param[in] height operational frame height for the Tracker
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
 DslReturnType dsl_tracker_dimensions_set(const wchar_t* name, uint width, uint height);
 
 /**
- * @brief Gets the current "enable-batch-process" settings for the named KTL 
- * or IOU Tracker object. 
+ * @brief Gets the current "enable-batch-process" settings for the named 
+ * Tracker component. 
  * @param[in] name unique name of the Tracker to query
  * @param[out] true if batch-processing is enabled, fale otherwise
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_dcf_batch_processing_enabled_get(const wchar_t* name, 
+DslReturnType dsl_tracker_batch_processing_enabled_get(const wchar_t* name, 
     boolean* enabled);
 
 /**
- * @brief Sets the "enable-batch-process" settings for the named KTL 
- * or IOU Tracker
+ * @brief Sets the "enable-batch-process" settings for the named Tracker
+ * component to use.
  * Note: This call is only effective if the low-level library supports 
  * both batch and per-stream processing.
  * @param[in] name unique name of the Tracker to query
  * @param[out] true to enable batch-processing enabled, fale otherwise
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_dcf_batch_processing_enabled_set(const wchar_t* name, 
+DslReturnType dsl_tracker_batch_processing_enabled_set(const wchar_t* name, 
     boolean enabled);
 
 /**
- * @brief Gets the current "enable-past-frame" settings for the named KTL 
- * or IOU Tracker
+ * @brief Gets the current "enable-past-frame" settings for the named  
+ * Tracker component.
  * @param[in] name unique name of the Tracker to query
  * @param[out] true if past-frame reporting is enabled, fale otherwise.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_dcf_past_frame_reporting_enabled_get(const wchar_t* name, 
+DslReturnType dsl_tracker_past_frame_reporting_enabled_get(const wchar_t* name, 
     boolean* enabled);
 
 /**
- * @brief Sets current "enable-past-frame" settings for the named KTL 
- * or IOU Tracker object
+ * @brief Sets current "enable-past-frame" settings for the named Tracker 
+ * component to use
  * Note: This call is only effective if the low-level library supports 
  * past frame reporting.
  * @param[in] name unique name of the Tracker to query
  * @param[out] true if past frame reporting is enabled, fale otherwise.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_dcf_past_frame_reporting_enabled_set(const wchar_t* name, 
+DslReturnType dsl_tracker_past_frame_reporting_enabled_set(const wchar_t* name, 
     boolean enabled);
-
-/**
- * @brief returns the current config file in use by the named Tracker object
- * @param[in] name unique name of the Tracker to query
- * @param[out] config_file absolute or relative pathspec to the new config file to use
- * Note: the config_file is an optional setting. An empty string will be returned if omitted
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
- */
-DslReturnType dsl_tracker_config_file_get(const wchar_t* name, const wchar_t** config_file);
-
-/**
- * @brief sets the config file to use by named IOU of DCF Tracker object. Calling this
- * service on a KTL Tracker will have no affect.
- * @param[in] name unique name of the Tracker to Update
- * @param[in] config_file absolute or relative pathspec to the new config file to use
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
- */
-DslReturnType dsl_tracker_config_file_set(const wchar_t* name, 
-    const wchar_t* config_file);
 
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.

@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2021-2021, Prominence AI, Inc.
+# Copyright (c) 2019-2021, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -25,21 +25,17 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.insert(0, "../../")
 import time
 from dsl import *
-import pyds
 
-file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_industrial.jpg'
+source_width = 1920
+source_height = 1080
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-segmentation-test/dstest_segmentation_config_industrial.txt'
-
-# Segmentation Visualizer output dimensions should (typically) match the
-# inference dimensions defined in segvisual_config_industrial.txt (512x512)
-width = 512
-height = 512
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -59,64 +55,33 @@ def xwindow_key_event_handler(key_string, client_data):
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
-def segvisual_src_pad_buffer_probe(buffer, user_data):
-
-    # Retrieve batch metadata from the gst_buffer
-    batch_meta = pyds.gst_buffer_get_nvds_batch_meta(buffer)
-    l_frame = batch_meta.frame_meta_list
-    while l_frame is not None:
-        try:
-            # Note that l_frame.data needs a cast to pyds.NvDsFrameMeta
-            # The casting is done by pyds.glist_get_nvds_frame_meta()
-            # The casting also keeps ownership of the underlying memory
-            # in the C code, so the Python garbage collector will leave
-            # it alone.
-            frame_meta = pyds.glist_get_nvds_frame_meta(l_frame.data)
-        except StopIteration:
-            break
-
-        # TODO Handle segmentation meta data
-        
-        try:
-            l_frame=l_frame.next
-        except StopIteration:
-            break
-    return True
-    
-    
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # New URI Image Source using the files path defined above, not simulating
-        # a live source, stream at 15 hz, and generate EOS after 10 seconds.
-        retval = dsl_source_uri_new('image-source', 
-            uri = file_path, 
-            is_live = False,
-            intra_decode = False,
-            drop_frame_interval = False)
+        # New CSI Live Camera Source
+        retval = dsl_source_csi_new('csi-source', source_width, source_height, 30, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Primary GIE using the Config filespec above, with interval and Id
-        # Setting the model_engine_file parameter to None == attemp to create model 
-        retval = dsl_infer_gie_primary_new('primary-gie',
-            infer_config_file = primary_infer_config_file, 
-            model_engine_file = None, 
-            interval = 0)
+        # New Primary GIE using the filespecs above, with interval and Id
+        retval = dsl_infer_gie_primary_new('primary-gie', 
+            primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Segmentation Visualizer with output dimensions
-        retval = dsl_segvisual_new('segvisual', width=width, height=height)
+        # New OSD with text, clock and bbox display all enabled. 
+        retval = dsl_osd_new('on-screen-display', 
+            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 100, 1000, width, height)
+        # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
+        retval = dsl_sink_window_new('window-sink', 0, 0, source_width, source_height)
         if retval != DSL_RETURN_SUCCESS:
             break
         
@@ -125,27 +90,11 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Custom Pad Probe Handler to handle the Segmentatin Meta Data
-        retval = dsl_pph_custom_new('custom-pph', 
-            client_handler = segvisual_src_pad_buffer_probe, 
-            client_data = None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Add the Custom Pad Probe Handler to the src pad of the Segmentation Visualizer
-        retval = dsl_segvisual_pph_add('segvisual', 'custom-pph')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['image-source', 'primary-gie', 'segvisual', 'window-sink', None])
+            ['csi-source', 'primary-gie', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
-            
-        # Set the Streammuxer dimensions to the same as GIE Config and Sink dimensions
-        retval = dsl_pipeline_streammux_dimensions_set("pipeline", 
-            width=width, height=height)
 
         # Add the XWindow event handler functions defined above
         retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 

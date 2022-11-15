@@ -25,27 +25,29 @@
 #!/usr/bin/env python
 
 import sys
-import time
-
 from dsl import *
 
-# Filespecs for the Primary GIE
+# Import NVIDIA's OSD Sink Pad Buffer Probe (pyds) example
+from nvidia_osd_sink_pad_buffer_probe import osd_sink_pad_buffer_probe
+
+uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+
 # Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
-source_uri = 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
-MAX_OVERLAY_COUNT = 4
-cur_overlay_count = 0
-
+WINDOW_WIDTH = 1280
+WINDOW_HEIGHT = 720
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
 def xwindow_key_event_handler(key_string, client_data):
-    global MAX_OVERLAY_COUNT, cur_overlay_count
     print('key released = ', key_string)
     if key_string.upper() == 'P':
         dsl_pipeline_pause('pipeline')
@@ -54,24 +56,6 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
         dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
-
-    # Add a new overlay sink
-    elif key_string == '+': 
-        if cur_overlay_count < MAX_OVERLAY_COUNT:
-            cur_overlay_count += 1
-            sink_name = 'overlay-sink-' + str(cur_overlay_count)
-            print('adding sink ', sink_name)
-            dsl_sink_overlay_new(sink_name, 0, 0, 100*cur_overlay_count, 100*cur_overlay_count, 360, 180)
-            dsl_pipeline_component_add('pipeline', sink_name)
-
-    # Remove the last sink added
-    elif key_string == '-': 
-        if cur_overlay_count > 0:
-            sink_name = 'overlay-sink-' + str(cur_overlay_count)
-            print('removing sink ', sink_name)
-            dsl_pipeline_component_remove('pipeline', sink_name)
-            dsl_component_delete(sink_name)
-            cur_overlay_count -= 1
  
 ## 
 # Function to be called on XWindow Delete event
@@ -81,7 +65,9 @@ def xwindow_delete_event_handler(client_data):
     dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
+## 
 # Function to be called on End-of-Stream (EOS) event
+## 
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
     dsl_pipeline_stop('pipeline')
@@ -95,39 +81,53 @@ def state_change_listener(old_state, new_state, client_data):
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
-
 def main(args):
-
-    print('*******************************************************')
-    print(' Press + to add new Overlay Sink')
-    print(' Press - to remove last added Overlay Sink')
-    print('*******************************************************')
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        ## First new URI File Source
-        retval = dsl_source_uri_new('uri-source', source_uri, False, False, 0)
+        # New URI File Source using the filespec defined above
+        retval = dsl_source_uri_new('uri-source', uri_file, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## New Tiled Display, setting width and height, use default cols/rows set by source count
-        retval = dsl_tiler_new('tiler', 1280, 720)
+        # New Primary GIE using the filespecs above with interval = 0
+        retval = dsl_infer_gie_primary_new('primary-gie', 
+            primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## New Window Sink, same dimensions as tiler
-        retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
+        # New IOU Tracker, setting operational width and hieght
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to a new pipeline
+        # New OSD with text, clock and bbox display all enabled. 
+        retval = dsl_osd_new('on-screen-display', 
+            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New Custom Pad Probe Handler to call Nvidia's example callback for handling the Batched Meta Data
+        retval = dsl_pph_custom_new('custom-pph', client_handler=osd_sink_pad_buffer_probe, client_data=None)
+        
+        # Add the custom PPH to the Sink pad of the OSD
+        retval = dsl_osd_pph_add('on-screen-display', handler='custom-pph', pad=DSL_PAD_SINK)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        # New Window Sink, 0 x/y offsets and dimensions defined above.
+        retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'tiler', 'window-sink', None])
+            ['uri-source', 'primary-gie', 'iou-tracker', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## Add the XWindow event handler functions defined above
+        # Add the XWindow event handler functions defined above
         retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -148,7 +148,6 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Join with main loop until released - blocking call
         dsl_main_loop_run()
         retval = DSL_RETURN_SUCCESS
         break

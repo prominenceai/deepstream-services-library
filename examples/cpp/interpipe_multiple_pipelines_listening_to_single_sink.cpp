@@ -308,7 +308,7 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New IOU Tracker, setting max width and height of input frame
-        retval = dsl_tracker_iou_new(client_data_1.tracker.c_str(), 
+        retval = dsl_tracker_new(client_data_1.tracker.c_str(), 
             tracker_config_file.c_str(), 480, 272);
         if (retval != DSL_RESULT_SUCCESS) break;
 
@@ -339,7 +339,7 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New IOU Tracker, setting max width and height of input frame
-        retval = dsl_tracker_iou_new(client_data_2.tracker.c_str(), 
+        retval = dsl_tracker_new(client_data_2.tracker.c_str(), 
             tracker_config_file.c_str(), 480, 272);
         if (retval != DSL_RESULT_SUCCESS) break;
 

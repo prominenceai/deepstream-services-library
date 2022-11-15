@@ -37,11 +37,14 @@ primary_infer_config_file = \
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 # Function to be called on End-of-Stream (EOS) event
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
-    dsk_pipeline_stop('pipeline')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 def main(args):
@@ -63,8 +66,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New KTL Tracker, setting max width and height of input frame
-        retval = dsl_tracker_ktl_new('ktl-tracker', 480, 272)
+        # New IOU Tracker, setting operational width and hieght
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -87,7 +90,7 @@ def main(args):
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['uri-source-1', 'uri-source-2', 'uri-source-3', 'uri-source-4', 
-            'primary-gie', 'ktl-tracker', 'tiler', 'on-screen-display', 'overlay-sink', None])
+            'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'overlay-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

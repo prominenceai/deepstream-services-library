@@ -275,8 +275,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # New IOU Tracker, setting max width and height of input frame
-        retval = dsl_tracker_iou_new(components_1.tracker, 
+        # New IOU Tracker, setting operational width and height.
+        retval = dsl_tracker_new(components_1.tracker, 
             tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -305,8 +305,9 @@ def main(args):
             primary_infer_config_file_2, primary_model_engine_file, 4)
         if retval != DSL_RETURN_SUCCESS:
             break
-        # New KTL Tracker, setting max width and height of input frame
-        retval = dsl_tracker_iou_new(components_2.tracker, 
+            
+        # New IOU Tracker, setting operational width and height
+        retval = dsl_tracker_new(components_2.tracker, 
             tracker_config_file, 720, 544)
         if retval != DSL_RETURN_SUCCESS:
             break

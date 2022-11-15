@@ -152,7 +152,7 @@ def main(args):
             break
 
         # New IOU Tracker setting max width and height of input frame
-        retval = dsl_tracker_iou_new('iou-tracker', tracker_config_file, 480, 272)
+        retval = dsl_tracker_new('iou-tracker', tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 

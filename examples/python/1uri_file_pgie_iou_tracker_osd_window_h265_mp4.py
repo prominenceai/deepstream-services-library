@@ -25,10 +25,9 @@
 #!/usr/bin/env python
 
 import sys
-from dsl import *
+import time
 
-# Import NVIDIA's OSD Sink Pad Buffer Probe (pyds) example
-from nvidia_osd_sink_pad_buffer_probe import osd_sink_pad_buffer_probe
+from dsl import *
 
 uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
@@ -37,14 +36,11 @@ primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
-tracker_config_file = \
+
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
-
-TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
-TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
-WINDOW_WIDTH = 1280
-WINDOW_HEIGHT = 720
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
@@ -66,9 +62,7 @@ def xwindow_delete_event_handler(client_data):
     dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
-## 
 # Function to be called on End-of-Stream (EOS) event
-## 
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
     dsl_pipeline_stop('pipeline')
@@ -87,49 +81,41 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # New URI File Source using the filespec defined above
+        # First new URI File Source
         retval = dsl_source_uri_new('uri-source', uri_file, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
-
+            
         # New Primary GIE using the filespecs above with interval = 0
         retval = dsl_infer_gie_primary_new('primary-gie', 
             primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New KTL Tracker, setting max width and height of input frame
-        retval = dsl_tracker_iou_new('iou-tracker', tracker_config_file, 480, 272)
+        # New IOU Tracker, setting operational width and hieght
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Tiled Display, setting width and height, use default cols/rows set by source count
-        retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
-        if retval != DSL_RETURN_SUCCESS:
-            break
- 
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
             text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Custom Pad Probe Handler to call Nvidia's example callback for handling the Batched Meta Data
-        retval = dsl_pph_custom_new('custom-pph', client_handler=osd_sink_pad_buffer_probe, client_data=None)
-        
-        # Add the custom PPH to the Sink pad of the OSD
-        retval = dsl_osd_pph_add('on-screen-display', handler='custom-pph', pad=DSL_PAD_SINK)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
-        # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
+        retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to our pipeline
+        # New File Sink with H265 Codec type and MPEG4 conatiner muxer, and bit-rate and iframe interval
+        retval = dsl_sink_file_new('file-sink', "./output.mp4", DSL_CODEC_H265, DSL_CONTAINER_MP4, 2000000, 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
+            ['uri-source', 'primary-gie', 'iou-tracker', 'on-screen-display', 'window-sink', 'file-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -141,7 +127,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## Add the listener callback functions defined above
+        # Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -154,6 +140,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Join with main loop until released - blocking call
         dsl_main_loop_run()
         retval = DSL_RETURN_SUCCESS
         break

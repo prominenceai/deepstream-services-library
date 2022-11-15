@@ -1,35 +1,51 @@
 # Multi-Object Tracker API Reference
-The DeepStream Services Liberary supports Nvidia's three reference low-level trackers (*Note: the below bullets are copied from the Nvidia DeepStream* [*Gst-nvtracker plugin-guide*](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvtracker.html)). 
+The DeepStream Services Library (DSL) supports Nvidia's three reference low-level trackers (*Note: the below bullets are copied from the Nvidia DeepStream* [*Gst-nvtracker plugin-guide*](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvtracker.html)).
 
-1. The KLT tracker uses a CPU-based implementation of the Kanade-Lucas-Tomasi (KLT) tracker algorithm. This library requires no configuration file.
-2. The Intersection-Over-Union (IOU) tracker uses the IOU values among the detector’s bounding boxes between the two consecutive frames to perform the association between them or assign a new ID. This library takes an optional configuration file.
-3. The NVIDIA®-adapted Discriminative Correlation Filter (NvDCF) tracker uses a correlation filter-based online discriminative learning algorithm as a visual object tracker, while using a data association algorithm for multi-object tracking. This library accepts an optional configuration file.
+1. **NvDCF:** The NvDCF tracker is an NVIDIA®-adapted Discriminative Correlation Filter (DCF) tracker that uses a correlation filter-based online discriminative learning algorithm for visual object tracking capability, while using a data association algorithm and a state estimator for multi-object tracking.
+2. **DeepSORT:** The DeepSORT tracker is a re-implementation of the official DeepSORT tracker, which uses the deep cosine metric learning with a Re-ID neural network. This implementation allows users to use any Re-ID network as long as it is supported by NVIDIA’s TensorRT™ framework.
+3. **IOU Tracker:** The Intersection-Over-Union (IOU) tracker uses the IOU values among the detector’s bounding boxes between the two consecutive frames to perform the association between them or assign a new target ID if no match found. This tracker includes a logic to handle false positives and false negatives from the object detector; however, this can be considered as the bare-minimum object tracker, which may serve as a baseline only.
 
-Tracker components are created by calling their type specific constructor, [dsl_tracker_ktl_new](#dsl_tracker_ktl_new), [dsl_tracker_iou_new](#dsl_tracker_iou_new), and [dsl_tracker_dcf_new](#dsl_tracker_dcf_new)
+The three reference implementations are provided in a single low-level library `libnvds_nvmultiobjecttracker.so` which is specified as the default library for the DSL Tracker to use as defined in the Makefile. The default library path can be updated -- by updating the Makefile or by calling [dsl_tracker_lib_file_set](#dsl_tracker_lib_file_set) -- to reference a custom library that implements the [NvDsTracker API](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvtracker.html#how-to-implement-a-custom-low-level-tracker-library).
 
-**Important Note: NVIDIA has removed the KLT Tracker in DeepStream 6.0.** Calling [dsl_tracker_ktl_new](#dsl_tracker_ktl_new) will create a a new IOU tracker with default configuration values. This is done to allow the examples and DSL to work with both DeepStream 5 and 6.  The KLT Tracker will be removed from DSL in a future release.
+**Important!** The DeepSORT tracker requires additional installation and setup steps which can be found in the **README** file located under
+```bash
+/opt/nvidia/deepstream/deepstream/sources/tracker_DeepSORT
+```
 
+## Construction and Destruction
+A Tracker component is created by calling [dsl_tracker_new](#dsl_tracker_new) with a type specific configuration file.
+
+**Important!** NVIDIA® provides reference configuration files for the three Tracker implementations under
+```bash
+/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/
+```
+
+Tracker components are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all). Calling a delete service on a Tracker `in-use` by a Pipeline will fail.
+
+
+## Adding and Removing
+The relationship between Pipelines/Branches and Trackers is one-to-one. Once added to a Pipeline or Branch, a Tracker must be removed before it can be used with another.
 A Tracker is added to a Pipeline by calling [dsl_pipeline_component_add](/docs/api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) (when adding with other components) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
 
-The relationship between Pipelines and Trackers is one-to-one. Once added to a Pipeline, a Tracker must be removed before it can used with another. Tracker components are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all). Calling a delete service on a Tracker `in-use` by a Pipeline will fail.
+A similar set of Services are used when adding/removing a Tracker to/from a branch: [dsl_branch_component_add](api-branch.md#dsl_branch_component_add), [dsl_branch_component_add_many](/docs/api-branch.md#dsl_branch_component_add_many), [dsl_branch_component_remove](/docs/api-branch.md#dsl_branch_component_remove), [dsl_branch_component_remove_many](/docs/api-branch.md#dsl_branch_component_remove_many), and [dsl_branch_component_remove_all](/docs/api-branch.md#dsl_branch_component_remove_all).
 
-Pipelines with a Tracker component require a [Primary GIE/TIS](/docs/api-infer.md) component in order to Play. 
+Pipelines with a Tracker component require a [Primary GIE/TIS](/docs/api-infer.md) component in order to Play.
 
 ## Tracker API
 **Constructors:**
-* [dsl_tracker_ktl_new](#dsl_tracker_ktl_new)
-* [dsl_tracker_iou_new](#dsl_tracker_iou_new)
-* [dsl_tracker_dcf_new](#dsl_tracker_dcf_new)
+* [dsl_tracker_new](#dsl_tracker_new)
 
 **Methods:**
-* [dsl_tracker_dimensions_get](#dsl_tracker_dimensions_get)
-* [dsl_tracker_dimensions_set](#dsl_tracker_dimensions_set)
+* [dsl_tracker_lib_file_get](#dsl_tracker_lib_file_get)
+* [dsl_tracker_lib_file_set](#dsl_tracker_lib_file_set)
 * [dsl_tracker_config_file_get](#dsl_tracker_config_file_get)
 * [dsl_tracker_config_file_set](#dsl_tracker_config_file_set)
-* [dsl_tracker_dcf_batch_processing_enabled_get](#dsl_tracker_dcf_batch_processing_enabled_get)
-* [dsl_tracker_dcf_batch_processing_enabled_set](#dsl_tracker_dcf_batch_processing_enabled_set)
-* [dsl_tracker_dcf_past_frame_reporting_enabled_get](#dsl_tracker_dcf_past_frame_reporting_enabled_get)
-* [dsl_tracker_dcf_past_frame_reporting_enabled_set](#dsl_tracker_dcf_past_frame_reporting_enabled_set)
+* [dsl_tracker_dimensions_get](#dsl_tracker_dimensions_get)
+* [dsl_tracker_dimensions_set](#dsl_tracker_dimensions_set)
+* [dsl_tracker_batch_processing_enabled_get](#dsl_tracker_batch_processing_enabled_get)
+* [dsl_tracker_batch_processing_enabled_set](#dsl_tracker_batch_processing_enabled_set)
+* [dsl_tracker_past_frame_reporting_enabled_get](#dsl_tracker_past_frame_reporting_enabled_get)
+* [dsl_tracker_past_frame_reporting_enabled_set](#dsl_tracker_past_frame_reporting_enabled_set)
 * [dsl_tracker_pph_add](#dsl_tracker_pph_add)
 * [dsl_tracker_pph_remove](#dsl_tracker_pph_remove)
 
@@ -48,41 +64,21 @@ The following return codes are used specifically by the Tracker API
 #define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00030008
 #define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x00030009
 #define DSL_RESULT_TRACKER_PAD_TYPE_INVALID                         0x0003000A
-#define DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER                 0x0003000B
 ```
 
 ## Constructors
-### *dsl_tracker_ktl_new*
+### *dsl_tracker_new*
 ```C++
-DslReturnType dsl_tracker_ktl_new(const wchar_t* name, uint width, uint height);
-```
-This service creates a uniquely named KTL Tracker component. Construction will fail if the name is currently in use. 
-
-**Parameters**
-* `name` - [in] unique name for the KTL Tracker to create.
-* `width` - [in] Frame width at which the tracker is to operate, in pixels.
-* `height` - [in] Frame height at which the tracker is to operate, in pixels.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_tracker_ktl_new('my-ktl-tracker', 640, 384)
-```
-
-<br>
-
-### *dsl_tracker_iou_new*
-```C++
-DslReturnType dsl_tracker_iou_new(const wchar_t* name, const wchar_t* config_file, 
+DslReturnType dsl_tracker_new(const wchar_t* name, const wchar_t* config_file,
     uint width, uint height);
 ```
-This service creates a uniquely named IOU Tracker component. Construction will fail if the name is currently in use. The `config_file` parameter for the IOU Tracker is optional.
+This service creates a uniquely named Tracker component using the default NVIDIA NvMultiObjectTracker low-level library. Construction will fail if the name is currently in use. The `config_file` parameter is optional. If not specified, the low-level library will proceed with default IOU settings.
+
+Note a custom implementation of the NvDsTracker API can be used by setting the Tracker's low-level library by calling [dsl_tracker_lib_file_set](#dsl_tracker_lib_file_set).
 
 **Parameters**
 * `name` - [in] unique name for the IOU Tracker to create.
-* `config_file` - [in] relative or absolute pathspec to a valid IOU config text file. Set to NULL or empty string to omit. 
+* `config_file` - [in] relative or absolute pathspec to a valid config text file. Set to NULL or empty string to omit.
 * `width` - [in] Frame width at which the tracker is to operate, in pixels.
 * `height` - [in] Frame height at which the tracker is to operate, in pixels.
 
@@ -91,38 +87,98 @@ This service creates a uniquely named IOU Tracker component. Construction will f
 
 **Python Example**
 ```Python
-retval = dsl_tracker_iou_new('my-iou-tracker', './test/configs/iou_config.txt', 640, 384)
-```
-
-<br>
-
-### *dsl_tracker_dcf_new*
-```C++
-DslReturnType dsl_tracker_dcf_new(const wchar_t* name, const wchar_t* config_file, 
-    uint width, uint height, boolean batch_processing_enabled, boolean past_frame_reporting_enabled);
-```
-This service creates a uniquely named DCF Tracker component. Construction will fail if the name is currently in use. The `config_file` parameter for the DCF Tracker is optional.
-
-**Parameters**
-* `name` - [in] unique name for the IOU Tracker to create.
-* `config_file` - [in] relative or absolute pathspec to a valid IOU config text file. Set to NULL or empty string to omit. 
-* `width` - [in] Frame width at which the tracker is to operate, in pixels.
-* `height` - [in] Frame height at which the tracker is to operate, in pixels.
-* `batch_processing_enabled` - [in] set to true to enable batch_mode processing, false for single stream mode.
-* `past_frame_reporting_enabled` - [in] set to true to enable reporting of past frame data when available, false otherwise.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_tracker_dcf_new('my-dcf-tracker', 
-    './test/configs/tracker_config.yml', 640, 384, True, False)
+retval = dsl_tracker_new('my-iou-tracker', './test/configs/iou_config.txt', 640, 384)
 ```
 
 <br>
 
 ## Methods
+### *dsl_tracker_lib_file_get*
+```C++
+DslReturnType dsl_tracker_lib_file_get(const wchar_t* name,
+    const wchar_t** lib_file);
+```
+This service returns the absolute path to the low-level library in use by the named Tracker.
+
+**Important** the default path to low-level library is defined in the Makefile as `$(LIB_INSTALL_DIR)/libnvds_nvmultiobjecttracker.so`
+
+**Parameters**
+* `name` - [in] unique name for the Tracker to query.
+* `lib_file` - [out] absolute pathspec to the low-level library in use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, lib_file = dsl_tracker_lib_file_get('my-tracker')
+```
+
+<br>
+
+### *dsl_tracker_lib_file_set*
+```C++
+DslReturnType dsl_tracker_lib_file_set(const wchar_t* name,
+    const wchar_t* lib_file);
+```
+This service updates the named Tracker with a new low-level library to use.
+
+**Parameters**
+* `name` - [in] unique name for the IOU Tracker to update.
+* `lib_file` - [in] absolute or relative pathspec to the new low-level library to use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tracker_lib_file_set('my-tracker', path_to_ll_lib)
+```
+
+<br>
+
+### *dsl_tracker_config_file_get*
+```C++
+DslReturnType dsl_tracker_config_file_get(const wchar_t* name,
+    const wchar_t** config_file);
+```
+This service returns the absolute path to the (optional) Tracker Config File in use by the named Tracker. This service returns an empty string if the configuration file was omitted on construction, or removed by calling [dsl_tracker_config_file_set](#dsl_tracker_config_file_set) with a NULL pointer.
+
+**Parameters**
+* `name` - [in] unique name for the IOU Tracker to query.
+* `config_file` - [out] absolute pathspec to the IOU config text file in use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, config_file = dsl_tracker_config_file_get('my-tracker')
+```
+
+<br>
+
+### *dsl_tracker_config_file_set*
+```C++
+DslReturnType dsl_tracker_iou_config_file_set(const wchar_t* name,
+    const wchar_t* config_file);
+```
+This service updates the named Tracker with a new config file to use.
+
+**Parameters**
+* `name` - [in] unique name for the IOU Tracker to update.
+* `config_file` - [in] absolute pathspec to the IOU config text file in use. Set config_file to NULL to clear the optional configuration file setting.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tracker_config_file_set('my-tracker', './test/configs/iou_config.txt')
+```
+
+<br>
+
 ### *dsl_tracker_dimensions_get*
 ```C++
 DslReturnType dsl_tracker_dimensions_get(const wchar_t* name, uint* width, uint* height);
@@ -166,60 +222,16 @@ retval = dsl_tracker_dimensions_set('my-tracker', 640, 368)
 
 <br>
 
-### *dsl_tracker_config_file_get*
+### *dsl_tracker_batch_processing_enabled_get*
 ```C++
-DslReturnType dsl_tracker_config_file_get(const wchar_t* name, const wchar_t** config_file);
-```
-This service returns the absolute path to the (optional) Tracker Config File in use by the named IOU or DCF Tracker. This service returns an empty string if the configuration file was omitted on construction, or removed by calling [dsl_tracker_config_file_set](#dsl_tracker_config_file_set) with a NULL pointer.
-
-NOTE: Calling this service on a KTL Tracker will return an empty string..
-
-**Parameters**
-* `name` - [in] unique name for the IOU Tracker to query.
-* `config_file` - [out] absolute pathspec to the IOU config text file in use.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval, config_file = dsl_tracker_config_file_get('my-iou-tracker')
-```
-
-<br>
-
-### *dsl_tracker_config_file_set*
-```C++
-DslReturnType dsl_tracker_iou_config_file_set(const wchar_t* name, const wchar_t* config_file);
-```
-This service updates the named IOU or DCF tracker with a new config file to use. 
-
-NOTE: Calling this service on a KTL Tracker will have no affect.
-
-**Parameters**
-* `name` - [in] unique name for the IOU Tracker to update.
-* `config_file` - [in] absolute pathspec to the IOU config text file in use. Set config_file to NULL or an empty string to clear the optional configuration file setting
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_tracker_config_file_set('my-iou-tracker', './test/configs/iou_config.txt')
-```
-
-<br>
-
-### *dsl_tracker_dcf_batch_processing_enabled_get*
-```C++
-DslReturnType dsl_tracker_dcf_batch_processing_enabled_get(const wchar_t* name, 
+DslReturnType dsl_tracker_batch_processing_enabled_get(const wchar_t* name,
     boolean* enabled);
 ```
 
-This service gets the current `enable-batch-process` setting for the named DCF Tracker object. 
+This service gets the current `enable-batch-process` setting for the named Tracker. The Tracker's low-level library must support batch-processing to use this setting. The NVIDIA reference low-level trackers enable this setting by default.
 
 **Parameters**
-* `name` - [in] unique name of the DCF Tracker to query.
+* `name` - [in] unique name of the Tracker to query.
 * `enabled` - [out] true if batch processing is enabled, false otherwise.
 
 **Returns**
@@ -227,20 +239,20 @@ This service gets the current `enable-batch-process` setting for the named DCF T
 
 **Python Example**
 ```Python
-retval, enabled = dsl_tracker_dcf_batch_processing_enabled_get('my-tracker')
+retval, enabled = dsl_tracker_batch_processing_enabled_get('my-tracker')
 ```
 
 <br>
 
-### *dsl_tracker_dcf_batch_processing_enabled_set*
+### *dsl_tracker_batch_processing_enabled_set*
 ```C++
-DslReturnType dsl_tracker_dcf_batch_processing_enabled_set(const wchar_t* name, 
+DslReturnType dsl_tracker_batch_processing_enabled_set(const wchar_t* name,
     boolean enabled);
 ```
-This service sets the `enable-batch-process` setting for the named DCF Tracker object. 
+This service sets the `enable-batch-process` setting for the named Tracker object.  The Tracker's low-level library must support batch-processing to use this setting.
 
 **Parameters**
-* `name` - [in] unique name of the DCF Tracker to update.
+* `name` - [in] unique name of the Tracker to update.
 * `enabled` - [in] set to true to enabled batch processing, false otherwise.
 
 **Returns**
@@ -248,20 +260,20 @@ This service sets the `enable-batch-process` setting for the named DCF Tracker o
 
 **Python Example**
 ```Python
-retval = dsl_tracker_dcf_batch_processing_enabled_set('my-tracker', True)
+retval = dsl_tracker_batch_processing_enabled_set('my-tracker', True)
 ```
 
 <br>
 
-### *dsl_tracker_dcf_past_frame_reporting_enabled_get*
+### *dsl_tracker_past_frame_reporting_enabled_get*
 ```C++
-DslReturnType dsl_tracker_dcf_past_frame_reporting_enabled_get(const wchar_t* name, 
+DslReturnType dsl_tracker_past_frame_reporting_enabled_get(const wchar_t* name,
     boolean* enabled);
 ```
-This service gets the current `enable-past-frame` setting for the named DCF Tracker object. 
+This service gets the current `enable-past-frame` setting for the named Tracker object. The Tracker's low-level library must support past-frame-reporting to use this setting.  If the past-frame data is retrieved from the low-level tracker, it will be reported as a user-meta, called `NvDsPastFrameObjBatch`.  See the [NVIDIA Tracker reference](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvtracker.html#gst-nvtracker) for more information.
 
 **Parameters**
-* `name` - [in] unique name of the DCF Tracker to query.
+* `name` - [in] unique name of the Tracker to query.
 * `enabled` - [out] true if past frame reporting is enabled, false otherwise.
 
 **Returns**
@@ -269,20 +281,20 @@ This service gets the current `enable-past-frame` setting for the named DCF Trac
 
 **Python Example**
 ```Python
-retval, enabled = dsl_tracker_dcf_past_frame_reporting_enabled_get('my-tracker')
+retval, enabled = dsl_tracker_past_frame_reporting_enabled_get('my-tracker')
 ```
 
 <br>
 
-### *dsl_tracker_dcf_past_frame_reporting_enabled_set*
+### *dsl_tracker_past_frame_reporting_enabled_set*
 ```C++
-DslReturnType dsl_tracker_dcf_past_frame_reporting_enabled_set(const wchar_t* name, 
+DslReturnType dsl_tracker_past_frame_reporting_enabled_set(const wchar_t* name,
     boolean enabled);
 ```
-This service sets the `enable-past-frame` setting for the named DCF Tracker object. 
+This service sets the `enable-past-frame` setting for the named Tracker object. The Tracker's low-level library must support past-frame-reporting to use this setting.  If the past-frame data is retrieved from the low-level tracker, it will be reported as a user-meta, called `NvDsPastFrameObjBatch`.  See the [NVIDIA Tracker reference](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvtracker.html#gst-nvtracker) for more information.
 
 **Parameters**
-* `name` - [in] unique name of the DCF Tracker to update.
+* `name` - [in] unique name of the Tracker to update.
 * `enabled` - [in] set to true to enable "past frame reporting", false otherwise.
 
 **Returns**
@@ -290,7 +302,7 @@ This service sets the `enable-past-frame` setting for the named DCF Tracker obje
 
 **Python Example**
 ```Python
-retval = dsl_tracker_dcf_past_frame_reporting_enabled_set('my-tracker', True)
+retval = dsl_tracker_past_frame_reporting_enabled_set('my-tracker', True)
 ```
 
 <br>
@@ -329,7 +341,7 @@ This service removes a [Pad Probe Handler](/docs/api-pph.md) from either the Sin
 * `pad` - [in] to which of the two pads to remove the handler from: `DSL_PAD_SIK` or `DSL_PAD SRC`
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
+* `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -368,3 +380,4 @@ retval = dsl_tracker_pph_remove('my-tracker', 'my-pph-handler', `DSL_PAD_SINK`)
 * [WebSocket Server](/docs/api-ws-server.md)
 * [Message Broker](/docs/api-msg-broker.md)
 * [Info API](/docs/api-info.md)
+

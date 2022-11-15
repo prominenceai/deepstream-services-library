@@ -29,20 +29,23 @@ import time
 
 from dsl import *
 
-uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
-
 # Filespecs for the Primary GIE
 primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+
+uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+
 ## 
 # Function to be called on XWindow Delete event
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
-    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -50,7 +53,6 @@ def xwindow_delete_event_handler(client_data):
 ## 
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
-    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 def main(args):
@@ -59,48 +61,76 @@ def main(args):
     while True:
 
         # Two URI File Sources - using the same file.
-        retval = dsl_source_uri_new('uri-source-1', uri_h265, False, False, 0)
+        retval = dsl_source_uri_new('source-1', uri_h265, False, 0, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_source_uri_new('uri-source-2', uri_h265, False, False, 0)
+        retval = dsl_source_uri_new('source-2', uri_h265, False, 0, 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        ## Two new File Sinks with H264 Codec type and MKV conatiner muxer, and bit-rate and frame interval
+        retval = dsl_sink_file_new('file-sink', "./2-source.mkv", DSL_CODEC_H264, DSL_CONTAINER_MKV, 2000000, 2)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Primary GIE using the filespecs above, with infer interval
-        retval = dsl_infer_gie_primary_new('primary-gie',
-            primary_infer_config_file, primary_model_engine_file, 0)
+        retval = dsl_infer_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 5)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Overlay Sink with id, display, depth, x/y offsets and Dimensions
-        retval = dsl_sink_overlay_new('overlay-sink', 0, 0, 100, 100, 360, 180)  
+        # New IOU Tracker, setting operational width and hieght
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
-            
+
+        # New Tiler with dimensions for two tiles - for the two sources
+        retval = dsl_tiler_new('tiler1', 1440, 360)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
             text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, with x/y offsets and dimensions
-        retval = dsl_sink_window_new('window-sink', 0, 0, 720, 360)
+        # New Window Sink, with matching dimensions as the Tiler
+        retval = dsl_sink_window_new('window-sink', 0, 0, 1440, 360)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Branch for the PGIE, OSD and Window Sink
-        retval = dsl_branch_new_component_add_many('branch1', ['on-screen-display', 'window-sink', None])
+        retval = dsl_branch_new('branch1')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add Branch1 and the overlay-sink as Branch2
-        retVal = dsl_tee_demuxer_new_branch_add_many('demuxer', ['branch1', 'overlay-sink', None])
+        retval = dsl_branch_component_add_many('branch1', ['primary-gie', 'iou-tracker', 'tiler1', 
+            'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the sources the components to our pipeline
-        retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source-1', 'uri-source-2', 'primary-gie', 'demuxer', None])
+        # New Demuxer Tee- 
+        retval = dsl_tee_demuxer_new('demuxer')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the two file sinks as branches to the demuxer
+        retVal = dsl_tee_branch_add_many('demuxer', ['file-sink-1', 'file-sink-2', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New Splitter Tee- 
+        retval = dsl_tee_splitter_new('splitter')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add Branch1 and the demuxer (as branch2) to the splitter
+        retVal = dsl_tee_branch_add_many('splitter', ['branch1', 'demuxer', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New Pipeline to use with the above components
+        retval = dsl_pipeline_new('pipeline')
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -113,6 +143,12 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Add the sources the components to our pipeline
+        retval = dsl_pipeline_component_add_many('pipeline', 
+            ['source-1', 'source-2', 'splitter', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
         # Play the pipeline
         retval = dsl_pipeline_play('pipeline')
         if retval != DSL_RETURN_SUCCESS:
@@ -121,11 +157,12 @@ def main(args):
         dsl_main_loop_run()
         retval = DSL_RETURN_SUCCESS
         break
-
+        
     # Print out the final result
     print(dsl_return_value_to_string(retval))
 
-    dsl_delete_all()
+    dsl_pipeline_delete_all()
+    dsl_component_delete_all()
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))

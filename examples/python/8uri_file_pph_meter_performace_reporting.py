@@ -37,7 +37,10 @@ inferConfigFile = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
 modelEngineFile = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
-tracker_config_file = '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
 TILER_HEIGHT = 720
@@ -67,6 +70,7 @@ def xwindow_key_event_handler(key_string, client_data):
             dsl_sink_meter_enabled_set('meter-sink', True)
 
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
  
 ## 
@@ -74,6 +78,7 @@ def xwindow_key_event_handler(key_string, client_data):
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -81,6 +86,7 @@ def xwindow_delete_event_handler(client_data):
 ## 
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
@@ -166,17 +172,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #----------------------------------------------------------------------------------------------------
-        # Create one of each Tracker Types, KTL and IOU, to test with each. We will only add one
-        # at a time, but it's easier to create both and just update the Pipeline assembly below as needed.
-
-        # New KTL Tracker, setting max width and height of input frame
-        retval = dsl_tracker_ktl_new('ktl-tracker', 480, 288)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New IOU Tracker, setting max width and height of input frame
-        retval = dsl_tracker_iou_new('iou-tracker', tracker_config_file, 480, 288)
+        # New IOU Tracker, setting operational width and hieght
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 

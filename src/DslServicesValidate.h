@@ -295,17 +295,6 @@ THE SOFTWARE.
     } \
 }while(0); 
 
-#define DSL_RETURN_IF_COMPONENT_IS_NOT_TRACKER(components, name) do \
-{ \
-    if (!components[name]->IsType(typeid(DcfTrackerBintr)) and  \
-        !components[name]->IsType(typeid(KtlTrackerBintr)) and  \
-        !components[name]->IsType(typeid(IouTrackerBintr))) \
-    { \
-        LOG_ERROR("Component '" << name << "' is not a Tracker"); \
-        return DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER; \
-    } \
-}while(0); 
-
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(components, name) do \
 { \
     if (!components[name]->IsType(typeid(DemuxerBintr)) and  \

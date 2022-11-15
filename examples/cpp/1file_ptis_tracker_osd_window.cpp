@@ -35,6 +35,10 @@ static const std::wstring file_path(L"/opt/nvidia/deepstream/deepstream-6.0/samp
 static const std::wstring primary_infer_config_file = 
     L"/opt/nvidia/deepstream/deepstream-6.0/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt";
 
+// IOU Tracker config file    
+static const std::wstring tracker_config_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
+
 // File name for .dot file output
 static const std::wstring dot_file = L"state-playing";
 
@@ -109,7 +113,7 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // # New KTL Tracker, setting output width and height of tracked objects
-        retval = dsl_tracker_ktl_new(L"ktl-tracker", 480, 272);
+        retval = dsl_tracker_new(L"iou-tracker", tracker_config_file.c_str(), 480, 272);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // # New OSD with text, clock, bboxs enabled, mask display disabled
@@ -122,7 +126,7 @@ int main(int argc, char** argv)
 
         // # Add all the components to a new pipeline
         const wchar_t* components[] = { L"uri-source",L"primary-tis",
-            L"ktl-tracker",L"on-screen-display",L"window-sink",nullptr};
+            L"iou-tracker",L"on-screen-display",L"window-sink",nullptr};
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);            
         if (retval != DSL_RESULT_SUCCESS) break;
 
