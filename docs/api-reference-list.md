@@ -41,8 +41,8 @@
 * [dsl_info_log_level_set](/docs/api-info.md#dsl_info_log_level_set)
 * [dsl_info_log_file_get](/docs/api-info.md#dsl_info_log_file_get)
 * [dsl_info_log_file_set](/docs/api-info.md#dsl_info_log_file_set)
-* [dsl_info_log_file_set_with_ts](/docs/api-info.md#dsl_info_log_file_set)
-* [dsl_info_log_function_restore](/docs/api-info.md#dsl_info_log_file_set)
+* [dsl_info_log_file_set_with_ts](/docs/api-info.md#dsl_info_log_file_set_with_ts)
+* [dsl_info_log_function_restore](/docs/api-info.md#dsl_info_log_function_restore)
 
 ## Pipeline API:
 * [Overview](/docs/api-pipeline.md)
@@ -252,17 +252,17 @@
 
 ## Tracker:
 * [Overview](/docs/api-tracker.md)
-* [dsl_tracker_ktl_new](/docs/api-tracker.md#dsl_tracker_ktl_new)
-* [dsl_tracker_iou_new](/docs/api-tracker.md#dsl_tracker_iou_new)
-* [dsl_tracker_dcf_new](/docs/api-tracker.md#dsl_tracker_dcf_new)
-* [dsl_tracker_max_dimensions_get](/docs/api-tracker.md#dsl_tracker_dimensions_get)
-* [dsl_tracker_max_dimensions_set](/docs/api-tracker.md#dsl_tracker_dimensions_set)
+* [dsl_tracker_new](/docs/api-tracker.md#dsl_tracker_new)
+* [dsl_tracker_lib_file_get](/docs/api-tracker.md#dsl_tracker_lib_file_get)
+* [dsl_tracker_lib_file_set](/docs/api-tracker.md#dsl_tracker_lib_file_set)
 * [dsl_tracker_config_file_get](/docs/api-tracker.md#dsl_tracker_config_file_get)
 * [dsl_tracker_config_file_set](/docs/api-tracker.md#dsl_tracker_config_file_set)
-* [dsl_tracker_dcf_batch_processing_enabled_get](/docs/api-tracker.md#dsl_tracker_dcf_batch_processing_enabled_get)
-* [dsl_tracker_dcf_batch_processing_enabled_set](/docs/api-tracker.md#dsl_tracker_dcf_batch_processing_enabled_set)
-* [dsl_tracker_dcf_past_frame_reporting_enabled_get](/docs/api-tracker.md#dsl_tracker_dcf_past_frame_reporting_enabled_get)
-* [dsl_tracker_dcf_past_frame_reporting_enabled_set](/docs/api-tracker.md#dsl_tracker_dcf_past_frame_reporting_enabled_set)
+* [dsl_tracker_dimensions_get](/docs/api-tracker.md#dsl_tracker_dimensions_get)
+* [dsl_tracker_dimensions_set](/docs/api-tracker.md#dsl_tracker_dimensions_set)
+* [dsl_tracker_batch_processing_enabled_get](/docs/api-tracker.md#dsl_tracker_batch_processing_enabled_get)
+* [dsl_tracker_batch_processing_enabled_set](/docs/api-tracker.md#dsl_tracker_batch_processing_enabled_set)
+* [dsl_tracker_past_frame_reporting_enabled_get](/docs/api-tracker.md#dsl_tracker_past_frame_reporting_enabled_get)
+* [dsl_tracker_past_frame_reporting_enabled_set](/docs/api-tracker.md#dsl_tracker_past_frame_reporting_enabled_set)
 * [dsl_tracker_pph_add](/docs/api-tracker.md#dsl_tracker_pph_add)
 * [dsl_tracker_pph_remove](/docs/api-tracker.md#dsl_tracker_pph_remove)
 
