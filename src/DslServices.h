@@ -1013,6 +1013,9 @@ namespace DSL {
 
         DslReturnType OsdPphRemove(const char* name, const char* handler, uint pad);
 
+        DslReturnType SinkAppNew(const char* name,
+            dsl_sink_app_new_buffer_handler_cb clientHandler, void* clientData);
+
         DslReturnType SinkFakeNew(const char* name);
 
         DslReturnType SinkOverlayNew(const char* name, uint display_id,

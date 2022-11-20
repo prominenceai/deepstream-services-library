@@ -30,7 +30,35 @@ THE SOFTWARE.
 
 namespace DSL
 {
-        DslReturnType Services::SinkFakeNew(const char* name)
+    DslReturnType Services::SinkAppNew(const char* name,
+        dsl_sink_app_new_buffer_handler_cb clientHandler, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = DSL_APP_SINK_NEW(name,
+                clientHandler, clientData);
+
+            LOG_INFO("New App Sink '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New App Sink '" << name << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::SinkFakeNew(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);

@@ -1563,6 +1563,16 @@ typedef void (*dsl_pph_buffer_timeout_handler_cb)(uint timeout, void* client_dat
  */
 typedef uint (*dsl_pph_eos_handler_cb)(void* client_data);
 
+/**
+ * @brief callback typedef for the App Sink Component. The function is registered
+ * when the App Sink is created with dsl_sink_app_new. Once the Pipeline is playing, 
+ * the function will be called when a new buffer is available to process.
+ * @param[in] buffer pointer to a stream buffer to process
+ * @param[in] client_data opaque pointer to client's user data
+ * @return one of DSL_PAD_PROBE values defined above 
+ */
+typedef uint (*dsl_sink_app_new_buffer_handler_cb)(void* buffer, void* client_data);
+
 // -----------------------------------------------------------------------------------
 // Start of DSL Services 
 
@@ -5570,6 +5580,18 @@ DslReturnType dsl_tiler_pph_add(const wchar_t* name,
 DslReturnType dsl_tiler_pph_remove(const wchar_t* name, 
     const wchar_t* handler, uint pad);
 
+/**
+ * @brief Creates a new, uniquely named App Sink component.
+ * @param name unique component name for the new App Sink
+ * @param client_handler client callback function to be called with each new 
+ * buffer received.
+ * @param[in] client_data opaque pointer to client data returned
+ * on callback to the client handler function. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_app_new(const wchar_t* name,
+    dsl_sink_app_new_buffer_handler_cb client_handler, void* client_data);
+    
 /**
  * @brief creates a new, uniquely named Fake Sink component
  * @param[in] name unique component name for the new Fake Sink

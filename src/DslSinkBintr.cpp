@@ -26,6 +26,9 @@ THE SOFTWARE.
 #include "DslSinkBintr.h"
 #include "DslBranchBintr.h"
 
+#include <gst-nvdssr.h>
+#include <gst/app/gstappsink.h>
+
 namespace DSL
 {
 
@@ -89,6 +92,128 @@ namespace DSL
         LOG_FUNC();
         
         return m_sync;
+    }
+
+    //-------------------------------------------------------------------------
+
+    AppSinkBintr::AppSinkBintr(const char* name,
+        dsl_sink_app_new_buffer_handler_cb clientHandler, void* clientData)
+        : SinkBintr(name, true)
+        , m_clientHandler(clientHandler)
+        , m_clientData(clientData)
+    {
+        LOG_FUNC();
+        
+        m_pAppSink = DSL_ELEMENT_NEW("appsink", name);
+        m_pAppSink->SetAttribute("enable-last-sample", false);
+        m_pAppSink->SetAttribute("max-lateness", -1);
+        m_pAppSink->SetAttribute("sync", m_sync);
+        m_pAppSink->SetAttribute("async", false);
+        m_pAppSink->SetAttribute("qos", m_qos);
+
+        // emit-signals are disabled by default... need to enable
+        m_pAppSink->SetAttribute("emit-signals", true);
+        
+        // register callback with the new-sample signal
+        g_signal_connect(m_pAppSink->GetGObject(), "new-sample", 
+            G_CALLBACK(on_new_sample_cb), this);
+        
+        AddChild(m_pAppSink);
+    }
+    
+    AppSinkBintr::~AppSinkBintr()
+    {
+        LOG_FUNC();
+    
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool AppSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("AppSinkBintr '" << GetName() << "' is already linked");
+            return false;
+        }
+        if (!m_pQueue->LinkToSink(m_pAppSink))
+        {
+            return false;
+        }
+        m_isLinked = true;
+        return true;
+    }
+    
+    void AppSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("AppSinkBintr '" << GetName() << "' is not linked");
+            return;
+        }
+        m_pQueue->UnlinkFromSink();
+        m_isLinked = false;
+    }
+
+    bool AppSinkBintr::SetSyncEnabled(bool enabled)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Sync enabled setting for AppSinkBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_sync = enabled;
+        
+        m_pAppSink->SetAttribute("sync", m_sync);
+        
+        return true;
+    }
+
+    GstFlowReturn AppSinkBintr::HandleNewSample()
+    {
+        // don't log function for performance
+        
+        GstSample* pSample = gst_app_sink_pull_sample(
+            GST_APP_SINK(m_pAppSink->GetGstElement()));
+            
+        GstBuffer* pBuffer = gst_sample_get_buffer(pSample);
+        
+        if (!pBuffer)
+        {
+            LOG_INFO("AppSinkBintr '" << GetName() 
+                << "' pulled a NULL buffer. Exiting handler");
+            return GST_FLOW_EOS;
+        }
+        if (m_clientHandler)
+        {
+            try
+            {
+                m_clientHandler(pBuffer, m_clientData);
+            }
+            catch(...)
+            {
+                LOG_ERROR("AppSinkBintr '" << GetName() 
+                    << "' threw exception calling client handler callback function");
+                m_clientHandler = NULL;
+            }
+        }
+        return GST_FLOW_OK;
+    }
+    
+    static GstFlowReturn on_new_sample_cb(GstElement sink, 
+        gpointer pAppSinkBintr)
+    {
+        return static_cast<AppSinkBintr*>(pAppSinkBintr)->
+            HandleNewSample();
     }
 
     //-------------------------------------------------------------------------
