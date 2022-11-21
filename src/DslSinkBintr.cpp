@@ -187,26 +187,58 @@ namespace DSL
             
         GstBuffer* pBuffer = gst_sample_get_buffer(pSample);
         
+        GstFlowReturn dslRetVal(GST_FLOW_ERROR);
         if (!pBuffer)
         {
             LOG_INFO("AppSinkBintr '" << GetName() 
-                << "' pulled a NULL buffer. Exiting handler");
-            return GST_FLOW_EOS;
+                << "' pulled a NULL buffer. Exiting with EOS");
+            dslRetVal = GST_FLOW_EOS;
         }
-        if (m_clientHandler)
+        else
         {
+            uint clientRetVal(DSL_FLOW_ERROR);
+            
             try
             {
-                m_clientHandler(pBuffer, m_clientData);
+                // call the client handler with the buffer and process.
+                clientRetVal = m_clientHandler(pBuffer, m_clientData);
             }
             catch(...)
             {
                 LOG_ERROR("AppSinkBintr '" << GetName() 
-                    << "' threw exception calling client handler callback function");
+                    << "' threw exception calling client handler function");
                 m_clientHandler = NULL;
+                dslRetVal = GST_FLOW_ERROR;
+            }
+            // Normal case - continue execution
+            if (clientRetVal == DSL_FLOW_OK)
+            {
+                dslRetVal = GST_FLOW_OK;
+            }
+            // Exception case - exiting with End-of-Stream
+            else if (clientRetVal == DSL_FLOW_EOS)
+            {
+                dslRetVal = GST_FLOW_EOS;
+            }
+            // Error case - client should report error as well.
+            else if (clientRetVal == DSL_FLOW_ERROR)
+            {
+                LOG_ERROR("Client handler function for AppSinkBintr '" 
+                    << GetName() << "' returned DSL_FLOW_ERROR");
+                dslRetVal = GST_FLOW_ERROR;
+            }
+            else
+            {
+                // Invalid return value from client
+                LOG_ERROR("Client handler function for AppSinkBintr '" 
+                    << GetName() << "' returned an invalid DSL_FLOW value = " 
+                    << clientRetVal);
+                dslRetVal = GST_FLOW_ERROR;
             }
         }
-        return GST_FLOW_OK;
+        gst_sample_unref(pSample);
+        
+        return dslRetVal;
     }
     
     static GstFlowReturn on_new_sample_cb(GstElement sink, 

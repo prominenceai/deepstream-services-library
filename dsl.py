@@ -42,6 +42,16 @@ DSL_STREAMMUX_DEFAULT_HEIGHT        = DSL_STREAMMUX_1K_HD_HEIGHT
 DSL_PAD_SINK = 0
 DSL_PAD_SRC = 1
 
+DSL_PAD_PROBE_DROP    = 0
+DSL_PAD_PROBE_OK      = 1
+DSL_PAD_PROBE_REMOVE  = 2
+DSL_PAD_PROBE_PASS    = 3
+DSL_PAD_PROBE_HANDLED = 4
+
+DSL_FLOW_OK    = 0
+DSL_FLOW_EOS   = 1
+DSL_FLOW_ERROR = 2
+
 DSL_RTP_TCP = 4
 DSL_RTP_ALL = 7
 
@@ -150,12 +160,6 @@ Button2 = 2
 Button3 = 3
 Button4 = 4
 Button5 = 5
-
-DSL_PAD_PROBE_DROP    = 0
-DSL_PAD_PROBE_OK      = 1
-DSL_PAD_PROBE_REMOVE  = 2
-DSL_PAD_PROBE_PASS    = 3
-DSL_PAD_PROBE_HANDLED = 4
 
 DSL_BBOX_POINT_CENTER     = 0
 DSL_BBOX_POINT_NORTH_WEST = 1
@@ -441,6 +445,10 @@ DSL_PPH_BUFFER_TIMEOUT_HANDLER = \
 # dsl_eos_listener_cb
 DSL_EOS_HANDLER = \
     CFUNCTYPE(c_uint, c_void_p)
+
+# dsl_sink_app_new_buffer_handler_cb
+DSL_SINK_APP_NEW_BUFFER_HANDLER = \
+    CFUNCTYPE(c_uint, c_void_p, c_void_p)
 
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
@@ -4422,6 +4430,22 @@ _dsl.dsl_tiler_pph_remove.restype = c_uint
 def dsl_tiler_pph_remove(name, handler, pad):
     global _dsl
     result = _dsl.dsl_tiler_pph_remove(name, handler, pad)
+    return int(result)
+
+##
+## dsl_sink_app_new()
+##
+_dsl.dsl_sink_app_new.argtypes = [c_wchar_p, 
+    DSL_SINK_APP_NEW_BUFFER_HANDLER, c_void_p]
+_dsl.dsl_sink_app_new.restype = c_uint
+def dsl_sink_app_new(name, client_handler, client_data):
+    global _dsl
+    c_client_handler = DSL_SINK_APP_NEW_BUFFER_HANDLER(client_handler)
+    callbacks.append(c_client_handler)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_sink_app_new(name, 
+        c_client_handler, c_client_data)
     return int(result)
 
 ##

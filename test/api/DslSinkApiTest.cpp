@@ -26,6 +26,39 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 
+static uint new_buffer_cb(void* buffer, void* client_data)
+{
+    return DSL_FLOW_OK;
+}
+
+SCENARIO( "The Components container is updated correctly on new and delete App Sink", "[sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring sinkName = L"app-sink";
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new App Sink is created" ) 
+        {
+            REQUIRE( dsl_sink_app_new(sinkName.c_str(),
+                new_buffer_cb, NULL) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean sync(false);
+                REQUIRE( dsl_sink_sync_enabled_get(sinkName.c_str(), 
+                    &sync) == DSL_RESULT_SUCCESS );
+                REQUIRE( sync == true );
+
+                // delete and check the component count
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}    
 SCENARIO( "The Components container is updated correctly on new Fake Sink", "[sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -51,7 +84,7 @@ SCENARIO( "The Components container is updated correctly on new Fake Sink", "[si
     }
 }    
 
-SCENARIO( "The Components container is updated correctly on Fink Sink delete", "[sink-api]" )
+SCENARIO( "The Components container is updated correctly on Fake Sink delete", "[sink-api]" )
 {
     GIVEN( "A Fake Sink Component" ) 
     {
@@ -1534,6 +1567,9 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
         {
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
+                REQUIRE( dsl_sink_app_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_app_new(sinkName.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
                 REQUIRE( dsl_sink_fake_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
                 REQUIRE( dsl_sink_overlay_new(NULL, 0, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );

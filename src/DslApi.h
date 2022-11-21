@@ -522,6 +522,11 @@ THE SOFTWARE.
 #define DSL_PAD_PROBE_OK                                            1
 #define DSL_PAD_PROBE_REMOVE                                        2
 
+// Valid return values from 
+#define DSL_FLOW_OK                                                 0
+#define DSL_FLOW_EOS                                                1
+#define DSL_FLOW_ERROR                                              2
+
 #define DSL_RTP_TCP                                                 0x04
 #define DSL_RTP_ALL                                                 0x07
 
@@ -1569,7 +1574,7 @@ typedef uint (*dsl_pph_eos_handler_cb)(void* client_data);
  * the function will be called when a new buffer is available to process.
  * @param[in] buffer pointer to a stream buffer to process
  * @param[in] client_data opaque pointer to client's user data
- * @return one of DSL_PAD_PROBE values defined above 
+ * @return one of DSL_FLOW values defined above 
  */
 typedef uint (*dsl_sink_app_new_buffer_handler_cb)(void* buffer, void* client_data);
 
