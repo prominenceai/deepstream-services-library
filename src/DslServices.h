@@ -639,6 +639,20 @@ namespace DSL {
         
         uint PphListSize();
         
+        DslReturnType SourceAppNew(const char* name, boolean isLive, 
+            uint format, uint width, uint height, uint fpsN, uint fpsD);
+            
+        DslReturnType SourceAppDataHandlersAdd(const char* name,
+            dsl_source_app_need_data_handler_cb needDataHandler, 
+            dsl_source_app_enough_data_handler_cb enoughDataHandler, 
+            void* clientData);
+
+        DslReturnType SourceAppDataHandlersRemove(const char* name);
+            
+        DslReturnType SourceAppBufferPush(const char* name, void* buffer);
+
+        DslReturnType SourceAppEos(const char* name);
+        
         DslReturnType SourceCsiNew(const char* name, 
             uint width, uint height, uint fpsN, uint fpsD);
             

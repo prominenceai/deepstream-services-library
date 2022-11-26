@@ -3384,6 +3384,66 @@ uint dsl_pph_list_size()
     return DSL::Services::GetServices()->PphListSize();
 }
 
+DslReturnType dsl_source_app_new(const wchar_t* name, boolean is_live, 
+    uint format, uint width, uint height, uint fps_n, uint fps_d)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceAppNew(cstrName.c_str(), 
+        is_live, format, width, height, fps_n, fps_d);
+}
+ 
+DslReturnType dsl_source_app_data_handlers_add(const wchar_t* name, 
+    dsl_source_app_need_data_handler_cb need_data_handler, 
+    dsl_source_app_enough_data_handler_cb enough_data_handler, 
+    void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(need_data_handler);
+    RETURN_IF_PARAM_IS_NULL(enough_data_handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceAppDataHandlersAdd(cstrName.c_str(), 
+        need_data_handler, enough_data_handler, client_data);
+}
+
+DslReturnType dsl_source_app_data_handlers_remove(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceAppDataHandlersRemove(cstrName.c_str());
+}
+ 
+DslReturnType dsl_source_app_buffer_push(const wchar_t* name, void* buffer)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(buffer);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceAppBufferPush(cstrName.c_str(), 
+        buffer);
+}
+
+DslReturnType dsl_source_app_eos(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceAppEos(cstrName.c_str());
+}
+   
 DslReturnType dsl_source_csi_new(const wchar_t* name, 
     uint width, uint height, uint fps_n, uint fps_d)
 {

@@ -494,6 +494,10 @@ THE SOFTWARE.
 #define DSL_NVBUF_MEM_TYPE_DEVICE                                   2
 #define DSL_NVBUF_MEM_TYPE_UNIFIED                                  3
 
+#define DSL_VIDEO_FORMAT_I420                                       0
+#define DSL_VIDEO_FORMAT_RGBA                                       1   
+#define DSL_VIDEO_FORMAT_NV12                                       2
+
 #define DSL_SOURCE_CODEC_PARSER_H264                                0
 #define DSL_SOURCE_CODEC_PARSER_H265                                1
 
@@ -522,7 +526,7 @@ THE SOFTWARE.
 #define DSL_PAD_PROBE_OK                                            1
 #define DSL_PAD_PROBE_REMOVE                                        2
 
-// Valid return values from 
+// Valid return values for the dsl_sink_app_new_buffer_handler_cb
 #define DSL_FLOW_OK                                                 0
 #define DSL_FLOW_EOS                                                1
 #define DSL_FLOW_ERROR                                              2
@@ -1567,6 +1571,28 @@ typedef void (*dsl_pph_buffer_timeout_handler_cb)(uint timeout, void* client_dat
  * allow the event to continue to the next component. 
  */
 typedef uint (*dsl_pph_eos_handler_cb)(void* client_data);
+
+/**
+ * @brief callback typedef for the App Source Component. The function is registered
+ * when the App Source is created with dsl_source_app_new. Once the Pipeline is playing, 
+ * the function will be called when the Source needs new data to process.
+ * @param[in] length the amount of bytes needed.  The lenght is just a hint and when it 
+ * is set to -1, any number of bytes can be pushed into the App Source.
+ * @param[in] client_data opaque pointer to client's user data
+ */
+typedef void (*dsl_source_app_need_data_handler_cb)(uint length, void* client_data);
+
+/**
+ * @brief callback typedef for the App Source Component. The function is registered
+ * when the App Source is created with dsl_source_app_new. Once the Pipeline is playing, 
+ * the function will be called when the Source has enough data to process. It is 
+ * recommended that the application stops calling dsl_source_app_buffer_push until 
+ * dsl_source_app_need_data_handler_cb is called again.
+ * @param[in] length the amount of bytes needed.  The lenght is just a hint and when it 
+ * is set to -1, any number of bytes can be pushed into the App Source.
+ * @param[in] client_data opaque pointer to client's user data
+ */
+typedef void (*dsl_source_app_enough_data_handler_cb)(uint length, void* client_data);
 
 /**
  * @brief callback typedef for the App Sink Component. The function is registered
@@ -4027,6 +4053,61 @@ DslReturnType dsl_pph_delete_all();
  * @return the number of Handlers in the list
  */
 uint dsl_pph_list_size();
+
+/**
+ * @brief Creates a new, uniquely named App Source component to insert data 
+ * into a DSL pipeline.
+ * @param[in] name unique name for the new Source.
+ * @param[in] is_live set to true to instruct the source to behave like a 
+ * live source. This includes that it will only push out buffers in the PLAYING state.
+ * @param[in] format one of the DSL_VIDEO_FORMAT constants.
+ * @param[in] width width of the source in pixels.
+ * @param[in] height height of the source in pixels.
+ * @param[in] fps-n frames/second fraction numerator.
+ * @param[in] fps-d frames/second fraction denominator.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_new(const wchar_t* name, boolean is_live, 
+    uint format, uint width, uint height, uint fps_n, uint fps_d);
+    
+/**
+ * @brief Adds data-handler callback functions to a named App Source component.
+ * @param[in] name unique name of the App Source to update
+ * @param[in] need_data_handler callback function to be called when new data is needed.
+ * @param[in] enough_data_handler callback function to be called when the Source
+ * has enough data to process.
+ * @param[in] client_data opaque pointer to client data passed back into the 
+ * client_handler function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_data_handlers_add(const wchar_t* name, 
+    dsl_source_app_need_data_handler_cb need_data_handler, 
+    dsl_source_app_enough_data_handler_cb enough_data_handler, 
+    void* client_data);
+
+/**
+ * @brief Removes data-handler callback functions from a named App Source component.
+ * @param[in] name unique name of the App Source to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_data_handlers_remove(const wchar_t* name);
+
+/**
+ * @brief Pushes a new buffer to a uniquely named App Source component 
+ * for processing.
+ * @param[in] name unqiue name of the App Source to push to.
+ * @param[in] buffer buffer to push to the App Source
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_buffer_push(const wchar_t* name, void* buffer);
+
+/**
+ * @brief Notifies a uniquely named App Source component that no more buffer 
+ * are available.
+ * @param[in] name unique name of the App Source to notify
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_eos(const wchar_t* name);
 
 /**
  * @brief creates a new, uniquely named CSI Camera Source component. A unique 

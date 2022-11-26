@@ -43,6 +43,11 @@ namespace DSL
     #define DSL_SOURCE_NEW(name) \
         std::shared_ptr<SourceBintr>(new SourceBintr(name))
 
+    #define DSL_APP_SOURCE_PTR std::shared_ptr<AppSourceBintr>
+    #define DSL_APP_SOURCE_NEW(name, isLive, format, width, height, fpsN, fpsD) \
+        std::shared_ptr<AppSourceBintr>(new AppSourceBintr(name, isLive, \
+            format, width, height, fpsN, fpsD))
+        
     #define DSL_CSI_SOURCE_PTR std::shared_ptr<CsiSourceBintr>
     #define DSL_CSI_SOURCE_NEW(name, width, height, fpsN, fpsD) \
         std::shared_ptr<CsiSourceBintr>(new CsiSourceBintr(name, width, height, fpsN, fpsD))
@@ -208,6 +213,104 @@ namespace DSL
          */ 
         DSL_DEWARPER_PTR m_pDewarperBintr;
     };
+
+    //*********************************************************************************
+    /**
+     * @class AppSourceBintr
+     * @brief 
+     */
+    class AppSourceBintr : public SourceBintr
+    {
+    public: 
+    
+        AppSourceBintr(const char* name, bool isLive, 
+            uint format, uint width, uint height, uint fpsN, uint fpsD);
+
+        ~AppSourceBintr();
+
+        /**
+         * @brief Links all Child Elementrs owned by this AppSourceBintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this AppSourceBintr
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief Adds data-handler callback functions to this AppSourceBintr
+         * @param[in] needDataHandler callback function to be called when new data is needed.
+         * @param[in] enoughDataHandler callback function to be called when the Source
+         * has enough data to process.
+         * @param[in] clientData opaque pointer to client data passed back into the 
+         * client_handler function.
+         * @return true on successful add, false otherwise.
+         */
+        bool AddDataHandlers(dsl_source_app_need_data_handler_cb needDataHandler, 
+            dsl_source_app_enough_data_handler_cb enoughDataHandler, 
+            void* clientData);
+        
+        /**
+         * @brief Adds data-handler callback functions from this AppSourceBintr,
+         * function previously added with AddDataHandlers
+         * @return true on successful remove, false otherwise.
+         */
+        bool RemoveDataHandlers();
+        
+        /**
+         * @brief Pushes a new buffer to this AppSourceBintr for processing.
+         * @param[in] buffer buffer to push to this AppSourceBintr
+         * @return true on successful push, false otherwise.
+         */
+        bool PushBuffer(void* buffer);
+        
+        /**
+         * @brief Notifies this AppSourceBintr that there are no more buffers 
+         * for processing.
+         * @return true on successful Eos, false otherwise.
+         */
+        bool Eos();
+        
+    private:
+    
+        /**
+         * @brief video format for the AppSourceBintr - on of the DSL_VIDEO_FORMAT constants.
+         */
+        uint m_format;
+
+        /**
+         * @brief client callback function to be called when new data is needed.
+         */
+        dsl_source_app_need_data_handler_cb m_needDataHandler;
+        
+        /**
+         * @brief client callback function to be called when new data is needed.
+         */
+        dsl_source_app_enough_data_handler_cb m_enoughDataHandler;
+        
+        /**
+         * @brief opaque pointer to client data to return with the "need-data" and 
+         * "enough-data" callback.
+         */
+        void* m_clientData;
+        
+        /**
+         * @brief mutex to protect mutual access to probe data
+         */
+        GMutex m_dataHandlerMutex;
+        
+        /**
+         * @brief Video Converter for the AppSourceBintr
+         */
+        DSL_ELEMENT_PTR m_pVidConv;
+
+        /**
+         * @brief Caps Filter for the AppSourceBintr
+         */
+        DSL_ELEMENT_PTR m_pCapsFilter;
+    };    
 
     //*********************************************************************************
     /**

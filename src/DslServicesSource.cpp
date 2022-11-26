@@ -30,6 +30,167 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    DslReturnType Services::SourceAppNew(const char* name, boolean isLive, 
+        uint format, uint width, uint height, uint fpsN, uint fpsD)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Source name '" << name << "' is not unique");
+                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = DSL_APP_SOURCE_NEW(name, isLive, 
+                format, width, height, fpsN, fpsD);
+
+            LOG_INFO("New App Source '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New App Source '" << name << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceAppDataHandlersAdd(const char* name,
+        dsl_source_app_need_data_handler_cb needDataHandler, 
+        dsl_source_app_enough_data_handler_cb enoughDataHandler, 
+        void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSourceBintr);
+
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->AddDataHandlers(needDataHandler,
+                enoughDataHandler, clientData))
+            {
+                LOG_ERROR("Failed to add data-handlers to App Source '" 
+                    << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("App Source '" << name << "' added data-hanlders successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception adding data-handlers");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceAppDataHandlersRemove(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSourceBintr);
+
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->RemoveDataHandlers())
+            {
+                LOG_ERROR("Failed to remove data-handlers from App Source '" 
+                    << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("App Source '" << name << "' removed data-hanlders successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception removing data-handlers");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceAppBufferPush(const char* name, void* buffer)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSourceBintr);
+
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->PushBuffer(buffer))
+            {
+                LOG_ERROR("Failed to push buffer to App Source '" 
+                    << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("Buffer pushed to App Source '" << name << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception on push buffer");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceAppEos(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSourceBintr);
+
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->Eos())
+            {
+                LOG_ERROR("Failed to end-of-stream App Source '" 
+                    << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("End-of-stream event sent to  App Source '" 
+                << name << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception on end-of-stream");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::SourceCsiNew(const char* name,
         uint width, uint height, uint fpsN, uint fpsD)
     {

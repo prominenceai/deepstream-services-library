@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "DslPipelineBintr.h"
 #include "DslSurfaceTransform.h"
 #include <nvdsgstutils.h>
+#include <gst/app/gstappsrc.h>
 
 #define N_DECODE_SURFACES 16
 #define N_EXTRA_SURFACES 1
@@ -118,6 +119,230 @@ namespace DSL
         *fpsD = m_fpsD;
     }
 
+    //*********************************************************************************
+    AppSourceBintr::AppSourceBintr(const char* name, bool isLive, 
+            uint format, uint width, uint height, uint fpsN, uint fpsD)
+        : SourceBintr(name)
+        , m_format(format)
+        , m_needDataHandler(NULL)
+        , m_enoughDataHandler(NULL)
+        , m_clientData(NULL)
+    {
+        LOG_FUNC();
+
+        m_isLive = isLive;
+        m_width = width;
+        m_height = height;
+        m_fpsN = fpsN;
+        m_fpsD = fpsD;
+
+        std::string formatStr;
+        
+        switch (m_format)
+        {
+        case DSL_VIDEO_FORMAT_RGBA:
+            formatStr = "RGBA";
+            break;
+        case DSL_VIDEO_FORMAT_NV12:
+            formatStr = "NV12";
+            break;
+        case DSL_VIDEO_FORMAT_I420:
+            formatStr = "I420";
+            break;
+        default:
+            LOG_ERROR("Invalid format attribute for AppSourceBintr '" 
+                << GetName() << "'");
+            throw;
+        }
+        
+        m_pSourceElement = DSL_ELEMENT_NEW("appsrc", name);
+        
+        GstCaps * pCaps = gst_caps_new_simple("video/x-raw",
+            "format", G_TYPE_STRING, formatStr.c_str(),
+            "width", G_TYPE_INT, m_width,
+            "height", G_TYPE_INT, m_height,
+            "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
+        if (!pCaps)
+        {
+            LOG_ERROR("Failed to create new Simple Capabilities for '" 
+                << name << "'");
+            throw;  
+        }
+        m_pSourceElement->SetAttribute("caps", pCaps);
+        gst_caps_unref(pCaps);        
+            
+        m_pSourceElement->SetAttribute("do-timestamp", true);        
+
+        // ---- Video Converter Setup
+        
+        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
+        if (!m_cudaDeviceProp.integrated)
+        {
+            m_pVidConv->SetAttribute("nvbuf-memory-type", DSL_NVBUF_MEM_TYPE_UNIFIED);
+        }
+        
+        // ---- Caps Filter Setup
+
+        m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
+        
+        pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING,
+            formatStr.c_str(), NULL);
+            
+        if (!pCaps)
+        {
+            LOG_ERROR("Failed to create new Simple Capabilities for '" 
+                << name << "'");
+            throw;  
+        }
+
+        GstCapsFeatures *feature = NULL;
+        feature = gst_caps_features_new("memory:NVMM", NULL);
+        gst_caps_set_features(pCaps, 0, feature);
+
+        m_pCapsFilter->SetAttribute("caps", pCaps);
+        
+        gst_caps_unref(pCaps);        
+
+        // add all elementrs as childer to this Bintr
+        AddChild(m_pSourceElement);
+        AddChild(m_pVidConv);
+        AddChild(m_pCapsFilter);
+        
+        m_pCapsFilter->AddGhostPadToParent("src");
+
+        std::string padProbeName = GetName() + "-src-pad-probe";
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
+            "src", m_pCapsFilter);
+
+        g_mutex_init(&m_dataHandlerMutex);
+    }
+
+    AppSourceBintr::~AppSourceBintr()
+    {
+        LOG_FUNC();
+        
+        g_mutex_clear(&m_dataHandlerMutex);
+    }
+    
+    bool AppSourceBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("AppSourceBintr '" << GetName() 
+                << "' is already in a linked state");
+            return false;
+        }
+        if (!m_pSourceElement->LinkToSink(m_pVidConv) or
+            !m_pVidConv->LinkToSink(m_pCapsFilter))
+        {
+            return false;
+        }
+        
+        m_isLinked = true;
+        
+        return true;
+    }
+
+    void AppSourceBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+
+        if (!m_isLinked)
+        {
+            LOG_ERROR("AppSourceBintr '" << GetName() 
+                << "' is not in a linked state");
+            return;
+        }
+        m_pSourceElement->UnlinkFromSink();
+        m_pVidConv->UnlinkFromSink();
+        m_isLinked = false;
+    }
+
+    bool AppSourceBintr::AddDataHandlers(
+        dsl_source_app_need_data_handler_cb needDataHandler, 
+        dsl_source_app_enough_data_handler_cb enoughDataHandler, 
+        void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_dataHandlerMutex);
+
+        if (m_needDataHandler)
+        {
+            LOG_ERROR("AppSourceBintr '" << GetName() 
+                << "' already has data-handler callbacks");
+            return false;
+        }
+        m_needDataHandler = needDataHandler;
+        m_enoughDataHandler = enoughDataHandler;
+        m_clientData = clientData;
+        return true;
+    }
+        
+    bool AppSourceBintr::RemoveDataHandlers()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_dataHandlerMutex);
+
+        if (!m_needDataHandler)
+        {
+            LOG_ERROR("AppSourceBintr '" << GetName() 
+                << "' does not have data-handler callbacks to remove");
+            return false;
+        }
+        m_needDataHandler = NULL;
+        m_enoughDataHandler = NULL;
+        m_clientData = NULL;
+        return true;
+    }
+    
+    bool AppSourceBintr::PushBuffer(void* buffer)
+    {
+        LOG_FUNC();
+
+        if (!m_isLinked)
+        {
+            LOG_ERROR("AppSourceBintr '" << GetName() 
+                << "' is not in a linked state");
+            return false;
+        }
+        
+        // Push the buffer to the App Source element.
+        GstFlowReturn retVal = gst_app_src_push_buffer(
+            (GstAppSrc*)m_pSourceElement->GetGObject(), (GstBuffer*)buffer);
+        if (retVal != GST_FLOW_OK)
+        {
+            LOG_ERROR("AppSourceBintr '" << GetName() 
+                << "' returned " << retVal << " on push-buffer");
+            return false;
+        }
+            
+        return true;
+    }
+
+    bool AppSourceBintr::Eos()
+    {
+        LOG_FUNC();
+
+        if (!m_isLinked)
+        {
+            LOG_ERROR("AppSourceBintr '" << GetName() 
+                << "' is not in a linked state");
+            return false;
+        }
+        GstFlowReturn retVal = gst_app_src_end_of_stream(
+            (GstAppSrc*)m_pSourceElement->GetGObject());
+        if (retVal != GST_FLOW_OK)
+        {
+            LOG_ERROR("AppSourceBintr '" << GetName() 
+                << "' returned " << retVal << " on end-of-stream");
+            return false;
+        }
+            
+        return true;
+    }
+        
     //*********************************************************************************
     // Initilize the unique id list for all CsiSourceBintrs 
     std::list<uint> CsiSourceBintr::s_uniqueSensorIds;
