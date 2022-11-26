@@ -61,6 +61,8 @@ static uint interval(0);
 static std::wstring rtsp_uri(L"rtsp://username:password@192.168.0.14:554");
 
 static boolean is_live(false);
+static uint video_format(DSL_VIDEO_FORMAT_I420);
+
 
 static std::wstring def_device_location(L"/dev/video0");
 
@@ -162,6 +164,37 @@ SCENARIO( "A Source, once removed from a Pipeline, can be deleted", "[source-api
         }
     }
 }
+
+SCENARIO( "A new App Source returns the correct attribute values", "[source-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new App Source is created" ) 
+        {
+            REQUIRE( dsl_source_app_new(source_name.c_str(), 
+                is_live, video_format, width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                uint ret_width(0), ret_height(0), ret_fps_n(0), ret_fps_d(0);
+                REQUIRE( dsl_source_dimensions_get(source_name.c_str(), 
+                    &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), 
+                    &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_width == width );
+                REQUIRE( ret_height == height );
+                REQUIRE( ret_fps_n == fps_n );
+                REQUIRE( ret_fps_d == fps_d );
+                REQUIRE( dsl_source_is_live(source_name.c_str()) == is_live );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
 
 SCENARIO( "A new CSI Camera Source returns the correct attribute values", "[source-api]" )
 {
@@ -942,11 +975,29 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
         REQUIRE( dsl_component_list_size() == 0 );
         
         int start_index(0);
+        dsl_source_app_need_data_handler_cb data_handler_cb;
 
         WHEN( "When NULL pointers are used as input" ) 
         {
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
+                REQUIRE( dsl_source_app_new(NULL, 
+                    0, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_data_handlers_add(NULL, 
+                    NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_data_handlers_add(source_name.c_str(), 
+                    NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_data_handlers_add(source_name.c_str(), 
+                    data_handler_cb, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_data_handlers_remove(NULL) ==
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_buffer_push(NULL, NULL) ==
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_buffer_push(source_name.c_str(), NULL) ==
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_eos(NULL) ==
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                    
                 REQUIRE( dsl_source_csi_new(NULL, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_csi_sensor_id_get(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_csi_sensor_id_get(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );

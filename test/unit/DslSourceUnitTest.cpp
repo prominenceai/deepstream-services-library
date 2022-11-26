@@ -52,6 +52,90 @@ static uint width(1920), height(1080), fps_n(30), fps_d(1);
 
 using namespace DSL;
 
+SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
+{
+    GIVEN( "Attributes for a new AppSourceBintr" ) 
+    {
+        uint format(DSL_VIDEO_FORMAT_I420);
+        boolean isLive(true);
+        
+        WHEN( "The AppSourceBintr is created " )
+        {
+            DSL_APP_SOURCE_PTR pSourceBintr = DSL_APP_SOURCE_NEW(
+                sourceName.c_str(), isLive, format, width, height, fps_n, fps_d);
+
+            THEN( "All memeber variables are initialized correctly" )
+            {
+                REQUIRE( pSourceBintr->m_gpuId == 0 );
+                REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
+                REQUIRE( pSourceBintr->GetGstObject() != NULL );
+                REQUIRE( pSourceBintr->GetId() == 0 );
+                REQUIRE( pSourceBintr->IsInUse() == false );
+                REQUIRE( pSourceBintr->IsLive() == true );
+                
+                uint retWidth, retHeight, retFpsN, retFpsD;
+                pSourceBintr->GetDimensions(&retWidth, &retHeight);
+                pSourceBintr->GetFrameRate(&retFpsN, &retFpsD);
+                REQUIRE( width == retWidth );
+                REQUIRE( height == retHeight );
+                REQUIRE( fps_n == retFpsN );
+                REQUIRE( fps_d == retFpsD );
+            }
+        }
+    }
+}
+
+SCENARIO( "An AppSourceBintr can LinkAll and UnlinkAll child Elementrs correctly",
+    "[SourceBintr]" )
+{
+    GIVEN( "A new AppSourceBintr in memory" ) 
+    {
+        uint format(DSL_VIDEO_FORMAT_I420);
+        boolean isLive(true);
+
+        DSL_APP_SOURCE_PTR pSourceBintr = DSL_APP_SOURCE_NEW(
+            sourceName.c_str(), isLive, format, width, height, fps_n, fps_d);
+
+        WHEN( "The AppSourceBintr is called to LinkAll" )
+        {
+            REQUIRE( pSourceBintr->LinkAll() == true );
+
+            // second call must fail
+            REQUIRE( pSourceBintr->LinkAll() == false );
+
+            THEN( "The AppSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A AppSourceBintr can UnlinkAll all child Elementrs correctly",  "[SourceBintr]" )
+{
+    GIVEN( "A new, linked AppSourceBintr " ) 
+    {
+        uint format(DSL_VIDEO_FORMAT_I420);
+        boolean isLive(true);
+
+        DSL_APP_SOURCE_PTR pSourceBintr = DSL_APP_SOURCE_NEW(
+            sourceName.c_str(), isLive, format, width, height, fps_n, fps_d);
+
+        pSourceBintr->LinkAll();
+        REQUIRE( pSourceBintr->IsLinked() == true );
+
+        WHEN( "The AppSourceBintr is called to UnlinkAll" )
+        {
+            pSourceBintr->UnlinkAll();
+
+            THEN( "The AppSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new CsiSourceBintr is created correctly",  "[SourceBintr]" )
 {
     GIVEN( "A name for a new CsiSourceBintr" ) 

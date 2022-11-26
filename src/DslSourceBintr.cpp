@@ -176,6 +176,7 @@ namespace DSL
         // ---- Video Converter Setup
         
         m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
+        
         if (!m_cudaDeviceProp.integrated)
         {
             m_pVidConv->SetAttribute("nvbuf-memory-type", DSL_NVBUF_MEM_TYPE_UNIFIED);
@@ -185,8 +186,9 @@ namespace DSL
 
         m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
         
+        // All sources output "I420" by default
         pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING,
-            formatStr.c_str(), NULL);
+            "I420", NULL);
             
         if (!pCaps)
         {

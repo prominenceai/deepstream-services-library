@@ -177,7 +177,8 @@ THE SOFTWARE.
 
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(components, name) do \
 { \
-    if (!components[name]->IsType(typeid(CsiSourceBintr)) and  \
+    if (!components[name]->IsType(typeid(AppSourceBintr)) and  \
+        !components[name]->IsType(typeid(CsiSourceBintr)) and  \
         !components[name]->IsType(typeid(UsbSourceBintr)) and  \
         !components[name]->IsType(typeid(UriSourceBintr)) and  \
         !components[name]->IsType(typeid(FileSourceBintr)) and  \
