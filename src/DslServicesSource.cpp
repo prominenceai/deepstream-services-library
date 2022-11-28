@@ -82,7 +82,8 @@ namespace DSL
                     << name << "'");
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
-            LOG_INFO("App Source '" << name << "' added data-hanlders successfully");
+            LOG_INFO("App Source '" << name 
+                << "' added data-handlers successfully");
             
             return DSL_RESULT_SUCCESS;
         }
@@ -114,7 +115,8 @@ namespace DSL
                     << name << "'");
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
-            LOG_INFO("App Source '" << name << "' removed data-hanlders successfully");
+            LOG_INFO("App Source '" << name 
+                << "' removed data-handlers successfully");
             
             return DSL_RESULT_SUCCESS;
         }
@@ -146,7 +148,7 @@ namespace DSL
                     << name << "'");
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
-            LOG_INFO("Buffer pushed to App Source '" << name << "' successfully");
+            // don't log successful case for performance reasons
             
             return DSL_RESULT_SUCCESS;
         }

@@ -196,7 +196,78 @@ SCENARIO( "A new App Source returns the correct attribute values", "[source-api]
     }
 }    
 
-SCENARIO( "A new CSI Camera Source returns the correct attribute values", "[source-api]" )
+static void need_data_handler(uint length, void* client_data)
+{
+}
+
+static void enough_data_handler(void* client_data)
+{
+}
+
+SCENARIO( "A new App Source can add and remove data-handlers correctly", 
+    "[source-api]" )
+{
+    GIVEN( "A new App Source component" ) 
+    {
+        
+        REQUIRE( dsl_source_app_new(source_name.c_str(), is_live, 
+            video_format, width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+        WHEN( "Client data-handers are added. " ) 
+        {
+            REQUIRE( dsl_source_app_data_handlers_add(source_name.c_str(),
+                need_data_handler, enough_data_handler, NULL) == DSL_RESULT_SUCCESS );
+
+            // second call must fail
+            REQUIRE( dsl_source_app_data_handlers_add(source_name.c_str(),
+                need_data_handler, enough_data_handler, NULL) == DSL_RESULT_SOURCE_SET_FAILED );
+            
+            THEN( "The data-handlers can be removed correctly" ) 
+            {
+                REQUIRE( dsl_source_app_data_handlers_remove(source_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+
+                // second call must fail
+                REQUIRE( dsl_source_app_data_handlers_remove(source_name.c_str()) 
+                    == DSL_RESULT_SOURCE_SET_FAILED );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A new App Source fails to push-buffer and EOS when in a unlinked state", 
+    "[source-api]" )
+{
+    GIVEN( "A new App Source component" ) 
+    {
+        
+        REQUIRE( dsl_source_app_new(source_name.c_str(), is_live, 
+            video_format, width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+        WHEN( "When the App Source is in an unlinked state. " ) 
+        {
+            
+            THEN( "The push-buffer and EOS services must fail" ) 
+            {
+                std::string fake_buffer("this is a fake buffer");
+                
+                REQUIRE( dsl_source_app_buffer_push(source_name.c_str(),
+                    (void*)fake_buffer.c_str()) == DSL_RESULT_SOURCE_SET_FAILED );
+
+                // second call must fail
+                REQUIRE( dsl_source_app_eos(source_name.c_str()) 
+                    == DSL_RESULT_SOURCE_SET_FAILED );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A new CSI Camera Source returns the correct attribute values", 
+    "[source-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
@@ -204,13 +275,16 @@ SCENARIO( "A new CSI Camera Source returns the correct attribute values", "[sour
 
         WHEN( "A new Source is created" ) 
         {
-            REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_csi_new(source_name.c_str(), 
+                width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
                 uint ret_width(0), ret_height(0), ret_fps_n(0), ret_fps_d(0);
-                REQUIRE( dsl_source_dimensions_get(source_name.c_str(), &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_dimensions_get(source_name.c_str(), 
+                    &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), 
+                    &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_width == width );
                 REQUIRE( ret_height == height );
                 REQUIRE( ret_fps_n == fps_n );

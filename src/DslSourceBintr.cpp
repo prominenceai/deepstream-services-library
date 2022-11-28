@@ -171,7 +171,15 @@ namespace DSL
         m_pSourceElement->SetAttribute("caps", pCaps);
         gst_caps_unref(pCaps);        
             
-        m_pSourceElement->SetAttribute("do-timestamp", true);        
+        // emit-signals are disabled by default... need to enable
+        m_pSourceElement->SetAttribute("emit-signals", true);
+//        m_pSourceElement->SetAttribute("do-timestamp", true);
+        
+        // register the data callbacks with the appsrc element
+        g_signal_connect(m_pSourceElement->GetGObject(), "need-data", 
+            G_CALLBACK(on_need_data_cb), this);
+        g_signal_connect(m_pSourceElement->GetGObject(), "enough-data", 
+            G_CALLBACK(on_enough_data_cb), this);
 
         // ---- Video Converter Setup
         
@@ -301,8 +309,8 @@ namespace DSL
     
     bool AppSourceBintr::PushBuffer(void* buffer)
     {
-        LOG_FUNC();
-
+        // Do not log function entry/exit for performance
+        
         if (!m_isLinked)
         {
             LOG_ERROR("AppSourceBintr '" << GetName() 
@@ -343,6 +351,56 @@ namespace DSL
         }
             
         return true;
+    }
+
+    void AppSourceBintr::HandleNeedData(uint length)
+    {
+        if (m_needDataHandler)
+        {
+            try
+            {
+                // call the client handler with the length hint.
+                m_needDataHandler(length, m_clientData);
+            }
+            catch(...)
+            {
+                LOG_ERROR("AppSourceBintr '" << GetName() 
+                    << "' threw exception calling client handler function \
+                        for 'need-data'");
+            }
+        }
+    }
+    
+    void AppSourceBintr::HandleEnoughData()
+    {
+        if (m_enoughDataHandler)
+        {
+            try
+            {
+                // call the client handler with the buffer and process.
+                m_enoughDataHandler(m_clientData);
+            }
+            catch(...)
+            {
+                LOG_ERROR("AppSourceBintr '" << GetName() 
+                    << "' threw exception calling client handler function \
+                        for 'enough-data'");
+            }
+        }
+    }
+
+    static void on_need_data_cb(GstElement source, uint length,
+        gpointer pAppSrcBintr)
+    {
+        static_cast<AppSourceBintr*>(pAppSrcBintr)->
+            HandleNeedData(length);
+    }
+        
+    static void on_enough_data_cb(GstElement source, 
+        gpointer pAppSrcBintr)
+    {
+        static_cast<AppSourceBintr*>(pAppSrcBintr)->
+            HandleEnoughData();
     }
         
     //*********************************************************************************

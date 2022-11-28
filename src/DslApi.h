@@ -1573,9 +1573,9 @@ typedef void (*dsl_pph_buffer_timeout_handler_cb)(uint timeout, void* client_dat
 typedef uint (*dsl_pph_eos_handler_cb)(void* client_data);
 
 /**
- * @brief callback typedef for the App Source Component. The function is registered
- * when the App Source is created with dsl_source_app_new. Once the Pipeline is playing, 
- * the function will be called when the Source needs new data to process.
+ * @brief Callback typedef for the App Source Component. The function is registered
+ * with the App Source by calling dsl_source_app_data_handlers_add. Once the Pipeline 
+ * is playing, the function will be called when the Source needs new data to process.
  * @param[in] length the amount of bytes needed.  The lenght is just a hint and when it 
  * is set to -1, any number of bytes can be pushed into the App Source.
  * @param[in] client_data opaque pointer to client's user data
@@ -1583,19 +1583,17 @@ typedef uint (*dsl_pph_eos_handler_cb)(void* client_data);
 typedef void (*dsl_source_app_need_data_handler_cb)(uint length, void* client_data);
 
 /**
- * @brief callback typedef for the App Source Component. The function is registered
- * when the App Source is created with dsl_source_app_new. Once the Pipeline is playing, 
- * the function will be called when the Source has enough data to process. It is 
- * recommended that the application stops calling dsl_source_app_buffer_push until 
- * dsl_source_app_need_data_handler_cb is called again.
- * @param[in] length the amount of bytes needed.  The lenght is just a hint and when it 
- * is set to -1, any number of bytes can be pushed into the App Source.
+ * @brief Callback typedef for the App Source Component. The function is registered
+ * with the App Source by calling dsl_source_app_data_handlers_add. Once the Pipeline 
+ * is playing, the function will be called when the Source has enough data to process. 
+ * It is recommended that the application stops calling dsl_source_app_buffer_push 
+ * until dsl_source_app_need_data_handler_cb is called again.
  * @param[in] client_data opaque pointer to client's user data
  */
-typedef void (*dsl_source_app_enough_data_handler_cb)(uint length, void* client_data);
+typedef void (*dsl_source_app_enough_data_handler_cb)(void* client_data);
 
 /**
- * @brief callback typedef for the App Sink Component. The function is registered
+ * @brief Callback typedef for the App Sink Component. The function is registered
  * when the App Sink is created with dsl_sink_app_new. Once the Pipeline is playing, 
  * the function will be called when a new buffer is available to process.
  * @param[in] buffer pointer to a stream buffer to process

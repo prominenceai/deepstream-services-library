@@ -273,6 +273,18 @@ namespace DSL
          */
         bool Eos();
         
+        /**
+         * @brief Callback handler function to handle the "need-data" signal.
+         * @param length the amount of bytes needed. length is just a hint and 
+         * when it is set to -1, any number of bytes can be pushed into appsrc.
+         */
+        void HandleNeedData(uint length);
+        
+        /**
+         * @brief Callback handler function to handle the "enough-data"signal.
+         */
+        void HandleEnoughData();
+        
     private:
     
         /**
@@ -311,7 +323,27 @@ namespace DSL
          */
         DSL_ELEMENT_PTR m_pCapsFilter;
     };    
-
+    
+    /**
+     * @brief Callback function for the "need-data" signal
+     * @param source "appsrc" plugin/element that invoked the signal (unused)
+     * @param length the amount of bytes needed. length is just a hint and 
+     * when it is set to -1, any number of bytes can be pushed into appsrc.
+     * @param pAppSrcBintr pointer to the AppSrcBintr that registered for the
+     * "need-data" signal.
+     */
+    static void on_need_data_cb(GstElement source, uint length,
+        gpointer pAppSrcBintr);
+    
+    /**
+     * @brief Callback function for the "enough-data" signal
+     * @param source "appsrc" plugin/element that invoked the signal (unused)
+     * @param pAppSrcBintr pointer to the AppSrcBintr that registered for the
+     * "enough-data" signal.
+     */
+    static void on_enough_data_cb(GstElement source, 
+        gpointer pAppSrcBintr);
+        
     //*********************************************************************************
     /**
      * @class CsiSourceBintr
