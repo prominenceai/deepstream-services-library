@@ -284,6 +284,63 @@ namespace DSL
          * @brief Callback handler function to handle the "enough-data"signal.
          */
         void HandleEnoughData();
+
+        /**
+         * @brief Gets the current block-enabled setting for this AppSourceBintr.
+         * @return If true, when max-bytes/buffers/time are queued and after the 
+         * enough-data signal has been emitted, the source will block any further 
+         * push-buffer calls until the amount of queued bytes drops below the 
+         * max-bytes/buffers/time limit.
+         */
+        boolean GetBlockEnabled();
+        
+        /**
+         * @brief Sets the block-enabled setting for this AppSourceBintr.
+         * @param[in] enabled If true, when max-bytes/buffers/time are queued and 
+         * after the enough-data signal has been emitted, the source will block any 
+         * further push-buffer calls until the amount of queued bytes drops below the 
+         * max-bytes/buffers/time limit.
+         * @return true on successful set, false otherwise.
+         */
+        bool SetBlockEnabled(boolean enabled);
+        
+        /**
+         * @brief Gets the current level of queued data -- buffers, bytes, or 
+         * duration -- for this AppSrcBintr.
+         * @param[in] levelType one of the DSL_QUEUE_LEVEL_TYPE constants
+         * @return current level of buffers, bytes, or duration
+         */
+        uint64_t GetCurrentLevel(uint levelType);
+
+        /**
+         * @brief Gets the max level of queued data -- buffers, bytes, or 
+         * duration -- for this AppSrcBintr.
+         * @param[in] levelType one of the DSL_QUEUE_LEVEL_TYPE constants
+         * @return maximum level of buffers, bytes, or duration
+         */
+        uint64_t GetMaxLevel(uint levelType);
+        
+        /**
+         * @brief Sets the max level of queued data -- buffers, bytes, or 
+         * duration -- for this AppSrcBintr.
+         * @param[in] levelType one of the DSL_QUEUE_LEVEL_TYPE constants
+         * @param[in] level new max level for the App Source to use.
+         * @return true on successful set, false otherwise.
+         */
+        bool SetMaxLevel(uint levelType, uint level);
+        
+        /**
+         * @brief Gets the current leaky-type in use by this AppSourceBintr
+         * @return leaky-type one of the DSL_QUEUE_LEAKY_TYPE constant values. 
+         */
+        uint GetLeakyType();
+        
+        /**
+         * @brief Sets the leaky-type for the AppSrcBintr to use.
+         * @param leakyType one of the DSL_QUEUE_LEAKY_TYPE constant values. 
+         * @return true on successful set, false otherwise.
+         */
+        bool SetLeakyType(uint leakyType);
         
     private:
     
@@ -312,6 +369,38 @@ namespace DSL
          * @brief mutex to protect mutual access to probe data
          */
         GMutex m_dataHandlerMutex;
+        
+        /**
+         * @brief block-enabled setting for this AppSourceBintr.
+         */
+        boolean m_blockEnabled;
+        
+        /**
+         * @brief The maximum amount of buffers that can be queued internally. 
+         * After the maximum amount of buffers are queued, appsrc will emit 
+         * the "enough-data" signal.
+         */
+        uint64_t m_maxBuffers;
+        
+        /**
+         * @brief The maximum amount of bytes that can be queued internally. 
+         * After the maximum amount of bytes are queued, appsrc will emit 
+         * the "enough-data" signal.
+         */
+        uint64_t m_maxBytes;
+        
+        /**
+         * @brief The maximum amount of time that can be queued internally. 
+         * After the maximum amount of time is queued, appsrc will emit 
+         * the "enough-data" signal.
+         */
+        uint64_t m_maxTime;
+        
+        /**
+         * @brief Current Queue leaky-type, one of the DSL_QUEUE_LEAKY_TYPE
+         * constant values. 
+         */
+        uint m_leakyType;
         
         /**
          * @brief Video Converter for the AppSourceBintr

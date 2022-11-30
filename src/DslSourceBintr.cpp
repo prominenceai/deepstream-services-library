@@ -127,6 +127,10 @@ namespace DSL
         , m_needDataHandler(NULL)
         , m_enoughDataHandler(NULL)
         , m_clientData(NULL)
+        , m_maxBuffers(0)
+        , m_maxBytes(0)
+        , m_maxTime(0)
+        , m_leakyType(0)
     {
         LOG_FUNC();
 
@@ -155,6 +159,8 @@ namespace DSL
             throw;
         }
         
+        // ---- Source Element Setup
+
         m_pSourceElement = DSL_ELEMENT_NEW("appsrc", name);
         
         GstCaps * pCaps = gst_caps_new_simple("video/x-raw",
@@ -181,6 +187,19 @@ namespace DSL
         g_signal_connect(m_pSourceElement->GetGObject(), "enough-data", 
             G_CALLBACK(on_enough_data_cb), this);
 
+        // get the max-level defaults
+        m_pSourceElement->GetAttribute("block", &m_blockEnabled);
+        m_pSourceElement->GetAttribute("max-buffers", &m_maxBuffers);
+        m_pSourceElement->GetAttribute("max-bytes", &m_maxBytes);
+        m_pSourceElement->GetAttribute("max-time", &m_maxTime);
+        m_pSourceElement->GetAttribute("leaky-type", &m_leakyType);
+
+        LOG_INFO("block-enabled = " << m_blockEnabled);
+        LOG_INFO("max-buffers = " << m_maxBuffers);
+        LOG_INFO("max-bytes   = " << m_maxBytes);
+        LOG_INFO("max-time    = " << m_maxTime);
+        LOG_INFO("leaky-type  = " << m_leakyType);
+        
         // ---- Video Converter Setup
         
         m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
@@ -355,6 +374,8 @@ namespace DSL
 
     void AppSourceBintr::HandleNeedData(uint length)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_dataHandlerMutex);
+
         if (m_needDataHandler)
         {
             try
@@ -373,6 +394,8 @@ namespace DSL
     
     void AppSourceBintr::HandleEnoughData()
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_dataHandlerMutex);
+
         if (m_enoughDataHandler)
         {
             try
@@ -388,6 +411,148 @@ namespace DSL
             }
         }
     }
+
+    boolean AppSourceBintr::GetBlockEnabled()
+    {
+        LOG_FUNC();
+        
+        return m_blockEnabled;
+    }
+    
+    bool AppSourceBintr::SetBlockEnabled(boolean enabled)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set block-enabled for AppSourceBintr '" 
+                << GetName() << "' as it's currently in a linked state");
+            return false;
+        }
+
+        m_blockEnabled = enabled;
+        m_pSourceElement->SetAttribute("block", m_blockEnabled);
+        return true;
+    }
+    
+    uint64_t AppSourceBintr::GetCurrentLevel(uint levelType)
+    {
+        LOG_FUNC();
+        
+        uint64_t currentLevel(0);
+        if (levelType == DSL_QUEUE_LEVEL_TYPE_BUFFERS)
+        {
+            m_pSourceElement->GetAttribute("current-level-buffers", 
+                &currentLevel);
+        }
+        else if (levelType == DSL_QUEUE_LEVEL_TYPE_BYTES)
+        {
+            m_pSourceElement->GetAttribute("current-level-bytes", 
+                &currentLevel);
+        }
+        else if (levelType == DSL_QUEUE_LEVEL_TYPE_TIME)
+        {
+            m_pSourceElement->GetAttribute("current-level-time", 
+                &currentLevel);
+        }
+        else
+        {
+            LOG_ERROR("Invalid level-type for AppSourceBintr '" 
+                << GetName() << "'");
+        }
+        return currentLevel;
+    }
+    
+    uint64_t AppSourceBintr::GetMaxLevel(uint levelType)
+    {
+        uint64_t maxLevel(0);
+        if (levelType == DSL_QUEUE_LEVEL_TYPE_BUFFERS)
+        {
+            m_pSourceElement->GetAttribute("max-buffers", 
+                &maxLevel);
+            m_maxBuffers = maxLevel;
+        }
+        else if (levelType == DSL_QUEUE_LEVEL_TYPE_BYTES)
+        {
+            m_pSourceElement->GetAttribute("max-bytes", 
+                &maxLevel);
+            m_maxBytes = maxLevel;
+        }
+        else if (levelType == DSL_QUEUE_LEVEL_TYPE_TIME)
+        {
+            m_pSourceElement->GetAttribute("max-time", 
+                &maxLevel);
+            m_maxTime = maxLevel;
+        }
+        else
+        {
+            LOG_ERROR("Invalid level-type for AppSourceBintr '" 
+                << GetName() << "'");
+        }
+        return maxLevel;
+    }
+    
+    bool AppSourceBintr::SetMaxLevel(uint levelType, uint level)
+    {
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set max-level for AppSourceBintr '" 
+                << GetName() << "' as it's currently in a linked state");
+            return false;
+        }
+
+        bool result(true);
+        
+        if (levelType == DSL_QUEUE_LEVEL_TYPE_BUFFERS)
+        {
+            m_maxBuffers = level;
+            m_pSourceElement->SetAttribute("max-buffers", 
+                m_maxBuffers);
+        }
+        else if (levelType == DSL_QUEUE_LEVEL_TYPE_BYTES)
+        {
+            m_maxBytes = level;
+            m_pSourceElement->SetAttribute("max-bytes", 
+                m_maxBytes);
+        }
+        else if (levelType == DSL_QUEUE_LEVEL_TYPE_TIME)
+        {
+            m_maxTime = level;
+            m_pSourceElement->SetAttribute("max-time", 
+                m_maxTime);
+        }
+        else
+        {
+            LOG_ERROR("Invalid level-type for AppSourceBintr '" 
+                << GetName() << "'");
+            result = false;
+        }
+        return result;
+    }
+    
+    uint AppSourceBintr::GetLeakyType()
+    {
+        LOG_FUNC();
+        
+        return m_leakyType;
+    }
+    
+    bool AppSourceBintr::SetLeakyType(uint leakyType)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set leaky-type for AppSourceBintr '" 
+                << GetName() << "' as it's currently in a linked state");
+            return false;
+        }
+
+        m_leakyType = leakyType;
+        m_pSourceElement->SetAttribute("leaky-type", m_leakyType);
+        return true;
+    }
+
 
     static void on_need_data_cb(GstElement source, uint length,
         gpointer pAppSrcBintr)

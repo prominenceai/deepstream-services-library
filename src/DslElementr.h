@@ -64,7 +64,8 @@ namespace DSL
             // Create a unique name by appending the plugin name
             AppendSuffix(factoryName);
             
-            m_pGstObj = GST_OBJECT(gst_element_factory_make(factoryName, GetCStrName()));
+            m_pGstObj = GST_OBJECT(gst_element_factory_make(factoryName, 
+                GetCStrName()));
             if (!m_pGstObj)
             {
                 LOG_ERROR("Failed to create new Element '" << name << "'");
@@ -87,7 +88,8 @@ namespace DSL
             AppendSuffix(factoryName);
             AppendSuffix(suffix);
             
-            m_pGstObj = GST_OBJECT(gst_element_factory_make(factoryName, GetCStrName()));
+            m_pGstObj = GST_OBJECT(gst_element_factory_make(factoryName, 
+                GetCStrName()));
             if (!m_pGstObj)
             {
                 LOG_ERROR("Failed to create new Element '" << name << "'");
@@ -104,9 +106,10 @@ namespace DSL
         };
 
         /**
-         * @brief Gets a GST Element's attribute of type int, owned by this Elementr
-         * @param[in] name name of the attribute to set
-         * @param[out] value signed integer value to set the attribute
+         * @brief Gets a GST Element's attribute of type int, 
+         *  owned by this Elementr
+         * @param[in] name name of the attribute to get
+         * @param[out] value signed integer value to get the attribute
          */
         void GetAttribute(const char* name, int* value)
         {
@@ -114,13 +117,15 @@ namespace DSL
             
             g_object_get(GetGObject(), name, value, NULL);
 
-            LOG_DEBUG("Attribute '" << name << "' returned int '" << *value << "'");
+            LOG_DEBUG("Attribute '" << name 
+                << "' returned int '" << *value << "'");
         }
 
         /**
-         * @brief Gets a GST Element's attribute of type int, owned by this Elementr
-         * @param[in] name name of the attribute to set
-         * @param[out] value unsigned integer value to set the attribute
+         * @brief Gets a GST Element's attribute of type int, 
+         * owned by this Elementr
+         * @param[in] name name of the attribute to get
+         * @param[out] value unsigned integer value to get the attribute
          */
         void GetAttribute(const char* name, uint* value)
         {
@@ -128,13 +133,15 @@ namespace DSL
             
             g_object_get(GetGObject(), name, value, NULL);
 
-            LOG_DEBUG("Attribute '" << name << "' returned uint '" << *value << "'");
+            LOG_DEBUG("Attribute '" << name 
+                << "' returned uint '" << *value << "'");
         }
 
         /**
-         * @brief Gets a GST Element's attribute of type int, owned by this Elementr
-         * @param[in] name name of the attribute to set
-         * @param[out] value unsigned integer value to set the attribute
+         * @brief Gets a GST Element's attribute of type int, 
+         * owned by this Elementr
+         * @param[in] name name of the attribute to get
+         * @param[out] value const char* value to set the attribute
          */
         void GetAttribute(const char* name, const char** value)
         {
@@ -142,11 +149,29 @@ namespace DSL
             
             g_object_get(GetGObject(), name, value, NULL);
 
-            LOG_DEBUG("Attribute '" << name << "' returned string '" << *value << "'");
+            LOG_DEBUG("Attribute '" << name 
+                << "' returned string '" << *value << "'");
         }
 
         /**
-         * @brief Sets a GST Element's attribute, owned by this Elementr to a value of int
+         * @brief Gets a GST Element's attribute of type uint64_t, 
+         * owned by this Elementr
+         * @param[in] name name of the attribute to get
+         * @param[out] value uint64_t value to get the attribute
+         */
+        void GetAttribute(const char* name, uint64_t* value)
+        {
+            LOG_FUNC();
+            
+            g_object_get(GetGObject(), name, value, NULL);
+
+            LOG_DEBUG("Attribute '" << name 
+                << "' returned string '" << *value << "'");
+        }
+
+        /**
+         * @brief Sets a GST Element's attribute, owned by this Elementr to a 
+         * value of int
          * @param[in] name name of the attribute to set
          * @param[in] value unsigned integer value to set the attribute
          */
@@ -154,13 +179,15 @@ namespace DSL
         {
             LOG_FUNC();
             
-            LOG_DEBUG("Setting attribute '" << name << "' to uint value '" << value << "'");
+            LOG_DEBUG("Setting attribute '" << name 
+                << "' to uint value '" << value << "'");
             
             g_object_set(GetGObject(), name, value, NULL);
         }
 
         /**
-         * @brief Sets a GST Element's attribute, owned by this Elementr to a value of uint
+         * @brief Sets a GST Element's attribute, owned by this Elementr to a 
+         * value of uint
          * @param[in] name name of the attribute to set
          * @param[in] value unsigned integer value to set the attribute
          */
@@ -168,7 +195,8 @@ namespace DSL
         {
             LOG_FUNC();
             
-            LOG_DEBUG("Setting attribute '" << name << "' to uint value '" << value << "'");
+            LOG_DEBUG("Setting attribute '" << name 
+                << "' to uint value '" << value << "'");
             
             g_object_set(GetGObject(), name, value, NULL);
         }
@@ -183,11 +211,28 @@ namespace DSL
         {
             LOG_FUNC();
             
-            LOG_DEBUG("Setting attribute '" << name << "' to char* value '" << value << "'");
+            LOG_DEBUG("Setting attribute '" << name 
+                << "' to char* value '" << value << "'");
             
             g_object_set(GetGObject(), name, value, NULL);
         }
         
+        /**
+         * @brief Sets a GST Element's attribute, owned by this Elementr to a 
+         * value of uint64_t
+         * @param[in] name name of the attribute to set
+         * @param[in] value unsigned integer value to set the attribute
+         */
+        void SetAttribute(const char* name, uint64_t value)
+        {
+            LOG_FUNC();
+            
+            LOG_DEBUG("Setting attribute '" << name 
+                << "' to uint value '" << value << "'");
+            
+            g_object_set(GetGObject(), name, value, NULL);
+        }
+
         /**
          * @brief Sets a GST Element's attribute, owned by this Elementr to a 
          * value of type GstCaps, created with one of gst_caps_new_* 
@@ -198,7 +243,8 @@ namespace DSL
         {
             LOG_FUNC();
             
-            LOG_DEBUG("Setting attribute '" << name << "' to GstCaps* value '" << value << "'");
+            LOG_DEBUG("Setting attribute '" << name 
+                << "' to GstCaps* value '" << value << "'");
             
             g_object_set(GetGObject(), name, value, NULL);
         }

@@ -3443,7 +3443,95 @@ DslReturnType dsl_source_app_eos(const wchar_t* name)
 
     return DSL::Services::GetServices()->SourceAppEos(cstrName.c_str());
 }
+
+DslReturnType dsl_source_app_block_enabled_get(const wchar_t* name, 
+    boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceAppBlockEnabledGet(cstrName.c_str(),
+        enabled);
+}
    
+DslReturnType dsl_source_app_block_enabled_set(const wchar_t* name, 
+    boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceAppBlockEnabledSet(cstrName.c_str(),
+        enabled);
+}
+
+DslReturnType dsl_source_app_current_level_get(const wchar_t* name,
+    uint level_type, uint64_t* level)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(level);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceAppCurrentLevelGet(cstrName.c_str(),
+        level_type, level);
+}
+   
+DslReturnType dsl_source_app_max_level_get(const wchar_t* name,
+    uint level_type, uint64_t* level)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(level);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceAppMaxLevelGet(cstrName.c_str(),
+        level_type, level);
+}
+   
+DslReturnType dsl_source_app_max_level_set(const wchar_t* name,
+    uint level_type, uint64_t level)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceAppMaxLevelSet(cstrName.c_str(),
+        level_type, level);
+}
+ 
+DslReturnType dsl_source_app_leaky_type_get(const wchar_t* name,
+    uint* leaky_type)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(leaky_type);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceAppLeakyTypeGet(cstrName.c_str(),
+        leaky_type);
+}
+
+DslReturnType dsl_source_app_leaky_type_set(const wchar_t* name,
+    uint leaky_type)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceAppLeakyTypeSet(cstrName.c_str(),
+        leaky_type);
+}
+  
 DslReturnType dsl_source_csi_new(const wchar_t* name, 
     uint width, uint height, uint fps_n, uint fps_d)
 {

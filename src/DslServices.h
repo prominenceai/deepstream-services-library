@@ -653,6 +653,27 @@ namespace DSL {
 
         DslReturnType SourceAppEos(const char* name);
         
+        DslReturnType SourceAppBlockEnabledGet(const char* name,
+            boolean* enabled);
+        
+        DslReturnType SourceAppBlockEnabledSet(const char* name,
+            boolean enabled);
+        
+        DslReturnType SourceAppCurrentLevelGet(const char* name,
+            uint levelType, uint64_t* level);
+        
+        DslReturnType SourceAppMaxLevelGet(const char* name,
+            uint levelType, uint64_t* level);
+        
+        DslReturnType SourceAppMaxLevelSet(const char* name,
+            uint levelType, uint64_t level);
+        
+        DslReturnType SourceAppLeakyTypeGet(const char* name,
+            uint* leakyType);
+        
+        DslReturnType SourceAppLeakyTypeSet(const char* name,
+            uint leakyType);
+
         DslReturnType SourceCsiNew(const char* name, 
             uint width, uint height, uint fpsN, uint fpsD);
             
