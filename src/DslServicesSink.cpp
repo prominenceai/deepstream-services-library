@@ -30,8 +30,8 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    DslReturnType Services::SinkAppNew(const char* name,
-        dsl_sink_app_new_buffer_handler_cb clientHandler, void* clientData)
+    DslReturnType Services::SinkAppNew(const char* name, uint dataType,
+        dsl_sink_app_new_data_handler_cb clientHandler, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -44,8 +44,15 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
+            if (dataType > DSL_SINK_APP_DATA_TYPE_BUFFER)
+            {
+                LOG_ERROR("Invalid data-type = " << dataType 
+                    << " specified for App Sink '" << name << "'");
+                return DSL_RESULT_SINK_SET_FAILED;
+                
+            }
             m_components[name] = DSL_APP_SINK_NEW(name,
-                clientHandler, clientData);
+                dataType, clientHandler, clientData);
 
             LOG_INFO("New App Sink '" << name << "' created successfully");
 

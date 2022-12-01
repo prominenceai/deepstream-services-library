@@ -84,7 +84,7 @@ PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-def new_buffer_handler_cb(buffer, user_data):
+def new_buffer_handler_cb(data_type, buffer, user_data):
     frame_number=0
     #Intiallizing object counter with 0.
     obj_counter = {
@@ -154,8 +154,10 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New App Sink with client handler and no client data.
-        retval = dsl_sink_app_new('app-sink', new_buffer_handler_cb, None)
+        # New App Sink created to provide new buffers to process by calling
+        # the new_buffer_handler_cb callback function defined above.
+        retval = dsl_sink_app_new('app-sink', DSL_SINK_APP_DATA_TYPE_BUFFER,
+            new_buffer_handler_cb, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 

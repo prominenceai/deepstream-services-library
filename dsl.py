@@ -48,6 +48,9 @@ DSL_PAD_PROBE_REMOVE  = 2
 DSL_PAD_PROBE_PASS    = 3
 DSL_PAD_PROBE_HANDLED = 4
 
+DSL_SINK_APP_DATA_TYPE_SAMPLE = 0
+DSL_SINK_APP_DATA_TYPE_BUFFER = 1
+
 DSL_FLOW_OK    = 0
 DSL_FLOW_EOS   = 1
 DSL_FLOW_ERROR = 2
@@ -446,9 +449,9 @@ DSL_PPH_BUFFER_TIMEOUT_HANDLER = \
 DSL_EOS_HANDLER = \
     CFUNCTYPE(c_uint, c_void_p)
 
-# dsl_sink_app_new_buffer_handler_cb
-DSL_SINK_APP_NEW_BUFFER_HANDLER = \
-    CFUNCTYPE(c_uint, c_void_p, c_void_p)
+# dsl_sink_app_new_data_handler_cb
+DSL_SINK_APP_NEW_DATA_HANDLER = \
+    CFUNCTYPE(c_uint, c_uint, c_void_p, c_void_p)
 
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
@@ -4435,16 +4438,16 @@ def dsl_tiler_pph_remove(name, handler, pad):
 ##
 ## dsl_sink_app_new()
 ##
-_dsl.dsl_sink_app_new.argtypes = [c_wchar_p, 
-    DSL_SINK_APP_NEW_BUFFER_HANDLER, c_void_p]
+_dsl.dsl_sink_app_new.argtypes = [c_wchar_p, c_uint,
+    DSL_SINK_APP_NEW_DATA_HANDLER, c_void_p]
 _dsl.dsl_sink_app_new.restype = c_uint
-def dsl_sink_app_new(name, client_handler, client_data):
+def dsl_sink_app_new(name, data_type, client_handler, client_data):
     global _dsl
-    c_client_handler = DSL_SINK_APP_NEW_BUFFER_HANDLER(client_handler)
+    c_client_handler = DSL_SINK_APP_NEW_DATA_HANDLER(client_handler)
     callbacks.append(c_client_handler)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
-    result = _dsl.dsl_sink_app_new(name, 
+    result = _dsl.dsl_sink_app_new(name, data_type,
         c_client_handler, c_client_data)
     return int(result)
 

@@ -96,9 +96,10 @@ namespace DSL
 
     //-------------------------------------------------------------------------
 
-    AppSinkBintr::AppSinkBintr(const char* name,
-        dsl_sink_app_new_buffer_handler_cb clientHandler, void* clientData)
+    AppSinkBintr::AppSinkBintr(const char* name, uint dataType,
+        dsl_sink_app_new_data_handler_cb clientHandler, void* clientData)
         : SinkBintr(name, true)
+        , m_dataType(dataType)
         , m_clientHandler(clientHandler)
         , m_clientData(clientData)
     {
@@ -182,16 +183,25 @@ namespace DSL
     {
         // don't log function for performance
         
+        void* pData(NULL);
+        
         GstSample* pSample = gst_app_sink_pull_sample(
             GST_APP_SINK(m_pAppSink->GetGstElement()));
             
-        GstBuffer* pBuffer = gst_sample_get_buffer(pSample);
+        if (m_dataType == DSL_SINK_APP_DATA_TYPE_SAMPLE)
+        {
+            pData = pSample;
+        }
+        else
+        {
+            pData = gst_sample_get_buffer(pSample);
+        }
         
         GstFlowReturn dslRetVal(GST_FLOW_ERROR);
-        if (!pBuffer)
+        if (!pData)
         {
             LOG_INFO("AppSinkBintr '" << GetName() 
-                << "' pulled a NULL buffer. Exiting with EOS");
+                << "' pulled NULL data. Exiting with EOS");
             dslRetVal = GST_FLOW_EOS;
         }
         else
@@ -201,21 +211,21 @@ namespace DSL
             try
             {
                 // call the client handler with the buffer and process.
-                clientRetVal = m_clientHandler(pBuffer, m_clientData);
+                clientRetVal = m_clientHandler(m_dataType, pData, m_clientData);
             }
             catch(...)
             {
                 LOG_ERROR("AppSinkBintr '" << GetName() 
                     << "' threw exception calling client handler function");
                 m_clientHandler = NULL;
-                dslRetVal = GST_FLOW_ERROR;
+                dslRetVal = GST_FLOW_EOS;
             }
             // Normal case - continue execution
             if (clientRetVal == DSL_FLOW_OK)
             {
                 dslRetVal = GST_FLOW_OK;
             }
-            // Exception case - exiting with End-of-Stream
+            // EOS case - exiting with End-of-Stream
             else if (clientRetVal == DSL_FLOW_EOS)
             {
                 dslRetVal = GST_FLOW_EOS;

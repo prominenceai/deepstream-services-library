@@ -37,9 +37,9 @@ namespace DSL
     #define DSL_SINK_PTR std::shared_ptr<SinkBintr>
 
     #define DSL_APP_SINK_PTR std::shared_ptr<AppSinkBintr>
-    #define DSL_APP_SINK_NEW(name, clientHandler, clientData) \
+    #define DSL_APP_SINK_NEW(name, dataType, clientHandler, clientData) \
         std::shared_ptr<AppSinkBintr>( \
-        new AppSinkBintr(name, clientHandler, clientData))
+        new AppSinkBintr(name, dataType, clientHandler, clientData))
 
     #define DSL_FAKE_SINK_PTR std::shared_ptr<FakeSinkBintr>
     #define DSL_FAKE_SINK_NEW(name) \
@@ -163,8 +163,8 @@ namespace DSL
     {
     public: 
     
-        AppSinkBintr(const char* name,
-            dsl_sink_app_new_buffer_handler_cb clientHandler, void* clientData);
+        AppSinkBintr(const char* name, uint dataType, 
+            dsl_sink_app_new_data_handler_cb clientHandler, void* clientData);
 
         ~AppSinkBintr();
   
@@ -187,7 +187,8 @@ namespace DSL
         bool SetSyncEnabled(bool enabled);
         
         /**
-         * @brief Handles the new sample on signal call
+         * @brief Handles the new sample on signal call and provides either
+         * the sample or the contained buffer to the client by callback.
          * @return either GST_FLOW_OK, or GST_FLOW_EOS on no buffer available.
          */
         GstFlowReturn HandleNewSample();
@@ -195,10 +196,16 @@ namespace DSL
     private:
     
         /**
+         * @brief either DSL_SINK_APP_DATA_TYPE_SAMPLE or 
+         * DSL_SINK_APP_DATA_TYPE_BUFFER
+         */
+        uint m_dataType;
+    
+        /**
          * @brief client callback function to be called with each new 
          * buffer available.
          */
-        dsl_sink_app_new_buffer_handler_cb m_clientHandler; 
+        dsl_sink_app_new_data_handler_cb m_clientHandler; 
         
         /**
          * @brief opaque pointer to client data to return with the callback.

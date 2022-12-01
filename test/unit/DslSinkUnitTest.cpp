@@ -28,7 +28,8 @@ THE SOFTWARE.
 
 using namespace DSL;
 
-static uint new_buffer_cb(void* buffer, void* client_data)
+static uint new_buffer_cb(uint data_type, 
+    void* buffer, void* client_data)
 {
     return DSL_FLOW_OK;
 }
@@ -41,8 +42,8 @@ SCENARIO( "A new AppSinkBintr is created correctly",  "[SinkBintr]" )
 
         WHEN( "The AppSinkBintr is created" )
         {
-            DSL_APP_SINK_PTR pSinkBintr = 
-                DSL_APP_SINK_NEW(sinkName.c_str(), new_buffer_cb, NULL);
+            DSL_APP_SINK_PTR pSinkBintr = DSL_APP_SINK_NEW(sinkName.c_str(), 
+                DSL_SINK_APP_DATA_TYPE_BUFFER, new_buffer_cb, NULL);
             
             THEN( "The correct attribute values are returned" )
             {
@@ -58,8 +59,8 @@ SCENARIO( "A new AppSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
     {
         std::string sinkName("fake-sink");
 
-        DSL_APP_SINK_PTR pSinkBintr = 
-            DSL_APP_SINK_NEW(sinkName.c_str(), new_buffer_cb, NULL);
+        DSL_APP_SINK_PTR pSinkBintr = DSL_APP_SINK_NEW(sinkName.c_str(), 
+            DSL_SINK_APP_DATA_TYPE_BUFFER, new_buffer_cb, NULL);
 
         REQUIRE( pSinkBintr->IsLinked() == false );
 

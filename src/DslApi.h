@@ -526,7 +526,11 @@ THE SOFTWARE.
 #define DSL_PAD_PROBE_OK                                            1
 #define DSL_PAD_PROBE_REMOVE                                        2
 
-// Valid return values for the dsl_sink_app_new_buffer_handler_cb
+// Data types provided by the APP Sink via dsl_sink_app_new_data_handler_cb
+#define DSL_SINK_APP_DATA_TYPE_SAMPLE                               0
+#define DSL_SINK_APP_DATA_TYPE_BUFFER                               1
+
+// Valid return values for the dsl_sink_app_new_data_handler_cb
 #define DSL_FLOW_OK                                                 0
 #define DSL_FLOW_EOS                                                1
 #define DSL_FLOW_ERROR                                              2
@@ -1591,7 +1595,7 @@ typedef uint (*dsl_pph_eos_handler_cb)(void* client_data);
  * @brief Callback typedef for the App Source Component. The function is registered
  * with the App Source by calling dsl_source_app_data_handlers_add. Once the Pipeline 
  * is playing, the function will be called when the Source needs new data to process.
- * @param[in] length the amount of bytes needed.  The lenght is just a hint and when it 
+ * @param[in] length the amount of bytes needed.  The length is just a hint and when it 
  * is set to -1, any number of bytes can be pushed into the App Source.
  * @param[in] client_data opaque pointer to client's user data
  */
@@ -1610,12 +1614,16 @@ typedef void (*dsl_source_app_enough_data_handler_cb)(void* client_data);
 /**
  * @brief Callback typedef for the App Sink Component. The function is registered
  * when the App Sink is created with dsl_sink_app_new. Once the Pipeline is playing, 
- * the function will be called when a new buffer is available to process.
- * @param[in] buffer pointer to a stream buffer to process
+ * the function will be called when new data is available to process. The type of
+ * data is specified with the App Sink constructor.
+ * @param[in] data_type type of data provided. Either DSL_SINK_APP_DATA_TYPE_SAMPLE
+ * or DSL_SINK_APP_DATA_TYPE_BUFFER.
+ * @param[in] data pointer to either a sample or buffer to process.
  * @param[in] client_data opaque pointer to client's user data
  * @return one of DSL_FLOW values defined above 
  */
-typedef uint (*dsl_sink_app_new_buffer_handler_cb)(void* buffer, void* client_data);
+typedef uint (*dsl_sink_app_new_data_handler_cb)(uint data_type, 
+    void* data, void* client_data);
 
 // -----------------------------------------------------------------------------------
 // Start of DSL Services 
@@ -5751,7 +5759,8 @@ DslReturnType dsl_tiler_pph_add(const wchar_t* name,
     const wchar_t* handler, uint pad);
 
 /**
- * @brief Removes a pad-probe-handler to either the Sink or Source pad of the named Tiler
+ * @brief Removes a pad-probe-handler to either the Sink or Source pad of the 
+ * named Tiler.
  * @param[in] name unique name of the Tiled Dislplay to update
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT otherwise
@@ -5761,15 +5770,17 @@ DslReturnType dsl_tiler_pph_remove(const wchar_t* name,
 
 /**
  * @brief Creates a new, uniquely named App Sink component.
- * @param name unique component name for the new App Sink
- * @param client_handler client callback function to be called with each new 
+ * @param[in] name unique component name for the new App Sink.
+ * @param[in] data_type either DSL_SINK_APP_DATA_TYPE_SAMPLE or 
+ * DSL_SINK_APP_DATA_TYPE_BUFFER
+ * @param[in] client_handler client callback function to be called with each new 
  * buffer received.
  * @param[in] client_data opaque pointer to client data returned
  * on callback to the client handler function. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
  */
-DslReturnType dsl_sink_app_new(const wchar_t* name,
-    dsl_sink_app_new_buffer_handler_cb client_handler, void* client_data);
+DslReturnType dsl_sink_app_new(const wchar_t* name, uint data_type,
+    dsl_sink_app_new_data_handler_cb client_handler, void* client_data);
     
 /**
  * @brief creates a new, uniquely named Fake Sink component

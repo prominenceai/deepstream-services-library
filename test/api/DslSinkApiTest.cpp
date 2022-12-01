@@ -26,7 +26,8 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 
-static uint new_buffer_cb(void* buffer, void* client_data)
+static uint new_buffer_cb(uint data_type,
+    void* buffer, void* client_data)
 {
     return DSL_FLOW_OK;
 }
@@ -41,7 +42,7 @@ SCENARIO( "The Components container is updated correctly on new and delete App S
 
         WHEN( "A new App Sink is created" ) 
         {
-            REQUIRE( dsl_sink_app_new(sinkName.c_str(),
+            REQUIRE( dsl_sink_app_new(sinkName.c_str(), DSL_SINK_APP_DATA_TYPE_BUFFER, 
                 new_buffer_cb, NULL) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
@@ -1567,8 +1568,10 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
         {
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
-                REQUIRE( dsl_sink_app_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_app_new(sinkName.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_app_new(NULL, 0, NULL, NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_app_new(sinkName.c_str(), 0, NULL, NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_sink_fake_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 

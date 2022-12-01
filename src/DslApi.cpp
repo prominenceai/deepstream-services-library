@@ -5686,8 +5686,8 @@ DslReturnType dsl_tiler_pph_remove(const wchar_t* name, const wchar_t* handler, 
     return DSL::Services::GetServices()->TilerPphRemove(cstrName.c_str(), cstrHandler.c_str(), pad);
 }     
 
-DslReturnType dsl_sink_app_new(const wchar_t* name,
-    dsl_sink_app_new_buffer_handler_cb client_handler, void* client_data)
+DslReturnType dsl_sink_app_new(const wchar_t* name, uint data_type,
+    dsl_sink_app_new_data_handler_cb client_handler, void* client_data)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(client_handler);
@@ -5696,7 +5696,7 @@ DslReturnType dsl_sink_app_new(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->SinkAppNew(cstrName.c_str(),
-        client_handler, client_data);
+        data_type, client_handler, client_data);
 }
     
 DslReturnType dsl_sink_fake_new(const wchar_t* name)
