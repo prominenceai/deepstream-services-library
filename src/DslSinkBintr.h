@@ -192,6 +192,20 @@ namespace DSL
          * @return either GST_FLOW_OK, or GST_FLOW_EOS on no buffer available.
          */
         GstFlowReturn HandleNewSample();
+        
+        /**
+         * @brief Gets the current data-type setting in use by this AppSinkBintr.
+         * @return current data-type in use, either DSL_SINK_APP_DATA_TYPE_SAMPLE
+         * or DSL_SINK_APP_DATA_TYPE_BUFFER.
+         */
+        uint GetDataType();
+        
+        /**
+         * @brief Sets the data type to use for this AppSinkBintr.
+         * @param[in] dataType either DSL_SINK_APP_DATA_TYPE_SAMPLE
+         * or DSL_SINK_APP_DATA_TYPE_BUFFER.
+         */
+        void SetDataType(uint dataType);
 
     private:
     
@@ -201,6 +215,11 @@ namespace DSL
          */
         uint m_dataType;
     
+        /**
+         * @brief mutex to protect mutual access to the client-data-handler
+         */
+        GMutex m_dataHandlerMutex;
+
         /**
          * @brief client callback function to be called with each new 
          * buffer available.

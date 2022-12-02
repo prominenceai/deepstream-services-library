@@ -366,7 +366,7 @@ namespace DSL
         void* m_clientData;
         
         /**
-         * @brief mutex to protect mutual access to probe data
+         * @brief mutex to protect mutual access to the client-data-handlers
          */
         GMutex m_dataHandlerMutex;
         

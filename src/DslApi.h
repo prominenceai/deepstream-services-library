@@ -5781,6 +5781,24 @@ DslReturnType dsl_tiler_pph_remove(const wchar_t* name,
  */
 DslReturnType dsl_sink_app_new(const wchar_t* name, uint data_type,
     dsl_sink_app_new_data_handler_cb client_handler, void* client_data);
+
+/**
+ * @brief Gets the current data-type setting in use by a named App Sink Component.
+ * @param[in] name unique name of the App Sink to query
+ * @param[out] data_type current data-type setting in use, either 
+ * DSL_SINK_APP_DATA_TYPE_SAMPLE or DSL_SINK_APP_DATA_TYPE_BUFFER
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_app_data_type_get(const wchar_t* name, uint* data_type);
+    
+/**
+ * @brief Sets the data-type setting for the named App Sink Component to use.
+ * @param[in] name unique name of the App Sink to update
+ * @param[in] data_type new data-type setting to use, either 
+ * DSL_SINK_APP_DATA_TYPE_SAMPLE or DSL_SINK_APP_DATA_TYPE_BUFFER
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_app_data_type_set(const wchar_t* name, uint data_type);
     
 /**
  * @brief creates a new, uniquely named Fake Sink component

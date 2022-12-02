@@ -5698,6 +5698,29 @@ DslReturnType dsl_sink_app_new(const wchar_t* name, uint data_type,
     return DSL::Services::GetServices()->SinkAppNew(cstrName.c_str(),
         data_type, client_handler, client_data);
 }
+
+DslReturnType dsl_sink_app_data_type_get(const wchar_t* name, uint* data_type)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(data_type);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkAppDataTypeGet(cstrName.c_str(),
+        data_type);
+}
+    
+DslReturnType dsl_sink_app_data_type_set(const wchar_t* name, uint data_type)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkAppDataTypeSet(cstrName.c_str(),
+        data_type);
+}
     
 DslReturnType dsl_sink_fake_new(const wchar_t* name)
 {

@@ -1050,6 +1050,10 @@ namespace DSL {
 
         DslReturnType SinkAppNew(const char* name, uint dataType,
             dsl_sink_app_new_data_handler_cb clientHandler, void* clientData);
+            
+        DslReturnType SinkAppDataTypeGet(const char* name, uint* dataType);
+
+        DslReturnType SinkAppDataTypeSet(const char* name, uint dataType);
 
         DslReturnType SinkFakeNew(const char* name);
 

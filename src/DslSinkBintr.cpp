@@ -120,6 +120,8 @@ namespace DSL
             G_CALLBACK(on_new_sample_cb), this);
         
         AddChild(m_pAppSink);
+
+        g_mutex_init(&m_dataHandlerMutex);
     }
     
     AppSinkBintr::~AppSinkBintr()
@@ -130,6 +132,7 @@ namespace DSL
         {    
             UnlinkAll();
         }
+        g_mutex_clear(&m_dataHandlerMutex);
     }
 
     bool AppSinkBintr::LinkAll()
@@ -179,9 +182,26 @@ namespace DSL
         return true;
     }
 
+    uint AppSinkBintr::GetDataType()
+    {
+        LOG_FUNC();
+        
+        return m_dataType;
+    }
+    
+    void AppSinkBintr::SetDataType(uint dataType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_dataHandlerMutex);
+
+        m_dataType = dataType;
+    }
+    
     GstFlowReturn AppSinkBintr::HandleNewSample()
     {
         // don't log function for performance
+
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_dataHandlerMutex);
         
         void* pData(NULL);
         

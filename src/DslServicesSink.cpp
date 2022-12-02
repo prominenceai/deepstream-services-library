@@ -49,7 +49,6 @@ namespace DSL
                 LOG_ERROR("Invalid data-type = " << dataType 
                     << " specified for App Sink '" << name << "'");
                 return DSL_RESULT_SINK_SET_FAILED;
-                
             }
             m_components[name] = DSL_APP_SINK_NEW(name,
                 dataType, clientHandler, clientData);
@@ -61,6 +60,71 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New App Sink '" << name << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkAppDataTypeGet(const char* name, uint* dataType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSinkBintr);
+
+            DSL_APP_SINK_PTR pAppSinkBintr = 
+                std::dynamic_pointer_cast<AppSinkBintr>(m_components[name]);
+
+            *dataType = pAppSinkBintr->GetDataType();
+            
+            LOG_INFO("App Sink '" << name << "' returned data-type = " 
+                << *dataType  << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Sink'" << name 
+                << "' threw an exception getting data-type");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkAppDataTypeSet(const char* name, uint dataType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSinkBintr);
+
+            if (dataType > DSL_SINK_APP_DATA_TYPE_BUFFER)
+            {
+                LOG_ERROR("Invalid data-type = " << dataType 
+                    << " specified for App Sink '" << name << "'");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+
+            DSL_APP_SINK_PTR pAppSinkBintr = 
+                std::dynamic_pointer_cast<AppSinkBintr>(m_components[name]);
+
+            pAppSinkBintr->SetDataType(dataType);
+
+            LOG_INFO("App Sink '" << name << "' set data-type = " 
+                << dataType  << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Sink'" << name 
+                << "' threw an exception setting data-type");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -205,7 +269,7 @@ namespace DSL
                     << "' failed to Set 'force-aspec-ratio' property");
                 return DSL_RESULT_SINK_SET_FAILED;
             }
-            LOG_INFO("Window Sink '" << name << "' set Force Aspect Ration = " 
+            LOG_INFO("Window Sink '" << name << "' set force-aspect-ration = " 
                 << force  << " successfully");
             
             return DSL_RESULT_SUCCESS;
@@ -213,7 +277,7 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Window Sink'" << name 
-                << "' threw an exception setting 'force-apect-ratio' property");
+                << "' threw an exception setting force-apect-ratio property");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }

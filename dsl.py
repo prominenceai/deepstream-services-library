@@ -4452,6 +4452,27 @@ def dsl_sink_app_new(name, data_type, client_handler, client_data):
     return int(result)
 
 ##
+## dsl_sink_app_data_type_get()
+##
+_dsl.dsl_sink_app_data_type_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_sink_app_data_type_get.restype = c_uint
+def dsl_sink_app_data_type_get(name):
+    global _dsl
+    data_type = c_uint(0)
+    result =_dsl.dsl_sink_app_data_type_get(name, DSL_UINT_P(data_type))
+    return int(result), data_type.value
+
+##
+## dsl_sink_app_data_type_set()
+##
+_dsl.dsl_sink_app_data_type_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sink_app_data_type_set.restype = c_uint
+def dsl_sink_app_data_type_set(name, data_type):
+    global _dsl
+    result =_dsl.dsl_sink_app_data_type_set(name, data_type)
+    return int(result)
+
+##
 ## dsl_sink_fake_new()
 ##
 _dsl.dsl_sink_fake_new.argtypes = [c_wchar_p]

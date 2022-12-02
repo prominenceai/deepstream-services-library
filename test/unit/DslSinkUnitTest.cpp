@@ -39,6 +39,7 @@ SCENARIO( "A new AppSinkBintr is created correctly",  "[SinkBintr]" )
     GIVEN( "Attributes for a new App Sink" ) 
     {
         std::string sinkName("fake-sink");
+        uint dataType(DSL_SINK_APP_DATA_TYPE_BUFFER);
 
         WHEN( "The AppSinkBintr is created" )
         {
@@ -47,6 +48,7 @@ SCENARIO( "A new AppSinkBintr is created correctly",  "[SinkBintr]" )
             
             THEN( "The correct attribute values are returned" )
             {
+                REQUIRE( pSinkBintr->GetDataType() == dataType );
                 REQUIRE( pSinkBintr->GetSyncEnabled() == true );
             }
         }
