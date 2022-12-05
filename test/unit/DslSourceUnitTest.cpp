@@ -71,7 +71,7 @@ SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
-                REQUIRE( pSourceBintr->IsLive() == true );
+                REQUIRE( pSourceBintr->IsLive() == isLive );
                 
                 uint retWidth, retHeight, retFpsN, retFpsD;
                 pSourceBintr->GetDimensions(&retWidth, &retHeight);
@@ -80,6 +80,10 @@ SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( height == retHeight );
                 REQUIRE( fps_n == retFpsN );
                 REQUIRE( fps_d == retFpsD );
+                
+                REQUIRE( pSourceBintr->GetBlockEnabled() == FALSE);
+                REQUIRE( pSourceBintr->GetCurrentLevelBytes() == 0);
+                REQUIRE( pSourceBintr->GetMaxLevelBytes() == 200000);
             }
         }
     }

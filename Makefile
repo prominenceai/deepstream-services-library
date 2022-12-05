@@ -76,20 +76,20 @@ INCS+= $(wildcard ./src/*.h)
 INCS+= $(wildcard ./src/thirdparty/*.h)
 INCS+= $(wildcard ./test/*.hpp)
 
-ifeq ($(GSTREAMER_SUB_VERSION),18)
+TEST_OBJS+= $(wildcard ./test/api/*.o)
+TEST_OBJS+= $(wildcard ./test/unit/*.o)
+
+ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 16; echo $$?),0)
 SRCS+= $(wildcard ./src/webrtc/*.cpp)
 SRCS+= $(wildcard ./test/webrtc/*.cpp)
 INCS+= $(wildcard ./src/webrtc/*.h)
-endif
-
-TEST_OBJS+= $(wildcard ./test/api/*.o)
-TEST_OBJS+= $(wildcard ./test/unit/*.o)
-ifeq ($(GSTREAMER_SUB_VERSION),18)
 TEST_OBJS+= $(wildcard ./test/webrtc/*.o)
 endif
+
 ifeq ($(BUILD_NMP_PPH),true)
 TEST_OBJS+= $(wildcard ./test/nmp/*.o)
 endif
+
 
 OBJS:= $(SRCS:.c=.o)
 OBJS:= $(OBJS:.cpp=.o)
@@ -122,7 +122,7 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-DNVDS_REDIS_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_redis_proto.so"' \
     -fPIC 
 
-ifeq ($(GSTREAMER_SUB_VERSION),18)
+ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 16; echo $$?),0)
 CFLAGS+= -I/usr/include/libsoup-$(LIBSOUP_VERSION) \
 	-I/usr/include/json-glib-$(JSON_GLIB_VERSION) \
 	-I./src/webrtc
@@ -164,7 +164,7 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-L/usr/local/cuda/lib64/ -lcudart \
 	-Wl,-rpath,$(LIB_INSTALL_DIR)
 
-ifeq ($(GSTREAMER_SUB_VERSION),18)
+ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 16; echo $$?),0)
 LIBS+= -Lgstreamer-sdp-$(GSTREAMER_SDP_VERSION) \
 	-Lgstreamer-webrtc-$(GSTREAMER_WEBRTC_VERSION) \
 	-Llibsoup-$(LIBSOUP_VERSION) \
@@ -177,7 +177,7 @@ PKGS:= gstreamer-$(GSTREAMER_VERSION) \
 	x11 \
 	opencv4
 
-ifeq ($(GSTREAMER_SUB_VERSION),18)
+ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 16; echo $$?),0)
 PKGS+= gstreamer-sdp-$(GSTREAMER_SDP_VERSION) \
 	gstreamer-webrtc-$(GSTREAMER_WEBRTC_VERSION) \
 	libsoup-$(LIBSOUP_VERSION) \

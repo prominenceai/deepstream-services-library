@@ -651,6 +651,8 @@ namespace DSL {
             
         DslReturnType SourceAppBufferPush(const char* name, void* buffer);
 
+        DslReturnType SourceAppSamplePush(const char* name, void* sample);
+
         DslReturnType SourceAppEos(const char* name);
         
         DslReturnType SourceAppBlockEnabledGet(const char* name,
@@ -659,20 +661,20 @@ namespace DSL {
         DslReturnType SourceAppBlockEnabledSet(const char* name,
             boolean enabled);
         
-        DslReturnType SourceAppCurrentLevelGet(const char* name,
-            uint levelType, uint64_t* level);
+        DslReturnType SourceAppCurrentLevelBytesGet(const char* name,
+            uint64_t* level);
         
-        DslReturnType SourceAppMaxLevelGet(const char* name,
-            uint levelType, uint64_t* level);
+        DslReturnType SourceAppMaxLevelBytesGet(const char* name,
+            uint64_t* level);
         
-        DslReturnType SourceAppMaxLevelSet(const char* name,
-            uint levelType, uint64_t level);
+        DslReturnType SourceAppMaxLevelBytesSet(const char* name,
+            uint64_t level);
         
-        DslReturnType SourceAppLeakyTypeGet(const char* name,
-            uint* leakyType);
-        
-        DslReturnType SourceAppLeakyTypeSet(const char* name,
-            uint leakyType);
+//        DslReturnType SourceAppLeakyTypeGet(const char* name,
+//            uint* leakyType);
+//        
+//        DslReturnType SourceAppLeakyTypeSet(const char* name,
+//            uint leakyType);
 
         DslReturnType SourceCsiNew(const char* name, 
             uint width, uint height, uint fpsN, uint fpsD);

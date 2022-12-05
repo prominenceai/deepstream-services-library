@@ -169,7 +169,6 @@ SCENARIO( "A new App Source returns the correct attribute values", "[source-api]
 {
     GIVEN( "An empty list of Components" ) 
     {
-        
         REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "A new App Source is created" ) 
@@ -189,12 +188,69 @@ SCENARIO( "A new App Source returns the correct attribute values", "[source-api]
                 REQUIRE( ret_fps_n == fps_n );
                 REQUIRE( ret_fps_d == fps_d );
                 REQUIRE( dsl_source_is_live(source_name.c_str()) == is_live );
+                
+                boolean block_enabled(TRUE);
+                REQUIRE( dsl_source_app_block_enabled_get(source_name.c_str(),
+                    &block_enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( block_enabled == FALSE ); // default
+
+                uint64_t current_level_bytes(123456);
+                REQUIRE( dsl_source_app_current_level_bytes_get(source_name.c_str(),
+                    &current_level_bytes) == DSL_RESULT_SUCCESS );
+                REQUIRE( current_level_bytes == 0 ); // default
+                
+                uint64_t max_bytes(0);
+                REQUIRE( dsl_source_app_max_level_bytes_get(source_name.c_str(),
+                    &max_bytes) == DSL_RESULT_SUCCESS );
+                REQUIRE( max_bytes == 200000 ); // default
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
 }    
+
+SCENARIO( "An App Source can update its settings correctly", "[source-api]" )
+{
+    GIVEN( "A new App Source Component" ) 
+    {
+        REQUIRE( dsl_source_app_new(source_name.c_str(), 
+            is_live, video_format, width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+        WHEN( "The App Source's block-enabled setting is set" ) 
+        {
+            boolean block_enabled(TRUE);
+            REQUIRE( dsl_source_app_block_enabled_set(source_name.c_str(),
+                block_enabled) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                boolean ret_block_enabled(FALSE);
+                REQUIRE( dsl_source_app_block_enabled_get(source_name.c_str(),
+                    &ret_block_enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_block_enabled == block_enabled );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "The App Source's max-level-in-bytes setting is set" ) 
+        {
+            uint64_t max_bytes(100000);
+            REQUIRE( dsl_source_app_max_level_bytes_set(source_name.c_str(),
+                max_bytes) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                uint64_t ret_max_bytes(0);
+                REQUIRE( dsl_source_app_max_level_bytes_get(source_name.c_str(),
+                    &ret_max_bytes) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_bytes == max_bytes ); 
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
 
 static void need_data_handler(uint length, void* client_data)
 {
@@ -1071,6 +1127,23 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                     DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_app_eos(NULL) ==
                     DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_block_enabled_get(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_block_enabled_get(source_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_block_enabled_set(NULL,
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_current_level_bytes_get(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_current_level_bytes_get(source_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_max_level_bytes_get(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_max_level_bytes_get(source_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_max_level_bytes_set(NULL,
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
                     
                 REQUIRE( dsl_source_csi_new(NULL, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_csi_sensor_id_get(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );

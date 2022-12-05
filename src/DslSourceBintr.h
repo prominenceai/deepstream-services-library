@@ -267,6 +267,13 @@ namespace DSL
         bool PushBuffer(void* buffer);
         
         /**
+         * @brief Pushes a new sample to this AppSourceBintr for processing.
+         * @param[in] sample sample to push to this AppSourceBintr
+         * @return true on successful push, false otherwise.
+         */
+        bool PushSample(void* sample);
+        
+        /**
          * @brief Notifies this AppSourceBintr that there are no more buffers 
          * for processing.
          * @return true on successful Eos, false otherwise.
@@ -305,35 +312,32 @@ namespace DSL
         bool SetBlockEnabled(boolean enabled);
         
         /**
-         * @brief Gets the current level of queued data -- buffers, bytes, or 
-         * duration -- for this AppSrcBintr.
-         * @param[in] levelType one of the DSL_QUEUE_LEVEL_TYPE constants
-         * @return current level of buffers, bytes, or duration
+         * @brief Gets the current level of queued data in bytes for 
+         * this AppSrcBintr.
+         * @return current level of queued data in bytes.
          */
-        uint64_t GetCurrentLevel(uint levelType);
+        uint64_t GetCurrentLevelBytes();
 
         /**
-         * @brief Gets the max level of queued data -- buffers, bytes, or 
-         * duration -- for this AppSrcBintr.
-         * @param[in] levelType one of the DSL_QUEUE_LEVEL_TYPE constants
-         * @return maximum level of buffers, bytes, or duration
+         * @brief Gets the max level of queued data in bytes for
+         * this AppSrcBintr.
+         * @return current maximum level of queued bytes.
          */
-        uint64_t GetMaxLevel(uint levelType);
+        uint64_t GetMaxLevelBytes();
         
         /**
-         * @brief Sets the max level of queued data -- buffers, bytes, or 
-         * duration -- for this AppSrcBintr.
-         * @param[in] levelType one of the DSL_QUEUE_LEVEL_TYPE constants
-         * @param[in] level new max level for the App Source to use.
+         * @brief Sets the max level of queued data in bytes for 
+         * for this AppSrcBintr.
+         * @param[in] level new max level in bytes for the App Source to use.
          * @return true on successful set, false otherwise.
          */
-        bool SetMaxLevel(uint levelType, uint level);
+        bool SetMaxLevelBytes(uint64_t level);
         
         /**
          * @brief Gets the current leaky-type in use by this AppSourceBintr
          * @return leaky-type one of the DSL_QUEUE_LEAKY_TYPE constant values. 
          */
-        uint GetLeakyType();
+//        uint GetLeakyType();  // TODO support GST 1.20 properties
         
         /**
          * @brief Sets the leaky-type for the AppSrcBintr to use.
@@ -376,13 +380,6 @@ namespace DSL
         boolean m_blockEnabled;
         
         /**
-         * @brief The maximum amount of buffers that can be queued internally. 
-         * After the maximum amount of buffers are queued, appsrc will emit 
-         * the "enough-data" signal.
-         */
-        uint64_t m_maxBuffers;
-        
-        /**
          * @brief The maximum amount of bytes that can be queued internally. 
          * After the maximum amount of bytes are queued, appsrc will emit 
          * the "enough-data" signal.
@@ -390,17 +387,24 @@ namespace DSL
         uint64_t m_maxBytes;
         
         /**
+         * @brief The maximum amount of buffers that can be queued internally. 
+         * After the maximum amount of buffers are queued, appsrc will emit 
+         * the "enough-data" signal.
+         */
+//        uint64_t m_maxBuffers; // TODO support GST 1.20 properties
+        
+        /**
          * @brief The maximum amount of time that can be queued internally. 
          * After the maximum amount of time is queued, appsrc will emit 
          * the "enough-data" signal.
          */
-        uint64_t m_maxTime;
+//        uint64_t m_maxTime;  // TODO support GST 1.20 properties
         
         /**
          * @brief Current Queue leaky-type, one of the DSL_QUEUE_LEAKY_TYPE
          * constant values. 
          */
-        uint m_leakyType;
+//        uint m_leakyType;  // TODO support GST 1.20 properties
         
         /**
          * @brief Video Converter for the AppSourceBintr

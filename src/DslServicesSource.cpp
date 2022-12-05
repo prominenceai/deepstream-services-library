@@ -160,6 +160,38 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SourceAppSamplePush(const char* name, void* sample)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSourceBintr);
+
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->PushSample(sample))
+            {
+                LOG_ERROR("Failed to push sample to App Source '" 
+                    << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            // don't log successful case for performance reasons
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception on push sample");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::SourceAppEos(const char* name)
     {
         LOG_FUNC();
@@ -257,8 +289,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceAppCurrentLevelGet(const char* name,
-        uint levelType, uint64_t* level)
+    DslReturnType Services::SourceAppCurrentLevelBytesGet(const char* name,
+        uint64_t* level)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -269,18 +301,13 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
                 AppSourceBintr);
 
-            if (levelType > DSL_QUEUE_LEVEL_TYPE_TIME)
-            {
-                LOG_ERROR("Invalid level-type = " << levelType 
-                    << " for App Source '" << name << "'");
-                return DSL_RESULT_SOURCE_SET_FAILED;
-            }
             DSL_APP_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
 
-            *level = pSourceBintr->GetCurrentLevel(levelType);
+            *level = pSourceBintr->GetCurrentLevelBytes();
             
-            LOG_INFO("App Source '" << name << "' returned current-level = "
+            LOG_INFO("App Source '" << name 
+                << "' returned current-level-bytes = "
                 << *level << " successfully");
             
             return DSL_RESULT_SUCCESS;
@@ -288,13 +315,13 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("App Source '" << name 
-                << "' threw exception getting current-level");
+                << "' threw exception getting current-level-bytes");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SourceAppMaxLevelGet(const char* name,
-        uint levelType, uint64_t* level)
+    DslReturnType Services::SourceAppMaxLevelBytesGet(const char* name,
+        uint64_t* level)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -305,18 +332,13 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
                 AppSourceBintr);
 
-            if (levelType > DSL_QUEUE_LEVEL_TYPE_TIME)
-            {
-                LOG_ERROR("Invalid level-type = " << levelType 
-                    << " for App Source '" << name << "'");
-                return DSL_RESULT_SOURCE_SET_FAILED;
-            }
             DSL_APP_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
 
-            *level = pSourceBintr->GetMaxLevel(levelType);
+            *level = pSourceBintr->GetMaxLevelBytes();
             
-            LOG_INFO("App Source '" << name << "' returned max-level = "
+            LOG_INFO("App Source '" << name 
+                << "' returned max-level-bytes = "
                 << *level << " successfully");
             
             return DSL_RESULT_SUCCESS;
@@ -324,13 +346,13 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("App Source '" << name 
-                << "' threw exception getting max-level");
+                << "' threw exception getting max-level-bytes");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SourceAppMaxLevelSet(const char* name,
-        uint levelType, uint64_t level)
+    DslReturnType Services::SourceAppMaxLevelBytesSet(const char* name,
+        uint64_t level)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -341,23 +363,17 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
                 AppSourceBintr);
 
-            if (levelType > DSL_QUEUE_LEVEL_TYPE_TIME)
-            {
-                LOG_ERROR("Invalid level-type = " << levelType 
-                    << " for App Source '" << name << "'");
-                return DSL_RESULT_SOURCE_SET_FAILED;
-            }
             DSL_APP_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
 
-            if (!pSourceBintr->SetMaxLevel(levelType, level))
+            if (!pSourceBintr->SetMaxLevelBytes(level))
             {
                 LOG_ERROR("App Source '" << name 
-                    << "' failed to set max-level = " << level);
+                    << "' failed to set max-level-bytes = " << level);
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
 
-            LOG_INFO("App Source '" << name << "' set max-level = "
+            LOG_INFO("App Source '" << name << "' set max-level-bytes = "
                 << level << " successfully");
             
             return DSL_RESULT_SUCCESS;
@@ -365,81 +381,81 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("App Source '" << name 
-                << "' threw exception setting max-level");
+                << "' threw exception setting max-level-bytes");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::SourceAppLeakyTypeGet(const char* name,
-        uint* leakyType)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                AppSourceBintr);
-
-            DSL_APP_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
-
-            *leakyType = pSourceBintr->GetLeakyType();
-            
-            LOG_INFO("App Source '" << name << "' returned leaky-type = "
-                << *leakyType << " successfully");
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("App Source '" << name 
-                << "' threw exception getting leaky-type");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SourceAppLeakyTypeSet(const char* name,
-        uint leakyType)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                AppSourceBintr);
-
-            if (leakyType > DSL_QUEUE_LEAKY_TYPE_DOWNSTREAM)
-            {
-                LOG_ERROR("Invalid leaky-type = " << leakyType 
-                    << " for App Source '" << name << "'");
-                return DSL_RESULT_SOURCE_SET_FAILED;
-            }
-            DSL_APP_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
-
-            if (!pSourceBintr->SetLeakyType(leakyType))
-            {
-                LOG_ERROR("App Source '" << name 
-                    << "' failed to set leaky-type = " << leakyType);
-                return DSL_RESULT_SOURCE_SET_FAILED;
-            }
-
-            LOG_INFO("App Source '" << name << "' set leaky-type = "
-                << leakyType << " successfully");
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("App Source '" << name 
-                << "' threw exception setting leaky-type");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
+//    DslReturnType Services::SourceAppLeakyTypeGet(const char* name,
+//        uint* leakyType)
+//    {
+//        LOG_FUNC();
+//        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+//
+//        try
+//        {
+//            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+//            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+//                AppSourceBintr);
+//
+//            DSL_APP_SOURCE_PTR pSourceBintr = 
+//                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+//
+//            *leakyType = pSourceBintr->GetLeakyType();
+//            
+//            LOG_INFO("App Source '" << name << "' returned leaky-type = "
+//                << *leakyType << " successfully");
+//            
+//            return DSL_RESULT_SUCCESS;
+//        }
+//        catch(...)
+//        {
+//            LOG_ERROR("App Source '" << name 
+//                << "' threw exception getting leaky-type");
+//            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+//        }
+//    }
+//    
+//    DslReturnType Services::SourceAppLeakyTypeSet(const char* name,
+//        uint leakyType)
+//    {
+//        LOG_FUNC();
+//        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+//
+//        try
+//        {
+//            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+//            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+//                AppSourceBintr);
+//
+//            if (leakyType > DSL_QUEUE_LEAKY_TYPE_DOWNSTREAM)
+//            {
+//                LOG_ERROR("Invalid leaky-type = " << leakyType 
+//                    << " for App Source '" << name << "'");
+//                return DSL_RESULT_SOURCE_SET_FAILED;
+//            }
+//            DSL_APP_SOURCE_PTR pSourceBintr = 
+//                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+//
+//            if (!pSourceBintr->SetLeakyType(leakyType))
+//            {
+//                LOG_ERROR("App Source '" << name 
+//                    << "' failed to set leaky-type = " << leakyType);
+//                return DSL_RESULT_SOURCE_SET_FAILED;
+//            }
+//
+//            LOG_INFO("App Source '" << name << "' set leaky-type = "
+//                << leakyType << " successfully");
+//            
+//            return DSL_RESULT_SUCCESS;
+//        }
+//        catch(...)
+//        {
+//            LOG_ERROR("App Source '" << name 
+//                << "' threw exception setting leaky-type");
+//            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+//        }
+//    }
     
     DslReturnType Services::SourceCsiNew(const char* name,
         uint width, uint height, uint fpsN, uint fpsD)

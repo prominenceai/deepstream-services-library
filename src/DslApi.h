@@ -526,15 +526,6 @@ THE SOFTWARE.
 #define DSL_PAD_PROBE_OK                                            1
 #define DSL_PAD_PROBE_REMOVE                                        2
 
-// Data types provided by the APP Sink via dsl_sink_app_new_data_handler_cb
-#define DSL_SINK_APP_DATA_TYPE_SAMPLE                               0
-#define DSL_SINK_APP_DATA_TYPE_BUFFER                               1
-
-// Valid return values for the dsl_sink_app_new_data_handler_cb
-#define DSL_FLOW_OK                                                 0
-#define DSL_FLOW_EOS                                                1
-#define DSL_FLOW_ERROR                                              2
-
 #define DSL_RTP_TCP                                                 0x04
 #define DSL_RTP_ALL                                                 0x07
 
@@ -893,19 +884,23 @@ THE SOFTWARE.
 #define DSL_NMP_MATCH_METHOD_IOU                                    0
 #define DSL_NMP_MATCH_METHOD_IOS                                    1
 
-/**
- * @brief Types for queue levels and limits metrics.
- */
-#define DSL_QUEUE_LEVEL_TYPE_BUFFERS                                0
-#define DSL_QUEUE_LEVEL_TYPE_BYTES                                  1
-#define DSL_QUEUE_LEVEL_TYPE_TIME                                   2
+// Data types provided by the APP Sink via dsl_sink_app_new_data_handler_cb
+#define DSL_SINK_APP_DATA_TYPE_SAMPLE                               0
+#define DSL_SINK_APP_DATA_TYPE_BUFFER                               1
+
+// Valid return values for the dsl_sink_app_new_data_handler_cb
+#define DSL_FLOW_OK                                                 0
+#define DSL_FLOW_EOS                                                1
+#define DSL_FLOW_ERROR                                              2
 
 /**
  * @brief APP Source leaky type constants - must match GstAppLeakyType
  */
-#define DSL_QUEUE_LEAKY_TYPE_NONE                                   0
-#define DSL_QUEUE_LEAKY_TYPE_UPSTREAM                               1
-#define DSL_QUEUE_LEAKY_TYPE_DOWNSTREAM                             2
+
+// TODO support GST 1.20 properties
+//#define DSL_QUEUE_LEAKY_TYPE_NONE                                   0
+//#define DSL_QUEUE_LEAKY_TYPE_UPSTREAM                               1
+//#define DSL_QUEUE_LEAKY_TYPE_DOWNSTREAM                             2
 
 
 EXTERN_C_BEGIN
@@ -1597,7 +1592,7 @@ typedef uint (*dsl_pph_eos_handler_cb)(void* client_data);
  * is playing, the function will be called when the Source needs new data to process.
  * @param[in] length the amount of bytes needed.  The length is just a hint and when it 
  * is set to -1, any number of bytes can be pushed into the App Source.
- * @param[in] client_data opaque pointer to client's user data
+ * @param[in] client_data opaque pointer to client's user data.
  */
 typedef void (*dsl_source_app_need_data_handler_cb)(uint length, void* client_data);
 
@@ -1607,7 +1602,7 @@ typedef void (*dsl_source_app_need_data_handler_cb)(uint length, void* client_da
  * is playing, the function will be called when the Source has enough data to process. 
  * It is recommended that the application stops calling dsl_source_app_buffer_push 
  * until dsl_source_app_need_data_handler_cb is called again.
- * @param[in] client_data opaque pointer to client's user data
+ * @param[in] client_data opaque pointer to client's user data.
  */
 typedef void (*dsl_source_app_enough_data_handler_cb)(void* client_data);
 
@@ -1619,8 +1614,8 @@ typedef void (*dsl_source_app_enough_data_handler_cb)(void* client_data);
  * @param[in] data_type type of data provided. Either DSL_SINK_APP_DATA_TYPE_SAMPLE
  * or DSL_SINK_APP_DATA_TYPE_BUFFER.
  * @param[in] data pointer to either a sample or buffer to process.
- * @param[in] client_data opaque pointer to client's user data
- * @return one of DSL_FLOW values defined above 
+ * @param[in] client_data opaque pointer to client's user data.
+ * @return one of the DSL_FLOW constant values.
  */
 typedef uint (*dsl_sink_app_new_data_handler_cb)(uint data_type, 
     void* data, void* client_data);
@@ -4123,9 +4118,18 @@ DslReturnType dsl_source_app_data_handlers_remove(const wchar_t* name);
 DslReturnType dsl_source_app_buffer_push(const wchar_t* name, void* buffer);
 
 /**
- * @brief Notifies a uniquely named App Source component that no more buffer 
+ * @brief Pushes a new sample to a uniquely named App Source component 
+ * for processing.
+ * @param[in] name unqiue name of the App Source to push to.
+ * @param[in] sample sample to push to the App Source
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_sample_push(const wchar_t* name, void* buffer);
+
+/**
+ * @brief Notifies a uniquely named App Source component that no more buffers
  * are available.
- * @param[in] name unique name of the App Source to notify
+ * @param[in] name unique name of the App Source to notify.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_app_eos(const wchar_t* name);
@@ -4133,8 +4137,8 @@ DslReturnType dsl_source_app_eos(const wchar_t* name);
 /**
  * @brief Gets the block enabled setting for the named App Source Component.
  * If true, when max-bytes are queued and after the enough-data signal has been 
- * emitted, the source will block any further push-buffer calls until the amount 
- * of queued bytes drops below the max-bytes limit.
+ * emitted, the source will block any further push calls until the amount of
+ * queued bytes drops below the max-bytes limit.
  * @param[in] name unique name of the App Source to query.
  * @param[out] enabled current block enabled setting.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
@@ -4145,8 +4149,8 @@ DslReturnType dsl_source_app_block_enabled_get(const wchar_t* name,
 /**
  * @brief Sets the block enabled setting for the named App Source Component.
  * If true, when max-bytes are queued and after the enough-data signal has been 
- * emitted, the source will block any further push-buffer calls until the amount 
- * of queued bytes drops below the max-bytes limit.
+ * emitted, the source will block any further push calls until the amount of
+ * queued bytes drops below the max-bytes limit.
  * @param[in] name unique name of the App Source to update.
  * @param[in] enabled new block enabled setting.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
@@ -4155,40 +4159,36 @@ DslReturnType dsl_source_app_block_enabled_set(const wchar_t* name,
     boolean enabled);
 
 /**
- * @brief Gets the current level of queued data -- buffers, bytes, or duration -- 
- * for the named App Source Component.
+ * @brief Gets the current level of queued data in bytes for the named 
+ * App Source Component.
  * @param[in] name unique name of the App Source to query.
- * @param[in] level_type one of the DSL_QUEUE_LEVEL_TYPE constant values for
- * buffers, bytes, or duration.
- * @param[out] level current level for the specified metric type.
+ * @param[out] level current queue level in units of bytes.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_app_current_level_get(const wchar_t* name,
-    uint level_type, uint64_t* level);
+DslReturnType dsl_source_app_current_level_bytes_get(const wchar_t* name,
+    uint64_t* level);
     
 /**
- * @brief Gets the max level of queued data -- buffers, bytes, or duration -- 
- * for the named App Source Component.
+ * @brief Gets the maximum amount of bytes that can be queued for the named
+ * App Source Component. After the maximum amount of bytes are queued, the
+ * App Source will call the "enough-data-callback".
  * @param[in] name unique name of the App Source to query.
- * @param[in] level_type one of the DSL_QUEUE_LEVEL_TYPE constant values for
- * buffers, bytes, or duration.
- * @param[out] level new maximum level for the specified metric type.
+ * @param[out] level current max-level in units of bytes. Default = 200000.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_app_max_level_get(const wchar_t* name,
-    uint level_type, uint64_t* level);
+DslReturnType dsl_source_app_max_level_bytes_get(const wchar_t* name,
+    uint64_t* level);
     
 /**
- * @brief Sets the max level of queued data -- buffers, bytes, or duration -- 
- * for the named App Source Component.
- * @param[in] name unique name of the App Source to update.
- * @param[in] level_type one of the DSL_QUEUE_LEVEL_TYPE constant values for
- * buffers, bytes, or duration.
- * @param level new maximum level for the specified metric type.
+ * @brief Sets the maximum amount of bytes that can be queued for the named
+ * App Source Component. After the maximum amount of bytes are queued, the
+ * App Source will call the "enough-data-callback".
+ * @param[in] name unique name of the App Source to query.
+ * @param[in] level new max-level in units of bytes.  Default = 200000.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_app_max_level_set(const wchar_t* name,
-    uint level_type, uint64_t level);
+DslReturnType dsl_source_app_max_level_bytes_set(const wchar_t* name,
+    uint64_t level);
 
 /**
  * @brief Gets the leaky type for the named App Source Component.
@@ -4197,8 +4197,8 @@ DslReturnType dsl_source_app_max_level_set(const wchar_t* name,
  * none, upstream (new buffers), or downstream (old buffers).
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_app_leaky_type_get(const wchar_t* name,
-    uint* leaky_type);
+//DslReturnType dsl_source_app_leaky_type_get(const wchar_t* name,
+//    uint* leaky_type);
     
 /**
  * @brief Sets the leaky type for the named App Source Component.
@@ -4207,8 +4207,8 @@ DslReturnType dsl_source_app_leaky_type_get(const wchar_t* name,
  * none, upstream (new buffers), or downstream (old buffers).
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_app_leaky_type_set(const wchar_t* name,
-    uint leaky_type);
+//DslReturnType dsl_source_app_leaky_type_set(const wchar_t* name,
+//    uint leaky_type);
     
 /**
  * @brief creates a new, uniquely named CSI Camera Source component. A unique 
