@@ -31,7 +31,7 @@ THE SOFTWARE.
 namespace DSL
 {
     DslReturnType Services::SourceAppNew(const char* name, boolean isLive, 
-        uint format, uint width, uint height, uint fpsN, uint fpsD)
+        uint streamFormat, uint width, uint height, uint fpsN, uint fpsD)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -44,8 +44,14 @@ namespace DSL
                 LOG_ERROR("Source name '" << name << "' is not unique");
                 return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
             }
+            if (streamFormat > DSL_STREAM_FORMAT_NV12)
+            {
+                LOG_ERROR("Invalid stream-format = " << streamFormat 
+                    << " for App Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
             m_components[name] = DSL_APP_SOURCE_NEW(name, isLive, 
-                format, width, height, fpsN, fpsD);
+                streamFormat, width, height, fpsN, fpsD);
 
             LOG_INFO("New App Source '" << name << "' created successfully");
 
@@ -225,6 +231,76 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SourceAppBufferFormatGet(const char* name,
+        uint* bufferFormat)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSourceBintr);
+
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+
+            *bufferFormat = pSourceBintr->GetBufferFormat();
+            
+            LOG_INFO("App Source '" << name << "' returned buffer-format = "
+                << *bufferFormat << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception getting buffer-format");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceAppBufferFormatSet(const char* name,
+        uint bufferFormat)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSourceBintr);
+
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+
+            if (bufferFormat > DSL_BUFFER_FORMAT_TIME)
+            {
+                LOG_ERROR("Invalid stream-format = " << bufferFormat 
+                    << " for App Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            if (!pSourceBintr->SetBufferFormat(bufferFormat))
+            {
+                LOG_ERROR("Failed to set buffer-format to " 
+                    << bufferFormat << " for App Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("App Source '" << name 
+                << "' set buffer-format = " << bufferFormat << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception setting buffer-format");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::SourceAppBlockEnabledGet(const char* name,
         boolean* enabled)
     {
@@ -277,7 +353,7 @@ namespace DSL
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
             LOG_INFO("App Source '" << name 
-                << "' returned block-enabled = " << enabled << " successfully");
+                << "' set block-enabled = " << enabled << " successfully");
             
             return DSL_RESULT_SUCCESS;
         }

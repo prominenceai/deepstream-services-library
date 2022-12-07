@@ -449,6 +449,14 @@ DSL_PPH_BUFFER_TIMEOUT_HANDLER = \
 DSL_EOS_HANDLER = \
     CFUNCTYPE(c_uint, c_void_p)
 
+# dsl_source_app_need_data_handler_cb
+DSL_SOURCE_APP_NEED_DATA_HANDLER = \
+    CFUNCTYPE(None, c_uint, c_void_p)
+    
+# dsl_source_app_enough_data_handler_cb
+DSL_SOURCE_APP_ENOUGH_DATA_HANDLER = \
+    CFUNCTYPE(None, c_void_p)
+
 # dsl_sink_app_new_data_handler_cb
 DSL_SINK_APP_NEW_DATA_HANDLER = \
     CFUNCTYPE(c_uint, c_uint, c_void_p, c_void_p)
@@ -2905,6 +2913,138 @@ _dsl.dsl_pph_list_size.restype = c_uint
 def dsl_pph_list_size():
     global _dsl
     result =_dsl.dsl_pph_list_size()
+    return int(result)
+
+##
+## dsl_source_app_new()
+##
+_dsl.dsl_source_app_new.argtypes = [c_wchar_p, 
+    c_bool, c_uint, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_source_app_new.restype = c_uint
+def dsl_source_app_new(name, is_live, format, width, height, fps_n, fps_d):
+    global _dsl
+    result =_dsl.dsl_source_app_new(name, 
+        is_live, format, width, height, fps_n, fps_d)
+    return int(result)
+
+##
+## dsl_source_app_data_handlers_add()
+##
+_dsl.dsl_source_app_data_handlers_add.argtypes = [c_wchar_p, 
+    DSL_SOURCE_APP_NEED_DATA_HANDLER, DSL_SOURCE_APP_ENOUGH_DATA_HANDLER,
+    c_void_p]
+_dsl.dsl_source_app_data_handlers_add.restype = c_uint
+def dsl_source_app_data_handlers_add(name, need_data_handler, 
+    enough_data_handler, client_data):
+    global _dsl
+    c_need_data_handler = DSL_SOURCE_APP_NEED_DATA_HANDLER(need_data_handler)
+    callbacks.append(c_need_data_handler)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    c_enough_data_handler = DSL_SOURCE_APP_ENOUGH_DATA_HANDLER(enough_data_handler)
+    callbacks.append(c_enough_data_handler)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_source_app_data_handlers_add(name,
+        c_need_data_handler, c_enough_data_handler, c_client_data)
+    return int(result)
+    
+##
+## dsl_source_app_data_handlers_remove()
+##
+_dsl.dsl_source_app_data_handlers_remove.argtypes = [c_wchar_p]
+_dsl.dsl_source_app_data_handlers_remove.restype = c_uint
+def dsl_source_app_data_handlers_remove(name):
+    global _dsl
+    result =_dsl.dsl_source_app_data_handlers_remove(name)
+    return int(result)
+
+##
+## dsl_source_app_buffer_push()
+##
+_dsl.dsl_source_app_buffer_push.argtypes = [c_wchar_p, c_void_p]
+_dsl.dsl_source_app_buffer_push.restype = c_uint
+def dsl_source_app_buffer_push(name, buffer):
+    global _dsl
+    result =_dsl.dsl_source_app_buffer_push(name, buffer)
+    return int(result)
+
+##
+## dsl_source_app_sample_push()
+##
+_dsl.dsl_source_app_sample_push.argtypes = [c_wchar_p, c_void_p]
+_dsl.dsl_source_app_sample_push.restype = c_uint
+def dsl_source_app_sample_push(name, sample):
+    global _dsl
+    result =_dsl.dsl_source_app_sample_push(name, sample)
+    return int(result)
+
+##
+## dsl_source_app_eos()
+##
+_dsl.dsl_source_app_eos.argtypes = [c_wchar_p]
+_dsl.dsl_source_app_eos.restype = c_uint
+def dsl_source_app_eos(name):
+    global _dsl
+    result =_dsl.dsl_source_app_eos(name)
+    return int(result)
+
+##
+## dsl_source_app_block_enabled_get()
+##
+_dsl.dsl_source_app_block_enabled_get.argtypes = [c_wchar_p, 
+    POINTER(c_bool)]
+_dsl.dsl_source_app_block_enabled_get.restype = c_uint
+def dsl_source_app_block_enabled_get(name):
+    global _dsl
+    enabled = c_bool(False)
+    result = _dsl.dsl_source_app_block_enabled_get(name, 
+        DSL_BOOL_P(enabled))
+    return int(result), enabled.value 
+
+##
+## dsl_source_app_block_enabled_set()
+##
+_dsl.dsl_source_app_block_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_source_app_block_enabled_set.restype = c_uint
+def dsl_source_app_block_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_source_app_block_enabled_set(name, enabled)
+    return int(result)
+
+##
+## dsl_source_app_current_level_bytes_get()
+##
+_dsl.dsl_source_app_current_level_bytes_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint64)]
+_dsl.dsl_source_app_current_level_bytes_get.restype = c_uint
+def dsl_source_app_current_level_bytes_get(name):
+    global _dsl
+    level = c_uint64(0)
+    result = _dsl.dsl_source_app_current_level_bytes_get(name, 
+        DSL_UINT64_P(level))
+    return int(result), level.value 
+
+##
+## dsl_source_app_max_level_bytes_get()
+##
+_dsl.dsl_source_app_max_level_bytes_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint64)]
+_dsl.dsl_source_app_max_level_bytes_get.restype = c_uint
+def dsl_source_app_max_level_bytes_get(name):
+    global _dsl
+    level = c_uint64(0)
+    result = _dsl.dsl_source_app_max_level_bytes_get(name, 
+        DSL_UINT64_P(level))
+    return int(result), level.value 
+
+##
+## dsl_source_app_max_level_bytes_set()
+##
+_dsl.dsl_source_app_max_level_bytes_set.argtypes = [c_wchar_p, c_uint64]
+_dsl.dsl_source_app_max_level_bytes_set.restype = c_uint
+def dsl_source_app_max_level_bytes_set(name, level):
+    global _dsl
+    result = _dsl.dsl_source_app_max_level_bytes_set(name, level)
     return int(result)
 
 ##

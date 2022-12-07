@@ -52,11 +52,11 @@ static uint width(1920), height(1080), fps_n(30), fps_d(1);
 
 using namespace DSL;
 
-SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
+SCENARIO( "A new AppSourceBintr is created correctly",  "[new]" )
 {
     GIVEN( "Attributes for a new AppSourceBintr" ) 
     {
-        uint format(DSL_VIDEO_FORMAT_I420);
+        uint format(DSL_STREAM_FORMAT_I420);
         boolean isLive(true);
         
         WHEN( "The AppSourceBintr is created " )
@@ -81,6 +81,7 @@ SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( fps_n == retFpsN );
                 REQUIRE( fps_d == retFpsD );
                 
+                REQUIRE( pSourceBintr->GetBufferFormat() == DSL_BUFFER_FORMAT_BYTE );
                 REQUIRE( pSourceBintr->GetBlockEnabled() == FALSE);
                 REQUIRE( pSourceBintr->GetCurrentLevelBytes() == 0);
                 REQUIRE( pSourceBintr->GetMaxLevelBytes() == 200000);
@@ -94,7 +95,7 @@ SCENARIO( "An AppSourceBintr can LinkAll and UnlinkAll child Elementrs correctly
 {
     GIVEN( "A new AppSourceBintr in memory" ) 
     {
-        uint format(DSL_VIDEO_FORMAT_I420);
+        uint format(DSL_STREAM_FORMAT_I420);
         boolean isLive(true);
 
         DSL_APP_SOURCE_PTR pSourceBintr = DSL_APP_SOURCE_NEW(
@@ -119,7 +120,7 @@ SCENARIO( "A AppSourceBintr can UnlinkAll all child Elementrs correctly",  "[Sou
 {
     GIVEN( "A new, linked AppSourceBintr " ) 
     {
-        uint format(DSL_VIDEO_FORMAT_I420);
+        uint format(DSL_STREAM_FORMAT_I420);
         boolean isLive(true);
 
         DSL_APP_SOURCE_PTR pSourceBintr = DSL_APP_SOURCE_NEW(

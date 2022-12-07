@@ -44,9 +44,9 @@ namespace DSL
         std::shared_ptr<SourceBintr>(new SourceBintr(name))
 
     #define DSL_APP_SOURCE_PTR std::shared_ptr<AppSourceBintr>
-    #define DSL_APP_SOURCE_NEW(name, isLive, format, width, height, fpsN, fpsD) \
+    #define DSL_APP_SOURCE_NEW(name, isLive, streamFormat, width, height, fpsN, fpsD) \
         std::shared_ptr<AppSourceBintr>(new AppSourceBintr(name, isLive, \
-            format, width, height, fpsN, fpsD))
+            streamFormat, width, height, fpsN, fpsD))
         
     #define DSL_CSI_SOURCE_PTR std::shared_ptr<CsiSourceBintr>
     #define DSL_CSI_SOURCE_NEW(name, width, height, fpsN, fpsD) \
@@ -224,7 +224,7 @@ namespace DSL
     public: 
     
         AppSourceBintr(const char* name, bool isLive, 
-            uint format, uint width, uint height, uint fpsN, uint fpsD);
+            uint streamFormat, uint width, uint height, uint fpsN, uint fpsD);
 
         ~AppSourceBintr();
 
@@ -293,6 +293,19 @@ namespace DSL
         void HandleEnoughData();
 
         /**
+         * @brief Gets the current buffer-format for this AppSourceBintr
+         * @return one of the DSL_BUFFER_FORMAT constants.
+         */
+        uint GetBufferFormat();
+        
+        /**
+         * @brief Set the buffer-format for this AppSourceBintr to use.
+         * @param[in] bufferFormat one of the DSL_BUFFER_FORMAT constants.
+         * @return true on successful set, false otherwise.
+         */
+        bool SetBufferFormat(uint bufferFormat);
+
+        /**
          * @brief Gets the current block-enabled setting for this AppSourceBintr.
          * @return If true, when max-bytes/buffers/time are queued and after the 
          * enough-data signal has been emitted, the source will block any further 
@@ -349,9 +362,14 @@ namespace DSL
     private:
     
         /**
-         * @brief video format for the AppSourceBintr - on of the DSL_VIDEO_FORMAT constants.
+         * @brief stream format for the AppSourceBintr - on of the DSL_STREAM_FORMAT constants.
          */
-        uint m_format;
+        uint m_streamFormat;
+
+        /**
+         * @brief buffer format for the AppSourceBintr - on of the DSL_BUFFER_FORMAT constants.
+         */
+        uint m_bufferFormat;
 
         /**
          * @brief client callback function to be called when new data is needed.

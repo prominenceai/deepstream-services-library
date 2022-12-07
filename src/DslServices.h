@@ -640,7 +640,7 @@ namespace DSL {
         uint PphListSize();
         
         DslReturnType SourceAppNew(const char* name, boolean isLive, 
-            uint format, uint width, uint height, uint fpsN, uint fpsD);
+            uint streamFormat, uint width, uint height, uint fpsN, uint fpsD);
             
         DslReturnType SourceAppDataHandlersAdd(const char* name,
             dsl_source_app_need_data_handler_cb needDataHandler, 
@@ -654,6 +654,12 @@ namespace DSL {
         DslReturnType SourceAppSamplePush(const char* name, void* sample);
 
         DslReturnType SourceAppEos(const char* name);
+        
+        DslReturnType SourceAppBufferFormatGet(const char* name,
+            uint* bufferFormat);
+        
+        DslReturnType SourceAppBufferFormatSet(const char* name,
+            uint bufferFormat);
         
         DslReturnType SourceAppBlockEnabledGet(const char* name,
             boolean* enabled);

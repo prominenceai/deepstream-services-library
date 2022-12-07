@@ -61,7 +61,7 @@ static uint interval(0);
 static std::wstring rtsp_uri(L"rtsp://username:password@192.168.0.14:554");
 
 static boolean is_live(false);
-static uint video_format(DSL_VIDEO_FORMAT_I420);
+static uint video_format(DSL_STREAM_FORMAT_I420);
 
 
 static std::wstring def_device_location(L"/dev/video0");

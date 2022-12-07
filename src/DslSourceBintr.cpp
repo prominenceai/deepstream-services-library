@@ -121,13 +121,14 @@ namespace DSL
 
     //*********************************************************************************
     AppSourceBintr::AppSourceBintr(const char* name, bool isLive, 
-            uint format, uint width, uint height, uint fpsN, uint fpsD)
+            uint streamFormat, uint width, uint height, uint fpsN, uint fpsD)
         : SourceBintr(name)
-        , m_format(format)
+        , m_streamFormat(streamFormat)
         , m_needDataHandler(NULL)
         , m_enoughDataHandler(NULL)
         , m_clientData(NULL)
         , m_maxBytes(0)
+        , m_bufferFormat(0)
 // TODO support GST 1.20 properties        
 //        , m_maxBuffers(0)
 //        , m_maxTime(0)
@@ -141,18 +142,18 @@ namespace DSL
         m_fpsN = fpsN;
         m_fpsD = fpsD;
 
-        std::string formatStr;
+        std::string streamFormatStr;
         
-        switch (m_format)
+        switch (m_streamFormat)
         {
-        case DSL_VIDEO_FORMAT_RGBA:
-            formatStr = "RGBA";
+        case DSL_STREAM_FORMAT_RGBA:
+            streamFormatStr = "RGBA";
             break;
-        case DSL_VIDEO_FORMAT_NV12:
-            formatStr = "NV12";
+        case DSL_STREAM_FORMAT_NV12:
+            streamFormatStr = "NV12";
             break;
-        case DSL_VIDEO_FORMAT_I420:
-            formatStr = "I420";
+        case DSL_STREAM_FORMAT_I420:
+            streamFormatStr = "I420";
             break;
         default:
             LOG_ERROR("Invalid format attribute for AppSourceBintr '" 
@@ -165,7 +166,7 @@ namespace DSL
         m_pSourceElement = DSL_ELEMENT_NEW("appsrc", name);
         
         GstCaps * pCaps = gst_caps_new_simple("video/x-raw",
-            "format", G_TYPE_STRING, formatStr.c_str(),
+            "format", G_TYPE_STRING, streamFormatStr.c_str(),
             "width", G_TYPE_INT, m_width,
             "height", G_TYPE_INT, m_height,
             "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
@@ -191,11 +192,13 @@ namespace DSL
             G_CALLBACK(on_enough_data_cb), this);
 
         // get the property defaults
+        m_pSourceElement->GetAttribute("format", &m_bufferFormat);
         m_pSourceElement->GetAttribute("block", &m_blockEnabled);
         m_pSourceElement->GetAttribute("max-bytes", &m_maxBytes);
 
+        LOG_INFO("buffer-format = " << m_bufferFormat);
         LOG_INFO("block-enabled = " << m_blockEnabled);
-        LOG_INFO("max-bytes   = " << m_maxBytes);
+        LOG_INFO("max-bytes = " << m_maxBytes);
 
 // TODO support GST 1.20 properties
 //        m_pSourceElement->GetAttribute("max-buffers", &m_maxBuffers);
@@ -464,6 +467,29 @@ namespace DSL
 
         m_blockEnabled = enabled;
         m_pSourceElement->SetAttribute("block", m_blockEnabled);
+        return true;
+    }
+    
+    uint AppSourceBintr::GetBufferFormat()
+    {
+        LOG_FUNC();
+        
+        return m_bufferFormat;
+    }
+    
+    bool AppSourceBintr::SetBufferFormat(uint bufferFormat)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set buffer-format for AppSourceBintr '" 
+                << GetName() << "' as it's currently in a linked state");
+            return false;
+        }
+
+        m_bufferFormat = bufferFormat;
+        m_pSourceElement->SetAttribute("format", m_bufferFormat);
         return true;
     }
     
