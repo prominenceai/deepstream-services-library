@@ -4566,6 +4566,26 @@ DslReturnType dsl_source_pph_add(const wchar_t* name, const wchar_t* handler);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
  */
 DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler);
+
+/**
+ * @brief Gets the do-timestamp setting for the named Source Component.
+ * @param[in] name unique name of the Source Component to query.
+ * @param[out] do_timestamp if TRUE, the base class will automatically 
+ * timestamp outgoing buffers based on the current running_time.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_do_timestamp_get(const wchar_t* name, 
+    boolean* do_timestamp);
+
+/**
+ * @brief Gets the do-timestamp setting for the named Source Component.
+ * @param[in] name unique name of the Source Component to update.
+ * @param[in] do_timestamp set to TRUE to have the base class automatically 
+ * timestamp outgoing buffers. FALSE otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_do_timestamp_set(const wchar_t* name, 
+    boolean do_timestamp);
     
 /**
  * @brief returns the frame rate of the name source as a fraction

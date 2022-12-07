@@ -48,7 +48,7 @@ gst-launch-1.0 uridecodebin \
 
 #include "DslApi.h"
 
-// File path for the single File Source
+// Local raw file generated with the command ablove
 static const std::string raw_file("./sample_720p.i420");
 
 // Filespecs for the Primary Triton Inference Server (PTIS)
@@ -62,15 +62,20 @@ static const std::wstring tracker_config_file(
 // File name for .dot file output
 static const std::wstring dot_file = L"state-playing";
 
-// Window Sink Dimensions
-
+// Source dimensions for the raw video
 uint source_width = 1280;
 uint source_height = 720;
+
+// Rate to push frames into the DSL Pipeline
 uint fps_n = 30;
 uint fps_d = 1;
 
+// Window Sink Dimensions
 uint sink_width = 1280;
 uint sink_height = 720;
+
+// To enable presentation timestamp
+#define CUSTOM_PTS TRUE
 
 //
 // Structure to contain all our information for appsrc, so we can pass it to callbacks
@@ -112,10 +117,10 @@ static boolean read_and_push_data(void* client_data)
     if (size > 0)
     {
         
-// TODO handle presentation timestamp
+// To enable presentation timestamp
 #if CUSTOM_PTS
         GST_BUFFER_PTS(buffer) =
-            gst_util_uint64_scale (data->frame_num, GST_SECOND, data->fps);
+            gst_util_uint64_scale(data->frame_num, GST_SECOND, data->fps);
 #endif
 
         DslReturnType retval = dsl_source_app_buffer_push(L"app-source", buffer);
@@ -253,14 +258,23 @@ int main(int argc, char** argv)
         
         // New App Source with is_live = false, format = I420
         retval = dsl_source_app_new(L"app-source", false, 
-            DSL_VIDEO_FORMAT_I420, source_width, source_height, fps_n, fps_d);
+            DSL_STREAM_FORMAT_I420, source_width, source_height, fps_n, fps_d);
         if (retval != DSL_RESULT_SUCCESS) break;
         
         // 
         retval = dsl_source_app_data_handlers_add(L"app-source",
             need_data_handler, enough_data_handler, (void*)&data);
         if (retval != DSL_RESULT_SUCCESS) break;
-            
+
+// To enable presentation timestamp
+#if CUSTOM_PTS
+        retval = dsl_source_do_timestamp_set(L"app-source", TRUE);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        retval = dsl_source_app_buffer_format_set(L"app-source",
+            DSL_BUFFER_FORMAT_TIME);
+        if (retval != DSL_RESULT_SUCCESS) break;
+#endif            
         // New Primary TIS using the filespec specified above, with interval = 0
         retval = dsl_infer_tis_primary_new(L"primary-tis", primary_infer_config_file.c_str(), 4);
         if (retval != DSL_RESULT_SUCCESS) break;

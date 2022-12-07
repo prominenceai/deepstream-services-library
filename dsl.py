@@ -2989,6 +2989,29 @@ def dsl_source_app_eos(name):
     return int(result)
 
 ##
+## dsl_source_app_buffer_format_get()
+##
+_dsl.dsl_source_app_buffer_format_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_source_app_buffer_format_get.restype = c_uint
+def dsl_source_app_buffer_format_get(name):
+    global _dsl
+    buffer_format = c_uint(0)
+    result = _dsl.dsl_source_app_buffer_format_get(name, 
+        DSL_UINT_P(buffer_format))
+    return int(result), buffer_format.value 
+
+##
+## dsl_source_app_buffer_format_set()
+##
+_dsl.dsl_source_app_buffer_format_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_source_app_buffer_format_set.restype = c_uint
+def dsl_source_app_buffer_format_set(name, buffer_format):
+    global _dsl
+    result = _dsl.dsl_source_app_buffer_format_set(name, buffer_format)
+    return int(result)
+
+##
 ## dsl_source_app_block_enabled_get()
 ##
 _dsl.dsl_source_app_block_enabled_get.argtypes = [c_wchar_p, 
@@ -3351,6 +3374,27 @@ _dsl.dsl_source_pph_remove.restype = c_uint
 def dsl_source_pph_remove(name, handler):
     global _dsl
     result = _dsl.dsl_source_pph_remove(name, handler)
+    return int(result)
+
+##
+## dsl_source_do_timestamp_get()
+##
+_dsl.dsl_source_do_timestamp_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_source_do_timestamp_get.restype = c_uint
+def dsl_source_do_timestamp_get(name):
+    global _dsl
+    do_timestamp = c_bool(False)
+    result = _dsl.dsl_source_do_timestamp_get(name, DSL_BOOL_P(do_timestamp))
+    return int(result), do_timestamp.value 
+
+##
+## dsl_source_do_timestamp_set()
+##
+_dsl.dsl_source_do_timestamp_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_source_do_timestamp_set.restype = c_uint
+def dsl_source_do_timestamp_set(name, do_timestamp):
+    global _dsl
+    result = _dsl.dsl_source_do_timestamp_set(name, do_timestamp)
     return int(result)
 
 ##

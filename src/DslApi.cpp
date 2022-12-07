@@ -4031,24 +4031,57 @@ DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler)
         cstrHandler.c_str());
 }
 
-DslReturnType dsl_source_dimensions_get(const wchar_t* name, uint* width, uint* height)
+DslReturnType dsl_source_do_timestamp_get(const wchar_t* name, 
+    boolean* do_timestamp)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(do_timestamp);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceDimensionsGet(cstrName.c_str(), width, height);
+    return DSL::Services::GetServices()->SourceDoTimestampGet(cstrName.c_str(), 
+        do_timestamp);
 }
 
-DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* fps_d)
+DslReturnType dsl_source_do_timestamp_set(const wchar_t* name, 
+    boolean do_timestamp)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceFrameRateGet(cstrName.c_str(), fps_n, fps_d);
+    return DSL::Services::GetServices()->SourceDoTimestampSet(cstrName.c_str(), 
+        do_timestamp);
+}
+    
+DslReturnType dsl_source_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(width);
+    RETURN_IF_PARAM_IS_NULL(height);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceDimensionsGet(cstrName.c_str(), 
+        width, height);
+}
+
+DslReturnType dsl_source_frame_rate_get(const wchar_t* name, 
+    uint* fps_n, uint* fps_d)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(fps_n);
+    RETURN_IF_PARAM_IS_NULL(fps_d);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceFrameRateGet(cstrName.c_str(), 
+        fps_n, fps_d);
 }
 
 DslReturnType dsl_source_decode_uri_get(const wchar_t* name, const wchar_t** uri)

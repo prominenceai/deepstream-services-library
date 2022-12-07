@@ -128,6 +128,21 @@ namespace DSL
         }
         
         /**
+         * @brief Gets the current do-timestamp property setting for the SourceBintr.
+         * @return If TRUE, the base class will automatically timestamp outgoing 
+         * buffers based on the current running_time.
+         */
+        boolean GetDoTimestamp();
+
+        /**
+         * @brief Sets the do-timestamp property settings for the SourceBintr
+         * @param[in] doTimestamp set to TRUE to have the base class automatically 
+         * timestamp outgoing buffers. FALSE otherwise.
+         * @return 
+         */
+        bool SetDoTimestamp(boolean doTimestamp);
+        
+        /**
          * @brief For sources that manage EOS Consumers, this service must
          * called before sending the source an EOS Event to stop playing.
          */
@@ -164,9 +179,16 @@ namespace DSL
         cudaDeviceProp m_cudaDeviceProp;
 
         /**
-         * @brief True if the source is live and cannot be paused without losing data, False otherwise.
+         * @brief True if the source is live and cannot be paused without losing data, 
+         * False otherwise.
          */
         bool m_isLive;
+        
+        /**
+         * @brief If TRUE, the base class will automatically timestamp outgoing buffers
+         * based on the current running_time..
+         */
+        boolean m_doTimestamp;
 
         /**
          * @brief current width of the streaming source in Pixels.

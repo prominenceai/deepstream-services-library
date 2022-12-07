@@ -1485,7 +1485,69 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceDimensionsGet(const char* name, uint* width, uint* height)
+    DslReturnType Services::SourceDoTimestampGet(const char* name, 
+        boolean* doTimestamp)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+         
+            *doTimestamp = pSourceBintr->GetDoTimestamp();
+
+            LOG_INFO("Source '" << name << "' returned do-timestamp = " 
+                << *doTimestamp << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception getting do-timestamp");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+        
+    DslReturnType Services::SourceDoTimestampSet(const char* name, 
+        boolean doTimestamp)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetDoTimestamp(doTimestamp))
+            {
+                LOG_ERROR("Failed to set do-timestamp = " << doTimestamp 
+                    << " for Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("Source '" << name << "' set do-timestamp = " 
+                << doTimestamp << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception setting do-timestamp");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceDimensionsGet(const char* name, 
+        uint* width, uint* height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1500,7 +1562,7 @@ namespace DSL
          
             pSourceBintr->GetDimensions(width, height);
 
-            LOG_INFO("Image Source '" << name << "' returned Width = " 
+            LOG_INFO("Source '" << name << "' returned Width = " 
                 << *width << " and Height = " << *height << " successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -1527,7 +1589,7 @@ namespace DSL
          
             pSourceBintr->GetFrameRate(fpsN, fpsD);
 
-            LOG_INFO("Image Source '" << name << "' returned FPS N = " 
+            LOG_INFO("Source '" << name << "' returned FPS N = " 
                 << *fpsN << " and FPS D = " << *fpsD << "' successfully");
             
             return DSL_RESULT_SUCCESS;

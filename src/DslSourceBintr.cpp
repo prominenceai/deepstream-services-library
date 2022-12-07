@@ -40,6 +40,7 @@ namespace DSL
         : Bintr(name)
         , m_cudaDeviceProp{0}
         , m_isLive(true)
+        , m_doTimestamp(TRUE)
         , m_width(0)
         , m_height(0)
         , m_fpsN(0)
@@ -101,6 +102,29 @@ namespace DSL
         // remove 'this' Source from the Parent Pipeline 
         return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
             RemoveSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
+    }
+
+    boolean SourceBintr::GetDoTimestamp()
+    {
+        LOG_FUNC();
+        
+        return m_doTimestamp;
+    }
+
+    bool SourceBintr::SetDoTimestamp(boolean doTimestamp)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set block-enabled for SourceBintr '" 
+                << GetName() << "' as it's currently in a linked state");
+            return false;
+        }
+
+        m_doTimestamp = doTimestamp;
+        m_pSourceElement->SetAttribute("do-timestamp", m_doTimestamp);
+        return true;
     }
 
     void SourceBintr::GetDimensions(uint* width, uint* height)
@@ -182,9 +206,6 @@ namespace DSL
         // emit-signals are disabled by default... need to enable
         m_pSourceElement->SetAttribute("emit-signals", true);
         
-// TODO support do-timestamp in base source class - for all sources
-//        m_pSourceElement->SetAttribute("do-timestamp", true);
-        
         // register the data callbacks with the appsrc element
         g_signal_connect(m_pSourceElement->GetGObject(), "need-data", 
             G_CALLBACK(on_need_data_cb), this);
@@ -192,22 +213,30 @@ namespace DSL
             G_CALLBACK(on_enough_data_cb), this);
 
         // get the property defaults
+        m_pSourceElement->GetAttribute("do-timestamp", &m_doTimestamp);
         m_pSourceElement->GetAttribute("format", &m_bufferFormat);
         m_pSourceElement->GetAttribute("block", &m_blockEnabled);
         m_pSourceElement->GetAttribute("max-bytes", &m_maxBytes);
 
-        LOG_INFO("buffer-format = " << m_bufferFormat);
-        LOG_INFO("block-enabled = " << m_blockEnabled);
-        LOG_INFO("max-bytes = " << m_maxBytes);
+        LOG_INFO("Default properties for AppSourceBintr '" << name << "'");
+        LOG_INFO("  do-timestamp  : " << m_doTimestamp);
+        LOG_INFO("  buffer-format : " << m_bufferFormat);
+        LOG_INFO("  block-enabled : " << m_blockEnabled);
+        LOG_INFO("  max-bytes     : " << m_maxBytes);
+        LOG_INFO("  stream-format : " << streamFormatStr);
+        LOG_INFO("  width         : " << m_width);
+        LOG_INFO("  height        : " << m_height);
+        LOG_INFO("  fps-n         : " << m_fpsN);
+        LOG_INFO("  fps-d         : " << m_fpsD);
 
-// TODO support GST 1.20 properties
-//        m_pSourceElement->GetAttribute("max-buffers", &m_maxBuffers);
-//        m_pSourceElement->GetAttribute("max-time", &m_maxTime);
-//        m_pSourceElement->GetAttribute("leaky-type", &m_leakyType);
-//
-//        LOG_INFO("max-buffers = " << m_maxBuffers);
-//        LOG_INFO("max-time    = " << m_maxTime);
-//        LOG_INFO("leaky-type  = " << m_leakyType);
+        // TODO support GST 1.20 properties
+        // m_pSourceElement->GetAttribute("max-buffers", &m_maxBuffers);
+        // m_pSourceElement->GetAttribute("max-time", &m_maxTime);
+        // m_pSourceElement->GetAttribute("leaky-type", &m_leakyType);
+        //
+        // LOG_INFO("max-buffers = " << m_maxBuffers);
+        // LOG_INFO("max-time    = " << m_maxTime);
+        // LOG_INFO("leaky-type  = " << m_leakyType);
         
         // ---- Video Converter Setup
         

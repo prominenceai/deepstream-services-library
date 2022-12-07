@@ -189,6 +189,11 @@ SCENARIO( "A new App Source returns the correct attribute values", "[source-api]
                 REQUIRE( ret_fps_d == fps_d );
                 REQUIRE( dsl_source_is_live(source_name.c_str()) == is_live );
                 
+                boolean do_timestamp(TRUE);
+                REQUIRE( dsl_source_do_timestamp_get(source_name.c_str(),
+                    &do_timestamp) == DSL_RESULT_SUCCESS );
+                REQUIRE( do_timestamp == FALSE ); // default
+                
                 boolean block_enabled(TRUE);
                 REQUIRE( dsl_source_app_block_enabled_get(source_name.c_str(),
                     &block_enabled) == DSL_RESULT_SUCCESS );
@@ -217,6 +222,38 @@ SCENARIO( "An App Source can update its settings correctly", "[source-api]" )
         REQUIRE( dsl_source_app_new(source_name.c_str(), 
             is_live, video_format, width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
+        WHEN( "The App Source's buffer-format setting is set" ) 
+        {
+            uint bufffer_format(DSL_BUFFER_FORMAT_TIME); // default is BYTE
+            REQUIRE( dsl_source_app_buffer_format_set(source_name.c_str(),
+                bufffer_format) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                uint ret_bufffer_format(DSL_BUFFER_FORMAT_BYTE);
+                REQUIRE( dsl_source_app_buffer_format_get(source_name.c_str(),
+                    &ret_bufffer_format) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_bufffer_format == bufffer_format );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "The App Source's do-timestamp setting is set" ) 
+        {
+            boolean do_timestamp(TRUE); // default is FALSE
+            REQUIRE( dsl_source_do_timestamp_set(source_name.c_str(),
+                do_timestamp) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                boolean ret_do_timestamp(FALSE);
+                REQUIRE( dsl_source_do_timestamp_get(source_name.c_str(),
+                    &ret_do_timestamp) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_do_timestamp == do_timestamp );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
         WHEN( "The App Source's block-enabled setting is set" ) 
         {
             boolean block_enabled(TRUE);
@@ -1201,6 +1238,13 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_pph_add(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_pph_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_pph_remove(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_do_timestamp_get(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_do_timestamp_get(source_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_do_timestamp_set(NULL,
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_list_size() == 0 );
             }

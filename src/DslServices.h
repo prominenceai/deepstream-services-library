@@ -758,6 +758,10 @@ namespace DSL {
         DslReturnType SourcePphAdd(const char* name, const char* handler);
 
         DslReturnType SourcePphRemove(const char* name, const char* handler);
+
+        DslReturnType SourceDoTimestampGet(const char* name, boolean* doTimestamp);
+            
+        DslReturnType SourceDoTimestampSet(const char* name, boolean doTimestamp);
             
         DslReturnType SourceDimensionsGet(const char* name, uint* width, uint* height);
         
