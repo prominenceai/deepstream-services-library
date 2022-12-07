@@ -29,11 +29,11 @@ THE SOFTWARE.
 #include "DslApi.h"
 
 // File path for the single File Source
-static const std::wstring file_path(L"/opt/nvidia/deepstream/deepstream-6.0/samples/streams/sample_qHD.mp4");
+static const std::wstring file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4");
 
 // Filespecs for the Primary Triton Inference Server (PTIS)
 static const std::wstring primary_infer_config_file = 
-    L"/opt/nvidia/deepstream/deepstream-6.0/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt";
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_plan_engine_primary.txt";
 
 // IOU Tracker config file    
 static const std::wstring tracker_config_file(
@@ -105,7 +105,7 @@ int main(int argc, char** argv)
     while(true)
     {
         // # New File Source using the file path specified above, repeat diabled.
-        retval = dsl_source_file_new(L"uri-source", file_path.c_str(), false);
+        retval = dsl_source_file_new(L"file-source", file_path.c_str(), false);
         if (retval != DSL_RESULT_SUCCESS) break;
             
         // # New Primary TIS using the filespec specified above, with interval = 0
@@ -125,7 +125,7 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // # Add all the components to a new pipeline
-        const wchar_t* components[] = { L"uri-source",L"primary-tis",
+        const wchar_t* components[] = { L"file-source",L"primary-tis",
             L"iou-tracker",L"on-screen-display",L"window-sink",nullptr};
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);            
         if (retval != DSL_RESULT_SUCCESS) break;

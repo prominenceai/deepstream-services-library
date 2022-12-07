@@ -61,6 +61,8 @@ static uint interval(0);
 static std::wstring rtsp_uri(L"rtsp://username:password@192.168.0.14:554");
 
 static boolean is_live(false);
+static uint video_format(DSL_STREAM_FORMAT_I420);
+
 
 static std::wstring def_device_location(L"/dev/video0");
 
@@ -163,7 +165,202 @@ SCENARIO( "A Source, once removed from a Pipeline, can be deleted", "[source-api
     }
 }
 
-SCENARIO( "A new CSI Camera Source returns the correct attribute values", "[source-api]" )
+SCENARIO( "A new App Source returns the correct attribute values", "[source-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new App Source is created" ) 
+        {
+            REQUIRE( dsl_source_app_new(source_name.c_str(), 
+                is_live, video_format, width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                uint ret_width(0), ret_height(0), ret_fps_n(0), ret_fps_d(0);
+                REQUIRE( dsl_source_dimensions_get(source_name.c_str(), 
+                    &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), 
+                    &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_width == width );
+                REQUIRE( ret_height == height );
+                REQUIRE( ret_fps_n == fps_n );
+                REQUIRE( ret_fps_d == fps_d );
+                REQUIRE( dsl_source_is_live(source_name.c_str()) == is_live );
+                
+                boolean do_timestamp(TRUE);
+                REQUIRE( dsl_source_do_timestamp_get(source_name.c_str(),
+                    &do_timestamp) == DSL_RESULT_SUCCESS );
+                REQUIRE( do_timestamp == FALSE ); // default
+                
+                boolean block_enabled(TRUE);
+                REQUIRE( dsl_source_app_block_enabled_get(source_name.c_str(),
+                    &block_enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( block_enabled == FALSE ); // default
+
+                uint64_t current_level_bytes(123456);
+                REQUIRE( dsl_source_app_current_level_bytes_get(source_name.c_str(),
+                    &current_level_bytes) == DSL_RESULT_SUCCESS );
+                REQUIRE( current_level_bytes == 0 ); // default
+                
+                uint64_t max_bytes(0);
+                REQUIRE( dsl_source_app_max_level_bytes_get(source_name.c_str(),
+                    &max_bytes) == DSL_RESULT_SUCCESS );
+                REQUIRE( max_bytes == 200000 ); // default
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "An App Source can update its settings correctly", "[source-api]" )
+{
+    GIVEN( "A new App Source Component" ) 
+    {
+        REQUIRE( dsl_source_app_new(source_name.c_str(), 
+            is_live, video_format, width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+        WHEN( "The App Source's buffer-format setting is set" ) 
+        {
+            uint bufffer_format(DSL_BUFFER_FORMAT_TIME); // default is BYTE
+            REQUIRE( dsl_source_app_buffer_format_set(source_name.c_str(),
+                bufffer_format) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                uint ret_bufffer_format(DSL_BUFFER_FORMAT_BYTE);
+                REQUIRE( dsl_source_app_buffer_format_get(source_name.c_str(),
+                    &ret_bufffer_format) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_bufffer_format == bufffer_format );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "The App Source's do-timestamp setting is set" ) 
+        {
+            boolean do_timestamp(TRUE); // default is FALSE
+            REQUIRE( dsl_source_do_timestamp_set(source_name.c_str(),
+                do_timestamp) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                boolean ret_do_timestamp(FALSE);
+                REQUIRE( dsl_source_do_timestamp_get(source_name.c_str(),
+                    &ret_do_timestamp) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_do_timestamp == do_timestamp );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "The App Source's block-enabled setting is set" ) 
+        {
+            boolean block_enabled(TRUE);
+            REQUIRE( dsl_source_app_block_enabled_set(source_name.c_str(),
+                block_enabled) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                boolean ret_block_enabled(FALSE);
+                REQUIRE( dsl_source_app_block_enabled_get(source_name.c_str(),
+                    &ret_block_enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_block_enabled == block_enabled );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "The App Source's max-level-in-bytes setting is set" ) 
+        {
+            uint64_t max_bytes(100000);
+            REQUIRE( dsl_source_app_max_level_bytes_set(source_name.c_str(),
+                max_bytes) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                uint64_t ret_max_bytes(0);
+                REQUIRE( dsl_source_app_max_level_bytes_get(source_name.c_str(),
+                    &ret_max_bytes) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_bytes == max_bytes ); 
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+static void need_data_handler(uint length, void* client_data)
+{
+}
+
+static void enough_data_handler(void* client_data)
+{
+}
+
+SCENARIO( "A new App Source can add and remove data-handlers correctly", 
+    "[source-api]" )
+{
+    GIVEN( "A new App Source component" ) 
+    {
+        
+        REQUIRE( dsl_source_app_new(source_name.c_str(), is_live, 
+            video_format, width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+        WHEN( "Client data-handers are added. " ) 
+        {
+            REQUIRE( dsl_source_app_data_handlers_add(source_name.c_str(),
+                need_data_handler, enough_data_handler, NULL) == DSL_RESULT_SUCCESS );
+
+            // second call must fail
+            REQUIRE( dsl_source_app_data_handlers_add(source_name.c_str(),
+                need_data_handler, enough_data_handler, NULL) == DSL_RESULT_SOURCE_SET_FAILED );
+            
+            THEN( "The data-handlers can be removed correctly" ) 
+            {
+                REQUIRE( dsl_source_app_data_handlers_remove(source_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+
+                // second call must fail
+                REQUIRE( dsl_source_app_data_handlers_remove(source_name.c_str()) 
+                    == DSL_RESULT_SOURCE_SET_FAILED );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A new App Source fails to push-buffer and EOS when in a unlinked state", 
+    "[source-api]" )
+{
+    GIVEN( "A new App Source component" ) 
+    {
+        
+        REQUIRE( dsl_source_app_new(source_name.c_str(), is_live, 
+            video_format, width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+        WHEN( "When the App Source is in an unlinked state. " ) 
+        {
+            
+            THEN( "The push-buffer and EOS services must fail" ) 
+            {
+                std::string fake_buffer("this is a fake buffer");
+                
+                REQUIRE( dsl_source_app_buffer_push(source_name.c_str(),
+                    (void*)fake_buffer.c_str()) == DSL_RESULT_SOURCE_SET_FAILED );
+
+                // second call must fail
+                REQUIRE( dsl_source_app_eos(source_name.c_str()) 
+                    == DSL_RESULT_SOURCE_SET_FAILED );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A new CSI Camera Source returns the correct attribute values", 
+    "[source-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
@@ -171,13 +368,16 @@ SCENARIO( "A new CSI Camera Source returns the correct attribute values", "[sour
 
         WHEN( "A new Source is created" ) 
         {
-            REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_csi_new(source_name.c_str(), 
+                width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
                 uint ret_width(0), ret_height(0), ret_fps_n(0), ret_fps_d(0);
-                REQUIRE( dsl_source_dimensions_get(source_name.c_str(), &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_dimensions_get(source_name.c_str(), 
+                    &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), 
+                    &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_width == width );
                 REQUIRE( ret_height == height );
                 REQUIRE( ret_fps_n == fps_n );
@@ -942,11 +1142,46 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
         REQUIRE( dsl_component_list_size() == 0 );
         
         int start_index(0);
+        dsl_source_app_need_data_handler_cb data_handler_cb;
 
         WHEN( "When NULL pointers are used as input" ) 
         {
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
+                REQUIRE( dsl_source_app_new(NULL, 
+                    0, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_data_handlers_add(NULL, 
+                    NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_data_handlers_add(source_name.c_str(), 
+                    NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_data_handlers_add(source_name.c_str(), 
+                    data_handler_cb, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_data_handlers_remove(NULL) ==
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_buffer_push(NULL, NULL) ==
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_buffer_push(source_name.c_str(), NULL) ==
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_eos(NULL) ==
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_block_enabled_get(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_block_enabled_get(source_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_block_enabled_set(NULL,
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_current_level_bytes_get(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_current_level_bytes_get(source_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_max_level_bytes_get(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_max_level_bytes_get(source_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_app_max_level_bytes_set(NULL,
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                    
                 REQUIRE( dsl_source_csi_new(NULL, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_csi_sensor_id_get(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_csi_sensor_id_get(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
@@ -1003,6 +1238,13 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_pph_add(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_pph_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_pph_remove(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_do_timestamp_get(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_do_timestamp_get(source_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_do_timestamp_set(NULL,
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_list_size() == 0 );
             }

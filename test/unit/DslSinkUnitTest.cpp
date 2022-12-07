@@ -28,13 +28,63 @@ THE SOFTWARE.
 
 using namespace DSL;
 
+static uint new_buffer_cb(uint data_type, 
+    void* buffer, void* client_data)
+{
+    return DSL_FLOW_OK;
+}
+
+SCENARIO( "A new AppSinkBintr is created correctly",  "[SinkBintr]" )
+{
+    GIVEN( "Attributes for a new App Sink" ) 
+    {
+        std::string sinkName("fake-sink");
+        uint dataType(DSL_SINK_APP_DATA_TYPE_BUFFER);
+
+        WHEN( "The AppSinkBintr is created" )
+        {
+            DSL_APP_SINK_PTR pSinkBintr = DSL_APP_SINK_NEW(sinkName.c_str(), 
+                DSL_SINK_APP_DATA_TYPE_BUFFER, new_buffer_cb, NULL);
+            
+            THEN( "The correct attribute values are returned" )
+            {
+                REQUIRE( pSinkBintr->GetDataType() == dataType );
+                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new AppSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
+{
+    GIVEN( "A new AppSinkBintr in an Unlinked state" ) 
+    {
+        std::string sinkName("fake-sink");
+
+        DSL_APP_SINK_PTR pSinkBintr = DSL_APP_SINK_NEW(sinkName.c_str(), 
+            DSL_SINK_APP_DATA_TYPE_BUFFER, new_buffer_cb, NULL);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+
+        WHEN( "A new AppSinkBintr is Linked" )
+        {
+            REQUIRE( pSinkBintr->LinkAll() == true );
+
+            THEN( "The AppSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new FakeSinkBintr is created correctly",  "[SinkBintr]" )
 {
     GIVEN( "Attributes for a new Fake Sink" ) 
     {
         std::string sinkName("fake-sink");
 
-        WHEN( "The FackeSinkBintr is created " )
+        WHEN( "The FakeSinkBintr is created " )
         {
             DSL_FAKE_SINK_PTR pSinkBintr = 
                 DSL_FAKE_SINK_NEW(sinkName.c_str());

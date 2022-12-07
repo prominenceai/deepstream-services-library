@@ -227,6 +227,7 @@
       <File Name="../examples/cpp/interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.cpp"/>
       <File Name="../examples/cpp/interpipe_multiple_pipelines_listening_to_single_sink.cpp"/>
       <File Name="../examples/cpp/1file_ptis_tracker_osd_window.cpp"/>
+      <File Name="../examples/cpp/raw_i420_app_src_ptis_tracker_osd_window.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
       <File Name="../examples/python/1csi_live_pgie_demuxer_osd_overlay_rtsp_h254.py"/>
@@ -281,6 +282,7 @@
       <File Name="../examples/python/dyn_uri_file_pgie_iou_tracker_tiler_osd_window.py"/>
       <File Name="../examples/python/segmentation_industrial.py"/>
       <File Name="../examples/python/segmentation_semantic.py"/>
+      <File Name="../examples/python/1uri_file_pgi_iou_tracker_app_sink.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>

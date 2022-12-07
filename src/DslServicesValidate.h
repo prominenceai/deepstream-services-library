@@ -177,7 +177,8 @@ THE SOFTWARE.
 
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(components, name) do \
 { \
-    if (!components[name]->IsType(typeid(CsiSourceBintr)) and  \
+    if (!components[name]->IsType(typeid(AppSourceBintr)) and  \
+        !components[name]->IsType(typeid(CsiSourceBintr)) and  \
         !components[name]->IsType(typeid(UsbSourceBintr)) and  \
         !components[name]->IsType(typeid(UriSourceBintr)) and  \
         !components[name]->IsType(typeid(FileSourceBintr)) and  \
@@ -308,7 +309,8 @@ THE SOFTWARE.
 // All Bintr's that can be added as a "branch" to a "Tee"
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_BRANCH(components, name) do \
 { \
-    if (!components[name]->IsType(typeid(FakeSinkBintr)) and  \
+    if (!components[name]->IsType(typeid(AppSinkBintr)) and  \
+        !components[name]->IsType(typeid(FakeSinkBintr)) and  \
         !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
         !components[name]->IsType(typeid(WindowSinkBintr)) and  \
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
@@ -330,7 +332,8 @@ THE SOFTWARE.
 #elif GSTREAMER_SUB_VERSION < 18
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(components, name) do \
 { \
-    if (!components[name]->IsType(typeid(FakeSinkBintr)) and  \
+    if (!components[name]->IsType(typeid(AppSinkBintr)) and  \
+        !components[name]->IsType(typeid(FakeSinkBintr)) and  \
         !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
         !components[name]->IsType(typeid(WindowSinkBintr)) and  \
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
@@ -346,7 +349,8 @@ THE SOFTWARE.
 #else
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(components, name) do \
 { \
-    if (!components[name]->IsType(typeid(FakeSinkBintr)) and  \
+    if (!components[name]->IsType(typeid(AppSinkBintr)) and  \
+        !components[name]->IsType(typeid(FakeSinkBintr)) and  \
         !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
         !components[name]->IsType(typeid(WindowSinkBintr)) and  \
         !components[name]->IsType(typeid(FileSinkBintr)) and  \

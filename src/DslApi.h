@@ -494,6 +494,20 @@ THE SOFTWARE.
 #define DSL_NVBUF_MEM_TYPE_DEVICE                                   2
 #define DSL_NVBUF_MEM_TYPE_UNIFIED                                  3
 
+/**
+ * @brief GST Buffer format types
+ */
+// must match GstFormat values
+#define DSL_BUFFER_FORMAT_BYTE                                      2
+#define DSL_BUFFER_FORMAT_TIME                                      3
+
+/**
+ * @brief GST Stream format types
+ */
+#define DSL_STREAM_FORMAT_I420                                      0
+#define DSL_STREAM_FORMAT_RGBA                                      1   
+#define DSL_STREAM_FORMAT_NV12                                      2
+
 #define DSL_SOURCE_CODEC_PARSER_H264                                0
 #define DSL_SOURCE_CODEC_PARSER_H265                                1
 
@@ -879,6 +893,25 @@ THE SOFTWARE.
  */
 #define DSL_NMP_MATCH_METHOD_IOU                                    0
 #define DSL_NMP_MATCH_METHOD_IOS                                    1
+
+// Data types provided by the APP Sink via dsl_sink_app_new_data_handler_cb
+#define DSL_SINK_APP_DATA_TYPE_SAMPLE                               0
+#define DSL_SINK_APP_DATA_TYPE_BUFFER                               1
+
+// Valid return values for the dsl_sink_app_new_data_handler_cb
+#define DSL_FLOW_OK                                                 0
+#define DSL_FLOW_EOS                                                1
+#define DSL_FLOW_ERROR                                              2
+
+/**
+ * @brief APP Source leaky type constants - must match GstAppLeakyType
+ */
+
+// TODO support GST 1.20 properties
+//#define DSL_QUEUE_LEAKY_TYPE_NONE                                   0
+//#define DSL_QUEUE_LEAKY_TYPE_UPSTREAM                               1
+//#define DSL_QUEUE_LEAKY_TYPE_DOWNSTREAM                             2
+
 
 EXTERN_C_BEGIN
 
@@ -1562,6 +1595,40 @@ typedef void (*dsl_pph_buffer_timeout_handler_cb)(uint timeout, void* client_dat
  * allow the event to continue to the next component. 
  */
 typedef uint (*dsl_pph_eos_handler_cb)(void* client_data);
+
+/**
+ * @brief Callback typedef for the App Source Component. The function is registered
+ * with the App Source by calling dsl_source_app_data_handlers_add. Once the Pipeline 
+ * is playing, the function will be called when the Source needs new data to process.
+ * @param[in] length the amount of bytes needed.  The length is just a hint and when it 
+ * is set to -1, any number of bytes can be pushed into the App Source.
+ * @param[in] client_data opaque pointer to client's user data.
+ */
+typedef void (*dsl_source_app_need_data_handler_cb)(uint length, void* client_data);
+
+/**
+ * @brief Callback typedef for the App Source Component. The function is registered
+ * with the App Source by calling dsl_source_app_data_handlers_add. Once the Pipeline 
+ * is playing, the function will be called when the Source has enough data to process. 
+ * It is recommended that the application stops calling dsl_source_app_buffer_push 
+ * until dsl_source_app_need_data_handler_cb is called again.
+ * @param[in] client_data opaque pointer to client's user data.
+ */
+typedef void (*dsl_source_app_enough_data_handler_cb)(void* client_data);
+
+/**
+ * @brief Callback typedef for the App Sink Component. The function is registered
+ * when the App Sink is created with dsl_sink_app_new. Once the Pipeline is playing, 
+ * the function will be called when new data is available to process. The type of
+ * data is specified with the App Sink constructor.
+ * @param[in] data_type type of data provided. Either DSL_SINK_APP_DATA_TYPE_SAMPLE
+ * or DSL_SINK_APP_DATA_TYPE_BUFFER.
+ * @param[in] data pointer to either a sample or buffer to process.
+ * @param[in] client_data opaque pointer to client's user data.
+ * @return one of the DSL_FLOW constant values.
+ */
+typedef uint (*dsl_sink_app_new_data_handler_cb)(uint data_type, 
+    void* data, void* client_data);
 
 // -----------------------------------------------------------------------------------
 // Start of DSL Services 
@@ -4014,6 +4081,167 @@ DslReturnType dsl_pph_delete_all();
 uint dsl_pph_list_size();
 
 /**
+ * @brief Creates a new, uniquely named App Source component to insert data 
+ * into a DSL pipeline.
+ * @param[in] name unique name for the new Source.
+ * @param[in] is_live set to true to instruct the source to behave like a 
+ * live source. This includes that it will only push out buffers in the PLAYING state.
+ * @param[in] stream_format one of the DSL_STREAM_FORMAT constants.
+ * @param[in] width width of the source in pixels.
+ * @param[in] height height of the source in pixels.
+ * @param[in] fps-n frames/second fraction numerator.
+ * @param[in] fps-d frames/second fraction denominator.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_new(const wchar_t* name, boolean is_live, 
+    uint stream_format, uint width, uint height, uint fps_n, uint fps_d);
+    
+/**
+ * @brief Adds data-handler callback functions to a named App Source component.
+ * @param[in] name unique name of the App Source to update
+ * @param[in] need_data_handler callback function to be called when new data is needed.
+ * @param[in] enough_data_handler callback function to be called when the Source
+ * has enough data to process.
+ * @param[in] client_data opaque pointer to client data passed back into the 
+ * client_handler function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_data_handlers_add(const wchar_t* name, 
+    dsl_source_app_need_data_handler_cb need_data_handler, 
+    dsl_source_app_enough_data_handler_cb enough_data_handler, 
+    void* client_data);
+
+/**
+ * @brief Removes data-handler callback functions from a named App Source component.
+ * @param[in] name unique name of the App Source to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_data_handlers_remove(const wchar_t* name);
+
+/**
+ * @brief Pushes a new buffer to a uniquely named App Source component 
+ * for processing.
+ * @param[in] name unqiue name of the App Source to push to.
+ * @param[in] buffer buffer to push to the App Source
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_buffer_push(const wchar_t* name, void* buffer);
+
+/**
+ * @brief Pushes a new sample to a uniquely named App Source component 
+ * for processing.
+ * @param[in] name unqiue name of the App Source to push to.
+ * @param[in] sample sample to push to the App Source
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_sample_push(const wchar_t* name, void* sample);
+
+/**
+ * @brief Notifies a uniquely named App Source component that no more buffers
+ * are available.
+ * @param[in] name unique name of the App Source to notify.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_eos(const wchar_t* name);
+
+/**
+ * @brief Gets the current buffer-format setting for the named App Source Component.
+ * @param[in] name unique name of the App Source to query.
+ * @param[out] buffer_format one of the DSL_BUFFER_FORMAT constants. 
+ * Default = DSL_BUFFER_FORMAT_BYTE.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_buffer_format_get(const wchar_t* name, 
+    uint* buffer_format);
+
+/**
+ * @brief Sets the buffer-format setting for the named App Source Component.
+ * @param[in] name unique name of the App Source to update.
+ * @param[in] buffer_format one of the DSL_BUFFER_FORMAT constants. 
+ * The format to use for segment events. When the source is producing timestamped 
+ * buffers this property should be set to DSL_BUFFER_FORMAT_TIME.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_buffer_format_set(const wchar_t* name, 
+    uint buffer_format);
+
+/**
+ * @brief Gets the block enabled setting for the named App Source Component.
+ * If true, when max-bytes are queued and after the enough-data signal has been 
+ * emitted, the source will block any further push calls until the amount of
+ * queued bytes drops below the max-bytes limit.
+ * @param[in] name unique name of the App Source to query.
+ * @param[out] enabled current block enabled setting.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_block_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+
+/**
+ * @brief Sets the block enabled setting for the named App Source Component.
+ * If true, when max-bytes are queued and after the enough-data signal has been 
+ * emitted, the source will block any further push calls until the amount of
+ * queued bytes drops below the max-bytes limit.
+ * @param[in] name unique name of the App Source to update.
+ * @param[in] enabled new block enabled setting.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_block_enabled_set(const wchar_t* name, 
+    boolean enabled);
+
+/**
+ * @brief Gets the current level of queued data in bytes for the named 
+ * App Source Component.
+ * @param[in] name unique name of the App Source to query.
+ * @param[out] level current queue level in units of bytes.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_current_level_bytes_get(const wchar_t* name,
+    uint64_t* level);
+    
+/**
+ * @brief Gets the maximum amount of bytes that can be queued for the named
+ * App Source Component. After the maximum amount of bytes are queued, the
+ * App Source will call the "enough-data-callback".
+ * @param[in] name unique name of the App Source to query.
+ * @param[out] level current max-level in units of bytes. Default = 200000.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_max_level_bytes_get(const wchar_t* name,
+    uint64_t* level);
+    
+/**
+ * @brief Sets the maximum amount of bytes that can be queued for the named
+ * App Source Component. After the maximum amount of bytes are queued, the
+ * App Source will call the "enough-data-callback".
+ * @param[in] name unique name of the App Source to query.
+ * @param[in] level new max-level in units of bytes.  Default = 200000.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_max_level_bytes_set(const wchar_t* name,
+    uint64_t level);
+
+/**
+ * @brief Gets the leaky type for the named App Source Component.
+ * @param[in] name unique name of the App Source to query.
+ * @param[out] leaky_type one of the DSL_QUEUE_LEAKY_TYPE constant values for
+ * none, upstream (new buffers), or downstream (old buffers).
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+//DslReturnType dsl_source_app_leaky_type_get(const wchar_t* name,
+//    uint* leaky_type);
+    
+/**
+ * @brief Sets the leaky type for the named App Source Component.
+ * @param[in] name unique name of the App Source to update.
+ * @param[in] leaky_type one of the DSL_LEAKY_TYPE constant values for
+ * none, upstream (new buffers), or downstream (old buffers).
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+//DslReturnType dsl_source_app_leaky_type_set(const wchar_t* name,
+//    uint leaky_type);
+    
+/**
  * @brief creates a new, uniquely named CSI Camera Source component. A unique 
  * sensor-id is assigned to each CSI Source on creation, starting with 0. The 
  * default setting can be overridden by calling dsl_source_decode_uri_set. The 
@@ -4338,6 +4566,26 @@ DslReturnType dsl_source_pph_add(const wchar_t* name, const wchar_t* handler);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
  */
 DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler);
+
+/**
+ * @brief Gets the do-timestamp setting for the named Source Component.
+ * @param[in] name unique name of the Source Component to query.
+ * @param[out] do_timestamp if TRUE, the base class will automatically 
+ * timestamp outgoing buffers based on the current running_time.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_do_timestamp_get(const wchar_t* name, 
+    boolean* do_timestamp);
+
+/**
+ * @brief Gets the do-timestamp setting for the named Source Component.
+ * @param[in] name unique name of the Source Component to update.
+ * @param[in] do_timestamp set to TRUE to have the base class automatically 
+ * timestamp outgoing buffers. FALSE otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_do_timestamp_set(const wchar_t* name, 
+    boolean do_timestamp);
     
 /**
  * @brief returns the frame rate of the name source as a fraction
@@ -5562,7 +5810,8 @@ DslReturnType dsl_tiler_pph_add(const wchar_t* name,
     const wchar_t* handler, uint pad);
 
 /**
- * @brief Removes a pad-probe-handler to either the Sink or Source pad of the named Tiler
+ * @brief Removes a pad-probe-handler to either the Sink or Source pad of the 
+ * named Tiler.
  * @param[in] name unique name of the Tiled Dislplay to update
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT otherwise
@@ -5570,6 +5819,38 @@ DslReturnType dsl_tiler_pph_add(const wchar_t* name,
 DslReturnType dsl_tiler_pph_remove(const wchar_t* name, 
     const wchar_t* handler, uint pad);
 
+/**
+ * @brief Creates a new, uniquely named App Sink component.
+ * @param[in] name unique component name for the new App Sink.
+ * @param[in] data_type either DSL_SINK_APP_DATA_TYPE_SAMPLE or 
+ * DSL_SINK_APP_DATA_TYPE_BUFFER
+ * @param[in] client_handler client callback function to be called with each new 
+ * buffer received.
+ * @param[in] client_data opaque pointer to client data returned
+ * on callback to the client handler function. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_app_new(const wchar_t* name, uint data_type,
+    dsl_sink_app_new_data_handler_cb client_handler, void* client_data);
+
+/**
+ * @brief Gets the current data-type setting in use by a named App Sink Component.
+ * @param[in] name unique name of the App Sink to query
+ * @param[out] data_type current data-type setting in use, either 
+ * DSL_SINK_APP_DATA_TYPE_SAMPLE or DSL_SINK_APP_DATA_TYPE_BUFFER
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_app_data_type_get(const wchar_t* name, uint* data_type);
+    
+/**
+ * @brief Sets the data-type setting for the named App Sink Component to use.
+ * @param[in] name unique name of the App Sink to update
+ * @param[in] data_type new data-type setting to use, either 
+ * DSL_SINK_APP_DATA_TYPE_SAMPLE or DSL_SINK_APP_DATA_TYPE_BUFFER
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_app_data_type_set(const wchar_t* name, uint data_type);
+    
 /**
  * @brief creates a new, uniquely named Fake Sink component
  * @param[in] name unique component name for the new Fake Sink

@@ -26,6 +26,140 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 
+static uint new_buffer_cb(uint data_type,
+    void* buffer, void* client_data)
+{
+    return DSL_FLOW_OK;
+}
+
+SCENARIO( "The Components container is updated correctly on new and delete App Sink", "[sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring sinkName = L"app-sink";
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new App Sink is created" ) 
+        {
+            REQUIRE( dsl_sink_app_new(sinkName.c_str(), DSL_SINK_APP_DATA_TYPE_BUFFER, 
+                new_buffer_cb, NULL) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean sync(false);
+                REQUIRE( dsl_sink_sync_enabled_get(sinkName.c_str(), 
+                    &sync) == DSL_RESULT_SUCCESS );
+                REQUIRE( sync == true );
+
+                // delete and check the component count
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "An App Sink fails to create when an invalid data-type is provided", "[sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring sinkName = L"app-sink";
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "When an invalid data type is specified" ) 
+        {
+            uint invalid_data_type(DSL_SINK_APP_DATA_TYPE_BUFFER+1);
+
+            THEN( "The Sink must fail to create" ) 
+            {
+                REQUIRE( dsl_sink_app_new(sinkName.c_str(), invalid_data_type, 
+                    new_buffer_cb, NULL) == DSL_RESULT_SINK_SET_FAILED );
+            }
+        }
+    }
+}
+
+SCENARIO( "An App Sink can update it Sync setting correctly", "[sink-api]" )
+{
+    GIVEN( "A new App Sink component" ) 
+    {
+        std::wstring sinkName = L"app-sink";
+
+        REQUIRE( dsl_sink_app_new(sinkName.c_str(), DSL_SINK_APP_DATA_TYPE_BUFFER, 
+            new_buffer_cb, NULL) == DSL_RESULT_SUCCESS );
+
+        // check the default
+        boolean retSync(TRUE);
+        REQUIRE( dsl_sink_sync_enabled_get(sinkName.c_str(), 
+            &retSync) == DSL_RESULT_SUCCESS );
+        REQUIRE( retSync == TRUE );
+
+        WHEN( "The App Sink's sync value is updated" ) 
+        {
+            boolean newSync(FALSE);
+            REQUIRE( dsl_sink_sync_enabled_set(sinkName.c_str(), 
+                newSync) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is retruned on get" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                REQUIRE( dsl_sink_sync_enabled_get(sinkName.c_str(), 
+                    &retSync) == DSL_RESULT_SUCCESS );
+                REQUIRE( retSync == newSync );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "An App Sink can update its data-type setting correctly", "[sink-api]" )
+{
+    GIVEN( "A new App Sink Component" ) 
+    {
+        std::wstring sinkName = L"app-sink";
+        uint init_data_type(DSL_SINK_APP_DATA_TYPE_BUFFER);
+        
+        REQUIRE( dsl_sink_app_new(sinkName.c_str(), init_data_type, 
+            new_buffer_cb, NULL) == DSL_RESULT_SUCCESS );
+
+        // Check the intial value
+        uint ret_data_type;
+        REQUIRE( dsl_sink_app_data_type_get(sinkName.c_str(), 
+            &ret_data_type) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_data_type == init_data_type );
+
+        WHEN( "The App Sink's data-type is updated" ) 
+        {
+            uint new_data_type(DSL_SINK_APP_DATA_TYPE_SAMPLE);
+            
+            REQUIRE( dsl_sink_app_data_type_set(sinkName.c_str(), 
+                new_data_type) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_sink_app_data_type_get(sinkName.c_str(), 
+                    &ret_data_type) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_data_type == new_data_type );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "An ivalid data-type is provided" ) 
+        {
+            uint new_data_type(DSL_SINK_APP_DATA_TYPE_BUFFER+1);
+
+            THEN( "The set data-type service must fail" ) 
+            {
+                REQUIRE( dsl_sink_app_data_type_set(sinkName.c_str(), 
+                    new_data_type) == DSL_RESULT_SINK_SET_FAILED);
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+    
 SCENARIO( "The Components container is updated correctly on new Fake Sink", "[sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -51,7 +185,7 @@ SCENARIO( "The Components container is updated correctly on new Fake Sink", "[si
     }
 }    
 
-SCENARIO( "The Components container is updated correctly on Fink Sink delete", "[sink-api]" )
+SCENARIO( "The Components container is updated correctly on Fake Sink delete", "[sink-api]" )
 {
     GIVEN( "A Fake Sink Component" ) 
     {
@@ -1534,6 +1668,11 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
         {
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
+                REQUIRE( dsl_sink_app_new(NULL, 0, NULL, NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_app_new(sinkName.c_str(), 0, NULL, NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+
                 REQUIRE( dsl_sink_fake_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
                 REQUIRE( dsl_sink_overlay_new(NULL, 0, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );

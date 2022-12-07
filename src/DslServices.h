@@ -639,6 +639,49 @@ namespace DSL {
         
         uint PphListSize();
         
+        DslReturnType SourceAppNew(const char* name, boolean isLive, 
+            uint streamFormat, uint width, uint height, uint fpsN, uint fpsD);
+            
+        DslReturnType SourceAppDataHandlersAdd(const char* name,
+            dsl_source_app_need_data_handler_cb needDataHandler, 
+            dsl_source_app_enough_data_handler_cb enoughDataHandler, 
+            void* clientData);
+
+        DslReturnType SourceAppDataHandlersRemove(const char* name);
+            
+        DslReturnType SourceAppBufferPush(const char* name, void* buffer);
+
+        DslReturnType SourceAppSamplePush(const char* name, void* sample);
+
+        DslReturnType SourceAppEos(const char* name);
+        
+        DslReturnType SourceAppBufferFormatGet(const char* name,
+            uint* bufferFormat);
+        
+        DslReturnType SourceAppBufferFormatSet(const char* name,
+            uint bufferFormat);
+        
+        DslReturnType SourceAppBlockEnabledGet(const char* name,
+            boolean* enabled);
+        
+        DslReturnType SourceAppBlockEnabledSet(const char* name,
+            boolean enabled);
+        
+        DslReturnType SourceAppCurrentLevelBytesGet(const char* name,
+            uint64_t* level);
+        
+        DslReturnType SourceAppMaxLevelBytesGet(const char* name,
+            uint64_t* level);
+        
+        DslReturnType SourceAppMaxLevelBytesSet(const char* name,
+            uint64_t level);
+        
+//        DslReturnType SourceAppLeakyTypeGet(const char* name,
+//            uint* leakyType);
+//        
+//        DslReturnType SourceAppLeakyTypeSet(const char* name,
+//            uint leakyType);
+
         DslReturnType SourceCsiNew(const char* name, 
             uint width, uint height, uint fpsN, uint fpsD);
             
@@ -715,6 +758,10 @@ namespace DSL {
         DslReturnType SourcePphAdd(const char* name, const char* handler);
 
         DslReturnType SourcePphRemove(const char* name, const char* handler);
+
+        DslReturnType SourceDoTimestampGet(const char* name, boolean* doTimestamp);
+            
+        DslReturnType SourceDoTimestampSet(const char* name, boolean doTimestamp);
             
         DslReturnType SourceDimensionsGet(const char* name, uint* width, uint* height);
         
@@ -1012,6 +1059,13 @@ namespace DSL {
         DslReturnType OsdPphAdd(const char* name, const char* handler, uint pad);
 
         DslReturnType OsdPphRemove(const char* name, const char* handler, uint pad);
+
+        DslReturnType SinkAppNew(const char* name, uint dataType,
+            dsl_sink_app_new_data_handler_cb clientHandler, void* clientData);
+            
+        DslReturnType SinkAppDataTypeGet(const char* name, uint* dataType);
+
+        DslReturnType SinkAppDataTypeSet(const char* name, uint dataType);
 
         DslReturnType SinkFakeNew(const char* name);
 

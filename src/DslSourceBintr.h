@@ -43,6 +43,11 @@ namespace DSL
     #define DSL_SOURCE_NEW(name) \
         std::shared_ptr<SourceBintr>(new SourceBintr(name))
 
+    #define DSL_APP_SOURCE_PTR std::shared_ptr<AppSourceBintr>
+    #define DSL_APP_SOURCE_NEW(name, isLive, streamFormat, width, height, fpsN, fpsD) \
+        std::shared_ptr<AppSourceBintr>(new AppSourceBintr(name, isLive, \
+            streamFormat, width, height, fpsN, fpsD))
+        
     #define DSL_CSI_SOURCE_PTR std::shared_ptr<CsiSourceBintr>
     #define DSL_CSI_SOURCE_NEW(name, width, height, fpsN, fpsD) \
         std::shared_ptr<CsiSourceBintr>(new CsiSourceBintr(name, width, height, fpsN, fpsD))
@@ -123,6 +128,21 @@ namespace DSL
         }
         
         /**
+         * @brief Gets the current do-timestamp property setting for the SourceBintr.
+         * @return If TRUE, the base class will automatically timestamp outgoing 
+         * buffers based on the current running_time.
+         */
+        boolean GetDoTimestamp();
+
+        /**
+         * @brief Sets the do-timestamp property settings for the SourceBintr
+         * @param[in] doTimestamp set to TRUE to have the base class automatically 
+         * timestamp outgoing buffers. FALSE otherwise.
+         * @return 
+         */
+        bool SetDoTimestamp(boolean doTimestamp);
+        
+        /**
          * @brief For sources that manage EOS Consumers, this service must
          * called before sending the source an EOS Event to stop playing.
          */
@@ -159,9 +179,16 @@ namespace DSL
         cudaDeviceProp m_cudaDeviceProp;
 
         /**
-         * @brief True if the source is live and cannot be paused without losing data, False otherwise.
+         * @brief True if the source is live and cannot be paused without losing data, 
+         * False otherwise.
          */
         bool m_isLive;
+        
+        /**
+         * @brief If TRUE, the base class will automatically timestamp outgoing buffers
+         * based on the current running_time..
+         */
+        boolean m_doTimestamp;
 
         /**
          * @brief current width of the streaming source in Pixels.
@@ -209,6 +236,247 @@ namespace DSL
         DSL_DEWARPER_PTR m_pDewarperBintr;
     };
 
+    //*********************************************************************************
+    /**
+     * @class AppSourceBintr
+     * @brief 
+     */
+    class AppSourceBintr : public SourceBintr
+    {
+    public: 
+    
+        AppSourceBintr(const char* name, bool isLive, 
+            uint streamFormat, uint width, uint height, uint fpsN, uint fpsD);
+
+        ~AppSourceBintr();
+
+        /**
+         * @brief Links all Child Elementrs owned by this AppSourceBintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this AppSourceBintr
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief Adds data-handler callback functions to this AppSourceBintr
+         * @param[in] needDataHandler callback function to be called when new data is needed.
+         * @param[in] enoughDataHandler callback function to be called when the Source
+         * has enough data to process.
+         * @param[in] clientData opaque pointer to client data passed back into the 
+         * client_handler function.
+         * @return true on successful add, false otherwise.
+         */
+        bool AddDataHandlers(dsl_source_app_need_data_handler_cb needDataHandler, 
+            dsl_source_app_enough_data_handler_cb enoughDataHandler, 
+            void* clientData);
+        
+        /**
+         * @brief Adds data-handler callback functions from this AppSourceBintr,
+         * function previously added with AddDataHandlers
+         * @return true on successful remove, false otherwise.
+         */
+        bool RemoveDataHandlers();
+        
+        /**
+         * @brief Pushes a new buffer to this AppSourceBintr for processing.
+         * @param[in] buffer buffer to push to this AppSourceBintr
+         * @return true on successful push, false otherwise.
+         */
+        bool PushBuffer(void* buffer);
+        
+        /**
+         * @brief Pushes a new sample to this AppSourceBintr for processing.
+         * @param[in] sample sample to push to this AppSourceBintr
+         * @return true on successful push, false otherwise.
+         */
+        bool PushSample(void* sample);
+        
+        /**
+         * @brief Notifies this AppSourceBintr that there are no more buffers 
+         * for processing.
+         * @return true on successful Eos, false otherwise.
+         */
+        bool Eos();
+        
+        /**
+         * @brief Callback handler function to handle the "need-data" signal.
+         * @param length the amount of bytes needed. length is just a hint and 
+         * when it is set to -1, any number of bytes can be pushed into appsrc.
+         */
+        void HandleNeedData(uint length);
+        
+        /**
+         * @brief Callback handler function to handle the "enough-data"signal.
+         */
+        void HandleEnoughData();
+
+        /**
+         * @brief Gets the current buffer-format for this AppSourceBintr
+         * @return one of the DSL_BUFFER_FORMAT constants.
+         */
+        uint GetBufferFormat();
+        
+        /**
+         * @brief Set the buffer-format for this AppSourceBintr to use.
+         * @param[in] bufferFormat one of the DSL_BUFFER_FORMAT constants.
+         * @return true on successful set, false otherwise.
+         */
+        bool SetBufferFormat(uint bufferFormat);
+
+        /**
+         * @brief Gets the current block-enabled setting for this AppSourceBintr.
+         * @return If true, when max-bytes/buffers/time are queued and after the 
+         * enough-data signal has been emitted, the source will block any further 
+         * push-buffer calls until the amount of queued bytes drops below the 
+         * max-bytes/buffers/time limit.
+         */
+        boolean GetBlockEnabled();
+        
+        /**
+         * @brief Sets the block-enabled setting for this AppSourceBintr.
+         * @param[in] enabled If true, when max-bytes/buffers/time are queued and 
+         * after the enough-data signal has been emitted, the source will block any 
+         * further push-buffer calls until the amount of queued bytes drops below the 
+         * max-bytes/buffers/time limit.
+         * @return true on successful set, false otherwise.
+         */
+        bool SetBlockEnabled(boolean enabled);
+        
+        /**
+         * @brief Gets the current level of queued data in bytes for 
+         * this AppSrcBintr.
+         * @return current level of queued data in bytes.
+         */
+        uint64_t GetCurrentLevelBytes();
+
+        /**
+         * @brief Gets the max level of queued data in bytes for
+         * this AppSrcBintr.
+         * @return current maximum level of queued bytes.
+         */
+        uint64_t GetMaxLevelBytes();
+        
+        /**
+         * @brief Sets the max level of queued data in bytes for 
+         * for this AppSrcBintr.
+         * @param[in] level new max level in bytes for the App Source to use.
+         * @return true on successful set, false otherwise.
+         */
+        bool SetMaxLevelBytes(uint64_t level);
+        
+        /**
+         * @brief Gets the current leaky-type in use by this AppSourceBintr
+         * @return leaky-type one of the DSL_QUEUE_LEAKY_TYPE constant values. 
+         */
+//        uint GetLeakyType();  // TODO support GST 1.20 properties
+        
+        /**
+         * @brief Sets the leaky-type for the AppSrcBintr to use.
+         * @param leakyType one of the DSL_QUEUE_LEAKY_TYPE constant values. 
+         * @return true on successful set, false otherwise.
+         */
+        bool SetLeakyType(uint leakyType);
+        
+    private:
+    
+        /**
+         * @brief stream format for the AppSourceBintr - on of the DSL_STREAM_FORMAT constants.
+         */
+        uint m_streamFormat;
+
+        /**
+         * @brief buffer format for the AppSourceBintr - on of the DSL_BUFFER_FORMAT constants.
+         */
+        uint m_bufferFormat;
+
+        /**
+         * @brief client callback function to be called when new data is needed.
+         */
+        dsl_source_app_need_data_handler_cb m_needDataHandler;
+        
+        /**
+         * @brief client callback function to be called when new data is needed.
+         */
+        dsl_source_app_enough_data_handler_cb m_enoughDataHandler;
+        
+        /**
+         * @brief opaque pointer to client data to return with the "need-data" and 
+         * "enough-data" callback.
+         */
+        void* m_clientData;
+        
+        /**
+         * @brief mutex to protect mutual access to the client-data-handlers
+         */
+        GMutex m_dataHandlerMutex;
+        
+        /**
+         * @brief block-enabled setting for this AppSourceBintr.
+         */
+        boolean m_blockEnabled;
+        
+        /**
+         * @brief The maximum amount of bytes that can be queued internally. 
+         * After the maximum amount of bytes are queued, appsrc will emit 
+         * the "enough-data" signal.
+         */
+        uint64_t m_maxBytes;
+        
+        /**
+         * @brief The maximum amount of buffers that can be queued internally. 
+         * After the maximum amount of buffers are queued, appsrc will emit 
+         * the "enough-data" signal.
+         */
+//        uint64_t m_maxBuffers; // TODO support GST 1.20 properties
+        
+        /**
+         * @brief The maximum amount of time that can be queued internally. 
+         * After the maximum amount of time is queued, appsrc will emit 
+         * the "enough-data" signal.
+         */
+//        uint64_t m_maxTime;  // TODO support GST 1.20 properties
+        
+        /**
+         * @brief Current Queue leaky-type, one of the DSL_QUEUE_LEAKY_TYPE
+         * constant values. 
+         */
+//        uint m_leakyType;  // TODO support GST 1.20 properties
+        
+        /**
+         * @brief Video Converter for the AppSourceBintr
+         */
+        DSL_ELEMENT_PTR m_pVidConv;
+
+        /**
+         * @brief Caps Filter for the AppSourceBintr
+         */
+        DSL_ELEMENT_PTR m_pCapsFilter;
+    };    
+    
+    /**
+     * @brief Callback function for the "need-data" signal
+     * @param source "appsrc" plugin/element that invoked the signal (unused)
+     * @param length the amount of bytes needed. length is just a hint and 
+     * when it is set to -1, any number of bytes can be pushed into appsrc.
+     * @param pAppSrcBintr pointer to the AppSrcBintr that registered for the
+     * "need-data" signal.
+     */
+    static void on_need_data_cb(GstElement source, uint length,
+        gpointer pAppSrcBintr);
+    
+    /**
+     * @brief Callback function for the "enough-data" signal
+     * @param source "appsrc" plugin/element that invoked the signal (unused)
+     * @param pAppSrcBintr pointer to the AppSrcBintr that registered for the
+     * "enough-data" signal.
+     */
+    static void on_enough_data_cb(GstElement source, 
+        gpointer pAppSrcBintr);
+        
     //*********************************************************************************
     /**
      * @class CsiSourceBintr
