@@ -2281,7 +2281,6 @@ namespace DSL
         // New RTSP Specific Elementrs for this Source
         m_pPreDecodeTee = DSL_ELEMENT_NEW("tee", name);
         m_pPreDecodeQueue = DSL_ELEMENT_EXT_NEW("queue", name, "decodebin");
-        m_pDecodeBin = DSL_ELEMENT_NEW("decodebin", name);
         m_pSourceQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src");
 
         m_pSourceElement->SetAttribute("latency", m_latency);
@@ -2295,15 +2294,8 @@ namespace DSL
         g_signal_connect(m_pSourceElement->GetGObject(), "pad-added", 
             G_CALLBACK(RtspSourceElementOnPadAddedCB), this);
 
-        // Connect Decode Setup Callbacks
-        g_signal_connect(m_pDecodeBin->GetGObject(), "pad-added", 
-            G_CALLBACK(RtspDecodeElementOnPadAddedCB), this);
-        g_signal_connect(m_pDecodeBin->GetGObject(), "child-added", 
-            G_CALLBACK(OnChildAddedCB), this);
-
         AddChild(m_pPreDecodeTee);
         AddChild(m_pPreDecodeQueue);
-        AddChild(m_pDecodeBin);
         AddChild(m_pSourceQueue);
 
         // Source Ghost Pad for Source Queue as src pad to connect to streammuxer
@@ -2375,10 +2367,6 @@ namespace DSL
             {
                 return false;
             }
-        }
-        if (!m_pPreDecodeQueue->LinkToSink(m_pDecodeBin))
-        {
-            return false;
         }
         m_isLinked = true;
         return true;
@@ -2656,11 +2644,19 @@ namespace DSL
             {
                 m_pParser = DSL_ELEMENT_NEW("h264parse", GetCStrName());
                 m_pDepay = DSL_ELEMENT_NEW("rtph264depay", GetCStrName());
+                m_pDecodeBin = DSL_ELEMENT_NEW("decodebin", GetCStrName());
             }
             else if (encoding.find("H265") != std::string::npos)
             {
                 m_pParser = DSL_ELEMENT_NEW("h265parse", GetCStrName());
                 m_pDepay = DSL_ELEMENT_NEW("rtph265depay", GetCStrName());
+                m_pDecodeBin = DSL_ELEMENT_NEW("decodebin", GetCStrName());
+            }
+            else if (encoding.find("JPEG") != std::string::npos)
+            {
+                m_pParser = DSL_ELEMENT_NEW("jpegparse", GetCStrName());
+                m_pDepay = DSL_ELEMENT_NEW("rtpjpegdepay", GetCStrName());
+                m_pDecodeBin = DSL_ELEMENT_NEW("nvjpegdec", GetCStrName());
             }
             else
             {
@@ -2668,8 +2664,21 @@ namespace DSL
                     << GetName() << "'");
                 return false;
             }
+
+            // Connect Decode Setup Callbacks
+            g_signal_connect(m_pDecodeBin->GetGObject(), "pad-added", 
+                G_CALLBACK(RtspDecodeElementOnPadAddedCB), this);
+            g_signal_connect(m_pDecodeBin->GetGObject(), "child-added", 
+                G_CALLBACK(OnChildAddedCB), this);
+                
             AddChild(m_pDepay);
             AddChild(m_pParser);
+            AddChild(m_pDecodeBin);
+
+            if (!m_pPreDecodeQueue->LinkToSink(m_pDecodeBin))
+            {
+                return false;
+            }
 
             // If we're tapping off of the pre-decode source stream, then link to the pre-decode Tee
             // The Pre-decode Queue will already be linked downstream as the first branch on the Tee
@@ -2689,7 +2698,8 @@ namespace DSL
                 }            
             }
             if (!gst_element_sync_state_with_parent(m_pDepay->GetGstElement()) or
-                !gst_element_sync_state_with_parent(m_pParser->GetGstElement()))
+                !gst_element_sync_state_with_parent(m_pParser->GetGstElement()) or
+                !gst_element_sync_state_with_parent(m_pDecodeBin->GetGstElement()))
             {
                 LOG_ERROR("Failed to sync Parser/Decoder states with Parent for RtspSourceBitnr '" 
                     << GetName() << "'");
