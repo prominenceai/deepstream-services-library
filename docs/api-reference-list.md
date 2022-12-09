@@ -25,6 +25,7 @@
 * [dsl_message_broker_subscriber_cb](/docs/api-msg-broker.md#dsl_message_broker_subscriber_cb)
 * [dsl_source_app_need_data_handler_cb](/docs/api-source.md#dsl_source_app_need_data_handler_cb)
 * [dsl_source_app_enough_data_handler_cb](/docs/api-source.md#dsl_source_app_enough_data_handler_cb)
+* [dsl_sink_app_new_data_handler_cb](/docs/api-sink.md#dsl_sink_app_new_data_handler_cb)
 
 ## DSL Services API:
 * [dsl_main_loop_run](/docs/overview.md#main-loop-context)
@@ -345,6 +346,7 @@
 
 ## Sink:
 * [Overview](/docs/api-sink.md)
+* [dsl_sink_app_new](/docs/api-sink.md#dsl_sink_app_new)
 * [dsl_sink_overlay_new](/docs/api-sink.md#dsl_sink_overlay_new)
 * [dsl_sink_window_new](/docs/api-sink.md#dsl_sink_window_new)
 * [dsl_sink_file_new](/docs/api-sink.md#dsl_sink_file_new)
@@ -354,6 +356,8 @@
 * [dsl_sink_message_new](/docs/api-sink.md#dsl_sink_message_new)
 * [dsl_sink_interpipe_new](/docs/api-sink.md#dsl_sink_interpipe_new)
 * [dsl_sink_fake_new](/docs/api-sink.md#dsl_sink_fake_new)
+* [dsl_sink_app_data_type_get](/docs/api-sink.md#dsl_sink_app_data_type_get)
+* [dsl_sink_app_data_type_set](/docs/api-sink.md#dsl_sink_app_data_type_set)
 * [dsl_sink_render_offsets_get](/docs/api-sink.md#dsl_sink_render_offsets_get)
 * [dsl_sink_render_offsets_set](/docs/api-sink.md#dsl_sink_render_offsets_set)
 * [dsl_sink_render_dimensions_get](/docs/api-sink.md#dsl_sink_render_dimensions_get)
