@@ -107,6 +107,8 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_interpipe_listen_to_set](#dsl_source_interpipe_listen_to_set)
 * [dsl_source_interpipe_accept_settings_get](#dsl_source_interpipe_accept_settings_get)
 * [dsl_source_interpipe_accept_settings_set](#dsl_source_interpipe_accept_settings_set)
+* [dsl_source_do_timestamp_get](#dsl_source_do_timestamp_get)
+* [dsl_source_do_timestamp_set](#dsl_source_do_timestamp_set)
 * [dsl_source_dimensions_get](#dsl_source_dimensions_get)
 * [dsl_source_framerate get](#dsl_source_framerate_get)
 * [dsl_source_is_live](#dsl_source_is_live)
@@ -1531,6 +1533,48 @@ This service returns the width and height values of a named source. CSI and USB 
 **Python Example**
 ```Python
 retval, width, height = dsl_source_dimensions_get('my-uri-source')
+```
+
+<br>
+
+### *dsl_source_do_timestamp_get*
+```C
+DslReturnType dsl_source_do_timestamp_get(const wchar_t* name, 
+    boolean* do_timestamp);
+```
+This service gets the do-timestamp setting for the named Source Component.
+
+**Parameters**
+* `source` - [in] unique name of the Source to play.
+* `do_timestamp` - [out]  if TRUE, the source will automatically timestamp outgoing buffers based on the current running_time.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, do_timestamep = dsl_source_do_timestamp_set('my-app-source')
+```
+
+<br>
+
+### *dsl_source_do_timestamp_set*
+```C
+DslReturnType dsl_source_do_timestamp_set(const wchar_t* name, 
+    boolean do_timestamp);
+```
+This service sets the do-timestamp setting for the named Source Component.
+
+**Parameters**
+* `source` - [in] unique name of the Source to play.
+* `do_timestamp` - [in]  set to TRUE to have the source automatically timestamp outgoing buffers based on the current running_time.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_do_timestamp_set('my-app-source', True)
 ```
 
 <br>
