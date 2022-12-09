@@ -1,5 +1,5 @@
 # Source API Reference
-Sources are the head components for all DSL Pipelines. Pipelines must have at least one source in use - among other components - to transition to a state of playing. DSL supports 8 types of Sources, two Camera, three Decode, three Image, and an Interpipe:
+Sources are the head components for all DSL Pipelines. Pipelines must have at least one source in use - among other components - to transition to a state of playing. DSL supports the following Source types.
 
 ### Camera Sources:
 * Camera Serial Interface ( CSI ) - Jetson platform only.
@@ -14,6 +14,9 @@ Sources are the head components for all DSL Pipelines. Pipelines must have at le
 * Single Image ( single frame to EOS )
 * Multi Image ( streamed at one image file per frame )
 * Streaming Image ( single image streamed at a given frame rate )
+
+### Application Source: 
+* Used by applications to insert data into a DSL pipeline.
 
 ### Interpipe Source:
 * Interpipe - requires additional install/build steps for the RidgeRun `gst-interpipe` plugins. Refer to the [Interpipe Services](/docs/overview.md#interpipe-services) overview for more information.
@@ -41,9 +44,12 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_rtsp_connection_data](#dsl_rtsp_connection_data)
 
 **Client Callback Typedefs**
+* [dsl_source_app_need_data_handler_cb](#dsl_source_app_need_data_handler_cb)
+* [dsl_source_app_enough_data_handler_cb](#dsl_source_app_enough_data_handler_cb)
 * [dsl_state_change_listener_cb](#dsl_state_change_listener_cb)
 
 **Constructors:**
+* [dsl_source_app_new](#dsl_source_app_new)
 * [dsl_source_csi_new](#dsl_source_csi_new)
 * [dsl_source_usb_new](#dsl_source_usb_new)
 * [dsl_source_uri_new](#dsl_source_uri_new)
@@ -55,6 +61,18 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_interpipe_new](#dsl_source_interpipe_new)
 
 **methods:**
+* [dsl_source_app_data_handlers_add](#dsl_source_app_data_handlers_add)
+* [dsl_source_app_data_handlers_remove](#dsl_source_app_data_handlers_remove)
+* [dsl_source_app_buffer_push](#dsl_source_app_buffer_push)
+* [dsl_source_app_sample_push](#dsl_source_app_sample_push)
+* [dsl_source_app_eos](#dsl_source_app_eos)
+* [dsl_source_app_buffer_format_get](#dsl_source_app_buffer_format_get)
+* [dsl_source_app_buffer_format_set](#dsl_source_app_buffer_format_set)
+* [dsl_source_app_block_enabled_get](#dsl_source_app_block_enabled_get)
+* [dsl_source_app_block_enabled_set](#dsl_source_app_block_enabled_set)
+* [dsl_source_app_current_level_bytes_get](#dsl_source_app_current_level_bytes_get)
+* [dsl_source_app_max_level_bytes_get](#dsl_source_app_max_level_bytes_get)
+* [dsl_source_app_max_level_bytes_set](#dsl_source_app_max_level_bytes_set)
 * [dsl_source_csi_sensor_id_get](#dsl_source_csi_sensor_id_get)
 * [dsl_source_csi_sensor_id_set](#dsl_source_csi_sensor_id_set)
 * [dsl_source_usb_device_location_get](#dsl_source_usb_device_location_get)
@@ -89,6 +107,8 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_interpipe_listen_to_set](#dsl_source_interpipe_listen_to_set)
 * [dsl_source_interpipe_accept_settings_get](#dsl_source_interpipe_accept_settings_get)
 * [dsl_source_interpipe_accept_settings_set](#dsl_source_interpipe_accept_settings_set)
+* [dsl_source_do_timestamp_get](#dsl_source_do_timestamp_get)
+* [dsl_source_do_timestamp_set](#dsl_source_do_timestamp_set)
 * [dsl_source_dimensions_get](#dsl_source_dimensions_get)
 * [dsl_source_framerate get](#dsl_source_framerate_get)
 * [dsl_source_is_live](#dsl_source_is_live)
@@ -135,6 +155,19 @@ Streaming Source Methods use the following return codes, in addition to the gene
 #define DSL_STATE_READY                                             2
 #define DSL_STATE_PAUSED                                            3
 #define DSL_STATE_PLAYING                                           4
+```
+
+## Gstreamer Stream format types
+```C
+#define DSL_STREAM_FORMAT_I420                                      0
+#define DSL_STREAM_FORMAT_RGBA                                      1   
+#define DSL_STREAM_FORMAT_NV12                                      2
+```
+
+## Gstreamer Buffer format types
+```C
+#define DSL_BUFFER_FORMAT_BYTE                                      2
+#define DSL_BUFFER_FORMAT_TIME                                      3
 ```
 
 ## Cuda Decode Memory Types
@@ -204,6 +237,29 @@ print('  timeout:          ', data.timeout, 'seconds')
 <br>
 
 ## Client CallBack Typedefs
+### *dsl_source_app_need_data_handler_cb*
+```C++
+typedef void (*dsl_source_app_need_data_handler_cb)(uint length, void* client_data);
+```
+Callback typedef for the App Source Component. The function is registered with the App Source by calling [dsl_source_app_data_handlers_add](#dsl_source_app_data_handlers_add). Once the Pipeline is playing, the function will be called when the Source needs new data to process.
+
+**Parameters**
+* `length` - [in] the amount of bytes needed.  The length is just a hint and when it is set to -1, any number of bytes can be pushed into the App Source.
+* `client_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add.
+
+<br>
+
+### *dsl_source_app_enough_data_handler_cb*
+```C++
+typedef void (*dsl_source_app_enough_data_handler_cb)(void* client_data);
+```
+Callback typedef for the App Source Component. The function is registered with the App Source by calling [dsl_source_app_data_handlers_add](#dsl_source_app_data_handlers_add). Once the Pipeline is playing, the function will be called when the Source has enough data to process. It is recommended that the application stops calling [dsl_source_app_buffer_push](#dsl_source_app_buffer_push) until [dsl_source_app_need_data_handler_cb](#dsl_source_app_need_data_handler_cb) is called again.
+
+**Parameters**
+* `client_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add.
+
+<br>
+
 ### *dsl_state_change_listener_cb*
 ```C++
 typedef void (*dsl_state_change_listener_cb)(uint old_state, uint new_state, void* client_data);
@@ -211,13 +267,40 @@ typedef void (*dsl_state_change_listener_cb)(uint old_state, uint new_state, voi
 Callback typedef for a client state-change listener. Functions of this type are added to an RTSP Source by calling [dsl_source_rtsp_state_change_listener_add](#dsl_source_rtsp_state_change_listener_add). Once added, the function will be called on every change of Pipeline state until the client removes the listener by calling [dsl_source_rtsp_state_change_listener_remove](#dsl_source_rtsp_state_change_listener_remove).
 
 **Parameters**
-* `old_state` - [in] one of [DSL State Values](#dsl-state-values) constants for the old (previous) pipeline state
-* `new_state` - [in] one of [DSL State Values](#dsl-state-values) constants for the new pipeline state
-* `client_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
+* `old_state` - [in] one of [DSL State Values](#dsl-state-values) constants for the old (previous) pipeline state.
+* `new_state` - [in] one of [DSL State Values](#dsl-state-values) constants for the new pipeline state.
+* `client_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add.
 
 <br>
 
 ## Constructors
+
+### *dsl_source_app_new*
+```C
+DslReturnType dsl_source_app_new(const wchar_t* name, boolean is_live, 
+    uint stream_format, uint width, uint height, uint fps_n, uint fps_d);
+```
+Creates a new, uniquely named App Source component to insert data -- buffers or samples -- into a DSL pipeline.
+
+**Parameters**
+* `source` - [in] unique name for the new Source
+* `is_live` - [in] set to true to instruct the source to behave like a live source. This includes that it will only push out buffers in the PLAYING state.
+* `stream_format` - [in]  one of the [DSL_STREAM_FORMAT](#gstreamer-stream-format-types) constants.
+* `width` - [in] width of the source in pixels
+* `height` - [in] height of the source in pixels
+* `fps-n` - [in] frames per second fraction numerator
+* `fps-d` - [in] frames per second fraction denominator
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_app_new('my-app-source', True,
+    DSL_STREAM_FORMAT_I420, 1280, 720, 30, 1)
+```
+
+<br>
 
 ### *dsl_source_csi_new*
 ```C
@@ -454,6 +537,251 @@ As with all Pipeline components, Sources are deleted by calling [dsl_component_d
 
 ## Methods
 
+### *dsl_source_app_data_handlers_add*
+```C
+DslReturnType dsl_source_app_data_handlers_add(const wchar_t* name, 
+    dsl_source_app_need_data_handler_cb need_data_handler, 
+    dsl_source_app_enough_data_handler_cb enough_data_handler, 
+    void* client_data);
+```
+Adds data-handler callback functions to a named App Source component.
+
+**Parameters**
+* `name` - [in] unique name of the Source to update.
+* `need_data_handler` - [in] callback function to be called when new data is needed.
+* `enough_data_handler` - [in] callback function to be called when the Source has enough data to process.
+* `client_data` - [in]  opaque pointer to client data passed back into the client_handler functions.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_app_data_handlers_add('my-app-source',
+    my_need_data_handler, my_enough_data_handler, NULL)
+```
+<br>
+
+### *dsl_source_app_data_handlers_remove*
+```C
+DslReturnType dsl_source_app_data_handlers_remove(const wchar_t* name);
+```
+This service removes data-handler callback functions -- previously added with [dsl_source_app_data_handlers_add](#dsl_source_app_data_handlers_add) -- from a named App Source component.
+
+**Parameters**
+* `name` - [in] unique name of the Source to update.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_app_data_handlers_remove('my-app-source')
+```
+
+<br>
+
+### *dsl_source_app_buffer_push*
+```C
+DslReturnType dsl_source_app_buffer_push(const wchar_t* name, void* buffer);
+```
+This service pushes a new buffer to a uniquely named App Source component for processing.
+
+**Parameters**
+* `name` - [in] unique name of the Source to push to.
+* `buffer` - [in] buffer to push to the App Source.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful push. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_app_buffer_push('my-app-source', buffer)
+```
+<br>
+
+### *dsl_source_app_sample_push*
+```C
+DslReturnType dsl_source_app_sample_push(const wchar_t* name, void* sample);
+```
+This service pushes a new sample to a uniquely named App Source component for processing.
+
+**Parameters**
+* `name` - [in] unique name of the Source to push to.
+* `sample` - [in] sample to push to the App Source.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful push. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_app_sample_push('my-app-source', sample)
+```
+
+<br>
+
+### *dsl_source_app_eos*
+```C
+DslReturnType dsl_source_app_eos(const wchar_t* name);
+```
+This service notifies a uniquely named App Source component that no more buffers are available.
+
+**Parameters**
+* `name` - [in] unique name of the Source to end-of-stream.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful EOS. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_app_eos('my-app-source')
+```
+
+<br>
+
+### *dsl_source_app_buffer_format_get*
+```C
+DslReturnType dsl_source_app_buffer_format_get(const wchar_t* name, 
+    uint* buffer_format);
+```
+This service gets the current buffer-format setting for the named App Source Component.
+
+**Parameters**
+* `name` - [in] unique name of the Source to query.
+* `buffer_format` - [out] one of the [DSL_BUFFER_FORMAT](#gstreamer-buffer-format-types) constants. Default = DSL_BUFFER_FORMAT_BYTE.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, format = dsl_source_app_buffer_format_get('my-app-source')
+```
+<br>
+
+### *dsl_source_app_buffer_format_set*
+```C
+DslReturnType dsl_source_app_buffer_format_set(const wchar_t* name, 
+    uint buffer_format);
+```
+This service sets the buffer-format setting for the named App Source Component.
+
+**Parameters**
+* `name` - [in] unique name of the Source to update.
+* `buffer_format` - [in] one of the [DSL_BUFFER_FORMAT](#gstreamer-buffer-format-types) constants.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_app_buffer_format_set('my-app-source', DSL_BUFFER_FORMAT_TIME)
+```
+
+<br>
+
+### *dsl_source_app_block_enabled_get*
+```C
+DslReturnType dsl_source_app_block_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+```
+This service gets the block enabled setting for the named App Source Component. If true, when max-bytes are queued and after the enough-data signal has been emitted, the source will block any further push calls until the amount of queued bytes drops below the max-bytes limit.
+
+**Parameters**
+* `name` - [in] unique name of the Source to query.
+* `enabled` - [out] current block enabled setting. Default = FALSE.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, enabled = dsl_source_app_block_enabled_get('my-app-source')
+```
+<br>
+
+### *dsl_source_app_block_enabled_set*
+```C
+DslReturnType dsl_source_app_block_enabled_set(const wchar_t* name, 
+    boolean enabled);
+```
+This service sets the block enabled setting for the named App Source Component. If true, when max-bytes are queued and after the enough-data signal has been emitted, the source will block any further push calls until the amount of queued bytes drops below the max-bytes limit.
+
+**Parameters**
+* `name` - [in] unique name of the Source to update.
+* `enabled` - [in]  new block-enabled setting to use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_app_block_enabled_set('my-app-source', True)
+```
+
+<br>
+
+### *dsl_source_app_current_level_bytes_get*
+```C
+DslReturnType dsl_source_app_current_level_bytes_get(const wchar_t* name,
+    uint64_t* level);
+```
+This service gets the current level of queued data in bytes for the named App Source Component.
+
+**Parameters**
+* `name` - [in] unique name of the Source to query.
+* `level` - [out] current queue level in units of bytes.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, current_level = dsl_source_app_current_level_bytes_get('my-app-source')
+```
+<br>
+
+### *dsl_source_app_max_level_bytes_get*
+```C
+DslReturnType dsl_source_app_max_level_bytes_get(const wchar_t* name,
+    uint64_t* level);
+```
+This services gets the maximum amount of bytes that can be queued for the named App Source Component. After the maximum amount of bytes are queued, the App Source will call the [dsl_source_app_enough_data_handler_cb](#dsl_source_app_enough_data_handler_cb) callback function.
+
+**Parameters**
+* `name` - [in] unique name of the Source to query.
+* `level` - [out] current max-level in units of bytes. Default = 200000.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, max_level = dsl_source_app_max_level_bytes_get('my-app-source')
+```
+<br>
+
+### *dsl_source_app_max_level_bytes_set*
+```C
+DslReturnType dsl_source_app_max_level_bytes_set(const wchar_t* name,
+    uint64_t level);
+```
+This services sets the maximum amount of bytes that can be queued for the named App Source Component. After the maximum amount of bytes are queued, the App Source will call the [dsl_source_app_enough_data_handler_cb](#dsl_source_app_enough_data_handler_cb) callback function.
+
+**Parameters**
+* `name` - [in] unique name of the Source to update.
+* `level` - [in]  new max-level in units of bytes.  Default = 200000.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_app_max_level_bytes_set('my-app-source', 100000)
+```
+
+<br>
+
 ### *dsl_source_csi_sensor_id_get*
 ```C
 DslReturnType dsl_source_csi_sensor_id_get(const wchar_t* name,
@@ -496,6 +824,7 @@ retval = dsl_source_csi_sensor_id_set('my-csi-source', 1)
 <br>
 
 ### *dsl_source_usb_device_location_get*
+
 ```C
 DslReturnType dsl_source_usb_device_location_get(const wchar_t* name,
     const wchar_t** device_location);
@@ -512,7 +841,7 @@ This service gets the device-location setting for the named USB Source. A unique
 
 **Python Example**
 ```Python
-retval, device_location = dsl_source_usb_device_location_get()
+retval, device_location = dsl_source_usb_device_location_get('my-usb-source')
 ```
 <br>
 
@@ -1204,6 +1533,48 @@ This service returns the width and height values of a named source. CSI and USB 
 **Python Example**
 ```Python
 retval, width, height = dsl_source_dimensions_get('my-uri-source')
+```
+
+<br>
+
+### *dsl_source_do_timestamp_get*
+```C
+DslReturnType dsl_source_do_timestamp_get(const wchar_t* name, 
+    boolean* do_timestamp);
+```
+This service gets the do-timestamp setting for the named Source Component.
+
+**Parameters**
+* `source` - [in] unique name of the Source to play.
+* `do_timestamp` - [out]  if TRUE, the source will automatically timestamp outgoing buffers based on the current running_time.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, do_timestamep = dsl_source_do_timestamp_set('my-app-source')
+```
+
+<br>
+
+### *dsl_source_do_timestamp_set*
+```C
+DslReturnType dsl_source_do_timestamp_set(const wchar_t* name, 
+    boolean do_timestamp);
+```
+This service sets the do-timestamp setting for the named Source Component.
+
+**Parameters**
+* `source` - [in] unique name of the Source to play.
+* `do_timestamp` - [in]  set to TRUE to have the source automatically timestamp outgoing buffers based on the current running_time.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_do_timestamp_set('my-app-source', True)
 ```
 
 <br>
