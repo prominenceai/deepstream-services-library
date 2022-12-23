@@ -1074,7 +1074,7 @@ namespace DSL
         
         std::string strName = name;
 
-        LOG_DEBUG("Child object with name '" << strName << "'");
+        LOG_INFO("Child object with name '" << strName << "' added");
         
         if (strName.find("decodebin") != std::string::npos)
         {
@@ -1111,6 +1111,8 @@ namespace DSL
 
         else if ((strName.find("nvv4l2decoder") != std::string::npos))
         {
+            LOG_INFO("setting properties for child '" << strName << "'");
+            
             if (m_intraDecode)
             {
                 g_object_set(pObject, "skip-frames", 2, NULL);
@@ -2634,29 +2636,51 @@ namespace DSL
 
         if (!m_pParser)
         {
+            // flag to control whether to link the decoder to the source queue now (JPEG), 
+            // or to handle it when the decoder's pad has been added (H264, H265)
+            bool linkDecoderNow(false);
+            
             if (media.find("video") == std::string::npos)
             {
                 LOG_WARN("Unsupported media = '" << media << "' for RtspSourceBitnr '" 
                     << GetName() << "'");
                 return false;
             }
-            if (encoding.find("H264") != std::string::npos)
+            if (encoding.find("H26") != std::string::npos)
             {
-                m_pParser = DSL_ELEMENT_NEW("h264parse", GetCStrName());
-                m_pDepay = DSL_ELEMENT_NEW("rtph264depay", GetCStrName());
-                m_pDecodeBin = DSL_ELEMENT_NEW("decodebin", GetCStrName());
-            }
-            else if (encoding.find("H265") != std::string::npos)
-            {
-                m_pParser = DSL_ELEMENT_NEW("h265parse", GetCStrName());
-                m_pDepay = DSL_ELEMENT_NEW("rtph265depay", GetCStrName());
-                m_pDecodeBin = DSL_ELEMENT_NEW("decodebin", GetCStrName());
+                if (encoding.find("H264") != std::string::npos)
+                {
+                    m_pParser = DSL_ELEMENT_NEW("h264parse", GetCStrName());
+                    m_pDepay = DSL_ELEMENT_NEW("rtph264depay", GetCStrName());
+                    m_pDecodeBin = DSL_ELEMENT_NEW("decodebin", GetCStrName());
+                }
+                else if (encoding.find("H265") != std::string::npos)
+                {
+                    m_pParser = DSL_ELEMENT_NEW("h265parse", GetCStrName());
+                    m_pDepay = DSL_ELEMENT_NEW("rtph265depay", GetCStrName());
+                    m_pDecodeBin = DSL_ELEMENT_NEW("decodebin", GetCStrName());
+                }
+                else
+                {
+                    LOG_ERROR("Unsupported encoding = '" << encoding << "' for RtspSourceBitnr '" 
+                        << GetName() << "'");
+                    return false;
+                }
+                // connect the child-added callback - decodebin only
+                g_signal_connect(m_pDecodeBin->GetGObject(), "child-added", 
+                    G_CALLBACK(OnChildAddedCB), this);
+                // Connect Decode Setup Callbacks
+                g_signal_connect(m_pDecodeBin->GetGObject(), "pad-added", 
+                    G_CALLBACK(RtspDecodeElementOnPadAddedCB), this);
             }
             else if (encoding.find("JPEG") != std::string::npos)
             {
                 m_pParser = DSL_ELEMENT_NEW("jpegparse", GetCStrName());
                 m_pDepay = DSL_ELEMENT_NEW("rtpjpegdepay", GetCStrName());
-                m_pDecodeBin = DSL_ELEMENT_NEW("nvjpegdec", GetCStrName());
+                m_pDecodeBin = DSL_ELEMENT_NEW("nvv4l2decoder", GetCStrName());
+                
+                // the decode's source pad is available so we can link now once added as a child.
+                linkDecoderNow = true;
             }
             else
             {
@@ -2665,16 +2689,17 @@ namespace DSL
                 return false;
             }
 
-            // Connect Decode Setup Callbacks
-            g_signal_connect(m_pDecodeBin->GetGObject(), "pad-added", 
-                G_CALLBACK(RtspDecodeElementOnPadAddedCB), this);
-            g_signal_connect(m_pDecodeBin->GetGObject(), "child-added", 
-                G_CALLBACK(OnChildAddedCB), this);
-                
             AddChild(m_pDepay);
             AddChild(m_pParser);
             AddChild(m_pDecodeBin);
 
+            if (linkDecoderNow)
+            { 
+                if (!m_pDecodeBin->LinkToSink(m_pSourceQueue))  
+                {
+                    return false;
+                }
+            }
             if (!m_pPreDecodeQueue->LinkToSink(m_pDecodeBin))
             {
                 return false;
