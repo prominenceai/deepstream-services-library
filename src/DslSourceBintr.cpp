@@ -2695,10 +2695,9 @@ namespace DSL
 
             if (linkDecoderNow)
             { 
-                if (!m_pDecodeBin->LinkToSink(m_pSourceQueue))  
-                {
-                    return false;
-                }
+                m_pGstStaticSrcPad = 
+                    gst_element_get_static_pad(m_pDecodeBin->GetGstElement(), "src");
+                HandleDecodeElementOnPadAdded(GetGstElement(), m_pGstStaticSrcPad);
             }
             if (!m_pPreDecodeQueue->LinkToSink(m_pDecodeBin))
             {
