@@ -284,6 +284,10 @@ namespace DSL
          */
         GstNodetr(const char* name)
             : Nodetr(name)
+            , m_pGstStaticSinkPad(NULL)
+            , m_pGstStaticSrcPad(NULL)
+            , m_pGstRequestedSinkPad(NULL)
+            , m_pGstRequestedSrcPad(NULL)
             , m_pAsyncUnlinkMutex(NULL)
             , m_pAsyncUnlinkCond(NULL)
         {
