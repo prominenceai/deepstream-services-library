@@ -2362,14 +2362,8 @@ namespace DSL
             return false;
         }
 
-        if (HasTapBintr())
-        {
-            if (!m_pTapBintr->LinkAll() or !m_pTapBintr->LinkToSourceTee(m_pPreDecodeTee) or
-                !m_pPreDecodeQueue->LinkToSourceTee(m_pPreDecodeTee, "src_%u"))
-            {
-                return false;
-            }
-        }
+        // All elements are linked in the select-stream callback (HandleSelectStream),
+        // except for the rtspsrc element which is linked in the pad-added callback.
         m_isLinked = true;
         return true;
     }
@@ -2410,7 +2404,12 @@ namespace DSL
         }
         m_pParser->UnlinkFromSink();
         m_pDepay->UnlinkFromSink();
-        
+
+        // will be recreated in the select-stream callback on next play
+        m_pParser = nullptr;
+        m_pDepay = nullptr;
+        m_pDecoder = nullptr;
+
         for (auto const& imap: m_pGstRequestedSourcePads)
         {
             gst_element_release_request_pad(m_pTee->GetGstElement(), imap.second);
@@ -2548,7 +2547,8 @@ namespace DSL
         m_connectionData.retries = 0;
     }
 
-    bool RtspSourceBintr::AddStateChangeListener(dsl_state_change_listener_cb listener, void* userdata)
+    bool RtspSourceBintr::AddStateChangeListener(dsl_state_change_listener_cb listener, 
+        void* userdata)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
@@ -2631,19 +2631,17 @@ namespace DSL
         std::string media = gst_structure_get_string (structure, "media");
         std::string encoding = gst_structure_get_string (structure, "encoding-name");
 
-        LOG_INFO("Media = '" << media << "' for RtspSourceBitnr '" << GetName() << "'");
-        LOG_INFO("Encoding = '" << encoding << "' for RtspSourceBitnr '" << GetName() << "'");
+        LOG_INFO("Media = '" << media << "' for RtspSourceBitnr '" 
+            << GetName() << "'");
+        LOG_INFO("Encoding = '" << encoding << "' for RtspSourceBitnr '" 
+            << GetName() << "'");
 
-        if (!m_pParser)
+        if (m_pParser == nullptr)
         {
-            // flag to control whether to link the decoder to the source queue now (JPEG), 
-            // or to handle it when the decoder's pad has been added (H264, H265)
-            bool linkDecoderNow(false);
-            
             if (media.find("video") == std::string::npos)
             {
-                LOG_WARN("Unsupported media = '" << media << "' for RtspSourceBitnr '" 
-                    << GetName() << "'");
+                LOG_WARN("Unsupported media = '" << media 
+                    << "' for RtspSourceBitnr '" << GetName() << "'");
                 return false;
             }
             if (encoding.find("H26") != std::string::npos)
@@ -2652,35 +2650,40 @@ namespace DSL
                 {
                     m_pParser = DSL_ELEMENT_NEW("h264parse", GetCStrName());
                     m_pDepay = DSL_ELEMENT_NEW("rtph264depay", GetCStrName());
-                    m_pDecodeBin = DSL_ELEMENT_NEW("decodebin", GetCStrName());
                 }
                 else if (encoding.find("H265") != std::string::npos)
                 {
                     m_pParser = DSL_ELEMENT_NEW("h265parse", GetCStrName());
                     m_pDepay = DSL_ELEMENT_NEW("rtph265depay", GetCStrName());
-                    m_pDecodeBin = DSL_ELEMENT_NEW("decodebin", GetCStrName());
                 }
                 else
                 {
-                    LOG_ERROR("Unsupported encoding = '" << encoding << "' for RtspSourceBitnr '" 
-                        << GetName() << "'");
+                    LOG_ERROR("Unsupported encoding = '" << encoding 
+                        << "' for RtspSourceBitnr '" << GetName() << "'");
                     return false;
                 }
-                // connect the child-added callback - decodebin only
-                g_signal_connect(m_pDecodeBin->GetGObject(), "child-added", 
-                    G_CALLBACK(OnChildAddedCB), this);
+                // Decode bin handles both h264 and h265
+                m_pDecoder = DSL_ELEMENT_NEW("decodebin", GetCStrName());
+
                 // Connect Decode Setup Callbacks
-                g_signal_connect(m_pDecodeBin->GetGObject(), "pad-added", 
+                g_signal_connect(m_pDecoder->GetGObject(), "pad-added", 
                     G_CALLBACK(RtspDecodeElementOnPadAddedCB), this);
+                g_signal_connect(m_pDecoder->GetGObject(), "child-added", 
+                    G_CALLBACK(OnChildAddedCB), this);
             }
             else if (encoding.find("JPEG") != std::string::npos)
             {
                 m_pParser = DSL_ELEMENT_NEW("jpegparse", GetCStrName());
                 m_pDepay = DSL_ELEMENT_NEW("rtpjpegdepay", GetCStrName());
-                m_pDecodeBin = DSL_ELEMENT_NEW("nvv4l2decoder", GetCStrName());
+                m_pDecoder = DSL_ELEMENT_NEW("nvv4l2decoder", GetCStrName());
                 
-                // the decode's source pad is available so we can link now once added as a child.
-                linkDecoderNow = true;
+                // aarch64 only
+                if (m_cudaDeviceProp.integrated)
+                {
+                    m_pDecoder->SetAttribute("enable-max-performance", TRUE);
+                }
+                m_pDecoder->SetAttribute("drop-frame-interval", m_dropFrameInterval);
+                m_pDecoder->SetAttribute("num-extra-surfaces", m_numExtraSurfaces);
             }
             else
             {
@@ -2689,17 +2692,21 @@ namespace DSL
                 return false;
             }
 
+            // The format specific depay, parser, and decoder bins have been selected, 
+            // so we can add them as children to this RtspSourceBintr now.
             AddChild(m_pDepay);
             AddChild(m_pParser);
-            AddChild(m_pDecodeBin);
+            AddChild(m_pDecoder);
 
-            if (linkDecoderNow)
+            // If using the nvv4l2decoder, then the pad is already available and we
+            // can link now. Else, if using the decodebin, we wait for the OnPadAdded
+            // callback to be called by the decoder when the pad is ready to be linked.
+            if (m_pDecoder->IsFactoryName("nvv4l2decoder"))
             { 
-                m_pGstStaticSrcPad = 
-                    gst_element_get_static_pad(m_pDecodeBin->GetGstElement(), "src");
-                HandleDecodeElementOnPadAdded(GetGstElement(), m_pGstStaticSrcPad);
+                HandleDecodeElementOnPadAdded(GetGstElement(), 
+                    gst_element_get_static_pad(m_pDecoder->GetGstElement(), "src"));
             }
-            if (!m_pPreDecodeQueue->LinkToSink(m_pDecodeBin))
+            if (!m_pPreDecodeQueue->LinkToSink(m_pDecoder))
             {
                 return false;
             }
@@ -2708,22 +2715,27 @@ namespace DSL
             // The Pre-decode Queue will already be linked downstream as the first branch on the Tee
             if (HasTapBintr())
             {
-                if (!m_pDepay->LinkToSink(m_pParser) or !m_pParser->LinkToSink(m_pPreDecodeTee))
+                if (!m_pTapBintr->LinkAll() or 
+                    !m_pTapBintr->LinkToSourceTee(m_pPreDecodeTee) or
+                    !m_pPreDecodeQueue->LinkToSourceTee(m_pPreDecodeTee, "src_%u") or
+                    !m_pDepay->LinkToSink(m_pParser) or 
+                    !m_pParser->LinkToSink(m_pPreDecodeTee))
                 {
                     return false;
-                }            
+                }
             }
             // otherwise, there is no Tee and we link to the Pre-decode Queue directly
             else
             {
-                if (!m_pDepay->LinkToSink(m_pParser) or !m_pParser->LinkToSink(m_pPreDecodeQueue))
+                if (!m_pDepay->LinkToSink(m_pParser) or 
+                    !m_pParser->LinkToSink(m_pPreDecodeQueue))
                 {
                     return false;
                 }            
             }
             if (!gst_element_sync_state_with_parent(m_pDepay->GetGstElement()) or
                 !gst_element_sync_state_with_parent(m_pParser->GetGstElement()) or
-                !gst_element_sync_state_with_parent(m_pDecodeBin->GetGstElement()))
+                !gst_element_sync_state_with_parent(m_pDecoder->GetGstElement()))
             {
                 LOG_ERROR("Failed to sync Parser/Decoder states with Parent for RtspSourceBitnr '" 
                     << GetName() << "'");
@@ -2749,20 +2761,33 @@ namespace DSL
         if (name.find("x-rtp") != std::string::npos and 
             media.find("video")!= std::string::npos)
         {
-            m_pGstStaticSinkPad = gst_element_get_static_pad(m_pDepay->GetGstElement(), "sink");
-            if (!m_pGstStaticSinkPad)
+            // get the Depays static sink pad so we can link the rtspsrc elementr
+            // to the depay elementr.
+            GstPad* pDepayStaicSinkPad = gst_element_get_static_pad(
+                m_pDepay->GetGstElement(), "sink");
+            if (!pDepayStaicSinkPad)
             {
                 LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" 
                     << GetName() << "'");
+                throw;
             }
             
-            if (gst_pad_link(pPad, m_pGstStaticSinkPad) != GST_PAD_LINK_OK) 
+            // Link the rtcpsrc element's added src pad to the sink pad of the Depay
+            if (gst_pad_link(pPad, pDepayStaicSinkPad) != GST_PAD_LINK_OK) 
             {
                 LOG_ERROR("Failed to link source to de-payload");
                 throw;
             }
             
-            LOG_INFO("Video decode linked for RTSP source '" << GetName() << "'");
+            LOG_INFO("rtspsrc element linked for RtspSourceBintr '" << GetName() << "'");
+
+            // Update the cap memebers for this RtspSourceBintr
+            gst_structure_get_uint(structure, "width", &m_width);
+            gst_structure_get_uint(structure, "height", &m_height);
+            gst_structure_get_fraction(structure, "framerate", (gint*)&m_fpsN, (gint*)&m_fpsD);
+            
+            LOG_INFO("Frame width = " << m_width << ", height = " << m_height);
+            LOG_INFO("FPS numerator = " << m_fpsN << ", denominator = " << m_fpsD);
         }
     }
     
@@ -2777,24 +2802,20 @@ namespace DSL
         LOG_INFO("Caps structs name " << name);
         if (name.find("video") != std::string::npos)
         {
-            m_pGstStaticSinkPad = 
+            GstPad* pQueueStaticSinkPad = 
                 gst_element_get_static_pad(m_pSourceQueue->GetGstElement(), "sink");
-            if (!m_pGstStaticSinkPad)
+            if (!pQueueStaticSinkPad)
             {
                 LOG_ERROR("Failed to get Static Source Pad for RTSP Source '" 
                     << GetName() << "'");
             }
             
-            if (gst_pad_link(pPad, m_pGstStaticSinkPad) != GST_PAD_LINK_OK) 
+            // Link the decode element's src pad with the source queue's sink pad
+            if (gst_pad_link(pPad, pQueueStaticSinkPad) != GST_PAD_LINK_OK) 
             {
                 LOG_ERROR("Failed to link decodebin to pipeline");
                 throw;
             }
-            
-            // Update the cap memebers for this URI Source Bintr
-            gst_structure_get_uint(structure, "width", &m_width);
-            gst_structure_get_uint(structure, "height", &m_height);
-            gst_structure_get_fraction(structure, "framerate", (gint*)&m_fpsN, (gint*)&m_fpsD);
             
             // Start the Stream mangement timer, only if timeout is enable and not currently running
             if (m_bufferTimeout and !m_streamManagerTimerId)
@@ -2806,7 +2827,7 @@ namespace DSL
 
             SetCurrentState(GST_STATE_READY);
 
-            LOG_INFO("Video decode linked for RTSP Source '" << GetName() << "'");
+            LOG_INFO("Decode element linked for RtspSourceBintr '" << GetName() << "'");
         }
     }
 
