@@ -1477,9 +1477,9 @@ namespace DSL
         DSL_ELEMENT_PTR m_pPreDecodeTee;
 
         /**
-         * @brief
+         * @brief Decoder based on stream encoding type.
          */
-        DSL_ELEMENT_PTR m_pDecodeBin;
+        DSL_ELEMENT_PTR m_pDecoder;
         
         /**
          * @brief Pad Probe Handler to create a timestamp for the last recieved buffer
