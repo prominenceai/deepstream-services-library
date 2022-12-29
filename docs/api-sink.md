@@ -17,10 +17,6 @@ Sinks are added to a Pipeline by calling [dsl_pipeline_component_add](/docs/api-
 
 The relationship between Pipelines and Sinks is one-to-many. Once added to a Pipeline, a Sink must be removed before it can be used with another. Sinks are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
 
-There is no (practical) limit to the number of Sinks that can be created, just to the number of Sinks that can be `in use` - a child of a Pipeline - at one time. The in-use limit is imposed by the Jetson Model in use.
-
-The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DSL initialization. The value can be read by calling [dsl_sink_num_in_use_max_get](#dsl_sink_num_in_use_max_get) and updated with [dsl_sink_num_in_use_max_set](#dsl_sink_num_in_use_max_set). The number of Sinks in use by all Pipelines can obtained by calling [dsl_sink_get_num_in_use](#dsl_sink_get_num_in_use).
-
 ## Sink API
 **Types:**
 * [dsl_recording_info](#dsl_recording_info)
@@ -86,9 +82,6 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_sync_enabled_set](#dsl_sink_sync_enabled_set)
 * [dsl_sink_pph_add](#dsl_sink_pph_add)
 * [dsl_sink_pph_remove](#dsl_sink_pph_remove)
-* [dsl_sink_num_in_use_get](#dsl_sink_num_in_use_get)
-* [dsl_sink_num_in_use_max_get](#dsl_sink_num_in_use_max_get)
-* [dsl_sink_num_in_use_max_set](#dsl_sink_num_in_use_max_set)
 
 ## Return Values
 The following return codes are used by the Sink API
@@ -1492,56 +1485,6 @@ This service removes a Pad-Probe-Handler from a named Sink
 ```Python
 retval = dsl_sink_pph_remove('my-window-sink', 'my-meter-pph')
 ```
-
-<br>
-
-### *dsl_sink_num_in_use_get*
-```C++
-uint dsl_sink_num_in_use_get();
-```
-This service returns the total number of all Sinks currently `in-use` by all Pipelines.
-
-**Returns**
-* The current number of Sinks `in-use`
-
-**Python Example**
-```Python
-sinks_in_use = dsl_sink_num_in_use_get()
-```
-
-<br>
-
-### *dsl_sink_num_in_use_max_get*
-```C++
-uint dsl_sink_num_in_use_max_get();
-```
-This service returns the "maximum number of Sinks" that can be `in-use` at any one time, defined as `DSL_DEFAULT_SINK_NUM_IN_USE_MAX` on service initialization, and can be updated by calling [dsl_sink_num_in_use_max_set](#dsl_sink_num_in_use_max_set). The actual maximum is imposed by the GPU/CPUs in use. It's the responsibility of the client application to set the value correctly.
-
-**Returns**
-* The current max number of Sinks that can be `in-use` by all Pipelines at any one time.
-
-**Python Example**
-```Python
-max_sinks_in_use = dsl_sink_num_in_use_max_get()
-```
-
-<br>
-
-### *dsl_sink_num_in_use_max_set*
-```C++
-boolean dsl_sink_num_in_use_max_set(uint max);
-```
-This service sets the "maximum number of Sinks" that can be `in-use` at any one time. The value is defined as `DSL_DEFAULT_SINK_NUM_IN_USE_MAX` on service initialization. The actual maximum is imposed by the GPU/CPUs in use. It is the responsibility of the client application to set the value correctly.
-
-**Returns**
-* `false` if the new value is less than the actual current number of Sinks in use, `true` otherwise.
-
-**Python Example**
-```Python
-retval = dsl_sink_num_in_use_max_set(24)
-```
-
-<br>
 
 ---
 
