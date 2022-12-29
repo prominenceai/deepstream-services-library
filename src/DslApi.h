@@ -250,9 +250,7 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x0008000F
 #define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x00080010
 #define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x00080011
-#define DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED               0x00080012
-#define DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED                 0x00080013
-#define DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED                0x00080014
+#define DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED                0x00080012
 
 #define DSL_RESULT_BRANCH_RESULT                                    0x000B0000
 #define DSL_RESULT_BRANCH_NAME_NOT_UNIQUE                           0x000B0001
@@ -262,7 +260,6 @@ THE SOFTWARE.
 #define DSL_RESULT_BRANCH_COMPONENT_ADD_FAILED                      0x000B0005
 #define DSL_RESULT_BRANCH_COMPONENT_REMOVE_FAILED                   0x000B0006
 #define DSL_RESULT_BRANCH_SOURCE_NOT_ALLOWED                        0x000B0007
-#define DSL_RESULT_BRANCH_SINK_MAX_IN_USE_REACHED                   0x000B0008
 
 /**
  * Pad Probe Handler API Return Values
@@ -710,9 +707,6 @@ THE SOFTWARE.
 #define DSL_ARROW_START_HEAD                                        0
 #define DSL_ARROW_END_HEAD                                          1
 #define DSL_ARROW_BOTH_HEAD                                         2
-
-#define DSL_DEFAULT_SOURCE_IN_USE_MAX                               8
-#define DSL_DEFAULT_SINK_IN_USE_MAX                                 8
 
 /**
  * @brief Image Source Type constants
@@ -4765,30 +4759,6 @@ DslReturnType dsl_source_resume(const wchar_t* name);
 boolean dsl_source_is_live(const wchar_t* name);
 
 /**
- * @brief returns the number of Sources currently in use by 
- * all Pipelines in memory. 
- * @return the current number of Sources in use
- */
-uint dsl_source_num_in_use_get();  
-
-/**
- * @brief Returns the maximum number of sources that can be in-use
- * by all parent Pipelines at one time. The maximum number is 
- * impossed by the Jetson hardware in use, see dsl_source_num_in_use_max_set() 
- * @return the current sources in use max setting.
- */
-uint dsl_source_num_in_use_max_get();  
-
-/**
- * @brief Sets the maximum number of in-memory sources 
- * that can be in use at any time. The function overrides 
- * the default value on first call. The maximum number is 
- * limited by Hardware. The caller must ensure to set the 
- * number correctly based on the Jetson hardware in use.
- */
-boolean dsl_source_num_in_use_max_set(uint max);  
-
-/**
  * @brief create a new, uniquely named Dewarper object
  * @param[in] name unique name for the new Dewarper object
  * @param[in] config_file absolute or relative path to Dewarper config text file
@@ -6466,30 +6436,6 @@ DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled);
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise
  */
 DslReturnType dsl_sink_sync_enabled_set(const wchar_t* name, boolean enabled);
-
-/**
- * @brief returns the number of Sinks currently in use by 
- * all Pipelines in memory. 
- * @return the current number of Sinks in use
- */
-uint dsl_sink_num_in_use_get();  
-
-/**
- * @brief Returns the maximum number of Sinks that can be in-use
- * by all parent Pipelines at one time. The maximum number is 
- * impossed by the Jetson hardware in use, see dsl_sink_num_in_use_max_set() 
- * @return the current Sinks in use max setting.
- */
-uint dsl_sink_num_in_use_max_get();  
-
-/**
- * @brief Sets the maximum number of in-memory Sinks 
- * that can be in use at any time. The function overrides 
- * the default value on first call. The maximum number is 
- * limited by Hardware. The caller must ensure to set the 
- * number correctly based on the Jetson hardware in use.
- */
-boolean dsl_sink_num_in_use_max_set(uint max);  
 
 /**
  * @brief deletes a Component object by name

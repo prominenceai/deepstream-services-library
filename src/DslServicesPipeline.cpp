@@ -131,21 +131,6 @@ namespace DSL
                 return DSL_RESULT_COMPONENT_IN_USE;
             }
 
-            // Check for MAX Sources in Use - Do not exceed!
-            if (IsSourceComponent(component) and (GetNumSourcesInUse() == m_sourceNumInUseMax))
-            {
-                LOG_ERROR("Adding Source '" << component << "' to Pipeline '" << name << 
-                    "' would exceed the maximum num-in-use limit");
-                return DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED;
-            }
-
-            if (IsSinkComponent(component) and (GetNumSinksInUse() == m_sinkNumInUseMax))
-            {
-                LOG_ERROR("Adding Sink '" << component << "' to Pipeline '" << name << 
-                    "' would exceed the maximum num-in-use limit");
-                return DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED;
-            }
-
             if (!m_components[component]->AddToParent(m_pipelines[name]))
             {
                 LOG_ERROR("Pipeline '" << name

@@ -1602,32 +1602,6 @@ namespace DSL {
         ~Services();
 
         /**
-         * @brief private helper function to test component for Source Type identity
-         * @param[in] unique component name check
-         * @returns true if component is a sink. 
-         */
-        bool IsSourceComponent(const char* component);
-    
-        /**
-         * @brief private helper function to collect Sources in use stats from all Pipelines
-         * @returns the current total number of all sinks in use
-         */
-        uint GetNumSourcesInUse();
-        
-        /**
-         * @brief private helper function to test component for Sink Type identity
-         * @param[in] unique component name to check
-         * @returns true if component is a sink. 
-         */
-        bool IsSinkComponent(const char* component);
-    
-        /**
-         * @brief private helper function to collect Sinks in use stats from all Pipelines
-         * @returns the current total number of all sinks in use
-         */
-        uint GetNumSinksInUse();
-
-        /**
          * @brief called during construction to intialize all const-to-string maps
          */
         void InitToStringMaps();
@@ -1664,20 +1638,6 @@ namespace DSL {
         */
         GMutex m_servicesMutex;
 
-        /**
-         * @brief maximum number of sources that can be in use at one time
-         * Set to the default in service contructor, the value can be read
-         * and updated as the first call to DSL.
-         */
-        uint m_sourceNumInUseMax;
-        
-        /**
-         * @brief maximum number of sinks that can be in use at one time
-         * Set to the default in service contructor, the value can be read
-         * and updated as the first call to DSL.
-         */
-        uint m_sinkNumInUseMax;
-        
         /**
          * @brief map of all default intrinsic RGBA Display Types
          */

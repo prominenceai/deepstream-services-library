@@ -4298,21 +4298,6 @@ boolean dsl_source_is_live(const wchar_t* name)
     return DSL::Services::GetServices()->SourceIsLive(cstrName.c_str());
 }
 
-uint dsl_source_num_in_use_get()
-{
-    return DSL::Services::GetServices()->SourceNumInUseGet();
-}
-
-uint dsl_source_num_in_use_max_get()
-{
-    return DSL::Services::GetServices()->SourceNumInUseMaxGet();
-}
-
-boolean dsl_source_num_in_use_max_set(uint max)
-{
-    return DSL::Services::GetServices()->SourceNumInUseMaxSet(max);
-}
-
 DslReturnType dsl_dewarper_new(const wchar_t* name, const wchar_t* config_file)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -6743,21 +6728,6 @@ DslReturnType dsl_sink_sync_enabled_set(const wchar_t* name, boolean enabled)
         enabled);
 }
     
-uint dsl_sink_num_in_use_get()
-{
-    return DSL::Services::GetServices()->SinkNumInUseGet();
-}
-
-uint dsl_sink_num_in_use_max_get()
-{
-    return DSL::Services::GetServices()->SinkNumInUseMaxGet();
-}
-
-boolean dsl_sink_num_in_use_max_set(uint max)
-{
-    return DSL::Services::GetServices()->SinkNumInUseMaxSet(max);
-}
-
 DslReturnType dsl_component_delete(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);

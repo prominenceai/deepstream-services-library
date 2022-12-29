@@ -3582,33 +3582,6 @@ def dsl_source_is_live(name):
     return bool(result)
 
 ##
-## dsl_source_num_in_use_get()
-##
-_dsl.dsl_source_num_in_use_get.restype = c_uint
-def dsl_source_num_in_use_get():
-    global _dsl
-    result = _dsl.dsl_source_num_in_use_get()
-    return int(result)
-
-##
-## dsl_source_num_in_use_max_get()
-##
-_dsl.dsl_source_num_in_use_max_get.restype = c_uint
-def dsl_source_num_in_use_max_get():
-    global _dsl
-    result = _dsl.dsl_source_num_in_use_max_get()
-    return int(result)
-
-##
-## dsl_source_num_in_use_max_set()
-##
-_dsl.dsl_source_num_in_use_max_set.argtypes = [c_uint]
-def dsl_source_num_in_use_max_set(max):
-    global _dsl
-    success = _dsl.dsl_source_num_in_use_max_set(max)
-    return bool(success)
-
-##
 ## dsl_dewarper_new()
 ##
 _dsl.dsl_dewarper_new.argtypes = [c_wchar_p, c_wchar_p]
@@ -5126,32 +5099,6 @@ def dsl_sink_pph_remove(name, handler):
     global _dsl
     result = _dsl.dsl_sink_pph_remove(name, handler)
     return int(result)
-
-##
-## dsl_sink_num_in_use_get()
-##
-_dsl.dsl_sink_num_in_use_get.restype = c_uint
-def dsl_sink_num_in_use_get():
-    global _dsl
-    result = _dsl.dsl_sink_num_in_use_get()
-    return int(result)
-
-##
-## dsl_sink_num_in_use_max_get()
-##
-_dsl.dsl_sink_num_in_use_max_get.restype = c_uint
-def dsl_sink_num_in_use_max_get():
-    global _dsl
-    result = _dsl.dsl_sink_num_in_use_max_get()
-    return int(result)
-
-##
-## dsl_sink_num_in_use_max_set()
-##
-_dsl.dsl_sink_num_in_use_max_set.argtypes = [c_uint]
-def dsl_sink_num_in_use_max_set(max):
-    global _dsl
-    result = _dsl.dsl_sink_num_in_use_max_set(max)
 
 ##
 ## dsl_websocket_server_listening_start()
