@@ -210,9 +210,6 @@
 * [dsl_source_name_get](/docs/api-source.md#dsl_source_name_get)
 * [dsl_source_pph_add](/docs/api-source.md#dsl_source_pph_add)
 * [dsl_source_pph_remove](/docs/api-source.md#dsl_source_pph_remove)
-* [dsl_source_num_in_use_get](/docs/api-source.md#dsl_source_num_in_use_get)
-* [dsl_source_num_in_use_max_get](/docs/api-source.md#dsl_source_num_in_use_max_get)
-* [dsl_source_num_in_use_max_set](/docs/api-source.md#dsl_source_num_in_use_max_set)
 
 ## Source Tap API:
 * [Overview](/docs/api-tap.md)
@@ -400,9 +397,6 @@
 * [dsl_sink_sync_enabled_set](/docs/api-sink.md#dsl_sink_sync_enabled_set)
 * [dsl_sink_pph_add](/docs/api-sink.md#dsl_sink_pph_add)
 * [dsl_sink_pph_remove](/docs/api-sink.md#dsl_sink_pph_remove)
-* [dsl_sink_num_in_use_get](/docs/api-sink.md#dsl_sink_num_in_use_get)
-* [dsl_sink_num_in_use_max_get](/docs/api-sink.md#dsl_sink_num_in_use_max_get)
-* [dsl_sink_num_in_use_max_set](/docs/api-sink.md#dsl_sink_num_in_use_max_set)
 
 ## Pad Probe Handler:
 * [Overview](/docs/api-pph.md)
