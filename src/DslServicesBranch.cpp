@@ -64,7 +64,7 @@ namespace DSL
 
         try
         {
-            // Can't add components if they're In use by another Pipeline
+            // Can't add components if "is-in-use" by another Pipeline
             if (m_components[component]->IsInUse())
             {
                 LOG_ERROR("Unable to add component '" << component 
@@ -72,20 +72,6 @@ namespace DSL
                 return DSL_RESULT_COMPONENT_IN_USE;
             }
 
-            // Check for MAX Sources in Use - Do not exceed!
-            if (IsSourceComponent(component) )
-            {
-                LOG_ERROR("Can't add source '" << component << "' to branch '" << branch << 
-                    "' sources can only be added to Pipelines");
-                return DSL_RESULT_BRANCH_COMPONENT_ADD_FAILED;
-            }
-
-            if (IsSinkComponent(component) and (GetNumSinksInUse() == m_sinkNumInUseMax))
-            {
-                LOG_ERROR("Adding Sink '" << component << "' to Branch '" << branch << 
-                    "' would exceed the maximum num-in-use limit");
-                return DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED;
-            }
             if (!m_components[component]->AddToParent(m_components[branch]))
             {
                 LOG_ERROR("Branch '" << branch

@@ -186,20 +186,6 @@ namespace DSL
          */
         bool RemoveSinkBintr(DSL_BASE_PTR pSinkBintr);
 
-        /**
-         * @brief returns the number of Sinks currently in use by
-         * this Branch
-         */
-        uint GetNumSinksInUse()
-        {
-            if (!m_pMultiSinksBintr)
-            {
-                return 0;
-            }
-            return m_pMultiSinksBintr->GetNumChildren();
-        } 
-
-        
         bool LinkAll();
         
         void UnlinkAll();

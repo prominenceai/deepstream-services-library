@@ -2203,45 +2203,6 @@ namespace DSL
         }
     }
     
-    uint Services::SourceNumInUseGet()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        uint numInUse(0);
-        
-        for (auto const& imap: m_pipelines)
-        {
-            numInUse += imap.second->GetNumSourcesInUse();
-        }
-        return numInUse;
-    }
-    
-    uint Services::SourceNumInUseMaxGet()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        return m_sourceNumInUseMax;
-    }
-    
-    boolean Services::SourceNumInUseMaxSet(uint max)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        uint numInUse(0);
-        
-        if (max < GetNumSourcesInUse())
-        {
-            LOG_ERROR("max setting = " << max << 
-                " is less than the current number of Sources in use = " << numInUse);
-            return false;
-        }
-        m_sourceNumInUseMax = max;
-        return true;
-    }
-
     DslReturnType Services::DewarperNew(const char* name, const char* configFile)
     {
         LOG_FUNC();
@@ -2803,26 +2764,4 @@ namespace DSL
         }
     }
 
-    bool Services::IsSourceComponent(const char* component)
-    {
-        LOG_FUNC();
-     
-        return (m_components[component]->IsType(typeid(CsiSourceBintr)) or 
-            m_components[component]->IsType(typeid(UriSourceBintr)) or
-            m_components[component]->IsType(typeid(RtspSourceBintr)));
-    }
- 
-    uint Services::GetNumSourcesInUse()
-    {
-        LOG_FUNC();
-        
-        uint numInUse(0);
-        
-        for (auto const& imap: m_pipelines)
-        {
-            numInUse += imap.second->GetNumSourcesInUse();
-        }
-        return numInUse;
-    }
-    
 }    
