@@ -33,12 +33,6 @@ The relationship between Pipelines and Sources is one-to-many. Once added to a P
 #### Sources and Demuxers
 When using a [Demuxer](/docs/api-tiler.md), vs. a Tiler component, each demuxed source stream must have one or more downstream [Sink](/docs/api-sink) components to end the stream.
 
-#### Maximum Source Control
-There is no practical limit to the number of Sources that can be created, just to the number of Sources that can be `in use` - a child of a Pipeline - at one time. The `in-use` limit is imposed by the Jetson Model in use.
-
-The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX` on DSL initialization. The value can be read by calling [dsl_source_num_in_use_max_get](#dsl_source_num_in_use_max_get) and updated with [dsl_source_num_in_use_max_set](#dsl_source_num_in_use_max_set). The number of Sources in use by all Pipelines can be obtained by calling [dsl_source_get_num_in_use](#dsl_source_get_num_in_use).
-
-
 ## Source API
 **Typedefs**
 * [dsl_rtsp_connection_data](#dsl_rtsp_connection_data)
@@ -116,9 +110,6 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_resume](#dsl_source_resume)
 * [dsl_source_pph_add](#dsl_source_pph_add)
 * [dsl_source_pph_remove](#dsl_source_pph_remove)
-* [dsl_source_num_in_use_get](#dsl_source_num_in_use_get)
-* [dsl_source_num_in_use_max_get](#dsl_source_num_in_use_max_get)
-* [dsl_source_num_in_use_max_set](#dsl_source_num_in_use_max_set)
 
 ## Return Values
 Streaming Source Methods use the following return codes, in addition to the general [Component API Return Values](/docs/api-component.md).
@@ -1703,53 +1694,7 @@ This service removes a [Pad Probe Handler](/docs/api-pph.md) from the Source pad
 retval = dsl_source_pph_remove('my-csi-source-1', 'my-buffer-timeout-pph-1')
 ```
 
-<br>
 
-### *dsl_source_num_in_use_get*
-```C
-uint dsl_source_num_in_use_get();
-```
-This service returns the total number of Source currently `in-use` by all Pipelines.
-
-**Returns**
-* The current number of Sources `in-use`
-
-**Python Example**
-```Python
-sources_in_use = dsl_source_num_in_use_get()
-```
-
-<br>
-
-### *dsl_source_num_in_use_max_get*
-```C
-uint dsl_source_num_in_use_max_get();
-```
-This service returns the "maximum number of Sources" that can be `in-use` at any one time, defined as `DSL_DEFAULT_SOURCE_NUM_IN_USE_MAX` on service initialization, and can be updated by calling [dsl_source_num_in_use_max_set](#dsl_source_num_in_use_max_set). The actual maximum is imposed by the Jetson model in use. It's the responsibility of the client application to set the value correctly.
-
-**Returns**
-* The current max number of Sources that can be `in-use` by all Pipelines at any one time.
-
-**Python Example**
-```Python
-max_source_in_use = dsl_source_num_in_use_max_get()
-```
-
-<br>
-
-### *dsl_source_num_in_use_max_set*
-```C
-boolean dsl_source_num_in_use_max_set(uint max);
-```
-This service sets the "maximum number of Sources" that can be `in-use` at any one time. The value is defined as `DSL_DEFAULT_SOURCE_NUM_IN_USE_MAX` on service initialization. The actual maximum is imposed by the Jetson model in use. It's the responsibility of the client application to set the value correctly.
-
-**Returns**
-* `false` if the new value is less than the actual current number of Sources in use, `true` otherwise
-
-**Python Example**
-```Python
-retval = dsl_source_num_in_use_max_set(24)
-```
 ---
 
 ## API Reference
