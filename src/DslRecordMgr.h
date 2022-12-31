@@ -89,10 +89,10 @@ namespace DSL
         
         /**
          * @brief Sets the current cache size used by this RecordMgr
-         * @param[in] videoCacheSize size of video cache in seconds 
+         * @param[in] cacheSize size of cache in seconds 
          * default = DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
          */
-        bool SetCacheSize(uint videoCacheSize);
+        bool SetCacheSize(uint cacheSize);
         
         /**
          * @brief Gets the current width and height settings for this RecordSinkBintr
