@@ -34,20 +34,34 @@ namespace DSL
         : Bintr(name)
         , m_isPaddingEnabled(false)
         , m_areSourcesLive(false)
-        , m_nvbufMemType(DSL_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE)
         , m_batchTimeout(DSL_STREAMMUX_DEFAULT_BATCH_TIMEOUT)
     {
         LOG_FUNC();
 
+        // Need to forward all children messages for this PipelineSourcesBintr,
+        // which is the parent bin for the Pipeline's Streammux, so the Pipeline
+        // can be notified of individual source EOS events. 
         g_object_set(m_pGstObj, "message-forward", TRUE, NULL);
   
         // Single Stream Muxer element for all Sources 
         m_pStreamMux = DSL_ELEMENT_NEW("nvstreammux", name);
 
-        // Setup all default properties
-        //SetStreamMuxNvbufMemType(DSL_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE);
-        SetStreamMuxDimensions(DSL_STREAMMUX_DEFAULT_WIDTH, DSL_STREAMMUX_DEFAULT_HEIGHT);
-        SetStreamMuxNumSurfacesPerFrame(DSL_STREAMMUX_DEFAULT_MAX_NUM_SERFACES_PER_FRAME);
+        // Must update the default dimensions of 0x0 or the Pipeline
+        // will fail to play;
+        SetStreamMuxDimensions(DSL_STREAMMUX_DEFAULT_WIDTH, 
+            DSL_STREAMMUX_DEFAULT_HEIGHT);
+
+        // Get property defaults all default properties
+        m_pStreamMux->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
+        m_pStreamMux->GetAttribute("num-surfaces-per-frame", &m_numSurfacesPerFrame);
+        m_pStreamMux->GetAttribute("enable-padding", &m_isPaddingEnabled);
+
+        LOG_INFO("Default properties for Streammux '" << name << "'");
+        LOG_INFO("  nvbuf-memory-type      : " << m_nvbufMemType);
+        LOG_INFO("  num-surfaces-per-frame : " << m_numSurfacesPerFrame);
+        LOG_INFO("  enable-padding         : " << m_nvbufMemType);
+        LOG_INFO("  width                  : " << m_streamMuxWidth);
+        LOG_INFO("  height                 : " << m_streamMuxHeight);
 
         AddChild(m_pStreamMux);
 
@@ -380,14 +394,14 @@ namespace DSL
         m_pStreamMux->SetAttribute("height", m_streamMuxHeight);
     }
     
-    void PipelineSourcesBintr::GetStreamMuxPadding(bool* enabled)
+    void PipelineSourcesBintr::GetStreamMuxPadding(boolean* enabled)
     {
         LOG_FUNC();
         
         *enabled = m_isPaddingEnabled;
     }
     
-    void PipelineSourcesBintr::SetStreamMuxPadding(bool enabled)
+    void PipelineSourcesBintr::SetStreamMuxPadding(boolean enabled)
     {
         LOG_FUNC();
         

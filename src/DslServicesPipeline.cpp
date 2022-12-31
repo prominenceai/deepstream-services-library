@@ -364,7 +364,7 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            if (!m_pipelines[name]->GetStreamMuxPadding((bool*)enabled))
+            if (!m_pipelines[name]->GetStreamMuxPadding(enabled))
             {
                 LOG_ERROR("Pipeline '" << name 
                     << "' failed to Get the Stream Muxer is Padding enabled setting");
@@ -393,7 +393,7 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            if (!m_pipelines[name]->SetStreamMuxPadding((bool)enabled))
+            if (!m_pipelines[name]->SetStreamMuxPadding(enabled))
             {
                 LOG_ERROR("Pipeline '" << name 
                     << "' failed to Get the Stream Muxer is Padding enabled setting");

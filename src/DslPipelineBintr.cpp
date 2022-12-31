@@ -165,7 +165,7 @@ namespace DSL
         return true;
     }
     
-    bool PipelineBintr::GetStreamMuxPadding(bool* enabled)
+    bool PipelineBintr::GetStreamMuxPadding(boolean* enabled)
     {
         LOG_FUNC();
 
@@ -178,7 +178,7 @@ namespace DSL
         return true;
     }
     
-    bool PipelineBintr::SetStreamMuxPadding(bool enabled)
+    bool PipelineBintr::SetStreamMuxPadding(boolean enabled)
     {
         LOG_FUNC();
 

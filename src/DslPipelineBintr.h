@@ -178,14 +178,14 @@ namespace DSL
          * @param enable true if enabled, false otherwise.
          * @return true if the Padding enabled setting could be read, false otherwisee
          */
-        bool GetStreamMuxPadding(bool* enabled);
+        bool GetStreamMuxPadding(boolean* enabled);
 
         /**
          * @brief Sets, enables/disables the Pipeline's Stream Muxer padding
          * @param enabled set to true to enable padding
          * @return true if the Padding enabled setting could be set, false otherwise.
          */
-        bool SetStreamMuxPadding(bool enabled);
+        bool SetStreamMuxPadding(boolean enabled);
         
         /**
          * @brief Gets the current setting for the Pipeline's StreamMuxer
