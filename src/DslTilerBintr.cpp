@@ -31,12 +31,9 @@ namespace DSL
 
     TilerBintr::TilerBintr(const char* name, uint width, uint height)
         : Bintr(name)
-        , m_rows(0)
-        , m_columns(0)
         , m_width(width)
         , m_height(height)
         , m_frameNumberingEnabled(false)
-        , m_showSourceId(-1)
         , m_showSourceTimeout(0)
         , m_showSourceCounter(0)
         , m_showSourceTimerId(0)
@@ -50,8 +47,27 @@ namespace DSL
         // Don't overwrite the default "best-fit" columns and rows on construction
         m_pTiler->SetAttribute("width", m_width);
         m_pTiler->SetAttribute("height", m_height);
+        
         m_pTiler->SetAttribute("gpu-id", m_gpuId);
         m_pTiler->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+
+        // Get property defaults that aren't specifically set
+        m_pTiler->GetAttribute("columns", &m_columns);
+        m_pTiler->GetAttribute("rows", &m_rows);
+        m_pTiler->GetAttribute("show-source", &m_showSourceId);
+        m_pTiler->GetAttribute("gpu-id", &m_gpuId);
+        m_pTiler->GetAttribute("compute-hw", &m_computeHw);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for TilerBintr '" << name << "'");
+        LOG_INFO("  rows              : " << m_rows);
+        LOG_INFO("  columns           : " << m_columns);
+        LOG_INFO("  width             : " << m_width);
+        LOG_INFO("  height            : " << m_height);
+        LOG_INFO("  show-source       : " << m_showSourceId);
+        LOG_INFO("  gpu-id            : " << m_gpuId);
+        LOG_INFO("  nvbuf-memory-type : " << m_nvbufMemType);
+        LOG_INFO("  compute-hw        : " << m_computeHw);
 
         AddChild(m_pQueue);
         AddChild(m_pTiler);
@@ -129,9 +145,6 @@ namespace DSL
     void TilerBintr::GetTiles(uint* columns, uint* rows)
     {
         LOG_FUNC();
-        
-        m_pTiler->GetAttribute("columns", &m_columns);
-        m_pTiler->GetAttribute("rows", &m_rows);
         
         *columns = m_columns;
         *rows = m_rows;

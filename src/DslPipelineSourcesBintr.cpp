@@ -51,21 +51,36 @@ namespace DSL
         SetStreamMuxDimensions(DSL_STREAMMUX_DEFAULT_WIDTH, 
             DSL_STREAMMUX_DEFAULT_HEIGHT);
 
-        // Get property defaults all default properties
+        // Get property defaults that aren't specifically set
+        m_pStreamMux->GetAttribute("enable-padding", &m_isPaddingEnabled);
+        m_pStreamMux->GetAttribute("gpu-id", &m_gpuId);
         m_pStreamMux->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
         m_pStreamMux->GetAttribute("num-surfaces-per-frame", &m_numSurfacesPerFrame);
-        m_pStreamMux->GetAttribute("enable-padding", &m_isPaddingEnabled);
+        m_pStreamMux->GetAttribute("buffer-pool-size", &m_bufferPoolSize);
+        m_pStreamMux->GetAttribute("attach-sys-ts", &m_attachSysTs);
+        m_pStreamMux->GetAttribute("interpolation-method", &m_interpolationMethod);
+        m_pStreamMux->GetAttribute("sync-inputs", &m_syncInputs);
+        
+        // DS 6.1 ??
+        // m_pStreamMux->GetAttribute("frame-duration", &m_frameDuration);
 
-        LOG_INFO("Default properties for Streammux '" << name << "'");
-        LOG_INFO("  nvbuf-memory-type      : " << m_nvbufMemType);
-        LOG_INFO("  num-surfaces-per-frame : " << m_numSurfacesPerFrame);
-        LOG_INFO("  enable-padding         : " << m_nvbufMemType);
+        LOG_INFO("");
+        LOG_INFO("Initial property values for Streammux '" << name << "'");
         LOG_INFO("  width                  : " << m_streamMuxWidth);
         LOG_INFO("  height                 : " << m_streamMuxHeight);
+        LOG_INFO("  enable-padding         : " << m_nvbufMemType);
+        LOG_INFO("  gpu-id                 : " << m_gpuId);
+        LOG_INFO("  nvbuf-memory-type      : " << m_nvbufMemType);
+        LOG_INFO("  num-surfaces-per-frame : " << m_numSurfacesPerFrame);
+        LOG_INFO("  buffer-pool-size       : " << m_bufferPoolSize);
+        LOG_INFO("  attach-sys-ts          : " << m_attachSysTs);
+        LOG_INFO("  interpolation-method   : " << m_interpolationMethod);
+        LOG_INFO("  sync-inputs            : " << m_syncInputs);
+        // LOG_INFO("  frame-duration         : " << m_frameDuration);
 
         AddChild(m_pStreamMux);
 
-        // Float the StreamMux src pad as a Ghost Pad for this PipelineSourcesBintr
+        // Float the StreamMux as a src Ghost Pad for this PipelineSourcesBintr
         m_pStreamMux->AddGhostPadToParent("src");
 }
     
@@ -388,7 +403,7 @@ namespace DSL
         m_streamMuxHeight = height;
 
         LOG_INFO("Setting StreamMux dimensions: width = " << m_streamMuxWidth 
-            << ", height = " << m_streamMuxWidth);
+            << ", height = " << m_streamMuxHeight);
 
         m_pStreamMux->SetAttribute("width", m_streamMuxWidth);
         m_pStreamMux->SetAttribute("height", m_streamMuxHeight);

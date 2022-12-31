@@ -117,11 +117,14 @@ namespace DSL
         void GetShowSource(int* sourceId, uint* timeout);
         
         /**
-         * @brief Sets the current show-source setting for the TilerBintr to a single source
+         * @brief Sets the current show-source setting for the TilerBintr to a 
+         * single source
          * @param[in] the new show-source setting to use
-         * Note: sourceId must be less than current batch-size, which is 0 until the Pipeline is linked/played
+         * Note: sourceId must be less than current batch-size, which is 0 until 
+         * the Pipeline is linked/played
          * @param[in] timeout the time in seconds to show the current source
-         * @param[in] hasPrecedence if true will take precedence over a currently showing single source
+         * @param[in] hasPrecedence if true will take precedence over a currently
+         * showing single source.
          * @return true if set value is successful, false otherwise.
          */
         bool SetShowSource(int sourceId, uint timeout, bool hasPrecedence);
@@ -178,6 +181,14 @@ namespace DSL
          * @brief height of the TilerBintr in pixels
          */
         uint m_height;
+        
+        /**
+         * @brief Compute Scaling HW to use. Applicable only for Jetson.
+         * 0 (Default): Default, GPU for Tesla, VIC for Jetson
+         * 1 (GPU): GPU
+         * 2 (VIC): VIC
+         */
+        uint m_computeHw;
         
         /**
          * @brief true if the Frame-Number Adder has been enabled

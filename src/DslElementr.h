@@ -253,11 +253,18 @@ namespace DSL
         {
             LOG_FUNC();
             
-            LOG_INFO("commparing expected factory'" << factoryName << "' with actual '" 
+            LOG_DEBUG("commparing expected factory'" << factoryName << "' with actual '" 
                 << m_factoryName.c_str() << "' for element '" << GetName() << "'");
             
             std::string expectedName(factoryName);
             return (expectedName == m_factoryName);
+        }
+        
+        const char* GetFactoryName()
+        {
+            LOG_FUNC();
+            
+            return m_factoryName.c_str();
         }
         
     private:

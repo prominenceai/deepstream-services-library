@@ -35,12 +35,10 @@ namespace DSL
         , m_llConfigFile(configFile)
         , m_width(width)
         , m_height(height)
-        , m_batchProcessingEnabled(true)
-        , m_pastFrameReporting(false)
     {
         LOG_FUNC();
-        
-        // ktl
+
+        // New Tracker element for this TrackerBintr
         m_pTracker = DSL_ELEMENT_NEW("nvtracker", name);
 
         m_pTracker->SetAttribute("tracker-width", m_width);
@@ -53,6 +51,21 @@ namespace DSL
         {
             m_pTracker->SetAttribute("ll-config-file", configFile);
         }
+
+        // Get property defaults that aren't specifically set
+        m_pTracker->GetAttribute("gpu-id", &m_gpuId);
+        m_pTracker->GetAttribute("enable-batch-process", &m_batchProcessingEnabled);
+        m_pTracker->GetAttribute("enable-past-frame", &m_pastFrameReporting);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for TrackerBintr '" << name << "'");
+        LOG_INFO("  tracker-width        : " << m_width);
+        LOG_INFO("  tracker-height       : " << m_height);
+        LOG_INFO("  ll-lib-file          : " << m_llLibFile);
+        LOG_INFO("  ll-config-file       : " << m_llConfigFile);
+        LOG_INFO("  gpu-id               : " << m_gpuId);
+        LOG_INFO("  enable-batch-process : " << m_batchProcessingEnabled);
+        LOG_INFO("  enable-past-frame    : " << m_pastFrameReporting);
 
         AddChild(m_pTracker);
 
@@ -213,14 +226,14 @@ namespace DSL
         return true;
     }
 
-    bool TrackerBintr::GetBatchProcessingEnabled()
+    boolean TrackerBintr::GetBatchProcessingEnabled()
     {
         LOG_FUNC();
 
         return m_batchProcessingEnabled;
     }
     
-    bool TrackerBintr::SetBatchProcessingEnabled(bool enabled)
+    bool TrackerBintr::SetBatchProcessingEnabled(boolean enabled)
     {
         LOG_FUNC();
         
@@ -236,14 +249,14 @@ namespace DSL
         return true;
     }
     
-    bool TrackerBintr::GetPastFrameReportingEnabled()
+    boolean TrackerBintr::GetPastFrameReportingEnabled()
     {
         LOG_FUNC();
 
         return m_pastFrameReporting;
     }
     
-    bool TrackerBintr::SetPastFrameReportingEnabled(bool enabled)
+    bool TrackerBintr::SetPastFrameReportingEnabled(boolean enabled)
     {
         LOG_FUNC();
         

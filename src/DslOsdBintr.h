@@ -242,9 +242,16 @@ namespace DSL
         uint m_clockOffsetY;
         
         NvOSD_ColorParams m_clockColor;
+        
+        /**
+         * @brief 0xRGBA value for the color of the clock if displayed
+         */
+        uint m_clkRgbaColor;
 
         /**
-         @brief
+         * @brief Indicates the mode used to draw the objects
+         * 0: CPU mode
+         * 1: GPU mode
          */
         guint m_processMode;
 

@@ -245,6 +245,48 @@ namespace DSL
          * @brief Number of surfaces-per-frame stream-muxer setting
          */
         int m_numSurfacesPerFrame;
+
+        /**
+         * @brief Compute Scaling HW to use. Applicable only for Jetson.
+         * 0 (Default): Default, GPU for Tesla, VIC for Jetson
+         * 1 (GPU): GPU
+         * 2 (VIC): VIC
+         */
+        uint m_computeHw;
+        
+        /**
+         * @brief Number of buffers in output buffer pool
+         */
+        uint m_bufferPoolSize;
+        
+        /**
+         * @brief Attach system timestamp as ntp timestamp, otherwise ntp 
+         * timestamp calculated from RTCP sender reports.
+         */
+        boolean m_attachSysTs;
+        
+        /**
+         * @brief Interpolation method - refer to enum NvBufSurfTransform_Inter 
+         * in nvbufsurftransform.h for valid values.
+         */
+        uint m_interpolationMethod;
+        
+        /**
+         * @brief if true, sychronizes input frames using PTS.
+         */
+        boolean m_syncInputs;
+        
+        /**
+         * @brief Duration of input frames in milliseconds for use in NTP timestamp 
+         * correction based on frame rate. If set to 0 (default), frame duration is 
+         * inferred automatically from PTS values seen at RTP jitter buffer. When 
+         * there is change in frame duration between the RTP jitter buffer and the 
+         * nvstreammux, this property can be used to indicate the correct frame rate 
+         * to the nvstreammux, for e.g. when there is an audiobuffersplit GstElement 
+         * before nvstreammux in the pipeline. If set to -1, disables frame rate 
+         * based NTP timestamp correction. 
+         */
+        int m_frameDuration;
     };
 
     

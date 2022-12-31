@@ -132,7 +132,7 @@ namespace DSL
          * @brief Gets the current batch-processing-enabled setting for this Tracker
          * @return True if enabled, false otherwise
          */
-        bool GetBatchProcessingEnabled();
+        boolean GetBatchProcessingEnabled();
         
         /**
          * @brief Sets the enable-batch-processing setting for this Tracker
@@ -140,13 +140,13 @@ namespace DSL
          * Note: This call is only effective if the low-level library supports 
          * both batch and per-stream processing.
          */
-        bool SetBatchProcessingEnabled(bool enabled);
+        bool SetBatchProcessingEnabled(boolean enabled);
         
         /**
          * @brief Gets the enable-past-frame setting for this Tracker
          * @return True if enabled, false otherwise
          */
-        bool GetPastFrameReportingEnabled();
+        boolean GetPastFrameReportingEnabled();
 
         /**
          * @brief Sets the enable-past-frame setting for this Tracker
@@ -154,7 +154,7 @@ namespace DSL
          * Note: This call is only effective if the low-level library supports 
          * past frame reporting.
          */
-        bool SetPastFrameReportingEnabled(bool enabled);
+        bool SetPastFrameReportingEnabled(boolean enabled);
         
         /**
          * @brief This Bintr uses the common SetBatchSize bintr method to check
@@ -201,12 +201,12 @@ namespace DSL
         /**
          * @brief true if the enable-batch-processing setting is set, false otherwise.
          */
-        bool m_batchProcessingEnabled;
+        boolean m_batchProcessingEnabled;
         
         /**
          * @brief true if the enable-past-frame setting is set, false otherwise.
          */
-        bool m_pastFrameReporting;
+        boolean m_pastFrameReporting;
         
 
     };
