@@ -42,11 +42,14 @@ static const std::wstring tracker_config_file(
 // File name for .dot file output
 static const std::wstring dot_file = L"state-playing";
 
-// Window Sink Dimensions
-int sink_width = 1280;
-int sink_height = 720;
+// Source file dimensions are 960 × 540 - use this to set the Streammux dimensions.
+int source_width = 960;
+int source_height = 540;
 
-//
+// Window Sink dimensions same as Streammux dimensions - no scaling.
+int sink_width = source_width;
+int sink_height = source_height;
+
 // Function to be called on XWindow KeyRelease event
 //
 void xwindow_key_event_handler(const wchar_t* in_key, void* client_data)
@@ -128,6 +131,11 @@ int main(int argc, char** argv)
         const wchar_t* components[] = { L"file-source",L"primary-tis",
             L"iou-tracker",L"on-screen-display",L"window-sink",nullptr};
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);            
+        if (retval != DSL_RESULT_SUCCESS) break;
+        
+        // Update the Pipeline's Streammux dimensions to match the source dimensions.
+        retval = dsl_pipeline_streammux_dimensions_set(L"pipeline",
+            source_width, source_height);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // # Add the XWindow event handler functions defined above

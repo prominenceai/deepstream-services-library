@@ -48,9 +48,13 @@ primary_infer_config_file = \
 dcf_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_NvDCF_max_perf.yml'
 
-# Window Sink Dimensions
-sink_width = 1280
-sink_height = 720
+# Source file dimensions are 960 × 540 - use this to set the Streammux dimensions.
+source_width = 960
+source_height = 540
+
+# Window Sink dimensions same as Streammux dimensions - no scaling.
+sink_width = source_width
+sink_height = source_height
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -127,6 +131,12 @@ def main(args):
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['file-source', 'primary-tis', 'dcf-tracker', 'on-screen-display', 'window-sink', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Update the Pipeline's Streammux dimensions to match the source dimensions.
+        retval = dsl_pipeline_streammux_dimensions_set('pipeline',
+            source_width, source_height)
         if retval != DSL_RETURN_SUCCESS:
             break
 

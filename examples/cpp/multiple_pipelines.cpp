@@ -33,9 +33,13 @@ static const std::wstring file_path(L"/opt/nvidia/deepstream/deepstream/samples/
 // File name for .dot file output
 static const std::wstring dot_file = L"state-playing";
 
-// Window Sink Dimensions
-uint sink_width = 1280;
-uint sink_height = 720;
+// Source file dimensions are 960 × 540 - use this to set the Streammux dimensions.
+int source_width = 960;
+int source_height = 540;
+
+// Window Sink dimensions same as Streammux dimensions - no scaling.
+int sink_width = source_width;
+int sink_height = source_height;
 
 GThread* main_loop_thread_1(NULL);
 GThread* main_loop_thread_2(NULL);
@@ -151,6 +155,11 @@ DslReturnType create_pipeline(ClientData* client_data)
         component_names);
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
+    // Update the Pipeline's Streammux dimensions to match the source dimensions.
+    retval = dsl_pipeline_streammux_dimensions_set(client_data->pipeline.c_str(),
+        source_width, source_height);
+    if (retval != DSL_RESULT_SUCCESS) return retval;
+    
     // Add the XWindow event handler functions defined above
     retval = dsl_pipeline_xwindow_key_event_handler_add(client_data->pipeline.c_str(), 
         xwindow_key_event_handler, (void*)client_data);

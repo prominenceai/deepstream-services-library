@@ -146,13 +146,13 @@ namespace DSL
          * @brief Gets the current setting for the PipelineSourcesBintr's Muxer padding
          * @param enable true if enabled, false otherwise.
          */
-        void GetStreamMuxPadding(bool* enabled);
+        void GetStreamMuxPadding(boolean* enabled);
 
         /**
          * @brief Sets, enables/disables the PipelineSourcesBintr's StreamMuxer padding
          * @param enabled set to true to enable padding
          */
-        void SetStreamMuxPadding(bool enabled);
+        void SetStreamMuxPadding(boolean enabled);
 
         /**
          * @brief Gets the current setting for the PipelineSourcesBintr's StreamMuxer
@@ -239,7 +239,7 @@ namespace DSL
         /**
          * @brief true if frame padding is enabled, false otherwise
          */
-        bool m_isPaddingEnabled;
+        boolean m_isPaddingEnabled;
         
         /**
          * @brief Number of surfaces-per-frame stream-muxer setting

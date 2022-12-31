@@ -51,16 +51,21 @@ file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4'
 primary_infer_config_file_1 = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
 primary_infer_config_file_2 = \
-    '../../test/configs/config_infer_primary_nano_nms_test.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+#    '../../test/configs/config_infer_primary_nano_nms_test.txt'
     
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
 tracker_config_file = '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
-# Window Sink Dimensions
-sink_width = 1280
-sink_height = 720
+# Source file dimensions are 960 × 540 - use this to set the Streammux dimensions.
+source_width = 960
+source_height = 540
+
+# Window Sink dimensions same as Streammux dimensions - no scaling.
+sink_width = source_width
+sink_height = source_height
 
 # global used to keep track of how many Pipelines are currently running.
 
@@ -163,6 +168,12 @@ def create_pipeline(client_data):
     retval = dsl_pipeline_new_component_add_many(client_data.pipeline,
         components=[client_data.source, client_data.osd, client_data.sink, None]);
     if (retval != DSL_RETURN_SUCCESS):    
+        return retval    
+
+    # Update the Pipeline's Streammux dimensions to match the source dimensions.
+    retval = dsl_pipeline_streammux_dimensions_set(client_data.pipeline,
+        source_width, source_height)
+    if retval != DSL_RETURN_SUCCESS:
         return retval    
 
     # Add the XWindow event handler functions defined above
