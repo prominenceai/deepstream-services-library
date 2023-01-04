@@ -218,7 +218,7 @@ namespace DSL
         m_pSourceElement->GetAttribute("block", &m_blockEnabled);
         m_pSourceElement->GetAttribute("max-bytes", &m_maxBytes);
 
-        LOG_INFO("Default properties for AppSourceBintr '" << name << "'");
+        LOG_INFO("Initial property values for AppSourceBintr '" << name << "'");
         LOG_INFO("  do-timestamp  : " << m_doTimestamp);
         LOG_INFO("  buffer-format : " << m_bufferFormat);
         LOG_INFO("  block-enabled : " << m_blockEnabled);
@@ -621,8 +621,6 @@ namespace DSL
             m_sensorId++;
         }
         s_uniqueSensorIds.push_back(m_sensorId);
-        LOG_INFO("Setting sensor-id = " << m_sensorId 
-            << " for CsiSourceBintr '" << name << "'");
         
         m_pSourceElement = DSL_ELEMENT_NEW("nvarguscamerasrc", name);
         m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
@@ -647,6 +645,21 @@ namespace DSL
         m_pCapsFilter->SetAttribute("caps", pCaps);
         
         gst_caps_unref(pCaps);        
+
+        // Get property defaults that aren't specifically set
+        m_pSourceElement->GetAttribute("do-timestamp", &m_doTimestamp);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for CsiSourceBintr '" << name << "'");
+        LOG_INFO("  do-timestamp   : " << m_doTimestamp);
+        LOG_INFO("  sensor-id      : " << m_sensorId);
+        LOG_INFO("  bufapi-version : " << TRUE);
+        LOG_INFO("  media          : " << "video/x-raw");
+        LOG_INFO("  format         : " << "NV12");
+        LOG_INFO("  width          : " << m_width);
+        LOG_INFO("  height         : " << m_height);
+        LOG_INFO("  framerate      : " << m_fpsN << " / " << m_fpsD);
+        LOG_INFO("  memory:NVMM   : " << "NULL");
 
         AddChild(m_pSourceElement);
         AddChild(m_pCapsFilter);
@@ -798,6 +811,20 @@ namespace DSL
         
         m_pVidConv2->SetAttribute("gpu-id", m_gpuId);
         m_pVidConv2->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+
+        // Get property defaults that aren't specifically set
+        m_pSourceElement->GetAttribute("do-timestamp", &m_doTimestamp);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for UsbSourceBintr '" << name << "'");
+        LOG_INFO("  do-timestamp   : " << m_doTimestamp);
+        LOG_INFO("  device         : " << m_deviceLocation.c_str());
+        LOG_INFO("  media          : " << "video/x-raw");
+        LOG_INFO("  format         : " << "NV12");
+        LOG_INFO("  width          : " << m_width);
+        LOG_INFO("  height         : " << m_height);
+        LOG_INFO("  framerate      : " << m_fpsN << " / " << m_fpsD);
+        LOG_INFO("  memory:NVMM   : " << "NULL");
 
         AddChild(m_pSourceElement);
         AddChild(m_pCapsFilter);
@@ -1295,6 +1322,16 @@ namespace DSL
         m_pFakeSink->SetAttribute("sync", false);
         m_pFakeSink->SetAttribute("async", false);
 
+        // Get property defaults that aren't specifically set
+        m_pSourceElement->GetAttribute("do-timestamp", &m_doTimestamp);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for UriSourceBintr '" << name << "'");
+        LOG_INFO("  uri                 : " << uri);
+        LOG_INFO("  Intra decode        : " << m_intraDecode);
+        LOG_INFO("  Drop frame interval : " << m_dropFrameInterval);
+        LOG_INFO("  Is live             : " << m_isLive);
+
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceQueue);
         AddChild(m_pTee);
@@ -1548,6 +1585,7 @@ namespace DSL
 
     ImageSourceBintr::ImageSourceBintr(const char* name, const char* uri, uint type)
         : ResourceSourceBintr(name, uri)
+        , m_mjpeg(FALSE)
     {
         LOG_FUNC();
         
@@ -1579,7 +1617,8 @@ namespace DSL
             {
                 LOG_INFO("Setting decoder 'mjpeg' attribute for ImageSourceBintr '" 
                     << GetName() << "'");
-                m_pDecoder->SetAttribute("mjpeg", true);
+                m_mjpeg = TRUE;
+                m_pDecoder->SetAttribute("mjpeg", m_mjpeg);
             }
             
         }
@@ -1616,6 +1655,16 @@ namespace DSL
             throw;
         }
         AddChild(m_pSourceElement);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for SingleImageSourceBintr '" << name << "'");
+        LOG_INFO("  Elements");
+        LOG_INFO("    Source   : " << m_pSourceElement->GetFactoryName());
+        LOG_INFO("    Parser   : " << m_pParser->GetFactoryName());
+        LOG_INFO("    Decoder  : " << m_pDecoder->GetFactoryName());
+        LOG_INFO("  location   : " << uri);
+        LOG_INFO("  media      : " << "image/jpeg");
+        LOG_INFO("  mjpeg      : " << m_mjpeg);
 
         m_pDecoder->AddGhostPadToParent("src");
     }
@@ -1749,11 +1798,6 @@ namespace DSL
         m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
         m_pVideoRate = DSL_ELEMENT_NEW("videorate", name);
 
-        if (!SetUri(uri))
-        {
-            throw;
-        }
-
         GstCaps * pCaps = gst_caps_new_simple("image/jpeg", "framerate", 
             GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
         if (!pCaps)
@@ -1771,9 +1815,27 @@ namespace DSL
         
         gst_caps_unref(pCaps);        
 
+        LOG_INFO("");
+        LOG_INFO("Initial property values for MultiImageSourceBintr '" << name << "'");
+        LOG_INFO("  Elements");
+        LOG_INFO("    Source    : " << m_pSourceElement->GetFactoryName());
+        LOG_INFO("    Parser    : " << m_pParser->GetFactoryName());
+        LOG_INFO("    Decoder   : " << m_pDecoder->GetFactoryName());
+        LOG_INFO("  location    : " << m_pParser->GetFactoryName());
+        LOG_INFO("  media       : " << "image/jpeg");
+        LOG_INFO("  framerate   : " << m_fpsN << " / " << m_fpsD);
+        LOG_INFO("  loop        : " << m_loopEnabled);
+        LOG_INFO("  start-index : " << m_startIndex);
+        LOG_INFO("  stop-index  : " << m_stopIndex);
+        
         AddChild(m_pSourceElement);
         AddChild(m_pCapsFilter);
         AddChild(m_pVideoRate);
+
+        if (!SetUri(uri))
+        {
+            throw;
+        }
         
         m_pVideoRate->AddGhostPadToParent("src");
     }
@@ -1969,6 +2031,17 @@ namespace DSL
         
         m_pVidConv->SetAttribute("gpu-id", m_gpuId);
         m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for ImageStreamSourceBintr '" << name << "'");
+        LOG_INFO("  Elements");
+        LOG_INFO("    Source    : " << m_pSourceElement->GetFactoryName());
+        LOG_INFO("    Overlay   : " << m_pImageOverlay->GetFactoryName());
+        LOG_INFO("  location    : " << uri);
+        LOG_INFO("  media       : " << "video/x-raw");
+        LOG_INFO("  format      : " << "NV12");
+        LOG_INFO("  framerate   : " << m_fpsN << " / " << m_fpsD);
+        LOG_INFO("  memory:NVMM : " << "NULL");
 
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);

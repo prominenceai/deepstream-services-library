@@ -289,8 +289,7 @@ SCENARIO( "A new Pipeline with 4 JPEG Image Sources, Primary GIE, \
 // ---------------------------------------------------------------------------
 
 SCENARIO( "A new Pipeline with a Image Stream Source, Primary GIE, Tiled Display, \
-    Window Sink, ODE Trigger and Action can play",
-    "[image-source-play]" )
+    Window Sink, ODE Trigger and Action can play", "[image-source-play]" )
 {
     GIVEN( "A Pipeline, URI source, Primary GIE, Tiled Display, Window Sink" ) 
     {

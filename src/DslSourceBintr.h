@@ -941,6 +941,11 @@ namespace DSL
         uint m_format;
         
         /**
+         * @brief JPEG only, set to true if file source is mjpeg.
+         */
+        boolean m_mjpeg;
+        
+        /**
          * @brief JPEG or PNG Parser for this ImageSourceBintr
          */
         DSL_ELEMENT_PTR m_pParser;
