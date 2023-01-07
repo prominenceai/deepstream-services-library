@@ -223,7 +223,9 @@ namespace DSL
         LOG_INFO("  buffer-format : " << m_bufferFormat);
         LOG_INFO("  block-enabled : " << m_blockEnabled);
         LOG_INFO("  max-bytes     : " << m_maxBytes);
-        LOG_INFO("  stream-format : " << streamFormatStr);
+        LOG_INFO("  media         : " << "video/x-raw");
+        LOG_INFO("  format in     : " << streamFormatStr);
+        LOG_INFO("  format out    : " << "NV12");
         LOG_INFO("  width         : " << m_width);
         LOG_INFO("  height        : " << m_height);
         LOG_INFO("  fps-n         : " << m_fpsN);
@@ -655,7 +657,7 @@ namespace DSL
         LOG_INFO("  sensor-id      : " << m_sensorId);
         LOG_INFO("  bufapi-version : " << TRUE);
         LOG_INFO("  media          : " << "video/x-raw");
-        LOG_INFO("  format         : " << "NV12");
+        LOG_INFO("  format out     : " << "NV12");
         LOG_INFO("  width          : " << m_width);
         LOG_INFO("  height         : " << m_height);
         LOG_INFO("  framerate      : " << m_fpsN << " / " << m_fpsD);
@@ -820,7 +822,7 @@ namespace DSL
         LOG_INFO("  do-timestamp   : " << m_doTimestamp);
         LOG_INFO("  device         : " << m_deviceLocation.c_str());
         LOG_INFO("  media          : " << "video/x-raw");
-        LOG_INFO("  format         : " << "NV12");
+        LOG_INFO("  format out     : " << "NV12");
         LOG_INFO("  width          : " << m_width);
         LOG_INFO("  height         : " << m_height);
         LOG_INFO("  framerate      : " << m_fpsN << " / " << m_fpsD);
@@ -1327,10 +1329,10 @@ namespace DSL
 
         LOG_INFO("");
         LOG_INFO("Initial property values for UriSourceBintr '" << name << "'");
-        LOG_INFO("  uri                 : " << uri);
+        LOG_INFO("  uri                 : " << m_uri);
+        LOG_INFO("  Is live             : " << m_isLive);
         LOG_INFO("  Intra decode        : " << m_intraDecode);
         LOG_INFO("  Drop frame interval : " << m_dropFrameInterval);
-        LOG_INFO("  Is live             : " << m_isLive);
 
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceQueue);
@@ -2039,7 +2041,7 @@ namespace DSL
         LOG_INFO("    Overlay   : " << m_pImageOverlay->GetFactoryName());
         LOG_INFO("  location    : " << uri);
         LOG_INFO("  media       : " << "video/x-raw");
-        LOG_INFO("  format      : " << "NV12");
+        LOG_INFO("  format out  : " << "NV12");
         LOG_INFO("  framerate   : " << m_fpsN << " / " << m_fpsD);
         LOG_INFO("  memory:NVMM : " << "NULL");
 
@@ -2230,17 +2232,24 @@ namespace DSL
         // sinks element name. 
         m_listenToFullName = m_listenTo + "-interpipesink";
         
-        LOG_INFO("listen-to sink name = " << m_listenToFullName);
-        
         // override the default settings.
         m_isLive = isLive;
         
         m_pSourceElement = DSL_ELEMENT_NEW("interpipesrc", name);
         
+        m_pSourceElement->SetAttribute("is-live", m_isLive);
         m_pSourceElement->SetAttribute("listen-to", m_listenToFullName.c_str());
         m_pSourceElement->SetAttribute("accept-eos-event", m_acceptEos);
         m_pSourceElement->SetAttribute("accept-events", m_acceptEvents);
-        m_pSourceElement->SetAttribute("allow-renegotiation", true);
+        m_pSourceElement->SetAttribute("allow-renegotiation", TRUE);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for RtspSourceBintr '" << name << "'");
+        LOG_INFO("  is-live             : " << m_isLive);
+        LOG_INFO("  listen-to           : " << m_listenTo);
+        LOG_INFO("  accept-eos-event    : " << m_acceptEos);
+        LOG_INFO("  accept-events       : " << m_acceptEvents);
+        LOG_INFO("  allow-renegotiation : " << TRUE);
 
         // Add the new Elementr as a Child to the SourceBintr
         AddChild(m_pSourceElement);
@@ -2368,6 +2377,13 @@ namespace DSL
         // Connect RTSP Source Setup Callbacks
         g_signal_connect(m_pSourceElement->GetGObject(), "pad-added", 
             G_CALLBACK(RtspSourceElementOnPadAddedCB), this);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for RtspSourceBintr '" << name << "'");
+        LOG_INFO("  uri                 : " << m_uri);
+        LOG_INFO("  Is live             : " << m_isLive);
+        LOG_INFO("  Intra decode        : " << m_intraDecode);
+        LOG_INFO("  Drop frame interval : " << m_dropFrameInterval);
 
         AddChild(m_pPreDecodeTee);
         AddChild(m_pPreDecodeQueue);
@@ -2721,13 +2737,13 @@ namespace DSL
             {
                 if (encoding.find("H264") != std::string::npos)
                 {
-                    m_pParser = DSL_ELEMENT_NEW("h264parse", GetCStrName());
                     m_pDepay = DSL_ELEMENT_NEW("rtph264depay", GetCStrName());
+                    m_pParser = DSL_ELEMENT_NEW("h264parse", GetCStrName());
                 }
                 else if (encoding.find("H265") != std::string::npos)
                 {
-                    m_pParser = DSL_ELEMENT_NEW("h265parse", GetCStrName());
                     m_pDepay = DSL_ELEMENT_NEW("rtph265depay", GetCStrName());
+                    m_pParser = DSL_ELEMENT_NEW("h265parse", GetCStrName());
                 }
                 else
                 {
@@ -2746,8 +2762,8 @@ namespace DSL
             }
             else if (encoding.find("JPEG") != std::string::npos)
             {
-                m_pParser = DSL_ELEMENT_NEW("jpegparse", GetCStrName());
                 m_pDepay = DSL_ELEMENT_NEW("rtpjpegdepay", GetCStrName());
+                m_pParser = DSL_ELEMENT_NEW("jpegparse", GetCStrName());
                 m_pDecoder = DSL_ELEMENT_NEW("nvv4l2decoder", GetCStrName());
                 
                 // aarch64 only
@@ -2760,10 +2776,19 @@ namespace DSL
             }
             else
             {
-                LOG_ERROR("Unsupported encoding = '" << encoding << "' for RtspSourceBitnr '" 
-                    << GetName() << "'");
+                LOG_ERROR("Unsupported encoding = '" << encoding 
+                    << "' for RtspSourceBitnr '" << GetName() << "'");
                 return false;
             }
+
+            LOG_INFO("");
+            LOG_INFO("Updated property values for RtspSourceBintr '" << GetName() << "'");
+            LOG_INFO("  Media      : " << media);
+            LOG_INFO("  Encoding   : " << encoding);
+            LOG_INFO("  Elements");
+            LOG_INFO("    Depay    : " << m_pDepay->GetFactoryName());
+            LOG_INFO("    Parser   : " << m_pParser->GetFactoryName());
+            LOG_INFO("    Decoder  : " << m_pDecoder->GetFactoryName());
 
             // The format specific depay, parser, and decoder bins have been selected, 
             // so we can add them as children to this RtspSourceBintr now.
