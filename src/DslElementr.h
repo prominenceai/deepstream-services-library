@@ -249,15 +249,32 @@ namespace DSL
             g_object_set(GetGObject(), name, value, NULL);
         }
         
+        /**
+         * @brief Checks if the Elementr has a specific factor name.
+         * @param factorName factor name to check.
+         * @return true if the Elementr's factory name == factorName,
+         * false otherwise.
+         */
         bool IsFactoryName(const char* factoryName)
         {
             LOG_FUNC();
             
-            LOG_INFO("commparing expected factory'" << factoryName << "' with actual '" 
+            LOG_DEBUG("commparing expected factory'" << factoryName << "' with actual '" 
                 << m_factoryName.c_str() << "' for element '" << GetName() << "'");
             
             std::string expectedName(factoryName);
             return (expectedName == m_factoryName);
+        }
+        
+        /**
+         * @brief Gets the Elementr's factory name.
+         * @return const C string specifying the factory name.
+         */
+        const char* GetFactoryName()
+        {
+            LOG_FUNC();
+            
+            return m_factoryName.c_str();
         }
         
     private:

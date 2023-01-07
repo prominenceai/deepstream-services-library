@@ -45,8 +45,6 @@ namespace DSL
                 return DSL_RESULT_INFER_NAME_NOT_UNIQUE;
             }
             
-            LOG_INFO("Infer config file: " << inferConfigFile);
-            
             std::ifstream configFile(inferConfigFile);
             if (!configFile.good())
             {
@@ -58,8 +56,6 @@ namespace DSL
             std::string testPath(modelEngineFile);
             if (testPath.size())
             {
-                LOG_INFO("Model engine file: " << modelEngineFile);
-                
                 std::ifstream modelFile(modelEngineFile);
                 if (!modelFile.good())
                 {
@@ -96,8 +92,6 @@ namespace DSL
                     << name << "' is not unique");
                 return DSL_RESULT_INFER_NAME_NOT_UNIQUE;
             }
-            
-            LOG_INFO("Infer config file: " << inferConfigFile);
             
             std::ifstream configFile(inferConfigFile);
             if (!configFile.good())
@@ -138,8 +132,6 @@ namespace DSL
                 return DSL_RESULT_INFER_NAME_NOT_UNIQUE;
             }
             
-            LOG_INFO("Infer config file: " << inferConfigFile);
-            
             std::ifstream configFile(inferConfigFile);
             if (!configFile.good())
             {
@@ -147,8 +139,6 @@ namespace DSL
                     << name << "'");
                 return DSL_RESULT_INFER_CONFIG_FILE_NOT_FOUND;
             }
-            
-            LOG_INFO("Model engine file: " << modelEngineFile);
             
             std::string testPath(modelEngineFile);
             if (testPath.size())
@@ -191,8 +181,6 @@ namespace DSL
                     << name << "' is not unique");
                 return DSL_RESULT_INFER_NAME_NOT_UNIQUE;
             }
-            
-            LOG_INFO("Infer config file: " << inferConfigFile);
             
             std::ifstream configFile(inferConfigFile);
             if (!configFile.good())

@@ -53,19 +53,35 @@ namespace DSL
         m_pOsdQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvdsosd");
         m_pOsd = DSL_ELEMENT_NEW("nvdsosd", name);
 
-        m_pVidConv->SetAttribute("gpu-id", m_gpuId);
-        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+        // Get property defaults that aren't specifically set
+        m_pVidConv->GetAttribute("gpu-id", &m_gpuId);
+        m_pVidConv->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
+        m_pOsd->GetAttribute("clock-color", &m_clkRgbaColor);
 
-        m_pOsd->SetAttribute("gpu-id", m_gpuId);
-        m_pOsd->SetAttribute("display-text", m_textEnabled);
         m_pOsd->SetAttribute("display-clock", m_clockEnabled);
+        m_pOsd->SetAttribute("display-text", m_textEnabled);
         m_pOsd->SetAttribute("clock-font", m_clockFont.c_str()); 
+        m_pOsd->SetAttribute("clock-font-size", m_clockFontSize);
         m_pOsd->SetAttribute("x-clock-offset", m_clockOffsetX);
         m_pOsd->SetAttribute("y-clock-offset", m_clockOffsetY);
-        m_pOsd->SetAttribute("clock-font-size", m_clockFontSize);
         m_pOsd->SetAttribute("process-mode", m_processMode);
         m_pOsd->SetAttribute("display-bbox", m_bboxEnabled);
         m_pOsd->SetAttribute("display-mask", m_maskEnabled);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for OsdBintr '" << name << "'");
+        LOG_INFO("  gpu-id            : " << m_gpuId);
+        LOG_INFO("  nvbuf-memory-type : " << m_nvbufMemType);
+        LOG_INFO("  display-clock     : " << m_clockEnabled);
+        LOG_INFO("  display-text      : " << m_textEnabled);
+        LOG_INFO("  clock-font        : " << m_clockFont);
+        LOG_INFO("  clock-font-size   : " << m_clockFontSize);
+        LOG_INFO("  x-clock-offset    : " << m_clockOffsetX);
+        LOG_INFO("  y-clock-offset    : " << m_clockOffsetY);
+        LOG_INFO("  clock-color       : " << m_clkRgbaColor);
+        LOG_INFO("  process-mode      : " << m_processMode);
+        LOG_INFO("  display-bbox      : " << m_bboxEnabled);
+        LOG_INFO("  display-mask      : " << m_maskEnabled);
         
         AddChild(m_pVidConvQueue);
         AddChild(m_pVidConv);

@@ -66,8 +66,6 @@ namespace DSL
         // generate a unique Id for the GIE based on its unique name
         std::string inferBintrName = "infer-" + GetName();
 
-        LOG_INFO("Creating Inference Component  '" << inferBintrName << "' with unique Id = " << m_uniqueId);
-        
         // Set the name value for the current unique inference component Id.
         if (Services::GetServices()->_inferNameSet(m_uniqueId, 
             GetCStrName()) != DSL_RESULT_SUCCESS)
@@ -76,7 +74,7 @@ namespace DSL
                 << "' failed to Set name for its unique Id");
             throw;
         }   
-        
+
         // create and setup unique Inference Element, GIE or TIS
         if (m_inferType == DSL_INFER_TYPE_TIS)
         {
@@ -85,7 +83,7 @@ namespace DSL
         else
         {
             m_pInferEngine = DSL_ELEMENT_NEW("nvinfer", inferBintrName.c_str());
-            m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
+            m_pInferEngine->GetAttribute("gpu-id", &m_gpuId);
             
             // If a model engine file is provided (non-server only)
             if (m_modelEngineFile.size())
@@ -93,9 +91,19 @@ namespace DSL
                 m_pInferEngine->SetAttribute("model-engine-file", modelEngineFile);
             }
         }
+        
         m_pInferEngine->SetAttribute("config-file-path", inferConfigFile);
         m_pInferEngine->SetAttribute("process-mode", m_processMode);
         m_pInferEngine->SetAttribute("unique-id", m_uniqueId);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for InferBintr '" << name << "'");
+        LOG_INFO("  Inference Type    : " << m_pInferEngine->GetFactoryName());
+        LOG_INFO("  config-file-path  : " << m_inferConfigFile);
+        LOG_INFO("  process-mode      : " << m_processMode);
+        LOG_INFO("  unique-id         : " << m_uniqueId);
+        LOG_INFO("  interval          : " << m_interval);
+        LOG_INFO("  model-engine-file : " << m_modelEngineFile);
 
         // update the InferEngine interval setting
         SetInterval(m_interval);
@@ -555,6 +563,8 @@ namespace DSL
         m_pFakeSink->SetAttribute("async", false);
         m_pFakeSink->SetAttribute("sync", false);
         m_pFakeSink->SetAttribute("enable-last-sample", false);
+        
+        LOG_INFO("  Infer on name     : " << inferOn);
         
         // Note: the Elementrs created/owned by this SecondaryInferBintr are added as 
         // children to the parent InferBintr, and not to this Bintr's GST BIN

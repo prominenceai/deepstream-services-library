@@ -56,7 +56,7 @@ namespace DSL
             , m_isLinked(false)
             , m_batchSize(0)
             , m_gpuId(0)
-            , m_nvbufMemType(0)
+            , m_nvbufMemType(DSL_NVBUF_MEM_TYPE_DEFAULT)
             , m_pGstStaticSinkPad(NULL)
             , m_pGstStaticSourcePad(NULL)
         { 
@@ -356,12 +356,12 @@ namespace DSL
         /**
          * @brief current GPU Id in used by this Bintr
          */
-        guint m_gpuId;
+        uint m_gpuId;
 
         /**
          * @brief current Memory Type used by this Bintr
          */
-        guint m_nvbufMemType;
+        uint m_nvbufMemType;
 
         /**
          * @brief Static Pad object for the Sink Elementr within this Bintr

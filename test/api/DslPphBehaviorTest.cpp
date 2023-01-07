@@ -216,7 +216,7 @@ static void buffer_timeout_handler_cb(uint timeout, void* client_data)
     }
 }
 
-SCENARIO( "A Buffer Timeout PPH calls its handler function correctly ", "[temp]" )
+SCENARIO( "A Buffer Timeout PPH calls its handler function correctly ", "[hold]" )
 {
     GIVEN( "A Pipeline, four images source, and Window Sink" ) 
     {
