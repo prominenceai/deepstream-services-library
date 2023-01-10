@@ -44,9 +44,9 @@ namespace DSL
         std::shared_ptr<SourceBintr>(new SourceBintr(name))
 
     #define DSL_APP_SOURCE_PTR std::shared_ptr<AppSourceBintr>
-    #define DSL_APP_SOURCE_NEW(name, isLive, streamFormat, width, height, fpsN, fpsD) \
+    #define DSL_APP_SOURCE_NEW(name, isLive, bufferInFormat, width, height, fpsN, fpsD) \
         std::shared_ptr<AppSourceBintr>(new AppSourceBintr(name, isLive, \
-            streamFormat, width, height, fpsN, fpsD))
+            bufferInFormat, width, height, fpsN, fpsD))
         
     #define DSL_CSI_SOURCE_PTR std::shared_ptr<CsiSourceBintr>
     #define DSL_CSI_SOURCE_NEW(name, width, height, fpsN, fpsD) \
@@ -128,6 +128,32 @@ namespace DSL
         }
         
         /**
+         * @brief Gets the current buffer-out-format for the SourceBintr.
+         * @return Current buffer-out-format. 
+         * Note: Default = char* version of DSL_BUFFER_FORMAT_DEFAULT.
+         */
+        const char* GetBufferOutFormat()
+        {
+            LOG_FUNC();
+            
+            return m_bufferOutFormat.c_str();
+        }
+
+        /**
+         * @brief Gets the current buffer-out-format for the SourceBintr.
+         * @return Current buffer-out-format. 
+         * Note: Default = char* version of DSL_BUFFER_FORMAT_DEFAULT.
+         */
+        virtual bool SetBufferOutFormat(const char* format)
+        {
+            LOG_FUNC();
+            
+            LOG_ERROR("SourceBintr '" << GetName() 
+                << "' does not support buffer-out-format updates"); 
+            return false;
+        }
+
+        /**
          * @brief Gets the current do-timestamp property setting for the SourceBintr.
          * @return If TRUE, the base class will automatically timestamp outgoing 
          * buffers based on the current running_time.
@@ -183,6 +209,12 @@ namespace DSL
          * False otherwise.
          */
         bool m_isLive;
+
+        /**
+         * @brief buffer-out-format for the SourceBintr. 
+         * Default = DSL_BUFFER_FORMAT_DEFAULT
+         */ 
+        std::string m_bufferOutFormat;
         
         /**
          * @brief If TRUE, the base class will automatically timestamp outgoing buffers
@@ -246,7 +278,7 @@ namespace DSL
     public: 
     
         AppSourceBintr(const char* name, bool isLive, 
-            uint streamFormat, uint width, uint height, uint fpsN, uint fpsD);
+            const char* bufferInFormat, uint width, uint height, uint fpsN, uint fpsD);
 
         ~AppSourceBintr();
 
@@ -315,17 +347,17 @@ namespace DSL
         void HandleEnoughData();
 
         /**
-         * @brief Gets the current buffer-format for this AppSourceBintr
-         * @return one of the DSL_BUFFER_FORMAT constants.
+         * @brief Gets the current stream-format for this AppSourceBintr
+         * @return one of the DSL_STREAM_FORMAT constants.
          */
-        uint GetBufferFormat();
+        uint GetStreamFormat();
         
         /**
-         * @brief Set the buffer-format for this AppSourceBintr to use.
-         * @param[in] bufferFormat one of the DSL_BUFFER_FORMAT constants.
+         * @brief Sets the stream-format for this AppSourceBintr to use.
+         * @param[in] streamFormat one of the DSL_STREAM_FORMAT constants.
          * @return true on successful set, false otherwise.
          */
-        bool SetBufferFormat(uint bufferFormat);
+        bool SetStreamFormat(uint streamFormat);
 
         /**
          * @brief Gets the current block-enabled setting for this AppSourceBintr.
@@ -389,9 +421,9 @@ namespace DSL
         uint m_streamFormat;
 
         /**
-         * @brief buffer format for the AppSourceBintr - on of the DSL_BUFFER_FORMAT constants.
+         * @brief buffer-in format for the AppSourceBintr - on of the DSL_BUFFER_FORMAT constants.
          */
-        uint m_bufferFormat;
+        std::string m_bufferInFormat;
 
         /**
          * @brief client callback function to be called when new data is needed.
@@ -514,8 +546,21 @@ namespace DSL
          * @return true if successfull, false otherwise.
          */
         bool SetSensorId(uint sensorId);
+
+        /**
+         * @brief Sets the buffer-out-format for the CsiSourceBintr to use.
+         * @param[in] format new buffer-out-format string.
+         * @return true if successfull, false otherwise.
+         */
+        bool SetBufferOutFormat(const char* format);
         
     private:
+
+        /**
+         * @brief Updates the Caps for the CsiSourceBintr using the current
+         * values for height, width, fps, buffer-out-format, etc.
+         */
+        void UpdateCapsFilter();
 
         /**
          * @brief static list of unique sersor IDs to be used/recycled by all
@@ -566,7 +611,7 @@ namespace DSL
         const char* GetDeviceLocation();
         
         /**
-         * @brief Sets the device location setting for the Source Bintr.
+         * @brief Sets the device location setting for the UsbSourceBintr.
          * @param[in] new device location for the Source Bintr to use.
          * @return true if successfully set, false otherwise.
          */
@@ -578,7 +623,20 @@ namespace DSL
          */
         bool SetGpuId(uint gpuId);
 
+        /**
+         * @brief Sets the buffer-out-format for the CsiSourceBintr to use.
+         * @param[in] format new buffer-out-format string.
+         * @return true if successfull, false otherwise.
+         */
+        bool SetBufferOutFormat(const char* format);
+
     private:
+
+        /**
+         * @brief Updates the Caps for the UsbSourceBintr using the current
+         * values for height, width, fps, buffer-out-format, etc.
+         */
+        void UpdateCapsFilter();
 
         /**
          * @brief static list of unique device IDs to be used/recycled by all

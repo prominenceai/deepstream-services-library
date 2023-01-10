@@ -31,7 +31,7 @@ THE SOFTWARE.
 namespace DSL
 {
     DslReturnType Services::SourceAppNew(const char* name, boolean isLive, 
-        uint streamFormat, uint width, uint height, uint fpsN, uint fpsD)
+        const char* bufferInFormat, uint width, uint height, uint fpsN, uint fpsD)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -44,14 +44,8 @@ namespace DSL
                 LOG_ERROR("Source name '" << name << "' is not unique");
                 return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
             }
-            if (streamFormat > DSL_STREAM_FORMAT_NV12)
-            {
-                LOG_ERROR("Invalid stream-format = " << streamFormat 
-                    << " for App Source '" << name << "'");
-                return DSL_RESULT_SOURCE_SET_FAILED;
-            }
             m_components[name] = DSL_APP_SOURCE_NEW(name, isLive, 
-                streamFormat, width, height, fpsN, fpsD);
+                bufferInFormat, width, height, fpsN, fpsD);
 
             LOG_INFO("New App Source '" << name << "' created successfully");
 
@@ -231,8 +225,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceAppBufferFormatGet(const char* name,
-        uint* bufferFormat)
+    DslReturnType Services::SourceAppStreamFormatGet(const char* name,
+        uint* streamFormat)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -246,10 +240,10 @@ namespace DSL
             DSL_APP_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
 
-            *bufferFormat = pSourceBintr->GetBufferFormat();
+            *streamFormat = pSourceBintr->GetStreamFormat();
             
             LOG_INFO("App Source '" << name << "' returned buffer-format = "
-                << *bufferFormat << " successfully");
+                << *streamFormat << " successfully");
             
             return DSL_RESULT_SUCCESS;
         }
@@ -261,8 +255,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceAppBufferFormatSet(const char* name,
-        uint bufferFormat)
+    DslReturnType Services::SourceAppStreamFormatSet(const char* name,
+        uint streamFormat)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -276,20 +270,14 @@ namespace DSL
             DSL_APP_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
 
-            if (bufferFormat > DSL_BUFFER_FORMAT_TIME)
+            if (!pSourceBintr->SetStreamFormat(streamFormat))
             {
-                LOG_ERROR("Invalid stream-format = " << bufferFormat 
-                    << " for App Source '" << name << "'");
-                return DSL_RESULT_SOURCE_SET_FAILED;
-            }
-            if (!pSourceBintr->SetBufferFormat(bufferFormat))
-            {
-                LOG_ERROR("Failed to set buffer-format to " 
-                    << bufferFormat << " for App Source '" << name << "'");
+                LOG_ERROR("Failed to set stream-format to " 
+                    << streamFormat << " for App Source '" << name << "'");
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
             LOG_INFO("App Source '" << name 
-                << "' set buffer-format = " << bufferFormat << " successfully");
+                << "' set stream-format = " << streamFormat << " successfully");
             
             return DSL_RESULT_SUCCESS;
         }
@@ -1484,6 +1472,69 @@ namespace DSL
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
+
+    DslReturnType Services::SourceBufferOutFormatGet(const char* name, 
+        const char** format)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+         
+            *format = pSourceBintr->GetBufferOutFormat();
+
+            LOG_INFO("Source '" << name << "' returned buffer-out-format = " 
+                << *format << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception getting buffer-out-format");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceBufferOutFormatSet(const char* name, 
+        const char* format)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetBufferOutFormat(format))
+            {
+                LOG_ERROR("Failed to set buffer-out-format = " << format 
+                    << " for Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("Source '" << name << "' set buffer-out-format = " 
+                << format << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception setting buffer-out-format");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
 
     DslReturnType Services::SourceDoTimestampGet(const char* name, 
         boolean* doTimestamp)

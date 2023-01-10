@@ -492,18 +492,19 @@ THE SOFTWARE.
 #define DSL_NVBUF_MEM_TYPE_UNIFIED                                  3
 
 /**
- * @brief GST Buffer format types
+ * @brief DSL Stream Format types
  */
 // must match GstFormat values
-#define DSL_BUFFER_FORMAT_BYTE                                      2
-#define DSL_BUFFER_FORMAT_TIME                                      3
+#define DSL_STREAM_FORMAT_BYTE                                      2
+#define DSL_STREAM_FORMAT_TIME                                      3
 
 /**
- * @brief GST Stream format types
+ * @brief DSL Buffer format types
  */
-#define DSL_STREAM_FORMAT_I420                                      0
-#define DSL_STREAM_FORMAT_RGBA                                      1   
-#define DSL_STREAM_FORMAT_NV12                                      2
+#define DSL_BUFFER_FORMAT_I420                                      L"I420"
+#define DSL_BUFFER_FORMAT_RGBA                                      L"RGBA"   
+#define DSL_BUFFER_FORMAT_NV12                                      L"NV12"
+#define DSL_BUFFER_FORMAT_DEFAULT                                   DSL_BUFFER_FORMAT_NV12
 
 #define DSL_SOURCE_CODEC_PARSER_H264                                0
 #define DSL_SOURCE_CODEC_PARSER_H265                                1
@@ -4077,7 +4078,7 @@ uint dsl_pph_list_size();
  * @param[in] name unique name for the new Source.
  * @param[in] is_live set to true to instruct the source to behave like a 
  * live source. This includes that it will only push out buffers in the PLAYING state.
- * @param[in] stream_format one of the DSL_STREAM_FORMAT constants.
+ * @param[in] buffer_in_format one of the DSL_BUFFER_FORMAT constants.
  * @param[in] width width of the source in pixels.
  * @param[in] height height of the source in pixels.
  * @param[in] fps-n frames/second fraction numerator.
@@ -4085,7 +4086,7 @@ uint dsl_pph_list_size();
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_app_new(const wchar_t* name, boolean is_live, 
-    uint stream_format, uint width, uint height, uint fps_n, uint fps_d);
+    const wchar_t* buffer_in_format, uint width, uint height, uint fps_n, uint fps_d);
     
 /**
  * @brief Adds data-handler callback functions to a named App Source component.
@@ -4136,25 +4137,25 @@ DslReturnType dsl_source_app_sample_push(const wchar_t* name, void* sample);
 DslReturnType dsl_source_app_eos(const wchar_t* name);
 
 /**
- * @brief Gets the current buffer-format setting for the named App Source Component.
+ * @brief Gets the current stream-format setting for the named App Source Component.
  * @param[in] name unique name of the App Source to query.
- * @param[out] buffer_format one of the DSL_BUFFER_FORMAT constants. 
- * Default = DSL_BUFFER_FORMAT_BYTE.
+ * @param[out] stream_format one of the DSL_STREAM_FORMAT constants. 
+ * Default = DSL_STREAM_FORMAT_BYTE.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_app_buffer_format_get(const wchar_t* name, 
-    uint* buffer_format);
+DslReturnType dsl_source_app_stream_format_get(const wchar_t* name, 
+    uint* stream_format);
 
 /**
- * @brief Sets the buffer-format setting for the named App Source Component.
+ * @brief Sets the stream-format setting for the named App Source Component.
  * @param[in] name unique name of the App Source to update.
- * @param[in] buffer_format one of the DSL_BUFFER_FORMAT constants. 
+ * @param[in] stream_format one of the DSL_STREAM_FORMAT constants. 
  * The format to use for segment events. When the source is producing timestamped 
- * buffers this property should be set to DSL_BUFFER_FORMAT_TIME.
+ * buffers this property should be set to DSL_STREAM_FORMAT_TIME.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_app_buffer_format_set(const wchar_t* name, 
-    uint buffer_format);
+DslReturnType dsl_source_app_stream_format_set(const wchar_t* name, 
+    uint stream_format);
 
 /**
  * @brief Gets the block enabled setting for the named App Source Component.
@@ -4557,6 +4558,26 @@ DslReturnType dsl_source_pph_add(const wchar_t* name, const wchar_t* handler);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
  */
 DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler);
+
+/**
+ * @brief Gets the current buffer-out-format for the named Source component.
+ * @param name unique name of the Source Component to query.
+ * @param[out] format current buffer-out-format. One of the DSL_BUFFER_FORMAT
+ * constant string values. Default = DSL_BUFFER_FORMAT_DEFAULT.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
+ */
+DslReturnType dsl_source_buffer_out_format_get(const wchar_t* name,
+    const wchar_t** format);
+
+/**
+ * @brief Sets the buffer-out-format for the named Source component to use.
+ * @param name unique name of the Source Component to query.
+ * @param[in] format new buffer-out-format to use. One of the DSL_BUFFER_FORMAT
+ * constant string values.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
+ */
+DslReturnType dsl_source_buffer_out_format_set(const wchar_t* name,
+    const wchar_t* format);
 
 /**
  * @brief Gets the do-timestamp setting for the named Source Component.

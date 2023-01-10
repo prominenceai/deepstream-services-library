@@ -2921,10 +2921,10 @@ def dsl_pph_list_size():
 _dsl.dsl_source_app_new.argtypes = [c_wchar_p, 
     c_bool, c_uint, c_uint, c_uint, c_uint, c_uint]
 _dsl.dsl_source_app_new.restype = c_uint
-def dsl_source_app_new(name, is_live, format, width, height, fps_n, fps_d):
+def dsl_source_app_new(name, is_live, buffer_in_format, width, height, fps_n, fps_d):
     global _dsl
     result =_dsl.dsl_source_app_new(name, 
-        is_live, format, width, height, fps_n, fps_d)
+        is_live, buffer_in_format, width, height, fps_n, fps_d)
     return int(result)
 
 ##
@@ -2989,26 +2989,26 @@ def dsl_source_app_eos(name):
     return int(result)
 
 ##
-## dsl_source_app_buffer_format_get()
+## dsl_source_app_stream_format_get()
 ##
-_dsl.dsl_source_app_buffer_format_get.argtypes = [c_wchar_p, 
+_dsl.dsl_source_app_stream_format_get.argtypes = [c_wchar_p, 
     POINTER(c_uint)]
-_dsl.dsl_source_app_buffer_format_get.restype = c_uint
-def dsl_source_app_buffer_format_get(name):
+_dsl.dsl_source_app_stream_format_get.restype = c_uint
+def dsl_source_app_stream_format_get(name):
     global _dsl
-    buffer_format = c_uint(0)
-    result = _dsl.dsl_source_app_buffer_format_get(name, 
-        DSL_UINT_P(buffer_format))
-    return int(result), buffer_format.value 
+    stream_format = c_uint(0)
+    result = _dsl.dsl_source_app_stream_format_get(name, 
+        DSL_UINT_P(stream_format))
+    return int(result), stream_format.value 
 
 ##
-## dsl_source_app_buffer_format_set()
+## dsl_source_app_stream_format_set()
 ##
-_dsl.dsl_source_app_buffer_format_set.argtypes = [c_wchar_p, c_uint]
-_dsl.dsl_source_app_buffer_format_set.restype = c_uint
-def dsl_source_app_buffer_format_set(name, buffer_format):
+_dsl.dsl_source_app_stream_format_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_source_app_stream_format_set.restype = c_uint
+def dsl_source_app_stream_format_set(name, stream_format):
     global _dsl
-    result = _dsl.dsl_source_app_buffer_format_set(name, buffer_format)
+    result = _dsl.dsl_source_app_stream_format_set(name, stream_format)
     return int(result)
 
 ##

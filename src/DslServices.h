@@ -640,7 +640,8 @@ namespace DSL {
         uint PphListSize();
         
         DslReturnType SourceAppNew(const char* name, boolean isLive, 
-            uint streamFormat, uint width, uint height, uint fpsN, uint fpsD);
+            const char* bufferInFormat, uint width, uint height, 
+            uint fpsN, uint fpsD);
             
         DslReturnType SourceAppDataHandlersAdd(const char* name,
             dsl_source_app_need_data_handler_cb needDataHandler, 
@@ -655,10 +656,10 @@ namespace DSL {
 
         DslReturnType SourceAppEos(const char* name);
         
-        DslReturnType SourceAppBufferFormatGet(const char* name,
-            uint* bufferFormat);
+        DslReturnType SourceAppStreamFormatGet(const char* name,
+            uint* StreamFormat);
         
-        DslReturnType SourceAppBufferFormatSet(const char* name,
+        DslReturnType SourceAppStreamFormatSet(const char* name,
             uint bufferFormat);
         
         DslReturnType SourceAppBlockEnabledGet(const char* name,
@@ -759,6 +760,12 @@ namespace DSL {
 
         DslReturnType SourcePphRemove(const char* name, const char* handler);
 
+        DslReturnType SourceBufferOutFormatGet(const char* name, 
+            const char** format);
+
+        DslReturnType SourceBufferOutFormatSet(const char* name, 
+            const char* format);
+
         DslReturnType SourceDoTimestampGet(const char* name, boolean* doTimestamp);
             
         DslReturnType SourceDoTimestampSet(const char* name, boolean doTimestamp);
@@ -810,12 +817,6 @@ namespace DSL {
         DslReturnType SourceResume(const char* name);
 
         boolean SourceIsLive(const char* name);
-        
-        uint SourceNumInUseGet();
-        
-        uint SourceNumInUseMaxGet();
-        
-        boolean SourceNumInUseMaxSet(uint max);
         
         DslReturnType DewarperNew(const char* name, const char* configFile);
         

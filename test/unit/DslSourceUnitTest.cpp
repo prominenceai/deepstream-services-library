@@ -36,7 +36,7 @@ static uint intrDecode(false);
 static uint dropFrameInterval(0);
 
 static std::string dewarperName("dewarper");
-static const std::string defConfigFile(
+static std::string defConfigFile(
 "/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/config_dewarper.txt");
 
 static std::string rtspSourceName("rtsp-source");
@@ -50,19 +50,22 @@ static std::string multJpgFilePath("./test/streams/sample_720p.%04d.mjpeg");
 
 static uint width(1920), height(1080), fps_n(30), fps_d(1);
 
+static std::wstring L_bufferOutFormat(DSL_BUFFER_FORMAT_DEFAULT);
+static std::string defaultBufferOutFormat(L_bufferOutFormat.begin(), 
+    L_bufferOutFormat.end());
+
 using namespace DSL;
 
-SCENARIO( "A new AppSourceBintr is created correctly",  "[new]" )
+SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
 {
     GIVEN( "Attributes for a new AppSourceBintr" ) 
     {
-        uint format(DSL_STREAM_FORMAT_I420);
         boolean isLive(true);
         
         WHEN( "The AppSourceBintr is created " )
         {
             DSL_APP_SOURCE_PTR pSourceBintr = DSL_APP_SOURCE_NEW(
-                sourceName.c_str(), isLive, format, width, height, fps_n, fps_d);
+                sourceName.c_str(), isLive, "I420", width, height, fps_n, fps_d);
 
             THEN( "All memeber variables are initialized correctly" )
             {
@@ -81,10 +84,13 @@ SCENARIO( "A new AppSourceBintr is created correctly",  "[new]" )
                 REQUIRE( fps_n == retFpsN );
                 REQUIRE( fps_d == retFpsD );
                 
-                REQUIRE( pSourceBintr->GetBufferFormat() == DSL_BUFFER_FORMAT_BYTE );
+                REQUIRE( pSourceBintr->GetStreamFormat() == DSL_STREAM_FORMAT_BYTE );
                 REQUIRE( pSourceBintr->GetBlockEnabled() == FALSE);
                 REQUIRE( pSourceBintr->GetCurrentLevelBytes() == 0);
                 REQUIRE( pSourceBintr->GetMaxLevelBytes() == 200000);
+                
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
     }
@@ -95,11 +101,10 @@ SCENARIO( "An AppSourceBintr can LinkAll and UnlinkAll child Elementrs correctly
 {
     GIVEN( "A new AppSourceBintr in memory" ) 
     {
-        uint format(DSL_STREAM_FORMAT_I420);
         boolean isLive(true);
-
+        
         DSL_APP_SOURCE_PTR pSourceBintr = DSL_APP_SOURCE_NEW(
-            sourceName.c_str(), isLive, format, width, height, fps_n, fps_d);
+            sourceName.c_str(), isLive, "I420", width, height, fps_n, fps_d);
 
         WHEN( "The AppSourceBintr is called to LinkAll" )
         {
@@ -120,11 +125,10 @@ SCENARIO( "A AppSourceBintr can UnlinkAll all child Elementrs correctly",  "[Sou
 {
     GIVEN( "A new, linked AppSourceBintr " ) 
     {
-        uint format(DSL_STREAM_FORMAT_I420);
         boolean isLive(true);
 
         DSL_APP_SOURCE_PTR pSourceBintr = DSL_APP_SOURCE_NEW(
-            sourceName.c_str(), isLive, format, width, height, fps_n, fps_d);
+            sourceName.c_str(), isLive, "I420", width, height, fps_n, fps_d);
 
         pSourceBintr->LinkAll();
         REQUIRE( pSourceBintr->IsLinked() == true );
@@ -168,6 +172,9 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( height == retHeight );
                 REQUIRE( fps_n == retFpsN );
                 REQUIRE( fps_d == retFpsD );
+
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
     }
@@ -306,6 +313,9 @@ SCENARIO( "A new UsbSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( height == retHeight );
                 REQUIRE( fps_n == retFpsN );
                 REQUIRE( fps_d == retFpsD );
+
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
     }
@@ -511,6 +521,9 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( retHeight == 1080 );
                 REQUIRE( retFpsN == 0 );
                 REQUIRE( retFpsD == 0 );
+
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
     }
@@ -788,6 +801,9 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( retHeight == 0 );
                 REQUIRE( retFpsN == 0 );
                 REQUIRE( retFpsD == 0 );
+
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
     }
@@ -1060,6 +1076,9 @@ SCENARIO( "A new FileSourceBintr is created correctly",  "[SourceBintr]" )
                 
                 std::string returnedUri = pSourceBintr->GetUri();
                 REQUIRE( returnedUri == fullFillPath );
+
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
     }
@@ -1133,6 +1152,9 @@ SCENARIO( "A new ImageStreamSourceBintr is created correctly",  "[SourceBintr]" 
                 
                 std::string returnedFilePath = pSourceBintr->GetUri();
                 REQUIRE( returnedFilePath == fullFillPath );
+
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
     }
@@ -1204,6 +1226,9 @@ SCENARIO( "A new SingleImageSourceBintr is created correctly",  "[SourceBintr]" 
                 
                 std::string returnedFilePath = pSourceBintr->GetUri();
                 REQUIRE( returnedFilePath == fullFillPath );
+
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
     }
@@ -1279,6 +1304,9 @@ SCENARIO( "A new MultiImageSourceBintr is created correctly",  "[SourceBintr]" )
                 
                 std::string returnedFilePath = pSourceBintr->GetUri();
                 REQUIRE( returnedFilePath == multJpgFilePath );
+
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
     }

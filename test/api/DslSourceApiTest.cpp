@@ -61,7 +61,7 @@ static uint interval(0);
 static std::wstring rtsp_uri(L"rtsp://username:password@192.168.0.14:554");
 
 static boolean is_live(false);
-static uint video_format(DSL_STREAM_FORMAT_I420);
+static std::wstring buffer_in_format(DSL_BUFFER_FORMAT_I420);
 
 
 static std::wstring def_device_location(L"/dev/video0");
@@ -174,7 +174,8 @@ SCENARIO( "A new App Source returns the correct attribute values", "[source-api]
         WHEN( "A new App Source is created" ) 
         {
             REQUIRE( dsl_source_app_new(source_name.c_str(), 
-                is_live, video_format, width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+                is_live, buffer_in_format.c_str(), width, height, 
+                fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
@@ -220,20 +221,21 @@ SCENARIO( "An App Source can update its settings correctly", "[source-api]" )
     GIVEN( "A new App Source Component" ) 
     {
         REQUIRE( dsl_source_app_new(source_name.c_str(), 
-            is_live, video_format, width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            is_live, buffer_in_format.c_str(), width, height, 
+            fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
         WHEN( "The App Source's buffer-format setting is set" ) 
         {
-            uint bufffer_format(DSL_BUFFER_FORMAT_TIME); // default is BYTE
-            REQUIRE( dsl_source_app_buffer_format_set(source_name.c_str(),
-                bufffer_format) == DSL_RESULT_SUCCESS );
+            uint stream_format(DSL_STREAM_FORMAT_TIME); // default is BYTE
+            REQUIRE( dsl_source_app_stream_format_set(source_name.c_str(),
+                stream_format) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct value is returned on get" ) 
             {
-                uint ret_bufffer_format(DSL_BUFFER_FORMAT_BYTE);
-                REQUIRE( dsl_source_app_buffer_format_get(source_name.c_str(),
-                    &ret_bufffer_format) == DSL_RESULT_SUCCESS );
-                REQUIRE( ret_bufffer_format == bufffer_format );
+                uint ret_stream_format(DSL_STREAM_FORMAT_BYTE);
+                REQUIRE( dsl_source_app_stream_format_get(source_name.c_str(),
+                    &ret_stream_format) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_stream_format == stream_format );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -304,7 +306,8 @@ SCENARIO( "A new App Source can add and remove data-handlers correctly",
     {
         
         REQUIRE( dsl_source_app_new(source_name.c_str(), is_live, 
-            video_format, width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            buffer_in_format.c_str(), width, height, 
+            fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
         WHEN( "Client data-handers are added. " ) 
         {
@@ -337,7 +340,8 @@ SCENARIO( "A new App Source fails to push-buffer and EOS when in a unlinked stat
     {
         
         REQUIRE( dsl_source_app_new(source_name.c_str(), is_live, 
-            video_format, width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            buffer_in_format.c_str(), width, height, 
+            fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
         WHEN( "When the App Source is in an unlinked state. " ) 
         {

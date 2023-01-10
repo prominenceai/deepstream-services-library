@@ -3385,15 +3385,19 @@ uint dsl_pph_list_size()
 }
 
 DslReturnType dsl_source_app_new(const wchar_t* name, boolean is_live, 
-    uint stream_format, uint width, uint height, uint fps_n, uint fps_d)
+    const wchar_t* buffer_in_format, uint width, uint height, uint fps_n, uint fps_d)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(buffer_in_format);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrBufferInFormat(buffer_in_format);
+    std::string cstrBufferInFormat(wstrBufferInFormat.begin(), 
+        wstrBufferInFormat.end());
 
     return DSL::Services::GetServices()->SourceAppNew(cstrName.c_str(), 
-        is_live, stream_format, width, height, fps_n, fps_d);
+        is_live, cstrBufferInFormat.c_str(), width, height, fps_n, fps_d);
 }
  
 DslReturnType dsl_source_app_data_handlers_add(const wchar_t* name, 
@@ -3456,29 +3460,29 @@ DslReturnType dsl_source_app_eos(const wchar_t* name)
     return DSL::Services::GetServices()->SourceAppEos(cstrName.c_str());
 }
 
-DslReturnType dsl_source_app_buffer_format_get(const wchar_t* name, 
-    uint* buffer_format)
+DslReturnType dsl_source_app_stream_format_get(const wchar_t* name, 
+    uint* stream_format)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(buffer_format);
+    RETURN_IF_PARAM_IS_NULL(stream_format);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceAppBufferFormatGet(
-        cstrName.c_str(), buffer_format);
+    return DSL::Services::GetServices()->SourceAppStreamFormatGet(
+        cstrName.c_str(), stream_format);
 }
     
-DslReturnType dsl_source_app_buffer_format_set(const wchar_t* name, 
-    uint buffer_format)
+DslReturnType dsl_source_app_stream_format_set(const wchar_t* name, 
+    uint stream_format)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceAppBufferFormatSet(
-        cstrName.c_str(), buffer_format);
+    return DSL::Services::GetServices()->SourceAppStreamFormatSet(
+        cstrName.c_str(), stream_format);
 }
     
 DslReturnType dsl_source_app_block_enabled_get(const wchar_t* name, 
@@ -4031,6 +4035,46 @@ DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler)
         cstrHandler.c_str());
 }
 
+DslReturnType dsl_source_buffer_out_format_get(const wchar_t* name,
+    const wchar_t** format)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(format);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cFormat;
+    static std::string cstrFormat;
+    static std::wstring wcstrFormat;
+    
+    uint retval = DSL::Services::GetServices()->SourceBufferOutFormatGet(
+        cstrName.c_str(), &cFormat);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrFormat.assign(cFormat);
+        wcstrFormat.assign(cstrFormat.begin(), cstrFormat.end());
+        *format = wcstrFormat.c_str();
+    }
+    return retval;
+}
+    
+DslReturnType dsl_source_buffer_out_format_set(const wchar_t* name,
+    const wchar_t* format)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(format);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::wstring wstrFormat(format);
+    std::string cstrFormat(wstrFormat.begin(), wstrFormat.end());
+
+    return DSL::Services::GetServices()->SourceBufferOutFormatSet(
+        cstrName.c_str(), cstrFormat.c_str());
+}
+    
 DslReturnType dsl_source_do_timestamp_get(const wchar_t* name, 
     boolean* do_timestamp)
 {

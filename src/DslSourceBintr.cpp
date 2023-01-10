@@ -53,8 +53,13 @@ namespace DSL
 
         // Set the stream-id of the unique Source name
         SetId(Services::GetServices()->_sourceNameSet(name));
+        
+        // Assign the Default buffer-out-format for all sources
+        std::wstring L_bufferOutFormat(DSL_BUFFER_FORMAT_DEFAULT);
+        m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
+            L_bufferOutFormat.end());
 
-            // Get the Device properties
+        // Get the Device properties
         cudaGetDeviceProperties(&m_cudaDeviceProp, m_gpuId);
     }
     
@@ -145,14 +150,13 @@ namespace DSL
 
     //*********************************************************************************
     AppSourceBintr::AppSourceBintr(const char* name, bool isLive, 
-            uint streamFormat, uint width, uint height, uint fpsN, uint fpsD)
+            const char* bufferInFormat, uint width, uint height, uint fpsN, uint fpsD)
         : SourceBintr(name)
-        , m_streamFormat(streamFormat)
+        , m_bufferInFormat(bufferInFormat)
         , m_needDataHandler(NULL)
         , m_enoughDataHandler(NULL)
         , m_clientData(NULL)
         , m_maxBytes(0)
-        , m_bufferFormat(0)
 // TODO support GST 1.20 properties        
 //        , m_maxBuffers(0)
 //        , m_maxTime(0)
@@ -165,32 +169,13 @@ namespace DSL
         m_height = height;
         m_fpsN = fpsN;
         m_fpsD = fpsD;
-
-        std::string streamFormatStr;
-        
-        switch (m_streamFormat)
-        {
-        case DSL_STREAM_FORMAT_RGBA:
-            streamFormatStr = "RGBA";
-            break;
-        case DSL_STREAM_FORMAT_NV12:
-            streamFormatStr = "NV12";
-            break;
-        case DSL_STREAM_FORMAT_I420:
-            streamFormatStr = "I420";
-            break;
-        default:
-            LOG_ERROR("Invalid format attribute for AppSourceBintr '" 
-                << GetName() << "'");
-            throw;
-        }
         
         // ---- Source Element Setup
 
         m_pSourceElement = DSL_ELEMENT_NEW("appsrc", name);
         
         GstCaps * pCaps = gst_caps_new_simple("video/x-raw",
-            "format", G_TYPE_STRING, streamFormatStr.c_str(),
+            "format", G_TYPE_STRING, m_bufferInFormat.c_str(),
             "width", G_TYPE_INT, m_width,
             "height", G_TYPE_INT, m_height,
             "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
@@ -214,31 +199,14 @@ namespace DSL
 
         // get the property defaults
         m_pSourceElement->GetAttribute("do-timestamp", &m_doTimestamp);
-        m_pSourceElement->GetAttribute("format", &m_bufferFormat);
+        m_pSourceElement->GetAttribute("format", &m_streamFormat);
         m_pSourceElement->GetAttribute("block", &m_blockEnabled);
         m_pSourceElement->GetAttribute("max-bytes", &m_maxBytes);
-
-        LOG_INFO("Initial property values for AppSourceBintr '" << name << "'");
-        LOG_INFO("  do-timestamp  : " << m_doTimestamp);
-        LOG_INFO("  buffer-format : " << m_bufferFormat);
-        LOG_INFO("  block-enabled : " << m_blockEnabled);
-        LOG_INFO("  max-bytes     : " << m_maxBytes);
-        LOG_INFO("  media         : " << "video/x-raw");
-        LOG_INFO("  format in     : " << streamFormatStr);
-        LOG_INFO("  format out    : " << "NV12");
-        LOG_INFO("  width         : " << m_width);
-        LOG_INFO("  height        : " << m_height);
-        LOG_INFO("  fps-n         : " << m_fpsN);
-        LOG_INFO("  fps-d         : " << m_fpsD);
 
         // TODO support GST 1.20 properties
         // m_pSourceElement->GetAttribute("max-buffers", &m_maxBuffers);
         // m_pSourceElement->GetAttribute("max-time", &m_maxTime);
         // m_pSourceElement->GetAttribute("leaky-type", &m_leakyType);
-        //
-        // LOG_INFO("max-buffers = " << m_maxBuffers);
-        // LOG_INFO("max-time    = " << m_maxTime);
-        // LOG_INFO("leaky-type  = " << m_leakyType);
         
         // ---- Video Converter Setup
         
@@ -253,10 +221,9 @@ namespace DSL
 
         m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
         
-        // All sources output "I420" by default
-        pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING,
-            "I420", NULL);
-            
+        // Set default buffer-out format.
+        pCaps = gst_caps_new_simple("video/x-raw", 
+            "format", G_TYPE_STRING, m_bufferOutFormat.c_str(), NULL);
         if (!pCaps)
         {
             LOG_ERROR("Failed to create new Simple Capabilities for '" 
@@ -271,6 +238,25 @@ namespace DSL
         m_pCapsFilter->SetAttribute("caps", pCaps);
         
         gst_caps_unref(pCaps);        
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for AppSourceBintr '" << name << "'");
+        LOG_INFO("  do-timestamp      : " << m_doTimestamp);
+        LOG_INFO("  stream-format     : " << m_streamFormat);
+        LOG_INFO("  block-enabled     : " << m_blockEnabled);
+        LOG_INFO("  max-bytes         : " << m_maxBytes);
+        LOG_INFO("  media             : " << "video/x-raw");
+        LOG_INFO("  buffer-in-format  : " << m_bufferInFormat);
+        LOG_INFO("  buffer-out-format : " << m_bufferOutFormat);
+        LOG_INFO("  width             : " << m_width);
+        LOG_INFO("  height            : " << m_height);
+        LOG_INFO("  fps-n             : " << m_fpsN);
+        LOG_INFO("  fps-d             : " << m_fpsD);
+
+        // TODO support GST 1.20 properties
+        // LOG_INFO("max-buffers = " << m_maxBuffers);
+        // LOG_INFO("max-time    = " << m_maxTime);
+        // LOG_INFO("leaky-type  = " << m_leakyType);
 
         // add all elementrs as childer to this Bintr
         AddChild(m_pSourceElement);
@@ -501,26 +487,26 @@ namespace DSL
         return true;
     }
     
-    uint AppSourceBintr::GetBufferFormat()
+    uint AppSourceBintr::GetStreamFormat()
     {
         LOG_FUNC();
         
-        return m_bufferFormat;
+        return m_streamFormat;
     }
     
-    bool AppSourceBintr::SetBufferFormat(uint bufferFormat)
+    bool AppSourceBintr::SetStreamFormat(uint streamFormat)
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("Can't set buffer-format for AppSourceBintr '" 
+            LOG_ERROR("Can't set stream-format for AppSourceBintr '" 
                 << GetName() << "' as it's currently in a linked state");
             return false;
         }
 
-        m_bufferFormat = bufferFormat;
-        m_pSourceElement->SetAttribute("format", m_bufferFormat);
+        m_streamFormat = streamFormat;
+        m_pSourceElement->SetAttribute("format", m_streamFormat);
         return true;
     }
     
@@ -629,39 +615,23 @@ namespace DSL
 
         m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
         m_pSourceElement->SetAttribute("bufapi-version", TRUE);
-        
-        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
-            "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
-            "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
-        if (!pCaps)
-        {
-            LOG_ERROR("Failed to create new Simple Capabilities for '" 
-                << name << "'");
-            throw;  
-        }
 
-        GstCapsFeatures *feature = NULL;
-        feature = gst_caps_features_new("memory:NVMM", NULL);
-        gst_caps_set_features(pCaps, 0, feature);
-
-        m_pCapsFilter->SetAttribute("caps", pCaps);
-        
-        gst_caps_unref(pCaps);        
+        UpdateCapsFilter();
 
         // Get property defaults that aren't specifically set
         m_pSourceElement->GetAttribute("do-timestamp", &m_doTimestamp);
 
         LOG_INFO("");
         LOG_INFO("Initial property values for CsiSourceBintr '" << name << "'");
-        LOG_INFO("  do-timestamp   : " << m_doTimestamp);
-        LOG_INFO("  sensor-id      : " << m_sensorId);
-        LOG_INFO("  bufapi-version : " << TRUE);
-        LOG_INFO("  media          : " << "video/x-raw");
-        LOG_INFO("  format out     : " << "NV12");
-        LOG_INFO("  width          : " << m_width);
-        LOG_INFO("  height         : " << m_height);
-        LOG_INFO("  framerate      : " << m_fpsN << " / " << m_fpsD);
-        LOG_INFO("  memory:NVMM   : " << "NULL");
+        LOG_INFO("  do-timestamp      : " << m_doTimestamp);
+        LOG_INFO("  sensor-id         : " << m_sensorId);
+        LOG_INFO("  bufapi-version    : " << TRUE);
+        LOG_INFO("  media             : " << "video/x-raw");
+        LOG_INFO("  buffer-out-format : " << m_bufferOutFormat.c_str());
+        LOG_INFO("  width             : " << m_width);
+        LOG_INFO("  height            : " << m_height);
+        LOG_INFO("  framerate         : " << m_fpsN << " / " << m_fpsD);
+        LOG_INFO("  memory:NVMM       : " << "NULL");
 
         AddChild(m_pSourceElement);
         AddChild(m_pCapsFilter);
@@ -749,6 +719,43 @@ namespace DSL
         
         return true;
     }
+    
+    bool CsiSourceBintr::SetBufferOutFormat(const char* format)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set buffer-out-format for CsiSourceBintr '" << GetName() 
+                << "' as it is currently in a linked state");
+            return false;
+        }
+        m_bufferOutFormat = format;
+        UpdateCapsFilter();
+        return true;
+    }
+
+    void CsiSourceBintr::UpdateCapsFilter()
+    {
+        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", 
+            "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
+            "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
+            "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
+        if (!pCaps)
+        {
+            LOG_ERROR("Failed to create new Simple Capabilities for '" 
+                << GetName() << "'");
+            throw;  
+        }
+
+        GstCapsFeatures *feature = NULL;
+        feature = gst_caps_features_new("memory:NVMM", NULL);
+        gst_caps_set_features(pCaps, 0, feature);
+
+        m_pCapsFilter->SetAttribute("caps", pCaps);
+        
+        gst_caps_unref(pCaps);        
+    }
 
     //*********************************************************************************
     // Initilize the unique device id list for all UsbSourceBintrs 
@@ -793,44 +800,29 @@ namespace DSL
             AddChild(m_pVidConv1);
         }
         m_pVidConv2 = DSL_ELEMENT_EXT_NEW("nvvideoconvert", name, "2");
-
-        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
-            "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
-            "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
-        if (!pCaps)
-        {
-            LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
-            throw;  
-        }
-
-        GstCapsFeatures *feature = NULL;
-        feature = gst_caps_features_new("memory:NVMM", NULL);
-        gst_caps_set_features(pCaps, 0, feature);
-
-        m_pCapsFilter->SetAttribute("caps", pCaps);
-        
-        gst_caps_unref(pCaps);        
         
         m_pVidConv2->SetAttribute("gpu-id", m_gpuId);
         m_pVidConv2->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
 
+        UpdateCapsFilter();
+        
         // Get property defaults that aren't specifically set
         m_pSourceElement->GetAttribute("do-timestamp", &m_doTimestamp);
 
         LOG_INFO("");
         LOG_INFO("Initial property values for UsbSourceBintr '" << name << "'");
-        LOG_INFO("  do-timestamp   : " << m_doTimestamp);
-        LOG_INFO("  device         : " << m_deviceLocation.c_str());
-        LOG_INFO("  media          : " << "video/x-raw");
-        LOG_INFO("  format out     : " << "NV12");
-        LOG_INFO("  width          : " << m_width);
-        LOG_INFO("  height         : " << m_height);
-        LOG_INFO("  framerate      : " << m_fpsN << " / " << m_fpsD);
-        LOG_INFO("  memory:NVMM   : " << "NULL");
+        LOG_INFO("  do-timestamp      : " << m_doTimestamp);
+        LOG_INFO("  device            : " << m_deviceLocation.c_str());
+        LOG_INFO("  media             : " << "video/x-raw");
+        LOG_INFO("  buffer-out-format : " << m_bufferOutFormat.c_str());
+        LOG_INFO("  width             : " << m_width);
+        LOG_INFO("  height            : " << m_height);
+        LOG_INFO("  framerate         : " << m_fpsN << " / " << m_fpsD);
+        LOG_INFO("  memory:NVMM       : " << "NULL");
 
         AddChild(m_pSourceElement);
-        AddChild(m_pCapsFilter);
         AddChild(m_pVidConv2);
+        AddChild(m_pCapsFilter);
         
         m_pCapsFilter->AddGhostPadToParent("src");
 
@@ -983,6 +975,43 @@ namespace DSL
         m_pVidConv2->SetAttribute("gpu-id", m_gpuId);
         
         return true;
+    }
+
+    bool UsbSourceBintr::SetBufferOutFormat(const char* format)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set buffer-out-format for CsiSourceBintr '" << GetName() 
+                << "' as it is currently in a linked state");
+            return false;
+        }
+        m_bufferOutFormat = format;
+        UpdateCapsFilter();
+        return true;
+    }
+
+    void UsbSourceBintr::UpdateCapsFilter()
+    {
+        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", 
+            "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
+            "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
+            "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
+        if (!pCaps)
+        {
+            LOG_ERROR("Failed to create new Simple Capabilities for '" 
+                << GetName() << "'");
+            throw;  
+        }
+
+        GstCapsFeatures *feature = NULL;
+        feature = gst_caps_features_new("memory:NVMM", NULL);
+        gst_caps_set_features(pCaps, 0, feature);
+
+        m_pCapsFilter->SetAttribute("caps", pCaps);
+        
+        gst_caps_unref(pCaps);        
     }
 
     //*********************************************************************************
@@ -1323,9 +1352,6 @@ namespace DSL
 
         m_pFakeSink->SetAttribute("sync", false);
         m_pFakeSink->SetAttribute("async", false);
-
-        // Get property defaults that aren't specifically set
-        m_pSourceElement->GetAttribute("do-timestamp", &m_doTimestamp);
 
         LOG_INFO("");
         LOG_INFO("Initial property values for UriSourceBintr '" << name << "'");
@@ -2011,11 +2037,8 @@ namespace DSL
 
         m_pSourceElement->SetAttribute("pattern", 2); // 2 = black
 
-
-//        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
-//            "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
-//            "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
-        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
+        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", 
+            "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
             "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
         if (!pCaps)
         {
@@ -2037,13 +2060,13 @@ namespace DSL
         LOG_INFO("");
         LOG_INFO("Initial property values for ImageStreamSourceBintr '" << name << "'");
         LOG_INFO("  Elements");
-        LOG_INFO("    Source    : " << m_pSourceElement->GetFactoryName());
-        LOG_INFO("    Overlay   : " << m_pImageOverlay->GetFactoryName());
-        LOG_INFO("  location    : " << uri);
-        LOG_INFO("  media       : " << "video/x-raw");
-        LOG_INFO("  format out  : " << "NV12");
-        LOG_INFO("  framerate   : " << m_fpsN << " / " << m_fpsD);
-        LOG_INFO("  memory:NVMM : " << "NULL");
+        LOG_INFO("    Source          : " << m_pSourceElement->GetFactoryName());
+        LOG_INFO("    Overlay         : " << m_pImageOverlay->GetFactoryName());
+        LOG_INFO("  location          : " << uri);
+        LOG_INFO("  media             : " << "video/x-raw");
+        LOG_INFO("  buffer-out-format : " << m_bufferOutFormat.c_str());
+        LOG_INFO("  framerate         : " << m_fpsN << " / " << m_fpsD);
+        LOG_INFO("  memory:NVMM       : " << "NULL");
 
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
@@ -2178,7 +2201,7 @@ namespace DSL
         m_height = imageSize.height;
 
         GstCaps * pCaps = gst_caps_new_simple("video/x-raw", 
-            "format", G_TYPE_STRING, "NV12", 
+            "format", G_TYPE_STRING, m_bufferOutFormat.c_str(), 
             "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height,
             "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
         if (!pCaps)
