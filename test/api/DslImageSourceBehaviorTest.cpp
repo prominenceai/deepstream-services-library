@@ -289,7 +289,7 @@ SCENARIO( "A new Pipeline with 4 JPEG Image Sources, Primary GIE, \
 // ---------------------------------------------------------------------------
 
 SCENARIO( "A new Pipeline with a Image Stream Source, Primary GIE, Tiled Display, \
-    Window Sink, ODE Trigger and Action can play", "[image-source-play]" )
+    Window Sink, ODE Trigger and Action can play", "[one]" )
 {
     GIVEN( "A Pipeline, URI source, Primary GIE, Tiled Display, Window Sink" ) 
     {
@@ -298,7 +298,7 @@ SCENARIO( "A new Pipeline with a Image Stream Source, Primary GIE, Tiled Display
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_image_stream_new(source_name1.c_str(),
-            jpeg_file_path.c_str(), false, fps_n, fps_d, 1) == DSL_RESULT_SUCCESS );
+            jpeg_file_path.c_str(), false, fps_n, fps_d, 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
             infer_config_file.c_str(), model_engine_file.c_str(),

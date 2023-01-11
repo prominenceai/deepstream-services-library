@@ -36,6 +36,74 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    static bool set_full_caps(DSL_ELEMENT_PTR pElement, 
+        const char* capability, const char* format, uint width, uint height, 
+        uint fpsN, uint fpsD, bool isNvidia)
+    {
+        GstCaps * pCaps(NULL);
+        if (width and height)
+        {
+            pCaps = gst_caps_new_simple(capability, 
+                "format", G_TYPE_STRING, format,
+                "width", G_TYPE_INT, width, 
+                "height", G_TYPE_INT, height, 
+                "framerate", GST_TYPE_FRACTION, fpsN, fpsD, NULL);
+        }
+        else
+        {
+            pCaps = gst_caps_new_simple(capability, 
+                "format", G_TYPE_STRING, format,
+                "framerate", GST_TYPE_FRACTION, fpsN, fpsD, NULL);
+        }    
+        if (!pCaps)
+        {
+            LOG_ERROR("Failed to create new Simple Capabilities for '" 
+                << pElement->GetName() << "'");
+            return false;  
+        }
+
+        // if the provided element is an NVIDIA plugin, then we need to add
+        // the additional feature to enable buffer access via the NvBuffer API.
+        if (isNvidia)
+        {
+            GstCapsFeatures *feature = NULL;
+            feature = gst_caps_features_new("memory:NVMM", NULL);
+            gst_caps_set_features(pCaps, 0, feature);
+        }
+        // Set the provided element's caps and unref caps structure.
+        pElement->SetAttribute("caps", pCaps);
+        gst_caps_unref(pCaps);  
+
+        return true;
+    }
+
+    static bool set_format_caps(DSL_ELEMENT_PTR pElement, 
+        const char* capability, const char* format, bool isNvidia)
+    {
+        GstCaps * pCaps = gst_caps_new_simple(capability, 
+            "format", G_TYPE_STRING, format, NULL);
+        if (!pCaps)
+        {
+            LOG_ERROR("Failed to create new Simple Capabilities for '" 
+                << pElement->GetName() << "'");
+            return false;  
+        }
+
+        // if the provided element is an NVIDIA plugin, then we need to add
+        // the additional feature to enable buffer access via the NvBuffer API.
+        if (isNvidia)
+        {
+            GstCapsFeatures *feature = NULL;
+            feature = gst_caps_features_new("memory:NVMM", NULL);
+            gst_caps_set_features(pCaps, 0, feature);
+        }
+        // Set the provided element's caps and unref caps structure.
+        pElement->SetAttribute("caps", pCaps);
+        gst_caps_unref(pCaps);  
+
+        return true;
+    }
+    
     SourceBintr::SourceBintr(const char* name)
         : Bintr(name)
         , m_cudaDeviceProp{0}
@@ -140,7 +208,7 @@ namespace DSL
         *height = m_height;
     }
 
-    void  SourceBintr::GetFrameRate(uint* fpsN, uint* fpsD)
+    void SourceBintr::GetFrameRate(uint* fpsN, uint* fpsD)
     {
         LOG_FUNC();
         
@@ -151,7 +219,8 @@ namespace DSL
     //*********************************************************************************
     AppSourceBintr::AppSourceBintr(const char* name, bool isLive, 
             const char* bufferInFormat, uint width, uint height, uint fpsN, uint fpsD)
-        : SourceBintr(name)
+        : SourceBintr(name) 
+        , m_capability("video/x-raw")
         , m_bufferInFormat(bufferInFormat)
         , m_needDataHandler(NULL)
         , m_enoughDataHandler(NULL)
@@ -173,20 +242,14 @@ namespace DSL
         // ---- Source Element Setup
 
         m_pSourceElement = DSL_ELEMENT_NEW("appsrc", name);
-        
-        GstCaps * pCaps = gst_caps_new_simple("video/x-raw",
-            "format", G_TYPE_STRING, m_bufferInFormat.c_str(),
-            "width", G_TYPE_INT, m_width,
-            "height", G_TYPE_INT, m_height,
-            "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
-        if (!pCaps)
+
+        // Set the full capabilities (format, dimensions, and framerate)
+        // NVIDIA plugin = false... this is a GStreamer plugin
+        if (!set_full_caps(m_pSourceElement, m_capability.c_str(), 
+            m_bufferInFormat.c_str(), m_width, m_height, m_fpsN, m_fpsD, false))
         {
-            LOG_ERROR("Failed to create new Simple Capabilities for '" 
-                << name << "'");
-            throw;  
+            throw;
         }
-        m_pSourceElement->SetAttribute("caps", pCaps);
-        gst_caps_unref(pCaps);        
             
         // emit-signals are disabled by default... need to enable
         m_pSourceElement->SetAttribute("emit-signals", true);
@@ -214,30 +277,20 @@ namespace DSL
         
         if (!m_cudaDeviceProp.integrated)
         {
-            m_pVidConv->SetAttribute("nvbuf-memory-type", DSL_NVBUF_MEM_TYPE_UNIFIED);
+            m_pVidConv->SetAttribute("nvbuf-memory-type", 
+                DSL_NVBUF_MEM_TYPE_UNIFIED);
         }
         
         // ---- Caps Filter Setup
 
-        m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
+        m_pVidConvCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
         
-        // Set default buffer-out format.
-        pCaps = gst_caps_new_simple("video/x-raw", 
-            "format", G_TYPE_STRING, m_bufferOutFormat.c_str(), NULL);
-        if (!pCaps)
+        // Set the default buffer-out format. NVIDIA plugin = true
+        if (!set_format_caps(m_pVidConvCapsFilter, 
+            m_capability.c_str(), m_bufferOutFormat.c_str(), true))
         {
-            LOG_ERROR("Failed to create new Simple Capabilities for '" 
-                << name << "'");
-            throw;  
+            throw;
         }
-
-        GstCapsFeatures *feature = NULL;
-        feature = gst_caps_features_new("memory:NVMM", NULL);
-        gst_caps_set_features(pCaps, 0, feature);
-
-        m_pCapsFilter->SetAttribute("caps", pCaps);
-        
-        gst_caps_unref(pCaps);        
 
         LOG_INFO("");
         LOG_INFO("Initial property values for AppSourceBintr '" << name << "'");
@@ -245,7 +298,7 @@ namespace DSL
         LOG_INFO("  stream-format     : " << m_streamFormat);
         LOG_INFO("  block-enabled     : " << m_blockEnabled);
         LOG_INFO("  max-bytes         : " << m_maxBytes);
-        LOG_INFO("  media             : " << "video/x-raw");
+        LOG_INFO("  media             : " << m_capability);
         LOG_INFO("  buffer-in-format  : " << m_bufferInFormat);
         LOG_INFO("  buffer-out-format : " << m_bufferOutFormat);
         LOG_INFO("  width             : " << m_width);
@@ -261,13 +314,13 @@ namespace DSL
         // add all elementrs as childer to this Bintr
         AddChild(m_pSourceElement);
         AddChild(m_pVidConv);
-        AddChild(m_pCapsFilter);
+        AddChild(m_pVidConvCapsFilter);
         
-        m_pCapsFilter->AddGhostPadToParent("src");
+        m_pVidConvCapsFilter->AddGhostPadToParent("src");
 
         std::string padProbeName = GetName() + "-src-pad-probe";
         m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
-            "src", m_pCapsFilter);
+            "src", m_pVidConvCapsFilter);
 
         g_mutex_init(&m_dataHandlerMutex);
     }
@@ -290,7 +343,7 @@ namespace DSL
             return false;
         }
         if (!m_pSourceElement->LinkToSink(m_pVidConv) or
-            !m_pVidConv->LinkToSink(m_pCapsFilter))
+            !m_pVidConv->LinkToSink(m_pVidConvCapsFilter))
         {
             return false;
         }
@@ -593,6 +646,7 @@ namespace DSL
     CsiSourceBintr::CsiSourceBintr(const char* name, 
         guint width, guint height, guint fpsN, guint fpsD)
         : SourceBintr(name)
+        , m_capability("video/x-raw")
         , m_sensorId(0)
     {
         LOG_FUNC();
@@ -611,36 +665,64 @@ namespace DSL
         s_uniqueSensorIds.push_back(m_sensorId);
         
         m_pSourceElement = DSL_ELEMENT_NEW("nvarguscamerasrc", name);
-        m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
+        m_pSourceCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "1");
 
         m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
         m_pSourceElement->SetAttribute("bufapi-version", TRUE);
 
-        UpdateCapsFilter();
+        // Set the full capabilities (format, dimensions, and framerate)
+        // Note: nvarguscamerasrc supports NV12 format only.
+        if (!set_full_caps(m_pSourceElement, m_capability.c_str(), "NV12",
+            m_width, m_height, m_fpsN, m_fpsD, false))
+        {
+            throw;
+        }
 
         // Get property defaults that aren't specifically set
         m_pSourceElement->GetAttribute("do-timestamp", &m_doTimestamp);
+
+        // ---- Video Converter Setup
+        
+        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
+        
+        if (!m_cudaDeviceProp.integrated)
+        {
+            m_pVidConv->SetAttribute("nvbuf-memory-type", 
+                DSL_NVBUF_MEM_TYPE_UNIFIED);
+        }
+        
+        // ---- Caps Filter Setup
+
+        m_pVidConvCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "2");
+        
+        // Set the default buffer-out format.
+        if (!set_format_caps(m_pVidConvCapsFilter, 
+            m_capability.c_str(), m_bufferOutFormat.c_str(), true))
+        {
+            throw;
+        }
 
         LOG_INFO("");
         LOG_INFO("Initial property values for CsiSourceBintr '" << name << "'");
         LOG_INFO("  do-timestamp      : " << m_doTimestamp);
         LOG_INFO("  sensor-id         : " << m_sensorId);
         LOG_INFO("  bufapi-version    : " << TRUE);
-        LOG_INFO("  media             : " << "video/x-raw");
+        LOG_INFO("  media             : " << m_capability << "(memory:NVMM)");
         LOG_INFO("  buffer-out-format : " << m_bufferOutFormat.c_str());
         LOG_INFO("  width             : " << m_width);
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  framerate         : " << m_fpsN << " / " << m_fpsD);
-        LOG_INFO("  memory:NVMM       : " << "NULL");
 
         AddChild(m_pSourceElement);
-        AddChild(m_pCapsFilter);
+        AddChild(m_pSourceCapsFilter);
+        AddChild(m_pVidConv);
+        AddChild(m_pVidConvCapsFilter);
         
-        m_pCapsFilter->AddGhostPadToParent("src");
+        m_pVidConvCapsFilter->AddGhostPadToParent("src");
 
         std::string padProbeName = GetName() + "-src-pad-probe";
         m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
-            "src", m_pCapsFilter);
+            "src", m_pVidConvCapsFilter);
     }
 
     CsiSourceBintr::~CsiSourceBintr()
@@ -659,7 +741,12 @@ namespace DSL
             LOG_ERROR("CsiSourceBintr '" << GetName() << "' is already in a linked state");
             return false;
         }
-        m_pSourceElement->LinkToSink(m_pCapsFilter);
+        if (!m_pSourceElement->LinkToSink(m_pSourceCapsFilter) or
+            !m_pSourceCapsFilter->LinkToSink(m_pVidConv) or
+            !m_pVidConv->LinkToSink(m_pVidConvCapsFilter))
+        {
+            return false;
+        }
         m_isLinked = true;
         
         return true;
@@ -675,6 +762,9 @@ namespace DSL
             return;
         }
         m_pSourceElement->UnlinkFromSink();
+        m_pSourceCapsFilter->UnlinkFromSink();
+        m_pVidConv->UnlinkFromSink();
+        
         m_isLinked = false;
     }
     
@@ -731,30 +821,8 @@ namespace DSL
             return false;
         }
         m_bufferOutFormat = format;
-        UpdateCapsFilter();
-        return true;
-    }
-
-    void CsiSourceBintr::UpdateCapsFilter()
-    {
-        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", 
-            "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
-            "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
-            "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
-        if (!pCaps)
-        {
-            LOG_ERROR("Failed to create new Simple Capabilities for '" 
-                << GetName() << "'");
-            throw;  
-        }
-
-        GstCapsFeatures *feature = NULL;
-        feature = gst_caps_features_new("memory:NVMM", NULL);
-        gst_caps_set_features(pCaps, 0, feature);
-
-        m_pCapsFilter->SetAttribute("caps", pCaps);
-        
-        gst_caps_unref(pCaps);        
+        return set_format_caps(m_pVidConvCapsFilter, m_capability.c_str(),
+            m_bufferOutFormat.c_str(), true);
     }
 
     //*********************************************************************************
@@ -765,6 +833,7 @@ namespace DSL
     UsbSourceBintr::UsbSourceBintr(const char* name, 
         guint width, guint height, guint fpsN, guint fpsD)
         : SourceBintr(name)
+        , m_capability("video/x-raw")
         , m_deviceId(0)
     {
         LOG_FUNC();
@@ -775,7 +844,6 @@ namespace DSL
         m_fpsD = fpsD;
         
         m_pSourceElement = DSL_ELEMENT_NEW("v4l2src", name);
-        m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
 
         // Find the first available unique device-id
         while(std::find(s_uniqueDeviceIds.begin(), s_uniqueDeviceIds.end(), 
@@ -794,6 +862,9 @@ namespace DSL
 
         m_pSourceElement->SetAttribute("device", m_deviceLocation.c_str());
 
+        // Get property defaults that aren't specifically set
+        m_pSourceElement->GetAttribute("do-timestamp", &m_doTimestamp);
+
         if (!m_cudaDeviceProp.integrated)
         {
             m_pVidConv1 = DSL_ELEMENT_EXT_NEW("nvvideoconvert", name, "1");
@@ -804,21 +875,27 @@ namespace DSL
         m_pVidConv2->SetAttribute("gpu-id", m_gpuId);
         m_pVidConv2->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
 
-        UpdateCapsFilter();
-        
-        // Get property defaults that aren't specifically set
-        m_pSourceElement->GetAttribute("do-timestamp", &m_doTimestamp);
+        // ---- Caps Filter Setup
 
+        m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
+
+        // Set the full capabilities (format, dimensions, and framerate)
+        // Note: The v4l2src element and Video Converters are NIVIDIA's.
+        if (!set_full_caps(m_pCapsFilter, m_capability.c_str(), 
+            m_bufferOutFormat.c_str(),m_width, m_height, m_fpsN, m_fpsD, true))
+        {
+            throw;
+        }
+        
         LOG_INFO("");
         LOG_INFO("Initial property values for UsbSourceBintr '" << name << "'");
         LOG_INFO("  do-timestamp      : " << m_doTimestamp);
         LOG_INFO("  device            : " << m_deviceLocation.c_str());
-        LOG_INFO("  media             : " << "video/x-raw");
+        LOG_INFO("  media             : " << m_capability << "(memory:NVMM)");
         LOG_INFO("  buffer-out-format : " << m_bufferOutFormat.c_str());
         LOG_INFO("  width             : " << m_width);
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  framerate         : " << m_fpsN << " / " << m_fpsD);
-        LOG_INFO("  memory:NVMM       : " << "NULL");
 
         AddChild(m_pSourceElement);
         AddChild(m_pVidConv2);
@@ -988,30 +1065,11 @@ namespace DSL
             return false;
         }
         m_bufferOutFormat = format;
-        UpdateCapsFilter();
-        return true;
-    }
 
-    void UsbSourceBintr::UpdateCapsFilter()
-    {
-        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", 
-            "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
-            "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
-            "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
-        if (!pCaps)
-        {
-            LOG_ERROR("Failed to create new Simple Capabilities for '" 
-                << GetName() << "'");
-            throw;  
-        }
-
-        GstCapsFeatures *feature = NULL;
-        feature = gst_caps_features_new("memory:NVMM", NULL);
-        gst_caps_set_features(pCaps, 0, feature);
-
-        m_pCapsFilter->SetAttribute("caps", pCaps);
-        
-        gst_caps_unref(pCaps);        
+        // Set the full capabilities (format, dimensions, and framerate)
+        // Note: The v4l2src element and Video Converters are NIVIDIA's.
+        return set_full_caps(m_pCapsFilter, m_capability.c_str(),
+            m_bufferOutFormat.c_str(),m_width, m_height, m_fpsN, m_fpsD, true);
     }
 
     //*********************************************************************************
@@ -2019,6 +2077,7 @@ namespace DSL
     ImageStreamSourceBintr::ImageStreamSourceBintr(const char* name, 
         const char* uri, bool isLive, uint fpsN, uint fpsD, uint timeout)
         : ResourceSourceBintr(name, uri)
+        , m_capability("video/x-raw")
         , m_timeout(timeout)
         , m_timeoutTimerId(0)
     {
@@ -2032,30 +2091,26 @@ namespace DSL
         m_pSourceElement = DSL_ELEMENT_NEW("videotestsrc", name);
         m_pSourceCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "source");
         m_pImageOverlay = DSL_ELEMENT_NEW("gdkpixbufoverlay", name); 
-        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
-        m_pCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "sink");
 
         m_pSourceElement->SetAttribute("pattern", 2); // 2 = black
-
-        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", 
-            "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
-            "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
-        if (!pCaps)
-        {
-            LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
-            throw;  
-        }
-
-        GstCapsFeatures *feature = NULL;
-        feature = gst_caps_features_new("memory:NVMM", NULL);
-        gst_caps_set_features(pCaps, 0, feature);
-
-        m_pCapsFilter->SetAttribute("caps", pCaps);
         
-        gst_caps_unref(pCaps);        
-        
+        // ---- Video Converter Setup
+
+        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
+
         m_pVidConv->SetAttribute("gpu-id", m_gpuId);
         m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+
+        // ---- Caps Filter Setup
+
+        m_pVidConvCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "sink");
+
+        // Set the full capabilities (format and framerate)
+        if (!set_full_caps(m_pVidConvCapsFilter, m_capability.c_str(), 
+            m_bufferOutFormat.c_str(), 0, 0, m_fpsN, m_fpsD, true))
+        {
+            throw;
+        }
 
         LOG_INFO("");
         LOG_INFO("Initial property values for ImageStreamSourceBintr '" << name << "'");
@@ -2063,24 +2118,23 @@ namespace DSL
         LOG_INFO("    Source          : " << m_pSourceElement->GetFactoryName());
         LOG_INFO("    Overlay         : " << m_pImageOverlay->GetFactoryName());
         LOG_INFO("  location          : " << uri);
-        LOG_INFO("  media             : " << "video/x-raw");
+        LOG_INFO("  media             : " << m_capability << "(memory:NVMM)");
         LOG_INFO("  buffer-out-format : " << m_bufferOutFormat.c_str());
         LOG_INFO("  framerate         : " << m_fpsN << " / " << m_fpsD);
-        LOG_INFO("  memory:NVMM       : " << "NULL");
 
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
         AddChild(m_pSourceCapsFilter);
         AddChild(m_pImageOverlay);
         AddChild(m_pVidConv);
-        AddChild(m_pCapsFilter);
+        AddChild(m_pVidConvCapsFilter);
         
         // Source Ghost Pad for ImageStreamSourceBintr
-        m_pCapsFilter->AddGhostPadToParent("src");
+        m_pVidConvCapsFilter->AddGhostPadToParent("src");
 
         std::string padProbeName = GetName() + "-src-pad-probe";
         m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
-            "src", m_pCapsFilter);
+            "src", m_pVidConvCapsFilter);
 
         g_mutex_init(&m_timeoutTimerMutex);
 
@@ -2109,7 +2163,7 @@ namespace DSL
         if (!m_pSourceElement->LinkToSink(m_pSourceCapsFilter) or
             !m_pSourceCapsFilter->LinkToSink(m_pImageOverlay) or
             !m_pImageOverlay->LinkToSink(m_pVidConv) or
-            !m_pVidConv->LinkToSink(m_pCapsFilter))
+            !m_pVidConv->LinkToSink(m_pVidConvCapsFilter))
         {
             LOG_ERROR("ImageStreamSourceBintr '" << GetName() << "' failed to LinkAll");
             return false;

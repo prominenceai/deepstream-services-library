@@ -499,12 +499,19 @@ THE SOFTWARE.
 #define DSL_STREAM_FORMAT_TIME                                      3
 
 /**
- * @brief DSL Buffer format types
+ * @brief DSL Buffer format types - 
  */
 #define DSL_BUFFER_FORMAT_I420                                      L"I420"
-#define DSL_BUFFER_FORMAT_RGBA                                      L"RGBA"   
 #define DSL_BUFFER_FORMAT_NV12                                      L"NV12"
-#define DSL_BUFFER_FORMAT_DEFAULT                                   DSL_BUFFER_FORMAT_NV12
+#define DSL_BUFFER_FORMAT_P010_10LE                                 L"P010_10LE"
+#define DSL_BUFFER_FORMAT_BGRx                                      L"BGRx"   
+#define DSL_BUFFER_FORMAT_RGBA                                      L"RGBA"   
+#define DSL_BUFFER_FORMAT_GRAY8                                     L"GRAY8"   
+#define DSL_BUFFER_FORMAT_YUY2                                      L"YUY2"   
+#define DSL_BUFFER_FORMAT_UYVY                                      L"UYVY"   
+#define DSL_BUFFER_FORMAT_YVYU                                      L"YVYU"   
+#define DSL_BUFFER_FORMAT_Y42B                                      L"Y42B"   
+#define DSL_BUFFER_FORMAT_DEFAULT                                   DSL_BUFFER_FORMAT_I420
 
 #define DSL_SOURCE_CODEC_PARSER_H264                                0
 #define DSL_SOURCE_CODEC_PARSER_H265                                1

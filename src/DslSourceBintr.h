@@ -80,9 +80,9 @@ namespace DSL
         std::shared_ptr<MultiImageSourceBintr>(new MultiImageSourceBintr(name, uri, fpsN, fpsD))
 
     #define DSL_IMAGE_STREAM_SOURCE_PTR std::shared_ptr<ImageStreamSourceBintr>
-    #define DSL_IMAGE_STREAM_SOURCE_NEW(name, filePath, isLive, fpsN, fpsD, timeout) \
+    #define DSL_IMAGE_STREAM_SOURCE_NEW(name, uri, isLive, fpsN, fpsD, timeout) \
         std::shared_ptr<ImageStreamSourceBintr>(new ImageStreamSourceBintr(name, \
-            filePath, isLive, fpsN, fpsD, timeout))
+            uri, isLive, fpsN, fpsD, timeout))
 
     #define DSL_INTERPIPE_SOURCE_PTR std::shared_ptr<InterpipeSourceBintr>
     #define DSL_INTERPIPE_SOURCE_NEW(name, listenTo, isLive, acceptEos, acceptEvents) \
@@ -96,24 +96,77 @@ namespace DSL
             intraDecode, dropFrameInterval, latency, timeout))
 
     /**
+     * @brief Utility function to define/set all capabilities (capability, 
+     * format, width, height, and frame rate) for a given element.
+     * @param[in] pElement element to update.
+     * @param[in] capability to set (video/x-raw, image/jpeg).
+     * @param[in] format ascii version of one of the DSL_BUFFER_FORMAT constants.
+     * @param[in] width frame width in units of pixels.
+     * @param[in] height frame height in units of pixels.
+     * @param[in] fpsN frames-per-sec numerator.
+     * @param[in] fpsD frames-per-sec denominator.
+     * @param[in] isNvidia set to true to add memory:NVMM feature.
+     * @return on successful set, false otherwise.
+     */
+    static bool set_full_caps(DSL_ELEMENT_PTR pElement, 
+        const char* capability, const char* format, uint width, uint height, 
+        uint fpsN, uint fpsD, bool isNvidia);
+
+    /**
+     * @brief Utility function to define/set the capability and 
+     * format for a given element.
+     * @param[in] pElement element to update.
+     * @param[in] capability to set (video/x-raw, image/jpeg).
+     * @param[in] format ascii version of one of the DSL_BUFFER_FORMAT constants.
+     * @param[in] isNvidia set to true to add memory:NVMM feature.
+     * @return on successful set, false otherwise.
+     */
+    static bool set_format_caps(DSL_ELEMENT_PTR pElement, 
+        const char* capability, const char* format, bool isNvidia);
+
+    /**
      * @class SourceBintr
      * @brief Implements a base Source Bintr for all derived Source types.
-     * CSI, V4L2, URI, and RTSP
      */
     class SourceBintr : public Bintr
     {
     public: 
     
+        /**
+         * @brief ctor for the SourceBintr base class
+         * @param[in] name unique name for the new SourceBintr
+         */
         SourceBintr(const char* name);
 
+        /**
+         * @brief dtor for the SourceBintr base class
+         */
         ~SourceBintr();
-        
+
+        /**
+         * @brief Function is overridden by all derived SourceBintrs
+         */
         void UnlinkAll(){};
 
+        /**
+         * @brief Adds the SourceBintr to a given Parent Bintr (PipelineSourcesBintr).
+         * @param[in] pParentBintr shared pointer to the Parent Bintr to add to.
+         * @return true on successful add, false otherwise.
+         */
         bool AddToParent(DSL_BASE_PTR pParentBintr);
 
+        /**
+         * @brief Tests if a give Bintr is the parent of the SourceBintr.
+         * @param[in] pParentBintr shared pointer to the Bintr to test for parenthood.
+         * @return true if the Bintr is the parent, false otherwise.
+         */
         bool IsParent(DSL_BASE_PTR pParentBintr);
-                        
+        
+        /**
+         * @brief Removes the SourceBintr from a give Parent Bintr.
+         * @param pParentBintr shared pointer to the parent Bintr to remove from.
+         * @return true on successfull remove, false otherwise.
+         */
         bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
         
         /**
@@ -416,6 +469,11 @@ namespace DSL
     private:
     
         /**
+         * @brief capability set for the AppSourceBintr (video/x-raw)
+         */
+        std::string m_capability;
+        
+        /**
          * @brief stream format for the AppSourceBintr - on of the DSL_STREAM_FORMAT constants.
          */
         uint m_streamFormat;
@@ -484,9 +542,9 @@ namespace DSL
         DSL_ELEMENT_PTR m_pVidConv;
 
         /**
-         * @brief Caps Filter for the AppSourceBintr
+         * @brief Caps Filter for the AppSourceBintr's Video Converter.
          */
-        DSL_ELEMENT_PTR m_pCapsFilter;
+        DSL_ELEMENT_PTR m_pVidConvCapsFilter;
     };    
     
     /**
@@ -557,12 +615,6 @@ namespace DSL
     private:
 
         /**
-         * @brief Updates the Caps for the CsiSourceBintr using the current
-         * values for height, width, fps, buffer-out-format, etc.
-         */
-        void UpdateCapsFilter();
-
-        /**
          * @brief static list of unique sersor IDs to be used/recycled by all
          * CsiSourceBintrs
          */
@@ -572,11 +624,28 @@ namespace DSL
          * @brief unique sensorId for the CsiSourceBintr starting with 0
          */
         uint m_sensorId;
+
+        /**
+         * @brief capability set for the CsiSourceBintr (video/x-raw)
+         */
+        std::string m_capability;
         
         /**
-         * @brief Caps Filter for the CsiSourceBintr
+         * @brief Caps Filter for the CsiSourceBintr's Source Element
+         * - nvarguscamerasrc.
          */
-        DSL_ELEMENT_PTR m_pCapsFilter;
+        DSL_ELEMENT_PTR m_pSourceCapsFilter;
+        
+        /**
+         * @brief Video Converter for the CsiSourceBintr
+         */
+        DSL_ELEMENT_PTR m_pVidConv;
+
+        /**
+         * @brief Caps Filter for the CsiSourceBintr's Video Converter.
+         */
+        DSL_ELEMENT_PTR m_pVidConvCapsFilter;
+        
     };    
 
     //*********************************************************************************
@@ -624,19 +693,13 @@ namespace DSL
         bool SetGpuId(uint gpuId);
 
         /**
-         * @brief Sets the buffer-out-format for the CsiSourceBintr to use.
+         * @brief Sets the buffer-out-format for the UsbSourceBintr to use.
          * @param[in] format new buffer-out-format string.
          * @return true if successfull, false otherwise.
          */
         bool SetBufferOutFormat(const char* format);
 
     private:
-
-        /**
-         * @brief Updates the Caps for the UsbSourceBintr using the current
-         * values for height, width, fps, buffer-out-format, etc.
-         */
-        void UpdateCapsFilter();
 
         /**
          * @brief static list of unique device IDs to be used/recycled by all
@@ -662,9 +725,9 @@ namespace DSL
         std::string m_deviceLocation;
 
         /**
-         * @brief Caps Filter for the USB Source
+         * @brief capability set for the UsbSourceBintr (video/x-raw)
          */
-        DSL_ELEMENT_PTR m_pCapsFilter;
+        std::string m_capability;
         
         /**
          * @brief Video converter, first of two, for the USB Source
@@ -675,6 +738,11 @@ namespace DSL
          * @brief Video converter, second of two, for the USB Source
          */
         DSL_ELEMENT_PTR m_pVidConv2;
+
+        /**
+         * @brief Caps Filter for the USB Source elements
+         */
+        DSL_ELEMENT_PTR m_pCapsFilter;
     }; 
 
     //*********************************************************************************
@@ -1193,7 +1261,7 @@ namespace DSL
         void UnlinkAll();
 
         /**
-         * @brief Sets the URI (filepath) to use by this ImageSoureceBintr
+         * @brief Sets the URI (filepath) to use by this ImageStreamSourceBintr
          * @param filePath absolute or relative path to the image file
          * @return true if set successfully, false otherwise
          */
@@ -1221,6 +1289,11 @@ namespace DSL
     private:
         
         /**
+         * @brief capability set for the UsbSourceBintr (video/x-raw)
+         */
+        std::string m_capability;
+
+        /**
          * @brief display timeout in units of seconds
          */
         uint m_timeout;
@@ -1236,7 +1309,7 @@ namespace DSL
         GMutex m_timeoutTimerMutex;
 
         /**
-         * @brief Caps Filter for the File Source Element
+         * @brief Caps Filter for the ImageStreamSourceBintr
          */
         DSL_ELEMENT_PTR m_pSourceCapsFilter;
 
@@ -1245,9 +1318,15 @@ namespace DSL
          */
         DSL_ELEMENT_PTR m_pImageOverlay;
 
-        DSL_ELEMENT_PTR m_pCapsFilter;
+        /**
+         * @brief Video Converter for the ImageStreamSourceBintr
+         */
         DSL_ELEMENT_PTR m_pVidConv;
 
+        /**
+         * @brief Caps Filter for the ImageStreamSourceBintr's Video Converter.
+         */
+        DSL_ELEMENT_PTR m_pVidConvCapsFilter;
     };
 
     //*********************************************************************************
