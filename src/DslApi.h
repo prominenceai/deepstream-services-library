@@ -499,14 +499,14 @@ THE SOFTWARE.
 #define DSL_STREAM_FORMAT_TIME                                      3
 
 /**
- * @brief DSL Media Types
+ * @brief DSL Media Types - Used by all Source Components
  */
 #define DSL_MEDIA_TYPE_VIDEO_XRAW                                   L"video/x-raw"
 #define DSL_MEDIA_TYPE_AUDIO_XRAW                                   L"audio/x-raw"
 #define DSL_MEDIA_TYPE_IMAGE_JPEG                                   L"image/jpeg"
 
 /**
- * @brief DSL Video Format Types - 
+ * @brief DSL Video Format Types - Used by all Source Components
  */
 #define DSL_VIDEO_FORMAT_I420                                       L"I420"
 #define DSL_VIDEO_FORMAT_NV12                                       L"NV12"
@@ -519,6 +519,14 @@ THE SOFTWARE.
 #define DSL_VIDEO_FORMAT_YVYU                                       L"YVYU"   
 #define DSL_VIDEO_FORMAT_Y42B                                       L"Y42B"   
 #define DSL_VIDEO_FORMAT_DEFAULT                                    DSL_VIDEO_FORMAT_I420
+
+/**
+ * @brief Additional number of surfaces in addition to min decode 
+ * surfaces given by the v4l2 driver. This value is used by the 
+ * Decode sources and Pipeline-Streammuxer 
+ */
+#define DSL_DEFAULT_NUM_EXTRA_SURFACES                              1
+
 
 #define DSL_SOURCE_CODEC_PARSER_H264                                0
 #define DSL_SOURCE_CODEC_PARSER_H265                                1
@@ -4569,7 +4577,7 @@ DslReturnType dsl_source_interpipe_accept_settings_set(const wchar_t* name,
  * @param[in] protocol one of the constant protocol values [ DSL_RTP_TCP | DSL_RTP_ALL ]
  * @param[in] intra_decode set to True to enable, false to disable.
  * @param[in] drop_frame_interval, set to 0 to decode every frame.
- * @param[in] latency in milliseconds.
+ * @param[in] latency the amount of data to buffer in milliseconds.
  * @param[in] timeout time to wait between successive frames before determining the 
  * connection is lost. Set to 0 to disable timeout.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.

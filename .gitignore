@@ -30,6 +30,9 @@
 *.dylib
 *.dll
 
+# Raw video files
+*.i420
+
 # Fortran module files
 *.mod
 *.smod

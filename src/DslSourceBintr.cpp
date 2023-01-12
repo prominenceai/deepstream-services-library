@@ -31,19 +31,16 @@ THE SOFTWARE.
 #include <nvdsgstutils.h>
 #include <gst/app/gstappsrc.h>
 
-#define N_DECODE_SURFACES 16
-#define N_EXTRA_SURFACES 1
-
 namespace DSL
 {
     static bool set_full_caps(DSL_ELEMENT_PTR pElement, 
-        const char* capability, const char* format, uint width, uint height, 
+        const char* media, const char* format, uint width, uint height, 
         uint fpsN, uint fpsD, bool isNvidia)
     {
         GstCaps * pCaps(NULL);
         if (width and height)
         {
-            pCaps = gst_caps_new_simple(capability, 
+            pCaps = gst_caps_new_simple(media, 
                 "format", G_TYPE_STRING, format,
                 "width", G_TYPE_INT, width, 
                 "height", G_TYPE_INT, height, 
@@ -51,7 +48,7 @@ namespace DSL
         }
         else
         {
-            pCaps = gst_caps_new_simple(capability, 
+            pCaps = gst_caps_new_simple(media, 
                 "format", G_TYPE_STRING, format,
                 "framerate", GST_TYPE_FRACTION, fpsN, fpsD, NULL);
         }    
@@ -78,9 +75,9 @@ namespace DSL
     }
 
     static bool set_format_caps(DSL_ELEMENT_PTR pElement, 
-        const char* capability, const char* format, bool isNvidia)
+        const char* media, const char* format, bool isNvidia)
     {
-        GstCaps * pCaps = gst_caps_new_simple(capability, 
+        GstCaps * pCaps = gst_caps_new_simple(media, 
             "format", G_TYPE_STRING, format, NULL);
         if (!pCaps)
         {
@@ -112,9 +109,6 @@ namespace DSL
         , m_height(0)
         , m_fpsN(0)
         , m_fpsD(0)
-        , m_latency(100)
-        , m_numDecodeSurfaces(N_DECODE_SURFACES)
-        , m_numExtraSurfaces(N_EXTRA_SURFACES)
     {
         LOG_FUNC();
 
@@ -1097,7 +1091,7 @@ namespace DSL
         const char* factoryName, const char* uri,
         bool isLive, uint intraDecode, uint dropFrameInterval)
         : ResourceSourceBintr(name, uri)
-        , m_cudadecMemtype(DSL_NVBUF_MEM_TYPE_DEFAULT)
+        , m_numExtraSurfaces(DSL_DEFAULT_NUM_EXTRA_SURFACES)
         , m_intraDecode(intraDecode)
         , m_dropFrameInterval(dropFrameInterval)
         , m_accumulatedBase(0)
@@ -1215,19 +1209,6 @@ namespace DSL
         {
             g_signal_connect(G_OBJECT(pObject), "child-added",
                 G_CALLBACK(OnChildAddedCB), this);
-        }
-
-        else if (strName.find("nvcuvid") != std::string::npos)
-        {
-            g_object_set(pObject, "gpu-id", m_gpuId, NULL);
-            g_object_set(pObject, "cuda-memory-type", m_cudadecMemtype, NULL);
-            g_object_set(pObject, "source-id", m_uniqueId, NULL);
-            g_object_set(pObject, "num-decode-surfaces", m_numDecodeSurfaces, NULL);
-            
-            if (m_intraDecode)
-            {
-                g_object_set(pObject, "Intra-decode", m_intraDecode, NULL);
-            }
         }
 
         else if ((strName.find("omx") != std::string::npos))
@@ -2445,6 +2426,7 @@ namespace DSL
         uint latency, uint timeout)
         : DecodeSourceBintr(name, "rtspsrc", uri, true, intraDecode, dropFrameInterval)
         , m_rtpProtocols(protocol)
+        , m_latency(latency)
         , m_bufferTimeout(timeout)
         , m_streamManagerTimerId(0)
         , m_reconnectionManagerTimerId(0)
@@ -2456,11 +2438,6 @@ namespace DSL
         , m_previousState(GST_STATE_NULL)
         , m_listenerNotifierTimerId(0)
     {
-        LOG_FUNC();
-
-        // Set RTSP latency
-        m_latency = latency;
-
         // New RTSP Specific Elementrs for this Source
         m_pPreDecodeTee = DSL_ELEMENT_NEW("tee", name);
         m_pPreDecodeQueue = DSL_ELEMENT_EXT_NEW("queue", name, "decodebin");
@@ -2497,7 +2474,8 @@ namespace DSL
         m_TimestampPph = DSL_PPH_TIMESTAMP_NEW(handlerName.c_str());
         
         std::string padProbeName = GetName() + "-src-pad-probe";
-        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), "src", m_pSourceQueue);
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
+            "src", m_pSourceQueue);
         m_pSrcPadProbe->AddPadProbeHandler(m_TimestampPph);
         
         g_mutex_init(&m_streamManagerMutex);

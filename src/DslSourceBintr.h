@@ -96,10 +96,10 @@ namespace DSL
             intraDecode, dropFrameInterval, latency, timeout))
 
     /**
-     * @brief Utility function to define/set all capabilities for a(capability, 
+     * @brief Utility function to define/set all capabilities (media, 
      * format, width, height, and frame rate) for a given element.
      * @param[in] pElement element to update.
-     * @param[in] capability to set (video/x-raw, image/jpeg).
+     * @param[in] media ascii version of one of the DSL_MEDIA_TYPE constants.
      * @param[in] format ascii version of one of the DSL_VIDEO_FORMAT constants.
      * @param[in] width frame width in units of pixels.
      * @param[in] height frame height in units of pixels.
@@ -109,20 +109,20 @@ namespace DSL
      * @return on successful set, false otherwise.
      */
     static bool set_full_caps(DSL_ELEMENT_PTR pElement, 
-        const char* capability, const char* format, uint width, uint height, 
+        const char* media, const char* format, uint width, uint height, 
         uint fpsN, uint fpsD, bool isNvidia);
 
     /**
-     * @brief Utility function to define/set the capability and 
+     * @brief Utility function to define/set the media and 
      * format for a given element.
      * @param[in] pElement element to update.
-     * @param[in] capability to set (video/x-raw, image/jpeg).
+     * @param[in] media ascii version of one of the DSL_MEDIA_TYPE constants.
      * @param[in] format ascii version of one of the DSL_VIDEO_FORMAT constants.
      * @param[in] isNvidia set to true to add memory:NVMM feature.
      * @return on successful set, false otherwise.
      */
     static bool set_format_caps(DSL_ELEMENT_PTR pElement, 
-        const char* capability, const char* format, bool isNvidia);
+        const char* media, const char* format, bool isNvidia);
 
     /**
      * @class SourceBintr
@@ -245,7 +245,7 @@ namespace DSL
          */
         virtual bool IsLinkable(){return true;};
 
-    public:
+    protected:
 
         /**
          * @brief Device Properties, used for aarch64/x86_64 conditional logic
@@ -289,21 +289,6 @@ namespace DSL
          */
         uint m_fpsD;
 
-        /**
-         * @brief
-         */
-        guint m_latency;
-
-        /**
-         * @brief
-         */
-        uint m_numDecodeSurfaces;
-
-        /**
-         * @brief
-         */
-        uint m_numExtraSurfaces;
-        
         /**
          * @brief Soure Element for this SourceBintr
          */
@@ -902,9 +887,10 @@ namespace DSL
     protected:
 
         /**
-         * @brief
+         * @brief Additional number of surfaces in addition to min decode surfaces 
+         * given by the v4l2 driver. Default = 1.
          */
-        guint m_cudadecMemtype;
+        uint m_numExtraSurfaces;
         
         /**
          * @brief
@@ -1595,6 +1581,11 @@ namespace DSL
         void HandleDecodeElementOnPadAdded(GstElement* pBin, GstPad* pPad);
         
     private:
+    
+        /**
+         * @brief Amount of data to buffer in ms.
+         */
+        guint m_latency;
     
         /**
          @brief 0x4 for TCP and 0x7 for All (UDP/UDP-MCAST/TCP)
