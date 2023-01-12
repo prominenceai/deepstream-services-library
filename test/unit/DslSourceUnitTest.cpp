@@ -50,7 +50,7 @@ static std::string multJpgFilePath("./test/streams/sample_720p.%04d.mjpeg");
 
 static uint width(1920), height(1080), fps_n(30), fps_d(1);
 
-static std::wstring L_bufferOutFormat(DSL_BUFFER_FORMAT_DEFAULT);
+static std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
 static std::string defaultBufferOutFormat(L_bufferOutFormat.begin(), 
     L_bufferOutFormat.end());
 

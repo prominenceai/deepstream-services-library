@@ -662,6 +662,10 @@ namespace DSL {
         DslReturnType SourceAppStreamFormatSet(const char* name,
             uint bufferFormat);
         
+        DslReturnType SourceAppDoTimestampGet(const char* name, boolean* doTimestamp);
+            
+        DslReturnType SourceAppDoTimestampSet(const char* name, boolean doTimestamp);
+            
         DslReturnType SourceAppBlockEnabledGet(const char* name,
             boolean* enabled);
         
@@ -760,16 +764,15 @@ namespace DSL {
 
         DslReturnType SourcePphRemove(const char* name, const char* handler);
 
+        DslReturnType SourceMediaTypeGet(const char* name, 
+            const char** mediaType);
+
         DslReturnType SourceBufferOutFormatGet(const char* name, 
             const char** format);
 
         DslReturnType SourceBufferOutFormatSet(const char* name, 
             const char* format);
 
-        DslReturnType SourceDoTimestampGet(const char* name, boolean* doTimestamp);
-            
-        DslReturnType SourceDoTimestampSet(const char* name, boolean doTimestamp);
-            
         DslReturnType SourceDimensionsGet(const char* name, uint* width, uint* height);
         
         DslReturnType SourceFrameRateGet(const char* name, uint* fpsN, uint* fpsD);

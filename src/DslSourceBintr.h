@@ -96,11 +96,11 @@ namespace DSL
             intraDecode, dropFrameInterval, latency, timeout))
 
     /**
-     * @brief Utility function to define/set all capabilities (capability, 
+     * @brief Utility function to define/set all capabilities for a(capability, 
      * format, width, height, and frame rate) for a given element.
      * @param[in] pElement element to update.
      * @param[in] capability to set (video/x-raw, image/jpeg).
-     * @param[in] format ascii version of one of the DSL_BUFFER_FORMAT constants.
+     * @param[in] format ascii version of one of the DSL_VIDEO_FORMAT constants.
      * @param[in] width frame width in units of pixels.
      * @param[in] height frame height in units of pixels.
      * @param[in] fpsN frames-per-sec numerator.
@@ -117,7 +117,7 @@ namespace DSL
      * format for a given element.
      * @param[in] pElement element to update.
      * @param[in] capability to set (video/x-raw, image/jpeg).
-     * @param[in] format ascii version of one of the DSL_BUFFER_FORMAT constants.
+     * @param[in] format ascii version of one of the DSL_VIDEO_FORMAT constants.
      * @param[in] isNvidia set to true to add memory:NVMM feature.
      * @return on successful set, false otherwise.
      */
@@ -179,11 +179,22 @@ namespace DSL
             
             return m_isLive;
         }
-        
+
+        /**
+         * @brief Gets the current media-type for the SourceBintr.
+         * @return Current media type string. 
+         */
+        const char* GetMediaType()
+        {
+            LOG_FUNC();
+            
+            return m_mediaType.c_str();
+        }
+
         /**
          * @brief Gets the current buffer-out-format for the SourceBintr.
          * @return Current buffer-out-format. 
-         * Note: Default = char* version of DSL_BUFFER_FORMAT_DEFAULT.
+         * Note: Default = char* version of DSL_VIDEO_FORMAT_DEFAULT.
          */
         const char* GetBufferOutFormat()
         {
@@ -195,7 +206,6 @@ namespace DSL
         /**
          * @brief Gets the current buffer-out-format for the SourceBintr.
          * @return Current buffer-out-format. 
-         * Note: Default = char* version of DSL_BUFFER_FORMAT_DEFAULT.
          */
         virtual bool SetBufferOutFormat(const char* format)
         {
@@ -206,21 +216,6 @@ namespace DSL
             return false;
         }
 
-        /**
-         * @brief Gets the current do-timestamp property setting for the SourceBintr.
-         * @return If TRUE, the base class will automatically timestamp outgoing 
-         * buffers based on the current running_time.
-         */
-        boolean GetDoTimestamp();
-
-        /**
-         * @brief Sets the do-timestamp property settings for the SourceBintr
-         * @param[in] doTimestamp set to TRUE to have the base class automatically 
-         * timestamp outgoing buffers. FALSE otherwise.
-         * @return 
-         */
-        bool SetDoTimestamp(boolean doTimestamp);
-        
         /**
          * @brief For sources that manage EOS Consumers, this service must
          * called before sending the source an EOS Event to stop playing.
@@ -252,29 +247,28 @@ namespace DSL
 
     public:
 
-            /**
+        /**
          * @brief Device Properties, used for aarch64/x86_64 conditional logic
          */
         cudaDeviceProp m_cudaDeviceProp;
 
         /**
+         * @brief media-type for the SourceBintr. String version of one of the
+         * DSL_MEDIA_TYPE constant values.
+         */
+        std::string m_mediaType;
+
+        /**
+         * @brief current buffer-out-format. 
+         */
+        std::string m_bufferOutFormat;
+        
+        /**
          * @brief True if the source is live and cannot be paused without losing data, 
          * False otherwise.
          */
         bool m_isLive;
-
-        /**
-         * @brief buffer-out-format for the SourceBintr. 
-         * Default = DSL_BUFFER_FORMAT_DEFAULT
-         */ 
-        std::string m_bufferOutFormat;
         
-        /**
-         * @brief If TRUE, the base class will automatically timestamp outgoing buffers
-         * based on the current running_time..
-         */
-        boolean m_doTimestamp;
-
         /**
          * @brief current width of the streaming source in Pixels.
          */
@@ -400,6 +394,22 @@ namespace DSL
         void HandleEnoughData();
 
         /**
+         * @brief Gets the current do-timestamp property setting for the SourceBintr.
+         * @return If TRUE, the base class will automatically timestamp outgoing 
+         * buffers based on the current running_time.
+         */
+        boolean GetDoTimestamp();
+
+        /**
+         * @brief Sets the do-timestamp property settings for the SourceBintr
+         * @param[in] doTimestamp set to TRUE to have the base class automatically 
+         * timestamp outgoing buffers. FALSE otherwise.
+         * @return 
+         */
+        bool SetDoTimestamp(boolean doTimestamp);
+        
+
+        /**
          * @brief Gets the current stream-format for this AppSourceBintr
          * @return one of the DSL_STREAM_FORMAT constants.
          */
@@ -411,7 +421,7 @@ namespace DSL
          * @return true on successful set, false otherwise.
          */
         bool SetStreamFormat(uint streamFormat);
-
+        
         /**
          * @brief Gets the current block-enabled setting for this AppSourceBintr.
          * @return If true, when max-bytes/buffers/time are queued and after the 
@@ -453,33 +463,34 @@ namespace DSL
          */
         bool SetMaxLevelBytes(uint64_t level);
         
-        /**
-         * @brief Gets the current leaky-type in use by this AppSourceBintr
-         * @return leaky-type one of the DSL_QUEUE_LEAKY_TYPE constant values. 
-         */
+//        /**
+//         * @brief Gets the current leaky-type in use by this AppSourceBintr
+//         * @return leaky-type one of the DSL_QUEUE_LEAKY_TYPE constant values. 
+//         */
 //        uint GetLeakyType();  // TODO support GST 1.20 properties
         
-        /**
-         * @brief Sets the leaky-type for the AppSrcBintr to use.
-         * @param leakyType one of the DSL_QUEUE_LEAKY_TYPE constant values. 
-         * @return true on successful set, false otherwise.
-         */
-        bool SetLeakyType(uint leakyType);
+//        /**
+//         * @brief Sets the leaky-type for the AppSrcBintr to use.
+//         * @param leakyType one of the DSL_QUEUE_LEAKY_TYPE constant values. 
+//         * @return true on successful set, false otherwise.
+//         */
+//        bool SetLeakyType(uint leakyType);
         
     private:
     
-        /**
-         * @brief capability set for the AppSourceBintr (video/x-raw)
-         */
-        std::string m_capability;
-        
         /**
          * @brief stream format for the AppSourceBintr - on of the DSL_STREAM_FORMAT constants.
          */
         uint m_streamFormat;
 
         /**
-         * @brief buffer-in format for the AppSourceBintr - on of the DSL_BUFFER_FORMAT constants.
+         * @brief If TRUE, the base class will automatically timestamp outgoing buffers
+         * based on the current running_time..
+         */
+        boolean m_doTimestamp;
+
+        /**
+         * @brief buffer-in format for the AppSourceBintr - on of the DSL_VIDEO_FORMAT constants.
          */
         std::string m_bufferInFormat;
 
@@ -626,10 +637,11 @@ namespace DSL
         uint m_sensorId;
 
         /**
-         * @brief capability set for the CsiSourceBintr (video/x-raw)
+         * @brief If TRUE, the class will automatically timestamp outgoing buffers
+         * based on the current running_time..
          */
-        std::string m_capability;
-        
+        boolean m_doTimestamp;
+
         /**
          * @brief Caps Filter for the CsiSourceBintr's Source Element
          * - nvarguscamerasrc.
@@ -725,10 +737,11 @@ namespace DSL
         std::string m_deviceLocation;
 
         /**
-         * @brief capability set for the UsbSourceBintr (video/x-raw)
+         * @brief If TRUE, the base class will automatically timestamp outgoing buffers
+         * based on the current running_time..
          */
-        std::string m_capability;
-        
+        boolean m_doTimestamp;
+
         /**
          * @brief Video converter, first of two, for the USB Source
          */
@@ -1288,11 +1301,6 @@ namespace DSL
         
     private:
         
-        /**
-         * @brief capability set for the UsbSourceBintr (video/x-raw)
-         */
-        std::string m_capability;
-
         /**
          * @brief display timeout in units of seconds
          */

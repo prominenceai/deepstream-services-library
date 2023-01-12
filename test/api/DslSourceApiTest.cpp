@@ -61,7 +61,7 @@ static uint interval(0);
 static std::wstring rtsp_uri(L"rtsp://username:password@192.168.0.14:554");
 
 static boolean is_live(false);
-static std::wstring buffer_in_format(DSL_BUFFER_FORMAT_I420);
+static std::wstring buffer_in_format(DSL_VIDEO_FORMAT_I420);
 
 
 static std::wstring def_device_location(L"/dev/video0");
@@ -191,7 +191,7 @@ SCENARIO( "A new App Source returns the correct attribute values", "[source-api]
                 REQUIRE( dsl_source_is_live(source_name.c_str()) == is_live );
                 
                 boolean do_timestamp(TRUE);
-                REQUIRE( dsl_source_do_timestamp_get(source_name.c_str(),
+                REQUIRE( dsl_source_app_do_timestamp_get(source_name.c_str(),
                     &do_timestamp) == DSL_RESULT_SUCCESS );
                 REQUIRE( do_timestamp == FALSE ); // default
                 
@@ -243,13 +243,13 @@ SCENARIO( "An App Source can update its settings correctly", "[source-api]" )
         WHEN( "The App Source's do-timestamp setting is set" ) 
         {
             boolean do_timestamp(TRUE); // default is FALSE
-            REQUIRE( dsl_source_do_timestamp_set(source_name.c_str(),
+            REQUIRE( dsl_source_app_do_timestamp_set(source_name.c_str(),
                 do_timestamp) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct value is returned on get" ) 
             {
                 boolean ret_do_timestamp(FALSE);
-                REQUIRE( dsl_source_do_timestamp_get(source_name.c_str(),
+                REQUIRE( dsl_source_app_do_timestamp_get(source_name.c_str(),
                     &ret_do_timestamp) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_do_timestamp == do_timestamp );
 
@@ -1091,11 +1091,11 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_pph_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_pph_remove(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_source_do_timestamp_get(NULL,
+                REQUIRE( dsl_source_app_do_timestamp_get(NULL,
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_do_timestamp_get(source_name.c_str(),
+                REQUIRE( dsl_source_app_do_timestamp_get(source_name.c_str(),
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_do_timestamp_set(NULL,
+                REQUIRE( dsl_source_app_do_timestamp_set(NULL,
                     0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_list_size() == 0 );

@@ -108,7 +108,6 @@ namespace DSL
         : Bintr(name)
         , m_cudaDeviceProp{0}
         , m_isLive(true)
-        , m_doTimestamp(TRUE)
         , m_width(0)
         , m_height(0)
         , m_fpsN(0)
@@ -122,11 +121,6 @@ namespace DSL
         // Set the stream-id of the unique Source name
         SetId(Services::GetServices()->_sourceNameSet(name));
         
-        // Assign the Default buffer-out-format for all sources
-        std::wstring L_bufferOutFormat(DSL_BUFFER_FORMAT_DEFAULT);
-        m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
-            L_bufferOutFormat.end());
-
         // Get the Device properties
         cudaGetDeviceProperties(&m_cudaDeviceProp, m_gpuId);
     }
@@ -177,29 +171,6 @@ namespace DSL
             RemoveSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
     }
 
-    boolean SourceBintr::GetDoTimestamp()
-    {
-        LOG_FUNC();
-        
-        return m_doTimestamp;
-    }
-
-    bool SourceBintr::SetDoTimestamp(boolean doTimestamp)
-    {
-        LOG_FUNC();
-
-        if (m_isLinked)
-        {
-            LOG_ERROR("Can't set block-enabled for SourceBintr '" 
-                << GetName() << "' as it's currently in a linked state");
-            return false;
-        }
-
-        m_doTimestamp = doTimestamp;
-        m_pSourceElement->SetAttribute("do-timestamp", m_doTimestamp);
-        return true;
-    }
-
     void SourceBintr::GetDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
@@ -220,7 +191,7 @@ namespace DSL
     AppSourceBintr::AppSourceBintr(const char* name, bool isLive, 
             const char* bufferInFormat, uint width, uint height, uint fpsN, uint fpsD)
         : SourceBintr(name) 
-        , m_capability("video/x-raw")
+        , m_doTimestamp(TRUE)
         , m_bufferInFormat(bufferInFormat)
         , m_needDataHandler(NULL)
         , m_enoughDataHandler(NULL)
@@ -232,6 +203,12 @@ namespace DSL
 //        , m_leakyType(0)
     {
         LOG_FUNC();
+        
+        // Media type is fixed to "video/x-raw"
+        std::wstring L_mediaType(DSL_MEDIA_TYPE_VIDEO_XRAW);
+        m_mediaType.assign(L_mediaType.begin(), L_mediaType.end());
+
+        m_bufferOutFormat = bufferInFormat;
 
         m_isLive = isLive;
         m_width = width;
@@ -245,7 +222,7 @@ namespace DSL
 
         // Set the full capabilities (format, dimensions, and framerate)
         // NVIDIA plugin = false... this is a GStreamer plugin
-        if (!set_full_caps(m_pSourceElement, m_capability.c_str(), 
+        if (!set_full_caps(m_pSourceElement, m_mediaType.c_str(), 
             m_bufferInFormat.c_str(), m_width, m_height, m_fpsN, m_fpsD, false))
         {
             throw;
@@ -287,7 +264,7 @@ namespace DSL
         
         // Set the default buffer-out format. NVIDIA plugin = true
         if (!set_format_caps(m_pVidConvCapsFilter, 
-            m_capability.c_str(), m_bufferOutFormat.c_str(), true))
+            m_mediaType.c_str(), m_bufferOutFormat.c_str(), true))
         {
             throw;
         }
@@ -298,7 +275,7 @@ namespace DSL
         LOG_INFO("  stream-format     : " << m_streamFormat);
         LOG_INFO("  block-enabled     : " << m_blockEnabled);
         LOG_INFO("  max-bytes         : " << m_maxBytes);
-        LOG_INFO("  media             : " << m_capability);
+        LOG_INFO("  media             : " << m_mediaType);
         LOG_INFO("  buffer-in-format  : " << m_bufferInFormat);
         LOG_INFO("  buffer-out-format : " << m_bufferOutFormat);
         LOG_INFO("  width             : " << m_width);
@@ -517,6 +494,31 @@ namespace DSL
         }
     }
 
+    boolean AppSourceBintr::GetDoTimestamp()
+    {
+        LOG_FUNC();
+        
+        return m_doTimestamp;
+    }
+
+    bool AppSourceBintr::SetDoTimestamp(boolean doTimestamp)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set block-enabled for SourceBintr '" 
+
+                << GetName() << "' as it's currently in a linked state");
+            return false;
+        }
+
+        m_doTimestamp = doTimestamp;
+        m_pSourceElement->SetAttribute("do-timestamp", m_doTimestamp);
+        return true;
+    }
+
+
     boolean AppSourceBintr::GetBlockEnabled()
     {
         LOG_FUNC();
@@ -646,10 +648,18 @@ namespace DSL
     CsiSourceBintr::CsiSourceBintr(const char* name, 
         guint width, guint height, guint fpsN, guint fpsD)
         : SourceBintr(name)
-        , m_capability("video/x-raw")
         , m_sensorId(0)
     {
         LOG_FUNC();
+
+        // Media type is fixed to "video/x-raw"
+        std::wstring L_mediaType(DSL_MEDIA_TYPE_VIDEO_XRAW);
+        m_mediaType.assign(L_mediaType.begin(), L_mediaType.end());
+
+        // Set the buffer-out-format to the default video format
+        std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
+        m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
+            L_bufferOutFormat.end());
 
         m_width = width;
         m_height = height;
@@ -671,8 +681,8 @@ namespace DSL
         m_pSourceElement->SetAttribute("bufapi-version", TRUE);
 
         // Set the full capabilities (format, dimensions, and framerate)
-        // Note: nvarguscamerasrc supports NV12 format only.
-        if (!set_full_caps(m_pSourceElement, m_capability.c_str(), "NV12",
+        // Note: nvarguscamerasrc supports NV12 and P010_10LE formats only.
+        if (!set_full_caps(m_pSourceElement, m_mediaType.c_str(), "NV12",
             m_width, m_height, m_fpsN, m_fpsD, false))
         {
             throw;
@@ -697,7 +707,7 @@ namespace DSL
         
         // Set the default buffer-out format.
         if (!set_format_caps(m_pVidConvCapsFilter, 
-            m_capability.c_str(), m_bufferOutFormat.c_str(), true))
+            m_mediaType.c_str(), m_bufferOutFormat.c_str(), true))
         {
             throw;
         }
@@ -707,7 +717,7 @@ namespace DSL
         LOG_INFO("  do-timestamp      : " << m_doTimestamp);
         LOG_INFO("  sensor-id         : " << m_sensorId);
         LOG_INFO("  bufapi-version    : " << TRUE);
-        LOG_INFO("  media             : " << m_capability << "(memory:NVMM)");
+        LOG_INFO("  media             : " << m_mediaType << "(memory:NVMM)");
         LOG_INFO("  buffer-out-format : " << m_bufferOutFormat.c_str());
         LOG_INFO("  width             : " << m_width);
         LOG_INFO("  height            : " << m_height);
@@ -821,7 +831,7 @@ namespace DSL
             return false;
         }
         m_bufferOutFormat = format;
-        return set_format_caps(m_pVidConvCapsFilter, m_capability.c_str(),
+        return set_format_caps(m_pVidConvCapsFilter, m_mediaType.c_str(),
             m_bufferOutFormat.c_str(), true);
     }
 
@@ -833,11 +843,20 @@ namespace DSL
     UsbSourceBintr::UsbSourceBintr(const char* name, 
         guint width, guint height, guint fpsN, guint fpsD)
         : SourceBintr(name)
-        , m_capability("video/x-raw")
         , m_deviceId(0)
     {
         LOG_FUNC();
 
+        // Media type is fixed to "video/x-raw"
+        std::wstring L_mediaType(DSL_MEDIA_TYPE_VIDEO_XRAW);
+        m_mediaType.assign(L_mediaType.begin(), L_mediaType.end());
+
+        // Set the buffer-out-format to the default video format
+        std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
+        m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
+            L_bufferOutFormat.end());
+
+        // Update the frame dimensions and framerate
         m_width = width;
         m_height = height;
         m_fpsN = fpsN;
@@ -881,7 +900,7 @@ namespace DSL
 
         // Set the full capabilities (format, dimensions, and framerate)
         // Note: The v4l2src element and Video Converters are NIVIDIA's.
-        if (!set_full_caps(m_pCapsFilter, m_capability.c_str(), 
+        if (!set_full_caps(m_pCapsFilter, m_mediaType.c_str(), 
             m_bufferOutFormat.c_str(),m_width, m_height, m_fpsN, m_fpsD, true))
         {
             throw;
@@ -891,7 +910,7 @@ namespace DSL
         LOG_INFO("Initial property values for UsbSourceBintr '" << name << "'");
         LOG_INFO("  do-timestamp      : " << m_doTimestamp);
         LOG_INFO("  device            : " << m_deviceLocation.c_str());
-        LOG_INFO("  media             : " << m_capability << "(memory:NVMM)");
+        LOG_INFO("  media             : " << m_mediaType << "(memory:NVMM)");
         LOG_INFO("  buffer-out-format : " << m_bufferOutFormat.c_str());
         LOG_INFO("  width             : " << m_width);
         LOG_INFO("  height            : " << m_height);
@@ -1068,7 +1087,7 @@ namespace DSL
 
         // Set the full capabilities (format, dimensions, and framerate)
         // Note: The v4l2src element and Video Converters are NIVIDIA's.
-        return set_full_caps(m_pCapsFilter, m_capability.c_str(),
+        return set_full_caps(m_pCapsFilter, m_mediaType.c_str(),
             m_bufferOutFormat.c_str(),m_width, m_height, m_fpsN, m_fpsD, true);
     }
 
@@ -2077,12 +2096,15 @@ namespace DSL
     ImageStreamSourceBintr::ImageStreamSourceBintr(const char* name, 
         const char* uri, bool isLive, uint fpsN, uint fpsD, uint timeout)
         : ResourceSourceBintr(name, uri)
-        , m_capability("video/x-raw")
         , m_timeout(timeout)
         , m_timeoutTimerId(0)
     {
         LOG_FUNC();
         
+        // Media type is fixed to "video/x-raw"
+        std::wstring L_mediaType(DSL_MEDIA_TYPE_VIDEO_XRAW);
+        m_mediaType.assign(L_mediaType.begin(), L_mediaType.end());
+
         // override default values
         m_isLive = isLive;
         m_fpsN = fpsN;
@@ -2106,7 +2128,7 @@ namespace DSL
         m_pVidConvCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "sink");
 
         // Set the full capabilities (format and framerate)
-        if (!set_full_caps(m_pVidConvCapsFilter, m_capability.c_str(), 
+        if (!set_full_caps(m_pVidConvCapsFilter, m_mediaType.c_str(), 
             m_bufferOutFormat.c_str(), 0, 0, m_fpsN, m_fpsD, true))
         {
             throw;
@@ -2118,7 +2140,7 @@ namespace DSL
         LOG_INFO("    Source          : " << m_pSourceElement->GetFactoryName());
         LOG_INFO("    Overlay         : " << m_pImageOverlay->GetFactoryName());
         LOG_INFO("  location          : " << uri);
-        LOG_INFO("  media             : " << m_capability << "(memory:NVMM)");
+        LOG_INFO("  media             : " << m_mediaType << "(memory:NVMM)");
         LOG_INFO("  buffer-out-format : " << m_bufferOutFormat.c_str());
         LOG_INFO("  framerate         : " << m_fpsN << " / " << m_fpsD);
 

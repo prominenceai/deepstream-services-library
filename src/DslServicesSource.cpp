@@ -289,6 +289,67 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::SourceAppDoTimestampGet(const char* name, 
+        boolean* doTimestamp)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+         
+            *doTimestamp = pSourceBintr->GetDoTimestamp();
+
+            LOG_INFO("Source '" << name << "' returned do-timestamp = " 
+                << *doTimestamp << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception getting do-timestamp");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+        
+    DslReturnType Services::SourceAppDoTimestampSet(const char* name, 
+        boolean doTimestamp)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetDoTimestamp(doTimestamp))
+            {
+                LOG_ERROR("Failed to set do-timestamp = " << doTimestamp 
+                    << " for App Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("App Source '" << name << "' set do-timestamp = " 
+                << doTimestamp << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception setting do-timestamp");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
     DslReturnType Services::SourceAppBlockEnabledGet(const char* name,
         boolean* enabled)
     {
@@ -1473,6 +1534,35 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SourceMediaTypeGet(const char* name, 
+        const char** mediaType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+         
+            *mediaType = pSourceBintr->GetMediaType();
+
+            LOG_INFO("Source '" << name << "' returned media-type = " 
+                << *mediaType << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception getting media-type");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
     DslReturnType Services::SourceBufferOutFormatGet(const char* name, 
         const char** format)
     {
@@ -1532,67 +1622,6 @@ namespace DSL
         {
             LOG_ERROR("Source '" << name 
                 << "' threw exception setting buffer-out-format");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }                
-
-    DslReturnType Services::SourceDoTimestampGet(const char* name, 
-        boolean* doTimestamp)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
-            
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
-         
-            *doTimestamp = pSourceBintr->GetDoTimestamp();
-
-            LOG_INFO("Source '" << name << "' returned do-timestamp = " 
-                << *doTimestamp << " successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name << "' threw exception getting do-timestamp");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }                
-        
-    DslReturnType Services::SourceDoTimestampSet(const char* name, 
-        boolean doTimestamp)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
-            
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
-         
-            if (!pSourceBintr->SetDoTimestamp(doTimestamp))
-            {
-                LOG_ERROR("Failed to set do-timestamp = " << doTimestamp 
-                    << " for Source '" << name << "'");
-                return DSL_RESULT_SOURCE_SET_FAILED;
-            }
-
-            LOG_INFO("Source '" << name << "' set do-timestamp = " 
-                << doTimestamp << " successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name << "' threw exception setting do-timestamp");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }                

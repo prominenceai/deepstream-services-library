@@ -492,26 +492,33 @@ THE SOFTWARE.
 #define DSL_NVBUF_MEM_TYPE_UNIFIED                                  3
 
 /**
- * @brief DSL Stream Format types
+ * @brief DSL Stream Format Types
  */
 // must match GstFormat values
 #define DSL_STREAM_FORMAT_BYTE                                      2
 #define DSL_STREAM_FORMAT_TIME                                      3
 
 /**
- * @brief DSL Buffer format types - 
+ * @brief DSL Media Types
  */
-#define DSL_BUFFER_FORMAT_I420                                      L"I420"
-#define DSL_BUFFER_FORMAT_NV12                                      L"NV12"
-#define DSL_BUFFER_FORMAT_P010_10LE                                 L"P010_10LE"
-#define DSL_BUFFER_FORMAT_BGRx                                      L"BGRx"   
-#define DSL_BUFFER_FORMAT_RGBA                                      L"RGBA"   
-#define DSL_BUFFER_FORMAT_GRAY8                                     L"GRAY8"   
-#define DSL_BUFFER_FORMAT_YUY2                                      L"YUY2"   
-#define DSL_BUFFER_FORMAT_UYVY                                      L"UYVY"   
-#define DSL_BUFFER_FORMAT_YVYU                                      L"YVYU"   
-#define DSL_BUFFER_FORMAT_Y42B                                      L"Y42B"   
-#define DSL_BUFFER_FORMAT_DEFAULT                                   DSL_BUFFER_FORMAT_I420
+#define DSL_MEDIA_TYPE_VIDEO_XRAW                                   L"video/x-raw"
+#define DSL_MEDIA_TYPE_AUDIO_XRAW                                   L"audio/x-raw"
+#define DSL_MEDIA_TYPE_IMAGE_JPEG                                   L"image/jpeg"
+
+/**
+ * @brief DSL Video Format Types - 
+ */
+#define DSL_VIDEO_FORMAT_I420                                       L"I420"
+#define DSL_VIDEO_FORMAT_NV12                                       L"NV12"
+#define DSL_VIDEO_FORMAT_P010_10LE                                  L"P010_10LE"
+#define DSL_VIDEO_FORMAT_BGRx                                       L"BGRx"   
+#define DSL_VIDEO_FORMAT_RGBA                                       L"RGBA"   
+#define DSL_VIDEO_FORMAT_GRAY8                                      L"GRAY8"   
+#define DSL_VIDEO_FORMAT_YUY2                                       L"YUY2"   
+#define DSL_VIDEO_FORMAT_UYVY                                       L"UYVY"   
+#define DSL_VIDEO_FORMAT_YVYU                                       L"YVYU"   
+#define DSL_VIDEO_FORMAT_Y42B                                       L"Y42B"   
+#define DSL_VIDEO_FORMAT_DEFAULT                                    DSL_VIDEO_FORMAT_I420
 
 #define DSL_SOURCE_CODEC_PARSER_H264                                0
 #define DSL_SOURCE_CODEC_PARSER_H265                                1
@@ -4085,7 +4092,7 @@ uint dsl_pph_list_size();
  * @param[in] name unique name for the new Source.
  * @param[in] is_live set to true to instruct the source to behave like a 
  * live source. This includes that it will only push out buffers in the PLAYING state.
- * @param[in] buffer_in_format one of the DSL_BUFFER_FORMAT constants.
+ * @param[in] buffer_in_format one of the DSL_VIDEO_FORMAT constants.
  * @param[in] width width of the source in pixels.
  * @param[in] height height of the source in pixels.
  * @param[in] fps-n frames/second fraction numerator.
@@ -4164,6 +4171,26 @@ DslReturnType dsl_source_app_stream_format_get(const wchar_t* name,
 DslReturnType dsl_source_app_stream_format_set(const wchar_t* name, 
     uint stream_format);
 
+/**
+ * @brief Gets the do-timestamp setting for the named Source Component.
+ * @param[in] name unique name of the Source Component to query.
+ * @param[out] do_timestamp if TRUE, the base class will automatically 
+ * timestamp outgoing buffers based on the current running_time.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_do_timestamp_get(const wchar_t* name, 
+    boolean* do_timestamp);
+
+/**
+ * @brief Gets the do-timestamp setting for the named Source Component.
+ * @param[in] name unique name of the Source Component to update.
+ * @param[in] do_timestamp set to TRUE to have the base class automatically 
+ * timestamp outgoing buffers. FALSE otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_app_do_timestamp_set(const wchar_t* name, 
+    boolean do_timestamp);
+    
 /**
  * @brief Gets the block enabled setting for the named App Source Component.
  * If true, when max-bytes are queued and after the enough-data signal has been 
@@ -4554,7 +4581,7 @@ DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint 
  * @brief Adds a pad-probe-handler to the Source Pad of a named Source. 
  * @param[in] name unique name of the Source to update
  * @param[in] handler unique name of the pad probe handler to add,
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_pph_add(const wchar_t* name, const wchar_t* handler);
 
@@ -4562,15 +4589,25 @@ DslReturnType dsl_source_pph_add(const wchar_t* name, const wchar_t* handler);
  * @brief Removes a pad-probe-handler from the Source Pad of a named Source.
  * @param[in] name unique name of the Source to update.
  * @param[in] handler unique name of pad-probe-handler to remove.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler);
 
 /**
+ * @brief Gets the media type for the named Source component.
+ * @param name unique name of the Source Component to query.
+ * @param[out] media_type fixed media-type. One of the DSL_MEDIA_TYPE
+ * constant string values. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
+ */
+DslReturnType dsl_source_media_type_get(const wchar_t* name,
+    const wchar_t** media_type);
+
+/**
  * @brief Gets the current buffer-out-format for the named Source component.
  * @param name unique name of the Source Component to query.
- * @param[out] format current buffer-out-format. One of the DSL_BUFFER_FORMAT
- * constant string values. Default = DSL_BUFFER_FORMAT_DEFAULT.
+ * @param[out] format current buffer-out-format. One of the DSL_VIDEO_FORMAT
+ * constant string values. Default = DSL_VIDEO_FORMAT_DEFAULT.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
  */
 DslReturnType dsl_source_buffer_out_format_get(const wchar_t* name,
@@ -4579,33 +4616,13 @@ DslReturnType dsl_source_buffer_out_format_get(const wchar_t* name,
 /**
  * @brief Sets the buffer-out-format for the named Source component to use.
  * @param name unique name of the Source Component to query.
- * @param[in] format new buffer-out-format to use. One of the DSL_BUFFER_FORMAT
+ * @param[in] format new buffer-out-format to use. One of the DSL_VIDEO_FORMAT
  * constant string values.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
  */
 DslReturnType dsl_source_buffer_out_format_set(const wchar_t* name,
     const wchar_t* format);
 
-/**
- * @brief Gets the do-timestamp setting for the named Source Component.
- * @param[in] name unique name of the Source Component to query.
- * @param[out] do_timestamp if TRUE, the base class will automatically 
- * timestamp outgoing buffers based on the current running_time.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_do_timestamp_get(const wchar_t* name, 
-    boolean* do_timestamp);
-
-/**
- * @brief Gets the do-timestamp setting for the named Source Component.
- * @param[in] name unique name of the Source Component to update.
- * @param[in] do_timestamp set to TRUE to have the base class automatically 
- * timestamp outgoing buffers. FALSE otherwise.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_do_timestamp_set(const wchar_t* name, 
-    boolean do_timestamp);
-    
 /**
  * @brief returns the frame rate of the name source as a fraction
  * Camera sources will return the value used on source creation

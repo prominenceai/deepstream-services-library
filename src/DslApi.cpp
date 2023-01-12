@@ -4035,6 +4035,30 @@ DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler)
         cstrHandler.c_str());
 }
 
+DslReturnType dsl_source_media_type_get(const wchar_t* name,
+    const wchar_t** media_type)   
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(media_type);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cMediaType;
+    static std::string cstrMediaType;
+    static std::wstring wcstrMediaType;
+    
+    uint retval = DSL::Services::GetServices()->SourceMediaTypeGet(
+        cstrName.c_str(), &cMediaType);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrMediaType.assign(cMediaType);
+        wcstrMediaType.assign(cstrMediaType.begin(), cstrMediaType.end());
+        *media_type = wcstrMediaType.c_str();
+    }
+    return retval;
+}
+    
 DslReturnType dsl_source_buffer_out_format_get(const wchar_t* name,
     const wchar_t** format)
 {
@@ -4075,7 +4099,7 @@ DslReturnType dsl_source_buffer_out_format_set(const wchar_t* name,
         cstrName.c_str(), cstrFormat.c_str());
 }
     
-DslReturnType dsl_source_do_timestamp_get(const wchar_t* name, 
+DslReturnType dsl_source_app_do_timestamp_get(const wchar_t* name, 
     boolean* do_timestamp)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4084,11 +4108,11 @@ DslReturnType dsl_source_do_timestamp_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceDoTimestampGet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SourceAppDoTimestampGet(cstrName.c_str(), 
         do_timestamp);
 }
 
-DslReturnType dsl_source_do_timestamp_set(const wchar_t* name, 
+DslReturnType dsl_source_app_do_timestamp_set(const wchar_t* name, 
     boolean do_timestamp)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4096,7 +4120,7 @@ DslReturnType dsl_source_do_timestamp_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceDoTimestampSet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SourceAppDoTimestampSet(cstrName.c_str(), 
         do_timestamp);
 }
     

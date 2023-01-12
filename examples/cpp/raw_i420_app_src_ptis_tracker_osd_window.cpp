@@ -258,7 +258,7 @@ int main(int argc, char** argv)
         
         // New App Source with is_live = false, format = I420
         retval = dsl_source_app_new(L"app-source", false, 
-            DSL_STREAM_FORMAT_I420, source_width, source_height, fps_n, fps_d);
+            DSL_VIDEO_FORMAT_I420, source_width, source_height, fps_n, fps_d);
         if (retval != DSL_RESULT_SUCCESS) break;
         
         // 
@@ -268,11 +268,11 @@ int main(int argc, char** argv)
 
 // To enable presentation timestamp
 #if CUSTOM_PTS
-        retval = dsl_source_do_timestamp_set(L"app-source", TRUE);
+        retval = dsl_source_app_do_timestamp_set(L"app-source", TRUE);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_source_app_buffer_format_set(L"app-source",
-            DSL_BUFFER_FORMAT_TIME);
+        retval = dsl_source_app_stream_format_set(L"app-source",
+            DSL_STREAM_FORMAT_TIME);
         if (retval != DSL_RESULT_SUCCESS) break;
 #endif            
         // New Primary TIS using the filespec specified above, with interval = 0
