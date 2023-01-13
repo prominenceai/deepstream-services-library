@@ -510,14 +510,7 @@ THE SOFTWARE.
  */
 #define DSL_VIDEO_FORMAT_I420                                       L"I420"
 #define DSL_VIDEO_FORMAT_NV12                                       L"NV12"
-#define DSL_VIDEO_FORMAT_P010_10LE                                  L"P010_10LE"
-#define DSL_VIDEO_FORMAT_BGRx                                       L"BGRx"   
 #define DSL_VIDEO_FORMAT_RGBA                                       L"RGBA"   
-#define DSL_VIDEO_FORMAT_GRAY8                                      L"GRAY8"   
-#define DSL_VIDEO_FORMAT_YUY2                                       L"YUY2"   
-#define DSL_VIDEO_FORMAT_UYVY                                       L"UYVY"   
-#define DSL_VIDEO_FORMAT_YVYU                                       L"YVYU"   
-#define DSL_VIDEO_FORMAT_Y42B                                       L"Y42B"   
 #define DSL_VIDEO_FORMAT_DEFAULT                                    DSL_VIDEO_FORMAT_I420
 
 /**

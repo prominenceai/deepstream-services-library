@@ -1678,6 +1678,16 @@ namespace DSL
         // override the default source attributes
         m_isLive = False;
 
+        // Media type is fixed to "video/x-raw"
+        std::wstring L_mediaType(DSL_MEDIA_TYPE_VIDEO_XRAW);
+        m_mediaType.assign(L_mediaType.begin(), L_mediaType.end());
+
+        // Set the buffer-out-format to the default video format
+        std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
+        m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
+            L_bufferOutFormat.end());
+
+
         // Other components are created conditionaly by file type. 
         if (m_uri.find("jpeg") != std::string::npos or
             m_uri.find("jpg") != std::string::npos)
@@ -1688,13 +1698,38 @@ namespace DSL
             m_ext = DSL_IMAGE_EXT_JPG;
             m_pParser = DSL_ELEMENT_NEW("jpegparse", name);
             m_pDecoder = DSL_ELEMENT_NEW("nvv4l2decoder", name); 
+
+            // ---- Video Converter Setup
             
-            AddChild(m_pDecoder);
+            m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
+            
+            if (!m_cudaDeviceProp.integrated)
+            {
+                m_pVidConv->SetAttribute("nvbuf-memory-type", 
+                    DSL_NVBUF_MEM_TYPE_UNIFIED);
+            }
+            
+            // ---- Caps Filter Setup
+
+            m_pVidConvCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
+
+            // Set the buffer-out-format to the default
+            if (!set_format_caps(m_pVidConvCapsFilter, m_mediaType.c_str(), 
+                m_bufferOutFormat.c_str(), true))
+            {
+                throw;
+            }
+            
             AddChild(m_pParser);
+            AddChild(m_pDecoder);
+            AddChild(m_pVidConv);
+            AddChild(m_pVidConvCapsFilter);
+
+            m_pVidConvCapsFilter->AddGhostPadToParent("src");
             
             std::string padProbeName = GetName() + "-src-pad-probe";
             m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
-                "src", m_pDecoder);
+                "src", m_pVidConvCapsFilter);
 
             // If it's an MJPG file or Multi JPG files
             if (m_uri.find("mjpeg") != std::string::npos or
@@ -1727,6 +1762,21 @@ namespace DSL
         LOG_FUNC();
     }
 
+    bool ImageSourceBintr::SetBufferOutFormat(const char* format)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set buffer-out-format for ImageStreamSourceBintr '" << GetName() 
+                << "' as it is currently in a linked state");
+            return false;
+        }
+        m_bufferOutFormat = format;
+        return set_format_caps(m_pVidConvCapsFilter, m_mediaType.c_str(),
+            m_bufferOutFormat.c_str(), true);
+    }
+
     //*********************************************************************************
 
     SingleImageSourceBintr::SingleImageSourceBintr(const char* name, const char* uri)
@@ -1751,8 +1801,6 @@ namespace DSL
         LOG_INFO("  location   : " << uri);
         LOG_INFO("  media      : " << "image/jpeg");
         LOG_INFO("  mjpeg      : " << m_mjpeg);
-
-        m_pDecoder->AddGhostPadToParent("src");
     }
     
     SingleImageSourceBintr::~SingleImageSourceBintr()
@@ -1776,19 +1824,14 @@ namespace DSL
                 << "' as its uri has not been set");
             return false;
         }
-        if (m_format == DSL_IMAGE_FORMAT_JPG)
+        if (!m_pSourceElement->LinkToSink(m_pParser) or
+            !m_pParser->LinkToSink(m_pDecoder) or
+            !m_pDecoder->LinkToSink(m_pVidConv) or
+            !m_pVidConv->LinkToSink(m_pVidConvCapsFilter))
         {
-            if (!m_pSourceElement->LinkToSink(m_pParser) or
-                !m_pParser->LinkToSink(m_pDecoder))
-            {
-                LOG_ERROR("SingleImageSourceBintr '" << GetName() 
-                    << "' failed to LinkAll");
-                return false;
-            }
-        }
-        else
-        {
-            // TODO
+            LOG_ERROR("SingleImageSourceBintr '" << GetName() 
+                << "' failed to LinkAll");
+            return false;
         }
         m_isLinked = true;
         
@@ -1805,21 +1848,15 @@ namespace DSL
                 << "' is not in a linked state");
             return;
         }
-        
-        if (m_format == DSL_IMAGE_FORMAT_JPG)
+        if (!m_pSourceElement->UnlinkFromSink() or
+            !m_pParser->UnlinkFromSink() or
+            !m_pDecoder->UnlinkFromSink() or
+            !m_pVidConv->UnlinkFromSink())
         {
-            if (!m_pSourceElement->UnlinkFromSink() or
-                !m_pParser->UnlinkFromSink())
-            {
-                LOG_ERROR("SingleImageSourceBintr '" << GetName() 
-                    << "' failed to UnlinkAll");
-                return;
-            }    
-        }
-        else
-        {
-            // TODO
-        }
+            LOG_ERROR("SingleImageSourceBintr '" << GetName() 
+                << "' failed to UnlinkAll");
+            return;
+        }    
         m_isLinked = false;
     }
 
@@ -1881,8 +1918,6 @@ namespace DSL
         m_fpsD = fpsD;
 
         m_pSourceElement = DSL_ELEMENT_NEW("multifilesrc", name);
-        m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
-        m_pVideoRate = DSL_ELEMENT_NEW("videorate", name);
 
         GstCaps * pCaps = gst_caps_new_simple("image/jpeg", "framerate", 
             GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
@@ -1896,8 +1931,6 @@ namespace DSL
         m_pSourceElement->SetAttribute("loop", m_loopEnabled);
         m_pSourceElement->SetAttribute("start-index", m_startIndex);
         m_pSourceElement->SetAttribute("stop-index", m_stopIndex);
-        
-        m_pCapsFilter->SetAttribute("caps", pCaps);
         
         gst_caps_unref(pCaps);        
 
@@ -1915,15 +1948,13 @@ namespace DSL
         LOG_INFO("  stop-index  : " << m_stopIndex);
         
         AddChild(m_pSourceElement);
-        AddChild(m_pCapsFilter);
-        AddChild(m_pVideoRate);
 
         if (!SetUri(uri))
         {
             throw;
         }
-        
-        m_pVideoRate->AddGhostPadToParent("src");
+//        
+//        m_pVideoRate->AddGhostPadToParent("src");
     }
     
     MultiImageSourceBintr::~MultiImageSourceBintr()
@@ -1947,21 +1978,14 @@ namespace DSL
                 << "' as its uri has not been set");
             return false;
         }
-        if (m_format == DSL_IMAGE_FORMAT_JPG)
+        if (!m_pSourceElement->LinkToSink(m_pParser) or
+            !m_pParser->LinkToSink(m_pDecoder) or
+            !m_pDecoder->LinkToSink(m_pVidConv) or
+            !m_pVidConv->LinkToSink(m_pVidConvCapsFilter))
         {
-            if (!m_pSourceElement->LinkToSink(m_pCapsFilter) or
-                !m_pCapsFilter->LinkToSink(m_pParser) or
-                !m_pParser->LinkToSink(m_pDecoder) or
-                !m_pDecoder->LinkToSink(m_pVideoRate))
-            {
-                LOG_ERROR("MultiImageSourceBintr '" << GetName() 
-                    << "' failed to LinkAll");
-                return false;
-            }
-        }
-        else
-        {
-            // TODO
+            LOG_ERROR("MultiImageSourceBintr '" << GetName() 
+                << "' failed to LinkAll");
+            return false;
         }
         m_isLinked = true;
         
@@ -1979,18 +2003,15 @@ namespace DSL
             return;
         }
         
-        if (m_format == DSL_IMAGE_FORMAT_JPG)
+        if (!m_pSourceElement->UnlinkFromSink() or
+            !m_pParser->UnlinkFromSink() or
+            !m_pDecoder->UnlinkFromSink() or
+            !m_pVidConv->UnlinkFromSink())
         {
-            if (!m_pSourceElement->UnlinkFromSink() or
-                !m_pCapsFilter->UnlinkFromSink() or
-                !m_pParser->UnlinkFromSink() or
-                !m_pDecoder->UnlinkFromSink())
-            {
-                LOG_ERROR("MultiImageSourceBintr '" << GetName() 
-                    << "' failed to UnlinkAll");
-                return;
-            }    
-        }
+            LOG_ERROR("MultiImageSourceBintr '" << GetName() 
+                << "' failed to UnlinkAll");
+            return;
+        }    
         else
         {
             // TODO
@@ -2086,6 +2107,11 @@ namespace DSL
         std::wstring L_mediaType(DSL_MEDIA_TYPE_VIDEO_XRAW);
         m_mediaType.assign(L_mediaType.begin(), L_mediaType.end());
 
+        // Set the buffer-out-format to the default video format
+        std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
+        m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
+            L_bufferOutFormat.end());
+
         // override default values
         m_isLive = isLive;
         m_fpsN = fpsN;
@@ -2108,9 +2134,9 @@ namespace DSL
 
         m_pVidConvCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "sink");
 
-        // Set the full capabilities (format and framerate)
-        if (!set_full_caps(m_pVidConvCapsFilter, m_mediaType.c_str(), 
-            m_bufferOutFormat.c_str(), 0, 0, m_fpsN, m_fpsD, true))
+        // Set the buffer-out-format to the default
+        if (!set_format_caps(m_pVidConvCapsFilter, m_mediaType.c_str(), 
+            m_bufferOutFormat.c_str(), true))
         {
             throw;
         }
@@ -2154,6 +2180,52 @@ namespace DSL
         g_mutex_clear(&m_timeoutTimerMutex);
     }
 
+    bool ImageStreamSourceBintr::SetUri(const char* uri)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set File Path for ImageStreamSourceBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+        std::string pathString(uri);
+        if (pathString.empty())
+        {
+            LOG_INFO("File Path for ImageStreamSourceBintr '" << GetName() 
+                << "' is empty. Source is in a non playable state");
+            return true;
+        }
+            
+        std::ifstream streamUriFile(uri);
+        if (!streamUriFile.good())
+        {
+            LOG_ERROR("Image Source'" << uri << "' Not found");
+            return false;
+        }
+        // File source, not live - setup full path
+        char absolutePath[PATH_MAX+1];
+        m_uri.assign(realpath(uri, absolutePath));
+
+        // Use OpenCV to determine the new image dimensions
+        cv::Mat image = imread(m_uri, cv::IMREAD_COLOR);
+        cv::Size imageSize = image.size();
+        m_width = imageSize.width;
+        m_height = imageSize.height;
+
+        // Set the full capabilities (format and framerate)
+        if (!set_full_caps(m_pSourceCapsFilter, m_mediaType.c_str(), 
+            m_bufferOutFormat.c_str(), m_width, m_height, m_fpsN, m_fpsD, false))
+        {
+            return false;
+        }
+        // Set the filepath for the Image Overlay Elementr
+        m_pImageOverlay->SetAttribute("location", m_uri.c_str());
+        
+        return true;
+    }
+    
     bool ImageStreamSourceBintr::LinkAll()
     {
         LOG_FUNC();
@@ -2223,58 +2295,6 @@ namespace DSL
         return 0;
     }
 
-    bool ImageStreamSourceBintr::SetUri(const char* uri)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set File Path for ImageStreamSourceBintr '" << GetName() 
-                << "' as it's currently in use");
-            return false;
-        }
-        std::string pathString(uri);
-        if (pathString.empty())
-        {
-            LOG_INFO("File Path for ImageStreamSourceBintr '" << GetName() 
-                << "' is empty. Source is in a non playable state");
-            return true;
-        }
-            
-        std::ifstream streamUriFile(uri);
-        if (!streamUriFile.good())
-        {
-            LOG_ERROR("Image Source'" << uri << "' Not found");
-            return false;
-        }
-        // File source, not live - setup full path
-        char absolutePath[PATH_MAX+1];
-        m_uri.assign(realpath(uri, absolutePath));
-
-        // Use OpenCV to determine the new image dimensions
-        cv::Mat image = imread(m_uri, cv::IMREAD_COLOR);
-        cv::Size imageSize = image.size();
-        m_width = imageSize.width;
-        m_height = imageSize.height;
-
-        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", 
-            "format", G_TYPE_STRING, m_bufferOutFormat.c_str(), 
-            "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height,
-            "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
-        if (!pCaps)
-        {
-            LOG_ERROR("Failed to create new Simple Caps Filter for '" << m_name << "'");
-            return false;  
-        }
-        m_pSourceCapsFilter->SetAttribute("caps", pCaps);
-        gst_caps_unref(pCaps);        
-
-        // Set the filepath for the Image Elementr
-        m_pImageOverlay->SetAttribute("location", m_uri.c_str());
-        
-        return true;
-    }
-    
     uint ImageStreamSourceBintr::GetTimeout()
     {
         LOG_FUNC();
@@ -2295,6 +2315,21 @@ namespace DSL
         
         m_timeout = timeout;
         return true;
+    }
+
+    bool ImageStreamSourceBintr::SetBufferOutFormat(const char* format)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set buffer-out-format for ImageStreamSourceBintr '" << GetName() 
+                << "' as it is currently in a linked state");
+            return false;
+        }
+        m_bufferOutFormat = format;
+        return set_format_caps(m_pVidConvCapsFilter, m_mediaType.c_str(),
+            m_bufferOutFormat.c_str(), true);
     }
     
     //*********************************************************************************
@@ -2324,7 +2359,7 @@ namespace DSL
         m_pSourceElement->SetAttribute("allow-renegotiation", TRUE);
 
         LOG_INFO("");
-        LOG_INFO("Initial property values for RtspSourceBintr '" << name << "'");
+        LOG_INFO("Initial property values for InterpipeSourceBintr '" << name << "'");
         LOG_INFO("  is-live             : " << m_isLive);
         LOG_INFO("  listen-to           : " << m_listenTo);
         LOG_INFO("  accept-eos-event    : " << m_acceptEos);

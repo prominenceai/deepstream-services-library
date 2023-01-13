@@ -1053,6 +1053,14 @@ namespace DSL
          * @brief dtor for the ImageSourceBintr
          */
         ~ImageSourceBintr();
+        
+        /**
+         * @brief Sets the buffer-out-format for the ImageSourceBintr to use.
+         * @param[in] format new buffer-out-format string.
+         * @return true if successfull, false otherwise.
+         */
+        bool SetBufferOutFormat(const char* format);
+        
 
     protected:
         /**
@@ -1080,6 +1088,15 @@ namespace DSL
          */
         DSL_ELEMENT_PTR m_pDecoder;
 
+        /**
+         * @brief Video Converter for the ImageSourceBintr
+         */
+        DSL_ELEMENT_PTR m_pVidConv;
+
+        /**
+         * @brief Caps Filter for the ImageSourceBintr's Video Converter.
+         */
+        DSL_ELEMENT_PTR m_pVidConvCapsFilter;
     };
 
     //*********************************************************************************
@@ -1216,15 +1233,6 @@ namespace DSL
          */
         int m_stopIndex;
 
-        /**
-         * @brief Caps Filter for the MultiImageSourceBintr
-         */
-        DSL_ELEMENT_PTR m_pCapsFilter;
-
-        /**
-         * @brief videorate element for the MultiImageSourceBintr
-         */
-        DSL_ELEMENT_PTR m_pVideoRate;
 };
 
     //*********************************************************************************
@@ -1284,6 +1292,13 @@ namespace DSL
          * @return 0 always to clear the timer resource
          */
         int HandleDisplayTimeout();
+
+        /**
+         * @brief Sets the buffer-out-format for the ImageStreamSourceBintr to use.
+         * @param[in] format new buffer-out-format string.
+         * @return true if successfull, false otherwise.
+         */
+        bool SetBufferOutFormat(const char* format);
         
     private:
         
