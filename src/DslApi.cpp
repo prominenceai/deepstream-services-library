@@ -3663,7 +3663,7 @@ DslReturnType dsl_source_usb_device_location_set(const wchar_t* name,
 }
 
 DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, 
-    boolean is_live, uint intra_decode, uint dropFrameInterval)
+    boolean is_live, uint skip_frames, uint dropFrameInterval)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(uri);
@@ -3674,7 +3674,7 @@ DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri,
     std::string cstrUri(wstrUri.begin(), wstrUri.end());
 
     return DSL::Services::GetServices()->SourceUriNew(cstrName.c_str(), cstrUri.c_str(), 
-        is_live, intra_decode, dropFrameInterval);
+        is_live, skip_frames, dropFrameInterval);
 }
 
 DslReturnType dsl_source_file_new(const wchar_t* name, 
@@ -3993,7 +3993,7 @@ DslReturnType dsl_source_interpipe_accept_settings_set(const wchar_t* name,
 }
     
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol, 
-    uint intra_decode, uint dropFrameInterval, uint latency, uint timeout)
+    uint skip_frames, uint dropFrameInterval, uint latency, uint timeout)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(uri);
@@ -4004,7 +4004,7 @@ DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint 
     std::string cstrUri(wstrUri.begin(), wstrUri.end());
 
     return DSL::Services::GetServices()->SourceRtspNew(cstrName.c_str(), cstrUri.c_str(), 
-        protocol, intra_decode, dropFrameInterval, latency, timeout);
+        protocol, skip_frames, dropFrameInterval, latency, timeout);
 }
 
 DslReturnType dsl_source_pph_add(const wchar_t* name, const wchar_t* handler)

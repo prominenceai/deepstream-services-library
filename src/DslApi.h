@@ -4358,11 +4358,11 @@ DslReturnType dsl_source_usb_device_location_set(const wchar_t* name,
  * @param[in] name unique name for the new URI Source
  * @param[in] uri Unique Resource Identifier (file or live)
  * @param[in] is_live true if source is live false if file
- * @param[in] intra_decode set to True to enable, false to disable
+ * @param[in] skip_frames set to True to enable, false to disable
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, 
-    boolean is_live, uint intra_decode, uint drop_frame_interval);
+    boolean is_live, uint skip_frames, uint drop_frame_interval);
 
 /**
  * @brief creates a new, uniquely named File Source component
@@ -4422,8 +4422,8 @@ DslReturnType dsl_source_image_new(const wchar_t* name,
  * decodes multiple images specified by folder/filename-pattern.
  * @param[in] name Unique name for the Image Frame Source
  * @param[in] file_path use the printf style %d in the absolute or relative path. 
- * Eample: "./my_images/image.%d04.mjpg", where the files in "./my_images/"
- * are named "image.0000.mjpg", "image.0001.mjpg", "image.0002.mjpg" etc.
+ * Eample: "./my_images/image.%d04.jpg", where the files in "./my_images/"
+ * are named "image.0000.jpg", "image.0001.jpg", "image.0002.jpg" etc.
  * @param[in] fps-n frames/second fraction numerator
  * @param[in] fps-d frames/second fraction denominator
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
@@ -4568,7 +4568,10 @@ DslReturnType dsl_source_interpipe_accept_settings_set(const wchar_t* name,
  * @brief creates a new, uniquely named RTSP Source component
  * @param[in] name Unique for the new RTSP Source.
  * @param[in] protocol one of the constant protocol values [ DSL_RTP_TCP | DSL_RTP_ALL ]
- * @param[in] intra_decode set to True to enable, false to disable.
+ * @param[in] skip_frames Type of frames to skip during decoding.
+ *   (0): decode_all       - Decode all frames
+ *   (1): decode_non_ref   - Decode non-ref frame
+ *   (2): decode_key       - decode key frames
  * @param[in] drop_frame_interval, set to 0 to decode every frame.
  * @param[in] latency the amount of data to buffer in milliseconds.
  * @param[in] timeout time to wait between successive frames before determining the 
@@ -4576,7 +4579,7 @@ DslReturnType dsl_source_interpipe_accept_settings_set(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol,
-    uint intra_decode, uint drop_frame_interval, uint latency, uint timeout);
+    uint skip_frames, uint drop_frame_interval, uint latency, uint timeout);
 
 /**
  * @brief Adds a pad-probe-handler to the Source Pad of a named Source. 

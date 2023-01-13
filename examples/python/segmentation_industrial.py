@@ -97,7 +97,7 @@ def main(args):
         retval = dsl_source_uri_new('image-source', 
             uri = file_path, 
             is_live = False,
-            intra_decode = False,
+            skip_frames = 0,
             drop_frame_interval = False)
         if retval != DSL_RETURN_SUCCESS:
             break

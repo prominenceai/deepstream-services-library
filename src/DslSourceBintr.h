@@ -58,12 +58,12 @@ namespace DSL
 
     #define DSL_RESOURCE_SOURCE_PTR std::shared_ptr<ResourceSourceBintr>
         
-    #define DSL_DECODE_SOURCE_PTR std::shared_ptr<DecodeSourceBintr>
+//    #define DSL_DECODE_SOURCE_PTR std::shared_ptr<DecodeSourceBintr>
         
     #define DSL_URI_SOURCE_PTR std::shared_ptr<UriSourceBintr>
-    #define DSL_URI_SOURCE_NEW(name, uri, isLive, intraDecode, dropFrameInterval) \
+    #define DSL_URI_SOURCE_NEW(name, uri, isLive, skipFrames, dropFrameInterval) \
         std::shared_ptr<UriSourceBintr>(new UriSourceBintr(name, \
-            uri, isLive, intraDecode, dropFrameInterval))
+            uri, isLive, skipFrames, dropFrameInterval))
         
     #define DSL_FILE_SOURCE_PTR std::shared_ptr<FileSourceBintr>
     #define DSL_FILE_SOURCE_NEW(name, uri, repeatEnabled) \
@@ -91,9 +91,9 @@ namespace DSL
 
     #define DSL_RTSP_SOURCE_PTR std::shared_ptr<RtspSourceBintr>
     #define DSL_RTSP_SOURCE_NEW(name, uri, protocol, \
-        intraDecode, dropFrameInterval, latency, timeout) \
+        skipFrames, dropFrameInterval, latency, timeout) \
         std::shared_ptr<RtspSourceBintr>(new RtspSourceBintr(name, uri, protocol, \
-            intraDecode, dropFrameInterval, latency, timeout))
+            skipFrames, dropFrameInterval, latency, timeout))
 
     /**
      * @brief Utility function to define/set all capabilities (media, 
@@ -812,7 +812,7 @@ namespace DSL
     public: 
     
         DecodeSourceBintr(const char* name, const char* factoryName, const char* uri, 
-            bool isLive, uint intraDecode, uint dropFrameInterval);
+            bool isLive, uint skipFrames, uint dropFrameInterval);
             
         ~DecodeSourceBintr();
 
@@ -821,12 +821,6 @@ namespace DSL
          * @param uri relative or absolute path to the file decode source
          */
         bool SetFileUri(const char* uri);
-        
-        /**
-         * @brief Sets the unique source id for this Source bintr
-         * @param id value to assign [0...MAX]
-         */
-        void SetSourceId(int id);
         
         /**
          * @brief 
@@ -893,12 +887,16 @@ namespace DSL
         uint m_numExtraSurfaces;
         
         /**
-         * @brief
+         * @brief Type of frames to skip during decoding.
+         *   (0): decode_all       - Decode all frames
+         *   (1): decode_non_ref   - Decode non-ref frame
+         *   (2): decode_key       - decode key frames
          */
-        guint m_intraDecode;
+        uint m_skipFrames;
         
         /**
-         * @brief
+         * @brief Interval to drop the frames. Ex: a value of 5 means every 5th 
+         * frame will be delivered by decoder, the rest will all dropped.
          */
         guint m_dropFrameInterval;
         
@@ -971,7 +969,7 @@ namespace DSL
     public: 
     
         UriSourceBintr(const char* name, const char* uri, bool isLive,
-            uint intraDecode, uint dropFrameInterval);
+            uint skipFrames, uint dropFrameInterval);
 
         ~UriSourceBintr();
 
@@ -1439,12 +1437,12 @@ namespace DSL
      * @class RtspSourceBintr
      * @brief 
      */
-    class RtspSourceBintr : public DecodeSourceBintr
+    class RtspSourceBintr : public ResourceSourceBintr
     {
     public: 
     
         RtspSourceBintr(const char* name, const char* uri, uint protocol, 
-            uint intraDecode, uint dropFrameInterval, 
+            uint skipFrames, uint dropFrameInterval, 
             uint latency, uint timeout);
 
         ~RtspSourceBintr();
@@ -1606,7 +1604,27 @@ namespace DSL
          @brief 0x4 for TCP and 0x7 for All (UDP/UDP-MCAST/TCP)
          */
         uint m_rtpProtocols;
+
+        /**
+         * @brief Additional number of surfaces in addition to min decode surfaces 
+         * given by the v4l2 driver. Default = 1.
+         */
+        uint m_numExtraSurfaces;
         
+        /**
+         * @brief Type of frames to skip during decoding.
+         *   (0): decode_all       - Decode all frames
+         *   (1): decode_non_ref   - Decode non-ref frame
+         *   (2): decode_key       - decode key frames
+         */
+        uint m_skipFrames;
+        
+        /**
+         * @brief Interval to drop the frames. Ex: a value of 5 means every 5th 
+         * frame will be delivered by decoder, the rest will all dropped.
+         */
+        guint m_dropFrameInterval;
+
         /**
          * @brief optional child TapBintr, tapped in pre-decode
          */ 
@@ -1636,6 +1654,11 @@ namespace DSL
          * @brief Decoder based on stream encoding type.
          */
         DSL_ELEMENT_PTR m_pDecoder;
+
+        /**
+         @brief
+         */
+        DSL_ELEMENT_PTR m_pSourceQueue;
         
         /**
          * @brief Pad Probe Handler to create a timestamp for the last recieved buffer

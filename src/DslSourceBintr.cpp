@@ -265,6 +265,7 @@ namespace DSL
 
         LOG_INFO("");
         LOG_INFO("Initial property values for AppSourceBintr '" << name << "'");
+        LOG_INFO("  is-live           : " << m_isLive);
         LOG_INFO("  do-timestamp      : " << m_doTimestamp);
         LOG_INFO("  stream-format     : " << m_streamFormat);
         LOG_INFO("  block-enabled     : " << m_blockEnabled);
@@ -708,6 +709,7 @@ namespace DSL
 
         LOG_INFO("");
         LOG_INFO("Initial property values for CsiSourceBintr '" << name << "'");
+        LOG_INFO("  is-live           : " << m_isLive);
         LOG_INFO("  do-timestamp      : " << m_doTimestamp);
         LOG_INFO("  sensor-id         : " << m_sensorId);
         LOG_INFO("  bufapi-version    : " << TRUE);
@@ -715,7 +717,7 @@ namespace DSL
         LOG_INFO("  buffer-out-format : " << m_bufferOutFormat.c_str());
         LOG_INFO("  width             : " << m_width);
         LOG_INFO("  height            : " << m_height);
-        LOG_INFO("  framerate         : " << m_fpsN << " / " << m_fpsD);
+        LOG_INFO("  framerate         : " << m_fpsN << "/" << m_fpsD);
 
         AddChild(m_pSourceElement);
         AddChild(m_pSourceCapsFilter);
@@ -902,13 +904,14 @@ namespace DSL
         
         LOG_INFO("");
         LOG_INFO("Initial property values for UsbSourceBintr '" << name << "'");
+        LOG_INFO("  is-live           : " << m_isLive);
         LOG_INFO("  do-timestamp      : " << m_doTimestamp);
         LOG_INFO("  device            : " << m_deviceLocation.c_str());
         LOG_INFO("  media             : " << m_mediaType << "(memory:NVMM)");
         LOG_INFO("  buffer-out-format : " << m_bufferOutFormat.c_str());
         LOG_INFO("  width             : " << m_width);
         LOG_INFO("  height            : " << m_height);
-        LOG_INFO("  framerate         : " << m_fpsN << " / " << m_fpsD);
+        LOG_INFO("  framerate         : " << m_fpsN << "/" << m_fpsD);
 
         AddChild(m_pSourceElement);
         AddChild(m_pVidConv2);
@@ -1089,10 +1092,10 @@ namespace DSL
 
     DecodeSourceBintr::DecodeSourceBintr(const char* name, 
         const char* factoryName, const char* uri,
-        bool isLive, uint intraDecode, uint dropFrameInterval)
+        bool isLive, uint skipFrames, uint dropFrameInterval)
         : ResourceSourceBintr(name, uri)
         , m_numExtraSurfaces(DSL_DEFAULT_NUM_EXTRA_SURFACES)
-        , m_intraDecode(intraDecode)
+        , m_skipFrames(skipFrames)
         , m_dropFrameInterval(dropFrameInterval)
         , m_accumulatedBase(0)
         , m_prevAccumulatedBase(0)
@@ -1110,7 +1113,7 @@ namespace DSL
         m_pSourceElement = DSL_ELEMENT_NEW(factoryName, name);
         
         // if it's a file source, 
-        if ((m_uri.find("http") == std::string::npos) and (m_uri.find("rtsp") == std::string::npos))
+        if (m_uri.find("http") == std::string::npos)
         {
             if (isLive)
             {
@@ -1127,21 +1130,6 @@ namespace DSL
         
         LOG_INFO("URI Path for File Source '" << GetName() << "' = " << m_uri);
         
-        if (m_uri.find("rtsp") != std::string::npos)
-        {
-            // Configure the source to generate NTP sync values
-            configure_source_for_ntp_sync(m_pSourceElement->GetGstElement());
-            m_pSourceElement->SetAttribute("location", m_uri.c_str());
-        }
-        else
-        {
-            // File Source may have empty URI (a.k.a file_path), in which case we
-            // hold off setting the Source Element untill path is set.
-            if (m_uri.size())
-            {
-                m_pSourceElement->SetAttribute("uri", m_uri.c_str());
-            }
-        }
         AddChild(m_pSourceElement);
     }
     
@@ -1213,9 +1201,9 @@ namespace DSL
 
         else if ((strName.find("omx") != std::string::npos))
         {
-            if (m_intraDecode)
+            if (m_skipFrames)
             {
-                g_object_set(pObject, "skip-frames", 2, NULL);
+                g_object_set(pObject, "skip-frames", m_skipFrames, NULL);
             }
             g_object_set(pObject, "disable-dvfs", TRUE, NULL);
         }
@@ -1229,9 +1217,9 @@ namespace DSL
         {
             LOG_INFO("setting properties for child '" << strName << "'");
             
-            if (m_intraDecode)
+            if (m_skipFrames)
             {
-                g_object_set(pObject, "skip-frames", 2, NULL);
+                g_object_set(pObject, "skip-frames", m_skipFrames, NULL);
             }
             // aarch64 only
             if (m_cudaDeviceProp.integrated)
@@ -1386,9 +1374,9 @@ namespace DSL
     //*********************************************************************************
 
     UriSourceBintr::UriSourceBintr(const char* name, const char* uri, bool isLive,
-        uint intraDecode, uint dropFrameInterval)
+        uint skipFrames, uint dropFrameInterval)
         : DecodeSourceBintr(name, "uridecodebin", uri, 
-            isLive, intraDecode, dropFrameInterval)
+            isLive, skipFrames, dropFrameInterval)
     {
         LOG_FUNC();
         
@@ -1414,8 +1402,8 @@ namespace DSL
         LOG_INFO("");
         LOG_INFO("Initial property values for UriSourceBintr '" << name << "'");
         LOG_INFO("  uri                 : " << m_uri);
-        LOG_INFO("  Is live             : " << m_isLive);
-        LOG_INFO("  Intra decode        : " << m_intraDecode);
+        LOG_INFO("  is-live             : " << m_isLive);
+        LOG_INFO("  skip-frames         : " << m_skipFrames);
         LOG_INFO("  Drop frame interval : " << m_dropFrameInterval);
 
         // Add all new Elementrs as Children to the SourceBintr
@@ -1687,7 +1675,6 @@ namespace DSL
         m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
             L_bufferOutFormat.end());
 
-
         // Other components are created conditionaly by file type. 
         if (m_uri.find("jpeg") != std::string::npos or
             m_uri.find("jpg") != std::string::npos)
@@ -1795,12 +1782,16 @@ namespace DSL
         LOG_INFO("");
         LOG_INFO("Initial property values for SingleImageSourceBintr '" << name << "'");
         LOG_INFO("  Elements");
-        LOG_INFO("    Source   : " << m_pSourceElement->GetFactoryName());
-        LOG_INFO("    Parser   : " << m_pParser->GetFactoryName());
-        LOG_INFO("    Decoder  : " << m_pDecoder->GetFactoryName());
-        LOG_INFO("  location   : " << uri);
-        LOG_INFO("  media      : " << "image/jpeg");
-        LOG_INFO("  mjpeg      : " << m_mjpeg);
+        LOG_INFO("    Source          : " << m_pSourceElement->GetFactoryName());
+        LOG_INFO("    Parser          : " << m_pParser->GetFactoryName());
+        LOG_INFO("    Decoder         : " << m_pDecoder->GetFactoryName());
+        LOG_INFO("  location          : " << uri);
+        LOG_INFO("  is-live           : " << m_isLive);
+        LOG_INFO("  media in          : " << "image/jpeg");
+        LOG_INFO("  media out         : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  buffer-out-format : " << m_bufferOutFormat.c_str());
+        LOG_INFO("  framerate         : " << m_fpsN << "/" << m_fpsD);
+        LOG_INFO("  mjpeg             : " << m_mjpeg);
     }
     
     SingleImageSourceBintr::~SingleImageSourceBintr()
@@ -1923,7 +1914,8 @@ namespace DSL
             GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
         if (!pCaps)
         {
-            LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
+            LOG_ERROR("Failed to create new Simple Capabilities for '" 
+                << name << "'");
             throw;  
         }
 
@@ -1937,15 +1929,18 @@ namespace DSL
         LOG_INFO("");
         LOG_INFO("Initial property values for MultiImageSourceBintr '" << name << "'");
         LOG_INFO("  Elements");
-        LOG_INFO("    Source    : " << m_pSourceElement->GetFactoryName());
-        LOG_INFO("    Parser    : " << m_pParser->GetFactoryName());
-        LOG_INFO("    Decoder   : " << m_pDecoder->GetFactoryName());
-        LOG_INFO("  location    : " << m_pParser->GetFactoryName());
-        LOG_INFO("  media       : " << "image/jpeg");
-        LOG_INFO("  framerate   : " << m_fpsN << " / " << m_fpsD);
-        LOG_INFO("  loop        : " << m_loopEnabled);
-        LOG_INFO("  start-index : " << m_startIndex);
-        LOG_INFO("  stop-index  : " << m_stopIndex);
+        LOG_INFO("    Source          : " << m_pSourceElement->GetFactoryName());
+        LOG_INFO("    Parser          : " << m_pParser->GetFactoryName());
+        LOG_INFO("    Decoder         : " << m_pDecoder->GetFactoryName());
+        LOG_INFO("  location          : " << m_pParser->GetFactoryName());
+        LOG_INFO("  is-live           : " << m_isLive);
+        LOG_INFO("  media in          : " << "image/jpeg");
+        LOG_INFO("  media out         : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  buffer-out-format : " << m_bufferOutFormat.c_str());
+        LOG_INFO("  framerate         : " << m_fpsN << "/" << m_fpsD);
+        LOG_INFO("  loop              : " << m_loopEnabled);
+        LOG_INFO("  start-index       : " << m_startIndex);
+        LOG_INFO("  stop-index        : " << m_stopIndex);
         
         AddChild(m_pSourceElement);
 
@@ -1953,8 +1948,6 @@ namespace DSL
         {
             throw;
         }
-//        
-//        m_pVideoRate->AddGhostPadToParent("src");
     }
     
     MultiImageSourceBintr::~MultiImageSourceBintr()
@@ -2147,9 +2140,10 @@ namespace DSL
         LOG_INFO("    Source          : " << m_pSourceElement->GetFactoryName());
         LOG_INFO("    Overlay         : " << m_pImageOverlay->GetFactoryName());
         LOG_INFO("  location          : " << uri);
+        LOG_INFO("  is-live           : " << m_isLive);
         LOG_INFO("  media             : " << m_mediaType << "(memory:NVMM)");
         LOG_INFO("  buffer-out-format : " << m_bufferOutFormat.c_str());
-        LOG_INFO("  framerate         : " << m_fpsN << " / " << m_fpsD);
+        LOG_INFO("  framerate         : " << m_fpsN << "/" << m_fpsD);
 
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
@@ -2457,9 +2451,11 @@ namespace DSL
     //*********************************************************************************
     
     RtspSourceBintr::RtspSourceBintr(const char* name, const char* uri, 
-        uint protocol, uint intraDecode, uint dropFrameInterval, 
+        uint protocol, uint skipFrames, uint dropFrameInterval, 
         uint latency, uint timeout)
-        : DecodeSourceBintr(name, "rtspsrc", uri, true, intraDecode, dropFrameInterval)
+        : ResourceSourceBintr(name, uri)
+        , m_skipFrames(skipFrames)
+        , m_dropFrameInterval(dropFrameInterval)
         , m_rtpProtocols(protocol)
         , m_latency(latency)
         , m_bufferTimeout(timeout)
@@ -2473,10 +2469,19 @@ namespace DSL
         , m_previousState(GST_STATE_NULL)
         , m_listenerNotifierTimerId(0)
     {
+        m_isLive = true;
+
         // New RTSP Specific Elementrs for this Source
+        m_pSourceElement = DSL_ELEMENT_NEW("rtspsrc", name);
+        
+        // Pre-decode tee is only used if there is a TapBintr
         m_pPreDecodeTee = DSL_ELEMENT_NEW("tee", name);
         m_pPreDecodeQueue = DSL_ELEMENT_EXT_NEW("queue", name, "decodebin");
         m_pSourceQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src");
+
+        // Configure the source to generate NTP sync values
+        configure_source_for_ntp_sync(m_pSourceElement->GetGstElement());
+        m_pSourceElement->SetAttribute("location", m_uri.c_str());
 
         m_pSourceElement->SetAttribute("latency", m_latency);
         m_pSourceElement->SetAttribute("drop-on-latency", true);
@@ -2492,10 +2497,11 @@ namespace DSL
         LOG_INFO("");
         LOG_INFO("Initial property values for RtspSourceBintr '" << name << "'");
         LOG_INFO("  uri                 : " << m_uri);
-        LOG_INFO("  Is live             : " << m_isLive);
-        LOG_INFO("  Intra decode        : " << m_intraDecode);
-        LOG_INFO("  Drop frame interval : " << m_dropFrameInterval);
+        LOG_INFO("  is-live             : " << m_isLive);
+        LOG_INFO("  skip-frames         : " << m_skipFrames);
+        LOG_INFO("  drop-frame-interval : " << m_dropFrameInterval);
 
+        AddChild(m_pSourceElement);
         AddChild(m_pPreDecodeTee);
         AddChild(m_pPreDecodeQueue);
         AddChild(m_pSourceQueue);
@@ -2547,18 +2553,21 @@ namespace DSL
 
         if (m_isLinked)
         {
-            LOG_ERROR("RtspSourceBintr '" << GetName() << "' is already in a linked state");
+            LOG_ERROR("RtspSourceBintr '" << GetName() 
+                << "' is already in a linked state");
             return false;
         }
 
-        // Note: this is a workaround for an NVIDIA bug. We need to test the stream before
-        // we try and link any pads. Otherwise, unlinking a failed stream connection from 
-        // the Streammuxer will result in a deadlock. Try to open the URL with open CV first.
+        // Note: this is a workaround for an NVIDIA bug. We need to test the 
+        // stream beforewe try and link any pads. Otherwise, unlinking a failed 
+        // stream connection from the Streammuxer will result in a deadlock. 
+        // Try to open the URL with open CV first.
         cv::VideoCapture capture(m_uri.c_str());
 
         if (!capture.isOpened())
         {
-            LOG_ERROR("RtspSourceBintr '" << GetName() << "' failed to open stream for URI = "
+            LOG_ERROR("RtspSourceBintr '" << GetName() 
+                << "' failed to open stream for URI = "
                 << m_uri.c_str());
             return false;
         }
@@ -2575,7 +2584,8 @@ namespace DSL
 
         if (!m_isLinked)
         {
-            LOG_ERROR("RtspSourceBintr '" << GetName() << "' is not in a linked state");
+            LOG_ERROR("RtspSourceBintr '" << GetName() 
+                << "' is not in a linked state");
             return;
         }
         
@@ -2585,7 +2595,8 @@ namespace DSL
             
             g_source_remove(m_streamManagerTimerId);
             m_streamManagerTimerId = 0;
-            LOG_INFO("Stream management disabled for RTSP Source '" << GetName() << "'");
+            LOG_INFO("Stream management disabled for RTSP Source '" 
+                << GetName() << "'");
         }
         if (m_reconnectionManagerTimerId)
         {
@@ -2593,7 +2604,8 @@ namespace DSL
 
             g_source_remove(m_reconnectionManagerTimerId);
             m_reconnectionManagerTimerId = 0;
-            LOG_INFO("Reconnection management disabled for RTSP Source '" << GetName() << "'");
+            LOG_INFO("Reconnection management disabled for RTSP Source '" 
+                << GetName() << "'");
         }
         
         m_pPreDecodeQueue->UnlinkFromSink();
@@ -2613,7 +2625,8 @@ namespace DSL
 
         for (auto const& imap: m_pGstRequestedSourcePads)
         {
-            gst_element_release_request_pad(m_pTee->GetGstElement(), imap.second);
+            gst_element_release_request_pad(m_pPreDecodeTee->GetGstElement(), 
+                imap.second);
             gst_object_unref(imap.second);
         }
         
@@ -2863,28 +2876,11 @@ namespace DSL
                         << "' for RtspSourceBitnr '" << GetName() << "'");
                     return false;
                 }
-                // Decode bin handles both h264 and h265
-                m_pDecoder = DSL_ELEMENT_NEW("decodebin", GetCStrName());
-
-                // Connect Decode Setup Callbacks
-                g_signal_connect(m_pDecoder->GetGObject(), "pad-added", 
-                    G_CALLBACK(RtspDecodeElementOnPadAddedCB), this);
-                g_signal_connect(m_pDecoder->GetGObject(), "child-added", 
-                    G_CALLBACK(OnChildAddedCB), this);
             }
             else if (encoding.find("JPEG") != std::string::npos)
             {
                 m_pDepay = DSL_ELEMENT_NEW("rtpjpegdepay", GetCStrName());
                 m_pParser = DSL_ELEMENT_NEW("jpegparse", GetCStrName());
-                m_pDecoder = DSL_ELEMENT_NEW("nvv4l2decoder", GetCStrName());
-                
-                // aarch64 only
-                if (m_cudaDeviceProp.integrated)
-                {
-                    m_pDecoder->SetAttribute("enable-max-performance", TRUE);
-                }
-                m_pDecoder->SetAttribute("drop-frame-interval", m_dropFrameInterval);
-                m_pDecoder->SetAttribute("num-extra-surfaces", m_numExtraSurfaces);
             }
             else
             {
@@ -2893,6 +2889,16 @@ namespace DSL
                 return false;
             }
 
+            m_pDecoder = DSL_ELEMENT_NEW("nvv4l2decoder", GetCStrName());
+            
+            // aarch64 only
+            if (m_cudaDeviceProp.integrated)
+            {
+                m_pDecoder->SetAttribute("enable-max-performance", TRUE);
+            }
+            m_pDecoder->SetAttribute("drop-frame-interval", m_dropFrameInterval);
+            m_pDecoder->SetAttribute("num-extra-surfaces", m_numExtraSurfaces);
+            
             LOG_INFO("");
             LOG_INFO("Updated property values for RtspSourceBintr '" << GetName() << "'");
             LOG_INFO("  Media      : " << media);
@@ -2908,15 +2914,8 @@ namespace DSL
             AddChild(m_pParser);
             AddChild(m_pDecoder);
 
-            // If using the nvv4l2decoder, then the pad is already available and we
-            // can link now. Else, if using the decodebin, we wait for the OnPadAdded
-            // callback to be called by the decoder when the pad is ready to be linked.
-            if (m_pDecoder->IsFactoryName("nvv4l2decoder"))
-            { 
-                HandleDecodeElementOnPadAdded(GetGstElement(), 
-                    gst_element_get_static_pad(m_pDecoder->GetGstElement(), "src"));
-            }
-            if (!m_pPreDecodeQueue->LinkToSink(m_pDecoder))
+            if (!m_pPreDecodeQueue->LinkToSink(m_pDecoder) or
+                !m_pDecoder->LinkToSink(m_pSourceQueue))
             {
                 return false;
             }
@@ -2951,6 +2950,15 @@ namespace DSL
                     << GetName() << "'");
                 return false;
             }
+            // Start the Stream mangement timer, only if timeout is enable and not currently running
+            if (m_bufferTimeout and !m_streamManagerTimerId)
+            {
+                m_streamManagerTimerId = g_timeout_add(m_bufferTimeout, 
+                    RtspStreamManagerHandler, this);
+                LOG_INFO("Starting stream management for RTSP Source '" << GetName() << "'");
+            }
+
+            SetCurrentState(GST_STATE_READY);
         }
         return true;
     }

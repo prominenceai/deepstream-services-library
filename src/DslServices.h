@@ -706,7 +706,7 @@ namespace DSL {
             const char* deviceLocation);
         
         DslReturnType SourceUriNew(const char* name, const char* uri, 
-            boolean isLive, uint intraDecode, uint dropFrameInterval);
+            boolean isLive, uint skipFrames, uint dropFrameInterval);
             
         DslReturnType SourceFileNew(const char* name, const char* filePath, 
             boolean repeatEnabled);
@@ -758,7 +758,7 @@ namespace DSL {
             boolean acceptEos, boolean acceptEvents);
             
         DslReturnType SourceRtspNew(const char* name, const char* uri, uint protocol, 
-            uint intraDecode, uint dropFrameInterval, uint latency, uint timeout);
+            uint skipFrames, uint dropFrameInterval, uint latency, uint timeout);
 
         DslReturnType SourcePphAdd(const char* name, const char* handler);
 

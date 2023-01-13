@@ -3138,10 +3138,10 @@ def dsl_source_usb_device_location_set(name, device_location):
 _dsl.dsl_source_uri_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint, c_uint]
 _dsl.dsl_source_uri_new.restype = c_uint
 def dsl_source_uri_new(name, 
-    uri, is_live, intra_decode, drop_frame_interval):
+    uri, is_live, skip_frames, drop_frame_interval):
     global _dsl
     result = _dsl.dsl_source_uri_new(name, 
-        uri, is_live, intra_decode, drop_frame_interval)
+        uri, is_live, skip_frames, drop_frame_interval)
     return int(result)
 
 ##
@@ -3359,11 +3359,11 @@ def dsl_source_interpipe_accept_settings_set(name, accept_eos, accept_events):
 _dsl.dsl_source_rtsp_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, 
     c_uint, c_uint, c_uint]
 _dsl.dsl_source_rtsp_new.restype = c_uint
-def dsl_source_rtsp_new(name, uri, protocol, intra_decode, 
+def dsl_source_rtsp_new(name, uri, protocol, skip_frames, 
     drop_frame_interval, latency, timeout):
     global _dsl
     result = _dsl.dsl_source_rtsp_new(name, uri, protocol, 
-        intra_decode, drop_frame_interval, latency, timeout)
+        skip_frames, drop_frame_interval, latency, timeout)
     return int(result)
 
 ##

@@ -59,7 +59,7 @@ def main(args):
         retval = dsl_source_rtsp_new('rtsp-source',     
             uri = hikvision_rtsp_uri,     
             protocol = DSL_RTP_ALL,     
-            intra_decode = False,     
+            skip_frames = 0,     
             drop_frame_interval = 0,     
             latency=100,
             timeout=2)    

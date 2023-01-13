@@ -39,7 +39,7 @@ static uint height(720);
 static uint fps_n(30);
 static uint fps_d(1);
 
-static uint intra_decode(false);
+static uint skip_frames(0);
 static uint drop_frame_interval(0);
 
 static std::wstring dewarper_name(L"dewarper");
@@ -604,7 +604,7 @@ SCENARIO( "A Dewarper can be added to and removed from a Decode Source Component
     GIVEN( "A new Source and new Dewarper" )
     {
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(),
-            false, intra_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_dewarper_new(dewarper_name.c_str(), defConfigFile.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -637,7 +637,7 @@ SCENARIO( "Adding an invalid Dewarper to a Decode Source Component fails", "[sou
         std::wstring fakeSinkName(L"fake-sink");
 
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(),
-            false, intra_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         WHEN( "A Fake Sink is used as Dewarper" ) 
         {
@@ -660,7 +660,7 @@ SCENARIO( "An RTSP Source's Timeout can be updated correctly", "[source-api]" )
     GIVEN( "A new RTSP Source with a 0 timeout" )
     {
         REQUIRE( dsl_source_rtsp_new(source_name.c_str(), rtsp_uri.c_str(), protocol,
-            intra_decode, interval, latency, timeout) == DSL_RESULT_SUCCESS );
+            skip_frames, interval, latency, timeout) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_source_rtsp_timeout_get(source_name.c_str(), &retTimeout) == DSL_RESULT_SUCCESS );
         REQUIRE( retTimeout == timeout );
@@ -687,7 +687,7 @@ SCENARIO( "An RTSP Source's Reconnect Stats can gotten and cleared", "[source-ap
     GIVEN( "A new RTSP Source with a 0 timeout" )
     {
         REQUIRE( dsl_source_rtsp_new(source_name.c_str(), rtsp_uri.c_str(), protocol,
-            intra_decode, interval, latency, timeout) == DSL_RESULT_SUCCESS );
+            skip_frames, interval, latency, timeout) == DSL_RESULT_SUCCESS );
             
         WHEN( "A client gets an RTSP Source's connection data" ) 
         {
@@ -727,7 +727,7 @@ SCENARIO( "An RTSP state-change-listener can be added and removed", "[source-api
     GIVEN( "A new RTSP Source and client listener callback" )
     {
         REQUIRE( dsl_source_rtsp_new(source_name.c_str(), rtsp_uri.c_str(), protocol,
-            intra_decode, interval, latency, timeout) == DSL_RESULT_SUCCESS );
+            skip_frames, interval, latency, timeout) == DSL_RESULT_SUCCESS );
 
         WHEN( "A state-change-listner is added" )
         {

@@ -778,7 +778,7 @@ namespace DSL
     }
 
     DslReturnType Services::SourceUriNew(const char* name, const char* uri, 
-        boolean isLive, uint intraDecode, uint dropFrameInterval)
+        boolean isLive, uint skipFrames, uint dropFrameInterval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -807,7 +807,7 @@ namespace DSL
                 }
             }
             m_components[name] = DSL_URI_SOURCE_NEW(
-                name, uri, isLive, intraDecode, dropFrameInterval);
+                name, uri, isLive, skipFrames, dropFrameInterval);
 
             LOG_INFO("New URI Source '" << name << "' created successfully");
 
@@ -1440,7 +1440,7 @@ namespace DSL
     }
     
     DslReturnType Services::SourceRtspNew(const char* name, const char* uri,  uint protocol, 
-       uint intraDecode, uint dropFrameInterval, uint latency, uint timeout)
+       uint skipFrames, uint dropFrameInterval, uint latency, uint timeout)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1454,7 +1454,7 @@ namespace DSL
                 return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
             }
             m_components[name] = DSL_RTSP_SOURCE_NEW(
-                name, uri, protocol, intraDecode, dropFrameInterval, latency, timeout);
+                name, uri, protocol, skipFrames, dropFrameInterval, latency, timeout);
 
             LOG_INFO("New RTSP Source '" << name << "' created successfully");
 
