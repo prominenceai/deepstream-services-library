@@ -777,13 +777,13 @@ namespace DSL {
         
         DslReturnType SourceFrameRateGet(const char* name, uint* fpsN, uint* fpsD);
 
-        DslReturnType SourceDecodeUriGet(const char* name, const char** uri);
+        DslReturnType SourceUriUriGet(const char* name, const char** uri);
 
-        DslReturnType SourceDecodeUriSet(const char* name, const char* uri);
+        DslReturnType SourceUriUriSet(const char* name, const char* uri);
     
-        DslReturnType SourceDecodeDewarperAdd(const char* name, const char* dewarper);
+        DslReturnType SourceUriDewarperAdd(const char* name, const char* dewarper);
     
-        DslReturnType SourceDecodeDewarperRemove(const char* name);
+        DslReturnType SourceUriDewarperRemove(const char* name);
         
         DslReturnType SourceRtspTimeoutGet(const char* name, uint* timeout);
 

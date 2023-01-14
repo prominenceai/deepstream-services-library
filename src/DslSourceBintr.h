@@ -804,17 +804,30 @@ namespace DSL
     //*********************************************************************************
 
     /**
-     * @class DecodeSourceBintr
+     * @class UriSourceBintr
      * @brief 
      */
-    class DecodeSourceBintr : public ResourceSourceBintr
+    class UriSourceBintr : public ResourceSourceBintr
     {
     public: 
     
-        DecodeSourceBintr(const char* name, const char* factoryName, const char* uri, 
-            bool isLive, uint skipFrames, uint dropFrameInterval);
-            
-        ~DecodeSourceBintr();
+        UriSourceBintr(const char* name, const char* uri, bool isLive,
+            uint skipFrames, uint dropFrameInterval);
+
+        ~UriSourceBintr();
+
+        /**
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Source Bintr
+         */
+        void UnlinkAll();
+
+        bool SetUri(const char* uri);
 
         /**
          * @brief Sets the URL for file decode sources only
@@ -877,8 +890,17 @@ namespace DSL
          * should be called on non-live sources before sending the source an EOS
          */
         void DisableEosConsumer();
+
+        void HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad);
         
     protected:
+    
+        /**
+         * @brief is set to true, non-live source will restart on EOS
+         */
+        bool m_repeatEnabled;
+
+    private:
 
         /**
          * @brief Additional number of surfaces in addition to min decode surfaces 
@@ -932,63 +954,9 @@ namespace DSL
         GMutex m_repeatEnabledMutex;
         
         /**
-         * @brief is set to true, non-live source will restart on EOS
-         */
-        bool m_repeatEnabled;
-
-        /**
          @brief
          */
         DSL_ELEMENT_PTR m_pSourceQueue;
-
-        /**
-         * @brief
-         */
-        DSL_ELEMENT_PTR m_pTee;
-
-        /**
-         * @brief
-         */
-        DSL_ELEMENT_PTR m_pFakeSink;
-
-        /**
-         * @brief 
-         */
-        DSL_ELEMENT_PTR m_pFakeSinkQueue;
-        
-    };
-    
-    //*********************************************************************************
-
-    /**
-     * @class UriSourceBintr
-     * @brief 
-     */
-    class UriSourceBintr : public DecodeSourceBintr
-    {
-    public: 
-    
-        UriSourceBintr(const char* name, const char* uri, bool isLive,
-            uint skipFrames, uint dropFrameInterval);
-
-        ~UriSourceBintr();
-
-        /**
-         * @brief Links all Child Elementrs owned by this Source Bintr
-         * @return True success, false otherwise
-         */
-        bool LinkAll();
-        
-        /**
-         * @brief Unlinks all Child Elementrs owned by this Source Bintr
-         */
-        void UnlinkAll();
-
-        bool SetUri(const char* uri);
-
-        void HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad);
-        
-    private:
 
     };
 

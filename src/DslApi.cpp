@@ -4152,7 +4152,7 @@ DslReturnType dsl_source_frame_rate_get(const wchar_t* name,
         fps_n, fps_d);
 }
 
-DslReturnType dsl_source_decode_uri_get(const wchar_t* name, const wchar_t** uri)
+DslReturnType dsl_source_uri_uri_get(const wchar_t* name, const wchar_t** uri)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(uri);
@@ -4164,7 +4164,7 @@ DslReturnType dsl_source_decode_uri_get(const wchar_t* name, const wchar_t** uri
     static std::string cstrUri;
     static std::wstring wcstrUri;
     
-    uint retval = DSL::Services::GetServices()->SourceDecodeUriGet(cstrName.c_str(), &cUri);
+    uint retval = DSL::Services::GetServices()->SourceUriUriGet(cstrName.c_str(), &cUri);
     if (retval ==  DSL_RESULT_SUCCESS)
     {
         cstrUri.assign(cUri);
@@ -4174,7 +4174,7 @@ DslReturnType dsl_source_decode_uri_get(const wchar_t* name, const wchar_t** uri
     return retval;
 }
 
-DslReturnType dsl_source_decode_uri_set(const wchar_t* name, const wchar_t* uri)
+DslReturnType dsl_source_uri_uri_set(const wchar_t* name, const wchar_t* uri)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(uri);
@@ -4184,10 +4184,10 @@ DslReturnType dsl_source_decode_uri_set(const wchar_t* name, const wchar_t* uri)
     std::wstring wstrUri(uri);
     std::string cstrUri(wstrUri.begin(), wstrUri.end());
 
-    return DSL::Services::GetServices()->SourceDecodeUriSet(cstrName.c_str(), cstrUri.c_str());
+    return DSL::Services::GetServices()->SourceUriUriSet(cstrName.c_str(), cstrUri.c_str());
 }
 
-DslReturnType dsl_source_decode_dewarper_add(const wchar_t* name, const wchar_t* dewarper)
+DslReturnType dsl_source_uri_dewarper_add(const wchar_t* name, const wchar_t* dewarper)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(dewarper);
@@ -4197,17 +4197,17 @@ DslReturnType dsl_source_decode_dewarper_add(const wchar_t* name, const wchar_t*
     std::wstring wstrDewarper(dewarper);
     std::string cstrDewarper(wstrDewarper.begin(), wstrDewarper.end());
 
-    return DSL::Services::GetServices()->SourceDecodeDewarperAdd(cstrName.c_str(), cstrDewarper.c_str());
+    return DSL::Services::GetServices()->SourceUriDewarperAdd(cstrName.c_str(), cstrDewarper.c_str());
 }
 
-DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name)
+DslReturnType dsl_source_uri_dewarper_remove(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceDecodeDewarperRemove(cstrName.c_str());
+    return DSL::Services::GetServices()->SourceUriDewarperRemove(cstrName.c_str());
 }
 
 DslReturnType dsl_source_rtsp_timeout_get(const wchar_t* name, uint* timeout)

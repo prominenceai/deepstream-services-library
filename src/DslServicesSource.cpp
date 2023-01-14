@@ -1681,7 +1681,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceDecodeUriGet(const char* name, const char** uri)
+    DslReturnType Services::SourceUriUriGet(const char* name, const char** uri)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1691,12 +1691,12 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
 
-            DSL_DECODE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
+            DSL_URI_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<UriSourceBintr>(m_components[name]);
 
             *uri = pSourceBintr->GetUri();
 
-            LOG_INFO("Decode Source '" << name << "' returned URI = '" 
+            LOG_INFO("Uri Source '" << name << "' returned URI = '" 
                 << *uri << "' successfully");
             
             return DSL_RESULT_SUCCESS;
@@ -1709,7 +1709,7 @@ namespace DSL
     }
             
 
-    DslReturnType Services::SourceDecodeUriSet(const char* name, const char* uri)
+    DslReturnType Services::SourceUriUriSet(const char* name, const char* uri)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1719,15 +1719,15 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
 
-            DSL_DECODE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
+            DSL_URI_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<UriSourceBintr>(m_components[name]);
 
             if (!pSourceBintr->SetUri(uri));
             {
-                LOG_ERROR("Failed to Set URI '" << uri << "' for Decode Source '" << name << "'");
+                LOG_ERROR("Failed to Set URI '" << uri << "' for Uri Source '" << name << "'");
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
-            LOG_INFO("Decode Source '" << name << "' set URI = '" 
+            LOG_INFO("Uri Source '" << name << "' set URI = '" 
                 << uri << "' successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -1739,7 +1739,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceDecodeDewarperAdd(const char* name, const char* dewarper)
+    DslReturnType Services::SourceUriDewarperAdd(const char* name, const char* dewarper)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1751,18 +1751,18 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, dewarper, DewarperBintr);
 
-            DSL_DECODE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
+            DSL_URI_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<UriSourceBintr>(m_components[name]);
          
             DSL_DEWARPER_PTR pDewarperBintr = 
                 std::dynamic_pointer_cast<DewarperBintr>(m_components[dewarper]);
          
             if (!pSourceBintr->AddDewarperBintr(pDewarperBintr))
             {
-                LOG_ERROR("Failed to add Dewarper '" << dewarper << "' to Decode Source '" << name << "'");
+                LOG_ERROR("Failed to add Dewarper '" << dewarper << "' to Uri Source '" << name << "'");
                 return DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED;
             }
-            LOG_INFO("Decode Source '" << name << "' added Dewarper '" 
+            LOG_INFO("Uri Source '" << name << "' added Dewarper '" 
                 << dewarper << "' successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -1774,7 +1774,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceDecodeDewarperRemove(const char* name)
+    DslReturnType Services::SourceUriDewarperRemove(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1784,15 +1784,15 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
 
-            DSL_DECODE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
+            DSL_URI_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<UriSourceBintr>(m_components[name]);
          
             if (!pSourceBintr->RemoveDewarperBintr())
             {
-                LOG_ERROR("Failed to remove Dewarper from Decode Source '" << name << "'");
+                LOG_ERROR("Failed to remove Dewarper from Uri Source '" << name << "'");
                 return DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED;
             }
-            LOG_INFO("Decode Source '" << name << "' removed its Dewarper successfully");
+            LOG_INFO("Uri Source '" << name << "' removed its Dewarper successfully");
 
             return DSL_RESULT_SUCCESS;
         }

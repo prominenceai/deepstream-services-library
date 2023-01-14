@@ -3422,44 +3422,44 @@ def dsl_source_frame_rate_get(name):
     return int(result), fps_n.value, fps_d.value 
 
 ##
-## dsl_source_decode_uri_get()
+## dsl_source_uri_uri_get()
 ##
-_dsl.dsl_source_decode_uri_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
-_dsl.dsl_source_decode_uri_get.restype = c_uint
-def dsl_source_decode_uri_get(name):
+_dsl.dsl_source_uri_uri_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_source_uri_uri_get.restype = c_uint
+def dsl_source_uri_uri_get(name):
     global _dsl
     uri = c_wchar_p(0)
-    result = _dsl.dsl_source_decode_uri_get(name, DSL_WCHAR_PP(uri))
+    result = _dsl.dsl_source_uri_uri_get(name, DSL_WCHAR_PP(uri))
     return int(result), uri.value 
 
 ##
-## dsl_source_decode_uri_set()
+## dsl_source_uri_uri_set()
 ##
-_dsl.dsl_source_decode_uri_set.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_source_decode_uri_set.restype = c_uint
-def dsl_source_decode_uri_set(name, uir):
+_dsl.dsl_source_uri_uri_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_uri_uri_set.restype = c_uint
+def dsl_source_uri_uri_set(name, uir):
     global _dsl
-    result = _dsl.dsl_source_decode_uri_set(name, uir)
+    result = _dsl.dsl_source_uri_uri_set(name, uir)
     return int(result)
 
 ##
-## dsl_source_decode_dewarper_add()
+## dsl_source_uri_dewarper_add()
 ##
-_dsl.dsl_source_decode_dewarper_add.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_source_decode_dewarper_add.restype = c_uint
-def dsl_source_decode_dewarper_add(name, dewarper):
+_dsl.dsl_source_uri_dewarper_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_uri_dewarper_add.restype = c_uint
+def dsl_source_uri_dewarper_add(name, dewarper):
     global _dsl
-    result = _dsl.dsl_source_decode_dewarper_add(name, dewarper)
+    result = _dsl.dsl_source_uri_dewarper_add(name, dewarper)
     return int(result)
 
 ##
-## dsl_source_decode_dewarper_remove()
+## dsl_source_uri_dewarper_remove()
 ##
-_dsl.dsl_source_decode_dewarper_remove.argtypes = [c_wchar_p]
-_dsl.dsl_source_decode_dewarper_remove.restype = c_uint
-def dsl_source_decode_dewarper_remove(name):
+_dsl.dsl_source_uri_dewarper_remove.argtypes = [c_wchar_p]
+_dsl.dsl_source_uri_dewarper_remove.restype = c_uint
+def dsl_source_uri_dewarper_remove(name):
     global _dsl
-    result = _dsl.dsl_source_decode_dewarper_remove(name)
+    result = _dsl.dsl_source_uri_dewarper_remove(name)
     return int(result)
 
 ##

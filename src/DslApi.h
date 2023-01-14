@@ -4655,7 +4655,7 @@ DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* 
  * @param[out] uri in use by the Decode Source
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_decode_uri_get(const wchar_t* name, const wchar_t** uri);
+DslReturnType dsl_source_uri_uri_get(const wchar_t* name, const wchar_t** uri);
 
 /**
  * @brief Sets the current URI for the named Decode Source to use
@@ -4663,7 +4663,7 @@ DslReturnType dsl_source_decode_uri_get(const wchar_t* name, const wchar_t** uri
  * @param[in] uri to use by the Decode Source
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_decode_uri_set(const wchar_t* name, const wchar_t* uri);
+DslReturnType dsl_source_uri_uri_set(const wchar_t* name, const wchar_t* uri);
 
 /**
  * @brief Adds a named dewarper to a named decode source (URI, RTSP)
@@ -4671,14 +4671,14 @@ DslReturnType dsl_source_decode_uri_set(const wchar_t* name, const wchar_t* uri)
  * @param[in] dewarper name of the dewarper to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_decode_dewarper_add(const wchar_t* name, const wchar_t* dewarper);
+DslReturnType dsl_source_uri_dewarper_add(const wchar_t* name, const wchar_t* dewarper);
 
 /**
  * @brief Adds a named dewarper to a named decode source (URI, RTSP)
  * @param[in] name name of the source object to update
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name);
+DslReturnType dsl_source_uri_dewarper_remove(const wchar_t* name);
 
 /**
  * @brief Gets the current buffer timeout for the named RTSP Source

@@ -1090,9 +1090,8 @@ namespace DSL
 
     //*********************************************************************************
 
-    DecodeSourceBintr::DecodeSourceBintr(const char* name, 
-        const char* factoryName, const char* uri,
-        bool isLive, uint skipFrames, uint dropFrameInterval)
+    UriSourceBintr::UriSourceBintr(const char* name, const char* uri, bool isLive,
+        uint skipFrames, uint dropFrameInterval)
         : ResourceSourceBintr(name, uri)
         , m_numExtraSurfaces(DSL_DEFAULT_NUM_EXTRA_SURFACES)
         , m_skipFrames(skipFrames)
@@ -1110,38 +1109,85 @@ namespace DSL
         // Initialize the mutex regardless of IsLive or not
         g_mutex_init(&m_repeatEnabledMutex);
 
-        m_pSourceElement = DSL_ELEMENT_NEW(factoryName, name);
+        m_pSourceElement = DSL_ELEMENT_NEW("uridecodebin", name);
         
-        // if it's a file source, 
-        if (m_uri.find("http") == std::string::npos)
+        if (!SetUri(uri))
+        {   
+            throw;
+        }
+
+        // New Elementrs for this Source
+        m_pSourceQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src");
+
+        // Connect UIR Source Setup Callbacks
+        g_signal_connect(m_pSourceElement->GetGObject(), "pad-added", 
+            G_CALLBACK(UriSourceElementOnPadAddedCB), this);
+        g_signal_connect(m_pSourceElement->GetGObject(), "child-added", 
+            G_CALLBACK(OnChildAddedCB), this);
+        g_object_set_data(G_OBJECT(m_pSourceElement->GetGObject()), "source", this);
+
+        g_signal_connect(m_pSourceElement->GetGObject(), "source-setup",
+            G_CALLBACK(OnSourceSetupCB), this);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for UriSourceBintr '" << name << "'");
+        LOG_INFO("  uri                 : " << m_uri);
+        LOG_INFO("  is-live             : " << m_isLive);
+        LOG_INFO("  skip-frames         : " << m_skipFrames);
+        LOG_INFO("  drop-frame-interval : " << m_dropFrameInterval);
+
+        // Add all new Elementrs as Children to the SourceBintr
+        AddChild(m_pSourceElement);
+        AddChild(m_pSourceQueue);
+        
+        // Source Ghost Pad for Source Queue
+        m_pSourceQueue->AddGhostPadToParent("src");
+
+        std::string padProbeName = GetName() + "-src-pad-probe";
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
+            "src", m_pSourceQueue);
+    }
+
+    UriSourceBintr::~UriSourceBintr()
+    {
+        LOG_FUNC();
+
+        g_mutex_clear(&m_repeatEnabledMutex);
+    }
+
+    bool UriSourceBintr::SetUri(const char* uri)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
         {
-            if (isLive)
-            {
-                LOG_ERROR("Invalid URI '" << uri << "' for Live source '" << name << "'");
-                throw;
-            }
+            LOG_ERROR("Unable to set Uri for UriSourceBintr '" << GetName() 
+                << "' as it's currently Linked");
+            return false;
+        }
+        // if it's a file source, 
+        std::string newUri(uri);
+        
+        if ((newUri.find("http") == std::string::npos))
+        {
             // Setup the absolute File URI and query dimensions
             if (!SetFileUri(uri))
             {
                 LOG_ERROR("URI Source'" << uri << "' Not found");
-                throw;
+                return false;
             }
-        }
-        
+        }        
         LOG_INFO("URI Path for File Source '" << GetName() << "' = " << m_uri);
         
-        AddChild(m_pSourceElement);
+        if (m_uri.size())
+        {
+            m_pSourceElement->SetAttribute("uri", m_uri.c_str());
+        }
+        
+        return true;
     }
-    
-    DecodeSourceBintr::~DecodeSourceBintr()
-    {
-        LOG_FUNC();
- 
-        //DisableEosConsumer();
-        g_mutex_clear(&m_repeatEnabledMutex);
-    }
-    
-    bool DecodeSourceBintr::SetFileUri(const char* uri)
+
+    bool UriSourceBintr::SetFileUri(const char* uri)
     {
         LOG_FUNC();
 
@@ -1183,8 +1229,81 @@ namespace DSL
         // if needed prior to playing the file.
         return true;
     }
+
+    bool UriSourceBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("UriSourceBintr '" << GetName() << "' is already in a linked state");
+            return false;
+        }
+
+
+        m_isLinked = true;
+
+        return true;
+    }
+
+    void UriSourceBintr::UnlinkAll()
+    {
+        LOG_FUNC();
     
-    void DecodeSourceBintr::HandleOnChildAdded(GstChildProxy* pChildProxy, GObject* pObject,
+        if (!m_isLinked)
+        {
+            LOG_ERROR("UriSourceBintr '" << GetName() << "' is not in a linked state");
+            return;
+        }
+
+        if (HasDewarperBintr())
+        {
+        }
+        else
+        {
+        }
+         
+        m_isLinked = false;
+    }
+    
+    void UriSourceBintr::HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad)
+    {
+        LOG_FUNC();
+
+        // The "pad-added" callback will be called twice for each URI source,
+        // once each for the decoded Audio and Video streams. Since we only 
+        // want to link to the Video source pad, we need to know which of the
+        // two streams this call is for.
+        GstCaps* pCaps = gst_pad_query_caps(pPad, NULL);
+        GstStructure* structure = gst_caps_get_structure(pCaps, 0);
+        std::string name = gst_structure_get_name(structure);
+        
+        LOG_INFO("Caps structs name " << name);
+        if (name.find("video") != std::string::npos)
+        {
+            m_pGstStaticSinkPad = gst_element_get_static_pad(m_pSourceQueue->GetGstElement(), "sink");
+            if (!m_pGstStaticSinkPad)
+            {
+                LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" 
+                    << GetName() << "'");
+            }
+            
+            if (gst_pad_link(pPad, m_pGstStaticSinkPad) != GST_PAD_LINK_OK) 
+            {
+                LOG_ERROR("Failed to link decodebin to source Tee");
+                throw;
+            }
+            
+            // Update the cap memebers for this URI Source Bintr
+            gst_structure_get_uint(structure, "width", &m_width);
+            gst_structure_get_uint(structure, "height", &m_height);
+            gst_structure_get_fraction(structure, "framerate", (gint*)&m_fpsN, (gint*)&m_fpsD);
+            
+            LOG_INFO("Video decode linked for URI source '" << GetName() << "'");
+        }
+    }
+
+    void UriSourceBintr::HandleOnChildAdded(GstChildProxy* pChildProxy, GObject* pObject,
         gchar* name)
     {
         LOG_FUNC();
@@ -1247,7 +1366,7 @@ namespace DSL
         }
     }
     
-    GstPadProbeReturn DecodeSourceBintr::HandleStreamBufferRestart(GstPad* pPad, 
+    GstPadProbeReturn UriSourceBintr::HandleStreamBufferRestart(GstPad* pPad, 
         GstPadProbeInfo* pInfo)
     {
         LOG_FUNC();
@@ -1294,7 +1413,7 @@ namespace DSL
         return GST_PAD_PROBE_OK;
     }
 
-    void DecodeSourceBintr::HandleOnSourceSetup(GstElement* pObject, GstElement* arg0)
+    void UriSourceBintr::HandleOnSourceSetup(GstElement* pObject, GstElement* arg0)
     {
         if (g_object_class_find_property(G_OBJECT_GET_CLASS(arg0), "latency")) 
         {
@@ -1302,7 +1421,7 @@ namespace DSL
         }
     }
     
-    gboolean DecodeSourceBintr::HandleStreamBufferSeek()
+    gboolean UriSourceBintr::HandleStreamBufferSeek()
     {
         SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
         
@@ -1320,7 +1439,7 @@ namespace DSL
     }
 
     
-    bool DecodeSourceBintr::AddDewarperBintr(DSL_BASE_PTR pDewarperBintr)
+    bool UriSourceBintr::AddDewarperBintr(DSL_BASE_PTR pDewarperBintr)
     {
         LOG_FUNC();
         
@@ -1334,7 +1453,7 @@ namespace DSL
         return true;
     }
 
-    bool DecodeSourceBintr::RemoveDewarperBintr()
+    bool UriSourceBintr::RemoveDewarperBintr()
     {
         LOG_FUNC();
 
@@ -1348,14 +1467,14 @@ namespace DSL
         return true;
     }
     
-    bool DecodeSourceBintr::HasDewarperBintr()
+    bool UriSourceBintr::HasDewarperBintr()
     {
         LOG_FUNC();
         
         return (m_pDewarperBintr != nullptr);
     }
     
-    void DecodeSourceBintr::DisableEosConsumer()
+    void UriSourceBintr::DisableEosConsumer()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_repeatEnabledMutex);
@@ -1370,230 +1489,6 @@ namespace DSL
         }
     }
     
-
-    //*********************************************************************************
-
-    UriSourceBintr::UriSourceBintr(const char* name, const char* uri, bool isLive,
-        uint skipFrames, uint dropFrameInterval)
-        : DecodeSourceBintr(name, "uridecodebin", uri, 
-            isLive, skipFrames, dropFrameInterval)
-    {
-        LOG_FUNC();
-        
-        // New Elementrs for this Source
-        m_pSourceQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src");
-        m_pTee = DSL_ELEMENT_NEW("tee", name);
-        m_pFakeSinkQueue = DSL_ELEMENT_EXT_NEW("queue", name, "fakesink");
-        m_pFakeSink = DSL_ELEMENT_NEW("fakesink", name);
-
-        // Connect UIR Source Setup Callbacks
-        g_signal_connect(m_pSourceElement->GetGObject(), "pad-added", 
-            G_CALLBACK(UriSourceElementOnPadAddedCB), this);
-        g_signal_connect(m_pSourceElement->GetGObject(), "child-added", 
-            G_CALLBACK(OnChildAddedCB), this);
-        g_object_set_data(G_OBJECT(m_pSourceElement->GetGObject()), "source", this);
-
-        g_signal_connect(m_pSourceElement->GetGObject(), "source-setup",
-            G_CALLBACK(OnSourceSetupCB), this);
-
-        m_pFakeSink->SetAttribute("sync", false);
-        m_pFakeSink->SetAttribute("async", false);
-
-        LOG_INFO("");
-        LOG_INFO("Initial property values for UriSourceBintr '" << name << "'");
-        LOG_INFO("  uri                 : " << m_uri);
-        LOG_INFO("  is-live             : " << m_isLive);
-        LOG_INFO("  skip-frames         : " << m_skipFrames);
-        LOG_INFO("  Drop frame interval : " << m_dropFrameInterval);
-
-        // Add all new Elementrs as Children to the SourceBintr
-        AddChild(m_pSourceQueue);
-        AddChild(m_pTee);
-        AddChild(m_pFakeSinkQueue);
-        AddChild(m_pFakeSink);
-        
-        // Source Ghost Pad for Source Queue
-        m_pSourceQueue->AddGhostPadToParent("src");
-
-        std::string padProbeName = GetName() + "-src-pad-probe";
-        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
-            "src", m_pSourceQueue);
-    }
-
-    UriSourceBintr::~UriSourceBintr()
-    {
-        LOG_FUNC();
-    }
-
-    bool UriSourceBintr::LinkAll()
-    {
-        LOG_FUNC();
-
-        if (IsLinked())
-        {
-            LOG_ERROR("UriSourceBintr '" << GetName() << "' is already in a linked state");
-            return false;
-        }
-
-        GstPadTemplate* pPadTemplate = 
-            gst_element_class_get_pad_template(
-                GST_ELEMENT_GET_CLASS(m_pTee->GetGstElement()), "src_%u");
-        if (!pPadTemplate)
-        {
-            LOG_ERROR("Failed to get Pad Template for '" << GetName() << "'");
-            return false;
-        }
-        
-        // The TEE for this source is linked to both the "source queue" and "fake sink queue"
-
-        GstPad* pGstRequestedSourcePad = gst_element_request_pad(m_pTee->GetGstElement(), 
-            pPadTemplate, NULL, NULL);
-        if (!pGstRequestedSourcePad)
-        {
-            LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<"'");
-            return false;
-        }
-        std::string padForSourceQueueName = "padForSourceQueue_" + std::to_string(m_uniqueId);
-
-        m_pGstRequestedSourcePads[padForSourceQueueName] = pGstRequestedSourcePad;
-        
-        if (HasDewarperBintr())
-        {
-            if (!m_pDewarperBintr->LinkToSource(m_pTee) or 
-                !m_pDewarperBintr->LinkToSink(m_pSourceQueue))
-            {
-                return false;
-            }            
-        }
-        else
-        {
-            if (!m_pSourceQueue->LinkToSource(m_pTee))
-            {
-                return false;
-            }
-        }
-
-        pGstRequestedSourcePad = gst_element_request_pad(m_pTee->GetGstElement(), 
-            pPadTemplate, NULL, NULL);
-        if (!pGstRequestedSourcePad)
-        {
-            LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<"'");
-            return false;
-        }
-        std::string padForFakeSinkQueueName = "padForFakeSinkQueue_" + std::to_string(m_uniqueId);
-
-        m_pGstRequestedSourcePads[padForFakeSinkQueueName] = pGstRequestedSourcePad;
-
-        if (!m_pFakeSinkQueue->LinkToSource(m_pTee) or 
-            !m_pFakeSinkQueue->LinkToSink(m_pFakeSink))
-        {
-            return false;
-        }
-        m_isLinked = true;
-
-        return true;
-    }
-
-    void UriSourceBintr::UnlinkAll()
-    {
-        LOG_FUNC();
-    
-        if (!m_isLinked)
-        {
-            LOG_ERROR("UriSourceBintr '" << GetName() << "' is not in a linked state");
-            return;
-        }
-        m_pFakeSinkQueue->UnlinkFromSource();
-        m_pFakeSinkQueue->UnlinkFromSink();
-
-        if (HasDewarperBintr())
-        {
-            m_pDewarperBintr->UnlinkFromSource();
-            m_pDewarperBintr->UnlinkFromSink();
-        }
-        else
-        {
-            m_pSourceQueue->UnlinkFromSource();
-        }
-
-        for (auto const& imap: m_pGstRequestedSourcePads)
-        {
-            gst_element_release_request_pad(m_pTee->GetGstElement(), imap.second);
-            gst_object_unref(imap.second);
-        }
-        
-        m_isLinked = false;
-    }
-
-    void UriSourceBintr::HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad)
-    {
-        LOG_FUNC();
-
-        // The "pad-added" callback will be called twice for each URI source,
-        // once each for the decoded Audio and Video streams. Since we only 
-        // want to link to the Video source pad, we need to know which of the
-        // two streams this call is for.
-        GstCaps* pCaps = gst_pad_query_caps(pPad, NULL);
-        GstStructure* structure = gst_caps_get_structure(pCaps, 0);
-        std::string name = gst_structure_get_name(structure);
-        
-        LOG_INFO("Caps structs name " << name);
-        if (name.find("video") != std::string::npos)
-        {
-            m_pGstStaticSinkPad = gst_element_get_static_pad(m_pTee->GetGstElement(), "sink");
-            if (!m_pGstStaticSinkPad)
-            {
-                LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" 
-                    << GetName() << "'");
-            }
-            
-            if (gst_pad_link(pPad, m_pGstStaticSinkPad) != GST_PAD_LINK_OK) 
-            {
-                LOG_ERROR("Failed to link decodebin to source Tee");
-                throw;
-            }
-            
-            // Update the cap memebers for this URI Source Bintr
-            gst_structure_get_uint(structure, "width", &m_width);
-            gst_structure_get_uint(structure, "height", &m_height);
-            gst_structure_get_fraction(structure, "framerate", (gint*)&m_fpsN, (gint*)&m_fpsD);
-            
-            LOG_INFO("Video decode linked for URI source '" << GetName() << "'");
-        }
-    }
-
-    bool UriSourceBintr::SetUri(const char* uri)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set Uri for UriSourceBintr '" << GetName() 
-                << "' as it's currently Linked");
-            return false;
-        }
-        // if it's a file source, 
-        std::string newUri(uri);
-        
-        if ((newUri.find("http") == std::string::npos))
-        {
-            // Setup the absolute File URI and query dimensions
-            if (!SetFileUri(uri))
-            {
-                LOG_ERROR("URI Source'" << uri << "' Not found");
-                return false;
-            }
-        }        
-        LOG_INFO("URI Path for File Source '" << GetName() << "' = " << m_uri);
-        
-        if (m_uri.size())
-        {
-            m_pSourceElement->SetAttribute("uri", m_uri.c_str());
-        }
-        
-        return true;
-    }
-
     //*********************************************************************************
 
     FileSourceBintr::FileSourceBintr(const char* name, 
@@ -3338,25 +3233,25 @@ namespace DSL
     static void OnChildAddedCB(GstChildProxy* pChildProxy, GObject* pObject,
         gchar* name, gpointer pSource)
     {
-        static_cast<DecodeSourceBintr*>(pSource)->HandleOnChildAdded(pChildProxy, pObject, name);
+        static_cast<UriSourceBintr*>(pSource)->HandleOnChildAdded(pChildProxy, pObject, name);
     }
     
     static void OnSourceSetupCB(GstElement* pObject, GstElement* arg0, 
         gpointer pSource)
     {
-        static_cast<DecodeSourceBintr*>(pSource)->HandleOnSourceSetup(pObject, arg0);
+        static_cast<UriSourceBintr*>(pSource)->HandleOnSourceSetup(pObject, arg0);
     }
     
     static GstPadProbeReturn StreamBufferRestartProbCB(GstPad* pPad, 
         GstPadProbeInfo* pInfo, gpointer pSource)
     {
-        return static_cast<DecodeSourceBintr*>(pSource)->
+        return static_cast<UriSourceBintr*>(pSource)->
             HandleStreamBufferRestart(pPad, pInfo);
     }
 
     static gboolean StreamBufferSeekCB(gpointer pSource)
     {
-        return static_cast<DecodeSourceBintr*>(pSource)->HandleStreamBufferSeek();
+        return static_cast<UriSourceBintr*>(pSource)->HandleStreamBufferSeek();
     }
 
     static int RtspStreamManagerHandler(gpointer pSource)
