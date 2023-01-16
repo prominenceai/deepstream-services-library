@@ -109,6 +109,12 @@ namespace DSL
         , m_height(0)
         , m_fpsN(0)
         , m_fpsD(0)
+        , m_bufferOutWidth(0)
+        , m_bufferOutHeight(0)
+        , m_bufferOutCropLeft(0)
+        , m_bufferOutCropTop(0)
+        , m_bufferOutCropWidth(0)
+        , m_bufferOutCropHeight(0)
     {
         LOG_FUNC();
 
@@ -117,6 +123,44 @@ namespace DSL
         
         // Get the Device properties
         cudaGetDeviceProperties(&m_cudaDeviceProp, m_gpuId);
+
+        // Media type is fixed to "video/x-raw"
+        std::wstring L_mediaType(DSL_MEDIA_TYPE_VIDEO_XRAW);
+        m_mediaType.assign(L_mediaType.begin(), L_mediaType.end());
+
+        // Set the buffer-out-format to the default video format
+        std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
+        m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
+            L_bufferOutFormat.end());
+        
+        // All SourceBintrs have a Video Converter with Caps Filter used
+        // to control the buffer-out format, dimensions, crop values, etc.
+        
+        // ---- Video Converter Setup
+
+        m_pBufferOutVidConv = DSL_ELEMENT_EXT_NEW("nvvideoconvert", 
+            name, "buffer-out");
+        
+        // Get property defaults that aren't specifically set
+        m_pBufferOutVidConv->GetAttribute("gpu-id", &m_gpuId);
+        m_pBufferOutVidConv->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
+        
+        // ---- Caps Filter Setup
+
+        m_pBufferOutCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
+        
+        SetBufferOutFormat(m_bufferOutFormat.c_str());
+        
+        // add both elementrs as children to this Bintr
+        AddChild(m_pBufferOutVidConv);
+        AddChild(m_pBufferOutCapsFilter);
+
+        // buffer-out caps filter is "src" ghost-pad for all SourceBintrs
+        m_pBufferOutCapsFilter->AddGhostPadToParent("src");
+        
+        std::string padProbeName = GetName() + "-src-pad-probe";
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
+            "src", m_pBufferOutCapsFilter);
     }
     
     SourceBintr::~SourceBintr()
@@ -181,6 +225,140 @@ namespace DSL
         *fpsD = m_fpsD;
     }
 
+    bool SourceBintr::SetBufferOutFormat(const char* format)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set buffer-out-format for SourceBintr '" << GetName() 
+                << "' as it is currently in a linked state");
+            return false;
+        }
+
+        GstCaps * pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
+            "format", G_TYPE_STRING, format, NULL);
+        if (!pCaps)
+        {
+            LOG_ERROR("Failed to create new Simple Capabilities for '" 
+                << GetName() << "'");
+            return false;  
+        }
+
+        // Video converter is an NVIDIA plugin, so we need to add the
+        // additional feature to enable buffer access via the NvBuffer API.
+        GstCapsFeatures *feature = NULL;
+        feature = gst_caps_features_new("memory:NVMM", NULL);
+        gst_caps_set_features(pCaps, 0, feature);
+
+        // Set the provided element's caps and unref caps structure.
+        m_pBufferOutCapsFilter->SetAttribute("caps", pCaps);
+        gst_caps_unref(pCaps); 
+
+        m_bufferOutFormat = format;
+
+        return true;
+    }
+    
+    void SourceBintr::GetBufferOutDimensions(uint* width, uint* height)
+    {
+        LOG_FUNC();
+        
+        *width = m_bufferOutWidth;
+        *height = m_bufferOutHeight;
+    }
+    
+    bool SourceBintr::SetBufferOutDimensions(uint width, uint height)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set buffer-out-dimensions for SourceBintr '" << GetName() 
+                << "' as it is currently in a linked state");
+            return false;
+        }
+        m_bufferOutWidth = width;
+        m_bufferOutHeight = height;
+        
+        GstCaps* pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
+            "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
+            "width", G_TYPE_INT, m_bufferOutWidth, 
+            "height", G_TYPE_INT, m_bufferOutHeight, NULL);
+        if (!pCaps)
+        {
+            LOG_ERROR("Failed to create new Simple Capabilities for SourceBintr '" 
+                << GetName() << "'");
+            return false;  
+        }
+
+        // Video converter is an NVIDIA plugin, so we need to add the
+        // additional feature to enable buffer access via the NvBuffer API.
+        GstCapsFeatures *feature = NULL;
+        feature = gst_caps_features_new("memory:NVMM", NULL);
+        gst_caps_set_features(pCaps, 0, feature);
+
+        // Set the provided element's caps and unref caps structure.
+        m_pBufferOutCapsFilter->SetAttribute("caps", pCaps);
+        gst_caps_unref(pCaps); 
+        
+        return true;
+    }
+    
+    void SourceBintr::GetBufferOutCrop(uint* left, uint* top, uint* width, uint* height)
+    {
+        LOG_FUNC();
+        
+        *left = m_bufferOutCropLeft;
+        *top = m_bufferOutCropTop;
+        *width = m_bufferOutCropWidth;
+        *height = m_bufferOutCropHeight;
+    }
+    
+    bool SourceBintr::SetBufferOutCrop(uint left, uint top, uint width, uint height)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR(
+                "Unable to set buffer-out crop settings for SourceBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_bufferOutCropLeft = left;
+        m_bufferOutCropTop = top;
+        m_bufferOutCropWidth = width;
+        m_bufferOutCropHeight = height;
+        
+        std::string cropSettings( 
+            std::to_string(left) + ":" +
+            std::to_string(top) + ":" +
+            std::to_string(width) + ":" +
+            std::to_string(height));
+        
+        m_pBufferOutVidConv->SetAttribute("dest-crop", cropSettings.c_str());
+
+        return true;
+    }
+
+    bool SourceBintr::SetNvbufMemType(uint nvbufMemType)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR(
+                "Unable to set NVIDIA buffer memory type for SourceBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_nvbufMemType = nvbufMemType;
+        m_pBufferOutVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+
+        return true;
+    }
+
     //*********************************************************************************
     AppSourceBintr::AppSourceBintr(const char* name, bool isLive, 
             const char* bufferInFormat, uint width, uint height, uint fpsN, uint fpsD)
@@ -198,12 +376,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // Media type is fixed to "video/x-raw"
-        std::wstring L_mediaType(DSL_MEDIA_TYPE_VIDEO_XRAW);
-        m_mediaType.assign(L_mediaType.begin(), L_mediaType.end());
-
-        m_bufferOutFormat = bufferInFormat;
-
         m_isLive = isLive;
         m_width = width;
         m_height = height;
@@ -242,25 +414,10 @@ namespace DSL
         // m_pSourceElement->GetAttribute("max-time", &m_maxTime);
         // m_pSourceElement->GetAttribute("leaky-type", &m_leakyType);
         
-        // ---- Video Converter Setup
-        
-        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
-        
         if (!m_cudaDeviceProp.integrated)
         {
-            m_pVidConv->SetAttribute("nvbuf-memory-type", 
+            m_pBufferOutVidConv->SetAttribute("nvbuf-memory-type", 
                 DSL_NVBUF_MEM_TYPE_UNIFIED);
-        }
-        
-        // ---- Caps Filter Setup
-
-        m_pVidConvCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
-        
-        // Set the default buffer-out format. NVIDIA plugin = true
-        if (!set_format_caps(m_pVidConvCapsFilter, 
-            m_mediaType.c_str(), m_bufferOutFormat.c_str(), true))
-        {
-            throw;
         }
 
         LOG_INFO("");
@@ -285,14 +442,6 @@ namespace DSL
 
         // add all elementrs as childer to this Bintr
         AddChild(m_pSourceElement);
-        AddChild(m_pVidConv);
-        AddChild(m_pVidConvCapsFilter);
-        
-        m_pVidConvCapsFilter->AddGhostPadToParent("src");
-
-        std::string padProbeName = GetName() + "-src-pad-probe";
-        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
-            "src", m_pVidConvCapsFilter);
 
         g_mutex_init(&m_dataHandlerMutex);
     }
@@ -314,8 +463,8 @@ namespace DSL
                 << "' is already in a linked state");
             return false;
         }
-        if (!m_pSourceElement->LinkToSink(m_pVidConv) or
-            !m_pVidConv->LinkToSink(m_pVidConvCapsFilter))
+        if (!m_pSourceElement->LinkToSink(m_pBufferOutVidConv) or
+            !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
         {
             return false;
         }
@@ -336,7 +485,7 @@ namespace DSL
             return;
         }
         m_pSourceElement->UnlinkFromSink();
-        m_pVidConv->UnlinkFromSink();
+        m_pBufferOutVidConv->UnlinkFromSink();
         m_isLinked = false;
     }
 
@@ -677,8 +826,8 @@ namespace DSL
 
         // Set the full capabilities (format, dimensions, and framerate)
         // Note: nvarguscamerasrc supports NV12 and P010_10LE formats only.
-        if (!set_full_caps(m_pSourceElement, m_mediaType.c_str(), "NV12",
-            m_width, m_height, m_fpsN, m_fpsD, false))
+        if (!set_full_caps(m_pSourceCapsFilter, m_mediaType.c_str(), "NV12",
+            m_width, m_height, m_fpsN, m_fpsD, true))
         {
             throw;
         }
@@ -686,27 +835,8 @@ namespace DSL
         // Get property defaults that aren't specifically set
         m_pSourceElement->GetAttribute("do-timestamp", &m_doTimestamp);
 
-        // ---- Video Converter Setup
+//        // ---- Video Converter Setup
         
-        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
-        
-        if (!m_cudaDeviceProp.integrated)
-        {
-            m_pVidConv->SetAttribute("nvbuf-memory-type", 
-                DSL_NVBUF_MEM_TYPE_UNIFIED);
-        }
-        
-        // ---- Caps Filter Setup
-
-        m_pVidConvCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "2");
-        
-        // Set the default buffer-out format.
-        if (!set_format_caps(m_pVidConvCapsFilter, 
-            m_mediaType.c_str(), m_bufferOutFormat.c_str(), true))
-        {
-            throw;
-        }
-
         LOG_INFO("");
         LOG_INFO("Initial property values for CsiSourceBintr '" << name << "'");
         LOG_INFO("  is-live           : " << m_isLive);
@@ -721,14 +851,6 @@ namespace DSL
 
         AddChild(m_pSourceElement);
         AddChild(m_pSourceCapsFilter);
-        AddChild(m_pVidConv);
-        AddChild(m_pVidConvCapsFilter);
-        
-        m_pVidConvCapsFilter->AddGhostPadToParent("src");
-
-        std::string padProbeName = GetName() + "-src-pad-probe";
-        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
-            "src", m_pVidConvCapsFilter);
     }
 
     CsiSourceBintr::~CsiSourceBintr()
@@ -748,8 +870,8 @@ namespace DSL
             return false;
         }
         if (!m_pSourceElement->LinkToSink(m_pSourceCapsFilter) or
-            !m_pSourceCapsFilter->LinkToSink(m_pVidConv) or
-            !m_pVidConv->LinkToSink(m_pVidConvCapsFilter))
+            !m_pSourceCapsFilter->LinkToSink(m_pBufferOutVidConv) or
+            !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
         {
             return false;
         }
@@ -769,7 +891,7 @@ namespace DSL
         }
         m_pSourceElement->UnlinkFromSink();
         m_pSourceCapsFilter->UnlinkFromSink();
-        m_pVidConv->UnlinkFromSink();
+        m_pBufferOutVidConv->UnlinkFromSink();
         
         m_isLinked = false;
     }
@@ -814,21 +936,6 @@ namespace DSL
         m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
         
         return true;
-    }
-    
-    bool CsiSourceBintr::SetBufferOutFormat(const char* format)
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR("Can't set buffer-out-format for CsiSourceBintr '" << GetName() 
-                << "' as it is currently in a linked state");
-            return false;
-        }
-        m_bufferOutFormat = format;
-        return set_format_caps(m_pVidConvCapsFilter, m_mediaType.c_str(),
-            m_bufferOutFormat.c_str(), true);
     }
 
     //*********************************************************************************
@@ -882,24 +989,8 @@ namespace DSL
 
         if (!m_cudaDeviceProp.integrated)
         {
-            m_pVidConv1 = DSL_ELEMENT_EXT_NEW("nvvideoconvert", name, "1");
-            AddChild(m_pVidConv1);
-        }
-        m_pVidConv2 = DSL_ELEMENT_EXT_NEW("nvvideoconvert", name, "2");
-        
-        m_pVidConv2->SetAttribute("gpu-id", m_gpuId);
-        m_pVidConv2->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
-
-        // ---- Caps Filter Setup
-
-        m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
-
-        // Set the full capabilities (format, dimensions, and framerate)
-        // Note: The v4l2src element and Video Converters are NIVIDIA's.
-        if (!set_full_caps(m_pCapsFilter, m_mediaType.c_str(), 
-            m_bufferOutFormat.c_str(),m_width, m_height, m_fpsN, m_fpsD, true))
-        {
-            throw;
+            m_pdGpuVidConv = DSL_ELEMENT_EXT_NEW("nvvideoconvert", name, "1");
+            AddChild(m_pdGpuVidConv);
         }
         
         LOG_INFO("");
@@ -914,14 +1005,6 @@ namespace DSL
         LOG_INFO("  framerate         : " << m_fpsN << "/" << m_fpsD);
 
         AddChild(m_pSourceElement);
-        AddChild(m_pVidConv2);
-        AddChild(m_pCapsFilter);
-        
-        m_pCapsFilter->AddGhostPadToParent("src");
-
-        std::string padProbeName = GetName() + "-src-pad-probe";
-        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
-            "src", m_pCapsFilter);
     }
 
     UsbSourceBintr::~UsbSourceBintr()
@@ -947,17 +1030,17 @@ namespace DSL
         // x86_64
         if (!m_cudaDeviceProp.integrated)
         {
-            if (!m_pSourceElement->LinkToSink(m_pVidConv1) or 
-                !m_pVidConv1->LinkToSink(m_pVidConv2) or
-                !m_pVidConv2->LinkToSink(m_pCapsFilter))
+            if (!m_pSourceElement->LinkToSink(m_pdGpuVidConv) or 
+                !m_pdGpuVidConv->LinkToSink(m_pBufferOutVidConv) or
+                !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
             {
                 return false;
             }
         }
         else // aarch_64
         {
-            if (!m_pSourceElement->LinkToSink(m_pVidConv2) or 
-                !m_pVidConv2->LinkToSink(m_pCapsFilter))
+            if (!m_pSourceElement->LinkToSink(m_pBufferOutVidConv) or 
+                !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
             {
                 return false;
             }
@@ -978,12 +1061,12 @@ namespace DSL
         }
         
         // x86_64
+        m_pSourceElement->UnlinkFromSink();
         if (!m_cudaDeviceProp.integrated)
         {
-            m_pVidConv1->UnlinkFromSink();
+            m_pdGpuVidConv->UnlinkFromSink();
         }
-        m_pVidConv2->UnlinkFromSink();
-        m_pSourceElement->UnlinkFromSink();
+        m_pBufferOutVidConv->UnlinkFromSink();
         m_isLinked = false;
     }
 
@@ -1048,44 +1131,6 @@ namespace DSL
         
         m_pSourceElement->SetAttribute("device", deviceLocation);
         return true;
-    }
-    
-    bool UsbSourceBintr::SetGpuId(uint gpuId)
-    {
-        LOG_FUNC();
-        
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to set GPU ID for UsbSourceBintr '" << GetName() 
-                << "' as it's currently in use");
-            return false;
-        }
-
-        m_gpuId = gpuId;
-        LOG_DEBUG("Setting GPU ID to '" << gpuId 
-            << "' for UsbSourceBintr '" << m_name << "'");
-
-        m_pVidConv2->SetAttribute("gpu-id", m_gpuId);
-        
-        return true;
-    }
-
-    bool UsbSourceBintr::SetBufferOutFormat(const char* format)
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR("Can't set buffer-out-format for CsiSourceBintr '" << GetName() 
-                << "' as it is currently in a linked state");
-            return false;
-        }
-        m_bufferOutFormat = format;
-
-        // Set the full capabilities (format, dimensions, and framerate)
-        // Note: The v4l2src element and Video Converters are NIVIDIA's.
-        return set_full_caps(m_pCapsFilter, m_mediaType.c_str(),
-            m_bufferOutFormat.c_str(),m_width, m_height, m_fpsN, m_fpsD, true);
     }
 
     //*********************************************************************************
@@ -1644,21 +1689,6 @@ namespace DSL
         LOG_FUNC();
     }
 
-    bool ImageSourceBintr::SetBufferOutFormat(const char* format)
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR("Can't set buffer-out-format for ImageStreamSourceBintr '" << GetName() 
-                << "' as it is currently in a linked state");
-            return false;
-        }
-        m_bufferOutFormat = format;
-        return set_format_caps(m_pVidConvCapsFilter, m_mediaType.c_str(),
-            m_bufferOutFormat.c_str(), true);
-    }
-
     //*********************************************************************************
 
     SingleImageSourceBintr::SingleImageSourceBintr(const char* name, const char* uri)
@@ -2206,21 +2236,6 @@ namespace DSL
         return true;
     }
 
-    bool ImageStreamSourceBintr::SetBufferOutFormat(const char* format)
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR("Can't set buffer-out-format for ImageStreamSourceBintr '" << GetName() 
-                << "' as it is currently in a linked state");
-            return false;
-        }
-        m_bufferOutFormat = format;
-        return set_format_caps(m_pVidConvCapsFilter, m_mediaType.c_str(),
-            m_bufferOutFormat.c_str(), true);
-    }
-    
     //*********************************************************************************
 
     InterpipeSourceBintr::InterpipeSourceBintr(const char* name, 

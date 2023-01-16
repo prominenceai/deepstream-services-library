@@ -1,4 +1,3 @@
-
 /*
 The MIT License
 
@@ -40,8 +39,6 @@ namespace DSL
      * @brief convenience macros for shared pointer abstraction
      */
     #define DSL_SOURCE_PTR std::shared_ptr<SourceBintr>
-    #define DSL_SOURCE_NEW(name) \
-        std::shared_ptr<SourceBintr>(new SourceBintr(name))
 
     #define DSL_APP_SOURCE_PTR std::shared_ptr<AppSourceBintr>
     #define DSL_APP_SOURCE_NEW(name, isLive, bufferInFormat, width, height, fpsN, fpsD) \
@@ -181,42 +178,6 @@ namespace DSL
         }
 
         /**
-         * @brief Gets the current media-type for the SourceBintr.
-         * @return Current media type string. 
-         */
-        const char* GetMediaType()
-        {
-            LOG_FUNC();
-            
-            return m_mediaType.c_str();
-        }
-
-        /**
-         * @brief Gets the current buffer-out-format for the SourceBintr.
-         * @return Current buffer-out-format. 
-         * Note: Default = char* version of DSL_VIDEO_FORMAT_DEFAULT.
-         */
-        const char* GetBufferOutFormat()
-        {
-            LOG_FUNC();
-            
-            return m_bufferOutFormat.c_str();
-        }
-
-        /**
-         * @brief Gets the current buffer-out-format for the SourceBintr.
-         * @return Current buffer-out-format. 
-         */
-        virtual bool SetBufferOutFormat(const char* format)
-        {
-            LOG_FUNC();
-            
-            LOG_ERROR("SourceBintr '" << GetName() 
-                << "' does not support buffer-out-format updates"); 
-            return false;
-        }
-
-        /**
          * @brief For sources that manage EOS Consumers, this service must
          * called before sending the source an EOS Event to stop playing.
          */
@@ -235,6 +196,79 @@ namespace DSL
          * @param[out] fpsD the FPS denominator
          */ 
         void GetFrameRate(uint* fpsN, uint* fpsD);
+
+        /**
+         * @brief Gets the current media-type for the SourceBintr.
+         * @return Current media type string. 
+         */
+        const char* GetMediaType()
+        {
+            LOG_FUNC();
+            
+            return m_mediaType.c_str();
+        }
+
+        /**
+         * @brief Gets the current buffer-out-format for this SourceBintr.
+         * @return Current buffer-out-format. string version of one of the 
+         * DSL_VIDEO_FORMAT constants.
+         */
+        const char* GetBufferOutFormat()
+        {
+            LOG_FUNC();
+            
+            return m_bufferOutFormat.c_str();
+        };
+        
+        /**
+         * @brief Sets the buffer-out-format for the VideoConverterBintr.
+         * @param[in] format string version of one of the DSL_VIDEO_FORMAT constants.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetBufferOutFormat(const char* format);
+
+        /**
+         * @brief Sets the buffer-out dimensions for the VideoConverterBintr.
+         * @param[out] width new width value to scale the output buffer
+         * @param[out] height new height value to scale the output buffer
+         */
+        void GetBufferOutDimensions(uint* width, uint* height);
+        
+        /**
+         * @brief Sets the buffer-out dimensions for the VideoConverterBintr.
+         * @param[in] width new width value to scale the output buffer in pixels
+         * @param[in] height new height value to scale the output buffer in pixels
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetBufferOutDimensions(uint width, uint height);
+
+        /**
+         * @brief Gets the buffer-out-crop values for the VideoConverterBintr.
+         * @param[out] left left coordinate for the crop frame in pixels 
+         * @param[out] top top coordinate for the crop frame in pixels
+         * @param[out] width width of the crop frame in pixels
+         * @param[out] height height of the crop frame in pixels
+         * @return true if successfully set, false otherwise.
+         */
+        void GetBufferOutCrop(uint* left, uint* top, uint* width, uint* height);
+
+        /**
+         * @brief Sets the buffer-out-crop values for the VideoConverterBintr.
+         * @param[in] left left coordinate for the crop frame in pixels 
+         * @param[in] top top coordinate for the crop frame in pixels
+         * @param[in] width width of the crop frame in pixels
+         * @param[in] height height of the crop frame in pixels
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetBufferOutCrop(uint left, uint top, uint width, uint height);
+
+        /**
+         * @brief Sets the NVIDIA buffer memory type.
+         * @param[in] nvbufMemType new memory type to use, one of the 
+         * DSL_NVBUF_MEM_TYPE constant values.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetNvbufMemType(uint nvbufMemType);
         
         /**
          * @brief Returns the current linkable state of the Source. Camera Sources
@@ -280,14 +314,50 @@ namespace DSL
         uint m_height;
 
         /**
-         * @brief current frames-per-second numerator value for the Streaming Source
+         * @brief current frames-per-second numerator value for the SourceBintr
          */
         uint m_fpsN;
 
         /**
-         * @brief current frames-per-second denominator value for the Streaming Source
+         * @brief current frames-per-second denominator value for the SourceBintr
          */
         uint m_fpsD;
+
+        /**
+         * @brief Current scaled width value for the SourceBintr's Output Buffer 
+         * Video Converter in units of pixels. Default = 0 for no transcode.
+         */
+        uint m_bufferOutWidth;
+        
+        /**
+         * @brief Current scaled height setting for the SourceBintr's Outpu.t Buffer 
+         * Video Converter in units of pixels. Default = 0 for no transcode
+         */
+        uint m_bufferOutHeight;
+        
+        /**
+         * @brief Current crop left setting for the SourceBintr's output-buffer 
+         * Video Converter in units of pixels. Default = 0.
+         */
+        uint m_bufferOutCropLeft;
+        
+        /**
+         * @brief Current crop top setting for the SourceBintr's output-buffer 
+         * Video Converter in units of pixels. Default = 0.
+         */
+        uint m_bufferOutCropTop;
+        
+        /**
+         * @brief Current crop width setting for the SourceBintr's output-buffer 
+         * Video Converter in units of pixels. Default = 0 for no crop.
+         */
+        uint m_bufferOutCropWidth;
+        
+        /**
+         * @brief Current crop height setting for the SourceBintr's Output Buffer 
+         * Video Converter in units of pixels. Default = 0 for no crop.
+         */
+        uint m_bufferOutCropHeight;
 
         /**
          * @brief Soure Element for this SourceBintr
@@ -298,6 +368,17 @@ namespace DSL
          * @brief Single, optional dewarper for the DecodeSourceBintr
          */ 
         DSL_DEWARPER_PTR m_pDewarperBintr;
+        
+        /**
+         * @brief Output-buffer Video Converter element for this SourceBintr.
+         */
+        DSL_ELEMENT_PTR m_pBufferOutVidConv;
+
+        /**
+         * @brief Caps Filter for the SourceBintr's output-buffer Video Converter.
+         */
+        DSL_ELEMENT_PTR m_pBufferOutCapsFilter;
+        
     };
 
     //*********************************************************************************
@@ -601,13 +682,6 @@ namespace DSL
          */
         bool SetSensorId(uint sensorId);
 
-        /**
-         * @brief Sets the buffer-out-format for the CsiSourceBintr to use.
-         * @param[in] format new buffer-out-format string.
-         * @return true if successfull, false otherwise.
-         */
-        bool SetBufferOutFormat(const char* format);
-        
     private:
 
         /**
@@ -632,17 +706,6 @@ namespace DSL
          * - nvarguscamerasrc.
          */
         DSL_ELEMENT_PTR m_pSourceCapsFilter;
-        
-        /**
-         * @brief Video Converter for the CsiSourceBintr
-         */
-        DSL_ELEMENT_PTR m_pVidConv;
-
-        /**
-         * @brief Caps Filter for the CsiSourceBintr's Video Converter.
-         */
-        DSL_ELEMENT_PTR m_pVidConvCapsFilter;
-        
     };    
 
     //*********************************************************************************
@@ -683,19 +746,6 @@ namespace DSL
          */
         bool SetDeviceLocation(const char* deviceLocation);
         
-        /**
-         * @brief Sets the GPU ID for all Elementrs
-         * @return true if successfully set, false otherwise.
-         */
-        bool SetGpuId(uint gpuId);
-
-        /**
-         * @brief Sets the buffer-out-format for the UsbSourceBintr to use.
-         * @param[in] format new buffer-out-format string.
-         * @return true if successfull, false otherwise.
-         */
-        bool SetBufferOutFormat(const char* format);
-
     private:
 
         /**
@@ -728,19 +778,10 @@ namespace DSL
         boolean m_doTimestamp;
 
         /**
-         * @brief Video converter, first of two, for the USB Source
+         * @brief Video converter, first of two, for the USB Source if dGPU
          */
-        DSL_ELEMENT_PTR m_pVidConv1;
+        DSL_ELEMENT_PTR m_pdGpuVidConv;
 
-        /**
-         * @brief Video converter, second of two, for the USB Source
-         */
-        DSL_ELEMENT_PTR m_pVidConv2;
-
-        /**
-         * @brief Caps Filter for the USB Source elements
-         */
-        DSL_ELEMENT_PTR m_pCapsFilter;
     }; 
 
     //*********************************************************************************
@@ -1020,14 +1061,6 @@ namespace DSL
          */
         ~ImageSourceBintr();
         
-        /**
-         * @brief Sets the buffer-out-format for the ImageSourceBintr to use.
-         * @param[in] format new buffer-out-format string.
-         * @return true if successfull, false otherwise.
-         */
-        bool SetBufferOutFormat(const char* format);
-        
-
     protected:
         /**
          * @brief one of the DSL_IMAGE_EXTENTION_* constants
@@ -1199,7 +1232,7 @@ namespace DSL
          */
         int m_stopIndex;
 
-};
+    };
 
     //*********************************************************************************
 
@@ -1258,13 +1291,6 @@ namespace DSL
          * @return 0 always to clear the timer resource
          */
         int HandleDisplayTimeout();
-
-        /**
-         * @brief Sets the buffer-out-format for the ImageStreamSourceBintr to use.
-         * @param[in] format new buffer-out-format string.
-         * @return true if successfull, false otherwise.
-         */
-        bool SetBufferOutFormat(const char* format);
         
     private:
         

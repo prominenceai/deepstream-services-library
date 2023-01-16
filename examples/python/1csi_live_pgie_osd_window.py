@@ -110,6 +110,7 @@ def main(args):
         retval = dsl_pipeline_play('pipeline')
         if retval != DSL_RETURN_SUCCESS:
             break
+        dsl_pipeline_dump_to_dot('pipeline', "csi-source")
 
         dsl_main_loop_run()
         retval = DSL_RETURN_SUCCESS
