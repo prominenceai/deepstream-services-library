@@ -514,6 +514,29 @@ THE SOFTWARE.
 #define DSL_VIDEO_FORMAT_DEFAULT                                    DSL_VIDEO_FORMAT_I420
 
 /**
+ * @brief Constants defining when to crop the output buffer for a 
+ * given Source Component. Pre or post video conversion (if done).
+ * The constants map to the nvvideoconvert elements src-crop and 
+ * dest-crop properties. See...
+ * https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvvideoconvert.html#gst-nvvideoconvert
+ */
+#define DSL_VIDEO_CROP_PRE_CONVERSION                               0
+#define DSL_VIDEO_CROP_PROS_CONVERSION                              1
+
+/**
+ * @brief Constants defining the possible buffer-out orientation methods.
+ */
+// Important - must match the nvvidconvert flip method constant values 
+#define DSL_VIDEO_ORIENTATION_NONE                                  0       
+#define DSL_VIDEO_ORIENTATION_ROTATE_COUNTER_CLOCKWISE_90           1
+#define DSL_VIDEO_ORIENTATION_ROTATE_180                            2
+#define DSL_VIDEO_ORIENTATION_ROTATE_CLOCKWISE_90                   3
+#define DSL_VIDEO_ORIENTATION_FLIP_HORIZONTALLY                     4
+#define DSL_VIDEO_ORIENTATION_FLIP_UPPER_RIGHT_TO_LOWER_LEFT        5
+#define DSL_VIDEO_ORIENTATION_FLIP_VERTICALLY                       6
+#define DSL_VIDEO_ORIENTATION_FLIP_UPPER_LEFT_TO_LOWER_RIGHT        7
+
+/**
  * @brief Additional number of surfaces in addition to min decode 
  * surfaces given by the v4l2 driver. This value is used by the 
  * Decode sources and Pipeline-Streammuxer 
@@ -685,11 +708,11 @@ THE SOFTWARE.
 /**
  * @brief ODE Trigger limit state values - for Triggers with limits
  */
-#define DSL_ODE_TRIGGER_LIMIT_EVENT_REACHED                   0
-#define DSL_ODE_TRIGGER_LIMIT_EVENT_CHANGED                   1
-#define DSL_ODE_TRIGGER_LIMIT_FRAME_REACHED                   2
-#define DSL_ODE_TRIGGER_LIMIT_FRAME_CHANGED                   3
-#define DSL_ODE_TRIGGER_LIMIT_COUNTS_RESET                    4
+#define DSL_ODE_TRIGGER_LIMIT_EVENT_REACHED                         0
+#define DSL_ODE_TRIGGER_LIMIT_EVENT_CHANGED                         1
+#define DSL_ODE_TRIGGER_LIMIT_FRAME_REACHED                         2
+#define DSL_ODE_TRIGGER_LIMIT_FRAME_CHANGED                         3
+#define DSL_ODE_TRIGGER_LIMIT_COUNTS_RESET                          4
 
 /**
  * @brief Unique class relational identifiers for Class A/B testing
@@ -4602,7 +4625,7 @@ DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler)
  * @param name unique name of the Source Component to query.
  * @param[out] media_type fixed media-type. One of the DSL_MEDIA_TYPE
  * constant string values. 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_media_type_get(const wchar_t* name,
     const wchar_t** media_type);
@@ -4612,7 +4635,7 @@ DslReturnType dsl_source_media_type_get(const wchar_t* name,
  * @param name unique name of the Source Component to query.
  * @param[out] format current buffer-out-format. One of the DSL_VIDEO_FORMAT
  * constant string values. Default = DSL_VIDEO_FORMAT_DEFAULT.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_buffer_out_format_get(const wchar_t* name,
     const wchar_t** format);
@@ -4622,32 +4645,130 @@ DslReturnType dsl_source_buffer_out_format_get(const wchar_t* name,
  * @param name unique name of the Source Component to query.
  * @param[in] format new buffer-out-format to use. One of the DSL_VIDEO_FORMAT
  * constant string values.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_buffer_out_format_set(const wchar_t* name,
     const wchar_t* format);
+
+/**
+ * @brief Gets the scaled buffer-out-dimensions of the named Source component. 
+ * The default values of 0 for width and height indicate no scalling.
+ * @param[in] name unique name of the source to query.
+ * @param[out] width scaled width of the output buffer in pixels.
+ * @param[out] height scaled height of the output buffer in pixels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_buffer_out_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
+
+/**
+ * @brief Sets the scaled buffer-out-dimensions of the named Source component. 
+ * Set width and height to 0 to indicate no scalling.
+ * @param[in] name unique name of the source to output.
+ * @param[out] width scaled width of the output buffer in pixels.
+ * @param[out] height scaled height of the output buffer in pixels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_buffer_out_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
+
+/**
+ * @brief Gets the buffer-out-frame-rate of the named source as a fraction.
+ * The default values of 0 for fps_n and fps_d indicate no change in rate.
+ * @param[in] name unique name of the source to query.
+ * @param[out] fps_n buffer-out frames per second numerator.
+ * @param[out] fps_d buffer-out frames per second denominator.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_buffer_out_frame_rate_get(const wchar_t* name, 
+    uint* fps_n, uint* fps_d);
+
+/**
+ * @brief Sets the buffer-out-frame-rate of the named source as a fraction.
+ * Set fps_n and fps_d to 0 to indicate no change in rate.
+ * @param[in] name unique name of the source to update.
+ * @param[out] fps_n buffer-out frames per second numerator.
+ * @param[out] fps_d buffer-out frames per second denominator.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_buffer_out_frame_rate_set(const wchar_t* name, 
+    uint fps_n, uint fps_d);
+
+/**
+ * @brief Gets one of the buffer-out crop-rectangle for the named Source component,
+ * The buffer can be cropped pre-video-conversion and/or post-video-conversion.
+ * The default is no-crop with left, top, width, and height all 0
+ * @param name unique name of the Source Component to query.
+ * @param[in] when specifies which of the crop rectangles to query, either 
+ * DSL_VIDEO_CROP_PRE_CONVERSION or DSL_VIDEO_CROP_POST_CONVERSION.
+ * @param[out] left left positional coordinate of the rectangle in units of pixels.
+ * @param[out] top top positional coordinate of the rectangle in units of pixels.
+ * @param[out] width width of the rectangle in units of pixels.
+ * @param[out] height height of the rectangle in units of pixels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
+ */
+DslReturnType dsl_source_buffer_out_crop_rectangle_get(const wchar_t* name,
+    uint when, uint* left, uint* top, uint* width, uint* height);
+    
+/**
+ * @brief Sets one of the buffer-out crop-rectangle for the named Source component.
+ * The buffer can be cropped pre-video-conversion and/or post-video-conversion.
+ * For no-crop, set left, top, width, and height all to 0 (default)
+ * @param name unique name of the Source Component to query.
+ * @param[in] when specifies which of the crop rectangles to update, either 
+ * DSL_VIDEO_CROP_PRE_CONVERSION or DSL_VIDEO_CROP_POST_CONVERSION.
+ * @param[in] left left positional coordinate of the rectangle in units of pixels.
+ * @param[in] top top positional coordinate of the rectangle in units of pixels.
+ * @param[in] width width of the rectangle in units of pixels.
+ * @param[in] height height of the rectangle in units of pixels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
+ */
+DslReturnType dsl_source_buffer_out_crop_rectangle_set(const wchar_t* name,
+    uint when, uint left, uint top, uint width, uint height);
+    
+/**
+ * @brief Gets the current buffer-out-orientation for the named Source component.
+ * @param name unique name of the Source Component to query.
+ * @param[out] format current buffer-out-format. One of the DSL_VIDEO_ORIENTATION
+ * constant value. Default = DSL_VIDEO_ORIENTATION_NONE.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
+ */
+DslReturnType dsl_source_buffer_out_orientation_get(const wchar_t* name,
+    uint* orientation);
+
+/**
+ * @brief Sets the buffer-out-orientation for the named Source component to use.
+ * @param name unique name of the Source Component to update.
+ * @param[in] orientation new buffer-out-orientation. One of the 
+ * DSL_VIDEO_ORIENTATION constant value.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
+ */
+DslReturnType dsl_source_buffer_out_orientation_set(const wchar_t* name,
+    uint orientation);
 
 /**
  * @brief returns the frame rate of the name source as a fraction
  * Camera sources will return the value used on source creation
  * URL and RTPS sources will return 0 prior to entering a state of play
  * @param[in] name unique name of the source to query
- * @param[out] width of the source in pixels
- * @param[out] height of the source in pixels
+ * @param[out] width width of the source in pixels
+ * @param[out] height height of the source in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_dimensions_get(const wchar_t* name, uint* width, uint* height);
+DslReturnType dsl_source_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
 
 /**
  * @brief returns the frame rate of the named source as a fraction
  * Camera sources will return the value used on source creation
- * URL and RTPS sources will return 0 until prior entering a state of play
+ * URL and RTPS sources will return 0 prior to entering a state of play
  * @param[in] name unique name of the source to query
  * @param[out] fps_n frames per second numerator
  * @param[out] fps_d frames per second denominator
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* fps_d);
+DslReturnType dsl_source_frame_rate_get(const wchar_t* name, 
+    uint* fps_n, uint* fps_d);
 
 /**
  * @brief Gets the current URI in use by the named Decode Source

@@ -244,23 +244,33 @@ namespace DSL
 
         /**
          * @brief Gets the buffer-out-crop values for the VideoConverterBintr.
+         * @param[in] when either DSL_CROP_PRE_CONVERSION or 
+         * DSL_CROP_POST_CONVERSION
          * @param[out] left left coordinate for the crop frame in pixels 
          * @param[out] top top coordinate for the crop frame in pixels
          * @param[out] width width of the crop frame in pixels
          * @param[out] height height of the crop frame in pixels
          * @return true if successfully set, false otherwise.
          */
-        void GetBufferOutCrop(uint* left, uint* top, uint* width, uint* height);
+        void GetBufferOutCropRectangle(uint when, uint* left, uint* top, 
+            uint* width, uint* height);
 
         /**
          * @brief Sets the buffer-out-crop values for the VideoConverterBintr.
+         * @param[in] when either DSL_CROP_PRE_CONVERSION or 
+         * DSL_CROP_POST_CONVERSION
          * @param[in] left left coordinate for the crop frame in pixels 
          * @param[in] top top coordinate for the crop frame in pixels
          * @param[in] width width of the crop frame in pixels
          * @param[in] height height of the crop frame in pixels
          * @return true if successfully set, false otherwise.
          */
-        bool SetBufferOutCrop(uint left, uint top, uint width, uint height);
+        bool SetBufferOutCropRectangle(uint when, uint left, uint top, 
+            uint width, uint height);
+            
+        uint GetBufferOutOrientation();
+        
+        void SetBufferOutOrientation(uint orientaion);
 
         /**
          * @brief Sets the NVIDIA buffer memory type.
@@ -334,30 +344,10 @@ namespace DSL
          * Video Converter in units of pixels. Default = 0 for no transcode
          */
         uint m_bufferOutHeight;
-        
-        /**
-         * @brief Current crop left setting for the SourceBintr's output-buffer 
-         * Video Converter in units of pixels. Default = 0.
-         */
-        uint m_bufferOutCropLeft;
-        
-        /**
-         * @brief Current crop top setting for the SourceBintr's output-buffer 
-         * Video Converter in units of pixels. Default = 0.
-         */
-        uint m_bufferOutCropTop;
-        
-        /**
-         * @brief Current crop width setting for the SourceBintr's output-buffer 
-         * Video Converter in units of pixels. Default = 0 for no crop.
-         */
-        uint m_bufferOutCropWidth;
-        
-        /**
-         * @brief Current crop height setting for the SourceBintr's Output Buffer 
-         * Video Converter in units of pixels. Default = 0 for no crop.
-         */
-        uint m_bufferOutCropHeight;
+
+        uint m_bufferOutFpsN;
+        uint m_bufferOutFpsD;
+        uint m_bufferOutOrientation;
 
         /**
          * @brief Soure Element for this SourceBintr

@@ -1626,6 +1626,272 @@ namespace DSL
         }
     }                
 
+    DslReturnType Services::SourceBufferOutDimensionsGet(const char* name, 
+        uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+         
+            pSourceBintr->GetBufferOutDimensions(width, height);
+
+            LOG_INFO("Source '" << name << "' returned width = " 
+                << *width << " and height = " << *height 
+                << "for buffer-out-dimensions successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception getting buffer-out-dimensions");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceBufferOutDimensionsSet(const char* name, 
+        uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetBufferOutDimensions(width, height)
+            {
+                LOG_ERROR("Failed to set buffer-out-dimensions to width = " 
+                    << width << " and height = " << height  
+                    << " for Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("Source '" << name << "' set width = " 
+                << width << " and height = " << height 
+                << "for buffer-out-dimensions successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception getting buffer-out-dimensions");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceBufferOutFrameRateGet(const char* name, 
+        uint* fps_n, uint* fps_d)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+         
+            pSourceBintr->GetBufferOutFrameRate(fps_n, fps_d);
+
+            LOG_INFO("Source '" << name << "' returned fps_n = " 
+                << *fps_n << " and fps_d = " << *fps_d 
+                << "for buffer-out-frame-rate successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception getting buffer-out-frame-rate");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceBufferOutFrameRateSet(const char* name, 
+        uint fps_n, uint fps_d)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetBufferOutFrameRate(fps_n, fps_d)
+            {
+                LOG_ERROR("Failed to set buffer-out-frame-rate to fps_n = " 
+                    << fps_n << " and fps_d = " << fps_d  
+                    << " for Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("Source '" << name << "' set fps_n = " 
+                << fps_n << " and fps_n = " << fps_n 
+                << "for buffer-out-frame-rate successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception setting buffer-out-frame-rate");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::SourceBufferOutCropRectangleGet(const char* name, 
+        uint when, uint* left, uint* top, uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+         
+            pSourceBintr->GetBufferOutCropRectangle(when, 
+                left, top, width, height);
+
+            LOG_INFO("Source '" << name << "' returned left = " 
+                << *left << ", top = " << *top << ", width = "
+                << *width << ", and height = " << *height <<
+                << "for buffer-out-crop-rectangle successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception getting buffer-out-crop-rectangle");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceBufferOutCropRectangleSet(const char* name, 
+        uint when, uint left, uint top, uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetBufferOutCropRectangle(when, 
+                left, top, width, height)
+            {
+                LOG_ERROR("Failed to set buffer-out-crop-rectangle to when = " 
+                    << when << ", left = " << left << ", top = " 
+                    << top << ", width = " << width <<", and height = "
+                    << height << " for Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("Source '" << name << "' set when = " <<
+                << when << ", left = " << left ", top = " 
+                << top << ", width = " << width << ", and height = " 
+                << height << << " for buffer-out-crop-rectangle successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception setting buffer-out-crop-rectangle");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceBufferOutOrientationGet(const char* name, 
+        uint* orientation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+         
+            *orientation = pSourceBintr->GetBufferOutOrientation();
+
+            LOG_INFO("Source '" << name << "' returned buffer-out-orientation = " 
+                << *orientation << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception getting buffer-out-orientation");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceBufferOutOrientationSet(const char* name, 
+        uint orientation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetBufferOutOrientation(orientation))
+            {
+                LOG_ERROR("Failed to set buffer-out-orientation = " 
+                    << orientation << " for Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("Source '" << name << "' set buffer-out-orientation = " 
+                << orientation << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception setting buffer-out-orientation");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
     DslReturnType Services::SourceDimensionsGet(const char* name, 
         uint* width, uint* height)
     {

@@ -4098,6 +4098,111 @@ DslReturnType dsl_source_buffer_out_format_set(const wchar_t* name,
     return DSL::Services::GetServices()->SourceBufferOutFormatSet(
         cstrName.c_str(), cstrFormat.c_str());
 }
+
+DslReturnType dsl_source_buffer_out_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(width);
+    RETURN_IF_PARAM_IS_NULL(height);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceBufferOutDimensionsGet(
+        cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_source_buffer_out_dimensions_set(const wchar_t* name, 
+    uint width, uint height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceBufferOutDimensionsSet(
+        cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_source_buffer_out_frame_rate_get(const wchar_t* name, 
+    uint* fps_n, uint* fps_d)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(fps_n);
+    RETURN_IF_PARAM_IS_NULL(fps_d);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceBufferOutFrameRateGet(
+        cstrName.c_str(), fps_n, fps_d);
+}
+
+DslReturnType dsl_source_buffer_out_frame_rate_set(const wchar_t* name, 
+    uint fps_n, uint fps_d)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceBufferOutFrameRateSet(
+        cstrName.c_str(), fps_n, fps_d);
+}
+
+DslReturnType dsl_source_buffer_out_crop_rectangle_get(const wchar_t* name,
+    uint when, uint* left, uint* top, uint* width, uint* height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(left);
+    RETURN_IF_PARAM_IS_NULL(top);
+    RETURN_IF_PARAM_IS_NULL(width);
+    RETURN_IF_PARAM_IS_NULL(height);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceBufferOutCropRectangleGet(
+        cstrName.c_str(), when, left, top, width, height);
+}
+
+DslReturnType dsl_source_buffer_out_crop_rectangle_set(const wchar_t* name,
+    uint when, uint left, uint top, uint width, uint height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceBufferOutCropRectangleSet(
+        cstrName.c_str(), when, left, top, width, height);
+}
+
+DslReturnType dsl_source_buffer_out_orientation_get(const wchar_t* name,
+    uint* orientation)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(orientation);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceBufferOutOrientationGet(
+        cstrName.c_str(), orientation);
+}
+
+DslReturnType dsl_source_buffer_out_orientation_set(const wchar_t* name,
+    uint orientation)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceBufferOutOrientationSet(
+        cstrName.c_str(), orientation);
+}
     
 DslReturnType dsl_source_app_do_timestamp_get(const wchar_t* name, 
     boolean* do_timestamp)

@@ -111,10 +111,9 @@ namespace DSL
         , m_fpsD(0)
         , m_bufferOutWidth(0)
         , m_bufferOutHeight(0)
-        , m_bufferOutCropLeft(0)
-        , m_bufferOutCropTop(0)
-        , m_bufferOutCropWidth(0)
-        , m_bufferOutCropHeight(0)
+        , m_bufferOutFpsN(0)
+        , m_bufferOutFpsD(0)
+        , m_bufferOutOrientation(DSL_VIDEO_ORIENTATION_NONE)
     {
         LOG_FUNC();
 
@@ -305,17 +304,36 @@ namespace DSL
         return true;
     }
     
-    void SourceBintr::GetBufferOutCrop(uint* left, uint* top, uint* width, uint* height)
+    void SourceBintr::GetBufferOutCropRectangle(uint when, 
+        uint* left, uint* top, uint* width, uint* height)
     {
         LOG_FUNC();
         
-        *left = m_bufferOutCropLeft;
-        *top = m_bufferOutCropTop;
-        *width = m_bufferOutCropWidth;
-        *height = m_bufferOutCropHeight;
+        const char* cropCString;
+
+        if (when == DSL_CROP_PRE_CONVERSION)
+        {
+            m_pBufferOutVidConv->GetAttribute("src-crop", &cropCString);
+        }
+        else
+        {
+            m_pBufferOutVidConv->GetAttribute("dest-crop", &cropCString);
+        }
+        std::string cropString(cropCString);
+        std::string delimiter(":");
+        std::string leftSubStr = cropString.substr(0, cropString.find(delimiter)); 
+        std::string topSubStr = cropString.substr(1, cropString.find(delimiter)); 
+        std::string widthSubStr = cropString.substr(2, cropString.find(delimiter)); 
+        std::string heightSubStr = cropString.substr(3, cropString.find(delimiter)); 
+        
+        *left = std::stoul(leftSubStr.c_str());
+        *top = std::stoul(topSubStr.c_str());
+        *width = std::stoul(widthSubStr.c_str());
+        *height = std::stoul(heightSubStr.c_str());
     }
     
-    bool SourceBintr::SetBufferOutCrop(uint left, uint top, uint width, uint height)
+    bool SourceBintr::SetBufferOutCropRectangle(uint when, 
+        uint left, uint top, uint width, uint height)
     {
         LOG_FUNC();
         
@@ -326,10 +344,6 @@ namespace DSL
                 << GetName() << "' as it's currently linked");
             return false;
         }
-        m_bufferOutCropLeft = left;
-        m_bufferOutCropTop = top;
-        m_bufferOutCropWidth = width;
-        m_bufferOutCropHeight = height;
         
         std::string cropSettings( 
             std::to_string(left) + ":" +
@@ -337,7 +351,38 @@ namespace DSL
             std::to_string(width) + ":" +
             std::to_string(height));
         
-        m_pBufferOutVidConv->SetAttribute("dest-crop", cropSettings.c_str());
+        if (when == DSL_CROP_PRE_CONVERSION)
+        {
+            m_pBufferOutVidConv->SetAttribute("src-crop", cropSettings.c_str());
+        }
+        else
+        {
+            m_pBufferOutVidConv->SetAttribute("dest-crop", cropSettings.c_str());
+        }
+
+        return true;
+    }
+
+    uint SourceBintr::GetBufferOutOrientation()
+    {
+        LOG_FUNC();
+        
+        return m_bufferOutOrientation;
+    }
+    
+    void SourceBintr::SetBufferOutOrientation(uint orientation)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR(
+                "Unable to set buffer-out-orientation for SourceBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_bufferOutOrientation = orientation;
+        m_pBufferOutVidConv->SetAttribute("flip-method", m_bufferOutOrientation);
 
         return true;
     }
