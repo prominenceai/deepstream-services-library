@@ -221,56 +221,83 @@ namespace DSL
         };
         
         /**
-         * @brief Sets the buffer-out-format for the VideoConverterBintr.
+         * @brief Sets the buffer-out-format for the SourceBintr.
          * @param[in] format string version of one of the DSL_VIDEO_FORMAT constants.
          * @return true if successfully set, false otherwise.
          */
         bool SetBufferOutFormat(const char* format);
 
         /**
-         * @brief Sets the buffer-out dimensions for the VideoConverterBintr.
+         * @brief Sets the buffer-out-dimensions for the SourceBintr.
          * @param[out] width new width value to scale the output buffer
          * @param[out] height new height value to scale the output buffer
          */
         void GetBufferOutDimensions(uint* width, uint* height);
         
         /**
-         * @brief Sets the buffer-out dimensions for the VideoConverterBintr.
+         * @brief Sets the buffer-out-dimensions for the SourceBintr.
          * @param[in] width new width value to scale the output buffer in pixels
          * @param[in] height new height value to scale the output buffer in pixels
          * @return true if successfully set, false otherwise.
          */
         bool SetBufferOutDimensions(uint width, uint height);
+        
+        /**
+         * @brief Gets the buffer-out-frame-rate for the SourceBintr.
+         * @param[out] fpsN frames per second numerator.
+         * @param[out] fpsD frames per second denominator.
+         */
+        void GetBufferOutFrameRate(uint* fpsN, uint* fpsD);
 
         /**
-         * @brief Gets the buffer-out-crop values for the VideoConverterBintr.
+         * @brief Sets the buffer-out-frame-rate for the SourceBintr.
+         * @param[out] fpsN frames per second numerator.
+         * @param[out] fpsD frames per second denominator.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetBufferOutFrameRate(uint fpsN, uint fpsD);
+
+        /**
+         * @brief Gets the buffer-out-crop values for the SourceBintr.
          * @param[in] when either DSL_CROP_PRE_CONVERSION or 
-         * DSL_CROP_POST_CONVERSION
-         * @param[out] left left coordinate for the crop frame in pixels 
-         * @param[out] top top coordinate for the crop frame in pixels
-         * @param[out] width width of the crop frame in pixels
-         * @param[out] height height of the crop frame in pixels
+         * DSL_CROP_POST_CONVERSION.
+         * @param[out] left left coordinate for the crop frame in pixels.
+         * @param[out] top top coordinate for the crop frame in pixels.
+         * @param[out] width width of the crop frame in pixels.
+         * @param[out] height height of the crop frame in pixels.
          * @return true if successfully set, false otherwise.
          */
         void GetBufferOutCropRectangle(uint when, uint* left, uint* top, 
             uint* width, uint* height);
 
         /**
-         * @brief Sets the buffer-out-crop values for the VideoConverterBintr.
+         * @brief Sets the buffer-out-crop values for the SourceBintr.
          * @param[in] when either DSL_CROP_PRE_CONVERSION or 
-         * DSL_CROP_POST_CONVERSION
-         * @param[in] left left coordinate for the crop frame in pixels 
-         * @param[in] top top coordinate for the crop frame in pixels
-         * @param[in] width width of the crop frame in pixels
-         * @param[in] height height of the crop frame in pixels
+         * DSL_CROP_POST_CONVERSION.
+         * @param[in] left left coordinate for the crop frame in pixels.
+         * @param[in] top top coordinate for the crop frame in pixels.
+         * @param[in] width width of the crop frame in pixels.
+         * @param[in] height height of the crop frame in pixels.
          * @return true if successfully set, false otherwise.
          */
         bool SetBufferOutCropRectangle(uint when, uint left, uint top, 
             uint width, uint height);
-            
+        
+        /**
+         * @brief Gets the current buffer-out-orientation for the VideoCon. 
+         * @param[out] orientation current buffer-out-format. One of the 
+         * DSL_VIDEO_ORIENTATION constant value. Default = DSL_VIDEO_ORIENTATION_NONE.
+         * @return 
+         */
         uint GetBufferOutOrientation();
         
-        void SetBufferOutOrientation(uint orientaion);
+        /**
+         * @brief Sets the buffer-out-orientation setting. 
+         * @param[out] orientation current buffer-out-format. One of the 
+         * DSL_VIDEO_ORIENTATION constant value. Default = DSL_VIDEO_ORIENTATION_NONE.
+         * @return 
+         */
+        bool SetBufferOutOrientation(uint orientaion);
 
         /**
          * @brief Sets the NVIDIA buffer memory type.
@@ -289,8 +316,16 @@ namespace DSL
          */
         virtual bool IsLinkable(){return true;};
 
-    protected:
+    private:
 
+        /**
+         * @brief Private function to update the Video Converter's capability filter.
+         * @return true if successful, false otherwise.
+         */
+        bool updateCaps();
+    
+    protected:
+    
         /**
          * @brief Device Properties, used for aarch64/x86_64 conditional logic
          */
@@ -340,13 +375,26 @@ namespace DSL
         uint m_bufferOutWidth;
         
         /**
-         * @brief Current scaled height setting for the SourceBintr's Outpu.t Buffer 
+         * @brief Current scaled height setting for the SourceBintr's Output Buffer
          * Video Converter in units of pixels. Default = 0 for no transcode
          */
         uint m_bufferOutHeight;
 
+        /**
+         * @brief Current scaled fpsN for the SourceBintr's Output Buffer
+         * Video Converter in units of frames. Default = 0 for no frame fate change.
+         */
         uint m_bufferOutFpsN;
+
+        /**
+         * @brief Current scaled fpsD setting for the SourceBintr's Output Buffer
+         * Video Converter in units of seconds. Default = 0 for no frame rate change.
+         */
         uint m_bufferOutFpsD;
+        
+        /**
+         * @brief Current buffer-out-orientation setting for the SourceBintr
+         */
         uint m_bufferOutOrientation;
 
         /**

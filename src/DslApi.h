@@ -4729,8 +4729,8 @@ DslReturnType dsl_source_buffer_out_crop_rectangle_set(const wchar_t* name,
 /**
  * @brief Gets the current buffer-out-orientation for the named Source component.
  * @param name unique name of the Source Component to query.
- * @param[out] format current buffer-out-format. One of the DSL_VIDEO_ORIENTATION
- * constant value. Default = DSL_VIDEO_ORIENTATION_NONE.
+ * @param[out] orientation current buffer-out-format. One of the DSL_VIDEO_ORIENTATION
+ * constant values. Default = DSL_VIDEO_ORIENTATION_NONE.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
  */
 DslReturnType dsl_source_buffer_out_orientation_get(const wchar_t* name,

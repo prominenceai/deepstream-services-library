@@ -235,26 +235,9 @@ namespace DSL
             return false;
         }
 
-        GstCaps * pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
-            "format", G_TYPE_STRING, format, NULL);
-        if (!pCaps)
-        {
-            LOG_ERROR("Failed to create new Simple Capabilities for '" 
-                << GetName() << "'");
-            return false;  
-        }
-
-        // Video converter is an NVIDIA plugin, so we need to add the
-        // additional feature to enable buffer access via the NvBuffer API.
-        GstCapsFeatures *feature = NULL;
-        feature = gst_caps_features_new("memory:NVMM", NULL);
-        gst_caps_set_features(pCaps, 0, feature);
-
-        // Set the provided element's caps and unref caps structure.
-        m_pBufferOutCapsFilter->SetAttribute("caps", pCaps);
-        gst_caps_unref(pCaps); 
-
         m_bufferOutFormat = format;
+        
+        updateCaps();
 
         return true;
     }
@@ -280,28 +263,33 @@ namespace DSL
         m_bufferOutWidth = width;
         m_bufferOutHeight = height;
         
-        GstCaps* pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
-            "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
-            "width", G_TYPE_INT, m_bufferOutWidth, 
-            "height", G_TYPE_INT, m_bufferOutHeight, NULL);
-        if (!pCaps)
-        {
-            LOG_ERROR("Failed to create new Simple Capabilities for SourceBintr '" 
-                << GetName() << "'");
-            return false;  
-        }
-
-        // Video converter is an NVIDIA plugin, so we need to add the
-        // additional feature to enable buffer access via the NvBuffer API.
-        GstCapsFeatures *feature = NULL;
-        feature = gst_caps_features_new("memory:NVMM", NULL);
-        gst_caps_set_features(pCaps, 0, feature);
-
-        // Set the provided element's caps and unref caps structure.
-        m_pBufferOutCapsFilter->SetAttribute("caps", pCaps);
-        gst_caps_unref(pCaps); 
+        updateCaps();
         
         return true;
+    }
+    
+    void SourceBintr::GetBufferOutFrameRate(uint* fpsN, uint* fpsD)
+    {
+        LOG_FUNC();
+        
+        *fpsN = m_bufferOutFpsN;
+        *fpsD = m_bufferOutFpsD;
+    }
+    
+    bool SourceBintr::SetBufferOutFrameRate(uint fpsN, uint fpsD)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set buffer-out-dimensions for SourceBintr '" << GetName() 
+                << "' as it is currently in a linked state");
+            return false;
+        }
+        m_bufferOutFpsN = fpsN;
+        m_bufferOutFpsD = fpsD;
+        
+        return updateCaps();
     }
     
     void SourceBintr::GetBufferOutCropRectangle(uint when, 
@@ -311,7 +299,7 @@ namespace DSL
         
         const char* cropCString;
 
-        if (when == DSL_CROP_PRE_CONVERSION)
+        if (when == DSL_VIDEO_CROP_PRE_CONVERSION)
         {
             m_pBufferOutVidConv->GetAttribute("src-crop", &cropCString);
         }
@@ -351,7 +339,7 @@ namespace DSL
             std::to_string(width) + ":" +
             std::to_string(height));
         
-        if (when == DSL_CROP_PRE_CONVERSION)
+        if (when == DSL_VIDEO_CROP_PRE_CONVERSION)
         {
             m_pBufferOutVidConv->SetAttribute("src-crop", cropSettings.c_str());
         }
@@ -370,7 +358,7 @@ namespace DSL
         return m_bufferOutOrientation;
     }
     
-    void SourceBintr::SetBufferOutOrientation(uint orientation)
+    bool SourceBintr::SetBufferOutOrientation(uint orientation)
     {
         LOG_FUNC();
         
@@ -401,6 +389,37 @@ namespace DSL
         m_nvbufMemType = nvbufMemType;
         m_pBufferOutVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
 
+        return true;
+    }
+    
+    bool SourceBintr::updateCaps()
+    {
+        LOG_FUNC();
+
+        GstCaps* pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
+            "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
+            "width", G_TYPE_INT, m_bufferOutWidth, 
+            "height", G_TYPE_INT, m_bufferOutHeight,
+            "framerate", GST_TYPE_FRACTION, m_bufferOutFpsN, m_bufferOutFpsD, 
+            NULL);
+
+        if (!pCaps)
+        {
+            LOG_ERROR("Failed to create new Simple Capabilities for SourceBintr '" 
+                << GetName() << "'");
+            return false;  
+        }
+
+        // The Video converter is an NVIDIA plugin so we need to add the
+        // additional feature to enable buffer access via the NvBuffer API.
+        GstCapsFeatures *feature = NULL;
+        feature = gst_caps_features_new("memory:NVMM", NULL);
+        gst_caps_set_features(pCaps, 0, feature);
+
+        // Set the provided element's caps and unref caps structure.
+        m_pBufferOutCapsFilter->SetAttribute("caps", pCaps);
+        gst_caps_unref(pCaps); 
+        
         return true;
     }
 

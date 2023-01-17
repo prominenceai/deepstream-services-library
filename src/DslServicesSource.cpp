@@ -1670,7 +1670,7 @@ namespace DSL
             DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
          
-            if (!pSourceBintr->SetBufferOutDimensions(width, height)
+            if (!pSourceBintr->SetBufferOutDimensions(width, height))
             {
                 LOG_ERROR("Failed to set buffer-out-dimensions to width = " 
                     << width << " and height = " << height  
@@ -1736,7 +1736,7 @@ namespace DSL
             DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
          
-            if (!pSourceBintr->SetBufferOutFrameRate(fps_n, fps_d)
+            if (!pSourceBintr->SetBufferOutFrameRate(fps_n, fps_d))
             {
                 LOG_ERROR("Failed to set buffer-out-frame-rate to fps_n = " 
                     << fps_n << " and fps_d = " << fps_d  
@@ -1777,7 +1777,7 @@ namespace DSL
 
             LOG_INFO("Source '" << name << "' returned left = " 
                 << *left << ", top = " << *top << ", width = "
-                << *width << ", and height = " << *height <<
+                << *width << ", and height = " << *height
                 << "for buffer-out-crop-rectangle successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -1805,7 +1805,7 @@ namespace DSL
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
          
             if (!pSourceBintr->SetBufferOutCropRectangle(when, 
-                left, top, width, height)
+                left, top, width, height))
             {
                 LOG_ERROR("Failed to set buffer-out-crop-rectangle to when = " 
                     << when << ", left = " << left << ", top = " 
@@ -1814,10 +1814,10 @@ namespace DSL
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
 
-            LOG_INFO("Source '" << name << "' set when = " <<
-                << when << ", left = " << left ", top = " 
+            LOG_INFO("Source '" << name << "' set when = "
+                << when << ", left = " << left << ", top = " 
                 << top << ", width = " << width << ", and height = " 
-                << height << << " for buffer-out-crop-rectangle successfully");
+                << height << " for buffer-out-crop-rectangle successfully");
 
             return DSL_RESULT_SUCCESS;
         }
