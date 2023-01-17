@@ -298,7 +298,7 @@ SCENARIO( "A new Pipeline with a Image Stream Source, Primary GIE, Tiled Display
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_image_stream_new(source_name1.c_str(),
-            jpeg_file_path.c_str(), false, fps_n, fps_d, 0) == DSL_RESULT_SUCCESS );
+            jpeg_file_path.c_str(), false, fps_n, fps_d, 3) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
             infer_config_file.c_str(), model_engine_file.c_str(),
@@ -367,7 +367,7 @@ SCENARIO( "A new Pipeline with a Image Stream Source (RGBA output), Primary GIE,
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_image_stream_new(source_name1.c_str(),
-            jpeg_file_path.c_str(), false, fps_n, fps_d, 0) == DSL_RESULT_SUCCESS );
+            jpeg_file_path.c_str(), false, fps_n, fps_d, 3) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_source_buffer_out_format_set(source_name1.c_str(),
             DSL_VIDEO_FORMAT_RGBA) == DSL_RESULT_SUCCESS );
@@ -429,7 +429,7 @@ SCENARIO( "A new Pipeline with a Image Stream Source (RGBA output), Primary GIE,
 
 SCENARIO( "A new Pipeline with a Multi Image Source, Primary GIE, Tiled Display, \
     Window Sink, ODE Trigger and Action can play",
-    "[one]" )
+    "[image-source-play]" )
 {
     GIVEN( "A Pipeline, URI source, Primary GIE, Window Sink" ) 
     {

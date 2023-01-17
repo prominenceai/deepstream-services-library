@@ -650,16 +650,7 @@ namespace DSL
          * constant values. 
          */
 //        uint m_leakyType;  // TODO support GST 1.20 properties
-        
-        /**
-         * @brief Video Converter for the AppSourceBintr
-         */
-        DSL_ELEMENT_PTR m_pVidConv;
 
-        /**
-         * @brief Caps Filter for the AppSourceBintr's Video Converter.
-         */
-        DSL_ELEMENT_PTR m_pVidConvCapsFilter;
     };    
     
     /**
@@ -1031,12 +1022,6 @@ namespace DSL
          * @brief mutual exclusion of the repeat enabled setting.
          */
         GMutex m_repeatEnabledMutex;
-        
-        /**
-         @brief
-         */
-        DSL_ELEMENT_PTR m_pSourceQueue;
-
     };
 
     //*********************************************************************************
@@ -1124,16 +1109,6 @@ namespace DSL
          * @brief V4L2 Decoder for this ImageSourceBintr
          */
         DSL_ELEMENT_PTR m_pDecoder;
-
-        /**
-         * @brief Video Converter for the ImageSourceBintr
-         */
-        DSL_ELEMENT_PTR m_pVidConv;
-
-        /**
-         * @brief Caps Filter for the ImageSourceBintr's Video Converter.
-         */
-        DSL_ELEMENT_PTR m_pVidConvCapsFilter;
     };
 
     //*********************************************************************************
@@ -1356,16 +1331,6 @@ namespace DSL
          * @brief Image Overlay element for the FileSourceBintr
          */
         DSL_ELEMENT_PTR m_pImageOverlay;
-
-        /**
-         * @brief Video Converter for the ImageStreamSourceBintr
-         */
-        DSL_ELEMENT_PTR m_pVidConv;
-
-        /**
-         * @brief Caps Filter for the ImageStreamSourceBintr's Video Converter.
-         */
-        DSL_ELEMENT_PTR m_pVidConvCapsFilter;
     };
 
     //*********************************************************************************
@@ -1687,11 +1652,6 @@ namespace DSL
          */
         DSL_ELEMENT_PTR m_pDecoder;
 
-        /**
-         @brief
-         */
-        DSL_ELEMENT_PTR m_pSourceQueue;
-        
         /**
          * @brief Pad Probe Handler to create a timestamp for the last recieved buffer
          */

@@ -56,7 +56,7 @@ static std::string defaultBufferOutFormat(L_bufferOutFormat.begin(),
 
 using namespace DSL;
 
-SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
+SCENARIO( "A new AppSourceBintr is created correctly",  "[now]" )
 {
     GIVEN( "Attributes for a new AppSourceBintr" ) 
     {
@@ -91,6 +91,14 @@ SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
                 
                 std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
+                
+                pSourceBintr->GetBufferOutDimensions(&retWidth, &retHeight);
+                pSourceBintr->GetBufferOutFrameRate(&retFpsN, &retFpsD);
+                REQUIRE( retWidth == 0 );
+                REQUIRE( retHeight == 0 );
+                REQUIRE( retFpsN == 0 );
+                REQUIRE( retFpsD == 0 );
+                REQUIRE( pSourceBintr->GetBufferOutOrientation() == 0);
             }
         }
     }

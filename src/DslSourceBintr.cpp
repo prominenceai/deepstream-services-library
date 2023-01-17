@@ -396,13 +396,44 @@ namespace DSL
     {
         LOG_FUNC();
 
-        GstCaps* pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
-            "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
-            "width", G_TYPE_INT, m_bufferOutWidth, 
-            "height", G_TYPE_INT, m_bufferOutHeight,
-            "framerate", GST_TYPE_FRACTION, m_bufferOutFpsN, m_bufferOutFpsD, 
-            NULL);
-
+        GstCaps* pCaps(NULL);
+        
+        if (m_bufferOutWidth and m_bufferOutHeight)
+        {
+            if (m_bufferOutFpsN and m_bufferOutFpsD)
+            {
+                pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
+                    "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
+                    "width", G_TYPE_INT, m_bufferOutWidth, 
+                    "height", G_TYPE_INT, m_bufferOutHeight,
+                    "framerate", GST_TYPE_FRACTION, m_bufferOutFpsN, m_bufferOutFpsD, 
+                    NULL);
+            }
+            else
+            {
+                pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
+                    "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
+                    "width", G_TYPE_INT, m_bufferOutWidth, 
+                    "height", G_TYPE_INT, m_bufferOutHeight,
+                    NULL);
+            }
+        }
+        else
+        {
+            if (m_bufferOutFpsN and m_bufferOutFpsD)
+            {
+                pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
+                    "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
+                    "framerate", GST_TYPE_FRACTION, m_bufferOutFpsN, m_bufferOutFpsD, 
+                    NULL);
+            }
+            else
+            {
+                pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
+                    "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
+                    NULL);
+            }
+        }
         if (!pCaps)
         {
             LOG_ERROR("Failed to create new Simple Capabilities for SourceBintr '" 
@@ -486,18 +517,26 @@ namespace DSL
 
         LOG_INFO("");
         LOG_INFO("Initial property values for AppSourceBintr '" << name << "'");
+        LOG_INFO("  buffer-in-format  : " << m_bufferInFormat);
         LOG_INFO("  is-live           : " << m_isLive);
         LOG_INFO("  do-timestamp      : " << m_doTimestamp);
         LOG_INFO("  stream-format     : " << m_streamFormat);
         LOG_INFO("  block-enabled     : " << m_blockEnabled);
         LOG_INFO("  max-bytes         : " << m_maxBytes);
-        LOG_INFO("  media             : " << m_mediaType);
-        LOG_INFO("  buffer-in-format  : " << m_bufferInFormat);
-        LOG_INFO("  buffer-out-format : " << m_bufferOutFormat);
         LOG_INFO("  width             : " << m_width);
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  fps-n             : " << m_fpsN);
         LOG_INFO("  fps-d             : " << m_fpsD);
+        LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  buffer-out        : ");
+        LOG_INFO("    format          : " << m_bufferOutFormat);
+        LOG_INFO("    width           : " << m_bufferOutWidth);
+        LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
+        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
+        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
+        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
 
         // TODO support GST 1.20 properties
         // LOG_INFO("max-buffers = " << m_maxBuffers);
@@ -907,11 +946,20 @@ namespace DSL
         LOG_INFO("  do-timestamp      : " << m_doTimestamp);
         LOG_INFO("  sensor-id         : " << m_sensorId);
         LOG_INFO("  bufapi-version    : " << TRUE);
-        LOG_INFO("  media             : " << m_mediaType << "(memory:NVMM)");
-        LOG_INFO("  buffer-out-format : " << m_bufferOutFormat.c_str());
         LOG_INFO("  width             : " << m_width);
         LOG_INFO("  height            : " << m_height);
-        LOG_INFO("  framerate         : " << m_fpsN << "/" << m_fpsD);
+        LOG_INFO("  fps-n             : " << m_fpsN);
+        LOG_INFO("  fps-d             : " << m_fpsD);
+        LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  buffer-out        : ");
+        LOG_INFO("    format          : " << m_bufferOutFormat);
+        LOG_INFO("    width           : " << m_bufferOutWidth);
+        LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
+        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
+        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
+        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
 
         AddChild(m_pSourceElement);
         AddChild(m_pSourceCapsFilter);
@@ -1062,11 +1110,20 @@ namespace DSL
         LOG_INFO("  is-live           : " << m_isLive);
         LOG_INFO("  do-timestamp      : " << m_doTimestamp);
         LOG_INFO("  device            : " << m_deviceLocation.c_str());
-        LOG_INFO("  media             : " << m_mediaType << "(memory:NVMM)");
-        LOG_INFO("  buffer-out-format : " << m_bufferOutFormat.c_str());
         LOG_INFO("  width             : " << m_width);
         LOG_INFO("  height            : " << m_height);
-        LOG_INFO("  framerate         : " << m_fpsN << "/" << m_fpsD);
+        LOG_INFO("  fps-n             : " << m_fpsN);
+        LOG_INFO("  fps-d             : " << m_fpsD);
+        LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  buffer-out        : ");
+        LOG_INFO("    format          : " << m_bufferOutFormat);
+        LOG_INFO("    width           : " << m_bufferOutWidth);
+        LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
+        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
+        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
+        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
 
         AddChild(m_pSourceElement);
     }
@@ -1225,9 +1282,6 @@ namespace DSL
             throw;
         }
 
-        // New Elementrs for this Source
-        m_pSourceQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src");
-
         // Connect UIR Source Setup Callbacks
         g_signal_connect(m_pSourceElement->GetGObject(), "pad-added", 
             G_CALLBACK(UriSourceElementOnPadAddedCB), this);
@@ -1244,17 +1298,23 @@ namespace DSL
         LOG_INFO("  is-live             : " << m_isLive);
         LOG_INFO("  skip-frames         : " << m_skipFrames);
         LOG_INFO("  drop-frame-interval : " << m_dropFrameInterval);
+        LOG_INFO("  width               : " << m_width);
+        LOG_INFO("  height              : " << m_height);
+        LOG_INFO("  fps-n               : " << m_fpsN);
+        LOG_INFO("  fps-d               : " << m_fpsD);
+        LOG_INFO("  media-out           : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  buffer-out          : ");
+        LOG_INFO("    format            : " << m_bufferOutFormat);
+        LOG_INFO("    width             : " << m_bufferOutWidth);
+        LOG_INFO("    height            : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n             : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d             : " << m_bufferOutFpsD);
+        LOG_INFO("    crop-pre-conv     : 0:0:0:0" );
+        LOG_INFO("    crop-post-conv    : 0:0:0:0" );
+        LOG_INFO("    orientation       : " << m_bufferOutOrientation);
 
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
-        AddChild(m_pSourceQueue);
-        
-        // Source Ghost Pad for Source Queue
-        m_pSourceQueue->AddGhostPadToParent("src");
-
-        std::string padProbeName = GetName() + "-src-pad-probe";
-        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
-            "src", m_pSourceQueue);
     }
 
     UriSourceBintr::~UriSourceBintr()
@@ -1349,6 +1409,10 @@ namespace DSL
             return false;
         }
 
+        if (!m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
+        {
+            return false;
+        }
 
         m_isLinked = true;
 
@@ -1370,6 +1434,7 @@ namespace DSL
         }
         else
         {
+            m_pBufferOutVidConv->UnlinkFromSink();
         }
          
         m_isLinked = false;
@@ -1390,7 +1455,8 @@ namespace DSL
         LOG_INFO("Caps structs name " << name);
         if (name.find("video") != std::string::npos)
         {
-            m_pGstStaticSinkPad = gst_element_get_static_pad(m_pSourceQueue->GetGstElement(), "sink");
+            m_pGstStaticSinkPad = gst_element_get_static_pad(
+                m_pBufferOutVidConv->GetGstElement(), "sink");
             if (!m_pGstStaticSinkPad)
             {
                 LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" 
@@ -1690,37 +1756,8 @@ namespace DSL
             m_pParser = DSL_ELEMENT_NEW("jpegparse", name);
             m_pDecoder = DSL_ELEMENT_NEW("nvv4l2decoder", name); 
 
-            // ---- Video Converter Setup
-            
-            m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
-            
-            if (!m_cudaDeviceProp.integrated)
-            {
-                m_pVidConv->SetAttribute("nvbuf-memory-type", 
-                    DSL_NVBUF_MEM_TYPE_UNIFIED);
-            }
-            
-            // ---- Caps Filter Setup
-
-            m_pVidConvCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
-
-            // Set the buffer-out-format to the default
-            if (!set_format_caps(m_pVidConvCapsFilter, m_mediaType.c_str(), 
-                m_bufferOutFormat.c_str(), true))
-            {
-                throw;
-            }
-            
             AddChild(m_pParser);
             AddChild(m_pDecoder);
-            AddChild(m_pVidConv);
-            AddChild(m_pVidConvCapsFilter);
-
-            m_pVidConvCapsFilter->AddGhostPadToParent("src");
-            
-            std::string padProbeName = GetName() + "-src-pad-probe";
-            m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
-                "src", m_pVidConvCapsFilter);
 
             // If it's an MJPG file or Multi JPG files
             if (m_uri.find("mjpeg") != std::string::npos or
@@ -1766,21 +1803,29 @@ namespace DSL
         {
             throw;
         }
-        AddChild(m_pSourceElement);
 
         LOG_INFO("");
         LOG_INFO("Initial property values for SingleImageSourceBintr '" << name << "'");
-        LOG_INFO("  Elements");
-        LOG_INFO("    Source          : " << m_pSourceElement->GetFactoryName());
-        LOG_INFO("    Parser          : " << m_pParser->GetFactoryName());
-        LOG_INFO("    Decoder         : " << m_pDecoder->GetFactoryName());
         LOG_INFO("  location          : " << uri);
         LOG_INFO("  is-live           : " << m_isLive);
         LOG_INFO("  media in          : " << "image/jpeg");
-        LOG_INFO("  media out         : " << m_mediaType << "(memory:NVMM)");
-        LOG_INFO("  buffer-out-format : " << m_bufferOutFormat.c_str());
-        LOG_INFO("  framerate         : " << m_fpsN << "/" << m_fpsD);
         LOG_INFO("  mjpeg             : " << m_mjpeg);
+        LOG_INFO("  width             : " << m_width);
+        LOG_INFO("  height            : " << m_height);
+        LOG_INFO("  fps-n             : " << m_fpsN);
+        LOG_INFO("  fps-d             : " << m_fpsD);
+        LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  buffer-out        : ");
+        LOG_INFO("    format          : " << m_bufferOutFormat);
+        LOG_INFO("    width           : " << m_bufferOutWidth);
+        LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
+        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
+        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
+        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+
+        AddChild(m_pSourceElement);
     }
     
     SingleImageSourceBintr::~SingleImageSourceBintr()
@@ -1806,8 +1851,8 @@ namespace DSL
         }
         if (!m_pSourceElement->LinkToSink(m_pParser) or
             !m_pParser->LinkToSink(m_pDecoder) or
-            !m_pDecoder->LinkToSink(m_pVidConv) or
-            !m_pVidConv->LinkToSink(m_pVidConvCapsFilter))
+            !m_pDecoder->LinkToSink(m_pBufferOutVidConv) or
+            !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
         {
             LOG_ERROR("SingleImageSourceBintr '" << GetName() 
                 << "' failed to LinkAll");
@@ -1831,7 +1876,7 @@ namespace DSL
         if (!m_pSourceElement->UnlinkFromSink() or
             !m_pParser->UnlinkFromSink() or
             !m_pDecoder->UnlinkFromSink() or
-            !m_pVidConv->UnlinkFromSink())
+            !m_pBufferOutVidConv->UnlinkFromSink())
         {
             LOG_ERROR("SingleImageSourceBintr '" << GetName() 
                 << "' failed to UnlinkAll");
@@ -1917,19 +1962,26 @@ namespace DSL
 
         LOG_INFO("");
         LOG_INFO("Initial property values for MultiImageSourceBintr '" << name << "'");
-        LOG_INFO("  Elements");
-        LOG_INFO("    Source          : " << m_pSourceElement->GetFactoryName());
-        LOG_INFO("    Parser          : " << m_pParser->GetFactoryName());
-        LOG_INFO("    Decoder         : " << m_pDecoder->GetFactoryName());
-        LOG_INFO("  location          : " << m_pParser->GetFactoryName());
+        LOG_INFO("  uri               : " << uri);
         LOG_INFO("  is-live           : " << m_isLive);
         LOG_INFO("  media in          : " << "image/jpeg");
-        LOG_INFO("  media out         : " << m_mediaType << "(memory:NVMM)");
-        LOG_INFO("  buffer-out-format : " << m_bufferOutFormat.c_str());
-        LOG_INFO("  framerate         : " << m_fpsN << "/" << m_fpsD);
         LOG_INFO("  loop              : " << m_loopEnabled);
         LOG_INFO("  start-index       : " << m_startIndex);
         LOG_INFO("  stop-index        : " << m_stopIndex);
+        LOG_INFO("  width             : " << m_width);
+        LOG_INFO("  height            : " << m_height);
+        LOG_INFO("  fps-n             : " << m_fpsN);
+        LOG_INFO("  fps-d             : " << m_fpsD);
+        LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  buffer-out        : ");
+        LOG_INFO("    format          : " << m_bufferOutFormat);
+        LOG_INFO("    width           : " << m_bufferOutWidth);
+        LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
+        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
+        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
+        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
         
         AddChild(m_pSourceElement);
 
@@ -1962,8 +2014,8 @@ namespace DSL
         }
         if (!m_pSourceElement->LinkToSink(m_pParser) or
             !m_pParser->LinkToSink(m_pDecoder) or
-            !m_pDecoder->LinkToSink(m_pVidConv) or
-            !m_pVidConv->LinkToSink(m_pVidConvCapsFilter))
+            !m_pDecoder->LinkToSink(m_pBufferOutVidConv) or
+            !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
         {
             LOG_ERROR("MultiImageSourceBintr '" << GetName() 
                 << "' failed to LinkAll");
@@ -1988,7 +2040,7 @@ namespace DSL
         if (!m_pSourceElement->UnlinkFromSink() or
             !m_pParser->UnlinkFromSink() or
             !m_pDecoder->UnlinkFromSink() or
-            !m_pVidConv->UnlinkFromSink())
+            !m_pBufferOutVidConv->UnlinkFromSink())
         {
             LOG_ERROR("MultiImageSourceBintr '" << GetName() 
                 << "' failed to UnlinkAll");
@@ -2105,55 +2157,37 @@ namespace DSL
 
         m_pSourceElement->SetAttribute("pattern", 2); // 2 = black
         
-        // ---- Video Converter Setup
-
-        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
-
-        m_pVidConv->SetAttribute("gpu-id", m_gpuId);
-        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
-
-        // ---- Caps Filter Setup
-
-        m_pVidConvCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "sink");
-
-        // Set the buffer-out-format to the default
-        if (!set_format_caps(m_pVidConvCapsFilter, m_mediaType.c_str(), 
-            m_bufferOutFormat.c_str(), true))
+        if(uri and !SetUri(uri))
         {
             throw;
         }
 
         LOG_INFO("");
         LOG_INFO("Initial property values for ImageStreamSourceBintr '" << name << "'");
-        LOG_INFO("  Elements");
-        LOG_INFO("    Source          : " << m_pSourceElement->GetFactoryName());
-        LOG_INFO("    Overlay         : " << m_pImageOverlay->GetFactoryName());
-        LOG_INFO("  location          : " << uri);
+        LOG_INFO("  uri               : " << uri);
         LOG_INFO("  is-live           : " << m_isLive);
-        LOG_INFO("  media             : " << m_mediaType << "(memory:NVMM)");
-        LOG_INFO("  buffer-out-format : " << m_bufferOutFormat.c_str());
-        LOG_INFO("  framerate         : " << m_fpsN << "/" << m_fpsD);
+        LOG_INFO("  width             : " << m_width);
+        LOG_INFO("  height            : " << m_height);
+        LOG_INFO("  fps-n             : " << m_fpsN);
+        LOG_INFO("  fps-d             : " << m_fpsD);
+        LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  buffer-out        : ");
+        LOG_INFO("    format          : " << m_bufferOutFormat);
+        LOG_INFO("    width           : " << m_bufferOutWidth);
+        LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
+        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
+        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
+        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
 
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
         AddChild(m_pSourceCapsFilter);
         AddChild(m_pImageOverlay);
-        AddChild(m_pVidConv);
-        AddChild(m_pVidConvCapsFilter);
-        
-        // Source Ghost Pad for ImageStreamSourceBintr
-        m_pVidConvCapsFilter->AddGhostPadToParent("src");
-
-        std::string padProbeName = GetName() + "-src-pad-probe";
-        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
-            "src", m_pVidConvCapsFilter);
 
         g_mutex_init(&m_timeoutTimerMutex);
 
-        if(uri and !SetUri(uri))
-        {
-            throw;
-        }
     }
     
     ImageStreamSourceBintr::~ImageStreamSourceBintr()
@@ -2220,8 +2254,8 @@ namespace DSL
         }
         if (!m_pSourceElement->LinkToSink(m_pSourceCapsFilter) or
             !m_pSourceCapsFilter->LinkToSink(m_pImageOverlay) or
-            !m_pImageOverlay->LinkToSink(m_pVidConv) or
-            !m_pVidConv->LinkToSink(m_pVidConvCapsFilter))
+            !m_pImageOverlay->LinkToSink(m_pBufferOutVidConv) or
+            !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
         {
             LOG_ERROR("ImageStreamSourceBintr '" << GetName() << "' failed to LinkAll");
             return false;
@@ -2256,7 +2290,7 @@ namespace DSL
         if (!m_pSourceElement->UnlinkFromSink() or
             !m_pSourceCapsFilter->UnlinkFromSink() or
             !m_pImageOverlay->UnlinkFromSink() or
-            !m_pVidConv->UnlinkFromSink())
+            !m_pBufferOutVidConv->UnlinkFromSink())
         {
             LOG_ERROR("ImageStreamSourceBintr '" << GetName() << "' failed to UnlinkAll");
             return;
@@ -2333,15 +2367,23 @@ namespace DSL
         LOG_INFO("  accept-eos-event    : " << m_acceptEos);
         LOG_INFO("  accept-events       : " << m_acceptEvents);
         LOG_INFO("  allow-renegotiation : " << TRUE);
+        LOG_INFO("  width             : " << m_width);
+        LOG_INFO("  height            : " << m_height);
+        LOG_INFO("  fps-n             : " << m_fpsN);
+        LOG_INFO("  fps-d             : " << m_fpsD);
+        LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  buffer-out        : ");
+        LOG_INFO("    format          : " << m_bufferOutFormat);
+        LOG_INFO("    width           : " << m_bufferOutWidth);
+        LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
+        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
+        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
+        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
 
         // Add the new Elementr as a Child to the SourceBintr
         AddChild(m_pSourceElement);
-        
-        m_pSourceElement->AddGhostPadToParent("src");
-        
-        std::string padProbeName = GetName() + "-src-pad-probe";
-        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
-            "src", m_pSourceElement);
 }
     
     InterpipeSourceBintr::~InterpipeSourceBintr()
@@ -2374,7 +2416,13 @@ namespace DSL
                 << "' is already in a linked state");
             return false;
         }
-        // Single element nothing to link
+
+        if (!m_pSourceElement->LinkToSink(m_pBufferOutVidConv) or
+            !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
+        {
+            LOG_ERROR("InterpipeSourceBintr '" << GetName() << "' failed to LinkAll");
+            return false;
+        }
         m_isLinked = true;
         return true;
     }
@@ -2389,7 +2437,9 @@ namespace DSL
                 << "' is not in a linked state");
             return;
         }
-        // Single element nothing to link
+        m_pSourceElement->UnlinkFromSink();
+        m_pBufferOutVidConv->UnlinkFromSink();
+        
         m_isLinked = false;
     }
     
@@ -2451,14 +2501,13 @@ namespace DSL
         // Pre-decode tee is only used if there is a TapBintr
         m_pPreDecodeTee = DSL_ELEMENT_NEW("tee", name);
         m_pPreDecodeQueue = DSL_ELEMENT_EXT_NEW("queue", name, "decodebin");
-        m_pSourceQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src");
 
         // Configure the source to generate NTP sync values
         configure_source_for_ntp_sync(m_pSourceElement->GetGstElement());
         m_pSourceElement->SetAttribute("location", m_uri.c_str());
 
         m_pSourceElement->SetAttribute("latency", m_latency);
-        m_pSourceElement->SetAttribute("drop-on-latency", true);
+        m_pSourceElement->SetAttribute("drop-on-latency", TRUE);
         m_pSourceElement->SetAttribute("protocols", m_rtpProtocols);
 
         g_signal_connect (m_pSourceElement->GetGObject(), "select-stream",
@@ -2473,16 +2522,28 @@ namespace DSL
         LOG_INFO("  uri                 : " << m_uri);
         LOG_INFO("  is-live             : " << m_isLive);
         LOG_INFO("  skip-frames         : " << m_skipFrames);
+        LOG_INFO("  latency             : " << m_latency);
+        LOG_INFO("  drop-on-latency     : " << TRUE);
         LOG_INFO("  drop-frame-interval : " << m_dropFrameInterval);
+        LOG_INFO("  width               : " << m_width);
+        LOG_INFO("  height              : " << m_height);
+        LOG_INFO("  fps-n               : " << m_fpsN);
+        LOG_INFO("  fps-d               : " << m_fpsD);
+        LOG_INFO("  media-out           : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  buffer-out          : ");
+        LOG_INFO("    format            : " << m_bufferOutFormat);
+        LOG_INFO("    width             : " << m_bufferOutWidth);
+        LOG_INFO("    height            : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n             : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d             : " << m_bufferOutFpsD);
+        LOG_INFO("    crop-pre-conv     : 0:0:0:0" );
+        LOG_INFO("    crop-post-conv    : 0:0:0:0" );
+        LOG_INFO("    orientation       : " << m_bufferOutOrientation);
 
         AddChild(m_pSourceElement);
         AddChild(m_pPreDecodeTee);
         AddChild(m_pPreDecodeQueue);
-        AddChild(m_pSourceQueue);
 
-        // Source Ghost Pad for Source Queue as src pad to connect to streammuxer
-        m_pSourceQueue->AddGhostPadToParent("src");
-        
         // New timestamp PPH to stamp the time of the last buffer 
         // - used to monitor the RTSP connection
         std::string handlerName = GetName() + "-timestamp-pph";
@@ -2490,7 +2551,7 @@ namespace DSL
         
         std::string padProbeName = GetName() + "-src-pad-probe";
         m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
-            "src", m_pSourceQueue);
+            "src", m_pBufferOutVidConv);
         m_pSrcPadProbe->AddPadProbeHandler(m_TimestampPph);
         
         g_mutex_init(&m_streamManagerMutex);
@@ -2545,6 +2606,12 @@ namespace DSL
                 << m_uri.c_str());
             return false;
         }
+        if (!m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
+        {
+            LOG_ERROR("RtspSourceBintr '" << GetName() << "' failed to LinkAll");
+            return false;
+        }
+
 
         // All elements are linked in the select-stream callback (HandleSelectStream),
         // except for the rtspsrc element which is linked in the pad-added callback.
@@ -2591,6 +2658,8 @@ namespace DSL
         }
         m_pParser->UnlinkFromSink();
         m_pDepay->UnlinkFromSink();
+        m_pDecoder->UnlinkFromSink();
+        m_pBufferOutVidConv->UnlinkFromSink();
 
         // will be recreated in the select-stream callback on next play
         m_pParser = nullptr;
@@ -2865,6 +2934,10 @@ namespace DSL
 
             m_pDecoder = DSL_ELEMENT_NEW("nvv4l2decoder", GetCStrName());
             
+            if (m_skipFrames)
+            {
+                m_pDecoder->SetAttribute("skip-frames", m_skipFrames);
+            }
             // aarch64 only
             if (m_cudaDeviceProp.integrated)
             {
@@ -2873,15 +2946,6 @@ namespace DSL
             m_pDecoder->SetAttribute("drop-frame-interval", m_dropFrameInterval);
             m_pDecoder->SetAttribute("num-extra-surfaces", m_numExtraSurfaces);
             
-            LOG_INFO("");
-            LOG_INFO("Updated property values for RtspSourceBintr '" << GetName() << "'");
-            LOG_INFO("  Media      : " << media);
-            LOG_INFO("  Encoding   : " << encoding);
-            LOG_INFO("  Elements");
-            LOG_INFO("    Depay    : " << m_pDepay->GetFactoryName());
-            LOG_INFO("    Parser   : " << m_pParser->GetFactoryName());
-            LOG_INFO("    Decoder  : " << m_pDecoder->GetFactoryName());
-
             // The format specific depay, parser, and decoder bins have been selected, 
             // so we can add them as children to this RtspSourceBintr now.
             AddChild(m_pDepay);
@@ -2889,7 +2953,7 @@ namespace DSL
             AddChild(m_pDecoder);
 
             if (!m_pPreDecodeQueue->LinkToSink(m_pDecoder) or
-                !m_pDecoder->LinkToSink(m_pSourceQueue))
+                !m_pDecoder->LinkToSink(m_pBufferOutVidConv))
             {
                 return false;
             }
@@ -2995,7 +3059,7 @@ namespace DSL
         if (name.find("video") != std::string::npos)
         {
             GstPad* pQueueStaticSinkPad = 
-                gst_element_get_static_pad(m_pSourceQueue->GetGstElement(), "sink");
+                gst_element_get_static_pad(m_pBufferOutVidConv->GetGstElement(), "sink");
             if (!pQueueStaticSinkPad)
             {
                 LOG_ERROR("Failed to get Static Source Pad for RTSP Source '" 
