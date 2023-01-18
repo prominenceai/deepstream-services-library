@@ -56,7 +56,7 @@ static std::string defaultBufferOutFormat(L_bufferOutFormat.begin(),
 
 using namespace DSL;
 
-SCENARIO( "A new AppSourceBintr is created correctly",  "[now]" )
+SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
 {
     GIVEN( "Attributes for a new AppSourceBintr" ) 
     {

@@ -177,7 +177,7 @@ SCENARIO( "A new App Source returns the correct attribute values", "[source-api]
                 is_live, buffer_in_format.c_str(), width, height, 
                 fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
-            THEN( "The list size and contents are updated correctly" ) 
+            THEN( "All default attributes are returned correctly" ) 
             {
                 uint ret_width(0), ret_height(0), ret_fps_n(0), ret_fps_d(0);
                 REQUIRE( dsl_source_dimensions_get(source_name.c_str(), 
@@ -189,7 +189,7 @@ SCENARIO( "A new App Source returns the correct attribute values", "[source-api]
                 REQUIRE( ret_fps_n == fps_n );
                 REQUIRE( ret_fps_d == fps_d );
                 REQUIRE( dsl_source_is_live(source_name.c_str()) == is_live );
-                
+
                 boolean do_timestamp(TRUE);
                 REQUIRE( dsl_source_app_do_timestamp_get(source_name.c_str(),
                     &do_timestamp) == DSL_RESULT_SUCCESS );
@@ -210,6 +210,63 @@ SCENARIO( "A new App Source returns the correct attribute values", "[source-api]
                     &max_bytes) == DSL_RESULT_SUCCESS );
                 REQUIRE( max_bytes == 200000 ); // default
 
+                // BUFFER-OUT DEFAULTS COMMON TO ALL SOURCES - ONLY TESTED HERE.
+
+                // test returned media-type
+                const wchar_t* ret_media_cstrint;
+                REQUIRE( dsl_source_media_type_get(source_name.c_str(), 
+                    &ret_media_cstrint) == DSL_RESULT_SUCCESS );
+                std::wstring exp_media_string(DSL_MEDIA_TYPE_VIDEO_XRAW);
+                std::wstring ret_media_string(ret_media_cstrint);
+                REQUIRE( exp_media_string == ret_media_cstrint );
+                
+                // test returned default buffer-out-format
+                const wchar_t* ret_format_cstrint;
+                REQUIRE( dsl_source_buffer_out_format_get(source_name.c_str(), 
+                    &ret_format_cstrint) == DSL_RESULT_SUCCESS );
+                std::wstring exp_format_string(DSL_VIDEO_FORMAT_DEFAULT);
+                std::wstring ret_format_string(ret_format_cstrint);
+                REQUIRE( exp_format_string == ret_format_cstrint );
+                
+                // buffer out default dimensions and framerate
+                uint ret_bo_width(99), ret_bo_height(99);
+                uint ret_bo_fps_n(99), ret_bo_fps_d(99);
+                REQUIRE( dsl_source_buffer_out_dimensions_get(source_name.c_str(), 
+                    &ret_bo_width, &ret_bo_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_buffer_out_frame_rate_get(source_name.c_str(), 
+                    &ret_bo_fps_n, &ret_bo_fps_d) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_bo_width == 0 );
+                REQUIRE( ret_bo_height == 0 );
+                REQUIRE( ret_bo_fps_n == 0 );
+                REQUIRE( ret_bo_fps_d == 0 );
+                
+                // buffer out default crop rectangles
+                uint ret_bo_rec_left(99), ret_bo_rec_top(99);
+                uint ret_bo_rec_width(99), ret_bo_rec_height(99);
+                REQUIRE( dsl_source_buffer_out_crop_rectangle_get(source_name.c_str(), 
+                    DSL_VIDEO_CROP_PRE_CONVERSION, &ret_bo_rec_left, &ret_bo_rec_top,
+                    &ret_bo_rec_width, &ret_bo_rec_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_bo_rec_left == 0 );
+                REQUIRE( ret_bo_rec_top == 0 );
+                REQUIRE( ret_bo_rec_width == 0 );
+                REQUIRE( ret_bo_rec_height == 0 );
+                ret_bo_rec_left = 99;
+                ret_bo_rec_top = 99;
+                ret_bo_rec_width = 99;
+                ret_bo_rec_height = 99;
+                REQUIRE( dsl_source_buffer_out_crop_rectangle_get(source_name.c_str(), 
+                    DSL_VIDEO_CROP_POST_CONVERSION, &ret_bo_rec_left, &ret_bo_rec_top,
+                    &ret_bo_rec_width, &ret_bo_rec_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_bo_rec_left == 0 );
+                REQUIRE( ret_bo_rec_top == 0 );
+                REQUIRE( ret_bo_rec_width == 0 );
+                REQUIRE( ret_bo_rec_height == 0 );
+                
+                uint ret_orientation(99);
+                REQUIRE( dsl_source_buffer_out_orientation_get(source_name.c_str(),
+                    &ret_orientation) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_orientation == 0 );
+                
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
@@ -224,7 +281,7 @@ SCENARIO( "An App Source can update its settings correctly", "[source-api]" )
             is_live, buffer_in_format.c_str(), width, height, 
             fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
-        WHEN( "The App Source's buffer-format setting is set" ) 
+        WHEN( "The App Source's stream-format setting is set" ) 
         {
             uint stream_format(DSL_STREAM_FORMAT_TIME); // default is BYTE
             REQUIRE( dsl_source_app_stream_format_set(source_name.c_str(),
@@ -287,6 +344,115 @@ SCENARIO( "An App Source can update its settings correctly", "[source-api]" )
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
+        }
+    }
+}
+
+SCENARIO( "An App Source can update its buffer-out settings correctly",
+    "[source-api]" )
+{
+    GIVEN( "A new App Source Component" ) 
+    {
+        REQUIRE( dsl_source_app_new(source_name.c_str(), 
+            is_live, buffer_in_format.c_str(), width, height, 
+            fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+        WHEN( "The App Source's buffer-out-format setting is set" ) 
+        {
+            std::wstring new_format_string(DSL_VIDEO_FORMAT_RGBA);
+            REQUIRE( dsl_source_buffer_out_format_set(source_name.c_str(), 
+                new_format_string.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                const wchar_t* ret_format_cstring;
+                REQUIRE( dsl_source_buffer_out_format_get(source_name.c_str(), 
+                    &ret_format_cstring) == DSL_RESULT_SUCCESS );
+                std::wstring ret_format_string(ret_format_cstring);
+                REQUIRE( ret_format_string == new_format_string );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "The App Source's buffer-out-dimensions setting is set" ) 
+        {
+            uint new_width(300), new_height(400);
+            REQUIRE( dsl_source_buffer_out_dimensions_set(source_name.c_str(), 
+                new_width, new_height) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct values are returned on get" ) 
+            {
+                // buffer out default dimensions and framerate
+                uint ret_bo_width(99), ret_bo_height(99);
+                REQUIRE( dsl_source_buffer_out_dimensions_get(source_name.c_str(), 
+                    &ret_bo_width, &ret_bo_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_bo_width == new_width );
+                REQUIRE( ret_bo_height == new_height );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "The App Source's buffer-out-framerate is set" ) 
+        {
+            uint new_fps_n(2), new_fps_d(1);
+            REQUIRE( dsl_source_buffer_out_frame_rate_set(source_name.c_str(), 
+                new_fps_n, new_fps_d) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                uint ret_bo_fps_n(99), ret_bo_fps_d(99);
+                REQUIRE( dsl_source_buffer_out_frame_rate_get(source_name.c_str(), 
+                    &ret_bo_fps_n, &ret_bo_fps_d) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_bo_fps_n == new_fps_n );
+                REQUIRE( ret_bo_fps_d == new_fps_d );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "The App Source's buffer-out-crop settings are set" ) 
+        {
+            uint new_bo_rec_left(10), new_bo_rec_top(10);
+            uint new_bo_rec_width(200), new_bo_rec_height(200);
+            REQUIRE( dsl_source_buffer_out_crop_rectangle_set(source_name.c_str(), 
+                DSL_VIDEO_CROP_PRE_CONVERSION, new_bo_rec_left, new_bo_rec_top,
+                new_bo_rec_width, new_bo_rec_height) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct values are returned on get" ) 
+            {
+                // buffer out default crop rectangles
+                uint ret_bo_rec_left(99), ret_bo_rec_top(99);
+                uint ret_bo_rec_width(99), ret_bo_rec_height(99);
+                REQUIRE( dsl_source_buffer_out_crop_rectangle_get(source_name.c_str(), 
+                    DSL_VIDEO_CROP_PRE_CONVERSION, &ret_bo_rec_left, &ret_bo_rec_top,
+                    &ret_bo_rec_width, &ret_bo_rec_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_bo_rec_left == new_bo_rec_left );
+                REQUIRE( ret_bo_rec_top == new_bo_rec_top );
+                REQUIRE( ret_bo_rec_width == new_bo_rec_width );
+                REQUIRE( ret_bo_rec_height == new_bo_rec_height );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            } 
+        }
+        WHEN( "The App Source's buffer-out-crop settings are set" ) 
+        {
+            // make sure an invalid value is caught
+            REQUIRE( dsl_source_buffer_out_orientation_set(source_name.c_str(), 
+                DSL_VIDEO_ORIENTATION_FLIP_UPPER_LEFT_TO_LOWER_RIGHT+1) 
+                    == DSL_RESULT_SOURCE_SET_FAILED );
+            
+            uint new_bo_orientation(DSL_VIDEO_ORIENTATION_FLIP_VERTICALLY);
+            REQUIRE( dsl_source_buffer_out_orientation_set(source_name.c_str(), 
+                new_bo_orientation) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct values are returned on get" ) 
+            {
+                uint ret_bo_orientation(99);
+                REQUIRE( dsl_source_buffer_out_orientation_get(source_name.c_str(),
+                    &ret_bo_orientation) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_bo_orientation == DSL_VIDEO_ORIENTATION_FLIP_VERTICALLY );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            } 
         }
     }
 }
@@ -1097,6 +1263,11 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_app_do_timestamp_set(NULL,
                     0) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_media_type_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_media_type_get(source_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_list_size() == 0 );
             }

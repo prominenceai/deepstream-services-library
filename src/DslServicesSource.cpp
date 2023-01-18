@@ -1710,7 +1710,7 @@ namespace DSL
 
             LOG_INFO("Source '" << name << "' returned fps_n = " 
                 << *fps_n << " and fps_d = " << *fps_d 
-                << "for buffer-out-frame-rate successfully");
+                << " for buffer-out-frame-rate successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -1746,7 +1746,7 @@ namespace DSL
 
             LOG_INFO("Source '" << name << "' set fps_n = " 
                 << fps_n << " and fps_n = " << fps_n 
-                << "for buffer-out-frame-rate successfully");
+                << " for buffer-out-frame-rate successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -1775,10 +1775,11 @@ namespace DSL
             pSourceBintr->GetBufferOutCropRectangle(when, 
                 left, top, width, height);
 
-            LOG_INFO("Source '" << name << "' returned left = " 
-                << *left << ", top = " << *top << ", width = "
+            LOG_INFO("Source '" << name << "' returned when = "
+                << when << " left = " << *left 
+                << ", top = " << *top << ", width = "
                 << *width << ", and height = " << *height
-                << "for buffer-out-crop-rectangle successfully");
+                << " for buffer-out-crop-rectangle successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -1804,6 +1805,13 @@ namespace DSL
             DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
          
+            if (when > DSL_VIDEO_CROP_POST_CONVERSION)
+            {
+                LOG_ERROR("Invalid 'when' = " << when 
+                    << " setting buffer-out-crop rectangel for Source '"
+                    << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
             if (!pSourceBintr->SetBufferOutCropRectangle(when, 
                 left, top, width, height))
             {
@@ -1872,6 +1880,13 @@ namespace DSL
             DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
          
+            if (orientation > DSL_VIDEO_ORIENTATION_FLIP_UPPER_LEFT_TO_LOWER_RIGHT)
+            {
+                LOG_ERROR("Invalid 'orientation' = " << orientation 
+                    << " setting buffer-out-orientaton for Source '"
+                    << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
             if (!pSourceBintr->SetBufferOutOrientation(orientation))
             {
                 LOG_ERROR("Failed to set buffer-out-orientation = " 

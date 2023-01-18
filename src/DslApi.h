@@ -521,7 +521,7 @@ THE SOFTWARE.
  * https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvvideoconvert.html#gst-nvvideoconvert
  */
 #define DSL_VIDEO_CROP_PRE_CONVERSION                               0
-#define DSL_VIDEO_CROP_PROS_CONVERSION                              1
+#define DSL_VIDEO_CROP_POST_CONVERSION                              1
 
 /**
  * @brief Constants defining the possible buffer-out orientation methods.

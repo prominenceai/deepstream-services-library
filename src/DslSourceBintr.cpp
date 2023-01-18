@@ -292,6 +292,19 @@ namespace DSL
         return updateCaps();
     }
     
+    void tokenize(std::string const &str, const char delim,
+                std::vector<std::string> &out)
+    {
+        size_t start;
+        size_t end = 0;
+     
+        while ((start = str.find_first_not_of(delim, end)) != std::string::npos)
+        {
+            end = str.find(delim, start);
+            out.push_back(str.substr(start, end - start));
+        }
+    }
+    
     void SourceBintr::GetBufferOutCropRectangle(uint when, 
         uint* left, uint* top, uint* width, uint* height)
     {
@@ -308,16 +321,21 @@ namespace DSL
             m_pBufferOutVidConv->GetAttribute("dest-crop", &cropCString);
         }
         std::string cropString(cropCString);
-        std::string delimiter(":");
-        std::string leftSubStr = cropString.substr(0, cropString.find(delimiter)); 
-        std::string topSubStr = cropString.substr(1, cropString.find(delimiter)); 
-        std::string widthSubStr = cropString.substr(2, cropString.find(delimiter)); 
-        std::string heightSubStr = cropString.substr(3, cropString.find(delimiter)); 
-        
-        *left = std::stoul(leftSubStr.c_str());
-        *top = std::stoul(topSubStr.c_str());
-        *width = std::stoul(widthSubStr.c_str());
-        *height = std::stoul(heightSubStr.c_str());
+
+        const char delim = ':';
+        std::vector<std::string> tokens;
+        tokenize(cropString, delim, tokens);
+
+        if (tokens.size() != 4)
+        {
+            LOG_ERROR("Invalid crop string recieved for SourceBintr '"
+                << GetName() << "'");
+            return;
+        }
+        *left = std::stoul(tokens[0]);
+        *top = std::stoul(tokens[1]);
+        *width = std::stoul(tokens[2]);
+        *height = std::stoul(tokens[3]);
     }
     
     bool SourceBintr::SetBufferOutCropRectangle(uint when, 
