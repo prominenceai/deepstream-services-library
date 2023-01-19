@@ -1644,7 +1644,7 @@ namespace DSL
 
             LOG_INFO("Source '" << name << "' returned width = " 
                 << *width << " and height = " << *height 
-                << "for buffer-out-dimensions successfully");
+                << " for buffer-out-dimensions successfully");
 
             return DSL_RESULT_SUCCESS;
         }

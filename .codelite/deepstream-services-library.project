@@ -154,6 +154,7 @@
       <File Name="../test/api/DslPphBehaviorTest.cpp"/>
       <File Name="../test/api/DslInferApiTest.cpp"/>
       <File Name="../test/api/DslCrossTriggerExampleTest.cpp"/>
+      <File Name="../test/api/DslSourceBufferOutBehaviorTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDemuxerAndTeeUnitTest.cpp"/>

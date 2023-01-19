@@ -3422,6 +3422,143 @@ def dsl_source_frame_rate_get(name):
     return int(result), fps_n.value, fps_d.value 
 
 ##
+## dsl_source_media_type_get()
+##
+_dsl.dsl_source_media_type_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_source_media_type_get.restype = c_uint
+def dsl_source_media_type_get(name):
+    global _dsl
+    media_type = c_wchar_p(0)
+    result = _dsl.dsl_source_media_type_get(name, DSL_WCHAR_PP(media_type))
+    return int(result), media_type.value 
+
+##
+## dsl_source_buffer_out_format_get()
+##
+_dsl.dsl_source_buffer_out_format_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_source_buffer_out_format_get.restype = c_uint
+def dsl_source_buffer_out_format_get(name):
+    global _dsl
+    format = c_wchar_p(0)
+    result = _dsl.dsl_source_buffer_out_format_get(name, DSL_WCHAR_PP(format))
+    return int(result), format.value 
+
+##
+## dsl_source_buffer_out_format_set()
+##
+_dsl.dsl_source_buffer_out_format_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_buffer_out_format_set.restype = c_uint
+def dsl_source_buffer_out_format_set(name, format):
+    global _dsl
+    result = _dsl.dsl_source_buffer_out_format_set(name, format)
+    return int(result)
+
+##
+## dsl_source_buffer_out_dimensions_get()
+##
+_dsl.dsl_source_buffer_out_dimensions_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_source_buffer_out_dimensions_get.restype = c_uint
+def dsl_source_buffer_out_dimensions_get(name):
+    global _dsl
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_source_buffer_out_dimensions_get(name, 
+        DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), width.value, height.value 
+
+##
+## dsl_source_buffer_out_dimensions_set()
+##
+_dsl.dsl_source_buffer_out_dimensions_set.argtypes = [c_wchar_p, 
+    c_uint, c_uint]
+_dsl.dsl_source_buffer_out_dimensions_set.restype = c_uint
+def dsl_source_buffer_out_dimensions_set(name, width, height):
+    global _dsl
+    result = _dsl.dsl_source_buffer_out_dimensions_set(name, 
+        width, height)
+    return int(result)
+
+##
+## dsl_source_buffer_out_frame_rate_get()
+##
+_dsl.dsl_source_buffer_out_frame_rate_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_source_buffer_out_frame_rate_get.restype = c_uint
+def dsl_source_buffer_out_frame_rate_get(name):
+    global _dsl
+    fps_n = c_uint(0)
+    fps_d = c_uint(0)
+    result = _dsl.dsl_source_buffer_out_frame_rate_get(name, 
+        DSL_UINT_P(fps_n), DSL_UINT_P(fps_d))
+    return int(result), fps_n.value, fps_d.value 
+
+##
+## dsl_source_buffer_out_frame_rate_set()
+##
+_dsl.dsl_source_buffer_out_frame_rate_set.argtypes = [c_wchar_p, 
+    c_uint, c_uint]
+_dsl.dsl_source_buffer_out_frame_rate_set.restype = c_uint
+def dsl_source_buffer_out_frame_rate_set(name, fps_n, fps_d):
+    global _dsl
+    result = _dsl.dsl_source_buffer_out_frame_rate_set(name, 
+        fps_n, fps_d)
+    return int(result)
+
+##
+## dsl_source_buffer_out_crop_rectangle_get()
+##
+_dsl.dsl_source_buffer_out_crop_rectangle_get.argtypes = [c_wchar_p, 
+    c_uint, POINTER(c_uint), POINTER(c_uint), POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_source_buffer_out_crop_rectangle_get.restype = c_uint
+def dsl_source_buffer_out_crop_rectangle_get(name, when):
+    global _dsl
+    left = c_uint(0)
+    top = c_uint(0)
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_source_buffer_out_crop_rectangle_get(name, when,
+        DSL_UINT_P(left), DSL_UINT_P(top), DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), left.value, top.value, width.value, height.value 
+
+##
+## dsl_source_buffer_out_crop_rectangle_set()
+##
+_dsl.dsl_source_buffer_out_crop_rectangle_set.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_source_buffer_out_crop_rectangle_set.restype = c_uint
+def dsl_source_buffer_out_crop_rectangle_set(name, when,
+    left, top, width, height):
+    global _dsl
+    result = _dsl.dsl_source_buffer_out_crop_rectangle_set(name, when,
+        left, top, width, height)
+    return int(result)
+
+##
+## dsl_source_buffer_out_orientation_get()
+##
+_dsl.dsl_source_buffer_out_orientation_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_source_buffer_out_orientation_get.restype = c_uint
+def dsl_source_buffer_out_orientation_get(name):
+    global _dsl
+    orientation = c_uint(0)
+    result = _dsl.dsl_source_buffer_out_orientation_get(name,
+        DSL_UINT_P(orientation))
+    return int(result), orientation.value
+
+##
+## dsl_source_buffer_out_orientation_set()
+##
+_dsl.dsl_source_buffer_out_orientation_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_source_buffer_out_orientation_set.restype = c_uint
+def dsl_source_buffer_out_orientation_set(name, orientation):
+    global _dsl
+    result = _dsl.dsl_source_buffer_out_orientation_set(name,
+        orientation)
+    return int(result)
+
+##
 ## dsl_source_uri_uri_get()
 ##
 _dsl.dsl_source_uri_uri_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]

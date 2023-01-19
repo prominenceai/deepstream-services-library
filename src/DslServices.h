@@ -1349,9 +1349,9 @@ namespace DSL {
         
         DslReturnType PipelineIsLive(const char* name, boolean* isLive);
         
-        DslReturnType PipelineDumpToDot(const char* name, char* filename);
+        DslReturnType PipelineDumpToDot(const char* name, const char* filename);
         
-        DslReturnType PipelineDumpToDotWithTs(const char* name, char* filename);
+        DslReturnType PipelineDumpToDotWithTs(const char* name, const char* filename);
         
         DslReturnType PipelineStateChangeListenerAdd(const char* name, 
             dsl_state_change_listener_cb listener, void* clientData);

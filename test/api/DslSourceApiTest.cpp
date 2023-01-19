@@ -382,7 +382,6 @@ SCENARIO( "An App Source can update its buffer-out settings correctly",
 
             THEN( "The correct values are returned on get" ) 
             {
-                // buffer out default dimensions and framerate
                 uint ret_bo_width(99), ret_bo_height(99);
                 REQUIRE( dsl_source_buffer_out_dimensions_get(source_name.c_str(), 
                     &ret_bo_width, &ret_bo_height) == DSL_RESULT_SUCCESS );
@@ -413,13 +412,18 @@ SCENARIO( "An App Source can update its buffer-out settings correctly",
         {
             uint new_bo_rec_left(10), new_bo_rec_top(10);
             uint new_bo_rec_width(200), new_bo_rec_height(200);
+
+            // first, make sure invalid when value is caught
+            REQUIRE( dsl_source_buffer_out_crop_rectangle_set(source_name.c_str(), 
+                DSL_VIDEO_CROP_POST_CONVERSION+1, new_bo_rec_left, new_bo_rec_top,
+                new_bo_rec_width, new_bo_rec_height) == DSL_RESULT_SOURCE_SET_FAILED );
+
             REQUIRE( dsl_source_buffer_out_crop_rectangle_set(source_name.c_str(), 
                 DSL_VIDEO_CROP_PRE_CONVERSION, new_bo_rec_left, new_bo_rec_top,
                 new_bo_rec_width, new_bo_rec_height) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct values are returned on get" ) 
             {
-                // buffer out default crop rectangles
                 uint ret_bo_rec_left(99), ret_bo_rec_top(99);
                 uint ret_bo_rec_width(99), ret_bo_rec_height(99);
                 REQUIRE( dsl_source_buffer_out_crop_rectangle_get(source_name.c_str(), 
@@ -433,7 +437,7 @@ SCENARIO( "An App Source can update its buffer-out settings correctly",
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             } 
         }
-        WHEN( "The App Source's buffer-out-crop settings are set" ) 
+        WHEN( "The App Source's buffer-out-orientation settings are set" ) 
         {
             // make sure an invalid value is caught
             REQUIRE( dsl_source_buffer_out_orientation_set(source_name.c_str(), 
@@ -1160,6 +1164,7 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
         REQUIRE( dsl_component_list_size() == 0 );
         
         int start_index(0);
+        uint left(0), top(0), width(0);
         dsl_source_app_need_data_handler_cb data_handler_cb;
 
         WHEN( "When NULL pointers are used as input" ) 
@@ -1268,6 +1273,53 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_media_type_get(source_name.c_str(), 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_buffer_out_format_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_buffer_out_format_get(source_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_buffer_out_format_set(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_buffer_out_format_set(source_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_buffer_out_dimensions_get(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_buffer_out_dimensions_get(source_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_buffer_out_dimensions_get(source_name.c_str(), 
+                    &width, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_buffer_out_dimensions_set(NULL, 
+                    1, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_buffer_out_frame_rate_get(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_buffer_out_frame_rate_get(source_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_buffer_out_frame_rate_get(source_name.c_str(), 
+                    &width, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_buffer_out_frame_rate_set(NULL, 
+                    1, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_buffer_out_crop_rectangle_get(NULL, 
+                    0, NULL, NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_buffer_out_crop_rectangle_get(source_name.c_str(), 
+                    0, NULL, NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_buffer_out_crop_rectangle_get(source_name.c_str(), 
+                    0, &left, NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_buffer_out_crop_rectangle_get(source_name.c_str(), 
+                    0, &left, &top, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_buffer_out_crop_rectangle_get(source_name.c_str(), 
+                    0, &left, &top, &width, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_buffer_out_crop_rectangle_set(NULL, 
+                    1, 1, 1, 1, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_buffer_out_orientation_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_buffer_out_orientation_get(source_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_buffer_out_orientation_set(NULL, 
+                    1) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_list_size() == 0 );
             }

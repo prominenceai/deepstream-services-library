@@ -420,6 +420,8 @@ namespace DSL
         {
             if (m_bufferOutFpsN and m_bufferOutFpsD)
             {
+                LOG_WARN("setting all caps for SourceBintr '"
+                    << GetName() << "'");
                 pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
                     "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
                     "width", G_TYPE_INT, m_bufferOutWidth, 
@@ -429,6 +431,8 @@ namespace DSL
             }
             else
             {
+                LOG_WARN("setting format, width, and height for SourceBintr '"
+                    << GetName() << "'");
                 pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
                     "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
                     "width", G_TYPE_INT, m_bufferOutWidth, 
@@ -440,6 +444,8 @@ namespace DSL
         {
             if (m_bufferOutFpsN and m_bufferOutFpsD)
             {
+                LOG_WARN("setting format and frame-rate for SourceBintr '"
+                    << GetName() << "'");
                 pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
                     "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
                     "framerate", GST_TYPE_FRACTION, m_bufferOutFpsN, m_bufferOutFpsD, 
@@ -447,6 +453,8 @@ namespace DSL
             }
             else
             {
+                LOG_WARN("setting format for SourceBintr '"
+                    << GetName() << "'");
                 pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
                     "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
                     NULL);

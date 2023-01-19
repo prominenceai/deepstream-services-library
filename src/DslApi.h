@@ -7001,7 +7001,7 @@ DslReturnType dsl_pipeline_is_live(const wchar_t* name, boolean* is_live);
  * environment variable GST_DEBUG_DUMP_DOT_DIR
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */ 
-DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* name, wchar_t* filename);
+DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* name, const wchar_t* filename);
 
 /**
  * @brief dumps a Pipeline's graph to dot file prefixed
@@ -7013,7 +7013,8 @@ DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* name, wchar_t* filename);
  * environment variable GST_DEBUG_DUMP_DOT_DIR
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */ 
-DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* name, wchar_t* filename);
+DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* name, 
+    const wchar_t* filename);
 
 /**
  * @brief adds a callback to be notified on End of Stream (EOS)

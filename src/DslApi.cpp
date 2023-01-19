@@ -7605,7 +7605,8 @@ DslReturnType dsl_pipeline_is_live(const wchar_t* name, boolean* is_live)
     return DSL::Services::GetServices()->PipelineIsLive(cstrName.c_str(), is_live);
 }
 
-DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* name, wchar_t* filename)
+DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* name, 
+    const wchar_t* filename)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(filename);
@@ -7616,10 +7617,11 @@ DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* name, wchar_t* filename)
     std::string cstrFilename(wstrFilename.begin(), wstrFilename.end());
 
     return DSL::Services::GetServices()->PipelineDumpToDot(cstrName.c_str(), 
-        const_cast<char*>(cstrFilename.c_str()));
+        cstrFilename.c_str());
 }
 
-DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* name, wchar_t* filename)
+DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* name, 
+    const wchar_t* filename)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(filename);
@@ -7630,7 +7632,7 @@ DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* name, wchar_t* fil
     std::string cstrFilename(wstrFilename.begin(), wstrFilename.end());
 
     return DSL::Services::GetServices()->PipelineDumpToDotWithTs(cstrName.c_str(), 
-        const_cast<char*>(cstrFilename.c_str()));
+        cstrFilename.c_str());
 }
 
 DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* name, 
