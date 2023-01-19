@@ -397,7 +397,9 @@ namespace DSL
                     mask = (intersection / smaller) < m_matchThreshold;                    
                     
                 }
+
                 auto rm_idx = 0;
+		keep_to_merge_list[idx].emplace_back(idx);		
                 for(auto it = mask.begin(); it != mask.end(); ++it, ++rm_idx)
                 {
                     if (*it == 0)
