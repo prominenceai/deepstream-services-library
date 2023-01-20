@@ -4203,6 +4203,30 @@ DslReturnType dsl_source_buffer_out_orientation_set(const wchar_t* name,
     return DSL::Services::GetServices()->SourceBufferOutOrientationSet(
         cstrName.c_str(), orientation);
 }
+
+DslReturnType dsl_source_dewarper_add(const wchar_t* name, const wchar_t* dewarper)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(dewarper);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrDewarper(dewarper);
+    std::string cstrDewarper(wstrDewarper.begin(), wstrDewarper.end());
+
+    return DSL::Services::GetServices()->SourceDewarperAdd(cstrName.c_str(), cstrDewarper.c_str());
+}
+
+DslReturnType dsl_source_dewarper_remove(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceDewarperRemove(cstrName.c_str());
+}
+
     
 DslReturnType dsl_source_app_do_timestamp_get(const wchar_t* name, 
     boolean* do_timestamp)
@@ -4290,29 +4314,6 @@ DslReturnType dsl_source_uri_uri_set(const wchar_t* name, const wchar_t* uri)
     std::string cstrUri(wstrUri.begin(), wstrUri.end());
 
     return DSL::Services::GetServices()->SourceUriUriSet(cstrName.c_str(), cstrUri.c_str());
-}
-
-DslReturnType dsl_source_uri_dewarper_add(const wchar_t* name, const wchar_t* dewarper)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(dewarper);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrDewarper(dewarper);
-    std::string cstrDewarper(wstrDewarper.begin(), wstrDewarper.end());
-
-    return DSL::Services::GetServices()->SourceUriDewarperAdd(cstrName.c_str(), cstrDewarper.c_str());
-}
-
-DslReturnType dsl_source_uri_dewarper_remove(const wchar_t* name)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SourceUriDewarperRemove(cstrName.c_str());
 }
 
 DslReturnType dsl_source_rtsp_timeout_get(const wchar_t* name, uint* timeout)

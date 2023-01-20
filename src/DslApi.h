@@ -4747,6 +4747,22 @@ DslReturnType dsl_source_buffer_out_orientation_set(const wchar_t* name,
     uint orientation);
 
 /**
+ * @brief Adds a named Dewarper component to a named Source component
+ * @param[in] name name of the Source component to update
+ * @param[in] dewarper name of the Dewarper to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_dewarper_add(const wchar_t* name, const wchar_t* dewarper);
+
+/**
+ * @brief Removes a named Dewarper component from a named Source component
+ * @param[in] name name of the source object to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_dewarper_remove(const wchar_t* name);
+
+
+/**
  * @brief returns the frame rate of the name source as a fraction
  * Camera sources will return the value used on source creation
  * URL and RTPS sources will return 0 prior to entering a state of play
@@ -4785,21 +4801,6 @@ DslReturnType dsl_source_uri_uri_get(const wchar_t* name, const wchar_t** uri);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_uri_uri_set(const wchar_t* name, const wchar_t* uri);
-
-/**
- * @brief Adds a named dewarper to a named decode source (URI, RTSP)
- * @param[in] name name of the source object to update
- * @param[in] dewarper name of the dewarper to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_uri_dewarper_add(const wchar_t* name, const wchar_t* dewarper);
-
-/**
- * @brief Adds a named dewarper to a named decode source (URI, RTSP)
- * @param[in] name name of the source object to update
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_uri_dewarper_remove(const wchar_t* name);
 
 /**
  * @brief Gets the current buffer timeout for the named RTSP Source

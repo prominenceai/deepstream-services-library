@@ -144,6 +144,28 @@ namespace DSL
          * @brief Function is overridden by all derived SourceBintrs
          */
         void UnlinkAll(){};
+        
+        /**
+         * @brief Links the derived Source's last specific element (SrcNodetr)
+         * to the common elements shared by all sources.
+         * @param[in] pSrcNodetr source specific element to link to the common
+         * elements.
+         * @return True on success, false otherwise
+         */
+        bool LinkToCommon(DSL_NODETR_PTR pSrcNodetr);
+        
+        /**
+         * @brief Links a dynamic src-pad to the common elements shared by all sources
+         * @param[in] pSrcPad dynamic src-pad to link
+         * @return True on success, false otherwise
+         */
+        bool LinkToCommon(GstPad* pSrcPad);
+        
+        /**
+         * @brief Unlinks all common Elementrs owned by this SourceBintr
+         * elements.
+         */
+        void UnlinkCommon();
 
         /**
          * @brief Adds the SourceBintr to a given Parent Bintr (PipelineSourcesBintr).
@@ -306,6 +328,25 @@ namespace DSL
          * @return true if successfully set, false otherwise.
          */
         bool SetNvbufMemType(uint nvbufMemType);
+
+        /**
+         * @brief adds a single Dewarper Bintr to this SourceBintr 
+         * @param[in] pDewarperBintr shared pointer to Dewarper to add
+         * @returns true if the Dewarper could be added, false otherwise
+         */
+        bool AddDewarperBintr(DSL_BASE_PTR pDewarperBintr);
+
+        /**
+         * @brief remove a previously added Dewarper Bintr from this SourceBintr 
+         * @returns true if the Dewarper could be removed, false otherwise
+         */
+        bool RemoveDewarperBintr();
+        
+        /**
+         * @brief call to query the Decode Source if it has a Dewarper
+         * @return true if the Source has a Child
+         */
+        bool HasDewarperBintr();
         
         /**
          * @brief Returns the current linkable state of the Source. Camera Sources
@@ -934,25 +975,6 @@ namespace DSL
          * @return 
          */
         gboolean HandleStreamBufferSeek();
-
-        /**
-         * @brief adds a single Dewarper Bintr to this DecodeSourceBintr 
-         * @param[in] pDewarperBintr shared pointer to Dewarper to add
-         * @returns true if the Dewarper could be added, false otherwise
-         */
-        bool AddDewarperBintr(DSL_BASE_PTR pDewarperBintr);
-
-        /**
-         * @brief remove a previously added Dewarper Bintr from this DecodeSourceBintr 
-         * @returns true if the Dewarper could be removed, false otherwise
-         */
-        bool RemoveDewarperBintr();
-        
-        /**
-         * @brief call to query the Decode Source if it has a Dewarper
-         * @return true if the Source has a Child
-         */
-        bool HasDewarperBintr();
 
         /**
          * @brief Disables Auto Repeat without updating the RepeatEnabled flag 

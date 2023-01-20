@@ -3580,23 +3580,23 @@ def dsl_source_uri_uri_set(name, uir):
     return int(result)
 
 ##
-## dsl_source_uri_dewarper_add()
+## dsl_source_dewarper_add()
 ##
-_dsl.dsl_source_uri_dewarper_add.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_source_uri_dewarper_add.restype = c_uint
-def dsl_source_uri_dewarper_add(name, dewarper):
+_dsl.dsl_source_dewarper_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_dewarper_add.restype = c_uint
+def dsl_source_dewarper_add(name, dewarper):
     global _dsl
-    result = _dsl.dsl_source_uri_dewarper_add(name, dewarper)
+    result = _dsl.dsl_source_dewarper_add(name, dewarper)
     return int(result)
 
 ##
-## dsl_source_uri_dewarper_remove()
+## dsl_source_dewarper_remove()
 ##
-_dsl.dsl_source_uri_dewarper_remove.argtypes = [c_wchar_p]
-_dsl.dsl_source_uri_dewarper_remove.restype = c_uint
-def dsl_source_uri_dewarper_remove(name):
+_dsl.dsl_source_dewarper_remove.argtypes = [c_wchar_p]
+_dsl.dsl_source_dewarper_remove.restype = c_uint
+def dsl_source_dewarper_remove(name):
     global _dsl
-    result = _dsl.dsl_source_uri_dewarper_remove(name)
+    result = _dsl.dsl_source_dewarper_remove(name)
     return int(result)
 
 ##

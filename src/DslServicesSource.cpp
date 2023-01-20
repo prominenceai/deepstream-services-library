@@ -2020,7 +2020,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceUriDewarperAdd(const char* name, const char* dewarper)
+    DslReturnType Services::SourceDewarperAdd(const char* name, const char* dewarper)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2030,7 +2030,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, dewarper);
             DSL_RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, dewarper, DewarperBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                dewarper, DewarperBintr);
 
             DSL_URI_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<UriSourceBintr>(m_components[name]);
@@ -2040,7 +2041,8 @@ namespace DSL
          
             if (!pSourceBintr->AddDewarperBintr(pDewarperBintr))
             {
-                LOG_ERROR("Failed to add Dewarper '" << dewarper << "' to Uri Source '" << name << "'");
+                LOG_ERROR("Failed to add Dewarper '" << dewarper 
+                    << "' to Source '" << name << "'");
                 return DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED;
             }
             LOG_INFO("Uri Source '" << name << "' added Dewarper '" 
@@ -2055,7 +2057,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceUriDewarperRemove(const char* name)
+    DslReturnType Services::SourceDewarperRemove(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);

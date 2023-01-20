@@ -208,6 +208,52 @@ namespace DSL
             RemoveSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
     }
 
+    bool SourceBintr::LinkToCommon(DSL_NODETR_PTR pSrcNodetr)
+    {
+        LOG_FUNC();
+
+        if (!pSrcNodetr->LinkToSink(m_pBufferOutVidConv) or
+            !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
+        {
+            return false;
+        }
+        
+        return true;
+    }
+
+    bool SourceBintr::LinkToCommon(GstPad* pSrcPad)
+    {
+        LOG_FUNC();
+
+        m_pGstStaticSinkPad = gst_element_get_static_pad(
+            m_pBufferOutVidConv->GetGstElement(), "sink");
+        if (!m_pGstStaticSinkPad)
+        {
+            LOG_ERROR("Failed to get Static Source Pad for SourceBintr '" 
+                << GetName() << "'");
+        }
+        
+        if (gst_pad_link(pSrcPad, m_pGstStaticSinkPad) != GST_PAD_LINK_OK) 
+        {
+            LOG_ERROR("Failed to link dynamic pad to common elements");
+            return false;
+        }
+
+        if (!m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
+        {
+            return false;
+        }
+        
+        return true;
+    }
+
+    void SourceBintr::UnlinkCommon()
+    {
+        LOG_FUNC();
+
+        m_pBufferOutVidConv->UnlinkFromSink();
+    }
+
     void SourceBintr::GetDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
@@ -480,6 +526,42 @@ namespace DSL
         return true;
     }
 
+    
+    bool SourceBintr::AddDewarperBintr(DSL_BASE_PTR pDewarperBintr)
+    {
+        LOG_FUNC();
+        
+        if (m_pDewarperBintr)
+        {
+            LOG_ERROR("Source '" << GetName() << "' allready has a Dewarper");
+            return false;
+        }
+        m_pDewarperBintr = std::dynamic_pointer_cast<DewarperBintr>(pDewarperBintr);
+        AddChild(pDewarperBintr);
+        return true;
+    }
+
+    bool SourceBintr::RemoveDewarperBintr()
+    {
+        LOG_FUNC();
+
+        if (!m_pDewarperBintr)
+        {
+            LOG_ERROR("Source '" << GetName() << "' does not have a Dewarper");
+            return false;
+        }
+        RemoveChild(m_pDewarperBintr);
+        m_pDewarperBintr = nullptr;
+        return true;
+    }
+    
+    bool SourceBintr::HasDewarperBintr()
+    {
+        LOG_FUNC();
+        
+        return (m_pDewarperBintr != nullptr);
+    }
+    
     //*********************************************************************************
     AppSourceBintr::AppSourceBintr(const char* name, bool isLive, 
             const char* bufferInFormat, uint width, uint height, uint fpsN, uint fpsD)
@@ -592,8 +674,8 @@ namespace DSL
                 << "' is already in a linked state");
             return false;
         }
-        if (!m_pSourceElement->LinkToSink(m_pBufferOutVidConv) or
-            !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
+        
+        if (!LinkToCommon(m_pSourceElement))
         {
             return false;
         }
@@ -614,7 +696,7 @@ namespace DSL
             return;
         }
         m_pSourceElement->UnlinkFromSink();
-        m_pBufferOutVidConv->UnlinkFromSink();
+        UnlinkCommon();
         m_isLinked = false;
     }
 
@@ -1008,8 +1090,7 @@ namespace DSL
             return false;
         }
         if (!m_pSourceElement->LinkToSink(m_pSourceCapsFilter) or
-            !m_pSourceCapsFilter->LinkToSink(m_pBufferOutVidConv) or
-            !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
+            !LinkToCommon(m_pSourceCapsFilter))
         {
             return false;
         }
@@ -1029,7 +1110,7 @@ namespace DSL
         }
         m_pSourceElement->UnlinkFromSink();
         m_pSourceCapsFilter->UnlinkFromSink();
-        m_pBufferOutVidConv->UnlinkFromSink();
+        UnlinkCommon();
         
         m_isLinked = false;
     }
@@ -1178,16 +1259,14 @@ namespace DSL
         if (!m_cudaDeviceProp.integrated)
         {
             if (!m_pSourceElement->LinkToSink(m_pdGpuVidConv) or 
-                !m_pdGpuVidConv->LinkToSink(m_pBufferOutVidConv) or
-                !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
+                !LinkToCommon(m_pdGpuVidConv))
             {
                 return false;
             }
         }
         else // aarch_64
         {
-            if (!m_pSourceElement->LinkToSink(m_pBufferOutVidConv) or 
-                !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
+            if (!LinkToCommon(m_pSourceElement))
             {
                 return false;
             }
@@ -1209,11 +1288,12 @@ namespace DSL
         
         // x86_64
         m_pSourceElement->UnlinkFromSink();
+
         if (!m_cudaDeviceProp.integrated)
         {
             m_pdGpuVidConv->UnlinkFromSink();
         }
-        m_pBufferOutVidConv->UnlinkFromSink();
+        UnlinkCommon();
         m_isLinked = false;
     }
 
@@ -1435,11 +1515,6 @@ namespace DSL
             return false;
         }
 
-        if (!m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
-        {
-            return false;
-        }
-
         m_isLinked = true;
 
         return true;
@@ -1455,14 +1530,7 @@ namespace DSL
             return;
         }
 
-        if (HasDewarperBintr())
-        {
-        }
-        else
-        {
-            m_pBufferOutVidConv->UnlinkFromSink();
-        }
-         
+        UnlinkCommon();
         m_isLinked = false;
     }
     
@@ -1481,19 +1549,7 @@ namespace DSL
         LOG_INFO("Caps structs name " << name);
         if (name.find("video") != std::string::npos)
         {
-            m_pGstStaticSinkPad = gst_element_get_static_pad(
-                m_pBufferOutVidConv->GetGstElement(), "sink");
-            if (!m_pGstStaticSinkPad)
-            {
-                LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" 
-                    << GetName() << "'");
-            }
-            
-            if (gst_pad_link(pPad, m_pGstStaticSinkPad) != GST_PAD_LINK_OK) 
-            {
-                LOG_ERROR("Failed to link decodebin to source Tee");
-                throw;
-            }
+            LinkToCommon(pPad);
             
             // Update the cap memebers for this URI Source Bintr
             gst_structure_get_uint(structure, "width", &m_width);
@@ -1639,42 +1695,6 @@ namespace DSL
         return false;
     }
 
-    
-    bool UriSourceBintr::AddDewarperBintr(DSL_BASE_PTR pDewarperBintr)
-    {
-        LOG_FUNC();
-        
-        if (m_pDewarperBintr)
-        {
-            LOG_ERROR("Source '" << GetName() << "' allready has a Dewarper");
-            return false;
-        }
-        m_pDewarperBintr = std::dynamic_pointer_cast<DewarperBintr>(pDewarperBintr);
-        AddChild(pDewarperBintr);
-        return true;
-    }
-
-    bool UriSourceBintr::RemoveDewarperBintr()
-    {
-        LOG_FUNC();
-
-        if (!m_pDewarperBintr)
-        {
-            LOG_ERROR("Source '" << GetName() << "' does not have a Dewarper");
-            return false;
-        }
-        RemoveChild(m_pDewarperBintr);
-        m_pDewarperBintr = nullptr;
-        return true;
-    }
-    
-    bool UriSourceBintr::HasDewarperBintr()
-    {
-        LOG_FUNC();
-        
-        return (m_pDewarperBintr != nullptr);
-    }
-    
     void UriSourceBintr::DisableEosConsumer()
     {
         LOG_FUNC();
@@ -1877,8 +1897,7 @@ namespace DSL
         }
         if (!m_pSourceElement->LinkToSink(m_pParser) or
             !m_pParser->LinkToSink(m_pDecoder) or
-            !m_pDecoder->LinkToSink(m_pBufferOutVidConv) or
-            !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
+            !LinkToCommon(m_pDecoder))
         {
             LOG_ERROR("SingleImageSourceBintr '" << GetName() 
                 << "' failed to LinkAll");
@@ -1899,15 +1918,10 @@ namespace DSL
                 << "' is not in a linked state");
             return;
         }
-        if (!m_pSourceElement->UnlinkFromSink() or
-            !m_pParser->UnlinkFromSink() or
-            !m_pDecoder->UnlinkFromSink() or
-            !m_pBufferOutVidConv->UnlinkFromSink())
-        {
-            LOG_ERROR("SingleImageSourceBintr '" << GetName() 
-                << "' failed to UnlinkAll");
-            return;
-        }    
+        m_pSourceElement->UnlinkFromSink();
+        m_pParser->UnlinkFromSink();
+        m_pDecoder->UnlinkFromSink();
+        UnlinkCommon();
         m_isLinked = false;
     }
 
@@ -2040,8 +2054,7 @@ namespace DSL
         }
         if (!m_pSourceElement->LinkToSink(m_pParser) or
             !m_pParser->LinkToSink(m_pDecoder) or
-            !m_pDecoder->LinkToSink(m_pBufferOutVidConv) or
-            !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
+            !LinkToCommon(m_pDecoder))
         {
             LOG_ERROR("MultiImageSourceBintr '" << GetName() 
                 << "' failed to LinkAll");
@@ -2063,19 +2076,10 @@ namespace DSL
             return;
         }
         
-        if (!m_pSourceElement->UnlinkFromSink() or
-            !m_pParser->UnlinkFromSink() or
-            !m_pDecoder->UnlinkFromSink() or
-            !m_pBufferOutVidConv->UnlinkFromSink())
-        {
-            LOG_ERROR("MultiImageSourceBintr '" << GetName() 
-                << "' failed to UnlinkAll");
-            return;
-        }    
-        else
-        {
-            // TODO
-        }
+        m_pSourceElement->UnlinkFromSink();
+        m_pParser->UnlinkFromSink();
+        m_pDecoder->UnlinkFromSink();
+        UnlinkCommon();
         m_isLinked = false;
     }
 
@@ -2280,8 +2284,7 @@ namespace DSL
         }
         if (!m_pSourceElement->LinkToSink(m_pSourceCapsFilter) or
             !m_pSourceCapsFilter->LinkToSink(m_pImageOverlay) or
-            !m_pImageOverlay->LinkToSink(m_pBufferOutVidConv) or
-            !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
+            !LinkToCommon(m_pImageOverlay))
         {
             LOG_ERROR("ImageStreamSourceBintr '" << GetName() << "' failed to LinkAll");
             return false;
@@ -2313,14 +2316,10 @@ namespace DSL
             m_timeoutTimerId = 0;
         }
         
-        if (!m_pSourceElement->UnlinkFromSink() or
-            !m_pSourceCapsFilter->UnlinkFromSink() or
-            !m_pImageOverlay->UnlinkFromSink() or
-            !m_pBufferOutVidConv->UnlinkFromSink())
-        {
-            LOG_ERROR("ImageStreamSourceBintr '" << GetName() << "' failed to UnlinkAll");
-            return;
-        }    
+        m_pSourceElement->UnlinkFromSink();
+        m_pSourceCapsFilter->UnlinkFromSink();
+        m_pImageOverlay->UnlinkFromSink();
+        UnlinkCommon();
         m_isLinked = false;
     }
     
@@ -2443,8 +2442,7 @@ namespace DSL
             return false;
         }
 
-        if (!m_pSourceElement->LinkToSink(m_pBufferOutVidConv) or
-            !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
+        if (!LinkToCommon(m_pSourceElement))
         {
             LOG_ERROR("InterpipeSourceBintr '" << GetName() << "' failed to LinkAll");
             return false;
@@ -2464,7 +2462,7 @@ namespace DSL
             return;
         }
         m_pSourceElement->UnlinkFromSink();
-        m_pBufferOutVidConv->UnlinkFromSink();
+        UnlinkCommon();
         
         m_isLinked = false;
     }
@@ -2632,11 +2630,6 @@ namespace DSL
                 << m_uri.c_str());
             return false;
         }
-        if (!m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
-        {
-            LOG_ERROR("RtspSourceBintr '" << GetName() << "' failed to LinkAll");
-            return false;
-        }
 
 
         // All elements are linked in the select-stream callback (HandleSelectStream),
@@ -2685,7 +2678,7 @@ namespace DSL
         m_pParser->UnlinkFromSink();
         m_pDepay->UnlinkFromSink();
         m_pDecoder->UnlinkFromSink();
-        m_pBufferOutVidConv->UnlinkFromSink();
+        UnlinkCommon();
 
         // will be recreated in the select-stream callback on next play
         m_pParser = nullptr;
@@ -2979,7 +2972,7 @@ namespace DSL
             AddChild(m_pDecoder);
 
             if (!m_pPreDecodeQueue->LinkToSink(m_pDecoder) or
-                !m_pDecoder->LinkToSink(m_pBufferOutVidConv))
+                !LinkToCommon(m_pDecoder))
             {
                 return false;
             }

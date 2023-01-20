@@ -801,14 +801,14 @@ namespace DSL {
         
         DslReturnType SourceFrameRateGet(const char* name, uint* fpsN, uint* fpsD);
 
+        DslReturnType SourceDewarperAdd(const char* name, const char* dewarper);
+    
+        DslReturnType SourceDewarperRemove(const char* name);
+
         DslReturnType SourceUriUriGet(const char* name, const char** uri);
 
         DslReturnType SourceUriUriSet(const char* name, const char* uri);
     
-        DslReturnType SourceUriDewarperAdd(const char* name, const char* dewarper);
-    
-        DslReturnType SourceUriDewarperRemove(const char* name);
-        
         DslReturnType SourceRtspTimeoutGet(const char* name, uint* timeout);
 
         DslReturnType SourceRtspTimeoutSet(const char* name, uint timeout);

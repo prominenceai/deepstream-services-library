@@ -769,7 +769,7 @@ SCENARIO( "An invalid Source is caught by all Set and Get API calls", "[source-a
     }
 }
 
-SCENARIO( "A Dewarper can be added to and removed from a Decode Source Component", "[source-api]" )
+SCENARIO( "A Dewarper can be added to and removed from a Source Component", "[source-api]" )
 {
     GIVEN( "A new Source and new Dewarper" )
     {
@@ -780,19 +780,21 @@ SCENARIO( "A Dewarper can be added to and removed from a Decode Source Component
 
         WHEN( "The Dewarper is added to the Source" ) 
         {
-            REQUIRE( dsl_source_uri_dewarper_add(source_name.c_str(), 
+            REQUIRE( dsl_source_dewarper_add(source_name.c_str(), 
                 dewarper_name.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The Dewarper can be removed" )
             {
                 // A second call must fail
-                REQUIRE( dsl_source_uri_dewarper_add(source_name.c_str(), 
+                REQUIRE( dsl_source_dewarper_add(source_name.c_str(), 
                     dewarper_name.c_str()) == DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED );
 
-                REQUIRE( dsl_source_uri_dewarper_remove(source_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_dewarper_remove(source_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
 
                 // A second time must fail
-                REQUIRE( dsl_source_uri_dewarper_remove(source_name.c_str()) == DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED );
+                REQUIRE( dsl_source_dewarper_remove(source_name.c_str()) 
+                    == DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED );
                     
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -800,7 +802,7 @@ SCENARIO( "A Dewarper can be added to and removed from a Decode Source Component
     }
 }
 
-SCENARIO( "Adding an invalid Dewarper to a Decode Source Component fails", "[source-api]" )
+SCENARIO( "Adding an invalid Dewarper to a  Source Component fails", "[source-api]" )
 {
     GIVEN( "A new Source and a Fake Sink as invalid Dewarper" )
     {
@@ -815,7 +817,7 @@ SCENARIO( "Adding an invalid Dewarper to a Decode Source Component fails", "[sou
 
             THEN( "Adding the Fake Sink as a Dewarper will fail" )
             {
-                REQUIRE( dsl_source_uri_dewarper_add(source_name.c_str(), 
+                REQUIRE( dsl_source_dewarper_add(source_name.c_str(), 
                     fakeSinkName.c_str()) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
                     
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
@@ -1231,9 +1233,9 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_uri_uri_set(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_uri_uri_set(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_source_uri_dewarper_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_uri_dewarper_add(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_uri_dewarper_remove(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_dewarper_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_dewarper_add(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_dewarper_remove(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_source_rtsp_tap_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_rtsp_tap_add(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
