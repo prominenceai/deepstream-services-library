@@ -99,6 +99,7 @@ THE SOFTWARE.
 #define DSL_RESULT_DEWARPER_NAME_BAD_FORMAT                         0x00090003
 #define DSL_RESULT_DEWARPER_THREW_EXCEPTION                         0x00090004
 #define DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND                   0x00090005
+#define DSL_RESULT_DEWARPER_SET_FAILED                              0x00090006
 
 /**
  * Tracker API Return Values
@@ -4927,34 +4928,77 @@ DslReturnType dsl_source_resume(const wchar_t* name);
 boolean dsl_source_is_live(const wchar_t* name);
 
 /**
- * @brief Creates a new, uniquely named Dewarper object
- * @param[in] name unique name for the new Dewarper object
+ * @brief Creates a new, uniquely named Dewarper component
+ * @param[in] name unique name for the new Dewarper component
  * @param[in] config_file absolute or relative path to Dewarper config text file
- * @param[in] source_id Unique source or camera Id.
+ * @param[in] camera_id refers to the first column of the CSV files (i.e. 
+ * csv_files/nvaisle_2M.csv & csv_files/nvspot_2M.csv). The dewarping parameters 
+ * for the given camera are read from CSV files and used to generate dewarp surfaces 
+ * (i.e. multiple aisle and spot surface) from 360d input video stream.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DEWARPER otherwise.
  */
 DslReturnType dsl_dewarper_new(const wchar_t* name, 
-    const wchar_t* config_file, uint source_id);
+    const wchar_t* config_file, uint camera_id);
 
 /**
- * @brief Gets the current the number of dewarped output surfaces per frame buffer.
+ * @brief Gets the current Config File in use by the named Dewarper
+ * @param[in] name unique name of Dewarper to query
+ * @param[out] config_file Config file currently in use
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DEWARPER otherwise.
+ */
+DslReturnType dsl_dewarper_config_file_get(const wchar_t* name, 
+    const wchar_t** config_file);
+
+/**
+ * @brief Sets the Config File to use by the named Dewarper
+ * @param[in] name unique name of Dewarper to update.
+ * @param[in] config_file absolute or relative pathspec to new Config file to use.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DEWARPER otherwise.
+ */
+DslReturnType dsl_dewarper_config_file_set(const wchar_t* name, 
+    const wchar_t* config_file);
+
+/**
+ * @brief Gets the current camera-id for the named Dewarper.
+ * @param[in] name name of the Dewarper to query.
+ * @param[out] camera_id refers to the first column of the CSV files (i.e. 
+ * csv_files/nvaisle_2M.csv & csv_files/nvspot_2M.csv). The dewarping parameters 
+ * for the given camera are read from CSV files and used to generate dewarp surfaces 
+ * (i.e. multiple aisle and spot surface) from 360d input video stream.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DEWARPER otherwise..
+ */
+DslReturnType dsl_dewarper_camera_id_get(const wchar_t* name, uint* camera_id);
+
+/**
+ * @brief Sets the source-id for the named Dewarper to use.
+ * @param[in] name name of the Dewarper to update.
+ * @param[in] camera_id refers to the first column of the CSV files (i.e. 
+ * csv_files/nvaisle_2M.csv & csv_files/nvspot_2M.csv). The dewarping parameters 
+ * for the given camera are read from CSV files and used to generate dewarp surfaces 
+ * (i.e. multiple aisle and spot surface) from 360d input video stream.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DEWARPER otherwise.
+ */
+DslReturnType dsl_dewarper_camera_id_set(const wchar_t* name, uint camera_id);
+
+/**
+ * @brief Gets the number of dewarped output surfaces per frame buffer
  * for the named Dewarper.
  * @param[in] name name of the Dewarper to query.
- * @param[out] num number of surfaces per frame [1..4].
+ * @param[out] num number of dewarped output surfaces per buffer, i.e., batch-size 
+ * of the buffer.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DEWARPER otherwise.
  */
-DslReturnType dsl_dewarper_num_surfaces_per_frame_get(
-    const wchar_t* name, uint* num);
+DslReturnType dsl_dewarper_num_batch_buffers_get(const wchar_t* name, uint* num);
 
 /**
- * @brief Sets the number of dewarped output surfaces per frame buffer.
+ * @brief Sets the number of dewarped output surfaces per frame buffer
  * for the named Dewarper.
  * @param[in] name name of the Dewarper to update
- * @param[in] num number of surfaces per frame [1..4]
+ * @param[in] num number of dewarped output surfaces per buffer, i.e., batch-size 
+ * of the buffer [1..4]. 
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DEWARPER otherwise.
  */
-DslReturnType dsl_dewarper_num_surfaces_per_frame_set(
-    const wchar_t* name, uint num);
+DslReturnType dsl_dewarper_num_batch_buffers_set(const wchar_t* name, uint num);
 
 /**
  * @brief creates a new, uniquely named Record Tap component

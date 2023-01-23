@@ -227,8 +227,7 @@ namespace DSL
                     << GetName() << "'");
                 return false;
             }
-            if (!m_pDewarperBintr->SetSourceId(6) or
-                !m_pDewarperBintr->LinkAll() or
+            if (!m_pDewarperBintr->LinkAll() or
                 !pSrcNodetr->LinkToSink(m_pDewarperBintr) or
                 !m_pDewarperBintr->LinkToSink(m_pSourceQueue))
             {
@@ -253,8 +252,7 @@ namespace DSL
         
         if (HasDewarperBintr())
         {
-            if (!m_pDewarperBintr->SetSourceId(6) or
-                !m_pDewarperBintr->LinkAll() or
+            if (!m_pDewarperBintr->LinkAll() or
                 !m_pDewarperBintr->LinkToSink(m_pSourceQueue))
             {
                 LOG_ERROR("Failed to Link Dewarper for SourceBintr '" 

@@ -4487,6 +4487,95 @@ DslReturnType dsl_dewarper_new(const wchar_t* name,
         cstrConfig.c_str(), source_id);
 }
 
+DslReturnType dsl_dewarper_config_file_get(const wchar_t* name, 
+    const wchar_t** config_file)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(config_file);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cConfig;
+    static std::string cstrConfig;
+    static std::wstring wcstrConfig;
+    
+    uint retval = DSL::Services::GetServices()->DewarperConfigFileGet(
+        cstrName.c_str(), &cConfig);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrConfig.assign(cConfig);
+        wcstrConfig.assign(cstrConfig.begin(), cstrConfig.end());
+        *config_file = wcstrConfig.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_dewarper_config_file_set(const wchar_t* name, 
+    const wchar_t* config_file)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(config_file);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrConfig(config_file);
+    std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
+
+    return DSL::Services::GetServices()->DewarperConfigFileSet(cstrName.c_str(), 
+        cstrConfig.c_str());
+}
+
+DslReturnType dsl_dewarper_camera_id_get(const wchar_t* name, 
+    uint* camera_id)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(camera_id);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->DewarperCameraIdGet(
+        cstrName.c_str(), camera_id);
+}
+
+DslReturnType dsl_dewarper_camera_id_set(const wchar_t* name, 
+    uint camera_id)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->DewarperCameraIdSet(
+        cstrName.c_str(), camera_id);
+}
+
+DslReturnType dsl_dewarper_num_batch_buffers_get(
+    const wchar_t* name, uint* num)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(num);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->DewarperNumBatchBuffersGet(
+        cstrName.c_str(), num);
+}
+
+DslReturnType dsl_dewarper_num_batch_buffers_set(
+    const wchar_t* name, uint num)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->DewarperNumBatchBuffersSet(
+        cstrName.c_str(), num);
+}
+
 DslReturnType dsl_tap_record_new(const wchar_t* name, const wchar_t* outdir, 
      uint container, dsl_record_client_listener_cb client_listener)
 {

@@ -2581,8 +2581,6 @@ namespace DSL
                 return DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE;
             }
             
-            LOG_INFO("Dewarper config file: " << configFile);
-            
             std::ifstream ifsConfigFile(configFile);
             if (!ifsConfigFile.good())
             {
@@ -2604,7 +2602,202 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::TapRecordNew(const char* name, const char* outdir, uint container, 
+    DslReturnType Services::DewarperConfigFileGet(const char* name, 
+        const char** configFile)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, DewarperBintr);
+
+            DSL_DEWARPER_PTR pDewarperBintr = 
+                std::dynamic_pointer_cast<DewarperBintr>(m_components[name]);
+
+            *configFile = pDewarperBintr->GetConfigFile();
+
+            LOG_INFO("Dewarper '" << name << "' returned config-file = '"
+                << *configFile << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Dewarper '" << name 
+                << "' threw exception getting the config-file pathspec");
+            return DSL_RESULT_DEWARPER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DewarperConfigFileSet(const char* name, 
+        const char* configFile)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, DewarperBintr);
+
+            std::ifstream streamConfigFile(configFile);
+            if (!streamConfigFile.good())
+            {
+                LOG_ERROR("Preprocessor config file not found");
+                return DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND;
+            }
+            
+            DSL_DEWARPER_PTR pDewarperBintr = 
+                std::dynamic_pointer_cast<DewarperBintr>(m_components[name]);
+
+            if (!pDewarperBintr->SetConfigFile(configFile))
+            {
+                LOG_ERROR("Dewarper '" << name 
+                    << "' failed to set the config file");
+                return DSL_RESULT_DEWARPER_SET_FAILED;
+            }
+            LOG_INFO("Dewarper '" << name << "' set config-file = '"
+                << configFile << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Dewarper '" << name 
+                << "' threw exception setting config-file");
+            return DSL_RESULT_DEWARPER_THREW_EXCEPTION;
+        }
+    }
+    DslReturnType Services::DewarperCameraIdGet(const char* name, 
+        uint* cameraId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, DewarperBintr);
+
+            DSL_DEWARPER_PTR pDewarperBintr = 
+                std::dynamic_pointer_cast<DewarperBintr>(m_components[name]);
+
+            *cameraId = pDewarperBintr->GetCameraId();
+
+            LOG_INFO("camera-id = " << *cameraId 
+                << " returned successfully for Dewarper '" << name << "'");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Dewarper '" << name 
+                << "' threw an exception getting camera-id");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DewarperCameraIdSet(const char* name, 
+        uint cameraId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, DewarperBintr);
+
+            DSL_DEWARPER_PTR pDewarperBintr = 
+                std::dynamic_pointer_cast<DewarperBintr>(m_components[name]);
+
+            if (!pDewarperBintr->SetCameraId(cameraId))
+            {
+                LOG_ERROR("Dewarper '" << name 
+                    << "' failed to set camera-id = " << cameraId);
+                return DSL_RESULT_DEWARPER_SET_FAILED;
+            }
+            LOG_INFO("camera-id = " << cameraId 
+                << " set successfully for Dewarper '" << name << "'");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Dewarper '" << name 
+                << "' threw an exception setting camera-id");
+            return DSL_RESULT_DEWARPER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DewarperNumBatchBuffersGet(const char* name, 
+        uint* num)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, DewarperBintr);
+
+            DSL_DEWARPER_PTR pDewarperBintr = 
+                std::dynamic_pointer_cast<DewarperBintr>(m_components[name]);
+
+            *num = pDewarperBintr->GetNumBatchBuffers();
+
+            LOG_INFO("num-batch-buffers = " << *num 
+                << " returned successfully for Dewarper '" << name << "'");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Dewarper '" << name 
+                << "' threw an exception getting num-batch-buffers");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DewarperNumBatchBuffersSet(const char* name, 
+        uint num)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, DewarperBintr);
+
+            DSL_DEWARPER_PTR pDewarperBintr = 
+                std::dynamic_pointer_cast<DewarperBintr>(m_components[name]);
+
+            if (!pDewarperBintr->SetNumBatchBuffers(num))
+            {
+                LOG_ERROR("Dewarper '" << name 
+                    << "' failed to set num-batch-buffers = " << num);
+                return DSL_RESULT_DEWARPER_SET_FAILED;
+            }
+            LOG_INFO("num-batch-buffers = " << num 
+                << " set successfully for Dewarper '" << name << "'");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Dewarper '" << name 
+                << "' threw an exception setting num-batch-buffers");
+            return DSL_RESULT_DEWARPER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TapRecordNew(const char* name, 
+        const char* outdir, uint container, 
         dsl_record_client_listener_cb clientListener)
     {
         LOG_FUNC();
@@ -2623,13 +2816,15 @@ namespace DSL
             // ensure outdir exists
             if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
             {
-                LOG_ERROR("Unable to access outdir '" << outdir << "' for Record Tape '" << name << "'");
+                LOG_ERROR("Unable to access outdir '" << outdir 
+                    << "' for Record Tape '" << name << "'");
                 return DSL_RESULT_TAP_FILE_PATH_NOT_FOUND;
             }
 
             if (container > DSL_CONTAINER_MKV)
             {   
-                LOG_ERROR("Invalid Container value = " << container << " for File Tap '" << name << "'");
+                LOG_ERROR("Invalid Container value = " << container 
+                    << " for File Tap '" << name << "'");
                 return DSL_RESULT_TAP_CONTAINER_VALUE_INVALID;
             }
 
@@ -2656,7 +2851,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RecordTapBintr);
 
             DSL_RECORD_TAP_PTR pRecordTapBintr = 
                 std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
@@ -2672,7 +2868,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Record Tap'" << name << "' threw an exception Starting Session");
+            LOG_ERROR("Record Tap'" << name 
+                << "' threw an exception Starting Session");
             return DSL_RESULT_TAP_THREW_EXCEPTION;
         }
     }
@@ -2685,7 +2882,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RecordTapBintr);
 
             DSL_RECORD_TAP_PTR pRecordTapBintr = 
                 std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
@@ -2700,7 +2898,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Record Tap'" << name << "' threw an exception setting Stoping Session");
+            LOG_ERROR("Record Tap'" << name 
+                << "' threw an exception setting Stoping Session");
             return DSL_RESULT_TAP_THREW_EXCEPTION;
         }
     }

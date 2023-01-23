@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 
-#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(1000)
+#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(5000)
 
 // ---------------------------------------------------------------------------
 // Shared Test Inputs 
@@ -34,14 +34,10 @@ THE SOFTWARE.
 static const std::wstring pipeline_name(L"test-pipeline");
 
 static const std::wstring source_name1(L"uri-source-1");
-static const std::wstring uri(
-    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_cam6.mp4");
 static const uint skip_frames(0);
 static const uint drop_frame_interval(0); 
 
 static std::wstring dewarper_name(L"dewarper");
-static std::wstring dewarper_config_file(
-    L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/config_dewarper.txt");
 
 static const std::wstring tiler_name1(L"tiler");
 static const uint tiler_width(1280);
@@ -58,16 +54,23 @@ static const std::wstring pipeline_graph_name(L"dewarper-behavior");
 
 static uint camera_id(6);  // matches sample_cam6.mp4
 
-static uint muxer_width(960);
-static uint muxer_height(752);
-static uint muxer_batch_timeout_usec(33000);
 
-
-SCENARIO( "A URI File Source with a Dewarper can play]",
-    "[dewarper-behavior]")
+SCENARIO( "A URI File Source with a Dewarper -- 360 camera multi-surface \
+use-case -- can play]", "[dewarper-behavior]")
 {
     GIVEN( "A Pipeline, URI source, Dewarper, and Window Sink" ) 
     {
+        std::wstring uri(
+            L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_cam6.mp4");
+        std::wstring dewarper_config_file(
+            L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/config_dewarper.txt");
+            
+        uint camera_id(6); // for sample_cam6.mp4
+
+        uint muxer_width(960);
+        uint muxer_height(752);
+        uint muxer_batch_timeout_usec(33000);
+        
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
@@ -84,35 +87,105 @@ SCENARIO( "A URI File Source with a Dewarper can play]",
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
             muxer_width, muxer_height) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_tiler_tiles_set(tiler_name1.c_str(), 1, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
+            offest_x, offest_y, muxer_width, muxer_height) == DSL_RESULT_SUCCESS );
+        
+        WHEN( "When the Pipeline is assembled" ) 
+        {
+            const wchar_t* components[] = {L"uri-source-1", 
+                L"tiler", L"window-sink", NULL};
+            
+            REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+
+            uint num_surfaces(0);
+            REQUIRE( dsl_dewarper_num_batch_buffers_get(dewarper_name.c_str(), 
+                &num_surfaces) == DSL_RESULT_SUCCESS );
+                
+            REQUIRE( dsl_pipeline_streammux_dimensions_set(
+                pipeline_name.c_str(), muxer_width, muxer_height) 
+                    == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_streammux_batch_properties_set(
+                pipeline_name.c_str(), num_surfaces, muxer_batch_timeout_usec) 
+                    == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_streammux_num_surfaces_per_frame_set(
+                pipeline_name.c_str(), num_surfaces) == DSL_RESULT_SUCCESS );
+                
+            THEN( "The Pipeline is able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+
+                dsl_pipeline_dump_to_dot(pipeline_name.c_str(), 
+                    const_cast<wchar_t*>(pipeline_graph_name.c_str()));
+
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+
+                dsl_delete_all();
+            }
+        }
+    }
+}
+
+SCENARIO( "A URI File Source with a Dewarper -- single-surface Perspective \
+Projection use-case -- can play]", "[dewarper-behavior]")
+{
+    GIVEN( "A Pipeline, URI source, Dewarper, and Window Sink" ) 
+    {
+        std::wstring uri(
+            L"/opt/nvidia/deepstream/deepstream/samples/streams/yoga.mp4");
+        std::wstring dewarper_config_file(
+            L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/config_dewarper_perspective.txt");
+            
+        uint camera_id(0); // csv files are not used 
+
+        uint muxer_width(3680);
+        uint muxer_height(2428);        
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_dewarper_new(dewarper_name.c_str(), 
+            dewarper_config_file.c_str(), camera_id) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_dewarper_num_batch_buffers_set(dewarper_name.c_str(), 1) 
+            == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_source_dewarper_add(source_name1.c_str(), 
+            dewarper_name.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
             offest_x, offest_y, muxer_width, muxer_height) == DSL_RESULT_SUCCESS );
         
         WHEN( "When the Pipeline is assembled" ) 
         {
-            const wchar_t* components[] = {L"uri-source-1", L"tiler", L"window-sink", NULL};
+            const wchar_t* components[] = {L"uri-source-1", 
+                L"window-sink", NULL};
             
             REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
                 components) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_pipeline_streammux_dimensions_set(
-                pipeline_name.c_str(), muxer_width, muxer_height) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_pipeline_streammux_batch_properties_set(
-                pipeline_name.c_str(), 4, muxer_batch_timeout_usec) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_pipeline_streammux_num_surfaces_per_frame_set(
-                pipeline_name.c_str(), 4) == DSL_RESULT_SUCCESS );
+                pipeline_name.c_str(), muxer_width, muxer_height) 
+                    == DSL_RESULT_SUCCESS );
                 
             THEN( "The Pipeline is able to LinkAll and Play" )
             {
-                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
 
                 dsl_pipeline_dump_to_dot(pipeline_name.c_str(), 
                     const_cast<wchar_t*>(pipeline_graph_name.c_str()));
 
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*30);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
-                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
 
                 dsl_delete_all();
             }

@@ -848,6 +848,20 @@ namespace DSL {
         DslReturnType DewarperNew(const char* name, 
             const char* configFile, uint sourceId);
         
+        DslReturnType DewarperConfigFileGet(const char* name, 
+            const char** configFile);
+            
+        DslReturnType DewarperConfigFileSet(const char* name, 
+            const char* configFile);
+            
+        DslReturnType DewarperCameraIdGet(const char* name, uint* cameraId);
+
+        DslReturnType DewarperCameraIdSet(const char* name, uint cameraId);
+
+        DslReturnType DewarperNumBatchBuffersGet(const char* name, uint* num);
+
+        DslReturnType DewarperNumBatchBuffersSet(const char* name, uint num);
+
         DslReturnType TapRecordNew(const char* name, const char* outdir, 
             uint container, dsl_record_client_listener_cb clientListener);
             
