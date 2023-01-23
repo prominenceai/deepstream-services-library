@@ -845,7 +845,8 @@ namespace DSL {
 
         boolean SourceIsLive(const char* name);
         
-        DslReturnType DewarperNew(const char* name, const char* configFile);
+        DslReturnType DewarperNew(const char* name, 
+            const char* configFile, uint sourceId);
         
         DslReturnType TapRecordNew(const char* name, const char* outdir, 
             uint container, dsl_record_client_listener_cb clientListener);

@@ -2535,7 +2535,7 @@ DslReturnType dsl_ode_action_enabled_get(const wchar_t* name, boolean* enabled);
  * @brief Sets the enabled setting for the ODE Action
  * @param[in] name unique name of the ODE Action to update
  * @param[in] enabled true if the ODE Action is currently enabled, false otherwise
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful set, DSL_RESULT_ODE_ACTION otherwise.
  */
 DslReturnType dsl_ode_action_enabled_set(const wchar_t* name, boolean enabled);
 
@@ -2545,7 +2545,7 @@ DslReturnType dsl_ode_action_enabled_set(const wchar_t* name, boolean enabled);
  * @param[in] name name of the ODE Action to update.
  * @param[in] listener pointer to the client's function to call on state change
  * @param[in] client_data opaque pointer to client data passed into the listener function.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful set, DSL_RESULT_ODE_ACTION otherwise.
  */
 DslReturnType dsl_ode_action_enabled_state_change_listener_add(const wchar_t* name,
     dsl_ode_enabled_state_change_listener_cb listener, void* client_data);
@@ -4881,16 +4881,16 @@ DslReturnType dsl_source_rtsp_state_change_listener_remove(const wchar_t* name,
     dsl_state_change_listener_cb listener);
 
 /**
- * @brief Adds a named Tap to a named RTSP source
- * @param[in] name name of the source object to update
- * @param[in] tap name of the Tap to add
+ * @brief Adds a named Tap to a named RTSP source component.
+ * @param[in] name unique name of the source object to update.
+ * @param[in] tap unique name of the Tap to add.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_tap_add(const wchar_t* name, const wchar_t* tap);
 
 /**
- * @brief Adds a named dewarper to a named decode source (URI, RTSP)
- * @param[in] name name of the source object to update
+ * @brief Adds a named tap to a named RTSP Source component
+ * @param[in] name unique name of the source object to update
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_tap_remove(const wchar_t* name);
@@ -4927,12 +4927,34 @@ DslReturnType dsl_source_resume(const wchar_t* name);
 boolean dsl_source_is_live(const wchar_t* name);
 
 /**
- * @brief create a new, uniquely named Dewarper object
+ * @brief Creates a new, uniquely named Dewarper object
  * @param[in] name unique name for the new Dewarper object
  * @param[in] config_file absolute or relative path to Dewarper config text file
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
+ * @param[in] source_id Unique source or camera Id.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DEWARPER otherwise.
  */
-DslReturnType dsl_dewarper_new(const wchar_t* name, const wchar_t* config_file);
+DslReturnType dsl_dewarper_new(const wchar_t* name, 
+    const wchar_t* config_file, uint source_id);
+
+/**
+ * @brief Gets the current the number of dewarped output surfaces per frame buffer.
+ * for the named Dewarper.
+ * @param[in] name name of the Dewarper to query.
+ * @param[out] num number of surfaces per frame [1..4].
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DEWARPER otherwise.
+ */
+DslReturnType dsl_dewarper_num_surfaces_per_frame_get(
+    const wchar_t* name, uint* num);
+
+/**
+ * @brief Sets the number of dewarped output surfaces per frame buffer.
+ * for the named Dewarper.
+ * @param[in] name name of the Dewarper to update
+ * @param[in] num number of surfaces per frame [1..4]
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DEWARPER otherwise.
+ */
+DslReturnType dsl_dewarper_num_surfaces_per_frame_set(
+    const wchar_t* name, uint num);
 
 /**
  * @brief creates a new, uniquely named Record Tap component

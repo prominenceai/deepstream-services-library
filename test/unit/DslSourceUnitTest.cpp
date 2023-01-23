@@ -586,7 +586,7 @@ SCENARIO( "A UriSourceBintr can Add a Child DewarperBintr",  "[SourceBintr]" )
             sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
         DSL_DEWARPER_PTR pDewarperBintr = 
-            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str(), 0);
 
         WHEN( "The DewarperBintr is added to UriSourceBintr" )
         {
@@ -608,7 +608,7 @@ SCENARIO( "A UriSourceBintr can Remove a Child DewarperBintr",  "[SourceBintr]" 
             sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
         DSL_DEWARPER_PTR pDewarperBintr = 
-            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str(), 0);
 
         REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr) == true );
 
@@ -634,10 +634,10 @@ SCENARIO( "A UriSourceBintr can ensure a single Child DewarperBintr",  "[SourceB
             sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
         DSL_DEWARPER_PTR pDewarperBintr1 = 
-            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str(), 0);
 
         DSL_DEWARPER_PTR pDewarperBintr2 = 
-            DSL_DEWARPER_NEW(dewarperName2.c_str(), defConfigFile.c_str());
+            DSL_DEWARPER_NEW(dewarperName2.c_str(), defConfigFile.c_str(), 0);
 
         REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr1) == true );
 
@@ -665,7 +665,7 @@ SCENARIO( "A UriSourceBintr with a child DewarperBintr can LinkAll child Element
             sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
         DSL_DEWARPER_PTR pDewarperBintr = 
-            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str(), 0);
 
         REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr) == true );
 
@@ -689,7 +689,7 @@ SCENARIO( "A Linked UriSourceBintr with a child DewarperBintr can UnlinkAll chil
             sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
         DSL_DEWARPER_PTR pDewarperBintr = 
-            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str(), 0);
 
         REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr) == true );
 

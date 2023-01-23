@@ -2566,7 +2566,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::DewarperNew(const char* name, const char* configFile)
+    DslReturnType Services::DewarperNew(const char* name, 
+        const char* configFile, uint sourceId)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2589,7 +2590,8 @@ namespace DSL
                 return DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND;
             }
 
-            m_components[name] = DSL_DEWARPER_NEW(name, configFile);
+            m_components[name] = DSL_DEWARPER_NEW(name, 
+                configFile, sourceId);
 
             LOG_INFO("New Dewarper '" << name << "' created successfully");
 

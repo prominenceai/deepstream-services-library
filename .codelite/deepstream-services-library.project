@@ -155,6 +155,7 @@
       <File Name="../test/api/DslInferApiTest.cpp"/>
       <File Name="../test/api/DslCrossTriggerExampleTest.cpp"/>
       <File Name="../test/api/DslSourceBufferOutBehaviorTest.cpp"/>
+      <File Name="../test/api/DslDewarperBehaviorTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDemuxerAndTeeUnitTest.cpp"/>

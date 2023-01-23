@@ -776,7 +776,8 @@ SCENARIO( "A Dewarper can be added to and removed from a Source Component", "[so
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(),
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_dewarper_new(dewarper_name.c_str(), defConfigFile.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_dewarper_new(dewarper_name.c_str(), 
+            defConfigFile.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         WHEN( "The Dewarper is added to the Source" ) 
         {

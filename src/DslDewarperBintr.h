@@ -36,8 +36,8 @@ namespace DSL
      * @brief convenience macros for shared pointer abstraction
      */
     #define DSL_DEWARPER_PTR std::shared_ptr<DewarperBintr>
-    #define DSL_DEWARPER_NEW(name, configFile) \
-        std::shared_ptr<DewarperBintr>(new DewarperBintr(name, configFile))
+    #define DSL_DEWARPER_NEW(name, configFile, sourceId) \
+        std::shared_ptr<DewarperBintr>(new DewarperBintr(name, configFile, sourceId))
         
     class DewarperBintr : public Bintr
     {
@@ -47,8 +47,10 @@ namespace DSL
          * @brief Ctor for the DewarperBintr class
          * @param[in] name unique name to give to the Dewarper
          * @param[in] absolute or relative path to the Dewarper config text file
+         * @param[in] sourceId unique sourece Id to dewarp on.
          */
-        DewarperBintr(const char* name, const char* configFile);
+        DewarperBintr(const char* name, 
+            const char* configFile, uint sourceId);
 
         /**
          * @brief dtor for the DewarperBintr class
@@ -106,10 +108,17 @@ namespace DSL
          * @brief Unique Source Id for the stream to dewarp
          */
         uint m_sourceId;
+        
         /**
          * @brief pathspec to the config file used by this DewarperBintr
          */
         std::string m_configFile;
+        
+        /**
+         * @brief Number of Surfaces per output Buffer
+         */
+        uint m_numBatchBuffers;
+        
         /**
          * @brief Sink Queue for input Stream
          */
@@ -129,16 +138,6 @@ namespace DSL
          * @brief Dewarper Element for the DewarperBintr
          */
         DSL_ELEMENT_PTR  m_pDewarper;
-
-        /**
-         * @brief Dewarper Capabilities Filter for this DewarperBintr
-         */
-        DSL_ELEMENT_PTR  m_pDewarperCaps;
-
-        /**
-         * @brief Source Queue for ouput stream
-         */
-        DSL_ELEMENT_PTR  m_pSrcQueue;
     };
     
 } // DSL

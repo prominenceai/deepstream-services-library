@@ -4472,7 +4472,8 @@ boolean dsl_source_is_live(const wchar_t* name)
     return DSL::Services::GetServices()->SourceIsLive(cstrName.c_str());
 }
 
-DslReturnType dsl_dewarper_new(const wchar_t* name, const wchar_t* config_file)
+DslReturnType dsl_dewarper_new(const wchar_t* name, 
+    const wchar_t* config_file, uint source_id)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(config_file);
@@ -4482,7 +4483,8 @@ DslReturnType dsl_dewarper_new(const wchar_t* name, const wchar_t* config_file)
     std::wstring wstrConfig(config_file);
     std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
 
-    return DSL::Services::GetServices()->DewarperNew(cstrName.c_str(), cstrConfig.c_str());
+    return DSL::Services::GetServices()->DewarperNew(cstrName.c_str(), 
+        cstrConfig.c_str(), source_id);
 }
 
 DslReturnType dsl_tap_record_new(const wchar_t* name, const wchar_t* outdir, 

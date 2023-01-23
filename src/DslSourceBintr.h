@@ -458,6 +458,11 @@ namespace DSL
          */
         DSL_ELEMENT_PTR m_pBufferOutCapsFilter;
         
+        /**
+         * @brief Source Queue for SourceBintr - set as ghost-pad for each source
+         */
+        DSL_ELEMENT_PTR  m_pSourceQueue;
+        
     };
 
     //*********************************************************************************

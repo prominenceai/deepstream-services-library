@@ -149,17 +149,22 @@ namespace DSL
         m_pBufferOutCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
         
         SetBufferOutFormat(m_bufferOutFormat.c_str());
+
+        // ---- SinkQueue as ghost pad to connect to Streammuxer
+        
+        m_pSourceQueue = DSL_ELEMENT_NEW("queue", name);
         
         // add both elementrs as children to this Bintr
         AddChild(m_pBufferOutVidConv);
         AddChild(m_pBufferOutCapsFilter);
+        AddChild(m_pSourceQueue);
 
         // buffer-out caps filter is "src" ghost-pad for all SourceBintrs
-        m_pBufferOutCapsFilter->AddGhostPadToParent("src");
+        m_pSourceQueue->AddGhostPadToParent("src");
         
         std::string padProbeName = GetName() + "-src-pad-probe";
         m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
-            "src", m_pBufferOutCapsFilter);
+            "src", m_pSourceQueue);
     }
     
     SourceBintr::~SourceBintr()
@@ -212,11 +217,30 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (!pSrcNodetr->LinkToSink(m_pBufferOutVidConv) or
-            !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
+        if (HasDewarperBintr())
         {
-            return false;
+            int sourceId(0);
+            if (Services::GetServices()->SourceIdGet(GetCStrName(), 
+                &sourceId) != DSL_RESULT_SUCCESS)
+            {
+                LOG_ERROR("Failed to get unique id for SourceBintr '" 
+                    << GetName() << "'");
+                return false;
+            }
+            if (!m_pDewarperBintr->SetSourceId(6) or
+                !m_pDewarperBintr->LinkAll() or
+                !pSrcNodetr->LinkToSink(m_pDewarperBintr) or
+                !m_pDewarperBintr->LinkToSink(m_pSourceQueue))
+            {
+                return false;
+            }
         }
+            if (!pSrcNodetr->LinkToSink(m_pBufferOutVidConv) or
+                !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter) or
+                !m_pBufferOutCapsFilter->LinkToSink(m_pSourceQueue))
+            {
+                return false;
+            }
         
         return true;
     }
@@ -225,20 +249,43 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pGstStaticSinkPad = gst_element_get_static_pad(
-            m_pBufferOutVidConv->GetGstElement(), "sink");
-        if (!m_pGstStaticSinkPad)
-        {
-            LOG_ERROR("Failed to get Static Source Pad for SourceBintr '" 
-                << GetName() << "'");
-        }
+        GstPad* pStaticSinkPad;
         
-        if (gst_pad_link(pSrcPad, m_pGstStaticSinkPad) != GST_PAD_LINK_OK) 
+        if (HasDewarperBintr())
         {
-            LOG_ERROR("Failed to link dynamic pad to common elements");
+            if (!m_pDewarperBintr->SetSourceId(6) or
+                !m_pDewarperBintr->LinkAll() or
+                !m_pDewarperBintr->LinkToSink(m_pSourceQueue))
+            {
+                LOG_ERROR("Failed to Link Dewarper for SourceBintr '" 
+                    << GetName() << "'");
+                return false;
+            }
+            pStaticSinkPad = gst_element_get_static_pad(
+                m_pDewarperBintr->GetGstElement(), "sink");
+        }
+        else
+        {
+            if (!m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter) or
+                !m_pBufferOutCapsFilter->LinkToSink(m_pSourceQueue))
+            pStaticSinkPad = gst_element_get_static_pad(
+                m_pBufferOutVidConv->GetGstElement(), "sink");
+        }
+        if (!pStaticSinkPad)
+        {
+            LOG_ERROR("Failed to get static sink pad for SourceBintr '" 
+                << GetName() << "'");
             return false;
         }
-
+        
+        if (gst_pad_link(pSrcPad, pStaticSinkPad) != GST_PAD_LINK_OK) 
+        {
+            LOG_ERROR("Failed to link src to sink pad for SourceBintr '"
+                << GetName() << "'");
+            return false;
+        }
+        gst_object_unref(pStaticSinkPad);
+        
         if (!m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
         {
             return false;
@@ -251,7 +298,16 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pBufferOutVidConv->UnlinkFromSink();
+        if (HasDewarperBintr())
+        {
+            m_pDewarperBintr->UnlinkFromSink();
+            m_pDewarperBintr->UnlinkAll();
+        }
+        else
+        {
+            m_pBufferOutVidConv->UnlinkFromSink();
+            m_pBufferOutCapsFilter->UnlinkFromSink();
+        }
     }
 
     void SourceBintr::GetDimensions(uint* width, uint* height)

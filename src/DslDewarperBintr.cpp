@@ -29,9 +29,10 @@ THE SOFTWARE.
 namespace DSL
 {
 
-    DewarperBintr::DewarperBintr(const char* name, const char* configFile)
+    DewarperBintr::DewarperBintr(const char* name, 
+        const char* configFile, uint sourceId)
         : Bintr(name)
-        , m_sourceId(0)
+        , m_sourceId(sourceId)
         , m_configFile(configFile)
     {
         LOG_FUNC();
@@ -45,43 +46,49 @@ namespace DSL
             throw;
         }
         
-        m_pSinkQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvvideoconvert");
-        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
-        m_pVidCaps = DSL_ELEMENT_EXT_NEW("capsfilter", name, "nvdewarper");
+        m_pSinkQueue = DSL_ELEMENT_NEW("queue", name);
         m_pDewarper = DSL_ELEMENT_NEW("nvdewarper", name);
-        m_pDewarperCaps = DSL_ELEMENT_NEW("capsfilter", "queue");
-        m_pSrcQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src");
+
+    
+        m_pDewarper->SetAttribute("config-file", configFile);
+        m_pDewarper->SetAttribute("source-id", m_sourceId);
+        
+        // Get properties not explicitly set
+        m_pDewarper->GetAttribute("num-batch-buffers", &m_numBatchBuffers);
+        
+        // -- Video Converter setup
+        
+        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
 
         m_pVidConv->SetAttribute("gpu-id", m_gpuId);
         m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
 
-        // Set Capabilities filter for Video Converter 
-        GstCaps* caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGBA", NULL);
+        // -- Capabilities Filter for Video Converter - need to convert
+        //    buffer format to RGBA as required by Dewarper
+
+        m_pVidCaps = DSL_ELEMENT_EXT_NEW("capsfilter", name, "nvdewarper");
+
+        GstCaps* caps = gst_caps_new_simple("video/x-raw", 
+            "format", G_TYPE_STRING, "RGBA", NULL);
         gst_caps_set_features(caps, 0, gst_caps_features_new("memory:NVMM", NULL));
         m_pVidCaps->SetAttribute("caps", caps);
         gst_caps_unref(caps);
 
-        m_pDewarper->SetAttribute("gpu-id", m_gpuId);
-        m_pDewarper->SetAttribute("config-file", configFile);
-
-        // Set Capabilities filter for Dewarper
-        caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING,
-            "RGBA", "width", GST_TYPE_INT_RANGE, 1, G_MAXINT,
-            "height", GST_TYPE_INT_RANGE, 1, G_MAXINT, NULL);
-        gst_caps_set_features(caps, 0, gst_caps_features_new("memory:NVMM", NULL));
-        m_pDewarperCaps->SetAttribute("caps", caps);
-        gst_caps_unref(caps);
-
+        LOG_INFO("");
+        LOG_INFO("Initial property values for AppSourceBintr '" << name << "'");
+        LOG_INFO("  config-file       : " << m_configFile);
+        LOG_INFO("  source-id         : " << m_sourceId);
+        LOG_INFO("  gpu-id            : " << m_gpuId);
+        LOG_INFO("  num-batch-buffers : " << m_numBatchBuffers);
+        LOG_INFO("  nvbuf-memory-type : " << m_nvbufMemType);
 
         AddChild(m_pSinkQueue);
         AddChild(m_pVidConv);
         AddChild(m_pVidCaps);
         AddChild(m_pDewarper);
-        AddChild(m_pDewarperCaps);
-        AddChild(m_pSrcQueue);
 
         m_pSinkQueue->AddGhostPadToParent("sink");
-        m_pSrcQueue->AddGhostPadToParent("src");
+        m_pDewarper->AddGhostPadToParent("src");
     }
 
     DewarperBintr::~DewarperBintr()
@@ -100,7 +107,8 @@ namespace DSL
         
         // Dewarper should not be added to Pipeline 
         // Must add to source directy
-        LOG_ERROR("DewarperBintr '" << m_name << "' can not be added directly Pipeline");
+        LOG_ERROR("DewarperBintr '" << m_name 
+            << "' can not be added to a Pipeline directly. Add to Source");
         return false;
     }
     
@@ -113,11 +121,14 @@ namespace DSL
             LOG_ERROR("DewarperBintr '" << m_name << "' is already linked");
             return false;
         }
-        m_pSinkQueue->LinkToSink(m_pVidConv);
-        m_pVidConv->LinkToSink(m_pVidCaps);
-        m_pVidCaps->LinkToSink(m_pDewarper);
-        m_pDewarper->LinkToSink(m_pDewarperCaps);
-        m_pDewarperCaps->LinkToSink(m_pSrcQueue);
+        if (!m_pSinkQueue->LinkToSink(m_pVidConv) or
+            !m_pVidConv->LinkToSink(m_pVidCaps) or
+            !m_pVidCaps->LinkToSink(m_pDewarper))
+        {
+            LOG_ERROR("DewarperBintr '" << GetName() 
+                << "' failed to LinkAll");
+            return false;
+        }
         
         m_isLinked = true;
         
@@ -136,8 +147,6 @@ namespace DSL
         m_pSinkQueue->UnlinkFromSink();
         m_pVidConv->UnlinkFromSink();
         m_pVidCaps->UnlinkFromSink();
-        m_pDewarper->UnlinkFromSink();
-        m_pDewarperCaps->UnlinkFromSink();
         
         m_isLinked = false;
     }
