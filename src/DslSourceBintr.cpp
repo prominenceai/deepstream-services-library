@@ -217,30 +217,27 @@ namespace DSL
     {
         LOG_FUNC();
 
+        if (!pSrcNodetr->LinkToSink(m_pBufferOutVidConv) or
+            !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
+        {
+            return false;
+        }
         if (HasDewarperBintr())
         {
-            int sourceId(0);
-            if (Services::GetServices()->SourceIdGet(GetCStrName(), 
-                &sourceId) != DSL_RESULT_SUCCESS)
-            {
-                LOG_ERROR("Failed to get unique id for SourceBintr '" 
-                    << GetName() << "'");
-                return false;
-            }
             if (!m_pDewarperBintr->LinkAll() or
-                !pSrcNodetr->LinkToSink(m_pDewarperBintr) or
+                !m_pBufferOutCapsFilter->LinkToSink(m_pDewarperBintr) or
                 !m_pDewarperBintr->LinkToSink(m_pSourceQueue))
             {
                 return false;
             }
         }
-            if (!pSrcNodetr->LinkToSink(m_pBufferOutVidConv) or
-                !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter) or
-                !m_pBufferOutCapsFilter->LinkToSink(m_pSourceQueue))
+        else
+        {
+            if (!m_pBufferOutCapsFilter->LinkToSink(m_pSourceQueue))
             {
                 return false;
             }
-        
+        }
         return true;
     }
 
@@ -249,33 +246,16 @@ namespace DSL
         LOG_FUNC();
 
         GstPad* pStaticSinkPad;
-        
-        if (HasDewarperBintr())
-        {
-            if (!m_pDewarperBintr->LinkAll() or
-                !m_pDewarperBintr->LinkToSink(m_pSourceQueue))
-            {
-                LOG_ERROR("Failed to Link Dewarper for SourceBintr '" 
-                    << GetName() << "'");
-                return false;
-            }
-            pStaticSinkPad = gst_element_get_static_pad(
-                m_pDewarperBintr->GetGstElement(), "sink");
-        }
-        else
-        {
-            if (!m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter) or
-                !m_pBufferOutCapsFilter->LinkToSink(m_pSourceQueue))
-            pStaticSinkPad = gst_element_get_static_pad(
-                m_pBufferOutVidConv->GetGstElement(), "sink");
-        }
+
+        pStaticSinkPad = gst_element_get_static_pad(
+            m_pBufferOutVidConv->GetGstElement(), "sink");
+
         if (!pStaticSinkPad)
         {
             LOG_ERROR("Failed to get static sink pad for SourceBintr '" 
                 << GetName() << "'");
             return false;
         }
-        
         if (gst_pad_link(pSrcPad, pStaticSinkPad) != GST_PAD_LINK_OK) 
         {
             LOG_ERROR("Failed to link src to sink pad for SourceBintr '"
@@ -283,10 +263,29 @@ namespace DSL
             return false;
         }
         gst_object_unref(pStaticSinkPad);
-        
+
         if (!m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
         {
             return false;
+        }
+         
+        if (HasDewarperBintr())
+        {
+            if (!m_pDewarperBintr->LinkAll() or
+                !m_pBufferOutCapsFilter->LinkToSink(m_pDewarperBintr) or
+                !m_pDewarperBintr->LinkToSink(m_pSourceQueue))
+            {
+                LOG_ERROR("Failed to Link Dewarper for SourceBintr '" 
+                    << GetName() << "'");
+                return false;
+            }
+        }
+        else
+        {
+            if(!m_pBufferOutCapsFilter->LinkToSink(m_pSourceQueue))
+            {
+                return false;
+            }
         }
         
         return true;
@@ -296,15 +295,13 @@ namespace DSL
     {
         LOG_FUNC();
 
+        m_pBufferOutVidConv->UnlinkFromSink();
+        m_pBufferOutCapsFilter->UnlinkFromSink();
+        
         if (HasDewarperBintr())
         {
             m_pDewarperBintr->UnlinkFromSink();
             m_pDewarperBintr->UnlinkAll();
-        }
-        else
-        {
-            m_pBufferOutVidConv->UnlinkFromSink();
-            m_pBufferOutCapsFilter->UnlinkFromSink();
         }
     }
 
@@ -592,7 +589,9 @@ namespace DSL
         }
         m_pDewarperBintr = std::dynamic_pointer_cast<DewarperBintr>(pDewarperBintr);
         AddChild(pDewarperBintr);
-        return true;
+        
+        // Need to fix output of the video converter to RGBA for the Dewarper.
+        return SetBufferOutFormat("RGBA");
     }
 
     bool SourceBintr::RemoveDewarperBintr()

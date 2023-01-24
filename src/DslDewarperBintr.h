@@ -160,21 +160,6 @@ namespace DSL
          * @brief Number of Surfaces per output Buffer
          */
         uint m_numBatchBuffers;
-        
-        /**
-         * @brief Sink Queue for input Stream
-         */
-        DSL_ELEMENT_PTR  m_pSinkQueue;
-
-        /**
-         * @brief Video Converter for this DewarperBintr
-         */
-        DSL_ELEMENT_PTR  m_pVidConv;
-
-        /**
-         * @brief Video Capabilities Filter for this DewarperBintr
-         */
-        DSL_ELEMENT_PTR  m_pVidCaps;
 
         /**
          * @brief Dewarper Element for the DewarperBintr

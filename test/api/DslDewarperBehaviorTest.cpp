@@ -82,13 +82,11 @@ use-case -- can play]", "[dewarper-behavior]")
         REQUIRE( dsl_source_dewarper_add(source_name1.c_str(), 
             dewarper_name.c_str()) == DSL_RESULT_SUCCESS );
 
-//        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
-//            tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
-            muxer_width, muxer_height) == DSL_RESULT_SUCCESS );
+            muxer_width, muxer_height*4) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
-            offest_x, offest_y, muxer_width, muxer_height) == DSL_RESULT_SUCCESS );
+            offest_x, offest_y, muxer_width/2, muxer_height*2) == DSL_RESULT_SUCCESS );
         
         WHEN( "When the Pipeline is assembled" ) 
         {
@@ -119,7 +117,7 @@ use-case -- can play]", "[dewarper-behavior]")
                 dsl_pipeline_dump_to_dot(pipeline_name.c_str(), 
                     const_cast<wchar_t*>(pipeline_graph_name.c_str()));
 
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*5);
 
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) 
                     == DSL_RESULT_SUCCESS );

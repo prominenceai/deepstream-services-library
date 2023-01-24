@@ -3721,17 +3721,81 @@ def dsl_source_is_live(name):
 ##
 ## dsl_dewarper_new()
 ##
-_dsl.dsl_dewarper_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_dewarper_new.argtypes = [c_wchar_p, c_wchar_p, c_uint]
 _dsl.dsl_dewarper_new.restype = c_uint
-def dsl_dewarper_new(name, config_file):
+def dsl_dewarper_new(name, config_file, camera_id):
     global _dsl
-    result = _dsl.dsl_dewarper_new(name, config_file)
+    result = _dsl.dsl_dewarper_new(name, config_file, camera_id)
     return int(result)
     
 ##
+## dsl_dewarper_config_file_get()
+##
+_dsl.dsl_dewarper_config_file_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_dewarper_config_file_get.restype = c_uint
+def dsl_dewarper_config_file_get(name):
+    global _dsl
+    config_file = c_wchar_p(0)
+    result = _dsl.dsl_dewarper_config_file_get(name, DSL_WCHAR_PP(config_file))
+    return int(result), config_file.value 
+
+##
+## dsl_dewarper_config_file_set()
+##
+_dsl.dsl_dewarper_config_file_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_dewarper_config_file_set.restype = c_uint
+def dsl_dewarper_config_file_set(name, config_file):
+    global _dsl
+    result = _dsl.dsl_dewarper_config_file_set(name, config_file)
+    return int(result)
+
+##
+## dsl_dewarper_camera_id_get()
+##
+_dsl.dsl_dewarper_camera_id_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_dewarper_camera_id_get.restype = c_uint
+def dsl_dewarper_camera_id_get(name):
+    global _dsl
+    camera_id = c_uint(0)
+    result = _dsl.dsl_dewarper_camera_id_get(name, DSL_UINT_P(camera_id))
+    return int(result), camera_id.value 
+
+##
+## dsl_dewarper_camera_id_set()
+##
+_dsl.dsl_dewarper_camera_id_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_dewarper_camera_id_set.restype = c_uint
+def dsl_dewarper_camera_id_set(name, camera_id):
+    global _dsl
+    result = _dsl.dsl_dewarper_camera_id_set(name, camera_id)
+    return int(result)
+
+##
+## dsl_dewarper_num_batch_buffers_get()
+##
+_dsl.dsl_dewarper_num_batch_buffers_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_dewarper_num_batch_buffers_get.restype = c_uint
+def dsl_dewarper_num_batch_buffers_get(name):
+    global _dsl
+    num = c_uint(0)
+    result = _dsl.dsl_dewarper_num_batch_buffers_get(name, DSL_UINT_P(num))
+    return int(result), num.value 
+
+##
+## dsl_dewarper_num_batch_buffers_set()
+##
+_dsl.dsl_dewarper_num_batch_buffers_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_dewarper_num_batch_buffers_set.restype = c_uint
+def dsl_dewarper_num_batch_buffers_set(name, num):
+    global _dsl
+    result = _dsl.dsl_dewarper_num_batch_buffers_set(name, num)
+    return int(result)
+
+##
 ## dsl_tap_record_new()
 ##
-_dsl.dsl_tap_record_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, DSL_RECORD_CLIENT_LISTNER]
+_dsl.dsl_tap_record_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, 
+    DSL_RECORD_CLIENT_LISTNER]
 _dsl.dsl_tap_record_new.restype = c_uint
 def dsl_tap_record_new(name, outdir, container, client_listener):
     global _dsl
