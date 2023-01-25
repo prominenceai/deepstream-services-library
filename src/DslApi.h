@@ -6923,23 +6923,25 @@ DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name,
     
 /**
  * @brief Queryies the named Pipeline's stream-muxer for its current batch properties
- * @param[in] name name of the pipeline to query
- * @param[out] batchSize the current batch size in use
- * @param[out] batchTimeout the current batch timeout in use
+ * @param[in] name unique name of the Pipeline to query
+ * @param[out] batch_size the current batch size in use.
+ * @param[out] batch_timeout the current batch timeout in use.
  * @return DSL_RESULT_SUCCESS on successful query, one of 
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
 DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name, 
-    uint* batchSize, uint* batchTimeout);
+    uint* batch_size, uint* batch_timeout);
 
 /**
  * @brief Updates the named Pipeline's batch-size and batch-push-timeout properties
- * @param[in] name name of the pipeline to update
+ * @param[in] name unique name of the Pipeline to update.
+ * @param[out] batch_size the new batch size to use.
+ * @param[out] batch_timeout the new batch timeout to use.
  * @return DSL_RESULT_SUCCESS on successful update, one of 
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
 DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* name, 
-    uint batchSize, uint batchTimeout);
+    uint batch_size, uint batch_timeout);
 
 /**
  * @brief Queries the named Pipeline's stream-muxer for its current output dimensions.

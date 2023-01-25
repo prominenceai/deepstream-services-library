@@ -284,7 +284,9 @@
       <File Name="../examples/python/dyn_uri_file_pgie_iou_tracker_tiler_osd_window.py"/>
       <File Name="../examples/python/segmentation_industrial.py"/>
       <File Name="../examples/python/segmentation_semantic.py"/>
-      <File Name="../examples/python/1uri_file_pgi_iou_tracker_app_sink.py"/>
+      <File Name="../examples/python/video_dewarper_360.py"/>
+      <File Name="../examples/python/1uri_file_pgie_iou_tracker_app_sink.py"/>
+      <File Name="../examples/python/video_dewarper_perspective.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>

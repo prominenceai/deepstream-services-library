@@ -7423,21 +7423,21 @@ DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name,
 }
 
 DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name, 
-    uint* batchSize, uint* batchTimeout)
+    uint* batch_size, uint* batch_timeout)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(batchSize);
-    RETURN_IF_PARAM_IS_NULL(batchTimeout);
+    RETURN_IF_PARAM_IS_NULL(batch_size);
+    RETURN_IF_PARAM_IS_NULL(batch_timeout);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxBatchPropertiesGet(cstrName.c_str(),
-        batchSize, batchTimeout);
+    return DSL::Services::GetServices()->PipelineStreamMuxBatchPropertiesGet(
+        cstrName.c_str(), batch_size, batch_timeout);
 }
 
 DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* name, 
-    uint batchSize, uint batchTimeout)
+    uint batch_size, uint batch_timeout)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -7445,7 +7445,7 @@ DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->PipelineStreamMuxBatchPropertiesSet(
-        cstrName.c_str(), batchSize, batchTimeout);
+        cstrName.c_str(), batch_size, batch_timeout);
 }
 
 DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* name, 

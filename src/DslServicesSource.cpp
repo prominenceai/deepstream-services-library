@@ -1970,7 +1970,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
+            // TODO change to resource source
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
 
             DSL_URI_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<UriSourceBintr>(m_components[name]);
@@ -1998,7 +1999,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
 
             DSL_URI_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<UriSourceBintr>(m_components[name]);
@@ -2029,7 +2030,7 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, dewarper);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
                 dewarper, DewarperBintr);
 
@@ -2065,7 +2066,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
 
             DSL_URI_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<UriSourceBintr>(m_components[name]);

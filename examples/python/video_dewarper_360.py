@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2021, Prominence AI, Inc.
+# Copyright (c) 2023, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -29,32 +29,49 @@ import time
 
 from dsl import *
 
-#-------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------
+# This example shows the use of a Video Dewarper to dewarp a 360d camera stream 
+#   - recorded from a 360d camera and provided by NVIDIA as a sample stream.
 #
-# This script demonstrates the use of a Primary Triton Inference Server (PTIS). The PTIS
-# requires a unique name, TIS inference config file, and inference interval when created.
-#
-# The PTIS is added to a new Pipeline with a single File Source, IOU Tracker, 
-# On-Screen-Display (OSD), and Window Sink with 1280x720 dimensions.
+# The Dewarper component is created with the following parameters
+#   - a config "file config_dwarper_txt" which tailors this 360d camera 
+#     multi-surface use-case.
+#   - and a camera-id which refers to the first column of the CSV files 
+#     (i.e. csv_files/nvaisle_2M.csv & csv_files/nvspot_2M.csv).
+#     The dewarping parameters for the given camera are read from CSV 
+#     files and used to generate dewarp surfaces (i.e. multiple aisle 
+#     and spot surface) from 360d input video stream.
+# All files are located under:
+#   /opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/
 
-# File path for the single File Source
-file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4'
+# Sample 360 degree camera stream from NVIDIA's smart parking example.
+input_stream = \
+    '/opt/nvidia/deepstream/deepstream/samples/streams/sample_cam6.mp4'
+    
+dwarper_config_file = \
+    '/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/config_dewarper.txt'
 
-# Filespecs for the Primary Triton Inference Server (PTIS)
+# Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_plan_engine_primary.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
-# Source file dimensions are 960 × 540 - use this to set the Streammux dimensions.
-source_width = 960
-source_height = 540
+# Using the same values for streammux dimensions as found in NVIDIAs dewarper example
+# /opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/deepstream_dewarper_test.c.
+streammux_width = 960
+streammux_height = 752
 
-# Window Sink dimensions same as Streammux dimensions - no scaling.
-sink_width = source_width
-sink_height = source_height
+# Need to scale the tiler and sink so that all 4 dewarped surfaces -- output from 
+# the dewarper -- can be viewed.
+tiler_width = streammux_width//2
+tiler_height = streammux_height*2
+sink_width = tiler_width
+sink_height = tiler_height
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -97,12 +114,23 @@ def main(args):
     while True:
 
         # New File Source using the file path specified above, repeat diabled.
-        retval = dsl_source_file_new('file-source', file_path, False)
+        retval = dsl_source_file_new('file-source', input_stream, False)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # New Primary TIS using the filespec specified above, with interval = 0
-        retval = dsl_infer_tis_primary_new('primary-tis', primary_infer_config_file, 0)
+        retval = dsl_dewarper_new('360-dewarper', 
+            config_file = dwarper_config_file,
+            camera_id = 6)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        retval = dsl_source_dewarper_add('file-source', '360-dewarper')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # New Primary GIE using the filespecs above with interval = 0
+        retval = dsl_infer_gie_primary_new('primary-gie', 
+            primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -111,9 +139,16 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # A tiler is required to combine the 4 dewarped output surface into
+        # a single stream for the OSD and Window Sink,
+        retval = dsl_tiler_new('tiler', tiler_width, tiler_height)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+            text_enabled=True, clock_enabled=True, 
+            bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -124,26 +159,45 @@ def main(args):
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['file-source', 'primary-tis', 'iou-tracker', 'on-screen-display', 'window-sink', None])
+            ['file-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 
+            'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # -----------------------------------------------------------------------------
+        # IMPORTANT! We need to set the Stream-muxer's number of surfaces per frame to 
+        # 4 in order to handle the 4 decoded output surfaces produced by the Dewarper.
+        retval = dsl_pipeline_streammux_num_surfaces_per_frame_set('pipeline', 4)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        # -----------------------------------------------------------------------------
+        # IMPORTANT! We need to set the Stream-muxer's batch-size equal to the
+        # number of sources (1) times the number of surfaces per frame (4)
+        retval = dsl_pipeline_streammux_batch_properties_set('pipeline', 
+            batch_size=4, batch_timeout=DSL_STREAMMUX_DEFAULT_BATCH_TIMEOUT)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
         # Update the Pipeline's Streammux dimensions to match the source dimensions.
         retval = dsl_pipeline_streammux_dimensions_set('pipeline',
-            source_width, source_height)
+            streammux_width, streammux_height)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
+        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 
+            xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
+        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", 
+            xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the listener callback functions defined above
-        retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
+        retval = dsl_pipeline_state_change_listener_add('pipeline', 
+            state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)

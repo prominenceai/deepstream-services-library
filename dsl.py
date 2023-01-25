@@ -5674,13 +5674,15 @@ def dsl_pipeline_streammux_nvbuf_mem_type_set(name, type):
 ##
 ## dsl_pipeline_streammux_batch_properties_get()
 ##
-_dsl.dsl_pipeline_streammux_batch_properties_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_pipeline_streammux_batch_properties_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
 _dsl.dsl_pipeline_streammux_batch_properties_get.restype = c_uint
 def dsl_pipeline_streammux_batch_properties_get(name):
     global _dsl
     batch_size = c_uint(0)
     batch_timeout = c_uint(0)
-    result = _dsl.dsl_pipeline_streammux_batch_properties_get(name, DSL_UINT_P(batch_size), DSL_UINT_P(batch_timeout))
+    result = _dsl.dsl_pipeline_streammux_batch_properties_get(name, DSL_UINT_P(batch_size), 
+        DSL_UINT_P(batch_timeout))
     return int(result), batch_size.value, batch_timeout.value 
 
 ##
@@ -5696,13 +5698,15 @@ def dsl_pipeline_streammux_batch_properties_set(name, batch_size, batch_timeout)
 ##
 ## dsl_pipeline_streammux_dimensions_get()
 ##
-_dsl.dsl_pipeline_streammux_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_pipeline_streammux_dimensions_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
 _dsl.dsl_pipeline_streammux_dimensions_get.restype = c_uint
 def dsl_pipeline_streammux_dimensions_get(name):
     global _dsl
     width = c_uint(0)
     height = c_uint(0)
-    result = _dsl.dsl_pipeline_streammux_dimensions_get(name, DSL_UINT_P(width), DSL_UINT_P(height))
+    result = _dsl.dsl_pipeline_streammux_dimensions_get(name, 
+        DSL_UINT_P(width), DSL_UINT_P(height))
     return int(result), width.value, height.value 
 
 ##
@@ -5734,6 +5738,30 @@ _dsl.dsl_pipeline_streammux_padding_set.restype = c_uint
 def dsl_pipeline_streammux_padding_set(name, enabled):
     global _dsl
     result = _dsl.dsl_pipeline_streammux_padding_set(name, enabled)
+    return int(result)
+
+##
+## dsl_pipeline_streammux_num_surfaces_per_frame_get()
+##
+_dsl.dsl_pipeline_streammux_num_surfaces_per_frame_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_pipeline_streammux_num_surfaces_per_frame_get.restype = c_uint
+def dsl_pipeline_streammux_num_surfaces_per_frame_get(name):
+    global _dsl
+    num = c_uint(0)
+    result = _dsl.dsl_pipeline_streammux_num_surfaces_per_frame_get(name, 
+        DSL_UINT_P(num))
+    return int(result), num.value
+
+##
+## dsl_pipeline_streammux_num_surfaces_per_frame_set()
+##
+_dsl.dsl_pipeline_streammux_num_surfaces_per_frame_set.argtypes = [c_wchar_p, 
+    c_uint]
+_dsl.dsl_pipeline_streammux_num_surfaces_per_frame_set.restype = c_uint
+def dsl_pipeline_streammux_num_surfaces_per_frame_set(name, num):
+    global _dsl
+    result = _dsl.dsl_pipeline_streammux_num_surfaces_per_frame_set(name, num)
     return int(result)
 
 ##
