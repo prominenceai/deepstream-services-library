@@ -47,7 +47,10 @@ from dsl import *
 # Sample 360 degree camera stream from NVIDIA's smart parking example.
 input_stream = \
     '/opt/nvidia/deepstream/deepstream/samples/streams/sample_cam6.mp4'
-    
+
+# IMPORTANT! --------------------------
+# Config file specific to 360d dewarping - uses csv_files/nvaisle_2M.csv & 
+# csv_files/nvspot_2M.csv
 dwarper_config_file = \
     '/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/config_dewarper.txt'
 
@@ -118,12 +121,14 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
+        # New Dewarper - config file is perspective - camera_id is NOT used as
         retval = dsl_dewarper_new('360-dewarper', 
             config_file = dwarper_config_file,
             camera_id = 6)
         if retval != DSL_RETURN_SUCCESS:
             break
             
+        # We add the Dewarper directly to the source... not the Pipeline.
         retval = dsl_source_dewarper_add('file-source', '360-dewarper')
         if retval != DSL_RETURN_SUCCESS:
             break
