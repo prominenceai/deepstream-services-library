@@ -233,8 +233,12 @@
 ## Dewarpper:
 * [Overview](/docs/api-dewarper.md)
 * [dsl_dewarper_new](/docs/api-dewarper.md#dsl_dewarper_new)
-* [dsl_dwarper_config_file_get](/docs/api-dewarper.md#dsl_dwarper_config_file_get)
-* [dsl_dwarper_config_file_set](/docs/api-dewarper.md#dsl_dwarper_config_file_set)
+* [dsl_dewarper_config_file_get](/docs/api-dewarper.md#dsl_dewarper_config_file_get)
+* [dsl_dewarper_config_file_set](/docs/api-dewarper.md#dsl_dewarper_config_file_set)
+* [dsl_dewarper_camera_id_get](/docs/api-dewarper.md#dsl_dewarper_camera_id_get)
+* [dsl_dewarper_camera_id_set](/docs/api-dewarper.md#dsl_dewarper_camera_id_set)
+* [dsl_dewarper_num_batch_buffers_get](/docs/api-dewarper.md#dsl_dewarper_num_batch_buffers_get)
+* [dsl_dewarper_num_batch_buffers_set](/docs/api-dewarper.md#dsl_dewarper_num_batch_buffers_set)
 
 ## Preprocessor:
 * [Overview](/docs/api-preproc.md)
