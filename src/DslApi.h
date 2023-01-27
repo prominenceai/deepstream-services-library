@@ -4674,28 +4674,6 @@ DslReturnType dsl_source_buffer_out_dimensions_set(const wchar_t* name,
     uint width, uint height);
 
 /**
- * @brief Gets the buffer-out-frame-rate of the named source as a fraction.
- * The default values of 0 for fps_n and fps_d indicate no change in rate.
- * @param[in] name unique name of the source to query.
- * @param[out] fps_n buffer-out frames per second numerator.
- * @param[out] fps_d buffer-out frames per second denominator.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_buffer_out_frame_rate_get(const wchar_t* name, 
-    uint* fps_n, uint* fps_d);
-
-/**
- * @brief Sets the buffer-out-frame-rate of the named source as a fraction.
- * Set fps_n and fps_d to 0 to indicate no change in rate.
- * @param[in] name unique name of the source to update.
- * @param[out] fps_n buffer-out frames per second numerator.
- * @param[out] fps_d buffer-out frames per second denominator.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_buffer_out_frame_rate_set(const wchar_t* name, 
-    uint fps_n, uint fps_d);
-
-/**
  * @brief Gets one of the buffer-out crop-rectangle for the named Source component,
  * The buffer can be cropped pre-video-conversion and/or post-video-conversion.
  * The default is no-crop with left, top, width, and height all 0
@@ -4761,7 +4739,6 @@ DslReturnType dsl_source_dewarper_add(const wchar_t* name, const wchar_t* dewarp
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_dewarper_remove(const wchar_t* name);
-
 
 /**
  * @brief returns the frame rate of the name source as a fraction

@@ -111,8 +111,6 @@ namespace DSL
         , m_fpsD(0)
         , m_bufferOutWidth(0)
         , m_bufferOutHeight(0)
-        , m_bufferOutFpsN(0)
-        , m_bufferOutFpsD(0)
         , m_bufferOutOrientation(DSL_VIDEO_ORIENTATION_NONE)
     {
         LOG_FUNC();
@@ -365,30 +363,6 @@ namespace DSL
         return true;
     }
     
-    void SourceBintr::GetBufferOutFrameRate(uint* fpsN, uint* fpsD)
-    {
-        LOG_FUNC();
-        
-        *fpsN = m_bufferOutFpsN;
-        *fpsD = m_bufferOutFpsD;
-    }
-    
-    bool SourceBintr::SetBufferOutFrameRate(uint fpsN, uint fpsD)
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR("Can't set buffer-out-dimensions for SourceBintr '" << GetName() 
-                << "' as it is currently in a linked state");
-            return false;
-        }
-        m_bufferOutFpsN = fpsN;
-        m_bufferOutFpsD = fpsD;
-        
-        return updateCaps();
-    }
-    
     void tokenize(std::string const &str, const char delim,
                 std::vector<std::string> &out)
     {
@@ -515,47 +489,17 @@ namespace DSL
         
         if (m_bufferOutWidth and m_bufferOutHeight)
         {
-            if (m_bufferOutFpsN and m_bufferOutFpsD)
-            {
-                LOG_WARN("setting all caps for SourceBintr '"
-                    << GetName() << "'");
-                pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
-                    "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
-                    "width", G_TYPE_INT, m_bufferOutWidth, 
-                    "height", G_TYPE_INT, m_bufferOutHeight,
-                    "framerate", GST_TYPE_FRACTION, m_bufferOutFpsN, m_bufferOutFpsD, 
-                    NULL);
-            }
-            else
-            {
-                LOG_WARN("setting format, width, and height for SourceBintr '"
-                    << GetName() << "'");
-                pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
-                    "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
-                    "width", G_TYPE_INT, m_bufferOutWidth, 
-                    "height", G_TYPE_INT, m_bufferOutHeight,
-                    NULL);
-            }
+            pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
+                "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
+                "width", G_TYPE_INT, m_bufferOutWidth, 
+                "height", G_TYPE_INT, m_bufferOutHeight,
+                NULL);
         }
         else
         {
-            if (m_bufferOutFpsN and m_bufferOutFpsD)
-            {
-                LOG_WARN("setting format and frame-rate for SourceBintr '"
-                    << GetName() << "'");
-                pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
-                    "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
-                    "framerate", GST_TYPE_FRACTION, m_bufferOutFpsN, m_bufferOutFpsD, 
-                    NULL);
-            }
-            else
-            {
-                LOG_WARN("setting format for SourceBintr '"
-                    << GetName() << "'");
-                pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
-                    "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
-                    NULL);
-            }
+            pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
+                "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
+                NULL);
         }
         if (!pCaps)
         {
@@ -693,8 +637,6 @@ namespace DSL
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
         LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
@@ -1116,8 +1058,6 @@ namespace DSL
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
         LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
@@ -1279,8 +1219,6 @@ namespace DSL
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
         LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
@@ -1466,8 +1404,6 @@ namespace DSL
         LOG_INFO("    format            : " << m_bufferOutFormat);
         LOG_INFO("    width             : " << m_bufferOutWidth);
         LOG_INFO("    height            : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n             : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d             : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv     : 0:0:0:0" );
         LOG_INFO("    crop-post-conv    : 0:0:0:0" );
         LOG_INFO("    orientation       : " << m_bufferOutOrientation);
@@ -1918,8 +1854,6 @@ namespace DSL
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
         LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
@@ -2070,8 +2004,6 @@ namespace DSL
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
         LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
@@ -2258,8 +2190,6 @@ namespace DSL
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
         LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
@@ -2454,8 +2384,6 @@ namespace DSL
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
         LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
@@ -2611,8 +2539,6 @@ namespace DSL
         LOG_INFO("    format            : " << m_bufferOutFormat);
         LOG_INFO("    width             : " << m_bufferOutWidth);
         LOG_INFO("    height            : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n             : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d             : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv     : 0:0:0:0" );
         LOG_INFO("    crop-post-conv    : 0:0:0:0" );
         LOG_INFO("    orientation       : " << m_bufferOutOrientation);

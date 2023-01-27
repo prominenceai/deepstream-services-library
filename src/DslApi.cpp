@@ -4125,32 +4125,6 @@ DslReturnType dsl_source_buffer_out_dimensions_set(const wchar_t* name,
         cstrName.c_str(), width, height);
 }
 
-DslReturnType dsl_source_buffer_out_frame_rate_get(const wchar_t* name, 
-    uint* fps_n, uint* fps_d)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(fps_n);
-    RETURN_IF_PARAM_IS_NULL(fps_d);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SourceBufferOutFrameRateGet(
-        cstrName.c_str(), fps_n, fps_d);
-}
-
-DslReturnType dsl_source_buffer_out_frame_rate_set(const wchar_t* name, 
-    uint fps_n, uint fps_d)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SourceBufferOutFrameRateSet(
-        cstrName.c_str(), fps_n, fps_d);
-}
-
 DslReturnType dsl_source_buffer_out_crop_rectangle_get(const wchar_t* name,
     uint when, uint* left, uint* top, uint* width, uint* height)
 {

@@ -93,11 +93,8 @@ SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
                 
                 pSourceBintr->GetBufferOutDimensions(&retWidth, &retHeight);
-                pSourceBintr->GetBufferOutFrameRate(&retFpsN, &retFpsD);
                 REQUIRE( retWidth == 0 );
                 REQUIRE( retHeight == 0 );
-                REQUIRE( retFpsN == 0 );
-                REQUIRE( retFpsD == 0 );
                 REQUIRE( pSourceBintr->GetBufferOutOrientation() == 0);
             }
         }

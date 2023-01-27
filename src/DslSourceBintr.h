@@ -55,8 +55,6 @@ namespace DSL
 
     #define DSL_RESOURCE_SOURCE_PTR std::shared_ptr<ResourceSourceBintr>
         
-//    #define DSL_DECODE_SOURCE_PTR std::shared_ptr<DecodeSourceBintr>
-        
     #define DSL_URI_SOURCE_PTR std::shared_ptr<UriSourceBintr>
     #define DSL_URI_SOURCE_NEW(name, uri, isLive, skipFrames, dropFrameInterval) \
         std::shared_ptr<UriSourceBintr>(new UriSourceBintr(name, \
@@ -265,21 +263,6 @@ namespace DSL
         bool SetBufferOutDimensions(uint width, uint height);
         
         /**
-         * @brief Gets the buffer-out-frame-rate for the SourceBintr.
-         * @param[out] fpsN frames per second numerator.
-         * @param[out] fpsD frames per second denominator.
-         */
-        void GetBufferOutFrameRate(uint* fpsN, uint* fpsD);
-
-        /**
-         * @brief Sets the buffer-out-frame-rate for the SourceBintr.
-         * @param[out] fpsN frames per second numerator.
-         * @param[out] fpsD frames per second denominator.
-         * @return true if successfully set, false otherwise.
-         */
-        bool SetBufferOutFrameRate(uint fpsN, uint fpsD);
-
-        /**
          * @brief Gets the buffer-out-crop values for the SourceBintr.
          * @param[in] when either DSL_CROP_PRE_CONVERSION or 
          * DSL_CROP_POST_CONVERSION.
@@ -421,18 +404,6 @@ namespace DSL
          */
         uint m_bufferOutHeight;
 
-        /**
-         * @brief Current scaled fpsN for the SourceBintr's Output Buffer
-         * Video Converter in units of frames. Default = 0 for no frame fate change.
-         */
-        uint m_bufferOutFpsN;
-
-        /**
-         * @brief Current scaled fpsD setting for the SourceBintr's Output Buffer
-         * Video Converter in units of seconds. Default = 0 for no frame rate change.
-         */
-        uint m_bufferOutFpsD;
-        
         /**
          * @brief Current buffer-out-orientation setting for the SourceBintr
          */

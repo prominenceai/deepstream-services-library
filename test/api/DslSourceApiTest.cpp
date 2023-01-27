@@ -230,15 +230,10 @@ SCENARIO( "A new App Source returns the correct attribute values", "[source-api]
                 
                 // buffer out default dimensions and framerate
                 uint ret_bo_width(99), ret_bo_height(99);
-                uint ret_bo_fps_n(99), ret_bo_fps_d(99);
                 REQUIRE( dsl_source_buffer_out_dimensions_get(source_name.c_str(), 
                     &ret_bo_width, &ret_bo_height) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_source_buffer_out_frame_rate_get(source_name.c_str(), 
-                    &ret_bo_fps_n, &ret_bo_fps_d) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_bo_width == 0 );
                 REQUIRE( ret_bo_height == 0 );
-                REQUIRE( ret_bo_fps_n == 0 );
-                REQUIRE( ret_bo_fps_d == 0 );
                 
                 // buffer out default crop rectangles
                 uint ret_bo_rec_left(99), ret_bo_rec_top(99);
@@ -387,23 +382,6 @@ SCENARIO( "An App Source can update its buffer-out settings correctly",
                     &ret_bo_width, &ret_bo_height) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_bo_width == new_width );
                 REQUIRE( ret_bo_height == new_height );
-
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-        WHEN( "The App Source's buffer-out-framerate is set" ) 
-        {
-            uint new_fps_n(2), new_fps_d(1);
-            REQUIRE( dsl_source_buffer_out_frame_rate_set(source_name.c_str(), 
-                new_fps_n, new_fps_d) == DSL_RESULT_SUCCESS );
-
-            THEN( "The correct value is returned on get" ) 
-            {
-                uint ret_bo_fps_n(99), ret_bo_fps_d(99);
-                REQUIRE( dsl_source_buffer_out_frame_rate_get(source_name.c_str(), 
-                    &ret_bo_fps_n, &ret_bo_fps_d) == DSL_RESULT_SUCCESS );
-                REQUIRE( ret_bo_fps_n == new_fps_n );
-                REQUIRE( ret_bo_fps_d == new_fps_d );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -1293,15 +1271,6 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_buffer_out_dimensions_get(source_name.c_str(), 
                     &width, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_buffer_out_dimensions_set(NULL, 
-                    1, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
-
-                REQUIRE( dsl_source_buffer_out_frame_rate_get(NULL, 
-                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_buffer_out_frame_rate_get(source_name.c_str(), 
-                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_buffer_out_frame_rate_get(source_name.c_str(), 
-                    &width, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_buffer_out_frame_rate_set(NULL, 
                     1, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_source_buffer_out_crop_rectangle_get(NULL, 

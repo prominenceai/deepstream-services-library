@@ -779,12 +779,6 @@ namespace DSL {
         DslReturnType SourceBufferOutDimensionsSet(const char* name, 
             uint width, uint height);
 
-        DslReturnType SourceBufferOutFrameRateGet(const char* name, 
-            uint* fps_n, uint* fps_d);
-
-        DslReturnType SourceBufferOutFrameRateSet(const char* name, 
-            uint fps_n, uint fps_d);
-        
         DslReturnType SourceBufferOutCropRectangleGet(const char* name, 
             uint when, uint* left, uint* top, uint* width, uint* height);
 

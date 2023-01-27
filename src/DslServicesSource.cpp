@@ -1691,72 +1691,6 @@ namespace DSL
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }                
-
-    DslReturnType Services::SourceBufferOutFrameRateGet(const char* name, 
-        uint* fps_n, uint* fps_d)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
-            
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
-         
-            pSourceBintr->GetBufferOutFrameRate(fps_n, fps_d);
-
-            LOG_INFO("Source '" << name << "' returned fps_n = " 
-                << *fps_n << " and fps_d = " << *fps_d 
-                << " for buffer-out-frame-rate successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name 
-                << "' threw exception getting buffer-out-frame-rate");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }                
-
-    DslReturnType Services::SourceBufferOutFrameRateSet(const char* name, 
-        uint fps_n, uint fps_d)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
-            
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
-         
-            if (!pSourceBintr->SetBufferOutFrameRate(fps_n, fps_d))
-            {
-                LOG_ERROR("Failed to set buffer-out-frame-rate to fps_n = " 
-                    << fps_n << " and fps_d = " << fps_d  
-                    << " for Source '" << name << "'");
-                return DSL_RESULT_SOURCE_SET_FAILED;
-            }
-
-            LOG_INFO("Source '" << name << "' set fps_n = " 
-                << fps_n << " and fps_n = " << fps_n 
-                << " for buffer-out-frame-rate successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name 
-                << "' threw exception setting buffer-out-frame-rate");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }                
     
     DslReturnType Services::SourceBufferOutCropRectangleGet(const char* name, 
         uint when, uint* left, uint* top, uint* width, uint* height)
@@ -2648,7 +2582,7 @@ namespace DSL
             std::ifstream streamConfigFile(configFile);
             if (!streamConfigFile.good())
             {
-                LOG_ERROR("Preprocessor config file not found");
+                LOG_ERROR("Dewarper config file not found");
                 return DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND;
             }
             
@@ -2776,6 +2710,12 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
                 name, DewarperBintr);
 
+            if (num == 0 or num > 4)
+            {
+                LOG_ERROR("Invalid num-batch-buffers = " << num 
+                    << " for Dewarper '" << name << "'");
+                return false;
+            }
             DSL_DEWARPER_PTR pDewarperBintr = 
                 std::dynamic_pointer_cast<DewarperBintr>(m_components[name]);
 
