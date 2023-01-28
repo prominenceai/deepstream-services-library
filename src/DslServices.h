@@ -711,9 +711,9 @@ namespace DSL {
         DslReturnType SourceFileNew(const char* name, const char* filePath, 
             boolean repeatEnabled);
 
-        DslReturnType SourceFilePathGet(const char* name, const char** filePath);
+        DslReturnType SourceFileFilePathGet(const char* name, const char** filePath);
 
-        DslReturnType SourceFilePathSet(const char* name, const char* filePath);
+        DslReturnType SourceFileFilePathSet(const char* name, const char* filePath);
 
         DslReturnType SourceFileRepeatEnabledGet(const char* name, boolean* enabled);
     
@@ -744,6 +744,10 @@ namespace DSL {
     
         DslReturnType SourceImageStreamTimeoutSet(const char* name, uint timeout);
             
+        DslReturnType SourceImageFilePathGet(const char* name, const char** filePath);
+
+        DslReturnType SourceImageFilePathSet(const char* name, const char* filePath);
+
         DslReturnType SourceInterpipeNew(const char* name, const char* listenTo,
             boolean isLive, boolean acceptEos, boolean acceptEvents);
             
@@ -802,6 +806,10 @@ namespace DSL {
         DslReturnType SourceUriUriGet(const char* name, const char** uri);
 
         DslReturnType SourceUriUriSet(const char* name, const char* uri);
+    
+        DslReturnType SourceRtspUriGet(const char* name, const char** uri);
+
+        DslReturnType SourceRtspUriSet(const char* name, const char* uri);
     
         DslReturnType SourceRtspTimeoutGet(const char* name, uint* timeout);
 

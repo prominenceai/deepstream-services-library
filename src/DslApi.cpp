@@ -3696,7 +3696,7 @@ DslReturnType dsl_source_file_new(const wchar_t* name,
         cstrFilePath.c_str(), repeat_enabled);
 }
 
-DslReturnType dsl_source_file_path_get(const wchar_t* name, 
+DslReturnType dsl_source_file_file_path_get(const wchar_t* name, 
     const wchar_t** file_path)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -3709,8 +3709,8 @@ DslReturnType dsl_source_file_path_get(const wchar_t* name,
     static std::string cstrFilePath;
     static std::wstring wcstrFilePath;
     
-    uint retval = DSL::Services::GetServices()->SourceFilePathGet(cstrName.c_str(), 
-        &cFilePath);
+    uint retval = DSL::Services::GetServices()->SourceFileFilePathGet(
+        cstrName.c_str(), &cFilePath);
     if (retval ==  DSL_RESULT_SUCCESS)
     {
         cstrFilePath.assign(cFilePath);
@@ -3721,7 +3721,8 @@ DslReturnType dsl_source_file_path_get(const wchar_t* name,
     
 }
 
-DslReturnType dsl_source_file_path_set(const wchar_t* name, const wchar_t* file_path)
+DslReturnType dsl_source_file_file_path_set(const wchar_t* name, 
+    const wchar_t* file_path)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(file_path);
@@ -3731,22 +3732,24 @@ DslReturnType dsl_source_file_path_set(const wchar_t* name, const wchar_t* file_
     std::wstring wstrFilePath(file_path);
     std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
 
-    return DSL::Services::GetServices()->SourceFilePathSet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SourceFileFilePathSet(cstrName.c_str(), 
         cstrFilePath.c_str());
 }
 
-DslReturnType dsl_source_file_repeat_enabled_get(const wchar_t* name, boolean* enabled)
+DslReturnType dsl_source_file_repeat_enabled_get(const wchar_t* name, 
+    boolean* enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceFileRepeatEnabledGet(cstrName.c_str(),
-        enabled);
+    return DSL::Services::GetServices()->SourceFileRepeatEnabledGet(
+        cstrName.c_str(), enabled);
 }
 
-DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name, boolean enabled)
+DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name, 
+    boolean enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -3873,6 +3876,46 @@ DslReturnType dsl_source_image_stream_timeout_set(const wchar_t* name, uint time
 
     return DSL::Services::GetServices()->SourceImageStreamTimeoutSet(cstrName.c_str(),
         timeout);
+}
+
+DslReturnType dsl_source_image_file_path_get(const wchar_t* name, 
+    const wchar_t** file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cFilePath;
+    static std::string cstrFilePath;
+    static std::wstring wcstrFilePath;
+    
+    uint retval = DSL::Services::GetServices()->SourceImageFilePathGet(
+        cstrName.c_str(), &cFilePath);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrFilePath.assign(cFilePath);
+        wcstrFilePath.assign(cstrFilePath.begin(), cstrFilePath.end());
+        *file_path = wcstrFilePath.c_str();
+    }
+    return retval;
+    
+}
+
+DslReturnType dsl_source_Image_file_path_set(const wchar_t* name, 
+    const wchar_t* file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->SourceImageFilePathSet(cstrName.c_str(), 
+        cstrFilePath.c_str());
 }
 
 DslReturnType dsl_source_interpipe_new(const wchar_t* name, 
@@ -4267,7 +4310,8 @@ DslReturnType dsl_source_uri_uri_get(const wchar_t* name, const wchar_t** uri)
     static std::string cstrUri;
     static std::wstring wcstrUri;
     
-    uint retval = DSL::Services::GetServices()->SourceUriUriGet(cstrName.c_str(), &cUri);
+    uint retval = DSL::Services::GetServices()->SourceUriUriGet(cstrName.c_str(), 
+        &cUri);
     if (retval ==  DSL_RESULT_SUCCESS)
     {
         cstrUri.assign(cUri);
@@ -4287,7 +4331,45 @@ DslReturnType dsl_source_uri_uri_set(const wchar_t* name, const wchar_t* uri)
     std::wstring wstrUri(uri);
     std::string cstrUri(wstrUri.begin(), wstrUri.end());
 
-    return DSL::Services::GetServices()->SourceUriUriSet(cstrName.c_str(), cstrUri.c_str());
+    return DSL::Services::GetServices()->SourceUriUriSet(cstrName.c_str(), 
+        cstrUri.c_str());
+}
+
+DslReturnType dsl_source_rtsp_uri_get(const wchar_t* name, const wchar_t** uri)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(uri);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cUri;
+    static std::string cstrUri;
+    static std::wstring wcstrUri;
+    
+    uint retval = DSL::Services::GetServices()->SourceRtspUriGet(cstrName.c_str(), 
+        &cUri);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrUri.assign(cUri);
+        wcstrUri.assign(cstrUri.begin(), cstrUri.end());
+        *uri = wcstrUri.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_source_rtsp_uri_set(const wchar_t* name, const wchar_t* uri)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(uri);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrUri(uri);
+    std::string cstrUri(wstrUri.begin(), wstrUri.end());
+
+    return DSL::Services::GetServices()->SourceRtspUriSet(cstrName.c_str(), 
+        cstrUri.c_str());
 }
 
 DslReturnType dsl_source_rtsp_timeout_get(const wchar_t* name, uint* timeout)

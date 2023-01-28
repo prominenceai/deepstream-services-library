@@ -858,7 +858,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceFilePathGet(const char* name, const char** filePath)
+    DslReturnType Services::SourceFileFilePathGet(const char* name, 
+        const char** filePath)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -866,27 +867,30 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_FILE_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                FileSourceBintr);
 
-            DSL_RESOURCE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<ResourceSourceBintr>(m_components[name]);
+            DSL_FILE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<FileSourceBintr>(m_components[name]);
 
             *filePath = pSourceBintr->GetUri();
 
-            LOG_INFO("File Source '" << name << "' returned File Path = '" 
+            LOG_INFO("File Source '" << name << "' returned file-path = '" 
                 << *filePath << "' successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("File Source '" << name << "' threw exception getting File Path");
+            LOG_ERROR("File Source '" << name 
+                << "' threw exception getting file-path");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
             
 
-    DslReturnType Services::SourceFilePathSet(const char* name, const char* filePath)
+    DslReturnType Services::SourceFileFilePathSet(const char* name, 
+        const char* filePath)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -894,30 +898,27 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_FILE_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                FileSourceBintr);
 
-            DSL_RESOURCE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<ResourceSourceBintr>(m_components[name]);
+            DSL_FILE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<FileSourceBintr>(m_components[name]);
 
-            std::ifstream streamUriFile(filePath);
-            if (!streamUriFile.good())
-            {
-                LOG_ERROR("File Source'" << filePath << "' Not found");
-                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-            }
             if (!pSourceBintr->SetUri(filePath))
             {
-                LOG_ERROR("Failed to Set FilePath '" << filePath << "' for File Source '" << name << "'");
+                LOG_ERROR("Failed to Set file-path '" << filePath 
+                    << "' for File Source '" << name << "'");
                 return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
             }
-            LOG_INFO("File Source '" << name << "' set File Path = '" 
+            LOG_INFO("File Source '" << name << "' set file-path = '" 
                 << filePath << "' successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("File Source '" << name << "' threw exception setting File path");
+            LOG_ERROR("File Source '" << name 
+                << "' threw exception setting file-path");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
@@ -1274,6 +1275,69 @@ namespace DSL
         {
             LOG_ERROR("Image Stream Source '" << name 
                 << "' threw exception setting Timeout");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceImageFilePathGet(const char* name, 
+        const char** filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_IMAGE_SOURCE(m_components, name);
+
+            DSL_RESOURCE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ResourceSourceBintr>(m_components[name]);
+
+            *filePath = pSourceBintr->GetUri();
+
+            LOG_INFO("Image Source '" << name << "' returned file-path = '" 
+                << *filePath << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Source '" << name 
+                << "' threw exception getting file-path");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::SourceImageFilePathSet(const char* name, 
+        const char* filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_IMAGE_SOURCE(m_components, name);
+
+            DSL_RESOURCE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ResourceSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->SetUri(filePath))
+            {
+                LOG_ERROR("Failed to Set file-path '" << filePath 
+                    << "' for Image Source '" << name << "'");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            LOG_INFO("Image Source '" << name << "' set file-path = '" 
+                << filePath << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Source '" << name 
+                << "' threw exception setting file-path");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
@@ -1904,22 +1968,22 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            // TODO change to resource source
-            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                UriSourceBintr);
 
             DSL_URI_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<UriSourceBintr>(m_components[name]);
 
             *uri = pSourceBintr->GetUri();
 
-            LOG_INFO("Uri Source '" << name << "' returned URI = '" 
+            LOG_INFO("URI Source '" << name << "' returned URI = '" 
                 << *uri << "' successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name << "' threw exception getting URI");
+            LOG_ERROR("URI Source '" << name << "' threw exception getting URI");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
@@ -1933,17 +1997,19 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                UriSourceBintr);
 
             DSL_URI_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<UriSourceBintr>(m_components[name]);
 
             if (!pSourceBintr->SetUri(uri));
             {
-                LOG_ERROR("Failed to Set URI '" << uri << "' for Uri Source '" << name << "'");
+                LOG_ERROR("Failed to Set URI '" << uri 
+                    << "' for URI Source '" << name << "'");
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
-            LOG_INFO("Uri Source '" << name << "' set URI = '" 
+            LOG_INFO("URI Source '" << name << "' set URI = '" 
                 << uri << "' successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -1955,6 +2021,67 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SourceRtspUriGet(const char* name, const char** uri)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                RtspSourceBintr);
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+
+            *uri = pSourceBintr->GetUri();
+
+            LOG_INFO("RTSP Source '" << name << "' returned URI = '" 
+                << *uri << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Source '" << name << "' threw exception getting URI");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::SourceRtspUriSet(const char* name, const char* uri)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                RtspSourceBintr);
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->SetUri(uri));
+            {
+                LOG_ERROR("Failed to Set URI '" << uri 
+                    << "' for RTSP Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("RTSP Source '" << name << "' set URI = '" 
+                << uri << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Source '" << name << "' threw exception setting URI");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::SourceDewarperAdd(const char* name, const char* dewarper)
     {
         LOG_FUNC();

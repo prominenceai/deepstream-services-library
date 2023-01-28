@@ -3155,24 +3155,24 @@ def dsl_source_file_new(name, file_path, repeat_enabled):
     return int(result)
 
 ##
-## dsl_source_file_path_get()
+## dsl_source_file_file_path_get()
 ##
-_dsl.dsl_source_file_path_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
-_dsl.dsl_source_file_path_get.restype = c_uint
-def dsl_source_file_path_get(name):
+_dsl.dsl_source_file_file_path_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_source_file_file_path_get.restype = c_uint
+def dsl_source_file_file_path_get(name):
     global _dsl
     file_path = c_wchar_p(0)
-    result = _dsl.dsl_source_file_path_get(name, DSL_WCHAR_PP(file_path))
+    result = _dsl.dsl_source_file_file_path_get(name, DSL_WCHAR_PP(file_path))
     return int(result), file_path.value 
 
 ##
-## dsl_source_file_path_set()
+## dsl_source_file_file_path_set()
 ##
-_dsl.dsl_source_file_path_set.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_source_file_path_set.restype = c_uint
-def dsl_source_file_path_set(name, file_path):
+_dsl.dsl_source_file_file_path_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_file_file_path_set.restype = c_uint
+def dsl_source_file_file_path_set(name, file_path):
     global _dsl
-    result = _dsl.dsl_source_file_path_set(name, file_path)
+    result = _dsl.dsl_source_file_file_path_set(name, file_path)
     return int(result)
 
 ##
@@ -3477,32 +3477,6 @@ def dsl_source_buffer_out_dimensions_set(name, width, height):
     global _dsl
     result = _dsl.dsl_source_buffer_out_dimensions_set(name, 
         width, height)
-    return int(result)
-
-##
-## dsl_source_buffer_out_frame_rate_get()
-##
-_dsl.dsl_source_buffer_out_frame_rate_get.argtypes = [c_wchar_p, 
-    POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_source_buffer_out_frame_rate_get.restype = c_uint
-def dsl_source_buffer_out_frame_rate_get(name):
-    global _dsl
-    fps_n = c_uint(0)
-    fps_d = c_uint(0)
-    result = _dsl.dsl_source_buffer_out_frame_rate_get(name, 
-        DSL_UINT_P(fps_n), DSL_UINT_P(fps_d))
-    return int(result), fps_n.value, fps_d.value 
-
-##
-## dsl_source_buffer_out_frame_rate_set()
-##
-_dsl.dsl_source_buffer_out_frame_rate_set.argtypes = [c_wchar_p, 
-    c_uint, c_uint]
-_dsl.dsl_source_buffer_out_frame_rate_set.restype = c_uint
-def dsl_source_buffer_out_frame_rate_set(name, fps_n, fps_d):
-    global _dsl
-    result = _dsl.dsl_source_buffer_out_frame_rate_set(name, 
-        fps_n, fps_d)
     return int(result)
 
 ##

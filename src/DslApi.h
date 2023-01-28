@@ -4399,21 +4399,22 @@ DslReturnType dsl_source_file_new(const wchar_t* name,
     const wchar_t* file_path, boolean repeat_enabled);
 
 /**
- * @brief Gets the current File Path in use by the named File Source
+ * @brief Gets the current file-path in use by the named File Source
  * @param[in] name name of the File Source to query
- * @param[out] FilePath in use by the File Source
+ * @param[out] file_path file-path in use by the File Source
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_file_path_get(const wchar_t* name, const wchar_t** file_path);
+DslReturnType dsl_source_file_file_path_get(const wchar_t* name, 
+    const wchar_t** file_path);
 
 /**
  * @brief Sets the current File Path for the named File Source to use
  * @param[in] name name of the File Source to update
- * @param[in] file_path new file path to use by the File Source
+ * @param[in] file_path new file-path to use by the File Source
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_file_path_set(const wchar_t* name, const wchar_t* file_path);
-
+DslReturnType dsl_source_file_file_path_set(const wchar_t* name, 
+    const wchar_t* file_path);
 
 /**
  * @brief Gets the current Repeat on EOS Enabled setting for the File Source
@@ -4531,6 +4532,24 @@ DslReturnType dsl_source_image_stream_timeout_get(const wchar_t* name, uint* tim
  */
 DslReturnType dsl_source_image_stream_timeout_set(const wchar_t* name, uint timeout);
     
+/**
+ * @brief Gets the current file-path in use by the named Image Source
+ * @param[in] name name of the Image Source to query
+ * @param[out] file_path file-path in use by the Image Source
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_image_file_path_get(const wchar_t* name, 
+    const wchar_t** file_path);
+
+/**
+ * @brief Sets the current File Path for the named Image Source to use
+ * @param[in] name name of the Image Source to update
+ * @param[in] file_path new file-path to use by the Image Source
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_image_file_path_set(const wchar_t* name, 
+    const wchar_t* file_path);
+
 /**
  * @brief creates a new, uniquely named Interpipe Source component to listen to
  * an Interpipe Sink Component. Supports dynamic switching between Interpipe Sinks.
@@ -4765,21 +4784,36 @@ DslReturnType dsl_source_frame_rate_get(const wchar_t* name,
     uint* fps_n, uint* fps_d);
 
 /**
- * @brief Gets the current URI in use by the named Decode Source
- * @param[in] name name of the Source to query
- * @param[out] uri in use by the Decode Source
+ * @brief Gets the current URI in use by the named URI Source.
+ * @param[in] name name of the Source to query.
+ * @param[out] uri URI in use by the URI Source.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_uri_uri_get(const wchar_t* name, const wchar_t** uri);
 
 /**
- * @brief Sets the current URI for the named Decode Source to use
- * @param[in] name name of the Source to update
- * @param[in] uri to use by the Decode Source
+ * @brief Sets the current URI for the named URI Source to use.
+ * @param[in] name name of the Source to update.
+ * @param[in] uri new URI for the URI Source to use.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_uri_uri_set(const wchar_t* name, const wchar_t* uri);
 
+/**
+ * @brief Gets the current URI in use by the named RTSP Source.
+ * @param[in] name name of the Source to query.
+ * @param[out] uri URI in use by the RTSP Source.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_uri_get(const wchar_t* name, const wchar_t** uri);
+
+/**
+ * @brief Sets the current URI for the named RTSP Source to use.
+ * @param[in] name name of the Source to update.
+ * @param[in] uri new URI for the RTSP Source to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_uri_set(const wchar_t* name, const wchar_t* uri);
 /**
  * @brief Gets the current buffer timeout for the named RTSP Source
  * @param[in] name name of the source object to query

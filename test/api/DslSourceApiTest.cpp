@@ -640,6 +640,39 @@ SCENARIO( "A new USB Camera Source can set/get its device location correctly", "
     }
 }    
 
+SCENARIO( "A new URI Source returns the correct attribute values", "[source-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new App Source is created" ) 
+        {
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(),
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+
+            THEN( "All default attributes are returned correctly" ) 
+            {
+                uint ret_width(99), ret_height(99), ret_fps_n(99), ret_fps_d(99);
+                REQUIRE( dsl_source_dimensions_get(source_name.c_str(), 
+                    &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), 
+                    &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_width == 1920 );
+                REQUIRE( ret_height == 1080 );
+                REQUIRE( ret_fps_n == 0 );
+                REQUIRE( ret_fps_d == 0 );
+                REQUIRE( dsl_source_is_live(source_name.c_str()) == false );
+                
+                // Note URI Source convers URI to real path which has DeepStream 
+                // version number - don't compare as it makes the test case version
+                // version specific.
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
 SCENARIO( "A Source not-in-use can not be Paused or Resumed", "[source-api]" )
 {
     GIVEN( "A new Source not in use by a Pipeline" ) 
@@ -928,7 +961,7 @@ SCENARIO( "A new File Source returns the correct attribute values", "[source-api
             THEN( "The correct attribute values are returned" ) 
             {
                 const wchar_t* pRetFilePath;
-                REQUIRE( dsl_source_file_path_get(source_name.c_str(), 
+                REQUIRE( dsl_source_file_file_path_get(source_name.c_str(), 
                     &pRetFilePath) == DSL_RESULT_SUCCESS );
                 std::wstring w_ret_file_path(pRetFilePath);
                 REQUIRE( w_ret_file_path == w_full_file_path);
@@ -959,7 +992,7 @@ SCENARIO( "A new File Source returns the correct attribute values", "[source-api
             {
                 const wchar_t* pRetFilePath; 
                 std::wstring empty_file_path;
-                REQUIRE( dsl_source_file_path_get(source_name.c_str(), 
+                REQUIRE( dsl_source_file_file_path_get(source_name.c_str(), 
                     &pRetFilePath) == DSL_RESULT_SUCCESS );
                 std::wstring ret_file_path(pRetFilePath);
                 REQUIRE( ret_file_path == empty_file_path );
