@@ -1,25 +1,28 @@
 # Source API Reference
-Sources are the head components for all DSL Pipelines. Pipelines must have at least one source in use - among other components - to transition to a state of playing. DSL supports the following Source types.
+Sources are the head components for all DSL Pipelines. Pipelines must have at least one Source and one [Sink](/docs/api-sink.md) to transition to a state of playing.  All Sources are derived from the Component class, therefore all [component methods](/docs/api-component.md) can be called with any Source.
 
-### Camera Sources:
-* Camera Serial Interface ( CSI ) - Jetson platform only.
-* Universal Serial Bus ( USB )
+[component](/docs/api-component.md)<br>
+&emsp;╰── [source](#source-methods)
 
-### Decode Sources:
-* Uniform Resource Identifier ( URI )
-* Video File
-* Real-time Streaming Protocol ( RTSP )
+## Video Sources
+There are currently ten (10) types of Video Source Components supported. 
 
-### Image Sources:
-* Single Image ( single frame to EOS )
-* Multi Image ( streamed at one image file per frame )
-* Streaming Image ( single image streamed at a given frame rate )
+* [App Source](#dsl_source_app_new) - allows the application to insert raw samples or buffers into a DSL Pipeline.
+* [CSI Source](#dsl_source_csi_new) - Camera Serial Interface (CSI) Source - Jetson platform only.
+* [USB Source](#dsl_source_usb_new) - Universal Serial Bus (USB) Source.
+* [URI Source](#dsl_source_uri_new) - Uniform Resource Identifier ( URI ) Source.
+* [File Source](#dsl_source_file_new) - Derived from URI Source with fixed inputs.
+* [RTSP Source](#dsl_source_rtsp_new) - Real-time Streaming Protocol ( RTSP ) Source - supports transport over TCP or UDP in unicast or multicast mode
+* [Single Image Source](#dsl_source_image_new) - single frame to EOS.
+* [Multi Image Source](#dsl_source_image_multi_new) - streamed at one image file per frame.
+* [Streaming Image Source](#dsl_source_image_stream_new)  - single image streamed at a given frame rate.
+* [Interpipe Source](#dsl_source_interpipe_new) - receives pipeline buffers and events from an [Interpipe Sink](/docs/api-sink.md#dsl_sink_interpipe_new).
 
-### Application Source: 
-* Used by applications to insert data into a DSL pipeline.
+All Video Sources are derived from the  
+[component](/docs/api-component.md)<br>
+&emsp;╰── [source](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [video source](#source-methods)
 
-### Interpipe Source:
-* Interpipe - requires additional install/build steps for the RidgeRun `gst-interpipe` plugins. Refer to the [Interpipe Services](/docs/overview.md#interpipe-services) overview for more information.
 
 #### Source Construction and Destruction
 Sources are created using one of six type-specific [constructors](#constructors). As with all components, Streaming Sources must be uniquely named from all other Pipeline components created.
@@ -54,7 +57,29 @@ When using a [Demuxer](/docs/api-tiler.md), vs. a Tiler component, each demuxed 
 * [dsl_source_image_stream_new](#dsl_source_image_stream_new)
 * [dsl_source_interpipe_new](#dsl_source_interpipe_new)
 
-**methods:**
+**Source Methods:**
+* [dsl_source_media_type_get](#dsl_source_media_type_get)
+* [dsl_source_framerate get](#dsl_source_framerate_get)
+* [dsl_source_is_live](#dsl_source_is_live)
+* [dsl_source_pause](#dsl_source_pause)
+* [dsl_source_resume](#dsl_source_resume)
+* [dsl_source_pph_add](#dsl_source_pph_add)
+* [dsl_source_pph_remove](#dsl_source_pph_remove)
+
+**Video Source Methods:**
+* [dsl_source_video_dimensions_get](#dsl_source_video_dimensions_get)
+* [dsl_source_video_buffer_out_format_get](#dsl_source_video_buffer_out_format_get)
+* [dsl_source_video_buffer_out_format_set](#dsl_source_video_buffer_out_format_set)
+* [dsl_source_video_buffer_out_dimensions_get](#dsl_source_video_buffer_out_dimensions_get)
+* [dsl_source_video_buffer_out_dimensions_set](#dsl_source_video_buffer_out_dimensions_set)
+* [dsl_source_video_buffer_out_crop_rectangle_get](#dsl_source_video_buffer_out_crop_rectangle_get)
+* [dsl_source_video_buffer_out_crop_rectangle_set](#dsl_source_video_buffer_out_crop_rectangle_set)
+* [dsl_source_video_buffer_out_orientation_get](#dsl_source_video_buffer_out_orientation_get)
+* [dsl_source_video_buffer_out_orientation_set](#dsl_source_video_buffer_out_orientation_set)
+* [dsl_source_video_dewarper_add](#dsl_source_video_dewarper_add)
+* [dsl_source_video_dewarper_remove](#dsl_source_video_dewarper_remove)
+
+**App Source Methods:**
 * [dsl_source_app_data_handlers_add](#dsl_source_app_data_handlers_add)
 * [dsl_source_app_data_handlers_remove](#dsl_source_app_data_handlers_remove)
 * [dsl_source_app_buffer_push](#dsl_source_app_buffer_push)
@@ -67,16 +92,28 @@ When using a [Demuxer](/docs/api-tiler.md), vs. a Tiler component, each demuxed 
 * [dsl_source_app_current_level_bytes_get](#dsl_source_app_current_level_bytes_get)
 * [dsl_source_app_max_level_bytes_get](#dsl_source_app_max_level_bytes_get)
 * [dsl_source_app_max_level_bytes_set](#dsl_source_app_max_level_bytes_set)
+* [dsl_source_app_do_timestamp_get](#dsl_source_app_do_timestamp_get)
+* [dsl_source_app_do_timestamp_set](#dsl_source_app_do_timestamp_set)
+
+**CSI Source Methods**
 * [dsl_source_csi_sensor_id_get](#dsl_source_csi_sensor_id_get)
 * [dsl_source_csi_sensor_id_set](#dsl_source_csi_sensor_id_set)
+
+**USB Source Methods**
 * [dsl_source_usb_device_location_get](#dsl_source_usb_device_location_get)
 * [dsl_source_usb_device_location_set](#dsl_source_usb_device_location_set)
-* [dsl_source_decode_uri_get](#dsl_source_decode_uri_get)
-* [dsl_source_decode_uri_set](#dsl_source_decode_uri_set)
-* [dsl_source_decode_drop_farme_interval_get](#dsl_source_decode_drop_farme_interval_get)
-* [dsl_source_decode_drop_farme_interval_set](#dsl_source_decode_drop_farme_interval_set)
-* [dsl_source_decode_dewarper_add](#dsl_source_decode_dewarper_add)
-* [dsl_source_decode_dewarper_remove](#dsl_source_decode_dewarper_remove)
+
+**URI Source Methdos**
+* [dsl_source_uri_uri_get](#dsl_source_decode_uri_get)
+* [dsl_source_uri_uri_set](#dsl_source_decode_uri_set)
+
+**File Source Methods**
+* [dsl_source_file_path_get](#dsl_source_file_path_get)
+* [dsl_source_file_path_set](#dsl_source_file_path_set)
+* [dsl_source_file_repeat_enabled_get](#dsl_source_file_repeat_enabled_get)
+* [dsl_source_file_repeat_enabled_set](#dsl_source_file_repeat_enabled_set)
+
+**RTSP Source Methods**
 * [dsl_source_rtsp_timeout_get](#dsl_source_rtsp_timeout_get)
 * [dsl_source_rtsp_timeout_set](#dsl_source_rtsp_timeout_set)
 * [dsl_source_rtsp_reconnection_params_get](#dsl_source_rtsp_reconnection_params_get)
@@ -87,29 +124,26 @@ When using a [Demuxer](/docs/api-tiler.md), vs. a Tiler component, each demuxed 
 * [dsl_source_rtsp_state_change_listener_remove](#dsl_source_rtsp_state_change_listener_remove)
 * [dsl_source_rtsp_tap_add](#dsl_source_rtsp_tap_add)
 * [dsl_source_rtsp_tap_remove](#dsl_source_rtsp_tap_remove)
-* [dsl_source_file_path_get](#dsl_source_file_path_get)
-* [dsl_source_file_path_set](#dsl_source_file_path_set)
-* [dsl_source_file_repeat_enabled_get](#dsl_source_file_repeat_enabled_get)
-* [dsl_source_file_repeat_enabled_set](#dsl_source_file_repeat_enabled_set)
+
+**Image Source Methods**
+* [dsl_source_image_file_path_get](#dsl_source_image_file_path_get)
+* [dsl_source_image_file_path_set](#dsl_source_image_file_path_set)
+
+**Multi Image Source Methods**
 * [dsl_source_image_multi_loop_enabled_get](#dsl_source_image_multi_loop_enabled_get)
 * [dsl_source_image_multi_loop_enabled_set](#dsl_source_image_multi_loop_enabled_set)
 * [dsl_source_image_multi_indices_get](#dsl_source_image_multi_indices_get)
 * [dsl_source_image_multi_indices_set](#dsl_source_image_multi_indices_set)
+
+**Image Stream Methods**
 * [dsl_source_image_stream_timeout_get](#dsl_source_image_stream_timeout_get)
 * [dsl_source_image_stream_timeout_set](#dsl_source_image_stream_timeout_get)
+
+**Interpipe Source Methods**
 * [dsl_source_interpipe_listen_to_get](#dsl_source_interpipe_listen_to_get)
 * [dsl_source_interpipe_listen_to_set](#dsl_source_interpipe_listen_to_set)
 * [dsl_source_interpipe_accept_settings_get](#dsl_source_interpipe_accept_settings_get)
 * [dsl_source_interpipe_accept_settings_set](#dsl_source_interpipe_accept_settings_set)
-* [dsl_source_do_timestamp_get](#dsl_source_do_timestamp_get)
-* [dsl_source_do_timestamp_set](#dsl_source_do_timestamp_set)
-* [dsl_source_dimensions_get](#dsl_source_dimensions_get)
-* [dsl_source_framerate get](#dsl_source_framerate_get)
-* [dsl_source_is_live](#dsl_source_is_live)
-* [dsl_source_pause](#dsl_source_pause)
-* [dsl_source_resume](#dsl_source_resume)
-* [dsl_source_pph_add](#dsl_source_pph_add)
-* [dsl_source_pph_remove](#dsl_source_pph_remove)
 
 ## Return Values
 Streaming Source Methods use the following return codes, in addition to the general [Component API Return Values](/docs/api-component.md).
@@ -148,14 +182,21 @@ Streaming Source Methods use the following return codes, in addition to the gene
 #define DSL_STATE_PLAYING                                           4
 ```
 
-## Gstreamer Stream format types
+## DSL Source Media Types
 ```C
-#define DSL_STREAM_FORMAT_I420                                      0
-#define DSL_STREAM_FORMAT_RGBA                                      1   
-#define DSL_STREAM_FORMAT_NV12                                      2
+#define DSL_MEDIA_TYPE_VIDEO_XRAW                                   L"video/x-raw"
+#define DSL_MEDIA_TYPE_AUDIO_XRAW                                   L"audio/x-raw
 ```
 
-## Gstreamer Buffer format types
+## DSL Video Format Types
+```C
+#define DSL_VIDEO_FORMAT_I420                                       L"I420"
+#define DSL_VIDEO_FORMAT_NV12                                       L"NV12"
+#define DSL_VIDEO_FORMAT_RGBA                                       L"RGBA"   
+#define DSL_VIDEO_FORMAT_DEFAULT                                    DSL_VIDEO_FORMAT_I420
+```
+
+## DSL Buffer format types
 ```C
 #define DSL_BUFFER_FORMAT_BYTE                                      2
 #define DSL_BUFFER_FORMAT_TIME                                      3
@@ -169,12 +210,33 @@ Streaming Source Methods use the following return codes, in addition to the gene
 ```
 
 ## RTP Protocols
-```C++
+```C
 #define DSL_RTP_TCP                                                 0x04
 #define DSL_RTP_ALL                                                 0x07
 ```
 
 <br>
+
+## Video Source buffer-out-crop constants.
+Define when to crop the output buffer for a given Source Component. Pre or post video conversion (if done). The constants map to the nvvideoconvert element's src-crop and dest-crop properties. See. https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvvideoconvert.html#gst-nvvideoconvert
+```C
+#define DSL_VIDEO_CROP_PRE_CONVERSION                               0
+#define DSL_VIDEO_CROP_POST_CONVERSION                              1
+```
+
+<br>
+
+## Video Source buffer-out-orientation constants
+```C
+#define DSL_VIDEO_ORIENTATION_NONE                                  0       
+#define DSL_VIDEO_ORIENTATION_ROTATE_COUNTER_CLOCKWISE_90           1
+#define DSL_VIDEO_ORIENTATION_ROTATE_180                            2
+#define DSL_VIDEO_ORIENTATION_ROTATE_CLOCKWISE_90                   3
+#define DSL_VIDEO_ORIENTATION_FLIP_HORIZONTALLY                     4
+#define DSL_VIDEO_ORIENTATION_FLIP_UPPER_RIGHT_TO_LOWER_LEFT        5
+#define DSL_VIDEO_ORIENTATION_FLIP_VERTICALLY                       6
+#define DSL_VIDEO_ORIENTATION_FLIP_UPPER_LEFT_TO_LOWER_RIGHT        7
+```
 
 ---
 
@@ -501,9 +563,9 @@ DslReturnType dsl_source_interpipe_new(const wchar_t* name,
     const wchar_t* listen_to, boolean is_live,
     boolean accept_eos, boolean accept_events);
 ```
-This service creates a new, uniquely named Interpipe Source component to listen to an Interpipe Sink Component. The Sink to `listen_to` can be updated dynamically while in a playing state.
+This service creates a new, uniquely named Interpipe Source component to listen to an Interpipe Sink Component. The Sink to `listen_to` can be updated dynamically while in a playing state. 
 
-Refer to the [Interpipe Services](/docs/overview.md#interpipe-services) overview for more information.
+**Important** requires additional install/build steps for the RidgeRun `gst-interpipe` plugins. Refer to the [Interpipe Services](/docs/overview.md#interpipe-services) overview for more information.
 
 **Parameters**
 * `name` - [in] unique name for the new Source
@@ -526,8 +588,328 @@ retval = dsl_source_interpipe_new('my-interpipe-source', 'my-interpipe-sink',
 ## Destructors
 As with all Pipeline components, Sources are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
 
-## Methods
+---
 
+## Source Methods
+
+### *dsl_source_media_type_get*
+```C
+DslReturnType dsl_source_media_type_get(const wchar_t* name,
+    const wchar_t** media_type);
+```
+This service gets the media type for the named Source component. The media-type will be specific to the base source type as follows:
+* Video Sources will return `"video/x-raw"`
+* Audio Sources will return `"audeo/x-raw"`
+* Audio/Video Source will return `"video/x-raw;audeo/x-raw"`
+
+**Note:** DSL currently implements Video only. Audio is to be supported in a future release.
+
+**Parameters**
+* `source` - [in] unique name of the Source to play.
+* `media-type` - [out] one of the [DSL_MEDIA_TYPE constants](#dsl-source-media-type).
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, media_type = dsl_source_media_type_get('my-source')
+```
+
+<br>
+
+### *dsl_source_framerate_get*
+```C
+DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* fps_n);
+```
+This service returns the fractional frames per second as numerator and denominator for a named source. 
+
+**Parameters**
+* `source` - [in] unique name of the Source to play.
+* `fps_n` - [out] width of the Source in pixels.
+* `fps_d` - [out] height of the Source in pixels.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, fps_n, fps_d = dsl_source_dimensions_get('my-uri-source')
+```
+
+<br>
+
+### *dsl_source_is_live*
+```C
+DslReturnType dsl_source_is_live(const wchar_t* name, boolean* is_live);
+```
+Returns `true` if the Source component's stream is live. CSI and USB Camera sources will always return `True`.
+
+**Parameters**
+* `name` - [in] unique name of the Source to query
+* `is_live` - [out] `true` if the source is live, false otherwise
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, is_live = dsl_source_is_live('my-uri-source')
+```
+
+<br>
+
+### *dsl_source_pause*
+```C
+DslReturnType dsl_source_pause(const wchar_t* name);
+```
+This method tries to change the state of an Source component from `DSL_STATE_PLAYING` to `DSL_STATE_PAUSED`.  This services will fail if the Source is not currently in a state of `DSL_STATE_PLAYING`. 
+
+**Parameters**
+* `name` - unique name of the Source to pause
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful transition. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_play('my-uri-source')
+```
+
+<br>
+
+### *dsl_source_resume*
+```C
+DslReturnType dsl_source_resume(const wchar_t* name);
+```
+This method tries to change the state of a Source component from `DSL_STATE_PAUSED` to `DSL_STATE_PLAYING`. This services will fail if the Source is not currently in a state OF `DSL_STATE_PAUSED`. 
+
+<br>
+
+**Parameters**
+* `name` - unique name of the Source to resume.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful transition. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_resume('my-source')
+```
+
+<br>
+
+### *dsl_source_pph_add*
+```C++
+DslReturnType dsl_source_pph_add(const wchar_t* name, const wchar_t* handler);
+```
+
+This service adds a [Pad Probe Handler](/docs/api-pph.md) -- typically a [New Buffer Timeout PPH](/docs/api-pph.md#dsl_pph_buffer_timeout_new) --- to the Source pad (only) of the named Source Component. 
+
+**Important Note** Adding an [Object Detection Event PPH](/docs/api-pph.md#dsl_pph_ode_new) or an [Non-Maximum Processor PPH](/docs/api-pph.md#dsl_pph_nmp_new) will result in a NOP as there is no batch-metadata attached to the buffers for these PPHs to process. The initial frame level batch-metadata is added to the buffers by the Pipelines's Stream-muxer downstream of the Source. 
+
+**Parameters**
+* `name` - [in] unique name of the Source Component to update.
+* `handler` - [in] unique name of Pad Probe Handler to add
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+
+```Python
+retval = dsl_source_pph_add('my-csi-source-1', 'my-buffer-timeout-pph-1')
+```
+
+<br>
+
+### *dsl_source_pph_remove*
+```C++
+DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler);
+```
+This service removes a [Pad Probe Handler](/docs/api-pph.md) from the Source pad of the named Source Component. The service will fail if the named handler is not owned by the named source.
+
+**Parameters**
+* `name` - [in] unique name of the Source Component to update.
+* `handler` - [in] unique name of Pad Probe Handler to remove
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_pph_remove('my-csi-source-1', 'my-buffer-timeout-pph-1')
+```
+
+---
+
+## Video Source Methods
+
+### *dsl_source_video_dimensions_get*
+```C
+DslReturnType dsl_source_video_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
+```
+This service gets the dimensions for a named Video Source component if known. 
+
+**Parameters**
+* `source` - [in] unique name of the Source to query.
+* `width` - [out] width of the Source in pixels. 0 if unknown.
+* `height` - [out] height of the Source in pixels. 0 if unknown.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, width, height = dsl_source_dimensions_get('my-uri-source')
+```
+
+<br>
+
+### *dsl_source_video_buffer_out_format_get*
+```C
+DslReturnType dsl_source_video_buffer_out_format_get(const wchar_t* name,
+    const wchar_t** format);
+```
+This service gets the current buffer-out-format for the named Video Source component.
+
+**Parameters**
+* `source` - [in] unique name of the Source to query.
+* `format` - [out] current buffer-out-format. One of the [DSL_VIDEO_FORMAT](#dsl-video-format-types) constant string values. Default = `DSL_VIDEO_FORMAT_DEFAULT`.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, format = dsl_source_video_buffer_out_format_get('my-uri-source')
+```
+
+<br>
+
+### *dsl_source_video_buffer_out_format_set*
+```C
+DslReturnType dsl_source_video_buffer_out_format_set(const wchar_t* name,
+    const wchar_t* format);
+```
+This service sets the buffer-out-format for the named Video Source component to use.
+
+**Parameters**
+* `source` - [in] unique name of the Source to update.
+* `format` - [in] new buffer-out-format. One of the [DSL_VIDEO_FORMAT](#dsl-video-format-types) constant string values.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_video_buffer_out_format_set('my-uri-source',
+    DSL_VIDEO_FORMAT_RGBA)
+```
+
+<br>
+
+### *dsl_source_video_buffer_out_dimensions_get*
+```C
+DslReturnType dsl_source_video_buffer_out_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
+```
+This service gets the scaled buffer-out-dimensions of the named Source component. The default values of 0 for width and height indicate no scalling.
+
+**Parameters**
+* `source` - [in] unique name of the Source to query.
+* `width` - [out] scaled width of the output buffer in pixels. Default = 0.
+* `height` - [out] scaled height of the output buffer in pixels. Default = 0.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, width, height = dsl_source_video_buffer_out_dimensions_get('my-uri-source')
+```
+
+<br>
+
+### *dsl_source_video_buffer_out_dimensions_set*
+```C
+DslReturnType dsl_source_video_buffer_out_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
+```
+This service sets the buffer-out-format for the named Video Source component to use.
+
+**Parameters**
+* `source` - [in] unique name of the Source to update.
+* `width` - [in] scaled width of the output buffer in pixels.
+* `height` - [out] scaled height of the output buffer in pixels.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_video_buffer_out_dimensions_set('my-uri-source',
+    1280, 720)
+```
+
+<br>
+
+### *dsl_source_video_buffer_out_crop_rectangle_get*
+```C
+DslReturnType dsl_source_video_buffer_out_crop_rectangle_get(const wchar_t* name,
+    uint when, uint* left, uint* top, uint* width, uint* height);
+```
+This service gets a buffer-out crop-rectangle for the named Source component. The buffer can be cropped pre-video-conversion and/or post-video-conversion. The default is no-crop with left, top, width, and height all 0.
+
+**Parameters**
+* `source` - [in] unique name of the Source to query.
+* `when` - [out] specifies which of the crop rectangles to query, either `DSL_VIDEO_CROP_PRE_CONVERSION` or `DSL_VIDEO_CROP_POST_CONVERSION`.
+* `left` - [out] left positional coordinate of the rectangle in pixels. Default = 0.
+* `top` - [out] top positional coordinate of the rectangle in pixels. Default = 0.
+* `width` - [out] width of the rectangle in pixels. Default = 0.
+* `height` - [out] height of the rectangle in pixels. Default = 0.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, when, left, top, width, height = dsl_source_video_buffer_out_crop_rectangle_get(
+    'my-uri-source')
+```
+
+<br>
+
+### *dsl_source_video_buffer_out_crop_rectangle_set*
+```C
+DslReturnType dsl_source_video_buffer_out_crop_rectangle_set(const wchar_t* name,
+    uint when, uint left, uint top, uint width, uint height);
+```
+This service sets one of the buffer-out crop-rectangle for the named Source component. The buffer can be cropped pre-video-conversion and/or post-video-conversion. The default is no-crop with left, top, width, and height all 0.
+
+**Parameters**
+* `source` - [in] unique name of the Source to update.
+* `when` - [out] specifies which of the crop rectangles to query, either `DSL_VIDEO_CROP_PRE_CONVERSION` or `DSL_VIDEO_CROP_POST_CONVERSION`.
+* `left` - [out] left positional coordinate of the rectangle in pixels.
+* `top` - [out] top positional coordinate of the rectangle in pixels.
+* `width` - [out] width of the rectangle in pixels.
+* `height` - [out] height of the rectangle in pixels.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_video_buffer_out_crop_rectangle_set('my-uri-source',
+    DSL_VIDEO_CROP_PRE_CONVERSION, 200, 200, 1280, 720)
+```
+
+<br>
+
+---
+
+## App Source Methods
 ### *dsl_source_app_data_handlers_add*
 ```C
 DslReturnType dsl_source_app_data_handlers_add(const wchar_t* name, 
@@ -1569,130 +1951,6 @@ retval = dsl_source_do_timestamp_set('my-app-source', True)
 ```
 
 <br>
-
-### *dsl_source_framerate_get*
-```C
-DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* fps_n);
-```
-This service returns the fractional frames per second as numerator and denominator for a named source. CSI and USB Camera sources will return the values they were created with. URI and RTSP sources will return 0's while `not-in` and will be updated once the Source has transitioned to a state of `playing`.
-
-**Parameters**
-* `source` - [in] unique name of the Source to play.
-* `fps_n` - [out] width of the Source in pixels.
-* `fps_d` - [out] height of the Source in pixels.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval, fps_n, fps_d = dsl_source_dimensions_get('my-uri-source')
-```
-
-<br>
-
-### *dsl_source_is_live*
-```C
-DslReturnType dsl_source_is_live(const wchar_t* name, boolean* is_live);
-```
-Returns `true` if the Source component's stream is live. CSI and USB Camera sources will always return `True`.
-
-**Parameters**
-* `name` - [in] unique name of the Source to query
-* `is_live` - [out] `true` if the source is live, false otherwise
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval, is_live = dsl_source_is_live('my-uri-source')
-```
-
-<br>
-
-### *dsl_source_pause*
-```C
-DslReturnType dsl_source_pause(const wchar_t* name);
-```
-Sets the state of the Source component to Paused. This method tries to change the state of an `in-use` Source component to `GST_STATE_PAUSED`. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is).
-
-**Parameters**
-* `name` - unique name of the Source to pause
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful transition. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_source_play('my-source')
-```
-
-<br>
-
-### *dsl_source_resume*
-```C
-DslReturnType dsl_source_resume(const wchar_t* name);
-```
-Sets the state of a `paused` Source component to `playing`. This method tries to change the state of an `in-use` Source component to `DSL_STATE_PLAYING`. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is). The Pipeline, when transitioning to a state of `DSL_STATE_PLAYING`, will set each of its Sources'
-state to `DSL_STATE_PLAYING`. An individual Source, once playing, can be paused by calling [dsl_source_pause](#dsl_source_pause).
-
-<br>
-
-**Parameters**
-* `name` - unique name of the Source to play
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful transition. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_source_resume('my-source')
-```
-
-<br>
-
-### *dsl_source_pph_add*
-```C++
-DslReturnType dsl_source_pph_add(const wchar_t* name, const wchar_t* handler);
-```
-
-This service adds a [Pad Probe Handler](/docs/api-pph.md) -- typically a [New Buffer Timeout PPH](/docs/api-pph.md#dsl_pph_buffer_timeout_new) --- to the Source pad (only) of the named Source Component. 
-
-**Important Note** Adding an [Object Detection Event PPH](/docs/api-pph.md#dsl_pph_ode_new) or an [Non-Maximum Processor PPH](/docs/api-pph.md#dsl_pph_nmp_new) will result in a NOP as there is no batch-metadata attached to the buffers for these PPHs to process. The initial frame level batch-metadata is added to the buffers by the Pipelines's Stream-muxer downstream of the Source. 
-
-**Parameters**
-* `name` - [in] unique name of the Source Component to update.
-* `handler` - [in] unique name of Pad Probe Handler to add
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-
-```Python
-retval = dsl_source_pph_add('my-csi-source-1', 'my-buffer-timeout-pph-1')
-```
-
-<br>
-
-### *dsl_source_pph_remove*
-```C++
-DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler);
-```
-This service removes a [Pad Probe Handler](/docs/api-pph.md) from the Source pad of the named Source Component. The service will fail if the named handler is not owned by the named source.
-
-**Parameters**
-* `name` - [in] unique name of the Source Component to update.
-* `handler` - [in] unique name of Pad Probe Handler to remove
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_source_pph_remove('my-csi-source-1', 'my-buffer-timeout-pph-1')
-```
 
 
 ---
