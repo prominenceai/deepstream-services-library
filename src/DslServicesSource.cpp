@@ -1627,7 +1627,7 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::SourceBufferOutFormatGet(const char* name, 
+    DslReturnType Services::SourceVideoBufferOutFormatGet(const char* name, 
         const char** format)
     {
         LOG_FUNC();
@@ -1638,8 +1638,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
             
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
             *format = pSourceBintr->GetBufferOutFormat();
 
@@ -1656,7 +1656,7 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::SourceBufferOutFormatSet(const char* name, 
+    DslReturnType Services::SourceVideoBufferOutFormatSet(const char* name, 
         const char* format)
     {
         LOG_FUNC();
@@ -1667,8 +1667,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
             
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
             if (!pSourceBintr->SetBufferOutFormat(format))
             {
@@ -1690,7 +1690,7 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::SourceBufferOutDimensionsGet(const char* name, 
+    DslReturnType Services::SourceVideoBufferOutDimensionsGet(const char* name, 
         uint* width, uint* height)
     {
         LOG_FUNC();
@@ -1701,8 +1701,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
             
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
             pSourceBintr->GetBufferOutDimensions(width, height);
 
@@ -1720,7 +1720,7 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::SourceBufferOutDimensionsSet(const char* name, 
+    DslReturnType Services::SourceVideoBufferOutDimensionsSet(const char* name, 
         uint width, uint height)
     {
         LOG_FUNC();
@@ -1731,8 +1731,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
             
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
             if (!pSourceBintr->SetBufferOutDimensions(width, height))
             {
@@ -1756,7 +1756,7 @@ namespace DSL
         }
     }                
     
-    DslReturnType Services::SourceBufferOutCropRectangleGet(const char* name, 
+    DslReturnType Services::SourceVideoBufferOutCropRectangleGet(const char* name, 
         uint when, uint* left, uint* top, uint* width, uint* height)
     {
         LOG_FUNC();
@@ -1767,8 +1767,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
             
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
             pSourceBintr->GetBufferOutCropRectangle(when, 
                 left, top, width, height);
@@ -1789,7 +1789,7 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::SourceBufferOutCropRectangleSet(const char* name, 
+    DslReturnType Services::SourceVideoBufferOutCropRectangleSet(const char* name, 
         uint when, uint left, uint top, uint width, uint height)
     {
         LOG_FUNC();
@@ -1800,8 +1800,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
             
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
             if (when > DSL_VIDEO_CROP_POST_CONVERSION)
             {
@@ -1835,7 +1835,7 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::SourceBufferOutOrientationGet(const char* name, 
+    DslReturnType Services::SourceVideoBufferOutOrientationGet(const char* name, 
         uint* orientation)
     {
         LOG_FUNC();
@@ -1846,8 +1846,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
             
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
             *orientation = pSourceBintr->GetBufferOutOrientation();
 
@@ -1864,7 +1864,7 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::SourceBufferOutOrientationSet(const char* name, 
+    DslReturnType Services::SourceVideoBufferOutOrientationSet(const char* name, 
         uint orientation)
     {
         LOG_FUNC();
@@ -1875,8 +1875,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
             
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
             if (orientation > DSL_VIDEO_ORIENTATION_FLIP_UPPER_LEFT_TO_LOWER_RIGHT)
             {
@@ -1905,7 +1905,7 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::SourceDimensionsGet(const char* name, 
+    DslReturnType Services::SourceVideoDimensionsGet(const char* name, 
         uint* width, uint* height)
     {
         LOG_FUNC();
@@ -1916,8 +1916,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
             
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
             pSourceBintr->GetDimensions(width, height);
 
@@ -1944,7 +1944,7 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
             
             DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
             pSourceBintr->GetFrameRate(fpsN, fpsD);
 
@@ -2082,7 +2082,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceDewarperAdd(const char* name, const char* dewarper)
+    DslReturnType Services::SourceVideoDewarperAdd(const char* name, const char* dewarper)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2095,8 +2095,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
                 dewarper, DewarperBintr);
 
-            DSL_URI_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<UriSourceBintr>(m_components[name]);
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
             DSL_DEWARPER_PTR pDewarperBintr = 
                 std::dynamic_pointer_cast<DewarperBintr>(m_components[dewarper]);
@@ -2119,7 +2119,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceDewarperRemove(const char* name)
+    DslReturnType Services::SourceVideoDewarperRemove(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2129,8 +2129,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
 
-            DSL_URI_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<UriSourceBintr>(m_components[name]);
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
             if (!pSourceBintr->RemoveDewarperBintr())
             {
@@ -2535,7 +2535,7 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
 
             DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
                 
             if (!pSourceBintr->IsInUse())
             {
@@ -2591,7 +2591,8 @@ namespace DSL
                 return DSL_RESULT_SOURCE_NOT_IN_PAUSE;
             }
 
-            if (!pSourceBintr->SetState(GST_STATE_PLAYING, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
+            if (!pSourceBintr->SetState(GST_STATE_PLAYING, 
+                DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
             {
                 LOG_ERROR("Source '" << name << "' failed to change state to Play");
                 return DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE;
@@ -2616,7 +2617,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
 
-            boolean isLive = std::dynamic_pointer_cast<SourceBintr>(m_components[name])->IsLive();
+            boolean isLive = std::dynamic_pointer_cast<SourceBintr>
+                (m_components[name])->IsLive();
 
             LOG_INFO("Source '" << name << "' returned Is-Live = " << isLive );
             return DSL_RESULT_SUCCESS;

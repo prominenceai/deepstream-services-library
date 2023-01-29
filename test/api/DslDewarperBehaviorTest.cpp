@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 
-#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(5000)
+#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(3000)
 
 // ---------------------------------------------------------------------------
 // Shared Test Inputs 
@@ -79,7 +79,7 @@ use-case -- can play]", "[dewarper-behavior]")
         REQUIRE( dsl_dewarper_new(dewarper_name.c_str(), 
             dewarper_config_file.c_str(), camera_id) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_source_dewarper_add(source_name1.c_str(), 
+        REQUIRE( dsl_source_video_dewarper_add(source_name1.c_str(), 
             dewarper_name.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
@@ -117,7 +117,7 @@ use-case -- can play]", "[dewarper-behavior]")
                 dsl_pipeline_dump_to_dot(pipeline_name.c_str(), 
                     const_cast<wchar_t*>(pipeline_graph_name.c_str()));
 
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*5);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*2);
 
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) 
                     == DSL_RESULT_SUCCESS );
@@ -154,7 +154,7 @@ Projection use-case -- can play]", "[dewarper-behavior]")
         REQUIRE( dsl_dewarper_num_batch_buffers_set(dewarper_name.c_str(), 1) 
             == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_source_dewarper_add(source_name1.c_str(), 
+        REQUIRE( dsl_source_video_dewarper_add(source_name1.c_str(), 
             dewarper_name.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 

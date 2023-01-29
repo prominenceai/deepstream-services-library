@@ -40,6 +40,8 @@ namespace DSL
      */
     #define DSL_SOURCE_PTR std::shared_ptr<SourceBintr>
 
+    #define DSL_VIDEO_SOURCE_PTR std::shared_ptr<VideoSourceBintr>
+
     #define DSL_APP_SOURCE_PTR std::shared_ptr<AppSourceBintr>
     #define DSL_APP_SOURCE_NEW(name, isLive, bufferInFormat, width, height, fpsN, fpsD) \
         std::shared_ptr<AppSourceBintr>(new AppSourceBintr(name, isLive, \
@@ -142,7 +144,112 @@ namespace DSL
          * @brief Function is overridden by all derived SourceBintrs
          */
         void UnlinkAll(){};
+
+        /**
+         * @brief returns the Live state of this Streaming Source
+         * @return true if the Source is Live, false otherwise.
+         */
+        bool IsLive()
+        {
+            LOG_FUNC();
+            
+            return m_isLive;
+        }
         
+        /**
+         * @brief Gets the current FPS numerator and denominator settings for this SourceBintr
+         * @param[out] fpsN the FPS numerator
+         * @param[out] fpsD the FPS denominator
+         */ 
+        void GetFrameRate(uint* fpsN, uint* fpsD)
+        {
+            LOG_FUNC();
+            
+            *fpsN = m_fpsN;
+            *fpsD = m_fpsD;
+        }
+
+        /**
+         * @brief Gets the current media-type for the SourceBintr.
+         * @return Current media type string. 
+         */
+        const char* GetMediaType()
+        {
+            LOG_FUNC();
+            
+            return m_mediaType.c_str();
+        }
+
+        /**
+         * @brief Returns the current linkable state of the Source. Camera Sources
+         * HTTP, and RTSP sources are linkable for the life of the Source.
+         * File and Image Sources can be created without a file path and are unlinkable
+         * until they are updated with a valid path.
+         * @return true if the Source if linkable (able to link), false otherwise
+         */
+        virtual bool IsLinkable(){return true;};
+    
+        /**
+         * @brief For sources that manage EOS Consumers, this service must
+         * called before sending the source an EOS Event to stop playing.
+         */
+        virtual void DisableEosConsumer(){};
+        
+    protected:
+    
+        /**
+         * @brief Device Properties, used for aarch64/x86_64 conditional logic
+         */
+        cudaDeviceProp m_cudaDeviceProp;
+
+        /**
+         * @brief media-type for the SourceBintr. String version of one of the
+         * DSL_MEDIA_TYPE constant values.
+         */
+        std::string m_mediaType;
+
+        /**
+         * @brief True if the source is live and cannot be paused without losing data, 
+         * False otherwise.
+         */
+        bool m_isLive;
+        
+        /**
+         * @brief current frames-per-second numerator value for the SourceBintr
+         */
+        uint m_fpsN;
+
+        /**
+         * @brief current frames-per-second denominator value for the SourceBintr
+         */
+        uint m_fpsD;
+
+        /**
+         * @brief Soure Element for this SourceBintr
+         */
+        DSL_ELEMENT_PTR m_pSourceElement;
+        
+    };
+
+    /**
+     * @class VideoSourceBintr
+     * @brief Implements a base Video Source Bintr for all derived Video Source types.
+     */
+    class VideoSourceBintr : public SourceBintr
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the VideoSourceBintr base class
+         * @param[in] name unique name for the new VideoSourceBintr
+         */
+        VideoSourceBintr(const char* name);
+
+        /**
+         * @brief dtor for the VideoSourceBintr base class
+         */
+        ~VideoSourceBintr();
+
         /**
          * @brief Links the derived Source's last specific element (SrcNodetr)
          * to the common elements shared by all sources.
@@ -185,48 +292,13 @@ namespace DSL
          * @return true on successfull remove, false otherwise.
          */
         bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
-        
-        /**
-         * @brief returns the Live state of this Streaming Source
-         * @return true if the Source is Live, false otherwise.
-         */
-        bool IsLive()
-        {
-            LOG_FUNC();
-            
-            return m_isLive;
-        }
 
-        /**
-         * @brief For sources that manage EOS Consumers, this service must
-         * called before sending the source an EOS Event to stop playing.
-         */
-        virtual void DisableEosConsumer(){};
-        
         /**
          * @brief Gets the current width and height settings for this SourceBintr
          * @param[out] width the current width setting in pixels
          * @param[out] height the current height setting in pixels
          */ 
         void GetDimensions(uint* width, uint* height);
-        
-        /**
-         * @brief Gets the current FPS numerator and denominator settings for this SourceBintr
-         * @param[out] fpsN the FPS numerator
-         * @param[out] fpsD the FPS denominator
-         */ 
-        void GetFrameRate(uint* fpsN, uint* fpsD);
-
-        /**
-         * @brief Gets the current media-type for the SourceBintr.
-         * @return Current media type string. 
-         */
-        const char* GetMediaType()
-        {
-            LOG_FUNC();
-            
-            return m_mediaType.c_str();
-        }
 
         /**
          * @brief Gets the current buffer-out-format for this SourceBintr.
@@ -330,15 +402,6 @@ namespace DSL
          * @return true if the Source has a Child
          */
         bool HasDewarperBintr();
-        
-        /**
-         * @brief Returns the current linkable state of the Source. Camera Sources
-         * HTTP, and RTSP sources are linkable for the life of the Source.
-         * File and Image Sources can be created without a file path and are unlinkable
-         * until they are updated with a valid path.
-         * @return true if the Source if linkable (able to link), false otherwise
-         */
-        virtual bool IsLinkable(){return true;};
 
     private:
 
@@ -349,28 +412,11 @@ namespace DSL
         bool updateCaps();
     
     protected:
-    
-        /**
-         * @brief Device Properties, used for aarch64/x86_64 conditional logic
-         */
-        cudaDeviceProp m_cudaDeviceProp;
-
-        /**
-         * @brief media-type for the SourceBintr. String version of one of the
-         * DSL_MEDIA_TYPE constant values.
-         */
-        std::string m_mediaType;
 
         /**
          * @brief current buffer-out-format. 
          */
         std::string m_bufferOutFormat;
-        
-        /**
-         * @brief True if the source is live and cannot be paused without losing data, 
-         * False otherwise.
-         */
-        bool m_isLive;
         
         /**
          * @brief current width of the streaming source in Pixels.
@@ -381,16 +427,6 @@ namespace DSL
          * @brief current height of the streaming source in Pixels.
          */
         uint m_height;
-
-        /**
-         * @brief current frames-per-second numerator value for the SourceBintr
-         */
-        uint m_fpsN;
-
-        /**
-         * @brief current frames-per-second denominator value for the SourceBintr
-         */
-        uint m_fpsD;
 
         /**
          * @brief Current scaled width value for the SourceBintr's Output Buffer 
@@ -408,11 +444,6 @@ namespace DSL
          * @brief Current buffer-out-orientation setting for the SourceBintr
          */
         uint m_bufferOutOrientation;
-
-        /**
-         * @brief Soure Element for this SourceBintr
-         */
-        DSL_ELEMENT_PTR m_pSourceElement;
 
         /**
          * @brief Single, optional dewarper for the DecodeSourceBintr
@@ -441,7 +472,7 @@ namespace DSL
      * @class AppSourceBintr
      * @brief 
      */
-    class AppSourceBintr : public SourceBintr
+    class AppSourceBintr : public VideoSourceBintr
     {
     public: 
     
@@ -515,14 +546,14 @@ namespace DSL
         void HandleEnoughData();
 
         /**
-         * @brief Gets the current do-timestamp property setting for the SourceBintr.
+         * @brief Gets the current do-timestamp property setting for the AppSourceBintr.
          * @return If TRUE, the base class will automatically timestamp outgoing 
          * buffers based on the current running_time.
          */
         boolean GetDoTimestamp();
 
         /**
-         * @brief Sets the do-timestamp property settings for the SourceBintr
+         * @brief Sets the do-timestamp property settings for the AppSourceBintr
          * @param[in] doTimestamp set to TRUE to have the base class automatically 
          * timestamp outgoing buffers. FALSE otherwise.
          * @return 
@@ -695,7 +726,7 @@ namespace DSL
      * @class CsiSourceBintr
      * @brief 
      */
-    class CsiSourceBintr : public SourceBintr
+    class CsiSourceBintr : public VideoSourceBintr
     {
     public: 
     
@@ -759,7 +790,7 @@ namespace DSL
      * @class UsbSourceBintr
      * @brief 
      */
-    class UsbSourceBintr : public SourceBintr
+    class UsbSourceBintr : public VideoSourceBintr
     {
     public: 
     
@@ -832,19 +863,19 @@ namespace DSL
 
     //*********************************************************************************
     
-    class ResourceSourceBintr: public SourceBintr
+    class ResourceSourceBintr: public VideoSourceBintr
     {
     public:
     
         ResourceSourceBintr(const char* name, const char* uri)
-            : SourceBintr(name)
+            : VideoSourceBintr(name)
             , m_uri(uri)
         {
             LOG_FUNC();
         };
             
         ResourceSourceBintr(const char* name, const char** uris)
-            : SourceBintr(name)
+            : VideoSourceBintr(name)
         {
             LOG_FUNC();
         };
@@ -1337,7 +1368,7 @@ namespace DSL
      * @class InterpipeSourceBintr
      * @brief 
      */
-    class InterpipeSourceBintr : public SourceBintr
+    class InterpipeSourceBintr : public VideoSourceBintr
     {
     public: 
     

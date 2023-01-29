@@ -111,7 +111,7 @@ def main(args):
             break
             
         # We add the Dewarper directly to the source... not the Pipeline.
-        retval = dsl_source_dewarper_add('file-source', 'dewarper')
+        retval = dsl_source_video_dewarper_add('file-source', 'dewarper')
         if retval != DSL_RETURN_SUCCESS:
             break
             

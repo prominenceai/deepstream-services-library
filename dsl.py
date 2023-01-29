@@ -3398,15 +3398,15 @@ def dsl_source_pph_remove(name, handler):
     return int(result)
 
 ##
-## dsl_source_dimensions_get()
+## dsl_source_video_dimensions_get()
 ##
-_dsl.dsl_source_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_source_dimensions_get.restype = c_uint
-def dsl_source_dimensions_get(name):
+_dsl.dsl_source_video_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_source_video_dimensions_get.restype = c_uint
+def dsl_source_video_dimensions_get(name):
     global _dsl
     width = c_uint(0)
     height = c_uint(0)
-    result = _dsl.dsl_source_dimensions_get(name, DSL_UINT_P(width), DSL_UINT_P(height))
+    result = _dsl.dsl_source_video_dimensions_get(name, DSL_UINT_P(width), DSL_UINT_P(height))
     return int(result), width.value, height.value 
 
 ##
@@ -3433,102 +3433,102 @@ def dsl_source_media_type_get(name):
     return int(result), media_type.value 
 
 ##
-## dsl_source_buffer_out_format_get()
+## dsl_source_video_buffer_out_format_get()
 ##
-_dsl.dsl_source_buffer_out_format_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
-_dsl.dsl_source_buffer_out_format_get.restype = c_uint
-def dsl_source_buffer_out_format_get(name):
+_dsl.dsl_source_video_buffer_out_format_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_source_video_buffer_out_format_get.restype = c_uint
+def dsl_source_video_buffer_out_format_get(name):
     global _dsl
     format = c_wchar_p(0)
-    result = _dsl.dsl_source_buffer_out_format_get(name, DSL_WCHAR_PP(format))
+    result = _dsl.dsl_source_video_buffer_out_format_get(name, DSL_WCHAR_PP(format))
     return int(result), format.value 
 
 ##
-## dsl_source_buffer_out_format_set()
+## dsl_source_video_buffer_out_format_set()
 ##
-_dsl.dsl_source_buffer_out_format_set.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_source_buffer_out_format_set.restype = c_uint
-def dsl_source_buffer_out_format_set(name, format):
+_dsl.dsl_source_video_buffer_out_format_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_video_buffer_out_format_set.restype = c_uint
+def dsl_source_video_buffer_out_format_set(name, format):
     global _dsl
-    result = _dsl.dsl_source_buffer_out_format_set(name, format)
+    result = _dsl.dsl_source_video_buffer_out_format_set(name, format)
     return int(result)
 
 ##
-## dsl_source_buffer_out_dimensions_get()
+## dsl_source_video_buffer_out_dimensions_get()
 ##
-_dsl.dsl_source_buffer_out_dimensions_get.argtypes = [c_wchar_p, 
+_dsl.dsl_source_video_buffer_out_dimensions_get.argtypes = [c_wchar_p, 
     POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_source_buffer_out_dimensions_get.restype = c_uint
-def dsl_source_buffer_out_dimensions_get(name):
+_dsl.dsl_source_video_buffer_out_dimensions_get.restype = c_uint
+def dsl_source_video_buffer_out_dimensions_get(name):
     global _dsl
     width = c_uint(0)
     height = c_uint(0)
-    result = _dsl.dsl_source_buffer_out_dimensions_get(name, 
+    result = _dsl.dsl_source_video_buffer_out_dimensions_get(name, 
         DSL_UINT_P(width), DSL_UINT_P(height))
     return int(result), width.value, height.value 
 
 ##
-## dsl_source_buffer_out_dimensions_set()
+## dsl_source_video_buffer_out_dimensions_set()
 ##
-_dsl.dsl_source_buffer_out_dimensions_set.argtypes = [c_wchar_p, 
+_dsl.dsl_source_video_buffer_out_dimensions_set.argtypes = [c_wchar_p, 
     c_uint, c_uint]
-_dsl.dsl_source_buffer_out_dimensions_set.restype = c_uint
-def dsl_source_buffer_out_dimensions_set(name, width, height):
+_dsl.dsl_source_video_buffer_out_dimensions_set.restype = c_uint
+def dsl_source_video_buffer_out_dimensions_set(name, width, height):
     global _dsl
-    result = _dsl.dsl_source_buffer_out_dimensions_set(name, 
+    result = _dsl.dsl_source_video_buffer_out_dimensions_set(name, 
         width, height)
     return int(result)
 
 ##
-## dsl_source_buffer_out_crop_rectangle_get()
+## dsl_source_video_buffer_out_crop_rectangle_get()
 ##
-_dsl.dsl_source_buffer_out_crop_rectangle_get.argtypes = [c_wchar_p, 
+_dsl.dsl_source_video_buffer_out_crop_rectangle_get.argtypes = [c_wchar_p, 
     c_uint, POINTER(c_uint), POINTER(c_uint), POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_source_buffer_out_crop_rectangle_get.restype = c_uint
-def dsl_source_buffer_out_crop_rectangle_get(name, when):
+_dsl.dsl_source_video_buffer_out_crop_rectangle_get.restype = c_uint
+def dsl_source_video_buffer_out_crop_rectangle_get(name, when):
     global _dsl
     left = c_uint(0)
     top = c_uint(0)
     width = c_uint(0)
     height = c_uint(0)
-    result = _dsl.dsl_source_buffer_out_crop_rectangle_get(name, when,
+    result = _dsl.dsl_source_video_buffer_out_crop_rectangle_get(name, when,
         DSL_UINT_P(left), DSL_UINT_P(top), DSL_UINT_P(width), DSL_UINT_P(height))
     return int(result), left.value, top.value, width.value, height.value 
 
 ##
-## dsl_source_buffer_out_crop_rectangle_set()
+## dsl_source_video_buffer_out_crop_rectangle_set()
 ##
-_dsl.dsl_source_buffer_out_crop_rectangle_set.argtypes = [c_wchar_p, 
+_dsl.dsl_source_video_buffer_out_crop_rectangle_set.argtypes = [c_wchar_p, 
     c_uint, c_uint, c_uint, c_uint, c_uint]
-_dsl.dsl_source_buffer_out_crop_rectangle_set.restype = c_uint
-def dsl_source_buffer_out_crop_rectangle_set(name, when,
+_dsl.dsl_source_video_buffer_out_crop_rectangle_set.restype = c_uint
+def dsl_source_video_buffer_out_crop_rectangle_set(name, when,
     left, top, width, height):
     global _dsl
-    result = _dsl.dsl_source_buffer_out_crop_rectangle_set(name, when,
+    result = _dsl.dsl_source_video_buffer_out_crop_rectangle_set(name, when,
         left, top, width, height)
     return int(result)
 
 ##
-## dsl_source_buffer_out_orientation_get()
+## dsl_source_video_buffer_out_orientation_get()
 ##
-_dsl.dsl_source_buffer_out_orientation_get.argtypes = [c_wchar_p, 
+_dsl.dsl_source_video_buffer_out_orientation_get.argtypes = [c_wchar_p, 
     POINTER(c_uint)]
-_dsl.dsl_source_buffer_out_orientation_get.restype = c_uint
-def dsl_source_buffer_out_orientation_get(name):
+_dsl.dsl_source_video_buffer_out_orientation_get.restype = c_uint
+def dsl_source_video_buffer_out_orientation_get(name):
     global _dsl
     orientation = c_uint(0)
-    result = _dsl.dsl_source_buffer_out_orientation_get(name,
+    result = _dsl.dsl_source_video_buffer_out_orientation_get(name,
         DSL_UINT_P(orientation))
     return int(result), orientation.value
 
 ##
-## dsl_source_buffer_out_orientation_set()
+## dsl_source_video_buffer_out_orientation_set()
 ##
-_dsl.dsl_source_buffer_out_orientation_set.argtypes = [c_wchar_p, c_uint]
-_dsl.dsl_source_buffer_out_orientation_set.restype = c_uint
-def dsl_source_buffer_out_orientation_set(name, orientation):
+_dsl.dsl_source_video_buffer_out_orientation_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_source_video_buffer_out_orientation_set.restype = c_uint
+def dsl_source_video_buffer_out_orientation_set(name, orientation):
     global _dsl
-    result = _dsl.dsl_source_buffer_out_orientation_set(name,
+    result = _dsl.dsl_source_video_buffer_out_orientation_set(name,
         orientation)
     return int(result)
 
@@ -3554,23 +3554,23 @@ def dsl_source_uri_uri_set(name, uir):
     return int(result)
 
 ##
-## dsl_source_dewarper_add()
+## dsl_source_video_dewarper()
 ##
-_dsl.dsl_source_dewarper_add.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_source_dewarper_add.restype = c_uint
-def dsl_source_dewarper_add(name, dewarper):
+_dsl.dsl_source_video_dewarper_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_video_dewarper_add.restype = c_uint
+def dsl_source_video_dewarper_add(name, dewarper):
     global _dsl
-    result = _dsl.dsl_source_dewarper_add(name, dewarper)
+    result = _dsl.dsl_source_video_dewarper_add(name, dewarper)
     return int(result)
 
 ##
-## dsl_source_dewarper_remove()
+## dsl_source_video_dewarper_remove()
 ##
-_dsl.dsl_source_dewarper_remove.argtypes = [c_wchar_p]
-_dsl.dsl_source_dewarper_remove.restype = c_uint
-def dsl_source_dewarper_remove(name):
+_dsl.dsl_source_video_dewarper_remove.argtypes = [c_wchar_p]
+_dsl.dsl_source_video_dewarper_remove.restype = c_uint
+def dsl_source_video_dewarper_remove(name):
     global _dsl
-    result = _dsl.dsl_source_dewarper_remove(name)
+    result = _dsl.dsl_source_video_dewarper_remove(name)
     return int(result)
 
 ##

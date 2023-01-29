@@ -369,7 +369,7 @@ SCENARIO( "A new Pipeline with a Image Stream Source (RGBA output), Primary GIE,
         REQUIRE( dsl_source_image_stream_new(source_name1.c_str(),
             jpeg_file_path.c_str(), false, fps_n, fps_d, 3) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_source_buffer_out_format_set(source_name1.c_str(),
+        REQUIRE( dsl_source_video_buffer_out_format_set(source_name1.c_str(),
             DSL_VIDEO_FORMAT_RGBA) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 

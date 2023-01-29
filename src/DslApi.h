@@ -4657,7 +4657,7 @@ DslReturnType dsl_source_media_type_get(const wchar_t* name,
  * constant string values. Default = DSL_VIDEO_FORMAT_DEFAULT.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_buffer_out_format_get(const wchar_t* name,
+DslReturnType dsl_source_video_buffer_out_format_get(const wchar_t* name,
     const wchar_t** format);
 
 /**
@@ -4667,7 +4667,7 @@ DslReturnType dsl_source_buffer_out_format_get(const wchar_t* name,
  * constant string values.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_buffer_out_format_set(const wchar_t* name,
+DslReturnType dsl_source_video_buffer_out_format_set(const wchar_t* name,
     const wchar_t* format);
 
 /**
@@ -4678,7 +4678,7 @@ DslReturnType dsl_source_buffer_out_format_set(const wchar_t* name,
  * @param[out] height scaled height of the output buffer in pixels.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_buffer_out_dimensions_get(const wchar_t* name, 
+DslReturnType dsl_source_video_buffer_out_dimensions_get(const wchar_t* name, 
     uint* width, uint* height);
 
 /**
@@ -4689,7 +4689,7 @@ DslReturnType dsl_source_buffer_out_dimensions_get(const wchar_t* name,
  * @param[out] height scaled height of the output buffer in pixels.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_buffer_out_dimensions_set(const wchar_t* name, 
+DslReturnType dsl_source_video_buffer_out_dimensions_set(const wchar_t* name, 
     uint width, uint height);
 
 /**
@@ -4705,7 +4705,7 @@ DslReturnType dsl_source_buffer_out_dimensions_set(const wchar_t* name,
  * @param[out] height height of the rectangle in units of pixels.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
  */
-DslReturnType dsl_source_buffer_out_crop_rectangle_get(const wchar_t* name,
+DslReturnType dsl_source_video_buffer_out_crop_rectangle_get(const wchar_t* name,
     uint when, uint* left, uint* top, uint* width, uint* height);
     
 /**
@@ -4721,7 +4721,7 @@ DslReturnType dsl_source_buffer_out_crop_rectangle_get(const wchar_t* name,
  * @param[in] height height of the rectangle in units of pixels.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
  */
-DslReturnType dsl_source_buffer_out_crop_rectangle_set(const wchar_t* name,
+DslReturnType dsl_source_video_buffer_out_crop_rectangle_set(const wchar_t* name,
     uint when, uint left, uint top, uint width, uint height);
     
 /**
@@ -4731,7 +4731,7 @@ DslReturnType dsl_source_buffer_out_crop_rectangle_set(const wchar_t* name,
  * constant values. Default = DSL_VIDEO_ORIENTATION_NONE.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
  */
-DslReturnType dsl_source_buffer_out_orientation_get(const wchar_t* name,
+DslReturnType dsl_source_video_buffer_out_orientation_get(const wchar_t* name,
     uint* orientation);
 
 /**
@@ -4741,7 +4741,7 @@ DslReturnType dsl_source_buffer_out_orientation_get(const wchar_t* name,
  * DSL_VIDEO_ORIENTATION constant value.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
  */
-DslReturnType dsl_source_buffer_out_orientation_set(const wchar_t* name,
+DslReturnType dsl_source_video_buffer_out_orientation_set(const wchar_t* name,
     uint orientation);
 
 /**
@@ -4750,14 +4750,14 @@ DslReturnType dsl_source_buffer_out_orientation_set(const wchar_t* name,
  * @param[in] dewarper name of the Dewarper to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_dewarper_add(const wchar_t* name, const wchar_t* dewarper);
+DslReturnType dsl_source_video_dewarper_add(const wchar_t* name, const wchar_t* dewarper);
 
 /**
  * @brief Removes a named Dewarper component from a named Source component
  * @param[in] name name of the source object to update
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_dewarper_remove(const wchar_t* name);
+DslReturnType dsl_source_video_dewarper_remove(const wchar_t* name);
 
 /**
  * @brief returns the frame rate of the name source as a fraction
@@ -4768,7 +4768,7 @@ DslReturnType dsl_source_dewarper_remove(const wchar_t* name);
  * @param[out] height height of the source in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_dimensions_get(const wchar_t* name, 
+DslReturnType dsl_source_video_dimensions_get(const wchar_t* name, 
     uint* width, uint* height);
 
 /**

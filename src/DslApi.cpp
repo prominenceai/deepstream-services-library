@@ -4102,7 +4102,7 @@ DslReturnType dsl_source_media_type_get(const wchar_t* name,
     return retval;
 }
     
-DslReturnType dsl_source_buffer_out_format_get(const wchar_t* name,
+DslReturnType dsl_source_video_buffer_out_format_get(const wchar_t* name,
     const wchar_t** format)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4115,7 +4115,7 @@ DslReturnType dsl_source_buffer_out_format_get(const wchar_t* name,
     static std::string cstrFormat;
     static std::wstring wcstrFormat;
     
-    uint retval = DSL::Services::GetServices()->SourceBufferOutFormatGet(
+    uint retval = DSL::Services::GetServices()->SourceVideoBufferOutFormatGet(
         cstrName.c_str(), &cFormat);
     if (retval ==  DSL_RESULT_SUCCESS)
     {
@@ -4126,7 +4126,7 @@ DslReturnType dsl_source_buffer_out_format_get(const wchar_t* name,
     return retval;
 }
     
-DslReturnType dsl_source_buffer_out_format_set(const wchar_t* name,
+DslReturnType dsl_source_video_buffer_out_format_set(const wchar_t* name,
     const wchar_t* format)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4138,11 +4138,11 @@ DslReturnType dsl_source_buffer_out_format_set(const wchar_t* name,
     std::wstring wstrFormat(format);
     std::string cstrFormat(wstrFormat.begin(), wstrFormat.end());
 
-    return DSL::Services::GetServices()->SourceBufferOutFormatSet(
+    return DSL::Services::GetServices()->SourceVideoBufferOutFormatSet(
         cstrName.c_str(), cstrFormat.c_str());
 }
 
-DslReturnType dsl_source_buffer_out_dimensions_get(const wchar_t* name, 
+DslReturnType dsl_source_video_buffer_out_dimensions_get(const wchar_t* name, 
     uint* width, uint* height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4152,11 +4152,11 @@ DslReturnType dsl_source_buffer_out_dimensions_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceBufferOutDimensionsGet(
+    return DSL::Services::GetServices()->SourceVideoBufferOutDimensionsGet(
         cstrName.c_str(), width, height);
 }
 
-DslReturnType dsl_source_buffer_out_dimensions_set(const wchar_t* name, 
+DslReturnType dsl_source_video_buffer_out_dimensions_set(const wchar_t* name, 
     uint width, uint height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4164,11 +4164,11 @@ DslReturnType dsl_source_buffer_out_dimensions_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceBufferOutDimensionsSet(
+    return DSL::Services::GetServices()->SourceVideoBufferOutDimensionsSet(
         cstrName.c_str(), width, height);
 }
 
-DslReturnType dsl_source_buffer_out_crop_rectangle_get(const wchar_t* name,
+DslReturnType dsl_source_video_buffer_out_crop_rectangle_get(const wchar_t* name,
     uint when, uint* left, uint* top, uint* width, uint* height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4180,11 +4180,11 @@ DslReturnType dsl_source_buffer_out_crop_rectangle_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceBufferOutCropRectangleGet(
+    return DSL::Services::GetServices()->SourceVideoBufferOutCropRectangleGet(
         cstrName.c_str(), when, left, top, width, height);
 }
 
-DslReturnType dsl_source_buffer_out_crop_rectangle_set(const wchar_t* name,
+DslReturnType dsl_source_video_buffer_out_crop_rectangle_set(const wchar_t* name,
     uint when, uint left, uint top, uint width, uint height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4192,11 +4192,11 @@ DslReturnType dsl_source_buffer_out_crop_rectangle_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceBufferOutCropRectangleSet(
+    return DSL::Services::GetServices()->SourceVideoBufferOutCropRectangleSet(
         cstrName.c_str(), when, left, top, width, height);
 }
 
-DslReturnType dsl_source_buffer_out_orientation_get(const wchar_t* name,
+DslReturnType dsl_source_video_buffer_out_orientation_get(const wchar_t* name,
     uint* orientation)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4205,11 +4205,11 @@ DslReturnType dsl_source_buffer_out_orientation_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceBufferOutOrientationGet(
+    return DSL::Services::GetServices()->SourceVideoBufferOutOrientationGet(
         cstrName.c_str(), orientation);
 }
 
-DslReturnType dsl_source_buffer_out_orientation_set(const wchar_t* name,
+DslReturnType dsl_source_video_buffer_out_orientation_set(const wchar_t* name,
     uint orientation)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4217,11 +4217,12 @@ DslReturnType dsl_source_buffer_out_orientation_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceBufferOutOrientationSet(
+    return DSL::Services::GetServices()->SourceVideoBufferOutOrientationSet(
         cstrName.c_str(), orientation);
 }
 
-DslReturnType dsl_source_dewarper_add(const wchar_t* name, const wchar_t* dewarper)
+DslReturnType dsl_source_video_dewarper_add(const wchar_t* name, 
+    const wchar_t* dewarper)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(dewarper);
@@ -4231,17 +4232,18 @@ DslReturnType dsl_source_dewarper_add(const wchar_t* name, const wchar_t* dewarp
     std::wstring wstrDewarper(dewarper);
     std::string cstrDewarper(wstrDewarper.begin(), wstrDewarper.end());
 
-    return DSL::Services::GetServices()->SourceDewarperAdd(cstrName.c_str(), cstrDewarper.c_str());
+    return DSL::Services::GetServices()->SourceVideoDewarperAdd(cstrName.c_str(), 
+        cstrDewarper.c_str());
 }
 
-DslReturnType dsl_source_dewarper_remove(const wchar_t* name)
+DslReturnType dsl_source_video_dewarper_remove(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceDewarperRemove(cstrName.c_str());
+    return DSL::Services::GetServices()->SourceVideoDewarperRemove(cstrName.c_str());
 }
 
     
@@ -4270,7 +4272,7 @@ DslReturnType dsl_source_app_do_timestamp_set(const wchar_t* name,
         do_timestamp);
 }
     
-DslReturnType dsl_source_dimensions_get(const wchar_t* name, 
+DslReturnType dsl_source_video_dimensions_get(const wchar_t* name, 
     uint* width, uint* height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4280,7 +4282,7 @@ DslReturnType dsl_source_dimensions_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceDimensionsGet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SourceVideoDimensionsGet(cstrName.c_str(), 
         width, height);
 }
 

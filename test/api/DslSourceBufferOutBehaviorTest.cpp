@@ -65,7 +65,7 @@ SCENARIO( "A URI File Source can play with buffer-out-format = RGBA]",
         
         WHEN( "When the buffer-out-format is set to RGBA" ) 
         {
-            REQUIRE( dsl_source_buffer_out_format_set(source_name1.c_str(),
+            REQUIRE( dsl_source_video_buffer_out_format_set(source_name1.c_str(),
                 DSL_VIDEO_FORMAT_RGBA) == DSL_RESULT_SUCCESS );
                 
             THEN( "Pipeline is Able to LinkAll and Play" )
@@ -100,7 +100,7 @@ SCENARIO( "A URI File Source can play with buffer-out-format = NV12]",
         
         WHEN( "When the buffer-out-format is set to RGBA" ) 
         {
-            REQUIRE( dsl_source_buffer_out_format_set(source_name1.c_str(),
+            REQUIRE( dsl_source_video_buffer_out_format_set(source_name1.c_str(),
                 DSL_VIDEO_FORMAT_NV12) == DSL_RESULT_SUCCESS );
                 
             THEN( "Pipeline is Able to LinkAll and Play" )
@@ -135,7 +135,7 @@ dsl_source_buffer_out_orientation_set]", "[buffer-out-behavior]")
         
         WHEN( "When the buffer-out-orientation is set" ) 
         {
-            REQUIRE( dsl_source_buffer_out_orientation_set(source_name1.c_str(),
+            REQUIRE( dsl_source_video_buffer_out_orientation_set(source_name1.c_str(),
                 DSL_VIDEO_ORIENTATION_FLIP_UPPER_LEFT_TO_LOWER_RIGHT) == DSL_RESULT_SUCCESS );
                 
             THEN( "Pipeline is Able to LinkAll and Play" )
@@ -170,7 +170,7 @@ SCENARIO( "A URI File Source can play with buffer-out-crop-pre set]",
         
         WHEN( "When the buffer-out-crop settings are set" ) 
         {
-            REQUIRE( dsl_source_buffer_out_crop_rectangle_set(source_name1.c_str(),
+            REQUIRE( dsl_source_video_buffer_out_crop_rectangle_set(source_name1.c_str(),
                 DSL_VIDEO_CROP_PRE_CONVERSION, 10, 10, 200, 200) == DSL_RESULT_SUCCESS );
                 
             THEN( "Pipeline is Able to LinkAll and Play" )
@@ -205,7 +205,7 @@ SCENARIO( "A URI File Source can play with buffer-out-crop-post set]",
         
         WHEN( "When the buffer-out-crop settings are set" ) 
         {
-            REQUIRE( dsl_source_buffer_out_crop_rectangle_set(source_name1.c_str(),
+            REQUIRE( dsl_source_video_buffer_out_crop_rectangle_set(source_name1.c_str(),
                 DSL_VIDEO_CROP_POST_CONVERSION, 1000, 1000, 200, 200) == DSL_RESULT_SUCCESS );
                 
             THEN( "Pipeline is Able to LinkAll and Play" )

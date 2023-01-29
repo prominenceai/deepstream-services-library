@@ -105,13 +105,8 @@ namespace DSL
         : Bintr(name)
         , m_cudaDeviceProp{0}
         , m_isLive(true)
-        , m_width(0)
-        , m_height(0)
         , m_fpsN(0)
         , m_fpsD(0)
-        , m_bufferOutWidth(0)
-        , m_bufferOutHeight(0)
-        , m_bufferOutOrientation(DSL_VIDEO_ORIENTATION_NONE)
     {
         LOG_FUNC();
 
@@ -120,6 +115,30 @@ namespace DSL
         
         // Get the Device properties
         cudaGetDeviceProperties(&m_cudaDeviceProp, m_gpuId);
+
+    }
+    
+    SourceBintr::~SourceBintr()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {    
+            UnlinkAll();
+        }
+        
+        Services::GetServices()->_sourceNameErase(GetCStrName());
+    }
+    
+    VideoSourceBintr::VideoSourceBintr(const char* name)
+        : SourceBintr(name)
+        , m_width(0)
+        , m_height(0)
+        , m_bufferOutWidth(0)
+        , m_bufferOutHeight(0)
+        , m_bufferOutOrientation(DSL_VIDEO_ORIENTATION_NONE)
+    {
+        LOG_FUNC();
 
         // Media type is fixed to "video/x-raw"
         std::wstring L_mediaType(DSL_MEDIA_TYPE_VIDEO_XRAW);
@@ -165,19 +184,12 @@ namespace DSL
             "src", m_pSourceQueue);
     }
     
-    SourceBintr::~SourceBintr()
+    VideoSourceBintr::~VideoSourceBintr()
     {
         LOG_FUNC();
-
-        if (m_isLinked)
-        {    
-            UnlinkAll();
-        }
-        
-        Services::GetServices()->_sourceNameErase(GetCStrName());
     }
     
-    bool SourceBintr::AddToParent(DSL_BASE_PTR pParentBintr)
+    bool VideoSourceBintr::AddToParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         
@@ -186,7 +198,7 @@ namespace DSL
             AddSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
     }
 
-    bool SourceBintr::IsParent(DSL_BASE_PTR pParentBintr)
+    bool VideoSourceBintr::IsParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         
@@ -195,7 +207,7 @@ namespace DSL
             IsSourceBintrChild(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
     }
 
-    bool SourceBintr::RemoveFromParent(DSL_BASE_PTR pParentBintr)
+    bool VideoSourceBintr::RemoveFromParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         
@@ -211,7 +223,7 @@ namespace DSL
             RemoveSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
     }
 
-    bool SourceBintr::LinkToCommon(DSL_NODETR_PTR pSrcNodetr)
+    bool VideoSourceBintr::LinkToCommon(DSL_NODETR_PTR pSrcNodetr)
     {
         LOG_FUNC();
 
@@ -239,7 +251,7 @@ namespace DSL
         return true;
     }
 
-    bool SourceBintr::LinkToCommon(GstPad* pSrcPad)
+    bool VideoSourceBintr::LinkToCommon(GstPad* pSrcPad)
     {
         LOG_FUNC();
 
@@ -250,13 +262,13 @@ namespace DSL
 
         if (!pStaticSinkPad)
         {
-            LOG_ERROR("Failed to get static sink pad for SourceBintr '" 
+            LOG_ERROR("Failed to get static sink pad for VideoSourceBintr '" 
                 << GetName() << "'");
             return false;
         }
         if (gst_pad_link(pSrcPad, pStaticSinkPad) != GST_PAD_LINK_OK) 
         {
-            LOG_ERROR("Failed to link src to sink pad for SourceBintr '"
+            LOG_ERROR("Failed to link src to sink pad for VideoSourceBintr '"
                 << GetName() << "'");
             return false;
         }
@@ -273,7 +285,7 @@ namespace DSL
                 !m_pBufferOutCapsFilter->LinkToSink(m_pDewarperBintr) or
                 !m_pDewarperBintr->LinkToSink(m_pSourceQueue))
             {
-                LOG_ERROR("Failed to Link Dewarper for SourceBintr '" 
+                LOG_ERROR("Failed to Link Dewarper for VideoSourceBintr '" 
                     << GetName() << "'");
                 return false;
             }
@@ -289,7 +301,7 @@ namespace DSL
         return true;
     }
 
-    void SourceBintr::UnlinkCommon()
+    void VideoSourceBintr::UnlinkCommon()
     {
         LOG_FUNC();
 
@@ -303,7 +315,7 @@ namespace DSL
         }
     }
 
-    void SourceBintr::GetDimensions(uint* width, uint* height)
+    void VideoSourceBintr::GetDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
         
@@ -311,21 +323,13 @@ namespace DSL
         *height = m_height;
     }
 
-    void SourceBintr::GetFrameRate(uint* fpsN, uint* fpsD)
-    {
-        LOG_FUNC();
-        
-        *fpsN = m_fpsN;
-        *fpsD = m_fpsD;
-    }
-
-    bool SourceBintr::SetBufferOutFormat(const char* format)
+    bool VideoSourceBintr::SetBufferOutFormat(const char* format)
     {
         LOG_FUNC();
         
         if (m_isLinked)
         {
-            LOG_ERROR("Can't set buffer-out-format for SourceBintr '" << GetName() 
+            LOG_ERROR("Can't set buffer-out-format for VideoSourceBintr '" << GetName() 
                 << "' as it is currently in a linked state");
             return false;
         }
@@ -337,7 +341,7 @@ namespace DSL
         return true;
     }
     
-    void SourceBintr::GetBufferOutDimensions(uint* width, uint* height)
+    void VideoSourceBintr::GetBufferOutDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
         
@@ -345,13 +349,13 @@ namespace DSL
         *height = m_bufferOutHeight;
     }
     
-    bool SourceBintr::SetBufferOutDimensions(uint width, uint height)
+    bool VideoSourceBintr::SetBufferOutDimensions(uint width, uint height)
     {
         LOG_FUNC();
         
         if (m_isLinked)
         {
-            LOG_ERROR("Can't set buffer-out-dimensions for SourceBintr '" << GetName() 
+            LOG_ERROR("Can't set buffer-out-dimensions for VideoSourceBintr '" << GetName() 
                 << "' as it is currently in a linked state");
             return false;
         }
@@ -376,7 +380,7 @@ namespace DSL
         }
     }
     
-    void SourceBintr::GetBufferOutCropRectangle(uint when, 
+    void VideoSourceBintr::GetBufferOutCropRectangle(uint when, 
         uint* left, uint* top, uint* width, uint* height)
     {
         LOG_FUNC();
@@ -399,7 +403,7 @@ namespace DSL
 
         if (tokens.size() != 4)
         {
-            LOG_ERROR("Invalid crop string recieved for SourceBintr '"
+            LOG_ERROR("Invalid crop string recieved for VideoSourceBintr '"
                 << GetName() << "'");
             return;
         }
@@ -409,7 +413,7 @@ namespace DSL
         *height = std::stoul(tokens[3]);
     }
     
-    bool SourceBintr::SetBufferOutCropRectangle(uint when, 
+    bool VideoSourceBintr::SetBufferOutCropRectangle(uint when, 
         uint left, uint top, uint width, uint height)
     {
         LOG_FUNC();
@@ -417,7 +421,7 @@ namespace DSL
         if (m_isLinked)
         {
             LOG_ERROR(
-                "Unable to set buffer-out crop settings for SourceBintr '" 
+                "Unable to set buffer-out crop settings for VideoSourceBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
@@ -440,21 +444,21 @@ namespace DSL
         return true;
     }
 
-    uint SourceBintr::GetBufferOutOrientation()
+    uint VideoSourceBintr::GetBufferOutOrientation()
     {
         LOG_FUNC();
         
         return m_bufferOutOrientation;
     }
     
-    bool SourceBintr::SetBufferOutOrientation(uint orientation)
+    bool VideoSourceBintr::SetBufferOutOrientation(uint orientation)
     {
         LOG_FUNC();
         
         if (m_isLinked)
         {
             LOG_ERROR(
-                "Unable to set buffer-out-orientation for SourceBintr '" 
+                "Unable to set buffer-out-orientation for VideoSourceBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
@@ -464,14 +468,14 @@ namespace DSL
         return true;
     }
 
-    bool SourceBintr::SetNvbufMemType(uint nvbufMemType)
+    bool VideoSourceBintr::SetNvbufMemType(uint nvbufMemType)
     {
         LOG_FUNC();
         
         if (m_isLinked)
         {
             LOG_ERROR(
-                "Unable to set NVIDIA buffer memory type for SourceBintr '" 
+                "Unable to set NVIDIA buffer memory type for VideoSourceBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
@@ -481,7 +485,7 @@ namespace DSL
         return true;
     }
     
-    bool SourceBintr::updateCaps()
+    bool VideoSourceBintr::updateCaps()
     {
         LOG_FUNC();
 
@@ -503,7 +507,7 @@ namespace DSL
         }
         if (!pCaps)
         {
-            LOG_ERROR("Failed to create new Simple Capabilities for SourceBintr '" 
+            LOG_ERROR("Failed to create new Simple Capabilities for VideoSourceBintr '" 
                 << GetName() << "'");
             return false;  
         }
@@ -522,13 +526,13 @@ namespace DSL
     }
 
     
-    bool SourceBintr::AddDewarperBintr(DSL_BASE_PTR pDewarperBintr)
+    bool VideoSourceBintr::AddDewarperBintr(DSL_BASE_PTR pDewarperBintr)
     {
         LOG_FUNC();
         
         if (m_pDewarperBintr)
         {
-            LOG_ERROR("Source '" << GetName() << "' allready has a Dewarper");
+            LOG_ERROR("VideoSourceBintr '" << GetName() << "' allready has a Dewarper");
             return false;
         }
         m_pDewarperBintr = std::dynamic_pointer_cast<DewarperBintr>(pDewarperBintr);
@@ -538,7 +542,7 @@ namespace DSL
         return SetBufferOutFormat("RGBA");
     }
 
-    bool SourceBintr::RemoveDewarperBintr()
+    bool VideoSourceBintr::RemoveDewarperBintr()
     {
         LOG_FUNC();
 
@@ -552,7 +556,7 @@ namespace DSL
         return true;
     }
     
-    bool SourceBintr::HasDewarperBintr()
+    bool VideoSourceBintr::HasDewarperBintr()
     {
         LOG_FUNC();
         
@@ -562,7 +566,7 @@ namespace DSL
     //*********************************************************************************
     AppSourceBintr::AppSourceBintr(const char* name, bool isLive, 
             const char* bufferInFormat, uint width, uint height, uint fpsN, uint fpsD)
-        : SourceBintr(name) 
+        : VideoSourceBintr(name) 
         , m_doTimestamp(TRUE)
         , m_bufferInFormat(bufferInFormat)
         , m_needDataHandler(NULL)
@@ -857,7 +861,7 @@ namespace DSL
 
         if (m_isLinked)
         {
-            LOG_ERROR("Can't set block-enabled for SourceBintr '" 
+            LOG_ERROR("Can't set block-enabled for AppSourceBintr '" 
 
                 << GetName() << "' as it's currently in a linked state");
             return false;
@@ -997,7 +1001,7 @@ namespace DSL
 
     CsiSourceBintr::CsiSourceBintr(const char* name, 
         guint width, guint height, guint fpsN, guint fpsD)
-        : SourceBintr(name)
+        : VideoSourceBintr(name)
         , m_sensorId(0)
     {
         LOG_FUNC();
@@ -1157,7 +1161,7 @@ namespace DSL
 
     UsbSourceBintr::UsbSourceBintr(const char* name, 
         guint width, guint height, guint fpsN, guint fpsD)
-        : SourceBintr(name)
+        : VideoSourceBintr(name)
         , m_deviceId(0)
     {
         LOG_FUNC();
@@ -1458,7 +1462,7 @@ namespace DSL
         std::string testUri(uri);
         if (testUri.empty())
         {
-            LOG_INFO("File Path for SourceBintr '" << GetName() 
+            LOG_INFO("File Path for UriSourceBintr '" << GetName() 
                 << "' is empty. Source is in a non playable state");
             return true;
         }
@@ -2346,7 +2350,7 @@ namespace DSL
 
     InterpipeSourceBintr::InterpipeSourceBintr(const char* name, 
         const char* listenTo, bool isLive, bool acceptEos, bool acceptEvents)
-        : SourceBintr(name)
+        : VideoSourceBintr(name)
         , m_listenTo(listenTo)
         , m_acceptEos(acceptEos)
         , m_acceptEvents(acceptEvents)

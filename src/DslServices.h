@@ -771,37 +771,37 @@ namespace DSL {
         DslReturnType SourceMediaTypeGet(const char* name, 
             const char** mediaType);
 
-        DslReturnType SourceBufferOutFormatGet(const char* name, 
+        DslReturnType SourceVideoBufferOutFormatGet(const char* name, 
             const char** format);
 
-        DslReturnType SourceBufferOutFormatSet(const char* name, 
+        DslReturnType SourceVideoBufferOutFormatSet(const char* name, 
             const char* format);
             
-        DslReturnType SourceBufferOutDimensionsGet(const char* name, 
+        DslReturnType SourceVideoBufferOutDimensionsGet(const char* name, 
             uint* width, uint* height);
 
-        DslReturnType SourceBufferOutDimensionsSet(const char* name, 
+        DslReturnType SourceVideoBufferOutDimensionsSet(const char* name, 
             uint width, uint height);
 
-        DslReturnType SourceBufferOutCropRectangleGet(const char* name, 
+        DslReturnType SourceVideoBufferOutCropRectangleGet(const char* name, 
             uint when, uint* left, uint* top, uint* width, uint* height);
 
-        DslReturnType SourceBufferOutCropRectangleSet(const char* name, 
+        DslReturnType SourceVideoBufferOutCropRectangleSet(const char* name, 
             uint when, uint left, uint top, uint width, uint height);
 
-        DslReturnType SourceBufferOutOrientationGet(const char* name, 
+        DslReturnType SourceVideoBufferOutOrientationGet(const char* name, 
             uint* orientation);
 
-        DslReturnType SourceBufferOutOrientationSet(const char* name, 
+        DslReturnType SourceVideoBufferOutOrientationSet(const char* name, 
             uint orientation);
 
-        DslReturnType SourceDimensionsGet(const char* name, uint* width, uint* height);
+        DslReturnType SourceVideoDimensionsGet(const char* name, uint* width, uint* height);
         
         DslReturnType SourceFrameRateGet(const char* name, uint* fpsN, uint* fpsD);
 
-        DslReturnType SourceDewarperAdd(const char* name, const char* dewarper);
+        DslReturnType SourceVideoDewarperAdd(const char* name, const char* dewarper);
     
-        DslReturnType SourceDewarperRemove(const char* name);
+        DslReturnType SourceVideoDewarperRemove(const char* name);
 
         DslReturnType SourceUriUriGet(const char* name, const char** uri);
 
