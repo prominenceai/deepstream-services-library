@@ -1,8 +1,20 @@
 # Source API Reference
 Sources are the head components for all DSL Pipelines. Pipelines must have at least one Source and one [Sink](/docs/api-sink.md) to transition to a state of playing.  All Sources are derived from the Component class, therefore all [component methods](/docs/api-component.md) can be called with any Source.
 
-[component](/docs/api-component.md)<br>
-&emsp;╰── [source](#source-methods)
+**Hierarchy**<br>
+&emsp;[component](/docs/api-component.md)<br>
+&emsp;&emsp;╰── [source](#source-methods)
+
+#### Source Construction and Destruction
+Sources are created by calling one of the type-specific [constructors](#constructors). As with all components, Sources must be uniquely named from all other Pipeline components created.
+
+Sources are added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](api-pipeline.md]#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all]((api-pipeline.md)#dsl_pipeline_component_remove_all).
+
+When adding multiple sources to a Pipeline, all must have the same `is_live` setting; `true` or `false`. The add services will fail on the first exception.
+
+The relationship between Pipelines and Sources is one-to-many. Once added to a Pipeline, a Source must be removed before it can be used with another. All sources are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all). Calling a delete service on a Source `in-use` by a Pipeline will fail.
+
+## Audio Sources
 
 ## Video Sources
 There are currently ten (10) types of Video Source Components supported. 
@@ -19,21 +31,13 @@ There are currently ten (10) types of Video Source Components supported.
 * [Interpipe Source](#dsl_source_interpipe_new) - receives pipeline buffers and events from an [Interpipe Sink](/docs/api-sink.md#dsl_sink_interpipe_new).
 
 All Video Sources are derived from the  
-[component](/docs/api-component.md)<br>
-&emsp;╰── [source](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [video source](#source-methods)
 
+**Hierarchy**<br>
+&emsp;[component](/docs/api-component.md)<br>
+&emsp;&emsp;╰── [source](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;╰── [video source](#source-methods)
 
-#### Source Construction and Destruction
-Sources are created using one of six type-specific [constructors](#constructors). As with all components, Streaming Sources must be uniquely named from all other Pipeline components created.
-
-Sources are added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](api-pipeline.md]#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all]((api-pipeline.md)#dsl_pipeline_component_remove_all).
-
-When adding multiple sources to a Pipeline, all must have the same `is_live` setting; `true` or `false`. The add services will fail on the first exception.
-
-The relationship between Pipelines and Sources is one-to-many. Once added to a Pipeline, a Source must be removed before it can be used with another. All sources are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all). Calling a delete service on a Source `in-use` by a Pipeline will fail.
-
-#### Sources and Demuxers
+#### Video Sources and Demuxers
 When using a [Demuxer](/docs/api-tiler.md), vs. a Tiler component, each demuxed source stream must have one or more downstream [Sink](/docs/api-sink) components to end the stream.
 
 ## Source API
@@ -196,7 +200,7 @@ Streaming Source Methods use the following return codes, in addition to the gene
 #define DSL_VIDEO_FORMAT_DEFAULT                                    DSL_VIDEO_FORMAT_I420
 ```
 
-## DSL Buffer format types
+## DSL Buffer format Types
 ```C
 #define DSL_BUFFER_FORMAT_BYTE                                      2
 #define DSL_BUFFER_FORMAT_TIME                                      3
@@ -907,6 +911,89 @@ retval = dsl_source_video_buffer_out_crop_rectangle_set('my-uri-source',
 
 <br>
 
+### *dsl_source_video_buffer_out_orientation_get*
+```C
+DslReturnType dsl_source_video_buffer_out_orientation_get(const wchar_t* name,
+    uint* orientation);
+```
+This service gets the current buffer-out-orientation for the named Video Source component.
+
+**Parameters**
+* `source` - [in] unique name of the Source to query.
+* `orientation` - [out] current buffer-out-orientation. One of the [DSL_VIDEO_ORIENTATION](#video-source-buffer-out-orientation-constants) constant string values. Default = `DSL_VIDEO_ORIENTATION_NONE`.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, orientation = dsl_source_video_buffer_out_orientation_get(
+    'my-uri-source')
+```
+
+<br>
+
+### *dsl_source_video_buffer_out_orientation_set*
+```C
+DslReturnType dsl_source_video_buffer_out_orientation_set(const wchar_t* name,
+    uint orientation);
+```
+This service sets the buffer-out-orientation for the named Video Source component to use.
+
+**Parameters**
+* `source` - [in] unique name of the Source to update.
+* `orientation` - [in] new buffer-out-orientation. One of the [DSL_VIDEO_ORIENTATION](#video-source-buffer-out-orientation-constants) constant string values.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_video_buffer_out_orientation_set('my-uri-source',
+    DSL_VIDEO_ORIENTATION_FLIP_VERTICALLY)
+```
+
+<br>
+
+### *dsl_source_video_dewarper_add*
+```C
+DslReturnType dsl_source_video_dewarper_add(const wchar_t* name, const wchar_t* dewarper);
+```
+This service adds a previously constructed [Dewarper](api-dewarper.md) component to either a named Video Source component. A source can have at most one Dewarper and calls to add more will fail. Attempts to add a Dewarper to a Source in a state of `PLAYING` or `PAUSED` will fail.
+
+**Parameters**
+* `name` - [in] unique name of the Source to update
+* `dewarper` - [in] unique name of the Dewarper to add
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_video_dewarper_add('my-uri-source', 'my-dewarper')
+```
+
+<br>
+
+### *dsl_source_video_dewarper_remove*
+```C
+DslReturnType dsl_source_video_dewarper_remove(const wchar_t* name);
+```
+This service removes a [Dewarper](api-dewarper.md) component -- previously added with [dsl_source_decode_dewarper_add](#dsl_source_decode_dewarper_add) -- from a named Video Source. Calls to remove will fail if the Source is in a state of `PLAYING` or `PAUSED` will fail.
+
+**Parameters**
+* `name` - [in] unique name of the Source to update
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_video_dewarper_remove('my-uri-source')
+```
+
+<br>
+
 ---
 
 ## App Source Methods
@@ -1314,45 +1401,6 @@ This service sets the drop frame interval to use by the named URI or RTSP source
 **Python Example**
 ```Python
 retval = dsl_source_decode_drop_farme_interval_set('my-uri-source', 2)
-```
-
-<br>
-
-### *dsl_source_decode_dewarper_add*
-```C
-DslReturnType dsl_source_decode_dewarper_add(const wchar_t* name, const wchar_t* dewarper);
-```
-This service adds a previously constructed [Dewarper](api-dewarper.md) component to either a named URI or RTSP source. A source can have at most one Dewarper, and calls to add more will fail. Attempts to add a Dewarper to a Source in a state of `PLAYING` or `PAUSED` will fail.
-
-**Parameters**
-* `name` - [in] unique name of the Source to update
-* `dewarper` - [in] unique name of the Dewarper to add
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_source_decode_dewarper_add('my-uri-source', 'my-dewarper')
-```
-
-<br>
-
-### *dsl_source_decode_dewarper_remove*
-```C
-DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name);
-```
-This service remove a [Dewarper](api-dewarper.md) component, previously added with [dsl_source_decode_dewarper_add](#dsl_source_decode_dewarper_add) to a named URI source. Calls to remove will fail if the Source is in a state of `PLAYING` or `PAUSED` will fail.
-
-**Parameters**
-* `name` - [in] unique name of the Source to update
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_source_uri_dewarper_remove('my-uri-source')
 ```
 
 <br>
