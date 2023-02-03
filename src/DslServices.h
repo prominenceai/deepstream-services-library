@@ -784,10 +784,10 @@ namespace DSL {
             uint width, uint height);
 
         DslReturnType SourceVideoBufferOutCropRectangleGet(const char* name, 
-            uint when, uint* left, uint* top, uint* width, uint* height);
+            uint cropAt, uint* left, uint* top, uint* width, uint* height);
 
         DslReturnType SourceVideoBufferOutCropRectangleSet(const char* name, 
-            uint when, uint left, uint top, uint width, uint height);
+            uint cropAt, uint left, uint top, uint width, uint height);
 
         DslReturnType SourceVideoBufferOutOrientationGet(const char* name, 
             uint* orientation);

@@ -141,6 +141,27 @@ namespace DSL
         ~SourceBintr();
 
         /**
+         * @brief Adds the SourceBintr to a given Parent Bintr (PipelineSourcesBintr).
+         * @param[in] pParentBintr shared pointer to the Parent Bintr to add to.
+         * @return true on successful add, false otherwise.
+         */
+        bool AddToParent(DSL_BASE_PTR pParentBintr);
+
+        /**
+         * @brief Tests if a give Bintr is the parent of the SourceBintr.
+         * @param[in] pParentBintr shared pointer to the Bintr to test for parenthood.
+         * @return true if the Bintr is the parent, false otherwise.
+         */
+        bool IsParent(DSL_BASE_PTR pParentBintr);
+        
+        /**
+         * @brief Removes the SourceBintr from a give Parent Bintr.
+         * @param pParentBintr shared pointer to the parent Bintr to remove from.
+         * @return true on successfull remove, false otherwise.
+         */
+        bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
+
+        /**
          * @brief Function is overridden by all derived SourceBintrs
          */
         void UnlinkAll(){};
@@ -273,27 +294,6 @@ namespace DSL
         void UnlinkCommon();
 
         /**
-         * @brief Adds the SourceBintr to a given Parent Bintr (PipelineSourcesBintr).
-         * @param[in] pParentBintr shared pointer to the Parent Bintr to add to.
-         * @return true on successful add, false otherwise.
-         */
-        bool AddToParent(DSL_BASE_PTR pParentBintr);
-
-        /**
-         * @brief Tests if a give Bintr is the parent of the SourceBintr.
-         * @param[in] pParentBintr shared pointer to the Bintr to test for parenthood.
-         * @return true if the Bintr is the parent, false otherwise.
-         */
-        bool IsParent(DSL_BASE_PTR pParentBintr);
-        
-        /**
-         * @brief Removes the SourceBintr from a give Parent Bintr.
-         * @param pParentBintr shared pointer to the parent Bintr to remove from.
-         * @return true on successfull remove, false otherwise.
-         */
-        bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
-
-        /**
          * @brief Gets the current width and height settings for this SourceBintr
          * @param[out] width the current width setting in pixels
          * @param[out] height the current height setting in pixels
@@ -336,21 +336,21 @@ namespace DSL
         
         /**
          * @brief Gets the buffer-out-crop values for the SourceBintr.
-         * @param[in] when either DSL_CROP_PRE_CONVERSION or 
-         * DSL_CROP_POST_CONVERSION.
+         * @param[in] cropAt either DSL_VIDEO_CROP_AT_SRC or 
+         * DSL_VIDEO_CROP_AT_DESTINATION.
          * @param[out] left left coordinate for the crop frame in pixels.
          * @param[out] top top coordinate for the crop frame in pixels.
          * @param[out] width width of the crop frame in pixels.
          * @param[out] height height of the crop frame in pixels.
          * @return true if successfully set, false otherwise.
          */
-        void GetBufferOutCropRectangle(uint when, uint* left, uint* top, 
+        void GetBufferOutCropRectangle(uint cropAt, uint* left, uint* top, 
             uint* width, uint* height);
 
         /**
          * @brief Sets the buffer-out-crop values for the SourceBintr.
-         * @param[in] when either DSL_CROP_PRE_CONVERSION or 
-         * DSL_CROP_POST_CONVERSION.
+         * @param[in] cropAt either DSL_VIDEO_CROP_AT_SRC or 
+         * DSL_VIDEO_CROP_AT_DEST.
          * @param[in] left left coordinate for the crop frame in pixels.
          * @param[in] top top coordinate for the crop frame in pixels.
          * @param[in] width width of the crop frame in pixels.

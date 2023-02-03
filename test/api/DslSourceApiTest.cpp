@@ -239,7 +239,7 @@ SCENARIO( "A new App Source returns the correct attribute values", "[source-api]
                 uint ret_bo_rec_left(99), ret_bo_rec_top(99);
                 uint ret_bo_rec_width(99), ret_bo_rec_height(99);
                 REQUIRE( dsl_source_video_buffer_out_crop_rectangle_get(source_name.c_str(), 
-                    DSL_VIDEO_CROP_PRE_CONVERSION, &ret_bo_rec_left, &ret_bo_rec_top,
+                    DSL_VIDEO_CROP_AT_SRC, &ret_bo_rec_left, &ret_bo_rec_top,
                     &ret_bo_rec_width, &ret_bo_rec_height) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_bo_rec_left == 0 );
                 REQUIRE( ret_bo_rec_top == 0 );
@@ -250,7 +250,7 @@ SCENARIO( "A new App Source returns the correct attribute values", "[source-api]
                 ret_bo_rec_width = 99;
                 ret_bo_rec_height = 99;
                 REQUIRE( dsl_source_video_buffer_out_crop_rectangle_get(source_name.c_str(), 
-                    DSL_VIDEO_CROP_POST_CONVERSION, &ret_bo_rec_left, &ret_bo_rec_top,
+                    DSL_VIDEO_CROP_AT_SRC, &ret_bo_rec_left, &ret_bo_rec_top,
                     &ret_bo_rec_width, &ret_bo_rec_height) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_bo_rec_left == 0 );
                 REQUIRE( ret_bo_rec_top == 0 );
@@ -393,11 +393,11 @@ SCENARIO( "An App Source can update its buffer-out settings correctly",
 
             // first, make sure invalid when value is caught
             REQUIRE( dsl_source_video_buffer_out_crop_rectangle_set(source_name.c_str(), 
-                DSL_VIDEO_CROP_POST_CONVERSION+1, new_bo_rec_left, new_bo_rec_top,
+                DSL_VIDEO_CROP_AT_DEST+1, new_bo_rec_left, new_bo_rec_top,
                 new_bo_rec_width, new_bo_rec_height) == DSL_RESULT_SOURCE_SET_FAILED );
 
             REQUIRE( dsl_source_video_buffer_out_crop_rectangle_set(source_name.c_str(), 
-                DSL_VIDEO_CROP_PRE_CONVERSION, new_bo_rec_left, new_bo_rec_top,
+                DSL_VIDEO_CROP_AT_DEST, new_bo_rec_left, new_bo_rec_top,
                 new_bo_rec_width, new_bo_rec_height) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct values are returned on get" ) 
@@ -405,7 +405,7 @@ SCENARIO( "An App Source can update its buffer-out settings correctly",
                 uint ret_bo_rec_left(99), ret_bo_rec_top(99);
                 uint ret_bo_rec_width(99), ret_bo_rec_height(99);
                 REQUIRE( dsl_source_video_buffer_out_crop_rectangle_get(source_name.c_str(), 
-                    DSL_VIDEO_CROP_PRE_CONVERSION, &ret_bo_rec_left, &ret_bo_rec_top,
+                    DSL_VIDEO_CROP_AT_SRC, &ret_bo_rec_left, &ret_bo_rec_top,
                     &ret_bo_rec_width, &ret_bo_rec_height) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_bo_rec_left == new_bo_rec_left );
                 REQUIRE( ret_bo_rec_top == new_bo_rec_top );

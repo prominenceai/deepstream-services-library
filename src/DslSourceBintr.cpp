@@ -129,6 +129,40 @@ namespace DSL
         
         Services::GetServices()->_sourceNameErase(GetCStrName());
     }
+
+    bool SourceBintr::AddToParent(DSL_BASE_PTR pParentBintr)
+    {
+        LOG_FUNC();
+        
+        // add 'this' Source to the Parent Pipeline 
+        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+            AddSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
+    }
+
+    bool SourceBintr::IsParent(DSL_BASE_PTR pParentBintr)
+    {
+        LOG_FUNC();
+        
+        // check if 'this' Source is child of Parent Pipeline 
+        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+            IsSourceBintrChild(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
+    }
+
+    bool SourceBintr::RemoveFromParent(DSL_BASE_PTR pParentBintr)
+    {
+        LOG_FUNC();
+        
+        if (!IsParent(pParentBintr))
+        {
+            LOG_ERROR("Source '" << GetName() << "' is not a child of Pipeline '" 
+                << pParentBintr->GetName() << "'");
+            return false;
+        }
+        
+        // remove 'this' Source from the Parent Pipeline 
+        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+            RemoveSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
+    }
     
     VideoSourceBintr::VideoSourceBintr(const char* name)
         : SourceBintr(name)
@@ -189,40 +223,6 @@ namespace DSL
         LOG_FUNC();
     }
     
-    bool VideoSourceBintr::AddToParent(DSL_BASE_PTR pParentBintr)
-    {
-        LOG_FUNC();
-        
-        // add 'this' Source to the Parent Pipeline 
-        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
-            AddSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
-    }
-
-    bool VideoSourceBintr::IsParent(DSL_BASE_PTR pParentBintr)
-    {
-        LOG_FUNC();
-        
-        // check if 'this' Source is child of Parent Pipeline 
-        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
-            IsSourceBintrChild(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
-    }
-
-    bool VideoSourceBintr::RemoveFromParent(DSL_BASE_PTR pParentBintr)
-    {
-        LOG_FUNC();
-        
-        if (!IsParent(pParentBintr))
-        {
-            LOG_ERROR("Source '" << GetName() << "' is not a child of Pipeline '" 
-                << pParentBintr->GetName() << "'");
-            return false;
-        }
-        
-        // remove 'this' Source from the Parent Pipeline 
-        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
-            RemoveSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
-    }
-
     bool VideoSourceBintr::LinkToCommon(DSL_NODETR_PTR pSrcNodetr)
     {
         LOG_FUNC();
@@ -380,14 +380,14 @@ namespace DSL
         }
     }
     
-    void VideoSourceBintr::GetBufferOutCropRectangle(uint when, 
+    void VideoSourceBintr::GetBufferOutCropRectangle(uint cropAt, 
         uint* left, uint* top, uint* width, uint* height)
     {
         LOG_FUNC();
         
         const char* cropCString;
 
-        if (when == DSL_VIDEO_CROP_PRE_CONVERSION)
+        if (cropAt == DSL_VIDEO_CROP_AT_SRC)
         {
             m_pBufferOutVidConv->GetAttribute("src-crop", &cropCString);
         }
@@ -413,7 +413,7 @@ namespace DSL
         *height = std::stoul(tokens[3]);
     }
     
-    bool VideoSourceBintr::SetBufferOutCropRectangle(uint when, 
+    bool VideoSourceBintr::SetBufferOutCropRectangle(uint cropAt, 
         uint left, uint top, uint width, uint height)
     {
         LOG_FUNC();
@@ -432,7 +432,7 @@ namespace DSL
             std::to_string(width) + ":" +
             std::to_string(height));
         
-        if (when == DSL_VIDEO_CROP_PRE_CONVERSION)
+        if (cropAt == DSL_VIDEO_CROP_AT_SRC)
         {
             m_pBufferOutVidConv->SetAttribute("src-crop", cropSettings.c_str());
         }

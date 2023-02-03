@@ -221,28 +221,28 @@ SCENARIO( "A Buffer Timeout PPH calls its handler function correctly ", "[hold]"
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_image_new(source_name1.c_str(), 
+        REQUIRE( dsl_source_image_single_new(source_name1.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_buffer_timeout_new(buffer_timeout_name_1.c_str(), 
             1, buffer_timeout_handler_cb, NULL) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_pph_add(source_name1.c_str(), 
             buffer_timeout_name_1.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_source_image_new(source_name2.c_str(), 
+        REQUIRE( dsl_source_image_single_new(source_name2.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_buffer_timeout_new(buffer_timeout_name_2.c_str(), 
             1, buffer_timeout_handler_cb, NULL) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_pph_add(source_name2.c_str(), 
             buffer_timeout_name_2.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_source_image_new(source_name3.c_str(), 
+        REQUIRE( dsl_source_image_single_new(source_name3.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_buffer_timeout_new(buffer_timeout_name_3.c_str(), 
             1, buffer_timeout_handler_cb, NULL) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_pph_add(source_name3.c_str(), 
             buffer_timeout_name_3.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_source_image_new(source_name4.c_str(), 
+        REQUIRE( dsl_source_image_single_new(source_name4.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_buffer_timeout_new(buffer_timeout_name_4.c_str(), 
             1, buffer_timeout_handler_cb, NULL) == DSL_RESULT_SUCCESS );

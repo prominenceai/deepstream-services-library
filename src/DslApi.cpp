@@ -3760,7 +3760,7 @@ DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name,
         enabled);
 }
 
-DslReturnType dsl_source_image_new(const wchar_t* name, 
+DslReturnType dsl_source_image_single_new(const wchar_t* name, 
     const wchar_t* file_path)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4169,7 +4169,7 @@ DslReturnType dsl_source_video_buffer_out_dimensions_set(const wchar_t* name,
 }
 
 DslReturnType dsl_source_video_buffer_out_crop_rectangle_get(const wchar_t* name,
-    uint when, uint* left, uint* top, uint* width, uint* height)
+    uint crop_at, uint* left, uint* top, uint* width, uint* height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(left);
@@ -4181,11 +4181,11 @@ DslReturnType dsl_source_video_buffer_out_crop_rectangle_get(const wchar_t* name
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->SourceVideoBufferOutCropRectangleGet(
-        cstrName.c_str(), when, left, top, width, height);
+        cstrName.c_str(), crop_at, left, top, width, height);
 }
 
 DslReturnType dsl_source_video_buffer_out_crop_rectangle_set(const wchar_t* name,
-    uint when, uint left, uint top, uint width, uint height)
+    uint crop_at, uint left, uint top, uint width, uint height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -4193,7 +4193,7 @@ DslReturnType dsl_source_video_buffer_out_crop_rectangle_set(const wchar_t* name
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->SourceVideoBufferOutCropRectangleSet(
-        cstrName.c_str(), when, left, top, width, height);
+        cstrName.c_str(), crop_at, left, top, width, height);
 }
 
 DslReturnType dsl_source_video_buffer_out_orientation_get(const wchar_t* name,

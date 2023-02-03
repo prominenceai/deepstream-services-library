@@ -62,9 +62,36 @@ DSL_GPU_TYPE_INTEGRATED = 0
 DSL_GPU_TYPE_DISCRETE   = 1
 
 DSL_NVBUF_MEM_TYPE_DEFAULT = 0
-DSL_NVBUF_MEM_PINNED  = 1
+DSL_NVBUF_MEM_PINNED       = 1
 DSL_NVBUF_MEM_TYPE_DEVICE  = 2
 DSL_NVBUF_MEM_TYPE_UNIFIED = 3
+
+# DSL Stream Format Types
+DSL_STREAM_FORMAT_BYTE = 2
+DSL_STREAM_FORMAT_TIME = 3
+
+# DSL Media Types - Used by all Source Components
+DSL_MEDIA_TYPE_VIDEO_XRAW = "video/x-raw"
+DSL_MEDIA_TYPE_AUDIO_XRAW = "audio/x-raw"
+
+# DSL Video Format Types - Used by all Video Source Components
+DSL_VIDEO_FORMAT_I420    = "I420"
+DSL_VIDEO_FORMAT_NV12    = "NV12"
+DSL_VIDEO_FORMAT_RGBA    = "RGBA"   
+
+# Constants defining the two crop_at positions.
+DSL_VIDEO_CROP_AT_SRC  = 0
+DSL_VIDEO_CROP_AT_DEST = 1
+ 
+# Constants defining the possible buffer-out orientation methods.
+DSL_VIDEO_ORIENTATION_NONE                            = 0       
+DSL_VIDEO_ORIENTATION_ROTATE_COUNTER_CLOCKWISE_90     = 1
+DSL_VIDEO_ORIENTATION_ROTATE_180                      = 2
+DSL_VIDEO_ORIENTATION_ROTATE_CLOCKWISE_90             = 3
+DSL_VIDEO_ORIENTATION_FLIP_HORIZONTALLY               = 4
+DSL_VIDEO_ORIENTATION_FLIP_UPPER_RIGHT_TO_LOWER_LEFT  = 5
+DSL_VIDEO_ORIENTATION_FLIP_VERTICALLY                 = 6
+DSL_VIDEO_ORIENTATION_FLIP_UPPER_LEFT_TO_LOWER_RIGHT  = 7
 
 DSL_SOURCE_CODEC_PARSER_H264 = 0
 DSL_SOURCE_CODEC_PARSER_H265 = 1
@@ -3197,13 +3224,13 @@ def dsl_source_file_repeat_enabled_set(name, enabled):
     return int(result)
 
 ##
-## dsl_source_image_new()
+## dsl_source_image_single_new()
 ##
-_dsl.dsl_source_image_new.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_source_image_new.restype = c_uint
-def dsl_source_image_new(name, file_path):
+_dsl.dsl_source_image_single_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_image_single_new.restype = c_uint
+def dsl_source_image_single_new(name, file_path):
     global _dsl
-    result = _dsl.dsl_source_image_new(name, file_path)
+    result = _dsl.dsl_source_image_single_new(name, file_path)
     return int(result)
 
 ##
@@ -3485,13 +3512,13 @@ def dsl_source_video_buffer_out_dimensions_set(name, width, height):
 _dsl.dsl_source_video_buffer_out_crop_rectangle_get.argtypes = [c_wchar_p, 
     c_uint, POINTER(c_uint), POINTER(c_uint), POINTER(c_uint), POINTER(c_uint)]
 _dsl.dsl_source_video_buffer_out_crop_rectangle_get.restype = c_uint
-def dsl_source_video_buffer_out_crop_rectangle_get(name, when):
+def dsl_source_video_buffer_out_crop_rectangle_get(name, crop_at):
     global _dsl
     left = c_uint(0)
     top = c_uint(0)
     width = c_uint(0)
     height = c_uint(0)
-    result = _dsl.dsl_source_video_buffer_out_crop_rectangle_get(name, when,
+    result = _dsl.dsl_source_video_buffer_out_crop_rectangle_get(name, crop_at,
         DSL_UINT_P(left), DSL_UINT_P(top), DSL_UINT_P(width), DSL_UINT_P(height))
     return int(result), left.value, top.value, width.value, height.value 
 
@@ -3501,10 +3528,10 @@ def dsl_source_video_buffer_out_crop_rectangle_get(name, when):
 _dsl.dsl_source_video_buffer_out_crop_rectangle_set.argtypes = [c_wchar_p, 
     c_uint, c_uint, c_uint, c_uint, c_uint]
 _dsl.dsl_source_video_buffer_out_crop_rectangle_set.restype = c_uint
-def dsl_source_video_buffer_out_crop_rectangle_set(name, when,
+def dsl_source_video_buffer_out_crop_rectangle_set(name, crop_at,
     left, top, width, height):
     global _dsl
-    result = _dsl.dsl_source_video_buffer_out_crop_rectangle_set(name, when,
+    result = _dsl.dsl_source_video_buffer_out_crop_rectangle_set(name, crop_at,
         left, top, width, height)
     return int(result)
 

@@ -104,7 +104,7 @@ SCENARIO( "A new Pipeline with a JPEG Image Source, Primary GIE, Tiled Display, 
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_image_new(source_name1.c_str(),
+        REQUIRE( dsl_source_image_single_new(source_name1.c_str(),
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
@@ -168,7 +168,7 @@ SCENARIO( "A new Pipeline with a Single Image Source, Primary GIE, Tiled Display
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_image_new(source_name1.c_str(),
+        REQUIRE( dsl_source_image_single_new(source_name1.c_str(),
             mjpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
@@ -229,13 +229,13 @@ SCENARIO( "A new Pipeline with 4 JPEG Image Sources, Primary GIE, \
 
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_image_new(source_name1.c_str(), 
+        REQUIRE( dsl_source_image_single_new(source_name1.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_image_new(source_name2.c_str(), 
+        REQUIRE( dsl_source_image_single_new(source_name2.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_image_new(source_name3.c_str(), 
+        REQUIRE( dsl_source_image_single_new(source_name3.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_image_new(source_name4.c_str(), 
+        REQUIRE( dsl_source_image_single_new(source_name4.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 

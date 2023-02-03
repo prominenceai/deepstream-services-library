@@ -1757,7 +1757,7 @@ namespace DSL
     }                
     
     DslReturnType Services::SourceVideoBufferOutCropRectangleGet(const char* name, 
-        uint when, uint* left, uint* top, uint* width, uint* height)
+        uint cropAt, uint* left, uint* top, uint* width, uint* height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1770,11 +1770,11 @@ namespace DSL
             DSL_VIDEO_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
-            pSourceBintr->GetBufferOutCropRectangle(when, 
+            pSourceBintr->GetBufferOutCropRectangle(cropAt, 
                 left, top, width, height);
 
-            LOG_INFO("Source '" << name << "' returned when = "
-                << when << " left = " << *left 
+            LOG_INFO("Source '" << name << "' returned crop_at = "
+                << cropAt << " left = " << *left 
                 << ", top = " << *top << ", width = "
                 << *width << ", and height = " << *height
                 << " for buffer-out-crop-rectangle successfully");
@@ -1790,7 +1790,7 @@ namespace DSL
     }                
 
     DslReturnType Services::SourceVideoBufferOutCropRectangleSet(const char* name, 
-        uint when, uint left, uint top, uint width, uint height)
+        uint cropAt, uint left, uint top, uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1803,25 +1803,25 @@ namespace DSL
             DSL_VIDEO_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
-            if (when > DSL_VIDEO_CROP_POST_CONVERSION)
+            if (cropAt > DSL_VIDEO_CROP_AT_DEST)
             {
-                LOG_ERROR("Invalid 'when' = " << when 
+                LOG_ERROR("Invalid 'crop_at' = " << cropAt 
                     << " setting buffer-out-crop rectangel for Source '"
                     << name << "'");
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
-            if (!pSourceBintr->SetBufferOutCropRectangle(when, 
+            if (!pSourceBintr->SetBufferOutCropRectangle(cropAt, 
                 left, top, width, height))
             {
-                LOG_ERROR("Failed to set buffer-out-crop-rectangle to when = " 
-                    << when << ", left = " << left << ", top = " 
+                LOG_ERROR("Failed to set buffer-out-crop-rectangle to crop_at = " 
+                    << cropAt << ", left = " << left << ", top = " 
                     << top << ", width = " << width <<", and height = "
                     << height << " for Source '" << name << "'");
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
 
-            LOG_INFO("Source '" << name << "' set when = "
-                << when << ", left = " << left << ", top = " 
+            LOG_INFO("Source '" << name << "' set crop_at = "
+                << cropAt << ", left = " << left << ", top = " 
                 << top << ", width = " << width << ", and height = " 
                 << height << " for buffer-out-crop-rectangle successfully");
 

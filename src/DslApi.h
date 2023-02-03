@@ -504,10 +504,9 @@ THE SOFTWARE.
  */
 #define DSL_MEDIA_TYPE_VIDEO_XRAW                                   L"video/x-raw"
 #define DSL_MEDIA_TYPE_AUDIO_XRAW                                   L"audio/x-raw"
-#define DSL_MEDIA_TYPE_IMAGE_JPEG                                   L"image/jpeg"
 
 /**
- * @brief DSL Video Format Types - Used by all Source Components
+ * @brief DSL Video Format Types - Used by all Video Source Components
  */
 #define DSL_VIDEO_FORMAT_I420                                       L"I420"
 #define DSL_VIDEO_FORMAT_NV12                                       L"NV12"
@@ -515,15 +514,14 @@ THE SOFTWARE.
 #define DSL_VIDEO_FORMAT_DEFAULT                                    DSL_VIDEO_FORMAT_I420
 
 /**
- * @brief Constants defining when to crop the output buffer for a 
- * given Source Component. Pre or post video conversion (if done).
+ * @brief Constants defining the two crop_at positions.
  * The constants map to the nvvideoconvert elements src-crop and 
  * dest-crop properties. See...
  * https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvvideoconvert.html#gst-nvvideoconvert
  */
-#define DSL_VIDEO_CROP_PRE_CONVERSION                               0
-#define DSL_VIDEO_CROP_POST_CONVERSION                              1
-
+#define DSL_VIDEO_CROP_AT_SRC                                       0
+#define DSL_VIDEO_CROP_AT_DEST                                      1
+ 
 /**
  * @brief Constants defining the possible buffer-out orientation methods.
  */
@@ -4439,7 +4437,7 @@ DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name, boolean en
  * @param[in] file_path absolute or relative path to the image file to play
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_image_new(const wchar_t* name, 
+DslReturnType dsl_source_image_single_new(const wchar_t* name, 
     const wchar_t* file_path);
 
 /**
@@ -4697,8 +4695,8 @@ DslReturnType dsl_source_video_buffer_out_dimensions_set(const wchar_t* name,
  * The buffer can be cropped pre-video-conversion and/or post-video-conversion.
  * The default is no-crop with left, top, width, and height all 0
  * @param name unique name of the Source Component to query.
- * @param[in] when specifies which of the crop rectangles to query, either 
- * DSL_VIDEO_CROP_PRE_CONVERSION or DSL_VIDEO_CROP_POST_CONVERSION.
+ * @param[in] crop_at specifies which of the crop rectangles to query, either 
+ * DSL_VIDEO_CROP_AT_SRC or DSL_VIDEO_CROP_AT_DEST.
  * @param[out] left left positional coordinate of the rectangle in units of pixels.
  * @param[out] top top positional coordinate of the rectangle in units of pixels.
  * @param[out] width width of the rectangle in units of pixels.
@@ -4706,15 +4704,15 @@ DslReturnType dsl_source_video_buffer_out_dimensions_set(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
  */
 DslReturnType dsl_source_video_buffer_out_crop_rectangle_get(const wchar_t* name,
-    uint when, uint* left, uint* top, uint* width, uint* height);
+    uint crop_at, uint* left, uint* top, uint* width, uint* height);
     
 /**
  * @brief Sets one of the buffer-out crop-rectangle for the named Source component.
  * The buffer can be cropped pre-video-conversion and/or post-video-conversion.
  * For no-crop, set left, top, width, and height all to 0 (default)
  * @param name unique name of the Source Component to query.
- * @param[in] when specifies which of the crop rectangles to update, either 
- * DSL_VIDEO_CROP_PRE_CONVERSION or DSL_VIDEO_CROP_POST_CONVERSION.
+ * @param[in] crop_at specifies which of the crop rectangles to update, either 
+ * DSL_VIDEO_CROP_AT_SRC or DSL_VIDEO_CROP_AT_DEST.
  * @param[in] left left positional coordinate of the rectangle in units of pixels.
  * @param[in] top top positional coordinate of the rectangle in units of pixels.
  * @param[in] width width of the rectangle in units of pixels.
@@ -4722,7 +4720,7 @@ DslReturnType dsl_source_video_buffer_out_crop_rectangle_get(const wchar_t* name
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
  */
 DslReturnType dsl_source_video_buffer_out_crop_rectangle_set(const wchar_t* name,
-    uint when, uint left, uint top, uint width, uint height);
+    uint crop_at, uint left, uint top, uint width, uint height);
     
 /**
  * @brief Gets the current buffer-out-orientation for the named Source component.
