@@ -92,7 +92,7 @@ static const uint sink_height(720);
 SCENARIO( "A new Pipeline with a Primary GIE, DCF Tracker with its Batch Processing \
     and Past Frame Reporting enabled", "[tracker-play]" )
 {
-    GIVEN( "A Pipeline, File source, Primary GIE, KTL Tracker, OSD, and Overlay Sink" ) 
+    GIVEN( "A Pipeline, File source, Primary GIE, DCF Tracker, OSD, and Overlay Sink" ) 
     {
         
         boolean inference_interval(4);
@@ -158,7 +158,7 @@ SCENARIO( "A new Pipeline with a Primary GIE, DCF Tracker with its Batch Process
 SCENARIO( "A new Pipeline with a Primary GIE, DCF Tracker with its Batch Processing and \
     Past Frame Reporting disabled", "[tracker-play]" )
 {
-    GIVEN( "A Pipeline, File source, Primary GIE, KTL Tracker, OSD, and Overlay Sink" ) 
+    GIVEN( "A Pipeline, File source, Primary GIE, DCF Tracker, OSD, and Overlay Sink" ) 
     {
         boolean inference_interval(4);
         boolean batch_processing_enabled(false);
