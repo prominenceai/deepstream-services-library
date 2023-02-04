@@ -490,18 +490,17 @@ namespace DSL
         bool UnlinkFromSource();
         
         /**
+         * @brief sets the Infer-on name for this Bintr
+         * @return true if this Bintr was able to set its Infer-on name, false otherwise
+         */
+        bool SetInferOnUniqueId();
+        
+        /**
          * @brief returns the unique Id of the InferBintr this SecondarInferBintr 
          * should infer on
          * @return unique Id for the Infer-on Bintr
          */
         uint GetInferOnUniqueId();
-        
-        /**
-         * @brief sets the Infer-on name for this Bintr
-         * @param[in] the new name of the Infer Bintr to infer on 
-         * @return true if this Bintr was able to set its Infer-on name, false otherwise
-         */
-        bool SetInferOnName(const char* name);
         
         /**
          * @brief gets the current Infer-on name in use by this SecondaryInferBintr

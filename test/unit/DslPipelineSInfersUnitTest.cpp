@@ -87,10 +87,6 @@ SCENARIO( "A SecondaryInferBintr can be added to a PipelineSInfersBintr", "[Pipe
             DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), sgieInferConfigFile1.c_str(), 
             sgieModelEngineFile1.c_str(), primaryGieName.c_str(), 0, DSL_INFER_TYPE_GIE);
 
-        REQUIRE( pSecondaryInferBintr->GetUniqueId() == secondaryUniqueId);
-        REQUIRE( pSecondaryInferBintr->SetInferOnName(primaryGieName.c_str()) == true );
-        REQUIRE( pSecondaryInferBintr->GetInferOnUniqueId() == primaryUniqueId);
-
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());
 
@@ -116,8 +112,6 @@ SCENARIO( "A SecondaryInferBintr can be removed from a PipelineSInfersBintr", "[
         DSL_SECONDARY_INFER_PTR pSecondaryInferBintr = 
             DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), sgieInferConfigFile1.c_str(), 
             sgieModelEngineFile1.c_str(), primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-
-        REQUIRE( pSecondaryInferBintr->GetUniqueId() == secondaryUniqueId);
 
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());
