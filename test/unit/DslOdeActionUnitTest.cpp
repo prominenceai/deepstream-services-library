@@ -941,29 +941,28 @@ SCENARIO( "A OffsetLabelOdeAction handles an ODE Occurence correctly", "[OdeActi
                 REQUIRE( objectMeta.text_params.y_offset == exp_y_offset );
             }
         }
-        // Currently not truncating bounding box. Allowing out of bounds.
-//        WHEN( "offsets are defined positive and out-of-frame" )
-//        {
-//            int offsetX(25), offsetY(15);
-//
-//            DSL_ODE_ACTION_LABEL_OFFSET_PTR pAction = DSL_ODE_ACTION_LABEL_OFFSET_NEW(
-//                actionName.c_str(), offsetX, offsetY);
-//
-//            objectMeta.text_params.x_offset = DSL_STREAMMUX_DEFAULT_WIDTH-10;
-//            objectMeta.text_params.y_offset = DSL_STREAMMUX_DEFAULT_HEIGHT-10;;
-//                
-//            THEN( "The OdeAction can Handle the Occurrence" )
-//            {
-//                uint exp_x_offset(DSL_STREAMMUX_DEFAULT_WIDTH-1), 
-//                    exp_y_offset(DSL_STREAMMUX_DEFAULT_HEIGHT-1);
-//                
-//                pAction->HandleOccurrence(pTrigger, NULL, 
-//                    displayMetaData, &frameMeta, &objectMeta);
-//                    
-//                REQUIRE( objectMeta.text_params.x_offset == exp_x_offset );
-//                REQUIRE( objectMeta.text_params.y_offset == exp_y_offset );
-//            }
-//        }
+        WHEN( "offsets are defined positive and out-of-frame" )
+        {
+            int offsetX(25), offsetY(15);
+
+            DSL_ODE_ACTION_LABEL_OFFSET_PTR pAction = DSL_ODE_ACTION_LABEL_OFFSET_NEW(
+                actionName.c_str(), offsetX, offsetY);
+
+            objectMeta.text_params.x_offset = DSL_STREAMMUX_DEFAULT_WIDTH-10;
+            objectMeta.text_params.y_offset = DSL_STREAMMUX_DEFAULT_HEIGHT-10;;
+                
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                uint exp_x_offset(DSL_STREAMMUX_DEFAULT_WIDTH-1), 
+                    exp_y_offset(DSL_STREAMMUX_DEFAULT_HEIGHT-1);
+                
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
+                    
+                REQUIRE( objectMeta.text_params.x_offset == exp_x_offset );
+                REQUIRE( objectMeta.text_params.y_offset == exp_y_offset );
+            }
+        }
     }
 }
 

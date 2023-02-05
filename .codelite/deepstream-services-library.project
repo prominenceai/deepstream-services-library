@@ -154,9 +154,6 @@
       <File Name="../test/api/DslPphBehaviorTest.cpp"/>
       <File Name="../test/api/DslInferApiTest.cpp"/>
       <File Name="../test/api/DslCrossTriggerExampleTest.cpp"/>
-      <File Name="../test/api/DslSourceBufferOutBehaviorTest.cpp"/>
-      <File Name="../test/api/DslDewarperBehaviorTest.cpp"/>
-      <File Name="../test/api/DslDewarperApiTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDemuxerAndTeeUnitTest.cpp"/>
@@ -285,9 +282,7 @@
       <File Name="../examples/python/dyn_uri_file_pgie_iou_tracker_tiler_osd_window.py"/>
       <File Name="../examples/python/segmentation_industrial.py"/>
       <File Name="../examples/python/segmentation_semantic.py"/>
-      <File Name="../examples/python/video_dewarper_360.py"/>
-      <File Name="../examples/python/1uri_file_pgie_iou_tracker_app_sink.py"/>
-      <File Name="../examples/python/video_dewarper_perspective.py"/>
+      <File Name="../examples/python/1uri_file_pgi_iou_tracker_app_sink.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>

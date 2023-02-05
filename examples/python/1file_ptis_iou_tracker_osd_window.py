@@ -34,7 +34,7 @@ from dsl import *
 # This script demonstrates the use of a Primary Triton Inference Server (PTIS). The PTIS
 # requires a unique name, TIS inference config file, and inference interval when created.
 #
-# The PTIS is added to a new Pipeline with a single File Source, IOU Tracker, 
+# The PTIS is added to a new Pipeline with a single File Source, KTL Tracker, 
 # On-Screen-Display (OSD), and Window Sink with 1280x720 dimensions.
 
 # File path for the single File Source

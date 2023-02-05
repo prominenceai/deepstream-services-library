@@ -226,13 +226,6 @@ namespace DSL
         // Link in all secondary infers that are set to infer on the Primary
         for (auto const& imap: m_pChildSInfers)
         {
-            if (!imap.second->SetInferOnUniqueId())
-            {
-                LOG_ERROR("PipelineSInfersBintr '" << GetName() 
-                    << "' failed to set infer-on-id for SecondaryInferBintr '" 
-                    << imap.second->GetName() << "'");
-                return false;
-            }
             if (imap.second->GetInferOnUniqueId() == m_primaryInferUniqueId)
             {
                 // batch size is set to that of the Primary GIE

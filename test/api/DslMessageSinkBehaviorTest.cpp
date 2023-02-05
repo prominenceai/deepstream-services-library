@@ -35,7 +35,7 @@ static const std::wstring pipeline_name(L"test-pipeline");
 
 static const std::wstring source_name1(L"uri-source");
 static const std::wstring uri(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
-static const uint skip_frames(0);
+static const uint intr_decode(false);
 static const uint drop_frame_interval(0); 
 
 static const std::wstring primary_gie_name(L"primary-gie");
@@ -89,7 +89,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Tiled Display, Window 
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );

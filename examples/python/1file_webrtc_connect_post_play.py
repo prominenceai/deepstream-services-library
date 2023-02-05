@@ -137,7 +137,7 @@ def main(args):
         #     uri = rtsp_uri,     
         #     protocol = DSL_RTP_ALL,     
         #     cudadec_mem_type = DSL_NVBUF_MEM_TYPE_DEFAULT,     
-        #     skip_frames = 0,     
+        #     intra_decode = False,     
         #     drop_frame_interval = 0,     
         #     latency = 100,
         #     timeout = 5)    

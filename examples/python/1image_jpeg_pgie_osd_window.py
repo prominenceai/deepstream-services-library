@@ -90,7 +90,7 @@ def main(args):
     while True:
 
         # New URI Image Source - single frame to End of Stream.
-        retval = dsl_source_image_single_new('image-source', 
+        retval = dsl_source_image_new('image-source', 
             file_path = file_path)
         if retval != DSL_RETURN_SUCCESS:
             break

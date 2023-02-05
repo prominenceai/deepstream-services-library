@@ -99,7 +99,6 @@ THE SOFTWARE.
 #define DSL_RESULT_DEWARPER_NAME_BAD_FORMAT                         0x00090003
 #define DSL_RESULT_DEWARPER_THREW_EXCEPTION                         0x00090004
 #define DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND                   0x00090005
-#define DSL_RESULT_DEWARPER_SET_FAILED                              0x00090006
 
 /**
  * Tracker API Return Values
@@ -493,55 +492,18 @@ THE SOFTWARE.
 #define DSL_NVBUF_MEM_TYPE_UNIFIED                                  3
 
 /**
- * @brief DSL Stream Format Types
+ * @brief GST Buffer format types
  */
 // must match GstFormat values
-#define DSL_STREAM_FORMAT_BYTE                                      2
-#define DSL_STREAM_FORMAT_TIME                                      3
+#define DSL_BUFFER_FORMAT_BYTE                                      2
+#define DSL_BUFFER_FORMAT_TIME                                      3
 
 /**
- * @brief DSL Media Types - Used by all Source Components
+ * @brief GST Stream format types
  */
-#define DSL_MEDIA_TYPE_VIDEO_XRAW                                   L"video/x-raw"
-#define DSL_MEDIA_TYPE_AUDIO_XRAW                                   L"audio/x-raw"
-
-/**
- * @brief DSL Video Format Types - Used by all Video Source Components
- */
-#define DSL_VIDEO_FORMAT_I420                                       L"I420"
-#define DSL_VIDEO_FORMAT_NV12                                       L"NV12"
-#define DSL_VIDEO_FORMAT_RGBA                                       L"RGBA"   
-#define DSL_VIDEO_FORMAT_DEFAULT                                    DSL_VIDEO_FORMAT_I420
-
-/**
- * @brief Constants defining the two crop_at positions.
- * The constants map to the nvvideoconvert elements src-crop and 
- * dest-crop properties. See...
- * https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvvideoconvert.html#gst-nvvideoconvert
- */
-#define DSL_VIDEO_CROP_AT_SRC                                       0
-#define DSL_VIDEO_CROP_AT_DEST                                      1
- 
-/**
- * @brief Constants defining the possible buffer-out orientation methods.
- */
-// Important - must match the nvvidconvert flip method constant values 
-#define DSL_VIDEO_ORIENTATION_NONE                                  0       
-#define DSL_VIDEO_ORIENTATION_ROTATE_COUNTER_CLOCKWISE_90           1
-#define DSL_VIDEO_ORIENTATION_ROTATE_180                            2
-#define DSL_VIDEO_ORIENTATION_ROTATE_CLOCKWISE_90                   3
-#define DSL_VIDEO_ORIENTATION_FLIP_HORIZONTALLY                     4
-#define DSL_VIDEO_ORIENTATION_FLIP_UPPER_RIGHT_TO_LOWER_LEFT        5
-#define DSL_VIDEO_ORIENTATION_FLIP_VERTICALLY                       6
-#define DSL_VIDEO_ORIENTATION_FLIP_UPPER_LEFT_TO_LOWER_RIGHT        7
-
-/**
- * @brief Additional number of surfaces in addition to min decode 
- * surfaces given by the v4l2 driver. This value is used by the 
- * Decode sources and Pipeline-Streammuxer 
- */
-#define DSL_DEFAULT_NUM_EXTRA_SURFACES                              1
-
+#define DSL_STREAM_FORMAT_I420                                      0
+#define DSL_STREAM_FORMAT_RGBA                                      1   
+#define DSL_STREAM_FORMAT_NV12                                      2
 
 #define DSL_SOURCE_CODEC_PARSER_H264                                0
 #define DSL_SOURCE_CODEC_PARSER_H265                                1
@@ -707,11 +669,11 @@ THE SOFTWARE.
 /**
  * @brief ODE Trigger limit state values - for Triggers with limits
  */
-#define DSL_ODE_TRIGGER_LIMIT_EVENT_REACHED                         0
-#define DSL_ODE_TRIGGER_LIMIT_EVENT_CHANGED                         1
-#define DSL_ODE_TRIGGER_LIMIT_FRAME_REACHED                         2
-#define DSL_ODE_TRIGGER_LIMIT_FRAME_CHANGED                         3
-#define DSL_ODE_TRIGGER_LIMIT_COUNTS_RESET                          4
+#define DSL_ODE_TRIGGER_LIMIT_EVENT_REACHED                   0
+#define DSL_ODE_TRIGGER_LIMIT_EVENT_CHANGED                   1
+#define DSL_ODE_TRIGGER_LIMIT_FRAME_REACHED                   2
+#define DSL_ODE_TRIGGER_LIMIT_FRAME_CHANGED                   3
+#define DSL_ODE_TRIGGER_LIMIT_COUNTS_RESET                    4
 
 /**
  * @brief Unique class relational identifiers for Class A/B testing
@@ -2534,7 +2496,7 @@ DslReturnType dsl_ode_action_enabled_get(const wchar_t* name, boolean* enabled);
  * @brief Sets the enabled setting for the ODE Action
  * @param[in] name unique name of the ODE Action to update
  * @param[in] enabled true if the ODE Action is currently enabled, false otherwise
- * @return DSL_RESULT_SUCCESS on successful set, DSL_RESULT_ODE_ACTION otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_enabled_set(const wchar_t* name, boolean enabled);
 
@@ -2544,7 +2506,7 @@ DslReturnType dsl_ode_action_enabled_set(const wchar_t* name, boolean enabled);
  * @param[in] name name of the ODE Action to update.
  * @param[in] listener pointer to the client's function to call on state change
  * @param[in] client_data opaque pointer to client data passed into the listener function.
- * @return DSL_RESULT_SUCCESS on successful set, DSL_RESULT_ODE_ACTION otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_enabled_state_change_listener_add(const wchar_t* name,
     dsl_ode_enabled_state_change_listener_cb listener, void* client_data);
@@ -4115,7 +4077,7 @@ uint dsl_pph_list_size();
  * @param[in] name unique name for the new Source.
  * @param[in] is_live set to true to instruct the source to behave like a 
  * live source. This includes that it will only push out buffers in the PLAYING state.
- * @param[in] buffer_in_format one of the DSL_VIDEO_FORMAT constants.
+ * @param[in] stream_format one of the DSL_STREAM_FORMAT constants.
  * @param[in] width width of the source in pixels.
  * @param[in] height height of the source in pixels.
  * @param[in] fps-n frames/second fraction numerator.
@@ -4123,7 +4085,7 @@ uint dsl_pph_list_size();
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_app_new(const wchar_t* name, boolean is_live, 
-    const wchar_t* buffer_in_format, uint width, uint height, uint fps_n, uint fps_d);
+    uint stream_format, uint width, uint height, uint fps_n, uint fps_d);
     
 /**
  * @brief Adds data-handler callback functions to a named App Source component.
@@ -4174,46 +4136,26 @@ DslReturnType dsl_source_app_sample_push(const wchar_t* name, void* sample);
 DslReturnType dsl_source_app_eos(const wchar_t* name);
 
 /**
- * @brief Gets the current stream-format setting for the named App Source Component.
+ * @brief Gets the current buffer-format setting for the named App Source Component.
  * @param[in] name unique name of the App Source to query.
- * @param[out] stream_format one of the DSL_STREAM_FORMAT constants. 
- * Default = DSL_STREAM_FORMAT_BYTE.
+ * @param[out] buffer_format one of the DSL_BUFFER_FORMAT constants. 
+ * Default = DSL_BUFFER_FORMAT_BYTE.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_app_stream_format_get(const wchar_t* name, 
-    uint* stream_format);
+DslReturnType dsl_source_app_buffer_format_get(const wchar_t* name, 
+    uint* buffer_format);
 
 /**
- * @brief Sets the stream-format setting for the named App Source Component.
+ * @brief Sets the buffer-format setting for the named App Source Component.
  * @param[in] name unique name of the App Source to update.
- * @param[in] stream_format one of the DSL_STREAM_FORMAT constants. 
+ * @param[in] buffer_format one of the DSL_BUFFER_FORMAT constants. 
  * The format to use for segment events. When the source is producing timestamped 
- * buffers this property should be set to DSL_STREAM_FORMAT_TIME.
+ * buffers this property should be set to DSL_BUFFER_FORMAT_TIME.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_app_stream_format_set(const wchar_t* name, 
-    uint stream_format);
+DslReturnType dsl_source_app_buffer_format_set(const wchar_t* name, 
+    uint buffer_format);
 
-/**
- * @brief Gets the do-timestamp setting for the named Source Component.
- * @param[in] name unique name of the Source Component to query.
- * @param[out] do_timestamp if TRUE, the base class will automatically 
- * timestamp outgoing buffers based on the current running_time.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_app_do_timestamp_get(const wchar_t* name, 
-    boolean* do_timestamp);
-
-/**
- * @brief Gets the do-timestamp setting for the named Source Component.
- * @param[in] name unique name of the Source Component to update.
- * @param[in] do_timestamp set to TRUE to have the base class automatically 
- * timestamp outgoing buffers. FALSE otherwise.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_app_do_timestamp_set(const wchar_t* name, 
-    boolean do_timestamp);
-    
 /**
  * @brief Gets the block enabled setting for the named App Source Component.
  * If true, when max-bytes are queued and after the enough-data signal has been 
@@ -4380,11 +4322,11 @@ DslReturnType dsl_source_usb_device_location_set(const wchar_t* name,
  * @param[in] name unique name for the new URI Source
  * @param[in] uri Unique Resource Identifier (file or live)
  * @param[in] is_live true if source is live false if file
- * @param[in] skip_frames set to True to enable, false to disable
+ * @param[in] intra_decode set to True to enable, false to disable
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, 
-    boolean is_live, uint skip_frames, uint drop_frame_interval);
+    boolean is_live, uint intra_decode, uint drop_frame_interval);
 
 /**
  * @brief creates a new, uniquely named File Source component
@@ -4397,22 +4339,21 @@ DslReturnType dsl_source_file_new(const wchar_t* name,
     const wchar_t* file_path, boolean repeat_enabled);
 
 /**
- * @brief Gets the current file-path in use by the named File Source
+ * @brief Gets the current File Path in use by the named File Source
  * @param[in] name name of the File Source to query
- * @param[out] file_path file-path in use by the File Source
+ * @param[out] FilePath in use by the File Source
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_file_file_path_get(const wchar_t* name, 
-    const wchar_t** file_path);
+DslReturnType dsl_source_file_path_get(const wchar_t* name, const wchar_t** file_path);
 
 /**
  * @brief Sets the current File Path for the named File Source to use
  * @param[in] name name of the File Source to update
- * @param[in] file_path new file-path to use by the File Source
+ * @param[in] file_path new file path to use by the File Source
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_file_file_path_set(const wchar_t* name, 
-    const wchar_t* file_path);
+DslReturnType dsl_source_file_path_set(const wchar_t* name, const wchar_t* file_path);
+
 
 /**
  * @brief Gets the current Repeat on EOS Enabled setting for the File Source
@@ -4437,7 +4378,7 @@ DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name, boolean en
  * @param[in] file_path absolute or relative path to the image file to play
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_image_single_new(const wchar_t* name, 
+DslReturnType dsl_source_image_new(const wchar_t* name, 
     const wchar_t* file_path);
 
 /**
@@ -4445,8 +4386,8 @@ DslReturnType dsl_source_image_single_new(const wchar_t* name,
  * decodes multiple images specified by folder/filename-pattern.
  * @param[in] name Unique name for the Image Frame Source
  * @param[in] file_path use the printf style %d in the absolute or relative path. 
- * Eample: "./my_images/image.%d04.jpg", where the files in "./my_images/"
- * are named "image.0000.jpg", "image.0001.jpg", "image.0002.jpg" etc.
+ * Eample: "./my_images/image.%d04.mjpg", where the files in "./my_images/"
+ * are named "image.0000.mjpg", "image.0001.mjpg", "image.0002.mjpg" etc.
  * @param[in] fps-n frames/second fraction numerator
  * @param[in] fps-d frames/second fraction denominator
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
@@ -4531,24 +4472,6 @@ DslReturnType dsl_source_image_stream_timeout_get(const wchar_t* name, uint* tim
 DslReturnType dsl_source_image_stream_timeout_set(const wchar_t* name, uint timeout);
     
 /**
- * @brief Gets the current file-path in use by the named Image Source
- * @param[in] name name of the Image Source to query
- * @param[out] file_path file-path in use by the Image Source
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_image_file_path_get(const wchar_t* name, 
-    const wchar_t** file_path);
-
-/**
- * @brief Sets the current File Path for the named Image Source to use
- * @param[in] name name of the Image Source to update
- * @param[in] file_path new file-path to use by the Image Source
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_image_file_path_set(const wchar_t* name, 
-    const wchar_t* file_path);
-
-/**
  * @brief creates a new, uniquely named Interpipe Source component to listen to
  * an Interpipe Sink Component. Supports dynamic switching between Interpipe Sinks.
  * @param[in] name unique name for the new Interpipe Source
@@ -4609,24 +4532,21 @@ DslReturnType dsl_source_interpipe_accept_settings_set(const wchar_t* name,
  * @brief creates a new, uniquely named RTSP Source component
  * @param[in] name Unique for the new RTSP Source.
  * @param[in] protocol one of the constant protocol values [ DSL_RTP_TCP | DSL_RTP_ALL ]
- * @param[in] skip_frames Type of frames to skip during decoding.
- *   (0): decode_all       - Decode all frames
- *   (1): decode_non_ref   - Decode non-ref frame
- *   (2): decode_key       - decode key frames
+ * @param[in] intra_decode set to True to enable, false to disable.
  * @param[in] drop_frame_interval, set to 0 to decode every frame.
- * @param[in] latency the amount of data to buffer in milliseconds.
+ * @param[in] latency in milliseconds.
  * @param[in] timeout time to wait between successive frames before determining the 
  * connection is lost. Set to 0 to disable timeout.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol,
-    uint skip_frames, uint drop_frame_interval, uint latency, uint timeout);
+    uint intra_decode, uint drop_frame_interval, uint latency, uint timeout);
 
 /**
  * @brief Adds a pad-probe-handler to the Source Pad of a named Source. 
  * @param[in] name unique name of the Source to update
  * @param[in] handler unique name of the pad probe handler to add,
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
  */
 DslReturnType dsl_source_pph_add(const wchar_t* name, const wchar_t* handler);
 
@@ -4634,184 +4554,83 @@ DslReturnType dsl_source_pph_add(const wchar_t* name, const wchar_t* handler);
  * @brief Removes a pad-probe-handler from the Source Pad of a named Source.
  * @param[in] name unique name of the Source to update.
  * @param[in] handler unique name of pad-probe-handler to remove.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
  */
 DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler);
 
 /**
- * @brief Gets the media type for the named Source component.
- * @param name unique name of the Source Component to query.
- * @param[out] media_type fixed media-type. One of the DSL_MEDIA_TYPE
- * constant string values. 
+ * @brief Gets the do-timestamp setting for the named Source Component.
+ * @param[in] name unique name of the Source Component to query.
+ * @param[out] do_timestamp if TRUE, the base class will automatically 
+ * timestamp outgoing buffers based on the current running_time.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_media_type_get(const wchar_t* name,
-    const wchar_t** media_type);
+DslReturnType dsl_source_do_timestamp_get(const wchar_t* name, 
+    boolean* do_timestamp);
 
 /**
- * @brief Gets the current buffer-out-format for the named Source component.
- * @param name unique name of the Source Component to query.
- * @param[out] format current buffer-out-format. One of the DSL_VIDEO_FORMAT
- * constant string values. Default = DSL_VIDEO_FORMAT_DEFAULT.
+ * @brief Gets the do-timestamp setting for the named Source Component.
+ * @param[in] name unique name of the Source Component to update.
+ * @param[in] do_timestamp set to TRUE to have the base class automatically 
+ * timestamp outgoing buffers. FALSE otherwise.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_video_buffer_out_format_get(const wchar_t* name,
-    const wchar_t** format);
-
-/**
- * @brief Sets the buffer-out-format for the named Source component to use.
- * @param name unique name of the Source Component to query.
- * @param[in] format new buffer-out-format to use. One of the DSL_VIDEO_FORMAT
- * constant string values.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_video_buffer_out_format_set(const wchar_t* name,
-    const wchar_t* format);
-
-/**
- * @brief Gets the scaled buffer-out-dimensions of the named Source component. 
- * The default values of 0 for width and height indicate no scalling.
- * @param[in] name unique name of the source to query.
- * @param[out] width scaled width of the output buffer in pixels.
- * @param[out] height scaled height of the output buffer in pixels.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_video_buffer_out_dimensions_get(const wchar_t* name, 
-    uint* width, uint* height);
-
-/**
- * @brief Sets the scaled buffer-out-dimensions of the named Source component. 
- * Set width and height to 0 to indicate no scalling.
- * @param[in] name unique name of the source to output.
- * @param[out] width scaled width of the output buffer in pixels.
- * @param[out] height scaled height of the output buffer in pixels.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_video_buffer_out_dimensions_set(const wchar_t* name, 
-    uint width, uint height);
-
-/**
- * @brief Gets one of the buffer-out crop-rectangle for the named Source component,
- * The buffer can be cropped pre-video-conversion and/or post-video-conversion.
- * The default is no-crop with left, top, width, and height all 0
- * @param name unique name of the Source Component to query.
- * @param[in] crop_at specifies which of the crop rectangles to query, either 
- * DSL_VIDEO_CROP_AT_SRC or DSL_VIDEO_CROP_AT_DEST.
- * @param[out] left left positional coordinate of the rectangle in units of pixels.
- * @param[out] top top positional coordinate of the rectangle in units of pixels.
- * @param[out] width width of the rectangle in units of pixels.
- * @param[out] height height of the rectangle in units of pixels.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
- */
-DslReturnType dsl_source_video_buffer_out_crop_rectangle_get(const wchar_t* name,
-    uint crop_at, uint* left, uint* top, uint* width, uint* height);
+DslReturnType dsl_source_do_timestamp_set(const wchar_t* name, 
+    boolean do_timestamp);
     
-/**
- * @brief Sets one of the buffer-out crop-rectangle for the named Source component.
- * The buffer can be cropped pre-video-conversion and/or post-video-conversion.
- * For no-crop, set left, top, width, and height all to 0 (default)
- * @param name unique name of the Source Component to query.
- * @param[in] crop_at specifies which of the crop rectangles to update, either 
- * DSL_VIDEO_CROP_AT_SRC or DSL_VIDEO_CROP_AT_DEST.
- * @param[in] left left positional coordinate of the rectangle in units of pixels.
- * @param[in] top top positional coordinate of the rectangle in units of pixels.
- * @param[in] width width of the rectangle in units of pixels.
- * @param[in] height height of the rectangle in units of pixels.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
- */
-DslReturnType dsl_source_video_buffer_out_crop_rectangle_set(const wchar_t* name,
-    uint crop_at, uint left, uint top, uint width, uint height);
-    
-/**
- * @brief Gets the current buffer-out-orientation for the named Source component.
- * @param name unique name of the Source Component to query.
- * @param[out] orientation current buffer-out-format. One of the DSL_VIDEO_ORIENTATION
- * constant values. Default = DSL_VIDEO_ORIENTATION_NONE.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
- */
-DslReturnType dsl_source_video_buffer_out_orientation_get(const wchar_t* name,
-    uint* orientation);
-
-/**
- * @brief Sets the buffer-out-orientation for the named Source component to use.
- * @param name unique name of the Source Component to update.
- * @param[in] orientation new buffer-out-orientation. One of the 
- * DSL_VIDEO_ORIENTATION constant value.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
- */
-DslReturnType dsl_source_video_buffer_out_orientation_set(const wchar_t* name,
-    uint orientation);
-
-/**
- * @brief Adds a named Dewarper component to a named Source component
- * @param[in] name name of the Source component to update
- * @param[in] dewarper name of the Dewarper to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_video_dewarper_add(const wchar_t* name, const wchar_t* dewarper);
-
-/**
- * @brief Removes a named Dewarper component from a named Source component
- * @param[in] name name of the source object to update
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_video_dewarper_remove(const wchar_t* name);
-
 /**
  * @brief returns the frame rate of the name source as a fraction
  * Camera sources will return the value used on source creation
  * URL and RTPS sources will return 0 prior to entering a state of play
  * @param[in] name unique name of the source to query
- * @param[out] width width of the source in pixels
- * @param[out] height height of the source in pixels
+ * @param[out] width of the source in pixels
+ * @param[out] height of the source in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_video_dimensions_get(const wchar_t* name, 
-    uint* width, uint* height);
+DslReturnType dsl_source_dimensions_get(const wchar_t* name, uint* width, uint* height);
 
 /**
  * @brief returns the frame rate of the named source as a fraction
  * Camera sources will return the value used on source creation
- * URL and RTPS sources will return 0 prior to entering a state of play
+ * URL and RTPS sources will return 0 until prior entering a state of play
  * @param[in] name unique name of the source to query
  * @param[out] fps_n frames per second numerator
  * @param[out] fps_d frames per second denominator
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_frame_rate_get(const wchar_t* name, 
-    uint* fps_n, uint* fps_d);
+DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* fps_d);
 
 /**
- * @brief Gets the current URI in use by the named URI Source.
- * @param[in] name name of the Source to query.
- * @param[out] uri URI in use by the URI Source.
+ * @brief Gets the current URI in use by the named Decode Source
+ * @param[in] name name of the Source to query
+ * @param[out] uri in use by the Decode Source
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_uri_uri_get(const wchar_t* name, const wchar_t** uri);
+DslReturnType dsl_source_decode_uri_get(const wchar_t* name, const wchar_t** uri);
 
 /**
- * @brief Sets the current URI for the named URI Source to use.
- * @param[in] name name of the Source to update.
- * @param[in] uri new URI for the URI Source to use.
+ * @brief Sets the current URI for the named Decode Source to use
+ * @param[in] name name of the Source to update
+ * @param[in] uri to use by the Decode Source
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_uri_uri_set(const wchar_t* name, const wchar_t* uri);
+DslReturnType dsl_source_decode_uri_set(const wchar_t* name, const wchar_t* uri);
 
 /**
- * @brief Gets the current URI in use by the named RTSP Source.
- * @param[in] name name of the Source to query.
- * @param[out] uri URI in use by the RTSP Source.
+ * @brief Adds a named dewarper to a named decode source (URI, RTSP)
+ * @param[in] name name of the source object to update
+ * @param[in] dewarper name of the dewarper to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_rtsp_uri_get(const wchar_t* name, const wchar_t** uri);
+DslReturnType dsl_source_decode_dewarper_add(const wchar_t* name, const wchar_t* dewarper);
 
 /**
- * @brief Sets the current URI for the named RTSP Source to use.
- * @param[in] name name of the Source to update.
- * @param[in] uri new URI for the RTSP Source to use.
+ * @brief Adds a named dewarper to a named decode source (URI, RTSP)
+ * @param[in] name name of the source object to update
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_rtsp_uri_set(const wchar_t* name, const wchar_t* uri);
+DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name);
+
 /**
  * @brief Gets the current buffer timeout for the named RTSP Source
  * @param[in] name name of the source object to query
@@ -4891,16 +4710,16 @@ DslReturnType dsl_source_rtsp_state_change_listener_remove(const wchar_t* name,
     dsl_state_change_listener_cb listener);
 
 /**
- * @brief Adds a named Tap to a named RTSP source component.
- * @param[in] name unique name of the source object to update.
- * @param[in] tap unique name of the Tap to add.
+ * @brief Adds a named Tap to a named RTSP source
+ * @param[in] name name of the source object to update
+ * @param[in] tap name of the Tap to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_tap_add(const wchar_t* name, const wchar_t* tap);
 
 /**
- * @brief Adds a named tap to a named RTSP Source component
- * @param[in] name unique name of the source object to update
+ * @brief Adds a named dewarper to a named decode source (URI, RTSP)
+ * @param[in] name name of the source object to update
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_tap_remove(const wchar_t* name);
@@ -4937,77 +4756,12 @@ DslReturnType dsl_source_resume(const wchar_t* name);
 boolean dsl_source_is_live(const wchar_t* name);
 
 /**
- * @brief Creates a new, uniquely named Dewarper component
- * @param[in] name unique name for the new Dewarper component
+ * @brief create a new, uniquely named Dewarper object
+ * @param[in] name unique name for the new Dewarper object
  * @param[in] config_file absolute or relative path to Dewarper config text file
- * @param[in] camera_id refers to the first column of the CSV files (i.e. 
- * csv_files/nvaisle_2M.csv & csv_files/nvspot_2M.csv). The dewarping parameters 
- * for the given camera are read from CSV files and used to generate dewarp surfaces 
- * (i.e. multiple aisle and spot surface) from 360d input video stream.
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DEWARPER otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_dewarper_new(const wchar_t* name, 
-    const wchar_t* config_file, uint camera_id);
-
-/**
- * @brief Gets the current Config File in use by the named Dewarper
- * @param[in] name unique name of Dewarper to query
- * @param[out] config_file Config file currently in use
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DEWARPER otherwise.
- */
-DslReturnType dsl_dewarper_config_file_get(const wchar_t* name, 
-    const wchar_t** config_file);
-
-/**
- * @brief Sets the Config File to use by the named Dewarper
- * @param[in] name unique name of Dewarper to update.
- * @param[in] config_file absolute or relative pathspec to new Config file to use.
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DEWARPER otherwise.
- */
-DslReturnType dsl_dewarper_config_file_set(const wchar_t* name, 
-    const wchar_t* config_file);
-
-/**
- * @brief Gets the current camera-id for the named Dewarper.
- * @param[in] name name of the Dewarper to query.
- * @param[out] camera_id refers to the first column of the CSV files (i.e. 
- * csv_files/nvaisle_2M.csv & csv_files/nvspot_2M.csv). The dewarping parameters 
- * for the given camera are read from CSV files and used to generate dewarp surfaces 
- * (i.e. multiple aisle and spot surface) from 360d input video stream.
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DEWARPER otherwise..
- */
-DslReturnType dsl_dewarper_camera_id_get(const wchar_t* name, uint* camera_id);
-
-/**
- * @brief Sets the source-id for the named Dewarper to use.
- * @param[in] name name of the Dewarper to update.
- * @param[in] camera_id refers to the first column of the CSV files (i.e. 
- * csv_files/nvaisle_2M.csv & csv_files/nvspot_2M.csv). The dewarping parameters 
- * for the given camera are read from CSV files and used to generate dewarp surfaces 
- * (i.e. multiple aisle and spot surface) from 360d input video stream.
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DEWARPER otherwise.
- */
-DslReturnType dsl_dewarper_camera_id_set(const wchar_t* name, uint camera_id);
-
-/**
- * @brief Gets the number of dewarped output surfaces per frame buffer
- * for the named Dewarper.
- * @param[in] name name of the Dewarper to query.
- * @param[out] num number of dewarped output surfaces per buffer, i.e., batch-size 
- * of the buffer.
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DEWARPER otherwise.
- */
-DslReturnType dsl_dewarper_num_batch_buffers_get(const wchar_t* name, uint* num);
-
-/**
- * @brief Sets the number of dewarped output surfaces per frame buffer
- * for the named Dewarper.
- * @param[in] name name of the Dewarper to update
- * @param[in] num number of dewarped output surfaces per buffer, i.e., batch-size 
- * of the buffer [1..4]. 
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DEWARPER otherwise.
- */
-DslReturnType dsl_dewarper_num_batch_buffers_set(const wchar_t* name, uint num);
+DslReturnType dsl_dewarper_new(const wchar_t* name, const wchar_t* config_file);
 
 /**
  * @brief creates a new, uniquely named Record Tap component
@@ -6932,25 +6686,23 @@ DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name,
     
 /**
  * @brief Queryies the named Pipeline's stream-muxer for its current batch properties
- * @param[in] name unique name of the Pipeline to query
- * @param[out] batch_size the current batch size in use.
- * @param[out] batch_timeout the current batch timeout in use.
+ * @param[in] name name of the pipeline to query
+ * @param[out] batchSize the current batch size in use
+ * @param[out] batchTimeout the current batch timeout in use
  * @return DSL_RESULT_SUCCESS on successful query, one of 
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
 DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name, 
-    uint* batch_size, uint* batch_timeout);
+    uint* batchSize, uint* batchTimeout);
 
 /**
  * @brief Updates the named Pipeline's batch-size and batch-push-timeout properties
- * @param[in] name unique name of the Pipeline to update.
- * @param[out] batch_size the new batch size to use.
- * @param[out] batch_timeout the new batch timeout to use.
+ * @param[in] name name of the pipeline to update
  * @return DSL_RESULT_SUCCESS on successful update, one of 
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
 DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* name, 
-    uint batch_size, uint batch_timeout);
+    uint batchSize, uint batchTimeout);
 
 /**
  * @brief Queries the named Pipeline's stream-muxer for its current output dimensions.
@@ -7079,7 +6831,7 @@ DslReturnType dsl_pipeline_is_live(const wchar_t* name, boolean* is_live);
  * environment variable GST_DEBUG_DUMP_DOT_DIR
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */ 
-DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* name, const wchar_t* filename);
+DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* name, wchar_t* filename);
 
 /**
  * @brief dumps a Pipeline's graph to dot file prefixed
@@ -7091,8 +6843,7 @@ DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* name, const wchar_t* filen
  * environment variable GST_DEBUG_DUMP_DOT_DIR
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */ 
-DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* name, 
-    const wchar_t* filename);
+DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* name, wchar_t* filename);
 
 /**
  * @brief adds a callback to be notified on End of Stream (EOS)

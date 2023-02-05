@@ -40,7 +40,7 @@ SCENARIO( "A DewarperBintr is created correctly",  "[DewarperBintr]" )
         WHEN( "The Dewarper is created" )
         {
             DSL_DEWARPER_PTR pDewarperBintr = 
-                DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str(), 0);
+                DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
 
             THEN( "The Dewarper's config file is found, loaded, and returned correctly")
             {
@@ -58,7 +58,7 @@ SCENARIO( "A DewarperBintr can LinkAll child Elementrs correctly",  "[DewarperBi
     GIVEN( "A new DewarperBintr in memory" ) 
     {
         DSL_DEWARPER_PTR pDewarperBintr = 
-            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str(), 0);
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
 
         WHEN( "The DewarperBintr is called to LinkAll" )
         {
@@ -77,7 +77,7 @@ SCENARIO( "A DewarperBintr can UnlinkAll child Elementrs correctly",  "[Dewarper
     GIVEN( "A new DewarperBintr in memory" ) 
     {
         DSL_DEWARPER_PTR pDewarperBintr = 
-            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str(), 0);
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
 
         REQUIRE( pDewarperBintr->LinkAll() == true );
         
@@ -101,7 +101,7 @@ SCENARIO( "A DewarperBintr can Get and Set it's GPU ID",  "[DewarperBintr]" )
         uint GPUID1(1);
 
         DSL_DEWARPER_PTR pDewarperBintr = 
-            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str(), 0);
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
 
         REQUIRE( pDewarperBintr->GetGpuId() == GPUID0 );
         

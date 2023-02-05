@@ -367,7 +367,7 @@ def main(args):
         # Create the remaining Pipeline components
         
         retval = dsl_source_uri_new('uri-source', uri_h265, is_live=False, 
-            skip_frames=0, drop_frame_interval=0)
+            intra_decode=False, drop_frame_interval=0)
         if retval != DSL_RETURN_SUCCESS:
             break
 

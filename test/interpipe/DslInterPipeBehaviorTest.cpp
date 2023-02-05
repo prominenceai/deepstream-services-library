@@ -270,7 +270,7 @@ SCENARIO( "A Pipeline with and Inter-Pipe Source can dynamically switch between 
     }
 }
 
-SCENARIO( "Two Pipelines, each with an Inter-Pipe Source can listen to a single Inter-Pipe Sink", 
+SCENARIO( "Two Pipelines with and Inter-Pipe Sources can listen to a single Inter-Pipe Sinks", 
     "[inter-pipe-play]" )
 {
     GIVEN( "One file source, inter-pipe sink, two inter-pipe sources and two window sinks" ) 

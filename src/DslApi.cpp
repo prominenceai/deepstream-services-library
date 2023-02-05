@@ -3385,19 +3385,15 @@ uint dsl_pph_list_size()
 }
 
 DslReturnType dsl_source_app_new(const wchar_t* name, boolean is_live, 
-    const wchar_t* buffer_in_format, uint width, uint height, uint fps_n, uint fps_d)
+    uint stream_format, uint width, uint height, uint fps_n, uint fps_d)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(buffer_in_format);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrBufferInFormat(buffer_in_format);
-    std::string cstrBufferInFormat(wstrBufferInFormat.begin(), 
-        wstrBufferInFormat.end());
 
     return DSL::Services::GetServices()->SourceAppNew(cstrName.c_str(), 
-        is_live, cstrBufferInFormat.c_str(), width, height, fps_n, fps_d);
+        is_live, stream_format, width, height, fps_n, fps_d);
 }
  
 DslReturnType dsl_source_app_data_handlers_add(const wchar_t* name, 
@@ -3460,29 +3456,29 @@ DslReturnType dsl_source_app_eos(const wchar_t* name)
     return DSL::Services::GetServices()->SourceAppEos(cstrName.c_str());
 }
 
-DslReturnType dsl_source_app_stream_format_get(const wchar_t* name, 
-    uint* stream_format)
+DslReturnType dsl_source_app_buffer_format_get(const wchar_t* name, 
+    uint* buffer_format)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(stream_format);
+    RETURN_IF_PARAM_IS_NULL(buffer_format);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceAppStreamFormatGet(
-        cstrName.c_str(), stream_format);
+    return DSL::Services::GetServices()->SourceAppBufferFormatGet(
+        cstrName.c_str(), buffer_format);
 }
     
-DslReturnType dsl_source_app_stream_format_set(const wchar_t* name, 
-    uint stream_format)
+DslReturnType dsl_source_app_buffer_format_set(const wchar_t* name, 
+    uint buffer_format)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceAppStreamFormatSet(
-        cstrName.c_str(), stream_format);
+    return DSL::Services::GetServices()->SourceAppBufferFormatSet(
+        cstrName.c_str(), buffer_format);
 }
     
 DslReturnType dsl_source_app_block_enabled_get(const wchar_t* name, 
@@ -3663,7 +3659,7 @@ DslReturnType dsl_source_usb_device_location_set(const wchar_t* name,
 }
 
 DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, 
-    boolean is_live, uint skip_frames, uint dropFrameInterval)
+    boolean is_live, uint intra_decode, uint dropFrameInterval)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(uri);
@@ -3674,7 +3670,7 @@ DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri,
     std::string cstrUri(wstrUri.begin(), wstrUri.end());
 
     return DSL::Services::GetServices()->SourceUriNew(cstrName.c_str(), cstrUri.c_str(), 
-        is_live, skip_frames, dropFrameInterval);
+        is_live, intra_decode, dropFrameInterval);
 }
 
 DslReturnType dsl_source_file_new(const wchar_t* name, 
@@ -3696,7 +3692,7 @@ DslReturnType dsl_source_file_new(const wchar_t* name,
         cstrFilePath.c_str(), repeat_enabled);
 }
 
-DslReturnType dsl_source_file_file_path_get(const wchar_t* name, 
+DslReturnType dsl_source_file_path_get(const wchar_t* name, 
     const wchar_t** file_path)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -3709,8 +3705,8 @@ DslReturnType dsl_source_file_file_path_get(const wchar_t* name,
     static std::string cstrFilePath;
     static std::wstring wcstrFilePath;
     
-    uint retval = DSL::Services::GetServices()->SourceFileFilePathGet(
-        cstrName.c_str(), &cFilePath);
+    uint retval = DSL::Services::GetServices()->SourceFilePathGet(cstrName.c_str(), 
+        &cFilePath);
     if (retval ==  DSL_RESULT_SUCCESS)
     {
         cstrFilePath.assign(cFilePath);
@@ -3721,8 +3717,7 @@ DslReturnType dsl_source_file_file_path_get(const wchar_t* name,
     
 }
 
-DslReturnType dsl_source_file_file_path_set(const wchar_t* name, 
-    const wchar_t* file_path)
+DslReturnType dsl_source_file_path_set(const wchar_t* name, const wchar_t* file_path)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(file_path);
@@ -3732,24 +3727,22 @@ DslReturnType dsl_source_file_file_path_set(const wchar_t* name,
     std::wstring wstrFilePath(file_path);
     std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
 
-    return DSL::Services::GetServices()->SourceFileFilePathSet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SourceFilePathSet(cstrName.c_str(), 
         cstrFilePath.c_str());
 }
 
-DslReturnType dsl_source_file_repeat_enabled_get(const wchar_t* name, 
-    boolean* enabled)
+DslReturnType dsl_source_file_repeat_enabled_get(const wchar_t* name, boolean* enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceFileRepeatEnabledGet(
-        cstrName.c_str(), enabled);
+    return DSL::Services::GetServices()->SourceFileRepeatEnabledGet(cstrName.c_str(),
+        enabled);
 }
 
-DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name, 
-    boolean enabled)
+DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name, boolean enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -3760,7 +3753,7 @@ DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name,
         enabled);
 }
 
-DslReturnType dsl_source_image_single_new(const wchar_t* name, 
+DslReturnType dsl_source_image_new(const wchar_t* name, 
     const wchar_t* file_path)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -3876,46 +3869,6 @@ DslReturnType dsl_source_image_stream_timeout_set(const wchar_t* name, uint time
 
     return DSL::Services::GetServices()->SourceImageStreamTimeoutSet(cstrName.c_str(),
         timeout);
-}
-
-DslReturnType dsl_source_image_file_path_get(const wchar_t* name, 
-    const wchar_t** file_path)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(file_path);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    const char* cFilePath;
-    static std::string cstrFilePath;
-    static std::wstring wcstrFilePath;
-    
-    uint retval = DSL::Services::GetServices()->SourceImageFilePathGet(
-        cstrName.c_str(), &cFilePath);
-    if (retval ==  DSL_RESULT_SUCCESS)
-    {
-        cstrFilePath.assign(cFilePath);
-        wcstrFilePath.assign(cstrFilePath.begin(), cstrFilePath.end());
-        *file_path = wcstrFilePath.c_str();
-    }
-    return retval;
-    
-}
-
-DslReturnType dsl_source_Image_file_path_set(const wchar_t* name, 
-    const wchar_t* file_path)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(file_path);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrFilePath(file_path);
-    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
-
-    return DSL::Services::GetServices()->SourceImageFilePathSet(cstrName.c_str(), 
-        cstrFilePath.c_str());
 }
 
 DslReturnType dsl_source_interpipe_new(const wchar_t* name, 
@@ -4036,7 +3989,7 @@ DslReturnType dsl_source_interpipe_accept_settings_set(const wchar_t* name,
 }
     
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol, 
-    uint skip_frames, uint dropFrameInterval, uint latency, uint timeout)
+    uint intra_decode, uint dropFrameInterval, uint latency, uint timeout)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(uri);
@@ -4047,7 +4000,7 @@ DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint 
     std::string cstrUri(wstrUri.begin(), wstrUri.end());
 
     return DSL::Services::GetServices()->SourceRtspNew(cstrName.c_str(), cstrUri.c_str(), 
-        protocol, skip_frames, dropFrameInterval, latency, timeout);
+        protocol, intra_decode, dropFrameInterval, latency, timeout);
 }
 
 DslReturnType dsl_source_pph_add(const wchar_t* name, const wchar_t* handler)
@@ -4078,176 +4031,7 @@ DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler)
         cstrHandler.c_str());
 }
 
-DslReturnType dsl_source_media_type_get(const wchar_t* name,
-    const wchar_t** media_type)   
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(media_type);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    const char* cMediaType;
-    static std::string cstrMediaType;
-    static std::wstring wcstrMediaType;
-    
-    uint retval = DSL::Services::GetServices()->SourceMediaTypeGet(
-        cstrName.c_str(), &cMediaType);
-    if (retval ==  DSL_RESULT_SUCCESS)
-    {
-        cstrMediaType.assign(cMediaType);
-        wcstrMediaType.assign(cstrMediaType.begin(), cstrMediaType.end());
-        *media_type = wcstrMediaType.c_str();
-    }
-    return retval;
-}
-    
-DslReturnType dsl_source_video_buffer_out_format_get(const wchar_t* name,
-    const wchar_t** format)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(format);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    const char* cFormat;
-    static std::string cstrFormat;
-    static std::wstring wcstrFormat;
-    
-    uint retval = DSL::Services::GetServices()->SourceVideoBufferOutFormatGet(
-        cstrName.c_str(), &cFormat);
-    if (retval ==  DSL_RESULT_SUCCESS)
-    {
-        cstrFormat.assign(cFormat);
-        wcstrFormat.assign(cstrFormat.begin(), cstrFormat.end());
-        *format = wcstrFormat.c_str();
-    }
-    return retval;
-}
-    
-DslReturnType dsl_source_video_buffer_out_format_set(const wchar_t* name,
-    const wchar_t* format)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(format);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    std::wstring wstrFormat(format);
-    std::string cstrFormat(wstrFormat.begin(), wstrFormat.end());
-
-    return DSL::Services::GetServices()->SourceVideoBufferOutFormatSet(
-        cstrName.c_str(), cstrFormat.c_str());
-}
-
-DslReturnType dsl_source_video_buffer_out_dimensions_get(const wchar_t* name, 
-    uint* width, uint* height)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(width);
-    RETURN_IF_PARAM_IS_NULL(height);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SourceVideoBufferOutDimensionsGet(
-        cstrName.c_str(), width, height);
-}
-
-DslReturnType dsl_source_video_buffer_out_dimensions_set(const wchar_t* name, 
-    uint width, uint height)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SourceVideoBufferOutDimensionsSet(
-        cstrName.c_str(), width, height);
-}
-
-DslReturnType dsl_source_video_buffer_out_crop_rectangle_get(const wchar_t* name,
-    uint crop_at, uint* left, uint* top, uint* width, uint* height)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(left);
-    RETURN_IF_PARAM_IS_NULL(top);
-    RETURN_IF_PARAM_IS_NULL(width);
-    RETURN_IF_PARAM_IS_NULL(height);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SourceVideoBufferOutCropRectangleGet(
-        cstrName.c_str(), crop_at, left, top, width, height);
-}
-
-DslReturnType dsl_source_video_buffer_out_crop_rectangle_set(const wchar_t* name,
-    uint crop_at, uint left, uint top, uint width, uint height)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SourceVideoBufferOutCropRectangleSet(
-        cstrName.c_str(), crop_at, left, top, width, height);
-}
-
-DslReturnType dsl_source_video_buffer_out_orientation_get(const wchar_t* name,
-    uint* orientation)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(orientation);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SourceVideoBufferOutOrientationGet(
-        cstrName.c_str(), orientation);
-}
-
-DslReturnType dsl_source_video_buffer_out_orientation_set(const wchar_t* name,
-    uint orientation)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SourceVideoBufferOutOrientationSet(
-        cstrName.c_str(), orientation);
-}
-
-DslReturnType dsl_source_video_dewarper_add(const wchar_t* name, 
-    const wchar_t* dewarper)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(dewarper);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrDewarper(dewarper);
-    std::string cstrDewarper(wstrDewarper.begin(), wstrDewarper.end());
-
-    return DSL::Services::GetServices()->SourceVideoDewarperAdd(cstrName.c_str(), 
-        cstrDewarper.c_str());
-}
-
-DslReturnType dsl_source_video_dewarper_remove(const wchar_t* name)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SourceVideoDewarperRemove(cstrName.c_str());
-}
-
-    
-DslReturnType dsl_source_app_do_timestamp_get(const wchar_t* name, 
+DslReturnType dsl_source_do_timestamp_get(const wchar_t* name, 
     boolean* do_timestamp)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4256,11 +4040,11 @@ DslReturnType dsl_source_app_do_timestamp_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceAppDoTimestampGet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SourceDoTimestampGet(cstrName.c_str(), 
         do_timestamp);
 }
 
-DslReturnType dsl_source_app_do_timestamp_set(const wchar_t* name, 
+DslReturnType dsl_source_do_timestamp_set(const wchar_t* name, 
     boolean do_timestamp)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4268,11 +4052,11 @@ DslReturnType dsl_source_app_do_timestamp_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceAppDoTimestampSet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SourceDoTimestampSet(cstrName.c_str(), 
         do_timestamp);
 }
     
-DslReturnType dsl_source_video_dimensions_get(const wchar_t* name, 
+DslReturnType dsl_source_dimensions_get(const wchar_t* name, 
     uint* width, uint* height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4282,7 +4066,7 @@ DslReturnType dsl_source_video_dimensions_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceVideoDimensionsGet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SourceDimensionsGet(cstrName.c_str(), 
         width, height);
 }
 
@@ -4300,7 +4084,7 @@ DslReturnType dsl_source_frame_rate_get(const wchar_t* name,
         fps_n, fps_d);
 }
 
-DslReturnType dsl_source_uri_uri_get(const wchar_t* name, const wchar_t** uri)
+DslReturnType dsl_source_decode_uri_get(const wchar_t* name, const wchar_t** uri)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(uri);
@@ -4312,8 +4096,7 @@ DslReturnType dsl_source_uri_uri_get(const wchar_t* name, const wchar_t** uri)
     static std::string cstrUri;
     static std::wstring wcstrUri;
     
-    uint retval = DSL::Services::GetServices()->SourceUriUriGet(cstrName.c_str(), 
-        &cUri);
+    uint retval = DSL::Services::GetServices()->SourceDecodeUriGet(cstrName.c_str(), &cUri);
     if (retval ==  DSL_RESULT_SUCCESS)
     {
         cstrUri.assign(cUri);
@@ -4323,7 +4106,7 @@ DslReturnType dsl_source_uri_uri_get(const wchar_t* name, const wchar_t** uri)
     return retval;
 }
 
-DslReturnType dsl_source_uri_uri_set(const wchar_t* name, const wchar_t* uri)
+DslReturnType dsl_source_decode_uri_set(const wchar_t* name, const wchar_t* uri)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(uri);
@@ -4333,45 +4116,30 @@ DslReturnType dsl_source_uri_uri_set(const wchar_t* name, const wchar_t* uri)
     std::wstring wstrUri(uri);
     std::string cstrUri(wstrUri.begin(), wstrUri.end());
 
-    return DSL::Services::GetServices()->SourceUriUriSet(cstrName.c_str(), 
-        cstrUri.c_str());
+    return DSL::Services::GetServices()->SourceDecodeUriSet(cstrName.c_str(), cstrUri.c_str());
 }
 
-DslReturnType dsl_source_rtsp_uri_get(const wchar_t* name, const wchar_t** uri)
+DslReturnType dsl_source_decode_dewarper_add(const wchar_t* name, const wchar_t* dewarper)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(uri);
+    RETURN_IF_PARAM_IS_NULL(dewarper);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    const char* cUri;
-    static std::string cstrUri;
-    static std::wstring wcstrUri;
-    
-    uint retval = DSL::Services::GetServices()->SourceRtspUriGet(cstrName.c_str(), 
-        &cUri);
-    if (retval ==  DSL_RESULT_SUCCESS)
-    {
-        cstrUri.assign(cUri);
-        wcstrUri.assign(cstrUri.begin(), cstrUri.end());
-        *uri = wcstrUri.c_str();
-    }
-    return retval;
+    std::wstring wstrDewarper(dewarper);
+    std::string cstrDewarper(wstrDewarper.begin(), wstrDewarper.end());
+
+    return DSL::Services::GetServices()->SourceDecodeDewarperAdd(cstrName.c_str(), cstrDewarper.c_str());
 }
 
-DslReturnType dsl_source_rtsp_uri_set(const wchar_t* name, const wchar_t* uri)
+DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(uri);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrUri(uri);
-    std::string cstrUri(wstrUri.begin(), wstrUri.end());
 
-    return DSL::Services::GetServices()->SourceRtspUriSet(cstrName.c_str(), 
-        cstrUri.c_str());
+    return DSL::Services::GetServices()->SourceDecodeDewarperRemove(cstrName.c_str());
 }
 
 DslReturnType dsl_source_rtsp_timeout_get(const wchar_t* name, uint* timeout)
@@ -4530,8 +4298,7 @@ boolean dsl_source_is_live(const wchar_t* name)
     return DSL::Services::GetServices()->SourceIsLive(cstrName.c_str());
 }
 
-DslReturnType dsl_dewarper_new(const wchar_t* name, 
-    const wchar_t* config_file, uint source_id)
+DslReturnType dsl_dewarper_new(const wchar_t* name, const wchar_t* config_file)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(config_file);
@@ -4541,97 +4308,7 @@ DslReturnType dsl_dewarper_new(const wchar_t* name,
     std::wstring wstrConfig(config_file);
     std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
 
-    return DSL::Services::GetServices()->DewarperNew(cstrName.c_str(), 
-        cstrConfig.c_str(), source_id);
-}
-
-DslReturnType dsl_dewarper_config_file_get(const wchar_t* name, 
-    const wchar_t** config_file)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(config_file);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    const char* cConfig;
-    static std::string cstrConfig;
-    static std::wstring wcstrConfig;
-    
-    uint retval = DSL::Services::GetServices()->DewarperConfigFileGet(
-        cstrName.c_str(), &cConfig);
-    if (retval ==  DSL_RESULT_SUCCESS)
-    {
-        cstrConfig.assign(cConfig);
-        wcstrConfig.assign(cstrConfig.begin(), cstrConfig.end());
-        *config_file = wcstrConfig.c_str();
-    }
-    return retval;
-}
-
-DslReturnType dsl_dewarper_config_file_set(const wchar_t* name, 
-    const wchar_t* config_file)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(config_file);
-    
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrConfig(config_file);
-    std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
-
-    return DSL::Services::GetServices()->DewarperConfigFileSet(cstrName.c_str(), 
-        cstrConfig.c_str());
-}
-
-DslReturnType dsl_dewarper_camera_id_get(const wchar_t* name, 
-    uint* camera_id)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(camera_id);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->DewarperCameraIdGet(
-        cstrName.c_str(), camera_id);
-}
-
-DslReturnType dsl_dewarper_camera_id_set(const wchar_t* name, 
-    uint camera_id)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->DewarperCameraIdSet(
-        cstrName.c_str(), camera_id);
-}
-
-DslReturnType dsl_dewarper_num_batch_buffers_get(
-    const wchar_t* name, uint* num)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(num);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->DewarperNumBatchBuffersGet(
-        cstrName.c_str(), num);
-}
-
-DslReturnType dsl_dewarper_num_batch_buffers_set(
-    const wchar_t* name, uint num)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->DewarperNumBatchBuffersSet(
-        cstrName.c_str(), num);
+    return DSL::Services::GetServices()->DewarperNew(cstrName.c_str(), cstrConfig.c_str());
 }
 
 DslReturnType dsl_tap_record_new(const wchar_t* name, const wchar_t* outdir, 
@@ -7481,21 +7158,21 @@ DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name,
 }
 
 DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name, 
-    uint* batch_size, uint* batch_timeout)
+    uint* batchSize, uint* batchTimeout)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(batch_size);
-    RETURN_IF_PARAM_IS_NULL(batch_timeout);
+    RETURN_IF_PARAM_IS_NULL(batchSize);
+    RETURN_IF_PARAM_IS_NULL(batchTimeout);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxBatchPropertiesGet(
-        cstrName.c_str(), batch_size, batch_timeout);
+    return DSL::Services::GetServices()->PipelineStreamMuxBatchPropertiesGet(cstrName.c_str(),
+        batchSize, batchTimeout);
 }
 
 DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* name, 
-    uint batch_size, uint batch_timeout)
+    uint batchSize, uint batchTimeout)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -7503,7 +7180,7 @@ DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->PipelineStreamMuxBatchPropertiesSet(
-        cstrName.c_str(), batch_size, batch_timeout);
+        cstrName.c_str(), batchSize, batchTimeout);
 }
 
 DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* name, 
@@ -7755,8 +7432,7 @@ DslReturnType dsl_pipeline_is_live(const wchar_t* name, boolean* is_live)
     return DSL::Services::GetServices()->PipelineIsLive(cstrName.c_str(), is_live);
 }
 
-DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* name, 
-    const wchar_t* filename)
+DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* name, wchar_t* filename)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(filename);
@@ -7767,11 +7443,10 @@ DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* name,
     std::string cstrFilename(wstrFilename.begin(), wstrFilename.end());
 
     return DSL::Services::GetServices()->PipelineDumpToDot(cstrName.c_str(), 
-        cstrFilename.c_str());
+        const_cast<char*>(cstrFilename.c_str()));
 }
 
-DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* name, 
-    const wchar_t* filename)
+DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* name, wchar_t* filename)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(filename);
@@ -7782,7 +7457,7 @@ DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* name,
     std::string cstrFilename(wstrFilename.begin(), wstrFilename.end());
 
     return DSL::Services::GetServices()->PipelineDumpToDotWithTs(cstrName.c_str(), 
-        cstrFilename.c_str());
+        const_cast<char*>(cstrFilename.c_str()));
 }
 
 DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* name, 

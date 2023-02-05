@@ -36,8 +36,8 @@ namespace DSL
      * @brief convenience macros for shared pointer abstraction
      */
     #define DSL_DEWARPER_PTR std::shared_ptr<DewarperBintr>
-    #define DSL_DEWARPER_NEW(name, configFile, cameraId) \
-        std::shared_ptr<DewarperBintr>(new DewarperBintr(name, configFile, cameraId))
+    #define DSL_DEWARPER_NEW(name, configFile) \
+        std::shared_ptr<DewarperBintr>(new DewarperBintr(name, configFile))
         
     class DewarperBintr : public Bintr
     {
@@ -47,14 +47,8 @@ namespace DSL
          * @brief Ctor for the DewarperBintr class
          * @param[in] name unique name to give to the Dewarper
          * @param[in] absolute or relative path to the Dewarper config text file
-         * @param[in] cameraId refers to the first column of the CSV files (i.e. 
-         * csv_files/nvaisle_2M.csv & csv_files/nvspot_2M.csv). The dewarping 
-         * parameters for the given camera are read from CSV files and used to 
-         * generate dewarp surfaces (i.e. multiple aisle and spot surface) from 
-         * 360d input video stream from the CSV file.
          */
-        DewarperBintr(const char* name, 
-            const char* configFile, uint cameraId);
+        DewarperBintr(const char* name, const char* configFile);
 
         /**
          * @brief dtor for the DewarperBintr class
@@ -80,57 +74,23 @@ namespace DSL
         void UnlinkAll();
 
         /**
-         * @brief Gets the path to the Dewarper Config File in use by 
-         * this DewarperBintr
-         * @return fully qualified patspec in use by this Bintr.
+         * @brief gets the name of the Dewarper Config File in use by this Bintr
+         * @return fully qualified patspec used to create this Bintr
          */
         const char* GetConfigFile();
-        
-        /**
-         * @brief Sets the path to the Config File for thr DewarperBintr to use.
-         * @param[in] configFile fully qualified patspec to a Dewarper config-file.
-         */
-        bool SetConfigFile(const char* configFile);
 
         /**
-         * @brief Gets the current camera-id for this DewarperBintr.
-         * @return Current camera-id - refers to the first column of the CSV files
-         * (i.e. csv_files/nvaisle_2M.csv & csv_files/nvspot_2M.csv). The dewarping
-         * parameters for the given camera are read from CSV files and used to 
-         * generate dewarp surfaces (i.e. multiple aisle and spot surface) from 
-         * 360d input video stream from the CSV file.
-
+         * @brief Sets the Source Id for this Dewarper
+         * @param sourceId new Source Id value to use
+         * @return true if successfully set, false otherwise.
          */
-        uint GetCameraId();
-        
-        /**
-         * @brief Sets the camera-id for this DewarperBintr
-         * @param[in] cameraId refers to the first column of the CSV files (i.e. 
-         * csv_files/nvaisle_2M.csv & csv_files/nvspot_2M.csv). The dewarping
-         * parameters for the given camera are read from CSV files and used to 
-         * generate dewarp surfaces (i.e. multiple aisle and spot surface) from 
-         * 360d input video stream from the CSV file.
-         */
-        bool SetCameraId(uint cameraId);
+        bool SetSourceId(uint sourceId);
         
         /**
          * @brief Set the GPU ID for all Elementrs
          * @return true if successfully set, false otherwise.
          */
         bool SetGpuId(uint gpuId);
-        
-        /**
-         * @brief Gets the the number of dewarped output surfaces per frame buffer.
-         * @return the number of dewarped output surfaces per frame buffer.
-         */
-        uint GetNumBatchBuffers();
-        
-        /**
-         * @brief Sets the number of dewarped output surfaces per frame buffer.
-         * @param num number of dewarped output surfaces per frame buffer.
-         * @return true if successfull set, false otherwise.
-         */
-        bool SetNumBatchBuffers(uint num);
 
         /**
          * @brief Sets the NVIDIA buffer memory type.
@@ -143,28 +103,42 @@ namespace DSL
     private:
 
         /** 
-         * @brief refers to the first column of the CSV files (i.e. 
-         * csv_files/nvaisle_2M.csv & csv_files/nvspot_2M.csv). The dewarping
-         * parameters for the given camera are read from CSV files and used to 
-         * generate dewarp surfaces (i.e. multiple aisle and spot surface) from 
-         * 360d input video stream from the CSV file.
+         * @brief Unique Source Id for the stream to dewarp
          */
-        uint m_cameraId;
-        
+        uint m_sourceId;
         /**
          * @brief pathspec to the config file used by this DewarperBintr
          */
         std::string m_configFile;
-        
         /**
-         * @brief Number of Surfaces per output Buffer
+         * @brief Sink Queue for input Stream
          */
-        uint m_numBatchBuffers;
+        DSL_ELEMENT_PTR  m_pSinkQueue;
+
+        /**
+         * @brief Video Converter for this DewarperBintr
+         */
+        DSL_ELEMENT_PTR  m_pVidConv;
+
+        /**
+         * @brief Video Capabilities Filter for this DewarperBintr
+         */
+        DSL_ELEMENT_PTR  m_pVidCaps;
 
         /**
          * @brief Dewarper Element for the DewarperBintr
          */
         DSL_ELEMENT_PTR  m_pDewarper;
+
+        /**
+         * @brief Dewarper Capabilities Filter for this DewarperBintr
+         */
+        DSL_ELEMENT_PTR  m_pDewarperCaps;
+
+        /**
+         * @brief Source Queue for ouput stream
+         */
+        DSL_ELEMENT_PTR  m_pSrcQueue;
     };
     
 } // DSL

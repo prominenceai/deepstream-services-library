@@ -33,8 +33,6 @@ namespace DSL
         : Bintr(name)
         , m_width(width)
         , m_height(height)
-        , m_rows(0)
-        , m_columns(0)
         , m_frameNumberingEnabled(false)
         , m_showSourceTimeout(0)
         , m_showSourceCounter(0)
@@ -54,6 +52,8 @@ namespace DSL
         m_pTiler->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
 
         // Get property defaults that aren't specifically set
+        m_pTiler->GetAttribute("columns", &m_columns);
+        m_pTiler->GetAttribute("rows", &m_rows);
         m_pTiler->GetAttribute("show-source", &m_showSourceId);
         m_pTiler->GetAttribute("gpu-id", &m_gpuId);
         m_pTiler->GetAttribute("compute-hw", &m_computeHw);

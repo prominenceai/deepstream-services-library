@@ -335,7 +335,7 @@ namespace DSL
             return true;
         }
 
-    protected:
+    public:
 
         /**
          * @brief unique identifier managed by the 

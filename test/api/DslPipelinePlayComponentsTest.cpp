@@ -38,7 +38,7 @@ static const std::wstring source_name2(L"uri-source-2");
 static const std::wstring source_name3(L"uri-source-3");
 static const std::wstring source_name4(L"uri-source-4");
 static const std::wstring uri(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
-static const uint skip_frames(0);
+static const uint intr_decode(false);
 static const uint drop_frame_interval(0); 
 
 static const std::wstring image_source(L"image-source");
@@ -135,7 +135,7 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink", "[pipeline-play]" )
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         // overlay sink for observation 
         REQUIRE( dsl_sink_fake_new(fake_sink_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -174,7 +174,7 @@ SCENARIO( "A new Pipeline with a URI File Source, GIE, FakeSink, and Tiled Displ
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -226,7 +226,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Overlay Sink, and Tiled Displa
             REQUIRE( dsl_component_list_size() == 0 );
 
             REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-                false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+                false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_sink_overlay_new(overlay_sink_name1.c_str(), display_id, depth,
                 offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -264,7 +264,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Overlay Sink, and Tiled Displa
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
 //        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-//            true, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+//            true, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_sink_overlay_new(overlay_sink_name1.c_str(), display_id, depth,
 //            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -303,7 +303,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Window Sink, and Tiled Display
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -343,7 +343,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Window Sink, and Tiled
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -384,7 +384,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Window Si
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -430,7 +430,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Window Si
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -487,7 +487,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Window Si
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
 //        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-//            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+//            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), width, height) == DSL_RESULT_SUCCESS );
 //        
@@ -533,7 +533,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Window Si
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
 //        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-//            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+//            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), width, height) == DSL_RESULT_SUCCESS );
 //        
@@ -579,7 +579,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Window Si
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
 //        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-//            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+//            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), width, height) == DSL_RESULT_SUCCESS );
 //        
@@ -618,7 +618,7 @@ SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and 
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_rtsp_new(rtsp_sink_name.c_str(), host.c_str(),
             udp_port, rtsp_port, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
@@ -667,7 +667,7 @@ SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and 
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
 //        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-//            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+//            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_sink_rtsp_new(rtsp_sink_name.c_str(), host.c_str(),
 //            udp_port, rtsp_port, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
@@ -707,7 +707,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, \
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -760,7 +760,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, 
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -818,7 +818,7 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink, and Demuxer can play
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_fake_new(fake_sink_name.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_tee_demuxer_new(demuxer_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -859,7 +859,7 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink, WindowSink and Demux
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_fake_new(fake_sink_name.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
@@ -921,10 +921,10 @@ SCENARIO( "A new Pipeline with two URI File Sources, two overlaySinks and Demuxe
             REQUIRE( dsl_component_list_size() == 0 );
 
             REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-                false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+                false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_source_uri_new(source_name2.c_str(), uri.c_str(), 
-                false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+                false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_sink_overlay_new(overlay_sink_name1.c_str(), display_id, depth,
                 offest_x1, offest_y1, sink_width1, sink_height1) == DSL_RESULT_SUCCESS );
@@ -987,10 +987,10 @@ SCENARIO( "A new Pipeline with two URI File Sources, PGIE, Demuxer two Overlay S
             REQUIRE( dsl_component_list_size() == 0 );
 
             REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-                false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+                false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_source_uri_new(source_name2.c_str(), uri.c_str(), 
-                false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+                false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
                 bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
@@ -1063,7 +1063,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
             REQUIRE( dsl_component_list_size() == 0 );
 
             REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-                false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+                false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_tee_splitter_new(splitterName.c_str()) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_branch_new(branch_name1.c_str()) == DSL_RESULT_SUCCESS );
@@ -1124,7 +1124,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 //        std::wstring source_name1(L"uri-source-1");
 //        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
 //        uint cudadec_mem_type(DSL_NVBUF_MEM_TYPE_DEFAULT);
-//        uint skip_frames(false);
+//        uint intr_decode(false);
 //        uint drop_frame_interval(0);
 //
 //        std::wstring tiler_name1(L"tiler-1");
@@ -1143,7 +1143,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
 //        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-//            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+//            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), width, height) == DSL_RESULT_SUCCESS );
 //        
@@ -1182,7 +1182,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 //        std::wstring source_name1(L"uri-source-1");
 //        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
 //        uint cudadec_mem_type(DSL_NVBUF_MEM_TYPE_DEFAULT);
-//        uint skip_frames(false);
+//        uint intr_decode(false);
 //        uint drop_frame_interval(0);
 //
 //        std::wstring ofvName(L"ofv");
@@ -1203,7 +1203,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 //
 //        // create for of the same types of source
 //        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-//            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+//            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 //
 //        // overlay sink for observation 
 //        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
@@ -1249,7 +1249,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and Meter PPH c
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
             tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
@@ -1337,7 +1337,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Semantic Segmentation"
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, skip_frames, interval) == DSL_RESULT_SUCCESS );
+            false, intr_decode, interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), sem_seg_infer_config_file.c_str(), 
             sem_seg_model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -1380,7 +1380,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Semantic Segmentation"
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
 ////        REQUIRE( dsl_source_uri_new(source_name1.c_str(), image_path2.c_str(), 
-////            false, skip_frames, interval) == DSL_RESULT_SUCCESS );
+////            false, intr_decode, interval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_source_image_stream_new(image_source.c_str(), image_path1.c_str(), false, 
 //            fps_n, fps_d, 0) == DSL_RESULT_SUCCESS );
@@ -1430,16 +1430,16 @@ SCENARIO( "A new Pipeline-Stream-Muxer with Tiler 4 URI Sources, Primary GIE, Wi
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_uri_new(source_name2.c_str(), uri.c_str(), 
-            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_uri_new(source_name3.c_str(), uri.c_str(), 
-            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_uri_new(source_name4.c_str(), uri.c_str(), 
-            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );

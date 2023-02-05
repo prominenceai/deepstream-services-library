@@ -404,11 +404,10 @@ namespace DSL
             {
                 uint cols(0), rows(0);
                 pTilerBintr->GetTiles(&cols, &rows);
-                if (rows*cols == 0)
+                if (rows*cols == 1)
                 {
-                    LOG_ERROR("Tiler '" << name 
-                        << "' - rows and columns must be explicity set to select a tile");
-                    return DSL_RESULT_TILER_SET_FAILED;
+                    // single source, noting to do
+                    return DSL_RESULT_SUCCESS;
                 }
                 float xRel((float)xPos/windowWidth), yRel((float)yPos/windowHeight);
                 sourceId = (int)(xRel*cols);
@@ -416,8 +415,7 @@ namespace DSL
                 
                 if (sourceId > pTilerBintr->GetBatchSize())
                 {
-                    LOG_WARN("Non source-tile selected for Tiler '" << name << "'");
-                    
+                    // clicked on empty tile, noting to do
                     return DSL_RESULT_SUCCESS;
                 }
 

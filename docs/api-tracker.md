@@ -77,7 +77,7 @@ This service creates a uniquely named Tracker component using the default NVIDIA
 Note a custom implementation of the NvDsTracker API can be used by setting the Tracker's low-level library by calling [dsl_tracker_lib_file_set](#dsl_tracker_lib_file_set).
 
 **Parameters**
-* `name` - [in] unique name for the Tracker to create.
+* `name` - [in] unique name for the IOU Tracker to create.
 * `config_file` - [in] relative or absolute pathspec to a valid config text file. Set to NULL or empty string to omit.
 * `width` - [in] Frame width at which the tracker is to operate, in pixels.
 * `height` - [in] Frame height at which the tracker is to operate, in pixels.
@@ -103,7 +103,7 @@ This service returns the absolute path to the low-level library in use by the na
 **Important** the default path to low-level library is defined in the Makefile as `$(LIB_INSTALL_DIR)/libnvds_nvmultiobjecttracker.so`
 
 **Parameters**
-* `name` - [in] unique name of the Tracker to query.
+* `name` - [in] unique name for the Tracker to query.
 * `lib_file` - [out] absolute pathspec to the low-level library in use.
 
 **Returns**
@@ -124,7 +124,7 @@ DslReturnType dsl_tracker_lib_file_set(const wchar_t* name,
 This service updates the named Tracker with a new low-level library to use.
 
 **Parameters**
-* `name` - [in] unique name for the Tracker to update.
+* `name` - [in] unique name for the IOU Tracker to update.
 * `lib_file` - [in] absolute or relative pathspec to the new low-level library to use.
 
 **Returns**
@@ -145,8 +145,8 @@ DslReturnType dsl_tracker_config_file_get(const wchar_t* name,
 This service returns the absolute path to the (optional) Tracker Config File in use by the named Tracker. This service returns an empty string if the configuration file was omitted on construction, or removed by calling [dsl_tracker_config_file_set](#dsl_tracker_config_file_set) with a NULL pointer.
 
 **Parameters**
-* `name` - [in] unique name of the Tracker to query.
-* `config_file` - [out] absolute pathspec to the config text file in use.
+* `name` - [in] unique name for the IOU Tracker to query.
+* `config_file` - [out] absolute pathspec to the IOU config text file in use.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
@@ -166,8 +166,8 @@ DslReturnType dsl_tracker_iou_config_file_set(const wchar_t* name,
 This service updates the named Tracker with a new config file to use.
 
 **Parameters**
-* `name` - [in] unique name of the Tracker to update.
-* `config_file` - [in] absolute pathspec to the config text file in use. Set config_file to NULL to clear the optional configuration file setting.
+* `name` - [in] unique name for the IOU Tracker to update.
+* `config_file` - [in] absolute pathspec to the IOU config text file in use. Set config_file to NULL to clear the optional configuration file setting.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure

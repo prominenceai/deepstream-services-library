@@ -34,9 +34,6 @@ namespace DSL
         : Bintr(name)
         , m_isPaddingEnabled(false)
         , m_areSourcesLive(false)
-        , m_streamMuxWidth(DSL_STREAMMUX_DEFAULT_WIDTH)
-        , m_streamMuxHeight(DSL_STREAMMUX_DEFAULT_HEIGHT)
-        , m_numSurfacesPerFrame(DSL_DEFAULT_NUM_EXTRA_SURFACES)
         , m_batchTimeout(DSL_STREAMMUX_DEFAULT_BATCH_TIMEOUT)
     {
         LOG_FUNC();
@@ -54,15 +51,11 @@ namespace DSL
         SetStreamMuxDimensions(DSL_STREAMMUX_DEFAULT_WIDTH, 
             DSL_STREAMMUX_DEFAULT_HEIGHT);
 
-        // Set the Streammux defaults
-        m_pStreamMux->SetAttribute("width", m_streamMuxWidth);
-        m_pStreamMux->SetAttribute("height", m_streamMuxHeight);
-        m_pStreamMux->SetAttribute("num-surfaces-per-frame", m_numSurfacesPerFrame);
-
         // Get property defaults that aren't specifically set
         m_pStreamMux->GetAttribute("enable-padding", &m_isPaddingEnabled);
         m_pStreamMux->GetAttribute("gpu-id", &m_gpuId);
         m_pStreamMux->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
+        m_pStreamMux->GetAttribute("num-surfaces-per-frame", &m_numSurfacesPerFrame);
         m_pStreamMux->GetAttribute("buffer-pool-size", &m_bufferPoolSize);
         m_pStreamMux->GetAttribute("attach-sys-ts", &m_attachSysTs);
         m_pStreamMux->GetAttribute("interpolation-method", &m_interpolationMethod);
@@ -75,7 +68,7 @@ namespace DSL
         LOG_INFO("Initial property values for Streammux '" << name << "'");
         LOG_INFO("  width                  : " << m_streamMuxWidth);
         LOG_INFO("  height                 : " << m_streamMuxHeight);
-        LOG_INFO("  enable-padding         : " << m_isPaddingEnabled);
+        LOG_INFO("  enable-padding         : " << m_nvbufMemType);
         LOG_INFO("  gpu-id                 : " << m_gpuId);
         LOG_INFO("  nvbuf-memory-type      : " << m_nvbufMemType);
         LOG_INFO("  num-surfaces-per-frame : " << m_numSurfacesPerFrame);

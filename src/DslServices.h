@@ -640,8 +640,7 @@ namespace DSL {
         uint PphListSize();
         
         DslReturnType SourceAppNew(const char* name, boolean isLive, 
-            const char* bufferInFormat, uint width, uint height, 
-            uint fpsN, uint fpsD);
+            uint streamFormat, uint width, uint height, uint fpsN, uint fpsD);
             
         DslReturnType SourceAppDataHandlersAdd(const char* name,
             dsl_source_app_need_data_handler_cb needDataHandler, 
@@ -656,16 +655,12 @@ namespace DSL {
 
         DslReturnType SourceAppEos(const char* name);
         
-        DslReturnType SourceAppStreamFormatGet(const char* name,
-            uint* StreamFormat);
+        DslReturnType SourceAppBufferFormatGet(const char* name,
+            uint* bufferFormat);
         
-        DslReturnType SourceAppStreamFormatSet(const char* name,
+        DslReturnType SourceAppBufferFormatSet(const char* name,
             uint bufferFormat);
         
-        DslReturnType SourceAppDoTimestampGet(const char* name, boolean* doTimestamp);
-            
-        DslReturnType SourceAppDoTimestampSet(const char* name, boolean doTimestamp);
-            
         DslReturnType SourceAppBlockEnabledGet(const char* name,
             boolean* enabled);
         
@@ -706,14 +701,14 @@ namespace DSL {
             const char* deviceLocation);
         
         DslReturnType SourceUriNew(const char* name, const char* uri, 
-            boolean isLive, uint skipFrames, uint dropFrameInterval);
+            boolean isLive, uint intraDecode, uint dropFrameInterval);
             
         DslReturnType SourceFileNew(const char* name, const char* filePath, 
             boolean repeatEnabled);
 
-        DslReturnType SourceFileFilePathGet(const char* name, const char** filePath);
+        DslReturnType SourceFilePathGet(const char* name, const char** filePath);
 
-        DslReturnType SourceFileFilePathSet(const char* name, const char* filePath);
+        DslReturnType SourceFilePathSet(const char* name, const char* filePath);
 
         DslReturnType SourceFileRepeatEnabledGet(const char* name, boolean* enabled);
     
@@ -744,10 +739,6 @@ namespace DSL {
     
         DslReturnType SourceImageStreamTimeoutSet(const char* name, uint timeout);
             
-        DslReturnType SourceImageFilePathGet(const char* name, const char** filePath);
-
-        DslReturnType SourceImageFilePathSet(const char* name, const char* filePath);
-
         DslReturnType SourceInterpipeNew(const char* name, const char* listenTo,
             boolean isLive, boolean acceptEos, boolean acceptEvents);
             
@@ -762,55 +753,28 @@ namespace DSL {
             boolean acceptEos, boolean acceptEvents);
             
         DslReturnType SourceRtspNew(const char* name, const char* uri, uint protocol, 
-            uint skipFrames, uint dropFrameInterval, uint latency, uint timeout);
+            uint intraDecode, uint dropFrameInterval, uint latency, uint timeout);
 
         DslReturnType SourcePphAdd(const char* name, const char* handler);
 
         DslReturnType SourcePphRemove(const char* name, const char* handler);
 
-        DslReturnType SourceMediaTypeGet(const char* name, 
-            const char** mediaType);
-
-        DslReturnType SourceVideoBufferOutFormatGet(const char* name, 
-            const char** format);
-
-        DslReturnType SourceVideoBufferOutFormatSet(const char* name, 
-            const char* format);
+        DslReturnType SourceDoTimestampGet(const char* name, boolean* doTimestamp);
             
-        DslReturnType SourceVideoBufferOutDimensionsGet(const char* name, 
-            uint* width, uint* height);
-
-        DslReturnType SourceVideoBufferOutDimensionsSet(const char* name, 
-            uint width, uint height);
-
-        DslReturnType SourceVideoBufferOutCropRectangleGet(const char* name, 
-            uint cropAt, uint* left, uint* top, uint* width, uint* height);
-
-        DslReturnType SourceVideoBufferOutCropRectangleSet(const char* name, 
-            uint cropAt, uint left, uint top, uint width, uint height);
-
-        DslReturnType SourceVideoBufferOutOrientationGet(const char* name, 
-            uint* orientation);
-
-        DslReturnType SourceVideoBufferOutOrientationSet(const char* name, 
-            uint orientation);
-
-        DslReturnType SourceVideoDimensionsGet(const char* name, uint* width, uint* height);
+        DslReturnType SourceDoTimestampSet(const char* name, boolean doTimestamp);
+            
+        DslReturnType SourceDimensionsGet(const char* name, uint* width, uint* height);
         
         DslReturnType SourceFrameRateGet(const char* name, uint* fpsN, uint* fpsD);
 
-        DslReturnType SourceVideoDewarperAdd(const char* name, const char* dewarper);
-    
-        DslReturnType SourceVideoDewarperRemove(const char* name);
+        DslReturnType SourceDecodeUriGet(const char* name, const char** uri);
 
-        DslReturnType SourceUriUriGet(const char* name, const char** uri);
-
-        DslReturnType SourceUriUriSet(const char* name, const char* uri);
+        DslReturnType SourceDecodeUriSet(const char* name, const char* uri);
     
-        DslReturnType SourceRtspUriGet(const char* name, const char** uri);
-
-        DslReturnType SourceRtspUriSet(const char* name, const char* uri);
+        DslReturnType SourceDecodeDewarperAdd(const char* name, const char* dewarper);
     
+        DslReturnType SourceDecodeDewarperRemove(const char* name);
+        
         DslReturnType SourceRtspTimeoutGet(const char* name, uint* timeout);
 
         DslReturnType SourceRtspTimeoutSet(const char* name, uint timeout);
@@ -847,23 +811,14 @@ namespace DSL {
 
         boolean SourceIsLive(const char* name);
         
-        DslReturnType DewarperNew(const char* name, 
-            const char* configFile, uint sourceId);
+        uint SourceNumInUseGet();
         
-        DslReturnType DewarperConfigFileGet(const char* name, 
-            const char** configFile);
-            
-        DslReturnType DewarperConfigFileSet(const char* name, 
-            const char* configFile);
-            
-        DslReturnType DewarperCameraIdGet(const char* name, uint* cameraId);
-
-        DslReturnType DewarperCameraIdSet(const char* name, uint cameraId);
-
-        DslReturnType DewarperNumBatchBuffersGet(const char* name, uint* num);
-
-        DslReturnType DewarperNumBatchBuffersSet(const char* name, uint num);
-
+        uint SourceNumInUseMaxGet();
+        
+        boolean SourceNumInUseMaxSet(uint max);
+        
+        DslReturnType DewarperNew(const char* name, const char* configFile);
+        
         DslReturnType TapRecordNew(const char* name, const char* outdir, 
             uint container, dsl_record_client_listener_cb clientListener);
             
@@ -1366,9 +1321,9 @@ namespace DSL {
         
         DslReturnType PipelineIsLive(const char* name, boolean* isLive);
         
-        DslReturnType PipelineDumpToDot(const char* name, const char* filename);
+        DslReturnType PipelineDumpToDot(const char* name, char* filename);
         
-        DslReturnType PipelineDumpToDotWithTs(const char* name, const char* filename);
+        DslReturnType PipelineDumpToDotWithTs(const char* name, char* filename);
         
         DslReturnType PipelineStateChangeListenerAdd(const char* name, 
             dsl_state_change_listener_cb listener, void* clientData);

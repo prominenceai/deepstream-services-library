@@ -861,8 +861,7 @@ namespace DSL
         }
     }
         
-    DslReturnType Services::PipelineDumpToDot(const char* name, 
-        const char* filename)
+    DslReturnType Services::PipelineDumpToDot(const char* name, char* filename)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -870,13 +869,12 @@ namespace DSL
 
         // TODO check state of debug env var and return NON-success if not set
 
-        m_pipelines[name]->DumpToDot(const_cast<char*>(filename));
+        m_pipelines[name]->DumpToDot(filename);
         
         return DSL_RESULT_SUCCESS;
     }   
     
-    DslReturnType Services::PipelineDumpToDotWithTs(const char* name, 
-        const char* filename)
+    DslReturnType Services::PipelineDumpToDotWithTs(const char* name, char* filename)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -884,7 +882,7 @@ namespace DSL
 
         // TODO check state of debug env var and return NON-success if not set
 
-        m_pipelines[name]->DumpToDot(const_cast<char*>(filename));
+        m_pipelines[name]->DumpToDot(filename);
 
         return DSL_RESULT_SUCCESS;
     }

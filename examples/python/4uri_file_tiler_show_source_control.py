@@ -228,14 +228,6 @@ def main(args):
         retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
-        
-        #-----------------------------------------------------------
-        # IMPORTANT!
-        # We must explicity set the columns and rows in order to use
-        # the dsl_tiler_source_show_select service to select a tile
-        retval = dsl_tiler_tiles_set('tiler', columns=2, rows=2)
-        if retval != DSL_RETURN_SUCCESS:
-            break
 
         # Add the ODE Pad Probe Handler to the Sink pad of the Tiler
         retval = dsl_tiler_pph_add('tiler', 'ode-handler', DSL_PAD_SINK)

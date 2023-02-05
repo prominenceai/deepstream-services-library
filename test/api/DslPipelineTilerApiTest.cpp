@@ -131,31 +131,26 @@ SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineTiler]
             {
 
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-                REQUIRE( dsl_tiler_source_show_set(tilerName.c_str(), 
-                    sourceName1.c_str(), 0, true) == DSL_RESULT_SUCCESS);
+                REQUIRE( dsl_tiler_source_show_set(tilerName.c_str(), sourceName1.c_str(), 0, true) == DSL_RESULT_SUCCESS);
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_tiler_source_show_all(tilerName.c_str()) == DSL_RESULT_SUCCESS);
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 
                 // Show cycle must fail if no timeout
-                REQUIRE( dsl_tiler_source_show_cycle(tilerName.c_str(), 
-                    0) == DSL_RESULT_TILER_SET_FAILED);
+                REQUIRE( dsl_tiler_source_show_cycle(tilerName.c_str(), 0) == DSL_RESULT_TILER_SET_FAILED);
                 
                 // Show cycle with timeout must succeed
-                REQUIRE( dsl_tiler_source_show_cycle(tilerName.c_str(), 
-                    1) == DSL_RESULT_SUCCESS);
+                REQUIRE( dsl_tiler_source_show_cycle(tilerName.c_str(), 1) == DSL_RESULT_SUCCESS);
                 
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_tiler_source_show_all(tilerName.c_str()) == DSL_RESULT_SUCCESS);
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
                 // Selecting an open tile must fail
-                REQUIRE( dsl_tiler_source_show_select(tilerName.c_str(), 
-                    sinkW-10, sinkH-10, sinkW, sinkH, 1) == DSL_RESULT_SUCCESS);
+                REQUIRE( dsl_tiler_source_show_select(tilerName.c_str(), sinkW-10, sinkH-10, sinkW, sinkH, 1) == DSL_RESULT_TILER_SET_FAILED);
 
                 // Selecting a valid tile must succeed
-                REQUIRE( dsl_tiler_source_show_select(tilerName.c_str(), 
-                    10, 10, sinkW, sinkH, 1) == DSL_RESULT_SUCCESS);
+                REQUIRE( dsl_tiler_source_show_select(tilerName.c_str(), 10, 10, sinkW, sinkH, 1) == DSL_RESULT_SUCCESS);
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
