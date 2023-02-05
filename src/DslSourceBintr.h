@@ -1000,6 +1000,12 @@ namespace DSL
         bool m_repeatEnabled;
 
     private:
+    
+        /**
+         * @brief The common elements are not linked until after the uridecodebin's
+         * pad is ready. We don't want to try and unlink unless fully linked. 
+         */
+        bool m_isFullyLinked;
 
         /**
          * @brief Additional number of surfaces in addition to min decode surfaces 
@@ -1621,6 +1627,12 @@ namespace DSL
         
     private:
     
+        /**
+         * @brief The common elements are not linked until after the rtspsrc
+         * has called the select-stream callback. We don't want to try and 
+         * unlink unless fully linked. 
+         */
+        bool m_isFullyLinked;
         /**
          * @brief Amount of data to buffer in ms.
          */

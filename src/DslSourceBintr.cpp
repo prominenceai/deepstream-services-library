@@ -1360,6 +1360,7 @@ namespace DSL
     UriSourceBintr::UriSourceBintr(const char* name, const char* uri, bool isLive,
         uint skipFrames, uint dropFrameInterval)
         : ResourceSourceBintr(name, uri)
+        , m_isFullyLinked(false)
         , m_numExtraSurfaces(DSL_DEFAULT_NUM_EXTRA_SURFACES)
         , m_skipFrames(skipFrames)
         , m_dropFrameInterval(dropFrameInterval)
@@ -1523,7 +1524,11 @@ namespace DSL
             return;
         }
 
-        UnlinkCommon();
+        if (m_isFullyLinked)
+        {
+            UnlinkCommon();
+        }
+        m_isFullyLinked = false;
         m_isLinked = false;
     }
     
@@ -1543,6 +1548,7 @@ namespace DSL
         if (name.find("video") != std::string::npos)
         {
             LinkToCommon(pPad);
+            m_isFullyLinked = true;
             
             // Update the cap memebers for this URI Source Bintr
             gst_structure_get_uint(structure, "width", &m_width);
@@ -1550,6 +1556,7 @@ namespace DSL
             gst_structure_get_fraction(structure, "framerate", (gint*)&m_fpsN, (gint*)&m_fpsD);
             
             LOG_INFO("Video decode linked for URI source '" << GetName() << "'");
+
         }
     }
 
@@ -2487,6 +2494,7 @@ namespace DSL
         uint protocol, uint skipFrames, uint dropFrameInterval, 
         uint latency, uint timeout)
         : ResourceSourceBintr(name, uri)
+        , m_isFullyLinked(false)
         , m_skipFrames(skipFrames)
         , m_dropFrameInterval(dropFrameInterval)
         , m_rtpProtocols(protocol)
@@ -2651,31 +2659,34 @@ namespace DSL
                 << GetName() << "'");
         }
         
-        m_pPreDecodeQueue->UnlinkFromSink();
-        if (HasTapBintr())
+        if (m_isFullyLinked)
         {
-            m_pPreDecodeQueue->UnlinkFromSourceTee();
-            m_pTapBintr->UnlinkAll();
-            m_pTapBintr->UnlinkFromSourceTee();
-        }
-        m_pParser->UnlinkFromSink();
-        m_pDepay->UnlinkFromSink();
-        m_pDecoder->UnlinkFromSink();
-        UnlinkCommon();
+            m_pPreDecodeQueue->UnlinkFromSink();
+            if (HasTapBintr())
+            {
+                m_pPreDecodeQueue->UnlinkFromSourceTee();
+                m_pTapBintr->UnlinkAll();
+                m_pTapBintr->UnlinkFromSourceTee();
+            }
+            m_pParser->UnlinkFromSink();
+            m_pDepay->UnlinkFromSink();
+            m_pDecoder->UnlinkFromSink();
+            UnlinkCommon();
 
-        // will be recreated in the select-stream callback on next play
-        m_pParser = nullptr;
-        m_pDepay = nullptr;
-        m_pDecoder = nullptr;
+            // will be recreated in the select-stream callback on next play
+            m_pParser = nullptr;
+            m_pDepay = nullptr;
+            m_pDecoder = nullptr;
 
-        for (auto const& imap: m_pGstRequestedSourcePads)
-        {
-            gst_element_release_request_pad(m_pPreDecodeTee->GetGstElement(), 
-                imap.second);
-            gst_object_unref(imap.second);
+            for (auto const& imap: m_pGstRequestedSourcePads)
+            {
+                gst_element_release_request_pad(m_pPreDecodeTee->GetGstElement(), 
+                    imap.second);
+                gst_object_unref(imap.second);
+            }
         }
-        
         m_isLinked = false;
+        m_isFullyLinked = false;
     }
 
     bool RtspSourceBintr::SetUri(const char* uri)
@@ -2999,6 +3010,9 @@ namespace DSL
             }
 
             SetCurrentState(GST_STATE_READY);
+            
+            // finally fully linked -- ok to unlink all elements from this point
+            m_isFullyLinked = true;
         }
         return true;
     }
