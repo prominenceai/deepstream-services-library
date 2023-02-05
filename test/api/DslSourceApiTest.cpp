@@ -39,7 +39,7 @@ static uint height(720);
 static uint fps_n(30);
 static uint fps_d(1);
 
-static uint intra_decode(false);
+static uint skip_frames(0);
 static uint drop_frame_interval(0);
 
 static std::wstring dewarper_name(L"dewarper");
@@ -61,7 +61,7 @@ static uint interval(0);
 static std::wstring rtsp_uri(L"rtsp://username:password@192.168.0.14:554");
 
 static boolean is_live(false);
-static uint video_format(DSL_STREAM_FORMAT_I420);
+static std::wstring buffer_in_format(DSL_VIDEO_FORMAT_I420);
 
 
 static std::wstring def_device_location(L"/dev/video0");
@@ -174,12 +174,13 @@ SCENARIO( "A new App Source returns the correct attribute values", "[source-api]
         WHEN( "A new App Source is created" ) 
         {
             REQUIRE( dsl_source_app_new(source_name.c_str(), 
-                is_live, video_format, width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+                is_live, buffer_in_format.c_str(), width, height, 
+                fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
-            THEN( "The list size and contents are updated correctly" ) 
+            THEN( "All default attributes are returned correctly" ) 
             {
                 uint ret_width(0), ret_height(0), ret_fps_n(0), ret_fps_d(0);
-                REQUIRE( dsl_source_dimensions_get(source_name.c_str(), 
+                REQUIRE( dsl_source_video_dimensions_get(source_name.c_str(), 
                     &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), 
                     &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
@@ -188,9 +189,9 @@ SCENARIO( "A new App Source returns the correct attribute values", "[source-api]
                 REQUIRE( ret_fps_n == fps_n );
                 REQUIRE( ret_fps_d == fps_d );
                 REQUIRE( dsl_source_is_live(source_name.c_str()) == is_live );
-                
+
                 boolean do_timestamp(TRUE);
-                REQUIRE( dsl_source_do_timestamp_get(source_name.c_str(),
+                REQUIRE( dsl_source_app_do_timestamp_get(source_name.c_str(),
                     &do_timestamp) == DSL_RESULT_SUCCESS );
                 REQUIRE( do_timestamp == FALSE ); // default
                 
@@ -209,6 +210,58 @@ SCENARIO( "A new App Source returns the correct attribute values", "[source-api]
                     &max_bytes) == DSL_RESULT_SUCCESS );
                 REQUIRE( max_bytes == 200000 ); // default
 
+                // BUFFER-OUT DEFAULTS COMMON TO ALL SOURCES - ONLY TESTED HERE.
+
+                // test returned media-type
+                const wchar_t* ret_media_cstrint;
+                REQUIRE( dsl_source_media_type_get(source_name.c_str(), 
+                    &ret_media_cstrint) == DSL_RESULT_SUCCESS );
+                std::wstring exp_media_string(DSL_MEDIA_TYPE_VIDEO_XRAW);
+                std::wstring ret_media_string(ret_media_cstrint);
+                REQUIRE( exp_media_string == ret_media_cstrint );
+                
+                // test returned default buffer-out-format
+                const wchar_t* ret_format_cstrint;
+                REQUIRE( dsl_source_video_buffer_out_format_get(source_name.c_str(), 
+                    &ret_format_cstrint) == DSL_RESULT_SUCCESS );
+                std::wstring exp_format_string(DSL_VIDEO_FORMAT_DEFAULT);
+                std::wstring ret_format_string(ret_format_cstrint);
+                REQUIRE( exp_format_string == ret_format_cstrint );
+                
+                // buffer out default dimensions and framerate
+                uint ret_bo_width(99), ret_bo_height(99);
+                REQUIRE( dsl_source_video_buffer_out_dimensions_get(source_name.c_str(), 
+                    &ret_bo_width, &ret_bo_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_bo_width == 0 );
+                REQUIRE( ret_bo_height == 0 );
+                
+                // buffer out default crop rectangles
+                uint ret_bo_rec_left(99), ret_bo_rec_top(99);
+                uint ret_bo_rec_width(99), ret_bo_rec_height(99);
+                REQUIRE( dsl_source_video_buffer_out_crop_rectangle_get(source_name.c_str(), 
+                    DSL_VIDEO_CROP_AT_SRC, &ret_bo_rec_left, &ret_bo_rec_top,
+                    &ret_bo_rec_width, &ret_bo_rec_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_bo_rec_left == 0 );
+                REQUIRE( ret_bo_rec_top == 0 );
+                REQUIRE( ret_bo_rec_width == 0 );
+                REQUIRE( ret_bo_rec_height == 0 );
+                ret_bo_rec_left = 99;
+                ret_bo_rec_top = 99;
+                ret_bo_rec_width = 99;
+                ret_bo_rec_height = 99;
+                REQUIRE( dsl_source_video_buffer_out_crop_rectangle_get(source_name.c_str(), 
+                    DSL_VIDEO_CROP_AT_SRC, &ret_bo_rec_left, &ret_bo_rec_top,
+                    &ret_bo_rec_width, &ret_bo_rec_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_bo_rec_left == 0 );
+                REQUIRE( ret_bo_rec_top == 0 );
+                REQUIRE( ret_bo_rec_width == 0 );
+                REQUIRE( ret_bo_rec_height == 0 );
+                
+                uint ret_orientation(99);
+                REQUIRE( dsl_source_video_buffer_out_orientation_get(source_name.c_str(),
+                    &ret_orientation) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_orientation == 0 );
+                
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
@@ -220,20 +273,21 @@ SCENARIO( "An App Source can update its settings correctly", "[source-api]" )
     GIVEN( "A new App Source Component" ) 
     {
         REQUIRE( dsl_source_app_new(source_name.c_str(), 
-            is_live, video_format, width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            is_live, buffer_in_format.c_str(), width, height, 
+            fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
-        WHEN( "The App Source's buffer-format setting is set" ) 
+        WHEN( "The App Source's stream-format setting is set" ) 
         {
-            uint bufffer_format(DSL_BUFFER_FORMAT_TIME); // default is BYTE
-            REQUIRE( dsl_source_app_buffer_format_set(source_name.c_str(),
-                bufffer_format) == DSL_RESULT_SUCCESS );
+            uint stream_format(DSL_STREAM_FORMAT_TIME); // default is BYTE
+            REQUIRE( dsl_source_app_stream_format_set(source_name.c_str(),
+                stream_format) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct value is returned on get" ) 
             {
-                uint ret_bufffer_format(DSL_BUFFER_FORMAT_BYTE);
-                REQUIRE( dsl_source_app_buffer_format_get(source_name.c_str(),
-                    &ret_bufffer_format) == DSL_RESULT_SUCCESS );
-                REQUIRE( ret_bufffer_format == bufffer_format );
+                uint ret_stream_format(DSL_STREAM_FORMAT_BYTE);
+                REQUIRE( dsl_source_app_stream_format_get(source_name.c_str(),
+                    &ret_stream_format) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_stream_format == stream_format );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -241,13 +295,13 @@ SCENARIO( "An App Source can update its settings correctly", "[source-api]" )
         WHEN( "The App Source's do-timestamp setting is set" ) 
         {
             boolean do_timestamp(TRUE); // default is FALSE
-            REQUIRE( dsl_source_do_timestamp_set(source_name.c_str(),
+            REQUIRE( dsl_source_app_do_timestamp_set(source_name.c_str(),
                 do_timestamp) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct value is returned on get" ) 
             {
                 boolean ret_do_timestamp(FALSE);
-                REQUIRE( dsl_source_do_timestamp_get(source_name.c_str(),
+                REQUIRE( dsl_source_app_do_timestamp_get(source_name.c_str(),
                     &ret_do_timestamp) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_do_timestamp == do_timestamp );
 
@@ -289,6 +343,102 @@ SCENARIO( "An App Source can update its settings correctly", "[source-api]" )
     }
 }
 
+SCENARIO( "An App Source can update its buffer-out settings correctly",
+    "[source-api]" )
+{
+    GIVEN( "A new App Source Component" ) 
+    {
+        REQUIRE( dsl_source_app_new(source_name.c_str(), 
+            is_live, buffer_in_format.c_str(), width, height, 
+            fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+        WHEN( "The App Source's buffer-out-format setting is set" ) 
+        {
+            std::wstring new_format_string(DSL_VIDEO_FORMAT_RGBA);
+            REQUIRE( dsl_source_video_buffer_out_format_set(source_name.c_str(), 
+                new_format_string.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                const wchar_t* ret_format_cstring;
+                REQUIRE( dsl_source_video_buffer_out_format_get(source_name.c_str(), 
+                    &ret_format_cstring) == DSL_RESULT_SUCCESS );
+                std::wstring ret_format_string(ret_format_cstring);
+                REQUIRE( ret_format_string == new_format_string );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "The App Source's buffer-out-dimensions setting is set" ) 
+        {
+            uint new_width(300), new_height(400);
+            REQUIRE( dsl_source_video_buffer_out_dimensions_set(source_name.c_str(), 
+                new_width, new_height) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct values are returned on get" ) 
+            {
+                uint ret_bo_width(99), ret_bo_height(99);
+                REQUIRE( dsl_source_video_buffer_out_dimensions_get(source_name.c_str(), 
+                    &ret_bo_width, &ret_bo_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_bo_width == new_width );
+                REQUIRE( ret_bo_height == new_height );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "The App Source's buffer-out-crop settings are set" ) 
+        {
+            uint new_bo_rec_left(10), new_bo_rec_top(10);
+            uint new_bo_rec_width(200), new_bo_rec_height(200);
+
+            // first, make sure invalid when value is caught
+            REQUIRE( dsl_source_video_buffer_out_crop_rectangle_set(source_name.c_str(), 
+                DSL_VIDEO_CROP_AT_DEST+1, new_bo_rec_left, new_bo_rec_top,
+                new_bo_rec_width, new_bo_rec_height) == DSL_RESULT_SOURCE_SET_FAILED );
+
+            REQUIRE( dsl_source_video_buffer_out_crop_rectangle_set(source_name.c_str(), 
+                DSL_VIDEO_CROP_AT_DEST, new_bo_rec_left, new_bo_rec_top,
+                new_bo_rec_width, new_bo_rec_height) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct values are returned on get" ) 
+            {
+                uint ret_bo_rec_left(99), ret_bo_rec_top(99);
+                uint ret_bo_rec_width(99), ret_bo_rec_height(99);
+                REQUIRE( dsl_source_video_buffer_out_crop_rectangle_get(source_name.c_str(), 
+                    DSL_VIDEO_CROP_AT_DEST, &ret_bo_rec_left, &ret_bo_rec_top,
+                    &ret_bo_rec_width, &ret_bo_rec_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_bo_rec_left == new_bo_rec_left );
+                REQUIRE( ret_bo_rec_top == new_bo_rec_top );
+                REQUIRE( ret_bo_rec_width == new_bo_rec_width );
+                REQUIRE( ret_bo_rec_height == new_bo_rec_height );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            } 
+        }
+        WHEN( "The App Source's buffer-out-orientation settings are set" ) 
+        {
+            // make sure an invalid value is caught
+            REQUIRE( dsl_source_video_buffer_out_orientation_set(source_name.c_str(), 
+                DSL_VIDEO_ORIENTATION_FLIP_UPPER_LEFT_TO_LOWER_RIGHT+1) 
+                    == DSL_RESULT_SOURCE_SET_FAILED );
+            
+            uint new_bo_orientation(DSL_VIDEO_ORIENTATION_FLIP_VERTICALLY);
+            REQUIRE( dsl_source_video_buffer_out_orientation_set(source_name.c_str(), 
+                new_bo_orientation) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct values are returned on get" ) 
+            {
+                uint ret_bo_orientation(99);
+                REQUIRE( dsl_source_video_buffer_out_orientation_get(source_name.c_str(),
+                    &ret_bo_orientation) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_bo_orientation == DSL_VIDEO_ORIENTATION_FLIP_VERTICALLY );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            } 
+        }
+    }
+}
+
 static void need_data_handler(uint length, void* client_data)
 {
 }
@@ -304,7 +454,8 @@ SCENARIO( "A new App Source can add and remove data-handlers correctly",
     {
         
         REQUIRE( dsl_source_app_new(source_name.c_str(), is_live, 
-            video_format, width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            buffer_in_format.c_str(), width, height, 
+            fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
         WHEN( "Client data-handers are added. " ) 
         {
@@ -337,7 +488,8 @@ SCENARIO( "A new App Source fails to push-buffer and EOS when in a unlinked stat
     {
         
         REQUIRE( dsl_source_app_new(source_name.c_str(), is_live, 
-            video_format, width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            buffer_in_format.c_str(), width, height, 
+            fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
         WHEN( "When the App Source is in an unlinked state. " ) 
         {
@@ -374,7 +526,7 @@ SCENARIO( "A new CSI Camera Source returns the correct attribute values",
             THEN( "The list size and contents are updated correctly" ) 
             {
                 uint ret_width(0), ret_height(0), ret_fps_n(0), ret_fps_d(0);
-                REQUIRE( dsl_source_dimensions_get(source_name.c_str(), 
+                REQUIRE( dsl_source_video_dimensions_get(source_name.c_str(), 
                     &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), 
                     &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
@@ -439,7 +591,7 @@ SCENARIO( "A new USB Camera Source returns the correct attribute values", "[sour
                     &device_location) == DSL_RESULT_SUCCESS );
                 std::wstring ret_device_location(device_location);
                 REQUIRE( ret_device_location == def_device_location );
-                REQUIRE( dsl_source_dimensions_get(source_name.c_str(), 
+                REQUIRE( dsl_source_video_dimensions_get(source_name.c_str(), 
                     &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), 
                     &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
@@ -482,6 +634,39 @@ SCENARIO( "A new USB Camera Source can set/get its device location correctly", "
                     &device_location) == DSL_RESULT_SUCCESS );
                 ret_device_location = device_location;
                 REQUIRE( ret_device_location == new_device_location );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A new URI Source returns the correct attribute values", "[source-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new App Source is created" ) 
+        {
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(),
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+
+            THEN( "All default attributes are returned correctly" ) 
+            {
+                uint ret_width(99), ret_height(99), ret_fps_n(99), ret_fps_d(99);
+                REQUIRE( dsl_source_video_dimensions_get(source_name.c_str(), 
+                    &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), 
+                    &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_width == 1920 );
+                REQUIRE( ret_height == 1080 );
+                REQUIRE( ret_fps_n == 0 );
+                REQUIRE( ret_fps_d == 0 );
+                REQUIRE( dsl_source_is_live(source_name.c_str()) == false );
+                
+                // Note URI Source convers URI to real path which has DeepStream 
+                // version number - don't compare as it makes the test case version
+                // version specific.
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
@@ -582,7 +767,7 @@ SCENARIO( "An invalid Source is caught by all Set and Get API calls", "[source-a
             {
                 uint width(0), height(0);
                 uint fps_n(0), fps_d(0);
-                REQUIRE( dsl_source_dimensions_get(fakeSinkName.c_str(), &width, &height) == DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE);
+                REQUIRE( dsl_source_video_dimensions_get(fakeSinkName.c_str(), &width, &height) == DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE);
                 REQUIRE( dsl_source_frame_rate_get(fakeSinkName.c_str(), &fps_n, &fps_d) == DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE);
                 REQUIRE( dsl_source_pause(fakeSinkName.c_str()) == DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE);
                 REQUIRE( dsl_source_resume(fakeSinkName.c_str()) == DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE);
@@ -595,30 +780,33 @@ SCENARIO( "An invalid Source is caught by all Set and Get API calls", "[source-a
     }
 }
 
-SCENARIO( "A Dewarper can be added to and removed from a Decode Source Component", "[source-api]" )
+SCENARIO( "A Dewarper can be added to and removed from a Source Component", "[source-api]" )
 {
     GIVEN( "A new Source and new Dewarper" )
     {
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(),
-            false, intra_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_dewarper_new(dewarper_name.c_str(), defConfigFile.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_dewarper_new(dewarper_name.c_str(), 
+            defConfigFile.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         WHEN( "The Dewarper is added to the Source" ) 
         {
-            REQUIRE( dsl_source_decode_dewarper_add(source_name.c_str(), 
+            REQUIRE( dsl_source_video_dewarper_add(source_name.c_str(), 
                 dewarper_name.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The Dewarper can be removed" )
             {
                 // A second call must fail
-                REQUIRE( dsl_source_decode_dewarper_add(source_name.c_str(), 
+                REQUIRE( dsl_source_video_dewarper_add(source_name.c_str(), 
                     dewarper_name.c_str()) == DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED );
 
-                REQUIRE( dsl_source_decode_dewarper_remove(source_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_video_dewarper_remove(source_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
 
                 // A second time must fail
-                REQUIRE( dsl_source_decode_dewarper_remove(source_name.c_str()) == DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED );
+                REQUIRE( dsl_source_video_dewarper_remove(source_name.c_str()) 
+                    == DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED );
                     
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -626,14 +814,14 @@ SCENARIO( "A Dewarper can be added to and removed from a Decode Source Component
     }
 }
 
-SCENARIO( "Adding an invalid Dewarper to a Decode Source Component fails", "[source-api]" )
+SCENARIO( "Adding an invalid Dewarper to a  Source Component fails", "[source-api]" )
 {
     GIVEN( "A new Source and a Fake Sink as invalid Dewarper" )
     {
         std::wstring fakeSinkName(L"fake-sink");
 
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(),
-            false, intra_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         WHEN( "A Fake Sink is used as Dewarper" ) 
         {
@@ -641,7 +829,7 @@ SCENARIO( "Adding an invalid Dewarper to a Decode Source Component fails", "[sou
 
             THEN( "Adding the Fake Sink as a Dewarper will fail" )
             {
-                REQUIRE( dsl_source_decode_dewarper_add(source_name.c_str(), 
+                REQUIRE( dsl_source_video_dewarper_add(source_name.c_str(), 
                     fakeSinkName.c_str()) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
                     
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
@@ -656,7 +844,7 @@ SCENARIO( "An RTSP Source's Timeout can be updated correctly", "[source-api]" )
     GIVEN( "A new RTSP Source with a 0 timeout" )
     {
         REQUIRE( dsl_source_rtsp_new(source_name.c_str(), rtsp_uri.c_str(), protocol,
-            intra_decode, interval, latency, timeout) == DSL_RESULT_SUCCESS );
+            skip_frames, interval, latency, timeout) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_source_rtsp_timeout_get(source_name.c_str(), &retTimeout) == DSL_RESULT_SUCCESS );
         REQUIRE( retTimeout == timeout );
@@ -683,7 +871,7 @@ SCENARIO( "An RTSP Source's Reconnect Stats can gotten and cleared", "[source-ap
     GIVEN( "A new RTSP Source with a 0 timeout" )
     {
         REQUIRE( dsl_source_rtsp_new(source_name.c_str(), rtsp_uri.c_str(), protocol,
-            intra_decode, interval, latency, timeout) == DSL_RESULT_SUCCESS );
+            skip_frames, interval, latency, timeout) == DSL_RESULT_SUCCESS );
             
         WHEN( "A client gets an RTSP Source's connection data" ) 
         {
@@ -723,7 +911,7 @@ SCENARIO( "An RTSP state-change-listener can be added and removed", "[source-api
     GIVEN( "A new RTSP Source and client listener callback" )
     {
         REQUIRE( dsl_source_rtsp_new(source_name.c_str(), rtsp_uri.c_str(), protocol,
-            intra_decode, interval, latency, timeout) == DSL_RESULT_SUCCESS );
+            skip_frames, interval, latency, timeout) == DSL_RESULT_SUCCESS );
 
         WHEN( "A state-change-listner is added" )
         {
@@ -773,13 +961,13 @@ SCENARIO( "A new File Source returns the correct attribute values", "[source-api
             THEN( "The correct attribute values are returned" ) 
             {
                 const wchar_t* pRetFilePath;
-                REQUIRE( dsl_source_file_path_get(source_name.c_str(), 
+                REQUIRE( dsl_source_file_file_path_get(source_name.c_str(), 
                     &pRetFilePath) == DSL_RESULT_SUCCESS );
                 std::wstring w_ret_file_path(pRetFilePath);
                 REQUIRE( w_ret_file_path == w_full_file_path);
                 
                 uint ret_width(0), ret_height(0), ret_fps_n(0), ret_fps_d(0);
-                REQUIRE( dsl_source_dimensions_get(source_name.c_str(), 
+                REQUIRE( dsl_source_video_dimensions_get(source_name.c_str(), 
                     &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), 
                     &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
@@ -804,7 +992,7 @@ SCENARIO( "A new File Source returns the correct attribute values", "[source-api
             {
                 const wchar_t* pRetFilePath; 
                 std::wstring empty_file_path;
-                REQUIRE( dsl_source_file_path_get(source_name.c_str(), 
+                REQUIRE( dsl_source_file_file_path_get(source_name.c_str(), 
                     &pRetFilePath) == DSL_RESULT_SUCCESS );
                 std::wstring ret_file_path(pRetFilePath);
                 REQUIRE( ret_file_path == empty_file_path );
@@ -937,7 +1125,7 @@ SCENARIO( "A new Image Stream Source returns the correct attribute values", "[so
             THEN( "The list size and contents are updated correctly" ) 
             {
                 uint ret_width(0), ret_height(0), ret_fps_n(0), ret_fps_d(0);
-                REQUIRE( dsl_source_dimensions_get(source_name.c_str(), 
+                REQUIRE( dsl_source_video_dimensions_get(source_name.c_str(), 
                     &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), 
                     &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
@@ -990,6 +1178,7 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
         REQUIRE( dsl_component_list_size() == 0 );
         
         int start_index(0);
+        uint left(0), top(0), width(0);
         dsl_source_app_need_data_handler_cb data_handler_cb;
 
         WHEN( "When NULL pointers are used as input" ) 
@@ -1048,17 +1237,17 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_file_new(NULL, NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
                 // Note NULL file_path is valid for File and Image Sources
 
-                REQUIRE( dsl_source_dimensions_get(NULL, &width, &height) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_dimensions_get(NULL, &width, &height) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_frame_rate_get(NULL, &fps_n, &fps_d) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_source_decode_uri_get(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_decode_uri_get(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_decode_uri_set(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_decode_uri_set(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_uri_uri_get(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_uri_uri_get(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_uri_uri_set(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_uri_uri_set(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_source_decode_dewarper_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_decode_dewarper_add(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_decode_dewarper_remove(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_dewarper_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_dewarper_add(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_dewarper_remove(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_source_rtsp_tap_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_rtsp_tap_add(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
@@ -1087,12 +1276,55 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_pph_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_pph_remove(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_source_do_timestamp_get(NULL,
+                REQUIRE( dsl_source_app_do_timestamp_get(NULL,
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_do_timestamp_get(source_name.c_str(),
+                REQUIRE( dsl_source_app_do_timestamp_get(source_name.c_str(),
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_do_timestamp_set(NULL,
+                REQUIRE( dsl_source_app_do_timestamp_set(NULL,
                     0) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_media_type_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_media_type_get(source_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_video_buffer_out_format_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_buffer_out_format_get(source_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_buffer_out_format_set(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_buffer_out_format_set(source_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_video_buffer_out_dimensions_get(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_buffer_out_dimensions_get(source_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_buffer_out_dimensions_get(source_name.c_str(), 
+                    &width, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_buffer_out_dimensions_set(NULL, 
+                    1, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_video_buffer_out_crop_rectangle_get(NULL, 
+                    0, NULL, NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_buffer_out_crop_rectangle_get(source_name.c_str(), 
+                    0, NULL, NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_buffer_out_crop_rectangle_get(source_name.c_str(), 
+                    0, &left, NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_buffer_out_crop_rectangle_get(source_name.c_str(), 
+                    0, &left, &top, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_buffer_out_crop_rectangle_get(source_name.c_str(), 
+                    0, &left, &top, &width, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_buffer_out_crop_rectangle_set(NULL, 
+                    1, 1, 1, 1, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_video_buffer_out_orientation_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_buffer_out_orientation_get(source_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_buffer_out_orientation_set(NULL, 
+                    1) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_list_size() == 0 );
             }

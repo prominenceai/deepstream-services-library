@@ -549,12 +549,11 @@ namespace DSL
         const char* inferOn, uint interval, uint inferType)
         : InferBintr(name, DSL_INFER_MODE_SECONDARY, inferConfigFile, 
             modelEngineFile, interval, inferType)
+        , m_inferOn(inferOn)
+
     {
         LOG_FUNC();
 
-        // update the InferEngine interval setting
-        SetInferOnName(inferOn);
-        
         m_pQueue = DSL_ELEMENT_EXT_NEW("queue", name, "tee");
         m_pTee = DSL_ELEMENT_NEW("tee", name);
         m_pFakeSinkQueue = DSL_ELEMENT_EXT_NEW("queue", name, "fakesink");
@@ -598,7 +597,6 @@ namespace DSL
                 << "' is already linked");
             return false;
         }
-
         if (!m_pQueue->LinkToSink(m_pInferEngine) or 
             !m_pInferEngine->LinkToSink(m_pTee) or
             !m_pFakeSinkQueue->LinkToSourceTee(m_pTee, "src_%u") or
@@ -655,7 +653,7 @@ namespace DSL
         return m_inferOn.c_str();
     }
     
-    bool SecondaryInferBintr::SetInferOnName(const char* name)
+    bool SecondaryInferBintr::SetInferOnUniqueId()
     {
         LOG_FUNC();
 
@@ -666,15 +664,14 @@ namespace DSL
             return false;
             
         }
-        if (Services::GetServices()->_inferIdGet(name, 
+        if (Services::GetServices()->_inferIdGet(m_inferOn.c_str(), 
             &m_inferOnUniqueId) != DSL_RESULT_SUCCESS)
         {
             LOG_ERROR("SecondaryInferBintr '" << GetName() 
                 << "' failed to Get unique Id for PrimaryInferBintr '" 
-                << name << "'");
+                << m_inferOn << "'");
             return false;
         }   
-        m_inferOn.assign(name);
         
         LOG_INFO("Setting infer-on-id for SecondaryInferBintr '" 
             << GetName() << "' to " << m_inferOnUniqueId);

@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2021, Prominence AI, Inc.
+# Copyright (c) 2023, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -29,25 +29,33 @@ import time
 
 from dsl import *
 
-#-------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------
+# This example shows the use of a Video Dewarper to dewarp a perspective view.
 #
-# This example demonstrates the use of an Image Source to infer on a single JPEG image
+# The Dewarper component is created with the following parameters:
+#   - a config "config_dewarper_perspective.txt" which defines all dewarping 
+#     parameters - i.e. the csv files are not used for this example. 
+#   - and a camera-id which is NOT USED! Perspecitve dewarping requires that all
+#     parameters be defined in the config file. 
+# All files are located under:
+#   /opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/
 #
-# The PTIS is added to a new Pipeline with the single URI JPF Source, KTL Tracker, 
-# On-Screen-Display (OSD), and Window Sink with 1280x720 dimensions.
 
-# File path for the single File Source
-file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg'
+# Sample perspective video stream
+input_stream = \
+    '/opt/nvidia/deepstream/deepstream/samples/streams/yoga.mp4'
+    
+# IMPORTANT! --------------------------
+# Config file specific to perspective dewarping - DOES NOT USE the csv_files
+dwarper_config_file = \
+    '/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/config_dewarper_perspective.txt'
 
-# Filespecs for the Primary GIE and IOU Trcaker
-primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
-primary_model_engine_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
-# Window Sink Dimensions
-sink_width = 1280
-sink_height = 720
+streammux_width = 3680
+streammux_height = 2428
+
+sink_width = DSL_STREAMMUX_DEFAULT_WIDTH
+sink_height = DSL_STREAMMUX_DEFAULT_HEIGHT
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -89,24 +97,24 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # New URI Image Source - single frame to End of Stream.
-        retval = dsl_source_image_single_new('image-source', 
-            file_path = file_path)
+        # New File Source using the file path specified above, repeat enabled.
+        retval = dsl_source_file_new('file-source', input_stream, True)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # New Primary GIE using the filespecs above with interval = 0
-        retval = dsl_infer_gie_primary_new('primary-gie', 
-            primary_infer_config_file, primary_model_engine_file, 0)
+        # New Dewarper - config file is perspective - camera_id is NOT used as
+        # all parameters are defined in the config file - csv files are NOT used.
+        retval = dsl_dewarper_new('dewarper', 
+            config_file = dwarper_config_file,
+            camera_id = 0)
         if retval != DSL_RETURN_SUCCESS:
             break
-
-        # New OSD with text, clock and bbox display all enabled. 
-        retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+            
+        # We add the Dewarper directly to the source... not the Pipeline.
+        retval = dsl_source_video_dewarper_add('file-source', 'dewarper')
         if retval != DSL_RETURN_SUCCESS:
             break
-
+            
         # New Window Sink, 0 x/y offsets and dimensions 
         retval = dsl_sink_window_new('window-sink', 0, 0, sink_width, sink_height)
         if retval != DSL_RETURN_SUCCESS:
@@ -114,20 +122,28 @@ def main(args):
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['image-source', 'primary-gie', 'on-screen-display', 'window-sink', None])
+            ['file-source', 'window-sink', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Enable fullscreen for a kiosk look and feel.
+        retval = dsl_pipeline_xwindow_fullscreen_enabled_set('pipeline', True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
+        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 
+            xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
+        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", 
+            xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the listener callback functions defined above
-        retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
+        retval = dsl_pipeline_state_change_listener_add('pipeline', 
+            state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)

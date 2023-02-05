@@ -36,7 +36,7 @@ static uint intrDecode(false);
 static uint dropFrameInterval(0);
 
 static std::string dewarperName("dewarper");
-static const std::string defConfigFile(
+static std::string defConfigFile(
 "/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/config_dewarper.txt");
 
 static std::string rtspSourceName("rtsp-source");
@@ -50,24 +50,27 @@ static std::string multJpgFilePath("./test/streams/sample_720p.%04d.mjpeg");
 
 static uint width(1920), height(1080), fps_n(30), fps_d(1);
 
+static std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
+static std::string defaultBufferOutFormat(L_bufferOutFormat.begin(), 
+    L_bufferOutFormat.end());
+
 using namespace DSL;
 
-SCENARIO( "A new AppSourceBintr is created correctly",  "[new]" )
+SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
 {
     GIVEN( "Attributes for a new AppSourceBintr" ) 
     {
-        uint format(DSL_STREAM_FORMAT_I420);
         boolean isLive(true);
         
         WHEN( "The AppSourceBintr is created " )
         {
             DSL_APP_SOURCE_PTR pSourceBintr = DSL_APP_SOURCE_NEW(
-                sourceName.c_str(), isLive, format, width, height, fps_n, fps_d);
+                sourceName.c_str(), isLive, "I420", width, height, fps_n, fps_d);
 
             THEN( "All memeber variables are initialized correctly" )
             {
-                REQUIRE( pSourceBintr->m_gpuId == 0 );
-                REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
+                REQUIRE( pSourceBintr->GetGpuId() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
@@ -81,10 +84,18 @@ SCENARIO( "A new AppSourceBintr is created correctly",  "[new]" )
                 REQUIRE( fps_n == retFpsN );
                 REQUIRE( fps_d == retFpsD );
                 
-                REQUIRE( pSourceBintr->GetBufferFormat() == DSL_BUFFER_FORMAT_BYTE );
+                REQUIRE( pSourceBintr->GetStreamFormat() == DSL_STREAM_FORMAT_BYTE );
                 REQUIRE( pSourceBintr->GetBlockEnabled() == FALSE);
                 REQUIRE( pSourceBintr->GetCurrentLevelBytes() == 0);
                 REQUIRE( pSourceBintr->GetMaxLevelBytes() == 200000);
+                
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
+                
+                pSourceBintr->GetBufferOutDimensions(&retWidth, &retHeight);
+                REQUIRE( retWidth == 0 );
+                REQUIRE( retHeight == 0 );
+                REQUIRE( pSourceBintr->GetBufferOutOrientation() == 0);
             }
         }
     }
@@ -95,11 +106,10 @@ SCENARIO( "An AppSourceBintr can LinkAll and UnlinkAll child Elementrs correctly
 {
     GIVEN( "A new AppSourceBintr in memory" ) 
     {
-        uint format(DSL_STREAM_FORMAT_I420);
         boolean isLive(true);
-
+        
         DSL_APP_SOURCE_PTR pSourceBintr = DSL_APP_SOURCE_NEW(
-            sourceName.c_str(), isLive, format, width, height, fps_n, fps_d);
+            sourceName.c_str(), isLive, "I420", width, height, fps_n, fps_d);
 
         WHEN( "The AppSourceBintr is called to LinkAll" )
         {
@@ -120,11 +130,10 @@ SCENARIO( "A AppSourceBintr can UnlinkAll all child Elementrs correctly",  "[Sou
 {
     GIVEN( "A new, linked AppSourceBintr " ) 
     {
-        uint format(DSL_STREAM_FORMAT_I420);
         boolean isLive(true);
 
         DSL_APP_SOURCE_PTR pSourceBintr = DSL_APP_SOURCE_NEW(
-            sourceName.c_str(), isLive, format, width, height, fps_n, fps_d);
+            sourceName.c_str(), isLive, "I420", width, height, fps_n, fps_d);
 
         pSourceBintr->LinkAll();
         REQUIRE( pSourceBintr->IsLinked() == true );
@@ -153,8 +162,8 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[SourceBintr]" )
 
             THEN( "All memeber variables are initialized correctly" )
             {
-                REQUIRE( pSourceBintr->m_gpuId == 0 );
-                REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
+                REQUIRE( pSourceBintr->GetGpuId() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->GetSensorId() == 0 );
@@ -168,6 +177,9 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( height == retHeight );
                 REQUIRE( fps_n == retFpsN );
                 REQUIRE( fps_d == retFpsD );
+
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
     }
@@ -306,6 +318,9 @@ SCENARIO( "A new UsbSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( height == retHeight );
                 REQUIRE( fps_n == retFpsN );
                 REQUIRE( fps_d == retFpsD );
+
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
     }
@@ -492,8 +507,8 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[SourceBintr]" )
 
             THEN( "All memeber variables are initialized correctly" )
             {
-                REQUIRE( pSourceBintr->m_gpuId == 0 );
-                REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
+                REQUIRE( pSourceBintr->GetGpuId() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
@@ -511,6 +526,9 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( retHeight == 1080 );
                 REQUIRE( retFpsN == 0 );
                 REQUIRE( retFpsD == 0 );
+
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
     }
@@ -565,7 +583,7 @@ SCENARIO( "A UriSourceBintr can Add a Child DewarperBintr",  "[SourceBintr]" )
             sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
         DSL_DEWARPER_PTR pDewarperBintr = 
-            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str(), 0);
 
         WHEN( "The DewarperBintr is added to UriSourceBintr" )
         {
@@ -587,7 +605,7 @@ SCENARIO( "A UriSourceBintr can Remove a Child DewarperBintr",  "[SourceBintr]" 
             sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
         DSL_DEWARPER_PTR pDewarperBintr = 
-            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str(), 0);
 
         REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr) == true );
 
@@ -613,10 +631,10 @@ SCENARIO( "A UriSourceBintr can ensure a single Child DewarperBintr",  "[SourceB
             sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
         DSL_DEWARPER_PTR pDewarperBintr1 = 
-            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str(), 0);
 
         DSL_DEWARPER_PTR pDewarperBintr2 = 
-            DSL_DEWARPER_NEW(dewarperName2.c_str(), defConfigFile.c_str());
+            DSL_DEWARPER_NEW(dewarperName2.c_str(), defConfigFile.c_str(), 0);
 
         REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr1) == true );
 
@@ -644,7 +662,7 @@ SCENARIO( "A UriSourceBintr with a child DewarperBintr can LinkAll child Element
             sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
         DSL_DEWARPER_PTR pDewarperBintr = 
-            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str(), 0);
 
         REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr) == true );
 
@@ -668,7 +686,7 @@ SCENARIO( "A Linked UriSourceBintr with a child DewarperBintr can UnlinkAll chil
             sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
 
         DSL_DEWARPER_PTR pDewarperBintr = 
-            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str(), 0);
 
         REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr) == true );
 
@@ -751,8 +769,8 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[SourceBintr]" )
 
             THEN( "All memeber variables are initialized correctly" )
             {
-                REQUIRE( pSourceBintr->m_gpuId == 0 );
-                REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
+                REQUIRE( pSourceBintr->GetGpuId() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
@@ -788,6 +806,9 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( retHeight == 0 );
                 REQUIRE( retFpsN == 0 );
                 REQUIRE( retFpsD == 0 );
+
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
     }
@@ -1049,8 +1070,8 @@ SCENARIO( "A new FileSourceBintr is created correctly",  "[SourceBintr]" )
 
             THEN( "All memeber variables are initialized correctly" )
             {
-                REQUIRE( pSourceBintr->m_gpuId == 0 );
-                REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
+                REQUIRE( pSourceBintr->GetGpuId() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
@@ -1060,6 +1081,9 @@ SCENARIO( "A new FileSourceBintr is created correctly",  "[SourceBintr]" )
                 
                 std::string returnedUri = pSourceBintr->GetUri();
                 REQUIRE( returnedUri == fullFillPath );
+
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
     }
@@ -1120,8 +1144,8 @@ SCENARIO( "A new ImageStreamSourceBintr is created correctly",  "[SourceBintr]" 
 
             THEN( "All memeber variables are initialized correctly" )
             {
-                REQUIRE( pSourceBintr->m_gpuId == 0 );
-                REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
+                REQUIRE( pSourceBintr->GetGpuId() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
@@ -1133,6 +1157,9 @@ SCENARIO( "A new ImageStreamSourceBintr is created correctly",  "[SourceBintr]" 
                 
                 std::string returnedFilePath = pSourceBintr->GetUri();
                 REQUIRE( returnedFilePath == fullFillPath );
+
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
     }
@@ -1193,8 +1220,8 @@ SCENARIO( "A new SingleImageSourceBintr is created correctly",  "[SourceBintr]" 
 
             THEN( "All memeber variables are initialized correctly" )
             {
-                REQUIRE( pSourceBintr->m_gpuId == 0 );
-                REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
+                REQUIRE( pSourceBintr->GetGpuId() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
@@ -1204,6 +1231,9 @@ SCENARIO( "A new SingleImageSourceBintr is created correctly",  "[SourceBintr]" 
                 
                 std::string returnedFilePath = pSourceBintr->GetUri();
                 REQUIRE( returnedFilePath == fullFillPath );
+
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
     }
@@ -1261,8 +1291,8 @@ SCENARIO( "A new MultiImageSourceBintr is created correctly",  "[SourceBintr]" )
 
             THEN( "All memeber variables are initialized correctly" )
             {
-                REQUIRE( pSourceBintr->m_gpuId == 0 );
-                REQUIRE( pSourceBintr->m_nvbufMemType == 0 );
+                REQUIRE( pSourceBintr->GetGpuId() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
@@ -1279,6 +1309,9 @@ SCENARIO( "A new MultiImageSourceBintr is created correctly",  "[SourceBintr]" )
                 
                 std::string returnedFilePath = pSourceBintr->GetUri();
                 REQUIRE( returnedFilePath == multJpgFilePath );
+
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
     }

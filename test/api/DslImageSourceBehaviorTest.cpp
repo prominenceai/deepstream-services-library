@@ -104,7 +104,7 @@ SCENARIO( "A new Pipeline with a JPEG Image Source, Primary GIE, Tiled Display, 
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_image_new(source_name1.c_str(),
+        REQUIRE( dsl_source_image_single_new(source_name1.c_str(),
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
@@ -160,15 +160,15 @@ SCENARIO( "A new Pipeline with a JPEG Image Source, Primary GIE, Tiled Display, 
     }
 }
 
-SCENARIO( "A new Pipeline with an MJPEG Image Frame Source, Primary GIE, Tiled Display, \
+SCENARIO( "A new Pipeline with a Single Image Source, Primary GIE, Tiled Display, \
     Window Sink, ODE Trigger and Action can play",
     "[image-source-play]" )
 {
-    GIVEN( "A Pipeline, URI source, Primary GIE, Tiled Display, Window Sink" ) 
+    GIVEN( "A Pipeline, Single Image Source, Primary GIE, Tiled Display, Window Sink" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_image_new(source_name1.c_str(),
+        REQUIRE( dsl_source_image_single_new(source_name1.c_str(),
             mjpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
@@ -229,13 +229,13 @@ SCENARIO( "A new Pipeline with 4 JPEG Image Sources, Primary GIE, \
 
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_image_new(source_name1.c_str(), 
+        REQUIRE( dsl_source_image_single_new(source_name1.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_image_new(source_name2.c_str(), 
+        REQUIRE( dsl_source_image_single_new(source_name2.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_image_new(source_name3.c_str(), 
+        REQUIRE( dsl_source_image_single_new(source_name3.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_image_new(source_name4.c_str(), 
+        REQUIRE( dsl_source_image_single_new(source_name4.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
@@ -298,7 +298,79 @@ SCENARIO( "A new Pipeline with a Image Stream Source, Primary GIE, Tiled Display
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_image_stream_new(source_name1.c_str(),
-            jpeg_file_path.c_str(), false, fps_n, fps_d, 1) == DSL_RESULT_SUCCESS );
+            jpeg_file_path.c_str(), false, fps_n, fps_d, 3) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            infer_config_file.c_str(), model_engine_file.c_str(),
+            0) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
+            tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_action_print_new(print_action_name.c_str(), false) == 
+            DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_ode_trigger_occurrence_new(occurrence_trigger_name.c_str(),
+            DSL_ODE_ANY_SOURCE, DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_ONE) ==
+            DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(occurrence_trigger_name.c_str(), 
+            print_action_name.c_str()) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_pph_ode_new(ode_handler_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_trigger_add(ode_handler_name.c_str(), 
+            occurrence_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_tiler_pph_add(tiler_name1.c_str(), ode_handler_name.c_str(), 
+            DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+        
+        const wchar_t* components[] = {L"image-source-1",L"primary-gie", L"tiler", 
+            L"window-sink", NULL};
+        
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_pipeline_eos_listener_add(pipeline_name.c_str(), 
+                eos_event_listener, NULL) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                dsl_pipeline_dump_to_dot(pipeline_name.c_str(), 
+                    const_cast<wchar_t*>(pipeline_graph_name.c_str()));
+
+                dsl_main_loop_run();
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                dsl_delete_all();
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+
+SCENARIO( "A new Pipeline with a Image Stream Source (RGBA output), Primary GIE, \
+    Tiled Display, Window Sink, ODE Trigger and Action can play", "[image-source-play]" )
+{
+    GIVEN( "A Pipeline, URI source, Primary GIE, Tiled Display, Window Sink" ) 
+    {
+        uint fps_n(10), fps_d(1);
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_image_stream_new(source_name1.c_str(),
+            jpeg_file_path.c_str(), false, fps_n, fps_d, 3) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_source_video_buffer_out_format_set(source_name1.c_str(),
+            DSL_VIDEO_FORMAT_RGBA) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
             infer_config_file.c_str(), model_engine_file.c_str(),

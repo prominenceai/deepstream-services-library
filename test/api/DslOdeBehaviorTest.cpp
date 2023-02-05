@@ -31,7 +31,7 @@ THE SOFTWARE.
 
 static const std::wstring source_name(L"uri-source");
 static const std::wstring uri(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
-static const uint intr_decode(false);
+static const uint skip_frames(0);
 static const uint drop_frame_interval(0);
 
 static const std::wstring primary_gie_name(L"primary-gie");
@@ -134,7 +134,7 @@ SCENARIO( "A new Pipeline with an ODE Handler without any child ODE Triggers can
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -187,7 +187,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Print
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -248,7 +248,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers, each
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -321,7 +321,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers shari
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
             infer_config_file.c_str(), model_engine_file.c_str(), 
@@ -398,7 +398,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers shari
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
 //        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-//            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+//            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
 //            model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -476,7 +476,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, four Summation ODE Triggers, each
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -587,7 +587,7 @@ an ODE Accumlator, each with an ODE Display Action can play", "[ode-behavior]" )
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -745,7 +745,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -888,7 +888,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -985,7 +985,7 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Line Area 
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -1085,7 +1085,7 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Inclussion
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -1187,7 +1187,7 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Exclusion 
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -1288,7 +1288,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Forma
             0.78, 0.56, 0.34, 0.43) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
             infer_config_file.c_str(), model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -1382,7 +1382,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Forma
                 == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
             infer_config_file.c_str(), model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -1458,7 +1458,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Custo
                 == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
             infer_config_file.c_str(), model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -1530,7 +1530,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Offse
             offset_x, offset_y) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
             infer_config_file.c_str(), model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -1600,7 +1600,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Scale
             120) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
             infer_config_file.c_str(), model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -1677,7 +1677,7 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can p
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
             infer_config_file.c_str(), model_engine_file.c_str(), 
@@ -1792,7 +1792,7 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Multi-Line Area
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
             infer_config_file.c_str(), model_engine_file.c_str(), 
@@ -1908,7 +1908,7 @@ SCENARIO( "A new Pipeline with a Cross ODE Trigger using an ODE Polygon Area can
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
             infer_config_file.c_str(), model_engine_file.c_str(), 
@@ -2012,7 +2012,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Print ODE
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
             infer_config_file.c_str(), model_engine_file.c_str(), 0) == 
@@ -2095,7 +2095,7 @@ SCENARIO( "A Tiler can add the frame number to the framemeta correctly", "[ode-b
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
