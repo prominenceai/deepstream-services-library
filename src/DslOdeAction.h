@@ -460,8 +460,6 @@ namespace DSL
          */
         ~CaptureOdeAction();
 
-        cv::Mat& AnnotateObject(NvDsObjectMeta* pObjectMeta, cv::Mat& bgr_frame);
-        
         /**
          * @brief Handles the ODE occurrence by capturing a frame or object image to file
          * @param[in] pOdeTrigger shared pointer to ODE Type that triggered the event
@@ -525,21 +523,6 @@ namespace DSL
          */
         void RemoveAllChildren();
         
-        /**
-         * @brief Queues capture info and starts the Listener notification timer
-         * @param info shared pointer to cv::MAT containing the captured image
-         */
-        void QueueCapturedImage(std::shared_ptr<cv::Mat> pImageMat);
-        
-        /**
-         * @brief implements a timer callback to complete the capture process 
-         * by saving the image to file, notifying all client listeners, and 
-         * sending email all in the main loop context.
-         * @return false always to self remove timer once clients have been notified. 
-         * Timer/tread will be restarted on next Image Capture
-         */
-        int CompleteCapture();
-        
     protected:
 
         /**
@@ -556,21 +539,17 @@ namespace DSL
          * @brief relative or absolute path to output directory
          */ 
         std::string m_outdir;
-        
-        /**
-         * @brief annotates the image with bbox and label DSL_CAPTURE_TYPE_FRAME only
-         */
-        bool m_annotate;
 
         /**
          * @brief mutux to guard the Capture info read/write access.
          */
         GMutex m_captureCompleteMutex;
+        
+        DSL_APP_SOURCE_PTR m_pAppSourceBintr;
 
-        /**
-         * @brief gnome timer Id for the capture complete callback
-         */
-        uint m_captureCompleteTimerId;
+        DSL_MULTI_IMAGE_SINK_PTR m_pMultiImageSinkBintr;
+
+        DSL_PLAYER_BINTR_PTR m_pPlayerBintr;
         
         /**
          * @brief map of all currently registered capture-complete-listeners
@@ -588,20 +567,8 @@ namespace DSL
          */
         std::map<std::string, std::shared_ptr<MailerSpecs>> m_mailers;
         
-        /**
-         * @brief a queue of captured Images to save to file and notify clients
-         */
-        std::queue<std::shared_ptr<cv::Mat>> m_imageMats;
     };
 
-    /**
-     * @brief Timer callback handler to complete the capture process
-     * by notifying all listeners and sending email with all mailers.
-     * @param[in] pSource shared pointer to Capture Action to invoke.
-     * @return int true to continue, 0 to self remove
-     */
-    static int CompleteCaptureHandler(gpointer pAction);
-    
     // ********************************************************************
 
     /**

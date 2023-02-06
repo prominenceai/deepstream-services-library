@@ -1482,17 +1482,17 @@ namespace DSL
         LOG_INFO("File Path = " << m_uri);
         
         // use openCV to open the file and read the Frame width and height properties.
-        cv::VideoCapture vidCap;
-        vidCap.open(uri, cv::CAP_ANY);
-
-        if (!vidCap.isOpened())
-        {
-            LOG_ERROR("Failed to open File '" << uri 
-                << "' for VideoRenderPlayerBintr '" << GetName() << "'");
-            return false;
-        }
-        m_width = vidCap.get(cv::CAP_PROP_FRAME_WIDTH);
-        m_height = vidCap.get(cv::CAP_PROP_FRAME_HEIGHT);
+//        cv::VideoCapture vidCap;
+//        vidCap.open(uri, cv::CAP_ANY);
+//
+//        if (!vidCap.isOpened())
+//        {
+//            LOG_ERROR("Failed to open File '" << uri 
+//                << "' for VideoRenderPlayerBintr '" << GetName() << "'");
+//            return false;
+//        }
+//        m_width = vidCap.get(cv::CAP_PROP_FRAME_WIDTH);
+//        m_height = vidCap.get(cv::CAP_PROP_FRAME_HEIGHT);
         
         // Note: the m_fpsN and m_fpsD can be calculated from cv.CAP_PROP_FPS
         // if needed prior to playing the file.
@@ -1953,10 +1953,10 @@ namespace DSL
         m_uri.assign(realpath(uri, absolutePath));
 
         // Use OpenCV to determine the new image dimensions
-        cv::Mat image = imread(m_uri, cv::IMREAD_COLOR);
-        cv::Size imageSize = image.size();
-        m_width = imageSize.width;
-        m_height = imageSize.height;
+//        cv::Mat image = imread(m_uri, cv::IMREAD_COLOR);
+//        cv::Size imageSize = image.size();
+//        m_width = imageSize.width;
+//        m_height = imageSize.height;
 
         // Set the filepath for the File Source Elementr
         m_pSourceElement->SetAttribute("location", m_uri.c_str());
@@ -2250,10 +2250,10 @@ namespace DSL
         m_uri.assign(realpath(uri, absolutePath));
 
         // Use OpenCV to determine the new image dimensions
-        cv::Mat image = imread(m_uri, cv::IMREAD_COLOR);
-        cv::Size imageSize = image.size();
-        m_width = imageSize.width;
-        m_height = imageSize.height;
+//        cv::Mat image = imread(m_uri, cv::IMREAD_COLOR);
+//        cv::Size imageSize = image.size();
+//        m_width = imageSize.width;
+//        m_height = imageSize.height;
 
         // Set the full capabilities (format and framerate)
         if (!set_full_caps(m_pSourceCapsFilter, m_mediaType.c_str(), 
@@ -2612,15 +2612,15 @@ namespace DSL
         // stream beforewe try and link any pads. Otherwise, unlinking a failed 
         // stream connection from the Streammuxer will result in a deadlock. 
         // Try to open the URL with open CV first.
-        cv::VideoCapture capture(m_uri.c_str());
-
-        if (!capture.isOpened())
-        {
-            LOG_ERROR("RtspSourceBintr '" << GetName() 
-                << "' failed to open stream for URI = "
-                << m_uri.c_str());
-            return false;
-        }
+//        cv::VideoCapture capture(m_uri.c_str());
+//
+//        if (!capture.isOpened())
+//        {
+//            LOG_ERROR("RtspSourceBintr '" << GetName() 
+//                << "' failed to open stream for URI = "
+//                << m_uri.c_str());
+//            return false;
+//        }
 
 
         // All elements are linked in the select-stream callback (HandleSelectStream),

@@ -247,24 +247,39 @@ namespace DSL
         : OdeAction(name)
         , m_captureType(captureType)
         , m_outdir(outdir)
-        , m_annotate(annotate)
-        , m_captureCompleteTimerId(0)
     {
         LOG_FUNC();
 
         g_mutex_init(&m_captureCompleteMutex);
+        
+        std::string appSrcName = GetName() + "-appsrc-";
+        m_pAppSourceBintr = DSL_APP_SOURCE_NEW(
+            appSrcName.c_str(), false, "RGBA", 1280, 720, 1, 1);
+
+        std::string imageSinkName = GetName() + "-image-sink-";
+        m_pMultiImageSinkBintr = 
+            DSL_MULTI_IMAGE_SINK_NEW(imageSinkName.c_str(), "./frame-%05d.jpg");
+
+        std::string playerName = GetName() + "-player-";
+        m_pPlayerBintr = DSL_PLAYER_BINTR_NEW(
+            playerName.c_str(), m_pAppSourceBintr, m_pMultiImageSinkBintr);
+            
+        if (!m_pPlayerBintr->Play())
+        {
+            LOG_ERROR("CaptureOdeAction '" << GetName()
+                << "' Failed to play its multi-image-sink-player");
+            throw;
+        }
+        
     }
 
     CaptureOdeAction::~CaptureOdeAction()
     {
         LOG_FUNC();
 
+        m_pPlayerBintr->Stop();
         {
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
-            if (m_captureCompleteTimerId)
-            {
-                g_source_remove(m_captureCompleteTimerId);
-            }
             RemoveAllChildren();
         }
         g_mutex_clear(&m_captureCompleteMutex);
@@ -383,61 +398,12 @@ namespace DSL
         LOG_FUNC();
     }
     
-    cv::Mat& CaptureOdeAction::AnnotateObject(NvDsObjectMeta* pObjectMeta, 
-        cv::Mat& bgr_frame)
-    {
-        // rectangle params are in floats so convert
-        int left((int)pObjectMeta->rect_params.left);
-        int top((int)pObjectMeta->rect_params.top);
-        int width((int)pObjectMeta->rect_params.width); 
-        int height((int)pObjectMeta->rect_params.height);
-
-        // add the bounding-box rectange
-        cv::rectangle(bgr_frame,
-            cv::Point(left, top),
-            cv::Point(left+width, top+height),
-            cv::Scalar(0, 0, 255, 0),
-            2);
-        
-        // assemble the label based on the available information
-        std::string label(pObjectMeta->obj_label);
-        
-        if(pObjectMeta->object_id)
-        {
-            label = label + " " + std::to_string(pObjectMeta->object_id); 
-        }
-        if(pObjectMeta->confidence > 0)
-        {
-            label = label + " " + std::to_string(pObjectMeta->confidence); 
-        }
-        
-        // add a black background rectangle for the label as cv::putText does not 
-        // support a background color the size of the bacground is just an approximation 
-        //based on character count not their actual sizes
-        cv::rectangle(bgr_frame,
-            cv::Point(left, top-30),
-            cv::Point(left+label.size()*10+2, top-2),
-            cv::Scalar(0, 0, 0, 0),
-            cv::FILLED);
-
-        // add the label to the black background
-        cv::putText(bgr_frame, 
-            label.c_str(), 
-            cv::Point(left+2, top-12),
-            cv::FONT_HERSHEY_SIMPLEX,
-            0.5,
-            cv::Scalar(255, 255, 255, 0),
-            1);
-            
-        return bgr_frame;
-    }
-
     void CaptureOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
         GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
+        
         if (!m_enabled)
         {
             return;
@@ -532,202 +498,174 @@ namespace DSL
                 return;
             }
         }
+        LOG_WARN("width = " << (&dstSurface)->surfaceList[0].width);
+        LOG_WARN("height = " << (&dstSurface)->surfaceList[0].height);
+        LOG_WARN("data-size = " << (&dstSurface)->surfaceList[0].dataSize);
 
-        // New background Mat for our image
-        cv::Mat* pbgrFrame = new cv::Mat(cv::Size(width, height), CV_8UC3);
-
-        // new forground Mat using the first (and only) bufer in the batch
-        cv::Mat in_mat = cv::Mat(height, width, CV_8UC4, 
-            (&dstSurface)->surfaceList[0].mappedAddr.addr[0],
-            (&dstSurface)->surfaceList[0].pitch);
-
-        // Convert the RGBA buffer to BGR
-        cv::cvtColor(in_mat, *pbgrFrame, CV_RGBA2BGR);
+        // Allocate a new buffer and map it.
+        GstBuffer* buffer = gst_buffer_new_allocate(NULL, 
+            (&dstSurface)->surfaceList[0].dataSize, NULL);
+        GstMapInfo map;
+        gst_buffer_map(buffer, &map, GST_MAP_WRITE);
         
-        // if this is a frame capture and the client wants the image annotated.
-        if (m_captureType == DSL_CAPTURE_TYPE_FRAME and m_annotate)
-        {
-            // if object meta is available, then occurrence was triggered 
-            // on an object occurrence, so we only annotate the single object
-            if (pObjectMeta)
-            {
-                *pbgrFrame = AnnotateObject(pObjectMeta, *pbgrFrame);
-            }
-            
-            // otherwise, we iterate throught the object-list highlighting each object.
-            else
-            {
-                for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; 
-                    pMeta != NULL; pMeta = pMeta->next)
-                {
-                    // not to be confussed with pObjectMeta
-                    NvDsObjectMeta* _pObjectMeta_ = (NvDsObjectMeta*) (pMeta->data);
-                    if (_pObjectMeta_ != NULL)
-                    {
-                        *pbgrFrame = AnnotateObject(_pObjectMeta_, *pbgrFrame);
-                    }
-                }
-            }
-        }
-        // convert to shared pointer and queue for asyn file save and client notificaton
-        std::shared_ptr<cv::Mat> pImageMat = std::shared_ptr<cv::Mat>(pbgrFrame);
-        QueueCapturedImage(pImageMat);
+        memcpy(map.data, (&dstSurface)->surfaceList[0].mappedAddr.addr[0], 
+            (&dstSurface)->surfaceList[0].dataSize);
+
+        // Safe to unmap the buffer now before pushing to the App Source
+        gst_buffer_unmap (buffer, &map);
+        
+        m_pAppSourceBintr->PushBuffer(buffer);
+    
     }
 
-    void CaptureOdeAction::QueueCapturedImage(std::shared_ptr<cv::Mat> pImageMat)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
-        
-        m_imageMats.push(pImageMat);
-        
-        // start the asynchronous notification timer if not currently running
-        if (!m_captureCompleteTimerId)
-        {
-            m_captureCompleteTimerId = g_timeout_add(1, CompleteCaptureHandler, this);
-        }
-    }
+//    void CaptureOdeAction::QueueCapturedImage(std::shared_ptr<cv::Mat> pImageMat)
+//    {
+//        LOG_FUNC();
+//        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+//        
+//        m_imageMats.push(pImageMat);
+//        
+//        // start the asynchronous notification timer if not currently running
+//        if (!m_captureCompleteTimerId)
+//        {
+//            m_captureCompleteTimerId = g_timeout_add(1, CompleteCaptureHandler, this);
+//        }
+//    }
 
-    int CaptureOdeAction::CompleteCapture()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
-        
-        
-        while (m_imageMats.size())
-        {
-            std::shared_ptr<cv::Mat> pImageMat = m_imageMats.front();
-            m_imageMats.pop();
-            
-            char dateTime[64] = {0};
-            time_t seconds = time(NULL);
-            struct tm currentTm;
-            localtime_r(&seconds, &currentTm);
-
-            std::strftime(dateTime, sizeof(dateTime), "%Y%m%d-%H%M%S", &currentTm);
-            std::string dateTimeStr(dateTime);
-
-            std::ostringstream fileNameStream;
-            fileNameStream << GetName() << "_" 
-                << std::setw(5) << std::setfill('0') << s_captureId
-                << "_" << dateTimeStr << ".jpeg";
-                
-            std::string filespec = m_outdir + "/" + 
-                fileNameStream.str();
-
-            cv::imwrite(filespec.c_str(), *pImageMat);
-
-            // If there are Image Players for playing the captured image
-            for (auto const& iter: m_imagePlayers)
-            {
-                if (iter.second->IsType(typeid(ImageRenderPlayerBintr)))
-                {
-                    DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pImagePlayer = 
-                        std::dynamic_pointer_cast<ImageRenderPlayerBintr>(iter.second);
-
-                    GstState state;
-                    pImagePlayer->GetState(state, 0);
-
-                    // Queue the filepath if the Player is currently Playing/Paused
-                    // otherwise, set the filepath and Play the Player
-                    if (state == GST_STATE_PLAYING or state == GST_STATE_PAUSED)
-                    {
-                        pImagePlayer->QueueFilePath(filespec.c_str());
-                    }
-                    else
-                    {
-                        pImagePlayer->SetFilePath(filespec.c_str());
-                        pImagePlayer->Play();
-                        
-                    }
-                }
-                // TODO handle ImageRtspPlayerBintr
-            }
-            
-            // If there are complete listeners to notify
-            if (m_captureCompleteListeners.size())
-            {
-                // assemble the capture info
-                dsl_capture_info info{0};
-
-                info.captureId = s_captureId;
-                
-                std::string fileName = fileNameStream.str();
-                
-                // convert the filename and dirpath to wchar string types (client format)
-                std::wstring wstrFilename(fileName.begin(), fileName.end());
-                std::wstring wstrDirpath(m_outdir.begin(), m_outdir.end());
-               
-                info.dirpath = wstrDirpath.c_str();
-                info.filename = wstrFilename.c_str();
-                
-                // get the dimensions from the image Mat
-                cv::Size imageSize = pImageMat->size();
-                info.width = imageSize.width;
-                info.height = imageSize.height;
-                    
-                // iterate through the map of listeners calling each
-                for(auto const& imap: m_captureCompleteListeners)
-                {
-                    try
-                    {
-                        imap.first(&info, imap.second);
-                    }
-                    catch(...)
-                    {
-                        LOG_ERROR("ODE Capture Action '" << GetName() 
-                            << "' threw exception calling Client Capture Complete Listener");
-                    }
-                }
-            }
-
-            // If there are Mailers for mailing the capture detals and optional image
-            if (m_mailers.size())
-            {
-                std::vector<std::string> body;
-                
-                body.push_back(std::string("Action     : " 
-                    + GetName() + "<br>"));
-                body.push_back(std::string("File Name  : " 
-                    + fileNameStream.str() + "<br>"));
-                body.push_back(std::string("Location   : " 
-                    + m_outdir + "<br>"));
-                body.push_back(std::string("Capture Id : " 
-                    + std::to_string(s_captureId) + "<br>"));
-
-                // get the dimensions from the image Mat
-                cv::Size imageSize = pImageMat->size();
-
-                body.push_back(std::string("Width      : " 
-                    + std::to_string(imageSize.width) + "<br>"));
-                body.push_back(std::string("Height     : " 
-                    + std::to_string(imageSize.height) + "<br>"));
-                    
-                for (auto const& iter: m_mailers)
-                {
-                    std::string filepath;
-                    if (iter.second->m_attach)
-                    {
-                        filepath.assign(filespec.c_str());
-                    }
-                    iter.second->m_pMailer->QueueMessage(iter.second->m_subject, 
-                        body, filepath);
-                }
-            }
-            // Increment the global capture count
-            s_captureId++;
-        }
-
-        // clear the timer id and return false to self remove
-        m_captureCompleteTimerId = 0;
-        return false;
-    }
-
-    static int CompleteCaptureHandler(gpointer pAction)
-    {
-        return static_cast<CaptureOdeAction*>(pAction)->
-            CompleteCapture();
-    }
+//    int CaptureOdeAction::CompleteCapture()
+//    {
+//        LOG_FUNC();
+//        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+//        
+//        
+//        while (m_imageMats.size())
+//        {
+//            std::shared_ptr<cv::Mat> pImageMat = m_imageMats.front();
+//            m_imageMats.pop();
+//            
+//            char dateTime[64] = {0};
+//            time_t seconds = time(NULL);
+//            struct tm currentTm;
+//            localtime_r(&seconds, &currentTm);
+//
+//            std::strftime(dateTime, sizeof(dateTime), "%Y%m%d-%H%M%S", &currentTm);
+//            std::string dateTimeStr(dateTime);
+//
+//            std::ostringstream fileNameStream;
+//            fileNameStream << GetName() << "_" 
+//                << std::setw(5) << std::setfill('0') << s_captureId
+//                << "_" << dateTimeStr << ".jpeg";
+//                
+//            std::string filespec = m_outdir + "/" + 
+//                fileNameStream.str();
+//
+//            cv::imwrite(filespec.c_str(), *pImageMat);
+//
+//            // If there are Image Players for playing the captured image
+//            for (auto const& iter: m_imagePlayers)
+//            {
+//                if (iter.second->IsType(typeid(ImageRenderPlayerBintr)))
+//                {
+//                    DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pImagePlayer = 
+//                        std::dynamic_pointer_cast<ImageRenderPlayerBintr>(iter.second);
+//
+//                    GstState state;
+//                    pImagePlayer->GetState(state, 0);
+//
+//                    // Queue the filepath if the Player is currently Playing/Paused
+//                    // otherwise, set the filepath and Play the Player
+//                    if (state == GST_STATE_PLAYING or state == GST_STATE_PAUSED)
+//                    {
+//                        pImagePlayer->QueueFilePath(filespec.c_str());
+//                    }
+//                    else
+//                    {
+//                        pImagePlayer->SetFilePath(filespec.c_str());
+//                        pImagePlayer->Play();
+//                        
+//                    }
+//                }
+//                // TODO handle ImageRtspPlayerBintr
+//            }
+//            
+//            // If there are complete listeners to notify
+//            if (m_captureCompleteListeners.size())
+//            {
+//                // assemble the capture info
+//                dsl_capture_info info{0};
+//
+//                info.captureId = s_captureId;
+//                
+//                std::string fileName = fileNameStream.str();
+//                
+//                // convert the filename and dirpath to wchar string types (client format)
+//                std::wstring wstrFilename(fileName.begin(), fileName.end());
+//                std::wstring wstrDirpath(m_outdir.begin(), m_outdir.end());
+//               
+//                info.dirpath = wstrDirpath.c_str();
+//                info.filename = wstrFilename.c_str();
+//                
+//                // get the dimensions from the image Mat
+//                cv::Size imageSize = pImageMat->size();
+//                info.width = imageSize.width;
+//                info.height = imageSize.height;
+//                    
+//                // iterate through the map of listeners calling each
+//                for(auto const& imap: m_captureCompleteListeners)
+//                {
+//                    try
+//                    {
+//                        imap.first(&info, imap.second);
+//                    }
+//                    catch(...)
+//                    {
+//                        LOG_ERROR("ODE Capture Action '" << GetName() 
+//                            << "' threw exception calling Client Capture Complete Listener");
+//                    }
+//                }
+//            }
+//
+//            // If there are Mailers for mailing the capture detals and optional image
+//            if (m_mailers.size())
+//            {
+//                std::vector<std::string> body;
+//                
+//                body.push_back(std::string("Action     : " 
+//                    + GetName() + "<br>"));
+//                body.push_back(std::string("File Name  : " 
+//                    + fileNameStream.str() + "<br>"));
+//                body.push_back(std::string("Location   : " 
+//                    + m_outdir + "<br>"));
+//                body.push_back(std::string("Capture Id : " 
+//                    + std::to_string(s_captureId) + "<br>"));
+//
+//                // get the dimensions from the image Mat
+//                cv::Size imageSize = pImageMat->size();
+//
+//                body.push_back(std::string("Width      : " 
+//                    + std::to_string(imageSize.width) + "<br>"));
+//                body.push_back(std::string("Height     : " 
+//                    + std::to_string(imageSize.height) + "<br>"));
+//                    
+//                for (auto const& iter: m_mailers)
+//                {
+//                    std::string filepath;
+//                    if (iter.second->m_attach)
+//                    {
+//                        filepath.assign(filespec.c_str());
+//                    }
+//                    iter.second->m_pMailer->QueueMessage(iter.second->m_subject, 
+//                        body, filepath);
+//                }
+//            }
+//            // Increment the global capture count
+//            s_captureId++;
+//        }
+//
+//        // clear the timer id and return false to self remove
+//        m_captureCompleteTimerId = 0;
+//        return false;
+//    }
 
     // ********************************************************************
 

@@ -311,7 +311,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers, each
     }
 }
 
-SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers sharing a Capture ODE Action can play", "[ode-behavior]" )
+SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers sharing a Capture ODE Action can play", "[new]" )
 {
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Capture ODE Action" ) 
     {
@@ -343,8 +343,10 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers shari
         REQUIRE( dsl_ode_trigger_occurrence_new(first_person_occurrence_name.c_str(), 
             NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_ONE) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_action_capture_object_new(captureActionName.c_str(), 
-            outdir.c_str()) == DSL_RESULT_SUCCESS );
+//        REQUIRE( dsl_ode_action_capture_object_new(captureActionName.c_str(), 
+//            outdir.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_capture_frame_new(captureActionName.c_str(), 
+            outdir.c_str(), false) == DSL_RESULT_SUCCESS );
         
         // Add the same capture Action to both ODE Triggers
         REQUIRE( dsl_ode_trigger_action_add(first_vehicle_occurrence_name.c_str(), 

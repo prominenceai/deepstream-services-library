@@ -684,40 +684,40 @@ SCENARIO( "An CaptureOdeAction can add and remove Capture Complete Listeners",  
     }
 }
 
-SCENARIO( "An CaptureOdeAction calls all Listeners on Capture Complete", "[OdeAction]" )
-{
-    GIVEN( "A new CaptureObjectOdeAction" ) 
-    {
-        std::string actionName("ode-action");
-        std::string outdir("./");
-        uint userData1(0), userData2(0);
-        uint width(1280), height(720);
-
-        DSL_ODE_ACTION_CAPTURE_OBJECT_PTR pAction = 
-            DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(actionName.c_str(), 
-                outdir.c_str());
-        
-        REQUIRE( pAction->AddCaptureCompleteListener(capture_complete_listener_cb1, &userData1) == true );
-        REQUIRE( pAction->AddCaptureCompleteListener(capture_complete_listener_cb2, &userData2) == true );
-        
-        WHEN( "When capture info is queued" )
-        {
-            std::shared_ptr<cv::Mat> pImageMate = 
-                std::shared_ptr<cv::Mat>(new cv::Mat(cv::Size(width, height), CV_8UC3));
-
-            pAction->QueueCapturedImage(pImageMate);
-            
-            THEN( "All client listeners are called on capture complete" )
-            {
-                // simulate timer callback
-                REQUIRE( pAction->CompleteCapture() == FALSE );
-                // Callbacks will change user data if called
-                REQUIRE( userData1 == 111 );
-                REQUIRE( userData2 == 222 );
-            }
-        }
-    }
-}
+//SCENARIO( "An CaptureOdeAction calls all Listeners on Capture Complete", "[OdeAction]" )
+//{
+//    GIVEN( "A new CaptureObjectOdeAction" ) 
+//    {
+//        std::string actionName("ode-action");
+//        std::string outdir("./");
+//        uint userData1(0), userData2(0);
+//        uint width(1280), height(720);
+//
+//        DSL_ODE_ACTION_CAPTURE_OBJECT_PTR pAction = 
+//            DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(actionName.c_str(), 
+//                outdir.c_str());
+//        
+//        REQUIRE( pAction->AddCaptureCompleteListener(capture_complete_listener_cb1, &userData1) == true );
+//        REQUIRE( pAction->AddCaptureCompleteListener(capture_complete_listener_cb2, &userData2) == true );
+//        
+//        WHEN( "When capture info is queued" )
+//        {
+//            std::shared_ptr<cv::Mat> pImageMate = 
+//                std::shared_ptr<cv::Mat>(new cv::Mat(cv::Size(width, height), CV_8UC3));
+//
+//            pAction->QueueCapturedImage(pImageMate);
+//            
+//            THEN( "All client listeners are called on capture complete" )
+//            {
+//                // simulate timer callback
+//                REQUIRE( pAction->CompleteCapture() == FALSE );
+//                // Callbacks will change user data if called
+//                REQUIRE( userData1 == 111 );
+//                REQUIRE( userData2 == 222 );
+//            }
+//        }
+//    }
+//}
 
 SCENARIO( "A new CustomLabelOdeAction is created correctly", "[OdeAction]" )
 {

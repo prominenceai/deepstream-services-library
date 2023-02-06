@@ -27,12 +27,6 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include <nvbufsurftransform.h>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/imgproc/types_c.h>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/imgcodecs.hpp>
-
 #include <gst-nvdssr.h>
 
 namespace DSL
