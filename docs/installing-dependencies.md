@@ -23,7 +23,7 @@ sudo apt update && sudo apt-get install \
     libaprutil1 \
     libaprutil1-dev \
     libgeos-dev \
-    python3-opencv \
+    libavformat-dev \
     libcurl4-openssl-dev
 ```    
 
@@ -37,7 +37,7 @@ sudo apt update && sudo apt-get install \
     libaprutil1 \
     libaprutil1-dev \
     libgeos-dev \
-    python3-opencv \
+    libavformat-dev \
     libcurl4-openssl-dev \
     libjson-glib-1.0-0 \
     libsoup-gnome2.4-dev  
@@ -65,11 +65,11 @@ DSL uses the [GEOS](https://trac.osgeo.org/geos) C Library `libgeos-dev` - speci
 sudo apt install libgeos-dev
 ```
 
-### Open Computer Vision
-opencv4 is used to convert raw video frames to JPEG image files.
+### AV Format Lib 
+Used to read media file format information.
 
 ```
-sudo apt install python3-opencv
+sudo apt-get install libavformat-dev
 ```
 
 ### Lib cURL
