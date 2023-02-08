@@ -194,6 +194,7 @@
       <File Name="../test/unit/DslOdeHeatMapperUnitTest.cpp"/>
       <File Name="../test/unit/DslOdeActionUnitTest.cpp"/>
       <File Name="../test/unit/DslPreprocUnitTest.cpp"/>
+      <File Name="../test/unit/DslAvFileUnitTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="nmp">
       <File Name="../test/nmp/DslPphNmpUnitTest.cpp"/>

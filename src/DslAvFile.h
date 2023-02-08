@@ -31,7 +31,11 @@ extern "C" {
 
 namespace DSL
 {
-
+    /**
+     * @struct AvFile 
+     * @brief Utility to read the video dimensions and frame-rate for a given
+     * media file. Has been tested with ".mp4", ".mov", .jpg", and ".mjpeg"
+     */
     struct AvFile
     {
         /**
@@ -70,7 +74,7 @@ namespace DSL
         /**
          * @brief pointer to a AV Format Context populated with avformat_open_input.
          */
-        AVFormatContext* pFormatCtx;
+        AVFormatContext* m_pFormatCtx;
         
     };
     

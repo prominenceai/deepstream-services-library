@@ -22,28 +22,36 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+// Note: Up-to-date working examples for avformt were hard to come by.
+//   - the below link was used to create the AvFile utilty.
+// https://kibichomurage.medium.com/ffmpeg-minimum-working-example-17f68c985f0d
+
 #include "Dsl.h"
 #include "DslAvFile.h"
 
 namespace DSL
 {
     AvFile::AvFile(const char* filepath)
-    : pFormatCtx(NULL)
+    : m_pFormatCtx(NULL)
+    , fpsN(0)
+    , fpsD(0)
+    , videoWidth(0)
+    , videoHeight(0)
     {
         LOG_FUNC();
         
         av_register_all();
         avformat_network_init();
         
-        pFormatCtx = avformat_alloc_context();
+        m_pFormatCtx = avformat_alloc_context();
         
-        if (avformat_open_input(&pFormatCtx, filepath, NULL, NULL) < 0)
+        if (avformat_open_input(&m_pFormatCtx, filepath, NULL, NULL) < 0)
         {
             LOG_ERROR("Unable to open video file: " << filepath);
             throw std::invalid_argument("Invalid media file - failed to open.");
         }
         // Retrieve stream information
-        if (avformat_find_stream_info(pFormatCtx, NULL) < 0)
+        if (avformat_find_stream_info(m_pFormatCtx, NULL) < 0)
         {
             LOG_ERROR("Unable to find stream info from file: " << filepath);
             throw std::invalid_argument("Invalid Media File - no stream info.");
@@ -51,34 +59,26 @@ namespace DSL
 
         bool videoCodecFound(false);
         
-        for (int i = 0 ; i < pFormatCtx->nb_streams; i++)
+        for (int i = 0 ; i < m_pFormatCtx->nb_streams; i++)
         {
-            AVCodecParameters* localCodecParameters = NULL;
-            localCodecParameters = pFormatCtx->streams[i]->codecpar;
+            AVCodecParameters* pCodecParameters = NULL;
+            pCodecParameters = m_pFormatCtx->streams[i]->codecpar;
 
-            fpsN = pFormatCtx->streams[i]->r_frame_rate.num;
-            fpsD = pFormatCtx->streams[i]->r_frame_rate.den;
-
-            AVCodec *localCodec = NULL;
-            localCodec = avcodec_find_decoder(localCodecParameters->codec_id);
-            if (localCodec == NULL)
+            if (pCodecParameters->codec_type == AVMEDIA_TYPE_VIDEO)
             {
-                LOG_ERROR("Unsupported codec found in media file: " << filepath);
-                throw std::invalid_argument(
-                    "Invalid media file - unsupported codec.");
-            }
-            if (localCodecParameters->codec_type == AVMEDIA_TYPE_VIDEO)
-            {
+                // We only want the first video codec, on the chance 
+                // that there are multiple? 
                 if(!videoCodecFound)
                 {
                     videoCodecFound = true;
-                    videoWidth = localCodecParameters->width;
-                    videoHeight = localCodecParameters->height;
-                    LOG_INFO("Video codec found in media file: " << filepath);
-                    LOG_INFO("  dimensions      : " 
-                        << videoWidth << "x" << videoHeight);
-                    LOG_INFO("  Video frame-rate: " 
-                        << fpsN << "/" << fpsD);
+                    videoWidth = pCodecParameters->width;
+                    videoHeight = pCodecParameters->height;
+                    fpsN = m_pFormatCtx->streams[i]->r_frame_rate.num;
+                    fpsD = m_pFormatCtx->streams[i]->r_frame_rate.den;
+
+                    LOG_INFO("Video codec data found in media file: " << filepath);
+                    LOG_INFO("  dimensions : " << videoWidth << "x" << videoHeight);
+                    LOG_INFO("  frame-rate : " << fpsN << "/" << fpsD);
                 }
             }
         }
@@ -94,9 +94,9 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (pFormatCtx)
+        if (m_pFormatCtx)
         {
-            avformat_close_input(&pFormatCtx);        
+            avformat_close_input(&m_pFormatCtx);        
         }
     }
     

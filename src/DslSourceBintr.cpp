@@ -1498,6 +1498,7 @@ namespace DSL
 
         LOG_INFO("File Path = " << m_uri);
         
+        // Try to open the file and read the frame-rate and dimensions.
         try
         {
             AvFile avFile(uri);
@@ -1510,9 +1511,6 @@ namespace DSL
         {
             return false;
         }
-        
-        // Get a pointer to the codec context for the video stream
-
 
         return true;
     }
@@ -1876,8 +1874,6 @@ namespace DSL
         LOG_INFO("  mjpeg             : " << m_mjpeg);
         LOG_INFO("  width             : " << m_width);
         LOG_INFO("  height            : " << m_height);
-        LOG_INFO("  fps-n             : " << m_fpsN);
-        LOG_INFO("  fps-d             : " << m_fpsD);
         LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
         LOG_INFO("  buffer-out        : ");
         LOG_INFO("    format          : " << m_bufferOutFormat);
@@ -1966,15 +1962,20 @@ namespace DSL
             LOG_ERROR("Image Source'" << uri << "' Not found");
             return false;
         }
-        // File source, not live - setup full path
+        // Try to open the file and read the dimensions.
+        try
+        {
+            AvFile avFile(uri);
+            m_width = avFile.videoWidth;
+            m_height = avFile.videoHeight;
+        }
+        catch(...)
+        {
+            return false;
+        }
+
         char absolutePath[PATH_MAX+1];
         m_uri.assign(realpath(uri, absolutePath));
-
-        // Use OpenCV to determine the new image dimensions
-//        cv::Mat image = imread(m_uri, cv::IMREAD_COLOR);
-//        cv::Size imageSize = image.size();
-//        m_width = imageSize.width;
-//        m_height = imageSize.height;
 
         // Set the filepath for the File Source Elementr
         m_pSourceElement->SetAttribute("location", m_uri.c_str());
@@ -2171,77 +2172,6 @@ namespace DSL
         return true;
     }
 
-    #define readbyte(a,b) do if(((a)=getc((b))) == EOF) return 0; while (0)
-    #define readword(a,b) do { int cc_=0,dd_=0; \
-                              if((cc_=getc((b))) == EOF \
-                      || (dd_=getc((b))) == EOF) return 0; \
-                              (a) = (cc_<<8) + (dd_); \
-                              } while(0)
-
-
-    int scanhead (FILE * infile, int * image_width, int * image_height) {
-      int marker=0;
-      int dummy=0;
-      if ( getc(infile) != 0xFF || getc(infile) != 0xD8 )
-        return 0;
-
-      for (;
-          ;) {
-
-
-        int discarded_bytes=0;
-        readbyte(marker,infile);
-        while (marker != 0xFF) {
-          discarded_bytes++;
-          readbyte(marker,infile);
-        }
-        do readbyte(marker,infile); while (marker == 0xFF);
-
-        if (discarded_bytes != 0) return 0;
-       
-        switch (marker) {
-        case 0xC0:
-        case 0xC1:
-        case 0xC2:
-        case 0xC3:
-        case 0xC5:
-        case 0xC6:
-        case 0xC7:
-        case 0xC9:
-        case 0xCA:
-        case 0xCB:
-        case 0xCD:
-        case 0xCE:
-        case 0xCF: {
-          readword(dummy,infile);	/* usual parameter length count */
-          readbyte(dummy,infile);
-          readword((*image_height),infile);
-          readword((*image_width),infile);
-          readbyte(dummy,infile);
-
-          return 1;
-          break;
-          }
-        case 0xDA:
-        case 0xD9:
-          return 0;
-        default: {
-        int length;
-        
-        readword(length,infile);
-
-        if (length < 2)
-          return 0;
-        length -= 2;
-        while (length > 0) {
-          readbyte(dummy, infile);
-          length--;
-        }
-          }
-          break;
-        }
-      }
-    }        
     //*********************************************************************************
 
     ImageStreamSourceBintr::ImageStreamSourceBintr(const char* name, 
@@ -2334,26 +2264,30 @@ namespace DSL
             LOG_ERROR("Image Source'" << uri << "' Not found");
             return false;
         }
-        // File source, not live - setup full path
-        char absolutePath[PATH_MAX+1];
-        m_uri.assign(realpath(uri, absolutePath));
-
-        FILE* file = fopen(m_uri.c_str(), "r");
-        scanhead(file, (int*)&m_width, (int*)&m_height);
-        LOG_WARN("Width x Height = " << m_width << "x" << m_height);
-        fclose(file);
-        // Use OpenCV to determine the new image dimensions
-//        cv::Mat image = imread(m_uri, cv::IMREAD_COLOR);
-//        cv::Size imageSize = image.size();
-//        m_width = imageSize.width;
-//        m_height = imageSize.height;
-
+        
+        // Try to open the file and read the dimensions.
+        try
+        {
+            AvFile avFile(uri);
+            m_width = avFile.videoWidth;
+            m_height = avFile.videoHeight;
+        }
+        catch(...)
+        {
+            return false;
+        }
+        
         // Set the full capabilities (format and framerate)
         if (!set_full_caps(m_pSourceCapsFilter, m_mediaType.c_str(), 
             m_bufferOutFormat.c_str(), m_width, m_height, m_fpsN, m_fpsD, false))
         {
             return false;
         }
+
+        // Setup the full path
+        char absolutePath[PATH_MAX+1];
+        m_uri.assign(realpath(uri, absolutePath));
+
         // Set the filepath for the Image Overlay Elementr
         m_pImageOverlay->SetAttribute("location", m_uri.c_str());
         
