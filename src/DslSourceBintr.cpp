@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include "DslSurfaceTransform.h"
 #include <nvdsgstutils.h>
 #include <gst/app/gstappsrc.h>
+#include "DslAvFile.h"
 
 namespace DSL
 {
@@ -848,6 +849,22 @@ namespace DSL
         }
     }
 
+    bool AppSourceBintr::SetDimensions(uint width, uint height)
+    {
+        LOG_FUNC();
+        
+        m_width = width;
+        m_height = height;
+
+        // Set the full capabilities (format, dimensions, and framerate)
+        // NVIDIA plugin = false... this is a GStreamer plugin
+        if (!set_full_caps(m_pSourceElement, m_mediaType.c_str(), 
+            m_bufferInFormat.c_str(), m_width, m_height, m_fpsN, m_fpsD, false))
+        {
+            throw;
+        }
+    }
+
     boolean AppSourceBintr::GetDoTimestamp()
     {
         LOG_FUNC();
@@ -1481,21 +1498,22 @@ namespace DSL
 
         LOG_INFO("File Path = " << m_uri);
         
-        // use openCV to open the file and read the Frame width and height properties.
-//        cv::VideoCapture vidCap;
-//        vidCap.open(uri, cv::CAP_ANY);
-//
-//        if (!vidCap.isOpened())
-//        {
-//            LOG_ERROR("Failed to open File '" << uri 
-//                << "' for VideoRenderPlayerBintr '" << GetName() << "'");
-//            return false;
-//        }
-//        m_width = vidCap.get(cv::CAP_PROP_FRAME_WIDTH);
-//        m_height = vidCap.get(cv::CAP_PROP_FRAME_HEIGHT);
+        try
+        {
+            AvFile avFile(uri);
+            m_fpsN = avFile.fpsN;
+            m_fpsD = avFile.fpsD;
+            m_width = avFile.videoWidth;
+            m_height = avFile.videoHeight;
+        }
+        catch(...)
+        {
+            return false;
+        }
         
-        // Note: the m_fpsN and m_fpsD can be calculated from cv.CAP_PROP_FPS
-        // if needed prior to playing the file.
+        // Get a pointer to the codec context for the video stream
+
+
         return true;
     }
 
@@ -2152,7 +2170,78 @@ namespace DSL
         m_pSourceElement->SetAttribute("stop-index", m_stopIndex);
         return true;
     }
+
+    #define readbyte(a,b) do if(((a)=getc((b))) == EOF) return 0; while (0)
+    #define readword(a,b) do { int cc_=0,dd_=0; \
+                              if((cc_=getc((b))) == EOF \
+                      || (dd_=getc((b))) == EOF) return 0; \
+                              (a) = (cc_<<8) + (dd_); \
+                              } while(0)
+
+
+    int scanhead (FILE * infile, int * image_width, int * image_height) {
+      int marker=0;
+      int dummy=0;
+      if ( getc(infile) != 0xFF || getc(infile) != 0xD8 )
+        return 0;
+
+      for (;
+          ;) {
+
+
+        int discarded_bytes=0;
+        readbyte(marker,infile);
+        while (marker != 0xFF) {
+          discarded_bytes++;
+          readbyte(marker,infile);
+        }
+        do readbyte(marker,infile); while (marker == 0xFF);
+
+        if (discarded_bytes != 0) return 0;
+       
+        switch (marker) {
+        case 0xC0:
+        case 0xC1:
+        case 0xC2:
+        case 0xC3:
+        case 0xC5:
+        case 0xC6:
+        case 0xC7:
+        case 0xC9:
+        case 0xCA:
+        case 0xCB:
+        case 0xCD:
+        case 0xCE:
+        case 0xCF: {
+          readword(dummy,infile);	/* usual parameter length count */
+          readbyte(dummy,infile);
+          readword((*image_height),infile);
+          readword((*image_width),infile);
+          readbyte(dummy,infile);
+
+          return 1;
+          break;
+          }
+        case 0xDA:
+        case 0xD9:
+          return 0;
+        default: {
+        int length;
         
+        readword(length,infile);
+
+        if (length < 2)
+          return 0;
+        length -= 2;
+        while (length > 0) {
+          readbyte(dummy, infile);
+          length--;
+        }
+          }
+          break;
+        }
+      }
+    }        
     //*********************************************************************************
 
     ImageStreamSourceBintr::ImageStreamSourceBintr(const char* name, 
@@ -2249,6 +2338,10 @@ namespace DSL
         char absolutePath[PATH_MAX+1];
         m_uri.assign(realpath(uri, absolutePath));
 
+        FILE* file = fopen(m_uri.c_str(), "r");
+        scanhead(file, (int*)&m_width, (int*)&m_height);
+        LOG_WARN("Width x Height = " << m_width << "x" << m_height);
+        fclose(file);
         // Use OpenCV to determine the new image dimensions
 //        cv::Mat image = imread(m_uri, cv::IMREAD_COLOR);
 //        cv::Size imageSize = image.size();

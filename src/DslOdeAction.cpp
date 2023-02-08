@@ -254,7 +254,9 @@ namespace DSL
         
         std::string appSrcName = GetName() + "-appsrc-";
         m_pAppSourceBintr = DSL_APP_SOURCE_NEW(
-            appSrcName.c_str(), false, "RGBA", 1280, 720, 1, 1);
+            appSrcName.c_str(), true, "RGBA", 1280, 720, 1, 1);
+        
+//        m_pAppSourceBintr->SetDoTimestamp(true);
 
         std::string imageSinkName = GetName() + "-image-sink-";
         m_pMultiImageSinkBintr = 
@@ -514,7 +516,13 @@ namespace DSL
         // Safe to unmap the buffer now before pushing to the App Source
         gst_buffer_unmap (buffer, &map);
         
+        m_pAppSourceBintr->SetDimensions((&dstSurface)->surfaceList[0].width, 
+            (&dstSurface)->surfaceList[0].height);
+            
         m_pAppSourceBintr->PushBuffer(buffer);
+        GstState gstState;
+        m_pPlayerBintr->GetState(gstState, 0);
+        LOG_WARN("Player State = " << gstState);
     
     }
 

@@ -109,6 +109,8 @@
     </VirtualDirectory>
     <File Name="../src/DslServicesOdeAction.cpp"/>
     <File Name="../src/DslSinkBintr.h"/>
+    <File Name="../src/DslAvFile.h"/>
+    <File Name="../src/DslAvFile.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="api">
