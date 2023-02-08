@@ -138,9 +138,6 @@ CFLAGS += `geos-config --cflags`
 
 LIBS+= -L$(LIB_INSTALL_DIR) \
 	-L/usr/local/lib \
-	-lopencv_core \
-	-lopencv_imgproc \
-	-lopencv_highgui \
 	-laprutil-1 \
 	-lapr-1 \
 	-lX11 \
@@ -156,9 +153,7 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-lnvbufsurftransform \
 	-lnvdsgst_smartrecord \
 	-lnvds_msgbroker \
-	-lavcodec \
 	-lavformat \
-	-lavutil \
 	-lglib-$(GLIB_VERSION) \
 	-lgstreamer-$(GSTREAMER_VERSION) \
 	-Lgstreamer-video-$(GSTREAMER_VERSION) \
