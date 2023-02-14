@@ -1632,7 +1632,7 @@ namespace DSL
     //-------------------------------------------------------------------------
     
     MultiImageSinkBintr::MultiImageSinkBintr(const char* name,
-        const char* filepath)
+        const char* filepath, uint width, uint height)
         : SinkBintr(name, false)
         , m_filepath(filepath)
     {
@@ -1645,10 +1645,15 @@ namespace DSL
         
         m_pMultiFileSync->SetAttribute("location", filepath);
 
-        GstCaps* pCaps(NULL);
-        pCaps = gst_caps_from_string("video/x-raw, format=I420");
+        GstCaps* pCaps = gst_caps_from_string("video/x-raw, format=I420");
         m_pCapsFilter->SetAttribute("caps", pCaps);
         gst_caps_unref(pCaps);
+
+//        pCaps = gst_caps_new_simple("video/x-raw", 
+//            "format", G_TYPE_STRING, "RGBA",
+//            "width", G_TYPE_INT, width, 
+//            "height", G_TYPE_INT, height, 
+//            "pixel-aspect-ratio", GST_TYPE_FRACTION, 1, 1, NULL);        
         
         AddChild(m_pVidConv);
         AddChild(m_pCapsFilter);

@@ -298,9 +298,10 @@ namespace DSL
          * set size to 0 for no addition memory allocated when batch size = 1
          */
         DslSurfaceCreateParams(uint32_t gpuId, 
-            uint32_t width, uint32_t height, uint32_t size, NvBufSurfaceMemType memType)
+            uint32_t width, uint32_t height, uint32_t size, 
+            NvBufSurfaceColorFormat colorFormat, NvBufSurfaceMemType memType)
             : NvBufSurfaceCreateParams{gpuId, width, height, size, false, 
-                NVBUF_COLOR_FORMAT_RGBA, NVBUF_LAYOUT_PITCH, memType}
+                colorFormat, NVBUF_LAYOUT_PITCH, memType}
         {
             LOG_FUNC();
         }

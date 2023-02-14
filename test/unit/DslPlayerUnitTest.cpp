@@ -984,7 +984,7 @@ SCENARIO( "A New ImageRenderPlayerBintr - Window Type - can Play after Reset", "
     }
 }
 
-SCENARIO( "A New PlayerBintr with a Image Source and a Multi-Object Sink can Play and Stop correctly", "[PlayerBintr]" )
+SCENARIO( "A New PlayerBintr with a Image Source and a Multi-Object Sink can Play and Stop correctly", "[now]" )
 {
     GIVEN( "A new name for a PipelineBintr" ) 
     {
@@ -999,7 +999,8 @@ SCENARIO( "A New PlayerBintr with a Image Source and a Multi-Object Sink can Pla
             sourceName.c_str(), jpgFilePath1.c_str());
 
         DSL_MULTI_IMAGE_SINK_PTR pMultiImageSinkBintr = 
-            DSL_MULTI_IMAGE_SINK_NEW(MultiImageSinkName.c_str(), SinkFilePath.c_str());
+            DSL_MULTI_IMAGE_SINK_NEW(MultiImageSinkName.c_str(), SinkFilePath.c_str(),
+            1280, 720);
 
         DSL_PLAYER_BINTR_PTR pPlayerBintr = 
             DSL_PLAYER_BINTR_NEW(playerName.c_str(), pSourceBintr, pMultiImageSinkBintr);

@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include "DslOdeTrigger.h"
 #include "DslOdeAction.h"
 #include "DslDisplayTypes.h"
+#include "DslAvFile.h"
 
 #define DATE_BUFF_LENGTH 40
 
@@ -241,37 +242,24 @@ namespace DSL
 
     // Initialize static Event Counter
     uint64_t CaptureOdeAction::s_captureId = 0;
+    
+    static int idle_thread_handler(void* client_data)
+    {
+        CaptureOdeAction* pCaptureAction = (CaptureOdeAction*)client_data;
+        
+        return pCaptureAction->convertCapturedImage();
+    }
 
     CaptureOdeAction::CaptureOdeAction(const char* name, 
         uint captureType, const char* outdir, bool annotate)
         : OdeAction(name)
         , m_captureType(captureType)
         , m_outdir(outdir)
+        , m_idleThreadFunctionId(0)
     {
         LOG_FUNC();
 
-        g_mutex_init(&m_captureCompleteMutex);
-        
-        std::string appSrcName = GetName() + "-appsrc-";
-        m_pAppSourceBintr = DSL_APP_SOURCE_NEW(
-            appSrcName.c_str(), true, "RGBA", 1280, 720, 1, 1);
-        
-//        m_pAppSourceBintr->SetDoTimestamp(true);
-
-        std::string imageSinkName = GetName() + "-image-sink-";
-        m_pMultiImageSinkBintr = 
-            DSL_MULTI_IMAGE_SINK_NEW(imageSinkName.c_str(), "./frame-%05d.jpg");
-
-        std::string playerName = GetName() + "-player-";
-        m_pPlayerBintr = DSL_PLAYER_BINTR_NEW(
-            playerName.c_str(), m_pAppSourceBintr, m_pMultiImageSinkBintr);
-            
-        if (!m_pPlayerBintr->Play())
-        {
-            LOG_ERROR("CaptureOdeAction '" << GetName()
-                << "' Failed to play its multi-image-sink-player");
-            throw;
-        }
+        g_mutex_init(&m_captureQueueMutex);
         
     }
 
@@ -279,19 +267,19 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pPlayerBintr->Stop();
+//        m_pPlayerBintr->Stop();
         {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
             RemoveAllChildren();
         }
-        g_mutex_clear(&m_captureCompleteMutex);
+        g_mutex_clear(&m_captureQueueMutex);
     }
 
     bool CaptureOdeAction::AddCaptureCompleteListener(
         dsl_capture_complete_listener_cb listener, void* userdata)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
         
         if (m_captureCompleteListeners.find(listener) != 
             m_captureCompleteListeners.end())
@@ -309,7 +297,7 @@ namespace DSL
         dsl_capture_complete_listener_cb listener)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
         
         if (m_captureCompleteListeners.find(listener) == 
             m_captureCompleteListeners.end())
@@ -326,7 +314,7 @@ namespace DSL
     bool CaptureOdeAction::AddImagePlayer(DSL_PLAYER_BINTR_PTR pPlayer)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
         
         if (m_imagePlayers.find(pPlayer->GetName()) != 
             m_imagePlayers.end())
@@ -343,7 +331,7 @@ namespace DSL
     bool CaptureOdeAction::RemoveImagePlayer(DSL_PLAYER_BINTR_PTR pPlayer)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
         
         if (m_imagePlayers.find(pPlayer->GetCStrName()) == 
             m_imagePlayers.end())
@@ -361,7 +349,7 @@ namespace DSL
         const char* subject, bool attach)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
         
         if (m_mailers.find(pMailer->GetName()) != m_mailers.end())
         {   
@@ -382,7 +370,7 @@ namespace DSL
     bool CaptureOdeAction::RemoveMailer(DSL_MAILER_PTR pMailer)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
         
         if (m_mailers.find(pMailer->GetCStrName()) == m_mailers.end())
         {   
@@ -427,8 +415,9 @@ namespace DSL
             << transformMemType);
 
         // Transforming only one frame in the batch, so create a copy of the single 
-        // surface ... becoming our new source surface. This creates a new mono (non-batched) 
-        // surface copied from the "batched frames" using the batch id as the index
+        // surface ... becoming our new source surface. This creates a new mono 
+        // (non-batched) surface copied from the "batched frames" using the batch id 
+        // as the index
         DslMonoSurface monoSurface(pMappedBuffer->pSurface, pFrameMeta->batch_id);
 
         // Coordinates and dimensions for our destination surface for RGBA to 
@@ -449,35 +438,41 @@ namespace DSL
             height = pObjectMeta->rect_params.height;
         }
 
-        // New "create params" for our destination surface. we only need one surface so set 
-        // memory allocation (for the array of surfaces) size to 0
+        // New "create params" for our destination surface. we only need one 
+        // surface so set memory allocation (for the array of surfaces) size to 0
         DslSurfaceCreateParams surfaceCreateParams(monoSurface.gpuId, 
-            width, height, 0, transformMemType);
+            width, height, 0, NVBUF_COLOR_FORMAT_RGBA, transformMemType);
         
-        // New Destination surface with a batch size of 1 for transforming the single surface 
-        DslBufferSurface dstSurface(1, surfaceCreateParams);
+        // New Destination surface with a batch size of 1 for transforming 
+        // the single surface 
+//        DslBufferSurface dstSurface(1, surfaceCreateParams);
+        std::shared_ptr<DslBufferSurface> pBufferSurface = 
+            std::shared_ptr<DslBufferSurface>(
+                new DslBufferSurface(1, surfaceCreateParams));
 
-        // New "transform params" for the surface transform, croping or (future?) scaling
+        // New "transform params" for the surface transform, croping or 
+        // (future?) scaling
         DslTransformParams transformParams(left, top, width, height);
         
         // New "Cuda stream" for the surface transform
         DslCudaStream dslCudaStream(monoSurface.gpuId);
         
         // New "Transform Session" config params using the new Cuda stream
-        DslSurfaceTransformSessionParams dslTransformSessionParams(monoSurface.gpuId, 
-            dslCudaStream);
+        DslSurfaceTransformSessionParams dslTransformSessionParams(
+            monoSurface.gpuId, dslCudaStream);
         
         // Set the "Transform Params" for the current tranform session
         if (!dslTransformSessionParams.Set())
         {
-            LOG_ERROR("Destination surface failed to set transform session params for Action '" 
+            LOG_ERROR(
+                "Destination surface failed to set transform session params for Action '" 
                 << GetName() << "'");
             return;
         }
         
         // We can now transform our Mono Source surface to the first (and only) 
         // surface in the batched buffer.
-        if (!dstSurface.TransformMonoSurface(monoSurface, 0, transformParams))
+        if (!pBufferSurface->TransformMonoSurface(monoSurface, 0, transformParams))
         {
             LOG_ERROR("Destination surface failed to transform for Action '" 
                 << GetName() << "'");
@@ -485,195 +480,225 @@ namespace DSL
         }
 
         // Map the tranformed surface for read
-        if (!dstSurface.Map())
+        if (!pBufferSurface->Map())
         {
-            LOG_ERROR("Destination surface failed to map for Action '" << GetName() << "'");
+            LOG_ERROR("Destination surface failed to map for Action '" 
+                << GetName() << "'");
             return;
         }
 
         if (transformMemType != NVBUF_MEM_CUDA_UNIFIED)
         {
             // Sync the surface for CPU access
-            if (!dstSurface.SyncForCpu())
+            if (!pBufferSurface->SyncForCpu())
             {
-                LOG_ERROR("Destination surface failed to Sync for '" << GetName() << "'");
+                LOG_ERROR("Destination surface failed to Sync for '" 
+                    << GetName() << "'");
                 return;
             }
         }
-        LOG_WARN("width = " << (&dstSurface)->surfaceList[0].width);
-        LOG_WARN("height = " << (&dstSurface)->surfaceList[0].height);
-        LOG_WARN("data-size = " << (&dstSurface)->surfaceList[0].dataSize);
-
-        // Allocate a new buffer and map it.
-        GstBuffer* buffer = gst_buffer_new_allocate(NULL, 
-            (&dstSurface)->surfaceList[0].dataSize, NULL);
-        GstMapInfo map;
-        gst_buffer_map(buffer, &map, GST_MAP_WRITE);
+        queueCapturedImage(pBufferSurface);
         
-        memcpy(map.data, (&dstSurface)->surfaceList[0].mappedAddr.addr[0], 
-            (&dstSurface)->surfaceList[0].dataSize);
-
-        // Safe to unmap the buffer now before pushing to the App Source
-        gst_buffer_unmap (buffer, &map);
+//
+//        std::string appSrcName = GetName() + "-appsrc-";
+//        m_pAppSourceBintr = DSL_APP_SOURCE_NEW(
+//            appSrcName.c_str(), true, "I420", imageWidth, imageHeight, 1, 1);
+//        
+//        std::string imageSinkName = GetName() + "-image-sink-";
+//        m_pMultiImageSinkBintr = 
+//            DSL_MULTI_IMAGE_SINK_NEW(imageSinkName.c_str(), "./frame-%05d.jpg",
+//                imageWidth, imageHeight);
+//        
+//        std::string playerName = GetName() + "-player-";
+//        m_pPlayerBintr = DSL_PLAYER_BINTR_NEW(
+//            playerName.c_str(), m_pAppSourceBintr, m_pMultiImageSinkBintr);
+//
+//        if (!m_pPlayerBintr->PlayAsync())
+//        {
+//            throw;
+//        }
+//            
+//        m_pAppSourceBintr->PushBuffer(buffer);
         
-        m_pAppSourceBintr->SetDimensions((&dstSurface)->surfaceList[0].width, 
-            (&dstSurface)->surfaceList[0].height);
-            
-        m_pAppSourceBintr->PushBuffer(buffer);
-        GstState gstState;
-        m_pPlayerBintr->GetState(gstState, 0);
-        LOG_WARN("Player State = " << gstState);
+//        m_pPlayerBintr->Stop();
+//
+//        GstState gstState;
+//        m_pPlayerBintr->GetState(gstState, 0);
+//        LOG_WARN("Player State = " << gstState);
     
     }
 
-//    void CaptureOdeAction::QueueCapturedImage(std::shared_ptr<cv::Mat> pImageMat)
-//    {
-//        LOG_FUNC();
-//        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
-//        
-//        m_imageMats.push(pImageMat);
-//        
-//        // start the asynchronous notification timer if not currently running
-//        if (!m_captureCompleteTimerId)
-//        {
-//            m_captureCompleteTimerId = g_timeout_add(1, CompleteCaptureHandler, this);
-//        }
-//    }
+    void CaptureOdeAction::queueCapturedImage(
+        std::shared_ptr<DslBufferSurface> pBufferSurface)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
+        
+        LOG_WARN("queing Buffer Surface");
+        m_pBufferSurfaces.push(pBufferSurface);
+        
+        if (!m_idleThreadFunctionId)
+        {
+            LOG_INFO("-------starting idle thread ");
+            m_idleThreadFunctionId = g_idle_add(idle_thread_handler, this);
+        }
+    }
 
-//    int CaptureOdeAction::CompleteCapture()
-//    {
-//        LOG_FUNC();
-//        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
-//        
-//        
-//        while (m_imageMats.size())
-//        {
-//            std::shared_ptr<cv::Mat> pImageMat = m_imageMats.front();
-//            m_imageMats.pop();
-//            
-//            char dateTime[64] = {0};
-//            time_t seconds = time(NULL);
-//            struct tm currentTm;
-//            localtime_r(&seconds, &currentTm);
-//
-//            std::strftime(dateTime, sizeof(dateTime), "%Y%m%d-%H%M%S", &currentTm);
-//            std::string dateTimeStr(dateTime);
-//
-//            std::ostringstream fileNameStream;
-//            fileNameStream << GetName() << "_" 
-//                << std::setw(5) << std::setfill('0') << s_captureId
-//                << "_" << dateTimeStr << ".jpeg";
-//                
-//            std::string filespec = m_outdir + "/" + 
-//                fileNameStream.str();
-//
-//            cv::imwrite(filespec.c_str(), *pImageMat);
-//
-//            // If there are Image Players for playing the captured image
-//            for (auto const& iter: m_imagePlayers)
-//            {
-//                if (iter.second->IsType(typeid(ImageRenderPlayerBintr)))
-//                {
-//                    DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pImagePlayer = 
-//                        std::dynamic_pointer_cast<ImageRenderPlayerBintr>(iter.second);
-//
-//                    GstState state;
-//                    pImagePlayer->GetState(state, 0);
-//
-//                    // Queue the filepath if the Player is currently Playing/Paused
-//                    // otherwise, set the filepath and Play the Player
-//                    if (state == GST_STATE_PLAYING or state == GST_STATE_PAUSED)
-//                    {
-//                        pImagePlayer->QueueFilePath(filespec.c_str());
-//                    }
-//                    else
-//                    {
-//                        pImagePlayer->SetFilePath(filespec.c_str());
-//                        pImagePlayer->Play();
-//                        
-//                    }
-//                }
-//                // TODO handle ImageRtspPlayerBintr
-//            }
-//            
-//            // If there are complete listeners to notify
-//            if (m_captureCompleteListeners.size())
-//            {
-//                // assemble the capture info
-//                dsl_capture_info info{0};
-//
-//                info.captureId = s_captureId;
-//                
-//                std::string fileName = fileNameStream.str();
-//                
-//                // convert the filename and dirpath to wchar string types (client format)
-//                std::wstring wstrFilename(fileName.begin(), fileName.end());
-//                std::wstring wstrDirpath(m_outdir.begin(), m_outdir.end());
-//               
-//                info.dirpath = wstrDirpath.c_str();
-//                info.filename = wstrFilename.c_str();
-//                
-//                // get the dimensions from the image Mat
-//                cv::Size imageSize = pImageMat->size();
-//                info.width = imageSize.width;
-//                info.height = imageSize.height;
-//                    
-//                // iterate through the map of listeners calling each
-//                for(auto const& imap: m_captureCompleteListeners)
-//                {
-//                    try
-//                    {
-//                        imap.first(&info, imap.second);
-//                    }
-//                    catch(...)
-//                    {
-//                        LOG_ERROR("ODE Capture Action '" << GetName() 
-//                            << "' threw exception calling Client Capture Complete Listener");
-//                    }
-//                }
-//            }
-//
-//            // If there are Mailers for mailing the capture detals and optional image
-//            if (m_mailers.size())
-//            {
-//                std::vector<std::string> body;
-//                
-//                body.push_back(std::string("Action     : " 
-//                    + GetName() + "<br>"));
-//                body.push_back(std::string("File Name  : " 
-//                    + fileNameStream.str() + "<br>"));
-//                body.push_back(std::string("Location   : " 
-//                    + m_outdir + "<br>"));
-//                body.push_back(std::string("Capture Id : " 
-//                    + std::to_string(s_captureId) + "<br>"));
-//
-//                // get the dimensions from the image Mat
-//                cv::Size imageSize = pImageMat->size();
-//
-//                body.push_back(std::string("Width      : " 
-//                    + std::to_string(imageSize.width) + "<br>"));
-//                body.push_back(std::string("Height     : " 
-//                    + std::to_string(imageSize.height) + "<br>"));
-//                    
-//                for (auto const& iter: m_mailers)
-//                {
-//                    std::string filepath;
-//                    if (iter.second->m_attach)
-//                    {
-//                        filepath.assign(filespec.c_str());
-//                    }
-//                    iter.second->m_pMailer->QueueMessage(iter.second->m_subject, 
-//                        body, filepath);
-//                }
-//            }
-//            // Increment the global capture count
-//            s_captureId++;
-//        }
-//
-//        // clear the timer id and return false to self remove
-//        m_captureCompleteTimerId = 0;
-//        return false;
-//    }
+    int CaptureOdeAction::convertCapturedImage()
+    {
+        LOG_FUNC();
+
+        if (!m_pBufferSurfaces.size())
+        {
+            LOG_ERROR("Buffer-Surface queue is empty");
+            return FALSE;
+        }
+        
+        std::shared_ptr<DslBufferSurface> pBufferSurface;
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
+            
+            pBufferSurface = m_pBufferSurfaces.front();
+            m_pBufferSurfaces.pop();
+        }
+        
+        uint imageWidth = (&(*pBufferSurface))->surfaceList[0].width;
+        uint imageHeight = (&(*pBufferSurface))->surfaceList[0].height;
+        uint dataSize = (&(*pBufferSurface))->surfaceList[0].dataSize;
+        
+        LOG_WARN("width = " << imageWidth);
+        LOG_WARN("height = " << imageHeight);
+        LOG_WARN("data-size = " << dataSize);
+
+        char dateTime[64] = {0};
+        time_t seconds = time(NULL);
+        struct tm currentTm;
+        localtime_r(&seconds, &currentTm);
+
+        std::strftime(dateTime, sizeof(dateTime), "%Y%m%d-%H%M%S", &currentTm);
+        std::string dateTimeStr(dateTime);
+
+        std::ostringstream fileNameStream;
+        fileNameStream << GetName() << "_" 
+            << std::setw(5) << std::setfill('0') << s_captureId
+            << "_" << dateTimeStr << ".jpeg";
+            
+        std::string filespec = m_outdir + "/" + 
+            fileNameStream.str();
+
+        try
+        {
+            AvJpgOutFile avJpgOutFile(
+                (void*)(&(*pBufferSurface))->surfaceList[0].mappedAddr.addr[0], 
+                imageWidth, imageHeight, fileNameStream.str().c_str());
+        }
+        catch(...)
+        {
+            return FALSE;
+        }
+
+        // If there are Image Players for playing the captured image
+        for (auto const& iter: m_imagePlayers)
+        {
+            if (iter.second->IsType(typeid(ImageRenderPlayerBintr)))
+            {
+                DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pImagePlayer = 
+                    std::dynamic_pointer_cast<ImageRenderPlayerBintr>(iter.second);
+
+                GstState state;
+                pImagePlayer->GetState(state, 0);
+
+                // Queue the filepath if the Player is currently Playing/Paused
+                // otherwise, set the filepath and Play the Player
+                if (state == GST_STATE_PLAYING or state == GST_STATE_PAUSED)
+                {
+                    pImagePlayer->QueueFilePath(filespec.c_str());
+                }
+                else
+                {
+                    pImagePlayer->SetFilePath(filespec.c_str());
+                    pImagePlayer->Play();
+                    
+                }
+            }
+        }
+        
+        // If there are complete listeners to notify
+        if (m_captureCompleteListeners.size())
+        {
+            // assemble the capture info
+            dsl_capture_info info{0};
+
+            info.captureId = s_captureId;
+            
+            std::string fileName = fileNameStream.str();
+            
+            // convert the filename and dirpath to wchar string types (client format)
+            std::wstring wstrFilename(fileName.begin(), fileName.end());
+            std::wstring wstrDirpath(m_outdir.begin(), m_outdir.end());
+           
+            info.dirpath = wstrDirpath.c_str();
+            info.filename = wstrFilename.c_str();
+            info.width =imageWidth;
+            info.height = imageHeight;
+                
+            // iterate through the map of listeners calling each
+            for(auto const& imap: m_captureCompleteListeners)
+            {
+                try
+                {
+                    imap.first(&info, imap.second);
+                }
+                catch(...)
+                {
+                    LOG_ERROR("ODE Capture Action '" << GetName() 
+                        << "' threw exception calling Client Capture Complete Listener");
+                }
+            }
+        }
+
+        // If there are Mailers for mailing the capture detals and optional image
+        if (m_mailers.size())
+        {
+            std::vector<std::string> body;
+            
+            body.push_back(std::string("Action     : " 
+                + GetName() + "<br>"));
+            body.push_back(std::string("File Name  : " 
+                + fileNameStream.str() + "<br>"));
+            body.push_back(std::string("Location   : " 
+                + m_outdir + "<br>"));
+            body.push_back(std::string("Capture Id : " 
+                + std::to_string(s_captureId) + "<br>"));
+
+            body.push_back(std::string("Width      : " 
+                + std::to_string(imageWidth) + "<br>"));
+            body.push_back(std::string("Height     : " 
+                + std::to_string(imageHeight) + "<br>"));
+                
+            for (auto const& iter: m_mailers)
+            {
+                std::string filepath;
+                if (iter.second->m_attach)
+                {
+                    filepath.assign(filespec.c_str());
+                }
+                iter.second->m_pMailer->QueueMessage(iter.second->m_subject, 
+                    body, filepath);
+            }
+        }
+        // Increment the global capture count
+        s_captureId++;
+
+        // If there are more buffer-surfaces to convert, return true to reschedule.
+        if (m_pBufferSurfaces.size())
+        {
+            return TRUE;
+        }
+        // Else, clear the thread-function id and return false to NOT reschedule.
+        m_idleThreadFunctionId = 0;
+        return FALSE;
+    }
 
     // ********************************************************************
 

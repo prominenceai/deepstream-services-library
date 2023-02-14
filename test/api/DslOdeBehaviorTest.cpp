@@ -311,6 +311,15 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers, each
     }
 }
 
+static GThread* main_loop_thread_1(NULL);
+
+static void* main_loop_thread_func_1(void *data)
+{
+    dsl_main_loop_run();
+    
+    return NULL;
+}
+
 SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers sharing a Capture ODE Action can play", "[new]" )
 {
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Capture ODE Action" ) 
@@ -339,9 +348,9 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers shari
             ode_pph_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_occurrence_new(first_vehicle_occurrence_name.c_str(), 
-            NULL, vehicle_class_id, DSL_ODE_TRIGGER_LIMIT_ONE) == DSL_RESULT_SUCCESS );
+            NULL, vehicle_class_id, 10) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_occurrence_new(first_person_occurrence_name.c_str(), 
-            NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_ONE) == DSL_RESULT_SUCCESS );
+            NULL, person_class_id, 10) == DSL_RESULT_SUCCESS );
         
 //        REQUIRE( dsl_ode_action_capture_object_new(captureActionName.c_str(), 
 //            outdir.c_str()) == DSL_RESULT_SUCCESS );
@@ -373,8 +382,14 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers shari
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                
+                main_loop_thread_1 = g_thread_new("main-loop-1", 
+                    main_loop_thread_func_1, NULL);
+                
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*5);
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                
+                dsl_main_loop_quit();
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_list_size() == 0 );

@@ -32,11 +32,11 @@ THE SOFTWARE.
 namespace DSL
 {
     AvFile::AvFile(const char* filepath)
-    : m_pFormatCtx(NULL)
-    , fpsN(0)
-    , fpsD(0)
-    , videoWidth(0)
-    , videoHeight(0)
+        : m_pFormatCtx(NULL)
+        , fpsN(0)
+        , fpsD(0)
+        , videoWidth(0)
+        , videoHeight(0)
     {
         LOG_FUNC();
         
@@ -99,5 +99,147 @@ namespace DSL
             avformat_close_input(&m_pFormatCtx);        
         }
     }
+
+    AvJpgOutFile::AvJpgOutFile(void* buffer, 
+        uint width, uint height, const char* filepath)
+        : m_pMjpegCodecContext(NULL)
+        , m_pScaleContext(NULL)
+    {
+        LOG_FUNC();
+        
+        av_register_all();
+        
+        // Find the correct codec and 
+        AVCodec* pMjpecCodec = avcodec_find_encoder(AV_CODEC_ID_MJPEG);
+        if(!pMjpecCodec)
+        {
+            LOG_ERROR("Unable to find codec: AV_CODEC_ID_MJPEG");
+            throw std::system_error();
+        }
+        
+        // Allocate context from the 
+        m_pMjpegCodecContext = avcodec_alloc_context3(pMjpecCodec);
+        if(!m_pMjpegCodecContext)
+        {
+            LOG_ERROR("Failed to get context for codec: AV_CODEC_ID_MJPEG");
+            throw std::system_error();
+        }
+        
+        m_pMjpegCodecContext->bit_rate = 400000;
+        m_pMjpegCodecContext->width = width;
+        m_pMjpegCodecContext->height = height;
+        m_pMjpegCodecContext->time_base = (AVRational){1,25};
+        m_pMjpegCodecContext->pix_fmt = AV_PIX_FMT_YUVJ420P;
+
+        if (avcodec_open2(m_pMjpegCodecContext, pMjpecCodec, NULL) < 0)
+        {
+            LOG_ERROR("Failed to open codec: AV_CODEC_ID_MJPEG");
+            throw std::system_error();
+        }
+
+        AVFrame* pSrcFrame = av_frame_alloc();
+        AVFrame* pDstFrame = av_frame_alloc();
+        if (!pSrcFrame or !pDstFrame)
+        {
+            LOG_ERROR("Failed to allocate frame-buffers");
+            throw std::system_error();
+        }
+        pSrcFrame->format = AV_PIX_FMT_RGBA;
+        pSrcFrame->width = width;
+        pSrcFrame->height = height;
+        pSrcFrame->pts = 1;
+        pSrcFrame->linesize[0] = width*4;
+        pSrcFrame->data[0] = (uint8_t*)buffer;
+
+//        if (av_image_alloc(pSrcFrame->data, pSrcFrame->linesize, 
+//            pSrcFrame->width, pSrcFrame->height, AV_PIX_FMT_RGBA, 32) < 0)
+//        {
+//            LOG_ERROR("Failed to allocate new src-image");
+//            throw std::system_error();
+//        }
+        
+        pDstFrame->format = m_pMjpegCodecContext->pix_fmt;
+        pDstFrame->width  = m_pMjpegCodecContext->width;
+        pDstFrame->height = m_pMjpegCodecContext->height;
+        pDstFrame->pts = 1;
+        
+        if (av_image_alloc(pDstFrame->data, pDstFrame->linesize, 
+            pDstFrame->width, pDstFrame->height, 
+            AV_PIX_FMT_YUV420P, 32) < 0)
+        {
+            LOG_ERROR("Failed to allocate new dst-image");
+            throw std::system_error();
+        }
+
+        m_pScaleContext = sws_getContext(width, height, AV_PIX_FMT_RGBA, 
+            width, height, AV_PIX_FMT_YUV420P, 0, NULL, NULL, NULL); 
+        if (!m_pScaleContext)
+        {
+            LOG_ERROR("Unable to get context for SwScale");
+            throw std::system_error();
+        }
+        
+
+        int retHeight = sws_scale(m_pScaleContext, pSrcFrame->data, pSrcFrame->linesize, 0,
+            height, pDstFrame->data, pDstFrame->linesize);
+            
+        LOG_WARN("sws_scale returned height = " << retHeight);
+     
+        AVPacket* pPkt = av_packet_alloc();
+        if (!pPkt)
+        {
+            LOG_ERROR("Failed to allocate Packet");
+            throw std::system_error();
+        }
+        
+
+        int retval = avcodec_send_frame(m_pMjpegCodecContext, pDstFrame);
+        if ( retval < 0)
+        {
+            LOG_ERROR("Failed to send frame to codec: AV_CODEC_ID_MJPEG");
+            throw std::system_error();
+        }
+  
+        FILE* outfile = fopen(filepath, "wb");
+        while (retval >= 0)
+        {
+            LOG_WARN("Calling avcodec_receive_packet");
+            retval = avcodec_receive_packet(m_pMjpegCodecContext, pPkt);
+            if (retval == AVERROR(EAGAIN) || retval == AVERROR_EOF)
+            {
+                break;
+            }
+            else if (retval < 0) 
+            {
+                LOG_ERROR("Failed to send frame to codec: AV_CODEC_ID_MJPEG");
+                throw std::system_error();
+            }
+            LOG_WARN("GOT PACKET!!");
+            fwrite(pPkt->data, 1, pPkt->size, outfile);
+        }
+        fclose(outfile);
+        av_packet_free(&pPkt);
+        av_freep(&pDstFrame->data[0]);
+        av_frame_free(&pSrcFrame);
+        av_frame_free(&pDstFrame);
+    }
     
+    AvJpgOutFile::~AvJpgOutFile()
+    {
+        LOG_FUNC();
+        
+        if (m_pScaleContext)
+        {
+            sws_freeContext(m_pScaleContext);            
+        }
+        if(m_pMjpegCodecContext)
+        {
+            // We can use the codec-context to close the codec.
+            avcodec_close(m_pMjpegCodecContext);
+            
+            // Then free the context
+            avcodec_free_context(&m_pMjpegCodecContext);
+
+        }
+    }
 }

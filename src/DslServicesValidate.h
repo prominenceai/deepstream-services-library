@@ -328,7 +328,8 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(RecordSinkBintr)) and  \
         !components[name]->IsType(typeid(RtspSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
-        !components[name]->IsType(typeid(InterpipeSinkBintr))) \
+        !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
+        !components[name]->IsType(typeid(MultiImageSinkBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Sink"); \
         return DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK; \

@@ -6440,6 +6440,21 @@ DslReturnType dsl_sink_interpipe_num_listeners_get(const wchar_t* name,
     uint* num_listeners);
 
 /**
+ * @brief Creates a new, uniquely named Multi Image Sink.
+ * The Sink Encodes each frame into a JPEG image and save it to file.
+ * specified by a given folder/filename-pattern.
+ * @param[in] name unique name for the Multi Image Sink
+ * @param[in] file_path use the printf style %d in the absolute or relative path. 
+ * Eample: "./my_images/image.%d04.jpg", will create files in "./my_images/"
+ * named "image.0000.jpg", "image.0001.jpg", "image.0002.jpg" etc.
+ * @param[in] width of the image to save in pixels.
+ * @param[in] height of the image to save in pixels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_image_multi_new(const wchar_t* name, 
+    const wchar_t* file_path, uint width, uint height);
+    
+/**
  * @brief creates a new, uniquely named WebRTC Sink component
  * @param[in] name unique component name for the new WebRTC Sink
  * @param[in] stun_server STUN server to use of the form stun://hostname:port.

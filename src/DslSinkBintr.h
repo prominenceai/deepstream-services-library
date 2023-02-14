@@ -94,9 +94,9 @@ namespace DSL
         new InterpipeSinkBintr(name, forwardEos, forwardEvents))
 
     #define DSL_MULTI_IMAGE_SINK_PTR std::shared_ptr<MultiImageSinkBintr>
-    #define DSL_MULTI_IMAGE_SINK_NEW(name, filepath) \
+    #define DSL_MULTI_IMAGE_SINK_NEW(name, filepath, width, height) \
         std::shared_ptr<MultiImageSinkBintr>( \
-        new MultiImageSinkBintr(name, filepath))
+        new MultiImageSinkBintr(name, filepath, width, height))
 
     //-------------------------------------------------------------------------
 
@@ -954,7 +954,8 @@ namespace DSL
     {
     public: 
     
-        MultiImageSinkBintr(const char* name, const char* filepath);
+        MultiImageSinkBintr(const char* name, const char* filepath,
+            uint width, uint height);
 
         ~MultiImageSinkBintr();
   

@@ -27,6 +27,8 @@ THE SOFTWARE.
 
 extern "C" { 
 #include <libavformat/avformat.h>
+#include <libavutil/imgutils.h>
+#include <libswscale/swscale.h>
 }
 
 namespace DSL
@@ -36,8 +38,9 @@ namespace DSL
      * @brief Utility to read the video dimensions and frame-rate for a given
      * media file. Has been tested with ".mp4", ".mov", .jpg", and ".mjpeg"
      */
-    struct AvFile
+    class AvFile
     {
+    public:
         /**
          * @brief ctor for the AvFile class
          * @param uri relative or absolute path to the media file to query.
@@ -77,7 +80,21 @@ namespace DSL
         AVFormatContext* m_pFormatCtx;
         
     };
+
+    class AvJpgOutFile
+    {
+    public:
     
+        AvJpgOutFile(void* buffer, uint width, uint height, const char* filepath);
+        
+        ~AvJpgOutFile();
+        
+    private:
+        
+        AVCodecContext* m_pMjpegCodecContext;
+        
+        SwsContext* m_pScaleContext;
+    };
 }
 
 #endif // _DSL_AV_FILE_H

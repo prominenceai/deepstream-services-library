@@ -117,3 +117,21 @@ SCENARIO( "An AvFile utility can read a MJPG file correctly",  "[AvFile]" )
         }
     }
 }
+
+SCENARIO( "An AvCodec utility can encode and save a JPEG file correctly",  "[test]" )
+{
+    GIVEN( "An output directory" ) 
+    {
+        std::string outdir(
+            "./");
+    
+        WHEN( "When the AvMjpegCodec is created" )
+        {
+            
+            
+            THEN( "The AvMjpegCodec properties are setup correctly")
+            {
+            }
+        }
+    }
+}

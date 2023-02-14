@@ -1202,6 +1202,9 @@ namespace DSL {
 
         DslReturnType SinkInterpipeNumListenersGet(const char* name,
             uint* numListeners);
+            
+        DslReturnType SinkImageMultiNew(const char* name, const char* filepath,
+            uint width, uint height);
         
         DslReturnType SinkWebRtcNew(const char* name, const char* stunServer, 
             const char* turnServer, uint codec, uint bitrate, uint interval);

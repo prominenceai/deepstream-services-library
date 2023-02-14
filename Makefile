@@ -154,6 +154,9 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-lnvdsgst_smartrecord \
 	-lnvds_msgbroker \
 	-lavformat \
+	-lavcodec \
+	-lavutil \
+	-lswscale \
 	-lglib-$(GLIB_VERSION) \
 	-lgstreamer-$(GSTREAMER_VERSION) \
 	-Lgstreamer-video-$(GSTREAMER_VERSION) \

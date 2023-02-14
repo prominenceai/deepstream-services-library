@@ -5262,6 +5262,17 @@ def dsl_sink_interpipe_num_listeners_get(name):
     return int(result), num_listeners.value
 
 ##
+## dsl_sink_image_multi_new()
+##
+_dsl.dsl_sink_image_multi_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
+_dsl.dsl_sink_image_multi_new.restype = c_uint
+def dsl_sink_image_multi_new(name, file_path, width, height):
+    global _dsl
+    result =_dsl.dsl_sink_image_multi_new(name, 
+        file_path, width, height)
+    return int(result)
+
+##
 ## dsl_sink_sync_enabled_get()
 ##
 _dsl.dsl_sink_sync_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]

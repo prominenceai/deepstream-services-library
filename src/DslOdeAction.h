@@ -437,6 +437,8 @@ namespace DSL
     };
     
     // ********************************************************************
+    
+    static int idle_thread_handler(void* client_data);
 
     /**
      * @class CaptureOdeAction
@@ -522,9 +524,26 @@ namespace DSL
          * @brief removes all child Mailers, Players, and Listeners from this parent Object
          */
         void RemoveAllChildren();
+                
+        /**
+         * @brief Queues a captured image that has been copied to a NvBufferSurface
+         * @param pBufferSurface shared pointer to DslBufferSurface to be queued.
+         */
+        void queueCapturedImage(std::shared_ptr<DslBufferSurface> pBufferSurface);
         
-    protected:
+        /**
+         * @brief implements an idle thread callback to initiate the conversion
+         * of the NvBufferSurface to a JPEG image file.
+         * Timer/tread will be restarted on next Image Capture
+         */
+        int convertCapturedImage();
 
+//         * by saving the image to file, notifying all client listeners, and 
+//         * sending email all in the main loop context.
+//         * @return false always to self remove timer once clients have been notified. 
+
+    protected:
+        
         /**
          * @brief static, unique capture id shared by all Capture actions
          */
@@ -541,9 +560,22 @@ namespace DSL
         std::string m_outdir;
 
         /**
-         * @brief mutux to guard the Capture info read/write access.
+         * @brief Queue mono-NvBufferSurfaces waiting to be converted
+         * to a JPEG file by the idle thread callback. The callback
+         * intiates the conversion process by pushing each Surface
+         * into a Player with an App-Source and Multi-Image Sink. 
          */
-        GMutex m_captureCompleteMutex;
+        std::queue<std::shared_ptr<DslBufferSurface>> m_pBufferSurfaces;
+
+        /**
+         * @brief gnome thread id for the idle thread to initiate image conversion.
+        */
+        uint m_idleThreadFunctionId;
+
+        /**
+         * @brief mutux to guard the m_pBufferSurfaces read/write access.
+         */
+        GMutex m_captureQueueMutex;
         
         DSL_APP_SOURCE_PTR m_pAppSourceBintr;
 

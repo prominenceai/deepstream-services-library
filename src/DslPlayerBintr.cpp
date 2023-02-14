@@ -174,6 +174,50 @@ namespace DSL
         m_pSink->UnlinkAll();
         m_isLinked = false;
     }
+
+    bool PlayerBintr::PlayAsync()
+    {
+        LOG_FUNC();
+
+        GstState currentState;
+        GetState(currentState, 0);
+        if (currentState != GST_STATE_NULL)
+        {
+            LOG_ERROR("Unable to set Player '" << GetName() 
+                << "' to a state of READY. Current state = "
+                << currentState);
+            return false;
+        }
+        // m_pSource is of type DSL_BINTR_PTR - need to cast to DSL_SOURCE_PTR
+        // for the source to be used as such
+        DSL_SOURCE_PTR pSourceBintr = 
+            std::dynamic_pointer_cast<SourceBintr>(m_pSource);
+        if (!pSourceBintr->IsLinkable())
+        {
+            LOG_ERROR("Unable to Play Player '" << GetName() 
+                << "' as its Source is in an un-playable state");
+            return false;
+        }
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+
+        if (!LinkAll())
+        {
+            LOG_ERROR("Unable to link Player '" << GetName() << "'");
+            return false;
+        }
+        if (!SetState(GST_STATE_PLAYING, 0))
+        {
+            LOG_ERROR("Failed to set Player '" << GetName() << "' to READY ");
+            return false;
+        }
+        // conditionally add the EOS Listener as it may have been
+        // removed by the client with a previous call to Stop()
+        if (!IsEosListener(PlayerHandleEos))
+        {
+            AddEosListener(PlayerHandleEos, this);
+        }
+        return true;
+    }
     
     bool PlayerBintr::Play()
     {
