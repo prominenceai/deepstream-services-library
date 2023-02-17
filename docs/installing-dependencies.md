@@ -24,6 +24,9 @@ sudo apt update && sudo apt-get install \
     libaprutil1-dev \
     libgeos-dev \
     libavformat-dev \
+    libavcodec-dev \
+    libavutil-dev \
+    libswscale-dev \
     libcurl4-openssl-dev
 ```    
 
@@ -38,6 +41,9 @@ sudo apt update && sudo apt-get install \
     libaprutil1-dev \
     libgeos-dev \
     libavformat-dev \
+    libavcodec-dev \
+    libavutil-dev \
+    libswscale-dev \
     libcurl4-openssl-dev \
     libjson-glib-1.0-0 \
     libsoup-gnome2.4-dev  
@@ -65,11 +71,32 @@ DSL uses the [GEOS](https://trac.osgeo.org/geos) C Library `libgeos-dev` - speci
 sudo apt install libgeos-dev
 ```
 
-### AV Format Lib 
-Used to read media file format information.
+### AV Format Lib
+[FFmpeg lib](https://ffmpeg.org/) used to read media file format information.
 
 ```
 sudo apt-get install libavformat-dev
+```
+
+### AV Codec Lib
+[FFmpeg lib](https://ffmpeg.org/) used to encode jpeg images.
+
+```
+sudo apt-get install libavcodec-dev
+```
+
+### AV Utils Lib
+[FFmpeg lib](https://ffmpeg.org/) used to encode jpeg images.
+
+```
+sudo apt-get install libavutil-dev
+```
+
+### SW Image Scalling/Conversion Lib
+[FFmpeg lib](https://ffmpeg.org/) used to convert images for jpeg encoding.
+
+```
+sudo apt-get install libavutil-dev
 ```
 
 ### Lib cURL
