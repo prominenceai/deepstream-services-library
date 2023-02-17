@@ -260,26 +260,31 @@ namespace DSL
         LOG_FUNC();
 
         g_mutex_init(&m_captureQueueMutex);
-        
+        g_mutex_init(&m_childContainerMutex);
     }
 
     CaptureOdeAction::~CaptureOdeAction()
     {
         LOG_FUNC();
 
-//        m_pPlayerBintr->Stop();
+        // If the idle-thread for processing images is currently running.
+        if (m_idleThreadFunctionId)
         {
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
-            RemoveAllChildren();
+            g_source_remove(m_idleThreadFunctionId);
         }
+
+        RemoveAllChildren();
+        
         g_mutex_clear(&m_captureQueueMutex);
+        g_mutex_clear(&m_childContainerMutex);
     }
 
     bool CaptureOdeAction::AddCaptureCompleteListener(
         dsl_capture_complete_listener_cb listener, void* userdata)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
         
         if (m_captureCompleteListeners.find(listener) != 
             m_captureCompleteListeners.end())
@@ -297,7 +302,7 @@ namespace DSL
         dsl_capture_complete_listener_cb listener)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
         
         if (m_captureCompleteListeners.find(listener) == 
             m_captureCompleteListeners.end())
@@ -314,7 +319,7 @@ namespace DSL
     bool CaptureOdeAction::AddImagePlayer(DSL_PLAYER_BINTR_PTR pPlayer)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
         
         if (m_imagePlayers.find(pPlayer->GetName()) != 
             m_imagePlayers.end())
@@ -331,7 +336,7 @@ namespace DSL
     bool CaptureOdeAction::RemoveImagePlayer(DSL_PLAYER_BINTR_PTR pPlayer)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
         
         if (m_imagePlayers.find(pPlayer->GetCStrName()) == 
             m_imagePlayers.end())
@@ -349,7 +354,7 @@ namespace DSL
         const char* subject, bool attach)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
         
         if (m_mailers.find(pMailer->GetName()) != m_mailers.end())
         {   
@@ -370,7 +375,7 @@ namespace DSL
     bool CaptureOdeAction::RemoveMailer(DSL_MAILER_PTR pMailer)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
         
         if (m_mailers.find(pMailer->GetCStrName()) == m_mailers.end())
         {   
@@ -386,6 +391,28 @@ namespace DSL
     void CaptureOdeAction::RemoveAllChildren()
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
+
+        // If there are Image Players
+        for (auto const& iter: m_imagePlayers)
+        {
+            if (iter.second->IsType(typeid(ImageRenderPlayerBintr)))
+            {
+                DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pImagePlayer = 
+                    std::dynamic_pointer_cast<ImageRenderPlayerBintr>(iter.second);
+
+                GstState state;
+                pImagePlayer->GetState(state, 0);
+
+                // Queue the filepath if the Player is currently Playing/Paused
+                // otherwise, set the filepath and Play the Player
+                if (state != GST_STATE_NULL)
+                {
+                    pImagePlayer->Stop();
+                }
+            }
+        }
+
     }
     
     void CaptureOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
@@ -422,7 +449,7 @@ namespace DSL
 
         // Coordinates and dimensions for our destination surface for RGBA to 
         // BGR conversion required for JPEG
-        uint32_t left(0), top(0), width(0), height(0);
+        gint left(0), top(0), width(0), height(0);
 
         // capturing full frame or object only?
         if (m_captureType == DSL_CAPTURE_TYPE_FRAME)
@@ -430,12 +457,19 @@ namespace DSL
             width = pMappedBuffer->GetWidth(pFrameMeta->batch_id);
             height = pMappedBuffer->GetHeight(pFrameMeta->batch_id);
         }
+        // Create crop rectangle params ensuring that width and height are divisable 
+        // by 2. This is done to ensure that the plane width and height (which 
+        // are always created as even numbers) will match the buffer width and height.
         else
         {
-            left = pObjectMeta->rect_params.left;
-            top = pObjectMeta->rect_params.top;
-            width = pObjectMeta->rect_params.width; 
-            height = pObjectMeta->rect_params.height;
+            left = GST_ROUND_UP_2(
+                gint(std::round(pObjectMeta->rect_params.left)));
+            top = GST_ROUND_UP_2(
+                gint(std::round(pObjectMeta->rect_params.top)));
+            width = GST_ROUND_DOWN_2(
+                gint(std::round(pObjectMeta->rect_params.width)));
+            height = GST_ROUND_DOWN_2(
+                gint(std::round(pObjectMeta->rect_params.height)));
         }
 
         // New "create params" for our destination surface. we only need one 
@@ -445,7 +479,6 @@ namespace DSL
         
         // New Destination surface with a batch size of 1 for transforming 
         // the single surface 
-//        DslBufferSurface dstSurface(1, surfaceCreateParams);
         std::shared_ptr<DslBufferSurface> pBufferSurface = 
             std::shared_ptr<DslBufferSurface>(
                 new DslBufferSurface(1, surfaceCreateParams));
@@ -498,34 +531,6 @@ namespace DSL
             }
         }
         queueCapturedImage(pBufferSurface);
-        
-//
-//        std::string appSrcName = GetName() + "-appsrc-";
-//        m_pAppSourceBintr = DSL_APP_SOURCE_NEW(
-//            appSrcName.c_str(), true, "I420", imageWidth, imageHeight, 1, 1);
-//        
-//        std::string imageSinkName = GetName() + "-image-sink-";
-//        m_pMultiImageSinkBintr = 
-//            DSL_MULTI_IMAGE_SINK_NEW(imageSinkName.c_str(), "./frame-%05d.jpg",
-//                imageWidth, imageHeight);
-//        
-//        std::string playerName = GetName() + "-player-";
-//        m_pPlayerBintr = DSL_PLAYER_BINTR_NEW(
-//            playerName.c_str(), m_pAppSourceBintr, m_pMultiImageSinkBintr);
-//
-//        if (!m_pPlayerBintr->PlayAsync())
-//        {
-//            throw;
-//        }
-//            
-//        m_pAppSourceBintr->PushBuffer(buffer);
-        
-//        m_pPlayerBintr->Stop();
-//
-//        GstState gstState;
-//        m_pPlayerBintr->GetState(gstState, 0);
-//        LOG_WARN("Player State = " << gstState);
-    
     }
 
     void CaptureOdeAction::queueCapturedImage(
@@ -534,12 +539,11 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
         
-        LOG_WARN("queing Buffer Surface");
         m_pBufferSurfaces.push(pBufferSurface);
         
         if (!m_idleThreadFunctionId)
         {
-            LOG_INFO("-------starting idle thread ");
+            LOG_INFO("Starting idle thread for image processing");
             m_idleThreadFunctionId = g_idle_add(idle_thread_handler, this);
         }
     }
@@ -547,153 +551,210 @@ namespace DSL
     int CaptureOdeAction::convertCapturedImage()
     {
         LOG_FUNC();
-
-        if (!m_pBufferSurfaces.size())
-        {
-            LOG_ERROR("Buffer-Surface queue is empty");
-            return FALSE;
-        }
         
+        // New shared pointer to assign to the image at the front of the queue.
         std::shared_ptr<DslBufferSurface> pBufferSurface;
         {
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
             
+            // There should always be at least one image queued if this
+            // thread is running - but need to check before dequing
+            if (!m_pBufferSurfaces.size())
+            {
+                LOG_ERROR("Buffer-Surface queue is empty");
+                m_idleThreadFunctionId = 0;
+                return FALSE;
+            }
+            
+            // Set the pointer to the head object and pop it off
             pBufferSurface = m_pBufferSurfaces.front();
             m_pBufferSurfaces.pop();
         }
         
-        uint imageWidth = (&(*pBufferSurface))->surfaceList[0].width;
-        uint imageHeight = (&(*pBufferSurface))->surfaceList[0].height;
+        // Get the dimensions and data size of the mono-surface
+        uint bufferWidth = (&(*pBufferSurface))->surfaceList[0].width;
+        uint bufferHeight = (&(*pBufferSurface))->surfaceList[0].height;
         uint dataSize = (&(*pBufferSurface))->surfaceList[0].dataSize;
         
-        LOG_WARN("width = " << imageWidth);
-        LOG_WARN("height = " << imageHeight);
-        LOG_WARN("data-size = " << dataSize);
-
-        char dateTime[64] = {0};
-        time_t seconds = time(NULL);
-        struct tm currentTm;
-        localtime_r(&seconds, &currentTm);
-
-        std::strftime(dateTime, sizeof(dateTime), "%Y%m%d-%H%M%S", &currentTm);
-        std::string dateTimeStr(dateTime);
-
-        std::ostringstream fileNameStream;
-        fileNameStream << GetName() << "_" 
-            << std::setw(5) << std::setfill('0') << s_captureId
-            << "_" << dateTimeStr << ".jpeg";
-            
-        std::string filespec = m_outdir + "/" + 
-            fileNameStream.str();
-
-        try
+        // Check to ensure that the buffer and pitch dimensions are the same
+        if (bufferWidth !=
+            (&(*pBufferSurface))->surfaceList[0].planeParams.width[0] or
+            bufferHeight !=
+            (&(*pBufferSurface))->surfaceList[0].planeParams.height[0])
         {
-            AvJpgOutFile avJpgOutFile(
-                (void*)(&(*pBufferSurface))->surfaceList[0].mappedAddr.addr[0], 
-                imageWidth, imageHeight, fileNameStream.str().c_str());
-        }
-        catch(...)
-        {
+            LOG_ERROR("Invalid dimensions found for surface plane[0]");
+            m_idleThreadFunctionId = 0;
             return FALSE;
         }
 
-        // If there are Image Players for playing the captured image
-        for (auto const& iter: m_imagePlayers)
+        // There should only be one plane for RGBA
+        if ((&(*pBufferSurface))->surfaceList[0].planeParams.num_planes > 1)
         {
-            if (iter.second->IsType(typeid(ImageRenderPlayerBintr)))
-            {
-                DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pImagePlayer = 
-                    std::dynamic_pointer_cast<ImageRenderPlayerBintr>(iter.second);
+            LOG_ERROR("Invalid plane count (>1) for RGBA surface");
+            m_idleThreadFunctionId = 0;
+            return FALSE;
+        }
 
-                GstState state;
-                pImagePlayer->GetState(state, 0);
+        // Allocate and initialize a new array to create a compressed buffer 
+        // of raw RGBA image data - i.e. with the memory alignment padding removed.
+        uint8_t rgbaImage[dataSize];
+        memset(rgbaImage, 0, dataSize);
+        
+        // Initialize the source pointer to the start of the mapped surface
+        uint8_t* pSrcIndex = 
+            (uint8_t*)(&(*pBufferSurface))->surfaceList[0].mappedAddr.addr[0];
+            
+        // Initialize the destination pointer to the start of the RGBA Image buffer
+        uint8_t* pDstIndex = &rgbaImage[0];
+        
+        // Get the offset of the plane within the pitch
+        uint offset = 
+            (&(*pBufferSurface))->surfaceList[0].planeParams.offset[0];
 
-                // Queue the filepath if the Player is currently Playing/Paused
-                // otherwise, set the filepath and Play the Player
-                if (state == GST_STATE_PLAYING or state == GST_STATE_PAUSED)
-                {
-                    pImagePlayer->QueueFilePath(filespec.c_str());
-                }
-                else
-                {
-                    pImagePlayer->SetFilePath(filespec.c_str());
-                    pImagePlayer->Play();
-                    
-                }
-            }
+        // Size of each line to copy will be the plane width * the bytes/pixel
+        uint copySize = (&(*pBufferSurface))->surfaceList[0].planeParams.width[0] *
+            (&(*pBufferSurface))->surfaceList[0].planeParams.bytesPerPix[0];
+
+        // For each line in the plane/buffer copy over the image data
+        // and advance the source and destination buffer pointers.
+        for (auto line=0; line < bufferHeight; line++)
+        {
+            memcpy(pDstIndex, pSrcIndex+offset, copySize);
+            pSrcIndex += 
+                (&(*pBufferSurface))->surfaceList[0].planeParams.pitch[0];
+            pDstIndex += copySize;
         }
         
-        // If there are complete listeners to notify
-        if (m_captureCompleteListeners.size())
-        {
-            // assemble the capture info
-            dsl_capture_info info{0};
+        // Generate the image file name from the date-time string
+        std::ostringstream fileNameStream;
+        fileNameStream << GetName() << "_" 
+            << std::setw(5) << std::setfill('0') << s_captureId
+            << "_" << pBufferSurface->GetDateTimeStr() << ".jpeg";
+            
+        // Generate the filespec from the output dir and file name
+        std::string filespec = m_outdir + "/" + 
+            fileNameStream.str();
 
-            info.captureId = s_captureId;
-            
-            std::string fileName = fileNameStream.str();
-            
-            // convert the filename and dirpath to wchar string types (client format)
-            std::wstring wstrFilename(fileName.begin(), fileName.end());
-            std::wstring wstrDirpath(m_outdir.begin(), m_outdir.end());
-           
-            info.dirpath = wstrDirpath.c_str();
-            info.filename = wstrFilename.c_str();
-            info.width =imageWidth;
-            info.height = imageHeight;
-                
-            // iterate through the map of listeners calling each
-            for(auto const& imap: m_captureCompleteListeners)
-            {
-                try
-                {
-                    imap.first(&info, imap.second);
-                }
-                catch(...)
-                {
-                    LOG_ERROR("ODE Capture Action '" << GetName() 
-                        << "' threw exception calling Client Capture Complete Listener");
-                }
-            }
+        // Try to convert and save the image to a JPEG file. 
+        try
+        {
+            AvJpgOutFile avJpgOutFile(rgbaImage, 
+                bufferWidth, bufferHeight, fileNameStream.str().c_str());
+        }
+        catch(...)
+        {
+            m_idleThreadFunctionId = 0;
+            return FALSE;
         }
 
-        // If there are Mailers for mailing the capture detals and optional image
-        if (m_mailers.size())
+        // Create scope to lock the child-container mutex
         {
-            std::vector<std::string> body;
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
             
-            body.push_back(std::string("Action     : " 
-                + GetName() + "<br>"));
-            body.push_back(std::string("File Name  : " 
-                + fileNameStream.str() + "<br>"));
-            body.push_back(std::string("Location   : " 
-                + m_outdir + "<br>"));
-            body.push_back(std::string("Capture Id : " 
-                + std::to_string(s_captureId) + "<br>"));
-
-            body.push_back(std::string("Width      : " 
-                + std::to_string(imageWidth) + "<br>"));
-            body.push_back(std::string("Height     : " 
-                + std::to_string(imageHeight) + "<br>"));
-                
-            for (auto const& iter: m_mailers)
+            // If there are Image Players for playing the captured image
+            for (auto const& iter: m_imagePlayers)
             {
-                std::string filepath;
-                if (iter.second->m_attach)
+                if (iter.second->IsType(typeid(ImageRenderPlayerBintr)))
                 {
-                    filepath.assign(filespec.c_str());
+                    DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pImagePlayer = 
+                        std::dynamic_pointer_cast<ImageRenderPlayerBintr>(iter.second);
+
+                    GstState state;
+                    pImagePlayer->GetState(state, 0);
+
+                    // Queue the filepath if the Player is currently Playing/Paused
+                    // otherwise, set the filepath and Play the Player
+                    if (state == GST_STATE_PLAYING or state == GST_STATE_PAUSED)
+                    {
+                        pImagePlayer->QueueFilePath(filespec.c_str());
+                    }
+                    else
+                    {
+                        pImagePlayer->SetFilePath(filespec.c_str());
+                        pImagePlayer->Play();
+                        
+                    }
                 }
-                iter.second->m_pMailer->QueueMessage(iter.second->m_subject, 
-                    body, filepath);
             }
-        }
+            
+            // If there are complete listeners to notify
+            if (m_captureCompleteListeners.size())
+            {
+                // assemble the capture info
+                dsl_capture_info info{0};
+
+                info.captureId = s_captureId;
+                
+                std::string fileName = fileNameStream.str();
+                
+                // convert the filename and dirpath to wchar string types 
+                // i.e the client's format.
+                std::wstring wstrFilename(fileName.begin(), fileName.end());
+                std::wstring wstrDirpath(m_outdir.begin(), m_outdir.end());
+               
+                info.dirpath = wstrDirpath.c_str();
+                info.filename = wstrFilename.c_str();
+                info.width =bufferWidth;
+                info.height = bufferHeight;
+                    
+                // iterate through the map of listeners calling each
+                for(auto const& imap: m_captureCompleteListeners)
+                {
+                    try
+                    {
+                        imap.first(&info, imap.second);
+                    }
+                    catch(...)
+                    {
+                        LOG_ERROR("ODE Capture Action '" << GetName() 
+                            << "' threw exception calling Client Capture Complete Listener");
+                    }
+                }
+            }
+
+            // If there are Mailers for mailing the capture detals and optional image
+            if (m_mailers.size())
+            {
+                std::vector<std::string> body;
+                
+                body.push_back(std::string("Action     : " 
+                    + GetName() + "<br>"));
+                body.push_back(std::string("File Name  : " 
+                    + fileNameStream.str() + "<br>"));
+                body.push_back(std::string("Location   : " 
+                    + m_outdir + "<br>"));
+                body.push_back(std::string("Capture Id : " 
+                    + std::to_string(s_captureId) + "<br>"));
+
+                body.push_back(std::string("Width      : " 
+                    + std::to_string(bufferWidth) + "<br>"));
+                body.push_back(std::string("Height     : " 
+                    + std::to_string(bufferHeight) + "<br>"));
+                    
+                for (auto const& iter: m_mailers)
+                {
+                    std::string filepath;
+                    if (iter.second->m_attach)
+                    {
+                        filepath.assign(filespec.c_str());
+                    }
+                    iter.second->m_pMailer->QueueMessage(iter.second->m_subject, 
+                        body, filepath);
+                }
+            }
+        } // end child-container mutex lock
+        
         // Increment the global capture count
         s_captureId++;
 
-        // If there are more buffer-surfaces to convert, return true to reschedule.
-        if (m_pBufferSurfaces.size())
         {
-            return TRUE;
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
+
+            // If there are more buffer-surfaces to convert, return true to reschedule.
+            if (m_pBufferSurfaces.size())
+            {
+                return TRUE;
+            }
         }
         // Else, clear the thread-function id and return false to NOT reschedule.
         m_idleThreadFunctionId = 0;

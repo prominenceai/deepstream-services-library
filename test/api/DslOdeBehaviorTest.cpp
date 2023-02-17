@@ -352,10 +352,10 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers shari
         REQUIRE( dsl_ode_trigger_occurrence_new(first_person_occurrence_name.c_str(), 
             NULL, person_class_id, 10) == DSL_RESULT_SUCCESS );
         
-//        REQUIRE( dsl_ode_action_capture_object_new(captureActionName.c_str(), 
-//            outdir.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_action_capture_frame_new(captureActionName.c_str(), 
-            outdir.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_capture_object_new(captureActionName.c_str(), 
+            outdir.c_str()) == DSL_RESULT_SUCCESS );
+//        REQUIRE( dsl_ode_action_capture_frame_new(captureActionName.c_str(), 
+//            outdir.c_str(), false) == DSL_RESULT_SUCCESS );
         
         // Add the same capture Action to both ODE Triggers
         REQUIRE( dsl_ode_trigger_action_add(first_vehicle_occurrence_name.c_str(), 

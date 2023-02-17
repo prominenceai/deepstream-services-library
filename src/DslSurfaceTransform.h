@@ -393,6 +393,13 @@ namespace DSL
                 LOG_ERROR("NvBufSurfaceMemSet failed");
                 throw;
             }
+            char dateTime[64] = {0};
+            time_t seconds = time(NULL);
+            struct tm currentTm;
+            localtime_r(&seconds, &currentTm);
+
+            std::strftime(dateTime, sizeof(dateTime), "%Y%m%d-%H%M%S", &currentTm);
+            m_dateTimeStr = dateTime;
         }
         
         /**
@@ -465,6 +472,13 @@ namespace DSL
                 == NvBufSurfTransformError_Success);
         }
         
+        const char* GetDateTimeStr()
+        {
+            LOG_FUNC();
+            
+            return m_dateTimeStr.c_str();
+        }
+        
         
     private:    
 
@@ -477,6 +491,11 @@ namespace DSL
          * @brief set to true once mapped so that the buffer can be unmapped before destruction.
          */
         bool m_isMapped;
+        
+        /**
+         * @brief date-time string for the creation of the DslBufferSurface
+         */
+        std::string m_dateTimeStr;
 
     };
 

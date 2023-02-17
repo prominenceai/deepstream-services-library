@@ -85,7 +85,8 @@ namespace DSL
     {
     public:
     
-        AvJpgOutFile(void* buffer, uint width, uint height, const char* filepath);
+        AvJpgOutFile(uint8_t* pRgbaImage, 
+            uint width, uint height, const char* filepath);
         
         ~AvJpgOutFile();
         

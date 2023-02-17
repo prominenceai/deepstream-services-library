@@ -100,7 +100,7 @@ namespace DSL
         }
     }
 
-    AvJpgOutFile::AvJpgOutFile(void* buffer, 
+    AvJpgOutFile::AvJpgOutFile(uint8_t* pRgbaImage, 
         uint width, uint height, const char* filepath)
         : m_pMjpegCodecContext(NULL)
         , m_pScaleContext(NULL)
@@ -149,7 +149,7 @@ namespace DSL
         pSrcFrame->height = height;
         pSrcFrame->pts = 1;
         pSrcFrame->linesize[0] = width*4;
-        pSrcFrame->data[0] = (uint8_t*)buffer;
+        pSrcFrame->data[0] = pRgbaImage;
 
 //        if (av_image_alloc(pSrcFrame->data, pSrcFrame->linesize, 
 //            pSrcFrame->width, pSrcFrame->height, AV_PIX_FMT_RGBA, 32) < 0)

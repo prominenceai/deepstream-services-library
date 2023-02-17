@@ -573,15 +573,15 @@ namespace DSL
         uint m_idleThreadFunctionId;
 
         /**
-         * @brief mutux to guard the m_pBufferSurfaces read/write access.
+         * @brief mutux to guard the image-capture queue read/write access.
          */
         GMutex m_captureQueueMutex;
         
-        DSL_APP_SOURCE_PTR m_pAppSourceBintr;
-
-        DSL_MULTI_IMAGE_SINK_PTR m_pMultiImageSinkBintr;
-
-        DSL_PLAYER_BINTR_PTR m_pPlayerBintr;
+        /**
+         * @brief mutux to guard the read/write access to the maps of 
+         * Listeners, Players, and Mailers.
+         */
+        GMutex m_childContainerMutex;
         
         /**
          * @brief map of all currently registered capture-complete-listeners
