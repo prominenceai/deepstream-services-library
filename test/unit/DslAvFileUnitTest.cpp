@@ -36,9 +36,9 @@ SCENARIO( "An AvFile utility can read a MP4 file correctly",  "[AvFile]" )
     
         WHEN( "When the AvFile object is created" )
         {
-            AvFile avFile(filepath.c_str());
+            AvInputFile avFile(filepath.c_str());
             
-            THEN( "The AvFile properties are setup correctly")
+            THEN( "The AvInputFile properties are setup correctly")
             {
                 REQUIRE( avFile.videoWidth == 1920 );
                 REQUIRE( avFile.videoHeight == 1080 );
@@ -49,18 +49,18 @@ SCENARIO( "An AvFile utility can read a MP4 file correctly",  "[AvFile]" )
     }
 }
 
-SCENARIO( "An AvFile utility can read a MOV file correctly",  "[AvFile]" )
+SCENARIO( "An AvInputFile utility can read a MOV file correctly",  "[AvFile]" )
 {
     GIVEN( "A file path to an MOV file" ) 
     {
         std::string filepath(
             "/opt/nvidia/deepstream/deepstream/samples/streams/sample_push.mov");
     
-        WHEN( "When the AvFile object is created" )
+        WHEN( "When the AvInputFile object is created" )
         {
-            AvFile avFile(filepath.c_str());
+            AvInputFile avFile(filepath.c_str());
             
-            THEN( "The AvFile properties are setup correctly")
+            THEN( "The AvInputFile properties are setup correctly")
             {
                 // based on imperical results for this .mov file
                 REQUIRE( avFile.videoWidth == 1920 );
@@ -72,18 +72,18 @@ SCENARIO( "An AvFile utility can read a MOV file correctly",  "[AvFile]" )
     }
 }
 
-SCENARIO( "An AvFile utility can read a JPG file correctly",  "[AvFile]" )
+SCENARIO( "An AvInputFile utility can read a JPG file correctly",  "[AvFile]" )
 {
     GIVEN( "A file path to a JPG file" ) 
     {
         std::string filepath(
             "/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg");
     
-        WHEN( "When the AvFile object is created" )
+        WHEN( "When the AvInputFile object is created" )
         {
-            AvFile avFile(filepath.c_str());
+            AvInputFile avFile(filepath.c_str());
             
-            THEN( "The AvFile properties are setup correctly")
+            THEN( "The AvInputFile properties are setup correctly")
             {
                 // based on imperical results for this .mov file
                 REQUIRE( avFile.videoWidth == 1280 );
@@ -95,18 +95,18 @@ SCENARIO( "An AvFile utility can read a JPG file correctly",  "[AvFile]" )
     }
 }
 
-SCENARIO( "An AvFile utility can read a MJPG file correctly",  "[AvFile]" )
+SCENARIO( "An AvInputFile utility can read a MJPG file correctly",  "[AvFile]" )
 {
     GIVEN( "A file path to a MJPG file" ) 
     {
         std::string filepath(
             "/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.mjpeg");
     
-        WHEN( "When the AvFile object is created" )
+        WHEN( "When the AvInputFile object is created" )
         {
-            AvFile avFile(filepath.c_str());
+            AvInputFile avFile(filepath.c_str());
             
-            THEN( "The AvFile properties are setup correctly")
+            THEN( "The AvInputFile properties are setup correctly")
             {
                 // based on imperical results for this .mov file
                 REQUIRE( avFile.videoWidth == 1280 );
@@ -118,20 +118,3 @@ SCENARIO( "An AvFile utility can read a MJPG file correctly",  "[AvFile]" )
     }
 }
 
-SCENARIO( "An AvCodec utility can encode and save a JPEG file correctly",  "[test]" )
-{
-    GIVEN( "An output directory" ) 
-    {
-        std::string outdir(
-            "./");
-    
-        WHEN( "When the AvMjpegCodec is created" )
-        {
-            
-            
-            THEN( "The AvMjpegCodec properties are setup correctly")
-            {
-            }
-        }
-    }
-}

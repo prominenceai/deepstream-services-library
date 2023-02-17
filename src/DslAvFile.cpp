@@ -23,7 +23,7 @@ THE SOFTWARE.
 */
 
 // Note: Up-to-date working examples for avformt were hard to come by.
-//   - the below link was used to create the AvFile utilty.
+//   - the below link was used to create the AvInputFile utilty.
 // https://kibichomurage.medium.com/ffmpeg-minimum-working-example-17f68c985f0d
 
 #include "Dsl.h"
@@ -31,7 +31,7 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    AvFile::AvFile(const char* filepath)
+    AvInputFile::AvInputFile(const char* filepath)
         : m_pFormatCtx(NULL)
         , fpsN(0)
         , fpsD(0)
@@ -90,7 +90,7 @@ namespace DSL
         }
     }
         
-    AvFile::~AvFile()
+    AvInputFile::~AvInputFile()
     {
         LOG_FUNC();
         
@@ -100,7 +100,7 @@ namespace DSL
         }
     }
 
-    AvJpgOutFile::AvJpgOutFile(uint8_t* pRgbaImage, 
+    AvJpgOutputFile::AvJpgOutputFile(uint8_t* pRgbaImage, 
         uint width, uint height, const char* filepath)
         : m_pMjpegCodecContext(NULL)
         , m_pScaleContext(NULL)
@@ -137,6 +137,7 @@ namespace DSL
             throw std::system_error();
         }
 
+        // Allocat new source and destination frames for the conversion
         AVFrame* pSrcFrame = av_frame_alloc();
         AVFrame* pDstFrame = av_frame_alloc();
         if (!pSrcFrame or !pDstFrame)
@@ -144,25 +145,21 @@ namespace DSL
             LOG_ERROR("Failed to allocate frame-buffers");
             throw std::system_error();
         }
+        
+        // Setup the params for the source frame with the input RGBA buffer
         pSrcFrame->format = AV_PIX_FMT_RGBA;
         pSrcFrame->width = width;
         pSrcFrame->height = height;
         pSrcFrame->pts = 1;
         pSrcFrame->linesize[0] = width*4;
         pSrcFrame->data[0] = pRgbaImage;
-
-//        if (av_image_alloc(pSrcFrame->data, pSrcFrame->linesize, 
-//            pSrcFrame->width, pSrcFrame->height, AV_PIX_FMT_RGBA, 32) < 0)
-//        {
-//            LOG_ERROR("Failed to allocate new src-image");
-//            throw std::system_error();
-//        }
         
         pDstFrame->format = m_pMjpegCodecContext->pix_fmt;
         pDstFrame->width  = m_pMjpegCodecContext->width;
         pDstFrame->height = m_pMjpegCodecContext->height;
         pDstFrame->pts = 1;
-        
+
+        // allocate data for the new destination frame
         if (av_image_alloc(pDstFrame->data, pDstFrame->linesize, 
             pDstFrame->width, pDstFrame->height, 
             AV_PIX_FMT_YUV420P, 32) < 0)
@@ -171,6 +168,7 @@ namespace DSL
             throw std::system_error();
         }
 
+        // Get context to convert the image
         m_pScaleContext = sws_getContext(width, height, AV_PIX_FMT_RGBA, 
             width, height, AV_PIX_FMT_YUV420P, 0, NULL, NULL, NULL); 
         if (!m_pScaleContext)
@@ -179,12 +177,13 @@ namespace DSL
             throw std::system_error();
         }
         
-
+        // Convert the image from RGBA to YUV420P using the scale funtion
         int retHeight = sws_scale(m_pScaleContext, pSrcFrame->data, pSrcFrame->linesize, 0,
             height, pDstFrame->data, pDstFrame->linesize);
-            
-        LOG_WARN("sws_scale returned height = " << retHeight);
-     
+
+        // --------- Start JPEG Encodeing
+
+        // Allocate a Packet to tranport the 
         AVPacket* pPkt = av_packet_alloc();
         if (!pPkt)
         {
@@ -192,14 +191,15 @@ namespace DSL
             throw std::system_error();
         }
         
-
+        // Send the converted frame to the MJPEG codec for encoding
         int retval = avcodec_send_frame(m_pMjpegCodecContext, pDstFrame);
         if ( retval < 0)
         {
             LOG_ERROR("Failed to send frame to codec: AV_CODEC_ID_MJPEG");
             throw std::system_error();
         }
-  
+
+        // Open the output file using the provided filepath
         FILE* outfile = fopen(filepath, "wb");
         while (retval >= 0)
         {
@@ -217,6 +217,8 @@ namespace DSL
             LOG_WARN("GOT PACKET!!");
             fwrite(pPkt->data, 1, pPkt->size, outfile);
         }
+        
+        // close the output file and free all allocated data.        
         fclose(outfile);
         av_packet_free(&pPkt);
         av_freep(&pDstFrame->data[0]);
@@ -224,7 +226,7 @@ namespace DSL
         av_frame_free(&pDstFrame);
     }
     
-    AvJpgOutFile::~AvJpgOutFile()
+    AvJpgOutputFile::~AvJpgOutputFile()
     {
         LOG_FUNC();
         
@@ -239,7 +241,6 @@ namespace DSL
             
             // Then free the context
             avcodec_free_context(&m_pMjpegCodecContext);
-
         }
     }
 }

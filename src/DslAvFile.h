@@ -34,23 +34,23 @@ extern "C" {
 namespace DSL
 {
     /**
-     * @struct AvFile 
+     * @class AvInputFile 
      * @brief Utility to read the video dimensions and frame-rate for a given
      * media file. Has been tested with ".mp4", ".mov", .jpg", and ".mjpeg"
      */
-    class AvFile
+    class AvInputFile
     {
     public:
         /**
-         * @brief ctor for the AvFile class
+         * @brief ctor for the AvInputFile class
          * @param uri relative or absolute path to the media file to query.
          */
-        AvFile(const char* filepath);
+        AvInputFile(const char* filepath);
         
         /**
-         * @brief dtor for the AvFile class
+         * @brief dtor for the AvInputFile class
          */
-        ~AvFile();
+        ~AvInputFile();
 
         /**
          * @brief frames-per second fractional numerator for the AV File
@@ -81,19 +81,40 @@ namespace DSL
         
     };
 
-    class AvJpgOutFile
+    /**
+     * @class AvJpgOutputFile
+     * @brief Implements a utility class used to convert an RGBA image-buffer
+     * into a JPEG Image file. 
+     */
+    class AvJpgOutputFile
     {
     public:
     
-        AvJpgOutFile(uint8_t* pRgbaImage, 
+        /**
+         * @brief ctor for the AvJpgOutputFile utility class.
+         * @param[in] pRgbaImage buffer of packed RGBA Image data.
+         * @param[in] width width of the image in pixels.
+         * @param[in] height height of the image in pixels.
+         * @param[in] filepath for the JPEG output file to save.
+         */
+        AvJpgOutputFile(uint8_t* pRgbaImage, 
             uint width, uint height, const char* filepath);
         
-        ~AvJpgOutFile();
+        /**
+         * @brief ctor for the AvJpgOutputFile utility class.
+         */
+        ~AvJpgOutputFile();
         
     private:
         
+        /**
+         * @brief MJPEG codec context pointer to provide context for all Codec calls.
+         */
         AVCodecContext* m_pMjpegCodecContext;
         
+        /**
+         * @brief SW Scale utility context to provide context all Scale/format calls.
+         */
         SwsContext* m_pScaleContext;
     };
 }

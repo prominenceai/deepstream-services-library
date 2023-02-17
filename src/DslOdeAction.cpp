@@ -638,7 +638,7 @@ namespace DSL
         // Try to convert and save the image to a JPEG file. 
         try
         {
-            AvJpgOutFile avJpgOutFile(rgbaImage, 
+            AvJpgOutputFile avJpgOutFile(rgbaImage, 
                 bufferWidth, bufferHeight, fileNameStream.str().c_str());
         }
         catch(...)

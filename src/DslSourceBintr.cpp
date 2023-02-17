@@ -1501,7 +1501,7 @@ namespace DSL
         // Try to open the file and read the frame-rate and dimensions.
         try
         {
-            AvFile avFile(uri);
+            AvInputFile avFile(uri);
             m_fpsN = avFile.fpsN;
             m_fpsD = avFile.fpsD;
             m_width = avFile.videoWidth;
@@ -1965,7 +1965,7 @@ namespace DSL
         // Try to open the file and read the dimensions.
         try
         {
-            AvFile avFile(uri);
+            AvInputFile avFile(uri);
             m_width = avFile.videoWidth;
             m_height = avFile.videoHeight;
         }
@@ -2268,7 +2268,7 @@ namespace DSL
         // Try to open the file and read the dimensions.
         try
         {
-            AvFile avFile(uri);
+            AvInputFile avFile(uri);
             m_width = avFile.videoWidth;
             m_height = avFile.videoHeight;
         }
