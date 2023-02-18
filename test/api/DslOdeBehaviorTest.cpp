@@ -320,7 +320,7 @@ static void* main_loop_thread_func_1(void *data)
     return NULL;
 }
 
-SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers sharing a Capture ODE Action can play", "[new]" )
+SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers sharing a Capture ODE Action can play", "[ode-behavior]" )
 {
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Capture ODE Action" ) 
     {
@@ -355,7 +355,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers shari
         REQUIRE( dsl_ode_action_capture_object_new(captureActionName.c_str(), 
             outdir.c_str()) == DSL_RESULT_SUCCESS );
 //        REQUIRE( dsl_ode_action_capture_frame_new(captureActionName.c_str(), 
-//            outdir.c_str(), false) == DSL_RESULT_SUCCESS );
+//            outdir.c_str()) == DSL_RESULT_SUCCESS );
         
         // Add the same capture Action to both ODE Triggers
         REQUIRE( dsl_ode_trigger_action_add(first_vehicle_occurrence_name.c_str(), 
@@ -386,7 +386,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers shari
                 main_loop_thread_1 = g_thread_new("main-loop-1", 
                     main_loop_thread_func_1, NULL);
                 
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*5);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*2);
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
                 
                 dsl_main_loop_quit();

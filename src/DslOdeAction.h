@@ -66,9 +66,9 @@ namespace DSL
     #define DSL_ODE_ACTION_CATPURE_PTR std::shared_ptr<CaptureOdeAction>
     
     #define DSL_ODE_ACTION_CAPTURE_FRAME_PTR std::shared_ptr<CaptureFrameOdeAction>
-    #define DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, outdir, annotate) \
+    #define DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, outdir) \
         std::shared_ptr<CaptureFrameOdeAction>(new CaptureFrameOdeAction( \
-            name, outdir, annotate))
+            name, outdir))
         
     #define DSL_ODE_ACTION_CAPTURE_OBJECT_PTR std::shared_ptr<CaptureObjectOdeAction>
     #define DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(name, outdir) \
@@ -455,7 +455,7 @@ namespace DSL
          * @param[in] outdir output directory to write captured image files.
          */
         CaptureOdeAction(const char* name, 
-            uint captureType, const char* outdir, bool annotate);
+            uint captureType, const char* outdir);
         
         /**
          * @brief dtor for the Capture ODE Action class
@@ -615,11 +615,9 @@ namespace DSL
          * @brief ctor for the Capture Frame ODE Action class
          * @param[in] name unique name for the ODE Action
          * @param[in] outdir output directory to write captured image files
-         * @param[in] annotate adds bbox and label to one or all objects in the frame.
-         * One object in the case of valid pObjectMeta on call to HandleOccurrence
          */
-        CaptureFrameOdeAction(const char* name, const char* outdir, bool annotate)
-            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_FRAME, outdir, annotate)
+        CaptureFrameOdeAction(const char* name, const char* outdir)
+            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_FRAME, outdir)
         {};
 
     };
@@ -638,7 +636,7 @@ namespace DSL
          * @param[in] outdir output directory to write captured image files
          */
         CaptureObjectOdeAction(const char* name, const char* outdir)
-            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_OBJECT, outdir, false)
+            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_OBJECT, outdir)
         {};
 
     };

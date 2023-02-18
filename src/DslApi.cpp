@@ -571,7 +571,7 @@ DslReturnType dsl_ode_action_custom_new(const wchar_t* name,
 }
 
 DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, 
-    const wchar_t* outdir, boolean annotate)
+    const wchar_t* outdir)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(outdir);
@@ -582,7 +582,7 @@ DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name,
     std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
 
     return DSL::Services::GetServices()->OdeActionCaptureFrameNew(cstrName.c_str(), 
-        cstrOutdir.c_str(), annotate);
+        cstrOutdir.c_str());
 }
 
 DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name,

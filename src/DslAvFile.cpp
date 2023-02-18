@@ -203,7 +203,6 @@ namespace DSL
         FILE* outfile = fopen(filepath, "wb");
         while (retval >= 0)
         {
-            LOG_WARN("Calling avcodec_receive_packet");
             retval = avcodec_receive_packet(m_pMjpegCodecContext, pPkt);
             if (retval == AVERROR(EAGAIN) || retval == AVERROR_EOF)
             {
@@ -214,7 +213,6 @@ namespace DSL
                 LOG_ERROR("Failed to send frame to codec: AV_CODEC_ID_MJPEG");
                 throw std::system_error();
             }
-            LOG_WARN("GOT PACKET!!");
             fwrite(pPkt->data, 1, pPkt->size, outfile);
         }
         

@@ -599,7 +599,7 @@ SCENARIO( "A new CaptureFrameOdeAction is created correctly", "[OdeAction]" )
         {
             DSL_ODE_ACTION_CAPTURE_FRAME_PTR pAction = 
                 DSL_ODE_ACTION_CAPTURE_FRAME_NEW(actionName.c_str(), 
-                    outdir.c_str(), annotate);
+                    outdir.c_str());
 
             THEN( "The Action's members are setup and returned correctly" )
             {

@@ -241,15 +241,15 @@ namespace DSL
         /**
          * @brief Mutex to protect the async GCond used to synchronize
          * the Application thread with the mainloop context on
-         * asynchronous change of pipeline state.
+         * asynchronous stop.
          */
-        GMutex m_asyncCommMutex;
+        GMutex m_asyncStopMutex;
         
         /**
          * @brief Condition used to block the application context while waiting
          * for a Pipeline change of state to be completed in the mainloop context
          */
-        GCond m_asyncCondition;
+        GCond m_asyncStopCond;
         
         /**
          * @brief parent bin for all Source bins in this Pipeline

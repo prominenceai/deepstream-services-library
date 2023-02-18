@@ -251,7 +251,7 @@ namespace DSL
     }
 
     CaptureOdeAction::CaptureOdeAction(const char* name, 
-        uint captureType, const char* outdir, bool annotate)
+        uint captureType, const char* outdir)
         : OdeAction(name)
         , m_captureType(captureType)
         , m_outdir(outdir)
@@ -438,9 +438,6 @@ namespace DSL
 
         NvBufSurfaceMemType transformMemType = pMappedBuffer->pSurface->memType;
 
-        LOG_INFO("Creating new mono-surface with memory type " 
-            << transformMemType);
-
         // Transforming only one frame in the batch, so create a copy of the single 
         // surface ... becoming our new source surface. This creates a new mono 
         // (non-batched) surface copied from the "batched frames" using the batch id 
@@ -456,6 +453,8 @@ namespace DSL
         {
             width = pMappedBuffer->GetWidth(pFrameMeta->batch_id);
             height = pMappedBuffer->GetHeight(pFrameMeta->batch_id);
+            LOG_INFO("Capturing frame with dimensions " 
+                << width << "x" << height);
         }
         // Create crop rectangle params ensuring that width and height are divisable 
         // by 2. This is done to ensure that the plane width and height (which 
@@ -470,6 +469,10 @@ namespace DSL
                 gint(std::round(pObjectMeta->rect_params.width)));
             height = GST_ROUND_DOWN_2(
                 gint(std::round(pObjectMeta->rect_params.height)));
+
+            LOG_INFO("Capturing object " << s_captureId 
+                << " with coordinates " << left << "," << top 
+                << " and dimensions " << width << "x" << height);
         }
 
         // New "create params" for our destination surface. we only need one 
@@ -481,7 +484,7 @@ namespace DSL
         // the single surface 
         std::shared_ptr<DslBufferSurface> pBufferSurface = 
             std::shared_ptr<DslBufferSurface>(
-                new DslBufferSurface(1, surfaceCreateParams));
+                new DslBufferSurface(1, surfaceCreateParams, s_captureId++));
 
         // New "transform params" for the surface transform, croping or 
         // (future?) scaling
@@ -628,7 +631,7 @@ namespace DSL
         // Generate the image file name from the date-time string
         std::ostringstream fileNameStream;
         fileNameStream << GetName() << "_" 
-            << std::setw(5) << std::setfill('0') << s_captureId
+            << std::setw(5) << std::setfill('0') << pBufferSurface->GetUniqueId()
             << "_" << pBufferSurface->GetDateTimeStr() << ".jpeg";
             
         // Generate the filespec from the output dir and file name
@@ -646,6 +649,7 @@ namespace DSL
             m_idleThreadFunctionId = 0;
             return FALSE;
         }
+        LOG_INFO("Saved JPEG Image with id = " << pBufferSurface->GetUniqueId());
 
         // Create scope to lock the child-container mutex
         {
@@ -683,7 +687,7 @@ namespace DSL
                 // assemble the capture info
                 dsl_capture_info info{0};
 
-                info.captureId = s_captureId;
+                info.captureId = pBufferSurface->GetUniqueId();
                 
                 std::string fileName = fileNameStream.str();
                 
@@ -724,7 +728,7 @@ namespace DSL
                 body.push_back(std::string("Location   : " 
                     + m_outdir + "<br>"));
                 body.push_back(std::string("Capture Id : " 
-                    + std::to_string(s_captureId) + "<br>"));
+                    + std::to_string(pBufferSurface->GetUniqueId()) + "<br>"));
 
                 body.push_back(std::string("Width      : " 
                     + std::to_string(bufferWidth) + "<br>"));
@@ -744,9 +748,6 @@ namespace DSL
             }
         } // end child-container mutex lock
         
-        // Increment the global capture count
-        s_captureId++;
-
         {
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
 
