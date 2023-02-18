@@ -175,8 +175,7 @@ endif
 PKGS:= gstreamer-$(GSTREAMER_VERSION) \
 	gstreamer-video-$(GSTREAMER_VERSION) \
 	gstreamer-rtsp-server-$(GSTREAMER_VERSION) \
-	x11 \
-	opencv4
+	x11
 
 ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 16; echo $$?),0)
 PKGS+= gstreamer-sdp-$(GSTREAMER_SDP_VERSION) \
