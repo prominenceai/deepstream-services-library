@@ -546,6 +546,14 @@ namespace DSL
         void HandleEnoughData();
 
         /**
+         * @brief Sets the source-dimensions for the AppSourceBintr.
+         * @param[in] width new width value for the Source in pixels
+         * @param[in] height new height value for the Source in pixels
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetDimensions(uint width, uint height);
+
+        /**
          * @brief Gets the current do-timestamp property setting for the AppSourceBintr.
          * @return If TRUE, the base class will automatically timestamp outgoing 
          * buffers based on the current running_time.

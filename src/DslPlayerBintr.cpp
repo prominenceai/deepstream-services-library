@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -43,20 +43,20 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pQueue = DSL_ELEMENT_NEW("queue", name);
-        m_pConverter = DSL_ELEMENT_NEW("nvvideoconvert", name);
-        m_pConverterCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
-
-        GstCaps* pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=NV12");
-        m_pConverterCapsFilter->SetAttribute("caps", pCaps);
-        gst_caps_unref(pCaps);
+//        m_pQueue = DSL_ELEMENT_NEW("queue", name);
+//        m_pConverter = DSL_ELEMENT_NEW("nvvideoconvert", name);
+//        m_pConverterCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
+//
+//        GstCaps* pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=NV12");
+//        m_pConverterCapsFilter->SetAttribute("caps", pCaps);
+//        gst_caps_unref(pCaps);
 
         g_mutex_init(&m_asyncCommMutex);
         g_mutex_init(&m_playNextMutex);
         
-        AddChild(m_pQueue);
-        AddChild(m_pConverter);
-        AddChild(m_pConverterCapsFilter);
+//        AddChild(m_pQueue);
+//        AddChild(m_pConverter);
+//        AddChild(m_pConverterCapsFilter);
         
         if (!AddChild(m_pSource))
         {
@@ -130,13 +130,15 @@ namespace DSL
             LOG_ERROR("PlayerBintr '" << GetName() << "' is already linked");
             return false;
         }
+//        if (!m_pSource->LinkAll() or ! m_pSink->LinkAll() or 
+//            !m_pSource->LinkToSink(m_pQueue) or
+//            !m_pQueue->LinkToSink(m_pConverter) or
+//            !m_pConverter->LinkToSink(m_pConverterCapsFilter) or
+//            !m_pConverterCapsFilter->LinkToSink(m_pSink))
         if (!m_pSource->LinkAll() or ! m_pSink->LinkAll() or 
-            !m_pSource->LinkToSink(m_pQueue) or
-            !m_pQueue->LinkToSink(m_pConverter) or
-            !m_pConverter->LinkToSink(m_pConverterCapsFilter) or
-            !m_pConverterCapsFilter->LinkToSink(m_pSink))
+            !m_pSource->LinkToSink(m_pSink))
         {
-            LOG_ERROR("Failed link SourceBintr '" << m_pSource->GetName() 
+            LOG_ERROR("Failed to link SourceBintr '" << m_pSource->GetName() 
                 << "' to SinkBintr '" << m_pSink->GetName() << "'");
             return false;
         }
@@ -158,18 +160,63 @@ namespace DSL
             LOG_ERROR("PlayerBintr '" << GetName() << "' is not linked");
             return;
         }
-        if (!m_pSource->UnlinkFromSink() or
-            !m_pQueue->UnlinkFromSink() or
-            !m_pConverter->UnlinkFromSink() or
-            !m_pConverterCapsFilter->UnlinkFromSink())
+//        if (!m_pSource->UnlinkFromSink() or
+//            !m_pQueue->UnlinkFromSink() or
+//            !m_pConverter->UnlinkFromSink() or
+//            !m_pConverterCapsFilter->UnlinkFromSink())
+        if (!m_pSource->UnlinkFromSink())
         {
-            LOG_ERROR("Failed unlink SourceBintr '" << m_pSource->GetName() 
-                << "' to SinkBintr '" << m_pSink->GetName() << "'");
+            LOG_ERROR("Failed ti unlink SourceBintr '" << m_pSource->GetName() 
+                << "' from SinkBintr '" << m_pSink->GetName() << "'");
             return;
         }
         m_pSource->UnlinkAll();
         m_pSink->UnlinkAll();
         m_isLinked = false;
+    }
+
+    bool PlayerBintr::PlayAsync()
+    {
+        LOG_FUNC();
+
+        GstState currentState;
+        GetState(currentState, 0);
+        if (currentState != GST_STATE_NULL)
+        {
+            LOG_ERROR("Unable to set Player '" << GetName() 
+                << "' to a state of READY. Current state = "
+                << currentState);
+            return false;
+        }
+        // m_pSource is of type DSL_BINTR_PTR - need to cast to DSL_SOURCE_PTR
+        // for the source to be used as such
+        DSL_SOURCE_PTR pSourceBintr = 
+            std::dynamic_pointer_cast<SourceBintr>(m_pSource);
+        if (!pSourceBintr->IsLinkable())
+        {
+            LOG_ERROR("Unable to Play Player '" << GetName() 
+                << "' as its Source is in an un-playable state");
+            return false;
+        }
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+
+        if (!LinkAll())
+        {
+            LOG_ERROR("Unable to link Player '" << GetName() << "'");
+            return false;
+        }
+        if (!SetState(GST_STATE_PLAYING, 0))
+        {
+            LOG_ERROR("Failed to set Player '" << GetName() << "' to READY ");
+            return false;
+        }
+        // conditionally add the EOS Listener as it may have been
+        // removed by the client with a previous call to Stop()
+        if (!IsEosListener(PlayerHandleEos))
+        {
+            AddEosListener(PlayerHandleEos, this);
+        }
+        return true;
     }
     
     bool PlayerBintr::Play()

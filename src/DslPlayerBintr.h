@@ -85,9 +85,16 @@ namespace DSL
          * Calling UnlinkAll when in an unlinked state has no effect.
          */
         void UnlinkAll();
+
+        /**
+         * @brief Attempts to link all and set the Player to a State of Play
+         * but will return without waiting for asynchronous state change completion.
+         * @return true if able to Play, false otherwise
+         */
+        bool PlayAsync();
         
         /**
-         * @brief Attempts to link all and Play the Pipeline
+         * @brief Attempts to link all and Play the Player
          * @return true if able to Play, false otherwise
          */
         bool Play();

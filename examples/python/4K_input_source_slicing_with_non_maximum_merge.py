@@ -234,8 +234,7 @@ def main(args):
         # to file. The Action will be called once by the Trigger (trigger limit of 1).
         # Note: this call will fail if the output directory "outdir" does not exist.
         retval = dsl_ode_action_capture_frame_new('frame-capture-action',
-            outdir = "./",
-            annotate = False)
+            outdir = "./")
         if retval != DSL_RETURN_SUCCESS:
             break
 

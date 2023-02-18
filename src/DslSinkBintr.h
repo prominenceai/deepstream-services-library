@@ -93,6 +93,12 @@ namespace DSL
         std::shared_ptr<InterpipeSinkBintr>( \
         new InterpipeSinkBintr(name, forwardEos, forwardEvents))
 
+    #define DSL_MULTI_IMAGE_SINK_PTR std::shared_ptr<MultiImageSinkBintr>
+    #define DSL_MULTI_IMAGE_SINK_NEW(name, filepath, width, height) \
+        std::shared_ptr<MultiImageSinkBintr>( \
+        new MultiImageSinkBintr(name, filepath, width, height))
+
+    //-------------------------------------------------------------------------
 
     class SinkBintr : public Bintr
     {
@@ -942,6 +948,64 @@ namespace DSL
         DSL_ELEMENT_PTR m_pSinkElement;
     };
 
+    //-------------------------------------------------------------------------
+
+    class MultiImageSinkBintr : public SinkBintr
+    {
+    public: 
+    
+        MultiImageSinkBintr(const char* name, const char* filepath,
+            uint width, uint height);
+
+        ~MultiImageSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief sets the sync enabled setting for the SinkBintr
+         * @param[in] enabled current sync setting.
+         */
+        bool SetSyncEnabled(bool enabled);
+        
+    private:
+    
+        /**
+         * @brief Current output filepath ("location") for the MultiImageSinkBintr.
+         */
+        std::string m_filepath;
+
+        /**
+         * @brief Video Converter element for the MultiImageSinkBintr.
+         */
+        DSL_ELEMENT_PTR m_pVidConv;
+
+        /**
+         * @brief Caps Filter element for the MultiImageSinkBintr.
+         */
+        DSL_ELEMENT_PTR m_pCapsFilter;
+
+        /**
+         * @brief JPEG Encoder element for the MultiImageSinkBintr.
+         */
+        DSL_ELEMENT_PTR m_pJpegEnc;
+
+        /**
+         * @brief Multi File Sink for the MultiImageSinkBintr.
+         */
+        DSL_ELEMENT_PTR m_pMultiFileSync;
+    };
+
 }
+
 #endif // _DSL_SINK_BINTR_H
     

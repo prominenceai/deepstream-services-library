@@ -152,7 +152,7 @@ namespace DSL {
             dsl_ode_handle_occurrence_cb clientHandler, void* clientData);
             
         DslReturnType OdeActionCaptureFrameNew(const char* name, 
-            const char* outdir, boolean annotate);
+            const char* outdir);
         
         DslReturnType OdeActionCaptureObjectNew(const char* name, 
             const char* outdir);
@@ -1202,6 +1202,9 @@ namespace DSL {
 
         DslReturnType SinkInterpipeNumListenersGet(const char* name,
             uint* numListeners);
+            
+        DslReturnType SinkImageMultiNew(const char* name, const char* filepath,
+            uint width, uint height);
         
         DslReturnType SinkWebRtcNew(const char* name, const char* stunServer, 
             const char* turnServer, uint codec, uint bitrate, uint interval);

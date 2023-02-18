@@ -571,7 +571,7 @@ DslReturnType dsl_ode_action_custom_new(const wchar_t* name,
 }
 
 DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, 
-    const wchar_t* outdir, boolean annotate)
+    const wchar_t* outdir)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(outdir);
@@ -582,7 +582,7 @@ DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name,
     std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
 
     return DSL::Services::GetServices()->OdeActionCaptureFrameNew(cstrName.c_str(), 
-        cstrOutdir.c_str(), annotate);
+        cstrOutdir.c_str());
 }
 
 DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name,
@@ -6572,6 +6572,21 @@ DslReturnType dsl_sink_interpipe_num_listeners_get(const wchar_t* name,
 #endif    
 }    
 
+DslReturnType dsl_sink_image_multi_new(const wchar_t* name, 
+    const wchar_t* file_path, uint width, uint height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->SinkImageMultiNew(cstrName.c_str(),
+        cstrFilePath.c_str(), width, height);
+}
+    
 // NOTE: the WebRTC Sink implementation requires DS 1.18.0 or later
 DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_server,
     const wchar_t* turn_server, uint codec, uint bitrate, uint interval)

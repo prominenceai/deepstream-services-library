@@ -109,6 +109,8 @@
     </VirtualDirectory>
     <File Name="../src/DslServicesOdeAction.cpp"/>
     <File Name="../src/DslSinkBintr.h"/>
+    <File Name="../src/DslAvFile.h"/>
+    <File Name="../src/DslAvFile.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="api">
@@ -192,6 +194,7 @@
       <File Name="../test/unit/DslOdeHeatMapperUnitTest.cpp"/>
       <File Name="../test/unit/DslOdeActionUnitTest.cpp"/>
       <File Name="../test/unit/DslPreprocUnitTest.cpp"/>
+      <File Name="../test/unit/DslAvFileUnitTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="nmp">
       <File Name="../test/nmp/DslPphNmpUnitTest.cpp"/>
@@ -288,6 +291,7 @@
       <File Name="../examples/python/video_dewarper_360.py"/>
       <File Name="../examples/python/1uri_file_pgie_iou_tracker_app_sink.py"/>
       <File Name="../examples/python/video_dewarper_perspective.py"/>
+      <File Name="../examples/python/test_file.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>

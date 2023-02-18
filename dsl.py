@@ -281,7 +281,7 @@ class dsl_recording_info(Structure):
 
 class dsl_capture_info(Structure):
     _fields_ = [
-        ('capture_id', c_uint),
+        ('capture_id', c_uint64),
         ('filename', c_wchar_p),
         ('dirpath', c_wchar_p),
         ('width', c_uint),
@@ -829,9 +829,9 @@ def dsl_ode_action_custom_new(name, client_handler, client_data):
 ##
 _dsl.dsl_ode_action_capture_frame_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
 _dsl.dsl_ode_action_capture_frame_new.restype = c_uint
-def dsl_ode_action_capture_frame_new(name, outdir, annotate):
+def dsl_ode_action_capture_frame_new(name, outdir):
     global _dsl
-    result =_dsl.dsl_ode_action_capture_frame_new(name, outdir, annotate)
+    result =_dsl.dsl_ode_action_capture_frame_new(name, outdir)
     return int(result)
 
 ##
@@ -5260,6 +5260,17 @@ def dsl_sink_interpipe_num_listeners_get(name):
     result = _dsl.dsl_sink_interpipe_num_listeners_get(name, 
         DSL_UINT_P(num_listeners))
     return int(result), num_listeners.value
+
+##
+## dsl_sink_image_multi_new()
+##
+_dsl.dsl_sink_image_multi_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
+_dsl.dsl_sink_image_multi_new.restype = c_uint
+def dsl_sink_image_multi_new(name, file_path, width, height):
+    global _dsl
+    result =_dsl.dsl_sink_image_multi_new(name, 
+        file_path, width, height)
+    return int(result)
 
 ##
 ## dsl_sink_sync_enabled_get()

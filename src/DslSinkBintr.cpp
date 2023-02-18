@@ -527,6 +527,8 @@ namespace DSL
         m_offsetX = offsetX;
         m_offsetY = offsetY;
 
+        // workaround for NVIDIA bug... need to reset offsets
+        // before setting them to new values.
         m_pOverlay->SetAttribute("overlay-x", 0);
         m_pOverlay->SetAttribute("overlay-y", 0);
         m_pOverlay->SetAttribute("overlay-x", m_offsetX);
@@ -542,8 +544,6 @@ namespace DSL
         m_width = width;
         m_height = height;
 
-        m_pOverlay->SetAttribute("overlay-w", 0);
-        m_pOverlay->SetAttribute("overlay-h", 0);
         m_pOverlay->SetAttribute("overlay-w", m_width);
         m_pOverlay->SetAttribute("overlay-h", m_height);
         
@@ -834,6 +834,8 @@ namespace DSL
 
         return true;
     }    
+
+    
     //-------------------------------------------------------------------------
     
     EncodeSinkBintr::EncodeSinkBintr(const char* name,
@@ -1627,5 +1629,101 @@ namespace DSL
         return true;
     }
 
+    //-------------------------------------------------------------------------
+    
+    MultiImageSinkBintr::MultiImageSinkBintr(const char* name,
+        const char* filepath, uint width, uint height)
+        : SinkBintr(name, false)
+        , m_filepath(filepath)
+    {
+        LOG_FUNC();
+        
+        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
+        m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
+        m_pJpegEnc = DSL_ELEMENT_NEW("jpegenc", name);
+        m_pMultiFileSync = DSL_ELEMENT_NEW("multifilesink", name);
+        
+        m_pMultiFileSync->SetAttribute("location", filepath);
+
+        GstCaps* pCaps = gst_caps_from_string("video/x-raw, format=I420");
+        m_pCapsFilter->SetAttribute("caps", pCaps);
+        gst_caps_unref(pCaps);
+
+//        pCaps = gst_caps_new_simple("video/x-raw", 
+//            "format", G_TYPE_STRING, "RGBA",
+//            "width", G_TYPE_INT, width, 
+//            "height", G_TYPE_INT, height, 
+//            "pixel-aspect-ratio", GST_TYPE_FRACTION, 1, 1, NULL);        
+        
+        AddChild(m_pVidConv);
+        AddChild(m_pCapsFilter);
+        AddChild(m_pJpegEnc);
+        AddChild(m_pMultiFileSync);
+    }
+
+    MultiImageSinkBintr::~MultiImageSinkBintr()
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool MultiImageSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("MultiImageSinkBintr '" << GetName() << "' is already linked");
+            return false;
+        }
+        if (!m_pQueue->LinkToSink(m_pVidConv) or
+            !m_pVidConv->LinkToSink(m_pCapsFilter) or
+            !m_pCapsFilter->LinkToSink(m_pJpegEnc) or
+            !m_pJpegEnc->LinkToSink(m_pMultiFileSync))
+        {
+            return false;
+        }
+        m_isLinked = true;
+        return true;
+    }
+    
+    void MultiImageSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("MultiImageSinkBintr '" << GetName() << "' is not linked");
+            return;
+        }
+        m_pQueue->UnlinkFromSink();
+        m_pVidConv->UnlinkFromSink();
+        m_pCapsFilter->UnlinkFromSink();
+        m_pJpegEnc->UnlinkFromSink();
+
+        m_isLinked = false;
+    }
+
+    bool MultiImageSinkBintr::SetSyncEnabled(bool enabled)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR(
+                "Unable to set Sync enabled setting for MultiImageSinkBintr '"
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_sync = enabled;
+        
+        m_pMultiFileSync->SetAttribute("sync", m_sync);
+        
+        return true;
+    }
 
 }    

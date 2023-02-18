@@ -31,7 +31,7 @@ THE SOFTWARE.
 namespace DSL
 {
     DslReturnType Services::OdeActionCaptureFrameNew(const char* name,
-        const char* outdir, boolean annotate)
+        const char* outdir)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -54,9 +54,10 @@ namespace DSL
                 return DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND;
             }
             m_odeActions[name] = DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, 
-                outdir, annotate);
+                outdir);
 
-            LOG_INFO("New Capture Frame ODE Action '" << name << "' created successfully");
+            LOG_INFO("New Capture Frame ODE Action '" << name 
+                << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }

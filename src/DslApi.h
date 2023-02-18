@@ -1064,7 +1064,7 @@ typedef struct dsl_capture_info
     /**
      * @brief the unique capture id assigned on file save
      */
-    uint captureId;
+    uint64_t captureId;
 
     /**
      * @brief filename generated for the captured image. 
@@ -2013,11 +2013,10 @@ uint dsl_display_type_list_size();
  * @brief Creates a uniquely named Capture Frame ODE Action
  * @param[in] name unique name for the Capture Frame ODE Action
  * @param[in] outdir absolute or relative path to image capture directory 
- * @param[in] annotate if true, bounding boxes and labes will be added to the image.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, 
-    const wchar_t* outdir, boolean annotate);
+    const wchar_t* outdir);
 
 /**
  * @brief Creates a uniquely named Capture Object ODE Action
@@ -6439,6 +6438,21 @@ DslReturnType dsl_sink_interpipe_forward_settings_set(const wchar_t* name,
 DslReturnType dsl_sink_interpipe_num_listeners_get(const wchar_t* name,
     uint* num_listeners);
 
+/**
+ * @brief Creates a new, uniquely named Multi Image Sink.
+ * The Sink Encodes each frame into a JPEG image and save it to file.
+ * specified by a given folder/filename-pattern.
+ * @param[in] name unique name for the Multi Image Sink
+ * @param[in] file_path use the printf style %d in the absolute or relative path. 
+ * Eample: "./my_images/image.%d04.jpg", will create files in "./my_images/"
+ * named "image.0000.jpg", "image.0001.jpg", "image.0002.jpg" etc.
+ * @param[in] width of the image to save in pixels.
+ * @param[in] height of the image to save in pixels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_image_multi_new(const wchar_t* name, 
+    const wchar_t* file_path, uint width, uint height);
+    
 /**
  * @brief creates a new, uniquely named WebRTC Sink component
  * @param[in] name unique component name for the new WebRTC Sink

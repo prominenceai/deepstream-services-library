@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include "DslSurfaceTransform.h"
 #include <nvdsgstutils.h>
 #include <gst/app/gstappsrc.h>
+#include "DslAvFile.h"
 
 namespace DSL
 {
@@ -848,6 +849,22 @@ namespace DSL
         }
     }
 
+    bool AppSourceBintr::SetDimensions(uint width, uint height)
+    {
+        LOG_FUNC();
+        
+        m_width = width;
+        m_height = height;
+
+        // Set the full capabilities (format, dimensions, and framerate)
+        // NVIDIA plugin = false... this is a GStreamer plugin
+        if (!set_full_caps(m_pSourceElement, m_mediaType.c_str(), 
+            m_bufferInFormat.c_str(), m_width, m_height, m_fpsN, m_fpsD, false))
+        {
+            throw;
+        }
+    }
+
     boolean AppSourceBintr::GetDoTimestamp()
     {
         LOG_FUNC();
@@ -1481,21 +1498,20 @@ namespace DSL
 
         LOG_INFO("File Path = " << m_uri);
         
-        // use openCV to open the file and read the Frame width and height properties.
-        cv::VideoCapture vidCap;
-        vidCap.open(uri, cv::CAP_ANY);
-
-        if (!vidCap.isOpened())
+        // Try to open the file and read the frame-rate and dimensions.
+        try
         {
-            LOG_ERROR("Failed to open File '" << uri 
-                << "' for VideoRenderPlayerBintr '" << GetName() << "'");
+            AvInputFile avFile(uri);
+            m_fpsN = avFile.fpsN;
+            m_fpsD = avFile.fpsD;
+            m_width = avFile.videoWidth;
+            m_height = avFile.videoHeight;
+        }
+        catch(...)
+        {
             return false;
         }
-        m_width = vidCap.get(cv::CAP_PROP_FRAME_WIDTH);
-        m_height = vidCap.get(cv::CAP_PROP_FRAME_HEIGHT);
-        
-        // Note: the m_fpsN and m_fpsD can be calculated from cv.CAP_PROP_FPS
-        // if needed prior to playing the file.
+
         return true;
     }
 
@@ -1858,8 +1874,6 @@ namespace DSL
         LOG_INFO("  mjpeg             : " << m_mjpeg);
         LOG_INFO("  width             : " << m_width);
         LOG_INFO("  height            : " << m_height);
-        LOG_INFO("  fps-n             : " << m_fpsN);
-        LOG_INFO("  fps-d             : " << m_fpsD);
         LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
         LOG_INFO("  buffer-out        : ");
         LOG_INFO("    format          : " << m_bufferOutFormat);
@@ -1948,15 +1962,20 @@ namespace DSL
             LOG_ERROR("Image Source'" << uri << "' Not found");
             return false;
         }
-        // File source, not live - setup full path
+        // Try to open the file and read the dimensions.
+        try
+        {
+            AvInputFile avFile(uri);
+            m_width = avFile.videoWidth;
+            m_height = avFile.videoHeight;
+        }
+        catch(...)
+        {
+            return false;
+        }
+
         char absolutePath[PATH_MAX+1];
         m_uri.assign(realpath(uri, absolutePath));
-
-        // Use OpenCV to determine the new image dimensions
-        cv::Mat image = imread(m_uri, cv::IMREAD_COLOR);
-        cv::Size imageSize = image.size();
-        m_width = imageSize.width;
-        m_height = imageSize.height;
 
         // Set the filepath for the File Source Elementr
         m_pSourceElement->SetAttribute("location", m_uri.c_str());
@@ -2152,7 +2171,7 @@ namespace DSL
         m_pSourceElement->SetAttribute("stop-index", m_stopIndex);
         return true;
     }
-        
+
     //*********************************************************************************
 
     ImageStreamSourceBintr::ImageStreamSourceBintr(const char* name, 
@@ -2245,22 +2264,30 @@ namespace DSL
             LOG_ERROR("Image Source'" << uri << "' Not found");
             return false;
         }
-        // File source, not live - setup full path
-        char absolutePath[PATH_MAX+1];
-        m_uri.assign(realpath(uri, absolutePath));
-
-        // Use OpenCV to determine the new image dimensions
-        cv::Mat image = imread(m_uri, cv::IMREAD_COLOR);
-        cv::Size imageSize = image.size();
-        m_width = imageSize.width;
-        m_height = imageSize.height;
-
+        
+        // Try to open the file and read the dimensions.
+        try
+        {
+            AvInputFile avFile(uri);
+            m_width = avFile.videoWidth;
+            m_height = avFile.videoHeight;
+        }
+        catch(...)
+        {
+            return false;
+        }
+        
         // Set the full capabilities (format and framerate)
         if (!set_full_caps(m_pSourceCapsFilter, m_mediaType.c_str(), 
             m_bufferOutFormat.c_str(), m_width, m_height, m_fpsN, m_fpsD, false))
         {
             return false;
         }
+
+        // Setup the full path
+        char absolutePath[PATH_MAX+1];
+        m_uri.assign(realpath(uri, absolutePath));
+
         // Set the filepath for the Image Overlay Elementr
         m_pImageOverlay->SetAttribute("location", m_uri.c_str());
         
@@ -2612,15 +2639,15 @@ namespace DSL
         // stream beforewe try and link any pads. Otherwise, unlinking a failed 
         // stream connection from the Streammuxer will result in a deadlock. 
         // Try to open the URL with open CV first.
-        cv::VideoCapture capture(m_uri.c_str());
-
-        if (!capture.isOpened())
-        {
-            LOG_ERROR("RtspSourceBintr '" << GetName() 
-                << "' failed to open stream for URI = "
-                << m_uri.c_str());
-            return false;
-        }
+//        cv::VideoCapture capture(m_uri.c_str());
+//
+//        if (!capture.isOpened())
+//        {
+//            LOG_ERROR("RtspSourceBintr '" << GetName() 
+//                << "' failed to open stream for URI = "
+//                << m_uri.c_str());
+//            return false;
+//        }
 
 
         // All elements are linked in the select-stream callback (HandleSelectStream),

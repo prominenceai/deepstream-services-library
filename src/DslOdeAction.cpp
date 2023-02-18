@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include "DslOdeTrigger.h"
 #include "DslOdeAction.h"
 #include "DslDisplayTypes.h"
+#include "DslAvFile.h"
 
 #define DATE_BUFF_LENGTH 40
 
@@ -241,40 +242,49 @@ namespace DSL
 
     // Initialize static Event Counter
     uint64_t CaptureOdeAction::s_captureId = 0;
+    
+    static int idle_thread_handler(void* client_data)
+    {
+        CaptureOdeAction* pCaptureAction = (CaptureOdeAction*)client_data;
+        
+        return pCaptureAction->convertCapturedImage();
+    }
 
     CaptureOdeAction::CaptureOdeAction(const char* name, 
-        uint captureType, const char* outdir, bool annotate)
+        uint captureType, const char* outdir)
         : OdeAction(name)
         , m_captureType(captureType)
         , m_outdir(outdir)
-        , m_annotate(annotate)
-        , m_captureCompleteTimerId(0)
+        , m_idleThreadFunctionId(0)
     {
         LOG_FUNC();
 
-        g_mutex_init(&m_captureCompleteMutex);
+        g_mutex_init(&m_captureQueueMutex);
+        g_mutex_init(&m_childContainerMutex);
     }
 
     CaptureOdeAction::~CaptureOdeAction()
     {
         LOG_FUNC();
 
+        // If the idle-thread for processing images is currently running.
+        if (m_idleThreadFunctionId)
         {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
-            if (m_captureCompleteTimerId)
-            {
-                g_source_remove(m_captureCompleteTimerId);
-            }
-            RemoveAllChildren();
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
+            g_source_remove(m_idleThreadFunctionId);
         }
-        g_mutex_clear(&m_captureCompleteMutex);
+
+        RemoveAllChildren();
+        
+        g_mutex_clear(&m_captureQueueMutex);
+        g_mutex_clear(&m_childContainerMutex);
     }
 
     bool CaptureOdeAction::AddCaptureCompleteListener(
         dsl_capture_complete_listener_cb listener, void* userdata)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
         
         if (m_captureCompleteListeners.find(listener) != 
             m_captureCompleteListeners.end())
@@ -292,7 +302,7 @@ namespace DSL
         dsl_capture_complete_listener_cb listener)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
         
         if (m_captureCompleteListeners.find(listener) == 
             m_captureCompleteListeners.end())
@@ -309,7 +319,7 @@ namespace DSL
     bool CaptureOdeAction::AddImagePlayer(DSL_PLAYER_BINTR_PTR pPlayer)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
         
         if (m_imagePlayers.find(pPlayer->GetName()) != 
             m_imagePlayers.end())
@@ -326,7 +336,7 @@ namespace DSL
     bool CaptureOdeAction::RemoveImagePlayer(DSL_PLAYER_BINTR_PTR pPlayer)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
         
         if (m_imagePlayers.find(pPlayer->GetCStrName()) == 
             m_imagePlayers.end())
@@ -344,7 +354,7 @@ namespace DSL
         const char* subject, bool attach)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
         
         if (m_mailers.find(pMailer->GetName()) != m_mailers.end())
         {   
@@ -365,7 +375,7 @@ namespace DSL
     bool CaptureOdeAction::RemoveMailer(DSL_MAILER_PTR pMailer)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
         
         if (m_mailers.find(pMailer->GetCStrName()) == m_mailers.end())
         {   
@@ -381,63 +391,36 @@ namespace DSL
     void CaptureOdeAction::RemoveAllChildren()
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
+
+        // If there are Image Players
+        for (auto const& iter: m_imagePlayers)
+        {
+            if (iter.second->IsType(typeid(ImageRenderPlayerBintr)))
+            {
+                DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pImagePlayer = 
+                    std::dynamic_pointer_cast<ImageRenderPlayerBintr>(iter.second);
+
+                GstState state;
+                pImagePlayer->GetState(state, 0);
+
+                // Queue the filepath if the Player is currently Playing/Paused
+                // otherwise, set the filepath and Play the Player
+                if (state != GST_STATE_NULL)
+                {
+                    pImagePlayer->Stop();
+                }
+            }
+        }
+
     }
     
-    cv::Mat& CaptureOdeAction::AnnotateObject(NvDsObjectMeta* pObjectMeta, 
-        cv::Mat& bgr_frame)
-    {
-        // rectangle params are in floats so convert
-        int left((int)pObjectMeta->rect_params.left);
-        int top((int)pObjectMeta->rect_params.top);
-        int width((int)pObjectMeta->rect_params.width); 
-        int height((int)pObjectMeta->rect_params.height);
-
-        // add the bounding-box rectange
-        cv::rectangle(bgr_frame,
-            cv::Point(left, top),
-            cv::Point(left+width, top+height),
-            cv::Scalar(0, 0, 255, 0),
-            2);
-        
-        // assemble the label based on the available information
-        std::string label(pObjectMeta->obj_label);
-        
-        if(pObjectMeta->object_id)
-        {
-            label = label + " " + std::to_string(pObjectMeta->object_id); 
-        }
-        if(pObjectMeta->confidence > 0)
-        {
-            label = label + " " + std::to_string(pObjectMeta->confidence); 
-        }
-        
-        // add a black background rectangle for the label as cv::putText does not 
-        // support a background color the size of the bacground is just an approximation 
-        //based on character count not their actual sizes
-        cv::rectangle(bgr_frame,
-            cv::Point(left, top-30),
-            cv::Point(left+label.size()*10+2, top-2),
-            cv::Scalar(0, 0, 0, 0),
-            cv::FILLED);
-
-        // add the label to the black background
-        cv::putText(bgr_frame, 
-            label.c_str(), 
-            cv::Point(left+2, top-12),
-            cv::FONT_HERSHEY_SIMPLEX,
-            0.5,
-            cv::Scalar(255, 255, 255, 0),
-            1);
-            
-        return bgr_frame;
-    }
-
     void CaptureOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
         GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
+        
         if (!m_enabled)
         {
             return;
@@ -455,61 +438,77 @@ namespace DSL
 
         NvBufSurfaceMemType transformMemType = pMappedBuffer->pSurface->memType;
 
-        LOG_INFO("Creating new mono-surface with memory type " 
-            << transformMemType);
-
         // Transforming only one frame in the batch, so create a copy of the single 
-        // surface ... becoming our new source surface. This creates a new mono (non-batched) 
-        // surface copied from the "batched frames" using the batch id as the index
+        // surface ... becoming our new source surface. This creates a new mono 
+        // (non-batched) surface copied from the "batched frames" using the batch id 
+        // as the index
         DslMonoSurface monoSurface(pMappedBuffer->pSurface, pFrameMeta->batch_id);
 
         // Coordinates and dimensions for our destination surface for RGBA to 
         // BGR conversion required for JPEG
-        uint32_t left(0), top(0), width(0), height(0);
+        gint left(0), top(0), width(0), height(0);
 
         // capturing full frame or object only?
         if (m_captureType == DSL_CAPTURE_TYPE_FRAME)
         {
             width = pMappedBuffer->GetWidth(pFrameMeta->batch_id);
             height = pMappedBuffer->GetHeight(pFrameMeta->batch_id);
+            LOG_INFO("Capturing frame with dimensions " 
+                << width << "x" << height);
         }
+        // Create crop rectangle params ensuring that width and height are divisable 
+        // by 2. This is done to ensure that the plane width and height (which 
+        // are always created as even numbers) will match the buffer width and height.
         else
         {
-            left = pObjectMeta->rect_params.left;
-            top = pObjectMeta->rect_params.top;
-            width = pObjectMeta->rect_params.width; 
-            height = pObjectMeta->rect_params.height;
+            left = GST_ROUND_UP_2(
+                gint(std::round(pObjectMeta->rect_params.left)));
+            top = GST_ROUND_UP_2(
+                gint(std::round(pObjectMeta->rect_params.top)));
+            width = GST_ROUND_DOWN_2(
+                gint(std::round(pObjectMeta->rect_params.width)));
+            height = GST_ROUND_DOWN_2(
+                gint(std::round(pObjectMeta->rect_params.height)));
+
+            LOG_INFO("Capturing object " << s_captureId 
+                << " with coordinates " << left << "," << top 
+                << " and dimensions " << width << "x" << height);
         }
 
-        // New "create params" for our destination surface. we only need one surface so set 
-        // memory allocation (for the array of surfaces) size to 0
+        // New "create params" for our destination surface. we only need one 
+        // surface so set memory allocation (for the array of surfaces) size to 0
         DslSurfaceCreateParams surfaceCreateParams(monoSurface.gpuId, 
-            width, height, 0, transformMemType);
+            width, height, 0, NVBUF_COLOR_FORMAT_RGBA, transformMemType);
         
-        // New Destination surface with a batch size of 1 for transforming the single surface 
-        DslBufferSurface dstSurface(1, surfaceCreateParams);
+        // New Destination surface with a batch size of 1 for transforming 
+        // the single surface 
+        std::shared_ptr<DslBufferSurface> pBufferSurface = 
+            std::shared_ptr<DslBufferSurface>(
+                new DslBufferSurface(1, surfaceCreateParams, s_captureId++));
 
-        // New "transform params" for the surface transform, croping or (future?) scaling
+        // New "transform params" for the surface transform, croping or 
+        // (future?) scaling
         DslTransformParams transformParams(left, top, width, height);
         
         // New "Cuda stream" for the surface transform
         DslCudaStream dslCudaStream(monoSurface.gpuId);
         
         // New "Transform Session" config params using the new Cuda stream
-        DslSurfaceTransformSessionParams dslTransformSessionParams(monoSurface.gpuId, 
-            dslCudaStream);
+        DslSurfaceTransformSessionParams dslTransformSessionParams(
+            monoSurface.gpuId, dslCudaStream);
         
         // Set the "Transform Params" for the current tranform session
         if (!dslTransformSessionParams.Set())
         {
-            LOG_ERROR("Destination surface failed to set transform session params for Action '" 
+            LOG_ERROR(
+                "Destination surface failed to set transform session params for Action '" 
                 << GetName() << "'");
             return;
         }
         
         // We can now transform our Mono Source surface to the first (and only) 
         // surface in the batched buffer.
-        if (!dstSurface.TransformMonoSurface(monoSurface, 0, transformParams))
+        if (!pBufferSurface->TransformMonoSurface(monoSurface, 0, transformParams))
         {
             LOG_ERROR("Destination surface failed to transform for Action '" 
                 << GetName() << "'");
@@ -517,106 +516,145 @@ namespace DSL
         }
 
         // Map the tranformed surface for read
-        if (!dstSurface.Map())
+        if (!pBufferSurface->Map())
         {
-            LOG_ERROR("Destination surface failed to map for Action '" << GetName() << "'");
+            LOG_ERROR("Destination surface failed to map for Action '" 
+                << GetName() << "'");
             return;
         }
 
         if (transformMemType != NVBUF_MEM_CUDA_UNIFIED)
         {
             // Sync the surface for CPU access
-            if (!dstSurface.SyncForCpu())
+            if (!pBufferSurface->SyncForCpu())
             {
-                LOG_ERROR("Destination surface failed to Sync for '" << GetName() << "'");
+                LOG_ERROR("Destination surface failed to Sync for '" 
+                    << GetName() << "'");
                 return;
             }
         }
-
-        // New background Mat for our image
-        cv::Mat* pbgrFrame = new cv::Mat(cv::Size(width, height), CV_8UC3);
-
-        // new forground Mat using the first (and only) bufer in the batch
-        cv::Mat in_mat = cv::Mat(height, width, CV_8UC4, 
-            (&dstSurface)->surfaceList[0].mappedAddr.addr[0],
-            (&dstSurface)->surfaceList[0].pitch);
-
-        // Convert the RGBA buffer to BGR
-        cv::cvtColor(in_mat, *pbgrFrame, CV_RGBA2BGR);
-        
-        // if this is a frame capture and the client wants the image annotated.
-        if (m_captureType == DSL_CAPTURE_TYPE_FRAME and m_annotate)
-        {
-            // if object meta is available, then occurrence was triggered 
-            // on an object occurrence, so we only annotate the single object
-            if (pObjectMeta)
-            {
-                *pbgrFrame = AnnotateObject(pObjectMeta, *pbgrFrame);
-            }
-            
-            // otherwise, we iterate throught the object-list highlighting each object.
-            else
-            {
-                for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; 
-                    pMeta != NULL; pMeta = pMeta->next)
-                {
-                    // not to be confussed with pObjectMeta
-                    NvDsObjectMeta* _pObjectMeta_ = (NvDsObjectMeta*) (pMeta->data);
-                    if (_pObjectMeta_ != NULL)
-                    {
-                        *pbgrFrame = AnnotateObject(_pObjectMeta_, *pbgrFrame);
-                    }
-                }
-            }
-        }
-        // convert to shared pointer and queue for asyn file save and client notificaton
-        std::shared_ptr<cv::Mat> pImageMat = std::shared_ptr<cv::Mat>(pbgrFrame);
-        QueueCapturedImage(pImageMat);
+        queueCapturedImage(pBufferSurface);
     }
 
-    void CaptureOdeAction::QueueCapturedImage(std::shared_ptr<cv::Mat> pImageMat)
+    void CaptureOdeAction::queueCapturedImage(
+        std::shared_ptr<DslBufferSurface> pBufferSurface)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
         
-        m_imageMats.push(pImageMat);
+        m_pBufferSurfaces.push(pBufferSurface);
         
-        // start the asynchronous notification timer if not currently running
-        if (!m_captureCompleteTimerId)
+        if (!m_idleThreadFunctionId)
         {
-            m_captureCompleteTimerId = g_timeout_add(1, CompleteCaptureHandler, this);
+            LOG_INFO("Starting idle thread for image processing");
+            m_idleThreadFunctionId = g_idle_add(idle_thread_handler, this);
         }
     }
 
-    int CaptureOdeAction::CompleteCapture()
+    int CaptureOdeAction::convertCapturedImage()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
         
-        
-        while (m_imageMats.size())
+        // New shared pointer to assign to the image at the front of the queue.
+        std::shared_ptr<DslBufferSurface> pBufferSurface;
         {
-            std::shared_ptr<cv::Mat> pImageMat = m_imageMats.front();
-            m_imageMats.pop();
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
             
-            char dateTime[64] = {0};
-            time_t seconds = time(NULL);
-            struct tm currentTm;
-            localtime_r(&seconds, &currentTm);
+            // There should always be at least one image queued if this
+            // thread is running - but need to check before dequing
+            if (!m_pBufferSurfaces.size())
+            {
+                LOG_ERROR("Buffer-Surface queue is empty");
+                m_idleThreadFunctionId = 0;
+                return FALSE;
+            }
+            
+            // Set the pointer to the head object and pop it off
+            pBufferSurface = m_pBufferSurfaces.front();
+            m_pBufferSurfaces.pop();
+        }
+        
+        // Get the dimensions and data size of the mono-surface
+        uint bufferWidth = (&(*pBufferSurface))->surfaceList[0].width;
+        uint bufferHeight = (&(*pBufferSurface))->surfaceList[0].height;
+        uint dataSize = (&(*pBufferSurface))->surfaceList[0].dataSize;
+        
+        // Check to ensure that the buffer and pitch dimensions are the same
+        if (bufferWidth !=
+            (&(*pBufferSurface))->surfaceList[0].planeParams.width[0] or
+            bufferHeight !=
+            (&(*pBufferSurface))->surfaceList[0].planeParams.height[0])
+        {
+            LOG_ERROR("Invalid dimensions found for surface plane[0]");
+            m_idleThreadFunctionId = 0;
+            return FALSE;
+        }
 
-            std::strftime(dateTime, sizeof(dateTime), "%Y%m%d-%H%M%S", &currentTm);
-            std::string dateTimeStr(dateTime);
+        // There should only be one plane for RGBA
+        if ((&(*pBufferSurface))->surfaceList[0].planeParams.num_planes > 1)
+        {
+            LOG_ERROR("Invalid plane count (>1) for RGBA surface");
+            m_idleThreadFunctionId = 0;
+            return FALSE;
+        }
 
-            std::ostringstream fileNameStream;
-            fileNameStream << GetName() << "_" 
-                << std::setw(5) << std::setfill('0') << s_captureId
-                << "_" << dateTimeStr << ".jpeg";
-                
-            std::string filespec = m_outdir + "/" + 
-                fileNameStream.str();
+        // Allocate and initialize a new array to create a compressed buffer 
+        // of raw RGBA image data - i.e. with the memory alignment padding removed.
+        uint8_t rgbaImage[dataSize];
+        memset(rgbaImage, 0, dataSize);
+        
+        // Initialize the source pointer to the start of the mapped surface
+        uint8_t* pSrcIndex = 
+            (uint8_t*)(&(*pBufferSurface))->surfaceList[0].mappedAddr.addr[0];
+            
+        // Initialize the destination pointer to the start of the RGBA Image buffer
+        uint8_t* pDstIndex = &rgbaImage[0];
+        
+        // Get the offset of the plane within the pitch
+        uint offset = 
+            (&(*pBufferSurface))->surfaceList[0].planeParams.offset[0];
 
-            cv::imwrite(filespec.c_str(), *pImageMat);
+        // Size of each line to copy will be the plane width * the bytes/pixel
+        uint copySize = (&(*pBufferSurface))->surfaceList[0].planeParams.width[0] *
+            (&(*pBufferSurface))->surfaceList[0].planeParams.bytesPerPix[0];
 
+        // For each line in the plane/buffer copy over the image data
+        // and advance the source and destination buffer pointers.
+        for (auto line=0; line < bufferHeight; line++)
+        {
+            memcpy(pDstIndex, pSrcIndex+offset, copySize);
+            pSrcIndex += 
+                (&(*pBufferSurface))->surfaceList[0].planeParams.pitch[0];
+            pDstIndex += copySize;
+        }
+        
+        // Generate the image file name from the date-time string
+        std::ostringstream fileNameStream;
+        fileNameStream << GetName() << "_" 
+            << std::setw(5) << std::setfill('0') << pBufferSurface->GetUniqueId()
+            << "_" << pBufferSurface->GetDateTimeStr() << ".jpeg";
+            
+        // Generate the filespec from the output dir and file name
+        std::string filespec = m_outdir + "/" + 
+            fileNameStream.str();
+
+        // Try to convert and save the image to a JPEG file. 
+        try
+        {
+            AvJpgOutputFile avJpgOutFile(rgbaImage, 
+                bufferWidth, bufferHeight, fileNameStream.str().c_str());
+        }
+        catch(...)
+        {
+            m_idleThreadFunctionId = 0;
+            return FALSE;
+        }
+        LOG_INFO("Saved JPEG Image with id = " << pBufferSurface->GetUniqueId());
+
+        // Create scope to lock the child-container mutex
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
+            
             // If there are Image Players for playing the captured image
             for (auto const& iter: m_imagePlayers)
             {
@@ -641,7 +679,6 @@ namespace DSL
                         
                     }
                 }
-                // TODO handle ImageRtspPlayerBintr
             }
             
             // If there are complete listeners to notify
@@ -650,21 +687,19 @@ namespace DSL
                 // assemble the capture info
                 dsl_capture_info info{0};
 
-                info.captureId = s_captureId;
+                info.captureId = pBufferSurface->GetUniqueId();
                 
                 std::string fileName = fileNameStream.str();
                 
-                // convert the filename and dirpath to wchar string types (client format)
+                // convert the filename and dirpath to wchar string types 
+                // i.e the client's format.
                 std::wstring wstrFilename(fileName.begin(), fileName.end());
                 std::wstring wstrDirpath(m_outdir.begin(), m_outdir.end());
                
                 info.dirpath = wstrDirpath.c_str();
                 info.filename = wstrFilename.c_str();
-                
-                // get the dimensions from the image Mat
-                cv::Size imageSize = pImageMat->size();
-                info.width = imageSize.width;
-                info.height = imageSize.height;
+                info.width =bufferWidth;
+                info.height = bufferHeight;
                     
                 // iterate through the map of listeners calling each
                 for(auto const& imap: m_captureCompleteListeners)
@@ -693,15 +728,12 @@ namespace DSL
                 body.push_back(std::string("Location   : " 
                     + m_outdir + "<br>"));
                 body.push_back(std::string("Capture Id : " 
-                    + std::to_string(s_captureId) + "<br>"));
-
-                // get the dimensions from the image Mat
-                cv::Size imageSize = pImageMat->size();
+                    + std::to_string(pBufferSurface->GetUniqueId()) + "<br>"));
 
                 body.push_back(std::string("Width      : " 
-                    + std::to_string(imageSize.width) + "<br>"));
+                    + std::to_string(bufferWidth) + "<br>"));
                 body.push_back(std::string("Height     : " 
-                    + std::to_string(imageSize.height) + "<br>"));
+                    + std::to_string(bufferHeight) + "<br>"));
                     
                 for (auto const& iter: m_mailers)
                 {
@@ -714,19 +746,20 @@ namespace DSL
                         body, filepath);
                 }
             }
-            // Increment the global capture count
-            s_captureId++;
+        } // end child-container mutex lock
+        
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
+
+            // If there are more buffer-surfaces to convert, return true to reschedule.
+            if (m_pBufferSurfaces.size())
+            {
+                return TRUE;
+            }
         }
-
-        // clear the timer id and return false to self remove
-        m_captureCompleteTimerId = 0;
-        return false;
-    }
-
-    static int CompleteCaptureHandler(gpointer pAction)
-    {
-        return static_cast<CaptureOdeAction*>(pAction)->
-            CompleteCapture();
+        // Else, clear the thread-function id and return false to NOT reschedule.
+        m_idleThreadFunctionId = 0;
+        return FALSE;
     }
 
     // ********************************************************************

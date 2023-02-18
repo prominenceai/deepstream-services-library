@@ -27,12 +27,6 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include <nvbufsurftransform.h>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/imgproc/types_c.h>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/imgcodecs.hpp>
-
 #include <gst-nvdssr.h>
 
 namespace DSL
@@ -304,9 +298,10 @@ namespace DSL
          * set size to 0 for no addition memory allocated when batch size = 1
          */
         DslSurfaceCreateParams(uint32_t gpuId, 
-            uint32_t width, uint32_t height, uint32_t size, NvBufSurfaceMemType memType)
+            uint32_t width, uint32_t height, uint32_t size, 
+            NvBufSurfaceColorFormat colorFormat, NvBufSurfaceMemType memType)
             : NvBufSurfaceCreateParams{gpuId, width, height, size, false, 
-                NVBUF_COLOR_FORMAT_RGBA, NVBUF_LAYOUT_PITCH, memType}
+                colorFormat, NVBUF_LAYOUT_PITCH, memType}
         {
             LOG_FUNC();
         }
@@ -382,8 +377,10 @@ namespace DSL
          * @param[in] batchSize batch size to use for the new surface
          * @param[in] surfaceCreateParams create parameters to use for the new surface
          */
-        DslBufferSurface(uint32_t batchSize, DslSurfaceCreateParams& surfaceCreateParams)
+        DslBufferSurface(uint32_t batchSize, DslSurfaceCreateParams& surfaceCreateParams,
+            uint64_t uniqueId)
             : m_pBufSurface(NULL)
+            , m_uniqueId(uniqueId)
             , m_isMapped(false)
         {
             LOG_FUNC();
@@ -398,6 +395,13 @@ namespace DSL
                 LOG_ERROR("NvBufSurfaceMemSet failed");
                 throw;
             }
+            char dateTime[64] = {0};
+            time_t seconds = time(NULL);
+            struct tm currentTm;
+            localtime_r(&seconds, &currentTm);
+
+            std::strftime(dateTime, sizeof(dateTime), "%Y%m%d-%H%M%S", &currentTm);
+            m_dateTimeStr = dateTime;
         }
         
         /**
@@ -470,18 +474,41 @@ namespace DSL
                 == NvBufSurfTransformError_Success);
         }
         
+        uint64_t GetUniqueId()
+        {
+            LOG_FUNC();
+            
+            return m_uniqueId;
+        }
+        
+        const char* GetDateTimeStr()
+        {
+            LOG_FUNC();
+            
+            return m_dateTimeStr.c_str();
+        }
         
     private:    
 
         /**
-         * @brief pointer to a batched surface buffer.
+         * @brief pointer to an NVIDIA NvBufferSurface structure.
          */
         NvBufSurface* m_pBufSurface;
+        
+        /**
+         * @brief unique id for the BufferSurface.
+         */
+        uint64_t m_uniqueId;
         
         /**
          * @brief set to true once mapped so that the buffer can be unmapped before destruction.
          */
         bool m_isMapped;
+        
+        /**
+         * @brief date-time string for the creation of the DslBufferSurface
+         */
+        std::string m_dateTimeStr;
 
     };
 

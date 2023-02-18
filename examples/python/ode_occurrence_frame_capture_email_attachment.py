@@ -259,8 +259,7 @@ def main(args):
 
         # Create a new Capture Action to capture the Frame to jpeg image, and save to file. 
         retval = dsl_ode_action_capture_frame_new('person-capture-action',
-            outdir = "./",
-            annotate = False)
+            outdir = "./")
         if retval != DSL_RETURN_SUCCESS:
             break
             

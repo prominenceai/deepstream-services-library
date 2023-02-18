@@ -37,7 +37,8 @@ from dsl import *
 # On-Screen-Display (OSD), and Window Sink with 1280x720 dimensions.
 
 # File path for the single File Source
-file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg'
+file_path = '../../test/streams/person-capture-action_00008_20230209-105848.jpeg'
+#file_path = '../../test/streams/sample_720p.0.jpg'
 
 # Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = \
@@ -54,35 +55,17 @@ sink_height = 720
 ## 
 def xwindow_key_event_handler(key_string, client_data):
     print('key released = ', key_string)
-    if key_string.upper() == 'P':
-        dsl_pipeline_pause('pipeline')
-    elif key_string.upper() == 'R':
-        dsl_pipeline_play('pipeline')
-    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
-        dsl_pipeline_stop('pipeline')
+    if key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_player_stop('player')
         dsl_main_loop_quit()
  
-## 
-# Function to be called on XWindow Delete event
-## 
-def xwindow_delete_event_handler(client_data):
-    print('delete window event')
-    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
-# Function to be called on End-of-Stream (EOS) event
-def eos_event_listener(client_data):
-    print('Pipeline EOS event')
-    dsl_pipeline_stop('pipeline')
+# Function to be called on Player Termiantion event
+def termination_event_listener(client_data):
+    print('Player Termination event')
+#    dsl_player_stop('player')
     dsl_main_loop_quit()
-
-## 
-# Function to be called on every change of Pipeline state
-## 
-def state_change_listener(old_state, new_state, client_data):
-    print('previous state = ', old_state, ', new state = ', new_state)
-    if new_state == DSL_STATE_PLAYING:
-        dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
 def main(args):
 
@@ -92,50 +75,67 @@ def main(args):
         # New Single Image Source - single frame to End of Stream.
         retval = dsl_source_image_single_new('image-source', 
             file_path = file_path)
+#        retval = dsl_source_image_stream_new('image-source', 
+#            file_path, False, 1, 20, 10)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # New Primary GIE using the filespecs above with interval = 0
-        retval = dsl_infer_gie_primary_new('primary-gie', 
-            primary_infer_config_file, primary_model_engine_file, 0)
+        retval, width, height = dsl_source_video_dimensions_get('image-source')
         if retval != DSL_RETURN_SUCCESS:
             break
-
-        # New OSD with text, clock and bbox display all enabled. 
-        retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
+            
         # New Window Sink, 0 x/y offsets and dimensions 
-        retval = dsl_sink_window_new('window-sink', 0, 0, sink_width, sink_height)
+        retval = dsl_sink_window_new('window-sink', 0, 0, width, height)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        retval = dsl_sink_image_multi_new('image-sink', './frame_%04d.jpg', width, height)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to a new pipeline
-        retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['image-source', 'primary-gie', 'on-screen-display', 'window-sink', None])
+        retval = dsl_player_new('player', 'image-source', 'image-sink')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+# Add all the components to a new pipeline
+#        retval = dsl_pipeline_new_component_add_many('pipeline', 
+#            ['image-source', 'image-sink', None])
+#        if retval != DSL_RETURN_SUCCESS:
+#            break
+
+#        retval = dsl_pipeline_streammux_dimensions_set('pipeline', width, height)
+#        if retval != DSL_RETURN_SUCCESS:
+#            break
+        
+        retval = dsl_player_xwindow_key_event_handler_add("player", 
+            xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
+#        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 
+#            xwindow_key_event_handler, None)
+#        if retval != DSL_RETURN_SUCCESS:
+#            break
+#        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", 
+#            xwindow_delete_event_handler, None)
+#        if retval != DSL_RETURN_SUCCESS:
+#            break
 
         # Add the listener callback functions defined above
-        retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
+#        retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
+#        if retval != DSL_RETURN_SUCCESS:
+#            break
+#        retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
+#        if retval != DSL_RETURN_SUCCESS:
+#            break
+        retval = dsl_player_termination_event_listener_add('player', 
+            termination_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Play the pipeline
-        retval = dsl_pipeline_play('pipeline')
+        # Play the Player
+        retval = dsl_player_play('player')
         if retval != DSL_RETURN_SUCCESS:
             break
 

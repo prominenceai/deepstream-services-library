@@ -23,7 +23,10 @@ sudo apt update && sudo apt-get install \
     libaprutil1 \
     libaprutil1-dev \
     libgeos-dev \
-    python3-opencv \
+    libavformat-dev \
+    libavcodec-dev \
+    libavutil-dev \
+    libswscale-dev \
     libcurl4-openssl-dev
 ```    
 
@@ -37,7 +40,10 @@ sudo apt update && sudo apt-get install \
     libaprutil1 \
     libaprutil1-dev \
     libgeos-dev \
-    python3-opencv \
+    libavformat-dev \
+    libavcodec-dev \
+    libavutil-dev \
+    libswscale-dev \
     libcurl4-openssl-dev \
     libjson-glib-1.0-0 \
     libsoup-gnome2.4-dev  
@@ -65,11 +71,32 @@ DSL uses the [GEOS](https://trac.osgeo.org/geos) C Library `libgeos-dev` - speci
 sudo apt install libgeos-dev
 ```
 
-### Open Computer Vision
-opencv4 is used to convert raw video frames to JPEG image files.
+### AV Format Lib
+[FFmpeg lib](https://ffmpeg.org/) used to read media file format information.
 
 ```
-sudo apt install python3-opencv
+sudo apt-get install libavformat-dev
+```
+
+### AV Codec Lib
+[FFmpeg lib](https://ffmpeg.org/) used to encode jpeg images.
+
+```
+sudo apt-get install libavcodec-dev
+```
+
+### AV Utils Lib
+[FFmpeg lib](https://ffmpeg.org/) used to encode jpeg images.
+
+```
+sudo apt-get install libavutil-dev
+```
+
+### SW Image Scalling/Conversion Lib
+[FFmpeg lib](https://ffmpeg.org/) used to convert images for jpeg encoding.
+
+```
+sudo apt-get install libavutil-dev
 ```
 
 ### Lib cURL
