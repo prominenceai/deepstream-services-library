@@ -22,11 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include <nvbufsurftransform.h>
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/imgproc/types_c.h"
-#include "opencv2/highgui/highgui.hpp"
-
 #include "Dsl.h"
 #include "DslTapBintr.h"
 #include "DslBranchBintr.h"

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -94,9 +94,9 @@ namespace DSL
         new InterpipeSinkBintr(name, forwardEos, forwardEvents))
 
     #define DSL_MULTI_IMAGE_SINK_PTR std::shared_ptr<MultiImageSinkBintr>
-    #define DSL_MULTI_IMAGE_SINK_NEW(name, filepath, width, height) \
+    #define DSL_MULTI_IMAGE_SINK_NEW(name, filepath, width, height, fps_n, fps_d) \
         std::shared_ptr<MultiImageSinkBintr>( \
-        new MultiImageSinkBintr(name, filepath, width, height))
+        new MultiImageSinkBintr(name, filepath, width, height, fps_n, fps_d))
 
     //-------------------------------------------------------------------------
 
@@ -955,7 +955,7 @@ namespace DSL
     public: 
     
         MultiImageSinkBintr(const char* name, const char* filepath,
-            uint width, uint height);
+            uint width, uint height, uint fps_n, uint fps_d);
 
         ~MultiImageSinkBintr();
   
@@ -972,22 +972,104 @@ namespace DSL
         void UnlinkAll();
 
         /**
+         * @brief Sets the file-path for MultiImageSinkBintr 
+         * @return Current filepath set for the MultiImageSinkBintr
+         */
+        const char* GetFilePath();
+
+        /**
+         * @brief Sets the file-path for MultiImageSinkBintr 
+         * @param[in] filepath printf style %d in an absolute or relative path. 
+         * Eample: "./my_images/image.%d04.jpg", will create files in "./my_images/"
+         * named "image.0000.jpg", "image.0001.jpg", "image.0002.jpg" etc.
+         */
+        bool SetFilePath(const char* filepath);
+
+        /**
+         * @brief Gets the current width and height settings for this 
+         * MultiImageSinkBintr.
+         * @param[out] width the current width setting in pixels.
+         * @param[out] height the current height setting in pixels.
+         */ 
+        void GetDimensions(uint* width, uint* height);
+        
+        /**
+         * @brief Sets the width and height settings for the MultiImageSinkBintr
+         * to use. The caller is required to provide valid width and height values.
+         * @param[in] width the width value to set in pixels. Set to 0 for 
+         * no transcode.
+         * @param[in] height the height value to set in pixels. Set to 0 for 
+         * no transcode.
+         * @return false if the sink is currently Linked. True otherwise
+         */ 
+        bool SetDimensions(uint width, uint hieght);
+
+        /**
+         * @brief Gets the current frame-rate setting for this 
+         * MultiImageSinkBintr.
+         * @param[out] fpsN the current frames/second numerator.
+         * @param[out] fpsD the current frames/second denominator.
+         */ 
+        void GetFrameRate(uint* fpsN, uint* fpsD);
+        
+        /**
+         * @brief Sets the width and height settings for the MultiImageSinkBintr
+         * to use. The caller is required to provide valid width and height values.
+         * @param[in] fpsN the new frames/second numerator.
+         * @param[in] fpsD the new frames/second denominator.
+         * @return false if the sink is currently Linked. True otherwise
+         */ 
+        bool SetFrameRate(uint fpsN, uint fpsD);
+
+        /**
          * @brief sets the sync enabled setting for the SinkBintr
          * @param[in] enabled current sync setting.
          */
         bool SetSyncEnabled(bool enabled);
         
     private:
-    
+
+        /**
+         * @brief Sets the Caps Filter settings using the current m_width,
+         * m_height, m_fpsN, and m_fpsD member variables.
+         * @return 
+         */
+        bool setCaps();
+        
         /**
          * @brief Current output filepath ("location") for the MultiImageSinkBintr.
          */
         std::string m_filepath;
 
         /**
+         * @brief Width property for the Video Converter element in uints of pixels.
+         */
+        uint m_width;
+
+        /**
+         * @brief Height property for the Video Converter element in uints of pixels.
+         */
+        uint m_height;
+
+        /**
+         * @brief Frames/second numerator for the Video rater element.
+         */
+        uint m_fpsN;
+
+        /**
+         * @brief Frames/second denominator for the Video rater element.
+         */
+        uint m_fpsD;
+
+        /**
          * @brief Video Converter element for the MultiImageSinkBintr.
          */
-        DSL_ELEMENT_PTR m_pVidConv;
+        DSL_ELEMENT_PTR m_pVideoConv;
+
+        /**
+         * @brief Video Rate element for the MultiImageSinkBintr.
+         */
+        DSL_ELEMENT_PTR m_pVideoRate;
 
         /**
          * @brief Caps Filter element for the MultiImageSinkBintr.

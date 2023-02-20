@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -984,36 +984,3 @@ SCENARIO( "A New ImageRenderPlayerBintr - Window Type - can Play after Reset", "
     }
 }
 
-SCENARIO( "A New PlayerBintr with a Image Source and a Multi-Object Sink can Play and Stop correctly", "[now]" )
-{
-    GIVEN( "A new name for a PipelineBintr" ) 
-    {
-        std::string playerName("player");
-
-        std::string sourceName("image-source");
-        
-        std::string MultiImageSinkName("multi-image-sink");
-        std::string SinkFilePath("./frame-%05d.jpg");
-
-        DSL_SINGLE_IMAGE_SOURCE_PTR pSourceBintr = DSL_SINGLE_IMAGE_SOURCE_NEW(
-            sourceName.c_str(), jpgFilePath1.c_str());
-
-        DSL_MULTI_IMAGE_SINK_PTR pMultiImageSinkBintr = 
-            DSL_MULTI_IMAGE_SINK_NEW(MultiImageSinkName.c_str(), SinkFilePath.c_str(),
-            1280, 720);
-
-        DSL_PLAYER_BINTR_PTR pPlayerBintr = 
-            DSL_PLAYER_BINTR_NEW(playerName.c_str(), pSourceBintr, pMultiImageSinkBintr);
-
-        WHEN( "The new PlayerBintr is set to a state of PLAYING" )
-        {
-            REQUIRE( pPlayerBintr->Play() == true);
-            
-            THEN( "The PlayerBintr can be set back to a state of NULL" )
-            {
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-                REQUIRE( pPlayerBintr->Stop() == true );
-            }
-        }
-    }
-}
