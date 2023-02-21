@@ -58,7 +58,76 @@ Play and Stop correctly", "[ImageSinkBehavior]" )
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_image_multi_new(image_sink_name.c_str(),
-            output_file.c_str(), sinkW, sinkH, 1, 1) == DSL_RESULT_SUCCESS );
+            output_file.c_str(), 0, 0, 1, 1) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {L"file-source", 
+            L"multi-image-sink", L"window-sink", NULL};
+
+        WHEN( "The new Pipeline is asembled" )
+        {
+            REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Pipeline can link-all and play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                dsl_delete_all();
+            }
+        }
+    }
+}
+
+SCENARIO( "A Multi-Object Sink can scale the frame capture correctly", "[ImageSinkBehavior]" )
+{
+    GIVEN( "A new name for a PipelineBintr" ) 
+    {
+        
+        REQUIRE( dsl_source_file_new(source_name.c_str(), uri.c_str(),
+            true) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_image_multi_new(image_sink_name.c_str(),
+            output_file.c_str(), 640, 360, 1, 1) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {L"file-source", 
+            L"multi-image-sink", L"window-sink", NULL};
+
+        WHEN( "The new Pipeline is asembled" )
+        {
+            REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Pipeline can link-all and play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                dsl_delete_all();
+            }
+        }
+    }
+}
+
+SCENARIO( "A Multi-Object Sink can limit its file count correctly", "[ImageSinkBehavior]" )
+{
+    GIVEN( "A new name for a PipelineBintr" ) 
+    {
+        
+        REQUIRE( dsl_source_file_new(source_name.c_str(), uri.c_str(),
+            true) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_image_multi_new(image_sink_name.c_str(),
+            output_file.c_str(), 0, 0, 1, 2) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_sink_image_multi_file_max_set(image_sink_name.c_str(), 
+            1) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"file-source", 
             L"multi-image-sink", L"window-sink", NULL};

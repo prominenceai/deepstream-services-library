@@ -1746,6 +1746,70 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::SinkImageMultiFileMaxGet(const char* name, 
+        uint* max)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, MultiImageSinkBintr);
+
+            DSL_MULTI_IMAGE_SINK_PTR pMultiImageSink = 
+                std::dynamic_pointer_cast<MultiImageSinkBintr>(m_components[name]);
+
+            *max = pMultiImageSink->GetMaxFiles();
+
+            LOG_INFO("Multi-Image Sink '" << name << "' returned max-file = " 
+                << *max << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Sink '" << name 
+                << "' threw an exception getting max-file");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkImageMultiFileMaxSet(const char* name, 
+        uint max)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, MultiImageSinkBintr);
+
+            DSL_MULTI_IMAGE_SINK_PTR pMultiImageSink = 
+                std::dynamic_pointer_cast<MultiImageSinkBintr>(m_components[name]);
+
+            if (!pMultiImageSink->SetMaxFiles(max))
+            {
+                LOG_ERROR("Multi-Image Sink '" << name 
+                    << "' failed to set max-file");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Multi-Image Sink '" << name << "' set max-file = " 
+                << max << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Sink '" << name 
+                << "' threw an exception setting max-file");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::SinkPphAdd(const char* name, const char* handler)
     {
         LOG_FUNC();

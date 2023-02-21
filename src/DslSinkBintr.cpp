@@ -1655,6 +1655,18 @@ namespace DSL
         {
             throw std::system_error();
         }
+
+        // get the property defaults
+        m_pMultiFileSync->GetAttribute("max-files", &m_maxFiles);
+        
+        LOG_INFO("");
+        LOG_INFO("Initial property values for MultiImageSinkBintr '" << name << "'");
+        LOG_INFO("  file_path         : " << m_filepath);
+        LOG_INFO("  width             : " << m_width);
+        LOG_INFO("  height            : " << m_height);
+        LOG_INFO("  fps_n             : " << m_fpsN);
+        LOG_INFO("  fps_d             : " << m_fpsD);
+        LOG_INFO("  max-files         : " << m_maxFiles);
         
         AddChild(m_pVideoConv);
         AddChild(m_pVideoRate);
@@ -1783,6 +1795,29 @@ namespace DSL
         m_fpsD = fpsD;
         
         return setCaps();
+    }
+    
+    uint MultiImageSinkBintr::GetMaxFiles()
+    {
+        LOG_FUNC();
+        
+        return m_maxFiles;
+    }
+    
+    bool MultiImageSinkBintr::SetMaxFiles(uint max)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR(
+                "Unable to set max-files for MultiImageSinkBintr '"
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_maxFiles = max;
+        m_pMultiFileSync->SetAttribute("max-files", m_maxFiles);
+        return true;
     }
     
     bool MultiImageSinkBintr::SetSyncEnabled(bool enabled)

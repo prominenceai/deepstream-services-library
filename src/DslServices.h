@@ -1224,6 +1224,12 @@ namespace DSL {
         DslReturnType SinkImageMultiFrameRateSet(const char* name, 
             uint fpsN, uint fpsD);
         
+        DslReturnType SinkImageMultiFileMaxGet(const char* name, 
+            uint* max);
+
+        DslReturnType SinkImageMultiFileMaxSet(const char* name, 
+            uint max);
+        
         DslReturnType SinkWebRtcNew(const char* name, const char* stunServer, 
             const char* turnServer, uint codec, uint bitrate, uint interval);
 

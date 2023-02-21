@@ -1020,6 +1020,20 @@ namespace DSL
          * @return false if the sink is currently Linked. True otherwise
          */ 
         bool SetFrameRate(uint fpsN, uint fpsD);
+        
+        /**
+         * @brief Gets the current max-files setting for the MultiImageSinkBintr.
+         * @return current max-files setting. 0 indicates no maximum.
+         */
+        uint GetMaxFiles();
+        
+        /**
+         * @brief Sets the max-files setting for the MultiImageSinkBintr.
+         * Set to 0 for no maximum.
+         * @param[in] max new max for the max-files setting. 
+         * @return false if the sink is currently Linked. True otherwise.
+         */
+        bool SetMaxFiles(uint max);
 
         /**
          * @brief sets the sync enabled setting for the SinkBintr
@@ -1052,14 +1066,20 @@ namespace DSL
         uint m_height;
 
         /**
-         * @brief Frames/second numerator for the Video rater element.
+         * @brief Frames/second numerator for the Video Rate element.
          */
         uint m_fpsN;
 
         /**
-         * @brief Frames/second denominator for the Video rater element.
+         * @brief Frames/second denominator for the Video Rate element.
          */
         uint m_fpsD;
+        
+        /** 
+         * @brief maximum number of files to keep on disk. Once the maximum is 
+         * reached, old files start to be deleted to make room for new ones.
+         */
+        uint m_maxFiles;
 
         /**
          * @brief Video Converter element for the MultiImageSinkBintr.

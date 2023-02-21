@@ -6678,7 +6678,32 @@ DslReturnType dsl_sink_image_multi_frame_rate_set(const wchar_t* name,
     return DSL::Services::GetServices()->SinkImageMultiFrameRateSet(
         cstrName.c_str(), fps_n, fps_d);
 }
-     
+
+DslReturnType dsl_sink_image_multi_file_max_get(const wchar_t* name, 
+    uint* max)
+{    
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(max);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkImageMultiFileMaxGet(
+        cstrName.c_str(), max);
+}
+
+DslReturnType dsl_sink_image_multi_file_max_set(const wchar_t* name, 
+    uint max)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkImageMultiFileMaxSet(
+        cstrName.c_str(), max);
+}
+    
 // NOTE: the WebRTC Sink implementation requires DS 1.18.0 or later
 DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_server,
     const wchar_t* turn_server, uint codec, uint bitrate, uint interval)

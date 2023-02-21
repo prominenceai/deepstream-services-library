@@ -6505,7 +6505,7 @@ DslReturnType dsl_sink_image_multi_dimensions_set(const wchar_t* name,
  * @param[in] name unique name of the Multi-Image Sink to query.
  * @param[out] fps_n frames per second numerator.
  * @param[out] fps_d frames per second denominator.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
  */
 DslReturnType dsl_sink_image_multi_frame_rate_get(const wchar_t* name, 
     uint* fps_n, uint* fps_d);
@@ -6513,12 +6513,34 @@ DslReturnType dsl_sink_image_multi_frame_rate_get(const wchar_t* name,
 /**
  * @brief Gets the frame rate of the named Multi-Image Sink as a fraction
  * @param[in] name unique name of the Multi-Image Sink to query.
- * @param[in] fps_n frames per second numerator. Set to 0 for no ratechange.
- * @param[in] fps_d frames per second denominator. Set to 0 for no ratechange.
+ * @param[in] fps_n frames per second numerator. Set to 0 for no rate-change.
+ * @param[in] fps_d frames per second denominator. Set to 0 for no rate-change.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_sink_image_multi_frame_rate_set(const wchar_t* name, 
     uint fps_n, uint fps_d);
+
+/**
+ * @brief Gets the current max-file setting for the named Multi-Image Sink.
+ * @param[in] name unique name of the Multi-Image Sink to query.
+ * @param[out] max maximum number of file to keep on disk. Once the maximum 
+ * is reached, old files start to be deleted to make room for new ones. 
+ * Default = 0 - no max.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_image_multi_file_max_get(const wchar_t* name, 
+    uint* max);
+    
+/**
+ * @brief Sets the max-file setting for the named Multi-Image Sink to use.
+ * @param[in] name unique name of the Multi-Image Sink to update.
+ * @param[in] max maximum number of files to keep on disk. Once the maximum 
+ * is reached, old files start to be deleted to make room for new ones. 
+ * Default = 0 - no max.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_image_multi_file_max_set(const wchar_t* name, 
+    uint max);
     
 /**
  * @brief creates a new, uniquely named WebRTC Sink component
