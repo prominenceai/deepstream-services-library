@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2021, Prominence AI, Inc.
+# Copyright (c) 2023, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,22 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+################################################################################
+#
+# This example demonstrates the use of a Multi-Image Sink to encode and
+# save video frames to JPEG files at specified dimensions and frame-rate.
+#
+# The ouput file path/names are specified using a printf style %d in the 
+# provided absolute or relative path. 
+#   eample: "./my_images/image.%d04.jpg", will create files in "./my_images/"
+#   named "image.0000.jpg", "image.0001.jpg", "image.0002.jpg" etc.
+#
+# You can limit the number of files that are saved on disc by calling
+#   dsl_sink_multi_image_file_max_set. Default = 0 = no max.
+#
+# Once max-files is reached, old files will be deleted to make room for new
+# ones.
+
 #!/usr/bin/env python
 
 import sys
@@ -29,7 +45,7 @@ import time
 
 from dsl import *
 
-uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
 # Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = \
@@ -82,7 +98,7 @@ def main(args):
     while True:
 
         ## First new URI File Source
-        retval = dsl_source_uri_new('uri-source', uri_file, False, False, 0)
+        retval = dsl_source_file_new('file-source', uri_h265, True)
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -98,37 +114,43 @@ def main(args):
             break
 
         # New OSD with text, clock and bbox display all enabled. 
-        retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+        retval = dsl_osd_new('on-screen-display', text_enabled=True, 
+            clock_enabled=True, bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## New Window Sink, 0 x/y offsets with reduced dimensions
+        ## New Window Sink, 0 x/y offsets and reduced dimensions
         retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## New File Sink with H264 Codec type and MKV conatiner muxer, and bit-rate and iframe interval
-        retval = dsl_sink_file_new('file-sink', "./output.mkv", DSL_CODEC_H264, DSL_CONTAINER_MKV, 2000000, 0)
+        ## New Multi-Image Sink, reduced thumbnail dimensions with an 
+        ## output frame-rate of once every 10 seconds
+        retval = dsl_sink_image_multi_new('mulit-image-sink', 
+            './frame_%04d.jpg', 640, 360, 1, 10)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'on-screen-display', 'window-sink', 'file-sink', None])
+            ['file-source', 'primary-gie', 'iou-tracker', 'on-screen-display', 
+            'window-sink', 'mulit-image-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
         ## Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
+        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 
+            xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
+        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", 
+            xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         ## Add the listener callback functions defined above
-        retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
+        retval = dsl_pipeline_state_change_listener_add('pipeline', 
+            state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)

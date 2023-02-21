@@ -5264,12 +5264,106 @@ def dsl_sink_interpipe_num_listeners_get(name):
 ##
 ## dsl_sink_image_multi_new()
 ##
-_dsl.dsl_sink_image_multi_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
+_dsl.dsl_sink_image_multi_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_uint, c_uint, c_uint]
 _dsl.dsl_sink_image_multi_new.restype = c_uint
-def dsl_sink_image_multi_new(name, file_path, width, height):
+def dsl_sink_image_multi_new(name, file_path, width, height, fps_n, fps_d):
     global _dsl
     result =_dsl.dsl_sink_image_multi_new(name, 
-        file_path, width, height)
+        file_path, width, height, fps_n, fps_d)
+    return int(result)
+
+##
+## dsl_sink_image_multi_file_path_get()
+##
+_dsl.dsl_sink_image_multi_file_path_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_sink_image_multi_file_path_get.restype = c_uint
+def dsl_sink_image_multi_file_path_get(name):
+    global _dsl
+    file_path = c_wchar_p(0)
+    result = _dsl.dsl_sink_image_multi_file_path_get(name, DSL_WCHAR_PP(file_path))
+    return int(result), file_path.value 
+
+##
+## dsl_sink_image_multi_file_path_set()
+##
+_dsl.dsl_sink_image_multi_file_path_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_image_multi_file_path_set.restype = c_uint
+def dsl_sink_image_multi_file_path_set(name, file_path):
+    global _dsl
+    result = _dsl.dsl_sink_image_multi_file_path_set(name, file_path)
+    return int(result)
+
+##
+## dsl_sink_image_multi_dimensions_get()
+##
+_dsl.dsl_sink_image_multi_dimensions_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_sink_image_multi_dimensions_get.restype = c_uint
+def dsl_sink_image_multi_dimensions_get(name):
+    global _dsl
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_sink_image_multi_dimensions_get(name, 
+        DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), width.value, height.value 
+
+##
+## dsl_sink_image_multi_dimensions_set()
+##
+_dsl.dsl_sink_image_multi_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_sink_image_multi_dimensions_set.restype = c_uint
+def dsl_sink_image_multi_dimensions_set(name, width, height):
+    global _dsl
+    result = _dsl.dsl_sink_image_multi_dimensions_set(name, width, height)
+    return int(result)
+
+##
+## dsl_sink_image_multi_frame_rate_get()
+##
+_dsl.dsl_sink_image_multi_frame_rate_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_sink_image_multi_frame_rate_get.restype = c_uint
+def dsl_sink_image_multi_frame_rate_get(name):
+    global _dsl
+    fps_n = c_uint(0)
+    fps_d = c_uint(0)
+    result = _dsl.dsl_sink_image_multi_frame_rate_get(name, 
+        DSL_UINT_P(fps_n), DSL_UINT_P(fps_d))
+    return int(result), fps_n.value, fps_d.value 
+
+##
+## dsl_sink_image_multi_frame_rate_set()
+##
+_dsl.dsl_sink_image_multi_frame_rate_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_sink_image_multi_frame_rate_set.restype = c_uint
+def dsl_sink_image_multi_frame_rate_set(name, fps_n, fps_d):
+    global _dsl
+    result = _dsl.dsl_sink_image_multi_frame_rate_set(name,
+        fps_n, fps_d)
+    return int(result)
+
+##
+## dsl_sink_image_multi_file_max_get()
+##
+_dsl.dsl_sink_image_multi_file_max_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_sink_image_multi_file_max_get.restype = c_uint
+def dsl_sink_image_multi_file_max_get(name):
+    global _dsl
+    max = c_uint(0)
+    result = _dsl.dsl_sink_image_multi_file_max_get(name, 
+        DSL_UINT_P(max))
+    return int(result), max.value 
+
+##
+## dsl_sink_image_multi_file_max_set()
+##
+_dsl.dsl_sink_image_multi_file_max_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sink_image_multi_file_max_set.restype = c_uint
+def dsl_sink_image_multi_file_max_set(name, max):
+    global _dsl
+    result = _dsl.dsl_sink_image_multi_file_max_set(name, max)
     return int(result)
 
 ##

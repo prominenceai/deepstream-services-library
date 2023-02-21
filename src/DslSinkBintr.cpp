@@ -1650,6 +1650,7 @@ namespace DSL
         m_pMultiFileSync = DSL_ELEMENT_NEW("multifilesink", name);
         
         m_pMultiFileSync->SetAttribute("location", filepath);
+        m_pMultiFileSync->SetAttribute("sync", m_sync);
 
         if (!setCaps())
         {
@@ -1667,6 +1668,7 @@ namespace DSL
         LOG_INFO("  fps_n             : " << m_fpsN);
         LOG_INFO("  fps_d             : " << m_fpsD);
         LOG_INFO("  max-files         : " << m_maxFiles);
+        LOG_INFO("  sync              : " << m_sync);
         
         AddChild(m_pVideoConv);
         AddChild(m_pVideoRate);
