@@ -1359,3 +1359,99 @@ SCENARIO( "A RtspSinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
     }
 }
 
+SCENARIO( "A new MultImageSinkBintr is created correctly",  "[SinkBintr]" )
+{
+    GIVEN( "Attributes for a new MultiImageSinkBintr Sink" ) 
+    {
+        std::string sinkName("multi-image-sink");
+        
+        uint width(1920), height(1080);
+        uint fpsN(1), fpsD(2);
+        std::string filePath("./frame-%05d.jpg");
+
+        
+        WHEN( "The MultiImageSinkBintr is created " )
+        {
+            DSL_MULTI_IMAGE_SINK_PTR pSinkBintr =
+                DSL_MULTI_IMAGE_SINK_NEW(sinkName.c_str(), filePath.c_str(), 
+                    width, height, fpsN, fpsD);
+            
+            THEN( "The correct attribute values are returned" )
+            {
+                std::string retFilePath = pSinkBintr->GetFilePath();
+                REQUIRE( retFilePath == filePath );
+                
+                uint retWidth(0), retHeight(0);
+                pSinkBintr->GetDimensions(&retWidth, &retHeight);
+                REQUIRE( retWidth == width );
+                REQUIRE( retHeight == height );
+
+                uint retFpsN(0), retFpsD(0);
+                pSinkBintr->GetFrameRate(&retFpsN, &retFpsD);
+                REQUIRE( retFpsN == fpsN );
+                REQUIRE( retFpsD == fpsD );
+
+                REQUIRE( pSinkBintr->GetMaxFiles() == 0 );
+                
+                REQUIRE( pSinkBintr->GetSyncEnabled() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new MultiImageSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
+{
+    GIVEN( "A new DSL_CODEC_H265 RtspSinkBintr in an Unlinked state" ) 
+    {
+        std::string sinkName("multi-image-sink");
+        
+        uint width(1920), height(1080);
+        uint fpsN(1), fpsD(2);
+        std::string filePath("./frame-%05d.jpg");
+
+        DSL_MULTI_IMAGE_SINK_PTR pSinkBintr =
+            DSL_MULTI_IMAGE_SINK_NEW(sinkName.c_str(), filePath.c_str(), 
+                width, height, fpsN, fpsD);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+
+        WHEN( "A new MultiImageSinkBintr is Linked" )
+        {
+            REQUIRE( pSinkBintr->LinkAll() == true );
+
+            THEN( "The MultiImageSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Linked MultiImageSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
+{
+    GIVEN( "A MultiImageSinkBintr in a linked state" ) 
+    {
+        std::string sinkName("multi-image-sink");
+        
+        uint width(1920), height(1080);
+        uint fpsN(1), fpsD(2);
+        std::string filePath("./frame-%05d.jpg");
+
+        DSL_MULTI_IMAGE_SINK_PTR pSinkBintr =
+            DSL_MULTI_IMAGE_SINK_NEW(sinkName.c_str(), filePath.c_str(), 
+                width, height, fpsN, fpsD);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+        REQUIRE( pSinkBintr->LinkAll() == true );
+
+        WHEN( "A MultiImageSinkBintr is Unlinked" )
+        {
+            pSinkBintr->UnlinkAll();
+
+            THEN( "The MultiImageSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == false );
+            }
+        }
+    }
+}

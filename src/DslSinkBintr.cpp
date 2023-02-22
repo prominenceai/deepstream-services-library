@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1632,30 +1632,46 @@ namespace DSL
     //-------------------------------------------------------------------------
     
     MultiImageSinkBintr::MultiImageSinkBintr(const char* name,
-        const char* filepath, uint width, uint height)
+        const char* filepath, uint width, uint height,
+        uint fpsN, uint fpsD)
         : SinkBintr(name, false)
         , m_filepath(filepath)
+        , m_width(width)
+        , m_height(height)
+        , m_fpsN(fpsN)
+        , m_fpsD(fpsD)
     {
         LOG_FUNC();
         
-        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
+        m_pVideoConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
+        m_pVideoRate = DSL_ELEMENT_NEW("videorate", name);
         m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
         m_pJpegEnc = DSL_ELEMENT_NEW("jpegenc", name);
         m_pMultiFileSync = DSL_ELEMENT_NEW("multifilesink", name);
         
         m_pMultiFileSync->SetAttribute("location", filepath);
+        m_pMultiFileSync->SetAttribute("sync", m_sync);
 
-        GstCaps* pCaps = gst_caps_from_string("video/x-raw, format=I420");
-        m_pCapsFilter->SetAttribute("caps", pCaps);
-        gst_caps_unref(pCaps);
+        if (!setCaps())
+        {
+            throw std::system_error();
+        }
 
-//        pCaps = gst_caps_new_simple("video/x-raw", 
-//            "format", G_TYPE_STRING, "RGBA",
-//            "width", G_TYPE_INT, width, 
-//            "height", G_TYPE_INT, height, 
-//            "pixel-aspect-ratio", GST_TYPE_FRACTION, 1, 1, NULL);        
+        // get the property defaults
+        m_pMultiFileSync->GetAttribute("max-files", &m_maxFiles);
         
-        AddChild(m_pVidConv);
+        LOG_INFO("");
+        LOG_INFO("Initial property values for MultiImageSinkBintr '" << name << "'");
+        LOG_INFO("  file_path         : " << m_filepath);
+        LOG_INFO("  width             : " << m_width);
+        LOG_INFO("  height            : " << m_height);
+        LOG_INFO("  fps_n             : " << m_fpsN);
+        LOG_INFO("  fps_d             : " << m_fpsD);
+        LOG_INFO("  max-files         : " << m_maxFiles);
+        LOG_INFO("  sync              : " << m_sync);
+        
+        AddChild(m_pVideoConv);
+        AddChild(m_pVideoRate);
         AddChild(m_pCapsFilter);
         AddChild(m_pJpegEnc);
         AddChild(m_pMultiFileSync);
@@ -1680,8 +1696,9 @@ namespace DSL
             LOG_ERROR("MultiImageSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
-        if (!m_pQueue->LinkToSink(m_pVidConv) or
-            !m_pVidConv->LinkToSink(m_pCapsFilter) or
+        if (!m_pQueue->LinkToSink(m_pVideoConv) or
+            !m_pVideoConv->LinkToSink(m_pVideoRate) or
+            !m_pVideoRate->LinkToSink(m_pCapsFilter) or
             !m_pCapsFilter->LinkToSink(m_pJpegEnc) or
             !m_pJpegEnc->LinkToSink(m_pMultiFileSync))
         {
@@ -1701,13 +1718,110 @@ namespace DSL
             return;
         }
         m_pQueue->UnlinkFromSink();
-        m_pVidConv->UnlinkFromSink();
+        m_pVideoConv->UnlinkFromSink();
+        m_pVideoRate->UnlinkFromSink();
         m_pCapsFilter->UnlinkFromSink();
         m_pJpegEnc->UnlinkFromSink();
 
         m_isLinked = false;
     }
 
+    const char* MultiImageSinkBintr::GetFilePath()
+    {
+        LOG_FUNC();
+        
+        return m_filepath.c_str();
+    }
+    
+    bool MultiImageSinkBintr::SetFilePath(const char* filepath)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR(
+                "Unable to set dimensions for MultiImageSinkBintr '"
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_filepath = filepath;
+        m_pMultiFileSync->SetAttribute("location", filepath);
+        return true;
+    }
+    
+    void MultiImageSinkBintr::GetDimensions(uint* width, uint* height)
+    {
+        LOG_FUNC();
+        
+        *width = m_width;
+        *height = m_height;
+    }
+    
+    bool MultiImageSinkBintr::SetDimensions(uint width, uint height)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR(
+                "Unable to set dimensions for MultiImageSinkBintr '"
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_width = width;
+        m_height = height;
+        
+        return setCaps();
+    }
+    
+    void MultiImageSinkBintr::GetFrameRate(uint* fpsN, uint* fpsD)
+    {
+        LOG_FUNC();
+        
+        *fpsN = m_fpsN;
+        *fpsD = m_fpsD;
+    }
+    
+    bool MultiImageSinkBintr::SetFrameRate(uint fpsN, uint fpsD)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR(
+                "Unable to set framerate for MultiImageSinkBintr '"
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_fpsN = fpsN;
+        m_fpsD = fpsD;
+        
+        return setCaps();
+    }
+    
+    uint MultiImageSinkBintr::GetMaxFiles()
+    {
+        LOG_FUNC();
+        
+        return m_maxFiles;
+    }
+    
+    bool MultiImageSinkBintr::SetMaxFiles(uint max)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR(
+                "Unable to set max-files for MultiImageSinkBintr '"
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_maxFiles = max;
+        m_pMultiFileSync->SetAttribute("max-files", m_maxFiles);
+        return true;
+    }
+    
     bool MultiImageSinkBintr::SetSyncEnabled(bool enabled)
     {
         LOG_FUNC();
@@ -1723,6 +1837,48 @@ namespace DSL
         
         m_pMultiFileSync->SetAttribute("sync", m_sync);
         
+        return true;
+    }
+
+    bool MultiImageSinkBintr::setCaps()
+    {
+        LOG_FUNC();
+        
+        GstCaps* pCaps(NULL);
+        if ((m_width and m_height) and (m_fpsN and m_fpsD))
+        {
+            pCaps = gst_caps_new_simple("video/x-raw", 
+                "format", G_TYPE_STRING, "I420",
+                "width", G_TYPE_INT, m_width, 
+                "height", G_TYPE_INT, m_height, 
+                "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
+        }
+        else if (m_width and m_height)
+        {
+            pCaps = gst_caps_new_simple("video/x-raw", 
+                "format", G_TYPE_STRING, "I420",
+                "width", G_TYPE_INT, m_width, 
+                "height", G_TYPE_INT, m_height, NULL);
+        }
+        else if (m_fpsN and m_fpsD)
+        {
+            pCaps = gst_caps_new_simple("video/x-raw", 
+                "format", G_TYPE_STRING, "I420",
+                "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
+        }
+        else
+        {
+            pCaps = gst_caps_new_simple("video/x-raw", 
+                "format", G_TYPE_STRING, "I420", NULL);
+        }
+        if (!pCaps)
+        {
+            LOG_ERROR("Failed to create video-conv-caps for MultiImageSinkBintr '"
+                << GetName() << "'");
+            return false;
+        }
+        m_pCapsFilter->SetAttribute("caps", pCaps);
+        gst_caps_unref(pCaps);
         return true;
     }
 

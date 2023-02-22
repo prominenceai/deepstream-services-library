@@ -1204,7 +1204,31 @@ namespace DSL {
             uint* numListeners);
             
         DslReturnType SinkImageMultiNew(const char* name, const char* filepath,
+            uint width, uint height, uint fps_n, uint fps_d);
+
+        DslReturnType SinkImageMultiFilePathGet(const char* name, 
+            const char** filePath);
+
+        DslReturnType SinkImageMultiFilePathSet(const char* name, 
+            const char* filePath);
+
+        DslReturnType SinkImageMultiDimensionsGet(const char* name, 
+            uint* width, uint* height);
+
+        DslReturnType SinkImageMultiDimensionsSet(const char* name, 
             uint width, uint height);
+        
+        DslReturnType SinkImageMultiFrameRateGet(const char* name, 
+            uint* fpsN, uint* fpsD);
+
+        DslReturnType SinkImageMultiFrameRateSet(const char* name, 
+            uint fpsN, uint fpsD);
+        
+        DslReturnType SinkImageMultiFileMaxGet(const char* name, 
+            uint* max);
+
+        DslReturnType SinkImageMultiFileMaxSet(const char* name, 
+            uint max);
         
         DslReturnType SinkWebRtcNew(const char* name, const char* stunServer, 
             const char* turnServer, uint codec, uint bitrate, uint interval);

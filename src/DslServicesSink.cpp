@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c)   2021, Prominence AI, Inc.
+Copyright (c)   2021-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1523,7 +1523,8 @@ namespace DSL
     }
 
     DslReturnType Services::SinkImageMultiNew(const char* name, 
-        const char* filepath, uint width, uint height)    
+        const char* filepath, uint width, uint height,
+        uint fps_n, uint fps_d)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1538,7 +1539,7 @@ namespace DSL
             }
 
             m_components[name] = DSL_MULTI_IMAGE_SINK_NEW(name,
-                filepath, width, height);
+                filepath, width, height, fps_n, fps_d);
 
             LOG_INFO("New MultiImage Sink '" << name 
                 << "' created successfully");
@@ -1549,6 +1550,262 @@ namespace DSL
         {
             LOG_ERROR("New MultiImage Sink '" << name 
                 << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkImageMultiFilePathGet(const char* name, 
+        const char** filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, MultiImageSinkBintr);
+
+            DSL_MULTI_IMAGE_SINK_PTR pMultiImageSink = 
+                std::dynamic_pointer_cast<MultiImageSinkBintr>(m_components[name]);
+
+            *filePath = pMultiImageSink->GetFilePath();
+
+            LOG_INFO("Multi-Image Sink '" << name << "' returned file-path = '" 
+                << *filePath << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Sink '" << name 
+                << "' threw exception getting file-path");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::SinkImageMultiFilePathSet(const char* name, 
+        const char* filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, MultiImageSinkBintr);
+
+            DSL_MULTI_IMAGE_SINK_PTR pMultiImageSink = 
+                std::dynamic_pointer_cast<MultiImageSinkBintr>(m_components[name]);
+
+            if (!pMultiImageSink->SetFilePath(filePath))
+            {
+                LOG_ERROR("Failed to Set file-path '" << filePath 
+                    << "' for Multi-Image Sink '" << name << "'");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Image Sink '" << name << "' set file-path = '" 
+                << filePath << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Sink '" << name 
+                << "' threw exception setting file-path");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkImageMultiDimensionsGet(const char* name, 
+        uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, MultiImageSinkBintr);
+
+            DSL_MULTI_IMAGE_SINK_PTR pMultiImageSink = 
+                std::dynamic_pointer_cast<MultiImageSinkBintr>(m_components[name]);
+
+            pMultiImageSink->GetDimensions(width, height);
+
+            LOG_INFO("Multi-Image Sink '" << name << "' returned Width = " 
+                << *width << " and Height = " << *height << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Sink '" << name 
+                << "' threw an exception getting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkImageMultiDimensionsSet(const char* name, 
+        uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, MultiImageSinkBintr);
+
+            DSL_MULTI_IMAGE_SINK_PTR pMultiImageSink = 
+                std::dynamic_pointer_cast<MultiImageSinkBintr>(m_components[name]);
+
+            if (!pMultiImageSink->SetDimensions(width, height))
+            {
+                LOG_ERROR("Multi-Image Sink '" << name << "' failed to set dimensions");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Multi-Image Sink '" << name << "' set Width = " 
+                << width << " and Height = " << height << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Sink '" << name 
+                << "' threw an exception setting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SinkImageMultiFrameRateGet(const char* name, 
+        uint* fpsN, uint* fpsD)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, MultiImageSinkBintr);
+
+            DSL_MULTI_IMAGE_SINK_PTR pMultiImageSink = 
+                std::dynamic_pointer_cast<MultiImageSinkBintr>(m_components[name]);
+
+            pMultiImageSink->GetFrameRate(fpsN, fpsD);
+
+            LOG_INFO("Multi-Image Sink '" << name << "' returned fpsN = " 
+                << *fpsN << " and fpsD = " << *fpsD << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Sink '" << name 
+                << "' threw an exception getting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkImageMultiFrameRateSet(const char* name, 
+        uint fpsN, uint fpsD)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, MultiImageSinkBintr);
+
+            DSL_MULTI_IMAGE_SINK_PTR pMultiImageSink = 
+                std::dynamic_pointer_cast<MultiImageSinkBintr>(m_components[name]);
+
+            if (!pMultiImageSink->SetFrameRate(fpsN, fpsD))
+            {
+                LOG_ERROR("Multi-Image Sink '" << name 
+                    << "' failed to set frame-rate");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Multi-Image Sink '" << name << "' set fpsN = " 
+                << fpsN << " and fpsD = " << fpsD << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Sink '" << name 
+                << "' threw an exception setting frame-rate");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SinkImageMultiFileMaxGet(const char* name, 
+        uint* max)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, MultiImageSinkBintr);
+
+            DSL_MULTI_IMAGE_SINK_PTR pMultiImageSink = 
+                std::dynamic_pointer_cast<MultiImageSinkBintr>(m_components[name]);
+
+            *max = pMultiImageSink->GetMaxFiles();
+
+            LOG_INFO("Multi-Image Sink '" << name << "' returned max-file = " 
+                << *max << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Sink '" << name 
+                << "' threw an exception getting max-file");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkImageMultiFileMaxSet(const char* name, 
+        uint max)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, MultiImageSinkBintr);
+
+            DSL_MULTI_IMAGE_SINK_PTR pMultiImageSink = 
+                std::dynamic_pointer_cast<MultiImageSinkBintr>(m_components[name]);
+
+            if (!pMultiImageSink->SetMaxFiles(max))
+            {
+                LOG_ERROR("Multi-Image Sink '" << name 
+                    << "' failed to set max-file");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Multi-Image Sink '" << name << "' set max-file = " 
+                << max << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Sink '" << name 
+                << "' threw an exception setting max-file");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }

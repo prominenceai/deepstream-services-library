@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2022-2023, Prominence AI, Inc.
+Copyright (c) 2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,26 +22,38 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+/*
+
+ This example demonstrates the use of a Multi-Image Sink to encode and
+ save video frames to JPEG files at specified dimensions and frame-rate.
+
+ The ouput file path/names are specified using a printf style %d in the 
+ provided absolute or relative path. 
+   eample: "./my_images/image.%d04.jpg", will create files in "./my_images/"
+   named "image.0000.jpg", "image.0001.jpg", "image.0002.jpg" etc.
+
+ You can limit the number of files that are saved on disc by calling
+   dsl_sink_multi_image_file_max_set. Default = 0 = no max.
+
+ Once max-files is reached, old files will be deleted to make room for new
+ ones.
+*/
+
 #include <iostream>
 #include <glib.h>
 #include <gst/gst.h>
 #include <gstnvdsmeta.h>
-#include <nvdspreprocess_meta.h>
 
 #include "DslApi.h"
 
 std::wstring uri_h265(
     L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 
-// Config file used with the Preprocessor
-std::wstring preproc_config(
-    L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-preprocess-test/config_preprocess.txt");
-
 // Config and model-engine files 
 std::wstring primary_infer_config_file(
-    L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-preprocess-test/config_infer.txt");
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
 std::wstring primary_model_engine_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b4_gpu0_fp16.engine");
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_fp16.engine");
 
 // Config file used by the IOU Tracker    
 std::wstring iou_tracker_config_file(
@@ -114,11 +126,7 @@ int main(int argc, char** argv)
     {    
 
         // New File Source
-        retval = dsl_source_file_new(L"uri-source-1", uri_h265.c_str(), true);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        // New Preprocessor component using the config filespec defined above.
-        retval = dsl_preproc_new(L"preprocessor", preproc_config.c_str());
+        retval = dsl_source_file_new(L"file-source", uri_h265.c_str(), true);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Primary GIE using the filespecs defined above, with interval and Id
@@ -126,17 +134,6 @@ int main(int argc, char** argv)
             primary_infer_config_file.c_str(), NULL, 0);
         if (retval != DSL_RESULT_SUCCESS) break;
         
-        // **** IMPORTANT! for best performace we explicity set the GIE's batch-size 
-        // to the number of ROI's defined in the Preprocessor configuraton file.
-        retval = dsl_infer_batch_size_set(L"primary-gie", 2);
-        if (retval != DSL_RESULT_SUCCESS) break;
-        
-        // **** IMPORTANT! we must set the input-meta-tensor setting to true when
-        // using the preprocessor, otherwise the GIE will use its own preprocessor.
-        retval = dsl_infer_gie_tensor_meta_settings_set(L"primary-gie",
-            true, false);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
         // New IOU Tracker, setting operational width and height of input frame
         retval = dsl_tracker_new(L"iou-tracker", 
             iou_tracker_config_file.c_str(), 480, 272);
@@ -150,9 +147,15 @@ int main(int argc, char** argv)
         retval = dsl_sink_window_new(L"window-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
     
+        // New Multi-Image Sink, reduced thumbnail dimensions with an 
+        // output frame-rate of once every 10 seconds
+        retval = dsl_sink_image_multi_new(L"multi-image-sink", L"./frame_%04d.jpg",
+            640, 360, 1, 10);
+        if (retval != DSL_RESULT_SUCCESS) break;
+    
         // Create a list of Pipeline Components to add to the new Pipeline.
-        const wchar_t* components[] = {L"uri-source-1",  L"preprocessor", L"primary-gie", 
-            L"iou-tracker", L"on-screen-display", L"window-sink", NULL};
+        const wchar_t* components[] = {L"file-source",  L"primary-gie", 
+            L"iou-tracker", L"on-screen-display", L"window-sink", L"multi-image-sink", NULL};
         
         // Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);

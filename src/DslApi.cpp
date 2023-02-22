@@ -6573,7 +6573,8 @@ DslReturnType dsl_sink_interpipe_num_listeners_get(const wchar_t* name,
 }    
 
 DslReturnType dsl_sink_image_multi_new(const wchar_t* name, 
-    const wchar_t* file_path, uint width, uint height)
+    const wchar_t* file_path, uint width, uint height,
+    uint fps_n, uint fps_d)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(file_path);
@@ -6584,7 +6585,123 @@ DslReturnType dsl_sink_image_multi_new(const wchar_t* name,
     std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
 
     return DSL::Services::GetServices()->SinkImageMultiNew(cstrName.c_str(),
-        cstrFilePath.c_str(), width, height);
+        cstrFilePath.c_str(), width, height, fps_n, fps_d);
+}
+
+DslReturnType dsl_sink_image_multi_file_path_get(const wchar_t* name, 
+    const wchar_t** file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cFilePath;
+    static std::string cstrFilePath;
+    static std::wstring wcstrFilePath;
+    
+    uint retval = DSL::Services::GetServices()->SinkImageMultiFilePathGet(
+        cstrName.c_str(), &cFilePath);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrFilePath.assign(cFilePath);
+        wcstrFilePath.assign(cstrFilePath.begin(), cstrFilePath.end());
+        *file_path = wcstrFilePath.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_sink_image_multi_file_path_set(const wchar_t* name, 
+    const wchar_t* file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->SinkImageMultiFilePathSet(cstrName.c_str(), 
+        cstrFilePath.c_str());
+}
+
+DslReturnType dsl_sink_image_multi_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(width);
+    RETURN_IF_PARAM_IS_NULL(height);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkImageMultiDimensionsGet(
+        cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_sink_image_multi_dimensions_set(const wchar_t* name, 
+    uint width, uint height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkImageMultiDimensionsSet(
+        cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_sink_image_multi_frame_rate_get(const wchar_t* name, 
+    uint* fps_n, uint* fps_d)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(fps_n);
+    RETURN_IF_PARAM_IS_NULL(fps_d);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkImageMultiFrameRateGet(
+        cstrName.c_str(), fps_n, fps_d);
+}
+    
+DslReturnType dsl_sink_image_multi_frame_rate_set(const wchar_t* name, 
+    uint fps_n, uint fps_d)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkImageMultiFrameRateSet(
+        cstrName.c_str(), fps_n, fps_d);
+}
+
+DslReturnType dsl_sink_image_multi_file_max_get(const wchar_t* name, 
+    uint* max)
+{    
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(max);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkImageMultiFileMaxGet(
+        cstrName.c_str(), max);
+}
+
+DslReturnType dsl_sink_image_multi_file_max_set(const wchar_t* name, 
+    uint max)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkImageMultiFileMaxSet(
+        cstrName.c_str(), max);
 }
     
 // NOTE: the WebRTC Sink implementation requires DS 1.18.0 or later

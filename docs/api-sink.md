@@ -1,5 +1,5 @@
 # Sink API Reference
-Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must have at least one sink in use, along with other certain components, to reach a state of Ready. DSL supports ten (10) different types of Sinks:
+Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must have at least one sink in use, along with other certain components, to reach a state of Ready. DSL supports ten (11) different types of Sinks:
 * **Overlay Sink** - renders/overlays video on a Parent display **(Jetson Platform Only)**
 * **Window Sink** - renders/overlays video on a Parent XWindow
 * **File Sink** - encodes video to a media container file
@@ -9,6 +9,7 @@ Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must ha
 * **Message Sink** - converts Object Detection Event (ODE) metadata into a message payload and sends it to the server using a specified communication protocol.
 * **Application Sink** - allows the application to receive buffers or samples from a DSL Pipeline.
 * **Interpipe Sink** -  allows pipeline buffers and events to flow to other independent pipelines, each with an [Interpipe Source](/docs/api-source.md#dsl_source_interpipe_new).
+* **Multi-Image Sink** - encodes and saves video frames to JPEG files at specified dimensions and frame-rate.
 * **Fake Sink** - consumes/drops all data.
 
 Sinks are created by calling one of the eight type-specific constructors. As with all components, Sinks must be uniquely named from all other components created.
@@ -36,6 +37,7 @@ The relationship between Pipelines and Sinks is one-to-many. Once added to a Pip
 * [dsl_sink_webrtc_new](#dsl_sink_webrtc_new)
 * [dsl_sink_message_new](#dsl_sink_message_new)
 * [dsl_sink_interpipe_new](#dsl_sink_interpipe_new)
+* [dsl_sink_image_multi_new](#dsl_sink_image_multi_new)
 * [dsl_sink_fake_new](#dsl_sink_fake_new)
 
 **Methods**
@@ -78,6 +80,13 @@ The relationship between Pipelines and Sinks is one-to-many. Once added to a Pip
 * [dsl_sink_interpipe_forward_settings_get](#dsl_sink_interpipe_forward_settings_get)
 * [dsl_sink_interpipe_forward_settings_set](#dsl_sink_interpipe_forward_settings_set)
 * [dsl_sink_interpipe_num_listeners_get](#dsl_sink_interpipe_num_listeners_get)
+* [dsl_sink_image_multi_file_path_get](#dsl_sink_image_multi_file_path_get)
+* [dsl_sink_image_multi_file_path_set](#dsl_sink_image_multi_file_path_set)
+* [dsl_sink_image_multi_dimensions_get](#dsl_sink_image_multi_dimensions_get)
+* [dsl_sink_image_multi_dimensions_set](#dsl_sink_image_multi_dimensions_set)
+* [dsl_sink_image_multi_frame_rate_get](#dsl_sink_image_multi_frame_rate_get)
+* [dsl_sink_image_multi_frame_rate_set](#dsl_sink_image_multi_frame_rate_set)
+* [dsl_sink_image_multi_file_max_get](#dsl_sink_image_multi_file_max_get)
 * [dsl_sink_sync_enabled_get](#dsl_sink_sync_enabled_get)
 * [dsl_sink_sync_enabled_set](#dsl_sink_sync_enabled_set)
 * [dsl_sink_pph_add](#dsl_sink_pph_add)
@@ -526,6 +535,35 @@ Refer to the [Interpipe Services](/docs/overview.md#interpipe-services) overview
 ```Python
 retVal = dsl_sink_interpipe_new('my-interpipe-sink',
     True, True)
+```
+
+<br>
+
+### *dsl_sink_image_multi_new*
+```C++
+DslReturnType dsl_sink_image_multi_new(const wchar_t* name, 
+    const wchar_t* file_path, uint width, uint height,
+    uint fps_n, uint fps_d);
+```
+The constructor creates a new, uniquely named Multi-Image Sink. Construction will fail if the name is currently in use. 
+
+The Sink Encodes each frame into a JPEG image and saves it to file specified by a given folder/filename-pattern. The size can be scaled by setting the width and hight to non-zero values. The rate can be controled by setting the fps_n and fps_d to non-zero values as well. The maximum rate at which the sink can encode and save is hardware/platform dependent. It is up to the user to manage the maximum setting. Exceeding the limit may lead to corrupted files.
+
+**Parameters**
+* `name` - [in] unique name for the Multi-Image Sink to create.
+* `file_path` - [in]  use the printf style %d in the absolute or relative path. Eample: `"./my_images/image.%04d.jpg"`, will create files in `"./my_images/"` named `"image.0000.jpg"`, `"image.0001.jpg"`, `"image.0002.jpg"` etc.
+* `width` - [in] width of the images to save in pixels. Set to 0 for no transcode.
+* `height` - [in] height of the images to save in pixels. Set to 0 for no transcode.
+* `fps_n` - [in] fps_n frames/second fraction numerator. Set to 0 for no rate-change.
+* `fps_d` - [in] fps_d frames/second fraction denominator. Set to 0 for no rate-change.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retVal = dsl_sink_image_multi_new('my-interpipe-sink',
+    './frame_%04d.jpg', 640, 360, 1, 10)
 ```
 
 <br>
@@ -1404,6 +1442,185 @@ This service gets the current number of Interpipe Sources listening to the named
 **Python Example**
 ```Python
 retval, num_listeners = dsl_sink_interpipe_num_listeners_get('my-interpipe-sink')
+```
+
+<br>
+
+### *dsl_sink_image_multi_file_path_get*
+```C++
+DslReturnType dsl_sink_image_multi_file_path_get(const wchar_t* name, 
+    const wchar_t** file_path);
+```
+This service gets the current output file-path in use by the named Multi-Image Sink component.
+
+**Parameters**
+* `name` - [in] unique name of the Interpipe Sink to query.
+* `file_path` - [out] current file-path in use by the Multi-Image Sink.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, file_path = dsl_sink_image_multi_file_path_get('my-multi-image-sink')
+```
+
+<br>
+
+### *dsl_sink_image_multi_file_path_set*
+```C++
+DslReturnType dsl_sink_image_multi_file_path_set(const wchar_t* name, 
+    const wchar_t* file_path);
+```
+This service sets the output file-path for named Multi-Image Sink to use.
+
+**Parameters**
+* `name` - [in] unique name of the Multi-Image Sink to update.
+* `file_path` - [in]  use the printf style %d in the absolute or relative path. Eample: `"./my_images/image.%04d.jpg"`, will create files in `"./my_images/"` named `"image.0000.jpg"`, `"image.0001.jpg"`, `"image.0002.jpg"` etc.
+
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_image_multi_file_path_set('my-multi-image-sink',
+    "./my_images/image.%04d.jpg")
+```
+
+<br>
+
+### *dsl_sink_image_multi_dimensions_get*
+```C++
+DslReturnType dsl_sink_image_multi_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
+```
+This service gets the current dimensions in use by the named Multi-Image Sink component. Values of 0 indicate no transcode.
+
+**Parameters**
+* `name` - [in] unique name of the Interpipe Sink to query.
+* `width` - [out] current width to save images in pixels.
+* `height` - [out] current height to save images in pixels.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, width, height = dsl_sink_image_multi_dimensions_get(
+    'my-multi-image-sink')
+```
+
+<br>
+
+### *dsl_sink_image_multi_dimensions_set*
+```C++
+DslReturnType dsl_sink_image_multi_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
+```
+This service sets the dimensions for the named Multi-Image Sink to use.
+
+**Parameters**
+* `name` - [in] unique name of the Multi-Image Sink to update.
+* `width` - [in] new width setting in units of pixels. Set to 0 for no transcode. 
+* `height` - [in] new width setting in units of pixels. Set to 0 for no transcode. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_image_multi_dimensions_set('my-multi-image-sink',
+    640, 360)
+```
+
+<br>
+
+### *dsl_sink_image_multi_frame_rate_get*
+```C++
+DslReturnType dsl_sink_image_multi_frame_rate_get(const wchar_t* name, 
+    uint* fps_n, uint* fps_d);
+```
+This service gets the current frame-rate in use by the named Multi-Image Sink component. Values of 0 indicate no rate-change.
+
+**Parameters**
+* `name` - [in] unique name of the Interpipe Sink to query.
+* `fps_n` - [out] current frames per second numerator.
+* `fps_d` - [out] current frames per second denominator.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, fps_n, fps_d = dsl_sink_image_multi_frame_rate_get(
+    'my-multi-image-sink')
+```
+
+<br>
+
+### *dsl_sink_image_multi_frame_rate_set*
+```C++
+DslReturnType dsl_sink_image_multi_frame_rate_set(const wchar_t* name, 
+    uint fps_n, uint fps_d);
+```
+This service sets the frame-rate for the named Multi-Image Sink to use.
+
+**Parameters**
+* `name` - [in] unique name of the Multi-Image Sink to update.
+* `fps_n` - [in] new frames per second numerator. Set to 0 for no rate-change. 
+* `fps_d` - [in] new frames per second denominator. Set to 0 for no rate-change. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_image_multi_frame_rate_set(my-multi-image-sink',
+    1, 30)
+```
+
+<br>
+
+### *dsl_sink_image_multi_file_max_get*
+```C++
+DslReturnType dsl_sink_image_multi_file_max_get(const wchar_t* name, 
+    uint* max);
+```
+This service gets the current max-file setting in use by the named Multi-Image Sink component. Once the maximum is reached, old files start to be deleted to make room for new ones. Default = 0 - no max.
+
+**Parameters**
+* `name` - [in] unique name of the Interpipe Sink to query.
+* `max` - [out] current max-file setting in use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, max = dsl_sink_image_multi_file_max_get(
+    'my-multi-image-sink')
+```
+
+<br>
+
+### *dsl_sink_image_multi_file_max_set*
+```C++
+DslReturnType dsl_sink_image_multi_file_max_set(const wchar_t* name, 
+    uint max);
+```
+This service sets the max-file setting for named Multi-Image Sink to use. Once the maximum is reached, old files start to be deleted to make room for new ones. Default = 0 - no max.
+
+**Parameters**
+* `name` - [in] unique name of the Multi-Image Sink to update.
+* `max` - [in] new max-files setting to use. Set to 0 for no maximum. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_image_multi_file_max_set('my-interpipe-sink', 100)
 ```
 
 <br>

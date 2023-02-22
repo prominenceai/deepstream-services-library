@@ -6278,7 +6278,8 @@ DslReturnType dsl_sink_record_cache_size_set(const wchar_t* name, uint cache_siz
  * @param[out] height current height of the video recording in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
  */
-DslReturnType dsl_sink_record_dimensions_get(const wchar_t* name, uint* width, uint* height);
+DslReturnType dsl_sink_record_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
 
 /**
  * @brief sets the dimensions, width and height, for the video recordings created
@@ -6288,7 +6289,8 @@ DslReturnType dsl_sink_record_dimensions_get(const wchar_t* name, uint* width, u
  * @param[in] height height to set the video in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
  */
-DslReturnType dsl_sink_record_dimensions_set(const wchar_t* name, uint width, uint height);
+DslReturnType dsl_sink_record_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
 
 /**
  * @brief returns the current recording state of the Record Sink
@@ -6439,19 +6441,106 @@ DslReturnType dsl_sink_interpipe_num_listeners_get(const wchar_t* name,
     uint* num_listeners);
 
 /**
- * @brief Creates a new, uniquely named Multi Image Sink.
- * The Sink Encodes each frame into a JPEG image and save it to file.
- * specified by a given folder/filename-pattern.
+ * @brief Creates a new, uniquely named Multi-Image Sink.
+ * The Sink Encodes each frame into a JPEG image and save it to file
+ * specified by a given folder/filename-pattern. The rate can be controled
+ * by setting the fps_n and fps_d to non-zero values.
  * @param[in] name unique name for the Multi Image Sink
  * @param[in] file_path use the printf style %d in the absolute or relative path. 
  * Eample: "./my_images/image.%d04.jpg", will create files in "./my_images/"
  * named "image.0000.jpg", "image.0001.jpg", "image.0002.jpg" etc.
- * @param[in] width of the image to save in pixels.
- * @param[in] height of the image to save in pixels.
+ * @param[in] width of the images to save in pixels. Set to 0 for no transcode.
+ * @param[in] height of the images to save in pixels. Set to 0 for no transcode.
+ * @param[in] fps_n frames/second fraction numerator. Set to 0 for no rate change.
+ * @param[in] fps_d frames/second fraction denominator. Set to 0 for no rate change.sd
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_image_multi_new(const wchar_t* name, 
-    const wchar_t* file_path, uint width, uint height);
+    const wchar_t* file_path, uint width, uint height,
+    uint fps_n, uint fps_d);
+
+/**
+ * @brief Gets the current file-path in use by the named Multi-Image Sink
+ * @param[in] name name of the Multi-Image Sink to query
+ * @param[out] file_path file-path in use by the Multi-Image Sink
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sink_image_multi_file_path_get(const wchar_t* name, 
+    const wchar_t** file_path);
+
+/**
+ * @brief Sets the current File Path for the named Multi-Image Sink to use
+ * @param[in] name name of the Multi-Image Sink to update.
+ * @param[in] file_path use the printf style %d in the absolute or relative path. 
+ * Eample: "./my_images/image.%d04.jpg", will create files in "./my_images/"
+ * named "image.0000.jpg", "image.0001.jpg", "image.0002.jpg" etc.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sink_image_multi_file_path_set(const wchar_t* name, 
+    const wchar_t* file_path);
+
+/**
+ * @brief Gets the dimensions, width and height, used by the named
+ * Multi-Image Sink.
+ * @param[in] name name of the Multi-Image Sink to query.
+ * @param[out] width current width to save images in pixels.
+ * @param[out] height current height to save images in pixels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT.
+ */
+DslReturnType dsl_sink_image_multi_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
+
+/**
+ * @brief Sets the dimensions, width and height, for the Multi-Image Sink.
+ * @param[in] name name of the Multi-Image Sink to update.
+ * @param[in] width of the images to save in pixels. Set to 0 for no transcode.
+ * @param[in] height of the images to save in pixels. Set to 0 for no transcode.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT.
+ */
+DslReturnType dsl_sink_image_multi_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
+
+/**
+ * @brief Gets the frame rate of the named Multi-Image Sink as a fraction
+ * @param[in] name unique name of the Multi-Image Sink to query.
+ * @param[out] fps_n frames per second numerator.
+ * @param[out] fps_d frames per second denominator.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_image_multi_frame_rate_get(const wchar_t* name, 
+    uint* fps_n, uint* fps_d);
+    
+/**
+ * @brief Gets the frame rate of the named Multi-Image Sink as a fraction
+ * @param[in] name unique name of the Multi-Image Sink to query.
+ * @param[in] fps_n frames per second numerator. Set to 0 for no rate-change.
+ * @param[in] fps_d frames per second denominator. Set to 0 for no rate-change.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sink_image_multi_frame_rate_set(const wchar_t* name, 
+    uint fps_n, uint fps_d);
+
+/**
+ * @brief Gets the current max-file setting for the named Multi-Image Sink.
+ * @param[in] name unique name of the Multi-Image Sink to query.
+ * @param[out] max maximum number of file to keep on disk. Once the maximum 
+ * is reached, old files start to be deleted to make room for new ones. 
+ * Default = 0 - no max.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_image_multi_file_max_get(const wchar_t* name, 
+    uint* max);
+    
+/**
+ * @brief Sets the max-file setting for the named Multi-Image Sink to use.
+ * @param[in] name unique name of the Multi-Image Sink to update.
+ * @param[in] max maximum number of files to keep on disk. Once the maximum 
+ * is reached, old files start to be deleted to make room for new ones. 
+ * Default = 0 - no max.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_image_multi_file_max_set(const wchar_t* name, 
+    uint max);
     
 /**
  * @brief creates a new, uniquely named WebRTC Sink component

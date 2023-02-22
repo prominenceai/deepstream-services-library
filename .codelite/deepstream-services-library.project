@@ -159,6 +159,7 @@
       <File Name="../test/api/DslSourceBufferOutBehaviorTest.cpp"/>
       <File Name="../test/api/DslDewarperBehaviorTest.cpp"/>
       <File Name="../test/api/DslDewarperApiTest.cpp"/>
+      <File Name="../test/api/DslSinkImageBehaviorTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDemuxerAndTeeUnitTest.cpp"/>
@@ -234,6 +235,7 @@
       <File Name="../examples/cpp/interpipe_multiple_pipelines_listening_to_single_sink.cpp"/>
       <File Name="../examples/cpp/1file_ptis_tracker_osd_window.cpp"/>
       <File Name="../examples/cpp/raw_i420_app_src_ptis_tracker_osd_window.cpp"/>
+      <File Name="../examples/cpp/encode_and_save_frame_to_jpeg_thumbnail_periodically.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
       <File Name="../examples/python/1csi_live_pgie_demuxer_osd_overlay_rtsp_h254.py"/>
@@ -292,6 +294,7 @@
       <File Name="../examples/python/1uri_file_pgie_iou_tracker_app_sink.py"/>
       <File Name="../examples/python/video_dewarper_perspective.py"/>
       <File Name="../examples/python/test_file.py"/>
+      <File Name="../examples/python/encode_and_save_frame_to_jpeg_thumbnail_periodically.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>
