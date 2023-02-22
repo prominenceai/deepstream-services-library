@@ -1230,6 +1230,11 @@ namespace DSL {
         DslReturnType SinkImageMultiFileMaxSet(const char* name, 
             uint max);
         
+        DslReturnType SinkFrameCaptureNew(const char* name,
+            const char* frameCaptureAction);
+            
+        DslReturnType SinkFrameCaptureInitiate(const char* name);
+            
         DslReturnType SinkWebRtcNew(const char* name, const char* stunServer, 
             const char* turnServer, uint codec, uint bitrate, uint interval);
 

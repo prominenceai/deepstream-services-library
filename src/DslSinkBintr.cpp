@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslSinkBintr.h"
 #include "DslBranchBintr.h"
+#include "DslOdeAction.h"
 
 #include <gst-nvdssr.h>
 #include <gst/app/gstappsink.h>
@@ -280,6 +281,90 @@ namespace DSL
 
     //-------------------------------------------------------------------------
 
+    FrameCaptureSinkBintr::FrameCaptureSinkBintr(const char* name, 
+        DSL_BASE_PTR pFrameCaptureAction)
+        : AppSinkBintr(name, DSL_SINK_APP_DATA_TYPE_BUFFER, 
+            on_new_buffer_cb, NULL)
+        , m_pFrameCaptureAction(pFrameCaptureAction)
+        , m_captureNextBuffer(false)
+    {
+        LOG_FUNC();
+        
+        // override the client data (set to NULL above) to this pointer.
+        m_clientData = this;
+        g_mutex_init(&m_captureNextMutex);
+    }
+    
+    FrameCaptureSinkBintr::~FrameCaptureSinkBintr()
+    {
+        LOG_FUNC();
+        
+        g_mutex_clear(&m_captureNextMutex);
+    }
+    
+    bool FrameCaptureSinkBintr::Initiate()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureNextMutex);
+        
+        if (!IsLinked())
+        {
+            LOG_ERROR("Unable initeate frame-capture with FrameCaptureSinkBintr '"
+                << GetName() << "' as it's not in a linked/playing state");
+            return false;
+        }
+        
+        m_captureNextBuffer = true;
+        return true;
+    }
+    
+    uint FrameCaptureSinkBintr::HandleNewBuffer(void* buffer)
+    {
+        // don't log function
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureNextMutex);
+        
+        if (m_captureNextBuffer)
+        {
+            NvDsBatchMeta* pBatchMeta = 
+                gst_buffer_get_nvds_batch_meta((GstBuffer*)buffer);
+            
+            // For each frame in the batched meta data
+            NvDsMetaList* pFrameMetaList = pBatchMeta->frame_meta_list; 
+            
+            if (pFrameMetaList->next)
+            {
+                LOG_WARN("MetaList should only include one frame-meta struct");
+            }
+
+            // Check for valid frame data
+            NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta*) (pFrameMetaList->data);
+            if (pFrameMeta == NULL)
+            {
+                LOG_ERROR("New buffer is missing frame metadata");
+                return GST_FLOW_OK;
+            }
+            
+            // Need to up-cast the base pointer to our frame-capture action
+            DSL_ODE_ACTION_CAPTURE_FRAME_PTR pCaptureAction =
+                std::dynamic_pointer_cast<CaptureFrameOdeAction>(m_pFrameCaptureAction);
+            
+            
+            pCaptureAction->HandleOccurrence((GstBuffer*)buffer, pFrameMeta, NULL);
+            
+            // clear the client flag before returning
+            m_captureNextBuffer = false;
+        }
+        
+        return GST_FLOW_OK;
+    }
+
+    static uint on_new_buffer_cb(uint data_type, 
+        void* data, void* client_data)
+    {        
+        return static_cast<FrameCaptureSinkBintr*>(client_data)->
+            HandleNewBuffer(data);
+    }
+
+    //-------------------------------------------------------------------------
     FakeSinkBintr::FakeSinkBintr(const char* name)
         : SinkBintr(name, true)
     {

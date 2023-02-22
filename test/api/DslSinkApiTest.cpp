@@ -1706,6 +1706,13 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_image_multi_file_max_set(NULL, 
                     1) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_sink_frame_capture_new(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_frame_capture_new(sink_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_frame_capture_initiate(NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
                 
                 REQUIRE( dsl_sink_pph_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_pph_add(sink_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
