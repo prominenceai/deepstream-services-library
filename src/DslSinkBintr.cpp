@@ -1845,7 +1845,7 @@ namespace DSL
         LOG_FUNC();
         
         GstCaps* pCaps(NULL);
-        if (m_width and m_height)
+        if ((m_width and m_height) and (m_fpsN and m_fpsD))
         {
             pCaps = gst_caps_new_simple("video/x-raw", 
                 "format", G_TYPE_STRING, "I420",
@@ -1853,11 +1853,23 @@ namespace DSL
                 "height", G_TYPE_INT, m_height, 
                 "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
         }
-        else
+        else if (m_width and m_height)
+        {
+            pCaps = gst_caps_new_simple("video/x-raw", 
+                "format", G_TYPE_STRING, "I420",
+                "width", G_TYPE_INT, m_width, 
+                "height", G_TYPE_INT, m_height, NULL);
+        }
+        else if (m_fpsN and m_fpsD)
         {
             pCaps = gst_caps_new_simple("video/x-raw", 
                 "format", G_TYPE_STRING, "I420",
                 "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
+        }
+        else
+        {
+            pCaps = gst_caps_new_simple("video/x-raw", 
+                "format", G_TYPE_STRING, "I420", NULL);
         }
         if (!pCaps)
         {
