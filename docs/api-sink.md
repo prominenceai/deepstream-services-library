@@ -1,5 +1,5 @@
 # Sink API Reference
-Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must have at least one sink in use, along with other certain components, to reach a state of Ready. DSL supports ten (11) different types of Sinks:
+Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must have at least one sink in use, along with other certain components, to reach a state of Ready. DSL supports ten (12) different types of Sinks:
 * **Overlay Sink** - renders/overlays video on a Parent display **(Jetson Platform Only)**
 * **Window Sink** - renders/overlays video on a Parent XWindow
 * **File Sink** - encodes video to a media container file
@@ -10,6 +10,7 @@ Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must ha
 * **Application Sink** - allows the application to receive buffers or samples from a DSL Pipeline.
 * **Interpipe Sink** -  allows pipeline buffers and events to flow to other independent pipelines, each with an [Interpipe Source](/docs/api-source.md#dsl_source_interpipe_new).
 * **Multi-Image Sink** - encodes and saves video frames to JPEG files at specified dimensions and frame-rate.
+* **Frame-Capture Sink** - encodes and saves video frames to JPEG files on application/user demand.
 * **Fake Sink** - consumes/drops all data.
 
 Sinks are created by calling one of the eight type-specific constructors. As with all components, Sinks must be uniquely named from all other components created.
@@ -38,6 +39,7 @@ The relationship between Pipelines and Sinks is one-to-many. Once added to a Pip
 * [dsl_sink_message_new](#dsl_sink_message_new)
 * [dsl_sink_interpipe_new](#dsl_sink_interpipe_new)
 * [dsl_sink_image_multi_new](#dsl_sink_image_multi_new)
+* [dsl_sink_frame_capture_new](#dsl_sink_frame_capture_new)
 * [dsl_sink_fake_new](#dsl_sink_fake_new)
 
 **Methods**
@@ -87,6 +89,7 @@ The relationship between Pipelines and Sinks is one-to-many. Once added to a Pip
 * [dsl_sink_image_multi_frame_rate_get](#dsl_sink_image_multi_frame_rate_get)
 * [dsl_sink_image_multi_frame_rate_set](#dsl_sink_image_multi_frame_rate_set)
 * [dsl_sink_image_multi_file_max_get](#dsl_sink_image_multi_file_max_get)
+* [dsl_sink_frame_capture_initiate](#dsl_sink_frame_capture_initiate)
 * [dsl_sink_sync_enabled_get](#dsl_sink_sync_enabled_get)
 * [dsl_sink_sync_enabled_set](#dsl_sink_sync_enabled_set)
 * [dsl_sink_pph_add](#dsl_sink_pph_add)
@@ -562,8 +565,36 @@ The Sink Encodes each frame into a JPEG image and saves it to file specified by 
 
 **Python Example**
 ```Python
-retVal = dsl_sink_image_multi_new('my-interpipe-sink',
+retVal = dsl_sink_image_multi_new('my-multi-image-sink',
     './frame_%04d.jpg', 640, 360, 1, 10)
+```
+
+<br>
+
+### *dsl_sink_frame_capture_new*
+```C++
+DslReturnType dsl_sink_frame_capture_new(const wchar_t* name, 
+    const wchar_t* frame_capture_action);
+```
+The constructor creates a new, uniquely named Frame-Capture Sink. Construction will fail if the name is currently in use. The Sink is created with an [ODE Frame-Capture Action](/docs/api-ode-action.md#dsl_ode_action_capture_frame_new) which performs the image encoding and saving. All captured frames are copied and buffered in the Sink's processing thread. The encoding and saving of each buffered frame is done in the g-idle-thread context. 
+
+The Application intiates a frame-capture by calling [dsl_sink_frame_capture_initiate](#dsl_sink_frame_capture_initiate).
+
+[Capture-complete-listeners](/docs/api-ode-action.md#dsl_capture_complete_listener_cb) (to notifiy on completion), [Image Players](/docs/api-player.md) (to auto-play the new image) and [SMTP Mailers](/docs/api-mailer.md) (to mail the new image) can be added to the Capure Action as well.
+
+Note: the first capture causes a noticable short pause to the stream while cuda dependencies are loaded and cached.  All subsequent captures will not.
+
+**Parameters**
+* `name` - [in] unique name for the Frame-Capture Sink to create.
+* `frame_capture_action` - [in] unique name of the [ODE Frame-Capture Action](/docs/api-ode-action.md#dsl_ode_action_capture_frame_new) to use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retVal = dsl_sink_frame_capture_new('my-frame-capture-sink',
+    'my-frame-capture-action')
 ```
 
 <br>
@@ -1620,7 +1651,30 @@ This service sets the max-file setting for named Multi-Image Sink to use. Once t
 
 **Python Example**
 ```Python
-retval = dsl_sink_image_multi_file_max_set('my-interpipe-sink', 100)
+retval = dsl_sink_image_multi_file_max_set('my-multi-image-sink', 100)
+```
+
+<br>
+
+### *dsl_sink_frame_capture_initiate*
+```C++
+DslReturnType dsl_sink_frame_capture_initiate(const wchar_t* name);
+```
+This service intiates a "frame-capture" action to capture the next buffer processed by the named Frame-Capture Sink.
+
+ All captured frames are copied and buffered in the Sink's processing thread. The encoding and saving of each buffered frame is done in the g-idle-thread context. 
+ 
+ Note: the first capture causes a noticable short pause to the stream while cuda dependencies are loaded and cached.  All subsequent captures will not.
+
+**Parameters**
+* `name` - [in] unique name of the Frame-Capture Sink to update.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_frame_capture_initiate('my-frame-capture-sink')
 ```
 
 <br>
