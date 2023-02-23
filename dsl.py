@@ -827,7 +827,7 @@ def dsl_ode_action_custom_new(name, client_handler, client_data):
 ##
 ## dsl_ode_action_capture_frame_new()
 ##
-_dsl.dsl_ode_action_capture_frame_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
+_dsl.dsl_ode_action_capture_frame_new.argtypes = [c_wchar_p, c_wchar_p]
 _dsl.dsl_ode_action_capture_frame_new.restype = c_uint
 def dsl_ode_action_capture_frame_new(name, outdir):
     global _dsl
@@ -5366,6 +5366,28 @@ def dsl_sink_image_multi_file_max_set(name, max):
     result = _dsl.dsl_sink_image_multi_file_max_set(name, max)
     return int(result)
 
+##
+## dsl_sink_frame_capture_new()
+##
+_dsl.dsl_sink_frame_capture_new.argtypes = [c_wchar_p, 
+    c_wchar_p]
+_dsl.dsl_sink_frame_capture_new.restype = c_uint
+def dsl_sink_frame_capture_new(name, frame_capture_action):
+    global _dsl
+    result =_dsl.dsl_sink_frame_capture_new(name, 
+        frame_capture_action)
+    return int(result)
+    
+##
+## dsl_sink_frame_capture_initiate()
+##
+_dsl.dsl_sink_frame_capture_initiate.argtypes = [c_wchar_p]
+_dsl.dsl_sink_frame_capture_initiate.restype = c_uint
+def dsl_sink_frame_capture_initiate(name):
+    global _dsl
+    result =_dsl.dsl_sink_frame_capture_initiate(name)
+    return int(result)
+    
 ##
 ## dsl_sink_sync_enabled_get()
 ##

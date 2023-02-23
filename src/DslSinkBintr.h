@@ -41,6 +41,11 @@ namespace DSL
         std::shared_ptr<AppSinkBintr>( \
         new AppSinkBintr(name, dataType, clientHandler, clientData))
 
+    #define DSL_FRAME_CAPTURE_SINK_PTR std::shared_ptr<FrameCaptureSinkBintr>
+    #define DSL_FRAME_CAPTURE_SINK_NEW(name, pFrameCaptureAction) \
+        std::shared_ptr<FrameCaptureSinkBintr>( \
+        new FrameCaptureSinkBintr(name, pFrameCaptureAction))
+
     #define DSL_FAKE_SINK_PTR std::shared_ptr<FakeSinkBintr>
     #define DSL_FAKE_SINK_NEW(name) \
         std::shared_ptr<FakeSinkBintr>( \
@@ -213,6 +218,14 @@ namespace DSL
          */
         void SetDataType(uint dataType);
 
+    protected:
+    
+        /**
+         * @brief opaque pointer to client data to return with the callback.
+         * Protected (not private) to allow access by the FrameCaptureSinkBintr.
+         */
+        void* m_clientData;
+
     private:
     
         /**
@@ -233,11 +246,6 @@ namespace DSL
         dsl_sink_app_new_data_handler_cb m_clientHandler; 
         
         /**
-         * @brief opaque pointer to client data to return with the callback.
-         */
-        void* m_clientData;
-        
-        /**
          * @brief App Sink element for the Sink Bintr.
          */
         DSL_ELEMENT_PTR m_pAppSink;
@@ -255,6 +263,74 @@ namespace DSL
     static GstFlowReturn on_new_sample_cb(GstElement sink, 
         gpointer pAppSinkBintr);
         
+    //-------------------------------------------------------------------------
+
+    /**
+     * @class FrameCaptureSinkBintr
+     * @brief Implements a Frame-Capture Sink to encode and save a frame-buffer
+     * to JPEG file on client invocation.
+     */
+    class FrameCaptureSinkBintr : public AppSinkBintr
+    {
+    public:
+        
+        /**
+         * @brief ctor for the FrameCaptureSinkBintr
+         * @param[in] name unique name for the FrameCaptureSinkBintr
+         * @param[in] pCaptureFrameAction shared pointer to an ODE Capture Frame Action
+         */
+        FrameCaptureSinkBintr(const char* name, 
+            DSL_BASE_PTR pFrameCaptureAction);
+        
+        /**
+         * @brief dtor for the FrameCaptureSinkBintr
+         */
+        ~FrameCaptureSinkBintr();
+        
+        /**
+         * @brief Function to initiate the capture of the next output
+         * frame-buffer as provided by the base AppSinkBintr. 
+         * @return false if the Sink is unlinked, true otherwise.
+         */
+        bool Initiate();
+
+        /**
+         * @brief Function to handle each new buffer provided by the AppSinkBintr.
+         * @param[in] buffer new buffer to capture if m_captureNextBuffer == true.
+         * @return GST_FLOW_OK always.
+         */
+        uint HandleNewBuffer(void* buffer);
+        
+    private:
+
+        /**
+         * @brief boolean flag used by the client to signal to the HandleNewBuffer
+         * function to capture the next frame-buffer.
+         */
+        bool m_captureNextBuffer;
+
+        /**
+         * @brief mutex to protect mutual access to m_captureNextBuffer flag.
+         */
+        GMutex m_captureNextMutex;
+
+        /**
+         * @brief Shared pointer to a Frame Capture Action.
+         * to selectively call to capture the current buffer
+         */
+        DSL_BASE_PTR m_pFrameCaptureAction;
+    };
+
+    /**
+     * @brief callback function registered with with the base AppSinkBintr.
+     * The callback wraps the FrameCaptureSinkBintr's HandleNewBuffer function.
+     * @param[in] buffer new GstBuffer with metadata to process.
+     * @param[in] client_data this pointer to the FrameCaptureSinkBintr instance.
+     * @return either GST_FLOW_OK, or GST_FLOW_EOS on no buffer available.
+     */
+    static uint on_new_buffer_cb(uint data_type, 
+        void* buffer, void* client_data);    
+
     //-------------------------------------------------------------------------
 
     class FakeSinkBintr : public SinkBintr

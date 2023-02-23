@@ -593,7 +593,6 @@ SCENARIO( "A new CaptureFrameOdeAction is created correctly", "[OdeAction]" )
     {
         std::string actionName("ode-action");
         std::string outdir("./");
-        bool annotate(true);
 
         WHEN( "A new CaptureFrameOdeAction is created" )
         {

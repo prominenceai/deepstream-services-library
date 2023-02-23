@@ -1541,14 +1541,14 @@ namespace DSL
             m_components[name] = DSL_MULTI_IMAGE_SINK_NEW(name,
                 filepath, width, height, fps_n, fps_d);
 
-            LOG_INFO("New MultiImage Sink '" << name 
+            LOG_INFO("New Multi-Image Sink '" << name 
                 << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New MultiImage Sink '" << name 
+            LOG_ERROR("New Multi-Image Sink '" << name 
                 << "' threw exception on create");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
@@ -1810,6 +1810,75 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SinkFrameCaptureNew(const char* name,
+        const char* frameCaptureAction)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, 
+                frameCaptureAction);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeActions,
+                frameCaptureAction, CaptureFrameOdeAction);
+                
+            m_components[name] = DSL_FRAME_CAPTURE_SINK_NEW(name, 
+                m_odeActions[frameCaptureAction]);
+
+            LOG_INFO("New Frame-Capture Sink '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Frame-Capture Sink '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkFrameCaptureInitiate(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, FrameCaptureSinkBintr);
+
+            DSL_FRAME_CAPTURE_SINK_PTR pFrameCaptureSink = 
+                std::dynamic_pointer_cast<FrameCaptureSinkBintr>(m_components[name]);
+
+            if (!pFrameCaptureSink->Initiate())
+            {
+                LOG_ERROR("Frame-Capture Sink '" << name 
+                    << "' failed to initiate a frame-capture");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Frame-Capture Sink '" << name 
+                << "' initiated a frame-capture successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Frame-Capture Sink '" << name 
+                << "' threw an exception initiating capture");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+            
     DslReturnType Services::SinkPphAdd(const char* name, const char* handler)
     {
         LOG_FUNC();

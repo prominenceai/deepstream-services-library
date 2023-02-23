@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -419,6 +419,12 @@ namespace DSL
         GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        HandleOccurrence(pBuffer, pFrameMeta, pObjectMeta);
+    }
+        
+    void CaptureOdeAction::HandleOccurrence(GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         if (!m_enabled)
@@ -444,8 +450,7 @@ namespace DSL
         // as the index
         DslMonoSurface monoSurface(pMappedBuffer->pSurface, pFrameMeta->batch_id);
 
-        // Coordinates and dimensions for our destination surface for RGBA to 
-        // BGR conversion required for JPEG
+        // Coordinates and dimensions for our destination surface.
         gint left(0), top(0), width(0), height(0);
 
         // capturing full frame or object only?
@@ -600,8 +605,7 @@ namespace DSL
 
         // Allocate and initialize a new array to create a compressed buffer 
         // of raw RGBA image data - i.e. with the memory alignment padding removed.
-        uint8_t rgbaImage[dataSize];
-        memset(rgbaImage, 0, dataSize);
+        uint8_t* rgbaImage = (uint8_t*)g_malloc0(dataSize);
         
         // Initialize the source pointer to the start of the mapped surface
         uint8_t* pSrcIndex = 
@@ -643,9 +647,11 @@ namespace DSL
         {
             AvJpgOutputFile avJpgOutFile(rgbaImage, 
                 bufferWidth, bufferHeight, fileNameStream.str().c_str());
+            g_free(rgbaImage);
         }
         catch(...)
         {
+            g_free(rgbaImage);
             m_idleThreadFunctionId = 0;
             return FALSE;
         }
@@ -687,7 +693,7 @@ namespace DSL
                 // assemble the capture info
                 dsl_capture_info info{0};
 
-                info.captureId = pBufferSurface->GetUniqueId();
+                info.capture_id = pBufferSurface->GetUniqueId();
                 
                 std::string fileName = fileNameStream.str();
                 
@@ -748,14 +754,12 @@ namespace DSL
             }
         } // end child-container mutex lock
         
-        {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
 
-            // If there are more buffer-surfaces to convert, return true to reschedule.
-            if (m_pBufferSurfaces.size())
-            {
-                return TRUE;
-            }
+        // If there are more buffer-surfaces to convert, return true to reschedule.
+        if (m_pBufferSurfaces.size())
+        {
+            return TRUE;
         }
         // Else, clear the thread-function id and return false to NOT reschedule.
         m_idleThreadFunctionId = 0;

@@ -207,20 +207,20 @@ OSDs are optional and a Pipeline (or Branch) can have at most one when using a T
 Clients of On-Screen Display components can add/remove one or more [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers -- with Metadata for each Frame and Detected-Object.
 
 ##  Sinks
-Sinks are the end components in the Pipeline. All Pipelines require at least one Sink Component to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped. A case where the `batch-meta-data` produced from the components in the Pipeline is the only data of interest. There are currently ten (10) types of Sink Components that can be added.
+Sinks are the end components in the Pipeline. All Pipelines require at least one Sink Component to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped -- case where the `batch-meta-data` produced from the components in the Pipeline is the only data of interest. There are currently twelve (12) types of Sink Components that can be added.
 
-
-1. Overlay Render Sink - Jetson platform only
-2. X11/EGL Window Sink
-3. File Sink
-4. Record Sink
-5. RTSP Sink
-6. WebRTC Sink - Requires GStreamer 1.18 or later
-7. IoT Message Sink
-8. Application Sink
-9. Interpipe Sink - see [Interpipe Services](interpipe-services) for more information.
-10. Fake Sink
-
+1. **Overlay Sink** - renders/overlays video on a Parent display **(Jetson Platform Only)**
+2. **Window Sink** - renders/overlays video on a Parent XWindow
+3. **File Sink** - encodes video to a media container file
+4. **Record Sink** - similar to the File sink but with Start/Stop/Duration control and a cache for pre-start buffering.
+5. **RTSP Sink** - streams encoded video on a specified port
+6. **WebRTC Sink** - streams encoded video to a web browser or mobile application. **(Requires GStreamer 1.18 or later)**
+7. **Message Sink** - converts Object Detection Event (ODE) metadata into a message payload and sends it to the server using a specified communication protocol.
+8. **Application Sink** - allows the application to receive buffers or samples from a DSL Pipeline.
+9. **Interpipe Sink** -  allows pipeline buffers and events to flow to other independent pipelines, each with an [Interpipe Source](/docs/api-source.md#dsl_source_interpipe_new).
+10. **Multi-Image Sink** - encodes and saves video frames to JPEG files at specified dimensions and frame-rate.
+11. **Frame-Capture Sink** - encodes and saves video frames to JPEG files on application/user demand.
+12. **Fake Sink** - consumes/drops all data.
 **Overlay** and **Window Sinks** have settable dimensions, width and height in pixels, and X and Y directional offsets that can be updated after creation. 
 
 The **File** and **Record Encoder Sinks** support three codec formats: H.264, H.265 and MPEG-4, with two media container formats: MP4 and MKV.  See [Smart Recording](#smart-recording) below for more information on using Record Sinks.
@@ -229,11 +229,11 @@ The **File** and **Record Encoder Sinks** support three codec formats: H.264, H.
 
 ```Python
 retval = dsl_sink_rtsp_new('my-rtsp-sink', 
-    host='my-jetson.local', udp_port=5400, rtsp_port=8554, codec=DSL_CODEC_H265, bitrate=200000, interval=0)
+    host='my-jetson-desktop.local', udp_port=5400, rtsp_port=8554, codec=DSL_CODEC_H265, bitrate=200000, interval=0)
 ```
 would use
 ```
-rtsp://my-jetson.local:8554/my-rtsp-sink
+rtsp://my-jetson-desktop.local:8554/my-rtsp-sink
 ```
 
 The **IoT Message Sink** converts Object Detection Event (ODE) data into protocol specific IoT messages and brokers/sends the messages to a remote entity.

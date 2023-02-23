@@ -298,6 +298,7 @@ THE SOFTWARE.
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_BRANCH(components, name) do \
 { \
     if (!components[name]->IsType(typeid(AppSinkBintr)) and  \
+        !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
         !components[name]->IsType(typeid(FakeSinkBintr)) and  \
         !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
         !components[name]->IsType(typeid(WindowSinkBintr)) and  \
@@ -321,6 +322,7 @@ THE SOFTWARE.
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(components, name) do \
 { \
     if (!components[name]->IsType(typeid(AppSinkBintr)) and  \
+        !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
         !components[name]->IsType(typeid(FakeSinkBintr)) and  \
         !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
         !components[name]->IsType(typeid(WindowSinkBintr)) and  \
@@ -339,6 +341,7 @@ THE SOFTWARE.
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(components, name) do \
 { \
     if (!components[name]->IsType(typeid(AppSinkBintr)) and  \
+        !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
         !components[name]->IsType(typeid(FakeSinkBintr)) and  \
         !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
         !components[name]->IsType(typeid(WindowSinkBintr)) and  \

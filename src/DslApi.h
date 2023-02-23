@@ -1064,7 +1064,7 @@ typedef struct dsl_capture_info
     /**
      * @brief the unique capture id assigned on file save
      */
-    uint64_t captureId;
+    uint64_t capture_id;
 
     /**
      * @brief filename generated for the captured image. 
@@ -6541,6 +6541,24 @@ DslReturnType dsl_sink_image_multi_file_max_get(const wchar_t* name,
  */
 DslReturnType dsl_sink_image_multi_file_max_set(const wchar_t* name, 
     uint max);
+
+/**
+ * @brief Creates a new, uniquely named Frame-Capture Sink with a child
+ * ODE Frame Cap.
+ * @param[in] name unique component name for the new Frame-Capture Sink
+ * @param[in] frame_capture_action unique name of the ODE Frame-Capture Action.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure.
+ */
+DslReturnType dsl_sink_frame_capture_new(const wchar_t* name, 
+    const wchar_t* frame_capture_action);
+
+/**
+ * @brief Intiates a Frame-Capture action with the next buffer processed by the
+ * named Frame-Capture Sink.
+ * @param[in] name unique name of the Frame-Capture Sink to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure.
+ */
+DslReturnType dsl_sink_frame_capture_initiate(const wchar_t* name);
     
 /**
  * @brief creates a new, uniquely named WebRTC Sink component
