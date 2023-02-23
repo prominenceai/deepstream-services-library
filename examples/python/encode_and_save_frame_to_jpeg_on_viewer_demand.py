@@ -24,19 +24,24 @@
 
 ################################################################################
 #
-# This example demonstrates the use of a Multi-Image Sink to encode and
-# save video frames to JPEG files at specified dimensions and frame-rate.
+# This example demonstrates the use of a Frame-Capture Sink to encode and
+# save video frames to JPEG files on client/viewer demand.
 #
-# The ouput file path/names are specified using a printf style %d in the 
-# provided absolute or relative path. 
-#   eample: "./my_images/image.%d04.jpg", will create files in "./my_images/"
-#   named "image.0000.jpg", "image.0001.jpg", "image.0002.jpg" etc.
+# An ODE Frame-Capture Action is provided to The Frame-Capture Sink on creation.
+# A client "capture_complete_listener" is added to the the Action to be notified
+# when each new file is saved (the ODE Action performs the actual frame-capture).
 #
-# You can limit the number of files that are saved on disc by calling
-#   dsl_sink_multi_image_file_max_set. Default = 0 = no max.
+# Child Players (to play the captured image) and Mailers (to mail the image) can
+# be added to the ODE Frame-Capture action as well (not shown).
 #
-# Once max-files is reached, old files will be deleted to make room for new
-# ones.
+# The "invocation" of a new Frame-Capture is done by pressing the "C" key while 
+# the Window Sink has user focus... i.e. the xwindow_key_event_handler will call
+# the "dsl_sink_frame_capture_initiate" service on key-event.
+#
+# IMPORT All captured frames are copied and buffered in the Sink's processing
+# thread. The encoding and saving of each buffered frame is done in the 
+# g-idle-thread, therefore, the capture-complete notification is asynchronous.
+#
 
 #!/usr/bin/env python
 
@@ -63,7 +68,7 @@ iou_tracker_config_file = \
 def xwindow_key_event_handler(key_string, client_data):
     print('key released = ', key_string)
     if key_string.upper() == 'C':
-        print ('Initiate capture returnd', dsl_return_value_to_string(
+        print ('Initiate capture returned', dsl_return_value_to_string(
             dsl_sink_frame_capture_initiate('frame-capture-sink')))
     if key_string.upper() == 'P':
         dsl_pipeline_pause('pipeline')
@@ -140,23 +145,24 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create a new Capture Action to capture the encode to jpeg image, 
+        # Create a new Capture Action to capture and encode frame to jpeg image, 
         # and save to file. Encoding and saving is done in the g-idle-thread.
+        # Saving to current directory. File names will be generated as
+        #    <action-name>_<unique_capture_id>_<%Y%m%d-%H%M%S>.jpeg
         retval = dsl_ode_action_capture_frame_new('frame-capture-action',
             outdir = "./")
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        ## New Multi-Image Sink, reduced thumbnail dimensions with an 
-        ## output frame-rate of once every 10 seconds
-        retval = dsl_sink_frame_capture_new('frame-capture-sink', 
-            'frame-capture-action')
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the capture complete listener function to the action
         retval = dsl_ode_action_capture_complete_listener_add('frame-capture-action',
             capture_complete_listener, None)
+
+        ## New Frame-Capture Sink created with the new Capture Action.
+        retval = dsl_sink_frame_capture_new('frame-capture-sink', 
+            'frame-capture-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 

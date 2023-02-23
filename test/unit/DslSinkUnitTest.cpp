@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "Dsl.h"
 #include "DslSinkBintr.h"
+#include "DslOdeAction.h"
 
 using namespace DSL;
 
@@ -38,7 +39,7 @@ SCENARIO( "A new AppSinkBintr is created correctly",  "[SinkBintr]" )
 {
     GIVEN( "Attributes for a new App Sink" ) 
     {
-        std::string sinkName("fake-sink");
+        std::string sinkName("app-sink");
         uint dataType(DSL_SINK_APP_DATA_TYPE_BUFFER);
 
         WHEN( "The AppSinkBintr is created" )
@@ -59,7 +60,7 @@ SCENARIO( "A new AppSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A new AppSinkBintr in an Unlinked state" ) 
     {
-        std::string sinkName("fake-sink");
+        std::string sinkName("app-sink");
 
         DSL_APP_SINK_PTR pSinkBintr = DSL_APP_SINK_NEW(sinkName.c_str(), 
             DSL_SINK_APP_DATA_TYPE_BUFFER, new_buffer_cb, NULL);
@@ -73,6 +74,33 @@ SCENARIO( "A new AppSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
             THEN( "The AppSinkBintr's IsLinked state is updated correctly" )
             {
                 REQUIRE( pSinkBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new FrameCaptureSinkBintr is created correctly",  "[SinkBintr]" )
+{
+    GIVEN( "Attributes for a new App Sink" ) 
+    {
+        std::string actionName("ode-action");
+        std::string outdir("./");
+
+        DSL_ODE_ACTION_CAPTURE_FRAME_PTR pAction = 
+            DSL_ODE_ACTION_CAPTURE_FRAME_NEW(actionName.c_str(), 
+                outdir.c_str());
+
+        std::string sinkName("frame-capture-sink");
+
+        WHEN( "The AppSinkBintr is created" )
+        {
+            DSL_FRAME_CAPTURE_SINK_PTR pSinkBintr =
+                DSL_FRAME_CAPTURE_SINK_NEW(sinkName.c_str(), pAction);
+            
+            THEN( "The correct attribute values are returned" )
+            {
+                REQUIRE( pSinkBintr->GetDataType() == DSL_SINK_APP_DATA_TYPE_BUFFER );
+                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
             }
         }
     }

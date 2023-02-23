@@ -265,13 +265,18 @@ namespace DSL
         
     //-------------------------------------------------------------------------
 
+    /**
+     * @class FrameCaptureSinkBintr
+     * @brief Implements a Frame-Capture Sink to encode and save a frame-buffer
+     * to JPEG file on client invocation.
+     */
     class FrameCaptureSinkBintr : public AppSinkBintr
     {
     public:
         
         /**
-         * @brief ctor for the CaptureImageSinkBintr
-         * @param[in] name unique name for the CaptureImageSinkBintr
+         * @brief ctor for the FrameCaptureSinkBintr
+         * @param[in] name unique name for the FrameCaptureSinkBintr
          * @param[in] pCaptureFrameAction shared pointer to an ODE Capture Frame Action
          */
         FrameCaptureSinkBintr(const char* name, 
@@ -290,8 +295,8 @@ namespace DSL
         bool Initiate();
 
         /**
-         * @brief Function to handle each new buffer provided by the App Sink.
-         * @param[in] buffer new buffer to selectively capture.
+         * @brief Function to handle each new buffer provided by the AppSinkBintr.
+         * @param[in] buffer new buffer to capture if m_captureNextBuffer == true.
          * @return GST_FLOW_OK always.
          */
         uint HandleNewBuffer(void* buffer);
@@ -316,8 +321,15 @@ namespace DSL
         DSL_BASE_PTR m_pFrameCaptureAction;
     };
 
+    /**
+     * @brief callback function registered with with the base AppSinkBintr.
+     * The callback wraps the FrameCaptureSinkBintr's HandleNewBuffer function.
+     * @param[in] buffer new GstBuffer with metadata to process.
+     * @param[in] client_data this pointer to the FrameCaptureSinkBintr instance.
+     * @return either GST_FLOW_OK, or GST_FLOW_EOS on no buffer available.
+     */
     static uint on_new_buffer_cb(uint data_type, 
-        void* data, void* client_data);    
+        void* buffer, void* client_data);    
 
     //-------------------------------------------------------------------------
 

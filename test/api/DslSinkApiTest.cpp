@@ -159,6 +159,42 @@ SCENARIO( "An App Sink can update its data-type setting correctly", "[sink-api]"
         }
     }
 }    
+
+SCENARIO( "The Components container is updated correctly on new and delete Frame-Capture Sink", "[sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring action_name(L"capture-action");
+        std::wstring outdir(L"./");
+
+        std::wstring sink_name = L"frame-capture-sink";
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), 
+            outdir.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A new App Sink is created" ) 
+        {
+            REQUIRE( dsl_sink_frame_capture_new(sink_name.c_str(), 
+                action_name.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean sync(false);
+                REQUIRE( dsl_sink_sync_enabled_get(sink_name.c_str(), 
+                    &sync) == DSL_RESULT_SUCCESS );
+                REQUIRE( sync == true );
+
+                // delete and check the component count
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
     
 SCENARIO( "The Components container is updated correctly on new Fake Sink", "[sink-api]" )
 {

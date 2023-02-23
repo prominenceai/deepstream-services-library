@@ -647,6 +647,7 @@ namespace DSL
         {
             AvJpgOutputFile avJpgOutFile(rgbaImage, 
                 bufferWidth, bufferHeight, fileNameStream.str().c_str());
+            g_free(rgbaImage);
         }
         catch(...)
         {
@@ -654,7 +655,6 @@ namespace DSL
             m_idleThreadFunctionId = 0;
             return FALSE;
         }
-        g_free(rgbaImage);
         LOG_INFO("Saved JPEG Image with id = " << pBufferSurface->GetUniqueId());
 
         // Create scope to lock the child-container mutex
@@ -693,7 +693,7 @@ namespace DSL
                 // assemble the capture info
                 dsl_capture_info info{0};
 
-                info.captureId = pBufferSurface->GetUniqueId();
+                info.capture_id = pBufferSurface->GetUniqueId();
                 
                 std::string fileName = fileNameStream.str();
                 
@@ -754,14 +754,12 @@ namespace DSL
             }
         } // end child-container mutex lock
         
-        {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
 
-            // If there are more buffer-surfaces to convert, return true to reschedule.
-            if (m_pBufferSurfaces.size())
-            {
-                return TRUE;
-            }
+        // If there are more buffer-surfaces to convert, return true to reschedule.
+        if (m_pBufferSurfaces.size())
+        {
+            return TRUE;
         }
         // Else, clear the thread-function id and return false to NOT reschedule.
         m_idleThreadFunctionId = 0;

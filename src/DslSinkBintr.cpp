@@ -308,7 +308,7 @@ namespace DSL
         
         if (!IsLinked())
         {
-            LOG_ERROR("Unable initeate frame-capture with FrameCaptureSinkBintr '"
+            LOG_ERROR("Unable initiate frame-capture with FrameCaptureSinkBintr '"
                 << GetName() << "' as it's not in a linked/playing state");
             return false;
         }

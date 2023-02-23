@@ -1064,7 +1064,7 @@ typedef struct dsl_capture_info
     /**
      * @brief the unique capture id assigned on file save
      */
-    uint64_t captureId;
+    uint64_t capture_id;
 
     /**
      * @brief filename generated for the captured image. 
