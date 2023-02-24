@@ -290,7 +290,6 @@
       <File Name="../examples/python/video_dewarper_360.py"/>
       <File Name="../examples/python/1uri_file_pgie_iou_tracker_app_sink.py"/>
       <File Name="../examples/python/video_dewarper_perspective.py"/>
-      <File Name="../examples/python/test_file.py"/>
       <File Name="../examples/python/encode_and_save_frame_to_jpeg_thumbnail_periodically.py"/>
       <File Name="../examples/python/encode_and_save_frame_to_jpeg_on_viewer_demand.py"/>
       <File Name="../examples/python/2uri_file_demuxer_pgie_iou_tiler_osd_window_2_file.py"/>

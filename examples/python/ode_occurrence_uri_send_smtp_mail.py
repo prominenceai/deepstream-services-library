@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2021, Prominence AI, Inc.
+# Copyright (c) 2019-2023, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -22,11 +22,6 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
-#!/usr/bin/env python
-
-import sys
-from dsl import *
-
 ##########################################################################33####
 # IMPORTANT! it is STRONGLY advised that you create a new, free Gmail account -- 
 # that is seperate/unlinked from all your other email accounts -- strictly for 
@@ -42,6 +37,11 @@ from dsl import *
 # CAUTION - Do not check sripts into your repo with valid credentials
 #
 #######################################################################
+#!/usr/bin/env python
+
+import sys
+from dsl import *
+
 user_name = 'my.smtps.server'
 password = 'my-server-pw'
 server_url = 'smtps://smtp.gmail.com:465'
