@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2021, Prominence AI, Inc.
+# Copyright (c) 2021-2023, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,25 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+################################################################################
+#
+# The example demonstrates how to create a set of Pipeline components, 
+# specifically:
+#   - File Source
+#   - Primary Triton Inference Server (PTIS)
+#   - IOU Tracker
+#   - On-Screen Display
+#   - Window Sink
+# ...and how to add them to a new Pipeline and play
+# 
+# The example registers handler callback functions with the Pipeline for:
+#   - key-release events
+#   - delete-window events
+#   - end-of-stream EOS events
+#   - Pipeline change-of-state events
+#  
+################################################################################
+
 #!/usr/bin/env python
 
 import sys
@@ -29,13 +48,6 @@ import time
 
 from dsl import *
 
-#-------------------------------------------------------------------------------------------
-#
-# This script demonstrates the use of a Primary Triton Inference Server (PTIS). The PTIS
-# requires a unique name, TIS inference config file, and inference interval when created.
-#
-# The PTIS is added to a new Pipeline with a single File Source, IOU Tracker, 
-# On-Screen-Display (OSD), and Window Sink with 1280x720 dimensions.
 
 # File path for the single File Source
 file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4'

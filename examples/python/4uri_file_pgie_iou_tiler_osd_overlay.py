@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2021, Prominence AI, Inc.
+# Copyright (c) 2019-2023, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -26,10 +26,10 @@
 
 import sys
 import time
+
 from dsl import *
 
-# update host URL to 
-host_uri = 'username-desktop.local'
+uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = \
@@ -37,19 +37,42 @@ primary_infer_config_file = \
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+
+# Function to be called on End-of-Stream (EOS) event
+def eos_event_listener(client_data):
+    print('Pipeline EOS event')
+    dsl_pipeline_stop('pipeline')
+    dsl_main_loop_quit()
+
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # New CSI Live Camera Source
-        retval = dsl_source_csi_new('csi-source', 1280, 720, 30, 1)
+        # New URI File Source
+        retval = dsl_source_uri_new('uri-source-1', uri_h265, False, False, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
+        dsl_source_uri_new('uri-source-2', uri_h265, False, False, 1)
+        dsl_source_uri_new('uri-source-3', uri_h265, False, False, 1)
+        dsl_source_uri_new('uri-source-4', uri_h265, False, False, 1)
 
         # New Primary GIE using the filespecs above, with interval and Id
         retval = dsl_infer_gie_primary_new('primary-gie', 
-            primary_infer_config_file, primary_model_engine_file, 0)
+            primary_infer_config_file, primary_model_engine_file, 1)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New IOU Tracker, setting operational width and hieght
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New Tiler, setting width and height, use default cols/rows set by source count
+        retval = dsl_tiler_new('tiler', 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -59,38 +82,33 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_sink_overlay_new('overlay-sink', 0, 0, 100, 100, 1280, 720)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retVal = dsl_sink_rtsp_new('rtsp-sink', host_uri, 5400, 8554, DSL_CODEC_H264, 4000000,0)
-        if retVal != DSL_RETURN_SUCCESS:
-            print(dsl_return_value_to_string(retVal)) 
-
-        retval = dsl_branch_new_component_add_many('branch1', ['on-screen-display', 'overlay-sink', 'rtsp-sink', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # NOTE: there's only one Branch with one Source, 0ne-to-one relationship when using Demuxer Tees
-        # You can avoid the need to create a branch by using a Tiler instead of Demuxer, when only using one source.
-        
-        # New demuxer to demultiplex the batched stream from the Pipeline's streammuxer
-        retval = dsl_tee_demuxer_new_branch_add_many('demuxer', ['branch1', None])
+        # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
+        retval = dsl_sink_overlay_new('overlay-sink', 0, 0, 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add all the components to our pipeline
-        retval = dsl_pipeline_new_component_add_many('pipeline', ['csi-source', 'primary-gie', 'demuxer', None])
+        retval = dsl_pipeline_new_component_add_many('pipeline', 
+            ['uri-source-1', 'uri-source-2', 'uri-source-3', 'uri-source-4', 
+            'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'overlay-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
+
+        # New Pipeline to use with the above components
+        retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
 
         # Play the pipeline
         retval = dsl_pipeline_play('pipeline')
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Once playing, we can dump the pipeline graph to dot file, which can be converted to an image file for viewing/debugging
+        dsl_pipeline_dump_to_dot('pipeline', 'state-playing')
+
         dsl_main_loop_run()
-        retval = DSL_RETURN_SUCCESS
         break
 
     # Print out the final result
@@ -101,4 +119,3 @@ def main(args):
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
-

@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2021, Prominence AI, Inc.
+# Copyright (c) 2019-2023, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,6 @@ import time
 
 from dsl import *
 
-# Filespecs for the Primary GIE
 # Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
@@ -61,7 +60,8 @@ def xwindow_key_event_handler(key_string, client_data):
             cur_overlay_count += 1
             sink_name = 'overlay-sink-' + str(cur_overlay_count)
             print('adding sink ', sink_name)
-            dsl_sink_overlay_new(sink_name, 0, 0, 100*cur_overlay_count, 100*cur_overlay_count, 360, 180)
+            dsl_sink_overlay_new(sink_name, 0, 0, 100*cur_overlay_count, 
+                100*cur_overlay_count, 360, 180)
             dsl_pipeline_component_add('pipeline', sink_name)
 
     # Remove the last sink added
@@ -123,18 +123,22 @@ def main(args):
             break
 
         ## Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
+        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 
+            xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
+        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", 
+            xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         ## Add the listener callback functions defined above
-        retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
+        retval = dsl_pipeline_state_change_listener_add('pipeline', 
+            state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
+        retval = dsl_pipeline_eos_listener_add('pipeline', 
+            eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 

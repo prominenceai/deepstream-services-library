@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2021, Prominence AI, Inc.
+# Copyright (c) 2021-2023, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,6 +20,24 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
+################################################################################
+
+################################################################################
+#
+# The example demonstrates how to create a set of Pipeline components, 
+# specifically:
+#   - Image Source - single image to EOS
+#   - Primary GST Inference Engine (PGIE)
+#   - On-Screen Display
+#   - Window Sink
+# ...and how to add them to a new Pipeline and play
+# 
+# The example registers handler callback functions with the Pipeline for:
+#   - key-release events
+#   - delete-window events
+#   - end-of-stream EOS events
+#   - Pipeline change-of-state events
+#  
 ################################################################################
 
 #!/usr/bin/env python

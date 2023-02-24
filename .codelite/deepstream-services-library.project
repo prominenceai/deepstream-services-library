@@ -239,12 +239,9 @@
       <File Name="../examples/cpp/encode_and_save_frame_to_jpeg_on_viewer_demand.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
-      <File Name="../examples/python/1csi_live_pgie_demuxer_osd_overlay_rtsp_h254.py"/>
       <File Name="../examples/python/1csi_live_pgie_osd_overlay_rtsp_h254.py"/>
       <File Name="../examples/python/1file_webrtc_connect_post_play.py"/>
       <File Name="../examples/python/1file_webrtc_connect_pre_play.py"/>
-      <File Name="../examples/python/2uri_splitter_pgie_ktl_osd_window_and_file.py"/>
-      <File Name="../examples/python/4uri_file_pgie_ktl_tiler_osd_overlay.py"/>
       <File Name="../examples/python/4uri_file_tiler_show_source_control.py"/>
       <File Name="../examples/python/8uri_file_pph_meter_performace_reporting.py"/>
       <File Name="../examples/python/message_broker_azure_device_client.py"/>
@@ -285,7 +282,6 @@
       <File Name="../examples/python/1uri_file_pgie_iou_tracker_osd_window_h264_mkv.py"/>
       <File Name="../examples/python/1uri_file_pgie_iou_tracker_osd_window_h265_mp4.py"/>
       <File Name="../examples/python/1uri_https_window_dynamic_overlay.py"/>
-      <File Name="../examples/python/2uri_file_demuxer_pgie_ktl_tiler_osd_window_2_file.py"/>
       <File Name="../examples/python/2uri_file_pgie_iou_tracker_3sgie_tiler_osd_custom_pph_window.py"/>
       <File Name="../examples/python/2uri_file_pgie_iou_tracker_demuxer_1osd_1overlay_1window.py"/>
       <File Name="../examples/python/dyn_uri_file_pgie_iou_tracker_tiler_osd_window.py"/>
@@ -294,9 +290,11 @@
       <File Name="../examples/python/video_dewarper_360.py"/>
       <File Name="../examples/python/1uri_file_pgie_iou_tracker_app_sink.py"/>
       <File Name="../examples/python/video_dewarper_perspective.py"/>
-      <File Name="../examples/python/test_file.py"/>
       <File Name="../examples/python/encode_and_save_frame_to_jpeg_thumbnail_periodically.py"/>
       <File Name="../examples/python/encode_and_save_frame_to_jpeg_on_viewer_demand.py"/>
+      <File Name="../examples/python/2uri_file_demuxer_pgie_iou_tiler_osd_window_2_file.py"/>
+      <File Name="../examples/python/2uri_splitter_pgie_iou_osd_window_and_file.py"/>
+      <File Name="../examples/python/4uri_file_pgie_iou_tiler_osd_overlay.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>
