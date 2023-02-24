@@ -22,6 +22,26 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+################################################################################
+#
+# The simple example demonstrates how to create a set of Pipeline components, 
+# specifically:
+#   - URI Source
+#   - Primary GST Inference Engine (PGIE)
+#   - IOU Tracker
+#   - On-Screen Display (OSD)
+#   - Window Sink
+#   - File Sink to encode (H265) and save the stream to MP4 file.
+# ...and how to add them to a new Pipeline and play
+# 
+# The example registers handler callback functions with the Pipeline for:
+#   - key-release events
+#   - delete-window events
+#   - end-of-stream EOS events
+#   - Pipeline change-of-state events
+#  
+################################################################################
+
 #!/usr/bin/env python
 
 import sys

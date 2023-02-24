@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2021, Prominence AI, Inc.
+# Copyright (c) 2019-2023, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,6 +20,26 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
+################################################################################
+
+################################################################################
+#
+# The simple example demonstrates how to create a set of Pipeline components, 
+# specifically:
+#   - URI Source
+#   - Primary GST Inference Engine (PGIE)
+#   - IOU Tracker
+#   - On-Screen Display (OSD)
+#   - Window Sink
+#   - File Sink to encode (H264) and save the stream to MKV file.
+# ...and how to add them to a new Pipeline and play
+# 
+# The example registers handler callback functions with the Pipeline for:
+#   - key-release events
+#   - delete-window events
+#   - end-of-stream EOS events
+#   - Pipeline change-of-state events
+#  
 ################################################################################
 
 #!/usr/bin/env python
@@ -81,12 +101,12 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        ## First new URI File Source
+        # First new URI File Source
         retval = dsl_source_uri_new('uri-source', uri_file, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        ## New Primary GIE using the filespecs above with interval = 0
+        # New Primary GIE using the filespecs above with interval = 0
         retval = dsl_infer_gie_primary_new('primary-gie', 
             primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
@@ -98,37 +118,43 @@ def main(args):
             break
 
         # New OSD with text, clock and bbox display all enabled. 
-        retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+        retval = dsl_osd_new('on-screen-display', text_enabled=True, 
+            clock_enabled=True, bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## New Window Sink, 0 x/y offsets with reduced dimensions
+        # New Window Sink, 0 x/y offsets with reduced dimensions
         retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## New File Sink with H264 Codec type and MKV conatiner muxer, and bit-rate and iframe interval
-        retval = dsl_sink_file_new('file-sink', "./output.mkv", DSL_CODEC_H264, DSL_CONTAINER_MKV, 2000000, 0)
+        # New File Sink with H264 Codec type and MKV conatiner muxer, 
+        # and bit-rate and iframe interval
+        retval = dsl_sink_file_new('file-sink', "./output.mkv", 
+            DSL_CODEC_H264, DSL_CONTAINER_MKV, 2000000, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'on-screen-display', 'window-sink', 'file-sink', None])
+            ['uri-source', 'primary-gie', 'iou-tracker', 'on-screen-display', 
+            'window-sink', 'file-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
+        # Add the XWindow event handler functions defined above
+        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 
+            xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
+        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", 
+            xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## Add the listener callback functions defined above
-        retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
+        # Add the listener callback functions defined above
+        retval = dsl_pipeline_state_change_listener_add('pipeline', 
+            state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)

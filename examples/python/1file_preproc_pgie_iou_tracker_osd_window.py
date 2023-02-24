@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2021, Prominence AI, Inc.
+# Copyright (c) 2019-2023, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,6 +20,29 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
+################################################################################
+
+################################################################################
+#
+# The simple example demonstrates how to create a set of Pipeline components, 
+# specifically:
+#   - URI Source
+#   - Preprocessor
+#   - Primary GIE
+#   - IOU Tracker
+#   - On-Screen Display
+#   - Window Sink
+# ...and how to add them to a new Pipeline and play
+#
+# Specific services must be called for the PGIE to be able to receive tensor-meta
+# buffers from the Preprocessor component.
+# 
+# The example registers handler callback functions with the Pipeline for:
+#   - key-release events
+#   - delete-window events
+#   - end-of-stream EOS events
+#   - Pipeline change-of-state events
+#  
 ################################################################################
 
 #!/usr/bin/env python
@@ -102,10 +125,8 @@ def main(args):
             break
         
         # New Primary GIE using the filespecs above with interval = 0
-#        retval = dsl_infer_gie_primary_new('primary-gie', 
-#            primary_infer_config_file, primary_model_engine_file, 0)
         retval = dsl_infer_gie_primary_new('primary-gie', 
-            primary_infer_config_file, None, 0)
+            primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 

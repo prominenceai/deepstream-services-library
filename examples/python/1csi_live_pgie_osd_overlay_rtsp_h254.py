@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2021, Prominence AI, Inc.
+# Copyright (c) 2019-2023, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,6 +20,18 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
+################################################################################
+
+################################################################################
+#
+# The simple example demonstrates how to create a set of Pipeline components, 
+# specifically:
+#   - CSI Source
+#   - Primary GST Inference Engine (PGIE)
+#   - On-Screen Display
+#   - Overlay Sink
+#   - RTSP Sink
+# ...and how to add them to a new Pipeline and play.
 ################################################################################
 
 #!/usr/bin/env python
