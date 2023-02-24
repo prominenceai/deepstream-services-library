@@ -30,7 +30,7 @@
 #   - Primary GST Inference Engine (PGIE)
 #   - IOU Tracker
 #   - On-Screen Display (OSD)
-#   - APP Sink
+#   - Window Sink
 # ...and how to add them to a new Pipeline and play
 # 
 # A Custom Pad-Probe-Handler is added to the Sink-Pad of the OSD
