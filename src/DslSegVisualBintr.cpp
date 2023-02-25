@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2021, Prominence AI, Inc.
+Copyright (c) 2021-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -43,13 +43,20 @@ namespace DSL
         m_pSegVisual->SetAttribute("height", m_height);
         m_pSegVisual->SetAttribute("gpu-id", m_gpuId);
 
+        LOG_INFO("");
+        LOG_INFO("Initial property values for SegVisualBintr '" << name << "'");
+        LOG_INFO("  width             : " << m_width);
+        LOG_INFO("  height            : " << m_height);
+        LOG_INFO("  gpu-id            : " << m_gpuId);
+
         AddChild(m_pQueue);
         AddChild(m_pSegVisual);
         
         m_pQueue->AddGhostPadToParent("sink");
         m_pSegVisual->AddGhostPadToParent("src");
         
-        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW("segvisual-src-pad-probe", "src", m_pSegVisual);
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW("segvisual-src-pad-probe", 
+            "src", m_pSegVisual);
     }
 
     SegVisualBintr::~SegVisualBintr()
@@ -63,7 +70,8 @@ namespace DSL
 
         if (!m_batchSize)
         {
-            LOG_ERROR("SegVisualBintr '" << GetName() << "' can not be linked: batch size = 0");
+            LOG_ERROR("SegVisualBintr '" << GetName() 
+                << "' can not be linked: batch size = 0");
             return false;
         }
         if (m_isLinked)

@@ -75,6 +75,11 @@ namespace DSL
         , RecordMgr(name, outdir, m_gpuId, container, clientListener)
     {
         LOG_FUNC();
+        
+        LOG_INFO("");
+        LOG_INFO("Initial property values for RecordTapBintr '" << name << "'");
+        LOG_INFO("  outdir             : " << outdir);
+        LOG_INFO("  container          : " << container);
     }
     
     RecordTapBintr::~RecordTapBintr()

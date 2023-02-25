@@ -120,6 +120,16 @@ namespace DSL
         g_signal_connect(m_pAppSink->GetGObject(), "new-sample", 
             G_CALLBACK(on_new_sample_cb), this);
         
+        // Only log properties if App Sink and not Frame-Capture Sink
+        if (IsType(typeid(AppSinkBintr)))
+        {
+            LOG_INFO("");
+            LOG_INFO("Initial property values for AppSinkBintr '" << name << "'");
+            LOG_INFO("  enable-last-sample : " << false);
+            LOG_INFO("  max-lateness       : " << -1);
+            LOG_INFO("  sync               : " << m_sync);
+            LOG_INFO("  qos                : " << m_qos);
+        }
         AddChild(m_pAppSink);
 
         g_mutex_init(&m_dataHandlerMutex);
@@ -289,6 +299,14 @@ namespace DSL
         , m_captureNextBuffer(false)
     {
         LOG_FUNC();
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for FrameCaptureSinkBintr '" 
+            << name << "'");
+        LOG_INFO("  enable-last-sample : " << false);
+        LOG_INFO("  max-lateness       : " << -1);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  qos                : " << m_qos);
         
         // override the client data (set to NULL above) to this pointer.
         m_clientData = this;
@@ -376,6 +394,13 @@ namespace DSL
         m_pFakeSink->SetAttribute("sync", m_sync);
         m_pFakeSink->SetAttribute("async", false);
         m_pFakeSink->SetAttribute("qos", m_qos);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for FakeSinkBintr '" << name << "'");
+        LOG_INFO("  enable-last-sample : " << false);
+        LOG_INFO("  max-lateness       : " << -1);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  qos                : " << m_qos);
         
         AddChild(m_pFakeSink);
     }
@@ -504,6 +529,18 @@ namespace DSL
         m_pOverlay->SetAttribute("sync", m_sync);
         m_pOverlay->SetAttribute("async", false);
         m_pOverlay->SetAttribute("qos", m_qos);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for OverlaySinkBintr '" << name << "'");
+        LOG_INFO("  unique-id         : " << m_uniqueId);
+        LOG_INFO("  display-id        : " << m_displayId);
+        LOG_INFO("  offset-x          : " << offsetX);
+        LOG_INFO("  offset-y          : " << offsetY);
+        LOG_INFO("  width             : " << m_width);
+        LOG_INFO("  height            : " << m_height);
+        LOG_INFO("  max-lateness      : " << -1);
+        LOG_INFO("  sync              : " << m_sync);
+        LOG_INFO("  qos               : " << m_qos);
         
         AddChild(m_pOverlay);
     }
@@ -701,6 +738,17 @@ namespace DSL
                 << GetName() << "'");
             throw;
         }
+        LOG_INFO("");
+        LOG_INFO("Initial property values for WindowSinkBintr '" << name << "'");
+        LOG_INFO("  offset-x           : " << offsetX);
+        LOG_INFO("  offset-y           : " << offsetY);
+        LOG_INFO("  width              : " << m_width);
+        LOG_INFO("  height             : " << m_height);
+        LOG_INFO("  force-aspect-ratio : " << m_forceAspectRatio);
+        LOG_INFO("  enable-last-sample : " << false);
+        LOG_INFO("  max-lateness       : " << -1);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  qos                : " << m_qos);
         
         AddChild(m_pTransform);
     }
@@ -1054,6 +1102,18 @@ namespace DSL
             throw;
         }
 
+        LOG_INFO("");
+        LOG_INFO("Initial property values for FileSinkBintr '" << name << "'");
+        LOG_INFO("  file-path          : " << filepath);
+        LOG_INFO("  codec              : " << m_codec);
+        LOG_INFO("  container          : " << m_container);
+        LOG_INFO("  bitrate            : " << m_bitrate);
+        LOG_INFO("  interval           : " << m_interval);
+        LOG_INFO("  enable-last-sample : " << false);
+        LOG_INFO("  max-lateness       : " << -1);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  qos                : " << m_qos);
+
         AddChild(m_pContainer);
         AddChild(m_pFileSink);
     }
@@ -1135,6 +1195,17 @@ namespace DSL
     {
         LOG_FUNC();
         
+        LOG_INFO("");
+        LOG_INFO("Initial property values for RecordSinkBintr '" << name << "'");
+        LOG_INFO("  outdir             : " << outdir);
+        LOG_INFO("  codec              : " << m_codec);
+        LOG_INFO("  container          : " << container);
+        LOG_INFO("  bitrate            : " << m_bitrate);
+        LOG_INFO("  interval           : " << m_interval);
+        LOG_INFO("  enable-last-sample : " << false);
+        LOG_INFO("  max-lateness       : " << -1);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  qos                : " << m_qos);
     }
     
     RecordSinkBintr::~RecordSinkBintr()
@@ -1300,6 +1371,18 @@ namespace DSL
         gst_rtsp_mount_points_add_factory(pMounts, uniquePath.c_str(), m_pFactory);
         g_object_unref(pMounts);
 
+        LOG_INFO("");
+        LOG_INFO("Initial property values for RecordSinkBintr '" << name << "'");
+        LOG_INFO("  host               : " << m_host);
+        LOG_INFO("  port               : " << m_udpPort);
+        LOG_INFO("  codec              : " << m_codec);
+        LOG_INFO("  bitrate            : " << m_bitrate);
+        LOG_INFO("  interval           : " << m_interval);
+        LOG_INFO("  enable-last-sample : " << false);
+        LOG_INFO("  max-lateness       : " << -1);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  qos                : " << m_qos);
+
         AddChild(m_pPayloader);
         AddChild(m_pUdpSink);
     }
@@ -1435,6 +1518,17 @@ namespace DSL
         {
             m_pMsgBroker->SetAttribute("topic", m_topic.c_str());
         }
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for RecordSinkBintr '" << name << "'");
+        LOG_INFO("  converter-config   : " << m_converterConfigFile);
+        LOG_INFO("  payload-type       : " << m_payloadType);
+        LOG_INFO("  broker-config      : " << m_brokerConfigFile);
+        LOG_INFO("  proto-lib          : " << m_protocolLib);
+        LOG_INFO("  enable-last-sample : " << false);
+        LOG_INFO("  max-lateness       : " << -1);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  qos                : " << m_qos);
         
         AddChild(m_pTee);
         AddChild(m_pMsgConverterQueue);
@@ -1612,8 +1706,18 @@ namespace DSL
         m_pSinkElement->SetAttribute("qos", m_qos);
         m_pSinkElement->SetAttribute("forward-eos", m_forwardEos);
         m_pSinkElement->SetAttribute("forward-events", m_forwardEvents);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for InterpipeSinkBintr '" << name << "'");
+        LOG_INFO("  forward-eos        : " << m_forwardEos);
+        LOG_INFO("  forward-events     : " << m_forwardEvents);
+        LOG_INFO("  enable-last-sample : " << false);
+        LOG_INFO("  max-lateness       : " << -1);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  qos                : " << m_qos);
         
         LOG_INFO("interpipesink full name = " << m_pSinkElement->GetName());
+
         
         AddChild(m_pSinkElement);
     }

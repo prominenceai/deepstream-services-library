@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2022, Prominence AI, Inc.
+Copyright (c) 2022-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -54,6 +54,13 @@ namespace DSL
         m_pPreproc->SetAttribute("gpu-id", m_gpuId);
         m_pPreproc->SetAttribute("config-file", configFile);
         m_pPreproc->SetAttribute("enable", m_enabled);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for PreprocBintr '" << name << "'");
+        LOG_INFO("  config-file        : " << m_configFile);
+        LOG_INFO("  unique-id          : " << m_uniqueId);
+        LOG_INFO("  enabled            : " << m_enabled);
+        LOG_INFO("  gpu-id             : " << m_gpuId);
         
         AddChild(m_pPreproc);
         AddChild(m_pQueue);
