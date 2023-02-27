@@ -111,6 +111,13 @@
     <File Name="../src/DslSinkBintr.h"/>
     <File Name="../src/DslAvFile.h"/>
     <File Name="../src/DslAvFile.cpp"/>
+    <VirtualDirectory Name="webrtc">
+      <File Name="../src/webrtc/DslServicesSinkWebRtc.cpp"/>
+      <File Name="../src/webrtc/DslSinkWebRtcBintr.cpp"/>
+      <File Name="../src/webrtc/DslSinkWebRtcBintr.h"/>
+      <File Name="../src/webrtc/DslSoupServerMgr.cpp"/>
+      <File Name="../src/webrtc/DslSoupServerMgr.h"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="api">
