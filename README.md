@@ -57,6 +57,7 @@ Come join us on [Discord](https://discord.gg/MJvY9jjpAK), an informal place to c
 
 ## DSL Users Guide
 
+* [Release Notes](/Release%20Notes/dsl-releases.md)
 * [Overview](/docs/overview.md)
 * [Installing Dependencies](/docs/installing-dependencies.md)
 * [Building and Importing DSL](/docs/building-dsl.md)
