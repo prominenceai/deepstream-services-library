@@ -115,33 +115,25 @@ There are seven categories of Components that can be added to a Pipeline, automa
 ![DSL Components](/Images/dsl-components.png)
 
 ## Sources
-Streaming sources are the head component(s) for all Pipelines and all Pipelines must have at least one Source (among other components) before they can transition to a state of Playing. All Pipelines have the ability to multiplex multiple streams -- using their own built-in Stream-Muxer -- as long as all Sources are of the same play-type; live vs. non-live with the ability to Pause. 
+Sources are the head components for all DSL [Pipelines](/docs/api-pipeline.md) and [Players](docs/api-player.md). Pipelines must have at least one Source and one [Sink](/docs/api-sink.md) to transition to a state of PLAYING. All Pipelines have the ability to multiplex multiple source streams -- using their own built-in Stream-Muxer -- as long as all Sources are of the same play-type; live vs. non-live with the ability to Pause. 
 
-There are ten (10) types of Source components supported. 
+There are ten (10) types of Source components supported, all are currently Video ony. Audio-Video and Video only Sources are in development.  
+* **App Source** - allows the application to insert raw samples or buffers into a DSL Pipeline.
+* **CSI Source** - Camera Serial Interface (CSI) Source - Jetson platform only.
+* **USB Source** - Universal Serial Bus (USB) Source.
+* **URI Source** - Uniform Resource Identifier ( URI ) Source.
+* **File Source** - Derived from URI Source with fixed inputs.
+* **RTSP Source** - Real-time Streaming Protocol ( RTSP ) Source - supports transport over TCP or UDP in unicast or multicast mode
+* **Interpipe Source** - receives pipeline buffers and events from an Interpipe Sink.  See [Interpipe Services](interpipe-services) for more information.
+* **Single Image Source** - single frame to EOS.
+* **Multi Image Source** - streamed at one image file per frame.
+* **Streaming Image Source** - single image streamed at a given frame rate.
 
-Two live connected Camera Sources:
-* Camera Serial Interface (CSI) Source - connected to one of the serial ports on the Jetson SOM
-* Universal Serial Bus (USB) Source
+All Sources have dimensions, width and height in pixels, and frame-rates expressed as a fractional numerator and denominator.  The URI and RTSP Source components supports multiple codec formats, including H.264, H.265, and JPEG. 
 
-Three Decode Sources;
-* Universal Resource Identifier (URI) Source - supports files as well.
-* File Source - derived from the URI Decode Source with some of the parameters fixed.
-* Real-time Streaming Protocol (RTSP) Source
+A [Dewarper Component](/docs/api-dewarper.md) (not shown in the image above) capable of 360 degee and perspective dewarping can be added to any Video Source. 
 
-Three Images Sources:
-* Single Image Source -  single frame to EOS.
-* Multi Image Source -  streamed at one image file per frame.
-* Streaming Image - single image streamed at a given frame rate, indefinitely or for a given duration. The Source can mimic a live source allowing it to be batched with other live streaming sources.
-
-Application Source:
-* Allows applications to insert data into a DSL pipeline.
-
-An Interpipe Source
-* Receives buffers and events from an Interpipe Sink See [Interpipe Services](interpipe-services) for more information.
-
-All Sources have dimensions, width and height in pixels, and frame-rates expressed as a fractional numerator and denominator.  The URI Source component supports multiple codec formats, including H.264, H.265, PNG, and JPEG. A [Dewarper Component](/docs/api-dewarper.md) (not shown in the image above) capable of dewarping 360 degree camera streams can be added to both. 
-
-A Pipeline's Stream-Muxer has settable output dimensions with a decoded, batched output stream that is ready to infer on.
+All Video Sources include a [Video Converter](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvvideoconvert.html) providing programmatic control over the **formatting**, **scaling**, **cropping**, and **orienting** of the Source's output-buffers.
 
 A [Record-Tap](#smart-recording) (not show in the image above) can be added to a RTSP Source for cached pre-decode recording, triggered on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-pad-probe-handler).
 
@@ -173,10 +165,11 @@ DSL supports NVIDIA's [Segmentation Visualizer plugin](https://docs.nvidia.com/m
 See the [Segmentation Visualizer API](/docs/api-segvisual.md) reference section for more information.
 
 ## Multi-Object Trackers
-The DeepStream Services Library (DSL) supports Nvidia's three reference low-level trackers implemented in a single low-level library:
-1. **NvDCF** - an NVIDIA adapted Discriminative Correlation Filter (DCF) tracker.
-2. **DeepSORT** - a re-implementation of the official DeepSORT tracker.
-3. **IOU** - [Intersection-Over-Unioun](https://www.researchgate.net/publication/319502501_High-Speed_Tracking-by-Detection_Without_Using_Image_Information_Challenge_winner_IWOT4S) High-Frame-Rate Tracker. 
+The DeepStream Services Library (DSL) supports Nvidia's four low-level tracker "reference implementations" all with in a single low-level library:
+* **IOU** - [Intersection-Over-Unioun](https://www.researchgate.net/publication/319502501_High-Speed_Tracking-by-Detection_Without_Using_Image_Information_Challenge_winner_IWOT4S) High-Frame-Rate Tracker. 
+* **NvSORT**: - NVIDIA®-enhanced Simple Online and Realtime Tracking (SORT) algorithm.
+* **DeepSORT** - a re-implementation of the official DeepSORT tracker.
+* **NvDCF** - an NVIDIA adapted Discriminative Correlation Filter (DCF) tracker.
 
 Any custom library that implements the [NvDsTracker API](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvtracker.html#how-to-implement-a-custom-low-level-tracker-library) can be used as well.
 
