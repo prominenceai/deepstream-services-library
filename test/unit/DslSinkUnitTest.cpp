@@ -738,7 +738,7 @@ SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr is created correctly",  "[SinkBint
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H264);
         uint container(DSL_CONTAINER_MP4);
-        uint bitrate(2000000);
+        uint bitrate(0); // use default
         uint interval(0);
 
         WHEN( "The DSL_CODEC_H264 FileSinkBintr is created " )
@@ -751,7 +751,7 @@ SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr is created correctly",  "[SinkBint
                 uint retCodec(0), retBitrate(0), retInterval(0);
                 pSinkBintr->GetEncoderSettings(&retCodec, &retBitrate, &retInterval);
                 REQUIRE( retCodec == codec );
-                REQUIRE( retBitrate == bitrate);
+                REQUIRE( retBitrate == 4000000);
                 REQUIRE( retInterval == interval);
             }
         }
@@ -766,7 +766,7 @@ SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr can LinkAll Child Elementrs", "[Si
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H264);
         uint container(DSL_CONTAINER_MP4);
-        uint bitrate(2000000);
+        uint bitrate(0); // use default
         uint interval(0);
 
         DSL_FILE_SINK_PTR pSinkBintr = 
@@ -794,7 +794,7 @@ SCENARIO( "A Linked DSL_CODEC_H264 FileSinkBintr can UnlinkAll Child Elementrs",
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H264);
         uint container(DSL_CONTAINER_MP4);
-        uint bitrate(2000000);
+        uint bitrate(0); // use default
         uint interval(0);
 
         DSL_FILE_SINK_PTR pSinkBintr = 
@@ -823,7 +823,7 @@ SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr is created correctly",  "[SinkBint
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H265);
         uint container(DSL_CONTAINER_MP4);
-        uint bitrate(2000000);
+        uint bitrate(0); // use default
         uint interval(0);
 
         WHEN( "The DSL_CODEC_H265 FileSinkBintr is created " )
@@ -836,7 +836,7 @@ SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr is created correctly",  "[SinkBint
                 uint retCodec(0), retBitrate(0), retInterval(0);
                 pSinkBintr->GetEncoderSettings(&retCodec, &retBitrate, &retInterval);
                 REQUIRE( retCodec == codec );
-                REQUIRE( retBitrate == bitrate );
+                REQUIRE( retBitrate == 4000000 ); // default value
                 REQUIRE( retInterval == interval );
             }
         }
@@ -851,7 +851,7 @@ SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr can LinkAll Child Elementrs", "[Si
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H265);
         uint container(DSL_CONTAINER_MP4);
-        uint bitrate(2000000);
+        uint bitrate(0); // use default
         uint interval(0);
 
         DSL_FILE_SINK_PTR pSinkBintr = 
@@ -879,7 +879,7 @@ SCENARIO( "A Linked DSL_CODEC_H265 FileSinkBintr can UnlinkAll Child Elementrs",
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H265);
         uint container(DSL_CONTAINER_MP4);
-        uint bitrate(2000000);
+        uint bitrate(0); // use default
         uint interval(0);
 
         DSL_FILE_SINK_PTR pSinkBintr = 
@@ -908,7 +908,7 @@ SCENARIO( "A FileSinkBintr's Encoder settings can be updated", "[SinkBintr]" )
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H265);
         uint container(DSL_CONTAINER_MP4);
-        uint initBitrate(2000000);
+        uint initBitrate(0); // use default
         uint initInterval(0);
 
         DSL_FILE_SINK_PTR pSinkBintr = 
@@ -920,7 +920,7 @@ SCENARIO( "A FileSinkBintr's Encoder settings can be updated", "[SinkBintr]" )
     
         pSinkBintr->GetEncoderSettings(&currCodec, &currBitrate, &currInterval);
         REQUIRE( currCodec == codec );
-        REQUIRE( currBitrate == initBitrate );
+        REQUIRE( currBitrate == 4000000 ); // default
         REQUIRE( currInterval == initInterval );
 
         WHEN( "The FileSinkBintr's Encoder settings are Set" )
@@ -950,7 +950,7 @@ SCENARIO( "A FileSinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H265);
         uint container(DSL_CONTAINER_MP4);
-        uint initBitrate(2000000);
+        uint initBitrate(0); // use default
         uint initInterval(0);
         
         uint GPUID0(0);
@@ -980,7 +980,7 @@ SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr is created correctly",  "[Sin
         std::string sinkName("record-sink");
         std::string outdir("./");
         uint codec(DSL_CODEC_H264);
-        uint bitrate(2000000);
+        uint bitrate(4000000);
         uint interval(0);
         uint container(DSL_CONTAINER_MP4);
         
@@ -1020,7 +1020,7 @@ SCENARIO( "A RecordSinkBintr's Init Parameters can be Set/Get ",  "[SinkBintr]" 
         std::string sinkName("record-sink");
         std::string outdir("./");
         uint codec(DSL_CODEC_H264);
-        uint bitrate(2000000);
+        uint bitrate(4000000);
         uint interval(0);
         uint container(DSL_CONTAINER_MP4);
         

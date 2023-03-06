@@ -988,30 +988,31 @@ namespace DSL
         {
         case DSL_CODEC_H264 :
             m_pEncoder = DSL_ELEMENT_NEW("nvv4l2h264enc", name);
-            m_pEncoder->SetAttribute("bitrate", m_bitrate);
-            m_pEncoder->SetAttribute("iframeinterval", m_interval);
-            // aarch_64
-            if (m_cudaDeviceProp.integrated)
-            {
-                m_pEncoder->SetAttribute("bufapi-version", true);
-            }                
             m_pParser = DSL_ELEMENT_NEW("h264parse", name);
             break;
         case DSL_CODEC_H265 :
             m_pEncoder = DSL_ELEMENT_NEW("nvv4l2h265enc", name);
-            m_pEncoder->SetAttribute("bitrate", m_bitrate);
-            m_pEncoder->SetAttribute("iframeinterval", m_interval);
-            // aarch_64
-            if (m_cudaDeviceProp.integrated)
-            {
-                m_pEncoder->SetAttribute("bufapi-version", true);
-            }      
             m_pParser = DSL_ELEMENT_NEW("h265parse", name);
             break;
         default:
             LOG_ERROR("Invalid codec = '" << codec << "' for new Sink '" << name << "'");
             throw;
         }
+        // aarch_64
+        if (m_cudaDeviceProp.integrated)
+        {
+            m_pEncoder->SetAttribute("bufapi-version", true);
+        }      
+        
+        // Get the default bitrate
+        m_pEncoder->GetAttribute("bitrate", &m_defaultBitrate);
+        
+        // Update if set
+        if (m_bitrate)
+        {
+            m_pEncoder->SetAttribute("bitrate", m_bitrate);
+        }
+        m_pEncoder->SetAttribute("iframeinterval", m_interval);
 
         GstCaps* pCaps(NULL);
         pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
@@ -1024,12 +1025,20 @@ namespace DSL
         AddChild(m_pParser);
     }
 
-    void  EncodeSinkBintr::GetEncoderSettings(uint* codec, uint* bitrate, uint* interval)
+    void EncodeSinkBintr::GetEncoderSettings(uint* codec, uint* bitrate, uint* interval)
     {
         LOG_FUNC();
         
         *codec = m_codec;
-        *bitrate = m_bitrate;
+        
+        if (m_bitrate)
+        {
+            *bitrate = m_bitrate;
+        }
+        else
+        {
+            *bitrate = m_defaultBitrate;
+        }    
         *interval = m_interval;
     }
     
@@ -1048,11 +1057,16 @@ namespace DSL
         m_bitrate = bitrate;
         m_interval = interval;
 
-        if (m_codec == DSL_CODEC_H264 or m_codec == DSL_CODEC_H265)
+        if (m_bitrate)
         {
             m_pEncoder->SetAttribute("bitrate", m_bitrate);
-            m_pEncoder->SetAttribute("iframeinterval", m_interval);
         }
+        else
+        {
+            m_pEncoder->SetAttribute("bitrate", m_defaultBitrate);
+        }
+        m_pEncoder->SetAttribute("iframeinterval", m_interval);
+
         return true;
     }
     
@@ -1107,7 +1121,14 @@ namespace DSL
         LOG_INFO("  file-path          : " << filepath);
         LOG_INFO("  codec              : " << m_codec);
         LOG_INFO("  container          : " << m_container);
-        LOG_INFO("  bitrate            : " << m_bitrate);
+        if (m_bitrate)
+        {
+            LOG_INFO("  bitrate            : " << m_bitrate);
+        }
+        else
+        {
+            LOG_INFO("  bitrate            : " << m_defaultBitrate);
+        }
         LOG_INFO("  interval           : " << m_interval);
         LOG_INFO("  enable-last-sample : " << false);
         LOG_INFO("  max-lateness       : " << -1);

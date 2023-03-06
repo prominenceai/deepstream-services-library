@@ -644,13 +644,44 @@ namespace DSL
         
     protected:
 
+        /**
+         * @brief Current codec id for the EncodeSinkBintr
+         */
         uint m_codec;
+
+        /**
+         * @brief Current bitrate for the EncodeSinkBintr. 0 = use default
+         */
         uint m_bitrate;
+        
+        /**
+         * @brief Default bitrate for the EncodeSinkBintr.
+         */
+        uint m_defaultBitrate;
+        
+        /**
+         * @brief Decode interval - other frames are dropped
+         */
         uint m_interval;
  
+        /**
+         * @brief Transform (video converter) element for the EncodeSinkBintr
+         */
         DSL_ELEMENT_PTR m_pTransform;
+
+        /**
+         * @brief Caps Filter element for the EncodeSinkBintr
+         */
         DSL_ELEMENT_PTR m_pCapsFilter;
+
+        /**
+         * @brief Encoder element for the EncodeSinkBintr
+         */
         DSL_ELEMENT_PTR m_pEncoder;
+
+        /**
+         * @brief Parser element for the EncodeSinkBintr
+         */
         DSL_ELEMENT_PTR m_pParser;
     };
 

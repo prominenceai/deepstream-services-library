@@ -439,17 +439,20 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
-            if (codec > DSL_CODEC_MPEG4)
+            if (codec > DSL_CODEC_H265)
             {   
-                LOG_ERROR("Invalid Codec value = " << codec << " for File Sink '" << name << "'");
+                LOG_ERROR("Invalid Codec value = " << codec 
+                    << " for File Sink '" << name << "'");
                 return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
             }
             if (container > DSL_CONTAINER_MKV)
             {   
-                LOG_ERROR("Invalid Container value = " << container << " for File Sink '" << name << "'");
+                LOG_ERROR("Invalid Container value = " << container 
+                    << " for File Sink '" << name << "'");
                 return DSL_RESULT_SINK_CONTAINER_VALUE_INVALID;
             }
-            m_components[name] = DSL_FILE_SINK_NEW(name, filepath, codec, container, bitrate, interval);
+            m_components[name] = DSL_FILE_SINK_NEW(name, 
+                filepath, codec, container, bitrate, interval);
             
             LOG_INFO("New File Sink '" << name << "' created successfully");
 
@@ -462,7 +465,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SinkRecordNew(const char* name, const char* outdir, uint codec, uint container, 
+    DslReturnType Services::SinkRecordNew(const char* name, 
+        const char* outdir, uint codec, uint container, 
         uint bitrate, uint interval, dsl_record_client_listener_cb clientListener)
     {
         LOG_FUNC();
@@ -481,18 +485,21 @@ namespace DSL
             // ensure outdir exists
             if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
             {
-                LOG_ERROR("Unable to access outdir '" << outdir << "' for Record Sink '" << name << "'");
+                LOG_ERROR("Unable to access outdir '" << outdir 
+                    << "' for Record Sink '" << name << "'");
                 return DSL_RESULT_SINK_FILE_PATH_NOT_FOUND;
             }
 
             if (codec > DSL_CODEC_H265)
             {   
-                LOG_ERROR("Invalid Codec value = " << codec << " for Record Sink '" << name << "'");
+                LOG_ERROR("Invalid Codec value = " << codec 
+                    << " for Record Sink '" << name << "'");
                 return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
             }
             if (container > DSL_CONTAINER_MKV)
             {   
-                LOG_ERROR("Invalid Container value = " << container << " for Record Sink '" << name << "'");
+                LOG_ERROR("Invalid Container value = " << container 
+                    << " for Record Sink '" << name << "'");
                 return DSL_RESULT_SINK_CONTAINER_VALUE_INVALID;
             }
 
@@ -1018,7 +1025,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("File Sink '" << name << "' threw an exception getting Encoder settings");
+            LOG_ERROR("File Sink '" << name 
+                << "' threw an exception getting Encoder settings");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -1040,13 +1048,15 @@ namespace DSL
 
             if (codec > DSL_CODEC_H265)
             {   
-                LOG_ERROR("Invalid Codec value = " << codec << " for Encode Sink '" << name << "'");
+                LOG_ERROR("Invalid Codec value = " << codec 
+                    << " for Encode Sink '" << name << "'");
                 return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
             }
 
             if (!encodeSinkBintr->SetEncoderSettings(codec, bitrate, interval))
             {
-                LOG_ERROR("Encode Sink '" << name << "' failed to set Encoder settings");
+                LOG_ERROR("Encode Sink '" << name 
+                    << "' failed to set Encoder settings");
                 return DSL_RESULT_SINK_SET_FAILED;
             }
             LOG_INFO("Encode Sink '" << name << "' set Bitrate = " 
@@ -1056,7 +1066,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("File Sink'" << name << "' threw an exception setting Encoder settings");
+            LOG_ERROR("File Sink'" << name 
+                << "' threw an exception setting Encoder settings");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
