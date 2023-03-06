@@ -141,6 +141,12 @@ The following video container types are used by the File Sink API
 #define DSL_CONTAINER_MK4                                           1
 ```
 
+## Smart Recording Events
+```C
+#define DSL_RECORDING_EVENT_START                                   0
+#define DSL_RECORDING_EVENT_END                                     1
+```
+
 ## Valid return values for the dsl_sink_app_new_data_handler_cb
 ```C
 #define DSL_FLOW_OK                                                 0
@@ -382,7 +388,7 @@ The constructor creates a uniquely named File Sink. Construction will fail if th
 * `filepath` - [in] absolute or relative filespec for the media file to write to.
 * `codec` - [in] one of the [Codec Types](#codec-types) defined above.
 * `container` - [in] one of the [Video Container Types](#video-container-types) defined above.
-* `bitrate` - [in] bitrate at which to encode the video.
+* `bitrate` - [in] bitrate at which to encode the video. Set to 0 to use the encoder's default (4Mbps).
 * `interval` - [in] frame interval at which to code the video. Set to 0 to code every frame.
 
 **Returns**
@@ -390,7 +396,7 @@ The constructor creates a uniquely named File Sink. Construction will fail if th
 
 **Python Example**
 ```Python
-retval = dsl_sink_file_new('my-file-sink', './my-video.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
+retval = dsl_sink_file_new('my-file-sink', './my-video.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 0, 0)
 ```
 
 <br>
@@ -409,9 +415,9 @@ Note: the Sink name is used as the filename prefix, followed by session id and N
 * `outdir` - [in] absolute or relative pathspec for the directory to save the recorded video streams.
 * `codec` - [in] one of the [Codec Types](#codec-types) defined above.
 * `container` - [in] one of the [Video Container Types](#video-container-types) defined above.
-* `bitrate` - [in] bitrate at which to encode the video.
+* `bitrate` - [in] bitrate at which to encode the video. Set to 0 to use the encoder's default (4Mbps).
 * `interval` - [in] frame interval at which to encode the video. Set to 0 to code every frame.
-* `client_listener` - [in] client callback function of type [dsl_record_client_listener_cb ](#dsl_record_client_listener_cb)to be called when the recording is complete or stopped.
+* `client_listener` - [in] client callback function of type [dsl_record_client_listener_cb ](#dsl_record_client_listener_cb) to be called when a [Recording Event}(#smart-recording-events) occures.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -419,7 +425,7 @@ Note: the Sink name is used as the filename prefix, followed by session id and N
 **Python Example**
 ```Python
 retval = dsl_sink_record_new('my-record-sink',
-    './', DSL_CODEC_H265, DSL_CONTAINER_MPEG, 20000000, 0, my_client_record_complete_cb)
+    './', DSL_CODEC_H265, DSL_CONTAINER_MPEG, 0, 0, my-client-recording-event-cb)
 ```
 
 <br>
@@ -429,7 +435,7 @@ retval = dsl_sink_record_new('my-record-sink',
 DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host,
      uint udp_port, uint rtmp_port, uint codec, uint bitrate, uint interval);
 ```
-The constructor creates a uniquely named RTSP Sink. Construction will fail if the name is currently in use. There are two Codec formats - `H.264` and `H.265` - supported. The RTSP server is configured when the Pipeline is called to Play. The server is then started and attached to the Main Loop context once [dsl_main_loop_run](#dsl_main_loop_run) is called. Once attached, the server can accept connections.
+The constructor creates a uniquely named RTSP Sink. Construction will fail if the name is currently in use. There are two Codec formats - `H.264` and `H.265` - supported. The RTSP server is configured when the Pipeline is called to Play. The server is then started and attached to the g-main-loop context once [dsl_main_loop_run](#dsl_main_loop_run) is called. Once attached, the server can accept connections.
 
 Note: the server Mount point will be derived from the unique RTSP Sink name, for example:
 ```
@@ -442,7 +448,7 @@ rtsp://my-jetson.local:8554/rtsp-sink-name
 * `udp_port` - [in] UDP port setting for the RTSP server.
 * `rtsp_port` - [in] RTSP port setting for the server.
 * `codec` - [in] one of the [Codec Types](#codec-types) defined above.
-* `bitrate` - [in] bitrate at which to encode the video.
+* `bitrate` - [in] bitrate at which to encode the video. Set to 0 to use the encoder's default (4Mbps).
 * `interval` - [in] frame interval at which to encode the video. Set to 0 to code every frame.
 
 **Returns**
@@ -469,7 +475,7 @@ The constructor creates a uniquely named WebRTC Sink. Construction will fail if 
 * `stun_server` - [in] STUN server to use of the form stun://hostname:port. Set to NULL to omit if using TURN server(s).
 * `turn_server` - [in] TURN server(s) to use of the form turn(s)://username:password@host:port. Set to NULL to omit if using a STUN server.
 * `codec` - [in] one of the [Codec Types](#codec-types) defined above.
-* `bitrate` - [in] bitrate at which to encode the video.
+* `bitrate` - [in] bitrate at which to encode the video. Set to 0 to use the encoder's default (4Mbps).
 * `interval` - [in] frame interval at which to encode the video. Set to 0 to code every frame.
 
 **Returns**
@@ -478,7 +484,7 @@ The constructor creates a uniquely named WebRTC Sink. Construction will fail if 
 **Python Example**
 ```Python
 STUN_SERVER = "stun://stun.l.google.com:19302"
-retval = dsl_sink_webrtc_new('my-webrtc-sink', STUN_SERVER, DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
+retval = dsl_sink_webrtc_new('my-webrtc-sink', STUN_SERVER, DSL_CODEC_H264, 0, 0)
 ```
 
 <br>
@@ -1270,7 +1276,7 @@ This service returns the current bitrate and interval settings for the named Enc
 * `name` - [in] unique name of the Encode Sink to query.
 * `codec` - [out] current codec in use, one of the [Codec Types](#codec-types) defined above.
 * `bitrate` - [out] current bit rate at which to code the video.
-* `interval` - [out] current frame interval at which to code the video. 0 equals code every frame
+* `interval` - [out] current frame interval at which to encode the video. 0 equals code every frame
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
@@ -1292,15 +1298,15 @@ This service sets the bitrate and interval settings for the named Encode Sink; F
 **Parameters**
 * `name` - [in] unique name of the Encode Sink to update.
 * `codec` - [in] new codec to use, one of the [Codec Types](#codec-types) defined above.
-* `bitrate` - [in] new bitrate at which to code the video.
-* `interval` - [in] new frame interval at which to code the video. Set to 0 to code every frame.
+* `bitrate` - [in] bitrate at which to encode the video. Set to 0 to use the encoder's default (4Mbps).
+* `interval` - [in] new frame interval at which to encode the video. Set to 0 to code every frame.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_sink_encode_settings_set('my-file-sink', 2000000, 1)
+retval = dsl_sink_encode_settings_set('my-file-sink', 4000000, 1)
 ```
 
 <br>
