@@ -6169,9 +6169,10 @@ DslReturnType dsl_sink_render_reset(const wchar_t* name);
  * @brief creates a new, uniquely named File Sink component
  * @param[in] name unique component name for the new File Sink
  * @param[in] file_path absolute or relative file path including extension
- * @param[in] codec one of DSL_CODEC_H264, DSL_CODEC_H265, DSL_CODEC_MPEG4
+ * @param[in] codec DSL_CODEC_H264 or DSL_CODEC_H265
  * @param[in] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
  * @param[in] bitrate in bits per second - H264 and H265 only
+ * Set to 0 to use the Encoder default bitrate (4Mbps)
  * @param[in] interval iframe interval to encode at
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
@@ -6182,15 +6183,17 @@ DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* file_path,
  * @brief creates a new, uniquely named File Record component
  * @param[in] name unique component name for the new Record Sink
  * @param[in] outdir absolute or relative path to the recording output dir.
- * @param[in] codec one of DSL_CODEC_H264, DSL_CODEC_H265, DSL_CODEC_MPEG4
+ * @param[in] codec DSL_CODEC_H264 or DSL_CODEC_H265
  * @param[in] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
- * @param[in] bitrate in bits per second - H264 and H265 only
+ * @param[in] bitrate in bits per second 
+ * Set to 0 to use the Encoder default bitrate (4Mbps)
  * @param[in] interval iframe interval to encode at
  * @param[in] client_listener client callback for notifications of recording
  * events, DSL_RECORDING_EVENT_START and DSL_RECORDING_EVENT_STOP.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, uint codec, 
+DslReturnType dsl_sink_record_new(const wchar_t* name, 
+    const wchar_t* outdir, uint codec, 
     uint container, uint bitrate, uint interval, 
     dsl_record_client_listener_cb client_listener);
      
@@ -6366,6 +6369,7 @@ DslReturnType dsl_sink_encode_settings_get(const wchar_t* name,
  * @param[in] name unique name of the Encode Sink to update
  * @param[in] codec new codec either DSL_CODEC_H264 DSL_CODEC_H265
  * @param[in] bitrate new encoder bitrate in bits/sec for the named Encode Sink
+ * Set to 0 to use the Encoder default bitrate (4Mbps)
  * @param[in] interval new encoder frame interval value to use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
@@ -6379,7 +6383,8 @@ DslReturnType dsl_sink_encode_settings_set(const wchar_t* name,
  * @param[in] port UDP port number for the RTSP Server
  * @param[in] port RTSP port number for the RTSP Server
  * @param[in] codec one of DSL_CODEC_H264, DSL_CODEC_H265
- * @param[in] bitrate in bits per second
+ * @param[in] bitrate in bits per second.
+ * Set to 0 to use the Encoder default bitrate (4Mbps)
  * @param[in] interval iframe interval to encode at
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */

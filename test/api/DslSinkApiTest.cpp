@@ -1043,9 +1043,9 @@ SCENARIO( "Creating a new File Sink with an invalid Container will fail", "[sink
     {
         std::wstring fileSinkName(L"file-sink");
         std::wstring filePath(L"./output.mp4");
-        uint codec(DSL_CODEC_MPEG4);
+        uint codec(DSL_CODEC_H265);
         uint container(DSL_CONTAINER_MKV + 1);
-        uint bitrate(2000000);
+        uint bitrate(0);
         uint interval(0);
 
         REQUIRE( dsl_component_list_size() == 0 );
@@ -1152,7 +1152,7 @@ SCENARIO( "The Components container is updated correctly on new Record Sink", "[
         std::wstring outdir(L"./");
         uint container(DSL_CONTAINER_MP4);
         uint codec(DSL_CODEC_H264);
-        uint bitrate(2000000);
+        uint bitrate(4000000);
         uint interval(0);
 
         dsl_record_client_listener_cb client_listener;
@@ -1190,7 +1190,7 @@ SCENARIO( "The Components container is updated correctly on Record Sink delete",
         std::wstring outdir(L"./");
         uint container(DSL_CONTAINER_MP4);
         uint codec(DSL_CODEC_H264);
-        uint bitrate(2000000);
+        uint bitrate(4000000);
         uint interval(0);
 
         dsl_record_client_listener_cb client_listener;
@@ -1220,7 +1220,7 @@ SCENARIO( "A Player can be added to and removed from a Record Sink", "[sink-api]
         std::wstring outdir(L"./");
         uint container(DSL_CONTAINER_MP4);
         uint codec(DSL_CODEC_H264);
-        uint bitrate(2000000);
+        uint bitrate(4000000);
         uint interval(0);
 
         dsl_record_client_listener_cb client_listener;
@@ -1267,7 +1267,7 @@ SCENARIO( "A Mailer can be added to and removed from a Record Sink", "[sink-api]
         std::wstring outdir(L"./");
         uint container(DSL_CONTAINER_MP4);
         uint codec(DSL_CODEC_H264);
-        uint bitrate(2000000);
+        uint bitrate(4000000);
         uint interval(0);
 
         dsl_record_client_listener_cb client_listener;
