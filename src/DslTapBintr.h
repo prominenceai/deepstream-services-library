@@ -48,10 +48,6 @@ namespace DSL
         TapBintr(const char* name);
 
         ~TapBintr();
-  
-        bool LinkToSourceTee(DSL_NODETR_PTR pTee);
-
-        bool UnlinkFromSourceTee();
         
         virtual void HandleEos() = 0;
         
@@ -97,7 +93,7 @@ namespace DSL
         /**
          * @brief Node to wrap NVIDIA's Record Bin
          */
-        DSL_NODETR_PTR m_pRecordBin;
+        DSL_GSTNODETR_PTR m_pRecordBin;
     };
 
 }

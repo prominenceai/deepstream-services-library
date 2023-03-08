@@ -22,13 +22,17 @@
 # DEALINGS IN THE SOFTWARE.    
 ################################################################################    
 
+# ```````````````````````````````````````````````````````````````````````````````
+# This example demonstrates the use of "First Occurrence Triggers" and
+# "Start Record Actions" to control Smart-Recording Taps with a multi camera setup
+
 #!/usr/bin/env python    
 
 import sys    
 import time    
 from dsl import *    
 
-# RTSP Source URI    
+# RTSP Source URI's  
 src_url_1 = 'rtsp://user:pwd@192.168.1.64:554/Streaming/Channels/101'    
 src_url_2 = 'rtsp://user:pwd@192.168.1.65:554/Streaming/Channels/101'    
 src_url_3 = 'rtsp://user:pwd@192.168.1.66:554/Streaming/Channels/101'    
@@ -98,33 +102,41 @@ def create_display_types():
 
     # ````````````````````````````````````````````````````````````````````````````````````````````````````````    
     # Create new RGBA color types    
-    retval = dsl_display_type_rgba_color_custom_new('full-red', red=1.0, blue=0.0, green=0.0, alpha=1.0)    
+    retval = dsl_display_type_rgba_color_custom_new('full-red', 
+        red=1.0, blue=0.0, green=0.0, alpha=1.0)    
     if retval != DSL_RETURN_SUCCESS:    
         return retval    
-    retval = dsl_display_type_rgba_color_custom_new('full-white', red=1.0, blue=1.0, green=1.0, alpha=1.0)    
+    retval = dsl_display_type_rgba_color_custom_new('full-white', 
+        red=1.0, blue=1.0, green=1.0, alpha=1.0)    
     if retval != DSL_RETURN_SUCCESS:    
         return retval    
-    retval = dsl_display_type_rgba_color_custom_new('opaque-black', red=0.0, blue=0.0, green=0.0, alpha=0.8)    
+    retval = dsl_display_type_rgba_color_custom_new('opaque-black', 
+        red=0.0, blue=0.0, green=0.0, alpha=0.8)    
     if retval != DSL_RETURN_SUCCESS:    
         return retval    
-    retval = dsl_display_type_rgba_font_new('impact-20-white', font='impact', size=20, color='full-white')    
+    retval = dsl_display_type_rgba_font_new('impact-20-white', 
+        font='impact', size=20, color='full-white')    
     if retval != DSL_RETURN_SUCCESS:    
         return retval    
 
-    # Create a new Text type object that will be used to show the recording in progress    
-    retval = dsl_display_type_rgba_text_new('rec-text', 'REC    ', x_offset=10, y_offset=30,     
-        font='impact-20-white', has_bg_color=True, bg_color='opaque-black')    
+    # Create a new Text type object that will be used to show the 
+    # recording in progress    
+    retval = dsl_display_type_rgba_text_new('rec-text', 'REC    ', 
+        x_offset=10, y_offset=30, font='impact-20-white', 
+        has_bg_color=True, bg_color='opaque-black')    
     if retval != DSL_RETURN_SUCCESS:    
         return retval    
-    # A new RGBA Circle to be used to simulate a red LED light for the recording in progress.    
-    return dsl_display_type_rgba_circle_new('red-led', x_center=94, y_center=52, radius=8,     
+    # A new RGBA Circle to be used to simulate a red LED light for 
+    # the recording in progress.    
+    return dsl_display_type_rgba_circle_new('red-led', 
+        x_center=94, y_center=52, radius=8,     
         color='full-red', has_bg_color=True, bg_color='full-red')    
 
 
 ##     
-# Objects of this class will be used as "client_data" for all callback notifications.    
-# defines a class of all component names associated with a single RTSP Source.     
-# The names are derived from the unique Source name    
+# Objects of this class will be used as "client_data" for all callback
+# notifications. defines a class of all component names associated with 
+# a single RTSP Source. The names are derived from the unique Source name    
 ##    
 class ComponentNames:    
     def __init__(self, source):    
@@ -157,13 +169,16 @@ def OnRecordingEvent(session_info_ptr, client_data):
         # enable the always trigger showing the metadata for "recording in session" 
         retval = dsl_ode_trigger_enabled_set(components.always_trigger, enabled=True)
         if (retval != DSL_RETURN_SUCCESS):
-            print('Enable always trigger failed with error: ', dsl_return_value_to_string(retval))
+            print('Enable always trigger failed with error: ', 
+                dsl_return_value_to_string(retval))
 
-        # in this example we will call on the Tiler to show the source that started recording.    
+        # in this example we will call on the Tiler to show the source 
+        #that started recording.    
         retval = dsl_tiler_source_show_set('tiler', source=components.source, 
             timeout=0, has_precedence=True)    
         if (retval != DSL_RETURN_SUCCESS):
-            print('Tiler show single source failed with error: ', dsl_return_value_to_string(retval))
+            print('Tiler show single source failed with error: ', 
+                dsl_return_value_to_string(retval))
         
     # Else, the recording session has ended for this source
     else:
@@ -178,19 +193,21 @@ def OnRecordingEvent(session_info_ptr, client_data):
         # disable the always trigger showing the metadata for "recording in session" 
         retval = dsl_ode_trigger_enabled_set(components.always_trigger, enabled=False)
         if (retval != DSL_RETURN_SUCCESS):
-            print('Disable always trigger failed with error:', dsl_return_value_to_string(retval))
+            print('Disable always trigger failed with error:', 
+                dsl_return_value_to_string(retval))
 
         # if we're showing the source that started this recording
         # we can set the tiler back to showing all tiles, otherwise
         # another source has started recording and taken precendence
         retval, current_source, timeout  = dsl_tiler_source_show_get('tiler')
-        if reval == DSL_RETURN_SUCCESS and current_source == components.source:
+        if retval == DSL_RETURN_SUCCESS and current_source == components.source:
             dsl_tiler_source_show_all('tiler')
 
         # re-enable the one-shot trigger for the next "New Instance" of a person
         retval = dsl_ode_trigger_reset(components.instance_trigger)    
         if (retval != DSL_RETURN_SUCCESS):
-            print('Failed to reset instance trigger with error:', dsl_return_value_to_string(retval))
+            print('Failed to reset instance trigger with error:', 
+                dsl_return_value_to_string(retval))
 
     return None
     
@@ -199,7 +216,9 @@ def OnRecordingEvent(session_info_ptr, client_data):
 # pipeline - unique name of the Pipeline to add the Source components to    
 # source - unique name for the RTSP Source to create    
 # uri - unique uri for the new RTSP Source    
-# ode_handler - Object Detection Event (ODE) handler to add the new Trigger and Actions to    
+# ode_handler - Object Detection Event (ODE) handler - to add the new Triggers 
+#               and Actions to
+#
 ##    
 def CreatePerSourceComponents(pipeline, source, rtsp_uri, ode_handler):    
 
@@ -220,7 +239,7 @@ def CreatePerSourceComponents(pipeline, source, rtsp_uri, ode_handler):
     # New record tap created with our common OnRecordingEvent callback function defined above    
     retval = dsl_tap_record_new(components.record_tap,     
         outdir = './recordings/',     
-        container = DSL_CONTAINER_MKV,     
+        container = DSL_CONTAINER_MP4,     
         client_listener = OnRecordingEvent)    
     if (retval != DSL_RETURN_SUCCESS):    
         return retval    
@@ -230,16 +249,18 @@ def CreatePerSourceComponents(pipeline, source, rtsp_uri, ode_handler):
     if (retval != DSL_RETURN_SUCCESS):    
         return retval    
 
-    # Next, create the Person Instance Trigger. We will reset the trigger on DSL_RECORDING_EVENT_END
-    # ... see the OnRecordingEvent() client callback function above
+    # Next, create the Person Instance Trigger. We will reset the trigger 
+    # on DSL_RECORDING_EVENT_END. See the OnRecordingEvent() client callback 
+    # function above
     retval = dsl_ode_trigger_instance_new(components.instance_trigger,     
         source=source, class_id=PGIE_CLASS_ID_PERSON, limit=1)    
     if (retval != DSL_RETURN_SUCCESS):    
         return retval    
 
-    # Create a new Action to start the record session for this Source, with the component names as client data    
+    # Create a new Action to start the record session for this Source, 
+    # with the component names as client data    
     retval = dsl_ode_action_tap_record_start_new(components.start_record,     
-        record_tap=components.record_tap, start=15, duration=360, client_data=components)    
+        record_tap=components.record_tap, start=5, duration=10, client_data=components)    
     if (retval != DSL_RETURN_SUCCESS):    
         return retval    
 
@@ -287,10 +308,6 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call    
     while True:    
 
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````    
-        # This example is used to demonstrate the use of First Occurrence Triggers and Start Record Actions    
-        # to control Record Taps with a multi camera setup    
-
         retval = create_display_types()        
         if retval != DSL_RETURN_SUCCESS:    
             break    
@@ -320,7 +337,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:    
             break    
 
-        # Object Detection Event (ODE) Pad Probe Handler (PPH) to manage our ODE Triggers with their ODE Actions    
+        # Object Detection Event (ODE) Pad Probe Handler (PPH) to manage our ODE 
+        # Triggers with their ODE Actions    
         retval = dsl_pph_ode_new('ode-handler')    
         if (retval != DSL_RETURN_SUCCESS):    
             break    
@@ -347,30 +365,38 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:    
             break    
 
-       # For each of our four sources, call the funtion to create the source-specific components.    
-        retval = CreatePerSourceComponents('pipeline', 'src-1', src_url_1, 'ode-handler')    
+        # For each of our four sources, call the funtion to create the 
+        # source-specific components.    
+        retval = CreatePerSourceComponents('pipeline', 
+            'src-1', src_url_1, 'ode-handler')    
         if (retval != DSL_RETURN_SUCCESS):    
             break    
-        retval = CreatePerSourceComponents('pipeline', 'src-2', src_url_2, 'ode-handler')    
+        retval = CreatePerSourceComponents('pipeline', 
+            'src-2', src_url_2, 'ode-handler')    
         if (retval != DSL_RETURN_SUCCESS):    
             break    
-        retval = CreatePerSourceComponents('pipeline', 'src-3', src_url_3, 'ode-handler')    
+        retval = CreatePerSourceComponents('pipeline', 
+            'src-3', src_url_3, 'ode-handler')    
         if (retval != DSL_RETURN_SUCCESS):    
             break    
-        retval = CreatePerSourceComponents('pipeline', 'src-4', src_url_4, 'ode-handler')    
+        retval = CreatePerSourceComponents('pipeline', 
+            'src-4', src_url_4, 'ode-handler')    
         if (retval != DSL_RETURN_SUCCESS):    
             break    
 
         # Add the XWindow event handler functions defined above    
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)    
+        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 
+            xwindow_key_event_handler, None)    
         if retval != DSL_RETURN_SUCCESS:    
             break    
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)    
+        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", 
+            xwindow_delete_event_handler, None)    
         if retval != DSL_RETURN_SUCCESS:    
             break    
 
         ## Add the listener callback functions defined above    
-        retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)    
+        retval = dsl_pipeline_state_change_listener_add('pipeline', 
+            state_change_listener, None)    
         if retval != DSL_RETURN_SUCCESS:    
             break    
         retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)    

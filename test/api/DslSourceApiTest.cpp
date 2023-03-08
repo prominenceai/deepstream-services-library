@@ -646,7 +646,7 @@ SCENARIO( "A new URI Source returns the correct attribute values", "[source-api]
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        WHEN( "A new App Source is created" ) 
+        WHEN( "A new URI Source is created" ) 
         {
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(),
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
@@ -660,8 +660,8 @@ SCENARIO( "A new URI Source returns the correct attribute values", "[source-api]
                     &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_width == 1920 );
                 REQUIRE( ret_height == 1080 );
-                REQUIRE( ret_fps_n == 0 );
-                REQUIRE( ret_fps_d == 0 );
+                REQUIRE( ret_fps_n == 30 );
+                REQUIRE( ret_fps_d == 1 );
                 REQUIRE( dsl_source_is_live(source_name.c_str()) == false );
                 
                 // Note URI Source convers URI to real path which has DeepStream 
@@ -973,8 +973,8 @@ SCENARIO( "A new File Source returns the correct attribute values", "[source-api
                     &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_width == 1920 );
                 REQUIRE( ret_height == 1080 );
-                REQUIRE( ret_fps_n == 0 );
-                REQUIRE( ret_fps_d == 0 );
+                REQUIRE( ret_fps_n == 30 );
+                REQUIRE( ret_fps_d == 1 );
                 REQUIRE( dsl_source_is_live(source_name.c_str()) == false );
                 boolean ret_repeat_enabled(0);
                 REQUIRE( dsl_source_file_repeat_enabled_get(source_name.c_str(), 
