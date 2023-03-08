@@ -74,33 +74,6 @@ namespace DSL
 
         return true;
     }
-
-    static bool set_format_caps(DSL_ELEMENT_PTR pElement, 
-        const char* media, const char* format, bool isNvidia)
-    {
-        GstCaps * pCaps = gst_caps_new_simple(media, 
-            "format", G_TYPE_STRING, format, NULL);
-        if (!pCaps)
-        {
-            LOG_ERROR("Failed to create new Simple Capabilities for '" 
-                << pElement->GetName() << "'");
-            return false;  
-        }
-
-        // if the provided element is an NVIDIA plugin, then we need to add
-        // the additional feature to enable buffer access via the NvBuffer API.
-        if (isNvidia)
-        {
-            GstCapsFeatures *feature = NULL;
-            feature = gst_caps_features_new("memory:NVMM", NULL);
-            gst_caps_set_features(pCaps, 0, feature);
-        }
-        // Set the provided element's caps and unref caps structure.
-        pElement->SetAttribute("caps", pCaps);
-        gst_caps_unref(pCaps);  
-
-        return true;
-    }
     
     SourceBintr::SourceBintr(const char* name)
         : Bintr(name)
@@ -2545,6 +2518,7 @@ namespace DSL
         // Pre-decode tee is only used if there is a TapBintr
         m_pPreDecodeTee = DSL_ELEMENT_NEW("tee", name);
         m_pPreDecodeQueue = DSL_ELEMENT_EXT_NEW("queue", name, "decodebin");
+        m_pPreParserQueue = DSL_ELEMENT_EXT_NEW("queue", name, "parser");
 
         // Configure the source to generate NTP sync values
         configure_source_for_ntp_sync(m_pSourceElement->GetGstElement());
@@ -2560,6 +2534,21 @@ namespace DSL
         // Connect RTSP Source Setup Callbacks
         g_signal_connect(m_pSourceElement->GetGObject(), "pad-added", 
             G_CALLBACK(RtspSourceElementOnPadAddedCB), this);
+
+        // Same decoder for H.264, H.265, and JPEG
+        m_pDecoder = DSL_ELEMENT_NEW("nvv4l2decoder", GetCStrName());
+        
+        if (m_skipFrames)
+        {
+            m_pDecoder->SetAttribute("skip-frames", m_skipFrames);
+        }
+        // aarch64 only
+        if (m_cudaDeviceProp.integrated)
+        {
+            m_pDecoder->SetAttribute("enable-max-performance", TRUE);
+        }
+        m_pDecoder->SetAttribute("drop-frame-interval", m_dropFrameInterval);
+        m_pDecoder->SetAttribute("num-extra-surfaces", m_numExtraSurfaces);
 
         LOG_INFO("");
         LOG_INFO("Initial property values for RtspSourceBintr '" << name << "'");
@@ -2585,6 +2574,8 @@ namespace DSL
         AddChild(m_pSourceElement);
         AddChild(m_pPreDecodeTee);
         AddChild(m_pPreDecodeQueue);
+        AddChild(m_pPreParserQueue);
+        AddChild(m_pDecoder);
 
         // New timestamp PPH to stamp the time of the last buffer 
         // - used to monitor the RTSP connection
@@ -2635,23 +2626,6 @@ namespace DSL
             return false;
         }
 
-        // Note: this is a workaround for an NVIDIA bug. We need to test the 
-        // stream beforewe try and link any pads. Otherwise, unlinking a failed 
-        // stream connection from the Streammuxer will result in a deadlock. 
-        // Try to open the URL with open CV first.
-//        cv::VideoCapture capture(m_uri.c_str());
-//
-//        if (!capture.isOpened())
-//        {
-//            LOG_ERROR("RtspSourceBintr '" << GetName() 
-//                << "' failed to open stream for URI = "
-//                << m_uri.c_str());
-//            return false;
-//        }
-
-
-        // All elements are linked in the select-stream callback (HandleSelectStream),
-        // except for the rtspsrc element which is linked in the pad-added callback.
         m_isLinked = true;
         return true;
     }
@@ -2692,18 +2666,14 @@ namespace DSL
             if (HasTapBintr())
             {
                 m_pPreDecodeQueue->UnlinkFromSourceTee();
+                m_pPreParserQueue->UnlinkFromSourceTee();
+                m_pPreParserQueue->UnlinkFromSink();
+                m_pParser->UnlinkFromSink();
                 m_pTapBintr->UnlinkAll();
-                m_pTapBintr->UnlinkFromSourceTee();
             }
-            m_pParser->UnlinkFromSink();
             m_pDepay->UnlinkFromSink();
             m_pDecoder->UnlinkFromSink();
             UnlinkCommon();
-
-            // will be recreated in the select-stream callback on next play
-            m_pParser = nullptr;
-            m_pDepay = nullptr;
-            m_pDecoder = nullptr;
 
             for (auto const& imap: m_pGstRequestedSourcePads)
             {
@@ -2922,7 +2892,8 @@ namespace DSL
         return (m_pTapBintr != nullptr);
     }
 
-    bool RtspSourceBintr::HandleSelectStream(GstElement *pBin, uint num, GstCaps *caps)
+    bool RtspSourceBintr::HandleSelectStream(GstElement *pBin, 
+        uint num, GstCaps *caps)
     {
         GstStructure *structure = gst_caps_get_structure(caps, 0);
         std::string media = gst_structure_get_string (structure, "media");
@@ -2972,25 +2943,10 @@ namespace DSL
                 return false;
             }
 
-            m_pDecoder = DSL_ELEMENT_NEW("nvv4l2decoder", GetCStrName());
-            
-            if (m_skipFrames)
-            {
-                m_pDecoder->SetAttribute("skip-frames", m_skipFrames);
-            }
-            // aarch64 only
-            if (m_cudaDeviceProp.integrated)
-            {
-                m_pDecoder->SetAttribute("enable-max-performance", TRUE);
-            }
-            m_pDecoder->SetAttribute("drop-frame-interval", m_dropFrameInterval);
-            m_pDecoder->SetAttribute("num-extra-surfaces", m_numExtraSurfaces);
-            
             // The format specific depay, parser, and decoder bins have been selected, 
             // so we can add them as children to this RtspSourceBintr now.
             AddChild(m_pDepay);
             AddChild(m_pParser);
-            AddChild(m_pDecoder);
 
             if (!m_pPreDecodeQueue->LinkToSink(m_pDecoder) or
                 !LinkToCommon(m_pDecoder))
@@ -2998,37 +2954,39 @@ namespace DSL
                 return false;
             }
 
-            // If we're tapping off of the pre-decode source stream, then link to the pre-decode Tee
-            // The Pre-decode Queue will already be linked downstream as the first branch on the Tee
+            // If we're tapping off of the pre-decode source stream
             if (HasTapBintr())
             {
-                if (!m_pTapBintr->LinkAll() or 
-                    !m_pTapBintr->LinkToSourceTee(m_pPreDecodeTee) or
-                    !m_pPreDecodeQueue->LinkToSourceTee(m_pPreDecodeTee, "src_%u") or
-                    !m_pDepay->LinkToSink(m_pParser) or 
-                    !m_pParser->LinkToSink(m_pPreDecodeTee))
+                if (!m_pPreDecodeQueue->LinkToSourceTee(m_pPreDecodeTee, "src_%u") or
+                    !m_pDepay->LinkToSink(m_pPreDecodeTee) or 
+                    !m_pPreParserQueue->LinkToSourceTee(m_pPreDecodeTee, "src_%u") or
+                    !m_pPreParserQueue->LinkToSink(m_pParser) or
+                    !m_pTapBintr->LinkAll() or 
+                    !m_pParser->LinkToSink(m_pTapBintr) or
+                    !gst_element_sync_state_with_parent(m_pParser->GetGstElement()) or
+                    !gst_element_sync_state_with_parent(m_pTapBintr->GetGstElement()))
                 {
+                    LOG_ERROR("Failed to link and sync states with Parent for RtspSourceBitnr '" 
+                        << GetName() << "'");
                     return false;
                 }
             }
             // otherwise, there is no Tee and we link to the Pre-decode Queue directly
             else
             {
-                if (!m_pDepay->LinkToSink(m_pParser) or 
-                    !m_pParser->LinkToSink(m_pPreDecodeQueue))
+                if (!m_pDepay->LinkToSink(m_pPreDecodeQueue))
                 {
                     return false;
                 }            
             }
-            if (!gst_element_sync_state_with_parent(m_pDepay->GetGstElement()) or
-                !gst_element_sync_state_with_parent(m_pParser->GetGstElement()) or
-                !gst_element_sync_state_with_parent(m_pDecoder->GetGstElement()))
+            if (!gst_element_sync_state_with_parent(m_pDepay->GetGstElement()))
             {
                 LOG_ERROR("Failed to sync Parser/Decoder states with Parent for RtspSourceBitnr '" 
                     << GetName() << "'");
                 return false;
             }
-            // Start the Stream mangement timer, only if timeout is enable and not currently running
+            // Start the Stream mangement timer, only if timeout is enable and 
+            // not currently running
             if (m_bufferTimeout and !m_streamManagerTimerId)
             {
                 m_streamManagerTimerId = g_timeout_add(m_bufferTimeout, 
@@ -3036,7 +2994,7 @@ namespace DSL
                 LOG_INFO("Starting stream management for RTSP Source '" << GetName() << "'");
             }
 
-            SetCurrentState(GST_STATE_READY);
+            // SetCurrentState(GST_STATE_READY);
             
             // finally fully linked -- ok to unlink all elements from this point
             m_isFullyLinked = true;
@@ -3068,14 +3026,14 @@ namespace DSL
             {
                 LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" 
                     << GetName() << "'");
-                throw;
+                return;
             }
             
             // Link the rtcpsrc element's added src pad to the sink pad of the Depay
             if (gst_pad_link(pPad, pDepayStaicSinkPad) != GST_PAD_LINK_OK) 
             {
                 LOG_ERROR("Failed to link source to de-payload");
-                throw;
+                return;
             }
             
             LOG_INFO("rtspsrc element linked for RtspSourceBintr '" << GetName() << "'");

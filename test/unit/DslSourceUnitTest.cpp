@@ -524,8 +524,8 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[SourceBintr]" )
                 pSourceBintr->GetFrameRate(&retFpsN, &retFpsD);
                 REQUIRE( retWidth == 1920 );
                 REQUIRE( retHeight == 1080 );
-                REQUIRE( retFpsN == 0 );
-                REQUIRE( retFpsD == 0 );
+                REQUIRE( retFpsN == 30 );
+                REQUIRE( retFpsD == 1 );
 
                 std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);

@@ -1682,6 +1682,11 @@ namespace DSL
         DSL_ELEMENT_PTR m_pDepay;
 
         /**
+         * @brief Pre-parser queue 
+         */
+        DSL_ELEMENT_PTR m_pPreParserQueue;
+
+        /**
          * @brief H.264 or H.265 RTP Parser for the RtspSourceBintr
          */
         DSL_ELEMENT_PTR m_pParser;
