@@ -1641,6 +1641,7 @@ namespace DSL
          * unlink unless fully linked. 
          */
         bool m_isFullyLinked;
+        
         /**
          * @brief Amount of data to buffer in ms.
          */
@@ -1712,7 +1713,18 @@ namespace DSL
         DSL_PPH_TIMESTAMP_PTR m_TimestampPph;
 
         /**
-         * @brief maximim time between successive buffers before determining the connection is lost, 0 to disable 
+         * @brief maximum time to wait for the first connection to complete in ms.
+         */
+        uint m_firstConnectTimeout;
+        
+        /**
+         * @brief time incremented while waiting for first connection in ms.
+         */
+        uint m_firstConnectTime;
+        
+        /**
+         * @brief maximim time between successive buffers before determining the 
+         * connection is lost, 0 to disable 
          */
         uint m_bufferTimeout;
         
@@ -1823,14 +1835,6 @@ namespace DSL
      */
     static void RtspSourceElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource);
     
-    /**
-     * @brief Called on new Pad Added to link the parser and the decoder
-     * @param pBin pointer to the parser bin
-     * @param pPad Pointer to the new Pad added for linking
-     * @param[in] pSource shared pointer to the RTSP Source component.
-     */
-    static void RtspDecodeElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource);
-
     /**
      * @brief 
      * @param[in] pChildProxy
