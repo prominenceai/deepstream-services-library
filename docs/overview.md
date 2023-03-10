@@ -975,22 +975,26 @@ Please refer to [ode_occurrence_4rtsp_start_record_tap_action.py](/examples/pyth
 ---
 
 ## RTSP Stream Connection Management
-RTSP Source Components have "built-in" stream connection management for detecting and resolving stream disconnections.   
+RTSP Source Components have "built-in" stream connection management for detecting and resolving 
+1. a failed first connection.
+2. stream disconnections.   
 
-When creating a RTSP Source, the client application can specify a `next-buffer-timeout` defined as the maximum time to wait in seconds for each new frame buffer before the Source's Stream Manager -- determining that the connection has been lost -- resets the Source and tries to reconnect.
+When creating an RTSP Source, the client application can specify a `next-buffer-timeout` defined as the maximum time to wait in seconds for each new frame buffer before the Source's Stream Manager -- determining that the connection has been lost -- resets the Source and tries to reconnect.
 
-The Stream manager uses two client settable parameters to control the reconnection behavior. 
+The Stream manager uses three client settable parameters to control the connection behavior. 
 
-1. `sleep` - the time to sleep between failed connection attempts, in units of seconds. 
-2. `timeout` - the maximum time to wait for an asynchronous state change to complete before determining that reconnection has failed - also in seconds. 
+1. `initial-connection-timeout` - the the maximum time to wait for the RTSP Source to connect and generate the first buffer when the Pipeline is first played, in units of seconds.
+2. `reconnection-sleep` - the time to sleep between failed connection attempts - also in seconds. 
+3. `reconnection-timeout` - the maximum time to wait for an asynchronous state change to complete before determining that reconnection has failed - also in seconds. 
 
-Note: Setting the reconnection timeout to a value less than the device's socket timeout can result in the Stream failing to connect. Both parameters are set to defaults when the Source is created, defined in `dslapi.h` as:
+Note: Setting the reconnection timeout to a value less than the device's socket timeout can result in the Stream failing to connect. All three parameters are set to defaults when the Source is created -- defined in `dslapi.h` as:
 ```C
-#define DSL_RTSP_RECONNECTION_SLEEP_S    4
-#define DSL_RTSP_RECONNECTION_TIMEOUT_S  30
+#define DSL_RTSP_FIRST_CONNECTION_TIMEOUT_S   20
+#define DSL_RTSP_RECONNECTION_SLEEP_S         10
+#define DSL_RTSP_RECONNECTION_TIMEOUT_S       30
 ```
 
-The client can register a `state-change-listener` callback function to be notified on every change-of-state, to monitor the connection process and update the reconnection parameters when needed.
+The client can register a `state-change-listener` callback function to be notified on every change-of-state to monitor the connection process and update the reconnection parameters when needed.
 
 Expanding on the [Smart Recording](#smart-recording) example above,
 
@@ -1052,17 +1056,16 @@ def CreatePerSourceComponents(pipeline, source, rtsp_uri, ode_handler):
     # New Component names based on unique source name
     components = ComponentNames(source)
     
-    # For each camera, create a new RTSP Source for the specific RTSP URI
-    retval = dsl_source_rtsp_new(source, 
-        uri = rtsp_uri, 
-        protocol = DSL_RTP_ALL, 
-        cudadec_mem_type = DSL_CUDADEC_MEMTYPE_DEVICE, 
-        intra_decode = False, 
-        drop_frame_interval = 0, 
-        latency=100,
-        timeout=3)
-    if (retval != DSL_RETURN_SUCCESS):
-        return retval
+    # For each camera, create a new RTSP Source for the specific RTSP URI    
+    retval = dsl_source_rtsp_new(source,     
+        uri = rtsp_uri,     
+        protocol = DSL_RTP_ALL,     
+        skip_frames = 0,     
+        drop_frame_interval = 0,     
+        latency = 1000,
+        timeout = 2)    
+    if (retval != DSL_RETURN_SUCCESS):    
+        return retval    
         
     # Add our state change listener to the new source, with the component names as client data
     retval = dsl_source_rtsp_state_change_listener_add(source, 
