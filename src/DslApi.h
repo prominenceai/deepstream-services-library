@@ -599,10 +599,24 @@ THE SOFTWARE.
 #define DSL_SOCKET_CONNECTION_STATE_FAILED                          2
 
 /**
+ * @brief time to sleep between checks for new-buffer timeout
+ * In units of milliseconds
+ */
+#define DSL_RTSP_TEST_FOR_BUFFER_TIMEOUT_PERIOD_MS                  100
+
+/**
+ * @brief the maximum time to wait for a RTSP Source to
+ * complete first connection when the Pipeline is first played.
+ * In units of seconds.
+ */
+#define DSL_RTSP_FIRST_CONNECTION_TIMEOUT_S                         20
+
+/**
  * @brief time to sleep after a failed reconnection before
  * starting a new re-connection cycle. In units of seconds
  */
-#define DSL_RTSP_RECONNECTION_SLEEP_S                               4
+#define DSL_RTSP_RECONNECTION_SLEEP_S                               10
+
 /**
  * @brief the maximum time to wait for a RTSP Source to
  * asynchronously transition to a final state of Playing.

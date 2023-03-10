@@ -2497,8 +2497,11 @@ namespace DSL
         , m_isFullyLinked(false)
         , m_skipFrames(skipFrames)
         , m_dropFrameInterval(dropFrameInterval)
+        , m_numExtraSurfaces(DSL_DEFAULT_NUM_EXTRA_SURFACES)
         , m_rtpProtocols(protocol)
         , m_latency(latency)
+        , m_firstConnectTimeout(DSL_RTSP_FIRST_CONNECTION_TIMEOUT_S)
+        , m_firstConnectTime(0)
         , m_bufferTimeout(timeout)
         , m_streamManagerTimerId(0)
         , m_reconnectionManagerTimerId(0)
@@ -2626,6 +2629,22 @@ namespace DSL
             return false;
         }
 
+        // Note: all elements are linked in the select-stream and pad-added callbacks.
+
+        // Start the Stream mangement timer, only if timeout is enable and 
+        if (m_bufferTimeout)
+        {
+            // reset the first connect counter in case the pipeline is relinking 
+            // and playing after a previous play and stop.
+            m_firstConnectTime = 0;
+            
+            m_streamManagerTimerId = g_timeout_add(
+                DSL_RTSP_TEST_FOR_BUFFER_TIMEOUT_PERIOD_MS, 
+                RtspStreamManagerHandler, this);
+            LOG_INFO("Starting stream management for RTSP Source '" 
+                << GetName() << "'");
+        }
+        
         m_isLinked = true;
         return true;
     }
@@ -2904,6 +2923,8 @@ namespace DSL
         LOG_INFO("Encoding = '" << encoding << "' for RtspSourceBitnr '" 
             << GetName() << "'");
 
+        // Note we create a parser even if there is no TapBintr just to simplify
+        // the logic. The parser is only used/linked if there is TapBintr
         if (m_pParser == nullptr)
         {
             if (media.find("video") == std::string::npos)
@@ -2985,19 +3006,6 @@ namespace DSL
                     << GetName() << "'");
                 return false;
             }
-            // Start the Stream mangement timer, only if timeout is enable and 
-            // not currently running
-            if (m_bufferTimeout and !m_streamManagerTimerId)
-            {
-                m_streamManagerTimerId = g_timeout_add(m_bufferTimeout, 
-                    RtspStreamManagerHandler, this);
-                LOG_INFO("Starting stream management for RTSP Source '" << GetName() << "'");
-            }
-
-            // SetCurrentState(GST_STATE_READY);
-            
-            // finally fully linked -- ok to unlink all elements from this point
-            m_isFullyLinked = true;
         }
         return true;
     }
@@ -3036,63 +3044,29 @@ namespace DSL
                 return;
             }
             
-            LOG_INFO("rtspsrc element linked for RtspSourceBintr '" << GetName() << "'");
+            LOG_INFO("rtspsrc element linked for RtspSourceBintr '" 
+                << GetName() << "'");
+
+            // finally fully linked -- ok to unlink all elements from this point
+            m_isFullyLinked = true;
 
             // Update the cap memebers for this RtspSourceBintr
             gst_structure_get_uint(structure, "width", &m_width);
             gst_structure_get_uint(structure, "height", &m_height);
-            gst_structure_get_fraction(structure, "framerate", (gint*)&m_fpsN, (gint*)&m_fpsD);
+            gst_structure_get_fraction(structure, "framerate", (gint*)&m_fpsN, 
+                (gint*)&m_fpsD);
             
             LOG_INFO("Frame width = " << m_width << ", height = " << m_height);
             LOG_INFO("FPS numerator = " << m_fpsN << ", denominator = " << m_fpsD);
         }
     }
     
-    void RtspSourceBintr::HandleDecodeElementOnPadAdded(GstElement* pBin, GstPad* pPad)
-    {
-        LOG_FUNC();
-
-        GstCaps* pCaps = gst_pad_query_caps(pPad, NULL);
-        GstStructure* structure = gst_caps_get_structure(pCaps, 0);
-        std::string name = gst_structure_get_name(structure);
-        
-        LOG_INFO("Caps structs name " << name);
-        if (name.find("video") != std::string::npos)
-        {
-            GstPad* pQueueStaticSinkPad = 
-                gst_element_get_static_pad(m_pBufferOutVidConv->GetGstElement(), "sink");
-            if (!pQueueStaticSinkPad)
-            {
-                LOG_ERROR("Failed to get Static Source Pad for RTSP Source '" 
-                    << GetName() << "'");
-            }
-            
-            // Link the decode element's src pad with the source queue's sink pad
-            if (gst_pad_link(pPad, pQueueStaticSinkPad) != GST_PAD_LINK_OK) 
-            {
-                LOG_ERROR("Failed to link decodebin to pipeline");
-                throw;
-            }
-            
-            // Start the Stream mangement timer, only if timeout is enable and not currently running
-            if (m_bufferTimeout and !m_streamManagerTimerId)
-            {
-                m_streamManagerTimerId = g_timeout_add(m_bufferTimeout, 
-                    RtspStreamManagerHandler, this);
-                LOG_INFO("Starting stream management for RTSP Source '" << GetName() << "'");
-            }
-
-            SetCurrentState(GST_STATE_READY);
-
-            LOG_INFO("Decode element linked for RtspSourceBintr '" << GetName() << "'");
-        }
-    }
-
     int RtspSourceBintr::StreamManager()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
 
-        // if currently in a reset cycle then let the ResetStream handler continue to handle
+        // if currently in a reset cycle then let the ResetStream 
+        // handler continue to handle
         if (m_connectionData.is_in_reconnect)
         {
             return true;
@@ -3105,40 +3079,54 @@ namespace DSL
         uint stateResult = GetState(currentState, 0);
         SetCurrentState(currentState);
         
-        // Get the last buffer time. This timer callback should not be called until after the timer 
-        // is started on successful linkup - therefore the lastBufferTime should be non-zero
+        // Get the last buffer-time so we can determine if connection is nominal
         struct timeval lastBufferTime;
         m_TimestampPph->GetTime(lastBufferTime);
+        
+        // If we still haven't received our first buffer... we're waiting for the
+        // the first connection attemp to complete
         if (lastBufferTime.tv_sec == 0)
         {
-            LOG_DEBUG("Waiting for first buffer before checking for timeout for source '" 
+            // Increment the total time we've been waiting for connection.
+            m_firstConnectTime += DSL_RTSP_TEST_FOR_BUFFER_TIMEOUT_PERIOD_MS;
+            
+            // If we haven't exceeded our first connection wait time.
+            if (m_firstConnectTime < (DSL_RTSP_FIRST_CONNECTION_TIMEOUT_S*1000))
+            {
+                LOG_DEBUG("RtspSourceBintr '" << GetName() 
+                    << "' is waiting for first connection" );
+                return true;
+            }
+
+            LOG_ERROR("First connection timeout for RtspSourceBintr '" 
+                << GetName() << "' " );
+            m_firstConnectTime = 0;
+        }
+        else
+        {
+            double timeSinceLastBufferMs = 1000.0*(currentTime.tv_sec - lastBufferTime.tv_sec) + 
+                (currentTime.tv_usec - lastBufferTime.tv_usec) / 1000.0;
+
+            if (timeSinceLastBufferMs < m_bufferTimeout*1000)
+            {
+                // Timeout has not been exceeded, so return true to sleep again
+                return true;
+            }
+            LOG_INFO("Buffer timeout of " << m_bufferTimeout << " seconds exceeded for source '" 
                 << GetName() << "'");
-            return true;
-        }
-
-        double timeSinceLastBufferMs = 1000.0*(currentTime.tv_sec - lastBufferTime.tv_sec) + 
-            (currentTime.tv_usec - lastBufferTime.tv_usec) / 1000.0;
-
-        if (timeSinceLastBufferMs < m_bufferTimeout*1000)
-        {
-            // Timeout has not been exceeded, so return true to sleep again
-            return true;
-        }
-        LOG_INFO("Buffer timeout of " << m_bufferTimeout << " seconds exceeded for source '" 
-            << GetName() << "'");
+                
+            if (HasTapBintr())
+            {
+                m_pTapBintr->HandleEos();
+            }
             
-        if (HasTapBintr())
-        {
-            m_pTapBintr->HandleEos();
+            // Call the Reconnection Managter directly to start the reconnection cycle,
+            if (!ReconnectionManager())
+            {
+                LOG_INFO("Unable to start re-connection manager for '" << GetName() << "'");
+                return false;
+            }
         }
-        
-        // Call the Reconnection Managter directly to start the reconnection cycle,
-        if (!ReconnectionManager())
-        {
-            LOG_INFO("Unable to start re-connection manager for '" << GetName() << "'");
-            return false;
-        }
-            
         LOG_INFO("Starting Re-connection Manager for source '" << GetName() << "'");
         m_reconnectionManagerTimerId = g_timeout_add(1000, RtspReconnectionMangerHandler, this);
 
@@ -3172,7 +3160,6 @@ namespace DSL
                     m_reconnectionSleep-=1;
                     if (m_reconnectionSleep)
                     {
-                        LOG_INFO("Sleeping after failed connection");
                         return true;
                     }
                     m_reconnectionFailed = false;    
@@ -3240,6 +3227,7 @@ namespace DSL
                         << GetName() << "'");
                     m_reconnectionFailed = true;
                     m_reconnectionSleep = m_connectionData.sleep;
+                    LOG_INFO("Sleeping after failed connection");
                     return true;
 
                 default:
@@ -3367,11 +3355,6 @@ namespace DSL
     static void RtspSourceElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource)
     {
         static_cast<RtspSourceBintr*>(pSource)->HandleSourceElementOnPadAdded(pBin, pPad);
-    }
-    
-    static void RtspDecodeElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource)
-    {
-        static_cast<RtspSourceBintr*>(pSource)->HandleDecodeElementOnPadAdded(pBin, pPad);
     }
     
     static void OnChildAddedCB(GstChildProxy* pChildProxy, GObject* pObject,
