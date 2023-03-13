@@ -14,7 +14,7 @@ Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must ha
 * **Fake Sink** - consumes/drops all data.
 
 ### Sink Construction and Destruction
-Sinks are created by calling one of the eight type-specific constructors. As with all components, Sinks must be uniquely named from all other components created.
+Sinks are created by calling one of the type-specific constructors. As with all components, Sinks must be uniquely named from all other components created.
 
 Sinks are added to a Pipeline by calling [dsl_pipeline_component_add](/docs/api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
 
