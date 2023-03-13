@@ -1179,6 +1179,12 @@ namespace DSL {
         DslReturnType SinkRecordMailerRemove(const char* name,
             const char* mailer);
 
+        DslReturnType SinkEncodeDimensionsGet(const char* name, 
+            uint* width, uint* height);
+
+        DslReturnType SinkEncodeDimensionsSet(const char* name, 
+            uint width, uint height);
+
         DslReturnType SinkEncodeSettingsGet(const char* name, 
             uint* codec, uint* bitrate, uint* interval);
 

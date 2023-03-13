@@ -620,21 +620,45 @@ namespace DSL
             uint codec, uint bitrate, uint interval);
 
         /**
-         * @brief Gets the current bit-rate and interval settings for the Encoder in use
+         * @brief Gets the current bit-rate and interval settings in use by the 
+         * EncoderSinkBintr
          * @param[out] code the currect codec in used
-         * @param[out] bitrate the current bit-rate setting for the encoder in use
-         * @param[out] interval the current iframe interval for the encoder in use
+         * @param[out] bitrate the current bit-rate setting in use by the encoder
+         * @param[out] interval the current encode-interval in use by the encoder
          */ 
         void GetEncoderSettings(uint* codec, uint* bitrate, uint* interval);
 
         /**
-         * @brief Sets the current bit-rate and interval settings for the Encoder in use
-         * @param[in] codec the new code to use, either DSL_CODEC_H264 or DSL_CODE_H265
+         * @brief Sets the bit-rate and interval settings for the EncoderSinkBintr 
+         * to use.
+         * @param[in] codec the new code to use, either DSL_CODEC_H264 or 
+         * DSL_CODE_H265
          * @param[in] bitrate the new bit-rate setting in uints of bits/sec
-         * @param[in] interval the new iframe-interval setting
-         * @return false if the FileSink is currently in Use. True otherwise
+         * @param[in] interval the new encode-interval setting to use
+         * @return true if the settings were set successfully, false otherwise
          */ 
         bool SetEncoderSettings(uint codec, uint bitrate, uint interval);
+
+        /**
+         * @brief Gets the current width and height settings for 
+         * the EncodeSinkBintr's video converter element.
+         * @param[out] width the current width setting in pixels.
+         * @param[out] height the current height setting in pixels.
+         */ 
+        void GetConverterDimensions(uint* width, uint* height);
+        
+        /**
+         * @brief Sets the width and height settings for the EncodeSinkBintr's 
+         * video converter elementto use. The caller is required to provide valid 
+         * width and height values.
+         * @param[in] width the width value to set in pixels. Set to 0 for 
+         * no scaling.
+         * @param[in] height the height value to set in pixels. Set to 0 for 
+         * no scaling.
+         * @return true if the video converter dimensions were set successfully, 
+         * false otherwise
+         */ 
+        bool SetConverterDimensions(uint width, uint hieght);
 
         /**
          * @brief Sets the GPU ID for all Elementrs
@@ -664,6 +688,16 @@ namespace DSL
          */
         uint m_interval;
  
+        /**
+         * @brief Width property for the Video Converter element in uints of pixels.
+         */
+        uint m_width;
+
+        /**
+         * @brief Height property for the Video Converter element in uints of pixels.
+         */
+        uint m_height;
+
         /**
          * @brief Transform (video converter) element for the EncodeSinkBintr
          */

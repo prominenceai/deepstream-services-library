@@ -34,6 +34,8 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    #define DSL_RECORD_MGR_PTR std::shared_ptr<RecordMgr>
+
     class RecordMgr
     {
     public: 

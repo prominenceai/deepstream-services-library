@@ -977,6 +977,8 @@ namespace DSL
         , m_codec(codec)
         , m_bitrate(bitrate)
         , m_interval(interval)
+        , m_width(0)
+        , m_height(0)
     {
         LOG_FUNC();
         
@@ -1048,8 +1050,8 @@ namespace DSL
         
         if (IsInUse())
         {
-            LOG_ERROR("Unable to set Encoder Settings for FileSinkBintr '" << GetName() 
-                << "' as it's currently in use");
+            LOG_ERROR("Unable to set Encoder Settings for EncodeSinkBintr '" 
+                << GetName() << "' as it's currently in use");
             return false;
         }
 
@@ -1070,19 +1072,71 @@ namespace DSL
         return true;
     }
     
+    void EncodeSinkBintr::GetConverterDimensions(uint* width, uint* height)
+    {
+        LOG_FUNC();
+        
+        *width = m_width;
+        *height = m_height;
+    }
+
+    bool EncodeSinkBintr::SetConverterDimensions(uint width, uint height)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR(
+                "Unable to set dimensions for EncodeSinkBintr '"
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_width = width;
+        m_height = height;
+        
+        GstCaps* pCaps(NULL);
+        if (m_width and m_height)
+        {
+            pCaps = gst_caps_new_simple("video/x-raw", 
+                "format", G_TYPE_STRING, "I420",
+                "width", G_TYPE_INT, m_width, 
+                "height", G_TYPE_INT, m_height, NULL);
+        }
+        else
+        {
+            pCaps = gst_caps_new_simple("video/x-raw", 
+                "format", G_TYPE_STRING, "I420", NULL);
+        }
+        if (!pCaps)
+        {
+            LOG_ERROR("Failed to create video-conv-caps for EncodeSinkBintr '"
+                << GetName() << "'");
+            return false;
+        }
+        GstCapsFeatures *feature = NULL;
+        feature = gst_caps_features_new("memory:NVMM", NULL);
+        gst_caps_set_features(pCaps, 0, feature);
+
+        m_pCapsFilter->SetAttribute("caps", pCaps);
+        gst_caps_unref(pCaps);
+        
+        return true;
+    }
+
     bool EncodeSinkBintr::SetGpuId(uint gpuId)
     {
         LOG_FUNC();
         
         if (IsInUse())
         {
-            LOG_ERROR("Unable to set GPU ID for FileSinkBintr '" << GetName() 
+            LOG_ERROR("Unable to set GPU ID for EncodeSinkBintr '" << GetName() 
                 << "' as it's currently in use");
             return false;
         }
 
         m_gpuId = gpuId;
-        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for FileSinkBintr '" << GetName() << "'");
+        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for EncodeSinkBintr '" 
+            << GetName() << "'");
 
         m_pTransform->SetAttribute("gpu-id", m_gpuId);
         
@@ -1130,6 +1184,8 @@ namespace DSL
             LOG_INFO("  bitrate            : " << m_defaultBitrate);
         }
         LOG_INFO("  interval           : " << m_interval);
+        LOG_INFO("  converter-width    : " << m_width);
+        LOG_INFO("  converter-height   : " << m_height);
         LOG_INFO("  enable-last-sample : " << false);
         LOG_INFO("  max-lateness       : " << -1);
         LOG_INFO("  sync               : " << m_sync);
@@ -1221,8 +1277,17 @@ namespace DSL
         LOG_INFO("  outdir             : " << outdir);
         LOG_INFO("  codec              : " << m_codec);
         LOG_INFO("  container          : " << container);
-        LOG_INFO("  bitrate            : " << m_bitrate);
+        if (m_bitrate)
+        {
+            LOG_INFO("  bitrate            : " << m_bitrate);
+        }
+        else
+        {
+            LOG_INFO("  bitrate            : " << m_defaultBitrate);
+        }
         LOG_INFO("  interval           : " << m_interval);
+        LOG_INFO("  converter-width    : " << m_width);
+        LOG_INFO("  converter-height   : " << m_height);
         LOG_INFO("  enable-last-sample : " << false);
         LOG_INFO("  max-lateness       : " << -1);
         LOG_INFO("  sync               : " << m_sync);
@@ -1397,8 +1462,17 @@ namespace DSL
         LOG_INFO("  host               : " << m_host);
         LOG_INFO("  port               : " << m_udpPort);
         LOG_INFO("  codec              : " << m_codec);
-        LOG_INFO("  bitrate            : " << m_bitrate);
+        if (m_bitrate)
+        {
+            LOG_INFO("  bitrate            : " << m_bitrate);
+        }
+        else
+        {
+            LOG_INFO("  bitrate            : " << m_defaultBitrate);
+        }
         LOG_INFO("  interval           : " << m_interval);
+        LOG_INFO("  converter-width    : " << m_width);
+        LOG_INFO("  converter-height   : " << m_height);
         LOG_INFO("  enable-last-sample : " << false);
         LOG_INFO("  max-lateness       : " << -1);
         LOG_INFO("  sync               : " << m_sync);

@@ -146,19 +146,17 @@ def main(args):
         # ODE trigger/action, defined below, to start a new session on first 
         # occurrence of a bicycle. The default 'cache-size' and 'duration' are defined in
         # Setting the bit rate to 0 to not change from the default.  
-        retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H265, container=DSL_CONTAINER_MKV, 
-            bitrate=0, interval=0, client_listener=record_complete_listener)
+        retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H265, 
+            container=DSL_CONTAINER_MKV, bitrate=0, interval=0, 
+            client_listener=record_complete_listener)
         if retval != DSL_RETURN_SUCCESS:
             break
-            
-        # Let's check the default cache size, and reduce it. We only need a short buffer for this example.
-        retval, cache_size = dsl_sink_record_cache_size_get('record-sink')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        print(' ***  Default cache_size = ', cache_size, 'seconds  *** ')
-        
-        # Update the cache size to 5 seconds.
-        retval = dsl_sink_record_cache_size_set('record-sink', 5)
+
+        # Since the Record-Sink is derived from the Encode-Sink, we can use the 
+        # dsl_sink_encode_dimensions_set service to change the recording dimensions 
+        # at the input to the encoder. Note: the dimensions can also be controlled
+        # after the video encoder by calling dsl_sink_record_dimensions_set
+        retval = dsl_sink_encode_dimensions_set('record-sink', width=640, height=360)
         if retval != DSL_RETURN_SUCCESS:
             break
 

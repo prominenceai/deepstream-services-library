@@ -753,7 +753,8 @@ namespace DSL
         }
     }
         
-    DslReturnType Services::SinkRecordDimensionsGet(const char* name, uint* width, uint* height)
+    DslReturnType Services::SinkRecordDimensionsGet(const char* name, 
+        uint* width, uint* height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -761,7 +762,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                RecordSinkBintr);
 
             DSL_RECORD_SINK_PTR recordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
@@ -776,12 +778,14 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Record Sink '" << name << "' threw an exception getting dimensions");
+            LOG_ERROR("Record Sink '" << name 
+                << "' threw an exception getting dimensions");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::SinkRecordDimensionsSet(const char* name, uint width, uint height)
+    DslReturnType Services::SinkRecordDimensionsSet(const char* name, 
+        uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -789,7 +793,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                RecordSinkBintr);
 
 
             DSL_RECORD_SINK_PTR recordSinkBintr = 
@@ -808,7 +813,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Record Sink '" << name << "' threw an exception setting dimensions");
+            LOG_ERROR("Record Sink '" << name 
+                << "' threw an exception setting dimensions");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -1071,6 +1077,68 @@ namespace DSL
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
+
+    DslReturnType Services::SinkEncodeDimensionsGet(const char* name, 
+        uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
+
+            DSL_ENCODE_SINK_PTR encodeSinkBintr = 
+                std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
+
+            encodeSinkBintr->GetConverterDimensions(width, height);
+
+            LOG_INFO("Width = " << *width << " height = " << *height << 
+                " returned successfully for Encode Sink '" << name << "'");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Encode Sink '" << name 
+                << "' threw an exception getting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkEncodeDimensionsSet(const char* name, 
+        uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
+
+            DSL_ENCODE_SINK_PTR encodeSinkBintr = 
+                std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
+
+            if (!encodeSinkBintr->SetConverterDimensions(width, height))
+            {
+                LOG_ERROR("Encode Sink '" << name << "' failed to set dimensions");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Width = " << width << " height = " << height << 
+                " set successfully for Record Sink '" << name << "'");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Encode Sink '" << name 
+                << "' threw an exception setting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
 
     DslReturnType Services::SinkRtspNew(const char* name, const char* host, 
             uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)
