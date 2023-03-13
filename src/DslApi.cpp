@@ -29,7 +29,7 @@ THE SOFTWARE.
 { \
     if (!input_string) \
     { \
-        LOG_ERROR("Input parameter must be a valid and not NULL"); \
+        LOG_ERROR("Input parameter must be a valid address - not NULL"); \
         return DSL_RESULT_INVALID_INPUT_PARAM; \
     } \
 }while(0); 
@@ -6246,6 +6246,32 @@ DslReturnType dsl_sink_encode_settings_set(const wchar_t* name,
     
     return DSL::Services::GetServices()->SinkEncodeSettingsSet(cstrName.c_str(), 
         codec, bitrate, interval);
+}
+
+DslReturnType dsl_sink_encode_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(width);
+    RETURN_IF_PARAM_IS_NULL(height);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkEncodeDimensionsGet(cstrName.c_str(), 
+        width, height);
+}
+
+DslReturnType dsl_sink_encode_dimensions_set(const wchar_t* name, 
+    uint width, uint height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkEncodeDimensionsSet(cstrName.c_str(), 
+        width, height);
 }
 
 DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, 

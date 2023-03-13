@@ -6391,6 +6391,28 @@ DslReturnType dsl_sink_encode_settings_set(const wchar_t* name,
     uint codec, uint bitrate, uint interval);
 
 /**
+ * @brief Gets the dimensions, width and height, in use by the Encode Sink's
+ * input video-converter.
+ * @param[in] name name of the Encode Sink to query
+ * @param[out] width current width setting in pixels. 0 = no scaling (default).
+ * @param[out] height current height setting in pixels. 0 = no scaling (default).
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_sink_encode_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
+
+/**
+ * @brief Sets the dimensions, width and height, for the Encode Sink's input 
+ * video converter to use. Set to zero for no-scaling.
+ * @param[in] name name of the Record Sink to update
+ * @param[in] width new width setting to use in pixels
+ * @param[in] height new height setting to use in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ */
+DslReturnType dsl_sink_encode_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
+
+/**
  * @brief creates a new, uniquely named RTSP Sink component
  * @param[in] name unique coomponent name for the new RTSP Sink
  * @param[in] host address for the RTSP Server

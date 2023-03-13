@@ -976,6 +976,13 @@ SCENARIO( "The Components container is updated correctly on new File Sink", "[si
                 REQUIRE( retCodec == codec );
                 REQUIRE( retBitrate == bitrate );
                 REQUIRE( retInterval == interval );
+                
+                uint retHeight(99), retWidth(99);
+                REQUIRE( dsl_sink_encode_dimensions_get(fileSinkName.c_str(), 
+                    &retWidth, &retHeight) == DSL_RESULT_SUCCESS );
+                REQUIRE( retWidth == 0 );
+                REQUIRE( retHeight == 0 );
+                
                 REQUIRE( dsl_component_list_size() == 1 );
             }
         }
@@ -1103,6 +1110,48 @@ SCENARIO( "A File Sink's Encoder settings can be updated", "[sink-api]" )
                 REQUIRE( currCodec == newCodec );
                 REQUIRE( currBitrate == newBitrate );
                 REQUIRE( currInterval == newInterval );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A File Sink's dimensions can be updated", "[sink-api]" )
+{
+    GIVEN( "A new File Sink" ) 
+    {
+        std::wstring fileSinkName(L"file-sink");
+        std::wstring filePath(L"./output.mp4");
+        uint codec(DSL_CODEC_H265);
+        uint container(DSL_CONTAINER_MP4);
+        uint initBitrate(4000000);
+        uint initInterval(0);
+
+        REQUIRE( dsl_sink_file_new(fileSinkName.c_str(), filePath.c_str(),
+            codec, container, initBitrate, initInterval) == DSL_RESULT_SUCCESS );
+            
+        uint ret_width(99), ret_height(99);
+    
+        REQUIRE( dsl_sink_encode_dimensions_get(fileSinkName.c_str(), 
+            &ret_width, &ret_height) == DSL_RESULT_SUCCESS);
+        REQUIRE( ret_width == 0 );
+        REQUIRE( ret_height == 0 );
+
+        WHEN( "The FileSinkBintr's dimensions settings are Set" )
+        {
+            uint new_width(1280), new_height(720);
+            
+            REQUIRE( dsl_sink_encode_dimensions_set(fileSinkName.c_str(), 
+                new_width, new_height) == DSL_RESULT_SUCCESS);
+
+            THEN( "The FileSinkBintr's new Encoder settings are returned on Get")
+            {
+                REQUIRE( dsl_sink_encode_dimensions_get(fileSinkName.c_str(), 
+                    &ret_width, &ret_height) == DSL_RESULT_SUCCESS);
+                REQUIRE( ret_width == new_width );
+                REQUIRE( ret_height == ret_height );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
@@ -1703,6 +1752,15 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
 
                 REQUIRE( dsl_sink_encode_settings_get(NULL, &codec, &bitrate, &interval) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_encode_settings_set(NULL, codec, bitrate, interval) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_sink_encode_dimensions_get(NULL, 
+                    &width, &height) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_encode_dimensions_get(sink_name.c_str(), 
+                    NULL, &height) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_encode_dimensions_get(sink_name.c_str(), 
+                    &width, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_encode_dimensions_set(NULL, 
+                    0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_sink_rtsp_new(NULL, NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_rtsp_new(sink_name.c_str(), NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );

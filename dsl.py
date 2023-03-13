@@ -5129,6 +5129,28 @@ def dsl_sink_encode_settings_set(name, codec, bitrate, interval):
     return int(result)
 
 ##
+## dsl_sink_encode_dimensions_get()
+##
+_dsl.dsl_sink_encode_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_sink_encode_dimensions_get.restype = c_uint
+def dsl_sink_encode_dimensions_get(name):
+    global _dsl
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_sink_encode_dimensions_get(name, DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), width.value, height.value 
+
+##
+## dsl_sink_encode_dimensions_set()
+##
+_dsl.dsl_sink_encode_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_sink_encode_dimensions_set.restype = c_uint
+def dsl_sink_encode_dimensions_set(name, width, height):
+    global _dsl
+    result = _dsl.dsl_sink_encode_dimensions_set(name, width, height)
+    return int(result)
+
+##
 ## dsl_sink_rtsp_new()
 ##
 _dsl.dsl_sink_rtsp_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint]

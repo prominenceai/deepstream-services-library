@@ -753,6 +753,12 @@ SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr is created correctly",  "[SinkBint
                 REQUIRE( retCodec == codec );
                 REQUIRE( retBitrate == 4000000);
                 REQUIRE( retInterval == interval);
+                
+                uint retWidth(99), retHeight(99);
+                pSinkBintr->GetConverterDimensions(&retWidth, &retHeight);
+                REQUIRE( retWidth == 0 );
+                REQUIRE( retHeight == 0 );
+                
             }
         }
     }
@@ -838,6 +844,11 @@ SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr is created correctly",  "[SinkBint
                 REQUIRE( retCodec == codec );
                 REQUIRE( retBitrate == 4000000 ); // default value
                 REQUIRE( retInterval == interval );
+
+                uint retWidth(99), retHeight(99);
+                pSinkBintr->GetConverterDimensions(&retWidth, &retHeight);
+                REQUIRE( retWidth == 0 );
+                REQUIRE( retHeight == 0 );
             }
         }
     }
@@ -937,6 +948,43 @@ SCENARIO( "A FileSinkBintr's Encoder settings can be updated", "[SinkBintr]" )
                 REQUIRE( currCodec == newCodec );
                 REQUIRE( currBitrate == newBitrate );
                 REQUIRE( currInterval == newInterval );
+            }
+        }
+    }
+}
+
+SCENARIO( "A FileSinkBintr's Converter dimensions can be updated", "[SinkBintr]" )
+{
+    GIVEN( "A new FileSinkBintr in memory" ) 
+    {
+        std::string sinkName("file-sink");
+        std::string filePath("./output.mp4");
+        uint codec(DSL_CODEC_H265);
+        uint container(DSL_CONTAINER_MP4);
+        uint initBitrate(0); // use default
+        uint initInterval(0);
+
+        DSL_FILE_SINK_PTR pSinkBintr = 
+            DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), 
+            codec, container, initBitrate, initInterval);
+            
+        uint retWidth(99), retHeight(99);
+    
+        pSinkBintr->GetConverterDimensions(&retWidth, &retHeight);
+        REQUIRE( retWidth == 0 );
+        REQUIRE( retHeight == 0 );
+
+        WHEN( "The FileSinkBintr's Converter dimensions are Set" )
+        {
+            uint newWidth(1280), newHeight(720);
+            
+            REQUIRE( pSinkBintr->SetConverterDimensions(newWidth, newHeight) == true );
+
+            THEN( "The FileSinkBintr's new Converter dimensions are returned on Get")
+            {
+                pSinkBintr->GetConverterDimensions(&retWidth, &retHeight);
+                REQUIRE( retWidth == newWidth );
+                REQUIRE( retHeight == newHeight );
             }
         }
     }
