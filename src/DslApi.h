@@ -605,13 +605,6 @@ THE SOFTWARE.
 #define DSL_RTSP_TEST_FOR_BUFFER_TIMEOUT_PERIOD_MS                  100
 
 /**
- * @brief the maximum time to wait for a RTSP Source to
- * complete first connection when the Pipeline is first played.
- * In units of seconds.
- */
-#define DSL_RTSP_FIRST_CONNECTION_TIMEOUT_S                         20
-
-/**
  * @brief time to sleep after a failed reconnection before
  * starting a new re-connection cycle. In units of seconds
  */
