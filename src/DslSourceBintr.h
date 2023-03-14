@@ -1713,11 +1713,6 @@ namespace DSL
         DSL_PPH_TIMESTAMP_PTR m_TimestampPph;
 
         /**
-         * @brief maximum time to wait for the first connection to complete in ms.
-         */
-        uint m_firstConnectTimeout;
-        
-        /**
          * @brief time incremented while waiting for first connection in ms.
          */
         uint m_firstConnectTime;

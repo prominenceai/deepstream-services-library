@@ -615,14 +615,14 @@ THE SOFTWARE.
  * @brief time to sleep after a failed reconnection before
  * starting a new re-connection cycle. In units of seconds
  */
-#define DSL_RTSP_RECONNECTION_SLEEP_S                               10
+#define DSL_RTSP_CONNECTION_SLEEP_S                                 10
 
 /**
  * @brief the maximum time to wait for a RTSP Source to
  * asynchronously transition to a final state of Playing.
- * In units of seconds
+ * In units of seconds. 
  */
-#define DSL_RTSP_RECONNECTION_TIMEOUT_S                             30
+#define DSL_RTSP_CONNECTION_TIMEOUT_S                               20
 
 /**
  * @brief Predefined Color Constants - rows 1 and 2.

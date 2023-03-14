@@ -2500,7 +2500,6 @@ namespace DSL
         , m_numExtraSurfaces(DSL_DEFAULT_NUM_EXTRA_SURFACES)
         , m_rtpProtocols(protocol)
         , m_latency(latency)
-        , m_firstConnectTimeout(DSL_RTSP_FIRST_CONNECTION_TIMEOUT_S)
         , m_firstConnectTime(0)
         , m_bufferTimeout(timeout)
         , m_streamManagerTimerId(0)
@@ -2595,8 +2594,8 @@ namespace DSL
         g_mutex_init(&m_stateChangeMutex);
         
         // Set the default connection param values
-        m_connectionData.sleep = DSL_RTSP_RECONNECTION_SLEEP_S;
-        m_connectionData.timeout = DSL_RTSP_RECONNECTION_TIMEOUT_S;
+        m_connectionData.sleep = DSL_RTSP_CONNECTION_SLEEP_S;
+        m_connectionData.timeout = DSL_RTSP_CONNECTION_TIMEOUT_S;
     }
 
     RtspSourceBintr::~RtspSourceBintr()
@@ -3091,7 +3090,7 @@ namespace DSL
             m_firstConnectTime += DSL_RTSP_TEST_FOR_BUFFER_TIMEOUT_PERIOD_MS;
             
             // If we haven't exceeded our first connection wait time.
-            if (m_firstConnectTime < (DSL_RTSP_FIRST_CONNECTION_TIMEOUT_S*1000))
+            if (m_firstConnectTime < (m_connectionData.timeout*1000))
             {
                 LOG_DEBUG("RtspSourceBintr '" << GetName() 
                     << "' is waiting for first connection" );
