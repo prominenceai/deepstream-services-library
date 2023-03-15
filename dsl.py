@@ -3622,25 +3622,25 @@ def dsl_source_rtsp_timeout_set(name, timeout):
     return int(result)
 
 ##
-## dsl_source_rtsp_reconnection_params_get()
+## dsl_source_rtsp_connection_params_get()
 ##
-_dsl.dsl_source_rtsp_reconnection_params_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_source_rtsp_reconnection_params_get.restype = c_uint
-def dsl_source_rtsp_reconnection_params_get(name):
+_dsl.dsl_source_rtsp_connection_params_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_source_rtsp_connection_params_get.restype = c_uint
+def dsl_source_rtsp_connection_params_get(name):
     global _dsl
     sleep = c_uint(0)
     timeout = c_uint(0)
-    result = _dsl.dsl_source_rtsp_reconnection_params_get(name, DSL_UINT_P(sleep), DSL_UINT_P(timeout))
+    result = _dsl.dsl_source_rtsp_connection_params_get(name, DSL_UINT_P(sleep), DSL_UINT_P(timeout))
     return int(result), sleep.value, timeout.value
 
 ##
-## dsl_source_rtsp_reconnection_params_set()
+## dsl_source_rtsp_connection_params_set()
 ##
-_dsl.dsl_source_rtsp_reconnection_params_set.argtypes = [c_wchar_p, c_uint, c_uint]
-_dsl.dsl_source_rtsp_reconnection_params_set.restype = c_uint
-def dsl_source_rtsp_reconnection_params_set(name, sleep, timeout):
+_dsl.dsl_source_rtsp_connection_params_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_source_rtsp_connection_params_set.restype = c_uint
+def dsl_source_rtsp_connection_params_set(name, sleep, timeout):
     global _dsl
-    result = _dsl.dsl_source_rtsp_reconnection_params_set(name, sleep, timeout)
+    result = _dsl.dsl_source_rtsp_connection_params_set(name, sleep, timeout)
     return int(result)
 
 ##

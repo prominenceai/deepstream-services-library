@@ -2779,7 +2779,7 @@ namespace DSL
         m_bufferTimeout = timeout;
     }
 
-    void RtspSourceBintr::GetReconnectionParams(uint* sleep, uint* timeout)
+    void RtspSourceBintr::GetConnectionParams(uint* sleep, uint* timeout)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionManagerMutex);
@@ -2788,7 +2788,7 @@ namespace DSL
         *timeout = m_connectionData.timeout;
     }
     
-    bool RtspSourceBintr::SetReconnectionParams(uint sleep, uint timeout)
+    bool RtspSourceBintr::SetConnectionParams(uint sleep, uint timeout)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionManagerMutex);

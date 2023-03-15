@@ -4394,24 +4394,28 @@ DslReturnType dsl_source_rtsp_timeout_set(const wchar_t* name, uint timeout)
     return DSL::Services::GetServices()->SourceRtspTimeoutSet(cstrName.c_str(), timeout);
 }
 
-DslReturnType dsl_source_rtsp_reconnection_params_get(const wchar_t* name, uint* sleep, uint* timeout)
+DslReturnType dsl_source_rtsp_connection_params_get(const wchar_t* name, 
+    uint* sleep, uint* timeout)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceRtspReconnectionParamsGet(cstrName.c_str(), sleep, timeout);
+    return DSL::Services::GetServices()->SourceRtspConnectionParamsGet(
+        cstrName.c_str(), sleep, timeout);
 }
 
-DslReturnType dsl_source_rtsp_reconnection_params_set(const wchar_t* name, uint sleep, uint timeout)
+DslReturnType dsl_source_rtsp_connection_params_set(const wchar_t* name, 
+    uint sleep, uint timeout)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceRtspReconnectionParamsSet(cstrName.c_str(), sleep, timeout);
+    return DSL::Services::GetServices()->SourceRtspConnectionParamsSet(
+        cstrName.c_str(), sleep, timeout);
 }
 
 DslReturnType dsl_source_rtsp_connection_data_get(const wchar_t* name, dsl_rtsp_connection_data* data)
